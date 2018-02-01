@@ -41,15 +41,12 @@ from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 
 class PlotWithSlider(qt.QWidget):
-    #                                value row  col
-    sigSliderValueChanged = qt.Signal(int, int, int)
-    sigKeepAspectRatioChanged = qt.Signal(bool, int, int)
+    #                                value id
+    sigSliderValueChanged = qt.Signal(int, object)
+    sigKeepAspectRatioChanged = qt.Signal(bool, object)
 
-    def __init__(self, parent=None, row=0, col=0, backend=None):
+    def __init__(self, parent=None, backend=None):
         qt.QWidget.__init__(self, parent)
-
-        self.row = row
-        self.col = col
 
         self.plot = Plot2D(parent=self, backend=backend)
         self.plot.sigSetKeepDataAspectRatio.connect(
@@ -66,11 +63,11 @@ class PlotWithSlider(qt.QWidget):
         layout.addWidget(self.slider)
 
     def _emitSliderValueChanged(self, value):
-        self.sigSliderValueChanged.emit(value, self.row, self.col)
+        self.sigSliderValueChanged.emit(value, id(self))
 
     def _emitPlotKeepAspectRatio(self, isKeepAspectRatio):
         self.sigKeepAspectRatioChanged.emit(isKeepAspectRatio,
-                                            self.row, self.col)
+                                            id(self))
 
 
 class GridImageWidget(qt.QWidget):
@@ -83,6 +80,8 @@ class GridImageWidget(qt.QWidget):
         self._maxNPlots = 100
         self._plots = {}
         """:class:`Plot2D` indexed by 2-tuples (row, col)"""
+        self._plotCoords = {}
+        """Plot coordinates (row, col) indexed by the widget's id"""
         self._xAxesSynchro = None
         self._yAxesSynchro = None
         self._data = []
@@ -141,7 +140,8 @@ class GridImageWidget(qt.QWidget):
             for c in range(self._ncols):
                 if (r, c) not in self._plots:
                     areNewPlotsAdded = True
-                    self._plots[(r, c)] = self._instantiateNewPlot(r, c)
+                    self._plots[(r, c)] = self._instantiateNewPlot()
+                    self._plotCoords[id(self._plots[(r, c)])] = (r, c)
                     self.gridLayout.addWidget(self._plots[(r, c)],
                                               r, c)
                     self._plots[(r, c)].sigSliderValueChanged.connect(
@@ -162,8 +162,9 @@ class GridImageWidget(qt.QWidget):
             self._yAxesSynchro = SyncAxes([plt.plot.getYAxis() for plt in self._plots.values()])
             self._xAxesSynchro = SyncAxes([plt.plot.getXAxis() for plt in self._plots.values()])
 
-    def _instantiateNewPlot(self, row, col):
-        plot = PlotWithSlider(self, row, col, backend=self._backend)
+    def _instantiateNewPlot(self):
+        plot = PlotWithSlider(parent=self,
+                              backend=self._backend)
         return plot
 
     @property
@@ -180,13 +181,13 @@ class GridImageWidget(qt.QWidget):
         """Number of visible plots in the grid"""
         return self._nrows * self._ncols
 
-    def _onSliderValueChanged(self, value, row, col):
+    def _onSliderValueChanged(self, value, plotId):
         """Plot the requested image, if any data is loaded."""
-        assert (row, col) in self._plots
         assert value < self._nframes
+        row, col = self._plotCoords[plotId]
         self._plots[(row, col)].plot.addImage(self._data[value])
 
-    def _onKeepAspectRatioChanged(self, isKeepAspectRatio, row, col):
+    def _onKeepAspectRatioChanged(self, isKeepAspectRatio, plotId):
         """If any plot changes its keepAspectRatio policy,
         apply it to all other plots."""
         with self._disconnectAllAspectRatioSignals():
@@ -202,7 +203,6 @@ class GridImageWidget(qt.QWidget):
         for r, c in self._plots:
             self._plots[(r, c)].sigKeepAspectRatioChanged.connect(
                 self._onKeepAspectRatioChanged)
-        #qt.QApplication.instance().processEvents()
 
     def setFrames(self, data):
         """
