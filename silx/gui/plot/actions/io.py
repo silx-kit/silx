@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "02/02/2018"
 
 from . import PlotAction
 from silx.io.utils import save1D, savespec
@@ -93,7 +93,7 @@ class SaveAction(PlotAction):
         ('Curve as OMNIC CSV (*.csv)',
          {'fmt': '%.7E', 'delimiter': ',', 'header': False}),
         ('Curve as SpecFile (*.dat)',
-         {'fmt': '%.7g', 'delimiter': '', 'header': False})
+         {'fmt': '%.10g', 'delimiter': '', 'header': False})
     ))
 
     CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
