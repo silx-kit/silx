@@ -89,7 +89,10 @@ before_script:
       fi
 
     # Install optional dependencies for running test
-    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==2015.1
+    - if [ "$TRAVIS_PYTHON_VERSION" != "3.6" ];
+      then
+          pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==2015.1;
+      fi
     # This installs PyQt and scipy if wheels are available
     - pip install --pre -r requirements.txt
 
