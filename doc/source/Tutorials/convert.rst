@@ -94,7 +94,7 @@ All frames must have the same shape.
 
 The following command merges all files matching a pattern::
 
-    silx convert --file-pattern ch09__mca_0005_0000_%d.edf -o ch09__mca_0005_0000_multiframe.edf
+    silx convert --file-pattern ch09__mca_0005_0000_%d.edf -o ch09__mca_0005_0000_multiframe.h5
 
 The data in the output file is presented as a 3D array.
 
