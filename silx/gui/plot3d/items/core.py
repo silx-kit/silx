@@ -109,7 +109,7 @@ class Item3D(qt.QObject):
                 parent.sigItemChanged.disconnect(self._parentItemChanged)
 
         elif event.type() == qt.QEvent.ParentChange:
-            self.sigItemChanged.emit(Item3DChangedType.ROOT_ITEM)
+            self._updated(Item3DChangedType.ROOT_ITEM)
 
             parent = self.parent()
             if isinstance(parent, Item3D):
@@ -123,7 +123,7 @@ class Item3D(qt.QObject):
         :param Item3DChangedType event:
         """
         if event == Item3DChangedType.ROOT_ITEM:
-            self.sigItemChanged.emit(Item3DChangedType.ROOT_ITEM)
+            self._updated(Item3DChangedType.ROOT_ITEM)
 
     def root(self):
         """Returns the root of the scene this item belongs to.
