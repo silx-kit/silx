@@ -40,7 +40,7 @@ from silx.third_party import enum, six
 from ... import qt
 from ...plot.items import ItemChangedType
 from .. import scene
-from ..scene import transform
+from ..scene import primitives, transform
 
 
 @enum.unique
@@ -61,6 +61,9 @@ class Item3DChangedType(enum.Enum):
 
     LABEL = 'labelChanged'
     """Item's label changed flag."""
+
+    BOUNDING_BOX_VISIBLE = 'boundingBoxVisibleChanged'
+    """Item's bounding box visibility changed"""
 
 
 class Item3D(qt.QObject):
@@ -152,10 +155,13 @@ class DataItem3D(Item3D):
     """Base class representing a data item with transform in the scene.
 
     :param parent: The View widget this item belongs to.
-    :param primitive: An optional primitive to use as scene primitive
     """
 
-    def __init__(self, parent, primitive=None):
+    def __init__(self, parent):
+        primitive = primitives.GroupBBox()
+        primitive.boxVisible = False
+        primitive.axesVisible = False
+
         Item3D.__init__(self, parent=parent, primitive=primitive)
 
         # Transformations
@@ -339,6 +345,26 @@ class DataItem3D(Item3D):
         :return: 3x3 matrix
         :rtype: numpy.ndarray"""
         return self._matrix.getMatrix(copy=True)[:3, :3]
+
+    # Bounding box
+
+    def isBoundingBoxVisible(self):
+        """Returns item's bounding box visibility.
+
+        :rtype: bool
+        """
+        return self._getScenePrimitive().boxVisible
+
+    def setBoundingBoxVisible(self, visible):
+        """Set item's bounding box visibility.
+
+        :param bool visible: True to show the bounding box, False to hide
+        """
+        visible = bool(visible)
+        primitive = self._getScenePrimitive()
+        if visible != primitive.boxVisible:
+            primitive.boxVisible = visible
+            self._updated(Item3DChangedType.BOUNDING_BOX_VISIBLE)
 
 
 class GroupItem(DataItem3D):

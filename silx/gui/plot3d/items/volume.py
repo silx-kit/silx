@@ -258,8 +258,11 @@ class ScalarField3D(DataItem3D):
     """
 
     def __init__(self, parent=None):
-        DataItem3D.__init__(
-            self, parent=parent, primitive=primitives.BoundedGroup())
+        DataItem3D.__init__(self, parent=parent)
+
+        # Gives this item the shape of the data, no matter
+        # of the isosurface/cut plane size
+        self._boundedGroup = primitives.BoundedGroup()
 
         # Store iso-surfaces
         self._isosurfaces = []
@@ -269,8 +272,6 @@ class ScalarField3D(DataItem3D):
 
         self._cutPlane = CutPlane(parent=self)
         self._cutPlane.setVisible(False)
-        self._getScenePrimitive().children.append(
-            self._cutPlane._getScenePrimitive())
 
         self._isogroup = primitives.GroupDepthOffset()
         self._isogroup.transforms = [
@@ -283,7 +284,11 @@ class ScalarField3D(DataItem3D):
             # Offset to match cutting plane coords
             transform.Translate(0.5, 0.5, 0.5)
         ]
-        self._getScenePrimitive().children.append(self._isogroup)
+
+        self._getScenePrimitive().children = [
+            self._boundedGroup,
+            self._cutPlane._getScenePrimitive(),
+            self._isogroup]
 
     def setData(self, data, copy=True):
         """Set the 3D scalar data represented by this item.
@@ -299,7 +304,7 @@ class ScalarField3D(DataItem3D):
         if data is None:
             self._data = None
             self._dataRange = None
-            self._getScenePrimitive().shape = None
+            self._boundedGroup.shape = None
 
         else:
             data = numpy.array(data, copy=copy, dtype=numpy.float32, order='C')
@@ -320,7 +325,7 @@ class ScalarField3D(DataItem3D):
                 dataRange = dataRange.minimum, min_positive, dataRange.maximum
             self._dataRange = dataRange
 
-            self._getScenePrimitive().shape = self._data.shape
+            self._boundedGroup.shape = self._data.shape
 
         # Update iso-surfaces
         for isosurface in self.getIsosurfaces():
