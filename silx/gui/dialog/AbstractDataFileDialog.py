@@ -1088,9 +1088,8 @@ class AbstractDataFileDialog(qt.QDialog):
         if index is not None:
             if index.model() is self.__dataModel:
                 obj = self.__dataModel.data(index, self.__dataModel.H5PY_OBJECT_ROLE)
-                if silx.io.is_dataset(obj):
-                    if obj.shape is not None and len(obj.shape) >= 2:
-                        selectedData = obj
+                if self._isDataSupportable(obj):
+                    selectedData = obj
             elif index.model() is self.__fileModel:
                 self.__closeFile()
                 path = self.__fileModel.filePath(index)

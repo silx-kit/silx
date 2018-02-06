@@ -270,6 +270,10 @@ class ImageFileDialog(AbstractDataFileDialog):
 
         :rtype: bool
         """
+        if not hasattr(data, "dtype"):
+            # It is not an HDF5 dataset nor a fabio image wrapper
+            return False
+
         if data is None or data.shape is None:
             return False
 
