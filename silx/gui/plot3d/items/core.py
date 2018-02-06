@@ -101,6 +101,9 @@ class Item3D(qt.QObject):
             self._label += u' %d' % labelIndex
         self._LABEL_INDICES[self.__class__] += 1
 
+        if isinstance(parent, Item3D):
+            parent.sigItemChanged.connect(self._parentItemChanged)
+
     def setParent(self, parent):
         """Override set parent to handle root item change"""
         previousParent = self.parent()
