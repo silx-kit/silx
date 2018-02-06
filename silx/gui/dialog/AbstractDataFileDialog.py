@@ -28,7 +28,7 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2017"
+__date__ = "06/02/2018"
 
 
 import sys
@@ -1048,15 +1048,15 @@ class AbstractDataFileDialog(qt.QDialog):
         if codec.is_autodetect():
             if self.__isSilxHavePriority(filename):
                 openners.append(self.__openSilxFile)
-                if fabio is not None:
+                if fabio is not None and self._isFabioFilesSupported():
                     openners.append(self.__openFabioFile)
             else:
-                if fabio is not None:
+                if fabio is not None and self._isFabioFilesSupported():
                     openners.append(self.__openFabioFile)
                 openners.append(self.__openSilxFile)
         elif codec.is_silx_codec():
             openners.append(self.__openSilxFile)
-        elif codec.is_fabio_codec():
+        elif self._isFabioFilesSupported() and codec.is_fabio_codec():
             # It is requested to use fabio, anyway fabio is here or not
             openners.append(self.__openFabioFile)
 
@@ -1323,6 +1323,18 @@ class AbstractDataFileDialog(qt.QDialog):
     def __textChanged(self, text):
         self.__pathChanged()
 
+    def _isFabioFilesSupported(self):
+        """Returns true fabio files can be loaded.
+        """
+        return True
+
+    def _isLoadableUrl(self, url):
+        """Returns true if the URL is loadable by this dialog.
+
+        :param DataUrl url: The requested URL
+        """
+        return True
+
     def __pathChanged(self):
         url = silx.io.url.DataUrl(path=self.__pathEdit.text())
         if url.is_valid() or url.path() == "":
@@ -1334,12 +1346,15 @@ class AbstractDataFileDialog(qt.QDialog):
                     self.__fileModel_setRootPath(url.file_path())
                     index = self.__fileModel.index(url.file_path())
                 elif os.path.isfile(url.file_path()):
-                    if url.scheme() == "silx":
-                        loaded = self.__openSilxFile(url.file_path())
-                    elif url.scheme() == "fabio":
-                        loaded = self.__openFabioFile(url.file_path())
+                    if self._isLoadableUrl(url):
+                        if url.scheme() == "silx":
+                            loaded = self.__openSilxFile(url.file_path())
+                        elif url.scheme() == "fabio" and self._isFabioFilesSupported():
+                            loaded = self.__openFabioFile(url.file_path())
+                        else:
+                            loaded = self.__openFile(url.file_path())
                     else:
-                        loaded = self.__openFile(url.file_path())
+                        loaded = False
                     if loaded:
                         if self.__h5 is not None:
                             rootIndex = self.__dataModel.indexFromH5Object(self.__h5)

@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2017"
+__date__ = "06/02/2018"
 
 import logging
 from silx.gui.plot import actions
@@ -278,6 +278,9 @@ class ImageFileDialog(AbstractDataFileDialog):
 
         dim = len(data.shape)
         return dim >= 2
+
+    def _isFabioFilesSupported(self):
+        return True
 
     def _isDataSupported(self, data):
         """Check if the data can be returned by the dialog.
