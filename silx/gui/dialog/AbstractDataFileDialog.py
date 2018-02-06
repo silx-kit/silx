@@ -661,7 +661,8 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__parentFileDirectoryAction.setEnabled(False)
 
         self.__selectorWidget = self._createSelectorWidget(self)
-        self.__selectorWidget.selectionChanged.connect(self.__selectorWidgetChanged)
+        if self.__selectorWidget is not None:
+            self.__selectorWidget.selectionChanged.connect(self.__selectorWidgetChanged)
 
         self.__previewToolBar = self._createPreviewToolbar(self, self.__previewWidget, self.__selectorWidget)
 
@@ -804,9 +805,28 @@ class AbstractDataFileDialog(qt.QDialog):
         dataSelection = qt.QWidget(self)
         dataLayout = qt.QVBoxLayout()
         dataLayout.setContentsMargins(0, 0, 0, 0)
-        dataLayout.addWidget(self.__previewToolBar)
+        if self.__previewToolBar is not None:
+            dataLayout.addWidget(self.__previewToolBar)
+        else:
+            # Add dummy space
+            dummyToolbar2 = qt.QWidget(self)
+            dummyToolbar2.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+            dummyToolbar2.setFixedHeight(self.__browseToolBar.height())
+            self.__resizeToolbar = _CatchResizeEvent(self, self.__browseToolBar)
+            self.__resizeToolbar.resized.connect(lambda e: dummyToolbar2.setFixedHeight(e.size().height()))
+            dataLayout.addWidget(dummyToolbar2)
+
         dataLayout.addWidget(dataFrame)
-        dataLayout.addWidget(self.__selectorWidget)
+        if self.__selectorWidget is not None:
+            dataLayout.addWidget(self.__selectorWidget)
+        else:
+            # Add dummy space
+            dummyCombo2 = qt.QWidget(self)
+            dummyCombo2.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+            dummyCombo2.setFixedHeight(self.__fileTypeCombo.height())
+            self.__resizeToolbar = _CatchResizeEvent(self, self.__fileTypeCombo)
+            self.__resizeToolbar.resized.connect(lambda e: dummyCombo2.setFixedHeight(e.size().height()))
+            dataLayout.addWidget(dummyCombo2)
         dataSelection.setLayout(dataLayout)
 
         self.__splitter = qt.QSplitter(self)
@@ -1092,17 +1112,18 @@ class AbstractDataFileDialog(qt.QDialog):
                     selectedData = obj
             elif index.model() is self.__fileModel:
                 self.__closeFile()
-                path = self.__fileModel.filePath(index)
-                if os.path.isfile(path):
-                    codec = self.__fileTypeCombo.currentCodec()
-                    is_fabio_decoder = codec.is_fabio_codec()
-                    is_fabio_have_priority = not codec.is_silx_codec() and not self.__isSilxHavePriority(path)
-                    if is_fabio_decoder or is_fabio_have_priority:
-                        # Then it's flat frame container
-                        if fabio is not None:
-                            self.__openFabioFile(path)
-                            if self.__fabio is not None:
-                                selectedData = _FabioData(self.__fabio)
+                if self._isFabioFilesSupported():
+                    path = self.__fileModel.filePath(index)
+                    if os.path.isfile(path):
+                        codec = self.__fileTypeCombo.currentCodec()
+                        is_fabio_decoder = codec.is_fabio_codec()
+                        is_fabio_have_priority = not codec.is_silx_codec() and not self.__isSilxHavePriority(path)
+                        if is_fabio_decoder or is_fabio_have_priority:
+                            # Then it's flat frame container
+                            if fabio is not None:
+                                self.__openFabioFile(path)
+                                if self.__fabio is not None:
+                                    selectedData = _FabioData(self.__fabio)
             else:
                 assert(False)
 
@@ -1156,7 +1177,8 @@ class AbstractDataFileDialog(qt.QDialog):
         """Clear the data part of the GUI"""
         if self.__previewWidget is not None:
             self.__previewWidget.setData(None)
-        self.__selectorWidget.hide()
+        if self.__selectorWidget is not None:
+            self.__selectorWidget.hide()
         self.__selectedData = None
         self.__data = None
         self.__updateDataInfo()
@@ -1240,7 +1262,7 @@ class AbstractDataFileDialog(qt.QDialog):
             filename = ""
             dataPath = None
 
-        if useSelectorWidget and self.__selectorWidget.isVisible():
+        if useSelectorWidget and self.__selectorWidget is not None and self.__selectorWidget.isVisible():
             slicing = self.__selectorWidget.slicing()
         else:
             slicing = None
@@ -1403,9 +1425,10 @@ class AbstractDataFileDialog(qt.QDialog):
                     self.__browser.setRootIndex(index, model=self.__fileModel)
                     self.__clearData()
 
-                self.__selectorWidget.setVisible(url.data_slice() is not None)
-                if url.data_slice() is not None:
-                    self.__selectorWidget.setSlicing(url.data_slice())
+                if self.__selectorWidget is not None:
+                    self.__selectorWidget.setVisible(url.data_slice() is not None)
+                    if url.data_slice() is not None:
+                        self.__selectorWidget.setSlicing(url.data_slice())
             else:
                 self.__errorWhileLoadingFile = (url.file_path(), "File not found")
                 self.__clearData()
