@@ -636,6 +636,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__fileTypeCombo.setSizeAdjustPolicy(qt.QComboBox.AdjustToMinimumContentsLength)
         self.__fileTypeCombo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
         self.__fileTypeCombo.activated[int].connect(self.__filterSelected)
+        self.__fileTypeCombo.setFabioUrlSupproted(self._isFabioFilesSupported())
 
         self.__pathEdit = _PathEdit(self)
         self.__pathEdit.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
