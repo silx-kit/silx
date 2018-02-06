@@ -80,7 +80,7 @@ The ``-m a`` argument stands for *append mode*. The ``-o myhdf5file.h5``
 argument is used to specify the output file name.
 
 You could write the file into a specific group of the HDF5 file by providing
-the complete URI in the format ``file_path::group_path``. For instance::
+the complete URL in the format ``file_path::group_path``. For instance::
 
     silx convert myspecfile.dat -m a -o archive.h5::/2017-09-20/SPEC
 
