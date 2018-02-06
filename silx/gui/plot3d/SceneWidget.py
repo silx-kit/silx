@@ -315,8 +315,7 @@ class SceneWidget(Plot3DWidget):
 
             # Update scene items
             for item in self.getSceneGroup().visit():
-                if isinstance(item, items.DataItem3D):
-                    item._setBoundingBoxColor(color)
+                item._setForegroundColor(color)
 
     def getHighlightColor(self):
         """Return color used for highlighted item bounding box

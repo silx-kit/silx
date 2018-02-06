@@ -95,6 +95,8 @@ class Item3D(qt.QObject):
 
         self._primitive = primitive
 
+        self.__syncForegroundColor()
+
         labelIndex = self._LABEL_INDICES[self.__class__]
         self._label = six.text_type(self.__class__.__name__)
         if labelIndex != 0:
@@ -102,22 +104,22 @@ class Item3D(qt.QObject):
         self._LABEL_INDICES[self.__class__] += 1
 
         if isinstance(parent, Item3D):
-            parent.sigItemChanged.connect(self._parentItemChanged)
+            parent.sigItemChanged.connect(self.__parentItemChanged)
 
     def setParent(self, parent):
         """Override set parent to handle root item change"""
         previousParent = self.parent()
         if isinstance(previousParent, Item3D):
-            previousParent.sigItemChanged.disconnect(self._parentItemChanged)
+            previousParent.sigItemChanged.disconnect(self.__parentItemChanged)
 
         super(Item3D, self).setParent(parent)
 
         if isinstance(parent, Item3D):
-            parent.sigItemChanged.connect(self._parentItemChanged)
+            parent.sigItemChanged.connect(self.__parentItemChanged)
 
         self._updated(Item3DChangedType.ROOT_ITEM)
 
-    def _parentItemChanged(self, event):
+    def __parentItemChanged(self, event):
         """Handle updates of the parent if it is an Item3D
 
         :param Item3DChangedType event:
@@ -149,6 +151,9 @@ class Item3D(qt.QObject):
 
         :param event: The event to send to :attr:`sigItemChanged` signal.
         """
+        if event == Item3DChangedType.ROOT_ITEM:
+            self.__syncForegroundColor()
+
         if event is not None:
             self.sigItemChanged.emit(event)
 
@@ -191,6 +196,29 @@ class Item3D(qt.QObject):
             primitive.visible = visible
             self._updated(ItemChangedType.VISIBLE)
 
+    # Foreground color
+
+    def _setForegroundColor(self, color):
+        """Set the foreground color of the item.
+
+        The default implementation does nothing, override it in subclass.
+
+        :param color: RGBA color
+        :type color: tuple of 4 float in [0., 1.]
+        """
+        if hasattr(super(Item3D, self), '_setForegroundColor'):
+            super(Item3D, self)._setForegroundColor(color)
+
+    def __syncForegroundColor(self):
+        """Retrieve foreground color from parent and update this item"""
+        # Look-up for SceneWidget to get its foreground color
+        root = self.root()
+        if root is not None:
+            widget = root.parent()
+            if isinstance(widget, qt.QWidget):
+                self._setForegroundColor(
+                    widget.getForegroundColor().getRgbF())
+
 
 class DataItem3D(Item3D):
     """Base class representing a data item with transform in the scene.
@@ -207,7 +235,6 @@ class DataItem3D(Item3D):
         primitive = self._getScenePrimitive()
         primitive.boxVisible = False
         primitive.axesVisible = False
-        self._updateBoundingBoxColor()  # Sync bbox color
 
         # Transformations
         self._translate = transform.Translate()
@@ -393,28 +420,13 @@ class DataItem3D(Item3D):
 
     # Bounding box
 
-    def _updateBoundingBoxColor(self):
-        """Retrieve foreground color from parent and update bbox color"""
-        # Look-up for scene widget
-        root = self.root()
-        if root is not None:
-            widget = root.parent()
-            if isinstance(widget, qt.QWidget):
-                self._setBoundingBoxColor(
-                    widget.getForegroundColor().getRgbF())
-
-    def _setBoundingBoxColor(self, color):
+    def _setForegroundColor(self, color):
         """Set the color of the bounding box
 
         :param color: RGBA color as 4 floats in [0, 1]
         """
         self._getScenePrimitive().color = color
-
-    def _updated(self, event):
-        """Handle item updates to catch change of root"""
-        if event == Item3DChangedType.ROOT_ITEM:
-            self._updateBoundingBoxColor()
-        super(DataItem3D, self)._updated(event)
+        super(DataItem3D, self)._setForegroundColor(color)
 
     def isBoundingBoxVisible(self):
         """Returns item's bounding box visibility.

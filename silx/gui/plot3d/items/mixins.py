@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,6 @@ import collections
 import numpy
 
 from silx.math.combo import min_max
-from ... import qt
 
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
@@ -293,15 +292,11 @@ class PlaneMixIn(ItemMixInBase):
 
     # Border stroke
 
-    def getStrokeColor(self):
-        """Returns the color of the plane border (QColor)"""
-        return qt.QColor.fromRgbF(*self.__plane.color)
-
-    def setStrokeColor(self, color):
+    def _setForegroundColor(self, color):
         """Set the color of the plane border.
 
-        :param color: RGB color: name, #RRGGBB or RGB values
-        :type color:
-            QColor, str or array-like of 3 or 4 float in [0., 1.] or uint8
+        :param color: RGBA color as 4 floats in [0, 1]
         """
         self.__plane.color = rgba(color)
+        if hasattr(super(PlaneMixIn, self), '_setForegroundColor'):
+            super(PlaneMixIn, self)._setForegroundColor(color)
