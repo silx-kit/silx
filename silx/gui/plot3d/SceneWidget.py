@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -52,6 +52,7 @@ class SceneWidget(Plot3DWidget):
         self._model = None
         self._items = []
 
+        self._textColor = 1., 1., 1., 1.
         self._foregroundColor = 1., 1., 1., 1.
         self._highlightColor = 0.7, 0.7, 0., 1.
 
@@ -272,11 +273,32 @@ class SceneWidget(Plot3DWidget):
 
     def _updateColors(self):
         """Update item depending on foreground/highlight color"""
-        self._bbox.tickColor = self._foregroundColor
-        self._bbox.color = self._highlightColor
+        self._bbox.tickColor = self._textColor
+        self._bbox.color = self._foregroundColor
+
+    def getTextColor(self):
+        """Return color used for text
+
+        :rtype: QColor"""
+        return qt.QColor.fromRgbF(*self._textColor)
+
+    def setTextColor(self, color):
+        """Set the text color.
+
+        :param color: RGB color: name, #RRGGBB or RGB values
+        :type color:
+            QColor, str or array-like of 3 or 4 float in [0., 1.] or uint8
+        """
+        color = rgba(color)
+        if color != self._textColor:
+            self._textColor = color
+            self._updateColors()
 
     def getForegroundColor(self):
-        """Return color used for text and bounding box (QColor)"""
+        """Return color used for bounding box
+
+        :rtype: QColor
+        """
         return qt.QColor.fromRgbF(*self._foregroundColor)
 
     def setForegroundColor(self, color):
@@ -292,7 +314,10 @@ class SceneWidget(Plot3DWidget):
             self._updateColors()
 
     def getHighlightColor(self):
-        """Return color used for highlighted item bounding box (QColor)"""
+        """Return color used for highlighted item bounding box
+
+        :rtype: QColor
+        """
         return qt.QColor.fromRgbF(*self._highlightColor)
 
     def setHighlightColor(self, color):

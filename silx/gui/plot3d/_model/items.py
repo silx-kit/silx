@@ -151,6 +151,11 @@ class Settings(StaticRow):
             fget=sceneWidget.getForegroundColor,
             fset=sceneWidget.setForegroundColor)
 
+        text = ColorProxyRow(
+            name='Text',
+            fget=sceneWidget.getTextColor,
+            fset=sceneWidget.setTextColor)
+
         highlight = ColorProxyRow(
             name='Highlight',
             fget=sceneWidget.getHighlightColor,
@@ -188,7 +193,7 @@ class Settings(StaticRow):
                                    children=(azimuthNode, altitudeNode))
 
         # Settings row
-        children = (background, foreground, highlight,
+        children = (background, foreground, text, highlight,
                     boundingBox, axesIndicator, lightDirection)
         super(Settings, self).__init__(('Settings', None), children=children)
 
