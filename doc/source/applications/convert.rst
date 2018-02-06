@@ -127,4 +127,4 @@ Appending a file to an existing output file::
 
 Merging a list of single frame EDF files into a multiframe HDF5 file::
 
-    silx convert --file-pattern ch09__mca_0005_0000_%d.edf -o ch09__mca_0005_0000_multiframe.edf
+    silx convert --file-pattern ch09__mca_0005_0000_%d.edf -o ch09__mca_0005_0000_multiframe.h5
