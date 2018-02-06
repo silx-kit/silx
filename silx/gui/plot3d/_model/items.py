@@ -481,8 +481,12 @@ class GroupItemRow(Item3DRow):
     :param str name: The optional name of the group
     """
 
+    _CHILDREN_ROW_OFFSET = 2
+    """Number of rows for group parameters. Children are added after"""
+
     def __init__(self, item, name=None):
         super(GroupItemRow, self).__init__(item, name)
+        self.addRow(DataItem3DBoundingBoxRow(item))
         self.addRow(DataItem3DTransformRow(item))
 
         item.sigItemAdded.connect(self._itemAdded)
@@ -501,7 +505,7 @@ class GroupItemRow(Item3DRow):
             return
 
         row = group.getItems().index(item)
-        self.addRow(nodeFromItem(item), row + 1)
+        self.addRow(nodeFromItem(item), row + self._CHILDREN_ROW_OFFSET)
 
     def _itemRemoved(self, item):
         """Handle item removal from the group and remove it from the model.
