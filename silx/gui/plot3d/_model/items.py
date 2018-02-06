@@ -252,6 +252,20 @@ class Item3DRow(StaticRow):
         return super(Item3DRow, self).setData(column, value, role)
 
 
+class DataItem3DBoundingBoxRow(ProxyRow):
+    """Represents :class:`DataItem3D` bounding box visibility
+
+    :param DataItem3D item: The item for which to display/control bounding box
+    """
+
+    def __init__(self, item):
+        super(DataItem3DBoundingBoxRow, self).__init__(
+            name='Bounding box',
+            fget=item.isBoundingBoxVisible,
+            fset=item.setBoundingBoxVisible,
+            notify=item.sigItemChanged)
+
+
 class MatrixProxyRow(ProxyRow):
     """Proxy for a row of a DataItem3D 3x3 matrix transform
 
@@ -1335,6 +1349,7 @@ def nodeFromItem(item):
     node = Item3DRow(item)
 
     if isinstance(item, items.DataItem3D):
+        node.addRow(DataItem3DBoundingBoxRow(item))
         node.addRow(DataItem3DTransformRow(item))
 
     # Specific extra init
