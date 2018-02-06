@@ -31,7 +31,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2017"
+__date__ = "06/02/2018"
 
 import logging
 from silx.gui import qt
@@ -47,40 +47,43 @@ class DialogExample(qt.QMainWindow):
         super(DialogExample, self).__init__(parent)
 
         widget = qt.QWidget(self)
-        layout = qt.QVBoxLayout()
+        layout = qt.QGridLayout()
         widget.setLayout(layout)
 
-        self.__state = None
+        self.__stateImage = None
+
+        layout.addWidget(qt.QLabel("<center>Qt file dialog</center>", self), 0, 0)
+        layout.addWidget(qt.QLabel("<center>silx ImageFileDialog</center>", self), 0, 1)
 
         b0 = qt.QPushButton(self)
         b0.setMinimumHeight(50)
-        b0.setText("Open the default QFileDialog")
+        b0.setText("Open a dialog")
         b0.clicked.connect(self.__openDefaultFileDialog)
-        layout.addWidget(b0)
+        layout.addWidget(b0, 1, 0)
 
         b1 = qt.QPushButton(self)
         b1.setMinimumHeight(50)
-        b1.setText("Open a file image dialog")
-        b1.clicked.connect(self.__openDialog)
-        layout.addWidget(b1)
+        b1.setText("Open a dialog")
+        b1.clicked.connect(self.__openImageDialog)
+        layout.addWidget(b1, 1, 1)
 
         b2 = qt.QPushButton(self)
         b2.setMinimumHeight(50)
-        b2.setText("Open a file image dialog with state stored")
-        b2.clicked.connect(self.__openDialogStoredState)
-        layout.addWidget(b2)
+        b2.setText("Open a dialog with state stored")
+        b2.clicked.connect(self.__openImageDialogStoredState)
+        layout.addWidget(b2, 2, 1)
 
         b3 = qt.QPushButton(self)
         b3.setMinimumHeight(50)
-        b3.setText("Open a file image dialog at home")
-        b3.clicked.connect(self.__openDialogAtHome)
-        layout.addWidget(b3)
+        b3.setText("Open a dialog at home")
+        b3.clicked.connect(self.__openImageDialogAtHome)
+        layout.addWidget(b3, 3, 1)
 
         b4 = qt.QPushButton(self)
         b4.setMinimumHeight(50)
-        b4.setText("Open a file image dialog at computer root")
-        b4.clicked.connect(self.openDialogAtComputer)
-        layout.addWidget(b4)
+        b4.setText("Open a dialog at computer root")
+        b4.clicked.connect(self.openImageDialogAtComputer)
+        layout.addWidget(b4, 4, 1)
 
         self.setCentralWidget(widget)
 
@@ -104,7 +107,7 @@ class DialogExample(qt.QMainWindow):
         else:
             print("Nothing selected")
 
-    def __openDialog(self):
+    def __openImageDialog(self):
         # Clear the dialog
         dialog = ImageFileDialog(self)
 
@@ -118,24 +121,24 @@ class DialogExample(qt.QMainWindow):
         else:
             print("Nothing selected")
 
-    def __openDialogStoredState(self):
+    def __openImageDialogStoredState(self):
         # Clear the dialog
         dialog = ImageFileDialog()
-        if self.__state is not None:
-            dialog.restoreState(self.__state)
+        if self.__stateImage is not None:
+            dialog.restoreState(self.__stateImage)
 
         # Execute the dialog as modal
         result = dialog.exec_()
 
         # Reach the result
-        self.__state = dialog.saveState()
+        self.__stateImage = dialog.saveState()
         if result:
             print("Selection:")
             self.__printSelection(dialog)
         else:
             print("Nothing selected")
 
-    def __openDialogAtHome(self):
+    def __openImageDialogAtHome(self):
         # Clear the dialog
         path = qt.QDir.homePath()
         dialog = ImageFileDialog()
@@ -151,7 +154,7 @@ class DialogExample(qt.QMainWindow):
         else:
             print("Nothing selected")
 
-    def openDialogAtComputer(self):
+    def openImageDialogAtComputer(self):
         # Clear the dialog
         path = ""
         dialog = ImageFileDialog()
