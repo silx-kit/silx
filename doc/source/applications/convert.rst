@@ -8,6 +8,13 @@ Purpose
 The *silx convert* command is provided to help with archiving legacy file
 formats into HDF5 files.
 
+You can refer to following tutorials for additional information
+about the output format:
+
+ - :doc:`../Tutorials/io`
+ - :doc:`../Tutorials/convert`
+ - :doc:`../Tutorials/specfile_to_hdf5`
+
 Usage
 -----
 
@@ -120,4 +127,4 @@ Appending a file to an existing output file::
 
 Merging a list of single frame EDF files into a multiframe HDF5 file::
 
-    silx convert --file-pattern ch09__mca_0005_0000_%d.edf -o ch09__mca_0005_0000_multiframe.edf
+    silx convert --file-pattern ch09__mca_0005_0000_%d.edf -o ch09__mca_0005_0000_multiframe.h5
