@@ -161,11 +161,6 @@ class Settings(StaticRow):
             fget=sceneWidget.getHighlightColor,
             fset=sceneWidget.setHighlightColor)
 
-        boundingBox = ProxyRow(
-            name='Bounding Box',
-            fget=sceneWidget.isBoundingBoxVisible,
-            fset=sceneWidget.setBoundingBoxVisible)
-
         axesIndicator = ProxyRow(
             name='Axes Indicator',
             fget=sceneWidget.isOrientationIndicatorVisible,
@@ -194,7 +189,7 @@ class Settings(StaticRow):
 
         # Settings row
         children = (background, foreground, text, highlight,
-                    boundingBox, axesIndicator, lightDirection)
+                    axesIndicator, lightDirection)
         super(Settings, self).__init__(('Settings', None), children=children)
 
 
@@ -1344,7 +1339,7 @@ def nodeFromItem(item):
     assert isinstance(item, items.Item3D)
 
     # Item with specific model row class
-    if isinstance(item, items.GroupItem):
+    if isinstance(item, (items.GroupItem, items.GroupWithAxesItem)):
         return GroupItemRow(item)
     elif isinstance(item, Isosurface):
         return IsosurfaceRow(item)
