@@ -40,7 +40,7 @@ from silx.third_party import enum, six
 from ... import qt
 from ...plot.items import ItemChangedType
 from .. import scene
-from ..scene import primitives, transform
+from ..scene import axes, primitives, transform
 
 
 @enum.unique
@@ -224,17 +224,21 @@ class DataItem3D(Item3D):
     """Base class representing a data item with transform in the scene.
 
     :param parent: The View widget this item belongs to.
+    :param Union[GroupBBox, None] group:
+        The scene group to use for rendering
     """
 
-    def __init__(self, parent):
-        Item3D.__init__(self,
-                        parent=parent,
-                        primitive=primitives.GroupBBox())
+    def __init__(self, parent, group=None):
+        if group is None:
+            group = primitives.GroupBBox()
 
-        # Set-up bounding box
-        primitive = self._getScenePrimitive()
-        primitive.boxVisible = False
-        primitive.axesVisible = False
+            # Set-up bounding box
+            group.boxVisible = False
+            group.axesVisible = False
+        else:
+            assert isinstance(group, primitives.GroupBBox)
+
+        Item3D.__init__(self, parent=parent, primitive=group)
 
         # Transformations
         self._translate = transform.Translate()
@@ -448,8 +452,8 @@ class DataItem3D(Item3D):
             self._updated(Item3DChangedType.BOUNDING_BOX_VISIBLE)
 
 
-class GroupItem(DataItem3D):
-    """Group of items sharing a common transform."""
+class _BaseGroupItem(DataItem3D):
+    """Base class for group of items sharing a common transform."""
 
     sigItemAdded = qt.Signal(object)
     """Signal emitted when a new item is added to the group.
@@ -463,12 +467,14 @@ class GroupItem(DataItem3D):
     The removed item is provided by this signal.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, group=None):
         """Base class representing a group of items in the scene.
 
         :param parent: The View widget this item belongs to.
+        :param Union[GroupBBox, None] group:
+            The scene group to use for rendering
         """
-        DataItem3D.__init__(self, parent=parent)
+        DataItem3D.__init__(self, parent=parent, group=group)
         self._items = []
 
     def addItem(self, item, index=None):
@@ -532,3 +538,24 @@ class GroupItem(DataItem3D):
             if hasattr(child, 'visit'):
                 for item in child.visit():
                     yield item
+
+
+class GroupItem(_BaseGroupItem):
+    """Group of items sharing a common transform."""
+
+    def __init__(self, parent=None):
+        super(GroupItem, self).__init__(parent=parent)
+
+
+class GroupWithAxesItem(_BaseGroupItem):
+    """
+    Group of items sharing a common transform surrounded with labelled axes.
+    """
+
+    def __init__(self, parent=None):
+        """Class representing a group of items in the scene with labelled axes.
+
+        :param parent: The View widget this item belongs to.
+        """
+        super(GroupWithAxesItem, self).__init__(parent=parent,
+                                                group=axes.LabelledAxes())
