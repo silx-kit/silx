@@ -101,21 +101,18 @@ class Item3D(qt.QObject):
             self._label += u' %d' % labelIndex
         self._LABEL_INDICES[self.__class__] += 1
 
-    def event(self, event):
-        """Handle QEvents to handle change of parent."""
-        if event.type() == qt.QEvent.ParentAboutToChange:
-            parent = self.parent()
-            if isinstance(parent, Item3D):
-                parent.sigItemChanged.disconnect(self._parentItemChanged)
+    def setParent(self, parent):
+        """Override set parent to handle root item change"""
+        previousParent = self.parent()
+        if isinstance(previousParent, Item3D):
+            previousParent.sigItemChanged.disconnect(self._parentItemChanged)
 
-        elif event.type() == qt.QEvent.ParentChange:
-            self._updated(Item3DChangedType.ROOT_ITEM)
+        super(Item3D, self).setParent(parent)
 
-            parent = self.parent()
-            if isinstance(parent, Item3D):
-                parent.sigItemChanged.connect(self._parentItemChanged)
+        if isinstance(parent, Item3D):
+            parent.sigItemChanged.connect(self._parentItemChanged)
 
-        return super(Item3D, self).event(event)
+        self._updated(Item3DChangedType.ROOT_ITEM)
 
     def _parentItemChanged(self, event):
         """Handle updates of the parent if it is an Item3D
@@ -400,7 +397,8 @@ class DataItem3D(Item3D):
     def setBoundingBoxVisible(self, visible):
         """Set item's bounding box visibility.
 
-        :param bool visible: True to show the bounding box, False to hide
+        :param bool visible:
+            True to show the bounding box, False (default) to hide it
         """
         visible = bool(visible)
         primitive = self._getScenePrimitive()
