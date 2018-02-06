@@ -122,7 +122,6 @@ for row, heightMap in enumerate((False, True)):
 # The group children share the group transform
 group = items.GroupItem()  # Create a new group item
 group.setTranslation(SIZE * 4, 0., 0.)  # Translate the group
-sceneWidget.addItem(group)  # Add the group as an item of the scene
 
 
 # Clipping plane ###
@@ -188,6 +187,8 @@ cutPlane.setVisible(True)  # Set it to be visible
 cutPlane.getColormap().setName('jet')  # Set cut plane's colormap
 cutPlane.setNormal((0., 0., 1.))  # Set cut plane's normal
 cutPlane.moveToCenter()  # Place the cut plane at the center of the volume
+
+sceneWidget.addItem(group)  # Add the group as an item of the scene
 
 # Show the SceneWidget widget
 window.show()

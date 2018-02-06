@@ -189,7 +189,6 @@ class Item3D(qt.QObject):
             self._updated(ItemChangedType.VISIBLE)
 
 
-# TODO add bounding box visible + color
 class DataItem3D(Item3D):
     """Base class representing a data item with transform in the scene.
 
@@ -197,11 +196,15 @@ class DataItem3D(Item3D):
     """
 
     def __init__(self, parent):
-        primitive = primitives.GroupBBox()
+        Item3D.__init__(self,
+                        parent=parent,
+                        primitive=primitives.GroupBBox())
+
+        # Set-up bounding box
+        primitive = self._getScenePrimitive()
         primitive.boxVisible = False
         primitive.axesVisible = False
-
-        Item3D.__init__(self, parent=parent, primitive=primitive)
+        self._updateBoundingBoxColor()  # Sync bbox color
 
         # Transformations
         self._translate = transform.Translate()
@@ -386,6 +389,29 @@ class DataItem3D(Item3D):
         return self._matrix.getMatrix(copy=True)[:3, :3]
 
     # Bounding box
+
+    def _updateBoundingBoxColor(self):
+        """Retrieve foreground color from parent and update bbox color"""
+        # Look-up for scene widget
+        root = self.root()
+        if root is not None:
+            widget = root.parent()
+            if isinstance(widget, qt.QWidget):
+                self._setBoundingBoxColor(
+                    widget.getForegroundColor().getRgbF())
+
+    def _setBoundingBoxColor(self, color):
+        """Set the color of the bounding box
+
+        :param color: RGBA color as 4 floats in [0, 1]
+        """
+        self._getScenePrimitive().color = color
+
+    def _updated(self, event):
+        """Handle item updates to catch change of root"""
+        if event == Item3DChangedType.ROOT_ITEM:
+            self._updateBoundingBoxColor()
+        super(DataItem3D, self)._updated(event)
 
     def isBoundingBoxVisible(self):
         """Returns item's bounding box visibility.
