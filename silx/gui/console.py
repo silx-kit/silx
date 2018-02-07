@@ -129,7 +129,7 @@ if qtconsole is None:
 
     IPython.external.qt_loaders.has_binding = has_binding
 
-    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+    from IPython.qtconsole.rich_ipython_widget import RichIPythonWidget
     from IPython.qt.inprocess import QtInProcessKernelManager
 
 
