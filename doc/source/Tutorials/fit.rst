@@ -148,7 +148,7 @@ This results in a great improvement::
 The resulting fit is perfect. The fit converged even faster than when
 we limited ``x`` range to 0 -- 100.
 
-To use a real world example, when fitting fluorescence spectroscopy, this common
+To use a real world example, when fitting x-ray fluorescence spectroscopy data, this common
 approach means that we consider the variance of each channel to be the number of counts
 in that channel. That corresponds to assuming a normal distribution.
 The true distribution being a Poisson distribution, the Gaussian distribution
