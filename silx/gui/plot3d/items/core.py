@@ -559,3 +559,60 @@ class GroupWithAxesItem(_BaseGroupItem):
         """
         super(GroupWithAxesItem, self).__init__(parent=parent,
                                                 group=axes.LabelledAxes())
+
+    # Axes labels
+
+    def setAxesLabels(self, xlabel=None, ylabel=None, zlabel=None):
+        """Set the text labels of the axes.
+
+        :param str xlabel: Label of the X axis, None to leave unchanged.
+        :param str ylabel: Label of the Y axis, None to leave unchanged.
+        :param str zlabel: Label of the Z axis, None to leave unchanged.
+        """
+        labelledAxes = self._getScenePrimitive()
+        if xlabel is not None:
+            labelledAxes.xlabel = xlabel
+
+        if ylabel is not None:
+            labelledAxes.ylabel = ylabel
+
+        if zlabel is not None:
+            labelledAxes.zlabel = zlabel
+
+    class _Labels(tuple):
+        """Return type of :meth:`getAxesLabels`"""
+
+        def getXLabel(self):
+            """Label of the X axis (str)"""
+            return self[0]
+
+        def getYLabel(self):
+            """Label of the Y axis (str)"""
+            return self[1]
+
+        def getZLabel(self):
+            """Label of the Z axis (str)"""
+            return self[2]
+
+    def getAxesLabels(self):
+        """Returns the text labels of the axes
+
+        >>> group = GroupWithAxesItem()
+        >>> group.setAxesLabels(xlabel='X')
+
+        You can get the labels either as a 3-tuple:
+
+        >>> xlabel, ylabel, zlabel = group.getAxesLabels()
+
+        Or as an object with methods getXLabel, getYLabel and getZLabel:
+
+        >>> labels = group.getAxesLabels()
+        >>> labels.getXLabel()
+        ... 'X'
+
+        :return: object describing the labels
+        """
+        labelledAxes = self._getScenePrimitive()
+        return self._Labels((labelledAxes.xlabel,
+                             labelledAxes.ylabel,
+                             labelledAxes.zlabel))

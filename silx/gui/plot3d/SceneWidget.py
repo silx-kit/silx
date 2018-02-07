@@ -198,63 +198,6 @@ class SceneWidget(Plot3DWidget):
         """Remove all item from :class:`SceneWidget`."""
         return self.getSceneGroup().clear()
 
-    # Axes labels
-
-    def setAxesLabels(self, xlabel=None, ylabel=None, zlabel=None):
-        """Set the text labels of the axes.
-
-        :param str xlabel: Label of the X axis, None to leave unchanged.
-        :param str ylabel: Label of the Y axis, None to leave unchanged.
-        :param str zlabel: Label of the Z axis, None to leave unchanged.
-        """
-        bbox = self._sceneGroup._getScenePrimitive()  # TODO move in group
-        if xlabel is not None:
-            bbox.xlabel = xlabel
-
-        if ylabel is not None:
-            bbox.ylabel = ylabel
-
-        if zlabel is not None:
-            bbox.zlabel = zlabel
-
-    class _Labels(tuple):
-        """Return type of :meth:`getAxesLabels`"""
-
-        def getXLabel(self):
-            """Label of the X axis (str)"""
-            return self[0]
-
-        def getYLabel(self):
-            """Label of the Y axis (str)"""
-            return self[1]
-
-        def getZLabel(self):
-            """Label of the Z axis (str)"""
-            return self[2]
-
-    def getAxesLabels(self):
-        """Returns the text labels of the axes
-
-        >>> widget = SceneWidget()
-        >>> widget.setAxesLabels(xlabel='X')
-
-        You can get the labels either as a 3-tuple:
-
-        >>> xlabel, ylabel, zlabel = widget.getAxesLabels()
-
-        Or as an object with methods getXLabel, getYLabel and getZLabel:
-
-        >>> labels = widget.getAxesLabels()
-        >>> labels.getXLabel()
-        ... 'X'
-
-        :return: object describing the labels
-        """
-        bbox = self._sceneGroup._getScenePrimitive()  # TODO move in group
-        return self._Labels((bbox.xlabel,
-                             bbox.ylabel,
-                             bbox.zlabel))
-
     # Colors
 
     def _updateColors(self):
