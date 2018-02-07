@@ -31,8 +31,8 @@ Data required to perform a fit is:
     - the ``sigma`` array of uncertainties associated to each data point.
       This is optional, by default each data point gets assigned a weight of 1.
 
-Standard fit
-************
+Default (unweighted) fit
+************************
 
 Let's demonstrate this process in a short example, using synthetic data.
 We generate an array of synthetic data using a polynomial function of degree 4,
@@ -115,16 +115,14 @@ produces the following result::
 Weighted fit
 ************
 
-A solution to this problem, if we want to improve our fit, is to define uncertainties
-for the data. The larger the uncertainty on a data sample, the smaller its weight will be
+Since the fitting algorithm minimizes the sum of squared differences between input and evaluated data, points with higher y value had a greater weight in the fitting process. A solution to this problem, if we want to improve our fit, is to define uncertainties for the data. The larger the uncertainty on a data sample, the smaller its weight will be
 in the least-square problem.
 
 It is important to set the uncertainties correctly, or you risk favoring either the lower
 values or the higher values in your data.
 
-In case we do not know the uncertainties associated to our data,
-a common approach is try to use the square-root of the data values
-as their uncertainty value:
+The common approach in counting experiments is to use the square-root of the data values
+as the uncertainty value. Let's apply it to our previous example:
 
 .. code-block:: python
 
