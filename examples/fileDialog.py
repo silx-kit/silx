@@ -37,6 +37,7 @@ import logging
 from silx.gui import qt
 from silx.gui.dialog.ImageFileDialog import ImageFileDialog
 from silx.gui.dialog.DataFileDialog import DataFileDialog
+import silx.io
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -122,8 +123,20 @@ class DialogExample(qt.QMainWindow):
 
     def __printSelection(self, dialog):
         print("Selected file:", dialog.selectedFile())
-        print("Selected data:", dialog.selectedData())
         print("Selected URL:", dialog.selectedUrl())
+
+        if isinstance(dialog, ImageFileDialog):
+            image = dialog.selectedImage()
+            print("Selected image:", image.shape)
+
+        elif isinstance(dialog, DataFileDialog):
+            url = dialog.selectedDataUrl()
+            with silx.io.open(url.file_path()) as h5:
+                node = h5[url.data_path()]
+                print("Selected node:", node)
+
+        else:
+            assert(False)
 
     def __openDefaultFileDialog(self):
         # Clear the dialog

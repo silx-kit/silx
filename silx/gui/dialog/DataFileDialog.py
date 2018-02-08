@@ -144,17 +144,11 @@ class DataFileDialog(AbstractDataFileDialog):
         if result:
             print("Selection:")
             print(dialog.selectedFile())
-            print(dialog.selectedData())
             print(dialog.selectedUrl())
         else:
             print("Nothing selected")
 
-        # Make sure loaded files are closed properly
-        dialog.clear()
-
-    If you want to manage the life cycle of the object on your own, it is
-    better to avoid to use `selectedData` but to load again the data with the
-    our `io` API.
+    To read the selected object on your own you can use the silx.io API.
 
     .. code-block:: python
 
@@ -162,13 +156,49 @@ class DataFileDialog(AbstractDataFileDialog):
         result = dialog.exec_()
         if not result:
             return
-        url = dialog.selectedPath()
-        dialog.clear()
+        url = dialog.selectedUrl()
 
         # here you can manage the way you want
-        with silx.io.open(url):
+        with silx.io.open(url) as data:
             pass
+
+    Or by loading the file first
+
+    .. code-block:: python
+
+        dialog = DataFileDialog()
+        result = dialog.exec_()
+        if not result:
+            return
+        url = dialog.selectedDataUrl()
+
+        # here you can manage the way you want
+        with silx.io.open(url.file_path()) as h5:
+            data = h5[url.data_path()]
+
+    Or by using `h5py` library
+
+    .. code-block:: python
+
+        dialog = DataFileDialog()
+        result = dialog.exec_()
+        if not result:
+            return
+        url = dialog.selectedDataUrl()
+
+        # here you can manage the way you want
+        with h5py.File(url.file_path()) as h5:
+            data = h5[url.data_path()]
     """
+
+    def selectedData(self):
+        """Returns the selected data by using the silx.io API with the selected
+        URL provided by the dialog.
+
+        :rtype: numpy.ndarray
+        """
+        url = self.selectedUrl()
+        return silx.io.open(url)
 
     def _createPreviewWidget(self, parent):
         previewWidget = _DataPreview(parent)

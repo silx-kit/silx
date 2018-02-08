@@ -137,7 +137,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         if self.dialog is not None:
-            self.dialog.clear()
+            self.dialog._clear()
             self.dialog = None
         utils.TestCaseQt.tearDown(self)
 
@@ -384,7 +384,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/singleimage.edf"
         path = filename
         dialog.selectUrl(path)
-        self.assertTrue(dialog.selectedData().shape, (100, 100))
+        self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         self.assertSamePath(dialog.selectedUrl(), path)
@@ -409,7 +409,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertTrue(dialog.selectedData().shape, (100, 100))
+        self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -425,8 +425,9 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="fabio", file_path=filename, data_slice=(1,)).path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedData().shape, (100, 100))
-        self.assertTrue(dialog.selectedData()[0, 0], 1)
+        image = dialog.selectedImage()
+        self.assertTrue(image.shape, (100, 100))
+        self.assertTrue(image[0, 0], 1)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -442,7 +443,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedData().shape, (100, 100))
+        self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -458,7 +459,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedData().shape, (100, 100))
+        self.assertTrue(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -496,8 +497,8 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/cube", data_slice=(1, )).path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedData().shape, (100, 100))
-        self.assertTrue(dialog.selectedData()[0, 0], 1)
+        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertTrue(dialog.selectedImage()[0, 0], 1)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -564,7 +565,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         if self.dialog is not None:
-            self.dialog.clear()
+            self.dialog._clear()
             self.dialog = None
         utils.TestCaseQt.tearDown(self)
 
@@ -743,27 +744,27 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         dialog.selectUrl(_tmpDirectory + "/data.h5::/complex_image")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNone(dialog._selectedData())
 
     def testBadDataShape(self):
         if h5py is None:
             self.skipTest("h5py is missing")
         dialog = self.createDialog()
-        dialog.selectUrl(_tmpDirectory + "/data.h5::/scalar")
+        dialog.selectUrl(_tmpDirectory + "/data.h5::/unknown")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNone(dialog._selectedData())
 
     def testBadDataFormat(self):
         dialog = self.createDialog()
         dialog.selectUrl(_tmpDirectory + "/badformat.edf")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNone(dialog._selectedData())
 
     def testBadPath(self):
         dialog = self.createDialog()
         dialog.selectUrl("#$%/#$%")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNone(dialog._selectedData())
 
     def testBadSubpath(self):
         if h5py is None:
@@ -777,7 +778,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/foobar")
         dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNone(dialog._selectedData())
 
         # an existing node is browsed, but the wrong path is selected
         index = browser.rootIndex()
@@ -793,7 +794,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         dialog.selectUrl(_tmpDirectory + "/data.h5::/cube[a;45,-90]")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNone(dialog._selectedData())
 
 
 def suite():

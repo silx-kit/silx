@@ -509,7 +509,6 @@ class AbstractDataFileDialog(qt.QDialog):
         This widget can be provided, else nothing will be used.
     - Buttons to validate the dialog
     """
-    pass
 
     _defaultIconProvider = None
     """Lazy loaded default icon provider"""
@@ -568,17 +567,21 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__filterSelected(0)
 
     def __del__(self):
-        self.clear()
+        self._clear()
         superInstance = super(AbstractDataFileDialog, self)
         if hasattr(superInstance, "__del__"):
             superInstance.__del__()
 
-    def clear(self):
-        """Expicit method to clear the dialog.
+    def done(self, result):
+        self._clear()
+        super(AbstractDataFileDialog, self).done(result)
+
+    def _clear(self):
+        """Expicit method to clear data stored in the dialog.
         After this call it is not anymore possible to use the widget.
 
-        This method is triggered by the destruction of the object. Then it can
-        be triggered more than once.
+        This method is triggered by the destruction of the object and the
+        QDialog :meth:`done`. Then it can be triggered more than once.
         """
         self.__clearData()
         self.__browser.clear()
@@ -1535,8 +1538,8 @@ class AbstractDataFileDialog(qt.QDialog):
         else:
             return ""
 
-    def selectedData(self):
-        """Returns the data selected.
+    def _selectedData(self):
+        """Returns the internal selected data
 
         :rtype: numpy.ndarray
         """

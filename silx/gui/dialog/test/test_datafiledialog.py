@@ -126,7 +126,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         if self.dialog is not None:
-            self.dialog.clear()
+            self.dialog._clear()
             self.dialog = None
         utils.TestCaseQt.tearDown(self)
 
@@ -396,7 +396,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/singleimage.edf"
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/scan_0/instrument/detector_0/data")
         dialog.selectUrl(url.path())
-        self.assertTrue(dialog.selectedData().shape, (100, 100))
+        self.assertTrue(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), url.path())
 
@@ -412,7 +412,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedData().shape, (100, 100))
+        self.assertTrue(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -428,7 +428,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/scalar").path()
         dialog.selectUrl(path)
         # test
-        self.assertEqual(dialog.selectedData()[()], 10)
+        self.assertEqual(dialog._selectedData()[()], 10)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -445,7 +445,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.selectUrl(uri.path())
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertTrue(silx.io.is_group(dialog.selectedData()))
+        self.assertTrue(silx.io.is_group(dialog._selectedData()))
         self.assertSamePath(dialog.selectedFile(), filename)
         uri = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertSamePath(uri.data_path(), "/group")
@@ -463,7 +463,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.selectUrl(uri.path())
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertTrue(silx.io.is_file(dialog.selectedData()))
+        self.assertTrue(silx.io.is_file(dialog._selectedData()))
         self.assertSamePath(dialog.selectedFile(), filename)
         uri = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertSamePath(uri.data_path(), "/")
@@ -538,7 +538,7 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         if self.dialog is not None:
-            self.dialog.clear()
+            self.dialog._clear()
             self.dialog = None
         utils.TestCaseQt.tearDown(self)
 
@@ -695,13 +695,13 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         dialog.selectUrl(_tmpDirectory + "/badformat.h5")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNone(dialog._selectedData())
 
     def testBadPath(self):
         dialog = self.createDialog()
         dialog.selectUrl("#$%/#$%")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNone(dialog._selectedData())
 
     def testBadSubpath(self):
         if h5py is None:
@@ -715,7 +715,7 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/foobar")
         dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        self.assertIsNotNone(dialog.selectedData())
+        self.assertIsNotNone(dialog._selectedData())
 
         # an existing node is browsed, but the wrong path is selected
         index = browser.rootIndex()
@@ -731,7 +731,7 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         dialog.selectUrl(_tmpDirectory + "/data.h5?path=/cube&slice=0")
         self.qWaitForPendingActions(dialog)
-        data = dialog.selectedData()
+        data = dialog._selectedData()
         if data is None:
             # Maybe nothing is selected
             self.assertTrue(True)

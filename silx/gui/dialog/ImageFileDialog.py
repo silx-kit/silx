@@ -35,6 +35,7 @@ from silx.gui.plot import actions
 from silx.gui import qt
 from silx.gui.plot.PlotWidget import PlotWidget
 from .AbstractDataFileDialog import AbstractDataFileDialog
+import silx.io
 try:
     import fabio
 except ImportError:
@@ -232,14 +233,19 @@ class ImageFileDialog(AbstractDataFileDialog):
         if result:
             print("Selection:")
             print(dialog.selectedFile())
-            print(dialog.selectedData())
             print(dialog.selectedUrl())
+            print(dialog.selectedImage())
         else:
             print("Nothing selected")
-
-        # Make sure loaded files are closed properly
-        dialog.clear()
     """
+
+    def selectedImage(self):
+        """Returns the selected image data as numpy
+
+        :rtype: numpy.ndarray
+        """
+        url = self.selectedUrl()
+        return silx.io.get_data(url)
 
     def _createPreviewWidget(self, parent):
         previewWidget = _ImagePreview(parent)
