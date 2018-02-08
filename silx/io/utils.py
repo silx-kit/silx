@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "08/02/2018"
 
 import numpy
 import os.path
@@ -801,6 +801,8 @@ def get_data(url):
     elif url.scheme() == "fabio":
         import fabio
         data_slice = url.data_slice()
+        if data_slice is None:
+            data_slice = (0, )
         if data_slice is None or len(data_slice) != 1:
             raise ValueError("Fabio slice expect a single frame, but %s found" % data_slice)
         index = data_slice[0]

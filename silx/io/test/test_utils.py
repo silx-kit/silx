@@ -49,7 +49,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "09/02/2018"
 
 
 expected_spec1 = r"""#F .*
@@ -638,8 +638,10 @@ class TestGetData(unittest.TestCase):
     def test_fabio_no_frame(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        url = "fabio:%s?" % self.edf_filename
-        self.assertRaises(ValueError, utils.get_data, url)
+        url = "fabio:%s" % self.edf_filename
+        data = utils.get_data(url=url)
+        self.assertEqual(data.shape, (2, 2))
+        self.assertEqual(data[0, 0], 10)
 
     def test_unsupported_scheme(self):
         url = "foo:/foo/bar"
