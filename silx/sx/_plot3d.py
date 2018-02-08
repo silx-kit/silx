@@ -35,6 +35,7 @@ import logging
 import numpy
 
 from ..gui import qt
+from ..gui.plot3d.SceneWindow import SceneWindow
 from ..gui.plot3d.ScalarFieldView import ScalarFieldView
 from ..gui.plot3d import SFViewParamTree
 from ..gui.plot.Colormap import Colormap
@@ -54,7 +55,7 @@ def contour3d(scalars,
               opacity=1.):
     """Plot isosurfaces of a 3D scalar field in a dedicated widget.
 
-    It opens a silx plot3d.SceneWindow.
+    It opens a silx plot3d ScalarFieldView.
 
     Examples:
 
@@ -96,7 +97,7 @@ def contour3d(scalars,
     :param float opacity:
         Transparency of the isosurfaces as a float in [0., 1.]
     :return: The widget used to visualize the data
-    :rtype: ~silx.gui.plot3d.SceneWindow.SceneWindow
+    :rtype: ~silx.gui.plot3d.ScalarFieldView.ScalarFieldView
     """
     # Prepare isolevel values
     if isinstance(contours, int):
@@ -158,3 +159,89 @@ def contour3d(scalars,
     scalarField.show()
 
     return scalarField
+
+
+_POINTS3D_MODE_CONVERSION = {
+    '2dcircle': 'o',
+    '2dcross': 'x',
+    '2ddash': '_',
+    '2ddiamond': 'd',
+    '2dsquare': 's',
+    'point': ','
+}
+
+
+def points3d(x, y, z=None,
+             values=0.,
+             copy=True,
+             colormap='viridis',
+             vmin=None,
+             vmax=None,
+             mode='o'):
+    """Plot a 3D scatter plot in a dedicated widget.
+
+    It opens a silx plot3d SceneWindow.
+
+    Examples:
+
+    First import :mod:`sx` functions:
+
+    >>> from silx import sx
+
+    Provided x, y, z, values, 4 numpy array of float32:
+
+    >>> plot3d_window = sx.points3d(x, y, z)
+
+    >>> plot3d_window = sx.points3d(x, y, z, values)
+
+    This function is similar to mayavi.mlab.points3d.
+
+    :param numpy.ndarray x: X coordinates of the points
+    :param numpy.ndarray y: Y coordinates of the points
+    :param numpy.ndarray z: Z coordinates of the points (optional)
+    :param numpy.ndarray values: Values at each point (optional)
+    :param bool copy:
+        True (default) to make a copy of scalars.
+        False to avoid this copy (do not modify provided data afterwards)
+    :param str colormap:
+        Colormap to use for coding points as colors.
+    :param Union[float, None] vmin:
+        Minimum value of the colormap
+    :param Union[float, None] vmax:
+        Maximum value of the colormap
+    :param str mode: The type of marker to use
+
+        - Circle: 'o', '2dcircle'
+        - Diamond: 'd', '2ddiamond'
+        - Square: 's', '2dsquare'
+        - Plus: '+'
+        - Cross: 'x', '2dcross'
+        - Star: '*'
+        - Vertical line: '|'
+        - Horizontal line: '_', '2ddash'
+        - Point: '.'
+        - Pixel: ','
+    :return: The widget used to visualize the data
+    :rtype: ~silx.gui.plot3d.SceneWindow.SceneWindow
+    """
+    # Prepare widget
+    window = SceneWindow()
+    sceneWidget = window.getSceneWidget()
+    sceneWidget.setBackgroundColor((0.9, 0.9, 0.9))
+    sceneWidget.setForegroundColor((0.5, 0.5, 0.5))
+    sceneWidget.setTextColor((0.1, 0.1, 0.1))
+
+    mode = _POINTS3D_MODE_CONVERSION.get(mode, mode)
+
+    if z is None:  # 2D scatter plot
+        scatter = sceneWidget.add2DScatter(x, y, values, copy=copy)
+    else:  # 3D scatter plot
+        scatter = sceneWidget.add3DScatter(x, y, z, values, copy=copy)
+
+    colormap = Colormap(name=colormap, vmin=vmin, vmax=vmax)
+    scatter.setColormap(colormap)
+    scatter.setSymbol(mode)
+
+    window.show()
+
+    return window

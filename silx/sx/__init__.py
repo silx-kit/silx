@@ -89,7 +89,7 @@ else:
         _logger.warning(
             'Not loading silx.gui.plot3d features: PyOpenGL is not installed')
     else:
-        from ._plot3d import contour3d  # noqa
+        from ._plot3d import contour3d, points3d  # noqa
 
 
 # %pylab
