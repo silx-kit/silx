@@ -71,7 +71,7 @@ def contour3d(scalars,
 
     >>> plot3d_window = sx.contour3d(data, contours=[0.2, 0.4])
 
-    This function is similar to mayavi.mlab.contour3d.
+    This function provides a subset of mayavi.mlab.contour3d.
 
     :param scalars: The 3D scalar field to visualize
     :type: numpy.ndarray of float32 with 3 dimensions
@@ -194,7 +194,7 @@ def points3d(x, y, z=None,
 
     >>> plot3d_window = sx.points3d(x, y, z, values)
 
-    This function is similar to mayavi.mlab.points3d.
+    This function provides a subset of mayavi.mlab.points3d.
 
     :param numpy.ndarray x: X coordinates of the points
     :param numpy.ndarray y: Y coordinates of the points
