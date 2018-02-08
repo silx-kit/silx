@@ -31,7 +31,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/02/2018"
+__date__ = "08/02/2018"
 
 import logging
 from silx.gui import qt
@@ -121,9 +121,9 @@ class DialogExample(qt.QMainWindow):
         self.setCentralWidget(widget)
 
     def __printSelection(self, dialog):
-        print("Selected file", dialog.selectedFile())
-        print("Selected data", dialog.selectedData())
-        print("Selected URL", dialog.selectedPath())
+        print("Selected file:", dialog.selectedFile())
+        print("Selected data:", dialog.selectedData())
+        print("Selected URL:", dialog.selectedUrl())
 
     def __openDefaultFileDialog(self):
         # Clear the dialog

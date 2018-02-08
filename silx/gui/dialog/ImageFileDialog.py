@@ -233,7 +233,7 @@ class ImageFileDialog(AbstractDataFileDialog):
             print("Selection:")
             print(dialog.selectedFile())
             print(dialog.selectedData())
-            print(dialog.selectedPath())
+            print(dialog.selectedUrl())
         else:
             print("Nothing selected")
 

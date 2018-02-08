@@ -855,14 +855,14 @@ class AbstractDataFileDialog(qt.QDialog):
         if len(self.__currentHistory) > 0 and self.__currentHistoryLocation > 0:
             self.__currentHistoryLocation -= 1
             url = self.__currentHistory[self.__currentHistoryLocation]
-            self.selectPath(url)
+            self.selectUrl(url)
 
     def __navigateForward(self):
         """Navigate throug  the history one step forward."""
         if len(self.__currentHistory) > 0 and self.__currentHistoryLocation < len(self.__currentHistory) - 1:
             self.__currentHistoryLocation += 1
             url = self.__currentHistory[self.__currentHistoryLocation]
-            self.selectPath(url)
+            self.selectUrl(url)
 
     def __navigateToParent(self):
         index = self.__browser.rootIndex()
@@ -1481,20 +1481,23 @@ class AbstractDataFileDialog(qt.QDialog):
 
     # Selected data
 
-    def selectPath(self, path):
-        """Sets the data dialog's current data path.
+    def selectUrl(self, url):
+        """Sets the data dialog's current data url.
 
-        :param str path: Path identifying a data or a path
+        :param Union[str,DataUrl] url: URL identifying a data (it can be a
+            `DataUrl` object)
         """
+        if isinstance(url, silx.io.url.DataUrl):
+            url = url.path()
         self.__directoryLoadedFilter = ""
         old = self.__pathEdit.blockSignals(True)
         try:
-            self.__pathEdit.setText(path)
+            self.__pathEdit.setText(url)
         finally:
             self.__pathEdit.blockSignals(old)
         self.__pathChanged()
 
-    def selectedPath(self):
+    def selectedUrl(self):
         """Returns the URL from the file system to the data.
 
         If the dialog is not validated, the path can be an intermediat
@@ -1503,6 +1506,17 @@ class AbstractDataFileDialog(qt.QDialog):
         :rtype: str
         """
         return self.__pathEdit.text()
+
+    def selectedDataUrl(self):
+        """Returns the URL as a `DataUrl` from the file system to the data.
+
+        If the dialog is not validated, the path can be an intermediat
+        selected path, or an invalid path.
+
+        :rtype: str
+        """
+        url = self.selectedUrl()
+        return silx.io.url.DataUrl(url)
 
     def directory(self):
         """Returns the path from the current browsed directory.
