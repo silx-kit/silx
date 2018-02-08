@@ -527,7 +527,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         dialog.selectPath(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 2)
+        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 3)
 
 
 class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
