@@ -116,6 +116,9 @@ else:
                 format_.setSwapBehavior(qt.QSurfaceFormat.DoubleBuffer)
                 self.setFormat(format_)
 
+            # Enable receiving mouse move events when no buttons are pressed
+            self.setMouseTracking(True)
+
 
         def getDevicePixelRatio(self):
             """Returns the ratio device-independent / device pixel size
