@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/02/2018"
+__date__ = "08/02/2018"
 
 import logging
 from silx.gui.plot import actions
@@ -143,11 +143,11 @@ class _ImagePreview(qt.QWidget):
         return self.__plot
 
     def setData(self, data, fromDataSelector=False):
-        resetzoom = not fromDataSelector
         if data is None:
             self.clear()
             return
 
+        resetzoom = not fromDataSelector
         previousImage = self.data()
         if previousImage is not None and data.shape != previousImage.shape:
             resetzoom = True

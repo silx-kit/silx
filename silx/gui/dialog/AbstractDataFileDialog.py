@@ -1135,19 +1135,21 @@ class AbstractDataFileDialog(qt.QDialog):
 
     def __setData(self, data):
         self.__data = data
-        self.__selectedData = None
 
         if data is not None and self._isDataSupportable(data):
             if self.__selectorWidget is not None:
                 self.__selectorWidget.setData(data)
                 if not self.__selectorWidget.isUsed():
+                    self.__selectedData = None
                     self.__setSelectedData(data)
                     self.__selectorWidget.hide()
                 else:
-                    self.__selectorWidget.setData(data)
                     self.__selectorWidget.setVisible(self.__selectorWidget.hasVisibleSelectors())
+                    if not self.__selectorWidget.hasVisibleSelectors():
+                        self.__selectedData = None
                     self.__selectorWidget.selectionChanged.emit()
             else:
+                self.__selectedData = None
                 self.__setSelectedData(data)
         else:
             self.__clearData()
