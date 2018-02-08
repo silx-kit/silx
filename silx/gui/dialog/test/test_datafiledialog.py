@@ -258,8 +258,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertFalse(dialog.isVisible())
         self.assertEquals(dialog.result(), qt.QDialog.Accepted)
 
-    # FIXME: Must be updated
-    def _testClickOnBackToParentTool(self):
+    def testClickOnBackToParentTool(self):
         if h5py is None:
             self.skipTest("h5py is missing")
         dialog = self.createDialog()
@@ -291,8 +290,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         self.assertSamePath(url.text(), os.path.dirname(_tmpDirectory))
 
-    # FIXME: Must be updated
-    def _testClickOnBackToRootTool(self):
+    def testClickOnBackToRootTool(self):
         if h5py is None:
             self.skipTest("h5py is missing")
         dialog = self.createDialog()
@@ -317,8 +315,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(url.text(), path)
         # self.assertFalse(button.isEnabled())
 
-    # FIXME: Must be updated
-    def _testClickOnBackToDirectoryTool(self):
+    def testClickOnBackToDirectoryTool(self):
         if h5py is None:
             self.skipTest("h5py is missing")
         dialog = self.createDialog()
@@ -347,8 +344,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # No idea where it come from.
         self.allowedLeakingWidgets = 1
 
-    # FIXME: Must be updated
-    def _testClickOnHistoryTools(self):
+    def testClickOnHistoryTools(self):
         if h5py is None:
             self.skipTest("h5py is missing")
         dialog = self.createDialog()
@@ -436,8 +432,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedPath(), path)
 
-    # FIXME: Must be updated
-    def _testSelectGroup(self):
+    def testSelectGroup(self):
         if h5py is None:
             self.skipTest("h5py is missing")
         dialog = self.createDialog()
@@ -446,16 +441,32 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group").path()
-        dialog.selectPath(path)
+        uri = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group")
+        dialog.selectPath(uri.path())
+        self.qWaitForPendingActions(dialog)
         # test
         self.assertTrue(silx.io.is_group(dialog.selectedData()))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedPath(), path)
+        uri = silx.io.url.DataUrl(dialog.selectedPath())
+        self.assertSamePath(uri.data_path(), "/group")
 
-    # FIXME: Must be updated
-    def _testSelectRoot(self):
-        pass
+    def testSelectRoot(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
+        dialog = self.createDialog()
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+
+        # init state
+        filename = _tmpDirectory + "/data.h5"
+        uri = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
+        dialog.selectPath(uri.path())
+        self.qWaitForPendingActions(dialog)
+        # test
+        self.assertTrue(silx.io.is_file(dialog.selectedData()))
+        self.assertSamePath(dialog.selectedFile(), filename)
+        uri = silx.io.url.DataUrl(dialog.selectedPath())
+        self.assertSamePath(uri.data_path(), "/")
 
     def testSelectH5_Activate(self):
         if h5py is None:
@@ -704,7 +715,7 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/foobar")
         dialog.selectPath(url.path())
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog.selectedData())
+        self.assertIsNotNone(dialog.selectedData())
 
         # an existing node is browsed, but the wrong path is selected
         index = browser.rootIndex()

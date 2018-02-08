@@ -1403,11 +1403,9 @@ class AbstractDataFileDialog(qt.QDialog):
 
                             if silx.io.is_file(obj):
                                 self.__browser.setRootIndex(rootIndex)
-                                self.__clearData()
                             elif silx.io.is_group(obj):
                                 index = self.__dataModel.indexFromH5Object(obj)
                                 self.__browser.setRootIndex(index)
-                                self.__clearData()
                             else:
                                 index = self.__dataModel.indexFromH5Object(obj)
                                 self.__browser.setRootIndex(index.parent())
