@@ -28,7 +28,7 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/02/2018"
+__date__ = "08/02/2018"
 
 
 import sys
@@ -1554,7 +1554,7 @@ class AbstractDataFileDialog(qt.QDialog):
 
     def colormap(self):
         if self.__previewWidget is None:
-            raise RuntimeError("No preview widget defined")
+            return None
         return self.__previewWidget.colormap()
 
     def setColormap(self, colormap):
@@ -1619,7 +1619,9 @@ class AbstractDataFileDialog(qt.QDialog):
             self.setDirectory(workingDirectory)
         result &= self.__browser.restoreState(browserData)
         self.setViewMode(viewMode)
-        result &= self.colormap().restoreState(colormapData)
+        colormap = self.colormap()
+        if colormap is not None:
+            result &= self.colormap().restoreState(colormapData)
 
         return result
 
@@ -1643,6 +1645,10 @@ class AbstractDataFileDialog(qt.QDialog):
         stream.writeQString(u"%s" % self.directory())
         stream.writeQVariant(self.__browser.saveState())
         stream.writeInt32(self.viewMode())
-        stream.writeQVariant(self.colormap().saveState())
+        colormap = self.colormap()
+        if colormap is not None:
+            stream.writeQVariant(self.colormap().saveState())
+        else:
+            stream.writeQVariant(None)
 
         return data

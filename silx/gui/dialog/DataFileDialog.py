@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/02/2018"
+__date__ = "08/02/2018"
 
 import logging
 from silx.gui import qt
@@ -61,6 +61,13 @@ class _DataPreview(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.__info)
         self.setLayout(layout)
+
+    def colormap(self):
+        return None
+
+    def setColormap(self, colormap):
+        # Ignored
+        pass
 
     def sizeHint(self):
         return qt.QSize(200, 200)
