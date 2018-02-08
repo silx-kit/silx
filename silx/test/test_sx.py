@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ import unittest
 import numpy
 
 from silx.test.utils import test_options
+from silx.gui.plot.Colors import rgba
+
 
 _logger = logging.getLogger(__name__)
 
@@ -161,6 +163,63 @@ else:
             plt = sx.imshow(img, origin=(10, 10), scale=(2, 2),
                             title='origin=(10, 10), scale=(2, 2)')
             self._expose_and_close(plt)
+
+        @unittest.skipUnless(test_options.WITH_GL_TEST,
+                             test_options.WITH_GL_TEST_REASON)
+        def test_contour3d(self):
+            """Test contour3d function"""
+            coords = numpy.linspace(-10, 10, 64)
+            z = coords.reshape(-1, 1, 1)
+            y = coords.reshape(1, -1, 1)
+            x = coords.reshape(1, 1, -1)
+            data = numpy.sin(x * y * z) / (x * y * z)
+
+            # Just data
+            window = sx.contour3d(data)
+
+            isosurfaces = window.getIsosurfaces()
+            self.assertEqual(len(isosurfaces), 1)
+
+            self._expose_and_close(window)
+
+            # N contours + color
+            colors = ['red', 'green', 'blue']
+            window = sx.contour3d(data, copy=False, contours=len(colors),
+                                  color=colors)
+
+            isosurfaces = window.getIsosurfaces()
+            self.assertEqual(len(isosurfaces), len(colors))
+            for iso, color in zip(isosurfaces, colors):
+                self.assertEqual(rgba(iso.getColor()), rgba(color))
+
+            self._expose_and_close(window)
+
+            # by isolevel, single color
+            contours = 0.2, 0.5
+            window = sx.contour3d(data, copy=False, contours=contours,
+                                  color='yellow')
+
+            isosurfaces = window.getIsosurfaces()
+            self.assertEqual(len(isosurfaces), len(contours))
+            for iso, level in zip(isosurfaces, contours):
+                self.assertEqual(iso.getLevel(), level)
+                self.assertEqual(rgba(iso.getColor()),
+                                 rgba('yellow'))
+
+            self._expose_and_close(window)
+
+            # Single isolevel, colormap
+            window = sx.contour3d(data, copy=False, contours=0.5,
+                                  colormap='gray', vmin=0.6, opacity=0.4)
+
+            isosurfaces = window.getIsosurfaces()
+            self.assertEqual(len(isosurfaces), 1)
+            self.assertEqual(isosurfaces[0].getLevel(), 0.5)
+            self.assertEqual(rgba(isosurfaces[0].getColor()),
+                             (0., 0., 0., 0.4))
+
+            self._expose_and_close(window)
+
 
     def suite():
         test_suite = unittest.TestSuite()
