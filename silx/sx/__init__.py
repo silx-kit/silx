@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -82,6 +82,14 @@ else:
 
     from silx.gui.plot import *  # noqa
     from ._plot import plot, imshow  # noqa
+
+    try:
+        import OpenGL
+    except ImportError:
+        _logger.warning(
+            'Not loading silx.gui.plot3d features: PyOpenGL is not installed')
+    else:
+        from ._plot3d import contour3d  # noqa
 
 
 # %pylab
