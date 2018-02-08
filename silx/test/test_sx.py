@@ -34,7 +34,6 @@ import unittest
 import numpy
 
 from silx.test.utils import test_options
-from silx.gui.plot.Colors import rgba
 
 
 _logger = logging.getLogger(__name__)
@@ -74,6 +73,7 @@ else:
     from silx.gui import qt
     # load TestCaseQt before sx
     from silx.gui.test.utils import TestCaseQt
+    from silx.gui.plot.Colors import rgba
     from silx import sx
 
     class SXTest(TestCaseQt):
