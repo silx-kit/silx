@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -218,18 +218,6 @@ class ClickOrDrag(StateMachine):
             if btn == LEFT_BTN:
                 self.goto('clickOrDrag', x, y)
                 return True
-            elif btn == RIGHT_BTN:
-                self.goto('rightClick', x, y)
-                return True
-
-    class RightClick(State):
-        def onMove(self, x, y):
-            self.goto('idle')
-
-        def onRelease(self, x, y, btn):
-            if btn == RIGHT_BTN:
-                self.machine.click(x, y, btn)
-                self.goto('idle')
 
     class ClickOrDrag(State):
         def enterState(self, x, y):
@@ -263,7 +251,6 @@ class ClickOrDrag(StateMachine):
     def __init__(self):
         states = {
             'idle': ClickOrDrag.Idle,
-            'rightClick': ClickOrDrag.RightClick,
             'clickOrDrag': ClickOrDrag.ClickOrDrag,
             'drag': ClickOrDrag.Drag
         }

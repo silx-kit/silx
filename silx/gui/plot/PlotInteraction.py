@@ -1,7 +1,7 @@
 #  coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -129,7 +129,6 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
 
         states = {
             'idle': _ZoomOnWheel.ZoomIdle,
-            'rightClick': ClickOrDrag.RightClick,
             'clickOrDrag': ClickOrDrag.ClickOrDrag,
             'drag': ClickOrDrag.Drag
         }
@@ -994,7 +993,6 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         states = {
             'idle': ItemsInteraction.Idle,
-            'rightClick': ClickOrDrag.RightClick,
             'clickOrDrag': ClickOrDrag.ClickOrDrag,
             'drag': ClickOrDrag.Drag
         }
