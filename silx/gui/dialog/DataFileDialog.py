@@ -98,6 +98,7 @@ class _DataPreview(qt.QWidget):
             headers.append("Kind")
             self.__model.appendRow([qt.QStandardItem(kind)])
             if hasattr(data, "dtype"):
+                headers.append("Type")
                 text = self.__formatter.humanReadableType(data)
                 self.__model.appendRow([qt.QStandardItem(text)])
             if hasattr(data, "shape"):
