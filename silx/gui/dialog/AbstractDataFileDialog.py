@@ -1137,7 +1137,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__data = data
         self.__selectedData = None
 
-        if self._isDataSupportable(data):
+        if data is not None and self._isDataSupportable(data):
             if self.__selectorWidget is not None:
                 self.__selectorWidget.setData(data)
                 if not self.__selectorWidget.isUsed():
@@ -1319,6 +1319,8 @@ class AbstractDataFileDialog(qt.QDialog):
         else:
             isRoot = False
 
+        if index.isValid():
+            self.__dataSelected(index)
         self.__toParentAction.setEnabled(not isRoot)
         self.__updateActionHistory()
         self.__updateSidebar()

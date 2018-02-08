@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2017"
+__date__ = "08/02/2018"
 
 
 import unittest
@@ -773,7 +773,9 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
 
-        dialog.selectPath(_tmpDirectory + "/data.h5::/group/foobar")
+        filename = _tmpDirectory + "/data.h5"
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/foobar")
+        dialog.selectPath(url.path())
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog.selectedData())
 
@@ -781,7 +783,8 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         index = browser.rootIndex()
         obj = index.model().data(index, role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
         self.assertEqual(obj.name, "/group")
-        self.assertSamePath(dialog.selectedPath(), _tmpDirectory + "/data.h5::/group/foobar")
+        url = silx.io.url.DataUrl(dialog.selectedPath())
+        self.assertEqual(url.data_path(), "/group")
 
     def testBadSlicingPath(self):
         if h5py is None:
