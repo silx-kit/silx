@@ -220,6 +220,33 @@ else:
 
             self._expose_and_close(window)
 
+        @unittest.skipUnless(test_options.WITH_GL_TEST,
+                             test_options.WITH_GL_TEST_REASON)
+        def test_points3d(self):
+            """Test points3d function"""
+            x = numpy.random.random(1024)
+            y = numpy.random.random(1024)
+            z = numpy.random.random(1024)
+            values = numpy.random.random(1024)
+
+            # 3D positions, no value
+            window = sx.points3d(x, y, z)
+            self._expose_and_close(window)
+
+            # 3D positions, values
+            window = sx.points3d(x, y, z, values, mode='2dsquare',
+                                 colormap='magma', vmin=0.4, vmax=0.5)
+            self._expose_and_close(window)
+
+            # 2D positions, no value
+            window = sx.points3d(x, y)
+            self._expose_and_close(window)
+
+            # 2D positions, values
+            window = sx.points3d(x, y, values=values, mode=',',
+                                 colormap='magma', vmin=0.4, vmax=0.5)
+            self._expose_and_close(window)
+
 
     def suite():
         test_suite = unittest.TestSuite()
