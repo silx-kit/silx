@@ -48,8 +48,6 @@ from .processing import EventDescription, OpenclProcessing, BufferDescription
 
 if pyopencl:
     mf = pyopencl.mem_flags
-else:
-    raise ImportError("pyopencl is not installed")
 logger = logging.getLogger(__name__)
 
 
