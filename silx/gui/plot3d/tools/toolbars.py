@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ from .. import actions
 _logger = logging.getLogger(__name__)
 
 
-class Plot3dWidgetToolBar(qt.QToolBar):
+class Plot3DWidgetToolBar(qt.QToolBar):
     """Base class for toolbar associated to a Plot3DWidget
 
     :param parent: See :class:`QWidget`
@@ -62,7 +62,7 @@ class Plot3dWidgetToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, title=''):
-        super(Plot3dWidgetToolBar, self).__init__(title, parent)
+        super(Plot3DWidgetToolBar, self).__init__(title, parent)
 
         self._plot3DRef = None
 
@@ -88,7 +88,7 @@ class Plot3dWidgetToolBar(qt.QToolBar):
         return None if self._plot3DRef is None else self._plot3DRef()
 
 
-class InteractiveModeToolBar(Plot3dWidgetToolBar):
+class InteractiveModeToolBar(Plot3DWidgetToolBar):
     """Toolbar providing icons to change the interaction mode
 
     :param parent: See :class:`QWidget`
@@ -123,7 +123,7 @@ class InteractiveModeToolBar(Plot3dWidgetToolBar):
         return self._panAction
 
 
-class OutputToolBar(Plot3dWidgetToolBar):
+class OutputToolBar(Plot3DWidgetToolBar):
     """Toolbar providing icons to copy, save and print the OpenGL scene
 
     :param parent: See :class:`QWidget`
@@ -180,7 +180,7 @@ class OutputToolBar(Plot3dWidgetToolBar):
         return self._printAction
 
 
-class ViewpointToolBar(Plot3dWidgetToolBar):
+class ViewpointToolBar(Plot3DWidgetToolBar):
     """A toolbar providing icons to reset the viewpoint.
 
     :param parent: See :class:`QToolBar`
