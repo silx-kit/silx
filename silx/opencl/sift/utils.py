@@ -149,5 +149,5 @@ def matching_correction(matching):
     # sol = numpy.dot(numpy.linalg.pinv(X),y) #pseudo-inverse is slower but numerically stable
     # MSE = numpy.linalg.norm(y - numpy.dot(X,sol))**2/N #Mean Squared Error, if needed
 
-    sol, sqmse, rnk, svals = numpy.linalg.lstsq(X, y)
+    sol, sqmse, rnk, svals = numpy.linalg.lstsq(X, y, rcond=None)
     return sol

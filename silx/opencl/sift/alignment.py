@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/01/2018"
+__date__ = "09/02/2018"
 __status__ = "production"
 
 import os
@@ -183,9 +183,9 @@ class LinearAlign(OpenclProcessing):
         Call the OpenCL compiler
         """
         kernel_src = [os.path.join("sift", kernel) for kernel in self.kernel_files]
-        OpenclProcessing.compile_kernels(self, kernel_src)        
+        OpenclProcessing.compile_kernels(self, kernel_src)
         bs = min(self.kernel_files["transform"],
-                  min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
+                 min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
         if self.block_size is not None:
             bs = min(self.block_size, bs)
         device = self.ctx.devices[0]
@@ -203,9 +203,9 @@ class LinearAlign(OpenclProcessing):
             wgm = (bs, 1)
             wgr = (bs, 1, 1)
         size_per_dim = device.max_work_item_sizes
-        self.wg["transform_rgb"] = tuple(min(i,j) for i,j in zip(wgr, size_per_dim))
-        self.wg["transform"] = tuple(min(i,j) for i,j in zip(wgm, size_per_dim))
-        
+        self.wg["transform_RGB"] = tuple(min(i, j) for i, j in zip(wgr, size_per_dim))
+        self.wg["transform"] = tuple(min(i, j) for i, j in zip(wgm, size_per_dim))
+
     def _free_kernels(self):
         """
         free all kernels
