@@ -33,6 +33,7 @@ __date__ = "26/10/2017"
 import numpy
 import weakref
 
+from silx.third_party import enum
 from .. import qt
 from ..plot.Colors import rgba
 
@@ -45,45 +46,60 @@ from ._model.items import Item3DRow
 __all__ = ['items', 'SceneWidget']
 
 
-class SceneSelectionHighlightManager(object):
-    """Class controlling the highlight of the selection in a SceneWidget"""
+class _SceneSelectionHighlightManager(object):
+    """Class controlling the highlight of the selection in a SceneWidget
 
-    def __init__(self):
-        self._sceneWidget = None
+    :param ~silx.gui.plot3d.SceneWidget.SceneSelection:
+    """
+
+    def __init__(self, selection):
+        assert isinstance(selection, SceneSelection)
+        self._sceneWidget = weakref.ref(selection.parent())
+
+        self._enabled = True
         self._previousBBoxState = None
+
+        self.__selectItem(selection.getCurrentItem())
+        selection.sigCurrentChanged.connect(self.__currentChanged)
+
+    def isEnabled(self):
+        """Returns True if highlight of selection in enabled.
+
+        :rtype: bool
+        """
+        return self._enabled
+
+    def setEnabled(self, enabled=True):
+        """Activate/deactivate selection highlighting
+
+        :param bool enabled: True (default) to enable selection highlighting
+        """
+        enabled = bool(enabled)
+        if enabled != self._enabled:
+            self._enabled = enabled
+
+            sceneWidget = self.getSceneWidget()
+            if sceneWidget is not None:
+                selection = sceneWidget.selection()
+                current = selection.getCurrentItem()
+
+                if enabled:
+                    self.__selectItem(current)
+                    selection.sigCurrentChanged.connect(self.__currentChanged)
+
+                else:  # disabled
+                    self.__unselectItem(current)
+                    selection.sigCurrentChanged.disconnect(
+                        self.__currentChanged)
 
     def getSceneWidget(self):
         """Returns the SceneWidget this class controls highlight for.
 
         :rtype: ~silx.gui.plot3d.SceneWidget.SceneWidget
         """
-        return None if self._sceneWidget is None else self._sceneWidget()
+        return self._sceneWidget()
 
-    def setSceneWidget(self, widget):
-        """Set the scene widget this class controls highlight for.
-
-        :param ~silx.gui.plot3d.SceneWidget.SceneWidget widget:
-        :raise ValueError: If widget is not a SceneWidget
-        """
-        # Unregister from previous widget
-        previousWidget = self.getSceneWidget()
-        if previousWidget is not None:
-            previousWidget.selection().sigCurrentChanged.disconnect(
-                self.__currentChanged)
-
-        # Set new scene widget
-        if widget is None:
-            self._sceneWidget = None
-        elif isinstance(widget, SceneWidget):
-            self._sceneWidget = weakref.ref(widget)
-            self._previousBBoxState = None
-            self.__highlightItem(widget.selection().getCurrentItem())
-            widget.selection().sigCurrentChanged.connect(self.__currentChanged)
-        else:
-            raise ValueError(
-                "setSceneWidget only supports None or SceneWidget")
-
-    def __highlightItem(self, current):
+    def __selectItem(self, current):
         """Highlight given item.
 
          :param ~silx.gui.plot3d.items.Item3D current: New current or None
@@ -101,27 +117,34 @@ class SceneSelectionHighlightManager(object):
         current._setForegroundColor(sceneWidget.getHighlightColor())
         current.sigItemChanged.connect(self.__selectedChanged)
 
-    def __currentChanged(self, current, previous=None):
+    def __unselectItem(self, current):
+        """Remove highlight of given item.
+
+        :param ~silx.gui.plot3d.items.Item3D current:
+            Currently highlighted item
+        """
+        if current is None:
+            return
+
+        sceneWidget = self.getSceneWidget()
+        if sceneWidget is None:
+            return
+
+        # Restore bbox visibility and color
+        current.sigItemChanged.disconnect(self.__selectedChanged)
+        if (self._previousBBoxState is not None and
+                isinstance(current, items.DataItem3D)):
+            current.setBoundingBoxVisible(self._previousBBoxState)
+        current._setForegroundColor(sceneWidget.getForegroundColor())
+
+    def __currentChanged(self, current, previous):
         """Handle change of current item in the selection
 
         :param ~silx.gui.plot3d.items.Item3D current: New current or None
         :param ~silx.gui.plot3d.items.Item3D previous: Previous current or None
         """
-        sceneWidget = self.getSceneWidget()
-        if sceneWidget is None:
-            return
-
-        if previous is not None:
-            # Restore bbox visibility and color
-            previous.sigItemChanged.disconnect(self.__selectedChanged)
-            if (self._previousBBoxState is not None and
-                    isinstance(previous, items.DataItem3D) and
-                    previous.isBoundingBoxVisible()):
-                previous.setBoundingBoxVisible(self._previousBBoxState)
-            previous._setForegroundColor(sceneWidget.getForegroundColor())
-
-        # Show bbox and highlight it
-        self.__highlightItem(current)
+        self.__unselectItem(previous)
+        self.__selectItem(current)
 
     def __selectedChanged(self, event):
         """Handle updates of selected item bbox.
@@ -134,10 +157,21 @@ class SceneSelectionHighlightManager(object):
             self._previousBBoxState = None
 
 
+@enum.unique
+class HighlightMode(enum.Enum):
+    """:class:`SceneSelection` highlight modes"""
+
+    NONE = 'noHighlight'
+    """Do not highlight selected item"""
+
+    BOUNDING_BOX = 'boundingBox'
+    """Highlight selected item bounding box"""
+
+
 class SceneSelection(qt.QObject):
     """Object managing a :class:`SceneWidget` selection
 
-    :param QObject parent:
+    :param SceneWidget parent:
     """
 
     NO_SELECTION = 0
@@ -155,6 +189,28 @@ class SceneSelection(qt.QObject):
         self.__current = None  # Store weakref to current item
         self.__selectionModel = None  # Store sync selection model
         self.__syncInProgress = False  # True during model synchronization
+
+        self.__highlightManager = _SceneSelectionHighlightManager(self)
+
+    def getHighlightMode(self):
+        """Returns current selection highlight mode.
+
+        Either NONE or BOUNDING_BOX.
+
+        :rtype: HighlightMode
+        """
+        if self.__highlightManager.isEnabled():
+            return HighlightMode.BOUNDING_BOX
+        else:
+            return HighlightMode.NONE
+
+    def setHighlightMode(self, mode):
+        """Set selection highlighting mode
+
+        :param HighlightMode mode: The mode to use
+        """
+        assert isinstance(mode, HighlightMode)
+        self.__highlightManager.setEnabled(mode == HighlightMode.BOUNDING_BOX)
 
     def getCurrentItem(self):
         """Returns the current item in the scene or None.
@@ -310,9 +366,6 @@ class SceneWidget(Plot3DWidget):
         self._sceneGroup.setLabel('Data')
 
         self.viewport.scene.children.append(self._sceneGroup._getScenePrimitive())
-
-        self.__highlightManager = SceneSelectionHighlightManager()
-        self.__highlightManager.setSceneWidget(self)
 
     def model(self):
         """Returns the model corresponding the scene of this widget
