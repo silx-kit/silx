@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "19/01/2018"
+__date__ = "09/02/2018"
 
 
 import logging
@@ -488,8 +488,8 @@ class ColormapDialog(qt.QDialog):
                             resetzoom=False)
 
         if updateMarkers:
-            minDraggable = self._colormap().isEditable() and \
-                           not self._minValue.isAutoChecked()
+            minDraggable = (self._colormap().isEditable() and
+                            not self._minValue.isAutoChecked())
             self._plot.addXMarker(
                 self._minValue.getFiniteValue(),
                 legend='Min',
@@ -498,8 +498,8 @@ class ColormapDialog(qt.QDialog):
                 color='blue',
                 constraint=self._plotMinMarkerConstraint)
 
-            maxDraggable = self._colormap().isEditable() and \
-                           not self._maxValue.isAutoChecked()
+            maxDraggable = (self._colormap().isEditable() and
+                            not self._maxValue.isAutoChecked())
             self._plot.addXMarker(
                 self._maxValue.getFiniteValue(),
                 legend='Max',
@@ -916,8 +916,8 @@ class ColormapDialog(qt.QDialog):
             self._minMaxWasEdited = False
 
             # Fix start value
-            if self._maxValue.getValue() is not None and \
-                        self._minValue.getValue() > self._maxValue.getValue():
+            if (self._maxValue.getValue() is not None and
+                    self._minValue.getValue() > self._maxValue.getValue()):
                 self._minValue.setValue(self._maxValue.getValue())
             self._updateMinMax()
 
@@ -931,8 +931,8 @@ class ColormapDialog(qt.QDialog):
             self._minMaxWasEdited = False
 
             # Fix end value
-            if self._minValue.getValue() is not None and \
-                        self._minValue.getValue() > self._maxValue.getValue():
+            if (self._minValue.getValue() is not None and
+                    self._minValue.getValue() > self._maxValue.getValue()):
                 self._maxValue.setValue(self._minValue.getValue())
             self._updateMinMax()
 
