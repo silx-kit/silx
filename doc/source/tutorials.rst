@@ -9,7 +9,7 @@ Tutorials and cookbooks:
    modules/gui/plot/getting_started.rst
    modules/gui/plot/actions/examples.rst
    modules/gui/designer.rst
-   Tutorials/Sift/sift.rst
+   Tutorials/Sift/sift
    Tutorials/io.rst
    Tutorials/specfile_to_hdf5.rst
    modules/gui/hdf5/getting_started.rst

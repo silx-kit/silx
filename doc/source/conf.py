@@ -68,7 +68,9 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.doctest',
-    'sphinxext-archive'
+    'sphinxext-archive',
+    'nbsphinx'
+
 ]
 
 autodoc_member_order = 'bysource'
