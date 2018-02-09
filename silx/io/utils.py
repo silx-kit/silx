@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "08/02/2018"
+__date__ = "09/02/2018"
 
 import numpy
 import os.path
@@ -92,7 +92,7 @@ def supported_extensions(flat_formats=True):
     formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
     if flat_formats:
         try:
-            import fabioh5
+            from silx.io import fabioh5
         except ImportError:
             fabioh5 = None
         if fabioh5 is not None:
