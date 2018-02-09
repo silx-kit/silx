@@ -34,7 +34,6 @@ import time
 import logging
 import collections
 
-from silx.utils.deprecation import deprecated
 from silx.utils.proxy import Proxy
 from silx.third_party import six
 from silx.third_party import enum
