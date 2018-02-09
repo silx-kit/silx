@@ -528,15 +528,19 @@ class _BaseGroupItem(DataItem3D):
         for item in self.getItems():
             self.removeItem(item)
 
-    def visit(self):
+    def visit(self, included=True):
         """Generator visiting the group content.
 
         It traverses the group sub-tree in a top-down left-to-right way.
+
+        :param bool included: True (default) to include self in visit
         """
+        if included:
+            yield self
         for child in self.getItems():
             yield child
             if hasattr(child, 'visit'):
-                for item in child.visit():
+                for item in child.visit(included=False):
                     yield item
 
 

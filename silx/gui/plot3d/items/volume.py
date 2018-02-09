@@ -448,11 +448,15 @@ class ScalarField3D(DataItem3D):
                            key=lambda isosurface: - isosurface.getLevel())
         self._isogroup.children = [iso._getScenePrimitive() for iso in sortedIso]
 
-    def visit(self):
+    def visit(self, included=True):
         """Generator visiting the ScalarField3D content.
 
         It first access cut planes and then isosurface
+
+        :param bool included: True (default) to include self in visit
         """
+        if included:
+            yield self
         for cutPlane in self.getCutPlanes():
             yield cutPlane
         for isosurface in self.getIsosurfaces():
