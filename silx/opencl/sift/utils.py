@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-06-13"
+__date__ = "2018-01-09"
 __status__ = "beta"
 
 from math import ceil
@@ -79,6 +79,36 @@ def _gcd(a, b):
     return a
 
 
+def bin2RGB(img):
+    """
+    Perform a 2x2 binning of the image
+    """
+    dtype = img.dtype
+    if dtype == numpy.uint8:
+        out_dtype = numpy.int32
+    else:
+        out_dtype = dtype
+    shape = img.shape
+    if len(shape) == 3:
+        new_shape = shape[0] // 2, shape[1] // 2, shape[2]
+        new_img = img
+    else:
+        new_shape = shape[0] // 2, shape[1] // 2, 1
+        new_img = img.reshape((shape[0], shape[1], 1))
+    out = numpy.zeros(new_shape, dtype=out_dtype)
+    out += new_img[::2, ::2, :]
+    out += new_img[1::2, ::2, :]
+    out += new_img[1::2, 1::2, :]
+    out += new_img[::2, 1::2, :]
+    out /= 4
+    if len(shape) != 3:
+        out.shape = new_shape[0], new_shape[1]
+    if dtype == numpy.uint8:
+        return out.astype(dtype)
+    else:
+        return out
+
+
 def matching_correction(matching):
     '''
     Given the matching between two list of keypoints,
@@ -119,36 +149,5 @@ def matching_correction(matching):
     # sol = numpy.dot(numpy.linalg.pinv(X),y) #pseudo-inverse is slower but numerically stable
     # MSE = numpy.linalg.norm(y - numpy.dot(X,sol))**2/N #Mean Squared Error, if needed
 
-    sol, sqmse, rnk, svals = numpy.linalg.lstsq(X, y)
+    sol, sqmse, rnk, svals = numpy.linalg.lstsq(X, y, rcond=None)
     return sol
-
-
-def bin2RGB(img):
-    """
-    Perform a 2x2 binning of the image
-    """
-    dtype = img.dtype
-    if dtype == numpy.uint8:
-        out_dtype = numpy.int32
-    else:
-        out_dtype = dtype
-    shape = img.shape
-    if len(shape) == 3:
-        new_shape = shape[0] // 2, shape[1] // 2, shape[2]
-        new_img = img
-    else:
-        new_shape = shape[0] // 2, shape[1] // 2, 1
-        new_img = img.reshape((shape[0], shape[1], 1))
-    out = numpy.zeros(new_shape, dtype=out_dtype)
-    out += new_img[::2, ::2, :]
-    out += new_img[1::2, ::2, :]
-    out += new_img[1::2, 1::2, :]
-    out += new_img[::2, 1::2, :]
-    out /= 4
-    if len(shape) != 3:
-        out.shape = new_shape[0], new_shape[1]
-    if dtype == numpy.uint8:
-        return out.astype(dtype)
-    else:
-        return out
-

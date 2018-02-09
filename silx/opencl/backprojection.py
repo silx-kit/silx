@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "05/10/2017"
+__date__ = "19/01/2018"
 
 import logging
 import numpy
@@ -196,7 +196,7 @@ class Backprojection(OpenclProcessing):
         self.local_mem = 256 * 3 * _sizeof(numpy.float32)  # constant for all image sizes
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         # check that workgroup can actually be (16, 16)
-        self.check_workgroup_size("backproj_cpu_kernel")
+        self.compiletime_workgroup_size = self.kernels.max_workgroup_size("backproj_cpu_kernel")
         # Workgroup and ndrange sizes are always the same
         self.wg = (16, 16)
         self.ndrange = (

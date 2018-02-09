@@ -33,11 +33,6 @@
  */
 
 
-#ifndef WORKGROUP_SIZE
-	#define WORKGROUP_SIZE 1024
-#endif
-
-
 #define REDUCE(a, b) ((float2)(fmax(a.x,b.x),fmin(a.y,b.y)))
 #define READ_AND_MAP(i) ((float2)(data[i],data[i]))
 
@@ -49,79 +44,50 @@
  * if SIZE >total item size: adjust seq_count.
  *
  * :param data:       Float pointer to global memory storing the vector of data.
- * :param out:    	  Float2 pointer to global memory storing the temporary results (workgroup size)
+ * :param out:          Float2 pointer to global memory storing the temporary results (workgroup size)
  * :param seq_count:  how many blocksize each thread should read
- * :param SIZE:		  size of the
+ * :param SIZE:          size of the initial array
+ * :param ldata:        shared memory of size SIZE*2*4
  *
 **/
 
 
-__kernel void max_min_global_stage1(
-		__global const float *data,
-		__global float2 *out,
-		unsigned int SIZE){
+kernel void max_min_global_stage1(
+        global const   float  *data,
+        global         float2 *out,
+        unsigned       int     SIZE,
+        local volatile float2 *ldata){
 
-    __local volatile float2 ldata[WORKGROUP_SIZE];
-    unsigned int group_size =  min((unsigned int) get_local_size(0), (unsigned int) WORKGROUP_SIZE);
+    unsigned int group_size =  get_local_size(0);
     unsigned int lid = get_local_id(0);
     float2 acc;
     unsigned int big_block = group_size * get_num_groups(0);
-    unsigned int i =  lid + group_size * get_group_id(0); //get_global_id(0);
+    unsigned int i =  lid + group_size * get_group_id(0);
 
     if (lid<SIZE)
-    	acc = READ_AND_MAP(lid);
+        acc = READ_AND_MAP(lid);
     else
-    	acc = READ_AND_MAP(0);
-    while (i<SIZE){
+        acc = READ_AND_MAP(0);
+    while (i<SIZE)
+    {
       acc = REDUCE(acc, READ_AND_MAP(i));
-      i += big_block; //get_global_size(0);
+      i += big_block;
     }
+
     ldata[lid] = acc;
+
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    if ((lid<group_size) && (lid < 512) && ((lid + 512)<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 512]);
+    for (int bs=group_size/2; bs>=1; bs/=2)
+    {
+        if ((lid<group_size) && (lid < bs) && ((lid + bs)<group_size))
+        {
+            ldata[lid] = REDUCE(ldata[lid], ldata[lid + bs]);
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if ((lid<group_size) && (lid < 256) && ((lid + 256)<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 256]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if ((lid<group_size) && (lid < 128) && ((lid + 128)<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 128]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if ((lid<group_size) && (lid < 64 ) && ((lid + 64 )<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 64 ]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if ((lid<group_size) && (lid < 32 ) && ((lid + 32 )<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 32 ]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if ((lid<group_size) && (lid < 16 ) && ((lid + 16 )<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 16 ]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if ((lid<group_size) && (lid < 8  ) && ((lid + 8  )<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 8  ]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
 
-    if ((lid<group_size) && (lid < 4  ) && ((lid + 4  )<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 4  ]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if ((lid<group_size) && (lid < 2  ) && ((lid + 2  )<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 2  ]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if ((lid<group_size) && (lid < 1  ) && ((lid + 1  )<group_size)){
-    	ldata[lid] = REDUCE(ldata[lid], ldata[lid + 1  ]);
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-  	out[get_group_id(0)] = ldata[0];
+    out[get_group_id(0)] = ldata[0];
 }
 
 
@@ -136,68 +102,44 @@ __kernel void max_min_global_stage1(
  *
 **/
 
-__kernel void max_min_global_stage2(
-		__global const float2 *data2,
-		__global float *maximum,
-		__global float *minimum){
-
-	__local float2 ldata[WORKGROUP_SIZE];
+kernel void max_min_global_stage2(
+        global const   float2 *data2,
+        global         float  *maximum,
+        global         float  *minimum,
+        local volatile float2 *ldata)
+{
     unsigned int lid = get_local_id(0);
-    unsigned int group_size =  min((unsigned int) get_local_size(0), (unsigned int) WORKGROUP_SIZE);
+    unsigned int group_size =  get_local_size(0);
     float2 acc = (float2)(-1.0f, -1.0f);
-    if (lid<=group_size){
-    	ldata[lid] = data2[lid];
-    }else{
-    	ldata[lid] = acc;
+    if (lid<=group_size)
+    {
+        ldata[lid] = data2[lid];
     }
-	barrier(CLK_LOCAL_MEM_FENCE);
+    else
+    {
+        ldata[lid] = acc;
+    }
 
-	if ((lid<group_size) && (lid < 512) && ((lid + 512)<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 512]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if ((lid<group_size) && (lid < 256) && ((lid + 256)<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 256]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if ((lid<group_size) && (lid < 128) && ((lid + 128)<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 128]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if ((lid<group_size) && (lid < 64 ) && ((lid + 64 )<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 64 ]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if ((lid<group_size) && (lid < 32 ) && ((lid + 32 )<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 32 ]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if ((lid<group_size) && (lid < 16 ) && ((lid + 16 )<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 16 ]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if ((lid<group_size) && (lid < 8  ) && ((lid + 8  )<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 8  ]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if ((lid<group_size) && (lid < 4  ) && ((lid + 4  )<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 4  ]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if ((lid<group_size) && (lid < 2  ) && ((lid + 2  )<group_size)){
-		ldata[lid] = REDUCE(ldata[lid], ldata[lid + 2  ]);
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
+    barrier(CLK_LOCAL_MEM_FENCE);
 
-	if (lid == 0  ){
-		if ( 1 < group_size){
-			acc = REDUCE(ldata[0], ldata[1]);
-		}else{
-			acc = ldata[0];
-		}
-		maximum[0] = acc.x;
-		minimum[0] = acc.y;
-	}
+    for (int bs=group_size; bs>=1; bs/=2)
+    {
+        if ((group_size>bs))
+        {
+            if ((lid<group_size) && (lid < bs) && ((lid + bs)<group_size))
+            {
+                ldata[lid] = REDUCE(ldata[lid], ldata[lid + bs]);
+            }
+            barrier(CLK_LOCAL_MEM_FENCE);
+        }
+    }
+
+    if (lid == 0)
+    {
+        acc = ldata[0];
+        maximum[0] = acc.x;
+        minimum[0] = acc.y;
+    }
 }
 
 /*This is the serial version of the min_max kernel.
@@ -205,17 +147,17 @@ __kernel void max_min_global_stage2(
  * It has to be launched with WG=1 and only 1 WG has to be launched !
  *
  * :param data:       Float pointer to global memory storing the vector of data.
- * :param SIZE:		  size of the
+ * :param SIZE:          size of the
  * :param maximum:    Float pointer to global memory storing the maximum value
  * :param minumum:    Float pointer to global memory storing the minimum value
  *
  *
  */
 kernel void max_min_serial(
-		global const float *data,
-		unsigned int SIZE,
-		global float *maximum,
-		global float *minimum)
+        global const float *data,
+        unsigned int SIZE,
+        global float *maximum,
+        global float *minimum)
 {
 float value, maxi, mini;
 value = data[0];
@@ -223,11 +165,11 @@ mini = value;
 maxi = value;
 for (int i=1; i<SIZE; i++)
 {
-	value = data[i];
-	if (value>maxi)
-		maxi = value;
-	if (value<mini)
-		mini = value;
+    value = data[i];
+    if (value>maxi)
+        maxi = value;
+    if (value<mini)
+        mini = value;
 }
 
 maximum[0] = maxi;

@@ -1,7 +1,8 @@
 /*
  *   Project: SIFT: An algorithm for image alignement
+ *   keypoints_cpu
  *
- *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2018 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -33,16 +34,19 @@
 	Kernels for keypoints processing
 
 	For CPUs, one keypoint is handled by one thread
+
+	Mind to include sift.cl
 */
 
+/* Deprecated:
 typedef float4 keypoint;
-#define MIN(i,j) ( (i)<(j) ? (i):(j) )
-#define MAX(i,j) ( (i)<(j) ? (j):(i) )
-#ifndef WORKGROUP_SIZE
-	#define WORKGROUP_SIZE 128
-#endif
 
-
+Defined in sift.cl
+typedef struct actual_keypoint
+{
+    float col, row, scale, angle;
+} actual_keypoint;
+*/
 
 /*
 **
@@ -58,54 +62,70 @@ typedef float4 keypoint;
  * :param grad_width: integer number of columns of the gradient
  * :param grad_height: integer num of lines of the gradient
  *
+ * Group size: It is important to have a workgroup size of 1
+ * There is some shared memory used but it is to save registers.
+ *
  *
  */
 
-
-
-__kernel void descriptor(
-	__global keypoint* keypoints,
-	__global unsigned char *descriptors,
-	__global float* grad,
-	__global float* orim,
-	int octsize,
-	int keypoints_start,
-	//	int keypoints_end,
-	__global int* keypoints_end, //passing counter value to avoid to read it each time
-	int grad_width,
-	int grad_height)
+kernel void descriptor_cpu(
+        global actual_keypoint* keypoints,
+        global unsigned char *descriptors,
+        global float* grad,
+        global float* orim,
+        int octsize,
+        int keypoints_start,
+        //	int keypoints_end,
+        global int* keypoints_end, //passing counter value to avoid to read it each time
+        int grad_width,
+        int grad_height)
 {
+	int groupid = get_group_id(0);
+    if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
+    {
+        return;
+    }
+    actual_keypoint kp = keypoints[groupid];
+    if ((kp.row <= 0.0f) || (kp.col <= 0.0f))
+    {
+        return;
+    }
 
-	int gid0 = get_global_id(0);
-	keypoint k = keypoints[gid0];
-	if (!(keypoints_start <= gid0 && gid0 < *keypoints_end && k.s1 >=0.0f))
-		return;
-		
-	int i, j;
+    int i, j;
 	
-	__local volatile float tmp_descriptors[128];
-	for (i=0; i<128; i++) tmp_descriptors[i] = 0.0f;
+	local volatile float tmp_descriptors[128];
+	for (i=0; i<128; i++)
+	{
+	    tmp_descriptors[i] = 0.0f;
+	}
 
-	float rx, cx;
-	float row = k.s1/octsize, col = k.s0/octsize, angle = k.s3;
-	int	irow = (int) (row + 0.5f), icol = (int) (col + 0.5f);
-	float sine = sin((float) angle), cosine = cos((float) angle);
-	float spacing = k.s2/octsize * 3.0f;
-	int iradius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
+	float rx, cx,
+	      col = kp.col/octsize,
+	      row = kp.row/octsize,
+	      angle = kp.angle,
+	      sine = sin((float) angle),
+	      cosine = cos((float) angle),
+	      spacing = kp.scale/octsize * 3.0f;
+	int	irow = (int) (row + 0.5f),
+	    icol = (int) (col + 0.5f),
+	    iradius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
 
-	for (i = -iradius; i <= iradius; i++) { 
-		for (j = -iradius; j <= iradius; j++) { 
+	for (i = -iradius; i <= iradius; i++)
+	{
+		for (j = -iradius; j <= iradius; j++)
+		{
 			 rx = ((cosine * i - sine * j) - (row - irow)) / spacing + 1.5f;
 			 cx = ((sine * i + cosine * j) - (col - icol)) / spacing + 1.5f;
 			if ((rx > -1.0f && rx < 4.0f && cx > -1.0f && cx < 4.0f
-				 && (irow +i) >= 0  && (irow +i) < grad_height && (icol+j) >= 0 && (icol+j) < grad_width)) {
+				 && (irow +i) >= 0  && (irow +i) < grad_height && (icol+j) >= 0 && (icol+j) < grad_width))
+			{
 				float mag = grad[(int)(icol+j) + (int)(irow+i)*grad_width]
 							 * exp(- 0.125f*((rx - 1.5f) * (rx - 1.5f) + (cx - 1.5f) * (cx - 1.5f)) );
 				float ori = orim[(int)(icol+j)+(int)(irow+i)*grad_width] -  angle;
 				while (ori > 2.0f*M_PI_F) ori -= 2.0f*M_PI_F;
 				while (ori < 0.0f) ori += 2.0f*M_PI_F;
 				int	orr, rindex, cindex, oindex;
-				float rweight, cweight;
+				float cweight;
 
 				float oval = 4.0f*ori*M_1_PI_F; 
 
@@ -116,25 +136,29 @@ __kernel void descriptor(
 				float rfrac = rx - ri,	
 					cfrac = cx - ci,
 					ofrac = oval - oi;
-				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f)) {
-					for (int r = 0; r < 2; r++) {
+				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f))
+				{
+					for (int r = 0; r < 2; r++)
+					{
 						rindex = ri + r; 
 						if ((rindex >=0 && rindex < 4)) {
 							float rweight = (float) (mag * (float) ((r == 0) ? 1.0f - rfrac : rfrac));
 
-							for (int c = 0; c < 2; c++) {
+							for (int c = 0; c < 2; c++)
+							{
 								cindex = ci + c;
-								if ((cindex >=0 && cindex < 4)) {
+								if ((cindex >=0 && cindex < 4))
+								{
 									cweight = rweight * ((c == 0) ? 1.0f - cfrac : cfrac);
-									for (orr = 0; orr < 2; orr++) {
+									for (orr = 0; orr < 2; orr++)
+									{
 										oindex = oi + orr;
-										if (oindex >= 8) {  /* Orientation wraps around at PI. */
+										if (oindex >= 8)
+										{  /* Orientation wraps around at PI. */
 											oindex = 0;
 										}
 										tmp_descriptors[(rindex*4 + cindex)*8+oindex] 
 											+= cweight * ((orr == 0) ? 1.0f - ofrac : ofrac); //1.0f;
-										
-										
 									} //end "for orr"
 								} //end "valid cindex"
 							} //end "for c"
@@ -143,7 +167,6 @@ __kernel void descriptor(
 				}
 			} //end "sample in boundaries"
 		}
-		
 	} //end "i loop"
 
 
@@ -164,18 +187,20 @@ __kernel void descriptor(
 
 
 	//Threshold to 0.2 of the norm, for invariance to illumination
-	bool changed = false;
+	int changed = 0;
 	norm = 0;
 	for (i = 0; i < 128; i++) {
-		if (tmp_descriptors[i] > 0.2f) {
+		if (tmp_descriptors[i] > 0.2f)
+		{
 			tmp_descriptors[i] = 0.2f;
-			changed = true;
+			changed = 1;
 		}
 		norm += tmp_descriptors[i]*tmp_descriptors[i];
 	}
 
 	//if values have been changed, we have to normalize again...
-	if (changed == true) {
+	if (changed)
+	{
 		norm = rsqrt(norm);
 		for (i=0; i < 128; i++)
 			tmp_descriptors[i] *= norm;
@@ -183,10 +208,10 @@ __kernel void descriptor(
 
 	//finally, cast to integer
 	int intval;
-	for (i = 0; i < 128; i++) {
-		intval =  (int)(512.0 * tmp_descriptors[i]);
-		descriptors[128*gid0+i]
-			= (unsigned char) MIN(255, intval);
+	for (i = 0; i < 128; i++)
+	{
+		intval =  (int)(512.0f * tmp_descriptors[i]);
+		descriptors[128*groupid+i] = (uchar) min(255, intval);
 	}
 }
 

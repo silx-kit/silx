@@ -30,20 +30,8 @@
  * OTHER DEALINGS IN THE SOFTWARE. 
  * 
  **/
-/*
-	Keypoint (x, y, scale, angle) without its descriptor
-*/
-typedef float4 keypoint;
 
-
-/*
-	Keypoint with its descriptor
-*/
-typedef struct t_keypoint {
-	float x, y, scale, angle;
-	unsigned char desc[128];
-} t_keypoint;
-
+// Mind to include sift.cl
 
 /**
  * \brief Fills a float-array with the given value.
@@ -54,13 +42,14 @@ typedef struct t_keypoint {
  */
 
 
-__kernel void
-memset_float( __global float *array,
+kernel void
+memset_float( global float *array,
 				const float value,
 				const int SIZE
 ){
 	int gid = get_global_id(0);
-	if (gid<SIZE){
+	if (gid<SIZE)
+	{
 		array[gid] = value;
 	}
 }
@@ -74,13 +63,14 @@ memset_float( __global float *array,
  */
 
 
-__kernel void
-memset_int( __global int *array,
-				const int value,
-				const int SIZE
+kernel void
+memset_int( global int *array,
+			const int value,
+			const int SIZE
 ){
 	int gid = get_global_id(0);
-	if (gid<SIZE){
+	if (gid<SIZE)
+	{
 		array[gid] = value;
 	}
 }
@@ -94,22 +84,26 @@ memset_int( __global int *array,
  */
 
 
-__kernel void
-memset_kp( __global t_keypoint *array,
-				const float fvalue,
-				const unsigned char uvalue,
-				const int SIZE
-){
+kernel void
+memset_kp( global featured_keypoint *array,
+			const float fvalue,
+			const unsigned char uvalue,
+			const int SIZE)
+{
 	int gid = get_global_id(0);
-	if (gid<SIZE){
-		t_keypoint kp;
-		kp.x =  fvalue;
-		kp.y =  fvalue;
-		kp.scale =  fvalue;
-		kp.angle =  fvalue;
-		for (int i=0;i<128;i++){
-			kp.desc[i] = uvalue;
+	if (gid<SIZE)
+	{
+		featured_keypoint kpd;
+		actual_keypoint kp;
+		kp.row = fvalue;
+		kp.col = fvalue;
+		kp.scale = fvalue;
+		kp.angle = fvalue;
+		kpd.keypoint = kp;
+		for (int i=0;i<128;i++)
+		{
+			kpd.desc[i] = uvalue;
 		}
-		array[gid] = kp;
+		array[gid] = kpd;
 	}
 }

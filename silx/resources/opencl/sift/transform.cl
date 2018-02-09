@@ -54,11 +54,11 @@
  *
  */
 
-__kernel void transform(
-        __global float* image,
-        __global float* output,
-        __global float4* matrix,
-        __global float2* offset,
+kernel void transform(
+        global float* image,
+        global float* output,
+        global float4* matrix,
+        global float2* offset,
         int image_width,
         int image_height,
         int output_width,
@@ -148,11 +148,11 @@ __kernel void transform(
  *                                dim2 [0..height[
  *
  */
-__kernel void transform_RGB(
-        __global unsigned char* image,
-        __global unsigned char* output,
-        __global float4* matrix,
-        __global float2* offset,
+kernel void transform_RGB(
+        global unsigned char* image,
+        global unsigned char* output,
+        global float4* matrix,
+        global float2* offset,
         int image_width,
         int image_height,
         int output_width,

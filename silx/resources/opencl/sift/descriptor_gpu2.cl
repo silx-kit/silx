@@ -1,7 +1,8 @@
 /*
- *   Project: SIFT: An algorithm for image alignement
+ *   Project: SIFT: An algorithm for image alignment
+ *   keypoint_gpu2
  *
- *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2018 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -45,17 +46,18 @@
 
 Those kernel are optimized for compute capability >=2.0 (generation Fermi and Kepler )
 
+Mind to include sift.cl
 */
 
+/* Deprecated:
 typedef float4 keypoint;
-#define MIN(i,j) ( (i)<(j) ? (i):(j) )
-#define MAX(i,j) ( (i)<(j) ? (j):(i) )
-#ifndef WORKGROUP_SIZE
-	#define WORKGROUP_SIZE 128
-#endif
 
-
-
+Defined in sift.cl
+typedef struct actual_keypoint
+{
+    float col, row, scale, angle;
+} actual_keypoint;
+*/
 
 
 /*
@@ -72,7 +74,8 @@ typedef float4 keypoint;
  *		Like in SIFT, we divide the patch in 4x4 subregions, each being handled by one thread.
  *	This is, one thread handles at most 32x32=1024 pixels.	
  *	For memory, we take 16x16=256 pixels per thread, so we can use a 2D shared memory (32*32*4=4096).
- *		Additionally, a third dimension in the workgroup (size 8) enables coalesced memory access and more paralellization.
+ *		Additionally, a third dimension in the workgroup (size 8) enables coalesced memory access
+ *		and more parallelization.
  *
  *
  * :param keypoints: Pointer to global memory with current keypoints vector
@@ -86,6 +89,7 @@ typedef float4 keypoint;
  * :param grad_height: integer num of lines of the gradient
 
 
+TODO: one day use compile time parameters
 -par.MagFactor = 3 //"1.5 sigma"
 -OriSize  = 8 //number of bins in the local histogram
 -par.IndexSigma  = 1.0
@@ -94,57 +98,69 @@ typedef float4 keypoint;
 
 
 
-__kernel void descriptor(
-	__global keypoint* keypoints,
-	__global unsigned char *descriptors,
-	__global float* grad,
-	__global float* orim,
+kernel void descriptor_gpu2(
+	global actual_keypoint* keypoints,
+	global uchar *descriptors,
+	global float* grad,
+	global float* orim,
 	int octsize,
 	int keypoints_start,
 //	int keypoints_end,
-	__global int* keypoints_end, //passing counter value to avoid to read it each time
+	global int* keypoints_end, //passing counter value to avoid to read it each time
 	int grad_width,
 	int grad_height)
 {
-
 	int lid0 = get_local_id(0); //[0,8[
 	int lid1 = get_local_id(1); //[0,8[
 	int lid2 = get_local_id(2); //[0,8[
-	int lid = (lid0*8+lid1)*8+lid2; //[0,512[ to limit to [0,128[
+	int lid = (lid2*get_local_size(1)+lid1)*get_local_size(0)+lid0; //[0,512[ but we will use only up to 128
 	int groupid = get_group_id(0);
-	keypoint k = keypoints[groupid];
-	if (!(keypoints_start <= groupid && groupid < *keypoints_end && k.s1 >=0.0f))
-		return;
+	if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
+	{
+	    return;
+	}
+    actual_keypoint kp = keypoints[groupid];
+    if ((kp.row <= 0.0f) || (kp.col <= 0.0f))
+    {
+        return;
+    }
 
 	int i,j,j2;
 	
-	__local volatile float histogram[128];		//for "final" histogram
-	__local volatile float hist2[128];		//for temporary histogram
-	__local volatile unsigned int hist3[128*8]; //for the atomic_add
+	local volatile float histogram[128];		//for "final" histogram
+	local volatile float hist2[128];		    //for temporary histogram
+	local volatile unsigned int hist3[128*8];   //for the atomic_add
+	local int changed[1];                       //keep track of changes
 	
-	float rx, cx;
-	float one_octsize = 1.0f/octsize;
-	float row = k.s1*one_octsize, col = k.s0*one_octsize;
-	int	irow = (int) ((k.s1*one_octsize) + 0.5f), icol = (int) ((k.s0*one_octsize) + 0.5f);
-	float sine = sin((float) k.s3), cosine = cos((float) k.s3);
-	float spacing = k.s2*one_octsize * 3.0f;
-	int radius = (int) ((1.414f * (k.s2*one_octsize * 3.0f) * 2.5f) + 0.5f);
-	
-	int imin = -64 +16*lid1,
-		jmin = -64 +16*lid2;
-	int imax = imin+16,
+	float rx, cx,
+	      one_octsize = 1.0f/octsize,
+	      row = kp.row*one_octsize,
+	      col = kp.col*one_octsize,
+	      sine = sin(kp.angle),
+	      cosine = cos(kp.angle),
+	      spacing = kp.scale*one_octsize * 3.0f;
+	int	irow = (int) (row + 0.5f),
+	    icol = (int) (col + 0.5f),
+	    radius = (int) ((1.414f * spacing * 2.5f) + 0.5f),
+	    imin = -64 + 16*lid1,
+		jmin = -64 + 16*lid2,
+	    imax = imin+16,
 		jmax = jmin+16;
 		
 	//memset
-	for (i=0; i < 2; i++) {
+	for (i=0; i < 2; i++)
+	{
 		hist3[i*512+lid] = 0;
 	}
-	if (lid < 128) {
+	if (lid < 128)
+	{
 		histogram[lid] = 0.0f;
-	hist2[lid] = 0.0f;
-	}
-	for (i=imin; i < imax; i++) {
-		for (j2=jmin/8; j2 < jmax/8; j2++) {	
+		hist2[lid] = 0.0f;
+	}//end "if lid < 128"
+	for (i=imin; i < imax; i++)
+	{
+		for (j2=jmin/8; j2 < jmax/8; j2++)
+		{
 			j=j2*8+lid0;
 			rx = ((cosine * i - sine * j) - (row - irow)) / spacing + 1.5f;
 			cx = ((sine * i + cosine * j) - (col - icol)) / spacing + 1.5f;
@@ -154,9 +170,15 @@ __kernel void descriptor(
 
 				float mag = grad[icol+j + (irow+i)*grad_width]
 							 * exp(- 0.125f*((rx - 1.5f) * (rx - 1.5f) + (cx - 1.5f) * (cx - 1.5f)) );
-				float ori = orim[icol+j+(irow+i)*grad_width] -  k.s3;
-				while (ori > 2.0f*M_PI_F) ori -= 2.0f*M_PI_F;
-				while (ori < 0.0f) ori += 2.0f*M_PI_F;
+				float ori = orim[icol+j+(irow+i)*grad_width] - kp.angle;
+				while (ori > 2.0f*M_PI_F)
+				{
+				    ori -= 2.0f*M_PI_F;
+				}
+				while (ori < 0.0f)
+				    {
+				    ori += 2.0f*M_PI_F;
+				    }
 				int	orr, rindex, cindex, oindex;
 				float	rweight, cweight;
 				float oval = 4.0f*ori*M_1_PI_F;
@@ -168,19 +190,26 @@ __kernel void descriptor(
 				float rfrac = rx - ri,
 					cfrac = cx - ci,
 					ofrac = oval - oi;
-				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f)) {
-					for (int r = 0; r < 2; r++) {
+				if ((ri >= -1  &&  ri < 4  && oi >=  0  &&  oi <= 8  && rfrac >= 0.0f  &&  rfrac <= 1.0f))
+				{
+					for (int r = 0; r < 2; r++)
+					{
 						rindex = ri + r;
-						if ((rindex >=0 && rindex < 4)) {
+						if ((rindex >=0 && rindex < 4))
+						{
 							rweight = mag * ((r == 0) ? 1.0f - rfrac : rfrac);
 
-							for (int c = 0; c < 2; c++) {
+							for (int c = 0; c < 2; c++)
+							{
 								cindex = ci + c;
-								if ((cindex >=0 && cindex < 4)) {
+								if ((cindex >=0 && cindex < 4))
+								{
 									cweight = rweight * ((c == 0) ? 1.0f - cfrac : cfrac);
-									for (orr = 0; orr < 2; orr++) {
+									for (orr = 0; orr < 2; orr++)
+									{
 										oindex = oi + orr;
-										if (oindex >= 8) {  /* Orientation wraps around at PI. */
+										if (oindex >= 8)
+										{  /* Orientation wraps around at PI. */
 											oindex = 0;
 										}
 										int bin = (rindex*4 + cindex)*8+oindex; //value in [0,128[
@@ -198,8 +227,6 @@ __kernel void descriptor(
 							} //end "for c"
 						} //end "valid rindex"
 					} //end "for r"
-					
-					
 				}
 			}//end "in the boundaries"
 		} //end j loop
@@ -215,104 +242,127 @@ __kernel void descriptor(
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 	if (lid < 128)
-		histogram[lid] 
-			+= (float) ((hist3[lid*8]+hist3[lid*8+1]+hist3[lid*8+2]+hist3[lid*8+3]
-			+hist3[lid*8+4]+hist3[lid*8+5]+hist3[lid*8+6]+hist3[lid*8+7])*0.00001f);
-
-
+	{
+	    histogram[lid]
+	                += (float) ((hist3[lid*8]+hist3[lid*8+1]+hist3[lid*8+2]+hist3[lid*8+3]
+	                    +hist3[lid*8+4]+hist3[lid*8+5]+hist3[lid*8+6]+hist3[lid*8+7])*0.00001f);
+	}//end "if lid < 128"
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
 	//memset of 128 values of hist2 before re-use
-	if (lid < 128) hist2[lid] = histogram[lid]*histogram[lid];
+	if (lid < 128)
+	{
+	    float tmp =  histogram[lid];
+	    hist2[lid] = tmp*tmp;
+	}//end "if lid < 128"
 	
 	/*
 	 	Normalization and thre work shared by the 16 threads (8 values per thread)
 	*/
 	
 	//parallel reduction to normalize vector
-
-	if (lid < 64) {
+	barrier(CLK_LOCAL_MEM_FENCE);
+	if (lid < 64)
+	{
 		hist2[lid] += hist2[lid+64];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
-	if (lid < 32) {
+	if (lid < 32)
+	{
 		hist2[lid] += hist2[lid+32];
 	}
-
 	barrier(CLK_LOCAL_MEM_FENCE);
-	if (lid < 16) {
+	if (lid < 16)
+	{
 		hist2[lid] += hist2[lid+16];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
-	if (lid < 8) {
+	if (lid < 8)
+	{
 		hist2[lid] += hist2[lid+8];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
-	if (lid < 4) {
+	if (lid < 4)
+	{
 		hist2[lid] += hist2[lid+4];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
-	if (lid < 2) {
+	if (lid < 2)
+	{
 		hist2[lid] += hist2[lid+2];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
-	if (lid == 0) hist2[0] = rsqrt(hist2[1]+hist2[0]);
+	if (lid == 0)
+	{
+	    hist2[0] = rsqrt(hist2[0]+hist2[1]);
+	    changed[0] = 0; // initialize for later on...
+	}
 	barrier(CLK_LOCAL_MEM_FENCE);
 	//now we have hist2[0] = 1/sqrt(sum(hist[i]^2))
 	
-	if (lid < 128) {
+	if (lid < 128)
+	{
 		histogram[lid] *= hist2[0];
-
 		//Threshold to 0.2 of the norm, for invariance to illumination
-		__local int changed[1];
-		if (lid == 0) changed[0] = 0;
-		if (histogram[lid] > 0.2f) {
+		if (histogram[lid] > 0.2f)
+		{
 			histogram[lid] = 0.2f;
 			atomic_inc(changed);
 		}
+	} //end "if lid < 128"
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+    //if values have changed, we have to re-normalize
+    if (changed[0])
+    {
+        //memset of 128 values of hist2 before re-use
+        if (lid < 128)
+        {
+            float tmp =  histogram[lid];
+            hist2[lid] = tmp*tmp;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (lid < 64) {
+            hist2[lid] += hist2[lid+64];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (lid < 32) {
+            hist2[lid] += hist2[lid+32];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (lid < 16) {
+            hist2[lid] += hist2[lid+16];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (lid < 8) {
+            hist2[lid] += hist2[lid+8];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (lid < 4) {
+            hist2[lid] += hist2[lid+4];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (lid < 2) {
+            hist2[lid] += hist2[lid+2];
+        }
 		barrier(CLK_LOCAL_MEM_FENCE);
-		//if values have changed, we have to re-normalize
-		if (changed[0]) { 
-			hist2[lid] = histogram[lid]*histogram[lid];
-			if (lid < 64) {
-				hist2[lid] += hist2[lid+64];
-			}
-			barrier(CLK_LOCAL_MEM_FENCE);
-			if (lid < 32) {
-				hist2[lid] += hist2[lid+32];
-			}
-			barrier(CLK_LOCAL_MEM_FENCE);
-			if (lid < 16) {
-				hist2[lid] += hist2[lid+16];
-			}
-			barrier(CLK_LOCAL_MEM_FENCE);
-			if (lid < 8) {
-				hist2[lid] += hist2[lid+8];
-			}
-			barrier(CLK_LOCAL_MEM_FENCE);
-			if (lid < 4) {
-				hist2[lid] += hist2[lid+4];
-			}
-			barrier(CLK_LOCAL_MEM_FENCE);
-			if (lid < 2) {
-				hist2[lid] += hist2[lid+2];
-			}
-			barrier(CLK_LOCAL_MEM_FENCE);
-			if (lid == 0) hist2[0] = rsqrt(hist2[0]+hist2[1]);
-			barrier(CLK_LOCAL_MEM_FENCE);
+		if (lid == 0)
+		{
+		    hist2[0] = rsqrt(hist2[0]+hist2[1]);
+		}
+		barrier(CLK_LOCAL_MEM_FENCE);
+	    //now we have hist2[0] = 1/sqrt(sum(hist[i]^2))
+        if (lid < 128)
+        {
 			histogram[lid] *= hist2[0];
 		}
-		
 		barrier(CLK_LOCAL_MEM_FENCE);
-		//finally, cast to integer
-		descriptors[128*groupid+lid]
-			= (unsigned char) MIN(255,(unsigned char)(512.0f*histogram[lid]));
+    } //end if changed
+    //finally, cast to integer for 128 values
+    if (lid < 128)
+    {
+		int intval =  (int)(512.0f * histogram[lid]);
+		descriptors[128*groupid+lid] = (uchar) min(255, intval);
 	} //end "if lid < 128"
-}
-
-
-
-
-
-
+} //end kernel
