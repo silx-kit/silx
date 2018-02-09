@@ -88,12 +88,12 @@ class SceneSelectionHighlightManager(object):
 
          :param ~silx.gui.plot3d.items.Item3D current: New current or None
         """
+        if current is None:
+            return
+
         sceneWidget = self.getSceneWidget()
         if sceneWidget is None:
             return
-
-        if current is None:
-            current = sceneWidget.getSceneGroup()
 
         if isinstance(current, items.DataItem3D):
             self._previousBBoxState = current.isBoundingBoxVisible()
@@ -111,16 +111,14 @@ class SceneSelectionHighlightManager(object):
         if sceneWidget is None:
             return
 
-        if previous is None:
-            previous = sceneWidget.getSceneGroup()
-
-        # Restore bbox visibility and color
-        previous.sigItemChanged.disconnect(self.__selectedChanged)
-        if (self._previousBBoxState is not None and
-                isinstance(previous, items.DataItem3D) and
-                previous.isBoundingBoxVisible()):
-            previous.setBoundingBoxVisible(self._previousBBoxState)
-        previous._setForegroundColor(sceneWidget.getForegroundColor())
+        if previous is not None:
+            # Restore bbox visibility and color
+            previous.sigItemChanged.disconnect(self.__selectedChanged)
+            if (self._previousBBoxState is not None and
+                    isinstance(previous, items.DataItem3D) and
+                    previous.isBoundingBoxVisible()):
+                previous.setBoundingBoxVisible(self._previousBBoxState)
+            previous._setForegroundColor(sceneWidget.getForegroundColor())
 
         # Show bbox and highlight it
         self.__highlightItem(current)
@@ -465,12 +463,6 @@ class SceneWidget(Plot3DWidget):
 
     # Colors
 
-    def _updateColors(self):
-        """Update item depending on foreground/highlight color"""
-        bbox = self._sceneGroup._getScenePrimitive()  # TODO move in group
-        bbox.tickColor = self._textColor
-        bbox.color = self._foregroundColor
-
     def getTextColor(self):
         """Return color used for text
 
@@ -487,7 +479,12 @@ class SceneWidget(Plot3DWidget):
         color = rgba(color)
         if color != self._textColor:
             self._textColor = color
-            self._updateColors()
+
+            # Update text color
+            # TODO make entry point in Item3D for this
+            bbox = self._sceneGroup._getScenePrimitive()
+            bbox.tickColor = color
+
             self.sigStyleChanged.emit('textColor')
 
     def getForegroundColor(self):
@@ -507,11 +504,12 @@ class SceneWidget(Plot3DWidget):
         color = rgba(color)
         if color != self._foregroundColor:
             self._foregroundColor = color
-            self._updateColors()
 
             # Update scene items
-            for item in self.getSceneGroup().visit():
-                item._setForegroundColor(color)
+            selected = self.selection().getCurrentItem()
+            for item in self.getSceneGroup().visit(included=True):
+                if item is not selected:
+                    item._setForegroundColor(color)
 
             self.sigStyleChanged.emit('foregroundColor')
 
@@ -532,5 +530,9 @@ class SceneWidget(Plot3DWidget):
         color = rgba(color)
         if color != self._highlightColor:
             self._highlightColor = color
-            self._updateColors()
+
+            selected = self.selection().getCurrentItem()
+            if selected is not None:
+                selected._setForegroundColor(color)
+
             self.sigStyleChanged.emit('highlightColor')
