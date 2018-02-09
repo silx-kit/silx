@@ -67,8 +67,13 @@ class Plot3DWidgetToolBar(qt.QToolBar):
         self._plot3DRef = None
 
     def _plot3DWidgetChanged(self, widget):
-        """Override in subclass to handle change of Plot3DWidget"""
-        pass
+        """Handle change of Plot3DWidget and sync actions
+
+        :param Plot3DWidget widget:
+        """
+        for action in self.actions():
+            if isinstance(action, actions.Plot3DAction):
+                action.setPlot3DWidget(widget)
 
     def setPlot3DWidget(self, widget):
         """Set the Plot3DWidget this toolbar is associated with
@@ -103,10 +108,6 @@ class InteractiveModeToolBar(Plot3DWidgetToolBar):
 
         self._panAction = actions.mode.PanAction(parent=self)
         self.addAction(self._panAction)
-
-    def _plot3DWidgetChanged(self, widget):
-        self.getRotateAction().setPlot3DWidget(widget)
-        self.getPanAction().setPlot3DWidget(widget)
 
     def getRotateAction(self):
         """Returns the QAction setting rotate interaction of the Plot3DWidget
@@ -144,12 +145,6 @@ class OutputToolBar(Plot3DWidgetToolBar):
 
         self._printAction = actions.io.PrintAction(parent=self)
         self.addAction(self._printAction)
-
-    def _plot3DWidgetChanged(self, widget):
-        self.getCopyAction().setPlot3DWidget(widget)
-        self.getSaveAction().setPlot3DWidget(widget)
-        self.getVideoRecordAction().setPlot3DWidget(widget)
-        self.getPrintAction().setPlot3DWidget(widget)
 
     def getCopyAction(self):
         """Returns the QAction performing copy to clipboard of the Plot3DWidget
@@ -197,7 +192,7 @@ class ViewpointToolBar(Plot3DWidgetToolBar):
 
     def _plot3DWidgetChanged(self, widget):
         self.getViewpointToolButton().setPlot3DWidget(widget)
-        self.getRotateViewpointAction().setPlot3DWidget(widget)
+        super(ViewpointToolBar, self)._plot3DWidgetChanged(widget)
 
     def getViewpointToolButton(self):
         """Returns the ViewpointToolButton to set viewpoint of the Plot3DWidget
