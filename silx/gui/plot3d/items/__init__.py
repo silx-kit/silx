@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ __license__ = "MIT"
 __date__ = "15/11/2017"
 
 
-from .core import DataItem3D, Item3D, GroupItem  # noqa
+from .core import DataItem3D, Item3D, GroupItem, GroupWithAxesItem  # noqa
 from .core import ItemChangedType, Item3DChangedType  # noqa
 from .mixins import (ColormapMixIn, InterpolationMixIn,  # noqa
                      PlaneMixIn, SymbolMixIn)  # noqa

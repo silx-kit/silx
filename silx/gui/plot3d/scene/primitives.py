@@ -673,9 +673,7 @@ class Box(core.PrivateGroup):
         (0., 0., 1.), (1., 0., 1.), (1., 1., 1.), (0., 1., 1.)),
         dtype=numpy.float32)
 
-    def __init__(self, size=(1., 1., 1.),
-                 stroke=(1., 1., 1., 1.),
-                 fill=(1., 1., 1., 0.)):
+    def __init__(self,  stroke=(1., 1., 1., 1.), fill=(1., 1., 1., 0.)):
         super(Box, self).__init__()
 
         self._fill = Mesh3D(self._vertices,
@@ -693,8 +691,7 @@ class Box(core.PrivateGroup):
 
         self._children = [self._stroke, self._fill]
 
-        self._size = None
-        self.size = size
+        self._size = 1., 1., 1.
 
     @classmethod
     def getLineIndices(cls, copy=True):
@@ -812,6 +809,23 @@ class Axes(Lines):
         super(Axes, self).__init__(self._vertices,
                                    colors=self._colors,
                                    width=3.)
+        self._size = 1., 1., 1.
+
+    @property
+    def size(self):
+        """Size of the axes (sx, sy, sz)"""
+        return self._size
+
+    @size.setter
+    def size(self, size):
+        assert len(size) == 3
+        size = tuple(size)
+        if size != self.size:
+            self._size = size
+            self.setAttribute(
+                'position',
+                self._vertices * numpy.array(size, dtype=numpy.float32))
+            self.notify()
 
 
 class BoxWithAxes(Lines):
@@ -852,6 +866,7 @@ class BoxWithAxes(Lines):
                                           indices=self._lineIndices,
                                           colors=colors,
                                           width=2.)
+        self._size = 1., 1., 1.
         self.color = color
 
     @property
@@ -868,6 +883,22 @@ class BoxWithAxes(Lines):
             colors[:len(self._axesColors), :] = self._axesColors
             colors[len(self._axesColors):, :] = self._color
             self.setAttribute('color', colors)  # Do the notification
+
+    @property
+    def size(self):
+        """Size of the axes (sx, sy, sz)"""
+        return self._size
+
+    @size.setter
+    def size(self, size):
+        assert len(size) == 3
+        size = tuple(size)
+        if size != self.size:
+            self._size = size
+            self.setAttribute(
+                'position',
+                self._vertices * numpy.array(size, dtype=numpy.float32))
+            self.notify()
 
 
 class PlaneInGroup(core.PrivateGroup):
@@ -2320,8 +2351,7 @@ class GroupBBox(core.PrivateGroup):
         super(GroupBBox, self).__init__()
         self._group = core.Group(children)
 
-        self._boxTransforms = transform.TransformList(
-            (transform.Translate(), transform.Scale()))
+        self._boxTransforms = transform.TransformList((transform.Translate(),))
 
         # Using 1 of 3 primitives to render axes and/or bounding box
         # To avoid z-fighting between axes and bounding box
@@ -2348,12 +2378,15 @@ class GroupBBox(core.PrivateGroup):
         bounds = self._group.bounds(dataBounds=True)
         if bounds is not None:
             origin = bounds[0]
-            scale = [(d if d != 0. else 1.) for d in bounds[1] - bounds[0]]
+            size = bounds[1] - bounds[0]
         else:
-            origin, scale = (0., 0., 0.), (1., 1., 1.)
+            origin, size = (0., 0., 0.), (1., 1., 1.)
 
         self._boxTransforms[0].translation = origin
-        self._boxTransforms[1].scale = scale
+
+        self._boxWithAxes.size = size
+        self._box.size = size
+        self._axes.size = size
 
     def _bounds(self, dataBounds=False):
         self._updateBoxAndAxes()

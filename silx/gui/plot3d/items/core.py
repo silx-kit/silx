@@ -40,7 +40,7 @@ from silx.third_party import enum, six
 from ... import qt
 from ...plot.items import ItemChangedType
 from .. import scene
-from ..scene import transform
+from ..scene import axes, primitives, transform
 
 
 @enum.unique
@@ -61,6 +61,12 @@ class Item3DChangedType(enum.Enum):
 
     LABEL = 'labelChanged'
     """Item's label changed flag."""
+
+    BOUNDING_BOX_VISIBLE = 'boundingBoxVisibleChanged'
+    """Item's bounding box visibility changed"""
+
+    ROOT_ITEM = 'rootItemChanged'
+    """Item's root changed flag."""
 
 
 class Item3D(qt.QObject):
@@ -89,11 +95,52 @@ class Item3D(qt.QObject):
 
         self._primitive = primitive
 
+        self.__syncForegroundColor()
+
         labelIndex = self._LABEL_INDICES[self.__class__]
         self._label = six.text_type(self.__class__.__name__)
         if labelIndex != 0:
             self._label += u' %d' % labelIndex
         self._LABEL_INDICES[self.__class__] += 1
+
+        if isinstance(parent, Item3D):
+            parent.sigItemChanged.connect(self.__parentItemChanged)
+
+    def setParent(self, parent):
+        """Override set parent to handle root item change"""
+        previousParent = self.parent()
+        if isinstance(previousParent, Item3D):
+            previousParent.sigItemChanged.disconnect(self.__parentItemChanged)
+
+        super(Item3D, self).setParent(parent)
+
+        if isinstance(parent, Item3D):
+            parent.sigItemChanged.connect(self.__parentItemChanged)
+
+        self._updated(Item3DChangedType.ROOT_ITEM)
+
+    def __parentItemChanged(self, event):
+        """Handle updates of the parent if it is an Item3D
+
+        :param Item3DChangedType event:
+        """
+        if event == Item3DChangedType.ROOT_ITEM:
+            self._updated(Item3DChangedType.ROOT_ITEM)
+
+    def root(self):
+        """Returns the root of the scene this item belongs to.
+
+        The root is the up-most Item3D in the scene tree hierarchy.
+
+        :rtype: Union[Item3D, None]
+        """
+        root = None
+        ancestor = self.parent()
+        while isinstance(ancestor, Item3D):
+            root = ancestor
+            ancestor = ancestor.parent()
+
+        return root
 
     def _getScenePrimitive(self):
         """Return the group containing the item rendering"""
@@ -104,6 +151,9 @@ class Item3D(qt.QObject):
 
         :param event: The event to send to :attr:`sigItemChanged` signal.
         """
+        if event == Item3DChangedType.ROOT_ITEM:
+            self.__syncForegroundColor()
+
         if event is not None:
             self.sigItemChanged.emit(event)
 
@@ -146,17 +196,49 @@ class Item3D(qt.QObject):
             primitive.visible = visible
             self._updated(ItemChangedType.VISIBLE)
 
+    # Foreground color
 
-# TODO add bounding box visible + color
+    def _setForegroundColor(self, color):
+        """Set the foreground color of the item.
+
+        The default implementation does nothing, override it in subclass.
+
+        :param color: RGBA color
+        :type color: tuple of 4 float in [0., 1.]
+        """
+        if hasattr(super(Item3D, self), '_setForegroundColor'):
+            super(Item3D, self)._setForegroundColor(color)
+
+    def __syncForegroundColor(self):
+        """Retrieve foreground color from parent and update this item"""
+        # Look-up for SceneWidget to get its foreground color
+        root = self.root()
+        if root is not None:
+            widget = root.parent()
+            if isinstance(widget, qt.QWidget):
+                self._setForegroundColor(
+                    widget.getForegroundColor().getRgbF())
+
+
 class DataItem3D(Item3D):
     """Base class representing a data item with transform in the scene.
 
     :param parent: The View widget this item belongs to.
-    :param primitive: An optional primitive to use as scene primitive
+    :param Union[GroupBBox, None] group:
+        The scene group to use for rendering
     """
 
-    def __init__(self, parent, primitive=None):
-        Item3D.__init__(self, parent=parent, primitive=primitive)
+    def __init__(self, parent, group=None):
+        if group is None:
+            group = primitives.GroupBBox()
+
+            # Set-up bounding box
+            group.boxVisible = False
+            group.axesVisible = False
+        else:
+            assert isinstance(group, primitives.GroupBBox)
+
+        Item3D.__init__(self, parent=parent, primitive=group)
 
         # Transformations
         self._translate = transform.Translate()
@@ -340,9 +422,38 @@ class DataItem3D(Item3D):
         :rtype: numpy.ndarray"""
         return self._matrix.getMatrix(copy=True)[:3, :3]
 
+    # Bounding box
 
-class GroupItem(DataItem3D):
-    """Group of items sharing a common transform."""
+    def _setForegroundColor(self, color):
+        """Set the color of the bounding box
+
+        :param color: RGBA color as 4 floats in [0, 1]
+        """
+        self._getScenePrimitive().color = color
+        super(DataItem3D, self)._setForegroundColor(color)
+
+    def isBoundingBoxVisible(self):
+        """Returns item's bounding box visibility.
+
+        :rtype: bool
+        """
+        return self._getScenePrimitive().boxVisible
+
+    def setBoundingBoxVisible(self, visible):
+        """Set item's bounding box visibility.
+
+        :param bool visible:
+            True to show the bounding box, False (default) to hide it
+        """
+        visible = bool(visible)
+        primitive = self._getScenePrimitive()
+        if visible != primitive.boxVisible:
+            primitive.boxVisible = visible
+            self._updated(Item3DChangedType.BOUNDING_BOX_VISIBLE)
+
+
+class _BaseGroupItem(DataItem3D):
+    """Base class for group of items sharing a common transform."""
 
     sigItemAdded = qt.Signal(object)
     """Signal emitted when a new item is added to the group.
@@ -356,12 +467,14 @@ class GroupItem(DataItem3D):
     The removed item is provided by this signal.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, group=None):
         """Base class representing a group of items in the scene.
 
         :param parent: The View widget this item belongs to.
+        :param Union[GroupBBox, None] group:
+            The scene group to use for rendering
         """
-        DataItem3D.__init__(self, parent=parent)
+        DataItem3D.__init__(self, parent=parent, group=group)
         self._items = []
 
     def addItem(self, item, index=None):
@@ -425,3 +538,81 @@ class GroupItem(DataItem3D):
             if hasattr(child, 'visit'):
                 for item in child.visit():
                     yield item
+
+
+class GroupItem(_BaseGroupItem):
+    """Group of items sharing a common transform."""
+
+    def __init__(self, parent=None):
+        super(GroupItem, self).__init__(parent=parent)
+
+
+class GroupWithAxesItem(_BaseGroupItem):
+    """
+    Group of items sharing a common transform surrounded with labelled axes.
+    """
+
+    def __init__(self, parent=None):
+        """Class representing a group of items in the scene with labelled axes.
+
+        :param parent: The View widget this item belongs to.
+        """
+        super(GroupWithAxesItem, self).__init__(parent=parent,
+                                                group=axes.LabelledAxes())
+
+    # Axes labels
+
+    def setAxesLabels(self, xlabel=None, ylabel=None, zlabel=None):
+        """Set the text labels of the axes.
+
+        :param str xlabel: Label of the X axis, None to leave unchanged.
+        :param str ylabel: Label of the Y axis, None to leave unchanged.
+        :param str zlabel: Label of the Z axis, None to leave unchanged.
+        """
+        labelledAxes = self._getScenePrimitive()
+        if xlabel is not None:
+            labelledAxes.xlabel = xlabel
+
+        if ylabel is not None:
+            labelledAxes.ylabel = ylabel
+
+        if zlabel is not None:
+            labelledAxes.zlabel = zlabel
+
+    class _Labels(tuple):
+        """Return type of :meth:`getAxesLabels`"""
+
+        def getXLabel(self):
+            """Label of the X axis (str)"""
+            return self[0]
+
+        def getYLabel(self):
+            """Label of the Y axis (str)"""
+            return self[1]
+
+        def getZLabel(self):
+            """Label of the Z axis (str)"""
+            return self[2]
+
+    def getAxesLabels(self):
+        """Returns the text labels of the axes
+
+        >>> group = GroupWithAxesItem()
+        >>> group.setAxesLabels(xlabel='X')
+
+        You can get the labels either as a 3-tuple:
+
+        >>> xlabel, ylabel, zlabel = group.getAxesLabels()
+
+        Or as an object with methods getXLabel, getYLabel and getZLabel:
+
+        >>> labels = group.getAxesLabels()
+        >>> labels.getXLabel()
+        ... 'X'
+
+        :return: object describing the labels
+        """
+        labelledAxes = self._getScenePrimitive()
+        return self._Labels((labelledAxes.xlabel,
+                             labelledAxes.ylabel,
+                             labelledAxes.zlabel))

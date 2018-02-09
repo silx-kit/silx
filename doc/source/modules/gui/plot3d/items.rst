@@ -110,7 +110,6 @@ The following classes allows to configure :class:`ScalarField3D` visualization:
              getNormal, setNormal,
              getPoint, setPoint,
              getParameters,
-             getStrokeColor, setStrokeColor
 
 Clipping plane
 --------------
