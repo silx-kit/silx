@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "09/02/2018"
 
 import numpy
 import os.path
@@ -34,7 +34,6 @@ import time
 import logging
 import collections
 
-from silx.utils.deprecation import deprecated
 from silx.utils.proxy import Proxy
 from silx.third_party import six
 from silx.third_party import enum
@@ -92,7 +91,7 @@ def supported_extensions(flat_formats=True):
     formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
     if flat_formats:
         try:
-            import fabioh5
+            from silx.io import fabioh5
         except ImportError:
             fabioh5 = None
         if fabioh5 is not None:
@@ -801,6 +800,8 @@ def get_data(url):
     elif url.scheme() == "fabio":
         import fabio
         data_slice = url.data_slice()
+        if data_slice is None:
+            data_slice = (0, )
         if data_slice is None or len(data_slice) != 1:
             raise ValueError("Fabio slice expect a single frame, but %s found" % data_slice)
         index = data_slice[0]

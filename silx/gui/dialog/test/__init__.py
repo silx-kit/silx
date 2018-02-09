@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/10/2017"
+__date__ = "07/02/2018"
 
 
 import logging
@@ -41,5 +41,7 @@ _logger = logging.getLogger(__name__)
 def suite():
     test_suite = unittest.TestSuite()
     from . import test_imagefiledialog
+    from . import test_datafiledialog
     test_suite.addTest(test_imagefiledialog.suite())
+    test_suite.addTest(test_datafiledialog.suite())
     return test_suite

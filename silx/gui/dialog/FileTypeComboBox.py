@@ -28,7 +28,7 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/02/2018"
+__date__ = "06/02/2018"
 
 try:
     import fabio
@@ -71,10 +71,18 @@ class FileTypeComboBox(qt.QComboBox):
 
     def __init__(self, parent=None):
         qt.QComboBox.__init__(self, parent)
+        self.__fabioUrlSupported = True
+        self.__initItems()
+
+    def setFabioUrlSupproted(self, isSupported):
+        if self.__fabioUrlSupported == isSupported:
+            return
+        self.__fabioUrlSupported = isSupported
         self.__initItems()
 
     def __initItems(self):
-        if fabio is not None:
+        self.clear()
+        if fabio is not None and self.__fabioUrlSupported:
             self.__insertFabioFormats()
         self.__insertSilxFormats()
         self.__insertAllSupported()
