@@ -136,6 +136,12 @@ class _BoundaryWidget(qt.QWidget):
         self._dataValue = dataValue
         self._updateDisplayedText()
 
+    def setFiniteValue(self, value):
+        assert(value is not None)
+        old = self._numVal.blockSignals(True)
+        self._numVal.setValue(value)
+        self._numVal.blockSignals(old)
+
     def setValue(self, value, isAuto=False):
         self._autoCB.setChecked(isAuto or value is None)
         if value is not None:
@@ -871,6 +877,20 @@ class ColormapDialog(qt.QDialog):
     def _updateMinMax(self):
         if self._ignoreColormapChange is True:
             return
+
+        vmin = self._minValue.getFiniteValue()
+        vmax = self._maxValue.getFiniteValue()
+        if vmax is not None and vmin is not None and vmax < vmin:
+            # If only one autoscale is checked constraints are too strong
+            # We have to edit a user value anyway it is not requested
+            # TODO: It would be better IMO to disable the auto checkbox before
+            # this case occur (valls)
+            cmin = self._minValue.isAutoChecked()
+            cmax = self._maxValue.isAutoChecked()
+            if cmin is False:
+                self._minValue.setFiniteValue(vmax)
+            if cmax is False:
+                self._maxValue.setFiniteValue(vmin)
 
         vmin = self._minValue.getValue()
         vmax = self._maxValue.getValue()
