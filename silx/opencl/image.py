@@ -33,7 +33,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "09/02/2018"
 __copyright__ = "2012-2017, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -113,7 +113,8 @@ class ImageProcessing(OpenclProcessing):
         # Temporary buffer for max-min reduction
         self.wg_red = kernel_workgroup_size(self.program, self.kernels.max_min_reduction_stage1)
         if self.wg_red > 1:
-            self.wg_red = numpy.int32(1 << int(floor(log(sqrt(numpy.prod(self.shape)), 2))))
+            self.wg_red = min(self.wg_red,
+                              numpy.int32(1 << int(floor(log(sqrt(numpy.prod(self.shape)), 2)))))
             tmp = BufferDescription("tmp_max_min_d", 2 * self.wg_red, numpy.float32, None)
             buffers.append(tmp)
         self.allocate_buffers(buffers, use_array=True)
@@ -199,7 +200,7 @@ class ImageProcessing(OpenclProcessing):
             if (img.dtype.itemsize > 4) or (img.dtype == numpy.float32):
                 # copy device -> device, already there as float32
                 ev = pyopencl.enqueue_copy(self.queue, output_array.data, input_array.data)
-                events.append(EventDescription("copy D->D ", ev))
+                events.append(EventDescription("copy D->D", ev))
             else:
                 # Cast to float:
                 name = self.converter[img.dtype]
