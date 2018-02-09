@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -86,6 +86,23 @@ class LabelledAxes(primitives.GroupBBox):
 
         # Sync color
         self.tickColor = 1., 1., 1., 1.
+
+    def _updateBoxAndAxes(self):
+        """Update bbox and axes position and size according to children.
+
+        Overridden from GroupBBox
+        """
+        super(LabelledAxes, self)._updateBoxAndAxes()
+
+        bounds = self._group.bounds(dataBounds=True)
+        if bounds is not None:
+            tx, ty, tz = (bounds[1] - bounds[0]) / 2.
+        else:
+            tx, ty, tz = 0.5, 0.5, 0.5
+
+        self._xlabel.transforms[-1].tx = tx
+        self._ylabel.transforms[-1].ty = ty
+        self._zlabel.transforms[-1].tz = tz
 
     @property
     def tickColor(self):

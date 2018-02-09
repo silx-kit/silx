@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "26/06/2017"
+__date__ = "19/01/2018"
 
 import logging
 import numpy as np
@@ -111,10 +111,10 @@ class Projection(OpenclProcessing):
                                       endpoint=False).astype(dtype=np.float32)
         else:
             self.nprojs = len(self.angles)
-        self.offset_x = -np.float32((self.shape[1]-1)/2. - self.axis_pos) # TODO: custom
-        self.offset_y = -np.float32((self.shape[0]-1)/2. - self.axis_pos) # TODO: custom
+        self.offset_x = -np.float32((self.shape[1] - 1) / 2. - self.axis_pos)  # TODO: custom
+        self.offset_y = -np.float32((self.shape[0] - 1) / 2. - self.axis_pos)  # TODO: custom
         # Reset axis_pos once offset are computed
-        self.axis_pos0 = np.float((self.shape[1]-1)/2.)
+        self.axis_pos0 = np.float((self.shape[1] - 1) / 2.)
 
         # Workgroup, ndrange and shared size
         self.dimgrid_x = _idivup(self.dwidth, 16)
@@ -125,7 +125,7 @@ class Projection(OpenclProcessing):
         self.wg = (16, 16)
         self.ndrange = (
             int(self.dimgrid_x) * self.wg[0],  # int(): pyopencl <= 2015.1
-            int(self.dimgrid_y) * self.wg[1]   # int(): pyopencl <= 2015.1
+            int(self.dimgrid_y) * self.wg[1]  # int(): pyopencl <= 2015.1
         )
 
         self.is_cpu = False
@@ -146,7 +146,7 @@ class Projection(OpenclProcessing):
                                                    self.nprojs, np.float32)
             }
         )
-        self._tmp_extended_img = np.zeros((self.shape[0]+2, self.shape[1]+2),
+        self._tmp_extended_img = np.zeros((self.shape[0] + 2, self.shape[1] + 2),
                                           dtype=np.float32)
         if self.is_cpu:
             self.allocate_slice()
@@ -158,41 +158,41 @@ class Projection(OpenclProcessing):
         if self.is_cpu:
             self.cl_mem["d_slice"].fill(0.)
             # enqueue_fill_buffer has issues if opencl 1.2 is not present
-            #~ pyopencl.enqueue_fill_buffer(
-                #~ self.queue,
-                #~ self.cl_mem["d_slice"],
-                #~ np.float32(0),
-                #~ 0,
-                #~ self._tmp_extended_img.size * _sizeof(np.float32)
-            #~ )
+            # ~ pyopencl.enqueue_fill_buffer(
+                # ~ self.queue,
+                # ~ self.cl_mem["d_slice"],
+                # ~ np.float32(0),
+                # ~ 0,
+                # ~ self._tmp_extended_img.size * _sizeof(np.float32)
+            # ~ )
         # Precomputations
         self.compute_angles()
         self.proj_precomputations()
         self.cl_mem["d_axis_corrections"].fill(0.)
         # enqueue_fill_buffer has issues if opencl 1.2 is not present
-        #~ pyopencl.enqueue_fill_buffer(
-                                    #~ self.queue,
-                                    #~ self.cl_mem["d_axis_corrections"],
-                                    #~ np.float32(0),
-                                    #~ 0,
-                                    #~ self.nprojs*_sizeof(np.float32)
-                                    #~ )
+        # ~ pyopencl.enqueue_fill_buffer(
+                                    # ~ self.queue,
+                                    # ~ self.cl_mem["d_axis_corrections"],
+                                    # ~ np.float32(0),
+                                    # ~ 0,
+                                    # ~ self.nprojs*_sizeof(np.float32)
+                                    # ~ )
         # Shorthands
         self._d_sino = self.cl_mem["_d_sino"]
 
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         # check that workgroup can actually be (16, 16)
-        self.check_workgroup_size("forward_kernel_cpu")
+        self.compiletime_workgroup_size = self.kernels.max_workgroup_size("forward_kernel_cpu")
 
     def compute_angles(self):
-        angles2 = np.zeros(self._dimrecy, dtype=np.float32) # dimrecy != num_projs
+        angles2 = np.zeros(self._dimrecy, dtype=np.float32)  # dimrecy != num_projs
         angles2[:self.nprojs] = np.copy(self.angles)
-        angles2[self.nprojs:] = angles2[self.nprojs-1]
+        angles2[self.nprojs:] = angles2[self.nprojs - 1]
         self.angles2 = angles2
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_angles"], angles2)
 
     def allocate_slice(self):
-            self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1]+2, self.shape[1]+2), np.float32)})
+            self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1] + 2, self.shape[1] + 2), np.float32)})
 
     def allocate_textures(self):
         self.d_image_tex = pyopencl.Image(
@@ -211,13 +211,13 @@ class Projection(OpenclProcessing):
         if self.is_cpu:
             # TODO: create NoneEvent
             return self.transfer_to_slice(image2)
-            #~ return pyopencl.enqueue_copy(
-                        #~ self.queue,
-                        #~ self.cl_mem["d_slice"].data,
-                        #~ image2,
-                        #~ origin=(1, 1),
-                        #~ region=image.shape[::-1]
-                        #~ )
+            # ~ return pyopencl.enqueue_copy(
+                        # ~ self.queue,
+                        # ~ self.cl_mem["d_slice"].data,
+                        # ~ image2,
+                        # ~ origin=(1, 1),
+                        # ~ region=image.shape[::-1]
+                        # ~ )
         else:
             return pyopencl.enqueue_copy(
                        self.queue,
@@ -238,11 +238,11 @@ class Projection(OpenclProcessing):
                 d_image,
                 offset=0,
                 origin=(1, 1),
-                region=(int(self.shape[1]), int(self.shape[0]))#self.shape[::-1] # pyopencl <= 2015.2
+                region=(int(self.shape[1]), int(self.shape[0]))  # self.shape[::-1] # pyopencl <= 2015.2
             )
 
     def transfer_to_slice(self, image):
-        image2 = np.zeros((image.shape[0]+2, image.shape[1]+2), dtype=np.float32)
+        image2 = np.zeros((image.shape[0] + 2, image.shape[1] + 2), dtype=np.float32)
         image2[1:-1, 1:-1] = image.astype(np.float32)
         self.cl_mem["d_slice"].set(image2)
 
@@ -272,14 +272,14 @@ class Projection(OpenclProcessing):
         strideLine[0][case1] = 0
         strideLine[1][case1] = 1
 
-        beginPos[0][case2] = dimslice-1
-        beginPos[1][case2] = dimslice-1
+        beginPos[0][case2] = dimslice - 1
+        beginPos[1][case2] = dimslice - 1
         strideJoseph[0][case2] = -1
         strideJoseph[1][case2] = 0
         strideLine[0][case2] = 0
         strideLine[1][case2] = -1
 
-        beginPos[0][case3] = dimslice-1
+        beginPos[0][case3] = dimslice - 1
         beginPos[1][case3] = 0
         strideJoseph[0][case3] = 0
         strideJoseph[1][case3] = 1
@@ -287,16 +287,16 @@ class Projection(OpenclProcessing):
         strideLine[1][case3] = 0
 
         beginPos[0][case4] = 0
-        beginPos[1][case4] = dimslice-1
+        beginPos[1][case4] = dimslice - 1
         strideJoseph[0][case4] = 0
         strideJoseph[1][case4] = -1
         strideLine[0][case4] = 1
         strideLine[1][case4] = 0
 
         # For debug purpose
-        #~ self.beginPos = beginPos
-        #~ self.strideJoseph = strideJoseph
-        #~ self.strideLine = strideLine
+        # ~ self.beginPos = beginPos
+        # ~ self.strideJoseph = strideJoseph
+        # ~ self.strideLine = strideLine
         #
 
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_beginPos"], beginPos)
@@ -307,7 +307,7 @@ class Projection(OpenclProcessing):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
 
     def cpy2d_to_sino(self, dst):
-        ndrange = (int(self.dwidth), int(self.nprojs)) # pyopencl < 2015.2
+        ndrange = (int(self.dwidth), int(self.nprojs))  # pyopencl < 2015.2
         sino_shape_ocl = np.int32(ndrange)
         wg = None
         kernel_args = (
@@ -325,13 +325,13 @@ class Projection(OpenclProcessing):
         """
         copy a Nx * Ny slice to self.d_slice which is (Nx+2)*(Ny+2)
         """
-        ndrange = (int(self.shape[1]), int(self.shape[0])) #self.shape[::-1] # pyopencl < 2015.2
+        ndrange = (int(self.shape[1]), int(self.shape[0]))  # self.shape[::-1] # pyopencl < 2015.2
         wg = None
         slice_shape_ocl = np.int32(ndrange)
         kernel_args = (
             self.cl_mem["d_slice"].data,
             src,
-            np.int32(self.shape[1]+2),
+            np.int32(self.shape[1] + 2),
             np.int32(self.shape[1]),
             np.int32((1, 1)),
             np.int32((0, 0)),
@@ -413,7 +413,7 @@ class Projection(OpenclProcessing):
         # /with self.sem
         if self.profile:
             self.events += events
-        #~ res = self._ex_sino
+        # ~ res = self._ex_sino
         return res
 
     __call__ = projection

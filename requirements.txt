@@ -6,7 +6,7 @@
 --only-binary numpy,h5py,scipy,PyQt4,PyQt5,PySide
 
 numpy >= 1.8
-fabio >= 0.4              # For silx.io
+fabio >= 0.6              # For silx.io
 h5py                      # For silx.io
 pyopencl                  # For silx.opencl
 Mako                      # For pyopencl reduction

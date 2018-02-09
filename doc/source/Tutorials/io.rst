@@ -100,7 +100,7 @@ The objects defined in `silx.io` implement a subset of these attributes and meth
  - :attr:`filename`: Name of the file on disk.
  - :attr:`mode`: String indicating if the file is open in read mode ("r")
    or write mode ("w"). :meth:`silx.io.open` always returns objects in read mode.
- - :meth:`close`: Close this file. All open objects will become invalid.
+ - :meth:`close`: Close this file. All child objects, groups and datasets, will become invalid.
 
 The :attr:`parent` of a file is `None`, and its :attr:`name` is an empty string.
 

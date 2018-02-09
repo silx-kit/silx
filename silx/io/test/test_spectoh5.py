@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 """Tests for SpecFile to HDF5 converter"""
 
 import gc
-from numpy import array_equal, string_
+from numpy import array_equal
 import os
 import sys
 import tempfile
@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "02/06/2017"
+__date__ = "29/01/2018"
 
 
 sftext = """#F /tmp/sf.dat
@@ -93,7 +93,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.spec_fname = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
@@ -143,24 +143,22 @@ class TestConvertSpecHDF5(unittest.TestCase):
     def testTitle(self):
         """Test the value of a dataset"""
         title12 = self.h5f["/1.2/title"].value
-        if sys.version > '3.0':
-            title12 = title12.decode()
         self.assertEqual(title12,
-                         "1 aaaaaa")
+                         u"aaaaaa")
 
     def testAttrs(self):
         # Test root group (file) attributes
         self.assertEqual(self.h5f.attrs["NX_class"],
-                         string_("NXroot"))
+                         u"NXroot")
         # Test dataset attributes
         ds = self.h5f["/1.2/instrument/mca_1/data"]
         self.assertTrue("interpretation" in ds.attrs)
         self.assertEqual(list(ds.attrs.values()),
-                         [string_("spectrum")])
+                         [u"spectrum"])
         # Test group attributes
         grp = self.h5f["1.1"]
         self.assertEqual(grp.attrs["NX_class"],
-                         string_("NXentry"))
+                         u"NXentry")
         self.assertEqual(len(list(grp.attrs.keys())),
                          1)
 

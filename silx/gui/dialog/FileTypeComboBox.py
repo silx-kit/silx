@@ -28,7 +28,7 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2017"
+__date__ = "06/02/2018"
 
 try:
     import fabio
@@ -71,10 +71,18 @@ class FileTypeComboBox(qt.QComboBox):
 
     def __init__(self, parent=None):
         qt.QComboBox.__init__(self, parent)
+        self.__fabioUrlSupported = True
+        self.__initItems()
+
+    def setFabioUrlSupproted(self, isSupported):
+        if self.__fabioUrlSupported == isSupported:
+            return
+        self.__fabioUrlSupported = isSupported
         self.__initItems()
 
     def __initItems(self):
-        if fabio is not None:
+        self.clear()
+        if fabio is not None and self.__fabioUrlSupported:
             self.__insertFabioFormats()
         self.__insertSilxFormats()
         self.__insertAllSupported()
@@ -136,10 +144,10 @@ class FileTypeComboBox(qt.QComboBox):
         for reader in formats:
             if not hasattr(reader, "DESCRIPTION"):
                 continue
-            if not hasattr(reader, "DEFAULT_EXTENTIONS"):
+            if not hasattr(reader, "DEFAULT_EXTENSIONS"):
                 continue
 
-            ext = reader.DEFAULT_EXTENTIONS
+            ext = reader.DEFAULT_EXTENSIONS
             ext = ["*.%s" % e for e in ext]
             allExtensions.update(ext)
             if ext == []:

@@ -221,7 +221,6 @@ class DataView(object):
         """Clean up the cache. Needed for tests"""
         DataView._defaultColormap = None
         DataView._defaultColorDialog = None
-        print("_cleanUpCache")
 
     def icon(self):
         """Returns the default icon"""

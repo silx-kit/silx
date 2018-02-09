@@ -79,6 +79,7 @@ class TestImage(unittest.TestCase):
     def setUp(self):
         if ocl is None:
             return
+        self.data = numpy.asarray(Image.open(self.lena))
 
     def tearDown(self):
         self.img = self.data = None

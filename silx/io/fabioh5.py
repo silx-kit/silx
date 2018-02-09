@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -71,12 +71,10 @@ def supported_extensions():
     all_extensions = set([])
 
     for reader in formats:
-        if not hasattr(reader, "DESCRIPTION"):
-            continue
-        if not hasattr(reader, "DEFAULT_EXTENTIONS"):
+        if not hasattr(reader, "DEFAULT_EXTENSIONS"):
             continue
 
-        ext = reader.DEFAULT_EXTENTIONS
+        ext = reader.DEFAULT_EXTENSIONS
         ext = ["*.%s" % e for e in ext]
         all_extensions.update(ext)
 
@@ -869,8 +867,9 @@ class File(commonh5.File):
 
         attrs = {"NX_class": "NXroot",
                  "file_time": datetime.datetime.now().isoformat(),
-                 "file_name": file_name,
                  "creator": "silx %s" % silx_version}
+        if file_name is not None:
+            attrs["file_name"] = file_name
         commonh5.File.__init__(self, name=file_name, attrs=attrs)
         scan = self.create_scan_group(self.__fabio_reader)
         self.add_node(scan)
@@ -924,7 +923,7 @@ class File(commonh5.File):
         if first_file_name is not None:
             _, ext = os.path.splitext(first_file_name)
             ext = ext[1:]
-            use_edf_reader = ext in fabio.edfimage.EdfImage.DEFAULT_EXTENTIONS
+            use_edf_reader = ext in fabio.edfimage.EdfImage.DEFAULT_EXTENSIONS
         elif first_image is not None:
             use_edf_reader = isinstance(first_image, fabio.edfimage.EdfImage)
         else:

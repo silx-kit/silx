@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,8 @@ window = SceneWindow()
 # Get the SceneWidget contained in the window and set its colors
 sceneWidget = window.getSceneWidget()
 sceneWidget.setBackgroundColor((0.8, 0.8, 0.8, 1.))
-sceneWidget.setForegroundColor((0.1, 0.1, 0.1, 1.))
+sceneWidget.setForegroundColor((1., 1., 1., 1.))
+sceneWidget.setTextColor((0.1, 0.1, 0.1, 1.))
 
 
 # 2D Image ###
@@ -121,7 +122,6 @@ for row, heightMap in enumerate((False, True)):
 # The group children share the group transform
 group = items.GroupItem()  # Create a new group item
 group.setTranslation(SIZE * 4, 0., 0.)  # Translate the group
-sceneWidget.addItem(group)  # Add the group as an item of the scene
 
 
 # Clipping plane ###
@@ -187,6 +187,8 @@ cutPlane.setVisible(True)  # Set it to be visible
 cutPlane.getColormap().setName('jet')  # Set cut plane's colormap
 cutPlane.setNormal((0., 0., 1.))  # Set cut plane's normal
 cutPlane.moveToCenter()  # Place the cut plane at the center of the volume
+
+sceneWidget.addItem(group)  # Add the group as an item of the scene
 
 # Show the SceneWidget widget
 window.show()

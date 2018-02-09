@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -27,8 +27,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-"""
-Test suite for image kernels
+"""Test suite for keypoint matching kernels
 """
 
 from __future__ import division, print_function
@@ -37,7 +36,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/05/2017"
+__date__ = "02/01/2018"
 
 import os
 import unittest
@@ -49,7 +48,7 @@ try:
 except ImportError:
     scipy = None
 else:
-    import scipy.misc, scipy.ndimage
+    import scipy.misc
 
 
 # for Python implementation of tested functions
@@ -72,8 +71,8 @@ except:
 
 
 '''
-For Python implementation of tested functions, see "test_image_functions.py"
 '''
+
 
 @unittest.skipUnless(scipy and ocl, "no scipy or ocl")
 class TestMatching(unittest.TestCase):
@@ -102,7 +101,8 @@ class TestMatching(unittest.TestCase):
         else:
             self.use_cpu = False
         kernel = ("matching_gpu.cl" if not(self.use_cpu) else "matching_cpu.cl")
-        kernel_src = get_opencl_code(os.path.join("sift", kernel))
+        kernel_src = os.linesep.join((get_opencl_code(os.path.join("sift", i))
+                                      for i in ("sift", kernel)))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
 
@@ -132,7 +132,7 @@ class TestMatching(unittest.TestCase):
         t0_matching = time.time()
         siftmatch = match_py(ref_sift, ref_sift_2, raw_results=True)
         t1_matching = time.time()
-        reference="NumPy"
+        reference = "NumPy"
 
         if (self.use_cpu):
             wg = 1,
@@ -160,14 +160,14 @@ class TestMatching(unittest.TestCase):
 
         res_sort = res[numpy.argsort(res[:, 0])]
         logger.debug("%s", res_sort[0:20])
-        logger.debug("%s Matching took %.3f ms" , reference, 1000.0 * (t1_matching - t0_matching))
-        logger.debug("OpenCL: %d match / %s : %d match" , cnt, reference, siftmatch.shape[0])
+        logger.debug("%s Matching took %.3f ms", reference, 1000.0 * (t1_matching - t0_matching))
+        logger.debug("OpenCL: %d match / %s : %d match", cnt, reference, siftmatch.shape[0])
 
         # sort to compare added keypoints
-        self.assertEqual(cnt,  siftmatch.shape[0], "number of matching element is the same")
-        delta = abs(res_sort-siftmatch).max()
+        self.assertEqual(cnt, siftmatch.shape[0], "number of matching element is the same")
+        delta = abs(res_sort - siftmatch).max()
         self.assertEqual(delta, 0, "Matching keypoints are actually the same")
-        #logger.info("delta=%s" % delta)
+        # logger.info("delta=%s" % delta)
 
         if self.PROFILE:
             logger.debug("Global execution time: %.3fms." % (1000.0 * (t1 - t0)))

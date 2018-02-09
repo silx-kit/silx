@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "29/01/2018"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -215,7 +215,7 @@ class TestSpecH5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
@@ -272,9 +272,9 @@ class TestSpecH5(unittest.TestCase):
     def testDate(self):
         # start time is in Iso8601 format
         self.assertEqual(self.sfh5["/1.1/start_time"],
-                         b"2016-02-11T09:55:20")
+                         u"2016-02-11T09:55:20")
         self.assertEqual(self.sfh5["25.1/start_time"],
-                         b"2015-03-14T03:53:50")
+                         u"2015-03-14T03:53:50")
 
     def testDatasetInstanceAttr(self):
         """The SpecH5Dataset objects must implement some dummy attributes
@@ -296,7 +296,7 @@ class TestSpecH5(unittest.TestCase):
                          -3)
 
         self.assertEqual(self.sfh5.get("/1.1/start_time", default=-3),
-                         b"2016-02-11T09:55:20")
+                         u"2016-02-11T09:55:20")
 
     def testGetClass(self):
         """Test :meth:`SpecH5Group.get`"""
@@ -352,33 +352,22 @@ class TestSpecH5(unittest.TestCase):
     def testHeader(self):
         file_header = self.sfh5["/1.2/instrument/specfile/file_header"]
         scan_header = self.sfh5["/1.2/instrument/specfile/scan_header"]
-        # convert ndarray(dtype=numpy.string_) to str
-        if sys.version < '3.0':
-            file_header = str(file_header[()])
-            scan_header = str(scan_header[()])
-        else:
-            file_header = str(file_header.astype(str))
-            scan_header = str(scan_header.astype(str))
 
         # File header has 10 lines
-        self.assertEqual(len(file_header.split("\n")), 10)
+        self.assertEqual(len(file_header), 10)
         # 1.2 has 9 scan & mca header lines
-        self.assertEqual(len(scan_header.split("\n")), 9)
+        self.assertEqual(len(scan_header), 9)
 
         # line 4 of file header
         self.assertEqual(
-                file_header.split("\n")[3],
-                "#C imaging  User = opid17")
+                file_header[3],
+                u"#C imaging  User = opid17")
         # line 4 of scan header
         scan_header = self.sfh5["25.1/instrument/specfile/scan_header"]
-        if sys.version < '3.0':
-            scan_header = str(scan_header[()])
-        else:
-            scan_header = str(scan_header[()].astype(str))
 
         self.assertEqual(
-                scan_header.split("\n")[3],
-                "#P1 4.74255 6.197579 2.238283")
+                scan_header[3],
+                u"#P1 4.74255 6.197579 2.238283")
 
     def testLinks(self):
         self.assertTrue(
@@ -490,7 +479,7 @@ class TestSpecH5(unittest.TestCase):
 
     def testTitle(self):
         self.assertEqual(self.sfh5["/25.1/title"],
-                         b"25  ascan  c3th 1.33245 1.52245  40 0.15")
+                         u"ascan  c3th 1.33245 1.52245  40 0.15")
 
     def testValues(self):
         group = self.sfh5["/25.1"]
@@ -622,7 +611,7 @@ class TestSpecH5MultiMca(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext_multi_mca_headers)
         else:
             os.write(fd, bytes(sftext_multi_mca_headers, 'ascii'))
@@ -752,7 +741,7 @@ class TestSpecH5NoDataCols(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext_no_cols)
         else:
             os.write(fd, bytes(sftext_no_cols, 'ascii'))
@@ -823,7 +812,7 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sf_text_slash)
         else:
             os.write(fd, bytes(sf_text_slash, 'ascii'))

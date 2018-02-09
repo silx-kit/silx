@@ -31,8 +31,8 @@ Data required to perform a fit is:
     - the ``sigma`` array of uncertainties associated to each data point.
       This is optional, by default each data point gets assigned a weight of 1.
 
-Standard fit
-************
+Default (unweighted) fit
+************************
 
 Let's demonstrate this process in a short example, using synthetic data.
 We generate an array of synthetic data using a polynomial function of degree 4,
@@ -83,16 +83,22 @@ The output of this program is::
    Optimal parameters for y fitting:
        a=2.400000, b=-9.999665, c=14.970422, d=31.683448, e=-3216.131136
 
+.. note::
+
+    The exact results may vary depending on your Python version.
+
 We can see that this fit result is poor. In particular, parameters ``d`` and ``e``
 are very poorly fitted.
-This is most likely due to numerical rounding errors. As we are dealing with
-very large values in our ``y`` array, we are affected by the limits of how
-floating point numbers are represented by computers. The larger a value, the
-larger its rounding error.
 
-If you limit the ``x`` range to deal with
-smaller ``y`` values, the fit result becomes perfect. In our example, replacing ``x``
-with::
+This is due to the fact that data points with large values have a stronger influence
+in the fit process. In our examples, as ``x`` increases, ``y`` increases fast.
+The influence of the weighting, and how to solve this issue is explained in more details
+in the next section.
+
+In the meantime, if you simply limit the ``x`` range, to deal with
+smaller ``y`` values, you can notice that the fit result becomes perfect.
+
+In our example, replacing ``x`` with::
 
     x = numpy.arange(100)
 
@@ -106,11 +112,60 @@ produces the following result::
        a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
 
 
+Weighted fit
+************
+
+Since the fitting algorithm minimizes the sum of squared differences between input and evaluated data, points with higher y value had a greater weight in the fitting process. A solution to this problem, if we want to improve our fit, is to define uncertainties for the data. The larger the uncertainty on a data sample, the smaller its weight will be
+in the least-square problem.
+
+It is important to set the uncertainties correctly, or you risk favoring either the lower
+values or the higher values in your data.
+
+The common approach in counting experiments is to use the square-root of the data values
+as the uncertainty value. Let's apply it to our previous example:
+
+.. code-block:: python
+
+   sigma = numpy.sqrt(y)
+
+   # Fit y
+   fitresult = leastsq(model=poly4,
+                       xdata=x,
+                       ydata=y,
+                       sigma=sigma,
+                       p0=initial_parameters,
+                       full_output=True)
+
+This results in a great improvement::
+
+   Weighted fit took 6 iterations
+   Reduced chi-square: 0.000000
+   Theoretical parameters:
+       a=2.4, b=-10, c=15.2, d=-24.6, e=150
+   Optimal parameters for y fitting:
+       a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
+
+The resulting fit is perfect. The fit converged even faster than when
+we limited ``x`` range to 0 -- 100.
+
+To use a real world example, when fitting x-ray fluorescence spectroscopy data, this common
+approach means that we consider the variance of each channel to be the number of counts
+in that channel. That corresponds to assuming a normal distribution.
+The true distribution being a Poisson distribution, the Gaussian distribution
+is a good approximation for channels with high number of counts,
+but the approximation is not valid when the number of counts in a channel is small.
+
+Therefore, in spectra where the overall statistics is very low, a
+weighted fit can lead the fitting process to fit the background
+considering the peaks as outliers, because the fit will consider a
+channel with 1 count 100 times more relevant than a channel with 100
+counts.
+
 
 Constrained fit
 ***************
 
-But let's revert back to our initial ``x = numpy.arange(1000)``, to experiment
+But let's revert back to our unweighted fit, to experiment
 with different approaches to improving the fit.
 
 The :func:`leastsq` functions provides
@@ -150,43 +205,6 @@ The output of this program is::
 
 The chi-square value is much improved and the results are much better, at the
 cost of more iterations.
-
-Weighted fit
-************
-A third approach to improve our fit is to define uncertainties for the data.
-The larger the uncertainty on a data sample, the smaller its weight will be
-in the least-square problem.
-
-In our case, we do not know the uncertainties associated to our data. We could
-determine the uncertainties due to numerical rounding errors, but let's just use
-a common approach that requires less work: use the square-root of the data values
-as their uncertainty value:
-
-.. code-block:: python
-
-   sigma = numpy.sqrt(y)
-
-   # Fit y
-   fitresult = leastsq(model=poly4,
-                       xdata=x,
-                       ydata=y,
-                       sigma=sigma,
-                       p0=initial_parameters,
-                       full_output=True)
-
-This results in a great improvement::
-
-   Weighted fit took 6 iterations
-   Reduced chi-square: 0.000000
-   Theoretical parameters:
-       a=2.4, b=-10, c=15.2, d=-24.6, e=150
-   Optimal parameters for y fitting:
-       a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
-
-The resulting fit is perfect. The very large ``y`` values with their very large
-associated uncertainties have been practicaly rejected from the fit process. The fit
-converged even faster than with the solution of limiting the ``x`` range to
-0 -- 100.
 
 .. _fitmanager-tutorial:
 

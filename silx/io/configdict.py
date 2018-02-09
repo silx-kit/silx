@@ -92,7 +92,7 @@ from collections import OrderedDict
 import numpy
 import re
 import sys
-if sys.version < '3.0':
+if sys.version_info < (3, ):
     import ConfigParser as configparser
 else:
     import configparser
@@ -475,7 +475,7 @@ class ConfigDict(OrderedDict):
         # Escape commas
         sstr = sstr.replace(",", "\,")
 
-        if sys.version > '3.0':
+        if sys.version_info >= (3, ):
             # Escape % characters except in "%%" and "%("
             sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
 

@@ -49,8 +49,7 @@ except ImportError:
 import silx.io.url
 from silx.gui import qt
 from silx.gui.test import utils
-from ..ImageFileDialog import ImageFileDialog
-from silx.gui.plot.Colormap import Colormap
+from ..DataFileDialog import DataFileDialog
 from silx.gui.hdf5 import Hdf5TreeModel
 
 _tmpDirectory = None
@@ -68,16 +67,6 @@ def setUpModule():
         image = fabio.edfimage.EdfImage(data=data)
         image.write(filename)
 
-        filename = _tmpDirectory + "/multiframe.edf"
-        image = fabio.edfimage.EdfImage(data=data)
-        image.appendFrame(data=data + 1)
-        image.appendFrame(data=data + 2)
-        image.write(filename)
-
-        filename = _tmpDirectory + "/singleimage.msk"
-        image = fabio.fit2dmaskimage.Fit2dMaskImage(data=data % 2 == 1)
-        image.write(filename)
-
     if h5py is not None:
         filename = _tmpDirectory + "/data.h5"
         f = h5py.File(filename, "w")
@@ -88,7 +77,7 @@ def setUpModule():
         f["group/image"] = data
         f.close()
 
-    filename = _tmpDirectory + "/badformat.edf"
+    filename = _tmpDirectory + "/badformat.h5"
     with io.open(filename, "wb") as f:
         f.write(b"{\nHello Nurse!")
 
@@ -129,7 +118,7 @@ class _UtilsMixin(object):
             self.assertNotEquals(path1, path2)
 
 
-class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
+class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
     def setUp(self):
         utils.TestCaseQt.setUp(self)
@@ -142,7 +131,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         utils.TestCaseQt.tearDown(self)
 
     def createDialog(self):
-        self.dialog = ImageFileDialog()
+        self.dialog = DataFileDialog()
         return self.dialog
 
     def testDisplayAndKeyEscape(self):
@@ -179,72 +168,95 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         self.assertEquals(dialog.result(), qt.QDialog.Rejected)
 
-    def testDisplayAndClickOpen(self):
+    def testSelectRoot_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
-        filename = _tmpDirectory + "/singleimage.edf"
-        dialog.selectFile(filename)
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
         button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
+        url = silx.io.url.DataUrl(dialog.selectedUrl())
+        self.assertTrue(url.data_path() is not None)
         self.assertFalse(dialog.isVisible())
         self.assertEquals(dialog.result(), qt.QDialog.Accepted)
 
-    def testClickOnShortcut(self):
+    def testSelectGroup_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        dialog.show()
-        self.qWaitForWindowExposed(dialog)
-
-        sidebar = utils.findChildren(dialog, qt.QListView, name="sidebar")[0]
-        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.setDirectory(_tmpDirectory)
-        self.qWaitForPendingActions(dialog)
-
-        self.assertSamePath(url.text(), _tmpDirectory)
-
-        urls = sidebar.urls()
-        if len(urls) == 0:
-            self.skipTest("No sidebar path")
-        path = urls[0].path()
-        if path != "" and not os.path.exists(path):
-            self.skipTest("Sidebar path do not exists")
-
-        index = sidebar.model().index(0, 0)
-        # rect = sidebar.visualRect(index)
-        # self.mouseClick(sidebar, qt.Qt.LeftButton, pos=rect.center())
-        # Using mouse click is not working, let's use the selection API
-        sidebar.selectionModel().select(index, qt.QItemSelectionModel.ClearAndSelect)
-        self.qWaitForPendingActions(dialog)
-
-        index = browser.rootIndex()
-        if not index.isValid():
-            path = ""
-        else:
-            path = index.model().filePath(index)
-        self.assertNotSamePath(_tmpDirectory, path)
-        self.assertNotSamePath(url.text(), _tmpDirectory)
-
-    def testClickOnDetailView(self):
-        dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
+        self.assertTrue(dialog.isVisible())
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
 
-        action = utils.findChildren(dialog, qt.QAction, name="detailModeAction")[0]
-        detailModeButton = utils.getQToolButtonFromAction(action)
-        self.mouseClick(detailModeButton, qt.Qt.LeftButton)
-        self.assertEqual(dialog.viewMode(), qt.QFileDialog.Detail)
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
 
-        action = utils.findChildren(dialog, qt.QAction, name="listModeAction")[0]
-        listModeButton = utils.getQToolButtonFromAction(action)
-        self.mouseClick(listModeButton, qt.Qt.LeftButton)
-        self.assertEqual(dialog.viewMode(), qt.QFileDialog.List)
+        # select, then double click on the file
+        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        self.assertTrue(button.isEnabled())
+        self.mouseClick(button, qt.Qt.LeftButton)
+        url = silx.io.url.DataUrl(dialog.selectedUrl())
+        self.assertEqual(url.data_path(), "/group")
+        self.assertFalse(dialog.isVisible())
+        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+
+    def testSelectDataset_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        dialog = self.createDialog()
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+        self.assertTrue(dialog.isVisible())
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        self.assertTrue(button.isEnabled())
+        self.mouseClick(button, qt.Qt.LeftButton)
+        url = silx.io.url.DataUrl(dialog.selectedUrl())
+        self.assertEqual(url.data_path(), "/scalar")
+        self.assertFalse(dialog.isVisible())
+        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
 
     def testClickOnBackToParentTool(self):
         if h5py is None:
@@ -382,72 +394,13 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/singleimage.edf"
-        path = filename
-        dialog.selectUrl(path)
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/scan_0/instrument/detector_0/data")
+        dialog.selectUrl(url.path())
+        self.assertTrue(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSamePath(dialog.selectedUrl(), url.path())
 
-    def testSelectImageFromEdf_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
-        dialog = self.createDialog()
-        dialog.show()
-        self.qWaitForWindowExposed(dialog)
-
-        # init state
-        dialog.selectUrl(_tmpDirectory)
-        self.qWaitForPendingActions(dialog)
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        filename = _tmpDirectory + "/singleimage.edf"
-        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
-        index = browser.rootIndex().model().index(filename)
-        # click
-        browser.selectIndex(index)
-        # double click
-        browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
-        # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
-
-    def testSelectFrameFromEdf(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
-        dialog = self.createDialog()
-        dialog.show()
-        self.qWaitForWindowExposed(dialog)
-
-        # init state
-        filename = _tmpDirectory + "/multiframe.edf"
-        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename, data_slice=(1,)).path()
-        dialog.selectUrl(path)
-        # test
-        image = dialog.selectedImage()
-        self.assertTrue(image.shape, (100, 100))
-        self.assertTrue(image[0, 0], 1)
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
-
-    def testSelectImageFromMsk(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
-        dialog = self.createDialog()
-        dialog.show()
-        self.qWaitForWindowExposed(dialog)
-
-        # init state
-        filename = _tmpDirectory + "/singleimage.msk"
-        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
-        dialog.selectUrl(path)
-        # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
-
-    def testSelectImageFromH5(self):
+    def testSelectImage(self):
         if h5py is None:
             self.skipTest("h5py is missing")
         dialog = self.createDialog()
@@ -459,9 +412,61 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertTrue(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
+
+    def testSelectScalar(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
+        dialog = self.createDialog()
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+
+        # init state
+        filename = _tmpDirectory + "/data.h5"
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/scalar").path()
+        dialog.selectUrl(path)
+        # test
+        self.assertEqual(dialog._selectedData()[()], 10)
+        self.assertSamePath(dialog.selectedFile(), filename)
+        self.assertSamePath(dialog.selectedUrl(), path)
+
+    def testSelectGroup(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
+        dialog = self.createDialog()
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+
+        # init state
+        filename = _tmpDirectory + "/data.h5"
+        uri = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group")
+        dialog.selectUrl(uri.path())
+        self.qWaitForPendingActions(dialog)
+        # test
+        self.assertTrue(silx.io.is_group(dialog._selectedData()))
+        self.assertSamePath(dialog.selectedFile(), filename)
+        uri = silx.io.url.DataUrl(dialog.selectedUrl())
+        self.assertSamePath(uri.data_path(), "/group")
+
+    def testSelectRoot(self):
+        if h5py is None:
+            self.skipTest("h5py is missing")
+        dialog = self.createDialog()
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+
+        # init state
+        filename = _tmpDirectory + "/data.h5"
+        uri = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
+        dialog.selectUrl(uri.path())
+        self.qWaitForPendingActions(dialog)
+        # test
+        self.assertTrue(silx.io.is_file(dialog._selectedData()))
+        self.assertSamePath(dialog.selectedFile(), filename)
+        uri = silx.io.url.DataUrl(dialog.selectedUrl())
+        self.assertSamePath(uri.data_path(), "/")
 
     def testSelectH5_Activate(self):
         if h5py is None:
@@ -485,23 +490,6 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # test
         self.assertSamePath(dialog.selectedUrl(), path)
 
-    def testSelectFrameFromH5(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
-        self.qWaitForWindowExposed(dialog)
-
-        # init state
-        filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/cube", data_slice=(1, )).path()
-        dialog.selectUrl(path)
-        # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertTrue(dialog.selectedImage()[0, 0], 1)
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
-
     def testSelectBadFileFormat_Activate(self):
         dialog = self.createDialog()
         dialog.show()
@@ -511,7 +499,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        filename = _tmpDirectory + "/badformat.edf"
+        filename = _tmpDirectory + "/badformat.h5"
         index = browser.rootIndex().model().index(filename)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -535,29 +523,14 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        filters = utils.findChildren(dialog, qt.QWidget, name="fileTypeCombo")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 5)
-
-        codecName = fabio.edfimage.EdfImage.codec_name()
-        index = filters.indexFromCodec(codecName)
-        filters.setCurrentIndex(index)
-        filters.activated[int].emit(index)
-        self.qWait(50)
         self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 3)
 
-        codecName = fabio.fit2dmaskimage.Fit2dMaskImage.codec_name()
-        index = filters.indexFromCodec(codecName)
-        filters.setCurrentIndex(index)
-        filters.activated[int].emit(index)
-        self.qWait(50)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 1)
 
-
-class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
+class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
     def setUp(self):
         utils.TestCaseQt.setUp(self)
@@ -570,21 +543,18 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         utils.TestCaseQt.tearDown(self)
 
     def createDialog(self):
-        self.dialog = ImageFileDialog()
+        self.dialog = DataFileDialog()
         return self.dialog
 
     def testSaveRestoreState(self):
-        dialog = ImageFileDialog()
+        dialog = DataFileDialog()
         dialog.setDirectory(_tmpDirectory)
-        colormap = Colormap(normalization=Colormap.LOGARITHM)
-        dialog.setColormap(colormap)
         self.qWaitForPendingActions(dialog)
 
         state = dialog.saveState()
-        dialog2 = ImageFileDialog()
+        dialog2 = DataFileDialog()
         result = dialog2.restoreState(state)
         self.assertTrue(result)
-        self.assertTrue(dialog2.colormap().getNormalization(), "log")
 
     def printState(self):
         """
@@ -593,13 +563,11 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         Can be used to add or regenerate `STATE_VERSION1_QT4` or
         `STATE_VERSION1_QT5`.
 
-        >>> ./run_tests.py -v silx.gui.dialog.test.test_imagefiledialog.TestImageFileDialogApi.printState
+        >>> ./run_tests.py -v silx.gui.dialog.test.test_datafiledialog.TestDataFileDialogApi.printState
         """
-        dialog = ImageFileDialog()
-        colormap = Colormap(normalization=Colormap.LOGARITHM)
+        dialog = DataFileDialog()
         dialog.setDirectory("")
         dialog.setHistory([])
-        dialog.setColormap(colormap)
         dialog.setSidebarUrls([])
         state = dialog.saveState()
         string = ""
@@ -621,50 +589,45 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         print("\\\n".join(strings))
 
     STATE_VERSION1_QT4 = b''\
-        b'\x00\x00\x00^\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
-        b'd\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00a\x00g\x00e\x00F'\
-        b'\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00'\
-        b'a\x00g\x00e\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g'\
-        b'\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00"\x00\x00\x00'\
-        b'\xFF\x00\x00\x00\x00\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-        b'\xFF\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x06\x01\x00\x00\x00\x01\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00'\
-        b'\x00\x00\x00}\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00'\
-        b'r\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00Z\x00\x00\x00'\
-        b'\xFF\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00'\
-        b'\x00\x00\x81\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x01\x90\x00'\
-        b'\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00'\
-        b'\x00\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00'\
-        b'o\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00'\
-        b'r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g'
+        b'\x00\x00\x00Z\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
+        b'd\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00a\x00F\x00i'\
+        b'\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00'\
+        b'a\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00\x00\x00'\
+        b'\x01\x00\x00\x00\x0C\x00\x00\x00\x00"\x00\x00\x00\xFF\x00\x00'\
+        b'\x00\x00\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
+        b'\xFF\xFF\x01\x00\x00\x00\x06\x01\x00\x00\x00\x01\x00\x00\x00\x00'\
+        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x00\x00\x00'\
+        b'}\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00\x00\x00'\
+        b'\x01\x00\x00\x00\x0C\x00\x00\x00\x00Z\x00\x00\x00\xFF\x00\x00'\
+        b'\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00'\
+        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
+        b'\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00\x00\x00\x00'\
+        b'\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00\x00\x00\x81'\
+        b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x01\x90\x00\x00\x00\x04'\
+        b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00'\
+        b'\x01\xFF\xFF\xFF\xFF'
     """Serialized state on Qt4. Generated using :meth:`printState`"""
 
     STATE_VERSION1_QT5 = b''\
-        b'\x00\x00\x00^\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
-        b'd\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00a\x00g\x00e\x00F'\
-        b'\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00'\
-        b'a\x00g\x00e\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g'\
-        b'\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00#\x00\x00\x00'\
-        b'\xFF\x00\x00\x00\x01\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-        b'\xFF\xFF\xFF\xFF\xFF\x01\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x01\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C'\
-        b'\x00\x00\x00\x00\xAA\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s'\
-        b'\x00e\x00r\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x87'\
-        b'\x00\x00\x00\xFF\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF'\
-        b'\xFF\xFF\x00\x00\x00\x81\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00'\
-        b'\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00'\
-        b'\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00'\
-        b'\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03'\
-        b'\xE8\x00\xFF\xFF\xFF\xFF\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00'\
-        b'\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00o'\
-        b'\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00'\
-        b'r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g'
+        b'\x00\x00\x00Z\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
+        b'd\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00a\x00F\x00i'\
+        b'\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00'\
+        b'a\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00\x00\x00'\
+        b'\x01\x00\x00\x00\x0C\x00\x00\x00\x00#\x00\x00\x00\xFF\x00\x00'\
+        b'\x00\x01\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
+        b'\xFF\xFF\x01\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x01\x00\x00\x00\x00'\
+        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x00\x00'\
+        b'\x00\xAA\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00'\
+        b'\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x87\x00\x00\x00\xFF'\
+        b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00'\
+        b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
+        b'\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00\x00'\
+        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00\x00'\
+        b'\x00\x81\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00d\x00\x00'\
+        b'\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00'\
+        b'\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00'\
+        b'\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03\xE8\x00\xFF'\
+        b'\xFF\xFF\xFF\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x01'
     """Serialized state on Qt5. Generated using :meth:`printState`"""
 
     def testAvoidRestoreRegression_Version1(self):
@@ -680,8 +643,6 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         result = dialog.restoreState(state)
         self.assertTrue(result)
-        colormap = dialog.colormap()
-        self.assertTrue(colormap.getNormalization(), "log")
 
     def testRestoreRobusness(self):
         """What's happen if you try to open a config file with a different
@@ -696,13 +657,13 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
     def testRestoreNonExistingDirectory(self):
         directory = os.path.join(_tmpDirectory, "dir")
         os.mkdir(directory)
-        dialog = ImageFileDialog()
+        dialog = DataFileDialog()
         dialog.setDirectory(directory)
         self.qWaitForPendingActions(dialog)
         state = dialog.saveState()
         os.rmdir(directory)
 
-        dialog2 = ImageFileDialog()
+        dialog2 = DataFileDialog()
         result = dialog2.restoreState(state)
         self.assertTrue(result)
         self.assertNotEquals(dialog2.directory(), directory)
@@ -723,14 +684,6 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog.setSidebarUrls(urls)
         self.assertEqual(dialog.sidebarUrls(), urls)
 
-    def testColomap(self):
-        dialog = self.createDialog()
-        colormap = dialog.colormap()
-        self.assertEqual(colormap.getNormalization(), "linear")
-        colormap = Colormap(normalization=Colormap.LOGARITHM)
-        dialog.setColormap(colormap)
-        self.assertEqual(colormap.getNormalization(), "log")
-
     def testDirectory(self):
         dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
@@ -738,25 +691,9 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         self.assertSamePath(dialog.directory(), _tmpDirectory)
 
-    def testBadDataType(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
+    def testBadFileFormat(self):
         dialog = self.createDialog()
-        dialog.selectUrl(_tmpDirectory + "/data.h5::/complex_image")
-        self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog._selectedData())
-
-    def testBadDataShape(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.selectUrl(_tmpDirectory + "/data.h5::/unknown")
-        self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog._selectedData())
-
-    def testBadDataFormat(self):
-        dialog = self.createDialog()
-        dialog.selectUrl(_tmpDirectory + "/badformat.edf")
+        dialog.selectUrl(_tmpDirectory + "/badformat.h5")
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog._selectedData())
 
@@ -778,7 +715,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/foobar")
         dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog._selectedData())
+        self.assertIsNotNone(dialog._selectedData())
 
         # an existing node is browsed, but the wrong path is selected
         index = browser.rootIndex()
@@ -787,21 +724,27 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertEqual(url.data_path(), "/group")
 
-    def testBadSlicingPath(self):
+    def testUnsupportedSlicingPath(self):
         if h5py is None:
             self.skipTest("h5py is missing")
         dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
-        dialog.selectUrl(_tmpDirectory + "/data.h5::/cube[a;45,-90]")
+        dialog.selectUrl(_tmpDirectory + "/data.h5?path=/cube&slice=0")
         self.qWaitForPendingActions(dialog)
-        self.assertIsNone(dialog._selectedData())
+        data = dialog._selectedData()
+        if data is None:
+            # Maybe nothing is selected
+            self.assertTrue(True)
+        else:
+            # Maybe the cube is selected but not sliced
+            self.assertEqual(len(data.shape), 3)
 
 
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestImageFileDialogInteraction))
-    test_suite.addTest(loadTests(TestImageFileDialogApi))
+    test_suite.addTest(loadTests(TestDataFileDialogInteraction))
+    test_suite.addTest(loadTests(TestDataFileDialogApi))
     return test_suite
 
 

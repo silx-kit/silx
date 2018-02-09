@@ -30,7 +30,7 @@ from __future__ import division, print_function
 __authors__ = ["Pierre paleo"]
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "14/06/2017"
+__date__ = "19/01/2018"
 
 
 import time
@@ -49,34 +49,30 @@ from silx.test.utils import utilstest
 logger = logging.getLogger(__name__)
 
 
-
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")
 class TestProj(unittest.TestCase):
 
     def setUp(self):
         if ocl is None:
             return
-        #~ if sys.platform.startswith('darwin'):
-            #~ self.skipTest("Projection is not implemented on CPU for OS X yet")
+        # ~ if sys.platform.startswith('darwin'):
+            # ~ self.skipTest("Projection is not implemented on CPU for OS X yet")
         self.getfiles()
         n_angles = self.sino.shape[0]
         self.proj = projection.Projection(self.phantom.shape, n_angles)
-        if self.proj.compiletime_workgroup_size < 16:
+        if self.proj.compiletime_workgroup_size < 16 * 16:
             self.skipTest("Current implementation of OpenCL projection is not supported on this platform yet")
-
 
     def tearDown(self):
         self.phantom = None
         self.sino = None
         self.proj = None
 
-
     def getfiles(self):
         # load 512x512 MRI phantom
         self.phantom = np.load(utilstest.getfile("Brain512.npz"))["data"]
         # load sinogram computed with PyHST
         self.sino = np.load(utilstest.getfile("sino500_pyhst.npz"))["data"]
-
 
     def measure(self):
         "Common measurement of timings"
@@ -89,7 +85,6 @@ class TestProj(unittest.TestCase):
         t2 = time.time()
         return t2 - t1, result
 
-
     def compare(self, res):
         """
         Compare a result with the reference reconstruction.
@@ -99,7 +94,6 @@ class TestProj(unittest.TestCase):
         # TODO: compare a standard projection
         ref = self.sino
         return np.max(np.abs(res - ref))
-
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_proj(self):
@@ -127,12 +121,10 @@ class TestProj(unittest.TestCase):
             self.assertTrue(errmax < 1.e-6, "Max error is too high")
 
 
-
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestProj("test_proj"))
     return testSuite
-
 
 
 if __name__ == '__main__':

@@ -37,15 +37,18 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/08/2017"
+__date__ = "09/02/2018"
 __status__ = "production"
 
 import os
 import gc
 from threading import Semaphore
 import numpy
-from silx.opencl import ocl, pyopencl, kernel_workgroup_size
-from .utils import calc_size, matching_correction, get_opencl_code
+
+from ..common import ocl, pyopencl, kernel_workgroup_size
+from ..processing import OpenclProcessing
+from ..utils import calc_size, get_opencl_code
+from .utils import matching_correction
 import logging
 logger = logging.getLogger(__name__)
 if not pyopencl:
@@ -76,31 +79,35 @@ def transform_pts(matrix, offset, x, y):
     return nx, ny
 
 
-class LinearAlign(object):
+class LinearAlign(OpenclProcessing):
+    """Align images on a reference image based on an afine transformation (bi-linear + offset)
     """
-    Align images on a reference image based on an afine transformation (bi-linear + offset)
-    """
-    kernels = {"transform": 128}
+    kernel_files = {"transform": 128}
 
-    def __init__(self, image, devicetype="CPU", profile=False, device=None, max_workgroup_size=None,
-                 ROI=None, extra=0, context=None, init_sigma=None):
+    def __init__(self, image, mask=None, extra=0, init_sigma=None,
+                 ctx=None, devicetype="all", platformid=None, deviceid=None,
+                 block_size=None, profile=False):
         """
         Constructor of the class
 
         :param image: reference image on which other image should be aligned
+        :param mask: masked out region of the image 
         :param devicetype: Kind of preferred devce
         :param profile:collect profiling information ?
         :param device: 2-tuple of integer. see clinfo
         :param max_workgroup_size: limit the workgroup size
         :param ROI: Region of interest: to be implemented
         :param extra: extra space around the image, can be an integer, or a 2 tuple in YX convention: TODO!
-        :param init_sigma: bluring width, you should have good reasons to modify the 1.6 default value...
+        :param init_sigma: blurring width, you should have good reasons to modify the 1.6 default value...
         """
-        self.profile = bool(profile)
-        self.events = []
-        self.program = None
-        self.ref = numpy.ascontiguousarray(image, numpy.float32)
-        self.buffers = {}
+        OpenclProcessing.__init__(self, ctx=ctx,
+                                  devicetype=devicetype,
+                                  platformid=platformid,
+                                  deviceid=deviceid,
+                                  block_size=block_size,
+                                  profile=profile)
+        self.ref = numpy.ascontiguousarray(image)
+        self.cl_mem = {}
         self.shape = image.shape
         if len(self.shape) == 3:
             self.RGB = True
@@ -114,60 +121,24 @@ class LinearAlign(object):
         else:
             self.extra = extra[:2]
         self.outshape = tuple(i + 2 * j for i, j in zip(self.shape, self.extra))
-        self.ROI = ROI
-        if context:
-            self.ctx = context
-            device_name = self.ctx.devices[0].name.strip()
-            platform_name = self.ctx.devices[0].platform.name.strip()
-            platform = ocl.get_platform(platform_name)
-            device = platform.get_device(device_name)
-            self.device = platform.id, device.id
-        else:
-            if device is None:
-                self.device = ocl.select_device(type=devicetype, best=True)
-                if self.device is None:
-                    raise RuntimeError("No suitable OpenCL device found with given constrains")
-            else:
-                self.device = device
-            self.ctx = pyopencl.Context(devices=[pyopencl.get_platforms()[self.device[0]].get_devices()[self.device[1]]])
-        ocldevice = ocl.platforms[self.device[0]].devices[self.device[1]]
-        self.devicetype = ocldevice.type
-
-        if max_workgroup_size:
-            self.max_workgroup_size = min(int(max_workgroup_size), ocldevice.max_work_group_size)
-        else:
-            self.max_workgroup_size = ocldevice.max_work_group_size
-        self.kernels = {}
-        for k, v in self.__class__.kernels.items():
-            self.kernels[k] = min(v, self.max_workgroup_size)
-
-        if self.RGB:
-            target = (4, 8, 4)
-            self.wg = tuple(min(t, i, self.max_workgroup_size) for t, i in zip(target, self.ctx.devices[0].max_work_item_sizes))
-        else:
-            target = (8, 4)
-            self.wg = tuple(min(t, i, self.max_workgroup_size) for t, i in zip(target, self.ctx.devices[0].max_work_item_sizes))
-
-        self.sift = SiftPlan(template=image, context=self.ctx, profile=self.profile,
-                             max_workgroup_size=self.max_workgroup_size, init_sigma=init_sigma)
+        self.mask = mask
+        self.sift = SiftPlan(template=image, ctx=self.ctx, profile=self.profile,
+                             block_size=self.block_size, init_sigma=init_sigma)
         self.ref_kp = self.sift.keypoints(image)
-        if self.ROI is not None:
+        # TODO: move to SIFT
+        if self.mask is not None:
             kpx = numpy.round(self.ref_kp.x).astype(numpy.int32)
             kpy = numpy.round(self.ref_kp.y).astype(numpy.int32)
-            masked = self.ROI[(kpy, kpx)].astype(bool)
+            masked = self.mask[(kpy, kpx)].astype(bool)
             logger.warning("Reducing keypoint list from %i to %i because of the ROI" % (self.ref_kp.size, masked.sum()))
             self.ref_kp = self.ref_kp[masked]
-        self.match = MatchPlan(context=self.ctx, profile=self.profile, max_workgroup_size=self.max_workgroup_size)
-        # Allocate reference keypoints on the GPU within match context:
-        self.buffers["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
+        self.match = MatchPlan(ctx=self.ctx, profile=self.profile, block_size=self.block_size)
+#        Allocate reference keypoints on the GPU within match context:
+        self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
         # TODO optimize match so that the keypoint2 can be optional
         self.fill_value = 0
-        # print self.ctx.devices[0]
-        if self.profile:
-            self.queue = pyopencl.CommandQueue(self.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-        else:
-            self.queue = pyopencl.CommandQueue(self.ctx)
-        self._compile_kernels()
+        self.wg = {}
+        self.compile_kernels()
         self._allocate_buffers()
         self.sem = Semaphore()
         self.relative_transfo = None
@@ -187,40 +158,53 @@ class LinearAlign(object):
         All buffers are allocated here
         """
         if self.RGB:
-            self.buffers["input"] = pyopencl.array.empty(self.queue, shape=self.shape + (3,), dtype=numpy.uint8)
-            self.buffers["output"] = pyopencl.array.empty(self.queue, shape=self.outshape + (3,), dtype=numpy.uint8)
+            self.cl_mem["input"] = pyopencl.array.empty(self.queue, shape=self.shape + (3,), dtype=numpy.uint8)
+            self.cl_mem["output"] = pyopencl.array.empty(self.queue, shape=self.outshape + (3,), dtype=numpy.uint8)
         else:
-            self.buffers["input"] = pyopencl.array.empty(self.queue, shape=self.shape, dtype=numpy.float32)
-            self.buffers["output"] = pyopencl.array.empty(self.queue, shape=self.outshape, dtype=numpy.float32)
-        self.buffers["matrix"] = pyopencl.array.empty(self.queue, shape=(2, 2), dtype=numpy.float32)
-        self.buffers["offset"] = pyopencl.array.empty(self.queue, shape=(1, 2), dtype=numpy.float32)
+            self.cl_mem["input"] = pyopencl.array.empty(self.queue, shape=self.shape, dtype=numpy.float32)
+            self.cl_mem["output"] = pyopencl.array.empty(self.queue, shape=self.outshape, dtype=numpy.float32)
+        self.cl_mem["matrix"] = pyopencl.array.empty(self.queue, shape=(2, 2), dtype=numpy.float32)
+        self.cl_mem["offset"] = pyopencl.array.empty(self.queue, shape=(1, 2), dtype=numpy.float32)
 
     def _free_buffers(self):
         """
         free all memory allocated on the device
         """
-        for buffer_name in self.buffers:
-            if self.buffers[buffer_name] is not None:
+        for buffer_name in self.cl_mem:
+            if self.cl_mem[buffer_name] is not None:
                 try:
-                    del self.buffers[buffer_name]
-                    self.buffers[buffer_name] = None
+                    del self.cl_mem[buffer_name]
+                    self.cl_mem[buffer_name] = None
                 except pyopencl.LogicError:
                     logger.error("Error while freeing buffer %s" % buffer_name)
 
-    def _compile_kernels(self):
+    def compile_kernels(self):
         """
         Call the OpenCL compiler
         """
-        for kernel in list(self.kernels.keys()):
-            kernel_src = get_opencl_code(os.path.join("sift",kernel))
-            try:
-                program = pyopencl.Program(self.ctx, kernel_src).build()
-            except pyopencl.MemoryError as error:
-                raise MemoryError(error)
-            self.program = program
-            for one_function in program.all_kernels():
-                workgroup_size = kernel_workgroup_size(program, one_function)
-                self.kernels[kernel+"."+one_function.function_name] = workgroup_size
+        kernel_src = [os.path.join("sift", kernel) for kernel in self.kernel_files]
+        OpenclProcessing.compile_kernels(self, kernel_src)
+        bs = min(self.kernel_files["transform"],
+                 min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
+        if self.block_size is not None:
+            bs = min(self.block_size, bs)
+        device = self.ctx.devices[0]
+
+        if bs > 32:
+            wgm = (32, bs // 32)
+            if bs >= 256:
+                wgr = (4, bs // 32, 8)
+            else:
+                wgr = (4, 8, bs // 32)
+        elif bs > 4:
+            wgm = (bs // 4, 4)
+            wgr = (4, bs // 4, 1)
+        else:
+            wgm = (bs, 1)
+            wgr = (bs, 1, 1)
+        size_per_dim = device.max_work_item_sizes
+        self.wg["transform_RGB"] = tuple(min(i, j) for i, j in zip(wgr, size_per_dim))
+        self.wg["transform"] = tuple(min(i, j) for i, j in zip(wgm, size_per_dim))
 
     def _free_kernels(self):
         """
@@ -243,13 +227,15 @@ class LinearAlign(object):
         else:
             data = numpy.ascontiguousarray(img, numpy.float32)
         with self.sem:
-            cpy = pyopencl.enqueue_copy(self.queue, self.buffers["input"].data, data)
+            cpy = pyopencl.enqueue_copy(self.queue, self.cl_mem["input"].data, data)
             if self.profile:
                 self.events.append(("Copy H->D", cpy))
             cpy.wait()
-            kp = self.sift.keypoints(self.buffers["input"])
+            kp = self.sift.keypoints(self.cl_mem["input"])
+#            print("ref %s img %s" % (self.cl_mem["ref_kp_gpu"].shape, kp.shape))
             logger.debug("mod image keypoints: %s" % kp.size)
-            raw_matching = self.match.match(self.buffers["ref_kp_gpu"], kp, raw_results=True)
+            raw_matching = self.match.match(self.cl_mem["ref_kp_gpu"], kp, raw_results=True)
+#            print(raw_matching.max(axis=0))
 
             matching = numpy.recarray(shape=raw_matching.shape, dtype=MatchPlan.dtype_kp)
             len_match = raw_matching.shape[0]
@@ -303,13 +289,13 @@ class LinearAlign(object):
                     matrix[1, 0], matrix[1, 1] = transform_matrix[1], transform_matrix[0]
             if relative:  # update stable part to perform a relative alignment
                 self.ref_kp = kp
-                if self.ROI is not None:
+                if self.mask is not None:
                     kpx = numpy.round(self.ref_kp.x).astype(numpy.int32)
                     kpy = numpy.round(self.ref_kp.y).astype(numpy.int32)
-                    masked = self.ROI[(kpy, kpx)].astype(bool)
+                    masked = self.mask[(kpy, kpx)].astype(bool)
                     logger.warning("Reducing keypoint list from %i to %i because of the ROI" % (self.ref_kp.size, masked.sum()))
                     self.ref_kp = self.ref_kp[masked]
-                self.buffers["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
+                self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
                 transfo = numpy.zeros((3, 3), dtype=numpy.float64)
                 transfo[:2, :2] = matrix
                 transfo[0, 2] = offset[0]
@@ -321,31 +307,33 @@ class LinearAlign(object):
                     self.relative_transfo = numpy.dot(transfo, self.relative_transfo)
                 matrix = numpy.ascontiguousarray(self.relative_transfo[:2, :2], dtype=numpy.float32)
                 offset = numpy.ascontiguousarray(self.relative_transfo[:2, 2], dtype=numpy.float32)
-            cpy1 = pyopencl.enqueue_copy(self.queue, self.buffers["matrix"].data, matrix)
-            cpy2 = pyopencl.enqueue_copy(self.queue, self.buffers["offset"].data, offset)
+            cpy1 = pyopencl.enqueue_copy(self.queue, self.cl_mem["matrix"].data, matrix)
+            cpy2 = pyopencl.enqueue_copy(self.queue, self.cl_mem["offset"].data, offset)
             if self.profile:
                 self.events += [("Copy matrix", cpy1), ("Copy offset", cpy2)]
 
             if self.RGB:
                 shape = (4, self.shape[1], self.shape[0])
-                transform = self.program.transform_RGB
+                kname = "transform_RGB"
+
             else:
                 shape = self.shape[1], self.shape[0]
-                transform = self.program.transform
-            ev = transform(self.queue, calc_size(shape, self.wg), self.wg,
-                           self.buffers["input"].data,
-                           self.buffers["output"].data,
-                           self.buffers["matrix"].data,
-                           self.buffers["offset"].data,
+                kname = "transform"
+            transform = self.kernels.get_kernel(kname)
+            ev = transform(self.queue, calc_size(shape, self.wg[kname]), self.wg[kname],
+                           self.cl_mem["input"].data,
+                           self.cl_mem["output"].data,
+                           self.cl_mem["matrix"].data,
+                           self.cl_mem["offset"].data,
                            numpy.int32(self.shape[1]),
                            numpy.int32(self.shape[0]),
                            numpy.int32(self.outshape[1]),
                            numpy.int32(self.outshape[0]),
-                           self.sift.buffers["min"].get()[0],
+                           self.sift.cl_mem["min"].get()[0],
                            numpy.int32(1))
             if self.profile:
-                self.events += [("transform", ev)]
-            result = self.buffers["output"].get()
+                self.events += [(kname, ev)]
+            result = self.cl_mem["output"].get()
 
         if return_all:
             # corr = numpy.dot(matrix, numpy.vstack((matching[:, 1].y, matching[:, 1].x))).T - \

@@ -136,14 +136,14 @@ class TestSpecFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname1 = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
 
         fd2, cls.fname2 = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd2, sftext[370:923])
         else:
             os.write(fd2, bytes(sftext[370:923], 'ascii'))
@@ -151,7 +151,7 @@ class TestSpecFile(unittest.TestCase):
 
         fd3, cls.fname3 = tempfile.mkstemp(text=False)
         txt = sftext[371:923]
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd3, txt)
         else:
             os.write(fd3, bytes(txt, 'ascii'))
@@ -382,7 +382,7 @@ class TestSFLocale(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))

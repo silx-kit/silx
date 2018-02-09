@@ -151,15 +151,15 @@ class Settings(StaticRow):
             fget=sceneWidget.getForegroundColor,
             fset=sceneWidget.setForegroundColor)
 
+        text = ColorProxyRow(
+            name='Text',
+            fget=sceneWidget.getTextColor,
+            fset=sceneWidget.setTextColor)
+
         highlight = ColorProxyRow(
             name='Highlight',
             fget=sceneWidget.getHighlightColor,
             fset=sceneWidget.setHighlightColor)
-
-        boundingBox = ProxyRow(
-            name='Bounding Box',
-            fget=sceneWidget.isBoundingBoxVisible,
-            fset=sceneWidget.setBoundingBoxVisible)
 
         axesIndicator = ProxyRow(
             name='Axes Indicator',
@@ -188,8 +188,8 @@ class Settings(StaticRow):
                                    children=(azimuthNode, altitudeNode))
 
         # Settings row
-        children = (background, foreground, highlight,
-                    boundingBox, axesIndicator, lightDirection)
+        children = (background, foreground, text, highlight,
+                    axesIndicator, lightDirection)
         super(Settings, self).__init__(('Settings', None), children=children)
 
 
@@ -245,6 +245,20 @@ class Item3DRow(StaticRow):
             else:
                 return False
         return super(Item3DRow, self).setData(column, value, role)
+
+
+class DataItem3DBoundingBoxRow(ProxyRow):
+    """Represents :class:`DataItem3D` bounding box visibility
+
+    :param DataItem3D item: The item for which to display/control bounding box
+    """
+
+    def __init__(self, item):
+        super(DataItem3DBoundingBoxRow, self).__init__(
+            name='Bounding box',
+            fget=item.isBoundingBoxVisible,
+            fset=item.setBoundingBoxVisible,
+            notify=item.sigItemChanged)
 
 
 class MatrixProxyRow(ProxyRow):
@@ -462,8 +476,12 @@ class GroupItemRow(Item3DRow):
     :param str name: The optional name of the group
     """
 
+    _CHILDREN_ROW_OFFSET = 2
+    """Number of rows for group parameters. Children are added after"""
+
     def __init__(self, item, name=None):
         super(GroupItemRow, self).__init__(item, name)
+        self.addRow(DataItem3DBoundingBoxRow(item))
         self.addRow(DataItem3DTransformRow(item))
 
         item.sigItemAdded.connect(self._itemAdded)
@@ -482,7 +500,7 @@ class GroupItemRow(Item3DRow):
             return
 
         row = group.getItems().index(item)
-        self.addRow(nodeFromItem(item), row + 1)
+        self.addRow(nodeFromItem(item), row + self._CHILDREN_ROW_OFFSET)
 
     def _itemRemoved(self, item):
         """Handle item removal from the group and remove it from the model.
@@ -1321,7 +1339,7 @@ def nodeFromItem(item):
     assert isinstance(item, items.Item3D)
 
     # Item with specific model row class
-    if isinstance(item, items.GroupItem):
+    if isinstance(item, (items.GroupItem, items.GroupWithAxesItem)):
         return GroupItemRow(item)
     elif isinstance(item, Isosurface):
         return IsosurfaceRow(item)
@@ -1330,6 +1348,7 @@ def nodeFromItem(item):
     node = Item3DRow(item)
 
     if isinstance(item, items.DataItem3D):
+        node.addRow(DataItem3DBoundingBoxRow(item))
         node.addRow(DataItem3DTransformRow(item))
 
     # Specific extra init

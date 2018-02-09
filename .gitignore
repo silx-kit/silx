@@ -75,3 +75,6 @@ target/
 
 # MacOS
 .DS_Store
+
+#Notebook checkpoints
+.ipynb_checkpoints

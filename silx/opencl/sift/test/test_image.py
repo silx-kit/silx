@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "25/09/2017"
 
 import time
 import logging
@@ -84,7 +84,7 @@ class TestImage(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        kernel_src = get_opencl_code(os.path.join("sift", "image"))
+        kernel_src = os.linesep.join((get_opencl_code(os.path.join("sift", i)) for i in ("sift", "image")))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (8, 1)
 
@@ -148,9 +148,9 @@ class TestImage(unittest.TestCase):
 
         t0 = time.time()
         k1 = self.program.local_maxmin(self.queue, self.shape, self.wg,
-        	                           self.gpu_dogs.data, self.output.data,
-       		                           border_dist, peakthresh, octsize, EdgeThresh0, EdgeThresh,
-       		                           self.counter.data, nb_keypoints, self.s, width, height)
+                                       self.gpu_dogs.data, self.output.data,
+                                       border_dist, peakthresh, octsize, EdgeThresh0, EdgeThresh,
+                                       self.counter.data, nb_keypoints, self.s, width, height)
 
         res = self.output.get()
         self.keypoints1 = self.output  # for further use
@@ -158,7 +158,7 @@ class TestImage(unittest.TestCase):
 
         t1 = time.time()
         ref, actual_nb_keypoints2 = my_local_maxmin(DOGS, peakthresh, border_dist, octsize,
-        	                                        EdgeThresh0, EdgeThresh, nb_keypoints, self.s, width, height)
+                                                    EdgeThresh0, EdgeThresh, nb_keypoints, self.s, width, height)
         t2 = time.time()
 
         # we have to sort the arrays, for peaks orders is unknown for GPU
@@ -175,7 +175,7 @@ class TestImage(unittest.TestCase):
         delta_c = abs(ref_c - res_c).max()
 
         if (PRINT_KEYPOINTS):
-            logger.info("keypoints after 2 steps of refinement: (s= %s, octsize=%s) %s" , self.s, octsize, self.actual_nb_keypoints)
+            logger.info("keypoints after 2 steps of refinement: (s= %s, octsize=%s) %s", self.s, octsize, self.actual_nb_keypoints)
             # logger.info("For ref: %s" %(ref_peaks[ref_peaks!=-1].shape))
             logger.info(res[0:self.actual_nb_keypoints])  # [0:74]
             # logger.info(ref[0:32]
@@ -195,7 +195,7 @@ class TestImage(unittest.TestCase):
     def test_interpolation(self):
         """
         tests the keypoints interpolation kernel
-        Requires the following: "self.keypoints1", "self.actual_nb_keypoints", 	"self.gpu_dog_prev", self.gpu_dog", 			"self.gpu_dog_next", "self.s", "self.width", "self.height", "self.peakthresh"
+        Requires the following: "self.keypoints1", "self.actual_nb_keypoints",     "self.gpu_dog_prev", self.gpu_dog",             "self.gpu_dog_next", "self.s", "self.width", "self.height", "self.peakthresh"
         """
 
         # interpolation_setup :
@@ -203,7 +203,7 @@ class TestImage(unittest.TestCase):
 
         # actual_nb_keypoints is the number of keypoints returned by "local_maxmin".
         # After the interpolation, it will be reduced, but we can still use it as a boundary.
-        maxwg = kernel_workgroup_size(self.program,"interp_keypoint")
+        maxwg = kernel_workgroup_size(self.program, "interp_keypoint")
         shape = calc_size((keypoints_prev.shape[0],), maxwg)
         gpu_dogs = pyopencl.array.to_device(self.queue, DOGS)
         gpu_keypoints1 = pyopencl.array.to_device(self.queue, keypoints_prev)
@@ -214,7 +214,7 @@ class TestImage(unittest.TestCase):
         t0 = time.time()
         k1 = self.program.interp_keypoint(self.queue, shape, (maxwg,),
                                           gpu_dogs.data, gpu_keypoints1.data, start_keypoints, actual_nb_keypoints,
-        	                              peakthresh, InitSigma, width, height)
+                                          peakthresh, InitSigma, width, height)
         res = gpu_keypoints1.get()
 
         t1 = time.time()
@@ -235,16 +235,16 @@ class TestImage(unittest.TestCase):
             logger.info(res[0:actual_nb_keypoints])  # [0:10,:]
             # logger.info("Ref:")
             # logger.info(ref[0:32,:]
-        
-        
+
+
 #         print(maxwg, self.maxwg, self.wg[0], self.wg[1])
         if self.maxwg < self.wg[0] * self.wg[1]:
             logger.info("Not testing result as the WG is too little %s", self.maxwg)
             return
-        self.assertLess(abs(len(ref2) - len(res2))/(len(ref2) + len(res2)), 0.33, "the number of keypoint is almost the same")
+        self.assertLess(abs(len(ref2) - len(res2)) / (len(ref2) + len(res2)), 0.33, "the number of keypoint is almost the same")
 #         print(ref2)
 #         print(res2)
-        
+
         delta = norm_L1(ref2, res2)
         self.assert_(delta < 0.43, "delta=%s" % (delta))
         logger.info("delta=%s" % delta)
