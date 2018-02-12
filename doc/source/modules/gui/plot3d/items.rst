@@ -109,7 +109,8 @@ The following classes allows to configure :class:`ScalarField3D` visualization:
              moveToCenter, isValid,
              getNormal, setNormal,
              getPoint, setPoint,
-             getParameters,
+             getParameters, setParameters,
+             getDisplayValuesBelowMin, setDisplayValuesBelowMin
 
 Clipping plane
 --------------
