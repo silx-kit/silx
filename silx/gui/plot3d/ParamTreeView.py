@@ -316,7 +316,6 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             # style = qt.QApplication.style() if not widget else widget.style()
             # style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
 
-
         else:
             super(ParameterTreeDelegate, self).paint(painter, option, index)
 
@@ -539,6 +538,7 @@ class ParamTreeView(qt.QTreeView):
 
     def dataChanged(self, topLeft, bottomRight, roles=()):
         """Handle model dataChanged signal eventually closing editors"""
+        super(ParamTreeView, self).dataChanged(topLeft, bottomRight, roles)
         if not roles or qt.Qt.UserRole in roles:  # Check editorHint update
             for row in range(topLeft.row(), bottomRight.row() + 1):
                 for column in range(topLeft.column(), bottomRight.column() + 1):
