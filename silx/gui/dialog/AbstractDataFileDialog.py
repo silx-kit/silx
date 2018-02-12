@@ -1147,15 +1147,17 @@ class AbstractDataFileDialog(qt.QDialog):
             if self.__selectorWidget is not None:
                 self.__selectorWidget.setData(data)
                 if not self.__selectorWidget.isUsed():
+                    # Needed to fake the fact we have to reset the zoom in preview
                     self.__selectedData = None
                     self.__setSelectedData(data)
                     self.__selectorWidget.hide()
                 else:
                     self.__selectorWidget.setVisible(self.__selectorWidget.hasVisibleSelectors())
-                    if not self.__selectorWidget.hasVisibleSelectors():
-                        self.__selectedData = None
+                    # Needed to fake the fact we have to reset the zoom in preview
+                    self.__selectedData = None
                     self.__selectorWidget.selectionChanged.emit()
             else:
+                # Needed to fake the fact we have to reset the zoom in preview
                 self.__selectedData = None
                 self.__setSelectedData(data)
         else:
