@@ -28,13 +28,14 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/02/2018"
+__date__ = "12/02/2018"
 
 import logging
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 import silx.io
 from .AbstractDataFileDialog import AbstractDataFileDialog
+from silx.third_party import enum
 try:
     import fabio
 except ImportError:
@@ -191,14 +192,32 @@ class DataFileDialog(AbstractDataFileDialog):
             data = h5[url.data_path()]
     """
 
+    class FilterMode(enum.Enum):
+        """This enum is used to indicate what the user may select in the
+        dialog; i.e. what the dialog will return if the user clicks OK."""
+
+        AnyNode = 0
+        """Any existing node from an HDF5-like file."""
+        ExistingDataset = 1
+        """An existing HDF5-like dataset."""
+        ExistingGroup = 2
+        """An existing HDF5-like group. A file root is a group."""
+
+    def __init__(self, parent=None):
+        AbstractDataFileDialog.__init__(self, parent=parent)
+        self.__filter = DataFileDialog.FilterMode.AnyNode
+
     def selectedData(self):
-        """Returns the selected data by using the silx.io API with the selected
-        URL provided by the dialog.
+        """Returns the selected data by using the `silx.io.get_data` API with
+        the selected URL provided by the dialog.
+
+        If the URL identify a group of a file it is raise an exception. For
+        group or file you have to use on your own the API `silx.io.open`.
 
         :rtype: numpy.ndarray
         """
         url = self.selectedUrl()
-        return silx.io.open(url)
+        return silx.io.get_data(url)
 
     def _createPreviewWidget(self, parent):
         previewWidget = _DataPreview(parent)
@@ -236,7 +255,30 @@ class DataFileDialog(AbstractDataFileDialog):
 
         :rtype: bool
         """
-        return True
+        if self.__filter == DataFileDialog.FilterMode.AnyNode:
+            return True
+        elif self.__filter == DataFileDialog.FilterMode.ExistingDataset:
+            return silx.io.is_dataset(data)
+        elif self.__filter == DataFileDialog.FilterMode.ExistingGroup:
+            return silx.io.is_group(data)
+        else:
+            raise ValueError("Filter %s is not supported" % self.__nodeFilter)
+
+    def setFilterMode(self, mode):
+        """Set the filter mode.
+
+        It is not supposed to be set while the dialog it is used.
+
+        :param DataFileDialog.FilterMode mode: The new filter.
+        """
+        self.__filter = mode
+
+    def fileMode(self):
+        """Returns the filter mode.
+
+        :rtype: DataFileDialog.FilterMode
+        """
+        return self.__filter
 
     def _displayedDataInfo(self, dataBeforeSelection, dataAfterSelection):
         """Returns the text displayed under the data preview.
