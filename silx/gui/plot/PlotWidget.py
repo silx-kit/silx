@@ -2711,7 +2711,8 @@ class PlotWidget(qt.QMainWindow):
 
         To use for interaction implementation.
 
-        :param float x: X position in pixelsparam float y: Y position in pixels
+        :param float x: X position in pixels
+        :param float y: Y position in pixels
         :param test: A callable to call for each picked item to filter
                      picked items. If None (default), do not filter items.
         """
