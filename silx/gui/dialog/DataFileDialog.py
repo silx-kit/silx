@@ -106,6 +106,15 @@ class _DataPreview(qt.QWidget):
                 headers.append("Shape")
                 text = self.__formatter.humanReadableShape(data)
                 self.__model.appendRow([qt.QStandardItem(text)])
+            if hasattr(data, "attrs") and "NX_class" in data.attrs:
+                headers.append("NX_class")
+                value = data.attrs["NX_class"]
+                formatter = self.__formatter.textFormatter()
+                old = formatter.useQuoteForText()
+                formatter.setUseQuoteForText(False)
+                text = self.__formatter.textFormatter().toString(value)
+                formatter.setUseQuoteForText(old)
+                self.__model.appendRow([qt.QStandardItem(text)])
             self.__model.setVerticalHeaderLabels(headers)
         self.__data = data
 
