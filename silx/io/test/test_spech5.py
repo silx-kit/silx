@@ -567,7 +567,7 @@ class TestSpecH5(unittest.TestCase):
         # All 0 values
         self.assertNotIn("sample", self.sfh5["/1001.1"])
         with self.assertRaises(KeyError):
-            uc = self.sfh5["/1001.1/sample/unit_cell"]
+            self.sfh5["/1001.1/sample/unit_cell"]
 
     @testutils.test_logging(spech5.logger1.name, warning=2)
     def testOpenFileDescriptor(self):
