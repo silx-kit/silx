@@ -28,7 +28,7 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/02/2018"
+__date__ = "12/02/2018"
 
 
 import sys
@@ -520,6 +520,7 @@ class AbstractDataFileDialog(qt.QDialog):
     def _init(self):
         self.setWindowTitle("Open")
 
+        self.__directory = None
         self.__directoryLoadedFilter = None
         self.__errorWhileLoadingFile = None
         self.__selectedFile = None
@@ -584,6 +585,9 @@ class AbstractDataFileDialog(qt.QDialog):
         QDialog :meth:`done`. Then it can be triggered more than once.
         """
         self.__clearData()
+        if self.__fileModel is not None:
+            # Cache the directory before cleaning the model
+            self.__directory = self.directory()
         self.__browser.clear()
         self.__closeFile()
         self.__fileModel = None
@@ -1526,11 +1530,13 @@ class AbstractDataFileDialog(qt.QDialog):
 
         :rtype: str
         """
+        if self.__directory is not None:
+            # At post execution, returns the cache
+            return self.__directory
+
         index = self.__browser.rootIndex()
         if index.model() is self.__fileModel:
             path = self.__fileModel.filePath(index)
-            if os.path.isfile(path):
-                path = os.path.dirname(path)
             return path
         elif index.model() is self.__dataModel:
             path = os.path.dirname(self.__h5.file.filename)
