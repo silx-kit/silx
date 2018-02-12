@@ -25,10 +25,9 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/01/2018"
+__date__ = "12/02/2018"
 
 import os
-import sys
 import logging
 import numpy
 import unittest
@@ -477,12 +476,6 @@ class TestFabioH5WithEdf(unittest.TestCase):
     def tearDownClass(cls):
         cls.fabio_image = None
         cls.h5_image = None
-        if sys.platform == "win32" and fabio is not None:
-            # gc collect is needed to close a file descriptor
-            # opened by fabio and not released.
-            # https://github.com/silx-kit/fabio/issues/167
-            import gc
-            gc.collect()
         shutil.rmtree(cls.tmp_directory)
 
     def test_reserved_format_metadata(self):
@@ -527,12 +520,6 @@ class TestFabioH5WithFileSeries(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        if sys.platform == "win32" and fabio is not None:
-            # gc collect is needed to close a file descriptor
-            # opened by fabio and not released.
-            # https://github.com/silx-kit/fabio/issues/167
-            import gc
-            gc.collect()
         shutil.rmtree(cls.tmp_directory)
 
     def _testH5Image(self, h5_image):

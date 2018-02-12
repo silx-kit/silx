@@ -23,7 +23,6 @@
 # ############################################################################*/
 """Tests for SpecFile to HDF5 converter"""
 
-import gc
 from numpy import array_equal
 import os
 import sys
@@ -41,7 +40,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "12/02/2018"
 
 
 sftext = """#F /tmp/sf.dat
@@ -106,10 +105,6 @@ class TestConvertSpecHDF5(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # gc collect is needed to close a file descriptor
-        # opened by fabio and not released.
-        # https://github.com/silx-kit/fabio/issues/167
-        gc.collect()
         os.unlink(cls.spec_fname)
 
     def setUp(self):

@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/02/2018"
+__date__ = "12/02/2018"
 
 
 import unittest
@@ -34,7 +34,6 @@ import tempfile
 import numpy
 import shutil
 import os
-import sys
 import io
 
 try:
@@ -84,12 +83,6 @@ def setUpModule():
 
 def tearDownModule():
     global _tmpDirectory
-    if sys.platform == "win32" and fabio is not None:
-        # gc collect is needed to close a file descriptor
-        # opened by fabio and not released.
-        # https://github.com/silx-kit/fabio/issues/167
-        import gc
-        gc.collect()
     shutil.rmtree(_tmpDirectory)
     _tmpDirectory = None
 

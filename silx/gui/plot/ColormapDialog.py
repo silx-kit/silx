@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "19/01/2018"
+__date__ = "09/02/2018"
 
 
 import logging
@@ -135,6 +135,12 @@ class _BoundaryWidget(qt.QWidget):
     def setDataValue(self, dataValue):
         self._dataValue = dataValue
         self._updateDisplayedText()
+
+    def setFiniteValue(self, value):
+        assert(value is not None)
+        old = self._numVal.blockSignals(True)
+        self._numVal.setValue(value)
+        self._numVal.blockSignals(old)
 
     def setValue(self, value, isAuto=False):
         self._autoCB.setChecked(isAuto or value is None)
@@ -488,8 +494,8 @@ class ColormapDialog(qt.QDialog):
                             resetzoom=False)
 
         if updateMarkers:
-            minDraggable = self._colormap().isEditable() and \
-                           not self._minValue.isAutoChecked()
+            minDraggable = (self._colormap().isEditable() and
+                            not self._minValue.isAutoChecked())
             self._plot.addXMarker(
                 self._minValue.getFiniteValue(),
                 legend='Min',
@@ -498,8 +504,8 @@ class ColormapDialog(qt.QDialog):
                 color='blue',
                 constraint=self._plotMinMarkerConstraint)
 
-            maxDraggable = self._colormap().isEditable() and \
-                           not self._maxValue.isAutoChecked()
+            maxDraggable = (self._colormap().isEditable() and
+                            not self._maxValue.isAutoChecked())
             self._plot.addXMarker(
                 self._maxValue.getFiniteValue(),
                 legend='Max',
@@ -872,6 +878,20 @@ class ColormapDialog(qt.QDialog):
         if self._ignoreColormapChange is True:
             return
 
+        vmin = self._minValue.getFiniteValue()
+        vmax = self._maxValue.getFiniteValue()
+        if vmax is not None and vmin is not None and vmax < vmin:
+            # If only one autoscale is checked constraints are too strong
+            # We have to edit a user value anyway it is not requested
+            # TODO: It would be better IMO to disable the auto checkbox before
+            # this case occur (valls)
+            cmin = self._minValue.isAutoChecked()
+            cmax = self._maxValue.isAutoChecked()
+            if cmin is False:
+                self._minValue.setFiniteValue(vmax)
+            if cmax is False:
+                self._maxValue.setFiniteValue(vmin)
+
         vmin = self._minValue.getValue()
         vmax = self._maxValue.getValue()
         self._ignoreColormapChange = True
@@ -916,8 +936,8 @@ class ColormapDialog(qt.QDialog):
             self._minMaxWasEdited = False
 
             # Fix start value
-            if self._maxValue.getValue() is not None and \
-                        self._minValue.getValue() > self._maxValue.getValue():
+            if (self._maxValue.getValue() is not None and
+                    self._minValue.getValue() > self._maxValue.getValue()):
                 self._minValue.setValue(self._maxValue.getValue())
             self._updateMinMax()
 
@@ -931,8 +951,8 @@ class ColormapDialog(qt.QDialog):
             self._minMaxWasEdited = False
 
             # Fix end value
-            if self._minValue.getValue() is not None and \
-                        self._minValue.getValue() > self._maxValue.getValue():
+            if (self._minValue.getValue() is not None and
+                    self._minValue.getValue() > self._maxValue.getValue()):
                 self._maxValue.setValue(self._minValue.getValue())
             self._updateMinMax()
 
