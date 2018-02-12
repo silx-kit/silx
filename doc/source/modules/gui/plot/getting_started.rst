@@ -1,3 +1,7 @@
+
+.. role:: python(code)
+    :language: python
+
 .. currentmodule:: silx.gui
 
 Getting started with plot widgets
@@ -5,7 +9,7 @@ Getting started with plot widgets
 
 This introduction to :mod:`silx.gui.plot` covers the following topics:
 
-- `Use silx.gui.plot from the console`_
+- `Use silx.gui.plot from (I)Python console`_
 - `Use silx.gui.plot from a script`_
 - `Plot curves in a widget`_
 - `Plot images in a widget`_
@@ -13,13 +17,23 @@ This introduction to :mod:`silx.gui.plot` covers the following topics:
 
 For a complete description of the API, see :mod:`silx.gui.plot`.
 
-Use :mod:`silx.gui.plot` from the console
------------------------------------------
+Use :mod:`silx.gui.plot` from (I)Python console
+-----------------------------------------------
 
-From IPython
-++++++++++++
+From a Python or IPython interpreter, the simplest way is to import the :mod:`silx.sx` module:
 
-To run :mod:`silx.gui.plot` widgets from `IPython <http://ipython.org/>`_, IPython must be set to use Qt (and in case of using PyQt4 and Python 2.7, PyQt must be set ti use API version 2, see Explanation_ below).
+>>> from silx import sx
+
+The :mod:`silx.sx` module initializes Qt and provides access to :mod:`silx.gui.plot` widgets and extra plot functions.
+
+.. note:: From a notebook, the :mod:`silx.sx` module does NOT initialize Qt and does NOT expose silx widget.
+
+Compatibility with IPython
+++++++++++++++++++++++++++
+
+To run :mod:`silx.gui` widgets from `IPython <http://ipython.org/>`_,
+IPython must be set to use Qt (and in case of using PyQt4 and Python 2.7,
+PyQt must be set to use API version 2, see note below for explanation).
 
 As *silx* is performing some configuration of the Qt binding and `matplotlib <http://matplotlib.org/>`_, the safest way to use *silx* from IPython is to import :mod:`silx.gui.plot` first and then run either `%gui <http://ipython.org/ipython-doc/stable/interactive/magics.html#magic-gui>`_ qt  or `%pylab <http://ipython.org/ipython-doc/stable/interactive/magics.html#magic-pylab>`_ qt::
 
@@ -37,94 +51,27 @@ On Windows, run from the command line::
   set QT_API=pyqt&&ipython
 
 
-Explanation
-...........
+.. note:: PyQt4 used from Python 2.x provides 2 incompatible versions of QString and QVariant:
 
-PyQt4 used from Python 2.x provides 2 incompatible versions of QString and QVariant:
+   - version 1, the legacy which is the default, and
+   - version 2, a more pythonic one, which is the only one supported by *silx*.
 
-- version 1, the legacy which is the default, and
-- version 2, a more pythonic one, which is the only one supported by *silx*.
+   All other configurations (i.e., PyQt4 on Python 3.x, PySide, PyQt5, IPython QtConsole widget) uses version 2 only or as the default.
 
-All other configurations (i.e., PyQt4 on Python 3.x, PySide, PyQt5, IPython QtConsole widget) uses version 2 only or as the default.
+   For more information, see `IPython, PyQt and PySide <http://ipython.org/ipython-doc/stable/interactive/reference.html#pyqt-and-pyside>`_.
 
-For more information, see `IPython, PyQt and PySide <http://ipython.org/ipython-doc/stable/interactive/reference.html#pyqt-and-pyside>`_.
-
-
-From Python
-+++++++++++
-
-The :mod:`silx.sx` package is a convenient module to use silx from the console.
-It sets-up Qt and provides functions for the main features of silx.
-
->>> from silx import sx
-
-Alternatively, you can create a QApplication before using silx widgets:
-
->>> from silx.gui import qt  # Import Qt binding and do some set-up
->>> qapp = qt.QApplication([])
-
->>> from silx.gui.plot import *  # Import plot widgets and set-up matplotlib
-
-.. currentmodule:: silx.sx
 
 Plot functions
 ++++++++++++++
 
-The :mod:`silx.sx` package provides 2 functions to plot curves and images from the (I)Python console in a widget with a set of tools:
+The :mod:`silx.sx` module provides functions to plot curves and images with :mod:`silx.gui.plot` widgets:
 
-- :func:`plot`, and
-- :func:`imshow`.
+- :func:`~silx.sx.plot` for curves, e.g., :python:`sx.plot(y)` or :python:`sx.plot(x, y)`
+- :func:`~silx.sx.imshow` for images, e.g., :python:`sx.imshow(image)`
+
+See :mod:`silx.sx` for documentation and how to use it.
 
 For more features, use widgets directly (see `Plot curves in a widget`_ and `Plot images in a widget`_).
-
-
-Curve: :func:`plot`
-...................
-
-The following examples must run with a Qt QApplication initialized (see `Use silx.gui.plot from the console`_).
-
-First import :mod:`sx` function:
-
->>> from silx import sx
->>> import numpy
-
-Plot a single curve given some values:
-
->>> values = numpy.random.random(100)
->>> plot_1curve = sx.plot(values, title='Random data')
-
-Plot a single curve given the x and y values:
-
->>> angles = numpy.linspace(0, numpy.pi, 100)
->>> sin_a = numpy.sin(angles)
->>> plot_sinus = sx.plot(angles, sin_a,
-...                      xlabel='angle (radian)', ylabel='sin(a)')
-
-Plot many curves by giving a 2D array, provided xn, yn arrays:
-
->>> plot_curves = sx.plot(x0, y0, x1, y1, x2, y2, ...)
-
-Plot curve with style giving a style string:
-
->>> plot_styled = sx.plot(x0, y0, 'ro-', x1, y1, 'b.')
-
-See :func:`plot` for details.
-
-
-Image: :func:`imshow`
-.....................
-
-This example plot a single image.
-
-First, import :mod:`silx.sx`:
-
->>> from silx import sx
->>> import numpy
-
->>> data = numpy.random.random(1024 * 1024).reshape(1024, 1024)
->>> plt = sx.imshow(data, title='Random data')
-
-See :func:`imshow` for more details.
 
 
 Use :mod:`silx.gui.plot` from a script
@@ -146,27 +93,22 @@ A Qt GUI script must have a QApplication initialized before creating widgets:
        [...]
        qapp.exec_()
 
-Unless a Qt binding has already been loaded, :mod:`silx.gui.qt` uses the first Qt binding it founds by probing in the following order: PyQt5, PyQt4 and finally PySide.
+Unless a Qt binding has already been loaded, :mod:`silx.gui.qt` uses one of the supported Qt binding (PyQt4, PySide or PyQt5).
 If you prefer to choose the Qt binding yourself, import it before importing
 a module from :mod:`silx.gui`:
 
 .. code-block:: python
 
-   import PySide  # Importing PySide will force silx to use it
+   import PyQt5.QtCore  # Importing PyQt5 will force silx to use it
    from silx.gui import qt
 
-
-.. warning::
-
-   :mod:`silx.gui.plot` widgets are not thread-safe.
-   All calls to :mod:`silx.gui.plot` widgets must be made from the main thread.
 
 Plot curves in a widget
 -----------------------
 
-The :class:`Plot1D` widget provides a plotting area and a toolbar with tools useful for curves such as setting logarithmic scale or defining region of interest.
+The :class:`~silx.gui.plot.PlotWindow.Plot1D` widget provides a plotting area and a toolbar with tools useful for curves such as setting logarithmic scale or defining region of interest.
 
-First, create a :class:`Plot1D` widget:
+First, create a :class:`~silx.gui.plot.PlotWindow.Plot1D` widget:
 
 .. code-block:: python
 
@@ -179,19 +121,21 @@ First, create a :class:`Plot1D` widget:
 One curve
 +++++++++
 
-To display a single curve, use the :meth:`.PlotWidget.addCurve` method:
+To display a single curve, use :meth:`.PlotWidget.addCurve` method:
 
 .. code-block:: python
 
-   plot.addCurve(x=(1, 2, 3), y=(3, 2, 1))  # Add a curve with default style
+   plot.addCurve(x=(1, 2, 3), y=(3, 2, 1), legend='curve')  # Add a curve named 'curve'
 
-When you need to update this curve, call :meth:`.PlotWidget.addCurve` again with the new values to display:
+When you need to update this curve, first get the curve with :meth:`.PlotWidget.getCurve` and
+update its data with the curve's :meth:`~silx.gui.plot.items.Curve.setData` method:
 
 .. code-block:: python
 
-   plot.addCurve(x=(1, 2, 3), y=(1, 2, 3))  # Replace the existing curve
+   mycurve = plot.getCurve('curve')  # Retrieve the curve
+   mycurve.setData(x=(1, 2, 3), y=(1, 2, 3))  # Update its data
 
-To clear the plotting area, call :meth:`.PlotWidget.clear`:
+To clear the plot, call :meth:`.PlotWidget.clear`:
 
 .. code-block:: python
 
@@ -213,14 +157,15 @@ In order to display multiple curves at the same time, you need to provide a diff
    plot.addCurve(x, numpy.random.random(len(x)), legend='random')
 
 
-To update a curve, call :meth:`.PlotWidget.addCurve` with the ``legend`` of the curve you want to udpdate.
-By default, the new curve will keep the same color (and style) as the curve it is updating:
+To update a curve, call :meth:`.PlotWidget.getCurve` with the ``legend`` of the curve you want to update,
+and update its data with :meth:`~silx.gui.plot.items.Curve.setData`:
 
 .. code-block:: python
 
-   plot.addCurve(x, numpy.random.random(len(x)) - 1., legend='random')
+   curve = plot.getCurve('random')
+   curve.setData(x, numpy.random.random(len(x)) - 1.)
 
-To remove a curve from the plot, call :meth:`.PlotWidget.remove` with the ``legend`` of the curve you want to remove from the plot:
+To remove a curve from the plot, call :meth:`.PlotWidget.remove` with the ``legend`` of the curve you want to remove:
 
 .. code-block:: python
 
@@ -262,24 +207,32 @@ It is possible to specify the ``color`` of the curve, its ``linewidth`` and ``li
 Histogram
 +++++++++
 
-Data can be displayed as an histogram. This must be specified when calling the the addCurve function. (using ``histogram``, See :meth:`.PlotWidget.addCurve` for more details ).
+To display histograms, use :meth:`.PlotWidget.addHistogram`:
 
-Histogram steps can be centered on x values or set at the left or the right of the given x values.
+.. code-block:: python
+
+    import numpy
+    values = numpy.arange(20)  # Values of the histogram
+    edges = numpy.arange(21)  # Edges of the bins (number of values + 1)
+    plot.addHistogram(values, edges, legend='histo1', fill=True, color='green')
+
+Alternatively, :meth:`.PlotWidget.addCurve` can be used to display histograms by using the ``histogram`` argument.
+(See :meth:`.PlotWidget.addCurve` for more details).
 
 .. code-block:: python
   
     import numpy
     x = numpy.arange(0, 20, 1)
-    plot.addCurve(x, x+1, histogram='center', fill=True, color='green')
+    plot.addCurve(x, x+1, legend='histo2', histogram='center', fill=False, color='black')
 
-.. note:: You can also give x as edges. For this you must have len(x) = len(y) + 1
+Histogram steps can be centered on x values or set at the left or the right of the given x values.
 
 Plot images in a widget
 -----------------------
 
-The :class:`Plot2D` widget provides a plotting area and a toolbar with tools useful for images, such as keeping aspect ratio, changing the colormap or defining a mask.
+The :class:`~silx.gui.plot.PlotWindow.Plot2D` widget provides a plotting area and a toolbar with tools useful for images, such as keeping aspect ratio, changing the colormap or defining a mask.
 
-First, create a :class:`Plot2D` widget:
+First, create a :class:`~silx.gui.plot.PlotWindow.Plot2D` widget:
 
 .. code-block:: python
 
@@ -287,7 +240,6 @@ First, create a :class:`Plot2D` widget:
 
    plot = Plot2D()  # Create the plot widget
    plot.show()  # Make the plot widget visible
-
 
 One image
 +++++++++
@@ -299,46 +251,36 @@ To display a single image, use the :meth:`.PlotWidget.addImage` method:
    import numpy
 
    data = numpy.random.random(512 * 512).reshape(512, -1)  # Create 2D image
-   plot.addImage(data)  # Plot the 2D data set with default colormap
+   plot.addImage(data, legend='image')  # Plot the 2D data set with default colormap
 
-
-To update this image, call :meth:`.PlotWidget.addImage` again with the new image to display:
+To update this image, call :meth:`.PlotWidget.getImage` with its ``legend`` and
+update its data with :meth:`~silx.gui.plot.items.Image.setData`:
 
 .. code-block:: python
 
-   # Create a RGB image
-   rgb_image = (numpy.random.random(512*512*3) * 255).astype(numpy.uint8)
-   rgb_image.shape = 512, 512, 3
+   data2 = numpy.arange(512*512).reshape(512, 512)
 
-   plot.addImage(rgb_image)  # Plot the RGB image instead of the previous data
+   image = plot.getImage('image')  # Retrieve the image
+   image.setData(data2)  # Update the displayed data
 
+:meth:`.PlotWidget.addImage` supports both 2D arrays of data displayed with a colormap and RGB(A) images as 3D arrays of shape (height, width, color channels).
 
-To clear the plotting area, call :meth:`.PlotWidget.clear`:
+To clear the plot area, call :meth:`.PlotWidget.clear`:
 
 .. code-block:: python
 
    plot.clear()
 
-
 Origin and scale
 ++++++++++++++++
 
-:meth:`.PlotWidget.addImage` supports both 2D arrays of data displayed with a colormap and RGB(A) images as 3D arrays of shape (height, width, color channels).
 
 When displaying an image, it is possible to specify the ``origin`` and the ``scale`` of the image array in the plot area coordinates:
 
 .. code-block:: python
 
    data = numpy.random.random(512 * 512).reshape(512, -1)
-   plot.addImage(data, origin=(100, 100), scale=(0.1, 0.1))
-
-When updating an image, if ``origin`` and ``scale`` are not provided, the previous values will be used:
-
-.. code-block:: python
-
-   data = numpy.random.random(512 * 512).reshape(512, -1)
-   plot.addImage(data)  # Keep previous origin and scale
-
+   plot.addImage(data, legend='image', origin=(100, 100), scale=(0.1, 0.1))
 
 Colormap
 ++++++++
@@ -354,7 +296,7 @@ A ``colormap`` is described with a :class:`.Colormap` class as follows:
                )
 
 
-At least the following colormap names are guaranteed to be available, but any colormap name from `matplotlib <http://matplotlib.org/>`_ (see `Choosing Colormaps <http://matplotlib.org/users/colormaps.html>`_) should work:
+At the very least, the following colormap names are guaranteed to be available:
 
 - gray
 - reversed gray
@@ -367,14 +309,18 @@ At least the following colormap names are guaranteed to be available, but any co
 - inferno
 - plasma
 
-It is possible to change the default colormap of :meth:`.PlotWidget.addImage` for the plot widget with :meth:`.PlotWidget.setDefaultColormap` (and to get it with :meth:`.PlotWidget.getDefaultColormap`):
+Yet, any colormap name from `matplotlib <http://matplotlib.org/>`_ (see `Choosing Colormaps <http://matplotlib.org/users/colormaps.html>`_) should work.
+
+It is possible to change the default colormap of the plot widget with :meth:`.PlotWidget.setDefaultColormap` (and to get it with :meth:`.PlotWidget.getDefaultColormap`):
 
 .. code-block:: python
+
+   from silx.gui.plot.Colormap import Colormap
 
    colormap = Colormap(name='viridis',
                        normalization='linear',
                        vmin=0.0,
-                       vmax=1.0)
+                       vmax=10000.0)
    plot.setDefaultColormap(colormap)
 
    data = numpy.arange(512 * 512.).reshape(512, -1)
@@ -386,17 +332,10 @@ It is also possible to provide a :class:`.Colormap` to :meth:`.PlotWidget.addIma
 
    colormap = Colormap(name='magma',
                        normalization='log',
-                       vmin=1.2,
+                       vmin=2.2,
                        vmax=1.8)
    data = numpy.random.random(512 * 512).reshape(512, -1) + 1.
    plot.addImage(data, colormap=colormap)
-
-As for `Origin and scale`_, when updating an image, if ``colormap`` is not provided, the previous colormap will be used:
-
-.. code-block:: python
-
-   data = numpy.random.random(512 * 512).reshape(512, -1) + 1.
-   plot.addImage(data)  # Keep previous colormap
 
 The colormap can be changed by the user from the widget's toolbar.
 
@@ -415,14 +354,14 @@ In order to display multiple images at the same time, you need to provide a diff
    plot.addImage(data, legend='arange', replace=False, origin=(512, 512))
 
 
-To update an image, call :meth:`.PlotWidget.addImage` with the ``legend`` of the curve you want to udpdate.
-By default, the new image will keep the same colormap, origin and scale as the image it is updating:
+To update an image, call :meth:`.PlotWidget.getImage` with the ``legend`` to get the corresponding curve.
+Update its data with :meth:`~silx.gui.plot.items.setData`.
 
 .. code-block:: python
 
    data = (512 * 512. - numpy.arange(512 * 512.)).reshape(512, -1)
-   plot.addImage(data, legend='arange', replace=False)  # Beware of replace=False
-
+   arange_image = plot.getImage('arange')
+   arange_image.setData(data)
 
 To remove an image from the plot, call :meth:`.PlotWidget.remove` with the ``legend`` of the image you want to remove:
 
@@ -453,7 +392,7 @@ Use :meth:`.PlotWidget.getXAxis` and :meth:`.PlotWidget.getYAxis` to get the axe
 Axes limits
 +++++++++++
 
-Different methods allows to get and set the data limits displayed on each axis.
+Different methods allow to get and set the data limits displayed on each axis.
 
 The following code moves the visible plot area to the right:
 
