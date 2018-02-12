@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """
-This module contains an :class:`ImageFileDialog`.
+This module contains an :class:`DataFileDialog`.
 """
 
 __authors__ = ["V. Valls"]
@@ -128,15 +128,20 @@ class _DataPreview(qt.QWidget):
 
 
 class DataFileDialog(AbstractDataFileDialog):
-    """The DataFileDialog class provides a dialog that allow users to select
+    """The `DataFileDialog` class provides a dialog that allow users to select
     any datasets or groups from an HDF5-like file.
 
-    The DataFileDialog class enables a user to traverse the file system in
-    order to select one file. Then to traverse the file to select an HDF5 node.
+    The `DataFileDialog` class enables a user to traverse the file system in
+    order to select an HDF5-like file. Then to traverse the file to select an
+    HDF5 node.
 
-    The selected data is any kind of group or dataset.
+    .. image:: img/datafiledialog.png
 
-    Using an DataFileDialog can be done like that.
+    The selected data is any kind of group or dataset. It can be restricted
+    to only existing datasets or only existing groups using
+    :meth:`setFilterMode`.
+
+    Using an `DataFileDialog` can be done like that:
 
     .. code-block:: python
 
@@ -149,17 +154,15 @@ class DataFileDialog(AbstractDataFileDialog):
         else:
             print("Nothing selected")
 
-    To read the selected object on your own you can use the silx.io API.
+    If the selection is a dataset you can access to the data using
+    :meth:`selectedData`.
+
+    If the selection is a group or if you want to read the selected object on
+    your own you can use the `silx.io` API.
 
     .. code-block:: python
 
-        dialog = DataFileDialog()
-        result = dialog.exec_()
-        if not result:
-            return
         url = dialog.selectedUrl()
-
-        # here you can manage the way you want
         with silx.io.open(url) as data:
             pass
 
@@ -167,13 +170,7 @@ class DataFileDialog(AbstractDataFileDialog):
 
     .. code-block:: python
 
-        dialog = DataFileDialog()
-        result = dialog.exec_()
-        if not result:
-            return
         url = dialog.selectedDataUrl()
-
-        # here you can manage the way you want
         with silx.io.open(url.file_path()) as h5:
             data = h5[url.data_path()]
 
@@ -181,13 +178,7 @@ class DataFileDialog(AbstractDataFileDialog):
 
     .. code-block:: python
 
-        dialog = DataFileDialog()
-        result = dialog.exec_()
-        if not result:
-            return
         url = dialog.selectedDataUrl()
-
-        # here you can manage the way you want
         with h5py.File(url.file_path()) as h5:
             data = h5[url.data_path()]
     """
@@ -208,13 +199,14 @@ class DataFileDialog(AbstractDataFileDialog):
         self.__filter = DataFileDialog.FilterMode.AnyNode
 
     def selectedData(self):
-        """Returns the selected data by using the `silx.io.get_data` API with
-        the selected URL provided by the dialog.
+        """Returns the selected data by using the :meth:`silx.io.get_data`
+        API with the selected URL provided by the dialog.
 
-        If the URL identify a group of a file it is raise an exception. For
-        group or file you have to use on your own the API `silx.io.open`.
+        If the URL identify a group of a file it will raise an exception. For
+        group or file you have to use on your own the API :meth:`silx.io.open`.
 
         :rtype: numpy.ndarray
+        :raise ValueError: If the URL do not link to a dataset
         """
         url = self.selectedUrl()
         return silx.io.get_data(url)

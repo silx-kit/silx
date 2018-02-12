@@ -61,6 +61,29 @@ Widgets gallery
        n-dimensional array, by fixing the index on some of the dimensions.
 
 
+:mod:`silx.gui.dialog` Widgets
+++++++++++++++++++++++++++++++
+
+.. currentmodule:: silx.gui.dialog
+
+.. list-table::
+   :widths: 1 4
+   :header-rows: 1
+
+   * - Widget
+     - Description
+   * - .. image:: dialog/img/datafiledialog.png
+         :height: 150px
+         :align: center
+     - :class:`DataFileDialog` is a dialog that allow users to select
+       any datasets or groups from an HDF5-like file.
+   * - .. image:: dialog/img/imagefiledialog_h5.png
+         :height: 150px
+         :align: center
+     - :class:`ImageFileDialog` is a dialog that allow users to select
+       an image from an HDF5-like file.
+
+
 :mod:`silx.gui.fit` Widgets
 +++++++++++++++++++++++++++
 

@@ -488,23 +488,23 @@ class _CatchResizeEvent(qt.QObject):
 
 
 class AbstractDataFileDialog(qt.QDialog):
-    """The AbstractFileDialog provides a generic GUI to create a custom dialog
+    """The `AbstractFileDialog` provides a generic GUI to create a custom dialog
     allowing to access to file resources like HDF5 files or HDF5 datasets
 
-    The dialog contains
+    The dialog contains:
 
     - Shortcuts: It provides few links to have a fast access of browsing
         locations.
     - Browser: It provides a display to browse throw the file system and inside
         HDF5 files or fabio files. A file format selector is provided.
-    - URL: DIsplay the URL available to reach the data using
-        :meth:`silx.io.get_data`.
-    - Data preview: A preview of the selected data, after filtering from the
-        data selector.
+    - URL: Display the URL available to reach the data using
+        :meth:`silx.io.get_data`, :meth:`silx.io.open`.
+    - Data selector: A widget to apply a sub selection of the browsed dataset.
         This widget can be provided, else nothing will be used.
-    - Data selector: A sub selection of the selected data from the browser.
+    - Data preview: A widget to preview the selected data, which is the result
+        of the filter from the data selector.
         This widget can be provided, else nothing will be used.
-    - Preview's toolbar: Provide tools used to custom data preview or data
+    - Preview's toolbar: Provides tools used to custom data preview or data
         selector.
         This widget can be provided, else nothing will be used.
     - Buttons to validate the dialog
@@ -1515,12 +1515,13 @@ class AbstractDataFileDialog(qt.QDialog):
         return self.__pathEdit.text()
 
     def selectedDataUrl(self):
-        """Returns the URL as a `DataUrl` from the file system to the data.
+        """Returns the URL as a :class:`DataUrl` from the file system to the
+        data.
 
         If the dialog is not validated, the path can be an intermediat
         selected path, or an invalid path.
 
-        :rtype: str
+        :rtype: DataUrl
         """
         url = self.selectedUrl()
         return silx.io.url.DataUrl(url)
@@ -1610,7 +1611,7 @@ class AbstractDataFileDialog(qt.QDialog):
         """Restores the dialogs's layout, history and current directory to the
         state specified.
 
-        :param qt.QByeArray state: Stream containing the new state
+        :param qt.QByteArray state: Stream containing the new state
         :rtype: bool
         """
         stream = qt.QDataStream(state, qt.QIODevice.ReadOnly)
