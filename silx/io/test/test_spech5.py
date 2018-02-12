@@ -34,8 +34,7 @@ from functools import partial
 from silx.utils import testutils
 
 from .. import spech5
-from ..spech5 import (SpecH5, SpecH5Group,
-                      SpecH5Dataset, spec_date_to_iso8601)
+from ..spech5 import (SpecH5, SpecH5Dataset, spec_date_to_iso8601)
 from .. import specfile
 
 try:
@@ -45,7 +44,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "12/02/2018"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
