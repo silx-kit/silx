@@ -41,16 +41,16 @@ __license__ = "MIT"
 __date__ = "16/01/2017"
 
 
-import logging
+import logging as _logging
 import sys as _sys
 
 
-_logger = logging.getLogger(__name__)
+_logger = _logging.getLogger(__name__)
 
 
 # Init logging when used from the console
 if hasattr(_sys, 'ps1'):
-    logging.basicConfig()
+    _logging.basicConfig()
 
 # Probe ipython
 try:
@@ -88,11 +88,12 @@ else:
     from ._plot import plot, imshow  # noqa
 
     try:
-        import OpenGL
+        import OpenGL as _OpenGL
     except ImportError:
         _logger.warning(
             'Not loading silx.gui.plot3d features: PyOpenGL is not installed')
     else:
+        del _OpenGL  # clean-up namespace
         from ._plot3d import contour3d, points3d  # noqa
 
 
@@ -108,7 +109,7 @@ del _IS_NOTEBOOK
 
 
 # Load some silx stuff in namespace
-from silx import *  # noqa
+from silx import version  # noqa
 from silx.io import open  # noqa
 from silx.io import *  # noqa
 from silx.math import Histogramnd, HistogramndLut  # noqa
