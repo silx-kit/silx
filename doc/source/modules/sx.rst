@@ -46,3 +46,24 @@ The following functions plot 3D data with silx widgets (it requires OpenGL):
 ++++++++++++++++
 
 .. autofunction:: points3d
+
+Widgets
+-------
+
+The widgets of the :mod:`silx.gui.plot` package are also exposed in this package.
+See :mod:`silx.gui.plot` for documentation.
+
+Input/Output
+------------
+
+The content of the :mod:`silx.io` package is also exposed in this package.
+See :mod:`silx.io` for documentation.
+
+Math
+----
+
+The following classes from :mod:`silx.math` are exposed in this package:
+
+- :class:`~silx.math.histogram.Histogramnd`
+- :class:`~silx.math.histogram.HistogramndLut`
+- :class:`~silx.math.fit.leastsq`
