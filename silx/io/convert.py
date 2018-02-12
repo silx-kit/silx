@@ -60,7 +60,7 @@ from silx.third_party import six
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "12/02/2018"
 
 _logger = logging.getLogger(__name__)
 
@@ -110,7 +110,8 @@ def _attr_utf8(attr_value):
     :param attr_value: String (possibly bytes if PY2)
     :return: Attr ready to be written by h5py as utf8
     """
-    if isinstance(attr_value, six.binary_type):
+    if isinstance(attr_value, six.binary_type) or \
+       isinstance(attr_value, six.text_type):
         out_attr_value = numpy.array(
             attr_value,
             dtype=h5py.special_dtype(vlen=six.text_type))
