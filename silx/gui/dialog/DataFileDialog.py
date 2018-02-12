@@ -23,18 +23,19 @@
 #
 # ###########################################################################*/
 """
-This module contains an :class:`ImageFileDialog`.
+This module contains an :class:`DataFileDialog`.
 """
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/02/2018"
+__date__ = "12/02/2018"
 
 import logging
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 import silx.io
 from .AbstractDataFileDialog import AbstractDataFileDialog
+from silx.third_party import enum
 try:
     import fabio
 except ImportError:
@@ -105,6 +106,15 @@ class _DataPreview(qt.QWidget):
                 headers.append("Shape")
                 text = self.__formatter.humanReadableShape(data)
                 self.__model.appendRow([qt.QStandardItem(text)])
+            if hasattr(data, "attrs") and "NX_class" in data.attrs:
+                headers.append("NX_class")
+                value = data.attrs["NX_class"]
+                formatter = self.__formatter.textFormatter()
+                old = formatter.useQuoteForText()
+                formatter.setUseQuoteForText(False)
+                text = self.__formatter.textFormatter().toString(value)
+                formatter.setUseQuoteForText(old)
+                self.__model.appendRow([qt.QStandardItem(text)])
             self.__model.setVerticalHeaderLabels(headers)
         self.__data = data
 
@@ -127,15 +137,20 @@ class _DataPreview(qt.QWidget):
 
 
 class DataFileDialog(AbstractDataFileDialog):
-    """The DataFileDialog class provides a dialog that allow users to select
+    """The `DataFileDialog` class provides a dialog that allow users to select
     any datasets or groups from an HDF5-like file.
 
-    The DataFileDialog class enables a user to traverse the file system in
-    order to select one file. Then to traverse the file to select an HDF5 node.
+    The `DataFileDialog` class enables a user to traverse the file system in
+    order to select an HDF5-like file. Then to traverse the file to select an
+    HDF5 node.
 
-    The selected data is any kind of group or dataset.
+    .. image:: img/datafiledialog.png
 
-    Using an DataFileDialog can be done like that.
+    The selected data is any kind of group or dataset. It can be restricted
+    to only existing datasets or only existing groups using
+    :meth:`setFilterMode`.
+
+    Using an `DataFileDialog` can be done like that:
 
     .. code-block:: python
 
@@ -148,17 +163,15 @@ class DataFileDialog(AbstractDataFileDialog):
         else:
             print("Nothing selected")
 
-    To read the selected object on your own you can use the silx.io API.
+    If the selection is a dataset you can access to the data using
+    :meth:`selectedData`.
+
+    If the selection is a group or if you want to read the selected object on
+    your own you can use the `silx.io` API.
 
     .. code-block:: python
 
-        dialog = DataFileDialog()
-        result = dialog.exec_()
-        if not result:
-            return
         url = dialog.selectedUrl()
-
-        # here you can manage the way you want
         with silx.io.open(url) as data:
             pass
 
@@ -166,13 +179,7 @@ class DataFileDialog(AbstractDataFileDialog):
 
     .. code-block:: python
 
-        dialog = DataFileDialog()
-        result = dialog.exec_()
-        if not result:
-            return
         url = dialog.selectedDataUrl()
-
-        # here you can manage the way you want
         with silx.io.open(url.file_path()) as h5:
             data = h5[url.data_path()]
 
@@ -180,25 +187,38 @@ class DataFileDialog(AbstractDataFileDialog):
 
     .. code-block:: python
 
-        dialog = DataFileDialog()
-        result = dialog.exec_()
-        if not result:
-            return
         url = dialog.selectedDataUrl()
-
-        # here you can manage the way you want
         with h5py.File(url.file_path()) as h5:
             data = h5[url.data_path()]
     """
 
+    class FilterMode(enum.Enum):
+        """This enum is used to indicate what the user may select in the
+        dialog; i.e. what the dialog will return if the user clicks OK."""
+
+        AnyNode = 0
+        """Any existing node from an HDF5-like file."""
+        ExistingDataset = 1
+        """An existing HDF5-like dataset."""
+        ExistingGroup = 2
+        """An existing HDF5-like group. A file root is a group."""
+
+    def __init__(self, parent=None):
+        AbstractDataFileDialog.__init__(self, parent=parent)
+        self.__filter = DataFileDialog.FilterMode.AnyNode
+
     def selectedData(self):
-        """Returns the selected data by using the silx.io API with the selected
-        URL provided by the dialog.
+        """Returns the selected data by using the :meth:`silx.io.get_data`
+        API with the selected URL provided by the dialog.
+
+        If the URL identify a group of a file it will raise an exception. For
+        group or file you have to use on your own the API :meth:`silx.io.open`.
 
         :rtype: numpy.ndarray
+        :raise ValueError: If the URL do not link to a dataset
         """
         url = self.selectedUrl()
-        return silx.io.open(url)
+        return silx.io.get_data(url)
 
     def _createPreviewWidget(self, parent):
         previewWidget = _DataPreview(parent)
@@ -236,7 +256,30 @@ class DataFileDialog(AbstractDataFileDialog):
 
         :rtype: bool
         """
-        return True
+        if self.__filter == DataFileDialog.FilterMode.AnyNode:
+            return True
+        elif self.__filter == DataFileDialog.FilterMode.ExistingDataset:
+            return silx.io.is_dataset(data)
+        elif self.__filter == DataFileDialog.FilterMode.ExistingGroup:
+            return silx.io.is_group(data)
+        else:
+            raise ValueError("Filter %s is not supported" % self.__nodeFilter)
+
+    def setFilterMode(self, mode):
+        """Set the filter mode.
+
+        It is not supposed to be set while the dialog it is used.
+
+        :param DataFileDialog.FilterMode mode: The new filter.
+        """
+        self.__filter = mode
+
+    def fileMode(self):
+        """Returns the filter mode.
+
+        :rtype: DataFileDialog.FilterMode
+        """
+        return self.__filter
 
     def _displayedDataInfo(self, dataBeforeSelection, dataAfterSelection):
         """Returns the text displayed under the data preview.

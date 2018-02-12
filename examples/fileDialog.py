@@ -31,16 +31,25 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/02/2018"
+__date__ = "12/02/2018"
 
 import logging
 from silx.gui import qt
 from silx.gui.dialog.ImageFileDialog import ImageFileDialog
 from silx.gui.dialog.DataFileDialog import DataFileDialog
 import silx.io
+from silx.third_party import enum
 
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+class Mode(enum.Enum):
+    DEFAULT_FILEDIALOG = 0
+    IMAGEFILEDIALOG = 1
+    DATAFILEDIALOG = 2
+    DATAFILEDIALOG_DATASET = 3
+    DATAFILEDIALOG_GROUP = 4
 
 
 class DialogExample(qt.QMainWindow):
@@ -48,236 +57,181 @@ class DialogExample(qt.QMainWindow):
     def __init__(self, parent=None):
         super(DialogExample, self).__init__(parent)
 
-        widget = qt.QWidget(self)
-        layout = qt.QGridLayout()
-        widget.setLayout(layout)
+        self.__state = {}
 
-        self.__stateImage = None
-        self.__stateData = None
+        centralWidget = qt.QWidget(self)
+        layout = qt.QHBoxLayout()
+        centralWidget.setLayout(layout)
 
-        layout.addWidget(qt.QLabel("<center>Qt QFileDialog</center>", self), 0, 0)
-        layout.addWidget(qt.QLabel("<center>silx ImageFileDialog</center>", self), 0, 1)
-        layout.addWidget(qt.QLabel("<center>silx DataFileDialog</center>", self), 0, 2)
+        options = self.createOptions()
+        layout.addWidget(options)
 
-        # Default dialog
-
-        b0 = qt.QPushButton(self)
-        b0.setMinimumHeight(50)
-        b0.setText("Open a dialog")
-        b0.clicked.connect(self.__openDefaultFileDialog)
-        layout.addWidget(b0, 1, 0)
+        buttonGroup = qt.QGroupBox()
+        buttonGroup.setTitle("Create dialog")
+        layout.addWidget(buttonGroup)
+        buttonLayout = qt.QVBoxLayout()
+        buttonGroup.setLayout(buttonLayout)
 
         # ImageFileDialog
 
         b1 = qt.QPushButton(self)
         b1.setMinimumHeight(50)
         b1.setText("Open a dialog")
-        b1.clicked.connect(self.__openImageDialog)
-        layout.addWidget(b1, 1, 1)
+        b1.clicked.connect(self.openDialog)
+        buttonLayout.addWidget(b1)
 
         b2 = qt.QPushButton(self)
         b2.setMinimumHeight(50)
         b2.setText("Open a dialog with state stored")
-        b2.clicked.connect(self.__openImageDialogStoredState)
-        layout.addWidget(b2, 2, 1)
+        b2.clicked.connect(self.openDialogStoredState)
+        buttonLayout.addWidget(b2)
 
         b3 = qt.QPushButton(self)
         b3.setMinimumHeight(50)
         b3.setText("Open a dialog at home")
-        b3.clicked.connect(self.__openImageDialogAtHome)
-        layout.addWidget(b3, 3, 1)
+        b3.clicked.connect(self.openDialogAtHome)
+        buttonLayout.addWidget(b3)
 
         b4 = qt.QPushButton(self)
         b4.setMinimumHeight(50)
         b4.setText("Open a dialog at computer root")
-        b4.clicked.connect(self.openImageDialogAtComputer)
-        layout.addWidget(b4, 4, 1)
+        b4.clicked.connect(self.openDialogAtComputer)
+        buttonLayout.addWidget(b4)
 
-        # DataFileDialog
+        self.setCentralWidget(centralWidget)
 
-        b1 = qt.QPushButton(self)
-        b1.setMinimumHeight(50)
-        b1.setText("Open a dialog")
-        b1.clicked.connect(self.__openDataDialog)
-        layout.addWidget(b1, 1, 2)
+    def createOptions(self):
+        panel = qt.QGroupBox()
+        panel.setTitle("Options")
+        layout = qt.QVBoxLayout()
+        panel.setLayout(layout)
+        group = qt.QButtonGroup(panel)
 
-        b2 = qt.QPushButton(self)
-        b2.setMinimumHeight(50)
-        b2.setText("Open a dialog with state stored")
-        b2.clicked.connect(self.__openDataDialogStoredState)
-        layout.addWidget(b2, 2, 2)
+        radio = qt.QRadioButton(panel)
+        radio.setText("Qt QFileDialog")
+        radio.setProperty("Mode", Mode.DEFAULT_FILEDIALOG)
+        group.addButton(radio)
+        layout.addWidget(radio)
 
-        b3 = qt.QPushButton(self)
-        b3.setMinimumHeight(50)
-        b3.setText("Open a dialog at home")
-        b3.clicked.connect(self.__openDataDialogAtHome)
-        layout.addWidget(b3, 3, 2)
+        radio = qt.QRadioButton(panel)
+        radio.setText("silx ImageFileDialog")
+        radio.setProperty("Mode", Mode.IMAGEFILEDIALOG)
+        group.addButton(radio)
+        layout.addWidget(radio)
 
-        b4 = qt.QPushButton(self)
-        b4.setMinimumHeight(50)
-        b4.setText("Open a dialog at computer root")
-        b4.clicked.connect(self.openDataDialogAtComputer)
-        layout.addWidget(b4, 4, 2)
+        radio = qt.QRadioButton(panel)
+        radio.setChecked(True)
+        radio.setText("silx DataFileDialog")
+        radio.setProperty("Mode", Mode.DATAFILEDIALOG)
+        group.addButton(radio)
+        layout.addWidget(radio)
 
-        self.setCentralWidget(widget)
+        radio = qt.QRadioButton(panel)
+        radio.setText("silx DataFileDialog (filter=dataset)")
+        radio.setProperty("Mode", Mode.DATAFILEDIALOG_DATASET)
+        group.addButton(radio)
+        layout.addWidget(radio)
 
-    def __printSelection(self, dialog):
-        print("Selected file:", dialog.selectedFile())
-        print("Selected URL:", dialog.selectedUrl())
+        radio = qt.QRadioButton(panel)
+        radio.setText("silx DataFileDialog (filter=group)")
+        radio.setProperty("Mode", Mode.DATAFILEDIALOG_GROUP)
+        group.addButton(radio)
+        layout.addWidget(radio)
 
-        if isinstance(dialog, ImageFileDialog):
+        self.__options = group
+        return panel
+
+    def printResult(self, dialog, result):
+        if not result:
+            print("Nothing selected")
+            return
+
+        print("Selection:")
+        if isinstance(dialog, qt.QFileDialog):
+            print("- Files: %s" % dialog.selectedFiles())
+        elif isinstance(dialog, ImageFileDialog):
+            print("- File: %s" % dialog.selectedFile())
+            print("- URL: %s" % dialog.selectedUrl())
+            print("- Data URL: %s" % dialog.selectedDataUrl())
             image = dialog.selectedImage()
-            print("Selected image:", image.shape)
-
+            print("- Image: <dtype: %s, shape: %s>" % (image.dtype, image.shape))
         elif isinstance(dialog, DataFileDialog):
+            print("- File: %s" % dialog.selectedFile())
+            print("- URL: %s" % dialog.selectedUrl())
+            print("- Data URL: %s" % dialog.selectedDataUrl())
+            try:
+                data = dialog.selectedData()
+                print("- Data: <dtype: %s, shape: %s>" % (data.dtype, data.shape))
+            except Exception as e:
+                print("- Data: %s" % e)
+
             url = dialog.selectedDataUrl()
             with silx.io.open(url.file_path()) as h5:
                 node = h5[url.data_path()]
-                print("Selected node:", node)
-
+                print("- Node: %s" % node)
         else:
             assert(False)
 
-    def __openDefaultFileDialog(self):
+    def createDialog(self):
+        print("")
+        print("-------------------------")
+        print("----- Create dialog -----")
+        print("-------------------------")
+        button = self.__options.checkedButton()
+        mode = button.property("Mode")
+        if mode == Mode.DEFAULT_FILEDIALOG:
+            dialog = qt.QFileDialog(self)
+            dialog.setAcceptMode(qt.QFileDialog.AcceptOpen)
+        if mode == Mode.IMAGEFILEDIALOG:
+            dialog = ImageFileDialog(self)
+        if mode == Mode.DATAFILEDIALOG:
+            dialog = DataFileDialog(self)
+        if mode == Mode.DATAFILEDIALOG_DATASET:
+            dialog = DataFileDialog(self)
+            dialog.setFilterMode(DataFileDialog.FilterMode.ExistingDataset)
+        if mode == Mode.DATAFILEDIALOG_GROUP:
+            dialog = DataFileDialog(self)
+            dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+        return dialog
+
+    def openDialog(self):
         # Clear the dialog
-        dialog = qt.QFileDialog(self)
-        dialog.setAcceptMode(qt.QFileDialog.AcceptOpen)
+        dialog = self.createDialog()
 
         # Execute the dialog as modal
         result = dialog.exec_()
+        self.printResult(dialog, result)
 
-        # Reach the result
-        if result:
-            print("Selection:")
-            print(dialog.selectedFiles())
-        else:
-            print("Nothing selected")
-
-    def __openImageDialog(self):
+    def openDialogStoredState(self):
         # Clear the dialog
-        dialog = ImageFileDialog(self)
+        dialog = self.createDialog()
+        if dialog.__class__ in self.__state:
+            dialog.restoreState(self.__state[dialog.__class__])
 
         # Execute the dialog as modal
         result = dialog.exec_()
+        self.__state[dialog.__class__] = dialog.saveState()
+        self.printResult(dialog, result)
 
-        # Reach the result
-        if result:
-            print("Selection:")
-            self.__printSelection(dialog)
-        else:
-            print("Nothing selected")
-
-    def __openImageDialogStoredState(self):
-        # Clear the dialog
-        dialog = ImageFileDialog()
-        if self.__stateImage is not None:
-            dialog.restoreState(self.__stateImage)
-
-        # Execute the dialog as modal
-        result = dialog.exec_()
-
-        # Reach the result
-        self.__stateImage = dialog.saveState()
-        if result:
-            print("Selection:")
-            self.__printSelection(dialog)
-        else:
-            print("Nothing selected")
-
-    def __openImageDialogAtHome(self):
+    def openDialogAtHome(self):
         # Clear the dialog
         path = qt.QDir.homePath()
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.setDirectory(path)
 
         # Execute the dialog as modal
         result = dialog.exec_()
+        self.printResult(dialog, result)
 
-        # Reach the result
-        if result:
-            print("Selection:")
-            self.__printSelection(dialog)
-        else:
-            print("Nothing selected")
-
-    def openImageDialogAtComputer(self):
+    def openDialogAtComputer(self):
         # Clear the dialog
         path = ""
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.setDirectory(path)
 
         # Execute the dialog as modal
         result = dialog.exec_()
-
-        # Reach the result
-        if result:
-            print("Selection:")
-            self.__printSelection(dialog)
-        else:
-            print("Nothing selected")
-
-    def __openDataDialog(self):
-        # Clear the dialog
-        dialog = DataFileDialog(self)
-
-        # Execute the dialog as modal
-        result = dialog.exec_()
-
-        # Reach the result
-        if result:
-            print("Selection:")
-            self.__printSelection(dialog)
-        else:
-            print("Nothing selected")
-
-    def __openDataDialogStoredState(self):
-        # Clear the dialog
-        dialog = DataFileDialog()
-        if self.__stateData is not None:
-            dialog.restoreState(self.__stateData)
-
-        # Execute the dialog as modal
-        result = dialog.exec_()
-
-        # Reach the result
-        self.__stateData = dialog.saveState()
-        if result:
-            print("Selection:")
-            self.__printSelection(dialog)
-        else:
-            print("Nothing selected")
-
-    def __openDataDialogAtHome(self):
-        # Clear the dialog
-        path = qt.QDir.homePath()
-        dialog = DataFileDialog()
-        dialog.setDirectory(path)
-
-        # Execute the dialog as modal
-        result = dialog.exec_()
-
-        # Reach the result
-        if result:
-            print("Selection:")
-            self.__printSelection(dialog)
-        else:
-            print("Nothing selected")
-
-    def openDataDialogAtComputer(self):
-        # Clear the dialog
-        path = ""
-        dialog = DataFileDialog()
-        dialog.setDirectory(path)
-
-        # Execute the dialog as modal
-        result = dialog.exec_()
-
-        # Reach the result
-        if result:
-            print("Selection:")
-            self.__printSelection(dialog)
-        else:
-            print("Nothing selected")
+        self.printResult(dialog, result)
 
 
 def main():

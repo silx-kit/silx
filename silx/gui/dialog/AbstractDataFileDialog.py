@@ -28,7 +28,7 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/02/2018"
+__date__ = "12/02/2018"
 
 
 import sys
@@ -488,23 +488,23 @@ class _CatchResizeEvent(qt.QObject):
 
 
 class AbstractDataFileDialog(qt.QDialog):
-    """The AbstractFileDialog provides a generic GUI to create a custom dialog
+    """The `AbstractFileDialog` provides a generic GUI to create a custom dialog
     allowing to access to file resources like HDF5 files or HDF5 datasets
 
-    The dialog contains
+    The dialog contains:
 
     - Shortcuts: It provides few links to have a fast access of browsing
         locations.
     - Browser: It provides a display to browse throw the file system and inside
         HDF5 files or fabio files. A file format selector is provided.
-    - URL: DIsplay the URL available to reach the data using
-        :meth:`silx.io.get_data`.
-    - Data preview: A preview of the selected data, after filtering from the
-        data selector.
+    - URL: Display the URL available to reach the data using
+        :meth:`silx.io.get_data`, :meth:`silx.io.open`.
+    - Data selector: A widget to apply a sub selection of the browsed dataset.
         This widget can be provided, else nothing will be used.
-    - Data selector: A sub selection of the selected data from the browser.
+    - Data preview: A widget to preview the selected data, which is the result
+        of the filter from the data selector.
         This widget can be provided, else nothing will be used.
-    - Preview's toolbar: Provide tools used to custom data preview or data
+    - Preview's toolbar: Provides tools used to custom data preview or data
         selector.
         This widget can be provided, else nothing will be used.
     - Buttons to validate the dialog
@@ -520,6 +520,7 @@ class AbstractDataFileDialog(qt.QDialog):
     def _init(self):
         self.setWindowTitle("Open")
 
+        self.__directory = None
         self.__directoryLoadedFilter = None
         self.__errorWhileLoadingFile = None
         self.__selectedFile = None
@@ -584,6 +585,9 @@ class AbstractDataFileDialog(qt.QDialog):
         QDialog :meth:`done`. Then it can be triggered more than once.
         """
         self.__clearData()
+        if self.__fileModel is not None:
+            # Cache the directory before cleaning the model
+            self.__directory = self.directory()
         self.__browser.clear()
         self.__closeFile()
         self.__fileModel = None
@@ -1143,15 +1147,17 @@ class AbstractDataFileDialog(qt.QDialog):
             if self.__selectorWidget is not None:
                 self.__selectorWidget.setData(data)
                 if not self.__selectorWidget.isUsed():
+                    # Needed to fake the fact we have to reset the zoom in preview
                     self.__selectedData = None
                     self.__setSelectedData(data)
                     self.__selectorWidget.hide()
                 else:
                     self.__selectorWidget.setVisible(self.__selectorWidget.hasVisibleSelectors())
-                    if not self.__selectorWidget.hasVisibleSelectors():
-                        self.__selectedData = None
+                    # Needed to fake the fact we have to reset the zoom in preview
+                    self.__selectedData = None
                     self.__selectorWidget.selectionChanged.emit()
             else:
+                # Needed to fake the fact we have to reset the zoom in preview
                 self.__selectedData = None
                 self.__setSelectedData(data)
         else:
@@ -1511,12 +1517,13 @@ class AbstractDataFileDialog(qt.QDialog):
         return self.__pathEdit.text()
 
     def selectedDataUrl(self):
-        """Returns the URL as a `DataUrl` from the file system to the data.
+        """Returns the URL as a :class:`DataUrl` from the file system to the
+        data.
 
         If the dialog is not validated, the path can be an intermediat
         selected path, or an invalid path.
 
-        :rtype: str
+        :rtype: DataUrl
         """
         url = self.selectedUrl()
         return silx.io.url.DataUrl(url)
@@ -1526,11 +1533,13 @@ class AbstractDataFileDialog(qt.QDialog):
 
         :rtype: str
         """
+        if self.__directory is not None:
+            # At post execution, returns the cache
+            return self.__directory
+
         index = self.__browser.rootIndex()
         if index.model() is self.__fileModel:
             path = self.__fileModel.filePath(index)
-            if os.path.isfile(path):
-                path = os.path.dirname(path)
             return path
         elif index.model() is self.__dataModel:
             path = os.path.dirname(self.__h5.file.filename)
@@ -1604,7 +1613,7 @@ class AbstractDataFileDialog(qt.QDialog):
         """Restores the dialogs's layout, history and current directory to the
         state specified.
 
-        :param qt.QByeArray state: Stream containing the new state
+        :param qt.QByteArray state: Stream containing the new state
         :rtype: bool
         """
         stream = qt.QDataStream(state, qt.QIODevice.ReadOnly)

@@ -13,6 +13,7 @@ The ``silx.gui`` package provides a set of PyQt widgets.
    console.rst
    data/index.rst
    fit/index.rst
+   dialog/index.rst
    hdf5/index.rst
    icons.rst
    plot/index.rst
