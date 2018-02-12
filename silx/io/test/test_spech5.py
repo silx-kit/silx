@@ -34,8 +34,7 @@ from functools import partial
 from silx.utils import testutils
 
 from .. import spech5
-from ..spech5 import (SpecH5, SpecH5Group,
-                      SpecH5Dataset, spec_date_to_iso8601)
+from ..spech5 import (SpecH5, SpecH5Dataset, spec_date_to_iso8601)
 from .. import specfile
 
 try:
@@ -45,7 +44,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "12/02/2018"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -568,7 +567,7 @@ class TestSpecH5(unittest.TestCase):
         # All 0 values
         self.assertNotIn("sample", self.sfh5["/1001.1"])
         with self.assertRaises(KeyError):
-            uc = self.sfh5["/1001.1/sample/unit_cell"]
+            self.sfh5["/1001.1/sample/unit_cell"]
 
     @testutils.test_logging(spech5.logger1.name, warning=2)
     def testOpenFileDescriptor(self):
