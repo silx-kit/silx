@@ -44,7 +44,7 @@ _logger = logging.getLogger(__name__)
 
 def plot(*args, **kwargs):
     """
-    Plot curves in a dedicated :class:`~silx.gui.plot.PlotWindow.Plot1D` widget.
+    Plot curves in a :class:`~silx.gui.plot.PlotWindow.Plot1D` widget.
 
     How to use:
 
@@ -60,8 +60,7 @@ def plot(*args, **kwargs):
 
     >>> angles = numpy.linspace(0, numpy.pi, 100)
     >>> sin_a = numpy.sin(angles)
-    >>> plot_sinus = sx.plot(angles, sin_a,
-    ...                      xlabel='angle (radian)', ylabel='sin(a)')
+    >>> plot_sinus = sx.plot(angles, sin_a, xlabel='angle (radian)', ylabel='sin(a)')
 
     Plot many curves by giving a 2D array, provided xn, yn arrays:
 
@@ -196,7 +195,7 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
            origin=(0., 0.), scale=(1., 1.),
            title='', xlabel='X', ylabel='Y'):
     """
-    Plot an image in a dedicated :class:`~silx.gui.plot.PlotWindow.Plot2D` widget.
+    Plot an image in a :class:`~silx.gui.plot.PlotWindow.Plot2D` widget.
 
     How to use:
 

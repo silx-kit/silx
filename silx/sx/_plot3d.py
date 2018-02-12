@@ -53,13 +53,10 @@ def contour3d(scalars,
               vmin=None,
               vmax=None,
               opacity=1.):
-    """Plot isosurfaces of a 3D scalar field in a dedicated widget.
+    """
+    Plot isosurfaces of a 3D scalar field in a :class:`~silx.gui.plot3d.ScalarFieldView.ScalarFieldView` widget.
 
-    It opens a silx plot3d ScalarFieldView.
-
-    Examples:
-
-    First import :mod:`sx` functions:
+    How to use:
 
     >>> from silx import sx
 
@@ -71,14 +68,17 @@ def contour3d(scalars,
 
     >>> plot3d_window = sx.contour3d(data, contours=[0.2, 0.4])
 
-    This function provides a subset of mayavi.mlab.contour3d.
+    This function provides a subset of `mayavi.mlab.contour3d
+    <http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html#contour3d>`_
+    features.
 
     :param scalars: The 3D scalar field to visualize
-    :type: numpy.ndarray of float32 with 3 dimensions
-    :param Union[int, float, List[float]] contours:
+    :type scalars: numpy.ndarray of float32 with 3 dimensions
+    :param contours:
         Either the number of isosurfaces to draw (as an int) or
         the isosurface level (as a float) or a list of isosurface levels
         (as a list of float)
+    :type contours: Union[int, float, List[float]]
     :param bool copy:
         True (default) to make a copy of scalars.
         False to avoid this copy (do not modify provided data afterwards)
@@ -90,10 +90,10 @@ def contour3d(scalars,
     :param str colormap:
         If color is not provided, this colormap is used
         for coloring isosurfaces.
-    :param Union[float, None] vmin:
-        Minimum value of the colormap
-    :param Union[float, None] vmax:
-        Maximum value of the colormap
+    :param vmin: Minimum value of the colormap
+    :type vmin: Union[float, None]
+    :param vmax: Maximum value of the colormap
+    :type vmax: Union[float, None]
     :param float opacity:
         Transparency of the isosurfaces as a float in [0., 1.]
     :return: The widget used to visualize the data
@@ -178,13 +178,10 @@ def points3d(x, y, z=None,
              vmin=None,
              vmax=None,
              mode='o'):
-    """Plot a 3D scatter plot in a dedicated widget.
+    """
+    Plot a 3D scatter plot in a :class:`~silx.gui.plot3d.SceneWindow.SceneWindow` widget.
 
-    It opens a silx plot3d SceneWindow.
-
-    Examples:
-
-    First import :mod:`sx` functions:
+    How to use:
 
     >>> from silx import sx
 
@@ -194,7 +191,9 @@ def points3d(x, y, z=None,
 
     >>> plot3d_window = sx.points3d(x, y, z, values)
 
-    This function provides a subset of mayavi.mlab.points3d.
+    This function provides a subset of `mayavi.mlab.points3d arguments
+    <http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html#points3d>`_
+    features.
 
     :param numpy.ndarray x: X coordinates of the points
     :param numpy.ndarray y: Y coordinates of the points
@@ -205,10 +204,10 @@ def points3d(x, y, z=None,
         False to avoid this copy (do not modify provided data afterwards)
     :param str colormap:
         Colormap to use for coding points as colors.
-    :param Union[float, None] vmin:
-        Minimum value of the colormap
-    :param Union[float, None] vmax:
-        Maximum value of the colormap
+    :param vmin: Minimum value of the colormap
+    :type vmin: Union[float, None]
+    :param vmax: Maximum value of the colormap
+    :type vmax: Union[float, None]
     :param str mode: The type of marker to use
 
         - Circle: 'o', '2dcircle'
