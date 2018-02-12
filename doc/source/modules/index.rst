@@ -10,5 +10,6 @@ API Reference
    math/index.rst
    opencl/index.rst
    resources.rst
+   sx.rst
    utils/index.rst
    test/index.rst

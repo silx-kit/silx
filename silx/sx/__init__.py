@@ -22,15 +22,18 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Convenient module to use main features of silx from the console.
-
-Usage from (I)Python console or notebook:
+"""This is a convenient package to use from Python or IPython interpreter.
+It loads the main features of silx and provides high-level functions.
 
 >>> from silx import sx
 
-With IPython/jupyter, this also runs %pylab.
-From the console, it sets-up Qt in order to allow using GUI widgets.
+When used in an interpreter is sets-up Qt.
+This is NOT the case in a `jupyter <https://jupyter.org/>`_  / `IPython <https://ipython.org/>`_ notebook.
+
+When used in `IPython <https://ipython.org/>`_, it also runs ``%pylab``,
+thus importing `numpy <http://www.numpy.org/>`_ and `matplotlib <https://matplotlib.org/>`_.
 """
+
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

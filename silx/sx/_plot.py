@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,16 +44,9 @@ _logger = logging.getLogger(__name__)
 
 def plot(*args, **kwargs):
     """
-    Plot curves in a dedicated widget.
+    Plot curves in a dedicated :class:`~silx.gui.plot.PlotWindow.Plot1D` widget.
 
-    This function supports a subset of matplotlib.pyplot.plot arguments.
-    See: http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot
-
-    It opens a silx PlotWindow with its associated tools.
-
-    Examples:
-
-    First import :mod:`sx` function:
+    How to use:
 
     >>> from silx import sx
     >>> import numpy
@@ -96,12 +89,12 @@ def plot(*args, **kwargs):
             - '-.' dash-dot line
             - ':'  dotted line
 
-    Remark: The first curve will always be displayed in black no matter the
-    given color. This is because it is selected by default and this is shown
-    by using the black color.
-
     If provided, the names arguments color, linestyle, linewidth and marker
     override any style provided to a curve.
+
+    This function supports a subset of `matplotlib.pyplot.plot
+    <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot>`_
+    arguments.
 
     :param str color: Color to use for all curves (default: None)
     :param str linestyle: Type of line to use for all curves (default: None)
@@ -202,20 +195,20 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
            aspect=False,
            origin=(0., 0.), scale=(1., 1.),
            title='', xlabel='X', ylabel='Y'):
-    """Plot an image in a dedicated widget.
+    """
+    Plot an image in a dedicated :class:`~silx.gui.plot.PlotWindow.Plot2D` widget.
 
-    This function supports a subset of matplotlib.pyplot.imshow arguments.
-    See: http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
-
-    It opens a silx PlotWindow with its associated tools.
-
-    Example to plot an image:
+    How to use:
 
     >>> from silx import sx
     >>> import numpy
 
     >>> data = numpy.random.random(1024 * 1024).reshape(1024, 1024)
     >>> plt = sx.imshow(data, title='Random data')
+
+    This function supports a subset of `matplotlib.pyplot.imshow
+    <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow>`_
+    arguments.
 
     :param data: data to plot as an image
     :type data: numpy.ndarray-like with 2 dimensions
