@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ from .. import actions
 _logger = logging.getLogger(__name__)
 
 
-class Plot3dWidgetToolBar(qt.QToolBar):
+class Plot3DWidgetToolBar(qt.QToolBar):
     """Base class for toolbar associated to a Plot3DWidget
 
     :param parent: See :class:`QWidget`
@@ -62,13 +62,18 @@ class Plot3dWidgetToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, title=''):
-        super(Plot3dWidgetToolBar, self).__init__(title, parent)
+        super(Plot3DWidgetToolBar, self).__init__(title, parent)
 
         self._plot3DRef = None
 
     def _plot3DWidgetChanged(self, widget):
-        """Override in subclass to handle change of Plot3DWidget"""
-        pass
+        """Handle change of Plot3DWidget and sync actions
+
+        :param Plot3DWidget widget:
+        """
+        for action in self.actions():
+            if isinstance(action, actions.Plot3DAction):
+                action.setPlot3DWidget(widget)
 
     def setPlot3DWidget(self, widget):
         """Set the Plot3DWidget this toolbar is associated with
@@ -88,7 +93,7 @@ class Plot3dWidgetToolBar(qt.QToolBar):
         return None if self._plot3DRef is None else self._plot3DRef()
 
 
-class InteractiveModeToolBar(Plot3dWidgetToolBar):
+class InteractiveModeToolBar(Plot3DWidgetToolBar):
     """Toolbar providing icons to change the interaction mode
 
     :param parent: See :class:`QWidget`
@@ -103,10 +108,6 @@ class InteractiveModeToolBar(Plot3dWidgetToolBar):
 
         self._panAction = actions.mode.PanAction(parent=self)
         self.addAction(self._panAction)
-
-    def _plot3DWidgetChanged(self, widget):
-        self.getRotateAction().setPlot3DWidget(widget)
-        self.getPanAction().setPlot3DWidget(widget)
 
     def getRotateAction(self):
         """Returns the QAction setting rotate interaction of the Plot3DWidget
@@ -123,7 +124,7 @@ class InteractiveModeToolBar(Plot3dWidgetToolBar):
         return self._panAction
 
 
-class OutputToolBar(Plot3dWidgetToolBar):
+class OutputToolBar(Plot3DWidgetToolBar):
     """Toolbar providing icons to copy, save and print the OpenGL scene
 
     :param parent: See :class:`QWidget`
@@ -144,12 +145,6 @@ class OutputToolBar(Plot3dWidgetToolBar):
 
         self._printAction = actions.io.PrintAction(parent=self)
         self.addAction(self._printAction)
-
-    def _plot3DWidgetChanged(self, widget):
-        self.getCopyAction().setPlot3DWidget(widget)
-        self.getSaveAction().setPlot3DWidget(widget)
-        self.getVideoRecordAction().setPlot3DWidget(widget)
-        self.getPrintAction().setPlot3DWidget(widget)
 
     def getCopyAction(self):
         """Returns the QAction performing copy to clipboard of the Plot3DWidget
@@ -180,7 +175,7 @@ class OutputToolBar(Plot3dWidgetToolBar):
         return self._printAction
 
 
-class ViewpointToolBar(Plot3dWidgetToolBar):
+class ViewpointToolBar(Plot3DWidgetToolBar):
     """A toolbar providing icons to reset the viewpoint.
 
     :param parent: See :class:`QToolBar`
@@ -197,7 +192,7 @@ class ViewpointToolBar(Plot3dWidgetToolBar):
 
     def _plot3DWidgetChanged(self, widget):
         self.getViewpointToolButton().setPlot3DWidget(widget)
-        self.getRotateViewpointAction().setPlot3DWidget(widget)
+        super(ViewpointToolBar, self)._plot3DWidgetChanged(widget)
 
     def getViewpointToolButton(self):
         """Returns the ViewpointToolButton to set viewpoint of the Plot3DWidget

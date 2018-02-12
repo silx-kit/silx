@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "09/02/2018"
+__date__ = "12/02/2018"
 
 import numpy
 import os.path
@@ -791,6 +791,10 @@ def get_data(url):
             if data_path not in h5:
                 raise ValueError("Data path from URL '%s' not found" % url.path())
             data = h5[data_path]
+
+            if not silx.io.is_dataset(data):
+                raise ValueError("Data path from URL '%s' is not a dataset" % url.path())
+
             if data_slice is not None:
                 data = data[data_slice]
             else:

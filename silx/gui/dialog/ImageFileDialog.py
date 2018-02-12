@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/02/2018"
+__date__ = "12/02/2018"
 
 import logging
 from silx.gui.plot import actions
@@ -215,16 +215,24 @@ class _ImagePreview(qt.QWidget):
 
 
 class ImageFileDialog(AbstractDataFileDialog):
-    """The ImageFileDialog class provides a dialog that allow users to select
+    """The `ImageFileDialog` class provides a dialog that allow users to select
     an image from a file.
 
-    The ImageFileDialog class enables a user to traverse the file system in
+    The `ImageFileDialog` class enables a user to traverse the file system in
     order to select one file. Then to traverse the file to select a frame or
     a slice of a dataset.
 
-    The selected data is an image in 2 dimension.
+    .. image:: img/imagefiledialog_h5.png
 
-    Using an ImageFileDialog can be done like that.
+    It supports fast access to image files using `FabIO`. Which is not the case
+    of the default silx API. Image files still also can be available using the
+    NeXus layout, by editing the file type combo box.
+
+    .. image:: img/imagefiledialog_edf.png
+
+    The selected data is an numpy array with 2 dimension.
+
+    Using an `ImageFileDialog` can be done like that.
 
     .. code-block:: python
 

@@ -36,7 +36,6 @@ from .. import qt
 from ..plot.Colors import rgba
 
 from .Plot3DWidget import Plot3DWidget
-from .scene import axes
 from . import items
 from ._model import SceneModel
 
@@ -223,6 +222,7 @@ class SceneWidget(Plot3DWidget):
         if color != self._textColor:
             self._textColor = color
             self._updateColors()
+            self.sigStyleChanged.emit('textColor')
 
     def getForegroundColor(self):
         """Return color used for bounding box
@@ -247,6 +247,8 @@ class SceneWidget(Plot3DWidget):
             for item in self.getSceneGroup().visit():
                 item._setForegroundColor(color)
 
+            self.sigStyleChanged.emit('foregroundColor')
+
     def getHighlightColor(self):
         """Return color used for highlighted item bounding box
 
@@ -265,3 +267,4 @@ class SceneWidget(Plot3DWidget):
         if color != self._highlightColor:
             self._highlightColor = color
             self._updateColors()
+            self.sigStyleChanged.emit('highlightColor')

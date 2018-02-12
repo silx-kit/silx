@@ -40,6 +40,10 @@ try:
 except ImportError:
     h5py = None
 
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "12/02/2018"
+
 _logger = logging.getLogger(__name__)
 
 
@@ -818,9 +822,9 @@ def is_NXroot_with_default_NXdata(group):
     return is_NXentry_with_default_NXdata(default_nxentry_group)
 
 
-def get_NXdata_in_group(group):
-    """Return a :class:`NXdata` corresponding to the default NXdata group in a
-    group.
+def get_default(group):
+    """Return a :class:`NXdata` object corresponding to the default NXdata group
+    in the group specified as parameter.
 
     This function can find the NXdata if the group is already a NXdata, or
     if it is a NXentry defining a default NXdata, or if it is a NXroot
@@ -849,8 +853,8 @@ def get_NXdata_in_group(group):
     return NXdata(default_data)
 
 
-def save_NXdata(filename, signal, axes,
-                signal_name="y", axes_names=("x",),
+def save_NXdata(filename, signal, axes=None,
+                signal_name="data", axes_names=None,
                 signal_long_name=None, axes_long_names=None,
                 signal_errors=None, axes_errors=None,
                 title=None, interpretation=None,
@@ -905,8 +909,15 @@ def save_NXdata(filename, signal, axes,
         raise ImportError("h5py could not be imported, but is required by "
                           "save_NXdata function")
 
-    assert len(axes) == len(axes_names), \
-        "Mismatch between number of axes and axes_names"
+    if axes_names is not None:
+        assert axes is not None, "Axes names defined, but missing axes arrays"
+        assert len(axes) == len(axes_names), \
+            "Mismatch between number of axes and axes_names"
+    if axes is not None and axes_names is None:
+        for i, axis in enumerate(axes):
+            axes_names.append("dim%d" % i if axis is not None else ".")
+    if axes is None:
+        axes = []
 
     # Open file in
     if os.path.exists(filename):
@@ -954,9 +965,10 @@ def save_NXdata(filename, signal, axes,
         data_group = entry.create_group(nxdata_name)
         data_group.attrs["NX_class"] = "NXdata"
         data_group.attrs["signal"] = signal_name
-        data_group.attrs["axes"] = numpy.array(
-                axes_names,
-                dtype=h5py.special_dtype(vlen=six.text_type))      # variable length UTF-8
+        if axes:
+            data_group.attrs["axes"] = numpy.array(
+                    axes_names,
+                    dtype=h5py.special_dtype(vlen=six.text_type))      # variable length UTF-8
         if title:
             # not in NXdata spec, but implemented by nexpy
             data_group["title"] = title
@@ -971,6 +983,10 @@ def save_NXdata(filename, signal, axes,
             signal_dataset.attrs["interpretation"] = interpretation
 
         for i, axis_array in enumerate(axes):
+            if axis_array is None:
+                assert axes_names[i] in [".", None], \
+                    "Axis name defined for dim %d but no axis array" % i
+                continue
             axis_dataset = data_group.create_dataset(axes_names[i],
                                                      data=axis_array)
             if axes_long_names is not None:

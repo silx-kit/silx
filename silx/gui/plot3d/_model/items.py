@@ -144,27 +144,32 @@ class Settings(StaticRow):
         background = ColorProxyRow(
             name='Background',
             fget=sceneWidget.getBackgroundColor,
-            fset=sceneWidget.setBackgroundColor)
+            fset=sceneWidget.setBackgroundColor,
+            notify=sceneWidget.sigStyleChanged)
 
         foreground = ColorProxyRow(
             name='Foreground',
             fget=sceneWidget.getForegroundColor,
-            fset=sceneWidget.setForegroundColor)
+            fset=sceneWidget.setForegroundColor,
+            notify=sceneWidget.sigStyleChanged)
 
         text = ColorProxyRow(
             name='Text',
             fget=sceneWidget.getTextColor,
-            fset=sceneWidget.setTextColor)
+            fset=sceneWidget.setTextColor,
+            notify=sceneWidget.sigStyleChanged)
 
         highlight = ColorProxyRow(
             name='Highlight',
             fget=sceneWidget.getHighlightColor,
-            fset=sceneWidget.setHighlightColor)
+            fset=sceneWidget.setHighlightColor,
+            notify=sceneWidget.sigStyleChanged)
 
         axesIndicator = ProxyRow(
             name='Axes Indicator',
             fget=sceneWidget.isOrientationIndicatorVisible,
-            fset=sceneWidget.setOrientationIndicatorVisible)
+            fset=sceneWidget.setOrientationIndicatorVisible,
+            notify=sceneWidget.sigStyleChanged)
 
         # Light direction
 

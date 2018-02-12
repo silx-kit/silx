@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -98,6 +98,12 @@ class Plot3DWidget(glu.OpenGLWidget):
 
     sigInteractiveModeChanged = qt.Signal()
     """Signal emitted when the interactive mode has changed
+    """
+
+    sigStyleChanged = qt.Signal(str)
+    """Signal emitted when the style of the scene has changed
+
+    It provides the updated property.
     """
 
     def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
@@ -221,7 +227,9 @@ class Plot3DWidget(glu.OpenGLWidget):
             QColor, str or array-like of 3 or 4 float in [0., 1.] or uint8
         """
         color = rgba(color)
-        self.viewport.background = color
+        if color != self.viewport.background:
+            self.viewport.background = color
+            self.sigStyleChanged.emit('backgroundColor')
 
     def getBackgroundColor(self):
         """Returns the RGBA background color (QColor)."""
@@ -245,6 +253,7 @@ class Plot3DWidget(glu.OpenGLWidget):
                 self._window.viewports = [self.viewport, self.overview]
             else:
                 self._window.viewports = [self.viewport]
+            self.sigStyleChanged.emit('orientationIndicatorVisible')
 
     def centerScene(self):
         """Position the center of the scene at the center of rotation."""

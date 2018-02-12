@@ -523,6 +523,165 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 3)
 
 
+class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
+
+    def setUp(self):
+        utils.TestCaseQt.setUp(self)
+        self.dialog = None
+
+    def tearDown(self):
+        if self.dialog is not None:
+            self.dialog._clear()
+            self.dialog = None
+        utils.TestCaseQt.tearDown(self)
+
+    def createDialog(self):
+        self.dialog = DataFileDialog()
+        self.dialog.setFilterMode(DataFileDialog.FilterMode.ExistingDataset)
+        return self.dialog
+
+    def testSelectGroup_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        dialog = self.createDialog()
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+        self.assertTrue(dialog.isVisible())
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        self.assertFalse(button.isEnabled())
+
+    def testSelectDataset_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        dialog = self.createDialog()
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+        self.assertTrue(dialog.isVisible())
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        self.assertTrue(button.isEnabled())
+        self.mouseClick(button, qt.Qt.LeftButton)
+        url = silx.io.url.DataUrl(dialog.selectedUrl())
+        self.assertEqual(url.data_path(), "/scalar")
+        self.assertFalse(dialog.isVisible())
+        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+
+        data = dialog.selectedData()
+        self.assertEqual(data, 10)
+
+
+class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
+
+    def setUp(self):
+        utils.TestCaseQt.setUp(self)
+        self.dialog = None
+
+    def tearDown(self):
+        if self.dialog is not None:
+            self.dialog._clear()
+            self.dialog = None
+        utils.TestCaseQt.tearDown(self)
+
+    def createDialog(self):
+        self.dialog = DataFileDialog()
+        self.dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+        return self.dialog
+
+    def testSelectGroup_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        dialog = self.createDialog()
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+        self.assertTrue(dialog.isVisible())
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        self.assertTrue(button.isEnabled())
+        self.mouseClick(button, qt.Qt.LeftButton)
+        url = silx.io.url.DataUrl(dialog.selectedUrl())
+        self.assertEqual(url.data_path(), "/group")
+        self.assertFalse(dialog.isVisible())
+        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+
+        self.assertRaises(Exception, dialog.selectedData)
+
+    def testSelectDataset_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        dialog = self.createDialog()
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+        self.assertTrue(dialog.isVisible())
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        self.assertFalse(button.isEnabled())
+
+
 class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
     def setUp(self):
@@ -738,6 +897,8 @@ def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTests(TestDataFileDialogInteraction))
     test_suite.addTest(loadTests(TestDataFileDialogApi))
+    test_suite.addTest(loadTests(TestDataFileDialog_FilterDataset))
+    test_suite.addTest(loadTests(TestDataFileDialog_FilterGroup))
     return test_suite
 
 
