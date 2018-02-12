@@ -866,16 +866,16 @@ def save_NXdata(filename, signal, axes,
     :param str filename: Path to output file. If the file does not
         exists, it is created.
     :param numpy.ndarray signal: Signal array.
-    :param list(numpy.ndarray) axes: List of axes arrays.
+    :param List[numpy.ndarray] axes: List of axes arrays.
     :param str signal_name: Name of signal dataset, in output file
-    :param list(str) axes_names: List of dataset names for axes, in
+    :param List[str] axes_names: List of dataset names for axes, in
         output file
     :param str signal_long_name: *@long_name* attribute for signal, or None.
-    :param list(str or None) axes_long_names: None, or list of long names
+    :param List[str or None] axes_long_names: None, or list of long names
         for axes
     :param numpy.ndarray signal_errors: Array of errors associated with the
         signal
-    :param list(numpy.ndarray or None) axes_errors: List of arrays of errors
+    :param List[numpy.ndarray or None] axes_errors: List of arrays of errors
         associated with each axis
     :param str title: Graph title (saved as a "title" dataset) or None.
     :param str interpretation: *@interpretation* attribute ("spectrum",
