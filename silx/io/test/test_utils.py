@@ -30,7 +30,6 @@ import re
 import shutil
 import tempfile
 import unittest
-import sys
 
 from .. import utils
 import silx.io.url
@@ -49,7 +48,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/02/2018"
+__date__ = "12/02/2018"
 
 
 expected_spec1 = r"""#F .*
@@ -326,12 +325,6 @@ class TestOpen(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        if sys.platform == "win32" and fabio is not None:
-            # gc collect is needed to close a file descriptor
-            # opened by fabio and not released.
-            # https://github.com/silx-kit/fabio/issues/167
-            import gc
-            gc.collect()
         shutil.rmtree(cls.tmp_directory)
 
     def testH5(self):
@@ -566,12 +559,6 @@ class TestGetData(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        if sys.platform == "win32" and fabio is not None:
-            # gc collect is needed to close a file descriptor
-            # opened by fabio and not released.
-            # https://github.com/silx-kit/fabio/issues/167
-            import gc
-            gc.collect()
         shutil.rmtree(cls.tmp_directory)
 
     def test_hdf5_scalar(self):
