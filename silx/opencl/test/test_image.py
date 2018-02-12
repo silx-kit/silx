@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/02/2018"
+__date__ = "12/02/2018"
 
 import logging
 import numpy
@@ -89,7 +89,6 @@ class TestImage(unittest.TestCase):
         """
         tests the cast kernel
         """
-
         res = self.ip.to_float(self.data)
         self.assertEqual(res.shape, self.data.shape, "shape")
         self.assertEqual(res.dtype, numpy.float32, "dtype")

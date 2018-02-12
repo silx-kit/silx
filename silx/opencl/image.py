@@ -33,7 +33,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "09/02/2018"
+__date__ = "12/02/2018"
 __copyright__ = "2012-2017, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -237,13 +237,13 @@ class ImageProcessing(OpenclProcessing):
             size = numpy.int32(numpy.prod(self.shape))
             if self.wg_red == 1:
                 #  Probably on MacOS CPU WG==1 --> serial code.
-                kernel = self.kernels.max_min_serial
-
-                evt = kernel(self.queue, (size,), (1,),
+                kernel = self.kernels.get_kernel("max_min_serial")
+                evt = kernel(self.queue, (1,), (1,),
                              input_array.data,
                              size,
                              self.cl_mem["max_min_d"].data)
-                events.append(EventDescription("max_min_serial", evt))
+                ed = EventDescription("max_min_serial", evt)
+                events.append(ed)
             else:
                 stage1 = self.kernels.max_min_reduction_stage1
                 stage2 = self.kernels.max_min_reduction_stage2
@@ -309,9 +309,9 @@ class ImageProcessing(OpenclProcessing):
                 size = numpy.int32(numpy.prod(self.shape))
                 if self.wg_red == 1:
                     #  Probably on MacOS CPU WG==1 --> serial code.
-                    kernel = self.kernels.max_min_serial
+                    kernel = self.kernels.get_kernel("max_min_serial")
 
-                    evt = kernel(self.queue, (size,), (1,),
+                    evt = kernel(self.queue, (1,), (1,),
                                  input_array.data,
                                  size,
                                  self.cl_mem["max_min_d"].data)
@@ -338,7 +338,6 @@ class ImageProcessing(OpenclProcessing):
                 maxi = numpy.float32(max(range))
             device = self.ctx.devices[0]
             nb_engines = device.max_compute_units
-            wg = min(device.max_work_group_size, 1 << (int(ceil(log(nbins, 2)))))
             tmp_size = nb_engines * nbins
             name = "tmp_int32_%s_d" % (tmp_size)
             if name not in self.cl_mem:
@@ -359,19 +358,22 @@ class ImageProcessing(OpenclProcessing):
                 map_operation = numpy.int32(1)
             else:
                 map_operation = numpy.int32(0)
-
-            evt = self.kernels.histogram(self.queue, (wg * nb_engines,), (wg,),
-                                         input_array.data,
-                                         numpy.int32(input_array.size),
-                                         mini,
-                                         maxi,
-                                         map_operation,
-                                         output_array.data,
-                                         edges_array.data,
-                                         numpy.int32(nbins),
-                                         tmp_array.data,
-                                         self.cl_mem["cnt_d"].data,
-                                         shared)
+            kernel = self.kernels.get_kernel("histogram")
+            wg = min(device.max_work_group_size,
+                     1 << (int(ceil(log(nbins, 2)))),
+                     self.kernels.max_workgroup_size(kernel))
+            evt = kernel(self.queue, (wg * nb_engines,), (wg,),
+                         input_array.data,
+                         numpy.int32(input_array.size),
+                         mini,
+                         maxi,
+                         map_operation,
+                         output_array.data,
+                         edges_array.data,
+                         numpy.int32(nbins),
+                         tmp_array.data,
+                         self.cl_mem["cnt_d"].data,
+                         shared)
             events.append(EventDescription("histogram", evt))
 
         if self.profile:
