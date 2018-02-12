@@ -110,9 +110,9 @@ class TestSave(unittest.TestCase):
 
     def test_save_csv(self):
         utils.save1D(self.csv_fname, self.x, self.y,
-               xlabel=self.xlab, ylabels=self.ylabs,
-               filetype="csv", fmt=["%d", "%.2f", "%.2e"],
-               csvdelim=";", autoheader=True)
+                     xlabel=self.xlab, ylabels=self.ylabs,
+                     filetype="csv", fmt=["%d", "%.2f", "%.2e"],
+                     csvdelim=";", autoheader=True)
 
         csvf = open(self.csv_fname)
         actual_csv = csvf.read()
@@ -125,22 +125,20 @@ class TestSave(unittest.TestCase):
         and converting it to a named record array"""
         npyf = open(self.npy_fname, "wb")
         utils.save1D(npyf, self.x, self.y,
-               xlabel=self.xlab, ylabels=self.ylabs)
+                     xlabel=self.xlab, ylabels=self.ylabs)
         npyf.close()
 
         npy_recarray = numpy.load(self.npy_fname)
 
         self.assertEqual(npy_recarray.shape, (3,))
-        self.assertTrue(
-                numpy.array_equal(
-                        npy_recarray['Ordinate1'],
-                        numpy.array((4, 5, 6))))
+        self.assertTrue(numpy.array_equal(npy_recarray['Ordinate1'],
+                                          numpy.array((4, 5, 6))))
 
     def test_savespec_filename(self):
         """Save SpecFile using savespec()"""
         utils.savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
-                 ylabel=self.ylabs[0], fmt=["%d", "%.2f"], close_file=True,
-                 scan_number=1)
+                       ylabel=self.ylabs[0], fmt=["%d", "%.2f"],
+                       close_file=True, scan_number=1)
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
@@ -152,15 +150,15 @@ class TestSave(unittest.TestCase):
         """Save SpecFile using savespec(), passing a file handle"""
         # first savespec: open, write file header, save y[0] as scan 1,
         #                 return file handle
-        specf = utils.savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
-                         ylabel=self.ylabs[0], fmt=["%d", "%.2f"],
-                         close_file=False)
+        specf = utils.savespec(self.spec_fname, self.x, self.y[0],
+                               xlabel=self.xlab, ylabel=self.ylabs[0],
+                               fmt=["%d", "%.2f"], close_file=False)
 
         # second savespec: save y[1] as scan 2, close file
         utils.savespec(specf, self.x, self.y[1], xlabel=self.xlab,
-                 ylabel=self.ylabs[1], fmt=["%d", "%.2f"],
-                 write_file_header=False, close_file=True,
-                 scan_number=2)
+                       ylabel=self.ylabs[1], fmt=["%d", "%.2f"],
+                       write_file_header=False, close_file=True,
+                       scan_number=2)
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
@@ -171,7 +169,7 @@ class TestSave(unittest.TestCase):
     def test_save_spec(self):
         """Save SpecFile using save()"""
         utils.save1D(self.spec_fname, self.x, self.y, xlabel=self.xlab,
-               ylabels=self.ylabs, filetype="spec", fmt=["%d", "%.2f"])
+                     ylabels=self.ylabs, filetype="spec", fmt=["%d", "%.2f"])
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
@@ -192,7 +190,7 @@ class TestSave(unittest.TestCase):
         self.y = [[4, 5, 6], [7, 8, 9]]
         self.ylabs = ["Ordinate1", "Ordinate2"]
         utils.save1D(self.csv_fname, self.x, self.y,
-               autoheader=True, fmt=["%d", "%.2f", "%.2e"])
+                     autoheader=True, fmt=["%d", "%.2f", "%.2e"])
 
         csvf = open(self.csv_fname)
         actual_csv = csvf.read()
@@ -242,15 +240,12 @@ class TestH5Ls(unittest.TestCase):
         self.assertIn("+foo", lines)
         self.assertIn("\t+bar", lines)
 
-        self.assertMatchAnyStringInList(
-                r'\t\t<HDF5 dataset "tmp": shape \(3,\), type "<i[48]">',
-                lines)
-        self.assertMatchAnyStringInList(
-                r'\t\t<HDF5 dataset "spam": shape \(2, 2\), type "<i[48]">',
-                lines)
-        self.assertMatchAnyStringInList(
-                r'\t<HDF5 dataset "data": shape \(1,\), type "<f[48]">',
-                lines)
+        match = r'\t\t<HDF5 dataset "tmp": shape \(3,\), type "<i[48]">'
+        self.assertMatchAnyStringInList(match, lines)
+        match = r'\t\t<HDF5 dataset "spam": shape \(2, 2\), type "<i[48]">'
+        self.assertMatchAnyStringInList(match, lines)
+        match = r'\t<HDF5 dataset "data": shape \(1,\), type "<f[48]">'
+        self.assertMatchAnyStringInList(match, lines)
 
         os.unlink(self.h5_fname)
 
