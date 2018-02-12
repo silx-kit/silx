@@ -791,6 +791,7 @@ def get_project_configuration(dry_run):
             'gui/icons/*.gif',
             'gui/icons/*/*.png',
             'opencl/*.cl',
+            'opencl/image/*.cl',
             'opencl/sift/*.cl',
             'opencl/codec/*.cl',
             'gui/colormaps/*.npy'],

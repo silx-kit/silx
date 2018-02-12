@@ -35,7 +35,7 @@ __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "12/02/2018"
 
 import logging
 import numpy
@@ -108,7 +108,7 @@ class TestAddition(unittest.TestCase):
             else:
                 res = d_array_result.get()
                 good = numpy.allclose(res, self.data - 5)
-                if good and wg>self.max_valid_wg:
+                if good and wg > self.max_valid_wg:
                     self.__class__.max_valid_wg = wg
                 self.assert_(good, "calculation is correct for WG=%s" % wg)
 
@@ -127,7 +127,7 @@ class TestAddition(unittest.TestCase):
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestAddition("test_add"))
-    testSuite.addTest(TestAddition("test_measurement"))
+    # testSuite.addTest(TestAddition("test_measurement"))
     return testSuite
 
 

@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/01/2018"
+__date__ = "12/02/2018"
 __status__ = "stable"
 
 
@@ -80,6 +80,7 @@ class KernelContainer(object):
 
     def get_kernel(self, name):
         "get a kernel from its name"
+        logger.debug("KernelContainer.get_kernel(%s)", name)
         return self.__dict__.get(name)
 
     def max_workgroup_size(self, kernel_name):

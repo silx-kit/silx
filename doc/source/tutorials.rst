@@ -9,6 +9,7 @@ Tutorials and cookbooks:
    modules/gui/plot/getting_started.rst
    modules/gui/plot/actions/examples.rst
    modules/gui/designer.rst
+   Tutorials/Image
    Tutorials/Sift/sift
    Tutorials/io.rst
    Tutorials/convert.rst

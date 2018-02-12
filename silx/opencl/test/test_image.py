@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "11/10/2017"
+__date__ = "12/02/2018"
 
 import logging
 import numpy
@@ -48,10 +48,13 @@ if ocl:
 from ...test.utils import utilstest
 from ..image import ImageProcessing
 logger = logging.getLogger(__name__)
-from PIL import Image
+try:
+    from PIL import Image
+except ImportWarning:
+    Image = None
 
 
-@unittest.skipUnless(ocl, "PyOpenCl is missing")
+@unittest.skipUnless(ocl and Image, "PyOpenCl/Image is missing")
 class TestImage(unittest.TestCase):
 
     @classmethod
@@ -60,12 +63,18 @@ class TestImage(unittest.TestCase):
         if ocl:
             cls.ctx = ocl.create_context()
             cls.lena = utilstest.getfile("lena.png")
+            cls.data = numpy.asarray(Image.open(cls.lena))
+            cls.ip = ImageProcessing(ctx=cls.ctx, template=cls.data, profile=True)
 
     @classmethod
     def tearDownClass(cls):
         super(TestImage, cls).tearDownClass()
         cls.ctx = None
         cls.lena = None
+        cls.data = None
+        if logger.level <= logging.INFO:
+            logger.warning("\n".join(cls.ip.log_profile()))
+        cls.ip = None
 
     def setUp(self):
         if ocl is None:
@@ -80,26 +89,47 @@ class TestImage(unittest.TestCase):
         """
         tests the cast kernel
         """
-        ip = ImageProcessing(ctx=self.ctx, template=self.data)
-        res = ip.to_float(self.data)
-        print(res.shape)
-        print(res.dtype)
+        res = self.ip.to_float(self.data)
+        self.assertEqual(res.shape, self.data.shape, "shape")
+        self.assertEqual(res.dtype, numpy.float32, "dtype")
+        self.assertEqual(abs(res - self.data).max(), 0, "content")
+
     @unittest.skipUnless(ocl, "pyopencl is missing")
-    def test_measurement(self):
+    def test_normalize(self):
         """
         tests that all devices are working properly ...
         """
-        for platform in ocl.platforms:
-            for did, device in enumerate(platform.devices):
-                meas = _measure_workgroup_size((platform.id, device.id))
-                self.assertEqual(meas, device.max_work_group_size,
-                                 "Workgroup size for %s/%s: %s == %s" % (platform, device, meas, device.max_work_group_size))
+        tmp = pyopencl.array.empty(self.ip.ctx, self.data.shape, "float32")
+        res = self.ip.to_float(self.data, out=tmp)
+        res2 = self.ip.normalize(tmp, -100, 100, copy=False)
+        norm = (self.data.astype(numpy.float32) - self.data.min()) / (self.data.max() - self.data.min())
+        ref2 = 200 * norm - 100
+        self.assertLess(abs(res2 - ref2).max(), 3e-5, "content")
+
+    @unittest.skipUnless(ocl, "pyopencl is missing")
+    def test_histogram(self):
+        """
+        Test on a greyscaled image ... of Lena :)
+        """
+        lena_bw = (0.2126 * self.data[:, :, 0] +
+                   0.7152 * self.data[:, :, 1] +
+                   0.0722 * self.data[:, :, 2]).astype("int32")
+        ref = numpy.histogram(lena_bw, 255)
+        ip = ImageProcessing(ctx=self.ctx, template=lena_bw, profile=True)
+        res = ip.histogram(lena_bw, 255)
+        ip.log_profile()
+        delta = (ref[0] - res[0])
+        deltap = (ref[1] - res[1])
+        self.assertEqual(delta.sum(), 0, "errors are self-compensated")
+        self.assertLessEqual(abs(delta).max(), 1, "errors are small")
+        self.assertLessEqual(abs(deltap).max(), 2e-5, "errors on position are small: %s" % (abs(deltap).max()))
 
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestImage("test_cast"))
-    # testSuite.addTest(TestAddition("test_measurement"))
+    testSuite.addTest(TestImage("test_normalize"))
+    testSuite.addTest(TestImage("test_histogram"))
     return testSuite
 
 
