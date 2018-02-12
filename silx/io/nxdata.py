@@ -40,6 +40,10 @@ try:
 except ImportError:
     h5py = None
 
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "12/02/2018"
+
 _logger = logging.getLogger(__name__)
 
 
@@ -818,9 +822,9 @@ def is_NXroot_with_default_NXdata(group):
     return is_NXentry_with_default_NXdata(default_nxentry_group)
 
 
-def get_NXdata_in_group(group):
-    """Return a :class:`NXdata` corresponding to the default NXdata group in a
-    group.
+def get_default(group):
+    """Return a :class:`NXdata` object corresponding to the default NXdata group
+    in the group specified as parameter.
 
     This function can find the NXdata if the group is already a NXdata, or
     if it is a NXentry defining a default NXdata, or if it is a NXroot

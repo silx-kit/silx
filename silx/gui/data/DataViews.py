@@ -108,7 +108,7 @@ class DataInfo(object):
             return
 
         if silx.io.is_group(data):
-            nxd = nxdata.get_NXdata_in_group(data)
+            nxd = nxdata.get_default(data)
             if nxd is not None:
                 self.hasNXdata = True
 
@@ -975,7 +975,7 @@ class _InvalidNXdataView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if silx.io.is_group(data):
-            nxd = nxdata.get_NXdata_in_group(data)
+            nxd = nxdata.get_default(data)
             nx_class = get_attr_as_string(data, "NX_class")
 
             if nxd is None:
@@ -1058,7 +1058,7 @@ class _NXdataScalarView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         # data could be a NXdata or an NXentry
-        nxd = nxdata.get_NXdata_in_group(data)
+        nxd = nxdata.get_default(data)
         signal = nxd.signal
         self.getWidget().setArrayData(signal,
                                       labels=True)
@@ -1067,7 +1067,7 @@ class _NXdataScalarView(DataView):
         data = self.normalizeData(data)
 
         if info.hasNXdata:
-            nxd = nxdata.get_NXdata_in_group(data)
+            nxd = nxdata.get_default(data)
             if nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]:
                 return 100
         return DataView.UNSUPPORTED
@@ -1097,7 +1097,7 @@ class _NXdataCurveView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = nxdata.get_NXdata_in_group(data)
+        nxd = nxdata.get_default(data)
         signals_names = [nxd.signal_name] + nxd.auxiliary_signals_names
         if nxd.axes_dataset_names[-1] is not None:
             x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
@@ -1124,7 +1124,7 @@ class _NXdataCurveView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.hasNXdata:
-            if nxdata.get_NXdata_in_group(data).is_curve:
+            if nxdata.get_default(data).is_curve:
                 return 100
         return DataView.UNSUPPORTED
 
@@ -1149,7 +1149,7 @@ class _NXdataXYVScatterView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = nxdata.get_NXdata_in_group(data)
+        nxd = nxdata.get_default(data)
         x_axis, y_axis = nxd.axes[-2:]
 
         x_label, y_label = nxd.axes_names[-2:]
@@ -1172,7 +1172,7 @@ class _NXdataXYVScatterView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.hasNXdata:
-            if nxdata.get_NXdata_in_group(data).is_x_y_value_scatter:
+            if nxdata.get_default(data).is_x_y_value_scatter:
                 return 100
 
         return DataView.UNSUPPORTED
@@ -1200,7 +1200,7 @@ class _NXdataImageView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = nxdata.get_NXdata_in_group(data)
+        nxd = nxdata.get_default(data)
         isRgba = nxd.interpretation == "rgba-image"
 
         # last two axes are Y & X
@@ -1219,7 +1219,7 @@ class _NXdataImageView(DataView):
         data = self.normalizeData(data)
 
         if info.hasNXdata:
-            if nxdata.get_NXdata_in_group(data).is_image:
+            if nxdata.get_default(data).is_image:
                 return 100
 
         return DataView.UNSUPPORTED
@@ -1245,7 +1245,7 @@ class _NXdataStackView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = nxdata.get_NXdata_in_group(data)
+        nxd = nxdata.get_default(data)
         signal_name = nxd.signal_name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]
@@ -1263,7 +1263,7 @@ class _NXdataStackView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.hasNXdata:
-            if nxdata.get_NXdata_in_group(data).is_stack:
+            if nxdata.get_default(data).is_stack:
                 return 100
 
         return DataView.UNSUPPORTED
