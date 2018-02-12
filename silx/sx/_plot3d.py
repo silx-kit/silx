@@ -70,7 +70,7 @@ def contour3d(scalars,
 
     This function provides a subset of `mayavi.mlab.contour3d
     <http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html#contour3d>`_
-    features.
+    arguments.
 
     :param scalars: The 3D scalar field to visualize
     :type scalars: numpy.ndarray of float32 with 3 dimensions
@@ -191,9 +191,9 @@ def points3d(x, y, z=None,
 
     >>> plot3d_window = sx.points3d(x, y, z, values)
 
-    This function provides a subset of `mayavi.mlab.points3d arguments
+    This function provides a subset of `mayavi.mlab.points3d
     <http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html#points3d>`_
-    features.
+    arguments.
 
     :param numpy.ndarray x: X coordinates of the points
     :param numpy.ndarray y: Y coordinates of the points
