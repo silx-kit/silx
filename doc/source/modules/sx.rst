@@ -14,12 +14,12 @@ The following functions plot curves and images with silx widgets:
 - :func:`plot` for curves
 - :func:`imshow` for images
 
+.. note:: Those functions are not available from a notebook.
 
 :func:`plot`
 ++++++++++++
 
 .. autofunction:: plot
-
 
 :func:`imshow`
 ++++++++++++++
@@ -35,11 +35,12 @@ The following functions plot 3D data with silx widgets (it requires OpenGL):
 - :func:`contour3d` for isosurfaces (and cut plane) in a 3D scalar field
 - :func:`points3d` for 2D/3D scatter plots
 
+.. note:: Those functions are not available from a notebook.
+
 :func:`contour3d`
 +++++++++++++++++
 
 .. autofunction:: contour3d
-
 
 :func:`points3d`
 ++++++++++++++++

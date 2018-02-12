@@ -27,8 +27,9 @@ It loads the main features of silx and provides high-level functions.
 
 >>> from silx import sx
 
-When used in an interpreter is sets-up Qt.
-This is NOT the case in a `jupyter <https://jupyter.org/>`_  / `IPython <https://ipython.org/>`_ notebook.
+When used in an interpreter is sets-up Qt and loads some silx widgets.
+When used in a `jupyter <https://jupyter.org/>`_  /
+`IPython <https://ipython.org/>`_ notebook, neither Qt nor silx widgets are loaded.
 
 When used in `IPython <https://ipython.org/>`_, it also runs ``%pylab``,
 thus importing `numpy <http://www.numpy.org/>`_ and `matplotlib <https://matplotlib.org/>`_.
