@@ -22,31 +22,35 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Convenient module to use main features of silx from the console.
-
-Usage from (I)Python console or notebook:
+"""This is a convenient package to use from Python or IPython interpreter.
+It loads the main features of silx and provides high-level functions.
 
 >>> from silx import sx
 
-With IPython/jupyter, this also runs %pylab.
-From the console, it sets-up Qt in order to allow using GUI widgets.
+When used in an interpreter is sets-up Qt and loads some silx widgets.
+When used in a `jupyter <https://jupyter.org/>`_  /
+`IPython <https://ipython.org/>`_ notebook, neither Qt nor silx widgets are loaded.
+
+When used in `IPython <https://ipython.org/>`_, it also runs ``%pylab``,
+thus importing `numpy <http://www.numpy.org/>`_ and `matplotlib <https://matplotlib.org/>`_.
 """
+
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/01/2017"
 
 
-import logging
+import logging as _logging
 import sys as _sys
 
 
-_logger = logging.getLogger(__name__)
+_logger = _logging.getLogger(__name__)
 
 
 # Init logging when used from the console
 if hasattr(_sys, 'ps1'):
-    logging.basicConfig()
+    _logging.basicConfig()
 
 # Probe ipython
 try:
@@ -84,11 +88,12 @@ else:
     from ._plot import plot, imshow  # noqa
 
     try:
-        import OpenGL
+        import OpenGL as _OpenGL
     except ImportError:
         _logger.warning(
             'Not loading silx.gui.plot3d features: PyOpenGL is not installed')
     else:
+        del _OpenGL  # clean-up namespace
         from ._plot3d import contour3d, points3d  # noqa
 
 
@@ -104,7 +109,7 @@ del _IS_NOTEBOOK
 
 
 # Load some silx stuff in namespace
-from silx import *  # noqa
+from silx import version  # noqa
 from silx.io import open  # noqa
 from silx.io import *  # noqa
 from silx.math import Histogramnd, HistogramndLut  # noqa
