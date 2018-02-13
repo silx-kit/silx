@@ -72,6 +72,7 @@ class ColorBarWidget(qt.QWidget):
         self._viewAction = None
         self._colormap = None
         self._data = None
+        self._changeVisibility = True
 
         super(ColorBarWidget, self).__init__(parent)
 
@@ -129,13 +130,17 @@ class ColorBarWidget(qt.QWidget):
 
     def showEvent(self, event):
         self._connectPlot()
-        if self._viewAction is not None:
+        if self._viewAction is not None and not self._viewAction.isChecked():
+            self._changeVisibility = False
             self._viewAction.setChecked(True)
+            self._changeVisibility = True
 
     def hideEvent(self, event):
         self._disconnectPlot()
-        if self._viewAction is not None:
+        if self._viewAction is not None and self._viewAction.isChecked():
+            self._changeVisibility = False
             self._viewAction.setChecked(False)
+            self._changeVisibility = True
 
     def getColormap(self):
         """
@@ -244,6 +249,10 @@ class ColorBarWidget(qt.QWidget):
             self._viewAction.setChecked(self.isVisible())
             self._viewAction.toggled[bool].connect(self.setVisible)
         return self._viewAction
+
+    def setVisible(self, b):
+        if self._changeVisibility is True:
+            qt.QWidget.setVisible(self, b)
 
 
 class _VerticalLegend(qt.QLabel):
