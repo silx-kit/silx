@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/02/2018"
+__date__ = "13/02/2018"
 
 import logging
 import numpy
@@ -50,7 +50,7 @@ from ..image import ImageProcessing
 logger = logging.getLogger(__name__)
 try:
     from PIL import Image
-except ImportWarning:
+except ImportError:
     Image = None
 
 
