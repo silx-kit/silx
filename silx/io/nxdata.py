@@ -913,6 +913,8 @@ def save_NXdata(filename, signal, axes=None,
         assert axes is not None, "Axes names defined, but missing axes arrays"
         assert len(axes) == len(axes_names), \
             "Mismatch between number of axes and axes_names"
+    else:
+        axes_names = []
     if axes is not None and axes_names is None:
         for i, axis in enumerate(axes):
             axes_names.append("dim%d" % i if axis is not None else ".")
