@@ -60,7 +60,11 @@ else:
 _logger = logging.getLogger(__name__)
 
 
-_NEXUS_HDF5_EXT = "*.nx5 *.nxs *.hdf *.hdf5 *.cxi *.h5"
+_NEXUS_HDF5_EXT = [".nx5", ".nxs",  ".hdf", ".hdf5", ".cxi", ".h5"]
+_NEXUS_HDF5_EXT_STR = ""
+for ext in _NEXUS_HDF5_EXT:
+    _NEXUS_HDF5_EXT_STR += "*" + ext + " "
+_NEXUS_HDF5_EXT_STR = _NEXUS_HDF5_EXT_STR[:-1]
 
 
 class SaveAction(PlotAction):
@@ -98,7 +102,7 @@ class SaveAction(PlotAction):
 
     CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
 
-    CURVE_FILTER_NXDATA = 'Curve as NXdata (%s)' % _NEXUS_HDF5_EXT
+    CURVE_FILTER_NXDATA = 'Curve as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY,
                                                       CURVE_FILTER_NXDATA]
@@ -114,7 +118,7 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
     IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
-    IMAGE_FILTER_NXDATA = 'Image as NXdata (%s)' % _NEXUS_HDF5_EXT
+    IMAGE_FILTER_NXDATA = 'Image as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
     IMAGE_FILTERS = (IMAGE_FILTER_EDF,
                      IMAGE_FILTER_TIFF,
                      IMAGE_FILTER_NUMPY,
@@ -126,7 +130,7 @@ class SaveAction(PlotAction):
                      IMAGE_FILTER_RGB_TIFF,
                      IMAGE_FILTER_NXDATA)
 
-    SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT
+    SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
     SCATTER_FILTERS = (SCATTER_FILTER_NXDATA, )
 
     def __init__(self, plot, parent=None):
@@ -470,13 +474,18 @@ class SaveAction(PlotAction):
 
         # Forces the filename extension to match the chosen filter
         if "NXdata" in nameFilter:
-            default_extension = ".h5"
+            has_allowed_ext = False
+            for ext in _NEXUS_HDF5_EXT:
+                if (len(filename) > len(ext) and
+                        filename[-len(ext):].lower() == ext.lower()):
+                    has_allowed_ext = True
+            if not has_allowed_ext:
+                filename += ".h5"
         else:
             default_extension = nameFilter.split()[-1][2:-1]
-
-        if (len(filename) <= len(default_extension) or
-                filename[-len(default_extension):].lower() != default_extension.lower()):
-            filename += default_extension
+            if (len(filename) <= len(default_extension) or
+                    filename[-len(default_extension):].lower() != default_extension.lower()):
+                filename += default_extension
 
         # Handle save
         if nameFilter in self.SNAPSHOT_FILTERS:
