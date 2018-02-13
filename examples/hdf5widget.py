@@ -325,7 +325,7 @@ def get_hdf5_with_nxdata():
     g2d0 = g2d.create_group("2D_regular_image")
     g2d0.attrs["NX_class"] = "NXdata"
     g2d0.attrs["signal"] = "image"
-    g2d0.attrs["auxiliary_signals"] = "image2", "image3"
+    g2d0.attrs["auxiliary_signals"] = str_attrs(["image2", "image3"])
     g2d0.attrs["axes"] = str_attrs(["rows_calib", "columns_coordinates"])
     g2d0.attrs["title"] = "Title example provided as group attr"
     g2d0.create_dataset("image", data=numpy.arange(4*6).reshape((4, 6)))
@@ -390,7 +390,7 @@ def get_hdf5_with_nxdata():
     gd1 = g.create_group("x_y_value_scatter")
     gd1.attrs["NX_class"] = "NXdata"
     gd1.attrs["signal"] = "values"
-    gd1.attrs["auxiliary_signals"] = "values.5", "values2"
+    gd1.attrs["auxiliary_signals"] = str_attrs(["values.5", "values2"])
     gd1.attrs["axes"] = str_attrs(["x", "y"])
     gd1.attrs["title"] = "x, y, values scatter with asymmetric y_errors"
     gd1.create_dataset("values", data=3.14*numpy.random.rand(128))
