@@ -27,12 +27,13 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/08/2017"
+__date__ = "14/02/2018"
 
 import functools
 import logging
 from contextlib import contextmanager
-from silx.utils import weakref
+import weakref
+import silx.utils.weakref as silxWeakref
 
 _logger = logging.getLogger(__name__)
 
@@ -63,14 +64,18 @@ class SyncAxes(object):
         :param bool syncDirection: Synchronize axes direction
         """
         object.__init__(self)
-        self.__axes = []
         self.__locked = False
+        self.__axes = []
         self.__syncLimits = syncLimits
         self.__syncScale = syncScale
         self.__syncDirection = syncDirection
-        self.__callbacks = []
+        self.__callbacks = None
 
-        self.__axes.extend(axes)
+        # the weakref is needed to be able ignore self references
+        deleteAxis = silxWeakref.WeakMethodProxy(self.__deleteAxis)
+        for axis in axes:
+            weak = weakref.ref(axis, deleteAxis)
+            self.__axes.append(weak)
         self.start()
 
     def start(self):
@@ -80,54 +85,63 @@ class SyncAxes(object):
         After that, any changes to any axes will be used to synchronize other
         axes.
         """
-        if len(self.__callbacks) != 0:
+        if self.__callbacks is not None:
             raise RuntimeError("Axes already synchronized")
+        self.__callbacks = weakref.WeakKeyDictionary()
 
         # register callback for further sync
-        for axis in self.__axes:
+        for refAxis in self.__axes:
+            axis = refAxis()
+            callbacks = []
             if self.__syncLimits:
                 # the weakref is needed to be able ignore self references
-                callback = weakref.WeakMethodProxy(self.__axisLimitsChanged)
-                callback = functools.partial(callback, axis)
+                callback = silxWeakref.WeakMethodProxy(self.__axisLimitsChanged)
+                callback = functools.partial(callback, refAxis)
                 sig = axis.sigLimitsChanged
                 sig.connect(callback)
-                self.__callbacks.append((sig, callback))
+                callbacks.append((sig, callback))
             if self.__syncScale:
                 # the weakref is needed to be able ignore self references
-                callback = weakref.WeakMethodProxy(self.__axisScaleChanged)
-                callback = functools.partial(callback, axis)
+                callback = silxWeakref.WeakMethodProxy(self.__axisScaleChanged)
+                callback = functools.partial(callback, refAxis)
                 sig = axis.sigScaleChanged
                 sig.connect(callback)
-                self.__callbacks.append((sig, callback))
+                callbacks.append((sig, callback))
             if self.__syncDirection:
                 # the weakref is needed to be able ignore self references
-                callback = weakref.WeakMethodProxy(self.__axisInvertedChanged)
-                callback = functools.partial(callback, axis)
+                callback = silxWeakref.WeakMethodProxy(self.__axisInvertedChanged)
+                callback = functools.partial(callback, refAxis)
                 sig = axis.sigInvertedChanged
                 sig.connect(callback)
-                self.__callbacks.append((sig, callback))
+                callbacks.append((sig, callback))
+            self.__callbacks[axis] = callbacks
 
         # sync the current state
-        mainAxis = self.__axes[0]
+        refMainAxis = self.__axes[0]
+        mainAxis = refMainAxis()
         if self.__syncLimits:
-            self.__axisLimitsChanged(mainAxis, *mainAxis.getLimits())
+            self.__axisLimitsChanged(refMainAxis, *mainAxis.getLimits())
         if self.__syncScale:
-            self.__axisScaleChanged(mainAxis, mainAxis.getScale())
+            self.__axisScaleChanged(refMainAxis, mainAxis.getScale())
         if self.__syncDirection:
-            self.__axisInvertedChanged(mainAxis, mainAxis.isInverted())
+            self.__axisInvertedChanged(refMainAxis, mainAxis.isInverted())
+
+    def __deleteAxis(self, ref):
+        self.__axes.remove(ref)
 
     def stop(self):
         """Stop the synchronization of the axes"""
-        if len(self.__callbacks) == 0:
+        if self.__callbacks is None:
             raise RuntimeError("Axes not synchronized")
-        for sig, callback in self.__callbacks:
-            sig.disconnect(callback)
-        self.__callbacks = []
+        for callbacks in self.__callbacks.values():
+            for sig, callback in callbacks:
+                sig.disconnect(callback)
+        self.__callbacks = None
 
     def __del__(self):
         """Destructor"""
         # clean up references
-        if len(self.__callbacks) != 0:
+        if self.__callbacks is not None:
             self.stop()
 
     @contextmanager
@@ -138,6 +152,7 @@ class SyncAxes(object):
 
     def __otherAxes(self, changedAxis):
         for axis in self.__axes:
+            axis = axis()
             if axis is changedAxis:
                 continue
             yield axis
@@ -145,6 +160,7 @@ class SyncAxes(object):
     def __axisLimitsChanged(self, changedAxis, vmin, vmax):
         if self.__locked:
             return
+        changedAxis = changedAxis()
         with self.__inhibitSignals():
             for axis in self.__otherAxes(changedAxis):
                 axis.setLimits(vmin, vmax)
@@ -152,6 +168,7 @@ class SyncAxes(object):
     def __axisScaleChanged(self, changedAxis, scale):
         if self.__locked:
             return
+        changedAxis = changedAxis()
         with self.__inhibitSignals():
             for axis in self.__otherAxes(changedAxis):
                 axis.setScale(scale)
@@ -159,6 +176,7 @@ class SyncAxes(object):
     def __axisInvertedChanged(self, changedAxis, isInverted):
         if self.__locked:
             return
+        changedAxis = changedAxis()
         with self.__inhibitSignals():
             for axis in self.__otherAxes(changedAxis):
                 axis.setInverted(isInverted)
