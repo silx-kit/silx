@@ -414,7 +414,6 @@ class ArrayImagePlot(qt.QWidget):
             img_ndim = 3
         self._selector.setData(signals[0])
 
-
         if len(signals[0].shape) <= img_ndim:
             self.selectorDock.hide()
         else:
@@ -488,8 +487,9 @@ class ArrayImagePlot(qt.QWidget):
 
         title = ""
         if self.__title:
-            title += self.__title + "\n"
-        title += self.__signals_names[auxSigIdx]
+            title += self.__title
+        if not title.strip().endswith(self.__signals_names[auxSigIdx]):
+            title += "\n" + self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
