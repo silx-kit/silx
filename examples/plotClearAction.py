@@ -22,7 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script shows how to create a minimalistic PlotAction that clear the plot.
+"""This script shows how to create a minimalistic
+:class:`~silx.gui.plot.actions.PlotAction` that clear the plot.
 
 This illustrates how to add more buttons in a plot widget toolbar.
 """

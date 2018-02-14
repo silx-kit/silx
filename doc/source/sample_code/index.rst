@@ -27,12 +27,14 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
      - .. image:: img/animatedicons.png
          :height: 150px
          :align: center
-     - Display available project icons using Qt.
+     - Display silx available animated icons.
+
+       It illustrates the API handling animated icons.
    * - :download:`icons.py <../../../examples/icons.py>`
      - .. image:: img/icons.png
          :height: 150px
          :align: center
-     - Display available project icons using Qt.
+     - Display icons available in silx.
 
 :mod:`silx.gui.data` and :mod:`silx.gui.hdf5`
 .............................................
@@ -104,7 +106,8 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
 
        It shows the following widgets:
 
-       - :class:WaitingPushButton: A button with a progress-like waiting animated icon
+       - :class:`~silx.gui.widgets.WaitingPushButton`:
+         A button with a progress-like waiting animated icon.
 
 :mod:`silx.gui.plot` sample code
 ++++++++++++++++++++++++++++++++
@@ -123,8 +126,9 @@ Widgets
      - .. image:: img/imageview.png
          :height: 150px
          :align: center
-     - Example to show the use of `ImageView` widget. It can be used to open an EDF
-       or TIFF file from the shell command line.
+     - Example to show the use of :mod:`~silx.gui.plot.ImageView` widget.
+
+       It can be used to open an EDF or TIFF file from the shell command line.
 
        To view an image file with the current installed silx library:
        ``python examples/imageview.py <file to open>``
@@ -139,13 +143,13 @@ Widgets
      - .. image:: img/stackView.png
          :height: 150px
          :align: center
-     - This script is a simple example to illustrate how to use the StackView
-       widget.
+     - This script is a simple example to illustrate how to use the
+       :mod:`~silx.gui.plot.StackView` widget.
    * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
      - .. image:: img/colormapDialog.png
          :height: 150px
          :align: center
-     - This script shows the features of a colormap dialog.
+     - This script shows the features of a :mod:`~silx.gui.plot.ColormapDialog`.
 
 :class:`silx.gui.plot.actions.PlotAction`
 .........................................
@@ -163,15 +167,16 @@ Sample code that adds buttons to the toolbar of a silx plot widget.
      - .. image:: img/plotClearAction.png
          :height: 150px
          :align: center
-     - This script shows how to create a minimalistic PlotAction that clear the plot.
+     - This script shows how to create a minimalistic
+       :class:`~silx.gui.plot.actions.PlotAction` that clear the plot.
 
        This illustrates how to add more buttons in a plot widget toolbar.
    * - :download:`shiftPlotAction.py <../../../examples/shiftPlotAction.py>`
      - .. image:: img/shiftPlotAction.png
          :height: 150px
          :align: center
-     - This script is a simple (trivial) example of how to create a PlotWindow,
-       create a custom :class:`PlotAction` and add it to the toolbar.
+     - This script is a simple (trivial) example of how to create a :class:`~silx.gui.plot.PlotWindow`,
+       create a custom :class:`~silx.gui.plot.actions.PlotAction` and add it to the toolbar.
 
        The action simply shifts the selected curve up by 1 unit by adding 1 to each
        value of y.
@@ -180,8 +185,8 @@ Sample code that adds buttons to the toolbar of a silx plot widget.
      - .. image:: img/fftPlotAction.png
          :height: 150px
          :align: center
-     - This script is a simple example of how to create a PlotWindow with a custom
-       PlotAction added to the toolbar.
+     - This script is a simple example of how to create a :class:`~silx.gui.plot.PlotWindow`
+       with a custom :class:`~silx.gui.plot.actions.PlotAction` added to the toolbar.
 
        The action computes the FFT of all curves and plots their amplitude spectrum.
        It also performs the reverse transform.
@@ -210,15 +215,15 @@ Sample code that adds specific tools or functions to plot widgets.
      - .. image:: img/plotWidget.png
          :height: 150px
          :align: center
-     - This script shows how to subclass :class:`PlotWidget` to tune its tools.
+     - This script shows how to subclass :class:`~silx.gui.plot.PlotWidget` to tune its tools.
 
-       It subclasses a :class:`silx.gui.plot.PlotWidget` and adds toolbars and
+       It subclasses a :class:`~silx.gui.plot.PlotWidget` and adds toolbars and
        a colorbar by using pluggable widgets:
 
        - QAction from :mod:`silx.gui.plot.actions`
        - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
        - QToolBar from :mod:`silx.gui.plot.PlotTools`
-       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar`
+       - :class:`silx.gui.plot.ColorBar.ColorBarWidget`
    * - :download:`plotContextMenu.py <../../../examples/plotContextMenu.py>`
      - .. image:: img/plotContextMenu.png
          :height: 150px
