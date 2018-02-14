@@ -31,7 +31,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "14/02/2018"
 
 import logging
 from silx.gui import qt
@@ -50,6 +50,7 @@ class Mode(enum.Enum):
     DATAFILEDIALOG = 2
     DATAFILEDIALOG_DATASET = 3
     DATAFILEDIALOG_GROUP = 4
+    DATAFILEDIALOG_NXENTRY = 5
 
 
 class DialogExample(qt.QMainWindow):
@@ -138,6 +139,12 @@ class DialogExample(qt.QMainWindow):
         group.addButton(radio)
         layout.addWidget(radio)
 
+        radio = qt.QRadioButton(panel)
+        radio.setText("silx DataFileDialog (filter=NXentry)")
+        radio.setProperty("Mode", Mode.DATAFILEDIALOG_NXENTRY)
+        group.addButton(radio)
+        layout.addWidget(radio)
+
         self.__options = group
         return panel
 
@@ -192,6 +199,16 @@ class DialogExample(qt.QMainWindow):
         elif mode == Mode.DATAFILEDIALOG_GROUP:
             dialog = DataFileDialog(self)
             dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+        elif mode == Mode.DATAFILEDIALOG_NXENTRY:
+            def customFilter(obj):
+                if "NX_class" in obj.attrs:
+                    return obj.attrs["NX_class"] in [b"NXentry", u"NXentry"]
+                return False
+            dialog = DataFileDialog(self)
+            dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+            dialog.setFilterCallback(customFilter)
+        else:
+            assert(False)
         return dialog
 
     def openDialog(self):
