@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -267,11 +267,13 @@ class BackendBase(object):
         """
         pass
 
-    def pickItems(self, x, y):
+    def pickItems(self, x, y, kinds):
         """Get a list of items at a pixel position.
 
         :param float x: The x pixel coord where to pick.
         :param float y: The y pixel coord where to pick.
+        :param List[str] kind: List of item kinds to pick.
+            Supported kinds: 'marker', 'curve', 'image'.
         :return: All picked items from back to front.
                  One dict per item,
                  with 'kind' key in 'curve', 'marker', 'image';
