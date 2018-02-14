@@ -480,6 +480,21 @@ class TestSaveNXdata(unittest.TestCase):
 
         h5f.close()
 
+    def testSimplestSave(self):
+        sig = numpy.array([0, 1, 2])
+        nxdata.save_NXdata(filename=self.h5fname,
+                           signal=sig)
+
+        h5f = h5py.File(self.h5fname, "r")
+
+        print(list(h5f.keys()))
+        self.assertTrue(nxdata.is_valid_nxdata(h5f["/entry/data0"]))
+
+        nxd = nxdata.NXdata(h5f["/entry/data0"])
+        self.assertTrue(numpy.array_equal(nxd.signal,
+                                          sig))
+        h5f.close()
+
     def testSaveDefaultAxesNames(self):
         sig = numpy.array([0, 1, 2])
         a0 = numpy.array([2, 3, 4])
