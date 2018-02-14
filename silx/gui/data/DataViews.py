@@ -79,7 +79,7 @@ def _normalizeComplex(data):
     absolute value.
     Else returns the input data."""
     if hasattr(data, "dtype"):
-        isComplex = numpy.issubdtype(data.dtype, numpy.complex)
+        isComplex = numpy.issubdtype(data.dtype, numpy.complexfloating)
     else:
         isComplex = isinstance(data, numbers.Complex)
     if isComplex:
@@ -135,12 +135,12 @@ class DataInfo(object):
                 self.isVoid = data.dtype.fields is None
             self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
             self.isRecord = data.dtype.fields is not None
-            self.isComplex = numpy.issubdtype(data.dtype, numpy.complex)
+            self.isComplex = numpy.issubdtype(data.dtype, numpy.complexfloating)
             self.isBoolean = numpy.issubdtype(data.dtype, numpy.bool_)
         elif self.hasNXdata:
             self.isNumeric = numpy.issubdtype(nxd.signal.dtype,
                                               numpy.number)
-            self.isComplex = numpy.issubdtype(nxd.signal.dtype, numpy.complex)
+            self.isComplex = numpy.issubdtype(nxd.signal.dtype, numpy.complexfloating)
             self.isBoolean = numpy.issubdtype(nxd.signal.dtype, numpy.bool_)
         else:
             self.isNumeric = isinstance(data, numbers.Number)
