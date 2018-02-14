@@ -182,14 +182,14 @@ class DialogExample(qt.QMainWindow):
         if mode == Mode.DEFAULT_FILEDIALOG:
             dialog = qt.QFileDialog(self)
             dialog.setAcceptMode(qt.QFileDialog.AcceptOpen)
-        if mode == Mode.IMAGEFILEDIALOG:
+        elif mode == Mode.IMAGEFILEDIALOG:
             dialog = ImageFileDialog(self)
-        if mode == Mode.DATAFILEDIALOG:
+        elif mode == Mode.DATAFILEDIALOG:
             dialog = DataFileDialog(self)
-        if mode == Mode.DATAFILEDIALOG_DATASET:
+        elif mode == Mode.DATAFILEDIALOG_DATASET:
             dialog = DataFileDialog(self)
             dialog.setFilterMode(DataFileDialog.FilterMode.ExistingDataset)
-        if mode == Mode.DATAFILEDIALOG_GROUP:
+        elif mode == Mode.DATAFILEDIALOG_GROUP:
             dialog = DataFileDialog(self)
             dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
         return dialog
