@@ -26,18 +26,20 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/08/2017"
+__date__ = "14/02/2018"
 
 
 import unittest
 from silx.gui.plot import PlotWidget
+from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.utils.axis import SyncAxes
 
 
-class TestAxisSync(unittest.TestCase):
+class TestAxisSync(TestCaseQt):
     """Tests AxisSync class"""
 
     def setUp(self):
+        TestCaseQt.setUp(self)
         self.plot1 = PlotWidget()
         self.plot2 = PlotWidget()
         self.plot3 = PlotWidget()
@@ -46,6 +48,7 @@ class TestAxisSync(unittest.TestCase):
         self.plot1 = None
         self.plot2 = None
         self.plot3 = None
+        TestCaseQt.tearDown(self)
 
     def testMoveFirstAxis(self):
         """Test synchronization after construction"""
@@ -84,6 +87,52 @@ class TestAxisSync(unittest.TestCase):
         self.assertEqual(self.plot1.getXAxis().getLimits(), (10, 500))
         self.assertNotEqual(self.plot2.getXAxis().getLimits(), (10, 500))
         self.assertNotEqual(self.plot3.getXAxis().getLimits(), (10, 500))
+
+    _qobject_destroyed = False
+
+    def _aboutToDestroy(self):
+        self._qobject_destroyed = True
+
+    def qWaitForDestroy(self, ref):
+        """
+        Wait for Qt object destruction.
+
+        Use a weakref as parameter to avoid any reference to the object
+
+        :param weakref ref: A weakref to an object to avoid any reference
+        :return: True if the object was destroyed
+        :rtype: bool
+        """
+        self._qobject_destroyed = False
+        import gc
+        gc.collect()
+        widget = ref()
+        if widget is None:
+            return True
+        widget.destroyed.connect(self._aboutToDestroy)
+        widget.deleteLater()
+        widget = None
+        for _ in range(10):
+            if self._qobject_destroyed:
+                break
+
+        return ref() is None
+
+    def testAxisDestruction(self):
+        """Test synchronization when an axis disappear"""
+        _sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()])
+
+        # Destroy the plot is possible
+        import weakref
+        plot = weakref.ref(self.plot2)
+        self.plot2 = None
+        result = self.qWaitForDestroy(plot)
+        if not result:
+            # We can't test
+            self.skipTest("Object not destroyed")
+
+        self.plot1.getXAxis().setLimits(10, 500)
+        self.assertEqual(self.plot3.getXAxis().getLimits(), (10, 500))
 
     def testStop(self):
         """Test synchronization after calling stop"""
