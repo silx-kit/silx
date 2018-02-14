@@ -954,8 +954,7 @@ class _InvalidNXdataView(DataView):
     interpreted by any NXDataview."""
     def __init__(self, parent):
         DataView.__init__(self, parent)
-        self._msg = "Group has @NX_class = NXdata, but could not be interpreted"
-        self._msg += " as valid NXdata."
+        self._msg = ""
 
     def createWidget(self, parent):
         widget = qt.QLabel(parent)
@@ -981,6 +980,8 @@ class _InvalidNXdataView(DataView):
             if nxd is None:
                 if nx_class == "NXdata":
                     # invalid: could not even be parsed by NXdata
+                    self._msg = "Group has @NX_class = NXdata, but could not be interpreted"
+                    self._msg += " as valid NXdata."
                     return 100
                 elif nx_class == "NXentry":
                     if "default" not in data.attrs:
@@ -1030,7 +1031,9 @@ class _InvalidNXdataView(DataView):
             is_scalar = nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]
             if not (is_scalar or nxd.is_curve or nxd.is_x_y_value_scatter or
                     nxd.is_image or nxd.is_stack):
-                # invalid: cannot be plotted by any widget
+                # invalid: cannot be plotted by any widget (I cannot imagine a case)
+                self._msg = "NXdata seems valid, but cannot be displayed "
+                self._msg += "by any existing plot widget."
                 return 100
 
         return DataView.UNSUPPORTED
