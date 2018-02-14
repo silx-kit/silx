@@ -228,15 +228,17 @@ Sample code that adds specific tools or functions to plot widgets.
      - .. image:: img/plotContextMenu.png
          :height: 150px
          :align: center
-     - This script illustrates the addition of a context menu to a PlotWidget.
+     - This script illustrates the addition of a context menu to a
+       :class:`~silx.gui.plot.PlotWidget`.
 
        This is done by adding a custom context menu to the plot area of PlotWidget:
-
        - set the context menu policy of the plot area to Qt.CustomContextMenu.
        - connect to the plot area customContextMenuRequested signal.
 
-       The same method works with PlotWindow, Plot1D and Plot2D widgets as they
-       inherit from PlotWidget.
+       The same method works with :class:`~silx.gui.plot.PlotWindow.PlotWindow`,
+       :class:`~silx.gui.plot.PlotWindow.Plot1D` and
+       :class:`~silx.gui.plot.PlotWindow.Plot2D` widgets as they
+       inherit from :class:`~silx.gui.plot.PlotWidget`.
 
        For more information on context menus, see Qt documentation.
    * - :download:`plotItemsSelector.py <../../../examples/plotItemsSelector.py>`
@@ -244,7 +246,7 @@ Sample code that adds specific tools or functions to plot widgets.
          :height: 150px
          :align: center
      - This example illustrates how to use a :class:`ItemsSelectionDialog` widget
-       associated with a :class:`PlotWidget`.
+       associated with a :class:`~silx.gui.plot.PlotWidget`
    * - :download:`plotLimits.py <../../../examples/plotLimits.py>`
      - .. image:: img/plotLimits.png
          :height: 150px
@@ -255,14 +257,14 @@ Sample code that adds specific tools or functions to plot widgets.
      - .. image:: img/plotUpdateFromThread.png
          :height: 150px
          :align: center
-     - This script illustrates the update of a silx.gui.plot widget from a thread.
+     - This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
 
        The problem is that plot and GUI methods should be called from the main thread.
        To safely update the plot from another thread, one need to make the update
        asynchronously from the main thread.
        In this example, this is achieved through a Qt signal.
 
-       In this example we create a subclass of :class:`silx.gui.plot.Plot1D`
+       In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot1D`
        that adds a thread-safe method to add curves:
        :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
        This thread-safe method is then called from a thread to update the plot..
@@ -271,12 +273,13 @@ Sample code that adds specific tools or functions to plot widgets.
          :height: 150px
          :align: center
      - This script illustrates how to add a print preview tool button to any plot
-       widget inheriting :class:`PlotWidget`.
+       widget inheriting :class:`~silx.gui.plot.PlotWidget`.
 
        Three plot widgets are instantiated. One of them uses a standalone
-       :class:`PrintPreviewToolButton`, while the other two use a
-       :class:`SingletonPrintPreviewToolButton` which allows them to send their content
-       to the same print preview page.
+       :class:`~silx.gui.plot.PrintPreviewToolButton.PrintPreviewToolButton`,
+       while the other two use a
+       :class:`~silx.gui.plot.PrintPreviewToolButton.SingletonPrintPreviewToolButton`
+       which allows them to send their content to the same print preview page.
    * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
      - .. image:: img/scatterMask.png
          :height: 150px

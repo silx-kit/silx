@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,17 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script illustrates the addition of a context menu to a PlotWidget.
+"""This script illustrates the addition of a context menu to a
+:class:`~silx.gui.plot.PlotWidget`.
 
 This is done by adding a custom context menu to the plot area of PlotWidget:
 - set the context menu policy of the plot area to Qt.CustomContextMenu.
 - connect to the plot area customContextMenuRequested signal.
 
-The same method works with PlotWindow, Plot1D and Plot2D widgets as they
-inherit from PlotWidget.
+The same method works with :class:`~silx.gui.plot.PlotWindow.PlotWindow`,
+:class:`~silx.gui.plot.PlotWindow.Plot1D` and
+:class:`~silx.gui.plot.PlotWindow.Plot2D` widgets as they
+inherit from :class:`~silx.gui.plot.PlotWidget`.
 
 For more information on context menus, see Qt documentation.
 """

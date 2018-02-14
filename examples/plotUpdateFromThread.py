@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script illustrates the update of a silx.gui.plot widget from a thread.
+"""This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
 
 The problem is that plot and GUI methods should be called from the main thread.
 To safely update the plot from another thread, one need to make the update
 asynchronously from the main thread.
 In this example, this is achieved through a Qt signal.
 
-In this example we create a subclass of :class:`silx.gui.plot.Plot1D`
+In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot1D`
 that adds a thread-safe method to add curves:
 :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
 This thread-safe method is then called from a thread to update the plot.

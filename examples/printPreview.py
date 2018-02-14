@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,13 @@
 #
 # ###########################################################################*/
 """This script illustrates how to add a print preview tool button to any plot
-widget inheriting :class:`PlotWidget`.
+widget inheriting :class:`~silx.gui.plot.PlotWidget`.
 
 Three plot widgets are instantiated. One of them uses a standalone
-:class:`PrintPreviewToolButton`, while the other two use a
-:class:`SingletonPrintPreviewToolButton` which allows them to send their content
-to the same print preview page.
+:class:`~silx.gui.plot.PrintPreviewToolButton.PrintPreviewToolButton`,
+while the other two use a
+:class:`~silx.gui.plot.PrintPreviewToolButton.SingletonPrintPreviewToolButton`
+which allows them to send their content to the same print preview page.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
