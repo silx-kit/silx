@@ -88,6 +88,36 @@ class TestAxisSync(TestCaseQt):
         self.assertNotEqual(self.plot2.getXAxis().getLimits(), (10, 500))
         self.assertNotEqual(self.plot3.getXAxis().getLimits(), (10, 500))
 
+    _qobject_destroyed = False
+
+    def _aboutToDestroy(self):
+        self._qobject_destroyed = True
+
+    def qWaitForDestroy(self, ref):
+        """
+        Wait for Qt object destruction.
+
+        Use a weakref as parameter to avoid any reference to the object
+
+        :param weakref ref: A weakref to an object to avoid any reference
+        :return: True if the object was destroyed
+        :rtype: bool
+        """
+        self._qobject_destroyed = False
+        import gc
+        gc.collect()
+        widget = ref()
+        if widget is None:
+            return True
+        widget.destroyed.connect(self._aboutToDestroy)
+        widget.deleteLater()
+        widget = None
+        for _ in range(10):
+            if self._qobject_destroyed:
+                break
+
+        return ref() is None
+
     def testStop(self):
         """Test synchronization after calling stop"""
         sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()])
