@@ -30,6 +30,11 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :height: 150px
          :align: center
      - Qt Hdf5 widget examples
+   * - :download:`customDataView.py <../../../examples/customDataView.py>`
+     - .. image:: img/customDataView.png
+         :height: 150px
+         :align: center
+     - Qt data view example
    * - :download:`hdf5widget.py <../../../examples/hdf5widget.py>`
      - .. image:: img/hdf5widget.png
          :height: 150px
@@ -39,6 +44,11 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        .. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
            library, which is not a mandatory dependency for `silx`. You might need
            to install it if you don't already have it.
+   * - :download:`fileDialog.py <../../../examples/fileDialog.py>`
+     - .. image:: img/fileDialog.png
+         :height: 150px
+         :align: center
+     - Example for the use of the ImageFileDialog.
    * - :download:`icons.py <../../../examples/icons.py>`
      - .. image:: img/icons.png
          :height: 150px
@@ -197,6 +207,18 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :align: center
      - This script is an example to illustrate how to use axis synchronization
        tool.
+   * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
+     - .. image:: img/colormapDialog.png
+         :height: 150px
+         :align: center
+     - This script shows the features of a colormap dialog.
+   * - :download:`plotClearAction.py <../../../examples/plotClearAction.py>`
+     - .. image:: img/plotClearAction.png
+         :height: 150px
+         :align: center
+     - This script shows how to create a minimalistic PlotAction that clear the plot.
+
+       This illustrates how to add more buttons in a plot widget toolbar.
 
 .. _plot3d-sample-code:
 
