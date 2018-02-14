@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "14/02/2018"
 
 import numpy
 import os.path
@@ -101,7 +101,7 @@ def supported_extensions(flat_formats=True):
     if flat_formats:
         extensions.append("*.npy")
 
-        formats["Numpy binary files"] = set(extensions)
+    formats["Numpy binary files"] = set(extensions)
     return formats
 
 
