@@ -118,6 +118,22 @@ class TestAxisSync(TestCaseQt):
 
         return ref() is None
 
+    def testAxisDestruction(self):
+        """Test synchronization when an axis disappear"""
+        _sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()])
+
+        # Destroy the plot is possible
+        import weakref
+        plot = weakref.ref(self.plot2)
+        self.plot2 = None
+        result = self.qWaitForDestroy(plot)
+        if not result:
+            # We can't test
+            self.skipTest("Object not destroyed")
+
+        self.plot1.getXAxis().setLimits(10, 500)
+        self.assertEqual(self.plot3.getXAxis().getLimits(), (10, 500))
+
     def testStop(self):
         """Test synchronization after calling stop"""
         sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()])
