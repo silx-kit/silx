@@ -73,6 +73,8 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
 :mod:`silx.gui.plot` sample code
 ++++++++++++++++++++++++++++++++
 
+Sample code illustrating different plot widgets:
+
 .. list-table::
    :widths: 1 1 4
    :header-rows: 1
@@ -80,6 +82,60 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
    * - Source
      - Screenshot
      - Description
+   * - :download:`imageview.py <../../../examples/imageview.py>`
+     - .. image:: img/imageview.png
+         :height: 150px
+         :align: center
+     - Example to show the use of `ImageView` widget. It can be used to open an EDF
+       or TIFF file from the shell command line.
+
+       To view an image file with the current installed silx library:
+       ``python examples/imageview.py <file to open>``
+       To get help:
+       ``python examples/imageview.py -h``
+
+       For developers with a git clone you can use it with the bootstrap
+       To view an image file with the current installed silx library:
+
+       ``./bootstrap.py python examples/imageview.py <file to open>``
+   * - :download:`stackView.py <../../../examples/stackView.py>`
+     - .. image:: img/stackView.png
+         :height: 150px
+         :align: center
+     - This script is a simple example to illustrate how to use the StackView
+       widget.
+   * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
+     - .. image:: img/colormapDialog.png
+         :height: 150px
+         :align: center
+     - This script shows the features of a colormap dialog.
+
+Sample code that adds buttons to the toolbar of a silx plot widget by using
+:class:`~silx.gui.plot.actions.PlotAction`:
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`plotClearAction.py <../../../examples/plotClearAction.py>`
+     - .. image:: img/plotClearAction.png
+         :height: 150px
+         :align: center
+     - This script shows how to create a minimalistic PlotAction that clear the plot.
+
+       This illustrates how to add more buttons in a plot widget toolbar.
+   * - :download:`shiftPlotAction.py <../../../examples/shiftPlotAction.py>`
+     - .. image:: img/shiftPlotAction.png
+         :height: 150px
+         :align: center
+     - This script is a simple (trivial) example of how to create a PlotWindow,
+       create a custom :class:`PlotAction` and add it to the toolbar.
+
+       The action simply shifts the selected curve up by 1 unit by adding 1 to each
+       value of y.
    * - :download:`fftPlotAction.py <../../../examples/fftPlotAction.py>`,
        :download:`fft.png <../../../examples/fft.png>`
      - .. image:: img/fftPlotAction.png
@@ -98,22 +154,29 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
           - how to add your own icon as a PNG file
 
        See shiftPlotAction.py for a simpler example with more basic comments.
-   * - :download:`imageview.py <../../../examples/imageview.py>`
-     - .. image:: img/imageview.png
+
+Sample code that adds specific tools or functions to plot widgets:
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`plotWidget.py <../../../examples/plotWidget.py>`
+     - .. image:: img/plotWidget.png
          :height: 150px
          :align: center
-     - Example to show the use of `ImageView` widget. It can be used to open an EDF
-       or TIFF file from the shell command line.
+     - This script shows how to subclass :class:`PlotWidget` to tune its tools.
 
-       To view an image file with the current installed silx library:
-       ``python examples/imageview.py <file to open>``
-       To get help:
-       ``python examples/imageview.py -h``
+       It subclasses a :class:`silx.gui.plot.PlotWidget` and adds toolbars and
+       a colorbar by using pluggable widgets:
 
-       For developers with a git clone you can use it with the bootstrap
-       To view an image file with the current installed silx library:
-
-       ``./bootstrap.py python examples/imageview.py <file to open>``
+       - QAction from :mod:`silx.gui.plot.actions`
+       - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
+       - QToolBar from :mod:`silx.gui.plot.PlotTools`
+       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar`
    * - :download:`plotContextMenu.py <../../../examples/plotContextMenu.py>`
      - .. image:: img/plotContextMenu.png
          :height: 150px
@@ -155,20 +218,7 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        In this example we create a subclass of :class:`silx.gui.plot.Plot1D`
        that adds a thread-safe method to add curves:
        :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
-       This thread-safe method is then called from a thread to update the plot.
-   * - :download:`plotWidget.py <../../../examples/plotWidget.py>`
-     - .. image:: img/plotWidget.png
-         :height: 150px
-         :align: center
-     - This script shows how to subclass :class:`PlotWidget` to tune its tools.
-
-       It subclasses a :class:`silx.gui.plot.PlotWidget` and adds toolbars and
-       a colorbar by using pluggable widgets:
-
-       - QAction from :mod:`silx.gui.plot.actions`
-       - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
-       - QToolBar from :mod:`silx.gui.plot.PlotTools`
-       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar`.
+       This thread-safe method is then called from a thread to update the plot..
    * - :download:`printPreview.py <../../../examples/printPreview.py>`
      - .. image:: img/printPreview.png
          :height: 150px
@@ -186,39 +236,12 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :align: center
      - This example demonstrates how to use ScatterMaskToolsWidget
        and NamedScatterAlphaSlider with a PlotWidget.
-   * - :download:`shiftPlotAction.py <../../../examples/shiftPlotAction.py>`
-     - .. image:: img/shiftPlotAction.png
-         :height: 150px
-         :align: center
-     - This script is a simple (trivial) example of how to create a PlotWindow,
-       create a custom :class:`PlotAction` and add it to the toolbar.
-
-       The action simply shifts the selected curve up by 1 unit by adding 1 to each
-       value of y.
-   * - :download:`stackView.py <../../../examples/stackView.py>`
-     - .. image:: img/stackView.png
-         :height: 150px
-         :align: center
-     - This script is a simple example to illustrate how to use the StackView
-       widget.
    * - :download:`syncaxis.py <../../../examples/syncaxis.py>`
      - .. image:: img/syncaxis.png
          :height: 150px
          :align: center
      - This script is an example to illustrate how to use axis synchronization
        tool.
-   * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
-     - .. image:: img/colormapDialog.png
-         :height: 150px
-         :align: center
-     - This script shows the features of a colormap dialog.
-   * - :download:`plotClearAction.py <../../../examples/plotClearAction.py>`
-     - .. image:: img/plotClearAction.png
-         :height: 150px
-         :align: center
-     - This script shows how to create a minimalistic PlotAction that clear the plot.
-
-       This illustrates how to add more buttons in a plot widget toolbar.
 
 .. _plot3d-sample-code:
 
