@@ -876,7 +876,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self._picked.append({'kind': 'curve', 'legend': label,
                                  'indices': event.ind})
 
-    def pickItems(self, x, y):
+    def pickItems(self, x, y, kinds):
         self._picked = []
 
         # Weird way to do an explicit picking: Simulate a button press event
@@ -884,7 +884,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         cid = self.mpl_connect('pick_event', self._onPick)
         self.fig.pick(mouseEvent)
         self.mpl_disconnect(cid)
-        picked = self._picked
+
+        picked = [p for p in self._picked if p['kind'] in kinds]
         self._picked = None
 
         return picked
