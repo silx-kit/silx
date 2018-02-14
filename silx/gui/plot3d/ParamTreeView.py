@@ -46,6 +46,7 @@ from silx.third_party import six
 
 from .. import qt
 from ..widgets.FloatEdit import FloatEdit as _FloatEdit
+from ._model import visitQAbstractItemModel
 
 
 class FloatEditor(_FloatEdit):
@@ -430,33 +431,6 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             super(ParameterTreeDelegate, self).setModelData(editor, model, index)
 
 
-def visitQAbstractItemMode(model, parent=qt.QModelIndex()):
-    """Iterate over indices in the model starting from parent
-
-    It iterates column by column and row by row
-    (i.e., from left to right and from top to bottom).
-    Parent are returned before their children.
-    It only iterates through the children for the first column of a row.
-
-    :param QAbstractItemModel model: The model to visit
-    :param QModelIndex parent:
-        Index from which to start visiting the model.
-        Default: start from the root
-    """
-    assert isinstance(model, qt.QAbstractItemModel)
-    assert isinstance(parent, qt.QModelIndex)
-    assert parent.model() is model or not parent.isValid()
-
-    for row in range(model.rowCount(parent)):
-        for column in range(model.columnCount(parent)):
-            index = model.index(row, column, parent)
-            yield index
-
-        index = model.index(row, 0, parent)
-        for index in visitQAbstractItemMode(model, index):
-            yield index
-
-
 class ParamTreeView(qt.QTreeView):
     """QTreeView specific to handle plot3d scene and object parameters.
 
@@ -509,7 +483,7 @@ class ParamTreeView(qt.QTreeView):
         """
         model = self.model()
         if model is not None:
-            for index in visitQAbstractItemMode(model, parent):
+            for index in visitQAbstractItemModel(model, parent):
                 self._openEditorForIndex(index)
 
     def setModel(self, model):
@@ -555,3 +529,10 @@ class ParamTreeView(qt.QTreeView):
         :rtype: bool
         """
         return index in self.__persistentEditors
+
+    def selectionCommand(self, index, event=None):
+        """Filter out selection of not selectable items"""
+        if index.flags() & qt.Qt.ItemIsSelectable:
+            return super(ParamTreeView, self).selectionCommand(index, event)
+        else:
+            return qt.QItemSelectionModel.NoUpdate

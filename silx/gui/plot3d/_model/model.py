@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,33 @@ from ... import qt
 
 from .core import BaseRow
 from .items import Settings, nodeFromItem
+
+
+def visitQAbstractItemModel(model, parent=qt.QModelIndex()):
+    """Iterate over indices in the model starting from parent
+
+    It iterates column by column and row by row
+    (i.e., from left to right and from top to bottom).
+    Parent are returned before their children.
+    It only iterates through the children for the first column of a row.
+
+    :param QAbstractItemModel model: The model to visit
+    :param QModelIndex parent:
+        Index from which to start visiting the model.
+        Default: start from the root
+    """
+    assert isinstance(model, qt.QAbstractItemModel)
+    assert isinstance(parent, qt.QModelIndex)
+    assert parent.model() is model or not parent.isValid()
+
+    for row in range(model.rowCount(parent)):
+        for column in range(model.columnCount(parent)):
+            index = model.index(row, column, parent)
+            yield index
+
+        index = model.index(row, 0, parent)
+        for index in visitQAbstractItemModel(model, index):
+            yield index
 
 
 class Root(BaseRow):

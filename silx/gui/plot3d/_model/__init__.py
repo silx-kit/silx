@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,4 +32,4 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "11/01/2018"
 
-from .model import SceneModel  # noqa
+from .model import SceneModel, visitQAbstractItemModel  # noqa

@@ -211,8 +211,9 @@ class Item3DRow(StaticRow):
         super(Item3DRow, self).__init__((name, None))
 
         self.setFlags(
-            self.flags(0) | qt.Qt.ItemIsUserCheckable,
+            self.flags(0) | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsSelectable,
             0)
+        self.setFlags(self.flags(1) | qt.Qt.ItemIsSelectable, 1)
 
         self._item = weakref.ref(item)
         item.sigItemChanged.connect(self._itemChanged)

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -463,11 +463,13 @@ class Viewport(event.Notifier):
         winy = oy + height * 0.5 * (1. - ndcY)
         return winx, winy
 
-    def _pickNdcZGL(self, x, y):
+    def _pickNdcZGL(self, x, y, offset=0):
         """Retrieve depth from depth buffer and return corresponding NDC Z.
 
         :param int x: In pixels in window coordinates, origin left.
         :param int y: In pixels in window coordinates, origin top.
+        :param int offset: Number of pixels to look at around the given pixel
+
         :return: Normalize device Z coordinate of depth in [-1, 1]
                  or None if outside viewport.
         :rtype: float or None
@@ -485,10 +487,34 @@ class Viewport(event.Notifier):
         # Get depth from depth buffer in [0., 1.]
         # Bind used framebuffer to get depth
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebuffer)
-        depth = gl.glReadPixels(
-            x, y, 1, 1, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)[0]
+
+        if offset == 0:  # Fast path
+            # glReadPixels is not GL|ES friendly
+            depth = gl.glReadPixels(
+                x, y, 1, 1, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)[0]
+        else:
+            offset = abs(int(offset))
+            size = 2*offset + 1
+            depthPatch = gl.glReadPixels(
+                x - offset, y - offset,
+                size, size,
+                gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)
+            depthPatch = depthPatch.ravel()  # Work in 1D
+
+            # TODO cache sortedIndices to avoid computing it each time
+            # Compute distance of each pixels to the center of the patch
+            offsetToCenter = numpy.arange(- offset, offset + 1, dtype=numpy.float32) ** 2
+            sqDistToCenter = numpy.add.outer(offsetToCenter, offsetToCenter)
+
+            # Use distance to center to sort values from the patch
+            sortedIndices = numpy.argsort(sqDistToCenter.ravel())
+            sortedValues = depthPatch[sortedIndices]
+
+            # Take first depth that is not 1 in the sorted values
+            hits = sortedValues[sortedValues != 1.]
+            depth = 1. if len(hits) == 0 else hits[0]
+
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
-        # This is not GL|ES friendly
 
         # Z in NDC in [-1., 1.]
         return float(depth) * 2. - 1.
