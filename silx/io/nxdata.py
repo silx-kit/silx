@@ -853,6 +853,10 @@ def get_default(group):
     return NXdata(default_data)
 
 
+def _str_to_utf8(text):
+    return numpy.array(text, dtype=h5py.special_dtype(vlen=six.text_type))
+
+
 def save_NXdata(filename, signal, axes=None,
                 signal_name="data", axes_names=None,
                 signal_long_name=None, axes_long_names=None,
@@ -939,9 +943,10 @@ def save_NXdata(filename, signal, axes=None,
         if nxentry_name is not None:
             entry = h5f.require_group(nxentry_name)
             if "default" not in h5f.attrs:
-                # NXroot@default attribute
-                h5f.attrs["default"] = nxentry_name
-                # TODO: add @NX_class: NXentry?
+                # set this entry as default
+                h5f.attrs["default"] = _str_to_utf8(nxentry_name)
+            if "NX_class" not in entry.attrs:
+                entry.attrs["NX_class"] = u"NXentry"
         else:
             # write NXdata into the root of the file (invalid nexus!)
             entry = h5f
@@ -963,24 +968,22 @@ def save_NXdata(filename, signal, axes=None,
                 i += 1
 
         data_group = entry.create_group(nxdata_name)
-        data_group.attrs["NX_class"] = "NXdata"
-        data_group.attrs["signal"] = signal_name
+        data_group.attrs["NX_class"] = u"NXdata"
+        data_group.attrs["signal"] = _str_to_utf8(signal_name)
         if axes:
-            data_group.attrs["axes"] = numpy.array(
-                    axes_names,
-                    dtype=h5py.special_dtype(vlen=six.text_type))      # variable length UTF-8
+            data_group.attrs["axes"] = _str_to_utf8(axes_names)
         if title:
             # not in NXdata spec, but implemented by nexpy
             data_group["title"] = title
             # better way imho
-            data_group.attrs["title"] = title
+            data_group.attrs["title"] = _str_to_utf8(title)
 
         signal_dataset = data_group.create_dataset(signal_name,
                                                    data=signal)
         if signal_long_name:
-            signal_dataset.attrs["long_name"] = signal_long_name
+            signal_dataset.attrs["long_name"] = _str_to_utf8(signal_long_name)
         if interpretation:
-            signal_dataset.attrs["interpretation"] = interpretation
+            signal_dataset.attrs["interpretation"] = _str_to_utf8(interpretation)
 
         for i, axis_array in enumerate(axes):
             if axis_array is None:
@@ -990,7 +993,7 @@ def save_NXdata(filename, signal, axes=None,
             axis_dataset = data_group.create_dataset(axes_names[i],
                                                      data=axis_array)
             if axes_long_names is not None:
-                axis_dataset.attrs["long_name"] = axes_long_names[i]
+                axis_dataset.attrs["long_name"] = _str_to_utf8(axes_long_names[i])
 
         if signal_errors is not None:
             data_group.create_dataset("errors",
@@ -1007,7 +1010,7 @@ def save_NXdata(filename, signal, axes=None,
                     data_group.create_dataset(dsname,
                                               data=axis_errors)
         if "default" not in entry.attrs:
-            # NXentry@default attribute
+            # set this NXdata as default
             entry.attrs["default"] = nxdata_name
 
     return True
