@@ -26,18 +26,20 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/08/2017"
+__date__ = "14/02/2018"
 
 
 import unittest
 from silx.gui.plot import PlotWidget
+from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.utils.axis import SyncAxes
 
 
-class TestAxisSync(unittest.TestCase):
+class TestAxisSync(TestCaseQt):
     """Tests AxisSync class"""
 
     def setUp(self):
+        TestCaseQt.setUp(self)
         self.plot1 = PlotWidget()
         self.plot2 = PlotWidget()
         self.plot3 = PlotWidget()
@@ -46,6 +48,7 @@ class TestAxisSync(unittest.TestCase):
         self.plot1 = None
         self.plot2 = None
         self.plot3 = None
+        TestCaseQt.tearDown(self)
 
     def testMoveFirstAxis(self):
         """Test synchronization after construction"""
