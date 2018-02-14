@@ -263,7 +263,7 @@ class DataFileDialog(AbstractDataFileDialog):
         elif self.__filter == DataFileDialog.FilterMode.ExistingGroup:
             return silx.io.is_group(data)
         else:
-            raise ValueError("Filter %s is not supported" % self.__nodeFilter)
+            raise ValueError("Filter %s is not supported" % self.__filter)
 
     def setFilterMode(self, mode):
         """Set the filter mode.
