@@ -2676,7 +2676,7 @@ class PlotWidget(qt.QMainWindow):
             def test(mark):
                 return True
 
-        markers = self._backend.pickItems(x, y)
+        markers = self._backend.pickItems(x, y, kinds=('marker',))
         legends = [m['legend'] for m in markers if m['kind'] == 'marker']
 
         for legend in reversed(legends):
@@ -2720,7 +2720,7 @@ class PlotWidget(qt.QMainWindow):
             def test(i):
                 return True
 
-        allItems = self._backend.pickItems(x, y)
+        allItems = self._backend.pickItems(x, y, kinds=('curve', 'image'))
         allItems = [item for item in allItems
                     if item['kind'] in ['curve', 'image']]
 

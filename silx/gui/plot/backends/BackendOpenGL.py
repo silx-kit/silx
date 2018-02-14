@@ -1223,90 +1223,93 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._plotFrame.size[1] - self._plotFrame.margins.bottom - 1)
         return xPlot, yPlot
 
-    def pickItems(self, x, y):
+    def pickItems(self, x, y, kinds):
         picked = []
 
         dataPos = self.pixelToData(x, y, axis='left', check=True)
         if dataPos is not None:
             # Pick markers
-            for marker in reversed(list(self._markers.values())):
-                pixelPos = self.dataToPixel(
-                    marker['x'], marker['y'], axis='left', check=False)
-                if pixelPos is None:  # negative coord on a log axis
-                    continue
+            if 'marker' in kinds:
+                for marker in reversed(list(self._markers.values())):
+                    pixelPos = self.dataToPixel(
+                        marker['x'], marker['y'], axis='left', check=False)
+                    if pixelPos is None:  # negative coord on a log axis
+                        continue
 
-                if marker['x'] is None:  # Horizontal line
-                    pt1 = self.pixelToData(
-                        x, y - self._PICK_OFFSET, axis='left', check=False)
-                    pt2 = self.pixelToData(
-                        x, y + self._PICK_OFFSET, axis='left', check=False)
-                    isPicked = (min(pt1[1], pt2[1]) <= marker['y'] <=
-                                max(pt1[1], pt2[1]))
+                    if marker['x'] is None:  # Horizontal line
+                        pt1 = self.pixelToData(
+                            x, y - self._PICK_OFFSET, axis='left', check=False)
+                        pt2 = self.pixelToData(
+                            x, y + self._PICK_OFFSET, axis='left', check=False)
+                        isPicked = (min(pt1[1], pt2[1]) <= marker['y'] <=
+                                    max(pt1[1], pt2[1]))
 
-                elif marker['y'] is None:  # Vertical line
-                    pt1 = self.pixelToData(
-                        x - self._PICK_OFFSET, y, axis='left', check=False)
-                    pt2 = self.pixelToData(
-                        x + self._PICK_OFFSET, y, axis='left', check=False)
-                    isPicked = (min(pt1[0], pt2[0]) <= marker['x'] <=
-                                max(pt1[0], pt2[0]))
+                    elif marker['y'] is None:  # Vertical line
+                        pt1 = self.pixelToData(
+                            x - self._PICK_OFFSET, y, axis='left', check=False)
+                        pt2 = self.pixelToData(
+                            x + self._PICK_OFFSET, y, axis='left', check=False)
+                        isPicked = (min(pt1[0], pt2[0]) <= marker['x'] <=
+                                    max(pt1[0], pt2[0]))
 
-                else:
-                    isPicked = (
-                        numpy.fabs(x - pixelPos[0]) <= self._PICK_OFFSET and
-                        numpy.fabs(y - pixelPos[1]) <= self._PICK_OFFSET)
+                    else:
+                        isPicked = (
+                            numpy.fabs(x - pixelPos[0]) <= self._PICK_OFFSET and
+                            numpy.fabs(y - pixelPos[1]) <= self._PICK_OFFSET)
 
-                if isPicked:
-                    picked.append(dict(kind='marker',
-                                       legend=marker['legend']))
+                    if isPicked:
+                        picked.append(dict(kind='marker',
+                                           legend=marker['legend']))
 
             # Pick image and curves
-            for item in self._plotContent.zOrderedPrimitives(reverse=True):
-                if isinstance(item, (GLPlotColormap, GLPlotRGBAImage)):
-                    pickedPos = item.pick(*dataPos)
-                    if pickedPos is not None:
-                        picked.append(dict(kind='image',
-                                           legend=item.info['legend']))
+            if 'image' in kinds or 'curve' in kinds:
+                for item in self._plotContent.zOrderedPrimitives(reverse=True):
+                    if ('image' in kinds and
+                            isinstance(item, (GLPlotColormap, GLPlotRGBAImage))):
+                        pickedPos = item.pick(*dataPos)
+                        if pickedPos is not None:
+                            picked.append(dict(kind='image',
+                                               legend=item.info['legend']))
 
-                elif isinstance(item, GLPlotCurve2D):
-                    offset = self._PICK_OFFSET
-                    if item.marker is not None:
-                        offset = max(item.markerSize / 2., offset)
-                    if item.lineStyle is not None:
-                        offset = max(item.lineWidth / 2., offset)
+                    elif 'curve' in kinds and isinstance(item, GLPlotCurve2D):
+                        offset = self._PICK_OFFSET
+                        if item.marker is not None:
+                            offset = max(item.markerSize / 2., offset)
+                        if item.lineStyle is not None:
+                            offset = max(item.lineWidth / 2., offset)
 
-                    yAxis = item.info['yAxis']
+                        yAxis = item.info['yAxis']
 
-                    inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
-                    dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                               axis=yAxis, check=True)
-                    if dataPos is None:
-                        continue
-                    xPick0, yPick0 = dataPos
+                        inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
+                        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
+                                                   axis=yAxis, check=True)
+                        if dataPos is None:
+                            continue
+                        xPick0, yPick0 = dataPos
 
-                    inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
-                    dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                               axis=yAxis, check=True)
-                    if dataPos is None:
-                        continue
-                    xPick1, yPick1 = dataPos
+                        inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
+                        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
+                                                   axis=yAxis, check=True)
+                        if dataPos is None:
+                            continue
+                        xPick1, yPick1 = dataPos
 
-                    if xPick0 < xPick1:
-                        xPickMin, xPickMax = xPick0, xPick1
-                    else:
-                        xPickMin, xPickMax = xPick1, xPick0
+                        if xPick0 < xPick1:
+                            xPickMin, xPickMax = xPick0, xPick1
+                        else:
+                            xPickMin, xPickMax = xPick1, xPick0
 
-                    if yPick0 < yPick1:
-                        yPickMin, yPickMax = yPick0, yPick1
-                    else:
-                        yPickMin, yPickMax = yPick1, yPick0
+                        if yPick0 < yPick1:
+                            yPickMin, yPickMax = yPick0, yPick1
+                        else:
+                            yPickMin, yPickMax = yPick1, yPick0
 
-                    pickedIndices = item.pick(xPickMin, yPickMin,
-                                              xPickMax, yPickMax)
-                    if pickedIndices:
-                        picked.append(dict(kind='curve',
-                                           legend=item.info['legend'],
-                                           indices=pickedIndices))
+                        pickedIndices = item.pick(xPickMin, yPickMin,
+                                                  xPickMax, yPickMax)
+                        if pickedIndices:
+                            picked.append(dict(kind='curve',
+                                               legend=item.info['legend'],
+                                               indices=pickedIndices))
 
         return picked
 
