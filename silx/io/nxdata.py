@@ -854,7 +854,7 @@ def get_default(group):
 
 
 def _str_to_utf8(text):
-    return numpy.array(text, dtype=h5py.special_dtype(six.text_type))
+    return numpy.array(text, dtype=h5py.special_dtype(vlen=six.text_type))
 
 
 def save_NXdata(filename, signal, axes=None,
