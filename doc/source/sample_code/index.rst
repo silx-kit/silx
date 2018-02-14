@@ -13,6 +13,9 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
 :mod:`silx.gui` sample code
 +++++++++++++++++++++++++++
 
+:mod:`silx.gui.icons`
+.....................
+
 .. list-table::
    :widths: 1 1 4
    :header-rows: 1
@@ -25,6 +28,22 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :height: 150px
          :align: center
      - Display available project icons using Qt.
+   * - :download:`icons.py <../../../examples/icons.py>`
+     - .. image:: img/icons.png
+         :height: 150px
+         :align: center
+     - Display available project icons using Qt.
+
+:mod:`silx.gui.data` and :mod:`silx.gui.hdf5`
+.............................................
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
    * - :download:`customHdf5TreeModel.py <../../../examples/customHdf5TreeModel.py>`
      - .. image:: img/customHdf5TreeModel.png
          :height: 150px
@@ -44,16 +63,33 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        .. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
            library, which is not a mandatory dependency for `silx`. You might need
            to install it if you don't already have it.
+
+:mod:`silx.gui.dialog`
+......................
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
    * - :download:`fileDialog.py <../../../examples/fileDialog.py>`
      - .. image:: img/fileDialog.png
          :height: 150px
          :align: center
      - Example for the use of the ImageFileDialog.
-   * - :download:`icons.py <../../../examples/icons.py>`
-     - .. image:: img/icons.png
-         :height: 150px
-         :align: center
-     - Display available project icons using Qt.
+
+:mod:`silx.gui.widgets`
+.......................
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
    * - :download:`periodicTable.py <../../../examples/periodicTable.py>`
      - .. image:: img/periodicTable.png
          :height: 150px
