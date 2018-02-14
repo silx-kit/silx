@@ -109,7 +109,8 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
 :mod:`silx.gui.plot` sample code
 ++++++++++++++++++++++++++++++++
 
-Sample code illustrating different plot widgets:
+Widgets
+.......
 
 .. list-table::
    :widths: 1 1 4
@@ -146,8 +147,10 @@ Sample code illustrating different plot widgets:
          :align: center
      - This script shows the features of a colormap dialog.
 
-Sample code that adds buttons to the toolbar of a silx plot widget by using
-:class:`~silx.gui.plot.actions.PlotAction`:
+:class:`silx.gui.plot.actions.PlotAction`
+.........................................
+
+Sample code that adds buttons to the toolbar of a silx plot widget.
 
 .. list-table::
    :widths: 1 1 4
@@ -191,7 +194,10 @@ Sample code that adds buttons to the toolbar of a silx plot widget by using
 
        See shiftPlotAction.py for a simpler example with more basic comments.
 
-Sample code that adds specific tools or functions to plot widgets:
+Add features to :class:`~silx.gui.plot.PlotWidget`
+..................................................
+
+Sample code that adds specific tools or functions to plot widgets.
 
 .. list-table::
    :widths: 1 1 4
