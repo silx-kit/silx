@@ -36,6 +36,7 @@ Public modules
    colormap.rst
    items.rst
    actions/index.rst
+   plottoolbuttons.rst
    plottools.rst
    profile.rst
    roi.rst

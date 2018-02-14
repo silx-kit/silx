@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a set of QToolButton to use with :class:`.PlotWidget`.
+"""This module provides a set of QToolButton to use with
+:class:`~silx.gui.plot.PlotWidget`.
 
 The following QToolButton are available:
 
-- :class:`AspectToolButton`
-- :class:`YAxisOriginToolButton`
-- :class:`ProfileToolButton`
+- :class:`.AspectToolButton`
+- :class:`.YAxisOriginToolButton`
+- :class:`.ProfileToolButton`
 
 """
 
@@ -46,7 +47,7 @@ _logger = logging.getLogger(__name__)
 
 
 class PlotToolButton(qt.QToolButton):
-    """A QToolButton connected to a :class:`.PlotWidget`.
+    """A QToolButton connected to a :class:`~silx.gui.plot.PlotWidget`.
     """
 
     def __init__(self, parent=None, plot=None):
@@ -93,6 +94,7 @@ class PlotToolButton(qt.QToolButton):
 
 
 class AspectToolButton(PlotToolButton):
+    """Tool button to switch keep aspect ratio of a plot"""
 
     STATE = None
     """Lazy loaded states used to feed AspectToolButton"""
@@ -159,6 +161,7 @@ class AspectToolButton(PlotToolButton):
 
 
 class YAxisOriginToolButton(PlotToolButton):
+    """Tool button to switch the Y axis orientation of a plot."""
 
     STATE = None
     """Lazy loaded states used to feed YAxisOriginToolButton"""
