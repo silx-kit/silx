@@ -356,15 +356,5 @@ Sample code that adds specific tools or functions to plot widgets.
      - Description
    * - :download:`writetoh5.py <../../../examples/writetoh5.py>`
      -
-     - This script converts a supported data file (SPEC, EDF...) to a HDF5 file.
-
-       By default, it creates a new output file or fails if the output file given
-       on the command line already exist, but the user can choose to overwrite
-       an existing file, or append data to an existing HDF5 file.
-
-       In case of appending data to HDF5 files, the user can choose between ignoring
-       input data if a corresponding dataset already exists in the output file, or
-       overwriting the existing dataset.
-
-       By default, new scans are written to the root (/) of the HDF5 file, but it is
-       possible to specify a different target path.
+     - This script is an example on how to use the :mod:`silx.io.convert` module.
+       See the follwing tutorial for more information: :doc:`../Tutorials/convert`
