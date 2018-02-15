@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/11/2017"
+__date__ = "15/02/2018"
 
 import collections
 import logging
@@ -41,6 +41,7 @@ from . import actions
 from . import items
 from .actions import medfilt as actions_medfilt
 from .actions import fit as actions_fit
+from .actions import control as actions_control
 from .actions import histogram as actions_histogram
 from . import PlotToolButtons
 from .PlotTools import PositionInfo
@@ -315,7 +316,7 @@ class PlotWindow(PlotWidget):
                 custom_banner=banner,
                 parent=self)
             self.addTabbedDockWidget(self._consoleDockWidget)
-            #self._consoleDockWidget.setVisible(True)
+            # self._consoleDockWidget.setVisible(True)
             self._consoleDockWidget.toggleViewAction().toggled.connect(
                 self.getConsoleAction().setChecked)
 
@@ -768,7 +769,7 @@ class Plot2D(PlotWindow):
                 break
         self.toolBar().insertAction(
             actions[index + 1],
-            self.getColorBarWidget().getToggleViewAction())
+            actions_control.ColorBarAction(self, self))
 
     def _getImageValue(self, x, y):
         """Get status bar value of top most image at position (x, y)

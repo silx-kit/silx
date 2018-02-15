@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "11/09/2017"
+__date__ = "15/02/2018"
 
 import numpy
 
@@ -82,6 +82,7 @@ from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
+from silx.gui.plot.actions import control as actions_control
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
 from silx.utils.deprecation import deprecated_warning
@@ -245,9 +246,8 @@ class StackView(qt.QMainWindow):
         for index, action in enumerate(actions):
             if action is self._plot.getColormapAction():
                 break
-        self._plot.toolBar().insertAction(
-            actions[index + 1],
-            self._plot.getColorBarWidget().getToggleViewAction())
+        self._colorbarAction = actions_control.ColorBarAction(self._plot, self._plot)
+        self._plot.toolBar().insertAction(actions[index + 1], self._colorbarAction)
 
     def _plotCallback(self, eventDict):
         """Callback for plot events.
@@ -972,6 +972,13 @@ class StackView(qt.QMainWindow):
         """
         return self._plot.getActiveImage(just_legend=just_legend)
 
+    def getColorBarAction(self):
+        """Returns the action managing the visibility of the colorbar.
+
+        :rtype: QAction
+        """
+        return self._colorbarAction
+
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
         """See :meth:`Plot.Plot.remove`"""
@@ -1102,7 +1109,7 @@ class StackViewMainWindow(StackView):
         menu.addSeparator()
         menu.addAction(self._plot.resetZoomAction)
         menu.addAction(self._plot.colormapAction)
-        menu.addAction(self._plot.getColorBarWidget().getToggleViewAction())
+        menu.addAction(self.getColorBarAction())
 
         menu.addAction(actions.control.KeepAspectRatioAction(self._plot, self))
         menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
