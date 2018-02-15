@@ -126,12 +126,16 @@ class AnimatedIconPreview(qt.QMainWindow):
         tool.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
         self.tools.append(tool)
 
-        icon = silx.gui.icons.MovieAnimatedIcon("process-working", self)
-        tool = AnimatedToolButton(panel)
-        tool.setIcon(icon)
-        tool.setText("MovieAnimatedIcon")
-        tool.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
-        self.tools.append(tool)
+        try:
+            icon = silx.gui.icons.MovieAnimatedIcon("process-working", self)
+            tool = AnimatedToolButton(panel)
+            tool.setIcon(icon)
+            tool.setText("MovieAnimatedIcon")
+            tool.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
+            self.tools.append(tool)
+        except ValueError:
+            # In case Qt is not bundled with MNG plugin
+            pass
 
         icon = silx.gui.icons.MultiImageAnimatedIcon("process-working", self)
         tool = AnimatedToolButton(panel)
