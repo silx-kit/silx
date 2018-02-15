@@ -13,6 +13,9 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
 :mod:`silx.gui` sample code
 +++++++++++++++++++++++++++
 
+:mod:`silx.gui.icons`
+.....................
+
 .. list-table::
    :widths: 1 1 4
    :header-rows: 1
@@ -24,12 +27,35 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
      - .. image:: img/animatedicons.png
          :height: 150px
          :align: center
-     - Display available project icons using Qt.
+     - Display silx available animated icons.
+
+       It illustrates the API handling animated icons.
+   * - :download:`icons.py <../../../examples/icons.py>`
+     - .. image:: img/icons.png
+         :height: 150px
+         :align: center
+     - Display icons available in silx.
+
+:mod:`silx.gui.data` and :mod:`silx.gui.hdf5`
+.............................................
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
    * - :download:`customHdf5TreeModel.py <../../../examples/customHdf5TreeModel.py>`
      - .. image:: img/customHdf5TreeModel.png
          :height: 150px
          :align: center
      - Qt Hdf5 widget examples
+   * - :download:`customDataView.py <../../../examples/customDataView.py>`
+     - .. image:: img/customDataView.png
+         :height: 150px
+         :align: center
+     - Qt data view example
    * - :download:`hdf5widget.py <../../../examples/hdf5widget.py>`
      - .. image:: img/hdf5widget.png
          :height: 150px
@@ -39,11 +65,33 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
        .. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
            library, which is not a mandatory dependency for `silx`. You might need
            to install it if you don't already have it.
-   * - :download:`icons.py <../../../examples/icons.py>`
-     - .. image:: img/icons.png
+
+:mod:`silx.gui.dialog`
+......................
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`fileDialog.py <../../../examples/fileDialog.py>`
+     - .. image:: img/fileDialog.png
          :height: 150px
          :align: center
-     - Display available project icons using Qt.
+     - Example for the use of the ImageFileDialog.
+
+:mod:`silx.gui.widgets`
+.......................
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
    * - :download:`periodicTable.py <../../../examples/periodicTable.py>`
      - .. image:: img/periodicTable.png
          :height: 150px
@@ -58,10 +106,14 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
 
        It shows the following widgets:
 
-       - :class:WaitingPushButton: A button with a progress-like waiting animated icon
+       - :class:`~silx.gui.widgets.WaitingPushButton`:
+         A button with a progress-like waiting animated icon.
 
 :mod:`silx.gui.plot` sample code
 ++++++++++++++++++++++++++++++++
+
+Widgets
+.......
 
 .. list-table::
    :widths: 1 1 4
@@ -70,13 +122,71 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
    * - Source
      - Screenshot
      - Description
+   * - :download:`imageview.py <../../../examples/imageview.py>`
+     - .. image:: img/imageview.png
+         :height: 150px
+         :align: center
+     - Example to show the use of :mod:`~silx.gui.plot.ImageView` widget.
+
+       It can be used to open an EDF or TIFF file from the shell command line.
+
+       To view an image file with the current installed silx library:
+       ``python examples/imageview.py <file to open>``
+       To get help:
+       ``python examples/imageview.py -h``
+
+       For developers with a git clone you can use it with the bootstrap
+       To view an image file with the current installed silx library:
+
+       ``./bootstrap.py python examples/imageview.py <file to open>``
+   * - :download:`stackView.py <../../../examples/stackView.py>`
+     - .. image:: img/stackView.png
+         :height: 150px
+         :align: center
+     - This script is a simple example to illustrate how to use the
+       :mod:`~silx.gui.plot.StackView` widget.
+   * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
+     - .. image:: img/colormapDialog.png
+         :height: 150px
+         :align: center
+     - This script shows the features of a :mod:`~silx.gui.plot.ColormapDialog`.
+
+:class:`silx.gui.plot.actions.PlotAction`
+.........................................
+
+Sample code that adds buttons to the toolbar of a silx plot widget.
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`plotClearAction.py <../../../examples/plotClearAction.py>`
+     - .. image:: img/plotClearAction.png
+         :height: 150px
+         :align: center
+     - This script shows how to create a minimalistic
+       :class:`~silx.gui.plot.actions.PlotAction` that clear the plot.
+
+       This illustrates how to add more buttons in a plot widget toolbar.
+   * - :download:`shiftPlotAction.py <../../../examples/shiftPlotAction.py>`
+     - .. image:: img/shiftPlotAction.png
+         :height: 150px
+         :align: center
+     - This script is a simple (trivial) example of how to create a :class:`~silx.gui.plot.PlotWindow`,
+       create a custom :class:`~silx.gui.plot.actions.PlotAction` and add it to the toolbar.
+
+       The action simply shifts the selected curve up by 1 unit by adding 1 to each
+       value of y.
    * - :download:`fftPlotAction.py <../../../examples/fftPlotAction.py>`,
        :download:`fft.png <../../../examples/fft.png>`
      - .. image:: img/fftPlotAction.png
          :height: 150px
          :align: center
-     - This script is a simple example of how to create a PlotWindow with a custom
-       PlotAction added to the toolbar.
+     - This script is a simple example of how to create a :class:`~silx.gui.plot.PlotWindow`
+       with a custom :class:`~silx.gui.plot.actions.PlotAction` added to the toolbar.
 
        The action computes the FFT of all curves and plots their amplitude spectrum.
        It also performs the reverse transform.
@@ -88,35 +198,47 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
           - how to add your own icon as a PNG file
 
        See shiftPlotAction.py for a simpler example with more basic comments.
-   * - :download:`imageview.py <../../../examples/imageview.py>`
-     - .. image:: img/imageview.png
+
+Add features to :class:`~silx.gui.plot.PlotWidget`
+..................................................
+
+Sample code that adds specific tools or functions to plot widgets.
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`plotWidget.py <../../../examples/plotWidget.py>`
+     - .. image:: img/plotWidget.png
          :height: 150px
          :align: center
-     - Example to show the use of `ImageView` widget. It can be used to open an EDF
-       or TIFF file from the shell command line.
+     - This script shows how to subclass :class:`~silx.gui.plot.PlotWidget` to tune its tools.
 
-       To view an image file with the current installed silx library:
-       ``python examples/imageview.py <file to open>``
-       To get help:
-       ``python examples/imageview.py -h``
+       It subclasses a :class:`~silx.gui.plot.PlotWidget` and adds toolbars and
+       a colorbar by using pluggable widgets:
 
-       For developers with a git clone you can use it with the bootstrap
-       To view an image file with the current installed silx library:
-
-       ``./bootstrap.py python examples/imageview.py <file to open>``
+       - QAction from :mod:`silx.gui.plot.actions`
+       - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
+       - QToolBar from :mod:`silx.gui.plot.PlotTools`
+       - :class:`silx.gui.plot.ColorBar.ColorBarWidget`
    * - :download:`plotContextMenu.py <../../../examples/plotContextMenu.py>`
      - .. image:: img/plotContextMenu.png
          :height: 150px
          :align: center
-     - This script illustrates the addition of a context menu to a PlotWidget.
+     - This script illustrates the addition of a context menu to a
+       :class:`~silx.gui.plot.PlotWidget`.
 
        This is done by adding a custom context menu to the plot area of PlotWidget:
-
        - set the context menu policy of the plot area to Qt.CustomContextMenu.
        - connect to the plot area customContextMenuRequested signal.
 
-       The same method works with PlotWindow, Plot1D and Plot2D widgets as they
-       inherit from PlotWidget.
+       The same method works with :class:`~silx.gui.plot.PlotWindow.PlotWindow`,
+       :class:`~silx.gui.plot.PlotWindow.Plot1D` and
+       :class:`~silx.gui.plot.PlotWindow.Plot2D` widgets as they
+       inherit from :class:`~silx.gui.plot.PlotWidget`.
 
        For more information on context menus, see Qt documentation.
    * - :download:`plotItemsSelector.py <../../../examples/plotItemsSelector.py>`
@@ -124,7 +246,7 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :height: 150px
          :align: center
      - This example illustrates how to use a :class:`ItemsSelectionDialog` widget
-       associated with a :class:`PlotWidget`.
+       associated with a :class:`~silx.gui.plot.PlotWidget`
    * - :download:`plotLimits.py <../../../examples/plotLimits.py>`
      - .. image:: img/plotLimits.png
          :height: 150px
@@ -135,62 +257,35 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
      - .. image:: img/plotUpdateFromThread.png
          :height: 150px
          :align: center
-     - This script illustrates the update of a silx.gui.plot widget from a thread.
+     - This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
 
        The problem is that plot and GUI methods should be called from the main thread.
        To safely update the plot from another thread, one need to make the update
        asynchronously from the main thread.
        In this example, this is achieved through a Qt signal.
 
-       In this example we create a subclass of :class:`silx.gui.plot.Plot1D`
+       In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot1D`
        that adds a thread-safe method to add curves:
        :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
-       This thread-safe method is then called from a thread to update the plot.
-   * - :download:`plotWidget.py <../../../examples/plotWidget.py>`
-     - .. image:: img/plotWidget.png
-         :height: 150px
-         :align: center
-     - This script shows how to subclass :class:`PlotWidget` to tune its tools.
-
-       It subclasses a :class:`silx.gui.plot.PlotWidget` and adds toolbars and
-       a colorbar by using pluggable widgets:
-
-       - QAction from :mod:`silx.gui.plot.actions`
-       - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
-       - QToolBar from :mod:`silx.gui.plot.PlotTools`
-       - :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar`.
+       This thread-safe method is then called from a thread to update the plot..
    * - :download:`printPreview.py <../../../examples/printPreview.py>`
      - .. image:: img/printPreview.png
          :height: 150px
          :align: center
      - This script illustrates how to add a print preview tool button to any plot
-       widget inheriting :class:`PlotWidget`.
+       widget inheriting :class:`~silx.gui.plot.PlotWidget`.
 
        Three plot widgets are instantiated. One of them uses a standalone
-       :class:`PrintPreviewToolButton`, while the other two use a
-       :class:`SingletonPrintPreviewToolButton` which allows them to send their content
-       to the same print preview page.
+       :class:`~silx.gui.plot.PrintPreviewToolButton.PrintPreviewToolButton`,
+       while the other two use a
+       :class:`~silx.gui.plot.PrintPreviewToolButton.SingletonPrintPreviewToolButton`
+       which allows them to send their content to the same print preview page.
    * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
      - .. image:: img/scatterMask.png
          :height: 150px
          :align: center
      - This example demonstrates how to use ScatterMaskToolsWidget
        and NamedScatterAlphaSlider with a PlotWidget.
-   * - :download:`shiftPlotAction.py <../../../examples/shiftPlotAction.py>`
-     - .. image:: img/shiftPlotAction.png
-         :height: 150px
-         :align: center
-     - This script is a simple (trivial) example of how to create a PlotWindow,
-       create a custom :class:`PlotAction` and add it to the toolbar.
-
-       The action simply shifts the selected curve up by 1 unit by adding 1 to each
-       value of y.
-   * - :download:`stackView.py <../../../examples/stackView.py>`
-     - .. image:: img/stackView.png
-         :height: 150px
-         :align: center
-     - This script is a simple example to illustrate how to use the StackView
-       widget.
    * - :download:`syncaxis.py <../../../examples/syncaxis.py>`
      - .. image:: img/syncaxis.png
          :height: 150px
@@ -261,15 +356,5 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
      - Description
    * - :download:`writetoh5.py <../../../examples/writetoh5.py>`
      -
-     - This script converts a supported data file (SPEC, EDF...) to a HDF5 file.
-
-       By default, it creates a new output file or fails if the output file given
-       on the command line already exist, but the user can choose to overwrite
-       an existing file, or append data to an existing HDF5 file.
-
-       In case of appending data to HDF5 files, the user can choose between ignoring
-       input data if a corresponding dataset already exists in the output file, or
-       overwriting the existing dataset.
-
-       By default, new scans are written to the root (/) of the HDF5 file, but it is
-       possible to specify a different target path.
+     - This script is an example of how to use the :mod:`silx.io.convert` module.
+       See the following tutorial for more information: :doc:`../Tutorials/convert`

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,15 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script shows how to subclass :class:`PlotWidget` to tune its tools.
+"""This script shows how to subclass :class:`~silx.gui.plot.PlotWidget` to tune its tools.
 
-It subclasses a :class:`silx.gui.plot.PlotWidget` and adds toolbars and
+It subclasses a :class:`~silx.gui.plot.PlotWidget` and adds toolbars and
 a colorbar by using pluggable widgets:
 
 - QAction from :mod:`silx.gui.plot.actions`
 - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
 - QToolBar from :mod:`silx.gui.plot.PlotTools`
-- :class:`ColorBarWidget` from :mod:`silx.gui.plot.ColorBar`.
+- :class:`silx.gui.plot.ColorBar.ColorBarWidget`
 """
 
 __authors__ = ["T. Vincent"]

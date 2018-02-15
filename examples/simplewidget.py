@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,8 @@
 
 It shows the following widgets:
 
-- :class:WaitingPushButton: A button with a progress-like waiting animated icon
+- :class:`~silx.gui.widgets.WaitingPushButton`:
+  A button with a progress-like waiting animated icon.
 """
 
 __authors__ = ["V. Valls"]

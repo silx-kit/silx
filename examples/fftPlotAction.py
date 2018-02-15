@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script is a simple example of how to create a PlotWindow with a custom
-PlotAction added to the toolbar.
+"""This script is a simple example of how to create a :class:`~silx.gui.plot.PlotWindow`
+with a custom :class:`~silx.gui.plot.actions.PlotAction` added to the toolbar.
 
 The action computes the FFT of all curves and plots their amplitude spectrum.
 It also performs the reverse transform.

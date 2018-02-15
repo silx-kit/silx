@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a set of QActions to use with :class:`PlotWidget`
+"""This package provides a set of QAction to use with
+:class:`~silx.gui.plot.PlotWidget`
 
-It also contains the :class:'.PlotAction' (Base class for QAction that operates
-on a PlotWidget)
+Those actions are useful to add menu items or toolbar items
+that interact with a :class:`~silx.gui.plot.PlotWidget`.
+
+It provides a base class used to define new plot actions:
+:class:`~silx.gui.plot.actions.PlotAction`.
 """
 
 __authors__ = ["H. Payno"]

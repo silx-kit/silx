@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script is a simple (trivial) example of how to create a PlotWindow,
-create a custom :class:`PlotAction` and add it to the toolbar.
+"""This script is a simple (trivial) example of how to create a :class:`~silx.gui.plot.PlotWindow`,
+create a custom :class:`~silx.gui.plot.actions.PlotAction` and add it to the toolbar.
 
 The action simply shifts the selected curve up by 1 unit by adding 1 to each
 value of y.
