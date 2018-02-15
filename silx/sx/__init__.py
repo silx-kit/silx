@@ -85,7 +85,7 @@ else:
         del _icons  # clean-up namespace
 
     from silx.gui.plot import *  # noqa
-    from ._plot import plot, imshow  # noqa
+    from ._plot import plot, imshow, ginput  # noqa
 
     try:
         import OpenGL as _OpenGL

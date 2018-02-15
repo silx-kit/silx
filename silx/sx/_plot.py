@@ -31,15 +31,22 @@ __date__ = "27/06/2017"
 
 
 import logging
+import time
+
 import numpy
 
-from ..gui.plot import Plot1D, Plot2D
+from ..utils.weakref import WeakList
+from ..gui import qt
+from ..gui.plot import Plot1D, Plot2D, PlotWidget
 from ..gui.plot.Colors import COLORDICT
 from ..gui.plot.Colormap import Colormap
 from silx.third_party import six
 
 
 _logger = logging.getLogger(__name__)
+
+_plots = WeakList()
+"""List of widgets created through plot and imshow"""
 
 
 def plot(*args, **kwargs):
@@ -186,6 +193,7 @@ def plot(*args, **kwargs):
                      color=color or curve_color)
 
     plt.show()
+    _plots.insert(0, plt)
     return plt
 
 
@@ -260,4 +268,179 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
         plt.addImage(data, origin=origin, scale=scale)
 
     plt.show()
+    _plots.insert(0, plt)
     return plt
+
+
+# TODO add action to toggle this mode + stop/start handling select on mode change
+# TODO support points, lines, rectangle
+class _GInputHandler(qt.QEventLoop):
+    """Implements :func:`ginput`
+
+    :param PlotWidget plot:
+    """
+
+    _LEGEND_TEMPLATE = "ginput %d"
+
+    def __init__(self, plot, n, timeout, showClicks):
+        super(_GInputHandler, self).__init__()
+
+        if not isinstance(plot, PlotWidget):
+            raise ValueError('plot is not a PlotWidget: %s', plot)
+
+        self._plot = plot
+        self._duration = 0
+        self._timeout = timeout
+        self._points = []
+        self._totalPoints = n
+        self._showClicks = showClicks
+        self._eventLoop = qt.QEventLoop()
+        self._endTime = 0.
+
+    def eventFilter(self, obj, event):
+        """Event filter for plot hide event"""
+        if event.type() == qt.QEvent.Hide:
+            self.quit()
+        elif event.type() == qt.QEvent.KeyPress:
+            if event.key() in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace):
+                if len(self._points) > 0:
+                    if self._showClicks:
+                        legend = self._LEGEND_TEMPLATE % (len(self._points) - 1,)
+                        self._plot.remove(legend, kind='marker')
+
+                    self._points.pop()
+                    self._updateStatusBar()
+            elif event.key() == qt.Qt.Key_Return:
+                self.quit()
+        return super(_GInputHandler, self).eventFilter(obj, event)
+
+    def exec_(self):
+        """Run blocking ginput handler"""
+        # Bootstrap
+        self._previousMode = self._plot.getInteractiveMode()
+        #self._plot.sigPlotSignal.connect(self._handleDraw)
+        #self._plot.setInteractiveMode(mode='draw', shape='vline', label='ginput')
+        self._plot.sigPlotSignal.connect(self._handleSelect)
+        self._plot.setInteractiveMode(mode='select')
+
+        self._plot.installEventFilter(self)
+
+        # Run
+        if self._timeout:
+            timeoutTimer = qt.QTimer()
+            timeoutTimer.timeout.connect(self._updateStatusBar)
+            timeoutTimer.start(1000)
+
+            self._endTime = time.time() + self._timeout
+            self._updateStatusBar()
+
+            result = super(_GInputHandler, self).exec_()
+
+            timeoutTimer.stop()
+        else:
+            result = super(_GInputHandler, self).exec_()
+
+        # Clean-up
+        self._plot.removeEventFilter(self)
+
+        #self._plot.sigPlotSignal.disconnect(self._handleDraw)
+        self._plot.sigPlotSignal.disconnect(self._handleSelect)
+
+        currentMode = self._plot.getInteractiveMode()
+        if currentMode['mode'] == 'draw':
+            self._plot.setInteractiveMode(**self._previousMode)
+        self._plot.statusBar().clearMessage()
+
+        if self._showClicks:
+            for index in range(len(self._points)):
+                self._plot.remove(self._LEGEND_TEMPLATE % (index,),
+                                  kind='marker')
+
+        return result
+
+    def _updateStatusBar(self):
+        """Update status bar message"""
+        msg = 'ginput: %d/%d input points' % (len(self._points),
+                                              self._totalPoints)
+        if self._timeout:
+            remaining = self._endTime - time.time()
+            if remaining < 0:
+                self.quit()
+                return
+            msg += ', %d seconds remaining' % max(1, int(remaining))
+
+        self._plot.statusBar().showMessage(msg)
+
+    def _handleDraw(self, event):
+        """Handle plot draw events"""
+        if event['event'] == 'drawingFinished':
+            x = event['xdata'][0]
+            if self._showClicks:
+                self._plot.addXMarker(
+                    x,
+                    legend=self._LEGEND_TEMPLATE % len(self._points),
+                    text='%d' % len(self._points),
+                    color='red',
+                    draggable=True)
+            self._points.append(x)
+            self._updateStatusBar()
+            if len(self._points) == self._totalPoints:
+                self.quit()
+
+    def _handleSelect(self, event):
+        """Handle mouse events"""
+        if event['event'] == 'mouseClicked' and event['button'] == 'left':
+            x, y = event['x'], event['y']
+            if self._showClicks:
+                self._plot.addMarker(
+                    x, y,
+                    legend=self._LEGEND_TEMPLATE % len(self._points),
+                    text='%d' % len(self._points),
+                    color='red',
+                    draggable=True)
+            self._points.append((x, y))
+            self._updateStatusBar()
+            if len(self._points) == self._totalPoints:
+                self.quit()
+
+    def getPoints(self):
+        """Returns input points
+
+        :rtype: tuple
+        """
+        return tuple(self._points)
+
+
+def ginput(n=1, timeout=30, show_clicks=True, plot=None):
+    """Get input points on a plot
+
+    :param int n:
+    :param float timeout:
+    :param show_clicks:
+    :param PlotWidget plot:
+    :return: List of clicked points coordinates (x, y) in plot
+    :raise RuntimeError: When there is no plot widget for interaction
+    :raise ValueError: If provided plot is not a PlotWidget
+    """
+    if plot is None:
+        # Select most recent visible plot widget
+        for widget in _plots:
+            if widget.isVisible():
+                plot = widget
+                break
+        else:  # If no plot widgets are visible, take most recent one
+            try:
+                plot = _plots[0]
+            except IndexError:
+                pass
+            else:
+                plot.show()
+
+        if plot is None:
+            raise RuntimeError('No plot available to perform ginput')
+
+    _logger.info('Performing ginput with plot widget %s', str(plot))
+    handler = _GInputHandler(plot, n, timeout, show_clicks)
+    handler.exec_()
+
+    return handler.getPoints()
