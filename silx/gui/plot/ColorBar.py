@@ -71,7 +71,6 @@ class ColorBarWidget(qt.QWidget):
     def __init__(self, parent=None, plot=None, legend=None):
         self._isConnected = False
         self._plot = None
-        self._viewAction = None
         self._colormap = None
         self._data = None
 
@@ -138,13 +137,9 @@ class ColorBarWidget(qt.QWidget):
 
     def showEvent(self, event):
         self._connectPlot()
-        if self._viewAction is not None:
-            self._viewAction.setChecked(True)
 
     def hideEvent(self, event):
         self._disconnectPlot()
-        if self._viewAction is not None:
-            self._viewAction.setChecked(False)
 
     def getColormap(self):
         """
@@ -238,21 +233,6 @@ class ColorBarWidget(qt.QWidget):
         :return: return the :class:`ColorScaleBar` used to display ColorScale
             and ticks"""
         return self._colorScale
-
-    def getToggleViewAction(self):
-        """Returns a checkable action controlling this widget's visibility.
-
-        :rtype: QAction
-        """
-        if self._viewAction is None:
-            self._viewAction = qt.QAction(self)
-            self._viewAction.setText('Colorbar')
-            self._viewAction.setIcon(icons.getQIcon('colorbar'))
-            self._viewAction.setToolTip('Show/Hide the colorbar')
-            self._viewAction.setCheckable(True)
-            self._viewAction.setChecked(self.isVisible())
-            self._viewAction.toggled[bool].connect(self.setVisible)
-        return self._viewAction
 
 
 class _VerticalLegend(qt.QLabel):
