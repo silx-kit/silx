@@ -26,8 +26,11 @@
 
 The `concurrent.futures` package is available in python>=3.2.
 
-Try to fill this module with the local copy of `concurrent.futures` if it exists.
-Otherwise it expects to have the `concurrent.futures` packaged installed in the Python path.
+For Python2, it tries to fill this module with the local copy
+of `concurrent.futures` if it exists.
+Otherwise it expects to have the `concurrent.futures` packaged
+installed in the Python path.
+For Python3, it uses the module from Python.
 
 It should be used like that:
 
@@ -43,9 +46,14 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/02/2018"
 
-try:
-    # try to import the local version
-    from ._local.concurrent_futures import *  # noqa
-except ImportError:
-    # else try to import it from the python path
+import sys
+
+if sys.version_info < (3,):  # Use Python 2 backport
+    try:
+        # try to import the local version
+        from ._local.concurrent_futures import *  # noqa
+    except ImportError:
+        # else try to import it from the python path
+        from concurrent.futures import *  # noqa
+else:  # Use Python 3 standard library
     from concurrent.futures import *  # noqa
