@@ -487,7 +487,6 @@ class TestSaveNXdata(unittest.TestCase):
 
         h5f = h5py.File(self.h5fname, "r")
 
-        print(list(h5f.keys()))
         self.assertTrue(nxdata.is_valid_nxdata(h5f["/entry/data0"]))
 
         nxd = nxdata.NXdata(h5f["/entry/data0"])
