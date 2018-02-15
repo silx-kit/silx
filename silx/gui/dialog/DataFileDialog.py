@@ -28,7 +28,7 @@ This module contains an :class:`DataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "14/02/2018"
 
 import logging
 from silx.gui import qt
@@ -148,9 +148,33 @@ class DataFileDialog(AbstractDataFileDialog):
 
     The selected data is any kind of group or dataset. It can be restricted
     to only existing datasets or only existing groups using
-    :meth:`setFilterMode`.
+    :meth:`setFilterMode`. A callback can be defining using
+    :meth:`setFilterCallback` to filter even more data which can be returned.
 
-    Using an `DataFileDialog` can be done like that:
+    Filtering data which can be returned by a `DataFileDialog` can be done like
+    that:
+
+    .. code-block:: python
+
+        # Force to return only a dataset
+        dialog = DataFileDialog()
+        dialog.setFilterMode(DataFileDialog.FilterMode.ExistingDataset)
+
+    .. code-block:: python
+
+        def customFilter(obj):
+            if "NX_class" in obj.attrs:
+                return obj.attrs["NX_class"] in [b"NXentry", u"NXentry"]
+            return False
+
+        # Force to return an NX entry
+        dialog = DataFileDialog()
+        # 1st, filter out everything which is not a group
+        dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+        # 2nd, check what NX_class is an NXentry
+        dialog.setFilterCallback(customFilter)
+
+    Executing a `DataFileDialog` can be done like that:
 
     .. code-block:: python
 
@@ -206,6 +230,7 @@ class DataFileDialog(AbstractDataFileDialog):
     def __init__(self, parent=None):
         AbstractDataFileDialog.__init__(self, parent=parent)
         self.__filter = DataFileDialog.FilterMode.AnyNode
+        self.__filterCallback = None
 
     def selectedData(self):
         """Returns the selected data by using the :meth:`silx.io.get_data`
@@ -257,18 +282,39 @@ class DataFileDialog(AbstractDataFileDialog):
         :rtype: bool
         """
         if self.__filter == DataFileDialog.FilterMode.AnyNode:
-            return True
+            accepted = True
         elif self.__filter == DataFileDialog.FilterMode.ExistingDataset:
-            return silx.io.is_dataset(data)
+            accepted = silx.io.is_dataset(data)
         elif self.__filter == DataFileDialog.FilterMode.ExistingGroup:
-            return silx.io.is_group(data)
+            accepted = silx.io.is_group(data)
         else:
-            raise ValueError("Filter %s is not supported" % self.__nodeFilter)
+            raise ValueError("Filter %s is not supported" % self.__filter)
+        if not accepted:
+            return False
+        if self.__filterCallback is not None:
+            try:
+                return self.__filterCallback(data)
+            except Exception:
+                _logger.error("Error while executing custom callback", exc_info=True)
+                return False
+        return True
+
+    def setFilterCallback(self, callback):
+        """Set the filter callback. This filter is applied only if the filter
+        mode (:meth:`filterMode`) first accepts the selected data.
+
+        It is not supposed to be set while the dialog is being used.
+
+        :param callable callback: Define a custom function returning a boolean
+            and taking as argument an h5-like node. If the function returns true
+            the dialog can return the associated URL.
+        """
+        self.__filterCallback = callback
 
     def setFilterMode(self, mode):
         """Set the filter mode.
 
-        It is not supposed to be set while the dialog it is used.
+        It is not supposed to be set while the dialog is being used.
 
         :param DataFileDialog.FilterMode mode: The new filter.
         """

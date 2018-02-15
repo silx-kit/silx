@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "14/02/2018"
 
 
 import unittest
@@ -74,6 +74,8 @@ def setUpModule():
         f["cube"] = [data, data + 1, data + 2]
         f["complex_image"] = data * 1j
         f["group/image"] = data
+        f["nxdata/foo"] = 10
+        f["nxdata"].attrs["NX_class"] = u"NXdata"
         f.close()
 
     filename = _tmpDirectory + "/badformat.h5"
@@ -682,6 +684,91 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
         self.assertFalse(button.isEnabled())
 
 
+class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
+
+    def setUp(self):
+        utils.TestCaseQt.setUp(self)
+        self.dialog = None
+
+    def tearDown(self):
+        if self.dialog is not None:
+            self.dialog._clear()
+            self.dialog = None
+        utils.TestCaseQt.tearDown(self)
+
+    def createDialog(self):
+        def customFilter(obj):
+            if "NX_class" in obj.attrs:
+                return obj.attrs["NX_class"] == u"NXdata"
+            return False
+
+        self.dialog = DataFileDialog()
+        self.dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+        self.dialog.setFilterCallback(customFilter)
+        return self.dialog
+
+    def testSelectGroupRefused_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        dialog = self.createDialog()
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+        self.assertTrue(dialog.isVisible())
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        self.assertFalse(button.isEnabled())
+
+        self.assertRaises(Exception, dialog.selectedData)
+
+    def testSelectNXdataAccepted_Activate(self):
+        if fabio is None:
+            self.skipTest("fabio is missing")
+        dialog = self.createDialog()
+        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+        self.assertTrue(dialog.isVisible())
+        filename = _tmpDirectory + "/data.h5"
+        dialog.selectFile(os.path.dirname(filename))
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().index(filename)
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        # select, then double click on the file
+        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/nxdata"])
+        browser.selectIndex(index)
+        browser.activated.emit(index)
+        self.qWaitForPendingActions(dialog)
+
+        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        self.assertTrue(button.isEnabled())
+        self.mouseClick(button, qt.Qt.LeftButton)
+        url = silx.io.url.DataUrl(dialog.selectedUrl())
+        self.assertEqual(url.data_path(), "/nxdata")
+        self.assertFalse(dialog.isVisible())
+        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+
+
 class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
     def setUp(self):
@@ -899,6 +986,7 @@ def suite():
     test_suite.addTest(loadTests(TestDataFileDialogApi))
     test_suite.addTest(loadTests(TestDataFileDialog_FilterDataset))
     test_suite.addTest(loadTests(TestDataFileDialog_FilterGroup))
+    test_suite.addTest(loadTests(TestDataFileDialog_FilterNXdata))
     return test_suite
 
 
