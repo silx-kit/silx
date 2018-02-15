@@ -975,6 +975,9 @@ class StackView(qt.QMainWindow):
     def getColorBarAction(self):
         """Returns the action managing the visibility of the colorbar.
 
+        .. warning:: to show/hide the plot colorbar call directly the ColorBar
+            widget using getColorBarWidget()
+
         :rtype: QAction
         """
         return self._colorbarAction

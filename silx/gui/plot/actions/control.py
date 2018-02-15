@@ -429,7 +429,7 @@ class ColorBarAction(PlotAction):
     def _actionTriggered(self, checked=False):
         """Create a cmap dialog and update active image and default cmap."""
         colorBarWidget = self.plot.getColorBarWidget()
-        if colorBarWidget.isVisible() == checked:
+        if not colorBarWidget.isHidden() == checked:
             return
         self.plot.getColorBarWidget().setVisible(checked)
 
