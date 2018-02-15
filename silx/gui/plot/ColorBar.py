@@ -27,7 +27,7 @@
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/04/2017"
+__date__ = "15/02/2018"
 
 
 import logging
@@ -405,8 +405,8 @@ class ColorScaleBar(qt.QWidget):
 
         :param val: if True, set the labels visible, otherwise set it not visible
         """
-        self._maxLabel.show() if val is True else self._maxLabel.hide()
-        self._minLabel.show() if val is True else self._minLabel.hide()
+        self._minLabel.setVisible(val)
+        self._maxLabel.setVisible(val)
 
     def _updateMinMax(self):
         """Update the min and max label if we are in the case of the
