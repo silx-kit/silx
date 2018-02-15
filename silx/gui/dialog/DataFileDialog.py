@@ -306,7 +306,7 @@ class DataFileDialog(AbstractDataFileDialog):
         It is not supposed to be set while the dialog is being used.
 
         :param callable callback: Define a custom function returning a boolean
-            an taking as argument an h5-like node. If the function returns true
+            and taking as argument an h5-like node. If the function returns true
             the dialog can return the associated URL.
         """
         self.__filterCallback = callback
