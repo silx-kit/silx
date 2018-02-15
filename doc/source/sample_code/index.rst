@@ -356,5 +356,5 @@ Sample code that adds specific tools or functions to plot widgets.
      - Description
    * - :download:`writetoh5.py <../../../examples/writetoh5.py>`
      -
-     - This script is an example on how to use the :mod:`silx.io.convert` module.
-       See the follwing tutorial for more information: :doc:`../Tutorials/convert`
+     - This script is an example of how to use the :mod:`silx.io.convert` module.
+       See the following tutorial for more information: :doc:`../Tutorials/convert`
