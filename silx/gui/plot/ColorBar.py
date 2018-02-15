@@ -65,6 +65,8 @@ class ColorBarWidget(qt.QWidget):
     :param plot: PlotWidget the colorbar is attached to (optional)
     :param str legend: the label to set to the colorbar
     """
+    sigVisibleChanged = qt.Signal(bool)
+    """Emitted when the property `visible` have changed."""
 
     def __init__(self, parent=None, plot=None, legend=None):
         self._isConnected = False
@@ -126,6 +128,13 @@ class ColorBarWidget(qt.QWidget):
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
             self._plot.sigPlotSignal.connect(self._defaultColormapChanged)
             self._isConnected = True
+
+    def setVisible(self, isVisible):
+        # isHidden looks to be always synchronized, while isVisible is not
+        wasHidden = self.isHidden()
+        qt.QWidget.setVisible(self, isVisible)
+        if wasHidden != self.isHidden():
+            self.sigVisibleChanged.emit(not self.isHidden())
 
     def showEvent(self, event):
         self._connectPlot()
