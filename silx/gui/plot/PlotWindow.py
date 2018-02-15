@@ -115,6 +115,9 @@ class PlotWindow(PlotWidget):
         self._maskToolsDockWidget = None
         self._consoleDockWidget = None
 
+        # Create color bar, hidden by default for backward compatibility
+        self._colorbar = ColorBarWidget(parent=self, plot=self)
+
         # Init actions
         self.group = qt.QActionGroup(self)
         self.group.setExclusive(False)
@@ -170,6 +173,12 @@ class PlotWindow(PlotWidget):
         self.colormapAction.setVisible(colormap)
         self.addAction(self.colormapAction)
 
+        self.colorbarAction = self.group.addAction(
+            actions_control.ColorBarAction(self, self))
+        self.colorbarAction.setVisible(False)
+        self.addAction(self.colorbarAction)
+        self._colorbar.setVisible(False)
+
         self.keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
             parent=self, plot=self)
         self.keepDataAspectRatioButton.setVisible(aspectRatio)
@@ -220,10 +229,6 @@ class PlotWindow(PlotWidget):
         self._consoleAction = None
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
-
-        # Create color bar, hidden by default for backward compatibility
-        self._colorbar = ColorBarWidget(parent=self, plot=self)
-        self._colorbar.setVisible(False)
 
         # Make colorbar background white
         self._colorbar.setAutoFillBackground(True)
@@ -699,6 +704,16 @@ class PlotWindow(PlotWidget):
         """
         return self._medianFilter2DAction
 
+    def getColorBarAction(self):
+        """Action toggling the colorbar show/hide action
+
+        .. warning:: to show/hide the plot colorbar call directly the ColorBar
+            widget using getColorBarWidget()
+
+        :rtype: actions.PlotAction
+        """
+        return self.colorbarAction
+
 
 class Plot1D(PlotWindow):
     """PlotWindow with tools specific for curves.
@@ -760,6 +775,7 @@ class Plot2D(PlotWindow):
         self.profile = ProfileToolBar(plot=self)
         self.addToolBar(self.profile)
 
+        self.colorbarAction.setVisible(True)
         self.getColorBarWidget().setVisible(True)
 
         # Put colorbar action after colormap action
@@ -767,9 +783,6 @@ class Plot2D(PlotWindow):
         for index, action in enumerate(actions):
             if action is self.getColormapAction():
                 break
-        self.toolBar().insertAction(
-            actions[index + 1],
-            actions_control.ColorBarAction(self, self))
 
     def _getImageValue(self, x, y):
         """Get status bar value of top most image at position (x, y)
