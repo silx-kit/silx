@@ -300,13 +300,13 @@ class DataFileDialog(AbstractDataFileDialog):
         return True
 
     def setFilterCallback(self, callback):
-        """Set the filter callback. This filter is applied if the filter mode
-        (:meth:`filterMode`) accept first the selected data.
+        """Set the filter callback. This filter is applied only if the filter
+        mode (:meth:`filterMode`) first accepts the selected data.
 
-        It is not supposed to be set while the dialog it is used.
+        It is not supposed to be set while the dialog is being used.
 
         :param callable callback: Define a custom function returning a boolean
-            an taking in argument an h5-like node. If the function returns true
+            an taking as argument an h5-like node. If the function returns true
             the dialog can return the associated URL.
         """
         self.__filterCallback = callback
@@ -314,7 +314,7 @@ class DataFileDialog(AbstractDataFileDialog):
     def setFilterMode(self, mode):
         """Set the filter mode.
 
-        It is not supposed to be set while the dialog it is used.
+        It is not supposed to be set while the dialog is being used.
 
         :param DataFileDialog.FilterMode mode: The new filter.
         """
