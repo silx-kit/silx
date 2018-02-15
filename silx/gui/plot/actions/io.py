@@ -61,10 +61,7 @@ _logger = logging.getLogger(__name__)
 
 
 _NEXUS_HDF5_EXT = [".nx5", ".nxs",  ".hdf", ".hdf5", ".cxi", ".h5"]
-_NEXUS_HDF5_EXT_STR = ""
-for ext in _NEXUS_HDF5_EXT:
-    _NEXUS_HDF5_EXT_STR += "*" + ext + " "
-_NEXUS_HDF5_EXT_STR = _NEXUS_HDF5_EXT_STR[:-1]
+_NEXUS_HDF5_EXT_STR = ' '.join(['*' + ext for ext in _NEXUS_HDF5_EXT])
 
 
 class SaveAction(PlotAction):
