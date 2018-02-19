@@ -302,7 +302,8 @@ class _GInputHandler(qt.QEventLoop):
         if event.type() == qt.QEvent.Hide:
             self.quit()
         elif event.type() == qt.QEvent.KeyPress:
-            if event.key() in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace):
+            if event.key() in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
+                    event.key() == qt.Qt.Key_Z and event.modifiers() & qt.Qt.ControlModifier):
                 if len(self._points) > 0:
                     if self._showClicks:
                         legend = self._LEGEND_TEMPLATE % (len(self._points) - 1,)
@@ -310,8 +311,10 @@ class _GInputHandler(qt.QEventLoop):
 
                     self._points.pop()
                     self._updateStatusBar()
+                    return True  # Stop further handling of those keys
             elif event.key() == qt.Qt.Key_Return:
                 self.quit()
+                return True  # Stop further handling of those keys
         return super(_GInputHandler, self).eventFilter(obj, event)
 
     def exec_(self):
