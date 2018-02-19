@@ -30,6 +30,44 @@ import functools
 
 from silx.gui import qt
 import silx.gui.icons
+import silx.resources
+
+
+class AnimatedToolButton(qt.QToolButton):
+    """ToolButton which support animated icons"""
+
+    def __init__(self, parent=None):
+        super(AnimatedToolButton, self).__init__(parent)
+        self.__animatedIcon = None
+
+    def setIcon(self, icon):
+        if isinstance(icon, silx.gui.icons.AbstractAnimatedIcon):
+            self._setAnimatedIcon(icon)
+        else:
+            self._setAnimatedIcon(None)
+            super(AnimatedToolButton, self).setIcon(icon)
+
+    def _setAnimatedIcon(self, icon):
+        if self.__animatedIcon is not None:
+            self.__animatedIcon.unregister(self)
+            self.__animatedIcon.iconChanged.disconnect(self.__updateIcon)
+        self.__animatedIcon = icon
+        if self.__animatedIcon is not None:
+            self.__animatedIcon.register(self)
+            self.__animatedIcon.iconChanged.connect(self.__updateIcon)
+            i = self.__animatedIcon.currentIcon()
+        else:
+            i = qt.QIcon()
+        super(AnimatedToolButton, self).setIcon(i)
+
+    def __updateIcon(self, icon):
+        super(AnimatedToolButton, self).setIcon(icon)
+
+    def icon(self):
+        if self.__animatedIcon is not None:
+            return self.__animatedIcon
+        else:
+            return super(AnimatedToolButton, self).icon()
 
 
 class IconPreview(qt.QMainWindow):
@@ -66,16 +104,7 @@ class IconPreview(qt.QMainWindow):
         button.setChecked(True)
         return panel
 
-    def createIconPanel(self, parent):
-        panel = qt.QWidget(parent)
-        layout = qt.QGridLayout()
-        # layout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
-        panel.setLayout(layout)
-
-        self.tools = []
-
-        import silx.resources
-
+    def getAllAvailableIcons(self):
         icons = silx.resources.list_dir("gui/icons")
         # filter out sub-directories
         icons = filter(lambda x: not silx.resources.is_dir("gui/icons/" + x), icons)
@@ -84,15 +113,43 @@ class IconPreview(qt.QMainWindow):
         # remove duplicated names
         icons = set(icons)
         # sort by names
+        return icons
+
+    def getAllAvailableAnimatedIcons(self):
+        icons = silx.resources.list_dir("gui/icons")
+        icons = filter(lambda x: silx.resources.exists("gui/icons/%s/00.png" % x), icons)
+        icons = filter(lambda x: not silx.resources.is_dir("gui/icons/%s/00.png" % x), icons)
+        return icons
+
+    def createIconPanel(self, parent):
+        panel = qt.QWidget(parent)
+        layout = qt.QGridLayout()
+        # layout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
+        panel.setLayout(layout)
+
+        self.tools = []
+
+        # Sort together animated and non animated icons
+        fix_icons = self.getAllAvailableIcons()
+        animated_icons = self.getAllAvailableAnimatedIcons()
+        icons = []
+        icons.extend([(i, "_") for i in fix_icons])
+        icons.extend([(i, "anim") for i in animated_icons])
         icons = sorted(icons)
 
-        for i, icon_name in enumerate(icons):
+        for i, icon_info in enumerate(icons):
+            icon_name, icon_kind = icon_info
             col, line = i / 10, i % 10
-            icon = silx.gui.icons.getQIcon(icon_name)
-            tool = qt.QToolButton(panel)
+            if icon_kind == "anim":
+                tool = AnimatedToolButton(panel)
+                icon = silx.gui.icons.getAnimatedIcon(icon_name)
+                tool.setToolTip("Animated icon '%s'" % icon_name)
+            else:
+                tool = qt.QToolButton(panel)
+                icon = silx.gui.icons.getQIcon(icon_name)
+                tool.setToolTip("Icon '%s'" % icon_name)
             tool.setIcon(icon)
             tool.setIconSize(qt.QSize(32, 32))
-            tool.setToolTip(icon_name)
             layout.addWidget(tool, col, line)
             self.tools.append(tool)
 

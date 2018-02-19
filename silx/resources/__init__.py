@@ -56,7 +56,7 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "15/02/2018"
 
 
 import os
@@ -192,6 +192,16 @@ def is_dir(resource):
     """
     path = resource_filename(resource)
     return os.path.isdir(path)
+
+
+def exists(resource):
+    """True is the resource exists.
+
+    :param str resource: Name of the resource
+    :rtype: bool
+    """
+    path = resource_filename(resource)
+    return os.path.exists(path)
 
 
 def _get_package_and_resource(resource, default_directory=None):

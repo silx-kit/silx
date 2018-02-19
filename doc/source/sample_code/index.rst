@@ -23,18 +23,11 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
    * - Source
      - Screenshot
      - Description
-   * - :download:`animatedicons.py <../../../examples/animatedicons.py>`
-     - .. image:: img/animatedicons.png
-         :height: 150px
-         :align: center
-     - Display silx available animated icons.
-
-       It illustrates the API handling animated icons.
    * - :download:`icons.py <../../../examples/icons.py>`
      - .. image:: img/icons.png
          :height: 150px
          :align: center
-     - Display icons available in silx.
+     - Display icons and animated icons provided by silx.
 
 :mod:`silx.gui.data` and :mod:`silx.gui.hdf5`
 .............................................
