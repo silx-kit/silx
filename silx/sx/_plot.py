@@ -272,8 +272,6 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     return plt
 
 
-# TODO add action to toggle this mode + stop/start handling select on mode change
-# TODO support points, lines, rectangle
 class _GInputHandler(qt.QEventLoop):
     """Implements :func:`ginput`
 
@@ -289,18 +287,17 @@ class _GInputHandler(qt.QEventLoop):
             raise ValueError('plot is not a PlotWidget: %s', plot)
 
         self._plot = plot
-        self._duration = 0
         self._timeout = timeout
         self._points = []
         self._totalPoints = n
         self._showClicks = showClicks
-        self._eventLoop = qt.QEventLoop()
         self._endTime = 0.
 
     def eventFilter(self, obj, event):
         """Event filter for plot hide event"""
         if event.type() == qt.QEvent.Hide:
             self.quit()
+
         elif event.type() == qt.QEvent.KeyPress:
             if event.key() in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
                     event.key() == qt.Qt.Key_Z and event.modifiers() & qt.Qt.ControlModifier):
@@ -312,19 +309,20 @@ class _GInputHandler(qt.QEventLoop):
                     self._points.pop()
                     self._updateStatusBar()
                     return True  # Stop further handling of those keys
+
             elif event.key() == qt.Qt.Key_Return:
                 self.quit()
                 return True  # Stop further handling of those keys
+
         return super(_GInputHandler, self).eventFilter(obj, event)
 
     def exec_(self):
         """Run blocking ginput handler"""
         # Bootstrap
-        self._previousMode = self._plot.getInteractiveMode()
-        #self._plot.sigPlotSignal.connect(self._handleDraw)
-        #self._plot.setInteractiveMode(mode='draw', shape='vline', label='ginput')
-        self._plot.sigPlotSignal.connect(self._handleSelect)
-        self._plot.setInteractiveMode(mode='select')
+        self._plot.setInteractiveMode(mode='zoom')
+        self._handleInteractiveModeChanged(None)
+        self._plot.sigInteractiveModeChanged.connect(
+            self._handleInteractiveModeChanged)
 
         self._plot.installEventFilter(self)
 
@@ -346,12 +344,13 @@ class _GInputHandler(qt.QEventLoop):
         # Clean-up
         self._plot.removeEventFilter(self)
 
-        #self._plot.sigPlotSignal.disconnect(self._handleDraw)
-        self._plot.sigPlotSignal.disconnect(self._handleSelect)
+        self._plot.sigInteractiveModeChanged.disconnect(
+            self._handleInteractiveModeChanged)
 
         currentMode = self._plot.getInteractiveMode()
-        if currentMode['mode'] == 'draw':
-            self._plot.setInteractiveMode(**self._previousMode)
+        if currentMode['mode'] == 'zoom':  # Stop handling mouse click
+            self._plot.sigPlotSignal.disconnect(self._handleSelect)
+
         self._plot.statusBar().clearMessage()
 
         if self._showClicks:
@@ -372,23 +371,11 @@ class _GInputHandler(qt.QEventLoop):
                 return
             msg += ', %d seconds remaining' % max(1, int(remaining))
 
-        self._plot.statusBar().showMessage(msg)
+        currentMode = self._plot.getInteractiveMode()
+        if currentMode['mode'] != 'zoom':
+            msg += ' (Use zoom mode to add/edit points)'
 
-    def _handleDraw(self, event):
-        """Handle plot draw events"""
-        if event['event'] == 'drawingFinished':
-            x = event['xdata'][0]
-            if self._showClicks:
-                self._plot.addXMarker(
-                    x,
-                    legend=self._LEGEND_TEMPLATE % len(self._points),
-                    text='%d' % len(self._points),
-                    color='red',
-                    draggable=True)
-            self._points.append(x)
-            self._updateStatusBar()
-            if len(self._points) == self._totalPoints:
-                self.quit()
+        self._plot.statusBar().showMessage(msg)
 
     def _handleSelect(self, event):
         """Handle mouse events"""
@@ -405,6 +392,18 @@ class _GInputHandler(qt.QEventLoop):
             self._updateStatusBar()
             if len(self._points) == self._totalPoints:
                 self.quit()
+
+    def _handleInteractiveModeChanged(self, source):
+        """Handle change of interactive mode in the plot
+
+        :param source: Objects that triggered the mode change
+        """
+        mode = self._plot.getInteractiveMode()
+        if mode['mode'] == 'zoom':  # Handle click events
+            self._plot.sigPlotSignal.connect(self._handleSelect)
+        else:  # Do not handle click event
+            self._plot.sigPlotSignal.disconnect(self._handleSelect)
+        self._updateStatusBar()
 
     def getPoints(self):
         """Returns input points
