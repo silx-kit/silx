@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/11/2017"
+__date__ = "15/02/2018"
 
 import collections
 import logging
@@ -41,6 +41,7 @@ from . import actions
 from . import items
 from .actions import medfilt as actions_medfilt
 from .actions import fit as actions_fit
+from .actions import control as actions_control
 from .actions import histogram as actions_histogram
 from . import PlotToolButtons
 from .PlotTools import PositionInfo
@@ -114,6 +115,9 @@ class PlotWindow(PlotWidget):
         self._maskToolsDockWidget = None
         self._consoleDockWidget = None
 
+        # Create color bar, hidden by default for backward compatibility
+        self._colorbar = ColorBarWidget(parent=self, plot=self)
+
         # Init actions
         self.group = qt.QActionGroup(self)
         self.group.setExclusive(False)
@@ -169,6 +173,12 @@ class PlotWindow(PlotWidget):
         self.colormapAction.setVisible(colormap)
         self.addAction(self.colormapAction)
 
+        self.colorbarAction = self.group.addAction(
+            actions_control.ColorBarAction(self, self))
+        self.colorbarAction.setVisible(False)
+        self.addAction(self.colorbarAction)
+        self._colorbar.setVisible(False)
+
         self.keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
             parent=self, plot=self)
         self.keepDataAspectRatioButton.setVisible(aspectRatio)
@@ -219,10 +229,6 @@ class PlotWindow(PlotWidget):
         self._consoleAction = None
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
-
-        # Create color bar, hidden by default for backward compatibility
-        self._colorbar = ColorBarWidget(parent=self, plot=self)
-        self._colorbar.setVisible(False)
 
         # Make colorbar background white
         self._colorbar.setAutoFillBackground(True)
@@ -315,7 +321,7 @@ class PlotWindow(PlotWidget):
                 custom_banner=banner,
                 parent=self)
             self.addTabbedDockWidget(self._consoleDockWidget)
-            #self._consoleDockWidget.setVisible(True)
+            # self._consoleDockWidget.setVisible(True)
             self._consoleDockWidget.toggleViewAction().toggled.connect(
                 self.getConsoleAction().setChecked)
 
@@ -698,6 +704,16 @@ class PlotWindow(PlotWidget):
         """
         return self._medianFilter2DAction
 
+    def getColorBarAction(self):
+        """Action toggling the colorbar show/hide action
+
+        .. warning:: to show/hide the plot colorbar call directly the ColorBar
+            widget using getColorBarWidget()
+
+        :rtype: actions.PlotAction
+        """
+        return self.colorbarAction
+
 
 class Plot1D(PlotWindow):
     """PlotWindow with tools specific for curves.
@@ -759,6 +775,7 @@ class Plot2D(PlotWindow):
         self.profile = ProfileToolBar(plot=self)
         self.addToolBar(self.profile)
 
+        self.colorbarAction.setVisible(True)
         self.getColorBarWidget().setVisible(True)
 
         # Put colorbar action after colormap action
@@ -766,9 +783,6 @@ class Plot2D(PlotWindow):
         for index, action in enumerate(actions):
             if action is self.getColormapAction():
                 break
-        self.toolBar().insertAction(
-            actions[index + 1],
-            self.getColorBarWidget().getToggleViewAction())
 
     def _getImageValue(self, x, y):
         """Get status bar value of top most image at position (x, y)

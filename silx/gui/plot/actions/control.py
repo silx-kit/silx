@@ -50,7 +50,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/01/2018"
+__date__ = "15/02/2018"
 
 from . import PlotAction
 import logging
@@ -399,6 +399,39 @@ class ColormapAction(PlotAction):
             self._dialog.setData(None)
 
         self._dialog.setColormap(colormap)
+
+
+class ColorBarAction(PlotAction):
+    """QAction opening the ColorBarWidget of the specified plot.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+    def __init__(self, plot, parent=None):
+        self._dialog = None  # To store an instance of ColormapDialog
+        super(ColorBarAction, self).__init__(
+            plot, icon='colorbar', text='Colorbar',
+            tooltip="Show/Hide the colorbar",
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        colorBarWidget = self.plot.getColorBarWidget()
+        old = self.blockSignals(True)
+        self.setChecked(colorBarWidget.isVisibleTo(self.plot))
+        self.blockSignals(old)
+        colorBarWidget.sigVisibleChanged.connect(self._widgetVisibleChanged)
+
+    def _widgetVisibleChanged(self, isVisible):
+        """Callback when the colorbar `visible` property change."""
+        if self.isChecked() == isVisible:
+            return
+        self.setChecked(isVisible)
+
+    def _actionTriggered(self, checked=False):
+        """Create a cmap dialog and update active image and default cmap."""
+        colorBarWidget = self.plot.getColorBarWidget()
+        if not colorBarWidget.isHidden() == checked:
+            return
+        self.plot.getColorBarWidget().setVisible(checked)
 
 
 class KeepAspectRatioAction(PlotAction):

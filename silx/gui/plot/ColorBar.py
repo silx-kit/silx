@@ -27,7 +27,7 @@
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/04/2017"
+__date__ = "15/02/2018"
 
 
 import logging
@@ -65,11 +65,12 @@ class ColorBarWidget(qt.QWidget):
     :param plot: PlotWidget the colorbar is attached to (optional)
     :param str legend: the label to set to the colorbar
     """
+    sigVisibleChanged = qt.Signal(bool)
+    """Emitted when the property `visible` have changed."""
 
     def __init__(self, parent=None, plot=None, legend=None):
         self._isConnected = False
         self._plot = None
-        self._viewAction = None
         self._colormap = None
         self._data = None
 
@@ -127,15 +128,18 @@ class ColorBarWidget(qt.QWidget):
             self._plot.sigPlotSignal.connect(self._defaultColormapChanged)
             self._isConnected = True
 
+    def setVisible(self, isVisible):
+        # isHidden looks to be always synchronized, while isVisible is not
+        wasHidden = self.isHidden()
+        qt.QWidget.setVisible(self, isVisible)
+        if wasHidden != self.isHidden():
+            self.sigVisibleChanged.emit(not self.isHidden())
+
     def showEvent(self, event):
         self._connectPlot()
-        if self._viewAction is not None:
-            self._viewAction.setChecked(True)
 
     def hideEvent(self, event):
         self._disconnectPlot()
-        if self._viewAction is not None:
-            self._viewAction.setChecked(False)
 
     def getColormap(self):
         """
@@ -229,21 +233,6 @@ class ColorBarWidget(qt.QWidget):
         :return: return the :class:`ColorScaleBar` used to display ColorScale
             and ticks"""
         return self._colorScale
-
-    def getToggleViewAction(self):
-        """Returns a checkable action controlling this widget's visibility.
-
-        :rtype: QAction
-        """
-        if self._viewAction is None:
-            self._viewAction = qt.QAction(self)
-            self._viewAction.setText('Colorbar')
-            self._viewAction.setIcon(icons.getQIcon('colorbar'))
-            self._viewAction.setToolTip('Show/Hide the colorbar')
-            self._viewAction.setCheckable(True)
-            self._viewAction.setChecked(self.isVisible())
-            self._viewAction.toggled[bool].connect(self.setVisible)
-        return self._viewAction
 
 
 class _VerticalLegend(qt.QLabel):
@@ -405,8 +394,8 @@ class ColorScaleBar(qt.QWidget):
 
         :param val: if True, set the labels visible, otherwise set it not visible
         """
-        self._maxLabel.show() if val is True else self._maxLabel.hide()
-        self._minLabel.show() if val is True else self._minLabel.hide()
+        self._minLabel.setVisible(val)
+        self._maxLabel.setVisible(val)
 
     def _updateMinMax(self):
         """Update the min and max label if we are in the case of the
@@ -779,7 +768,7 @@ class _TickBar(qt.QWidget):
         if self._norm == Colormap.Colormap.LINEAR:
             return 1 - (val - self._vmin) / (self._vmax - self._vmin)
         elif self._norm == Colormap.Colormap.LOGARITHM:
-            return 1 - (numpy.log10(val) - numpy.log10(self._vmin))/(numpy.log10(self._vmax) - numpy.log(self._vmin))
+            return 1 - (numpy.log10(val) - numpy.log10(self._vmin)) / (numpy.log10(self._vmax) - numpy.log(self._vmin))
         else:
             raise ValueError('Norm is not recognized')
 
