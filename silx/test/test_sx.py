@@ -164,6 +164,22 @@ else:
                             title='origin=(10, 10), scale=(2, 2)')
             self._expose_and_close(plt)
 
+        def test_ginput(self):
+            """Test ginput function
+
+            This does NOT perform interactive tests
+            """
+
+            plt = sx.plot()
+            self.qWaitForWindowExposed(plt)
+            self.qapp.processEvents()
+
+            result = sx.ginput(1, timeout=0.1)
+            self.assertEqual(len(result), 0)
+
+            plt.setAttribute(qt.Qt.WA_DeleteOnClose)
+            plt.close()
+
         @unittest.skipUnless(test_options.WITH_GL_TEST,
                              test_options.WITH_GL_TEST_REASON)
         def test_contour3d(self):
