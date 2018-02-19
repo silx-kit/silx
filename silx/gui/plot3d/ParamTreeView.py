@@ -512,7 +512,10 @@ class ParamTreeView(qt.QTreeView):
 
     def dataChanged(self, topLeft, bottomRight, roles=()):
         """Handle model dataChanged signal eventually closing editors"""
-        super(ParamTreeView, self).dataChanged(topLeft, bottomRight, roles)
+        if roles:  # Qt 5
+            super(ParamTreeView, self).dataChanged(topLeft, bottomRight, roles)
+        else:  # Qt4 compatibility
+            super(ParamTreeView, self).dataChanged(topLeft, bottomRight)
         if not roles or qt.Qt.UserRole in roles:  # Check editorHint update
             for row in range(topLeft.row(), bottomRight.row() + 1):
                 for column in range(topLeft.column(), bottomRight.column() + 1):
