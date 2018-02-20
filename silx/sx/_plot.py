@@ -505,6 +505,24 @@ def ginput(n=1, timeout=30, plot=None):
     If no plot is provided, it uses a plot widget created with
     either :func:`silx.sx.plot` or :func:`silx.sx.imshow`.
 
+    How to use:
+
+    >>> from silx import sx
+
+    >>> sx.imshow(image)  # Plot the image
+    >>> sx.ginput(1)  # Request selection on the image plot
+    ((0.598, 1.234))
+
+    How to get more information about the selected positions:
+
+    >>> positions = sx.ginput(1)
+
+    >>> positions[0].getData()  # Returns value(s) at selected position
+
+    >>> positions[0].getIndices()  # Returns data indices at selected position
+
+    >>> positions[0].getItem()  # Returns plot item at selected position
+
     :param int n: Number of points the user need to select
     :param float timeout: Timeout in seconds before ginput returns
         event if selection is not completed
