@@ -30,8 +30,10 @@ __license__ = "MIT"
 __date__ = "27/06/2017"
 
 
+import collections
 import logging
 import time
+import weakref
 
 import numpy
 
@@ -272,6 +274,60 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     return plt
 
 
+class _GInputResult(tuple):
+    """Object storing :func:`ginput` result
+
+    :param position: Selected point coordinates in the plot (x, y)
+    :param Item item: Plot item under the selected position
+    :param indices: Selected indices in the data of the item.
+       For a curve it is a list of indices, for an image it is (row, column)
+    :param data: Value of data at selected indices.
+       For a curve it is an array of values, for an image it is a single value
+    """
+
+    def __new__(cls, position, item, indices, data):
+        return super(_GInputResult, cls).__new__(cls, position)
+
+    def __init__(self, position, item, indices, data):
+        self._itemRef = weakref.ref(item) if item is not None else None
+        self._indices = numpy.array(indices, copy=True)
+        if isinstance(data, collections.Iterable):
+            self._data = numpy.array(data, copy=True)
+        else:
+            self._data = data
+
+    def getItem(self):
+        """Returns the item at the selected position if any.
+
+        :return: plot item under the selected postion.
+           It is None if there was no item at that position or if
+           it is no more in the plot.
+        :rtype: silx.gui.plot.items.Item"""
+        return None if self._itemRef is None else self._itemRef()
+
+    def getIndices(self):
+        """Returns indices in data array at the select position
+
+        :return: 1D array of indices for curve and (row, column) for images
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(self._indices, copy=True)
+
+    def getData(self):
+        """Returns data value at the selected position.
+
+        For curves, an array of (x, y) values close to the point is returned.
+        For images, either a single value or a RGB(A) array is returned.
+
+        :return: 2D array of (x, y) data values for curves (Nx2),
+            a single value for data images and RGB(A) array for images.
+        """
+        if isinstance(self._data, numpy.ndarray):
+            return numpy.array(self._data, copy=True)
+        else:
+            return self._data
+
+
 class _GInputHandler(qt.QEventLoop):
     """Implements :func:`ginput`
 
@@ -357,7 +413,42 @@ class _GInputHandler(qt.QEventLoop):
         points = []
         for legend in self._markers:
             marker = self._plot._getItem(kind='marker', legend=legend)
-            points.append(marker.getPosition())
+            position = marker.getPosition()
+
+            xPixel, yPixel = self._plot.dataToPixel(
+                position[0], position[1], check=False)
+            picked = self._plot._pickImageOrCurve(xPixel, yPixel)
+
+            if picked is None:
+                result = _GInputResult(position,
+                                       item=None,
+                                       indices=numpy.array((), dtype=int),
+                                       data=None)
+
+            elif picked[0] == 'curve':
+                curve = picked[1]
+                indices = picked[2]
+                x = curve.getXData(copy=False)[indices]
+                y = curve.getYData(copy=False)[indices]
+                result = _GInputResult(position,
+                                       item=curve,
+                                       indices=indices,
+                                       data=numpy.array((x, y)).T)
+
+            elif picked[0] == 'image':
+                image = picked[1]
+                # Get corresponding coordinate in image
+                origin = image.getOrigin()
+                scale = image.getScale()
+                column = int((position[0] - origin[0]) / float(scale[0]))
+                row = int((position[1] - origin[1]) / float(scale[1]))
+                data = image.getData(copy=False)[row, column]
+                result = _GInputResult(position,
+                                       item=image,
+                                       indices=(row, column),
+                                       data=data)
+
+            points.append(result)
             self._plot.remove(legend=legend, kind='marker')
 
         return tuple(points) if returnCode == 0 else ()
@@ -412,7 +503,7 @@ def ginput(n=1, timeout=30, plot=None):
     """Get input points on a plot.
 
     If no plot is provided, it uses a plot widget created with
-    either :func:`sx.plot` or :func:`sx.imshow`.
+    either :func:`silx.sx.plot` or :func:`silx.sx.imshow`.
 
     :param int n: Number of points the user need to select
     :param float timeout: Timeout in seconds before ginput returns
