@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/01/2018"
+__date__ = "20/02/2018"
 
 
 import logging
@@ -194,6 +194,39 @@ class Hdf5TreeView(qt.QTreeView):
                     continue
                 yield _utils.H5Node(item)
 
+    def __intermediateModels(self, index):
+        """Returns intermediate models from the view model to the
+        model of the index."""
+        models = []
+        targetModel = index.model()
+        model = self.model()
+        while model is not None:
+            if model is targetModel:
+                # found
+                return models
+            models.append(model)
+            if isinstance(model, qt.QAbstractProxyModel):
+                model = model.sourceModel()
+            else:
+                break
+        raise RuntimeError("Model from the requested model is not reachable from this view")
+
+    def mapToModel(self, index):
+        """Map an index from any model reachable by the view to an index from
+        the very first model connected to the view.
+        Hdf5Trree model
+
+        :param qt.QModelIndex index: Index from the Hdf5Tree model
+        :rtype: qt.QModelIndex
+        :return: Index from the model connected to the view
+        """
+        if not index.isValid():
+            return index
+        models = self.__intermediateModels(index)
+        for model in reversed(models):
+            index = model.mapFromSource(index)
+        return index
+
     def setSelectedH5Node(self, h5Object):
         """
         Select the specified node of the tree using an h5py node.
@@ -211,6 +244,7 @@ class Hdf5TreeView(qt.QTreeView):
 
         model = self.findHdf5TreeModel()
         index = model.indexFromH5Object(h5Object)
+        index = self.mapToModel(index)
         if index.isValid():
             # Update the GUI
             i = index
