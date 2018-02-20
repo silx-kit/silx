@@ -549,6 +549,8 @@ def ginput(n=1, timeout=30, plot=None):
             plot = Plot1D()
             plot.show()
 
+    plot.raise_()  # So window becomes the top level one
+
     _logger.info('Performing ginput with plot widget %s', str(plot))
     handler = _GInputHandler(plot, n, timeout)
     points = handler.exec_()
