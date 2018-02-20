@@ -276,11 +276,11 @@ class _GInputHandler(qt.QEventLoop):
     """Implements :func:`ginput`
 
     :param PlotWidget plot:
+    :param int n:
+    :param float timeout:
     """
 
-    _LEGEND_TEMPLATE = "ginput %d"
-
-    def __init__(self, plot, n, timeout, showClicks):
+    def __init__(self, plot, n, timeout):
         super(_GInputHandler, self).__init__()
 
         if not isinstance(plot, PlotWidget):
@@ -288,9 +288,8 @@ class _GInputHandler(qt.QEventLoop):
 
         self._plot = plot
         self._timeout = timeout
-        self._points = []
+        self._markers = []
         self._totalPoints = n
-        self._showClicks = showClicks
         self._endTime = 0.
 
     def eventFilter(self, obj, event):
@@ -301,12 +300,10 @@ class _GInputHandler(qt.QEventLoop):
         elif event.type() == qt.QEvent.KeyPress:
             if event.key() in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
                     event.key() == qt.Qt.Key_Z and event.modifiers() & qt.Qt.ControlModifier):
-                if len(self._points) > 0:
-                    if self._showClicks:
-                        legend = self._LEGEND_TEMPLATE % (len(self._points) - 1,)
-                        self._plot.remove(legend, kind='marker')
+                if len(self._markers) > 0:
+                    legend = self._markers.pop()
+                    self._plot.remove(legend=legend, kind='marker')
 
-                    self._points.pop()
                     self._updateStatusBar()
                     return True  # Stop further handling of those keys
 
@@ -317,7 +314,10 @@ class _GInputHandler(qt.QEventLoop):
         return super(_GInputHandler, self).eventFilter(obj, event)
 
     def exec_(self):
-        """Run blocking ginput handler"""
+        """Run blocking ginput handler
+
+        :returns: List of selected points
+        """
         # Bootstrap
         self._plot.setInteractiveMode(mode='zoom')
         self._handleInteractiveModeChanged(None)
@@ -335,11 +335,11 @@ class _GInputHandler(qt.QEventLoop):
             self._endTime = time.time() + self._timeout
             self._updateStatusBar()
 
-            result = super(_GInputHandler, self).exec_()
+            returnCode = super(_GInputHandler, self).exec_()
 
             timeoutTimer.stop()
         else:
-            result = super(_GInputHandler, self).exec_()
+            returnCode = super(_GInputHandler, self).exec_()
 
         # Clean-up
         self._plot.removeEventFilter(self)
@@ -353,16 +353,18 @@ class _GInputHandler(qt.QEventLoop):
 
         self._plot.statusBar().clearMessage()
 
-        if self._showClicks:
-            for index in range(len(self._points)):
-                self._plot.remove(self._LEGEND_TEMPLATE % (index,),
-                                  kind='marker')
+        # Get points and remove markers
+        points = []
+        for legend in self._markers:
+            marker = self._plot._getItem(kind='marker', legend=legend)
+            points.append(marker.getPosition())
+            self._plot.remove(legend=legend, kind='marker')
 
-        return result
+        return tuple(points) if returnCode == 0 else ()
 
     def _updateStatusBar(self):
         """Update status bar message"""
-        msg = 'ginput: %d/%d input points' % (len(self._points),
+        msg = 'ginput: %d/%d input points' % (len(self._markers),
                                               self._totalPoints)
         if self._timeout:
             remaining = self._endTime - time.time()
@@ -381,16 +383,16 @@ class _GInputHandler(qt.QEventLoop):
         """Handle mouse events"""
         if event['event'] == 'mouseClicked' and event['button'] == 'left':
             x, y = event['x'], event['y']
-            if self._showClicks:
-                self._plot.addMarker(
-                    x, y,
-                    legend=self._LEGEND_TEMPLATE % len(self._points),
-                    text='%d' % len(self._points),
-                    color='red',
-                    draggable=True)
-            self._points.append((x, y))
+            legend = "sx.ginput %d" % len(self._markers)
+            self._plot.addMarker(
+                x, y,
+                legend=legend,
+                text='%d' % len(self._markers),
+                color='red',
+                draggable=True)
+            self._markers.append(legend)
             self._updateStatusBar()
-            if len(self._points) == self._totalPoints:
+            if len(self._markers) == self._totalPoints:
                 self.quit()
 
     def _handleInteractiveModeChanged(self, source):
@@ -405,23 +407,18 @@ class _GInputHandler(qt.QEventLoop):
             self._plot.sigPlotSignal.disconnect(self._handleSelect)
         self._updateStatusBar()
 
-    def getPoints(self):
-        """Returns input points
 
-        :rtype: tuple
-        """
-        return tuple(self._points)
+def ginput(n=1, timeout=30, plot=None):
+    """Get input points on a plot.
 
+    If no plot is provided, it uses a plot widget created with
+    either :func:`sx.plot` or :func:`sx.imshow`.
 
-def ginput(n=1, timeout=30, show_clicks=True, plot=None):
-    """Get input points on a plot
-
-    :param int n:
-    :param float timeout:
-    :param show_clicks:
-    :param PlotWidget plot:
+    :param int n: Number of points the user need to select
+    :param float timeout: Timeout in seconds before ginput returns
+        event if selection is not completed
+    :param PlotWidget plot: An optional PlotWidget from which to get input
     :return: List of clicked points coordinates (x, y) in plot
-    :raise RuntimeError: When there is no plot widget for interaction
     :raise ValueError: If provided plot is not a PlotWidget
     """
     if plot is None:
@@ -439,10 +436,12 @@ def ginput(n=1, timeout=30, show_clicks=True, plot=None):
                 plot.show()
 
         if plot is None:
-            raise RuntimeError('No plot available to perform ginput')
+            _logger.warning('No plot available to perform ginput, create one')
+            plot = Plot1D()
+            plot.show()
 
     _logger.info('Performing ginput with plot widget %s', str(plot))
-    handler = _GInputHandler(plot, n, timeout, show_clicks)
-    handler.exec_()
+    handler = _GInputHandler(plot, n, timeout)
+    points = handler.exec_()
 
-    return handler.getPoints()
+    return points
