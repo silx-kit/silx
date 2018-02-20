@@ -30,16 +30,25 @@ __license__ = "MIT"
 __date__ = "27/06/2017"
 
 
+import collections
 import logging
+import time
+import weakref
+
 import numpy
 
-from ..gui.plot import Plot1D, Plot2D
+from ..utils.weakref import WeakList
+from ..gui import qt
+from ..gui.plot import Plot1D, Plot2D, PlotWidget
 from ..gui.plot.Colors import COLORDICT
 from ..gui.plot.Colormap import Colormap
 from silx.third_party import six
 
 
 _logger = logging.getLogger(__name__)
+
+_plots = WeakList()
+"""List of widgets created through plot and imshow"""
 
 
 def plot(*args, **kwargs):
@@ -186,6 +195,7 @@ def plot(*args, **kwargs):
                      color=color or curve_color)
 
     plt.show()
+    _plots.insert(0, plt)
     return plt
 
 
@@ -260,4 +270,289 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
         plt.addImage(data, origin=origin, scale=scale)
 
     plt.show()
+    _plots.insert(0, plt)
     return plt
+
+
+class _GInputResult(tuple):
+    """Object storing :func:`ginput` result
+
+    :param position: Selected point coordinates in the plot (x, y)
+    :param Item item: Plot item under the selected position
+    :param indices: Selected indices in the data of the item.
+       For a curve it is a list of indices, for an image it is (row, column)
+    :param data: Value of data at selected indices.
+       For a curve it is an array of values, for an image it is a single value
+    """
+
+    def __new__(cls, position, item, indices, data):
+        return super(_GInputResult, cls).__new__(cls, position)
+
+    def __init__(self, position, item, indices, data):
+        self._itemRef = weakref.ref(item) if item is not None else None
+        self._indices = numpy.array(indices, copy=True)
+        if isinstance(data, collections.Iterable):
+            self._data = numpy.array(data, copy=True)
+        else:
+            self._data = data
+
+    def getItem(self):
+        """Returns the item at the selected position if any.
+
+        :return: plot item under the selected postion.
+           It is None if there was no item at that position or if
+           it is no more in the plot.
+        :rtype: silx.gui.plot.items.Item"""
+        return None if self._itemRef is None else self._itemRef()
+
+    def getIndices(self):
+        """Returns indices in data array at the select position
+
+        :return: 1D array of indices for curve and (row, column) for images
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(self._indices, copy=True)
+
+    def getData(self):
+        """Returns data value at the selected position.
+
+        For curves, an array of (x, y) values close to the point is returned.
+        For images, either a single value or a RGB(A) array is returned.
+
+        :return: 2D array of (x, y) data values for curves (Nx2),
+            a single value for data images and RGB(A) array for images.
+        """
+        if isinstance(self._data, numpy.ndarray):
+            return numpy.array(self._data, copy=True)
+        else:
+            return self._data
+
+
+class _GInputHandler(qt.QEventLoop):
+    """Implements :func:`ginput`
+
+    :param PlotWidget plot:
+    :param int n:
+    :param float timeout:
+    """
+
+    def __init__(self, plot, n, timeout):
+        super(_GInputHandler, self).__init__()
+
+        if not isinstance(plot, PlotWidget):
+            raise ValueError('plot is not a PlotWidget: %s', plot)
+
+        self._plot = plot
+        self._timeout = timeout
+        self._markersAndResult = []
+        self._totalPoints = n
+        self._endTime = 0.
+
+    def eventFilter(self, obj, event):
+        """Event filter for plot hide event"""
+        if event.type() == qt.QEvent.Hide:
+            self.quit()
+
+        elif event.type() == qt.QEvent.KeyPress:
+            if event.key() in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
+                    event.key() == qt.Qt.Key_Z and event.modifiers() & qt.Qt.ControlModifier):
+                if len(self._markersAndResult) > 0:
+                    legend, _ = self._markersAndResult.pop()
+                    self._plot.remove(legend=legend, kind='marker')
+
+                    self._updateStatusBar()
+                    return True  # Stop further handling of those keys
+
+            elif event.key() == qt.Qt.Key_Return:
+                self.quit()
+                return True  # Stop further handling of those keys
+
+        return super(_GInputHandler, self).eventFilter(obj, event)
+
+    def exec_(self):
+        """Run blocking ginput handler
+
+        :returns: List of selected points
+        """
+        # Bootstrap
+        self._plot.setInteractiveMode(mode='zoom')
+        self._handleInteractiveModeChanged(None)
+        self._plot.sigInteractiveModeChanged.connect(
+            self._handleInteractiveModeChanged)
+
+        self._plot.installEventFilter(self)
+
+        # Run
+        if self._timeout:
+            timeoutTimer = qt.QTimer()
+            timeoutTimer.timeout.connect(self._updateStatusBar)
+            timeoutTimer.start(1000)
+
+            self._endTime = time.time() + self._timeout
+            self._updateStatusBar()
+
+            returnCode = super(_GInputHandler, self).exec_()
+
+            timeoutTimer.stop()
+        else:
+            returnCode = super(_GInputHandler, self).exec_()
+
+        # Clean-up
+        self._plot.removeEventFilter(self)
+
+        self._plot.sigInteractiveModeChanged.disconnect(
+            self._handleInteractiveModeChanged)
+
+        currentMode = self._plot.getInteractiveMode()
+        if currentMode['mode'] == 'zoom':  # Stop handling mouse click
+            self._plot.sigPlotSignal.disconnect(self._handleSelect)
+
+        self._plot.statusBar().clearMessage()
+
+        points = tuple(result for _, result in self._markersAndResult)
+
+        for legend, _ in self._markersAndResult:
+            self._plot.remove(legend=legend, kind='marker')
+        self._markersAndResult = []
+
+        return points if returnCode == 0 else ()
+
+    def _updateStatusBar(self):
+        """Update status bar message"""
+        msg = 'ginput: %d/%d input points' % (len(self._markersAndResult),
+                                              self._totalPoints)
+        if self._timeout:
+            remaining = self._endTime - time.time()
+            if remaining < 0:
+                self.quit()
+                return
+            msg += ', %d seconds remaining' % max(1, int(remaining))
+
+        currentMode = self._plot.getInteractiveMode()
+        if currentMode['mode'] != 'zoom':
+            msg += ' (Use zoom mode to add/remove points)'
+
+        self._plot.statusBar().showMessage(msg)
+
+    def _handleSelect(self, event):
+        """Handle mouse events"""
+        if event['event'] == 'mouseClicked' and event['button'] == 'left':
+            x, y = event['x'], event['y']
+            xPixel, yPixel = event['xpixel'], event['ypixel']
+
+            # Add marker
+            legend = "sx.ginput %d" % len(self._markersAndResult)
+            self._plot.addMarker(
+                x, y,
+                legend=legend,
+                text='%d' % len(self._markersAndResult),
+                color='red',
+                draggable=False)
+
+            # Pick item at selected position
+            picked = self._plot._pickImageOrCurve(xPixel, yPixel)
+
+            if picked is None:
+                result = _GInputResult((x, y),
+                                       item=None,
+                                       indices=numpy.array((), dtype=int),
+                                       data=None)
+
+            elif picked[0] == 'curve':
+                curve = picked[1]
+                indices = picked[2]
+                xData = curve.getXData(copy=False)[indices]
+                yData = curve.getYData(copy=False)[indices]
+                result = _GInputResult((x, y),
+                                       item=curve,
+                                       indices=indices,
+                                       data=numpy.array((xData, yData)).T)
+
+            elif picked[0] == 'image':
+                image = picked[1]
+                # Get corresponding coordinate in image
+                origin = image.getOrigin()
+                scale = image.getScale()
+                column = int((x - origin[0]) / float(scale[0]))
+                row = int((y - origin[1]) / float(scale[1]))
+                data = image.getData(copy=False)[row, column]
+                result = _GInputResult((x, y),
+                                       item=image,
+                                       indices=(row, column),
+                                       data=data)
+
+            self._markersAndResult.append((legend, result))
+            self._updateStatusBar()
+            if len(self._markersAndResult) == self._totalPoints:
+                self.quit()
+
+    def _handleInteractiveModeChanged(self, source):
+        """Handle change of interactive mode in the plot
+
+        :param source: Objects that triggered the mode change
+        """
+        mode = self._plot.getInteractiveMode()
+        if mode['mode'] == 'zoom':  # Handle click events
+            self._plot.sigPlotSignal.connect(self._handleSelect)
+        else:  # Do not handle click event
+            self._plot.sigPlotSignal.disconnect(self._handleSelect)
+        self._updateStatusBar()
+
+
+def ginput(n=1, timeout=30, plot=None):
+    """Get input points on a plot.
+
+    If no plot is provided, it uses a plot widget created with
+    either :func:`silx.sx.plot` or :func:`silx.sx.imshow`.
+
+    How to use:
+
+    >>> from silx import sx
+
+    >>> sx.imshow(image)  # Plot the image
+    >>> sx.ginput(1)  # Request selection on the image plot
+    ((0.598, 1.234))
+
+    How to get more information about the selected positions:
+
+    >>> positions = sx.ginput(1)
+
+    >>> positions[0].getData()  # Returns value(s) at selected position
+
+    >>> positions[0].getIndices()  # Returns data indices at selected position
+
+    >>> positions[0].getItem()  # Returns plot item at selected position
+
+    :param int n: Number of points the user need to select
+    :param float timeout: Timeout in seconds before ginput returns
+        event if selection is not completed
+    :param PlotWidget plot: An optional PlotWidget from which to get input
+    :return: List of clicked points coordinates (x, y) in plot
+    :raise ValueError: If provided plot is not a PlotWidget
+    """
+    if plot is None:
+        # Select most recent visible plot widget
+        for widget in _plots:
+            if widget.isVisible():
+                plot = widget
+                break
+        else:  # If no plot widgets are visible, take most recent one
+            try:
+                plot = _plots[0]
+            except IndexError:
+                pass
+            else:
+                plot.show()
+
+        if plot is None:
+            _logger.warning('No plot available to perform ginput, create one')
+            plot = Plot1D()
+            plot.show()
+
+    plot.raise_()  # So window becomes the top level one
+
+    _logger.info('Performing ginput with plot widget %s', str(plot))
+    handler = _GInputHandler(plot, n, timeout)
+    points = handler.exec_()
+
+    return points
