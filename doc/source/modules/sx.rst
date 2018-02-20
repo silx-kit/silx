@@ -14,6 +14,9 @@ The following functions plot curves and images with silx widgets:
 - :func:`plot` for curves
 - :func:`imshow` for images
 
+The :func:`ginput` function handles user selection on those widgets.
+
+
 .. note:: Those functions are not available from a notebook.
 
 :func:`plot`
@@ -26,6 +29,11 @@ The following functions plot curves and images with silx widgets:
 
 .. autofunction:: imshow
 
+
+:func:`ginput`
+++++++++++++++
+
+.. autofunction:: ginput
 
 3D plot functions
 -----------------
