@@ -209,7 +209,7 @@ class Hdf5TreeView(qt.QTreeView):
                 model = model.sourceModel()
             else:
                 break
-        raise RuntimeError("Model from the requested model is not reachable from this view")
+        raise RuntimeError("Model from the requested index is not reachable from this view")
 
     def mapToModel(self, index):
         """Map an index from any model reachable by the view to an index from
