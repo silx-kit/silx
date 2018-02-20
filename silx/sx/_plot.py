@@ -344,7 +344,7 @@ class _GInputHandler(qt.QEventLoop):
 
         self._plot = plot
         self._timeout = timeout
-        self._markers = []
+        self._markersAndResult = []
         self._totalPoints = n
         self._endTime = 0.
 
@@ -356,8 +356,8 @@ class _GInputHandler(qt.QEventLoop):
         elif event.type() == qt.QEvent.KeyPress:
             if event.key() in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
                     event.key() == qt.Qt.Key_Z and event.modifiers() & qt.Qt.ControlModifier):
-                if len(self._markers) > 0:
-                    legend = self._markers.pop()
+                if len(self._markersAndResult) > 0:
+                    legend, _ = self._markersAndResult.pop()
                     self._plot.remove(legend=legend, kind='marker')
 
                     self._updateStatusBar()
@@ -409,53 +409,17 @@ class _GInputHandler(qt.QEventLoop):
 
         self._plot.statusBar().clearMessage()
 
-        # Get points and remove markers
-        points = []
-        for legend in self._markers:
-            marker = self._plot._getItem(kind='marker', legend=legend)
-            position = marker.getPosition()
+        points = tuple(result for _, result in self._markersAndResult)
 
-            xPixel, yPixel = self._plot.dataToPixel(
-                position[0], position[1], check=False)
-            picked = self._plot._pickImageOrCurve(xPixel, yPixel)
-
-            if picked is None:
-                result = _GInputResult(position,
-                                       item=None,
-                                       indices=numpy.array((), dtype=int),
-                                       data=None)
-
-            elif picked[0] == 'curve':
-                curve = picked[1]
-                indices = picked[2]
-                x = curve.getXData(copy=False)[indices]
-                y = curve.getYData(copy=False)[indices]
-                result = _GInputResult(position,
-                                       item=curve,
-                                       indices=indices,
-                                       data=numpy.array((x, y)).T)
-
-            elif picked[0] == 'image':
-                image = picked[1]
-                # Get corresponding coordinate in image
-                origin = image.getOrigin()
-                scale = image.getScale()
-                column = int((position[0] - origin[0]) / float(scale[0]))
-                row = int((position[1] - origin[1]) / float(scale[1]))
-                data = image.getData(copy=False)[row, column]
-                result = _GInputResult(position,
-                                       item=image,
-                                       indices=(row, column),
-                                       data=data)
-
-            points.append(result)
+        for legend, _ in self._markersAndResult:
             self._plot.remove(legend=legend, kind='marker')
+        self._markersAndResult = []
 
-        return tuple(points) if returnCode == 0 else ()
+        return points if returnCode == 0 else ()
 
     def _updateStatusBar(self):
         """Update status bar message"""
-        msg = 'ginput: %d/%d input points' % (len(self._markers),
+        msg = 'ginput: %d/%d input points' % (len(self._markersAndResult),
                                               self._totalPoints)
         if self._timeout:
             remaining = self._endTime - time.time()
@@ -466,7 +430,7 @@ class _GInputHandler(qt.QEventLoop):
 
         currentMode = self._plot.getInteractiveMode()
         if currentMode['mode'] != 'zoom':
-            msg += ' (Use zoom mode to add/edit points)'
+            msg += ' (Use zoom mode to add/remove points)'
 
         self._plot.statusBar().showMessage(msg)
 
@@ -474,16 +438,52 @@ class _GInputHandler(qt.QEventLoop):
         """Handle mouse events"""
         if event['event'] == 'mouseClicked' and event['button'] == 'left':
             x, y = event['x'], event['y']
-            legend = "sx.ginput %d" % len(self._markers)
+            xPixel, yPixel = event['xpixel'], event['ypixel']
+
+            # Add marker
+            legend = "sx.ginput %d" % len(self._markersAndResult)
             self._plot.addMarker(
                 x, y,
                 legend=legend,
-                text='%d' % len(self._markers),
+                text='%d' % len(self._markersAndResult),
                 color='red',
-                draggable=True)
-            self._markers.append(legend)
+                draggable=False)
+
+            # Pick item at selected position
+            picked = self._plot._pickImageOrCurve(xPixel, yPixel)
+
+            if picked is None:
+                result = _GInputResult((x, y),
+                                       item=None,
+                                       indices=numpy.array((), dtype=int),
+                                       data=None)
+
+            elif picked[0] == 'curve':
+                curve = picked[1]
+                indices = picked[2]
+                xData = curve.getXData(copy=False)[indices]
+                yData = curve.getYData(copy=False)[indices]
+                result = _GInputResult((x, y),
+                                       item=curve,
+                                       indices=indices,
+                                       data=numpy.array((xData, yData)).T)
+
+            elif picked[0] == 'image':
+                image = picked[1]
+                # Get corresponding coordinate in image
+                origin = image.getOrigin()
+                scale = image.getScale()
+                column = int((x - origin[0]) / float(scale[0]))
+                row = int((y - origin[1]) / float(scale[1]))
+                data = image.getData(copy=False)[row, column]
+                result = _GInputResult((x, y),
+                                       item=image,
+                                       indices=(row, column),
+                                       data=data)
+
+            self._markersAndResult.append((legend, result))
             self._updateStatusBar()
-            if len(self._markers) == self._totalPoints:
+            if len(self._markersAndResult) == self._totalPoints:
                 self.quit()
 
     def _handleInteractiveModeChanged(self, source):
