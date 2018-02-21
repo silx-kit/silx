@@ -34,7 +34,7 @@ import logging
 import numpy
 
 from silx.gui.plot.Interaction import \
-    StateMachine, State, LEFT_BTN, RIGHT_BTN  # , MIDDLE_BTN
+    StateMachine, State, KeyCodes, LEFT_BTN, RIGHT_BTN  # , MIDDLE_BTN
 
 from . import transform
 
@@ -380,14 +380,14 @@ class FocusManager(StateMachine):
     """
     class Idle(State):
         def onPress(self, x, y, btn):
-            for eventHandler in self.machine.currentEventHandler():
+            for eventHandler in self.machine.currentEventHandler:
                 requestFocus = eventHandler.handleEvent('press', x, y, btn)
                 if requestFocus:
                     self.goto('focus', eventHandler, btn)
                     break
 
         def _processEvent(self, *args):
-            for eventHandler in self.machine.currentEventHandler():
+            for eventHandler in self.machine.currentEventHandler:
                 consumeEvent = eventHandler.handleEvent(*args)
                 if consumeEvent:
                     break
@@ -425,8 +425,9 @@ class FocusManager(StateMachine):
             self.eventHandler.handleEvent('wheel', x, y, angleInDegrees)
 
     def __init__(self, eventHandlers=(), ctrlEventHandlers=None):
-        self.defaultEventHandlers = list(eventHandlers)
-        self.ctrlEventHandlers = list(ctrlEventHandlers)
+        self.defaultEventHandlers = eventHandlers
+        self.ctrlEventHandlers = ctrlEventHandlers
+        self.currentEventHandler = self.defaultEventHandlers
 
         states = {
             'idle': FocusManager.Idle,
@@ -434,16 +435,16 @@ class FocusManager(StateMachine):
         }
         super(FocusManager, self).__init__(states, 'idle')
 
-    def currentEventHandler(self):
-        from silx.gui import qt
-        if (self.ctrlEventHandlers and
-                qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier):
-            return self.ctrlEventHandlers
-        else:
-            return self.defaultEventHandlers
+    def onKeyPress(self, key):
+        if key == KeyCodes.CONTROL and self.ctrlEventHandlers is not None:
+            self.currentEventHandler = self.ctrlEventHandlers
+
+    def onKeyRelease(self, key):
+        if key == KeyCodes.CONTROL:
+            self.currentEventHandler = self.defaultEventHandlers
 
     def cancel(self):
-        for handler in self.currentEventHandler():
+        for handler in self.currentEventHandler:
             handler.cancel()
 
 

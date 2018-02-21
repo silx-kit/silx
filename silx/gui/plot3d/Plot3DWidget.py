@@ -176,6 +176,11 @@ class Plot3DWidget(glu.OpenGLWidget):
         else:
             raise ValueError('Unsupported interactive mode %s', str(mode))
 
+        if (mode is not None and
+                qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier):
+            self.eventHandler.handleEvent('keyPress',
+                                          interaction.KeyCodes.CONTROL)
+
         self.sigInteractiveModeChanged.emit()
 
     def getInteractiveMode(self):
@@ -338,7 +343,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             self.eventHandler.handleEvent('wheel', xpixel, ypixel, angle)
 
     def keyPressEvent(self, event):
-        keycode = event.key()
+        keyCode = event.key()
         # No need to accept QKeyEvent
 
         converter = {
@@ -347,7 +352,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             qt.Qt.Key_Up: 'up',
             qt.Qt.Key_Down: 'down'
         }
-        direction = converter.get(keycode, None)
+        direction = converter.get(keyCode, None)
         if direction is not None:
             if event.modifiers() == qt.Qt.ControlModifier:
                 self.viewport.camera.rotate(direction)
@@ -357,8 +362,24 @@ class Plot3DWidget(glu.OpenGLWidget):
                 self.viewport.orbitCamera(direction)
 
         else:
+            if (keyCode == qt.Qt.Key_Control and
+                    self.eventHandler is not None and
+                    self.isValid()):
+                self.eventHandler.handleEvent('keyPress',
+                                              interaction.KeyCodes.CONTROL)
+
             # Key not handled, call base class implementation
             super(Plot3DWidget, self).keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        """Catch Ctrl key release"""
+        keyCode = event.key()
+        if (keyCode == qt.Qt.Key_Control and
+                self.eventHandler is not None and
+                self.isValid()):
+            self.eventHandler.handleEvent('keyRelease',
+                                          interaction.KeyCodes.CONTROL)
+        super(Plot3DWidget, self).keyReleaseEvent(event)
 
     # Mouse events #
     _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
