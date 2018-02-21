@@ -33,8 +33,9 @@ __date__ = "25/07/2016"
 import logging
 import numpy
 
+from silx.gui import qt
 from silx.gui.plot.Interaction import \
-    StateMachine, State, KeyCodes, LEFT_BTN, RIGHT_BTN  # , MIDDLE_BTN
+    StateMachine, State, LEFT_BTN, RIGHT_BTN  # , MIDDLE_BTN
 
 from . import transform
 
@@ -436,11 +437,11 @@ class FocusManager(StateMachine):
         super(FocusManager, self).__init__(states, 'idle')
 
     def onKeyPress(self, key):
-        if key == KeyCodes.CONTROL and self.ctrlEventHandlers is not None:
+        if key == qt.Qt.Key_Control and self.ctrlEventHandlers is not None:
             self.currentEventHandler = self.ctrlEventHandlers
 
     def onKeyRelease(self, key):
-        if key == KeyCodes.CONTROL:
+        if key == qt.Qt.Key_Control:
             self.currentEventHandler = self.defaultEventHandlers
 
     def cancel(self):

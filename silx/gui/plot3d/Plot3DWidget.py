@@ -178,8 +178,7 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         if (mode is not None and
                 qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier):
-            self.eventHandler.handleEvent('keyPress',
-                                          interaction.KeyCodes.CONTROL)
+            self.eventHandler.handleEvent('keyPress', qt.Qt.Key_Control)
 
         self.sigInteractiveModeChanged.emit()
 
@@ -365,8 +364,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             if (keyCode == qt.Qt.Key_Control and
                     self.eventHandler is not None and
                     self.isValid()):
-                self.eventHandler.handleEvent('keyPress',
-                                              interaction.KeyCodes.CONTROL)
+                self.eventHandler.handleEvent('keyPress', keyCode)
 
             # Key not handled, call base class implementation
             super(Plot3DWidget, self).keyPressEvent(event)
@@ -377,8 +375,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         if (keyCode == qt.Qt.Key_Control and
                 self.eventHandler is not None and
                 self.isValid()):
-            self.eventHandler.handleEvent('keyRelease',
-                                          interaction.KeyCodes.CONTROL)
+            self.eventHandler.handleEvent('keyRelease', keyCode)
         super(Plot3DWidget, self).keyReleaseEvent(event)
 
     # Mouse events #
