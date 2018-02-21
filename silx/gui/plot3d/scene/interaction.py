@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -380,16 +380,16 @@ class FocusManager(StateMachine):
     """
     class Idle(State):
         def onPress(self, x, y, btn):
-            for eventHandler in self.machine.eventHandlers:
-                requestfocus = eventHandler.handleEvent('press', x, y, btn)
-                if requestfocus:
+            for eventHandler in self.machine.currentEventHandler():
+                requestFocus = eventHandler.handleEvent('press', x, y, btn)
+                if requestFocus:
                     self.goto('focus', eventHandler, btn)
                     break
 
         def _processEvent(self, *args):
-            for eventHandler in self.machine.eventHandlers:
-                consumeevent = eventHandler.handleEvent(*args)
-                if consumeevent:
+            for eventHandler in self.machine.currentEventHandler():
+                consumeEvent = eventHandler.handleEvent(*args)
+                if consumeEvent:
                     break
 
         def onMove(self, x, y):
@@ -424,8 +424,9 @@ class FocusManager(StateMachine):
         def onWheel(self, x, y, angleInDegrees):
             self.eventHandler.handleEvent('wheel', x, y, angleInDegrees)
 
-    def __init__(self, eventHandlers=()):
-        self.eventHandlers = list(eventHandlers)
+    def __init__(self, eventHandlers=(), ctrlEventHandlers=None):
+        self.defaultEventHandlers = list(eventHandlers)
+        self.ctrlEventHandlers = list(ctrlEventHandlers)
 
         states = {
             'idle': FocusManager.Idle,
@@ -433,31 +434,48 @@ class FocusManager(StateMachine):
         }
         super(FocusManager, self).__init__(states, 'idle')
 
+    def currentEventHandler(self):
+        from silx.gui import qt
+        if (self.ctrlEventHandlers and
+                qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier):
+            return self.ctrlEventHandlers
+        else:
+            return self.defaultEventHandlers
+
     def cancel(self):
-        for handler in self.eventHandlers:
+        for handler in self.currentEventHandler():
             handler.cancel()
 
 
 # CameraControl ###############################################################
 
 class RotateCameraControl(FocusManager):
-    """Combine wheel and rotate state machine."""
+    """Combine wheel and rotate state machine for left button
+    and pan when ctrl is pressed
+    """
     def __init__(self, viewport,
                  orbitAroundCenter=False,
-                 mode='center', scaleTransform=None):
+                 mode='center', scaleTransform=None,
+                 selectCB=None):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     CameraRotate(viewport, orbitAroundCenter, LEFT_BTN))
-        super(RotateCameraControl, self).__init__(handlers)
+        ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
+                        CameraSelectPan(viewport, LEFT_BTN, selectCB))
+        super(RotateCameraControl, self).__init__(handlers, ctrlHandlers)
 
 
 class PanCameraControl(FocusManager):
-    """Combine wheel, selectPan and rotate state machine."""
+    """Combine wheel, selectPan and rotate state machine for left button
+    and rotate when ctrl is pressed"""
     def __init__(self, viewport,
+                 orbitAroundCenter=False,
                  mode='center', scaleTransform=None,
                  selectCB=None):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     CameraSelectPan(viewport, LEFT_BTN, selectCB))
-        super(PanCameraControl, self).__init__(handlers)
+        ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
+                        CameraRotate(viewport, orbitAroundCenter, LEFT_BTN))
+        super(PanCameraControl, self).__init__(handlers, ctrlHandlers)
 
 
 class CameraControl(FocusManager):

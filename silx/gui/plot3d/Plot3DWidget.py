@@ -162,11 +162,13 @@ class Plot3DWidget(glu.OpenGLWidget):
                 self.viewport,
                 orbitAroundCenter=False,
                 mode='position',
-                scaleTransform=self._sceneScale)
+                scaleTransform=self._sceneScale,
+                selectCB=None)
 
         elif mode == 'pan':
             self.eventHandler = interaction.PanCameraControl(
                 self.viewport,
+                orbitAroundCenter=False,
                 mode='position',
                 scaleTransform=self._sceneScale,
                 selectCB=None)
