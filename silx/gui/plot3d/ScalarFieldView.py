@@ -1104,17 +1104,14 @@ class ScalarFieldView(Plot3DWindow):
 
         sceneScale = self.getPlot3DWidget().viewport.scene.transforms[0]
         if mode == 'plane':
-            self.getPlot3DWidget().setInteractiveMode(None)
+            mode = interaction.PanPlaneZoomOnWheelControl(
+                self.getPlot3DWidget().viewport,
+                self._cutPlane._get3DPrimitives()[0],
+                mode='position',
+                orbitAroundCenter=False,
+                scaleTransform=sceneScale)
 
-            self.getPlot3DWidget().eventHandler = \
-                interaction.PanPlaneZoomOnWheelControl(
-                    self.getPlot3DWidget().viewport,
-                    self._cutPlane._get3DPrimitives()[0],
-                    mode='position',
-                    orbitAroundCenter=False,
-                    scaleTransform=sceneScale)
-        else:
-            self.getPlot3DWidget().setInteractiveMode(mode)
+        self.getPlot3DWidget().setInteractiveMode(mode)
         self._updateColors()
 
     def getInteractiveMode(self):

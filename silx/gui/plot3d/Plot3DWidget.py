@@ -173,10 +173,13 @@ class Plot3DWidget(glu.OpenGLWidget):
                 scaleTransform=self._sceneScale,
                 selectCB=None)
 
+        elif isinstance(mode, interaction.StateMachine):
+            self.eventHandler = mode
+
         else:
             raise ValueError('Unsupported interactive mode %s', str(mode))
 
-        if (mode is not None and
+        if (self.eventHandler is not None and
                 qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier):
             self.eventHandler.handleEvent('keyPress', qt.Qt.Key_Control)
 
