@@ -694,7 +694,11 @@ class PanPlaneRotateCameraControl(FocusManager):
 class PanPlaneZoomOnWheelControl(FocusManager):
     """Combine zoom on wheel and pan plane state machines."""
     def __init__(self, viewport, plane,
-                 mode='center', scaleTransform=None):
+                 mode='center',
+                 orbitAroundCenter=False,
+                 scaleTransform=None):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     PlanePan(viewport, plane, LEFT_BTN))
-        super(PanPlaneZoomOnWheelControl, self).__init__(handlers)
+        ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
+                        CameraRotate(viewport, orbitAroundCenter, LEFT_BTN))
+        super(PanPlaneZoomOnWheelControl, self).__init__(handlers, ctrlHandlers)
