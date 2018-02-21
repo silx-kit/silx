@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,10 @@
 # ###########################################################################*/
 """This module provides convenient functions to use with Qt objects.
 
-It provides conversion between numpy and QImage.
+It provides:
+- conversion between numpy and QImage:
+  :func:`convertArrayToQImage`, :func:`convertQImageToArray`
+- Execution of function in Qt main thread: :func:`submitToQtMainThread`
 """
 
 from __future__ import division
@@ -37,6 +40,8 @@ __date__ = "16/01/2017"
 
 import sys
 import numpy
+
+from silx.third_party.concurrent_futures import Future
 
 from . import qt
 
@@ -100,3 +105,71 @@ def convertQImageToArray(image):
     array = array.reshape(image.height(), -1)[:, :image.width() * 3]
     array.shape = image.height(), image.width(), 3
     return array
+
+
+class _QtExecutor(qt.QObject):
+    """Executor of tasks in Qt main thread"""
+
+    __sigSubmit = qt.Signal(Future, object, tuple, dict)
+    """Signal used to run tasks."""
+
+    def __init__(self):
+        super(_QtExecutor, self).__init__(parent=None)
+
+        # Makes sure the executor lives in the main thread
+        app = qt.QApplication.instance()
+        assert app is not None
+        mainThread = app.thread()
+        if self.thread() != mainThread:
+            self.moveToThread(mainThread)
+
+        self.__sigSubmit.connect(self.__run)
+
+    def submit(self, fn, *args, **kwargs):
+        """Submit fn(*args, **kwargs) to Qt main thread
+
+        :param callable fn: Function to call in main thread
+        :return: Future object to retrieve result
+        :rtype: concurrent.future.Future
+        """
+        future = Future()
+        self.__sigSubmit.emit(future, fn, args, kwargs)
+        return future
+
+    def __run(self, future, fn, args, kwargs):
+        """Run task in Qt main thread
+
+        :param concurrent.future.Future future:
+        :param callable fn: Function to run
+        :param tuple args: Arguments
+        :param dict kwargs: Keyword arguments
+        """
+        if not future.set_running_or_notify_cancel():
+            return
+
+        try:
+            result = fn(*args, **kwargs)
+        except BaseException as e:
+            future.set_exception(e)
+        else:
+            future.set_result(result)
+
+
+_executor = None
+"""QObject running the tasks in main thread"""
+
+
+def submitToQtMainThread(fn, *args, **kwargs):
+    """Run fn(*args, **kwargs) in Qt's main thread.
+
+    If not called from the main thread, this is run asynchronously.
+
+    :param callable fn: Function to call in main thread.
+    :return: A future object to retrieve the result
+    :rtype: concurrent.future.Future
+    """
+    global _executor
+    if _executor is None:  # Lazy-loading
+        _executor = _QtExecutor()
+
+    return _executor.submit(fn, *args, **kwargs)

@@ -25,6 +25,7 @@ Build-Depends: cython,
                python-sphinx,
                python-sphinxcontrib.programoutput,
                python-enum34,
+               python-concurrent.futures,
                python3-all-dev,
                python3-numpy,
                python3-fabio,
@@ -81,6 +82,7 @@ Depends: ${misc:Depends},
          python-scipy,
          python-six,
          python-enum34,
+         python-concurrent.futures,
 # Recommends:
 Suggests: python-rfoo
 Description: Toolbox for X-Ray data analysis - Python2 library

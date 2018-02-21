@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,12 @@ __license__ = "MIT"
 __date__ = "16/01/2017"
 
 
+import threading
 import unittest
 
 import numpy
 
+from silx.third_party.concurrent_futures import wait
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 
@@ -66,10 +68,97 @@ class TestQImageConversion(TestCaseQt):
         self.assertTrue(numpy.all(numpy.equal(image, 1)))
 
 
+class TestSubmitToQtThread(TestCaseQt):
+    """Test submission of tasks to Qt main thread"""
+
+    def setUp(self):
+        # Reset executor to test lazy-loading in different conditions
+        _utils._executor = None
+        super(TestSubmitToQtThread, self).setUp()
+
+    def _task(self, value1, value2):
+        return value1, value2
+
+    def _taskWithException(self, *args, **kwargs):
+        raise RuntimeError('task exception')
+
+    def testFromMainThread(self):
+        """Call submitToQtMainThread from the main thread"""
+        value1, value2 = 0, 1
+        future = _utils.submitToQtMainThread(self._task, value1, value2=value2)
+        self.assertTrue(future.done())
+        self.assertEqual(future.result(1), (value1, value2))
+        self.assertIsNone(future.exception(1))
+
+        future = _utils.submitToQtMainThread(self._taskWithException)
+        self.assertTrue(future.done())
+        with self.assertRaises(RuntimeError):
+            future.result(1)
+        self.assertIsInstance(future.exception(1), RuntimeError)
+
+    def _threadedTest(self):
+        """Function run in a thread for the tests"""
+        value1, value2 = 0, 1
+        future = _utils.submitToQtMainThread(self._task, value1, value2=value2)
+
+        wait([future], 3)
+
+        self.assertTrue(future.done())
+        self.assertEqual(future.result(1), (value1, value2))
+        self.assertIsNone(future.exception(1))
+
+        future = _utils.submitToQtMainThread(self._taskWithException)
+
+        wait([future], 3)
+
+        self.assertTrue(future.done())
+        with self.assertRaises(RuntimeError):
+            future.result(1)
+        self.assertIsInstance(future.exception(1), RuntimeError)
+
+    def testFromPythonThread(self):
+        """Call submitToQtMainThread from a Python thread"""
+        thread = threading.Thread(target=self._threadedTest)
+        thread.start()
+        for i in range(100):  # Loop over for 10 seconds
+            self.qapp.processEvents()
+            thread.join(0.1)
+            if not thread.is_alive():
+                break
+        else:
+            self.fail(('Thread task still running'))
+
+    def testFromQtThread(self):
+        """Call submitToQtMainThread from a Qt thread pool"""
+        class Runner(qt.QRunnable):
+            def __init__(self, fn):
+                super(Runner, self).__init__()
+                self._fn = fn
+
+            def run(self):
+                self._fn()
+
+            def autoDelete(self):
+                return True
+
+        threadPool = qt.silxGlobalThreadPool()
+        runner = Runner(self._threadedTest)
+        threadPool.start(runner)
+        for i in range(100):  # Loop over for 10 seconds
+            self.qapp.processEvents()
+            done = threadPool.waitForDone(100)
+            if done:
+                break
+        else:
+            self.fail('Thread pool task still running')
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
         TestQImageConversion))
+    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
+        TestSubmitToQtThread))
     return test_suite
 
 
