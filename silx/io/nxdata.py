@@ -62,6 +62,7 @@ def _nxdata_warning(msg, group_name=""):
     *"NXdata warning: "*
 
     :param str msg: Warning message
+    :param str group_name: Name of NXdata group this warning relates to
     """
     warning_prefix = "NXdata warning"
     if group_name:
@@ -129,14 +130,16 @@ def is_valid_nxdata(group):   # noqa
                     break
         if signal_name is None:
             _nxdata_warning("No @signal attribute on the NXdata group, "
-                            "and no dataset with a @signal=1 attr found")
+                            "and no dataset with a @signal=1 attr found",
+                            group.name)
             return False
     else:
         signal_name = get_attr_as_string(group, "signal")
 
     if signal_name not in group or not is_dataset(group[signal_name]):
         _nxdata_warning(
-            "Cannot find signal dataset '%s' in NXdata group" % signal_name)
+            "Cannot find signal dataset '%s'" % signal_name,
+            group.name)
         return False
 
     auxiliary_signals_names = get_attr_as_string(group, "auxiliary_signals",
@@ -146,11 +149,13 @@ def is_valid_nxdata(group):   # noqa
     for asn in auxiliary_signals_names:
         if asn not in group or not is_dataset(group[asn]):
             _nxdata_warning(
-                "Cannot find auxiliary signal dataset '%s' in NXdata group" % asn)
+                "Cannot find auxiliary signal dataset '%s'" % asn,
+                group.name)
             return False
         if group[signal_name].shape != group[asn].shape:
             _nxdata_warning("Auxiliary signal dataset '%s' does not" % asn +
-                            " have the same shape as the main signal.")
+                            " have the same shape as the main signal.",
+                            group.name)
             return False
 
     ndim = len(group[signal_name].shape)
@@ -165,7 +170,8 @@ def is_valid_nxdata(group):   # noqa
             _nxdata_warning(
                 "More @axes defined than there are " +
                 "signal dimensions: " +
-                "%d axes, %d dimensions." % (len(axes_names), ndim))
+                "%d axes, %d dimensions." % (len(axes_names), ndim),
+                group.name)
             return False
 
         # case of less axes than dimensions: number of axes must match
@@ -176,30 +182,33 @@ def is_valid_nxdata(group):   # noqa
                 interpretation = get_attr_as_string(group, "interpretation")
             if interpretation is None:
                 _nxdata_warning("No @interpretation and not enough" +
-                                " @axes defined.")
+                                " @axes defined.", group.name)
                 return False
 
             if interpretation not in _INTERPDIM:
                 _nxdata_warning("Unrecognized @interpretation=" + interpretation +
-                                " for data with wrong number of defined @axes.")
+                                " for data with wrong number of defined @axes.",
+                                group.name)
                 return False
             if interpretation == "rgba-image":
                 if ndim != 3 or group[signal_name].shape[-1] not in [3, 4]:
                     _nxdata_warning(
                         "Inconsistent RGBA Image. Expected 3 dimensions with " +
                         "last one of length 3 or 4. Got ndim=%d " % ndim +
-                        "with last dimension of length %d." % group[signal_name].shape[-1])
+                        "with last dimension of length %d." % group[signal_name].shape[-1],
+                        group.name)
                     return False
                 if len(axes_names) != 2:
                     _nxdata_warning(
                         "Inconsistent number of axes for RGBA Image. Expected "
-                        "3, but got %d." % ndim)
+                        "3, but got %d." % ndim, group.name)
                     return False
 
             elif len(axes_names) != _INTERPDIM[interpretation]:
                 _nxdata_warning(
                     "%d-D signal with @interpretation=%s " % (ndim, interpretation) +
-                    "must define %d or %d axes." % (ndim, _INTERPDIM[interpretation]))
+                    "must define %d or %d axes." % (ndim, _INTERPDIM[interpretation]),
+                    group.name)
                 return False
 
         # Test consistency of @uncertainties
@@ -211,7 +220,7 @@ def is_valid_nxdata(group):   # noqa
         if uncertainties_names is not None:
             if len(uncertainties_names) != len(axes_names):
                 _nxdata_warning("@uncertainties does not define the same " +
-                                "number of fields than @axes")
+                                "number of fields than @axes", group.name)
                 return False
 
         # Test individual axes
@@ -225,7 +234,8 @@ def is_valid_nxdata(group):   # noqa
             if axis_name == ".":
                 continue
             if axis_name not in group or not is_dataset(group[axis_name]):
-                _nxdata_warning("Could not find axis dataset '%s'" % axis_name)
+                _nxdata_warning("Could not find axis dataset '%s'" % axis_name,
+                                group.name)
                 return False
 
             axis_size = 1
@@ -237,7 +247,8 @@ def is_valid_nxdata(group):   # noqa
                 # size is exactly the signal's size (weird n-d scatter)
                 if axis_size != signal_size:
                     _nxdata_warning("Axis %s is not a 1D dataset" % axis_name +
-                                    " and its shape does not match the signal's shape")
+                                    " and its shape does not match the signal's shape",
+                                    group.name)
                     return False
                 axis_len = axis_size
             else:
@@ -252,7 +263,7 @@ def is_valid_nxdata(group):   # noqa
                         "Axis %s number of elements does not " % axis_name +
                         "correspond to the length of any signal dimension,"
                         " it does not appear to be a constant or a linear calibration," +
-                        " and this does not seem to be a scatter plot.")
+                        " and this does not seem to be a scatter plot.", group.name)
                     return False
                 elif axis_len in (1, 2):
                     polynomial_axes_names.append(axis_name)
@@ -262,7 +273,8 @@ def is_valid_nxdata(group):   # noqa
                     _nxdata_warning(
                         "Axis %s number of elements is equal " % axis_name +
                         "to the length of the signal, but this does not seem" +
-                        " to be a scatter (other axes have different sizes)")
+                        " to be a scatter (other axes have different sizes)",
+                        group.name)
                     return False
 
             # Test individual uncertainties
@@ -273,14 +285,15 @@ def is_valid_nxdata(group):   # noqa
                     if group[errors_name].shape != group[axis_name].shape:
                         _nxdata_warning(
                             "Errors '%s' does not have the same " % errors_name +
-                            "dimensions as axis '%s'." % axis_name)
+                            "dimensions as axis '%s'." % axis_name, group.name)
                         return False
 
     # test dimensions of errors associated with signal
     if "errors" in group and is_dataset(group["errors"]):
         if group["errors"].shape != group[signal_name].shape:
             _nxdata_warning("Dataset containing standard deviations must " +
-                            "have the same dimensions as the signal.")
+                            "have the same dimensions as the signal.",
+                            group.name)
             return False
     return True
 
