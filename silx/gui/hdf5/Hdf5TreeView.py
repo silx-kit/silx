@@ -214,7 +214,6 @@ class Hdf5TreeView(qt.QTreeView):
     def mapToModel(self, index):
         """Map an index from any model reachable by the view to an index from
         the very first model connected to the view.
-        Hdf5Trree model
 
         :param qt.QModelIndex index: Index from the Hdf5Tree model
         :rtype: qt.QModelIndex
