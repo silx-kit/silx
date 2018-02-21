@@ -57,13 +57,18 @@ attribute.
 """
 
 
-def _nxdata_warning(msg):
+def _nxdata_warning(msg, group_name=""):
     """Log a warning message prefixed with
     *"NXdata warning: "*
 
     :param str msg: Warning message
     """
-    _logger.warning("NXdata warning: " + msg)
+    warning_prefix = "NXdata warning"
+    if group_name:
+        warning_prefix += " (group %s): " % group_name
+    else:
+        warning_prefix += ": "
+    _logger.warning(warning_prefix + msg)
 
 
 def get_attr_as_string(item, attr_name, default=None):
@@ -112,8 +117,8 @@ def is_valid_nxdata(group):   # noqa
     if get_attr_as_string(group, "NX_class") != "NXdata":
         return False
     if "signal" not in group.attrs:
-        _nxdata_warning("NXdata group does not define a signal attr. "
-                        "Testing legacy specification.")
+        _logger.info("NXdata group %s does not define a signal attr. "
+                     "Testing legacy specification.", group.name)
         signal_name = None
         for key in group:
             if "signal" in group[key].attrs:
@@ -123,7 +128,8 @@ def is_valid_nxdata(group):   # noqa
                     # This is the main (default) signal
                     break
         if signal_name is None:
-            _nxdata_warning("No dataset with a @signal=1 attr found")
+            _nxdata_warning("No @signal attribute on the NXdata group, "
+                            "and no dataset with a @signal=1 attr found")
             return False
     else:
         signal_name = get_attr_as_string(group, "signal")
