@@ -67,19 +67,6 @@ class DataViewer(qt.QFrame):
         viewer.setData(data)
         viewer.setVisible(True)
     """
-
-    EMPTY_MODE = 0
-    PLOT1D_MODE = 10
-    PLOT2D_MODE = 20
-    PLOT3D_MODE = 30
-    RAW_MODE = 40
-    RAW_ARRAY_MODE = 41
-    RAW_RECORD_MODE = 42
-    RAW_SCALAR_MODE = 43
-    STACK_MODE = 50
-    HDF5_MODE = 60
-    NXDATA_MODE = 70
-
     displayedViewChanged = qt.Signal(object)
     """Emitted when the displayed view changes"""
 
@@ -130,7 +117,7 @@ class DataViewer(qt.QFrame):
         """Inisialize the available views"""
         views = self.createDefaultViews(self.__stack)
         self.__views = list(views)
-        self.setDisplayMode(self.EMPTY_MODE)
+        self.setDisplayMode(DataViews.EMPTY_MODE)
 
     def createDefaultViews(self, parent=None):
         """Create and returns available views which can be displayed by default
@@ -385,7 +372,7 @@ class DataViewer(qt.QFrame):
         hdf5View = self.getViewFromModeId(DataViewer.HDF5_MODE)
         if hdf5View in available:
             return hdf5View
-        return self.getViewFromModeId(DataViewer.EMPTY_MODE)
+        return self.getViewFromModeId(DataViews.EMPTY_MODE)
 
     def getDefaultViewFromAvailableViews(self, data, available):
         """Returns the default view which will be used according to available
@@ -404,7 +391,7 @@ class DataViewer(qt.QFrame):
             view = available[0]
         else:
             # else returns the empty view
-            view = self.getViewFromModeId(DataViewer.EMPTY_MODE)
+            view = self.getViewFromModeId(DataViews.EMPTY_MODE)
         return view
 
     def __setCurrentAvailableViews(self, availableViews):
