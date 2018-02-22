@@ -1065,7 +1065,8 @@ class ScalarFieldView(Plot3DWindow):
         self._panPlaneAction.setIcon(icons.getQIcon('3d-plane-pan'))
         self._panPlaneAction.setText('plane')
         self._panPlaneAction.setCheckable(True)
-        self._panPlaneAction.setToolTip('pan the cutting plane')
+        self._panPlaneAction.setToolTip(
+            'Pan the cutting plane. Press <b>Ctrl</b> to rotate the scene.')
         self._panPlaneAction.setEnabled(False)
 
         self._panPlaneAction.triggered[bool].connect(self._planeActionTriggered)
@@ -1103,16 +1104,14 @@ class ScalarFieldView(Plot3DWindow):
 
         sceneScale = self.getPlot3DWidget().viewport.scene.transforms[0]
         if mode == 'plane':
-            self.getPlot3DWidget().setInteractiveMode(None)
+            mode = interaction.PanPlaneZoomOnWheelControl(
+                self.getPlot3DWidget().viewport,
+                self._cutPlane._get3DPrimitives()[0],
+                mode='position',
+                orbitAroundCenter=False,
+                scaleTransform=sceneScale)
 
-            self.getPlot3DWidget().eventHandler = \
-                interaction.PanPlaneZoomOnWheelControl(
-                    self.getPlot3DWidget().viewport,
-                    self._cutPlane._get3DPrimitives()[0],
-                    mode='position',
-                    scaleTransform=sceneScale)
-        else:
-            self.getPlot3DWidget().setInteractiveMode(mode)
+        self.getPlot3DWidget().setInteractiveMode(mode)
         self._updateColors()
 
     def getInteractiveMode(self):
