@@ -34,6 +34,7 @@ __date__ = "11/01/2018"
 
 
 import collections
+import weakref
 
 from ....utils.weakref import WeakMethodProxy
 from ... import qt
@@ -50,6 +51,8 @@ class BaseRow(qt.QObject):
 
     def __init__(self, children=()):
         super(BaseRow, self).__init__()
+        self.__modelRef = None
+        self.__parentRef = None
         self.__children = []
         for row in children:
             assert isinstance(row, BaseRow)
@@ -58,19 +61,40 @@ class BaseRow(qt.QObject):
         self.__flags = collections.defaultdict(lambda: qt.Qt.ItemIsEnabled)
         self.__tooltip = None
 
+    def setParent(self, parent):
+        """Override :meth:`QObject.setParent` to cache model and parent"""
+        self.__parentRef = None if parent is None else weakref.ref(parent)
+
+        if isinstance(parent, qt.QAbstractItemModel):
+            model = parent
+        elif isinstance(parent, BaseRow):
+            model = parent.model()
+        else:
+            model = None
+
+        self._updateModel(model)
+
+        super(BaseRow, self).setParent(parent)
+
+    def parent(self):
+        """Override :meth:`QObject.setParent` to use cached parent
+
+        :rtype: Union[QObject, None]"""
+        return self.__parentRef() if self.__parentRef is not None else None
+
+    def _updateModel(self, model):
+        """Update the model this row belongs to"""
+        if model != self.model():
+            self.__modelRef = weakref.ref(model) if model is not None else None
+            for child in self.children():
+                child._updateModel(model)
+
     def model(self):
         """Return the model this node belongs to or None if not in a model.
 
         :rtype: Union[QAbstractItemModel, None]
         """
-        parent = self.parent()
-        if isinstance(parent, BaseRow):
-            return self.parent().model()
-        elif parent is None:
-            return None
-        else:
-            assert isinstance(parent, qt.QAbstractItemModel)
-            return parent
+        return self.__modelRef() if self.__modelRef is not None else None
 
     def index(self, column=0):
         """Return corresponding index in the model or None if not in a model.
