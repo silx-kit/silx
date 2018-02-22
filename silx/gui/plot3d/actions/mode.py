@@ -110,7 +110,7 @@ class RotateArcballAction(InteractiveModeAction):
 
         self.setIcon(getQIcon('rotate-3d'))
         self.setText('Rotate')
-        self.setToolTip('Rotate the view')
+        self.setToolTip('Rotate the view. Press <b>Ctrl</b> to pan.')
 
 
 class PanAction(InteractiveModeAction):
@@ -126,4 +126,4 @@ class PanAction(InteractiveModeAction):
 
         self.setIcon(getQIcon('pan'))
         self.setText('Pan')
-        self.setToolTip('Pan the view')
+        self.setToolTip('Pan the view. Press <b>Ctrl</b> to rotate.')

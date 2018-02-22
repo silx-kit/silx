@@ -99,7 +99,8 @@ else:
 
 # %pylab
 if _get_ipython is not None and _get_ipython() is not None:
-    _get_ipython().enable_pylab(gui='inline' if _IS_NOTEBOOK else 'qt')
+    _get_ipython().enable_pylab(gui='inline' if _IS_NOTEBOOK else 'qt',
+                                import_all=False)
 
 
 # Clean-up
