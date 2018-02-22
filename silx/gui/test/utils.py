@@ -318,24 +318,25 @@ class TestCaseQt(unittest.TestCase):
         """
         QTest.qSleep(ms + self.TIMEOUT_WAIT)
 
-    def qWait(self, ms=None):
+    @classmethod
+    def qWait(cls, ms=None):
         """Waits for ms milliseconds, events will be processed.
 
         See QTest.qWait for details.
         """
         if ms is None:
-            ms = self.DEFAULT_TIMEOUT_WAIT
+            ms = cls.DEFAULT_TIMEOUT_WAIT
 
         if qt.BINDING == 'PySide':
             # PySide has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
             while timeout > 0:
-                self.qapp.processEvents(qt.QEventLoop.AllEvents,
+                _qapp.processEvents(qt.QEventLoop.AllEvents,
                                         maxtime=timeout)
                 timeout = endTimeMS - int(time.time() * 1000)
         else:
-            QTest.qWait(ms + self.TIMEOUT_WAIT)
+            QTest.qWait(ms + cls.TIMEOUT_WAIT)
 
     def qWaitForWindowExposed(self, window, timeout=None):
         """Waits until the window is shown in the screen.
@@ -389,6 +390,7 @@ class TestCaseQt(unittest.TestCase):
         for _ in range(10):
             if cls._qobject_destroyed:
                 break
+            cls.qWait(10)
         else:
             _logger.debug("Object was not destroyed")
 
