@@ -238,6 +238,17 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertTrue(view in widget.availableViews())
         self.assertTrue(view in widget.currentAvailableViews())
 
+    def test_replace_view_in_composite(self):
+        # replace a view that is a child of a composite view
+        widget = self.create_widget()
+        view = _DataViewMock(widget)
+        widget.replaceView(DataViews.NXDATA_INVALID_MODE,
+                           view)
+        nxdata_view = widget.getViewFromModeId(DataViews.NXDATA_MODE)
+        self.assertNotIn(DataViews.NXDATA_INVALID_MODE,
+                         [v.modeId() for v in nxdata_view.availableViews()])
+        self.assertTrue(view in nxdata_view.availableViews())
+
 
 class TestDataViewer(AbstractDataViewerTests):
     def create_widget(self):

@@ -349,6 +349,13 @@ class CompositeDataView(DataView):
         """Add a new dataview to the available list."""
         self.__views[dataView] = None
 
+    def availableViews(self):
+        """Returns the list of registered views
+
+        :rtype: List[DataView]
+        """
+        return list(self.__views.keys())
+
     def getBestView(self, data, info):
         """Returns the best view according to priorities."""
         views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
