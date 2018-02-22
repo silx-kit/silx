@@ -69,7 +69,10 @@ class _PanPlaneAction(InteractiveModeAction):
         if event in (items.ItemChangedType.VISIBLE,
                      items.ItemChangedType.POSITION):
             plane = self.sender()
-            isPlaneInteractive = plane.isValid() and plane.isVisible()
+
+            isPlaneInteractive = \
+                plane._getPlane().plane.isPlane and plane.isVisible()
+
             if isPlaneInteractive != self.isEnabled():
                 self.setEnabled(isPlaneInteractive)
                 mode = 'panSelectedPlane' if isPlaneInteractive else 'rotate'
