@@ -58,6 +58,7 @@ RAW_SCALAR_MODE = 43
 RAW_HEXA_MODE = 44
 STACK_MODE = 50
 HDF5_MODE = 60
+NXDATA_MODE = 70
 
 
 def _normalizeData(data):
@@ -1279,6 +1280,7 @@ class _NXdataView(CompositeDataView):
         super(_NXdataView, self).__init__(
             parent=parent,
             label="NXdata",
+            modeId=NXDATA_MODE,
             icon=icons.getQIcon("view-nexus"))
 
         self.addView(_InvalidNXdataView(parent))

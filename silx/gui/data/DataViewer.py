@@ -78,6 +78,7 @@ class DataViewer(qt.QFrame):
     RAW_SCALAR_MODE = 43
     STACK_MODE = 50
     HDF5_MODE = 60
+    NXDATA_MODE = 70
 
     displayedViewChanged = qt.Signal(object)
     """Emitted when the displayed view changes"""
