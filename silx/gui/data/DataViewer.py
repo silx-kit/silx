@@ -459,10 +459,10 @@ class DataViewer(qt.QFrame):
 
         .. note::
 
-            This method can only be called just after instantiation, before
+            This method must be called just after instantiation, before
             the viewer is used.
 
-        :param int modeId: Unique mode ID identifying with the DataView to
+        :param int modeId: Unique mode ID identifying the DataView to
             be replaced. One of:
 
             - `DataViews.EMPTY_MODE`

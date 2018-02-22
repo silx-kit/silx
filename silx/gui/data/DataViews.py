@@ -419,7 +419,36 @@ class CompositeDataView(DataView):
             return view.getDataPriority(data, info)
 
     def replaceView(self, modeId, newView):
-        raise NotImplementedError("TODO")
+        """Replace a data view with a custom view.
+        Return True in case of success, False in case of failure.
+
+        .. note::
+
+            This method must be called just after instantiation, before
+            the viewer is used.
+
+        :param int modeId: Unique mode ID identifying the DataView to
+            be replaced.
+        :param DataViews.DataView newView: New data view
+        :return: True if replacement was successful, else False
+        """
+        oldView = None
+        for view in self.__views:
+            if view.modeId() == modeId:
+                oldView = view
+                break
+            elif isinstance(view, CompositeDataView):
+                # recurse
+                if view.replaceView(modeId, newView):
+                    return True
+        if oldView is None:
+            return False
+
+        # replace oldView with new view in dict
+        self.__views = OrderedDict(
+                (newView, None) if view is oldView else (view, idx) for
+                view, idx in self.__views.items())
+        return True
 
 
 class _EmptyView(DataView):
