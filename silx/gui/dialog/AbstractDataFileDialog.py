@@ -567,23 +567,27 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__fileTypeCombo.setCurrentIndex(0)
         self.__filterSelected(0)
 
-    def __del__(self):
-        self._clear()
-        superInstance = super(AbstractDataFileDialog, self)
-        if hasattr(superInstance, "__del__"):
-            superInstance.__del__()
+        # It is not possible to override the QObject destructor nor
+        # to access to the content of the Python object with the `destroyed`
+        # signal cause the Python method was already removed with the QWidget,
+        # while the QObject still exists.
+        # Using lambda function looks to force a self-reference to the object
+        # which allow to access to it at the destroy time.
+        self.destroyed.connect(lambda: self._clear())
 
     def done(self, result):
         self._clear()
         super(AbstractDataFileDialog, self).done(result)
 
     def _clear(self):
-        """Expicit method to clear data stored in the dialog.
+        """Explicit method to clear data stored in the dialog.
         After this call it is not anymore possible to use the widget.
 
         This method is triggered by the destruction of the object and the
         QDialog :meth:`done`. Then it can be triggered more than once.
         """
+        _logger.debug("Dialog cleared")
+        self.__errorWhileLoadingFile = None
         self.__clearData()
         if self.__fileModel is not None:
             # Cache the directory before cleaning the model

@@ -35,6 +35,7 @@ import numpy
 import shutil
 import os
 import io
+import weakref
 
 try:
     import fabio
@@ -91,6 +92,22 @@ def tearDownModule():
 
 class _UtilsMixin(object):
 
+    def createDialog(self):
+        self._deleteDialog()
+        self._dialog = self._createDialog()
+        return self._dialog
+
+    def _createDialog(self):
+        return DataFileDialog()
+
+    def _deleteDialog(self):
+        if not hasattr(self, "_dialog"):
+            return
+        if self._dialog is not None:
+            ref = weakref.ref(self._dialog)
+            self._dialog = None
+            self.qWaitForDestroy(ref)
+
     def qWaitForPendingActions(self, dialog):
         for _ in range(20):
             if not dialog.hasPendingEvents():
@@ -115,19 +132,9 @@ class _UtilsMixin(object):
 
 class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
-    def setUp(self):
-        utils.TestCaseQt.setUp(self)
-        self.dialog = None
-
     def tearDown(self):
-        if self.dialog is not None:
-            self.dialog._clear()
-            self.dialog = None
+        self._deleteDialog()
         utils.TestCaseQt.tearDown(self)
-
-    def createDialog(self):
-        self.dialog = DataFileDialog()
-        return self.dialog
 
     def testDisplayAndKeyEscape(self):
         dialog = self.createDialog()
@@ -527,20 +534,14 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
 class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
 
-    def setUp(self):
-        utils.TestCaseQt.setUp(self)
-        self.dialog = None
-
     def tearDown(self):
-        if self.dialog is not None:
-            self.dialog._clear()
-            self.dialog = None
+        self._deleteDialog()
         utils.TestCaseQt.tearDown(self)
 
-    def createDialog(self):
-        self.dialog = DataFileDialog()
-        self.dialog.setFilterMode(DataFileDialog.FilterMode.ExistingDataset)
-        return self.dialog
+    def _createDialog(self):
+        dialog = DataFileDialog()
+        dialog.setFilterMode(DataFileDialog.FilterMode.ExistingDataset)
+        return dialog
 
     def testSelectGroup_Activate(self):
         if fabio is None:
@@ -607,20 +608,14 @@ class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
 
 class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
 
-    def setUp(self):
-        utils.TestCaseQt.setUp(self)
-        self.dialog = None
-
     def tearDown(self):
-        if self.dialog is not None:
-            self.dialog._clear()
-            self.dialog = None
+        self._deleteDialog()
         utils.TestCaseQt.tearDown(self)
 
-    def createDialog(self):
-        self.dialog = DataFileDialog()
-        self.dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
-        return self.dialog
+    def _createDialog(self):
+        dialog = DataFileDialog()
+        dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+        return dialog
 
     def testSelectGroup_Activate(self):
         if fabio is None:
@@ -686,26 +681,20 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
 
 class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
 
-    def setUp(self):
-        utils.TestCaseQt.setUp(self)
-        self.dialog = None
-
     def tearDown(self):
-        if self.dialog is not None:
-            self.dialog._clear()
-            self.dialog = None
+        self._deleteDialog()
         utils.TestCaseQt.tearDown(self)
 
-    def createDialog(self):
+    def _createDialog(self):
         def customFilter(obj):
             if "NX_class" in obj.attrs:
                 return obj.attrs["NX_class"] == u"NXdata"
             return False
 
-        self.dialog = DataFileDialog()
-        self.dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
-        self.dialog.setFilterCallback(customFilter)
-        return self.dialog
+        dialog = DataFileDialog()
+        dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+        dialog.setFilterCallback(customFilter)
+        return dialog
 
     def testSelectGroupRefused_Activate(self):
         if fabio is None:
@@ -771,29 +760,25 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
 
 class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
-    def setUp(self):
-        utils.TestCaseQt.setUp(self)
-        self.dialog = None
-
     def tearDown(self):
-        if self.dialog is not None:
-            self.dialog._clear()
-            self.dialog = None
+        self._deleteDialog()
         utils.TestCaseQt.tearDown(self)
 
-    def createDialog(self):
-        self.dialog = DataFileDialog()
-        return self.dialog
+    def _createDialog(self):
+        dialog = DataFileDialog()
+        return dialog
 
     def testSaveRestoreState(self):
-        dialog = DataFileDialog()
+        dialog = self.createDialog()
         dialog.setDirectory(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-
         state = dialog.saveState()
-        dialog2 = DataFileDialog()
+        dialog = None
+
+        dialog2 = self.createDialog()
         result = dialog2.restoreState(state)
         self.assertTrue(result)
+        dialog2 = None
 
     def printState(self):
         """
@@ -804,7 +789,7 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
         >>> ./run_tests.py -v silx.gui.dialog.test.test_datafiledialog.TestDataFileDialogApi.printState
         """
-        dialog = DataFileDialog()
+        dialog = self.createDialog()
         dialog.setDirectory("")
         dialog.setHistory([])
         dialog.setSidebarUrls([])
@@ -896,13 +881,13 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
     def testRestoreNonExistingDirectory(self):
         directory = os.path.join(_tmpDirectory, "dir")
         os.mkdir(directory)
-        dialog = DataFileDialog()
+        dialog = self.createDialog()
         dialog.setDirectory(directory)
         self.qWaitForPendingActions(dialog)
         state = dialog.saveState()
         os.rmdir(directory)
 
-        dialog2 = DataFileDialog()
+        dialog2 = self.createDialog()
         result = dialog2.restoreState(state)
         self.assertTrue(result)
         self.assertNotEquals(dialog2.directory(), directory)
