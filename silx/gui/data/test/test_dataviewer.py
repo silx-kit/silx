@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/01/2018"
+__date__ = "22/02/2018"
 
 import os
 import tempfile
@@ -67,7 +67,8 @@ class _DataViewMock(DataView):
 class AbstractDataViewerTests(TestCaseQt):
 
     def create_widget(self):
-        raise NotImplementedError()
+        # Avoid to raise an error when testing the full module
+        self.skipTest("Not implemented")
 
     @contextmanager
     def h5_temporary_file(self):
