@@ -35,6 +35,7 @@ import sys
 import os
 import logging
 import numpy
+import functools
 import silx.io.url
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
@@ -567,13 +568,27 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__fileTypeCombo.setCurrentIndex(0)
         self.__filterSelected(0)
 
+        self.__openedFiles = []
+        """Store the list of files opened by the model itself."""
+        # FIXME: It should be managed one by one by Hdf5Item itself
+
         # It is not possible to override the QObject destructor nor
         # to access to the content of the Python object with the `destroyed`
         # signal cause the Python method was already removed with the QWidget,
         # while the QObject still exists.
-        # Using lambda function looks to force a self-reference to the object
-        # which allow to access to it at the destroy time.
-        self.destroyed.connect(lambda: self._clear())
+        # We use a static method plus explicit references to objects to
+        # release. The callback do not use any ref to self.
+        onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
+        self.destroyed.connect(onDestroy)
+
+    @staticmethod
+    def _closeFileList(fileList):
+        """Static method to close explicit references to internal objects."""
+        _logger.debug("Clear AbstractDataFileDialog")
+        for obj in fileList:
+            _logger.debug("Close file %s", obj.filename)
+            obj.close()
+        fileList[:] = []
 
     def done(self, result):
         self._clear()
@@ -586,7 +601,7 @@ class AbstractDataFileDialog(qt.QDialog):
         This method is triggered by the destruction of the object and the
         QDialog :meth:`done`. Then it can be triggered more than once.
         """
-        _logger.debug("Dialog cleared")
+        _logger.debug("Clear dialog")
         self.__errorWhileLoadingFile = None
         self.__clearData()
         if self.__fileModel is not None:
@@ -1021,6 +1036,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__processing -= 1
 
     def __closeFile(self):
+        self.__openedFiles[:] = []
         self.__fileDirectoryAction.setEnabled(False)
         self.__parentFileDirectoryAction.setEnabled(False)
         if self.__h5 is not None:
@@ -1038,6 +1054,7 @@ class AbstractDataFileDialog(qt.QDialog):
             if fabio is None:
                 raise ImportError("Fabio module is not available")
             self.__fabio = fabio.open(filename)
+            self.__openedFiles[:] = [self.__fabio]
             self.__selectedFile = filename
         except Exception as e:
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
@@ -1051,6 +1068,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__closeFile()
         try:
             self.__h5 = silx.io.open(filename)
+            self.__openedFiles[:] = [self.__h5]
             self.__selectedFile = filename
         except IOError as e:
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
