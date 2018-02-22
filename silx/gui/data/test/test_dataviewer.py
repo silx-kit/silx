@@ -229,6 +229,15 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertTrue(view not in widget.availableViews())
         self.assertTrue(view not in widget.currentAvailableViews())
 
+    def test_replace_view(self):
+        widget = self.create_widget()
+        view = _DataViewMock(widget)
+        widget.replaceView(DataViews.RAW_MODE,
+                           view)
+        self.assertIsNone(widget.getViewFromModeId(DataViews.RAW_MODE))
+        self.assertTrue(view in widget.availableViews())
+        self.assertTrue(view in widget.currentAvailableViews())
+
 
 class TestDataViewer(AbstractDataViewerTests):
     def create_widget(self):

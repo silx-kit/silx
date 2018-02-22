@@ -193,6 +193,10 @@ class DataViewerFrame(qt.QWidget):
         """
         return self.__dataViewer.setDisplayMode(modeId)
 
+    def getViewFromModeId(self, modeId):
+        """See :meth:`DataViewer.getViewFromModeId`"""
+        return self.__dataViewer.getViewFromModeId(modeId)
+
     def replaceView(self, modeId, newView):
         """Replace one of the builtin data views with a custom view.
         See :meth:`DataViewer.replaceView` for more documentation.

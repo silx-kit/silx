@@ -499,4 +499,5 @@ class DataViewer(qt.QFrame):
             return False
 
         self.__views[viewIndex] = newView
+        self.__updateAvailableViews()
         return True
