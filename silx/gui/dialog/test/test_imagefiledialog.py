@@ -570,9 +570,11 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog.setColormap(colormap)
         self.qWaitForPendingActions(dialog)
         state = dialog.saveState()
+        dialog = None
 
         dialog2 = self.createDialog()
         result = dialog2.restoreState(state)
+        self.qWaitForPendingActions(dialog2)
         self.assertTrue(result)
         self.assertTrue(dialog2.colormap().getNormalization(), "log")
 
@@ -680,6 +682,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         dialog.restoreState(state)
         state = qt.QByteArray(self.STATE_VERSION1_QT5)
+        dialog = None
         dialog = self.createDialog()
         dialog.restoreState(state)
 
@@ -691,6 +694,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         state = dialog.saveState()
         os.rmdir(directory)
+        dialog = None
 
         dialog2 = self.createDialog()
         result = dialog2.restoreState(state)

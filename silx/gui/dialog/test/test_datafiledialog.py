@@ -875,6 +875,7 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         dialog.restoreState(state)
         state = qt.QByteArray(self.STATE_VERSION1_QT5)
+        dialog = None
         dialog = self.createDialog()
         dialog.restoreState(state)
 
@@ -886,6 +887,7 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         state = dialog.saveState()
         os.rmdir(directory)
+        dialog = None
 
         dialog2 = self.createDialog()
         result = dialog2.restoreState(state)
