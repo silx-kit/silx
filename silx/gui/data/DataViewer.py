@@ -486,18 +486,17 @@ class DataViewer(qt.QFrame):
         :return: True if replacement was successful, else False
         """
         assert isinstance(newView, DataViews.DataView)
-        viewIndex = None
+        isReplaced = False
         for idx, view in enumerate(self.__views):
             if view.modeId() == modeId:
-                viewIndex = idx
+                self.__views[idx] = newView
+                isReplaced = True
                 break
             elif isinstance(view, DataViews.CompositeDataView):
-                isReplaced = view.replaceView(modeId, newView)    # TODO
+                isReplaced = view.replaceView(modeId, newView)
                 if isReplaced:
-                    return True
-        if viewIndex is None:
-            return False
+                    break
 
-        self.__views[viewIndex] = newView
-        self.__updateAvailableViews()
-        return True
+        if isReplaced:
+            self.__updateAvailableViews()
+        return isReplaced
