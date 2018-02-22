@@ -250,6 +250,7 @@ class DataViewer(qt.QFrame):
 
     def getViewFromModeId(self, modeId):
         """Returns the first available view which have the requested modeId.
+        Return None if modeId does not correspond to an existing view.
 
         :param int modeId: Requested mode id
         :rtype: silx.gui.data.DataViews.DataView
@@ -257,7 +258,7 @@ class DataViewer(qt.QFrame):
         for view in self.__views:
             if view.modeId() == modeId:
                 return view
-        return view
+        return None
 
     def setDisplayMode(self, modeId):
         """Set the displayed view using display mode.
@@ -266,13 +267,14 @@ class DataViewer(qt.QFrame):
 
         :param int modeId: Display mode, one of
 
-            - `EMPTY_MODE`: display nothing
-            - `PLOT1D_MODE`: display the data as a curve
-            - `PLOT2D_MODE`: display the data as an image
-            - `PLOT3D_MODE`: display the data as an isosurface
-            - `RAW_MODE`: display the data as a table
-            - `STACK_MODE`: display the data as a stack of images
-            - `HDF5_MODE`: display the data as a table
+            - `DataViews.EMPTY_MODE`: display nothing
+            - `DataViews.PLOT1D_MODE`: display the data as a curve
+            - `DataViews.IMAGE_MODE`: display the data as an image
+            - `DataViews.PLOT3D_MODE`: display the data as an isosurface
+            - `DataViews.RAW_MODE`: display the data as a table
+            - `DataViews.STACK_MODE`: display the data as a stack of images
+            - `DataViews.HDF5_MODE`: display the data as a table of HDF5 info
+            - `DataViews.NXDATA_MODE`: display the data as NXdata
         """
         try:
             view = self.getViewFromModeId(modeId)
@@ -450,3 +452,53 @@ class DataViewer(qt.QFrame):
     def displayMode(self):
         """Returns the current display mode"""
         return self.__currentView.modeId()
+
+    def replaceView(self, modeId, newView):
+        """Replace one of the builtin data views with a custom view.
+        Return True in case of success, False in case of failure.
+
+        .. note::
+
+            This method can only be called just after instantiation, before
+            the viewer is used.
+
+        :param int modeId: Unique mode ID identifying with the DataView to
+            be replaced. One of:
+
+            - `DataViews.EMPTY_MODE`
+            - `DataViews.PLOT1D_MODE`
+            - `DataViews.IMAGE_MODE`
+            - `DataViews.PLOT2D_MODE`
+            - `DataViews.COMPLEX_IMAGE_MODE`
+            - `DataViews.PLOT3D_MODE`
+            - `DataViews.RAW_MODE`
+            - `DataViews.STACK_MODE`
+            - `DataViews.HDF5_MODE`
+            - `DataViews.NXDATA_MODE`
+            - `DataViews.NXDATA_INVALID_MODE`
+            - `DataViews.NXDATA_SCALAR_MODE`
+            - `DataViews.NXDATA_CURVE_MODE`
+            - `DataViews.NXDATA_XYVSCATTER_MODE`
+            - `DataViews.NXDATA_IMAGE_MODE`
+            - `DataViews.NXDATA_STACK_MODE`
+
+        :param DataViews.DataView newView: New data view
+        :return: True if replacement was successful, else False
+        """
+        assert isinstance(newView, DataViews.DataView)
+        oldView = None
+        viewIndex = None
+        for idx, view in enumerate(self.__views):
+            if view.modeId() == modeId:
+                oldView = view
+                viewIndex = idx
+                break
+            elif isinstance(view, DataViews.CompositeDataView):
+                isReplaced = view.replaceView(modeId, newView)    # TODO
+                if isReplaced:
+                    return True
+        if oldView is None:
+            return False
+
+        self.__views[viewIndex] = newView
+        return True

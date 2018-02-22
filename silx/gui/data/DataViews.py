@@ -418,6 +418,9 @@ class CompositeDataView(DataView):
         else:
             return view.getDataPriority(data, info)
 
+    def replaceView(self, modeId, newView):
+        raise NotImplementedError("TODO")
+
 
 class _EmptyView(DataView):
     """Dummy view to display nothing"""
