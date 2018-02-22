@@ -49,7 +49,9 @@ _logger = logging.getLogger(__name__)
 # DataViewer modes
 EMPTY_MODE = 0
 PLOT1D_MODE = 10
-PLOT2D_MODE = 20
+IMAGE_MODE = 20
+PLOT2D_MODE = 21
+COMPLEX_IMAGE_MODE = 22
 PLOT3D_MODE = 30
 RAW_MODE = 40
 RAW_ARRAY_MODE = 41
@@ -58,6 +60,13 @@ RAW_SCALAR_MODE = 43
 RAW_HEXA_MODE = 44
 STACK_MODE = 50
 HDF5_MODE = 60
+NXDATA_MODE = 70
+NXDATA_INVALID_MODE = 71
+NXDATA_SCALAR_MODE = 72
+NXDATA_CURVE_MODE = 73
+NXDATA_XYVSCATTER_MODE = 74
+NXDATA_IMAGE_MODE = 75
+NXDATA_STACK_MODE = 76
 
 
 def _normalizeData(data):
@@ -340,6 +349,13 @@ class CompositeDataView(DataView):
         """Add a new dataview to the available list."""
         self.__views[dataView] = None
 
+    def availableViews(self):
+        """Returns the list of registered views
+
+        :rtype: List[DataView]
+        """
+        return list(self.__views.keys())
+
     def getBestView(self, data, info):
         """Returns the best view according to priorities."""
         views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
@@ -408,6 +424,38 @@ class CompositeDataView(DataView):
             return DataView.UNSUPPORTED
         else:
             return view.getDataPriority(data, info)
+
+    def replaceView(self, modeId, newView):
+        """Replace a data view with a custom view.
+        Return True in case of success, False in case of failure.
+
+        .. note::
+
+            This method must be called just after instantiation, before
+            the viewer is used.
+
+        :param int modeId: Unique mode ID identifying the DataView to
+            be replaced.
+        :param DataViews.DataView newView: New data view
+        :return: True if replacement was successful, else False
+        """
+        oldView = None
+        for view in self.__views:
+            if view.modeId() == modeId:
+                oldView = view
+                break
+            elif isinstance(view, CompositeDataView):
+                # recurse
+                if view.replaceView(modeId, newView):
+                    return True
+        if oldView is None:
+            return False
+
+        # replace oldView with new view in dict
+        self.__views = OrderedDict(
+                (newView, None) if view is oldView else (view, idx) for
+                view, idx in self.__views.items())
+        return True
 
 
 class _EmptyView(DataView):
@@ -619,7 +667,7 @@ class _ComplexImageView(DataView):
     def __init__(self, parent):
         super(_ComplexImageView, self).__init__(
             parent=parent,
-            modeId=PLOT2D_MODE,
+            modeId=COMPLEX_IMAGE_MODE,
             label="Complex Image",
             icon=icons.getQIcon("view-2d"))
 
@@ -941,7 +989,7 @@ class _ImageView(CompositeDataView):
     def __init__(self, parent):
         super(_ImageView, self).__init__(
             parent=parent,
-            modeId=PLOT2D_MODE,
+            modeId=IMAGE_MODE,
             label="Image",
             icon=icons.getQIcon("view-2d"))
         self.addView(_ComplexImageView(parent))
@@ -953,7 +1001,8 @@ class _InvalidNXdataView(DataView):
     to inform that a group with @NX_class=NXdata cannot be
     interpreted by any NXDataview."""
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_INVALID_MODE)
         self._msg = ""
 
     def createWidget(self, parent):
@@ -1043,7 +1092,8 @@ class _NXdataScalarView(DataView):
     """DataView using a table view for displaying NXdata scalars:
     0-D signal or n-D signal with *@interpretation=scalar*"""
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_SCALAR_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
@@ -1084,7 +1134,8 @@ class _NXdataCurveView(DataView):
     a 1-D signal with one axis whose values are not monotonically increasing.
     """
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_CURVE_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayCurvePlot
@@ -1136,7 +1187,8 @@ class _NXdataXYVScatterView(DataView):
     """DataView using a Plot1D for displaying NXdata 3D scatters as
     a scatter of coloured points (1-D signal with 2 axes)"""
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_XYVSCATTER_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import XYVScatterPlot
@@ -1185,7 +1237,8 @@ class _NXdataImageView(DataView):
     """DataView using a Plot2D for displaying NXdata images:
     2-D signal or n-D signals with *@interpretation=spectrum*."""
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_IMAGE_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayImagePlot
@@ -1230,7 +1283,8 @@ class _NXdataImageView(DataView):
 
 class _NXdataStackView(DataView):
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_STACK_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayStackPlot
@@ -1279,6 +1333,7 @@ class _NXdataView(CompositeDataView):
         super(_NXdataView, self).__init__(
             parent=parent,
             label="NXdata",
+            modeId=NXDATA_MODE,
             icon=icons.getQIcon("view-nexus"))
 
         self.addView(_InvalidNXdataView(parent))

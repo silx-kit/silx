@@ -192,3 +192,16 @@ class DataViewerFrame(qt.QWidget):
             - `ARRAY_MODE`: display the data as a table
         """
         return self.__dataViewer.setDisplayMode(modeId)
+
+    def getViewFromModeId(self, modeId):
+        """See :meth:`DataViewer.getViewFromModeId`"""
+        return self.__dataViewer.getViewFromModeId(modeId)
+
+    def replaceView(self, modeId, newView):
+        """Replace one of the builtin data views with a custom view.
+        See :meth:`DataViewer.replaceView` for more documentation.
+
+        :param DataViews.DataView newView: New data view
+        :return: True if replacement was successful, else False
+        """
+        return self.__dataViewer.replaceView(modeId, newView)
