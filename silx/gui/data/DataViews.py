@@ -61,6 +61,12 @@ RAW_HEXA_MODE = 44
 STACK_MODE = 50
 HDF5_MODE = 60
 NXDATA_MODE = 70
+NXDATA_INVALID_MODE = 71
+NXDATA_SCALAR_MODE = 72
+NXDATA_CURVE_MODE = 73
+NXDATA_XYVSCATTER_MODE = 74
+NXDATA_IMAGE_MODE = 75
+NXDATA_STACK_MODE = 76
 
 
 def _normalizeData(data):
@@ -956,7 +962,8 @@ class _InvalidNXdataView(DataView):
     to inform that a group with @NX_class=NXdata cannot be
     interpreted by any NXDataview."""
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_INVALID_MODE)
         self._msg = ""
 
     def createWidget(self, parent):
@@ -1046,7 +1053,8 @@ class _NXdataScalarView(DataView):
     """DataView using a table view for displaying NXdata scalars:
     0-D signal or n-D signal with *@interpretation=scalar*"""
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_SCALAR_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
@@ -1087,7 +1095,8 @@ class _NXdataCurveView(DataView):
     a 1-D signal with one axis whose values are not monotonically increasing.
     """
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_CURVE_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayCurvePlot
@@ -1139,7 +1148,8 @@ class _NXdataXYVScatterView(DataView):
     """DataView using a Plot1D for displaying NXdata 3D scatters as
     a scatter of coloured points (1-D signal with 2 axes)"""
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_XYVSCATTER_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import XYVScatterPlot
@@ -1188,7 +1198,8 @@ class _NXdataImageView(DataView):
     """DataView using a Plot2D for displaying NXdata images:
     2-D signal or n-D signals with *@interpretation=spectrum*."""
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_IMAGE_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayImagePlot
@@ -1233,7 +1244,8 @@ class _NXdataImageView(DataView):
 
 class _NXdataStackView(DataView):
     def __init__(self, parent):
-        DataView.__init__(self, parent)
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_STACK_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayStackPlot
