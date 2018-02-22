@@ -49,7 +49,9 @@ _logger = logging.getLogger(__name__)
 # DataViewer modes
 EMPTY_MODE = 0
 PLOT1D_MODE = 10
-PLOT2D_MODE = 20
+IMAGE_MODE = 20
+PLOT2D_MODE = 21
+COMPLEX_IMAGE_MODE = 22
 PLOT3D_MODE = 30
 RAW_MODE = 40
 RAW_ARRAY_MODE = 41
@@ -620,7 +622,7 @@ class _ComplexImageView(DataView):
     def __init__(self, parent):
         super(_ComplexImageView, self).__init__(
             parent=parent,
-            modeId=PLOT2D_MODE,
+            modeId=COMPLEX_IMAGE_MODE,
             label="Complex Image",
             icon=icons.getQIcon("view-2d"))
 
@@ -942,7 +944,7 @@ class _ImageView(CompositeDataView):
     def __init__(self, parent):
         super(_ImageView, self).__init__(
             parent=parent,
-            modeId=PLOT2D_MODE,
+            modeId=IMAGE_MODE,
             label="Image",
             icon=icons.getQIcon("view-2d"))
         self.addView(_ComplexImageView(parent))
