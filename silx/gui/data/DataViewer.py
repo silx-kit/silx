@@ -32,10 +32,12 @@ from silx.gui.data.DataViews import _normalizeData
 import logging
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
+from silx.utils import deprecation
+from silx.utils.property import classproperty
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/10/2017"
+__date__ = "22/02/2018"
 
 
 _logger = logging.getLogger(__name__)
@@ -68,16 +70,65 @@ class DataViewer(qt.QFrame):
         viewer.setVisible(True)
     """
 
-    EMPTY_MODE = 0
-    PLOT1D_MODE = 10
-    PLOT2D_MODE = 20
-    PLOT3D_MODE = 30
-    RAW_MODE = 40
-    RAW_ARRAY_MODE = 41
-    RAW_RECORD_MODE = 42
-    RAW_SCALAR_MODE = 43
-    STACK_MODE = 50
-    HDF5_MODE = 60
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.EMPTY_MODE", since_version="0.7")
+    def EMPTY_MODE(self):
+        return DataViews.EMPTY_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.PLOT1D_MODE", since_version="0.7")
+    def PLOT1D_MODE(self):
+        return DataViews.PLOT1D_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.PLOT2D_MODE", since_version="0.7")
+    def PLOT2D_MODE(self):
+        return DataViews.PLOT2D_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.PLOT3D_MODE", since_version="0.7")
+    def PLOT3D_MODE(self):
+        return DataViews.PLOT3D_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.RAW_MODE", since_version="0.7")
+    def RAW_MODE(self):
+        return DataViews.RAW_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.RAW_ARRAY_MODE", since_version="0.7")
+    def RAW_ARRAY_MODE(self):
+        return DataViews.RAW_ARRAY_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.RAW_RECORD_MODE", since_version="0.7")
+    def RAW_RECORD_MODE(self):
+        return DataViews.RAW_RECORD_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.RAW_SCALAR_MODE", since_version="0.7")
+    def RAW_SCALAR_MODE(self):
+        return DataViews.RAW_SCALAR_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.STACK_MODE", since_version="0.7")
+    def STACK_MODE(self):
+        return DataViews.STACK_MODE
+
+    # TODO: Can be removed for silx 0.8
+    @classproperty
+    @deprecation.deprecated(replacement="DataViews.HDF5_MODE", since_version="0.7")
+    def HDF5_MODE(self):
+        return DataViews.HDF5_MODE
 
     displayedViewChanged = qt.Signal(object)
     """Emitted when the displayed view changes"""
