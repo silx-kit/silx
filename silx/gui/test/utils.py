@@ -349,6 +349,51 @@ class TestCaseQt(unittest.TestCase):
 
         return result
 
+    _qobject_destroyed = False
+
+    @classmethod
+    def _aboutToDestroy(cls):
+        cls._qobject_destroyed = True
+
+    @classmethod
+    def qWaitForDestroy(cls, ref):
+        """
+        Wait for Qt object destruction.
+
+        Use a weakref as parameter to avoid any strong references to the
+        object.
+
+        It have to be used as following. Removing the reference to the object
+        before calling the function looks to be expected, else
+        :meth:`deleteLater` will not work.
+
+        .. code-block:: python
+
+            ref = weakref.ref(self.obj)
+            self.obj = None
+            self.qWaitForDestroy(ref)
+
+        :param weakref ref: A weakref to an object to avoid any reference
+        :return: True if the object was destroyed
+        :rtype: bool
+        """
+        cls._qobject_destroyed = False
+        import gc
+        gc.collect()
+        qobject = ref()
+        if qobject is None:
+            return True
+        qobject.destroyed.connect(cls._aboutToDestroy)
+        qobject.deleteLater()
+        qobject = None
+        for _ in range(10):
+            if cls._qobject_destroyed:
+                break
+        else:
+            _logger.debug("Object was not destroyed")
+
+        return ref() is None
+
     def logScreenShot(self, level=logging.ERROR):
         """Take a screenshot and log it into the logging system if the
         logger is enabled for the expected level.
