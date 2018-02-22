@@ -40,6 +40,7 @@ from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import hdf5
 from silx.io import commonh5
+import weakref
 
 try:
     import h5py
@@ -133,7 +134,9 @@ class TestHdf5TreeModel(TestCaseQt):
                 index = model.index(0, 0, qt.QModelIndex())
                 self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             finally:
+                ref = weakref.ref(model)
                 model = None
+                self.qWaitForDestroy(ref)
 
     def testInsertObject(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
@@ -505,7 +508,9 @@ class TestH5Node(TestCaseQt):
 
     @classmethod
     def tearDownClass(cls):
+        ref = weakref.ref(cls.model)
         cls.model = None
+        cls.qWaitForDestroy(ref)
         cls.h5File.close()
         shutil.rmtree(cls.tmpDirectory)
         super(TestH5Node, cls).tearDownClass()

@@ -236,22 +236,22 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         self.__openedFiles = []
         """Store the list of files opened by the model itself."""
-        # FIXME: It should managed one by one by Hdf5Item itself
+        # FIXME: It should be managed one by one by Hdf5Item itself
 
-    def __del__(self):
-        self._closeOpened()
-        s = super(Hdf5TreeModel, self)
-        if hasattr(s, "__del__"):
-            # else it fail on Python 3
-            s.__del__()
+        # It is not possible to override the QObject destructor nor
+        # to access to the content of the Python object with the `destroyed`
+        # signal cause the Python method was already removed with the QWidget,
+        # while the QObject still exists.
+        # Using lambda function looks to force a self-reference to the object
+        # which allow to access to it at the destroy time.
+        self.destroyed.connect(lambda: self._closeOpened())
 
     def _closeOpened(self):
         """Close files which was opened by this model.
 
-        This function may be removed in the future.
-
         File are opened by the model when it was inserted using
         `insertFileAsync`, `insertFile`, `appendFile`."""
+        _logger.debug("Model cleared")
         for h5file in self.__openedFiles:
             h5file.close()
         self.__openedFiles = []
