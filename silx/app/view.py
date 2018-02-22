@@ -286,6 +286,7 @@ def main(argv):
 
     sys.excepthook = qt.exceptionHandler
     window = Viewer()
+    window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
     window.resize(qt.QSize(640, 480))
 
     for filename in options.files:
