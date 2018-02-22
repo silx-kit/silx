@@ -520,6 +520,16 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def nodeFromIndex(self, index):
         return index.internalPointer() if index.isValid() else self.__root
 
+    def _closeFileIfOwned(self, node):
+        """"Close the file if it was loaded from a filename or a
+        drag-and-drop"""
+        obj = node.obj
+        for f in self.__openedFiles:
+            if f in obj:
+                _logger.debug("Close file %s", obj.filename)
+                obj.close()
+                self.__openedFiles.remove(obj)
+
     def synchronizeIndex(self, index):
         """
         Synchronize a file a given its index.
@@ -532,9 +542,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if node.parent is not self.__root:
             return
 
-        self.removeIndex(index)
         filename = node.obj.filename
-        node.obj.close()
+        self.removeIndex(index)
         self.insertFileAsync(filename, index.row())
 
     def synchronizeH5pyObject(self, h5pyObject):
@@ -563,6 +572,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         node = self.nodeFromIndex(index)
         if node.parent is not self.__root:
             return
+        self._closeFileIfOwned(node)
         self.beginRemoveRows(qt.QModelIndex(), index.row(), index.row())
         self.__root.removeChildAtIndex(index.row())
         self.endRemoveRows()
