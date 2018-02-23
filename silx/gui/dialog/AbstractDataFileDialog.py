@@ -1054,7 +1054,7 @@ class AbstractDataFileDialog(qt.QDialog):
             if fabio is None:
                 raise ImportError("Fabio module is not available")
             self.__fabio = fabio.open(filename)
-            self.__openedFiles[:] = [self.__fabio]
+            self.__openedFiles.append(self.__fabio)
             self.__selectedFile = filename
         except Exception as e:
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
@@ -1068,7 +1068,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__closeFile()
         try:
             self.__h5 = silx.io.open(filename)
-            self.__openedFiles[:] = [self.__h5]
+            self.__openedFiles.append(self.__h5)
             self.__selectedFile = filename
         except IOError as e:
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
