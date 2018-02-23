@@ -877,14 +877,14 @@ class AbstractDataFileDialog(qt.QDialog):
     # Logic
 
     def __navigateBackward(self):
-        """Navigate throug  the history one step backward."""
+        """Navigate through  the history one step backward."""
         if len(self.__currentHistory) > 0 and self.__currentHistoryLocation > 0:
             self.__currentHistoryLocation -= 1
             url = self.__currentHistory[self.__currentHistoryLocation]
             self.selectUrl(url)
 
     def __navigateForward(self):
-        """Navigate throug  the history one step forward."""
+        """Navigate through  the history one step forward."""
         if len(self.__currentHistory) > 0 and self.__currentHistoryLocation < len(self.__currentHistory) - 1:
             self.__currentHistoryLocation += 1
             url = self.__currentHistory[self.__currentHistoryLocation]
