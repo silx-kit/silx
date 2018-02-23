@@ -379,8 +379,13 @@ class TestCaseQt(unittest.TestCase):
         :rtype: bool
         """
         cls._qobject_destroyed = False
-        import gc
-        gc.collect()
+        if qt.BINDING == 'PyQt4':
+            # Without this, QWidget will be still alive on PyQt4
+            # (at least on Windows Python 2.7)
+            # If it is not skipped on PySide, silx.gui.dialog tests will
+            # segfault (at least on Windows Python 2.7)
+            import gc
+            gc.collect()
         qobject = ref()
         if qobject is None:
             return True
