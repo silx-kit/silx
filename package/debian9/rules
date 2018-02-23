@@ -35,6 +35,7 @@ override_dh_install:
 	dh_install -p silx package/desktop/*.desktop usr/share/applications
 	dh_install -p silx package/desktop/silx.png usr/share/icons/hicolor/48x48/apps
 	dh_install -p silx package/desktop/silx.svg usr/share/icons/hicolor/scalable/apps
+	dh_install -p silx package/desktop/silx.xml usr/share/mime/packages
 	rm -rf debian/python-silx/usr/bin
 	rm -rf debian/python3-silx/usr/bin
 
