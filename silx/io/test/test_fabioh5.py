@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "24/02/2018"
 
 import os
 import logging
@@ -287,6 +287,28 @@ class TestFabioH5(unittest.TestCase):
         self.assertEquals(d.shape, (1, 3, 3))
         self.assertIn(d.dtype.char, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
+
+    def test_interpretation_mca_edf(self):
+        """EDF files with two or more headers starting with "MCA"
+        must have @interpretation = "spectrum" an the data."""
+        header = {
+            "Title": "zapimage  samy -4.975 -5.095 80 500 samz -4.091 -4.171 70 0",
+            "MCA a": -23.812,
+            "MCA b": 2.7107,
+            "MCA c": 8.1164e-06}
+
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+
+        data_dataset = h5_image["/scan_0/measurement/image_0/data"]
+        self.assertEquals(data_dataset.attrs["interpretation"], "spectrum")
+
+        data_dataset = h5_image["/scan_0/instrument/detector_0/data"]
+        self.assertEquals(data_dataset.attrs["interpretation"], "spectrum")
+
+        data_dataset = h5_image["/scan_0/measurement/image_0/info/data"]
+        self.assertEquals(data_dataset.attrs["interpretation"], "spectrum")
 
     def test_get_api(self):
         result = self.h5_image.get("scan_0", getclass=True, getlink=True)

@@ -100,9 +100,13 @@ class FrameData(commonh5.LazyLoadableDataset):
     cache."""
 
     def __init__(self, name, fabio_reader, parent=None):
-        attrs = {"interpretation": "image"}
+        if fabio_reader.is_spectrum():
+            attrs = {"interpretation": "spectrum"}
+        else:
+            attrs = {"interpretation": "image"}
         commonh5.LazyLoadableDataset.__init__(self, name, parent, attrs=attrs)
         self.__fabio_reader = fabio_reader
+
 
     def _create_data(self):
         return self.__fabio_reader.get_data()
@@ -701,6 +705,14 @@ class FabioReader(object):
         """
         return False
 
+    def is_spectrum(self):
+        """Returns true if the data should be interpreted as
+        MCA data.
+
+        :rtype: bool
+        """
+        return False
+
 
 class EdfFabioReader(FabioReader):
     """Class which read and cache data and metadata from a fabio image.
@@ -844,6 +856,22 @@ class EdfFabioReader(FabioReader):
         if self.__ub_matrix is None:
             self.parse_ub_matrix()
         return self.__ub_matrix
+
+    def is_spectrum(self):
+        """Returns true if the data should be interpreted as
+        MCA data.
+        EDF files or file series, with two or more header names starting with
+        "MCA", should be interpreted as MCA data.
+
+        :rtype: bool
+        """
+        count = 0
+        for key in self._get_first_header():
+            if key.lower().startswith("mca"):
+                count += 1
+            if count >= 2:
+                return True
+        return False
 
 
 class File(commonh5.File):
