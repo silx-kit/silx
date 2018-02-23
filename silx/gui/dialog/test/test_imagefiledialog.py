@@ -35,6 +35,7 @@ import numpy
 import shutil
 import os
 import io
+import weakref
 
 try:
     import fabio
@@ -100,6 +101,22 @@ def tearDownModule():
 
 class _UtilsMixin(object):
 
+    def createDialog(self):
+        self._deleteDialog()
+        self._dialog = self._createDialog()
+        return self._dialog
+
+    def _createDialog(self):
+        return ImageFileDialog()
+
+    def _deleteDialog(self):
+        if not hasattr(self, "_dialog"):
+            return
+        if self._dialog is not None:
+            ref = weakref.ref(self._dialog)
+            self._dialog = None
+            self.qWaitForDestroy(ref)
+
     def qWaitForPendingActions(self, dialog):
         for _ in range(20):
             if not dialog.hasPendingEvents():
@@ -124,19 +141,9 @@ class _UtilsMixin(object):
 
 class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
-    def setUp(self):
-        utils.TestCaseQt.setUp(self)
-        self.dialog = None
-
     def tearDown(self):
-        if self.dialog is not None:
-            self.dialog._clear()
-            self.dialog = None
+        self._deleteDialog()
         utils.TestCaseQt.tearDown(self)
-
-    def createDialog(self):
-        self.dialog = ImageFileDialog()
-        return self.dialog
 
     def testDisplayAndKeyEscape(self):
         dialog = self.createDialog()
@@ -552,30 +559,22 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
 class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
-    def setUp(self):
-        utils.TestCaseQt.setUp(self)
-        self.dialog = None
-
     def tearDown(self):
-        if self.dialog is not None:
-            self.dialog._clear()
-            self.dialog = None
+        self._deleteDialog()
         utils.TestCaseQt.tearDown(self)
 
-    def createDialog(self):
-        self.dialog = ImageFileDialog()
-        return self.dialog
-
     def testSaveRestoreState(self):
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.setDirectory(_tmpDirectory)
         colormap = Colormap(normalization=Colormap.LOGARITHM)
         dialog.setColormap(colormap)
         self.qWaitForPendingActions(dialog)
-
         state = dialog.saveState()
-        dialog2 = ImageFileDialog()
+        dialog = None
+
+        dialog2 = self.createDialog()
         result = dialog2.restoreState(state)
+        self.qWaitForPendingActions(dialog2)
         self.assertTrue(result)
         self.assertTrue(dialog2.colormap().getNormalization(), "log")
 
@@ -588,7 +587,7 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
 
         >>> ./run_tests.py -v silx.gui.dialog.test.test_imagefiledialog.TestImageFileDialogApi.printState
         """
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         colormap = Colormap(normalization=Colormap.LOGARITHM)
         dialog.setDirectory("")
         dialog.setHistory([])
@@ -683,19 +682,21 @@ class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         dialog.restoreState(state)
         state = qt.QByteArray(self.STATE_VERSION1_QT5)
+        dialog = None
         dialog = self.createDialog()
         dialog.restoreState(state)
 
     def testRestoreNonExistingDirectory(self):
         directory = os.path.join(_tmpDirectory, "dir")
         os.mkdir(directory)
-        dialog = ImageFileDialog()
+        dialog = self.createDialog()
         dialog.setDirectory(directory)
         self.qWaitForPendingActions(dialog)
         state = dialog.saveState()
         os.rmdir(directory)
+        dialog = None
 
-        dialog2 = ImageFileDialog()
+        dialog2 = self.createDialog()
         result = dialog2.restoreState(state)
         self.assertTrue(result)
         self.assertNotEquals(dialog2.directory(), directory)

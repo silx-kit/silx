@@ -30,6 +30,7 @@ __date__ = "29/11/2017"
 
 import os
 import logging
+import functools
 from .. import qt
 from .. import icons
 from .Hdf5Node import Hdf5Node
@@ -236,25 +237,32 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         self.__openedFiles = []
         """Store the list of files opened by the model itself."""
-        # FIXME: It should managed one by one by Hdf5Item itself
+        # FIXME: It should be managed one by one by Hdf5Item itself
 
-    def __del__(self):
-        self._closeOpened()
-        s = super(Hdf5TreeModel, self)
-        if hasattr(s, "__del__"):
-            # else it fail on Python 3
-            s.__del__()
+        # It is not possible to override the QObject destructor nor
+        # to access to the content of the Python object with the `destroyed`
+        # signal cause the Python method was already removed with the QWidget,
+        # while the QObject still exists.
+        # We use a static method plus explicit references to objects to
+        # release. The callback do not use any ref to self.
+        onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
+        self.destroyed.connect(onDestroy)
+
+    @staticmethod
+    def _closeFileList(fileList):
+        """Static method to close explicit references to internal objects."""
+        _logger.debug("Clear Hdf5TreeModel")
+        for obj in fileList:
+            _logger.debug("Close file %s", obj.filename)
+            obj.close()
+        fileList[:] = []
 
     def _closeOpened(self):
         """Close files which was opened by this model.
 
-        This function may be removed in the future.
-
         File are opened by the model when it was inserted using
         `insertFileAsync`, `insertFile`, `appendFile`."""
-        for h5file in self.__openedFiles:
-            h5file.close()
-        self.__openedFiles = []
+        self._closeFileList(self.__openedFiles)
 
     def __updateLoadingItems(self, icon):
         for i in range(self.__root.childCount()):
@@ -512,6 +520,16 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def nodeFromIndex(self, index):
         return index.internalPointer() if index.isValid() else self.__root
 
+    def _closeFileIfOwned(self, node):
+        """"Close the file if it was loaded from a filename or a
+        drag-and-drop"""
+        obj = node.obj
+        for f in self.__openedFiles:
+            if f in obj:
+                _logger.debug("Close file %s", obj.filename)
+                obj.close()
+                self.__openedFiles.remove(obj)
+
     def synchronizeIndex(self, index):
         """
         Synchronize a file a given its index.
@@ -524,9 +542,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if node.parent is not self.__root:
             return
 
-        self.removeIndex(index)
         filename = node.obj.filename
-        node.obj.close()
+        self.removeIndex(index)
         self.insertFileAsync(filename, index.row())
 
     def synchronizeH5pyObject(self, h5pyObject):
@@ -555,6 +572,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         node = self.nodeFromIndex(index)
         if node.parent is not self.__root:
             return
+        self._closeFileIfOwned(node)
         self.beginRemoveRows(qt.QModelIndex(), index.row(), index.row())
         self.__root.removeChildAtIndex(index.row())
         self.endRemoveRows()

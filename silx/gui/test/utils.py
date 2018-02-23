@@ -318,24 +318,25 @@ class TestCaseQt(unittest.TestCase):
         """
         QTest.qSleep(ms + self.TIMEOUT_WAIT)
 
-    def qWait(self, ms=None):
+    @classmethod
+    def qWait(cls, ms=None):
         """Waits for ms milliseconds, events will be processed.
 
         See QTest.qWait for details.
         """
         if ms is None:
-            ms = self.DEFAULT_TIMEOUT_WAIT
+            ms = cls.DEFAULT_TIMEOUT_WAIT
 
         if qt.BINDING == 'PySide':
             # PySide has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
             while timeout > 0:
-                self.qapp.processEvents(qt.QEventLoop.AllEvents,
+                _qapp.processEvents(qt.QEventLoop.AllEvents,
                                         maxtime=timeout)
                 timeout = endTimeMS - int(time.time() * 1000)
         else:
-            QTest.qWait(ms + self.TIMEOUT_WAIT)
+            QTest.qWait(ms + cls.TIMEOUT_WAIT)
 
     def qWaitForWindowExposed(self, window, timeout=None):
         """Waits until the window is shown in the screen.
@@ -348,6 +349,57 @@ class TestCaseQt(unittest.TestCase):
             QTest.qWait(self.TIMEOUT_WAIT)
 
         return result
+
+    _qobject_destroyed = False
+
+    @classmethod
+    def _aboutToDestroy(cls):
+        cls._qobject_destroyed = True
+
+    @classmethod
+    def qWaitForDestroy(cls, ref):
+        """
+        Wait for Qt object destruction.
+
+        Use a weakref as parameter to avoid any strong references to the
+        object.
+
+        It have to be used as following. Removing the reference to the object
+        before calling the function looks to be expected, else
+        :meth:`deleteLater` will not work.
+
+        .. code-block:: python
+
+            ref = weakref.ref(self.obj)
+            self.obj = None
+            self.qWaitForDestroy(ref)
+
+        :param weakref ref: A weakref to an object to avoid any reference
+        :return: True if the object was destroyed
+        :rtype: bool
+        """
+        cls._qobject_destroyed = False
+        if qt.BINDING == 'PyQt4':
+            # Without this, QWidget will be still alive on PyQt4
+            # (at least on Windows Python 2.7)
+            # If it is not skipped on PySide, silx.gui.dialog tests will
+            # segfault (at least on Windows Python 2.7)
+            import gc
+            gc.collect()
+        qobject = ref()
+        if qobject is None:
+            return True
+        qobject.destroyed.connect(cls._aboutToDestroy)
+        qobject.deleteLater()
+        qobject = None
+        for _ in range(10):
+            if cls._qobject_destroyed:
+                break
+            cls.qWait(10)
+        else:
+            _logger.debug("Object was not destroyed")
+
+        return ref() is None
 
     def logScreenShot(self, level=logging.ERROR):
         """Take a screenshot and log it into the logging system if the

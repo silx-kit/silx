@@ -64,6 +64,9 @@ class ViewerMock(object):
     def appendFile(self, filename):
         self.appendFileCalls.append(filename)
 
+    def setAttribute(self, attr, value):
+        pass
+
     def resize(self, size):
         pass
 

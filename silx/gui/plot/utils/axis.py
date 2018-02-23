@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/02/2018"
+__date__ = "23/02/2018"
 
 import functools
 import logging
@@ -71,11 +71,13 @@ class SyncAxes(object):
         self.__syncDirection = syncDirection
         self.__callbacks = None
 
-        # the weakref is needed to be able ignore self references
-        deleteAxis = silxWeakref.WeakMethodProxy(self.__deleteAxis)
+        qtCallback = silxWeakref.WeakMethodProxy(self.__deleteAxisQt)
         for axis in axes:
-            weak = weakref.ref(axis, deleteAxis)
-            self.__axes.append(weak)
+            ref = weakref.ref(axis)
+            self.__axes.append(ref)
+            callback = functools.partial(qtCallback, ref)
+            axis.destroyed.connect(callback)
+
         self.start()
 
     def start(self):
@@ -87,7 +89,7 @@ class SyncAxes(object):
         """
         if self.__callbacks is not None:
             raise RuntimeError("Axes already synchronized")
-        self.__callbacks = weakref.WeakKeyDictionary()
+        self.__callbacks = {}
 
         # register callback for further sync
         for refAxis in self.__axes:
@@ -99,22 +101,23 @@ class SyncAxes(object):
                 callback = functools.partial(callback, refAxis)
                 sig = axis.sigLimitsChanged
                 sig.connect(callback)
-                callbacks.append((sig, callback))
+                callbacks.append(("sigLimitsChanged", callback))
             if self.__syncScale:
                 # the weakref is needed to be able ignore self references
                 callback = silxWeakref.WeakMethodProxy(self.__axisScaleChanged)
                 callback = functools.partial(callback, refAxis)
                 sig = axis.sigScaleChanged
                 sig.connect(callback)
-                callbacks.append((sig, callback))
+                callbacks.append(("sigScaleChanged", callback))
             if self.__syncDirection:
                 # the weakref is needed to be able ignore self references
                 callback = silxWeakref.WeakMethodProxy(self.__axisInvertedChanged)
                 callback = functools.partial(callback, refAxis)
                 sig = axis.sigInvertedChanged
                 sig.connect(callback)
-                callbacks.append((sig, callback))
-            self.__callbacks[axis] = callbacks
+                callbacks.append(("sigInvertedChanged", callback))
+
+            self.__callbacks[refAxis] = callbacks
 
         # sync the current state
         refMainAxis = self.__axes[0]
@@ -127,14 +130,21 @@ class SyncAxes(object):
             self.__axisInvertedChanged(refMainAxis, mainAxis.isInverted())
 
     def __deleteAxis(self, ref):
+        _logger.debug("Delete axes ref %s", ref)
         self.__axes.remove(ref)
+        del self.__callbacks[ref]
+
+    def __deleteAxisQt(self, ref, qobject):
+        self.__deleteAxis(ref)
 
     def stop(self):
         """Stop the synchronization of the axes"""
         if self.__callbacks is None:
             raise RuntimeError("Axes not synchronized")
-        for callbacks in self.__callbacks.values():
-            for sig, callback in callbacks:
+        for ref, callbacks in self.__callbacks.items():
+            axes = ref()
+            for sigName, callback in callbacks:
+                sig = getattr(axes, sigName)
                 sig.disconnect(callback)
         self.__callbacks = None
 

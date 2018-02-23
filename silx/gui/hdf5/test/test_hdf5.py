@@ -40,6 +40,7 @@ from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 from silx.gui import hdf5
 from silx.io import commonh5
+import weakref
 
 try:
     import h5py
@@ -104,7 +105,9 @@ class TestHdf5TreeModel(TestCaseQt):
             # clean up
             index = model.index(0, 0, qt.QModelIndex())
             h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
-            h5File.close()
+            ref = weakref.ref(model)
+            model = None
+            self.qWaitForDestroy(ref)
 
     def testAppendBadFilename(self):
         model = hdf5.Hdf5TreeModel()
@@ -112,14 +115,19 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testInsertFilename(self):
         with self.h5TempFile() as filename:
-            model = hdf5.Hdf5TreeModel()
-            self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
-            model.insertFile(filename)
-            self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
-            # clean up
-            index = model.index(0, 0, qt.QModelIndex())
-            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
-            h5File.close()
+            try:
+                model = hdf5.Hdf5TreeModel()
+                self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+                model.insertFile(filename)
+                self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+                # clean up
+                index = model.index(0, 0, qt.QModelIndex())
+                h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+                self.assertIsNotNone(h5File)
+            finally:
+                ref = weakref.ref(model)
+                model = None
+                self.qWaitForDestroy(ref)
 
     def testInsertFilenameAsync(self):
         with self.h5TempFile() as filename:
@@ -133,7 +141,9 @@ class TestHdf5TreeModel(TestCaseQt):
                 index = model.index(0, 0, qt.QModelIndex())
                 self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             finally:
+                ref = weakref.ref(model)
                 model = None
+                self.qWaitForDestroy(ref)
 
     def testInsertObject(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
@@ -160,6 +170,10 @@ class TestHdf5TreeModel(TestCaseQt):
             index = model.index(0, 0, qt.QModelIndex())
             node1 = model.nodeFromIndex(index)
             model.synchronizeH5pyObject(h5)
+            # Now h5 was loaded from it's filename
+            # Another ref is owned by the model
+            h5.close()
+
             index = model.index(0, 0, qt.QModelIndex())
             node2 = model.nodeFromIndex(index)
             self.assertIsNot(node1, node2)
@@ -172,7 +186,12 @@ class TestHdf5TreeModel(TestCaseQt):
             # clean up
             index = model.index(0, 0, qt.QModelIndex())
             h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
-            h5File.close()
+            self.assertIsNotNone(h5File)
+            h5File = None
+            # delete the model
+            ref = weakref.ref(model)
+            model = None
+            self.qWaitForDestroy(ref)
 
     def testFileMoveState(self):
         model = hdf5.Hdf5TreeModel()
@@ -216,7 +235,11 @@ class TestHdf5TreeModel(TestCaseQt):
             # clean up
             index = model.index(0, 0, qt.QModelIndex())
             h5File = model.data(index, role=hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
-            h5File.close()
+            self.assertIsNotNone(h5File)
+            h5File = None
+            ref = weakref.ref(model)
+            model = None
+            self.qWaitForDestroy(ref)
 
     def getRowDataAsDict(self, model, row):
         displayed = {}
@@ -505,7 +528,9 @@ class TestH5Node(TestCaseQt):
 
     @classmethod
     def tearDownClass(cls):
+        ref = weakref.ref(cls.model)
         cls.model = None
+        cls.qWaitForDestroy(ref)
         cls.h5File.close()
         shutil.rmtree(cls.tmpDirectory)
         super(TestH5Node, cls).tearDownClass()
