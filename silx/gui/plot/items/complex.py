@@ -265,7 +265,7 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         """
         data = numpy.array(data, copy=copy)
         assert data.ndim == 2
-        if not numpy.issubdtype(data.dtype, numpy.complex):
+        if not numpy.issubdtype(data.dtype, numpy.complexfloating):
             _logger.warning(
                 'Image is not complex, converting it to complex to plot it.')
             data = numpy.array(data, dtype=numpy.complex64)
