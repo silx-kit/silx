@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/02/2018"
+__date__ = "23/02/2018"
 
 import functools
 import logging
@@ -71,11 +71,13 @@ class SyncAxes(object):
         self.__syncDirection = syncDirection
         self.__callbacks = None
 
-        # the weakref is needed to be able ignore self references
-        deleteAxis = silxWeakref.WeakMethodProxy(self.__deleteAxis)
+        qtCallback = silxWeakref.WeakMethodProxy(self.__deleteAxisQt)
         for axis in axes:
-            weak = weakref.ref(axis, deleteAxis)
-            self.__axes.append(weak)
+            ref = weakref.ref(axis)
+            self.__axes.append(ref)
+            callback = functools.partial(qtCallback, ref)
+            axis.destroyed.connect(callback)
+
         self.start()
 
     def start(self):
@@ -131,6 +133,9 @@ class SyncAxes(object):
         _logger.debug("Delete axes ref %s", ref)
         self.__axes.remove(ref)
         del self.__callbacks[ref]
+
+    def __deleteAxisQt(self, ref, qobject):
+        self.__deleteAxis(ref)
 
     def stop(self):
         """Stop the synchronization of the axes"""
