@@ -1063,7 +1063,7 @@ class ScalarFieldView(Plot3DWindow):
         """Creates and init the pan plane action"""
         self._panPlaneAction = qt.QAction(self)
         self._panPlaneAction.setIcon(icons.getQIcon('3d-plane-pan'))
-        self._panPlaneAction.setText('plane')
+        self._panPlaneAction.setText('Pan plane')
         self._panPlaneAction.setCheckable(True)
         self._panPlaneAction.setToolTip(
             'Pan the cutting plane. Press <b>Ctrl</b> to rotate the scene.')
@@ -1117,9 +1117,8 @@ class ScalarFieldView(Plot3DWindow):
     def getInteractiveMode(self):
         """Returns the current interaction mode, see :meth:`setInteractiveMode`
         """
-        if (isinstance(self.getPlot3DWidget().eventHandler,
-                       interaction.PanPlaneZoomOnWheelControl) or
-                self.getPlot3DWidget().eventHandler is None):
+        if isinstance(self.getPlot3DWidget().eventHandler,
+                      interaction.PanPlaneZoomOnWheelControl):
             return 'plane'
         else:
             return self.getPlot3DWidget().getInteractiveMode()

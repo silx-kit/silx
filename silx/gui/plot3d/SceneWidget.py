@@ -39,6 +39,7 @@ from ..plot.Colors import rgba
 
 from .Plot3DWidget import Plot3DWidget
 from . import items
+from .scene import interaction
 from ._model import SceneModel, visitQAbstractItemModel
 from ._model.items import Item3DRow
 
@@ -393,6 +394,60 @@ class SceneWidget(Plot3DWidget):
         :rtype: GroupItem
         """
         return self._sceneGroup
+
+    # Interactive modes
+
+    def _handleSelectionChanged(self, current, previous):
+        """Handle change of selection to update interactive mode"""
+        if self.getInteractiveMode() == 'panSelectedPlane':
+            if isinstance(current, items.PlaneMixIn):
+                # Update pan plane to use new selected plane
+                self.setInteractiveMode('panSelectedPlane')
+
+            else:  # Switch to rotate scene if new selection is not a plane
+                self.setInteractiveMode('rotate')
+
+    def setInteractiveMode(self, mode):
+        """Set the interactive mode.
+
+        'panSelectedPlane' mode set plane panning if a plane is selected,
+        otherwise it fall backs to 'rotate'.
+
+        :param str mode:
+            The interactive mode: 'rotate', 'pan', 'panSelectedPlane' or None
+        """
+        if self.getInteractiveMode() == 'panSelectedPlane':
+            self.selection().sigCurrentChanged.disconnect(
+                self._handleSelectionChanged)
+
+        if mode == 'panSelectedPlane':
+            selected = self.selection().getCurrentItem()
+
+            if isinstance(selected, items.PlaneMixIn):
+                mode = interaction.PanPlaneZoomOnWheelControl(
+                    self.viewport,
+                    selected._getPlane(),
+                    mode='position',
+                    orbitAroundCenter=False,
+                    scaleTransform=self._sceneScale)
+
+                self.selection().sigCurrentChanged.connect(
+                    self._handleSelectionChanged)
+
+            else:  # No selected plane, fallback to rotate scene
+                mode = 'rotate'
+
+        super(SceneWidget, self).setInteractiveMode(mode)
+
+    def getInteractiveMode(self):
+        """Returns the interactive mode in use.
+
+        :rtype: str
+        """
+        if isinstance(self.eventHandler, interaction.PanPlaneZoomOnWheelControl):
+            return 'panSelectedPlane'
+        else:
+            return super(SceneWidget, self).getInteractiveMode()
 
     # Add/remove items
 

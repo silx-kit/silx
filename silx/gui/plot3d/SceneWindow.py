@@ -32,11 +32,12 @@ __license__ = "MIT"
 __date__ = "29/11/2017"
 
 
-from silx.gui import qt
+from ...gui import qt, icons
 
+from .actions.mode import InteractiveModeAction
 from .SceneWidget import SceneWidget
 from .tools import OutputToolBar, InteractiveModeToolBar, ViewpointToolBar
-from silx.gui.plot3d.tools.GroupPropertiesWidget import GroupPropertiesWidget
+from .tools.GroupPropertiesWidget import GroupPropertiesWidget
 
 from .ParamTreeView import ParamTreeView
 
@@ -45,6 +46,64 @@ from . import items  # noqa
 
 
 __all__ = ['items', 'SceneWidget', 'SceneWindow']
+
+
+class _PanPlaneAction(InteractiveModeAction):
+    """QAction to set plane pan interaction on a Plot3DWidget
+
+    :param parent: See :class:`QAction`
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
+    """
+    def __init__(self, parent, plot3d=None):
+        super(_PanPlaneAction, self).__init__(
+            parent, 'panSelectedPlane', plot3d)
+        self.setIcon(icons.getQIcon('3d-plane-pan'))
+        self.setText('Pan plane')
+        self.setCheckable(True)
+        self.setToolTip(
+            'Pan selected plane. Press <b>Ctrl</b> to rotate the scene.')
+
+    def _planeChanged(self, event):
+        """Handle plane updates"""
+        if event in (items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.POSITION):
+            plane = self.sender()
+
+            isPlaneInteractive = \
+                plane._getPlane().plane.isPlane and plane.isVisible()
+
+            if isPlaneInteractive != self.isEnabled():
+                self.setEnabled(isPlaneInteractive)
+                mode = 'panSelectedPlane' if isPlaneInteractive else 'rotate'
+                self.getPlot3DWidget().setInteractiveMode(mode)
+
+    def _selectionChanged(self, current, previous):
+        """Handle selected object change"""
+        if isinstance(previous, items.PlaneMixIn):
+            previous.sigItemChanged.disconnect(self._planeChanged)
+
+        if isinstance(current, items.PlaneMixIn):
+            current.sigItemChanged.connect(self._planeChanged)
+            self.setEnabled(True)
+            self.getPlot3DWidget().setInteractiveMode('panSelectedPlane')
+        else:
+            self.setEnabled(False)
+
+    def setPlot3DWidget(self, widget):
+        previous = self.getPlot3DWidget()
+        if isinstance(previous, SceneWidget):
+            previous.selection().sigCurrentChanged.disconnect(
+                self._selectionChanged)
+            self._selectionChanged(
+                None, previous.selection().getCurrentItem())
+
+        super(_PanPlaneAction, self).setPlot3DWidget(widget)
+
+        if isinstance(widget, SceneWidget):
+            self._selectionChanged(widget.selection().getCurrentItem(), None)
+            widget.selection().sigCurrentChanged.connect(
+                self._selectionChanged)
 
 
 class SceneWindow(qt.QMainWindow):
@@ -60,6 +119,9 @@ class SceneWindow(qt.QMainWindow):
         self.setCentralWidget(self._sceneWidget)
 
         self._interactiveModeToolBar = InteractiveModeToolBar(parent=self)
+        panPlaneAction = _PanPlaneAction(self, plot3d=self._sceneWidget)
+        self._interactiveModeToolBar.addAction(panPlaneAction)
+
         self._viewpointToolBar = ViewpointToolBar(parent=self)
         self._outputToolBar = OutputToolBar(parent=self)
 
