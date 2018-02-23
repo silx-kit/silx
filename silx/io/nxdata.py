@@ -86,7 +86,11 @@ def get_attr_as_string(item, attr_name, default=None):
     """
     attr = item.attrs.get(attr_name, default)
     if six.PY2:
-        return attr
+        if isinstance(attr, six.text_type):
+            # unicode
+            return attr.encode("utf-8")
+        else:
+            return attr
     if six.PY3:
         if hasattr(attr, "decode"):
             # byte-string
