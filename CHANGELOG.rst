@@ -1,6 +1,81 @@
 Change Log
 ==========
 
+0.7.0: 2018/02/27
+-----------------
+
+ * Input/output:
+
+   * Priovides `silx.io.url.DataUrl` to parse supported links identifying
+     group or dataset from files.
+   * `silx.io.open` now supports h5pyd and silx custom URLs.
+   * `silx.io.get_data` is provided to allow to reach a numpy array from silx.
+     custom URLs.
+
+ * OpenCL:
+
+   * Provides an API to share memory between OpenCL tasks within the same device.
+   * Provides CBF compression and decompression.
+   * Simple processing on images (normalization, histogram).
+   * Sift upgrade using memory sharing.
+
+ * `silx.sx`:
+
+   * Added `contour3d` function for displaying 3D isosurfaces.
+   * Added `points3d` function for displaying  2D/3D scatter plots.
+   * Added `ginput` function for interactive input of points on 1D/2D plots.
+
+ * Graphic user interface:
+
+   * Provides a file dialog to pick a dataset or a group from HDF5 files.
+   * Provides a file dialog to pick an image from HDF5 files or multiframes formats.
+   * The colormap dialog can now be used as non-modal.
+   * Added a function to run a task in Qt main thread from any thread.
+   * `PlotWidget` can save the displayed data as a new `NXentry` of a HDF5 file.
+   * `PlotWidget` exports displayed data as spec files using more digits.
+   * Added new OpenGL-based 3D visualization widgets:
+
+     * Supports 3D scalar field view 2D/3D scatter plots and images.
+     * Provides an object oriented API similar to that of the 1D/2D plot.
+     * Features a tree of parameters to edit visualized item's properties
+       (e.g., transforms, colormap...)
+     * Provides interactive panning of cut and clip planes.
+
+   * Updates of `ScalarFieldView` widget:
+
+     * Added support for a 3x3 transform matrix (to support non orthogonal axes)
+     * Added support of an alternative interaction when `ctrl` is pressed
+       (e.g., rotate by default and pan when ctrl/command key is pressed).
+     * Added 2 sliders to control light direction in associated parameter tree view.
+
+ * `silx view`:
+
+   * Uses a single colormap to show any datasets.
+   * The colormap dialog can stay openned while browsing the data.
+   * The application is associated with some file types to be used to load files
+     on Debian.
+   * Provides a square amplitude display mode to visualize complex images.
+   * Browsing an `NXentry` can display a default `NXdata`.
+   * Added explanation when an `NXdata` is not displayable.
+   * `NXdata` visualization can now show multiple curves (see `@auxiliary_signals`).
+   * Supports older `NXdata` specification.
+
+ * `silx convert`:
+
+   * Added handling of file series as a single multiframe
+   * Default behavior changes to avoid to add an extra group at the root,
+     unless explicitly requested (see `--add-root-group`).
+   * Writer uses now utf-8 text as default (NeXus specification).
+   * EDF files containing MCA data are now interpreted as spectrum.
+
+ * Miscellaneous:
+
+   * Added `silx.utils.testutils` to share useful unittest functions with other
+     projects.
+   * Python 2 on Mac OS X is no longer tested.
+   * Experimental support to PySide2.
+   * If fabio is used, a version >= 0.6 is mandatory.
+
 0.6.0: 2017/10/02
 -----------------
 
