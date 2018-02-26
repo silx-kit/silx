@@ -122,7 +122,7 @@ class TestImage(unittest.TestCase):
         deltap = (ref[1] - res[1])
         self.assertEqual(delta.sum(), 0, "errors are self-compensated")
         self.assertLessEqual(abs(delta).max(), 1, "errors are small")
-        self.assertLessEqual(abs(deltap).max(), 2e-5, "errors on position are small: %s" % (abs(deltap).max()))
+        self.assertLessEqual(abs(deltap).max(), 3e-5, "errors on position are small: %s" % (abs(deltap).max()))
 
 
 def suite():
