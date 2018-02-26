@@ -37,7 +37,7 @@ from silx.utils.property import classproperty
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/02/2018"
+__date__ = "26/02/2018"
 
 
 _logger = logging.getLogger(__name__)
@@ -72,61 +72,61 @@ class DataViewer(qt.QFrame):
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.EMPTY_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.EMPTY_MODE", since_version="0.7", skip_backtrace_count=2)
     def EMPTY_MODE(self):
         return DataViews.EMPTY_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.PLOT1D_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.PLOT1D_MODE", since_version="0.7", skip_backtrace_count=2)
     def PLOT1D_MODE(self):
         return DataViews.PLOT1D_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.PLOT2D_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.PLOT2D_MODE", since_version="0.7", skip_backtrace_count=2)
     def PLOT2D_MODE(self):
         return DataViews.PLOT2D_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.PLOT3D_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.PLOT3D_MODE", since_version="0.7", skip_backtrace_count=2)
     def PLOT3D_MODE(self):
         return DataViews.PLOT3D_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.RAW_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.RAW_MODE", since_version="0.7", skip_backtrace_count=2)
     def RAW_MODE(self):
         return DataViews.RAW_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.RAW_ARRAY_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.RAW_ARRAY_MODE", since_version="0.7", skip_backtrace_count=2)
     def RAW_ARRAY_MODE(self):
         return DataViews.RAW_ARRAY_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.RAW_RECORD_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.RAW_RECORD_MODE", since_version="0.7", skip_backtrace_count=2)
     def RAW_RECORD_MODE(self):
         return DataViews.RAW_RECORD_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.RAW_SCALAR_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.RAW_SCALAR_MODE", since_version="0.7", skip_backtrace_count=2)
     def RAW_SCALAR_MODE(self):
         return DataViews.RAW_SCALAR_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.STACK_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.STACK_MODE", since_version="0.7", skip_backtrace_count=2)
     def STACK_MODE(self):
         return DataViews.STACK_MODE
 
     # TODO: Can be removed for silx 0.8
     @classproperty
-    @deprecation.deprecated(replacement="DataViews.HDF5_MODE", since_version="0.7")
+    @deprecation.deprecated(replacement="DataViews.HDF5_MODE", since_version="0.7", skip_backtrace_count=2)
     def HDF5_MODE(self):
         return DataViews.HDF5_MODE
 
