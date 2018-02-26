@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "26/02/2018"
 
 
 import collections
@@ -526,7 +526,8 @@ def ginput(n=1, timeout=30, plot=None):
     :param int n: Number of points the user need to select
     :param float timeout: Timeout in seconds before ginput returns
         event if selection is not completed
-    :param PlotWidget plot: An optional PlotWidget from which to get input
+    :param silx.gui.plot.PlotWidget.PlotWidget plot: An optional PlotWidget
+        from which to get input
     :return: List of clicked points coordinates (x, y) in plot
     :raise ValueError: If provided plot is not a PlotWidget
     """
