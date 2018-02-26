@@ -544,8 +544,8 @@ class InterpolationRow(ProxyRow):
             editorHint=modes)
 
 
-class _ColormapBaseRowMixIn(qt.QObject):
-    """Mixin class for colormap model row
+class _ColormapBaseProxyRow(ProxyRow):
+    """Base class for colormap model row
 
     This class handle synchronization and signals from the item and the colormap
     """
@@ -553,12 +553,12 @@ class _ColormapBaseRowMixIn(qt.QObject):
     _sigColormapChanged = qt.Signal()
     """Signal used internally to notify colormap (or data) update"""
 
-    def __init__(self, item):
+    def __init__(self, item, *args, **kwargs):
         self._dataRange = None
         self._item = weakref.ref(item)
         self._colormap = item.getColormap()
 
-        qt.QObject.__init__(self)
+        ProxyRow.__init__(self, *args, **kwargs)
 
         self._colormap.sigChanged.connect(self._colormapChanged)
         item.sigItemChanged.connect(self._itemChanged)
@@ -620,7 +620,7 @@ class _ColormapBaseRowMixIn(qt.QObject):
             self._sigColormapChanged.emit()
 
 
-class _ColormapBoundRow(_ColormapBaseRowMixIn, ProxyRow):
+class _ColormapBoundRow(_ColormapBaseProxyRow):
     """ProxyRow for colormap min or max
 
     :param ColormapMixIn item: The item to handle
@@ -630,9 +630,9 @@ class _ColormapBoundRow(_ColormapBaseRowMixIn, ProxyRow):
 
     def __init__(self, item, name, index):
         self._index = index
-        _ColormapBaseRowMixIn.__init__(self, item)
-        ProxyRow.__init__(
+        _ColormapBaseProxyRow.__init__(
             self,
+            item,
             name=name,
             fget=self._getBound,
             fset=self._setBound)
@@ -720,15 +720,17 @@ class _ColormapBoundRow(_ColormapBaseRowMixIn, ProxyRow):
         return super(_ColormapBoundRow, self).setData(column, value, role)
 
 
-class ColormapRow(_ColormapBaseRowMixIn, StaticRow):
+class ColormapRow(_ColormapBaseProxyRow):
     """Represents :class:`ColormapMixIn` property.
 
     :param Item3D item: Scene item with colormap property
     """
 
     def __init__(self, item):
-        _ColormapBaseRowMixIn.__init__(self, item)
-        StaticRow.__init__(self, ('Colormap', None))
+        super(ColormapRow, self).__init__(
+            item,
+            name='Colormap',
+            fget=self._get)
 
         self._colormapImage = None
 
@@ -755,6 +757,10 @@ class ColormapRow(_ColormapBaseRowMixIn, StaticRow):
         self.addRow(_ColormapBoundRow(item, name='Max.', index=1))
 
         self._sigColormapChanged.connect(self._updateColormapImage)
+
+    def _get(self):
+        """Getter for ProxyRow subclass"""
+        return None
 
     def _getName(self):
         """Proxy for :meth:`Colormap.getName`"""
@@ -1214,8 +1220,9 @@ class Scatter2DPropertyMixInRow(object):
         """Set flags to enable/disable the row"""
         if event == items.ItemChangedType.VISUALIZATION_MODE:
             item = self.sender()
-            self.__isEnabled = item.isPropertyEnabled(self.__propertyName)
-            self.__updateFlags()
+            if item is not None:  # This occurs with PySide/python2.7
+                self.__isEnabled = item.isPropertyEnabled(self.__propertyName)
+                self.__updateFlags()
 
             # Notify model
             model = self.model()
