@@ -47,6 +47,11 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot import Plot2D
+from silx.gui.plot.Colormap import Colormap
+
+
+Nx = 150
+Ny = 50
 
 
 class ThreadSafePlot2D(Plot2D):
@@ -93,12 +98,29 @@ class UpdateThread(threading.Thread):
         self.running = True
         super(UpdateThread, self).start()
 
-    def run(self):
+    def run(self, pos={'x0':0, 'y0':0}):
         """Method implementing thread loop that updates the plot"""
         while self.running:
             time.sleep(1)
-            self.plot2d.addCurveThreadSafe(
-                numpy.arange(1000), numpy.random.random(1000,1000), resetzoom=False)
+            # pixels in plot (defined at beginning of file)
+            # Nx = 70
+            # Ny = 50
+            # width of peak
+            sigma_x = 0.15
+            sigma_y = 0.25
+            # x and y positions
+            x = numpy.linspace(-1.5, 1.5, Nx)
+            y = numpy.linspace(-1.0, 1.0, Ny)
+            xv, yv = numpy.meshgrid(x, y)
+            signal = numpy.exp(-(  (xv-pos['x0'])**2/sigma_x**2
+                                 + (yv-pos['y0'])**2/sigma_y**2))
+            # add noise
+            signal += 0.3 * numpy.random.random(size=signal.shape)
+            # random walk of center of peak ('drift')
+            pos['x0'] += 0.05 * (numpy.random.random() - 0.5)
+            pos['y0'] += 0.05 * (numpy.random.random() - 0.5)
+            # plot the data
+            self.plot2d.addImage(signal, replace=True)
 
     def stop(self):
         """Stop the update thread"""
@@ -112,7 +134,7 @@ def main():
 
     # Create a ThreadSafePlot2D, set its limits and display it
     plot2d = ThreadSafePlot2D()
-    plot2d.setLimits(0., 1000., 0., 1.)
+    plot2d.setLimits(0, 0, Nx, Ny)
     plot2d.show()
 
     # Create the thread that calls ThreadSafePlot2D.addCurveThreadSafe
