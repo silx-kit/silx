@@ -29,7 +29,7 @@ To safely update the plot from another thread, one need to make the update
 asynchronously from the main thread.
 In this example, this is achieved through a Qt signal.
 
-In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot1D`
+In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot2D`
 that adds a thread-safe method to add curves:
 :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
 This thread-safe method is then called from a thread to update the plot.
@@ -46,11 +46,11 @@ import time
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot import Plot1D
+from silx.gui.plot import Plot2D
 
 
-class ThreadSafePlot1D(Plot1D):
-    """Add a thread-safe :meth:`addCurveThreadSafe` method to Plot1D.
+class ThreadSafePlot2D(Plot2D):
+    """Add a thread-safe :meth:`addCurveThreadSafe` method to Plot2D.
     """
 
     _sigAddCurve = qt.Signal(tuple, dict)
@@ -60,7 +60,7 @@ class ThreadSafePlot1D(Plot1D):
     """
 
     def __init__(self, parent=None):
-        super(ThreadSafePlot1D, self).__init__(parent)
+        super(ThreadSafePlot2D, self).__init__(parent)
         # Connect the signal to the method actually calling addCurve
         self._sigAddCurve.connect(self.__addCurve)
 
@@ -79,12 +79,12 @@ class ThreadSafePlot1D(Plot1D):
 
 
 class UpdateThread(threading.Thread):
-    """Thread updating the curve of a :class:`ThreadSafePlot1D`
+    """Thread updating the curve of a :class:`ThreadSafePlot2D`
 
-    :param plot1d: The ThreadSafePlot1D to update."""
+    :param plot2d: The ThreadSafePlot2D to update."""
 
-    def __init__(self, plot1d):
-        self.plot1d = plot1d
+    def __init__(self, plot2d):
+        self.plot2d = plot2d
         self.running = False
         super(UpdateThread, self).__init__()
 
@@ -97,8 +97,8 @@ class UpdateThread(threading.Thread):
         """Method implementing thread loop that updates the plot"""
         while self.running:
             time.sleep(1)
-            self.plot1d.addCurveThreadSafe(
-                numpy.arange(1000), numpy.random.random(1000), resetzoom=False)
+            self.plot2d.addCurveThreadSafe(
+                numpy.arange(1000), numpy.random.random(1000,1000), resetzoom=False)
 
     def stop(self):
         """Stop the update thread"""
@@ -110,13 +110,13 @@ def main():
     global app
     app = qt.QApplication([])
 
-    # Create a ThreadSafePlot1D, set its limits and display it
-    plot1d = ThreadSafePlot1D()
-    plot1d.setLimits(0., 1000., 0., 1.)
-    plot1d.show()
+    # Create a ThreadSafePlot2D, set its limits and display it
+    plot2d = ThreadSafePlot2D()
+    plot2d.setLimits(0., 1000., 0., 1.)
+    plot2d.show()
 
-    # Create the thread that calls ThreadSafePlot1D.addCurveThreadSafe
-    updateThread = UpdateThread(plot1d)
+    # Create the thread that calls ThreadSafePlot2D.addCurveThreadSafe
+    updateThread = UpdateThread(plot2d)
     updateThread.start()  # Start updating the plot
 
     app.exec_()
