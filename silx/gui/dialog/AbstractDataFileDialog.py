@@ -28,7 +28,7 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "26/02/2018"
 
 
 import sys
@@ -588,7 +588,7 @@ class AbstractDataFileDialog(qt.QDialog):
         for obj in fileList:
             _logger.debug("Close file %s", obj.filename)
             obj.close()
-        fileList[:] = []
+        fileList.clear()
 
     def done(self, result):
         self._clear()
@@ -1036,7 +1036,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__processing -= 1
 
     def __closeFile(self):
-        self.__openedFiles[:] = []
+        self.__openedFiles.clear()
         self.__fileDirectoryAction.setEnabled(False)
         self.__parentFileDirectoryAction.setEnabled(False)
         if self.__h5 is not None:

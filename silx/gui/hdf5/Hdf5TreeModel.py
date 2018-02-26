@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "26/02/2018"
 
 
 import os
@@ -255,7 +255,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         for obj in fileList:
             _logger.debug("Close file %s", obj.filename)
             obj.close()
-        fileList[:] = []
+        fileList.clear()
 
     def _closeOpened(self):
         """Close files which was opened by this model.
