@@ -30,9 +30,11 @@ asynchronously from the main thread.
 In this example, this is achieved through a Qt signal.
 
 In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot2D`
-that adds a thread-safe method to add curves:
-:meth:`ThreadSafePlot1D.addCurveThreadSafe`.
+that adds a thread-safe method to add images:
+:meth:`ThreadSafePlot1D.addImageThreadSafe`.
 This thread-safe method is then called from a thread to update the plot.
+
+Update from 1d to 2d example by Hans Fangohr, European XFEL GmbH, 26 Feb 2018.
 """
 
 __authors__ = ["T. Vincent"]
@@ -55,36 +57,36 @@ Ny = 50
 
 
 class ThreadSafePlot2D(Plot2D):
-    """Add a thread-safe :meth:`addCurveThreadSafe` method to Plot2D.
+    """Add a thread-safe :meth:`addImageThreadSafe` method to Plot2D.
     """
 
-    _sigAddCurve = qt.Signal(tuple, dict)
-    """Signal used to perform addCurve in the main thread.
+    _sigAddImage = qt.Signal(tuple, dict)
+    """Signal used to perform addImage in the main thread.
 
     It takes args and kwargs as arguments.
     """
 
     def __init__(self, parent=None):
         super(ThreadSafePlot2D, self).__init__(parent)
-        # Connect the signal to the method actually calling addCurve
-        self._sigAddCurve.connect(self.__addCurve)
+        # Connect the signal to the method actually calling addImage
+        self._sigAddImage.connect(self.__addImage)
 
-    def __addCurve(self, args, kwargs):
-        """Private method calling addCurve from _sigAddCurve"""
-        self.addCurve(*args, **kwargs)
+    def __addImage(self, args, kwargs):
+        """Private method calling addImage from _sigAddImage"""
+        self.addImage(*args, **kwargs)
 
-    def addCurveThreadSafe(self, *args, **kwargs):
-        """Thread-safe version of :meth:`silx.gui.plot.Plot.addCurve`
+    def addImageThreadSafe(self, *args, **kwargs):
+        """Thread-safe version of :meth:`silx.gui.plot.Plot.addImage`
 
-        This method takes the same arguments as Plot.addCurve.
+        This method takes the same arguments as Plot.addImage.
 
-        WARNING: This method does not return a value as opposed to Plot.addCurve
+        WARNING: This method does not return a value as opposed to Plot.addImage
         """
-        self._sigAddCurve.emit(args, kwargs)
+        self._sigAddImage.emit(args, kwargs)
 
 
 class UpdateThread(threading.Thread):
-    """Thread updating the curve of a :class:`ThreadSafePlot2D`
+    """Thread updating the image of a :class:`ThreadSafePlot2D`
 
     :param plot2d: The ThreadSafePlot2D to update."""
 
@@ -97,6 +99,7 @@ class UpdateThread(threading.Thread):
         """Start the update thread"""
         self.running = True
         super(UpdateThread, self).start()
+
 
     def run(self, pos={'x0':0, 'y0':0}):
         """Method implementing thread loop that updates the plot"""
@@ -137,7 +140,7 @@ def main():
     plot2d.setLimits(0, 0, Nx, Ny)
     plot2d.show()
 
-    # Create the thread that calls ThreadSafePlot2D.addCurveThreadSafe
+    # Create the thread that calls ThreadSafePlot2D.addImageThreadSafe
     updateThread = UpdateThread(plot2d)
     updateThread.start()  # Start updating the plot
 
