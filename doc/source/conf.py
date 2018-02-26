@@ -52,6 +52,13 @@ try:
 except ImportError:
     raise RuntimeError("%s is not on the path. Fix your PYTHONPATH and restart sphinx." % project)
 
+# Disable deprecation warnings:
+# It avoid to spam documentation logs with deprecation warnings.
+# If we want to generate the documentation of deprecated features it should
+# not make the logs durty.
+from silx.utils.deprecation import depreclog
+depreclog.disabled = 1
+
 # Add local sphinx extension directory
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext'))
 
