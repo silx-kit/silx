@@ -50,9 +50,9 @@ class BaseRow(qt.QObject):
     """
 
     def __init__(self, children=()):
-        super(BaseRow, self).__init__()
         self.__modelRef = None
         self.__parentRef = None
+        super(BaseRow, self).__init__()
         self.__children = []
         for row in children:
             assert isinstance(row, BaseRow)
@@ -298,7 +298,7 @@ class ProxyRow(BaseRow):
         self._fget = WeakMethodProxy(fget)
         self._fset = WeakMethodProxy(fset) if fset is not None else None
         if fset is not None:
-            self.setFlags(self.flags(1) | qt.Qt.ItemIsEditable, 1)
+            self.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsEditable, 1)
         self._toModelData = toModelData
         self._fromModelData = fromModelData
 
