@@ -28,7 +28,7 @@ from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jerome Kieffer", "H. Payno", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/09/2017"
+__date__ = "26/02/2018"
 
 import sys
 import logging
@@ -40,7 +40,7 @@ depreclog = logging.getLogger("silx.DEPRECATION")
 deprecache = set([])
 
 
-def deprecated(func=None, reason=None, replacement=None, since_version=None, only_once=True):
+def deprecated(func=None, reason=None, replacement=None, since_version=None, only_once=True, skip_backtrace_count=1):
     """
     Decorator that deprecates the use of a function
 
@@ -52,6 +52,8 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None, onl
         deprecated (e.g. "0.5.0").
     :param bool only_once: If true, the deprecation warning will only be
         generated one time. Default is true.
+    :param int skip_backtrace_count: Amount of last backtrace to ignore when
+        logging the backtrace
     """
     def decorator(func):
         @functools.wraps(func)
@@ -64,7 +66,7 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None, onl
                                replacement=replacement,
                                since_version=since_version,
                                only_once=only_once,
-                               skip_backtrace_count=1)
+                               skip_backtrace_count=skip_backtrace_count)
             return func(*args, **kwargs)
         return wrapper
     if func is not None:
