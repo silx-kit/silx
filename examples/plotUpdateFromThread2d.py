@@ -22,14 +22,16 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
+"""This script illustrates the update of a :mod:`silx.gui.plot` widget from a
+thread.
 
 The problem is that plot and GUI methods should be called from the main thread.
 To safely update the plot from another thread, one need to make the update
 asynchronously from the main thread.
 In this example, this is achieved through a Qt signal.
 
-In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot2D`
+In this example we create a subclass of
+:class:`~silx.gui.plot.PlotWindow.Plot2D`
 that adds a thread-safe method to add images:
 :meth:`ThreadSafePlot1D.addImageThreadSafe`.
 This thread-safe method is then called from a thread to update the plot.
@@ -49,7 +51,6 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot import Plot2D
-from silx.gui.plot.Colormap import Colormap
 
 
 Nx = 150
@@ -80,7 +81,8 @@ class ThreadSafePlot2D(Plot2D):
 
         This method takes the same arguments as Plot.addImage.
 
-        WARNING: This method does not return a value as opposed to Plot.addImage
+        WARNING: This method does not return a value as opposed to
+        Plot.addImage
         """
         self._sigAddImage.emit(args, kwargs)
 
@@ -100,8 +102,7 @@ class UpdateThread(threading.Thread):
         self.running = True
         super(UpdateThread, self).start()
 
-
-    def run(self, pos={'x0':0, 'y0':0}):
+    def run(self, pos={'x0': 0, 'y0': 0}):
         """Method implementing thread loop that updates the plot"""
         while self.running:
             time.sleep(1)
@@ -115,8 +116,8 @@ class UpdateThread(threading.Thread):
             x = numpy.linspace(-1.5, 1.5, Nx)
             y = numpy.linspace(-1.0, 1.0, Ny)
             xv, yv = numpy.meshgrid(x, y)
-            signal = numpy.exp(-(  (xv-pos['x0'])**2/sigma_x**2
-                                 + (yv-pos['y0'])**2/sigma_y**2))
+            signal = numpy.exp(- ((xv - pos['x0']) ** 2 / sigma_x ** 2
+                                  + (yv - pos['y0']) ** 2 / sigma_y ** 2))
             # add noise
             signal += 0.3 * numpy.random.random(size=signal.shape)
             # random walk of center of peak ('drift')
