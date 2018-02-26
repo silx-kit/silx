@@ -1220,8 +1220,9 @@ class Scatter2DPropertyMixInRow(object):
         """Set flags to enable/disable the row"""
         if event == items.ItemChangedType.VISUALIZATION_MODE:
             item = self.sender()
-            self.__isEnabled = item.isPropertyEnabled(self.__propertyName)
-            self.__updateFlags()
+            if item is not None:  # This occurs with PySide/python2.7
+                self.__isEnabled = item.isPropertyEnabled(self.__propertyName)
+                self.__updateFlags()
 
             # Notify model
             model = self.model()
