@@ -2,15 +2,16 @@ silx |version|
 ==============
 
 The silx project aims at providing a collection of Python packages to support the
-development of data assessment, reduction and analysis applications at synchrotron
-radiation facilities.
-It aims at providing reading/writing different file formats, data reduction routines
-and a set of Qt widgets to browse and visualize data.
-Silx can be cited by its DOIs referenced on `Zenodo <https://doi.org/10.5281/zenodo.591709>`_.
+development of data assessment, reduction and analysis at synchrotron radiation
+facilities.
+It intends to provide reading/writing tools for different file formats, data
+reduction routines and a set of Qt widgets to browse and visualise data.
+Silx can be cited by its DOIs referenced on
+`Zenodo <https://doi.org/10.5281/zenodo.591709>`_.
 
-The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
-format, histogramming, fitting, curves and image plot widget with a set of
-associated tools.
+The current version (v0.7) caters for reading
+`SPEC <https://certif.com/spec.html>`_ file format, histogramming, fitting,
+curves and image plot widget with a set of associated tools.
 
 .. toctree::
    :hidden:
