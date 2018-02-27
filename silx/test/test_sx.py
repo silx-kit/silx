@@ -268,7 +268,6 @@ else:
                                  colormap='magma', vmin=0.4, vmax=0.5)
             self._expose_and_close(window)
 
-
     def suite():
         test_suite = unittest.TestSuite()
         test_suite.addTest(
