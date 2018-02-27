@@ -83,7 +83,9 @@ preferably with the package manager of your system.
 If you cannot use the package manager of your system (which requires the root
 access), please refer to the `Virtual Environment`_ procedure.
 
-On Linux, you can install *silx* in your home directory::
+On Linux, you can install *silx* in your home directory
+
+.. code-block:: bash 
 
     pip install silx --user
 
