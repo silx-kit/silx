@@ -82,7 +82,7 @@ class ByteOffset(OpenclProcessing):
                                   platformid=platformid, deviceid=deviceid,
                                   block_size=block_size, profile=profile)
         if self.block_size is None:
-            self.block_size = min(self.device.max_work_group_size, 128)
+            self.block_size = self.device.max_work_group_size
         wg = self.block_size
 
         buffers = [BufferDescription("counter", 1, numpy.int32, None)]
@@ -125,7 +125,7 @@ class ByteOffset(OpenclProcessing):
         neutral = "(int2)(0,0)"
         output_statement = "value[i] = item.s0; index[i+1] = item.s1;"
 
-        if self.block_size >= 64:
+        if self.block_size > 256:
             knl = GenericScanKernel(self.ctx,
                                     dtype=int2,
                                     arguments=arguments,
@@ -217,12 +217,15 @@ class ByteOffset(OpenclProcessing):
                                                     )
                 events.append(EventDescription("treat_exceptions", evt))
 
+            #self.cl_mem["copy_values"] = self.cl_mem["values"].copy()
+            #self.cl_mem["copy_mask"] = self.cl_mem["mask"].copy()
             evt = self.kernels.scan(self.cl_mem["values"],
                                     self.cl_mem["mask"],
                                     queue=self.queue,
                                     size=int(len_raw),
                                     wait_for=(evt,))
             events.append(EventDescription("double scan", evt))
+            #evt.wait()
             if out is not None:
                 if out.dtype == numpy.float32:
                     copy_results = self.kernels.copy_result_float
@@ -243,6 +246,7 @@ class ByteOffset(OpenclProcessing):
                                out.data
                                )
             events.append(EventDescription("copy_results", evt))
+            #evt.wait()
             if self.profile:
                 self.events += events
         return out

@@ -80,32 +80,37 @@ class TestByteOffset(unittest.TestCase):
         """
         tests the byte offset decompression on GPU
         """
-        ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
+        ref, raw = self._create_test_data(shape=(91, 97), nexcept=229)
+        #ref, raw = self._create_test_data(shape=(7, 9), nexcept=0)
+        
         size = numpy.prod(ref.shape)
 
         try:
-            bo = byte_offset.ByteOffset(dec_size=size, profile=True)
+            bo = byte_offset.ByteOffset(raw_size=len(raw), dec_size=size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             if sys.platform == "darwin":
                 raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
             else:
                 raise err
+        print(bo.block_size)
 
         t0 = time.time()
         res_cy = fabio.compression.decByteOffset(raw)
         t1 = time.time()
-        res_cl = bo(raw)
+        res_cl = bo.decode(raw)
         t2 = time.time()
         delta_cy = abs(ref.ravel() - res_cy).max()
         delta_cl = abs(ref.ravel() - res_cl.get()).max()
-        self.assertEqual(delta_cy, 0, "Checks fabio works")
-        self.assertEqual(delta_cl, 0, "Checks opencl works")
 
         logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
                      1000.0 * (t1 - t0),
                      1000.0 * (t2 - t1))
         bo.log_profile()
+        #print(ref)
+        #print(res_cl.get())
+        self.assertEqual(delta_cy, 0, "Checks fabio works")
+        self.assertEqual(delta_cl, 0, "Checks opencl works")
 
     def test_many_decompress(self, ntest=10):
         """
@@ -185,7 +190,6 @@ class TestByteOffset(unittest.TestCase):
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             raise err
-
         # Test with out buffer too small
         out = pyopencl.array.empty(bo.queue, (10,), numpy.int8)
         with self.assertRaises(ValueError):
