@@ -81,34 +81,38 @@ The Python sources are in the ``silx.opencl.sift`` module:
     from silx.image import sift
     print(sift.__file__)
 
-The file ``plan.py`` corresponds to the keypoint extraction and handles the whole process:
-from kernel compilation to descriptors generation as numpy array.
-The OpenCL kernels are distributed as *resources* in the "openCL" folder; they are compiled on the fly.
-Several kernels have multiple implementations, depending the architecture to run on.
+The file ``plan.py`` contains the keypoint extraction code and drives the whole
+process: from kernel compilation to descriptors generation as numpy array.
+The OpenCL kernels are distributed as *resources* in the "openCL" folder; they
+are compiled on the fly.
+Several kernels have multiple implementations, depending on the computer architecture
+to run on.
 
-The file ``match.py`` does the matching between two lists of keypoints returned by ``plan.py``.
+The file ``match.py`` carries out the matching between two lists of keypoints
+returned by ``plan.py``.
 
-The file ``alignment.py`` does the image alignment : it computes the keypoints
+The file ``alignment.py`` performes the image alignment : it computes the keypoints
 from two images (``plan.py``), then uses the matching result (``match.py``)
 to find out the transformation aligning the second image on the first.
 
-Each of those module contain a class which holds GPU contexts, memory and kernel.
+Each of these modules contains a class which holds GPU contexts, memory and kernel.
 They are expensive to instantiate and should be re-used as much as possible.
 
 Overall process
 ***************
 
-The different steps of SIFT are handled by ``plan.py``.
-When launched, it automatically choose the best device to run on, unless a device
+The different steps of SIFT are controled by ``plan.py``.
+When launched, it automatically chooses the best device to run on, unless a device
 is explicitly provided in the options.
 All the OpenCL kernels that can be compiled are built on the fly.
-Buffers are pre-allocated on the device, and all the steps are executed on rge device (GPU).
+Buffers are pre-allocated on the device, and all the steps are executed on the device (GPU).
 At each *octave* (scale level), keypoints are returned to the CPU and the buffers are re-used.
 
-Once the keypoints are computed, the keypoints of two different images can be compared.
+Once computed, the keypoints of two different images can be compared.
 This matching is done by ``match.py``.
-It simply takes the descriptors of the two lists of keypoints, and compare them with a L1 distance.
-It returns a vector of *matchings*, i.e couples of similar keypoints.
+It simply takes the descriptors of the two lists of keypoints, and compares them
+using a L1 distance (absolute value).
+It returns a vector of *matching-keypoints*, i.e couples of similar keypoints.
 
 For image alignment, ``alignment.py`` takes the matching vector between two images
 and determines the transformation to be done in order to align the second image on the first.
@@ -131,25 +135,25 @@ The keypoints are detected in several steps according to Lowe's paper_ :
   keypoints :math:`(x,y,s, \theta)`
 * Descriptor computation: a histogram of orientations is built around every keypoint,
   then concatenated in a 128-values vector.
-  This vector is called *SIFT descriptor*, it is robust to rotation, illumination, translation and scaling.
+  This vector is called *SIFT descriptor*, it is insensitive to rotation, illumination, translation and scaling.
 
 The scale variation is simulated by blurring the image.
-A very blurred image represents a scene seen from a distance, for small details are not visible.
+A very blurred image represents a scene seen from a distance, in which small
+details are no more visible.
 
 
 Unlike existing parallel versions of SIFT, the entire process is done on the
 device to avoid time-consuming transfers between CPU and GPU.
 This leads to several tricky parts like the use of atomic instructions, or
-writing different versions of the same kernel to adapt to every platform.
-
+using different versions of the same kernel taylored for different platforms.
 
 
 Keypoints detection
 ...................
 
 The image is increasingly blurred to imitate the scale variations.
-This is done by convolving with a gaussian kernel.
-Then, consecutive blurs are subtracted to get *differences of gaussians (DoG)*.
+This is done by convolving the image with a Gaussian kernel.
+Then, consecutive blurs are subtracted to get *differences of Gaussians (DoG)*.
 In these DoG, every pixel is tested. Let :math:`(x,y)` be the pixel position in
 the current (blurred) image, and :math:`s` its *scale* (that is, the blur factor).
 The point :math:`(x,y,s)` is a local maximum in the scale-space if
@@ -164,10 +168,10 @@ The point :math:`(x,y,s)` is a local maximum in the scale-space if
    :alt: detection in scale-space
 
 
-For these steps, we highly benefit from the parallelism : every pixel is handled
-by a GPU thread.
-Besides, convolution is implemented in the direct space (without Fourier Transform)
-and is quite fast (50 times faster than the convolutions done by the C++ reference
+Those steps highly benefit from the parallelism of the OpenCL: every pixel is processed
+by a different thread.
+Besides, the convolution is implemented in the direct space (without Fourier Transform)
+and is quite fast (50 times faster than the convolutions in the C++ reference
 implementation).
 
 
@@ -176,27 +180,28 @@ Keypoints refinement
 
 At this stage, many keypoints are not reliable. Low-contrast keypoints are discarded,
 and keypoints located on an edge are rejected as well.
-For keypoints located on an edge, principal curvature across the edge is much larger
-than the principal curvature along it. Finding these principal curvatures amounts
+For keypoints located on an edge, the principal curvature across the edge is much larger
+than the principal curvature along it.
+Finding these principal curvatures amounts
 to solving for the eigenvalues of the second-order Hessian matrix of the current DoG.
-The ratio of the eigenvalues :math:`r` is compared to a threshold :math:`\dfrac{(r+1)^2}{r} < R`
-with R defined by taking r=10.
 
-To improve keypoints accuracy, the coordinates are interpolated with a second-order Taylor development.
+To improve keypoints accuracy, the coordinates are interpolated with a second-order
+Taylor series.
 
    .. math::
 
       D \left( \vec{x} + \vec{\delta_x} \right) \simeq D + \dfrac{\partial D}{\partial \vec{x}} \cdot \vec{\delta_x} + \dfrac{1}{2} \left( \vec{\delta_x} \right)^T \cdot \left( H \right) \cdot \vec{\delta_x} \qquad \text{with } H = \dfrac{\partial^2 D}{\partial \vec{x}^2}
 
-Keypoints that were too far from a *true* (interpolated) extremum are rejected.
+Keypoints too far from a *true* (interpolated) extremum are also rejected.
 
 
 
 Orientation assignment
 ......................
 
-An orientation has to be assigned to each keypoint so that SIFT descriptors will
-be invariant to rotation. For each blurred version of the image, the gradient
+An orientation has to be assigned to each keypoint, so that SIFT descriptors will
+be invariant to rotation.
+For each blurred version of the image, the gradient
 magnitude and orientation are computed.
 From the neighborhood of a keypoint, a histogram of orientations is built
 (36 bins, 1 bin per 10 degrees).
