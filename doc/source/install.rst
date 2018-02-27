@@ -22,13 +22,10 @@ This table summarized the the support matrix of silx v0.7:
 | `Linux`_   | 2.7, 3.4-3.6 | PyQt4.8+, PyQt5.3+  |
 +------------+--------------+---------------------+
 
-You will find the simple instructions for each platform at the beginning of each
-section, followed by more detailed instructions concerning dependencies and
-alternative installation methods.
+For all platform, you can install *silx* from the source, see `Installing from source`_.
 
-For all platform, to install *silx* from the source, see `Installing from source`_.
-
-To install *silx* in a virtualenv, read :ref:`silx-venv`.
+To install *silx* in a `Virtual Environment`_, there is short version here-after
+and  a `longer description :ref:`silx-venv`.
 
 Dependencies
 ------------
@@ -39,7 +36,8 @@ The GUI widgets depend on the following extra packages:
   `PySide <https://pypi.python.org/pypi/PySide/>`_, or `PySide2 <https://wiki.qt.io/PySide2>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
-* `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_ for the ``silx.gui.console`` widget.
+* `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_
+  for the ``silx.gui.console`` widget.
 
 Tools for reading and writing files depend on the following packages:
 
@@ -98,13 +96,15 @@ On Linux, you can install *silx* in your home directory
     This installs *silx* without the optional dependencies. 
     
 To install *silx* on Debian or Ubuntu systems, see `Installing a Debian package`_.
-This method requires **sudo** privileges, but has the benefit of installing dependencies in a simple way.
+This method requires **sudo** privileges, but has the benefit of installing
+dependencies in a simple way.
 
 `CentOS 7 RPM packages <http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/>`_ and
 `Fedora 23 rpm packages <http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/>`_
 are provided by the Max IV institute at Lund, Sweden.
 
-An `Arch Linux (AUR) package <https://aur.archlinux.org/packages/python-silx>`_ is provided by Leonid Bloch.
+An `Arch Linux (AUR) package <https://aur.archlinux.org/packages/python-silx>`_
+is provided by Leonid Bloch.
 
 You can also choose to compile and install *silx* from it's sources:
 see `Installing from source`_.
@@ -155,13 +155,13 @@ packages.
 They do require administrator privileges, nor *root* access.
 
 To create a virtual environment, decide upon a directory where you want to place
-it, and run the *venv* module as a script with the directory path:
+it (for example *myenv*), and run the *venv* module as a script with the directory path:
 
 .. code-block:: bash 
 
-    python3 -m venv  mypy
+    python3 -m venv  myenv
 
-This will create the *mypy* directory if it doesn’t exist, and also create
+This will create the *myenv* directory if it doesn’t exist, and also create
 directories inside it containing a copy of the Python interpreter, the standard
 library, and various supporting files.
 
@@ -171,13 +171,13 @@ On Windows, run:
 
 .. code-block:: bash 
 
-  mypy\Scripts\activate.bat
+  myenv\\Scripts\\activate.bat
 
 On Unix or MacOS, run:
 
 .. code-block:: bash 
 
-   source mypy/bin/activate
+   source myenv/bin/activate
 
 You can install, upgrade, and remove packages using a program called *pip* within
 your virtual environment.
