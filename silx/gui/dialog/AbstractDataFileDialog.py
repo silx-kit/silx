@@ -158,7 +158,7 @@ class _SideBar(qt.QListView):
 
         if len(urls) == 0:
             urls.append(qt.QUrl("file://"))
-            urls.append(qt.QUrl("file://" + qt.QDir.homePath()))
+            urls.append(qt.QUrl.fromLocalFile(qt.QDir.homePath()))
 
         return urls
 
