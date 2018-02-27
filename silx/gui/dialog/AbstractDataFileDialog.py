@@ -143,9 +143,13 @@ class _SideBar(qt.QListView):
         :rtype: List[str]
         """
         urls = []
-        if qt.qVersion() >= "5.0" and sys.platform in ["linux", "linux2"]:
+        if qt.qVersion().startswith("5.") and sys.platform in ["linux", "linux2"]:
             # Avoid segfault on PyQt5 + gtk
+            _logger.debug("Skip default sidebar URLs (avoid PyQt5 segfault)")
             pass
+        elif qt.qVersion().startswith("4.") and sys.platform in ["win32"]:
+            # Avoid 5min of locked GUI relative to network driver
+            _logger.debug("Skip default sidebar URLs (avoid lock when using network drivers)")
         else:
             # Get default shortcut
             # There is no other way
