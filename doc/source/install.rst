@@ -12,13 +12,15 @@ code on GPU requires `pyopencl <https://mathema.tician.de/software/pyopencl/>`_.
 
 This table summarized the the support matrix of silx v0.7:
 
-+------------+--------------|---------------------+
++------------+--------------+---------------------+
 | System     | Python vers. | Qt and its bindings |
-+============+==============+====================+
-| `Windows`_ | 3.5, 3.6     | PyQt5.6+           |
-| `MacOS`_   | 2.7, 3.4-3.6 | PyQt5.6+           |
-| `Linux`_   | 2.7, 3.4-3.6 | PyQt4.8+, PyQt5.3+ |
-+------------+--------------+--------------------+
++------------+--------------+---------------------+
+| `Windows`_ | 3.5, 3.6     | PyQt5.6+            |
++------------+--------------+---------------------+
+| `MacOS`_   | 2.7, 3.4-3.6 | PyQt5.6+            |
++------------+--------------+---------------------+
+| `Linux`_   | 2.7, 3.4-3.6 | PyQt4.8+, PyQt5.3+  |
++------------+--------------+---------------------+
 
 You will find the simple instructions for each platform at the beginning of each
 section, followed by more detailed instructions concerning dependencies and
@@ -60,17 +62,18 @@ In addition to run-time dependencies, building *silx* requires a C/C++ compiler,
 `numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_ (optional).
 
 On Windows it is recommended to use Python 3.5, because with previous versions
-of Python, it might be difficult to compile the extensions.
+of Python, it might be difficult to compile extensions (i.e. binary modules).
 
-This project uses cython to generate C files.
+This project uses Cython (version > 0.21) to generate C files.
 Cython is now mandatory to build *silx* from the development branch and is only
 needed when compiling binary modules.
-If using cython, *silx* requires at least version 0.21 (with memory-view support).
 
 The complete list of dependencies for building the package, including its
 documentation, is described in the
 `requirement-dev.txt <https://github.com/silx-kit/silx/blob/0.7/requirements-dev.txt>`_
 at the top level of the source package.
+
+
 
 Linux
 -----
@@ -78,7 +81,7 @@ Linux
 If NumPy is not installed on your system, you need to install it first,
 preferably with the package manager of your system.
 If you cannot use the package manager of your system (which requires the root
-access), please refer to the `VirtualEnv`_ procedure.
+access), please refer to the `Virtual Environment`_ procedure.
 
 On Linux, you can install *silx* in your home directory::
 
@@ -141,9 +144,50 @@ If the Pin-number of silx.org is too low compared to other sources:
 download http://www.silx.org/pub/debian/silx.pref into /etc/apt/preferences.d
 and start the update/install procedure again.
 
+Virtual Environment
+-------------------
 
-Windows instructions
---------------------
+Virtual environments are self-contained directory tree that contains a Python
+installation for a particular version of Python, plus a number of additional
+packages.
+They do require administrator privileges, nor *root* access.
+
+To create a virtual environment, decide upon a directory where you want to place
+it, and run the *venv* module as a script with the directory path:
+
+.. code-block:: bash 
+
+    python3 -m venv  mypy
+
+This will create the *mypy* directory if it doesn’t exist, and also create
+directories inside it containing a copy of the Python interpreter, the standard
+library, and various supporting files.
+
+Once you’ve created a virtual environment, you may activate it.
+
+On Windows, run:
+
+.. code-block:: bash 
+
+  mypy\Scripts\activate.bat
+
+On Unix or MacOS, run:
+
+.. code-block:: bash 
+
+   source mypy/bin/activate
+
+You can install, upgrade, and remove packages using a program called *pip* within
+your virtual environment.
+
+.. code-block:: bash 
+
+    pip install numpy
+    pip install -r https://github.com/silx-kit/silx/raw/0.7/requirements.txt
+    pip install silx
+    
+Windows
+-------
 
 The simple way of installing the *silx* library on Windows is to type the following
 commands in a command prompt:
