@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/11/2017"
+__date__ = "27/02/2018"
 
 
 import logging
@@ -197,6 +197,8 @@ else:
             self.assertEqual(len(isosurfaces), 1)
 
             self._expose_and_close(window)
+            if not window.getPlot3DWidget().isValid():
+                self.skipTest("OpenGL context is not valid")
 
             # N contours + color
             colors = ['red', 'green', 'blue']
@@ -247,7 +249,10 @@ else:
 
             # 3D positions, no value
             window = sx.points3d(x, y, z)
+
             self._expose_and_close(window)
+            if not window.getSceneWidget().isValid():
+                self.skipTest("OpenGL context is not valid")
 
             # 3D positions, values
             window = sx.points3d(x, y, z, values, mode='2dsquare',
