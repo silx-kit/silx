@@ -143,9 +143,13 @@ class _SideBar(qt.QListView):
         :rtype: List[str]
         """
         urls = []
-        if qt.qVersion() >= "5.0" and sys.platform in ["linux", "linux2"]:
+        if qt.qVersion().startswith("5.") and sys.platform in ["linux", "linux2"]:
             # Avoid segfault on PyQt5 + gtk
+            _logger.debug("Skip default sidebar URLs (avoid PyQt5 segfault)")
             pass
+        elif qt.qVersion().startswith("4.") and sys.platform in ["win32"]:
+            # Avoid 5min of locked GUI relative to network driver
+            _logger.debug("Skip default sidebar URLs (avoid lock when using network drivers)")
         else:
             # Get default shortcut
             # There is no other way
@@ -158,7 +162,7 @@ class _SideBar(qt.QListView):
 
         if len(urls) == 0:
             urls.append(qt.QUrl("file://"))
-            urls.append(qt.QUrl("file://" + qt.QDir.homePath()))
+            urls.append(qt.QUrl.fromLocalFile(qt.QDir.homePath()))
 
         return urls
 
@@ -538,10 +542,12 @@ class AbstractDataFileDialog(qt.QDialog):
 
         if qt.qVersion() < "5.0":
             # On Qt4 it is needed to provide a safe file system model
+            _logger.debug("Uses SafeFileSystemModel")
             from .SafeFileSystemModel import SafeFileSystemModel
             self.__fileModel = SafeFileSystemModel(self)
         else:
             # On Qt5 a safe icon provider is still needed to avoid freeze
+            _logger.debug("Uses default QFileSystemModel with a SafeFileIconProvider")
             self.__fileModel = qt.QFileSystemModel(self)
             from .SafeFileIconProvider import SafeFileIconProvider
             iconProvider = SafeFileIconProvider()
@@ -621,9 +627,10 @@ class AbstractDataFileDialog(qt.QDialog):
 
     def __createWidgets(self):
         self.__sidebar = self._createSideBar()
-        sideBarModel = self.__sidebar.selectionModel()
-        sideBarModel.selectionChanged.connect(self.__shortcutSelected)
-        self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        if self.__sidebar is not None:
+            sideBarModel = self.__sidebar.selectionModel()
+            sideBarModel.selectionChanged.connect(self.__shortcutSelected)
+            self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
         listView = qt.QListView(self)
         listView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -792,7 +799,8 @@ class AbstractDataFileDialog(qt.QDialog):
         dummyCombo = qt.QWidget(self)
         dummyCombo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
         sideBarLayout.addWidget(dummyToolBar)
-        sideBarLayout.addWidget(self.__sidebar)
+        if self.__sidebar is not None:
+            sideBarLayout.addWidget(self.__sidebar)
         sideBarLayout.addWidget(dummyCombo)
         sideBarWidget = qt.QWidget(self)
         sideBarWidget.setLayout(sideBarLayout)
@@ -1360,6 +1368,8 @@ class AbstractDataFileDialog(qt.QDialog):
 
     def __updateSidebar(self):
         """Called when the current directory location change"""
+        if self.__sidebar is None:
+            return
         selectionModel = self.__sidebar.selectionModel()
         selectionModel.selectionChanged.disconnect(self.__shortcutSelected)
         index = self.__browser.rootIndex()
@@ -1616,10 +1626,14 @@ class AbstractDataFileDialog(qt.QDialog):
 
     def setSidebarUrls(self, urls):
         """Sets the urls that are located in the sidebar."""
+        if self.__sidebar is None:
+            return
         self.__sidebar.setUrls(urls)
 
     def sidebarUrls(self):
         """Returns a list of urls that are currently in the sidebar."""
+        if self.__sidebar is None:
+            return []
         return self.__sidebar.urls()
 
     # State
@@ -1662,7 +1676,7 @@ class AbstractDataFileDialog(qt.QDialog):
 
         result &= self.__splitter.restoreState(splitterData)
         sidebarUrls = [qt.QUrl(s) for s in sidebarUrls]
-        self.__sidebar.setUrls(list(sidebarUrls))
+        self.setSidebarUrls(list(sidebarUrls))
         history = [s for s in history]
         self.setHistory(list(history))
         if workingDirectory is not None:
@@ -1688,7 +1702,7 @@ class AbstractDataFileDialog(qt.QDialog):
         stream.writeQString(u"%s" % s)
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__splitter.saveState())
-        strings = [u"%s" % s.toString() for s in self.__sidebar.urls()]
+        strings = [u"%s" % s.toString() for s in self.sidebarUrls()]
         stream.writeQStringList(strings)
         strings = [u"%s" % s for s in self.history()]
         stream.writeQStringList(strings)
