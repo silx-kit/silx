@@ -4,7 +4,7 @@
 #    Project: S I L X project
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2017 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2018 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -31,7 +31,7 @@
 #
 
 """
-Common OpenCL abstract base classes for different processing
+Common OpenCL abstract base classe for different processing
 """
 
 from __future__ import absolute_import, print_function, division
@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/02/2018"
+__date__ = "27/02/2018"
 __status__ = "stable"
 
 
@@ -150,9 +150,11 @@ class OpenclProcessing(object):
     def __del__(self):
         """Destructor: release all buffers and programs
         """
+        self.reset_log()
         self.free_kernels()
         self.free_buffers()
         self.queue = None
+        self.device = None
         self.ctx = None
         gc.collect()
 
