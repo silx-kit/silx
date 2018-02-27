@@ -1,25 +1,27 @@
 General introduction to sift.
 =============================
 
-silx.image.sift, a parallel version of SIFT algorithm
------------------------------------------------------
+silx.opencl.sift, a parallel version of SIFT algorithm
+------------------------------------------------------
 
 SIFT (Scale-Invariant Feature Transform) is an algorithm developed by David Lowe in 1999.
 It is a worldwide reference for image alignment and object recognition.
 The robustness of this method enables to detect features at different scales,
 angles and illumination of a scene.
 The implementation available in silx uses OpenCL, meaning that it can run on
-Graphics Processing Units and Central Processing Units as well.
-Interest points are detected in the image, then data structures called
-*descriptors* are built to be characteristic of the scene, so that two different
-images of the same scene have similar descriptors. They are robust to transformations
-like translation, rotation, rescaling and illumination change, which make SIFT
-interesting for image stitching.
+Graphics Processing Units (GPU) as well as on Central Processing Units (CPU).
+Interesting points (keypoints) are detected in the image, then data structures called
+*descriptors*, characteristic of the scene, are extracted so that two different
+images of the same scene exhibit similar descriptors.
+The descriptors are insensitive to transformations like translation, rotation,
+rescaling and illumination changes, making SIFT interesting for image stitching.
+
 In the fist stage, descriptors are computed from the input images.
-Then, they are compared to determine the geometric transformation to apply in
-order to align the images.
-silx.image.sift can run on most graphic cards and CPU, making it usable on many setups.
-OpenCL processes are handled from Python with PyOpenCL, a module to access OpenCL parallel computation API.
+Then, they are compared against each other to determine the geometric transformation
+to apply in order to align the images.
+*silx.opencl.sift* can run on most GPU and CPU, offerng a large flexibility.
+OpenCL processes are driven from Python via PyOpenCL, a module to access OpenCL
+the parallel computation API.
 
 
 Introduction
@@ -27,48 +29,40 @@ Introduction
 
 The European Synchrotron Radiation Facility (ESRF) beamline ID21 developed a
 full-field method for X-ray absorption near-edge spectroscopy (XANES).
-Since the flat field images are not acquired simultaneously with the sample
-transmission images, a realignment procedure has to be performed.
-Serial SIFT implementation used to take about 8 seconds per frame, and one stack
-can have up to 500 frames.
-It is a bottleneck in the global process, therefore a parallel version had to be implemented.
-silx.image.sift differs from existing parallel implementations of SIFT in the way
-that the whole process is done on the device, enabling crucial speed-ups.
+Since the flat field images and the sample transmission images are not acquired
+simultaneously, an image realignment procedure has to be performed.
+The sequential SIFT implementation used to take about 8 seconds per frame, and
+one typical stack can have up to 500 frames.
+This is a bottleneck in the global process, hence a parallel version had to be
+implemented.
+*silx.opencl.sift differs from existing parallel implementations of SIFT in the way
+that the whole process is executed on the device, enabling crucial speed-ups.
 
 
-Launching silx.image.sift
--------------------------
+Launching silx.opencl.sift
+--------------------------
 
-silx.image.sift is written in Python, and handles the OpenCL kernels with PyOpenCL.
+silx.opencl.sift is written in Python, and handles the OpenCL kernels through PyOpenCL.
 This enables a simple and efficient access to GPU resources.
-The project is installed as a Python library and can be imported in a script.
+The package is installed as a Python library and can be imported in a script.
 
-Before image alignment, points of interest (keypoints) have to be detected in each image.
+Prior to image alignment, keypoints have to be detected in each image and their
+descriptors calculated.
 The whole process can be launched by several lines of code.
 
 
 How to use it
 .............
 
-silx.image.sift is installed as part of silx and requires PyOpenCL to be useable.
-It generates a library that can be imported, then used to compute a list of descriptors from an image.
-The image can be in RGB values, but all the process is done on grayscale values.
-One can specify the devicetype, either CPU or GPU.
-
-.. Although being integrated in ESRF EDNA framework for online image alignment,
-  and thus mostly used by developers, silx.image.sift provides example scripts.
-
-  .. code-block:: python
-
-     #TODO: update
-     python test/demo.py --type=GPU my_image.jpg
-
-This computes and shows the keypoints on the input image.
-One can also launch silx.image.sift interactively with iPython :
+*silx.opencl.sift* is installed as a part of *silx* and requires PyOpenCL.
+One can also launch silx.opencl.sift interactively with IPython:
+This computes and shows the last keypoint of the input image.
+Color input images are converted to grayscale automatically during the processing.
+One can specify the devicetype, either "CPU" or "GPU".
 
 .. code-block:: python
 
-   from silx.image import sift
+   from silx.opencl import sift
    import numpy
    import scipy.misc
    image_rgb = scipy.misc.imread("my_image.jpg")
@@ -77,10 +71,10 @@ One can also launch silx.image.sift interactively with iPython :
    print(kp[-1])
 
 
-silx.image.sift files
-.....................
+silx.opencl.sift files
+......................
 
-The Python sources are in the ``silx.image.sift`` module:
+The Python sources are in the ``silx.opencl.sift`` module:
 
 .. code-block:: python
 
@@ -254,7 +248,7 @@ Matching is also explained in this tutorial, once the keypoints are
 Performances
 ------------
 
-The aim of silx.image.sift is to fasten the SIFT keypoint extraction by running it on GPU.
+The aim of silx.opencl.sift is to fasten the SIFT keypoint extraction by running it on GPU.
 On big images with many keypoints, it enables a speed-up between 30 and 50 times.
 The following benchmark was done on an Intel Xeon E5-2667 (2.90GHz, 2x6 cores)
 CPU, and a NVidia Tesla K20m GPU.
@@ -264,7 +258,7 @@ CPU, and a NVidia Tesla K20m GPU.
    :align: center
    :alt: Benchmark GPU vs CPU
 
-silx.image.sift can also be run on CPU, even running up to 10 times faster than the C++ implementation.
+silx.opencl.sift can also be run on CPU, even running up to 10 times faster than the C++ implementation.
 
 .. figure:: img/sift_bench_cpu0.png
    :align: center
@@ -278,7 +272,7 @@ SIFT parameters
 Command line parameters
 .......................
 
-When launched from the command line, silx.image.sift can handle several options
+When launched from the command line, silx.opencl.sift can handle several options
 like the device to run on and the *number of pixels per keypoint*.
 By default ``PIX_PER_KP`` is 10, meaning that we gess one keypoint will be found
 for every 10 pixels.
