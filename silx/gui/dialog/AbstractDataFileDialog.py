@@ -542,10 +542,12 @@ class AbstractDataFileDialog(qt.QDialog):
 
         if qt.qVersion() < "5.0":
             # On Qt4 it is needed to provide a safe file system model
+            _logger.debug("Uses SafeFileSystemModel")
             from .SafeFileSystemModel import SafeFileSystemModel
             self.__fileModel = SafeFileSystemModel(self)
         else:
             # On Qt5 a safe icon provider is still needed to avoid freeze
+            _logger.debug("Uses default QFileSystemModel with a SafeFileIconProvider")
             self.__fileModel = qt.QFileSystemModel(self)
             from .SafeFileIconProvider import SafeFileIconProvider
             iconProvider = SafeFileIconProvider()
