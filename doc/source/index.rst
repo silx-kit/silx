@@ -9,9 +9,24 @@ reduction routines and a set of Qt widgets to browse and visualise data.
 Silx can be cited by its DOIs referenced on
 `Zenodo <https://doi.org/10.5281/zenodo.591709>`_.
 
-The current version (v0.7) caters for reading
-`SPEC <https://certif.com/spec.html>`_ file format, histogramming, fitting,
-curves and image plot widget with a set of associated tools.
+The current version (v0.7) caters for:
+
+* reading `HDF5 <https://www.hdfgroup.org/HDF5/>`_  file format (with support of
+  `SPEC <https://certif.com/spec.html>`_ file format and
+  `FabIO <http://www.silx.org/doc/fabio/dev/getting_started.html#list-of-file-formats-that-fabio-can-read-and-write>`_
+  images)
+* histogramming
+* fitting
+* 1D and 2D visualization widgets using multiple backends (matplotlib or OpenGL)
+* an OpenGL-based widget to display 3D scalar field with isosurface and cutting plane
+* an image plot widget with a set of associated tools
+* a unified browser for HDF5, SPEC and image file formats supporting inspection and
+  visualization of n-dimensional datasets.
+* a unified viewer (*silx view filename*) for HDF5, SPEC and image file formats
+* a unified converter to HDF5 format (*silx convert filename*)
+* median filters on images (C and OpenCL implementations)
+* image alignment (sift - OpenCL implementation)
+* filtered backprojection for tomography
 
 .. toctree::
    :hidden:
