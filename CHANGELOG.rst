@@ -10,7 +10,6 @@ Change Log
      group or dataset from files.
    * `silx.io.open` now supports h5pyd and silx custom URLs.
    * `silx.io.get_data` is provided to allow to reach a numpy array from silx.
-     custom URLs.
 
  * OpenCL:
 
@@ -30,7 +29,6 @@ Change Log
    * Provides a file dialog to pick a dataset or a group from HDF5 files.
    * Provides a file dialog to pick an image from HDF5 files or multiframes formats.
    * The colormap dialog can now be used as non-modal.
-   * Added a function to run a task in Qt main thread from any thread.
    * `PlotWidget` can save the displayed data as a new `NXentry` of a HDF5 file.
    * `PlotWidget` exports displayed data as spec files using more digits.
    * Added new OpenGL-based 3D visualization widgets:
@@ -51,7 +49,7 @@ Change Log
  * `silx view`:
 
    * Uses a single colormap to show any datasets.
-   * The colormap dialog can stay openned while browsing the data.
+   * The colormap dialog can stay opened while browsing the data.
    * The application is associated with some file types to be used to load files
      on Debian.
    * Provides a square amplitude display mode to visualize complex images.
