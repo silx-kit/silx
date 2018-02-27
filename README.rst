@@ -49,14 +49,14 @@ Unofficial packages for different distributions are available:
 - Fedora 23 rpm packages are provided by Max IV at http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/
 - Arch Linux (AUR) packages are also available: https://aur.archlinux.org/packages/python-silx
 
-`Detailed installation instructions<http://www.silx.org/doc/silx/dev/install.html>`_
+`Detailed installation instructions <http://www.silx.org/doc/silx/dev/install.html>`_
 are available in the documentation.
 
 Documentation
 -------------
 
-The documentation of `latest release<http://www.silx.org/doc/silx/latest/>`_ and
-the documentation of `the nightly build<http://www.silx.org/doc/silx/dev>`_ are
+The documentation of `latest release <http://www.silx.org/doc/silx/latest/>`_ and
+the documentation of `the nightly build <http://www.silx.org/doc/silx/dev>`_ are
 available at http://www.silx.org/doc/silx/
 
 Testing
