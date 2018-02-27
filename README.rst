@@ -10,22 +10,25 @@ and a set of Qt widgets to browse and visualise data.
 
 The current version features:
 
-* reading `HDF5 <https://www.hdfgroup.org/HDF5/>`_  file format (with support of the
-  `SPEC <https://certif.com/spec.html>`_ file format and
+* Support of `HDF5 <https://www.hdfgroup.org/HDF5/>`_,
+  `SPEC <https://certif.com/spec.html>`_ and
   `FabIO <http://www.silx.org/doc/fabio/dev/getting_started.html#list-of-file-formats-that-fabio-can-read-and-write>`_
-  images)
-* histogramming
-* fitting
-* 1D and 2D visualisation widgets using multiple backends (matplotlib or OpenGL)
-* an OpenGL-based widget to display 3D scalar fields with isosurfaces and cutting planes
-* an image plot widget with a set of associated tools
-* a unified browser for HDF5, SPEC and image file formats supporting inspection and
-  visualisation of n-dimensional datasets.
-* a unified viewer (*silx view filename*) for HDF5, SPEC and image file formats
-* a unified converter to HDF5 format (*silx convert filename*)
-* median filters on images (C and OpenCL implementations)
-* image alignment (sift - OpenCL implementation)
-* filtered backprojection for tomography
+  images file formats.
+* OpenCL-based data processing: image alignment (SIFT),
+  image processing (median filter, histogram),
+  filtered backprojection for tomography
+* Data reduction: histogramming, fitting, median filter
+* A set of Qt widgets, including:
+
+  * 1D and 2D visualization widgets with a set of associated tools using multiple backends (matplotlib or OpenGL)
+  * OpenGL-based widgets to visualize data in 3D (scalar field with isosurface and cut plane, scatter plot)
+  * a unified browser for HDF5, SPEC and image file formats supporting inspection and
+    visualization of n-dimensional datasets.
+
+* a set of applications:
+
+  * a unified viewer (*silx view filename*) for HDF5, SPEC and image file formats
+  * a unified converter to HDF5 format (*silx convert filename*)
 
 Installation
 ------------
