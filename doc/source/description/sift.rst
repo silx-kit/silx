@@ -217,28 +217,38 @@ keypoint with a different orientation.
 
 The parallel implementation of this step is complex, and the performances strongly
 depend on the graphic card the program is running on.
-That is why there are different files for this kernel, adapted for different platforms.
-The file to compile is automatically determined in ``plan.py``.
+That is why different opencl kernels have been written with the same signature,
+but adapted to different platforms.
+The kernel to be used are automatically determined in ``plan.py``.
 
 
 Descriptor computation
 ......................
 
 A histogram of orientations is built around every keypoint.
-The neighborhood is divided into 4 regions of 4 sub-regions of 4x4 pixels.
+The neighborhood is divided into 4 regions, each of  4 sub-regions of 4x4 pixels.
 In every sub-region, a 8-bin histogram is computed; then, all the histograms are
-concatenated in a 128-values descriptor.
-The histogram is weighted by the gradient magnitudes and the current scale factor,
-so that the descriptor is robust to rotation, illumination, translation and scaling.
-Here again, there are several files adapted to different platforms.
+concatenated in a 128-value descriptor (4x4x8 = 128).
+The concatenated histogram is weighted by the gradient magnitudes and the current
+scale factor, so that the descriptor is invariant to rotation, illumination,
+translation and scaling.
+Here again, there are several kernels adapted to different platforms.
 
 
 Image matching and alignment
 ----------------------------
 
-Matching is also explained in this tutorial, once the keypoints are
+Matching is also explained in this tutorial:  once the keypoints are extracted
+from two images, their descriptors (128-value vector) are compared two by two,
+using the L1-norm (sum of absolute value difference).
 
+For a given keypoint K1 from the image 1, a keypoint K2 from image 2 matches K1
+if the L1-distance between K1-K2 is much shorter than any other pair K1-Kn for
+any other keypoint of image 2.
 
+Once keypoints are matched, building the afine transformation with the
+least-squares displacement is done using a singular value decomposition of the
+over-complete system of equation.
 
 .. figure:: img/sift_match1.png
    :align: center
@@ -250,10 +260,11 @@ Matching is also explained in this tutorial, once the keypoints are
    :alt: Another example of image matching for pattern recognition
 
 
+
 Performances
 ------------
 
-The aim of silx.opencl.sift is to fasten the SIFT keypoint extraction by running it on GPU.
+The aim of silx.opencl.sift is to speed-up the SIFT keypoint extraction by running it on GPU.
 On big images with many keypoints, it enables a speed-up between 30 and 50 times.
 The following benchmark was done on an Intel Xeon E5-2667 (2.90GHz, 2x6 cores)
 CPU, and a NVidia Tesla K20m GPU.
