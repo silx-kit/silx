@@ -264,9 +264,11 @@ over-complete system of equation.
 Performances
 ------------
 
-The aim of silx.opencl.sift is to speed-up the SIFT keypoint extraction by running it on GPU.
-On big images with many keypoints, it enables a speed-up between 30 and 50 times.
-The following benchmark was done on an Intel Xeon E5-2667 (2.90GHz, 2x6 cores)
+The aim of silx.opencl.sift is to speed-up the SIFT keypoint extraction by
+running it on GPU.
+On big images with many keypoints, this module enables a speed-up between 30 and
+50 times.
+The following benchmark has been carried out on an Intel Xeon E5-2667 (2.90GHz, 2x6 cores)
 CPU, and a NVidia Tesla K20m GPU.
 
 
@@ -274,7 +276,8 @@ CPU, and a NVidia Tesla K20m GPU.
    :align: center
    :alt: Benchmark GPU vs CPU
 
-silx.opencl.sift can also be run on CPU, even running up to 10 times faster than the C++ implementation.
+*silx.opencl.sift* can also be run on CPU, even running up to 10 times faster
+than the reference C++ implementation.
 
 .. figure:: img/sift_bench_cpu0.png
    :align: center
@@ -285,56 +288,60 @@ silx.opencl.sift can also be run on CPU, even running up to 10 times faster than
 SIFT parameters
 ---------------
 
-Command line parameters
-.......................
+SiftPlan constructor parameters
+...............................
 
-When launched from the command line, silx.opencl.sift can handle several options
+When instanciated, silx.opencl.sift.SiftPlan can take several optionnal parameters
 like the device to run on and the *number of pixels per keypoint*.
-By default ``PIX_PER_KP`` is 10, meaning that we gess one keypoint will be found
-for every 10 pixels.
-This is for buffers allocation on the device, as the number of keypoints that
+By default ``PIX_PER_KP`` is 10, meaning that on guesses one keypoint will be found
+every 10 pixels.
+This initial step is setout for buffer allocation on the device, as the number
+of keypoints that
 will be found is unknown, and strongly depends of the type of image.
-10 pixels per keypoint is a high estimation, even for images with many features
-like landscapes.
-For example, this 5.8 MPixels image_ gives about 2500 keypoints, which makes
-2270 pixels per keypoints.
+10 pixels per keypoint is a conservative estimation, even for images with many
+features like landscapes.
+For example, a 5.8 MPixels image (of ESRF) yields about 2500 keypoints, hence
+2270 pixels per keypoint.
 
-.. _image: http://www.lightsources.org/imagebank/image/esr032
-
-If you have big images with few features and the image does not fit on the GPU,
-you can increase ``PIX_PER_KP`` in the command line options in order to
+If one has large images with few features and the image does not fit on the GPU,
+you can increase ``PIX_PER_KP`` in the constructor options in order to
 decrease the amount of memory required.
 
 
 Advanced SIFT parameters
 ........................
 
-The file ``param.py`` contains SIFT default parameters, recommended by
-David Lowe in his paper_ or by the authors of the C++ version in ASIFT_.
-You should not modify these values unless you know what you are doing.
-Some parameters require to understand several aspects of the algorithm,
+The file ``param.py`` in the source folder contains SIFT default parameters,
+recommended by David Lowe in his paper_ or by the authors of the C++ version in ASIFT_.
+The user should not modify these values unless one is an advanced SIFT-user.
+Some parameters require the understanding of several aspects of the algorithm,
 explained in Lowe's original paper.
 
 .. _ASIFT: http://www.ipol.im/pub/art/2011/my-asift
 
 
-``DoubleImSize`` (0 by default) is for the pre-blur factor of the image.
+``DoubleImSize`` (0 by default) stands for the pre-blur factor of the image.
 At the beginning, the original image is blurred (*prior-smoothing*) to eliminate noise.
-The standard deviation of the gaussian filter is either ``1.52`` if DoubleImSize is 0, or ``1.25`` if DoubleImSize is 1.
-Setting this parameter to 1 decrease the prior-smoothing factor, the algorithm will certainly find more keypoints but less accurate.
+The standard deviation of the Gaussian filter is either ``1.52`` (if DoubleImSize is 0),
+or ``1.25`` (if DoubleImSize is 1).
+Setting this parameter to 1 decreases the prior-smoothing factor, hence the algorithm
+will certainly find more keypoints but less accurate, as they result from the noise of
+the first octave.
 
 ``InitSigma`` (1.6 by default) is the prior-smoothing factor.
-The original image is blurred by a gaussian filter which standard deviation is
+The original image is blurred by a Gaussian filter which standard deviation is
 :math:`\sqrt{\text{InitSigma}^2 - c^2}`.
 with ``c == 0.5`` if ``DoubleImSize == 0`` or ``c == 1`` otherwise.
-If the prior-smoothing factor is decreased, the algorithm will certainly find more
-keypoint, but they will be less accurate.
+Once again, if the prior-smoothing factor is decreased, the algorithm will find
+more keypoint in the first octave, located in the noise of the image.
 
-``BorderDist`` (5 by default) is the minimal distance to borders:
+``BorderDist`` (5 by default) is the minimum distance from a keypoint to the image
+borders:
+Border to create artefacts in the bluring procedure and in the gradiant.
 pixels that are less than ``BorderDist`` pixels from the border will be ignored
 for the processing.
 If features are likely to be near the borders, decreasing this parameter will
-enable to detect them.
+enable to detect them but their descriptor are probably less reliable.
 
 ``Scales`` (3 by default) is the number of Difference of Gaussians (DoG) that will
 actually be used for keypoints detection.
