@@ -13,7 +13,7 @@ This introduction to :mod:`silx.gui.plot` covers the following topics:
 - `Use silx.gui.plot from a script`_
 - `Plot curves in a widget`_
 - `Plot images in a widget`_
-- `Control plot axes`_
+- `Configure plot axes`_
 
 For a complete description of the API, see :mod:`silx.gui.plot`.
 
