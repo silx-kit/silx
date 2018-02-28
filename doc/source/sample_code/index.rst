@@ -246,8 +246,8 @@ Sample code that adds specific tools or functions to plot widgets.
          :align: center
      - This script is an example to illustrate how to use axis synchronization
        tool.
-   * - :download:`plotUpdateFromThread.py <../../../examples/plotUpdateFromThread.py>`
-     - .. image:: img/plotUpdateFromThread.png
+   * - :download:`plotUpdateCurveFromThread.py <../../../examples/plotUpdateCurveFromThread.py>`
+     - .. image:: img/plotUpdateCurveFromThread.png
          :height: 150px
          :align: center
      - This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
@@ -260,7 +260,21 @@ Sample code that adds specific tools or functions to plot widgets.
        In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot1D`
        that adds a thread-safe method to add curves:
        :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
-       This thread-safe method is then called from a thread to update the plot..
+       This thread-safe method is then called from a thread to update the plot.
+   * - :download:`plotUpdateImageFromThread.py <../../../examples/plotUpdateImageFromThread.py>`
+     - .. image:: img/plotUpdateImageFromThread.png
+         :height: 150px
+         :align: center
+     - This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
+
+       The problem is that plot and GUI methods should be called from the main thread.
+       To safely update the plot from another thread, one need to make the update
+       asynchronously from the main thread.
+       In this example, this is achieved through a Qt signal.
+
+       In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot2D`
+       that adds a thread-safe method to add images: :meth:`ThreadSafePlot1D.addImageThreadSafe`.
+       This thread-safe method is then called from a thread to update the plot.
    * - :download:`printPreview.py <../../../examples/printPreview.py>`
      - .. image:: img/printPreview.png
          :height: 150px
