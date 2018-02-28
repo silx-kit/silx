@@ -785,7 +785,7 @@ class PlotWidget(qt.QMainWindow):
         return legend
 
     def addImage(self, data, legend=None, info=None,
-                 replace=True, replot=None,
+                 replace=False, replot=None,
                  xScale=None, yScale=None, z=None,
                  selectable=None, draggable=None,
                  colormap=None, pixmap=None,
@@ -811,7 +811,8 @@ class PlotWidget(qt.QMainWindow):
             Note: boolean values are converted to int8.
         :param str legend: The legend to be associated to the image (or None)
         :param info: User-defined information associated to the image
-        :param bool replace: True (default) to delete already existing images
+        :param bool replace:
+            True to delete already existing images (Default: False).
         :param int z: Layer on which to draw the image (default: 0)
                       This allows to control the overlay.
         :param bool selectable: Indicate if the image can be selected.
