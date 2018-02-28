@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "28/02/2018"
 
 import sys
 import os
@@ -35,6 +35,17 @@ import collections
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
+
+if "silx.gui.qt" not in sys.modules:
+    # Try first PyQt5 and not the priority imposed by silx.gui.qt.
+    # To avoid problem with unittests we only do it if silx.gui.qt is not
+    # yet loaded.
+    # TODO: Can be removed for silx 0.8, as it should be the default binding
+    # of the silx library.
+    try:
+        import PyQt5.QtCore
+    except ImportError:
+        pass
 
 from silx.gui import qt
 
