@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,3 +43,7 @@ from .shape import Shape  # noqa
 from .scatter import Scatter  # noqa
 from .marker import Marker, XMarker, YMarker  # noqa
 from .axis import Axis, XAxis, YAxis, YRightAxis
+
+DATA_ITEMS = ImageComplexData, Curve, Histogram, ImageBase, Scatter
+"""Classes of items representing data and to consider to compute data bounds.
+"""
