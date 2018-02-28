@@ -35,7 +35,7 @@ The sequential SIFT implementation used to take about 8 seconds per frame, and
 one typical stack can have up to 500 frames.
 This is a bottleneck in the global process, hence a parallel version had to be
 implemented.
-*silx.opencl.sift differs from existing parallel implementations of SIFT in the way
+*silx.opencl.sift* differs from existing parallel implementations of SIFT in the way
 that the whole process is executed on the device, enabling crucial speed-ups.
 
 
@@ -415,7 +415,7 @@ References
 ..........
 
 - David G. Lowe, Distinctive image features from scale-invariant keypoints,
-International Journal of Computer Vision, vol. 60, no 2, 2004, p. 91–110 -
-"http://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf"
+  International Journal of Computer Vision, vol. 60, no 2, 2004, p. 91–110 -
+  "http://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf"
 
 
