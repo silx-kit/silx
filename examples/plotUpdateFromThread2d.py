@@ -124,7 +124,7 @@ class UpdateThread(threading.Thread):
             pos['x0'] += 0.05 * (numpy.random.random() - 0.5)
             pos['y0'] += 0.05 * (numpy.random.random() - 0.5)
             # plot the data
-            self.plot2d.addImage(signal, replace=True)
+            self.plot2d.addImage(signal, replace=True, resetzoom=False)
 
     def stop(self):
         """Stop the update thread"""
