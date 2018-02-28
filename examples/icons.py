@@ -149,11 +149,17 @@ class IconPreview(qt.QMainWindow):
             col, line = i / 10, i % 10
             if icon_kind == "anim":
                 tool = AnimatedToolButton(panel)
-                icon = silx.gui.icons.getAnimatedIcon(icon_name)
+                try:
+                    icon = silx.gui.icons.getAnimatedIcon(icon_name)
+                except ValueError:
+                    icon = qt.QIcon()
                 tool.setToolTip("Animated icon '%s'" % icon_name)
             else:
                 tool = qt.QToolButton(panel)
-                icon = silx.gui.icons.getQIcon(icon_name)
+                try:
+                    icon = silx.gui.icons.getQIcon(icon_name)
+                except ValueError:
+                    icon = qt.QIcon()
                 tool.setToolTip("Icon '%s'" % icon_name)
             tool.setIcon(icon)
             tool.setIconSize(qt.QSize(32, 32))
