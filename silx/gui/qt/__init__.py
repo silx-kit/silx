@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,13 @@
 # ###########################################################################*/
 """Common wrapper over Python Qt bindings:
 
-- `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_,
-- `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_ or
-- `PySide <http://www.pyside.org>`_.
+- `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_
+- `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_
+- `PySide <http://www.pyside.org>`_
+- `PySide2 <https://wiki.qt.io/PySide2>`_
 
 If a Qt binding is already loaded, it will use it, otherwise the different
-Qt bindings are tried in this order: PyQt4, PySide, PyQt5.
+Qt bindings are tried in this order: PyQt5, PyQt4, PySide, PySide2.
 
 The name of the loaded Qt binding is stored in the BINDING variable.
 
@@ -50,7 +51,6 @@ see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
 provides the namespace of PyQt5 over PyQt4 and PySide.
 """
 
-import sys
 from ._qt import *  # noqa
 from ._utils import *  # noqa
 
