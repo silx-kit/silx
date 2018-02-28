@@ -188,7 +188,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
 
         self.plot.addImage(rgb, legend="rgb",
                            origin=(0, 0), scale=(10, 10),
-                           replace=False, resetzoom=False)
+                           resetzoom=False)
 
         rgba = numpy.array(
             (((0, 0, 0, .5), (.5, 0, 0, 1), (1, 0, 0, .5)),
@@ -197,7 +197,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
 
         self.plot.addImage(rgba, legend="rgba",
                            origin=(5, 5), scale=(10, 10),
-                           replace=False, resetzoom=False)
+                           resetzoom=False)
 
         self.plot.resetZoom()
 
@@ -212,7 +212,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
                             colors=((0., 0., 0.), (1., 0., 0.),
                                (0., 1., 0.), (0., 0., 1.)))
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap,
-                           replace=False, resetzoom=False)
+                           resetzoom=False)
 
         colormap = Colormap(name=None,
                             normalization=Colormap.LINEAR,
@@ -224,7 +224,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
                                 dtype=numpy.uint8))
         self.plot.addImage(DATA_2D, legend="image 2", colormap=colormap,
                            origin=(DATA_2D.shape[0], 0),
-                           replace=False, resetzoom=False)
+                           resetzoom=False)
         self.plot.resetZoom()
 
     def testImageOriginScale(self):
@@ -614,13 +614,13 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.plot.getYAxis().setLabel('YLabel')
 
         # labels changed as active curve
-        self.plot.addImage(numpy.arange(100).reshape(10, 10), replace=False,
+        self.plot.addImage(numpy.arange(100).reshape(10, 10),
                            legend='1', xlabel='x1', ylabel='y1')
         self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
         self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
 
         # labels not changed as not active curve
-        self.plot.addImage(numpy.arange(100).reshape(10, 10), replace=False,
+        self.plot.addImage(numpy.arange(100).reshape(10, 10),
                            legend='2')
         self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
         self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
@@ -1162,7 +1162,7 @@ class TestPlotImageLog(PlotWidgetTestCase):
                             vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
-                           replace=False, resetzoom=False, colormap=colormap)
+                           resetzoom=False, colormap=colormap)
         self.plot.resetZoom()
 
     def testPlotColormapGrayLogY(self):
@@ -1175,7 +1175,7 @@ class TestPlotImageLog(PlotWidgetTestCase):
                             vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
-                           replace=False, resetzoom=False, colormap=colormap)
+                           resetzoom=False, colormap=colormap)
         self.plot.resetZoom()
 
     def testPlotColormapGrayLogXY(self):
@@ -1189,7 +1189,7 @@ class TestPlotImageLog(PlotWidgetTestCase):
                             vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
-                           replace=False, resetzoom=False, colormap=colormap)
+                           resetzoom=False, colormap=colormap)
         self.plot.resetZoom()
 
     def testPlotRgbRgbaLogXY(self):
@@ -1204,7 +1204,7 @@ class TestPlotImageLog(PlotWidgetTestCase):
 
         self.plot.addImage(rgb, legend="rgb",
                            origin=(1, 1), scale=(10, 10),
-                           replace=False, resetzoom=False)
+                           resetzoom=False)
 
         rgba = numpy.array(
             (((0, 0, 0, .5), (.5, 0, 0, 1), (1, 0, 0, .5)),
@@ -1213,7 +1213,7 @@ class TestPlotImageLog(PlotWidgetTestCase):
 
         self.plot.addImage(rgba, legend="rgba",
                            origin=(5., 5.), scale=(10., 10.),
-                           replace=False, resetzoom=False)
+                           resetzoom=False)
         self.plot.resetZoom()
 
 

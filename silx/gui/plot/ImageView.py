@@ -773,7 +773,7 @@ class ImageView(PlotWindow):
                       legend=self._imageLegend,
                       origin=origin, scale=scale,
                       colormap=self.getColormap(),
-                      replace=False, resetzoom=False)
+                      resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
 

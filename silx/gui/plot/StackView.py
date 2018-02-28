@@ -343,7 +343,7 @@ class StackView(qt.QMainWindow):
                             origin=self._getImageOrigin(),
                             scale=self._getImageScale(),
                             legend=self.__imageLegend,
-                            resetzoom=False, replace=False)
+                            resetzoom=False)
         self._updateTitle()
 
     def _set3DScaleAndOrigin(self, calibrations):

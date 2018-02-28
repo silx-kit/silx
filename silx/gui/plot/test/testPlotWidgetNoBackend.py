@@ -460,8 +460,8 @@ class TestPlotGetCurveImage(unittest.TestCase):
         image = plot.getImage()
         self.assertIsNone(image)
 
-        plot.addImage(((0, 1), (2, 3)), legend='image 0', replace=False)
-        plot.addImage(((0, 1), (2, 3)), legend='image 1', replace=False)
+        plot.addImage(((0, 1), (2, 3)), legend='image 0')
+        plot.addImage(((0, 1), (2, 3)), legend='image 1')
 
         # Active image
         active = plot.getActiveImage()
@@ -470,7 +470,7 @@ class TestPlotGetCurveImage(unittest.TestCase):
         self.assertEqual(image.getLegend(), 'image 0')
 
         # No active image
-        plot.addImage(((0, 1), (2, 3)), legend='image 2', replace=False)
+        plot.addImage(((0, 1), (2, 3)), legend='image 2')
         plot.setActiveImage(None)
         active = plot.getActiveImage()
         self.assertIsNone(active)
@@ -496,7 +496,7 @@ class TestPlotGetCurveImage(unittest.TestCase):
         image = numpy.arange(10).astype(numpy.float32)
         image.shape = 5, 2
 
-        plot.addImage(image, legend='image 0', info=["Hi!"], replace=False)
+        plot.addImage(image, legend='image 0', info=["Hi!"])
 
         # Active image
         data, legend, info, something, params = plot.getActiveImage()
@@ -515,8 +515,8 @@ class TestPlotGetCurveImage(unittest.TestCase):
 
         # 2 images
         data = numpy.arange(100).reshape(10, 10)
-        plot.addImage(data, legend='1', replace=False)
-        plot.addImage(data, origin=(10, 10), legend='2', replace=False)
+        plot.addImage(data, legend='1')
+        plot.addImage(data, origin=(10, 10), legend='2')
         images = plot.getAllImages(just_legend=True)
         self.assertEqual(list(images), ['1', '2'])
         images = plot.getAllImages(just_legend=False)

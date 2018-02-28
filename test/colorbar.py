@@ -128,12 +128,10 @@ class ColorBarShower(qt.QWidget):
         self.plot = PlotWidget(parent=self)
         self.plot.addImage(data=image1,
                            origin=(0, 0),
-                           replace=False,
                            legend='image1',
                            colormap=self.colormap1)
         self.plot.addImage(data=image2,
                            origin=(100, 0),
-                           replace=False,
                            legend='image2',
                            colormap=self.colormap1)
 
@@ -144,12 +142,10 @@ class ColorBarShower(qt.QWidget):
                                            vmax=None)
         self.plot.addImage(data=image3,
                            origin=(0, 100),
-                           replace=False,
                            legend='image3',
                            colormap=self.colormap2)
         self.plot.addImage(data=image4,
                            origin=(100, 100),
-                           replace=False,
                            legend='image4',
                            colormap=self.colormap2)
         # gray colormap
@@ -159,12 +155,10 @@ class ColorBarShower(qt.QWidget):
                                            vmax=20.0)
         self.plot.addImage(data=image5,
                            origin=(0, 200),
-                           replace=False,
                            legend='image5',
                            colormap=self.colormap3)
         self.plot.addImage(data=image6,
                            origin=(100, 200),
-                           replace=False,
                            legend='image6',
                            colormap=self.colormap3)
 

@@ -109,7 +109,7 @@ class MaskScatterWidget(qt.QMainWindow):
         self._plot.addImage(image, legend=self._bgImageLegend,
                             origin=(xscale[0], yscale[0]),
                             scale=(xscale[1], yscale[1]),
-                            z=0, replace=False,
+                            z=0,
                             colormap=colormap)
 
     def setScatter(self, x, y, v=None, info=None, colormap=None):
