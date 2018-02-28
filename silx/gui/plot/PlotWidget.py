@@ -431,7 +431,7 @@ class PlotWidget(qt.QMainWindow):
         item._setPlot(self)
         if item.isVisible():
             self._itemRequiresUpdate(item)
-        if isinstance(item, (items.Curve, items.ImageBase, items.Histogram)):
+        if isinstance(item, items.DATA_ITEMS):
             self._invalidateDataRange()  # TODO handle this automatically
 
         self._notifyContentChanged(item)
