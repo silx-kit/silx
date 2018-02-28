@@ -299,6 +299,8 @@ A ``colormap`` is described with a :class:`.Colormap` class as follows:
 
 .. code-block:: python
 
+   from silx.gui.plot.Colormap import Colormap
+
    colormap = Colormap(name='gray',             # Name of the colormap
                        normalization='linear',  # Either 'linear' or 'log'
                        vmin=0.0,                # If not autoscale, data value to bind to min of colormap
@@ -342,8 +344,8 @@ It is also possible to provide a :class:`.Colormap` to :meth:`.PlotWidget.addIma
 
    colormap = Colormap(name='magma',
                        normalization='log',
-                       vmin=2.2,
-                       vmax=1.8)
+                       vmin=1.8,
+                       vmax=2.2)
    data = numpy.random.random(512 * 512).reshape(512, -1) + 1.
    plot.addImage(data, colormap=colormap)
 
