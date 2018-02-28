@@ -331,7 +331,7 @@ the first octave.
 ``InitSigma`` (1.6 by default) is the prior-smoothing factor.
 The original image is blurred by a Gaussian filter which standard deviation is
 :math:`\sqrt{\text{InitSigma}^2 - c^2}`.
-with ``c == 0.5`` if ``DoubleImSize == 0`` or ``c == 1`` otherwise.
+with ``c = 0.5`` if ``DoubleImSize == 0`` or ``c = 1`` otherwise.
 Once again, if the prior-smoothing factor is decreased, the algorithm will find
 more keypoint in the first octave, located in the noise of the image.
 
@@ -340,77 +340,82 @@ borders:
 Border to create artefacts in the bluring procedure and in the gradiant.
 pixels that are less than ``BorderDist`` pixels from the border will be ignored
 for the processing.
-If features are likely to be near the borders, decreasing this parameter will
-enable to detect them but their descriptor are probably less reliable.
+If the featuring keypoints are near the borders, decreasing this parameter will
+enable onr to detect them but their descriptor are probably less reliable.
 
 ``Scales`` (3 by default) is the number of Difference of Gaussians (DoG) that will
-actually be used for keypoints detection.
-In the gaussian pyramid, Scales+3 blurs are made, from which Scales+2 DoGs are computed.
+actually be used for keypoints detection within an octave.
+In the Gaussian hierarchical pyramid, Scales+3 subsequently blured images are
+used to compute Scales+2 DoGs.
 The DoGs in the middle are used to detect keypoints in the scale-space.
 If ``Scales`` is 3, there will be 6 blurs and 5 DoGs in an octave, and 3 DoGs
 will be used for local extrema detection.
-Increasing Scales will make more blurred images in an octave, so SIFT can detect
-a few more strong keypoints.
-However, it will slow down the execution for few additional keypoints.
+Increasing Scales will produce more blurred images in an octave, thus SIFT can detect
+a few more reliable keypoints,
+however, it will slow down the execution for a few additional keypoints.
 
 ``PeakThresh`` (255 * 0.04/3.0 by default) is the grayscale threshold for keypoints
 refinement.
-To discard low-contrast keypoints, every pixel which grayscale value is below
-this threshold can not become a keypoint.
+To discard low-contrast keypoints, every pixel whose grayscale value is below
+this threshold cannot become a keypoint.
 Decreasing this threshold will lead to a larger number of keypoints, which can
 be useful for detecting features in low-contrast areas.
 
 ``EdgeThresh`` (0.06 by default) and ``EdgeThresh1`` (0.08 by default) are the
-limit ratio of principal curvatures while testing if keypoints are located on an edge.
+limit ratios of principal curvatures while testing if keypoints are located on an edge.
 Those points are not reliable for they are sensivite to noise.
 For such points, the principal curvature across the edge is much larger than the
 principal curvature along it.
 Finding these principal curvatures amounts to solving for the eigenvalues of the
 second-order Hessian matrix of the current DoG.
-The ratio of the eigenvalues :math:`r` is compared to a threshold :math:`\dfrac{(r+1)^2}{r} < R`
-with R defined by taking r=10, which gives
-:math:`\frac{(r+1)^2}{r} = 12.1`, and 1/12.1 = 0.08.
+The ratio of the curvatures is compared to a threshold.
 In the first octave, the value 0.06 is taken instead of 0.08.
-Decreasing these values lead to a larger number of keypoints, but sensivite to
-noise because they are located on edges.
+Decreasing these values leads to a larger number of keypoints, but more sensivite to
+noise because they are located on edges, hence sliding.
 
-``OriSigma`` (1.5 by default) is related to the radius of gaussian weighting in
-orientation assignment.
-In this stage, for a given keypoint, we look in a region of radius
-:math:`3 \times s \times \text{OriSigma}` with :math:`s` the scale of the current keypoint.
-Increasing it will not lead to increase the number of keypoints found;
-it will take a larger area into account while computing the orientation assignment.
-Thus, the descriptor will be characteristic of a larger neighbourhood.
+``OriSigma`` (1.5 by default) is related to the radius of Gaussian weighting while
+assessing the orientation for a keypoint.
+At this stage, for a given keypoint, we look into a region of radius
+:math:`3 \times s \times \text{OriSigma}`, :math:`s` being the scale of the
+current keypoint.
+Increasing ``OriSigma`` will not lead to increasing the number of keypoints found;
+it will instead take a larger area into account while determining the orientation
+assignment.
+The descriptor will therefore be characteristic of a larger neighbourhood.
 
 ``MatchRatio`` (0.73 by default) is the threshold used for image alignment.
 Descriptors are compared with a :math:`L^1`-distance.
-For a given descriptor, if the ratio between the closest-neighbor the
-second-closest-neighbor is below this threshold, then a matching is added to the list.
-Increasing this value leads to a larger number of matchings, certainly less accurate.
+For a given descriptor, if the ratio of distances between the closest-neighbour and the
+second-closest-neighbour is below this threshold, then the closest-neighbour
+matches the descriptor and the matching pair is added to the list.
+Increasing this value leads to a larger number of matching occurences, certainly
+less accurate.
 
 
 Region of Interest for image alignment
 ......................................
 
-When processing the image matching, a region of interest (ROI) can be specified
-on the image.
-It is a binary image which can have any shape.
-For instance, if a sample is centered on the image, the user can select the
-center of the image before processing.
+When performing the image matching, a region of interest (ROI) can be specified
+in the image.
+The ROI is a binary image which can have any shape.
+For instance, if a sample is centred on the image, the user can select the
+centre of the image before processing it.
 
 
 .. figure:: img/sift_frame_ROI.png
    :align: center
    :alt: Sample with region of interest
 
-It both accelerates the processing and avoids to do match keypoints that are not
-on the sample.
+This both accelerates the processing and avoids trying to match keypoints that
+are not on the sample.
 
 
 
 References
 ..........
 
-- David G. Lowe, Distinctive image features from scale-invariant keypoints, International Journal of Computer Vision, vol. 60, no 2, 2004, p. 91–110 - "http://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf"
+- David G. Lowe, Distinctive image features from scale-invariant keypoints,
+International Journal of Computer Vision, vol. 60, no 2, 2004, p. 91–110 -
+"http://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf"
 
 
