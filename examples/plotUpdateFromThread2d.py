@@ -138,7 +138,7 @@ def main():
 
     # Create a ThreadSafePlot2D, set its limits and display it
     plot2d = ThreadSafePlot2D()
-    plot2d.setLimits(0, 0, Nx, Ny)
+    plot2d.setLimits(0, Nx, 0, Ny)
     plot2d.show()
 
     # Create the thread that calls ThreadSafePlot2D.addImageThreadSafe
