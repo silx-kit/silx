@@ -26,7 +26,9 @@
 """
 Display icons available in silx.
 """
+
 import functools
+import os.path
 
 from silx.gui import qt
 import silx.gui.icons
@@ -105,9 +107,14 @@ class IconPreview(qt.QMainWindow):
         return panel
 
     def getAllAvailableIcons(self):
+        def isAnIcon(name):
+            if silx.resources.is_dir("gui/icons/" + name):
+                return False
+            _, ext = os.path.splitext(name)
+            return ext in [".svg", ".png"]
         icons = silx.resources.list_dir("gui/icons")
         # filter out sub-directories
-        icons = filter(lambda x: not silx.resources.is_dir("gui/icons/" + x), icons)
+        icons = filter(isAnIcon, icons)
         # remove extension
         icons = [i.split(".")[0] for i in icons]
         # remove duplicated names
