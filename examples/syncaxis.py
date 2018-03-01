@@ -97,5 +97,6 @@ class SyncPlot(qt.QMainWindow):
 if __name__ == "__main__":
     app = qt.QApplication([])
     window = SyncPlot()
+    window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
     window.setVisible(True)
     app.exec_()

@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/09/2017"
+__date__ = "27/02/2018"
 
 
 import gc
@@ -163,9 +163,10 @@ class TestCaseQt(unittest.TestCase):
             # For Python < 3.4
             result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
 
+        skipped = self.id() in [case.id() for case, _ in result.skipped]
         error = self.id() in [case.id() for case, _ in result.errors]
         failure = self.id() in [case.id() for case, _ in result.failures]
-        return not error and not failure
+        return not error and not failure and not skipped
 
     def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""

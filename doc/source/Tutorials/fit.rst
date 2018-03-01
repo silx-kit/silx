@@ -16,7 +16,7 @@ Using :func:`leastsq`
 Running an iterative fit with :func:`leastsq` involves the following steps:
 
     - designing a fit model function that has the signature ``f(x, ...)``,
-      where ``x`` is an array of values of the independant variable and all
+      where ``x`` is an array of values of the independent variable and all
       remaining parameters are the parameters to be fitted
     - defining the sequence of initial values for all parameters to be fitted.
       You can usually start with ``[1., 1., ...]`` if you don't know a better
@@ -26,7 +26,7 @@ Running an iterative fit with :func:`leastsq` involves the following steps:
 
 Data required to perform a fit is:
 
-    - an array of ``x`` values (abscissa, independant variable)
+    - an array of ``x`` values (abscissa, independent variable)
     - an array of ``y`` data points
     - the ``sigma`` array of uncertainties associated to each data point.
       This is optional, by default each data point gets assigned a weight of 1.
@@ -115,14 +115,19 @@ produces the following result::
 Weighted fit
 ************
 
-Since the fitting algorithm minimizes the sum of squared differences between input and evaluated data, points with higher y value had a greater weight in the fitting process. A solution to this problem, if we want to improve our fit, is to define uncertainties for the data. The larger the uncertainty on a data sample, the smaller its weight will be
+Since the fitting algorithm minimizes the sum of squared differences between input
+and evaluated data, points with higher y value had a greater weight in the fitting process.
+A solution to this problem, if we want to improve our fit, is to define uncertainties
+for the data.
+The larger the uncertainty on a data sample, the smaller its weight will be
 in the least-square problem.
 
-It is important to set the uncertainties correctly, or you risk favoring either the lower
-values or the higher values in your data.
+It is important to set the uncertainties correctly, or you risk favoring either
+the lower values or the higher values in your data.
 
-The common approach in counting experiments is to use the square-root of the data values
-as the uncertainty value. Let's apply it to our previous example:
+The common approach in counting experiments is to use the square-root of the data
+values as the uncertainty value (assuming a Poissonian law).
+Let's apply it to our previous example:
 
 .. code-block:: python
 
@@ -148,9 +153,10 @@ This results in a great improvement::
 The resulting fit is perfect. The fit converged even faster than when
 we limited ``x`` range to 0 -- 100.
 
-To use a real world example, when fitting x-ray fluorescence spectroscopy data, this common
-approach means that we consider the variance of each channel to be the number of counts
-in that channel. That corresponds to assuming a normal distribution.
+To use a real world example, when fitting x-ray fluorescence spectroscopy data,
+this common approach means that we consider the variance of each channel to be
+the number of counts in that channel.
+That corresponds to assuming a normal distribution.
 The true distribution being a Poisson distribution, the Gaussian distribution
 is a good approximation for channels with high number of counts,
 but the approximation is not valid when the number of counts in a channel is small.
@@ -344,7 +350,7 @@ And the result of this program is::
 
 In addition to gaussians, we could have fitted several other similar type of
 functions: asymetric gaussian functions, lorentzian functions,
-Pseudo-Voigt functions or hypermet tailing functions.
+pseudo-voigt functions or hypermet tailing functions.
 
 The :meth:`loadtheories` method can also be used to load user defined
 functions. Instead of a module, a path to a Python source file can be given
