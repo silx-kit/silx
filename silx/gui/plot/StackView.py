@@ -1102,17 +1102,17 @@ class StackViewMainWindow(StackView):
         self.statusBar()
 
         menu = self.menuBar().addMenu('File')
-        menu.addAction(self._plot.saveAction)
-        menu.addAction(self._plot.printAction)
+        menu.addAction(self._plot.getOutputToolBar().getSaveAction())
+        menu.addAction(self._plot.getOutputToolBar().getPrintAction())
         menu.addSeparator()
         action = menu.addAction('Quit')
         action.triggered[bool].connect(qt.QApplication.instance().quit)
 
         menu = self.menuBar().addMenu('Edit')
-        menu.addAction(self._plot.copyAction)
+        menu.addAction(self._plot.getOutputToolBar().getCopyAction())
         menu.addSeparator()
-        menu.addAction(self._plot.resetZoomAction)
-        menu.addAction(self._plot.colormapAction)
+        menu.addAction(self._plot.getResetZoomAction())
+        menu.addAction(self._plot.getColormapAction())
         menu.addAction(self.getColorBarAction())
 
         menu.addAction(actions.control.KeepAspectRatioAction(self._plot, self))
