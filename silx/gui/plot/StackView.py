@@ -343,7 +343,7 @@ class StackView(qt.QMainWindow):
                             origin=self._getImageOrigin(),
                             scale=self._getImageScale(),
                             legend=self.__imageLegend,
-                            resetzoom=False, replace=False)
+                            resetzoom=False)
         self._updateTitle()
 
     def _set3DScaleAndOrigin(self, calibrations):
@@ -469,6 +469,7 @@ class StackView(qt.QMainWindow):
                             colormap=self.getColormap(),
                             origin=self._getImageOrigin(),
                             scale=self._getImageScale(),
+                            replace=True,
                             resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
         self._plot.setGraphTitle("Image z=%g" % self._getImageZ(0))

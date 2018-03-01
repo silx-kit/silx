@@ -336,16 +336,16 @@ class TestColormapAction(TestCaseQt):
         self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
 
         self.plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
-                           replace=False, origin=(0, 0),
+                           origin=(0, 0),
                            colormap=self.colormap1)
         self.plot.setActiveImage('img1')
         self.assertTrue(self.colormapDialog.getColormap() is self.colormap1)
 
         self.plot.addImage(data=numpy.random.rand(10, 10), legend='img2',
-                           replace=False, origin=(0, 0),
+                           origin=(0, 0),
                            colormap=self.colormap2)
         self.plot.addImage(data=numpy.random.rand(10, 10), legend='img3',
-                           replace=False, origin=(0, 0))
+                           origin=(0, 0))
 
         self.plot.setActiveImage('img3')
         self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
@@ -363,7 +363,7 @@ class TestColormapAction(TestCaseQt):
         self.plot.getColormapAction()._actionTriggered(checked=True)
         self.assertTrue(self.plot.getColormapAction().isChecked())
         self.plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
-                           replace=False, origin=(0, 0),
+                           origin=(0, 0),
                            colormap=self.colormap1)
         self.colormap1.setName('red')
         self.plot.getColormapAction()._actionTriggered()

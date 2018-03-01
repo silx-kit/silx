@@ -476,7 +476,8 @@ class ArrayImagePlot(qt.QWidget):
             scale = (xscale, yscale)
 
             self._plot.addImage(image, legend=legend,
-                                origin=origin, scale=scale)
+                                origin=origin, scale=scale,
+                                replace=True)
         else:
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
             # fixme: i don't think this can handle "irregular" RGBA images
