@@ -97,6 +97,8 @@ def get_attr_as_string(item, attr_name, default=None):
             return attr.decode("utf-8")
         elif isinstance(attr, numpy.ndarray) and not attr.shape and\
                 hasattr(attr[()], "decode"):
+            # byte string as ndarray scalar
+            return attr[()].decode("utf-8")
         elif isinstance(attr, numpy.ndarray) and len(attr.shape) and\
                 hasattr(attr[0], "decode"):
             # array of byte-strings
