@@ -20,6 +20,8 @@ For a complete description of the API, see :mod:`silx.gui.plot`.
 Use :mod:`silx.gui.plot` from (I)Python console
 -----------------------------------------------
 
+We recommend to use (I)Python 3.x and PyQt5.
+
 From a Python or IPython interpreter, the simplest way is to import the :mod:`silx.sx` module:
 
 >>> from silx import sx
@@ -28,19 +30,27 @@ The :mod:`silx.sx` module initializes Qt and provides access to :mod:`silx.gui.p
 
 .. note:: From a notebook, the :mod:`silx.sx` module does NOT initialize Qt and does NOT expose silx widget.
 
+An alternative to run :mod:`silx.gui` widgets from `IPython <http://ipython.org/>`_,
+is to set IPython to use Qt(5), e.g., with the `--gui` option::
+
+  ipython --gui=qt5
+
+
 Compatibility with IPython
 ++++++++++++++++++++++++++
 
-To run :mod:`silx.gui` widgets from `IPython <http://ipython.org/>`_,
-IPython must be set to use Qt (and in case of using PyQt4 and Python 2.7,
-PyQt must be set to use API version 2, see note below for explanation).
+silx widgets require Qt to be initialized.
+If Qt is not yet loaded, silx tries to load PyQt5 first before trying other supported bindings.
 
-As *silx* is performing some configuration of the Qt binding and `matplotlib <http://matplotlib.org/>`_, the safest way to use *silx* from IPython is to import :mod:`silx.gui.plot` first and then run either `%gui <http://ipython.org/ipython-doc/stable/interactive/magics.html#magic-gui>`_ qt  or `%pylab <http://ipython.org/ipython-doc/stable/interactive/magics.html#magic-pylab>`_ qt::
+With versions of IPython lower than 3.0 (e.g., on Debian 8), there is an incompatibility between
+the way silx loads Qt and the way IPython is doing it through the ``--gui`` option,
+`%gui <http://ipython.org/ipython-doc/stable/interactive/magics.html#magic-gui>`_ or
+`%pylab <http://ipython.org/ipython-doc/stable/interactive/magics.html#magic-pylab>`_ magics.
+In this case, IPython magics that initialize Qt might not work after importing modules from silx.gui.
 
-  In [1]: from silx.gui.plot import *
-  In [2]: %pylab qt
-
-Alternatively, when using Python 2.7 and PyQt4, you can start IPython with the ``QT_API`` environment variable set to ``pyqt``.
+When using Python2.7 and PyQt4, there is another incompatibility to deal with as
+silx requires PyQt4 API version 2 (See note below for explanation).
+In this case, start IPython with the ``QT_API`` environment variable set to ``pyqt``.
 
 On Linux and MacOS X, run::
 
