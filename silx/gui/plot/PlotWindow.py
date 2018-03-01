@@ -201,10 +201,6 @@ class PlotWindow(PlotWidget):
             actions_medfilt.MedianFilter1DAction(self))
         self._medianFilter1DAction.setVisible(False)
 
-        self._separator = qt.QAction('separator', self)
-        self._separator.setSeparator(True)
-        self.group.addAction(self._separator)
-
         self.fitAction = self.group.addAction(actions_fit.FitAction(self))
         self.fitAction.setVisible(fit)
         self.addAction(self.fitAction)
