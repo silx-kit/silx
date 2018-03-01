@@ -198,7 +198,7 @@ from silx.third_party import six
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "29/01/2018"
+__date__ = "01/03/2018"
 
 logger1 = logging.getLogger(__name__)
 
@@ -689,9 +689,12 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
         commonh5.Group.__init__(self, name=name, parent=parent,
                                 attrs={"NX_class": to_h5py_utf8("NXdetector")})
 
-        self.add_node(McaDataDataset(parent=self,
+        mcaDataDataset = McaDataDataset(parent=self,
                                      analyser_index=analyser_index,
-                                     scan=scan))
+                                     scan=scan)
+        self.add_node(mcaDataDataset)
+        spectrum_length = mcaDataDataset.shape[-1]
+        mcaDataDataset = None
 
         if len(scan.mca.channels) == 1:
             # single @CALIB line applying to multiple devices
@@ -700,6 +703,21 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
         else:
             calibration_dataset = scan.mca.calibration[analyser_index]
             channels_dataset = scan.mca.channels[analyser_index]
+
+        channels_length = len(channels_dataset) 
+        if (channels_length > 1) and (spectrum_length > 0):
+            logger1.info("Spectrum and channels length mismatch")
+            # this should always be the case
+            if channels_length > spectrum_length:
+                channels_dataset = channels_dataset[:spectrum_length]
+            elif channels_length < spectrum_length:
+                # only trust first channel and increment
+                channel0 = channels_dataset[0]
+                increment = channels_dataset[1] - channels_dataset[0]
+                channels_dataset = numpy.linspace(channel0,
+                                        channel0 + increment * spectrum_length,
+                                        spectrum_length, endpoint=False)
+
         self.add_node(SpecH5NodeDataset(name="calibration",
                                         data=calibration_dataset,
                                         parent=self))
