@@ -22,14 +22,15 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script shows how to subclass :class:`~silx.gui.plot.PlotWidget` to tune its tools.
+"""This script shows how to create a custom window around a PlotWidget.
 
-It subclasses a :class:`~silx.gui.plot.PlotWidget` and adds toolbars and
-a colorbar by using pluggable widgets:
+It subclasses :class:`QMainWindow`, uses a :class:`~silx.gui.plot.PlotWidget`
+as its central widget and adds toolbars and a colorbar by using pluggable widgets:
 
+- :class:`~silx.gui.plot.PlotWidget` from :mod:`silx.gui.plot`
+- QToolBar from :mod:`silx.gui.plot.tools` and :mod:`silx.gui.plot.PlotTools`
 - QAction from :mod:`silx.gui.plot.actions`
 - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
-- QToolBar from :mod:`silx.gui.plot.PlotTools`
 - :class:`silx.gui.plot.ColorBar.ColorBarWidget`
 """
 
@@ -40,43 +41,26 @@ __date__ = "05/09/2017"
 import numpy
 
 from silx.gui import qt
-import silx.gui.plot
 
+from silx.gui.plot import PlotWidget
+from silx.gui.plot import tools   # QToolbars to use with PlotWidget
 from silx.gui.plot import actions  # QAction to use with PlotWidget
 from silx.gui.plot import PlotToolButtons  # QToolButton to use with PlotWidget
 from silx.gui.plot.PlotTools import LimitsToolBar
 from silx.gui.plot.ColorBar import ColorBarWidget
 
-class MyPlotWidget(silx.gui.plot.PlotWidget):
-    """PlotWidget with an ad hoc toolbar and a colorbar"""
+
+class MyPlotWindow(qt.QMainWindow):
+    """QMainWindow with selected tools"""
 
     def __init__(self, parent=None):
-        super(MyPlotWidget, self).__init__(parent)
+        super(MyPlotWindow, self).__init__(parent)
 
-        # Add a tool bar to PlotWidget
-        toolBar = qt.QToolBar("Plot Tools", self)
-        self.addToolBar(toolBar)
+        # Create a PlotWidget
+        self._plot = PlotWidget(parent=self)
 
-        # Add actions from silx.gui.plot.action to the toolbar
-        resetZoomAction = actions.control.ResetZoomAction(self, self)
-        toolBar.addAction(resetZoomAction)
-
-        # Add tool buttons from silx.gui.plot.PlotToolButtons
-        aspectRatioButton = PlotToolButtons.AspectToolButton(
-            parent=self, plot=self)
-        toolBar.addWidget(aspectRatioButton)
-
-        # Add limits tool bar from silx.gui.plot.PlotTools
-        limitsToolBar = LimitsToolBar(parent=self, plot=self)
-        self.addToolBar(qt.Qt.BottomToolBarArea, limitsToolBar)
-
-        self._initColorBar()
-
-    def _initColorBar(self):
-        """Create the ColorBarWidget and add it to the PlotWidget"""
-
-        # Add a colorbar on the right side
-        colorBar = ColorBarWidget(parent=self, plot=self)
+        # Create a colorbar linked with the PlotWidget
+        colorBar = ColorBarWidget(parent=self, plot=self._plot)
 
         # Make ColorBarWidget background white by changing its palette
         colorBar.setAutoFillBackground(True)
@@ -85,12 +69,12 @@ class MyPlotWidget(silx.gui.plot.PlotWidget):
         palette.setColor(qt.QPalette.Window, qt.Qt.white)
         colorBar.setPalette(palette)
 
-        # Add the ColorBarWidget by changing PlotWidget's central widget
+        # Combine the ColorBarWidget and the PlotWidget as
+        # this QMainWindow's central widget
         gridLayout = qt.QGridLayout()
         gridLayout.setSpacing(0)
         gridLayout.setContentsMargins(0, 0, 0, 0)
-        plot = self.getWidgetHandle()  # Get the widget rendering the plot
-        gridLayout.addWidget(plot, 0, 0)
+        gridLayout.addWidget(self._plot, 0, 0)
         gridLayout.addWidget(colorBar, 0, 1)
         gridLayout.setRowStretch(0, 1)
         gridLayout.setColumnStretch(0, 1)
@@ -98,15 +82,54 @@ class MyPlotWidget(silx.gui.plot.PlotWidget):
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
 
+        # Add ready to use toolbar with zoom and pan interaction mode buttons
+        interactionToolBar = tools.InteractiveModeToolBar(
+            parent=self, plot=self._plot)
+        self.addToolBar(interactionToolBar)
+        # Add toolbar actions to activate keyboard shortcuts
+        self.addActions(interactionToolBar.actions())
+
+        # Add a new toolbar
+        toolBar = qt.QToolBar("Plot Tools", self)
+        self.addToolBar(toolBar)
+
+        # Add actions from silx.gui.plot.action to the toolbar
+        resetZoomAction = actions.control.ResetZoomAction(
+            parent=self, plot=self._plot)
+        toolBar.addAction(resetZoomAction)
+
+        # Add tool buttons from silx.gui.plot.PlotToolButtons
+        aspectRatioButton = PlotToolButtons.AspectToolButton(
+            parent=self, plot=self._plot)
+        toolBar.addWidget(aspectRatioButton)
+
+        # Add ready to use toolbar with copy, save and print buttons
+        outputToolBar = tools.OutputToolBar(parent=self, plot=self._plot)
+        self.addToolBar(outputToolBar)
+        # Add toolbar actions to activate keyboard shortcuts
+        self.addActions(outputToolBar.actions())
+
+        # Add limits tool bar from silx.gui.plot.PlotTools
+        limitsToolBar = LimitsToolBar(parent=self, plot=self._plot)
+        self.addToolBar(qt.Qt.BottomToolBarArea, limitsToolBar)
+
+    def getPlotWidget(self):
+        """Returns the PlotWidget contains in this window"""
+        return self._plot
+
 
 def main():
     global app
     app = qt.QApplication([])
 
-    # Create the ad hoc plot widget and change its default colormap
-    plot = MyPlotWidget()
+    # Create the ad hoc window containing a PlotWidget and associated tools
+    window = MyPlotWindow()
+    window.setAttribute(qt.Qt.WA_DeleteOnClose)
+    window.show()
+
+    # Change the default colormap
+    plot = window.getPlotWidget()
     plot.getDefaultColormap().setName('viridis')
-    plot.show()
 
     # Add an image to the plot
     x = numpy.outer(
