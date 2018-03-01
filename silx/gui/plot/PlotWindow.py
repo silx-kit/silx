@@ -276,6 +276,11 @@ class PlotWindow(PlotWidget):
         self._outputToolBar.getPrintAction().setVisible(print_)
         self.addToolBar(self._outputToolBar)
 
+        # Activate shortcuts in PlotWindow widget:
+        for toolbar in (self._interactiveModeToolBar, self._outputToolBar):
+            for action in toolbar.actions():
+                self.addAction(action)
+
     def getInteractiveModeToolBar(self):
         """Returns QToolBar controlling interactive mode.
 
