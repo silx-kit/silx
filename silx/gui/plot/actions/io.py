@@ -47,7 +47,7 @@ import sys
 from collections import OrderedDict
 import traceback
 import numpy
-from silx.gui import qt
+from silx.gui import qt, printer
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.gui._utils import convertArrayToQImage
@@ -526,9 +526,6 @@ class PrintAction(PlotAction):
     :param parent: See :class:`QAction`.
     """
 
-    # Share QPrinter instance to propose latest used as default
-    _printer = None
-
     def __init__(self, plot, parent=None):
         super(PrintAction, self).__init__(
             plot, icon='document-print', text='Print...',
@@ -544,9 +541,7 @@ class PrintAction(PlotAction):
 
         This is shared accross all instances of PrintAct
         """
-        if self._printer is None:
-            PrintAction._printer = qt.QPrinter()
-        return self._printer
+        return printer.getDefaultPrinter()
 
     def printPlotAsWidget(self):
         """Open the print dialog and print the plot.

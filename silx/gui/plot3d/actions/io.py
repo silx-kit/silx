@@ -39,8 +39,7 @@ import os
 
 import numpy
 
-from silx.gui import qt
-from silx.gui.plot.actions.io import PrintAction as _PrintAction
+from silx.gui import qt, printer
 from silx.gui.icons import getQIcon
 from .Plot3DAction import Plot3DAction
 from ..utils import mng
@@ -157,11 +156,7 @@ class PrintAction(Plot3DAction):
 
         :rtype: QPrinter
         """
-        # TODO This is a hack to sync with silx plot PrintAction
-        # This needs to be centralized
-        if _PrintAction._printer is None:
-            _PrintAction._printer = qt.QPrinter()
-        return _PrintAction._printer
+        return printer.getDefaultPrinter()
 
     def _triggered(self, checked=False):
         plot3d = self.getPlot3DWidget()
