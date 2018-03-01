@@ -47,6 +47,7 @@ import sys
 from collections import OrderedDict
 import traceback
 import numpy
+from silx.utils.deprecation import deprecated
 from silx.gui import qt, printer
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
@@ -535,13 +536,17 @@ class PrintAction(PlotAction):
         self.setShortcut(qt.QKeySequence.Print)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
-    @property
-    def printer(self):
-        """The QPrinter instance used by the actions.
+    def getPrinter(self):
+        """The QPrinter instance used by the PrintAction.
 
-        This is shared accross all instances of PrintAct
+        :rtype: QPrinter
         """
         return printer.getDefaultPrinter()
+
+    @property
+    @deprecated(replacement="getPrinter()", since_version="0.8.0")
+    def printer(self):
+        return self.getPrinter()
 
     def printPlotAsWidget(self):
         """Open the print dialog and print the plot.
@@ -550,7 +555,7 @@ class PrintAction(PlotAction):
 
         :return: True if successful
         """
-        dialog = qt.QPrintDialog(self.printer, self.plot)
+        dialog = qt.QPrintDialog(self.getPrinter(), self.plot)
         dialog.setWindowTitle('Print Plot')
         if not dialog.exec_():
             return False
@@ -559,10 +564,10 @@ class PrintAction(PlotAction):
         widget = self.plot.centralWidget()
 
         painter = qt.QPainter()
-        if not painter.begin(self.printer):
+        if not painter.begin(self.getPrinter()):
             return False
 
-        pageRect = self.printer.pageRect()
+        pageRect = self.getPrinter().pageRect()
         xScale = pageRect.width() / widget.width()
         yScale = pageRect.height() / widget.height()
         scale = min(xScale, yScale)
@@ -583,7 +588,7 @@ class PrintAction(PlotAction):
         :return: True if successful
         """
         # Init printer and start printer dialog
-        dialog = qt.QPrintDialog(self.printer, self.plot)
+        dialog = qt.QPrintDialog(self.getPrinter(), self.plot)
         dialog.setWindowTitle('Print Plot')
         if not dialog.exec_():
             return False
@@ -594,13 +599,13 @@ class PrintAction(PlotAction):
         pixmap = qt.QPixmap()
         pixmap.loadFromData(pngData, 'png')
 
-        xScale = self.printer.pageRect().width() / pixmap.width()
-        yScale = self.printer.pageRect().height() / pixmap.height()
+        xScale = self.getPrinter().pageRect().width() / pixmap.width()
+        yScale = self.getPrinter().pageRect().height() / pixmap.height()
         scale = min(xScale, yScale)
 
         # Draw pixmap with painter
         painter = qt.QPainter()
-        if not painter.begin(self.printer):
+        if not painter.begin(self.getPrinter()):
             return False
 
         painter.drawPixmap(0, 0,
