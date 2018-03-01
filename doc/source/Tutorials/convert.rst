@@ -19,7 +19,7 @@ HDF5 file with the same structure as the one exposed by the :mod:`spech5` or :mo
 
     from silx.io.convert import convert
 
-    convert("/home/pierre/myspecfile.dat", "myfile.h5")
+    convert("myspecfile.dat", "myfile.h5")
 
 
 You can then read the file with any HDF5 reader.
@@ -33,8 +33,8 @@ You can also decide whether you want to overwrite an existing file, or append da
 You can specify whether existing data with the same name as input data should be overwritten
 or ignored.
 
-This allows you to repeatedly transfer new content of a SPEC file to an existing HDF5 file, in between
-two scans.
+This allows you to repeatedly transfer new content of a SPEC file to an existing
+HDF5 file, in between two scans.
 
 The following script is an example of a command line interface to :func:`write_to_h5`.
 
@@ -64,12 +64,14 @@ Type ``silx convert --help`` in a terminal to see all available options.
 Converting single files
 ***********************
 
-The simplest command to convert a single SPEC file to an HDF5 file would be::
+The simplest command to convert a single SPEC file to an HDF5 file would be:
+
+.. code-block:: bash
 
     silx convert myspecfile.dat
 
-As no output name is supplied, the output file name will be a timestamp with a *.h5* suffix
-(e.g. *20180110-114930.h5*).
+As no output name is supplied, the output file name will be a time-stamp with a
+*.h5* suffix (e.g. *20180110-114930.h5*).
 
 The following example allows you to append the content of a SPEC file to an
 existing HDF5 file::
@@ -88,8 +90,9 @@ the complete URL in the format ``file_path::group_path``. For instance::
 Merging a stack of images
 *************************
 
-*silx convert* can merge a stack of image files. It support series of single
-frame files, and is based on `fabio.file_series <http://www.silx.org/doc/fabio/dev/api/modules.html?highlight=series#fabio.file_series.file_series>`_.
+*silx convert* can merge a stack of image files.
+It support series of single frame files, and is based on
+`fabio.file_series <http://www.silx.org/doc/fabio/dev/api/modules.html?highlight=series#fabio.file_series.file_series>`_.
 All frames must have the same shape.
 
 The following command merges all files matching a pattern::

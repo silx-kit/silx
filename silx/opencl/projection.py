@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "19/01/2018"
+__date__ = "28/02/2018"
 
 import logging
 import numpy as np
@@ -52,6 +52,7 @@ class Projection(OpenclProcessing):
     OpenCL
     """
     kernel_files = ["proj.cl", "array_utils.cl"]
+    logger.warning("Forward Projecter is untested and unsuported for now")
 
     def __init__(self, slice_shape, angles, axis_position=None,
                  detector_width=None, normalize=False, ctx=None,

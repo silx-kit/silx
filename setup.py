@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "08/01/2018"
+__date__ = "27/02/2018"
 __license__ = "MIT"
 
 
@@ -830,7 +830,7 @@ def get_project_configuration(dry_run):
                         author="data analysis unit",
                         author_email="silx@esrf.fr",
                         classifiers=classifiers,
-                        description="Software library for X-Ray data analysis",
+                        description="Software library for X-ray data analysis",
                         long_description=get_readme(),
                         install_requires=install_requires,
                         setup_requires=setup_requires,

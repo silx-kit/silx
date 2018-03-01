@@ -2,68 +2,88 @@
 Installation steps
 ==================
 
-*silx* supports `Python <https://www.python.org/>`_ versions 2.7, 3.4 or later.
+*silx* supports most operating systems, different version of the Python
+programming language.
+While `numpy <http://www.numpy.org/>`_ is the only mandatory dependency,
+graphical widgets require Qt, management of data files requires
+`h5py <http://docs.h5py.org/en/latest/build.html>`_ and
+`fabio <https://github.com/silx-kit/fabio>`_, and high performance data-analysis
+code on GPU requires `pyopencl <https://mathema.tician.de/software/pyopencl/>`_.
 
-To install *silx* on Windows, read the `Windows instructions`_.
+This table summarized the the support matrix of silx v0.7:
 
-To install *silx* on Linux, read the `Linux instructions`_.
++------------+--------------+---------------------+
+| System     | Python vers. | Qt and its bindings |
++------------+--------------+---------------------+
+| `Windows`_ | 3.5, 3.6     | PyQt5.6+            |
++------------+--------------+---------------------+
+| `MacOS`_   | 2.7, 3.5-3.6 | PyQt5.6+            |
++------------+--------------+---------------------+
+| `Linux`_   | 2.7, 3.4-3.6 | PyQt4.8+, PyQt5.3+  |
++------------+--------------+---------------------+
 
-To install *silx* on MacOS, read the `MacOS instructions`_.
+For all platform, you can install *silx* from the source, see `Installing from source`_.
 
-You will find the simple instructions for each platform at the beginning of each section, followed by more detailed instructions concerning dependencies and alternative installation methods.
-
-For all platform, to install *silx* from the source, see `Installing from source`_.
-
-To install *silx* in a virtualenv, read :ref:`silx-venv`.
+To install *silx* in a `Virtual Environment`_, there is short version here-after
+and  a `longer description :ref:`silx-venv`.
 
 Dependencies
 ------------
 
-The only mandatory dependency of *silx* is `numpy <http://www.numpy.org/>`_.
-
-Yet, a set of `Optional dependencies`_ is necessary to enable all *silx* features.
-
-Optional dependencies
-+++++++++++++++++++++
-
 The GUI widgets depend on the following extra packages:
 
-* A Qt binding: either `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ or `PySide <https://pypi.python.org/pypi/PySide/>`_
+* A Qt binding: either `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_,
+  `PySide <https://pypi.python.org/pypi/PySide/>`_, or `PySide2 <https://wiki.qt.io/PySide2>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
-* `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_ for the ``silx.gui.console`` widget.
+* `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_
+  for the ``silx.gui.console`` widget.
 
 Tools for reading and writing files depend on the following packages:
 
 * `h5py <http://docs.h5py.org/en/latest/build.html>`_ for HDF5 files
 * `fabio <https://github.com/silx-kit/fabio>`_ for multiple image formats
 
-*silx.opencl* and *silx.image.sift* further depends on OpenCL and the following packages to :
+*silx.opencl* further depends on OpenCL and the following packages to :
 
 * `pyopencl <https://mathema.tician.de/software/pyopencl/>`_
 * `Mako <http://www.makotemplates.org/>`_
 
+The complete list of dependencies with the minimal version is described in the
+`requirement.txt <https://github.com/silx-kit/silx/blob/0.7/requirements.txt>`_
+at the top level of the source package.
+
 Build dependencies
 ++++++++++++++++++
 
-In addition to run-time dependencies, building *silx* requires a C/C++ compiler, `numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_ (optional).
+In addition to run-time dependencies, building *silx* requires a C/C++ compiler,
+`numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_ (optional).
 
-On Windows it is recommended to use Python 3.5, because with previous versions of Python, it might be difficult to compile the extensions.
+On Windows it is recommended to use Python 3.5, because with previous versions
+of Python, it might be difficult to compile extensions (i.e. binary modules).
 
-This project uses cython to generate C files.
-Cython is not mandatory to build *silx* and is only needed when developing binary modules.
-If using cython, *silx* requires at least version 0.18 (with memory-view support).
+This project uses Cython (version > 0.21) to generate C files.
+Cython is now mandatory to build *silx* from the development branch and is only
+needed when compiling binary modules.
+
+The complete list of dependencies for building the package, including its
+documentation, is described in the
+`requirement-dev.txt <https://github.com/silx-kit/silx/blob/0.7/requirements-dev.txt>`_
+at the top level of the source package.
 
 
-Linux instructions
-------------------
 
-If NumPy is not installed on your system, you need to install it first
-either with the package manager of your system (recommended way) or with pip::
+Linux
+-----
 
-    pip install numpy --user
+If NumPy is not installed on your system, you need to install it first,
+preferably with the package manager of your system.
+If you cannot use the package manager of your system (which requires the root
+access), please refer to the `Virtual Environment`_ procedure.
 
-On Linux, you can install *silx* in your home directory::
+On Linux, you can install *silx* in your home directory
+
+.. code-block:: bash 
 
     pip install silx --user
 
@@ -75,46 +95,45 @@ On Linux, you can install *silx* in your home directory::
     
     This installs *silx* without the optional dependencies. 
     
-To install *silx* on Debian 8, see `Installing a Debian package`_.
-This method requires **sudo** privileges, but has the benefit of installing dependencies in a simple way.
+To install *silx* on Debian or Ubuntu systems, see `Installing a Debian package`_.
+This method requires **sudo** privileges, but has the benefit of installing
+dependencies in a simple way.
 
-CentOS 7 rpm packages are provided by Max IV at the following url: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
+`CentOS 7 RPM packages <http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/>`_ and
+`Fedora 23 rpm packages <http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/>`_
+are provided by the Max IV institute at Lund, Sweden.
 
-Fedora 23 rpm packages are provided by Max IV at http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/
-
-An Arch Linux (AUR) package is also available: https://aur.archlinux.org/packages/python-silx
+An `Arch Linux (AUR) package <https://aur.archlinux.org/packages/python-silx>`_
+is provided by Leonid Bloch.
 
 You can also choose to compile and install *silx* from it's sources:
 see `Installing from source`_.
 
 .. note::
 
-    The Debian packages `python-silx` and `python3-silx` will not install executables (`silx view`, `silx convert` ...).
-    So in order to access those applications you should use: `python* -m silx appX`.
-    For example to open the viewer:
-
-    .. code-block:: python
-
-        python -m silx view
+    The Debian packages `python-silx` and `python3-silx` will not install executables 
+    (`silx view`, `silx convert` ...). Please install the silx package.  
 
 
 Installing a Debian package
 +++++++++++++++++++++++++++
 
 Debian 8 (Jessie) packages are available on http://www.silx.org/pub/debian/ for amd64 computers.
-To install it, you need to download this file::
+To install it, you need to download this file
+
+.. code-block:: bash 
 
     http://www.silx.org/pub/debian/silx.list
 
 and copy it into the /etc/apt/source.list.d folder.
 Then run ``apt-get update`` and ``apt-get install python-silx``
 
-:: 
+.. code-block:: bash 
 
    wget http://www.silx.org/pub/debian/silx.list
    sudo cp silx.list /etc/apt/sources.list.d
    sudo apt-get update
-   sudo apt-get install python-silx python3-silx
+   sudo apt-get install python-silx python3-silx silx
 
 .. note::
     
@@ -127,12 +146,55 @@ If the Pin-number of silx.org is too low compared to other sources:
 download http://www.silx.org/pub/debian/silx.pref into /etc/apt/preferences.d
 and start the update/install procedure again.
 
+Virtual Environment
+-------------------
 
-Windows instructions
---------------------
+Virtual environments are self-contained directory tree that contains a Python
+installation for a particular version of Python, plus a number of additional
+packages.
+They do require administrator privileges, nor *root* access.
 
-The simple way of installing the *silx* library on Windows is to type following
-commands in a command prompt::
+To create a virtual environment, decide upon a directory where you want to place
+it (for example *myenv*), and run the *venv* module as a script with the directory path:
+
+.. code-block:: bash 
+
+    python3 -m venv  myenv
+
+This will create the *myenv* directory if it doesn’t exist, and also create
+directories inside it containing a copy of the Python interpreter, the standard
+library, and various supporting files.
+
+Once you’ve created a virtual environment, you may activate it.
+
+On Windows, run:
+
+.. code-block:: bash 
+
+  myenv\\Scripts\\activate.bat
+
+On Unix or MacOS, run:
+
+.. code-block:: bash 
+
+   source myenv/bin/activate
+
+You can install, upgrade, and remove packages using a program called *pip* within
+your virtual environment.
+
+.. code-block:: bash 
+
+    pip install numpy
+    pip install -r https://github.com/silx-kit/silx/raw/0.7/requirements.txt
+    pip install silx
+    
+Windows
+-------
+
+The simple way of installing the *silx* library on Windows is to type the following
+commands in a command prompt:
+
+.. code-block:: bash
 
     pip install silx
   
@@ -149,32 +211,26 @@ read the following sections.
 Installing Python
 +++++++++++++++++
 
-Download and install Python from `python.org <https://www.python.org/downloads/>`_. 
+Download and install Python from `python.org <https://www.python.org/downloads/>`_.
 
-We recommend that you install the 64bits version of Python, which is not the default version suggested on the Python website. The 32bits version is limited to 2 GB of memory, and also we don't provide a silx wheel for it. This means that you would have to install silx from its sources, which requires you to install a C compiler first.
+We recommend that you install the 64bits version of Python, which is not the
+default version suggested on the Python website.
+The 32bits version is limited to 2 GB of memory, and also we don't provide a
+binary wheel for it.
+This means that you would have to install *silx* from its sources, which requires
+you to install a C compiler first.
 
-We also encourage you to use Python 3.5 or newer.
+We also encourage you to use Python 3.5 or newer, former versions are no more
+officially supported.
 
-Configure Python as explained on `docs.python.org
-<https://docs.python.org/3/using/windows.html#configuring-python>`_ to add
-the python installation directory to your PATH environment variable.
+Configure Python as explained on
+`docs.python.org <https://docs.python.org/3/using/windows.html#configuring-python>`_
+to add the python installation directory to your PATH environment variable.
 
-Alternative Scientific Python stacks exists, such as `WinPython <http://winpython.github.io/>`_.
-They all offer most of the scientific packages already installed which makes the installation of dependencies much easier.
-
-Installing pip
-++++++++++++++
-
-Recent version of Python (`> 2.7.9` or `> 3.4`) provide pip by default.
-
-If you have an older version of Python and you do not wish to upgrade it,
-you can install pip yourself.
-
-Download the script https://bootstrap.pypa.io/get-pip.py and execute it in a
-command prompt::
-
-    python get-pip.py  
-
+Alternative Scientific Python stacks exists, such as
+`WinPython <http://winpython.github.io/>`_ or `Anaconda <https://www.anaconda.com/download/#windows>`_.
+They all offer most of the scientific packages already installed which makes the
+installation of dependencies much easier.
 
 Using pip
 +++++++++
@@ -191,27 +247,11 @@ prompt.
 Installing dependencies
 +++++++++++++++++++++++
 
-Some of the dependencies may be simply installed with pip::
+All dependencies may be simply installed with pip::
 
-    pip install numpy
-    pip install matplotlib
-    pip install PyOpenGL
-    pip install PyQt5
-    pip install PySide
+.. code-block:: bash 
 
-Regarding the `h5py` and `PyQt4` modules, you can find the wheels at
-Christoph Gohlke's repository:
-
-http://www.lfd.uci.edu/~gohlke/pythonlibs/
-
-Download the appropriate `.whl` file for your system and install them with pip::
-
-    pip install h5py*.whl
-    pip install PyQt4*.whl
-    
-`PyQt5` can be downloaded as a binary package for `Python 3.5` on the
-`Riverbank Computing website <https://www.riverbankcomputing.com/software/pyqt/download5>`_.
-This package contains everything needed for `PyQt5`, including `Qt`.
+    pip install -r https://github.com/silx-kit/silx/raw/0.7/requirements.txt
 
 
 Installing *silx*
@@ -219,52 +259,60 @@ Installing *silx*
 
 Provided numpy is installed, you can install *silx* with::
 
+.. code-block:: bash 
+
     pip install silx
 
 
-MacOS instructions
-------------------
+MacOS
+-----
 
-The easy way to install *silx* on MacOS, is::
+While Apple ships Python 2.7 by default on their operating systems, we recommand
+using Python 3.5 or newer to ease the installation of the Qt library.
+This can simply be performed by:
+
+.. code-block:: bash 
+
+    pip install -r https://github.com/silx-kit/silx/raw/0.7/requirements.txt
+
+Then install *silx* with:
+
+.. code-block:: bash 
 
     pip install silx
 
 This should work without issues, as binary wheels of *silx* are provided on
 PyPi.
 
-Wheels are available for *h5py* on MacOS, so you can install it with::
-
-    pip install h5py
-
-If at the time of your installation a new version of *h5py* has been released but
-the corresponding MacOS wheel is not ready, you should install the latest version including
-a wheel: ``pip install h5py==2.6.0``
-
-A PyQt5 wheel is now available for Python 3.5 on MacOS: https://pypi.python.org/simple/pyqt5/.
-Download it and install it with::
-
-    pip install PyQt5-5.6-cp35-cp35m-macosx_10_6_intel.whl
-
-This should work for all versions of MacOS from 10.6.
-
 
 Installing from source
 ----------------------
 
-Building *silx* from the source requires some `Build dependencies`_.
+Building *silx* from the source requires some `Build dependencies`_ which may be
+installed using:
+
+.. code-block:: bash 
+
+    pip install -r https://github.com/silx-kit/silx/raw/0.7/requirements-dev.txt
+
 
 Building from source
 ++++++++++++++++++++
 
-Source package of *silx* releases can be downloaded from `the pypi project page <https://pypi.python.org/pypi/silx>`_.
+Source package of *silx* releases can be downloaded from
+`the pypi project page <https://pypi.python.org/pypi/silx>`_.
 
 After downloading the `silx-x.y.z.tar.gz` archive, extract its content::
 
     tar xzvf silx-x.y.z.tar.gz
     
-Alternatively, you can get the latest source code from the master branch of the `git repository <https://github.com/silx-kit/silx>`_:  https://github.com/silx-kit/silx/archive/master.zip
+Alternatively, you can get the latest source code from the master branch of the
+`git repository <https://github.com/silx-kit/silx/archive/master.zip>`_: https://github.com/silx-kit/silx
 
-You can now build and install *silx* from its sources::
+You can now build and install *silx* from its sources:
+
+
+.. code-block:: bash 
 
     cd silx-x.y.z
     pip uninstall -y silx
@@ -278,21 +326,21 @@ There are specific issues related to MacOSX. If you get this error::
   UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 1335: ordinal not in range(128)
 
 This is related to the two environment variable LC_ALL and LANG not defined (or wrongly defined to UTF-8).
-To set the environment variable, type on the command line::
+To set the environment variable, type on the command line:
 
-  export LC_ALL=en_US.UTF-8
-  export LANG=en_US.UTF-8
+.. code-block:: bash 
+
+    export LC_ALL=en_US.UTF-8
+    export LANG=en_US.UTF-8
 
 Advanced build options
 ++++++++++++++++++++++
 
-In case you want more control over the build procedure, the build command is::
+In case you want more control over the build procedure, the build command is:
+
+.. code-block:: bash 
 
     python setup.py build
-
-After this build, you will still need to install *silx* to be able to use it::
-
-    python setup.py install [--user]
 
 There are few advanced options to ``setup.py build``:
 
@@ -301,7 +349,22 @@ There are few advanced options to ``setup.py build``:
 * ``--no-openmp``: Recompiles the Cython code without OpenMP support (default for MacOSX).
 * ``--openmp``: Recompiles the Cython code with OpenMP support (default for Windows and Linux).
 
-To build the documentation (this requires `Sphinx <http://www.sphinx-doc.org/>`_), run::
+Run the test suite of silx (may take a couple of minutes):
+
+.. code-block:: bash 
+
+    python run_tests.py
+
+Package the built into a wheel and install it:
+
+.. code-block:: bash 
+
+    python setup.py bdist_wheel
+    pip install dist/silx*.whl 
+
+To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_:
+
+.. code-block:: bash 
 
     python setup.py build build_doc
 
@@ -311,5 +374,14 @@ Testing
 
 To run the tests of an installed version of *silx*, from the python interpreter, run:
 
->>> import silx.test
->>> silx.test.run_tests()
+.. code-block:: python
+    
+     import silx.test
+     silx.test.run_tests()
+
+To run the test suite of a development version, use the *run_tests.py* script at
+the root of the source project.
+
+.. code-block:: bash
+    
+     python ./run_tests.py

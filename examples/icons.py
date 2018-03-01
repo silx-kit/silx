@@ -26,7 +26,9 @@
 """
 Display icons available in silx.
 """
+
 import functools
+import os.path
 
 from silx.gui import qt
 import silx.gui.icons
@@ -105,9 +107,14 @@ class IconPreview(qt.QMainWindow):
         return panel
 
     def getAllAvailableIcons(self):
+        def isAnIcon(name):
+            if silx.resources.is_dir("gui/icons/" + name):
+                return False
+            _, ext = os.path.splitext(name)
+            return ext in [".svg", ".png"]
         icons = silx.resources.list_dir("gui/icons")
         # filter out sub-directories
-        icons = filter(lambda x: not silx.resources.is_dir("gui/icons/" + x), icons)
+        icons = filter(isAnIcon, icons)
         # remove extension
         icons = [i.split(".")[0] for i in icons]
         # remove duplicated names
@@ -142,11 +149,17 @@ class IconPreview(qt.QMainWindow):
             col, line = i / 10, i % 10
             if icon_kind == "anim":
                 tool = AnimatedToolButton(panel)
-                icon = silx.gui.icons.getAnimatedIcon(icon_name)
+                try:
+                    icon = silx.gui.icons.getAnimatedIcon(icon_name)
+                except ValueError:
+                    icon = qt.QIcon()
                 tool.setToolTip("Animated icon '%s'" % icon_name)
             else:
                 tool = qt.QToolButton(panel)
-                icon = silx.gui.icons.getQIcon(icon_name)
+                try:
+                    icon = silx.gui.icons.getQIcon(icon_name)
+                except ValueError:
+                    icon = qt.QIcon()
                 tool.setToolTip("Icon '%s'" % icon_name)
             tool.setIcon(icon)
             tool.setIconSize(qt.QSize(32, 32))

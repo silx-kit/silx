@@ -31,7 +31,8 @@ Regarding HDF5 files, the de-facto standard for reading them in Python is to
 use the *h5py* library.
 
 *silx* tries to address this situation by providing a unified way to read all
-data formats supported at the ESRF. Today, HDF5 is the preffered format to store
+data formats supported at the ESRF.
+Today, HDF5 is the preffered format to store
 data for many scientific institutions, including most synchrotrons.
 So it was decided to provide tools for reading data that mimic the *h5py* library's API.
 

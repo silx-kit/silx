@@ -1,4 +1,5 @@
-version: 0.8-dev{build}
+
+version: 0.7.0.{build}
 
 # fetch repository as zip archive
 shallow_clone: true

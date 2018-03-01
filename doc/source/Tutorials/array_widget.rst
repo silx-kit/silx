@@ -4,7 +4,8 @@
 ArrayTableWidget
 ================
 
-:class:`ArrayTableWidget` is a widget designed to visualize numpy arrays or h5py datasets.
+:class:`ArrayTableWidget` is a widget designed to visualize numpy arrays or h5py
+datasets.
 
 3D example
 ----------
@@ -166,7 +167,7 @@ for internal storage. This ensures that the original data object is not
 modified when a cell of the table is changed interactively in the widget.
 
 This behavior has a negative impact on performances, especially for large data arrays.
-To avoid this, you can explicitely disable the copy operation when setting the data:
+To avoid this, you can explicitly disable the copy operation when setting the data:
 
 .. code-block:: python
 
