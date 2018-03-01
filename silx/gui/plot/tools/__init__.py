@@ -22,7 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a set of tools working with :class:`PlotWidget`.
+"""This package provides a set of widgets working with :class:`PlotWidget`.
+
+It provides some QToolBar and QWidget.
 """
 
 __authors__ = ["T. Vincent"]
@@ -33,3 +35,6 @@ __date__ = "01/03/2018"
 from .toolbars import InteractiveModeToolBar  # noqa
 from .toolbars import OutputToolBar  # noqa
 from .toolbars import ImageToolBar, CurveToolBar  # noqa
+
+from .LimitsToolBar import LimitsToolBar  # noqa
+from .PositionInfo import PositionInfo  # noqa
