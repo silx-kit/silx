@@ -706,6 +706,7 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
 
         channels_length = len(channels_dataset) 
         if (channels_length > 1) and (spectrum_length > 0):
+            logger1.info("Spectrum and channels length mismatch")
             # this should always be the case
             if channels_length > spectrum_length:
                 channels_dataset = channels_dataset[:spectrum_length]
