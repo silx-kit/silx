@@ -53,7 +53,7 @@ from .. import qt
 from . import items, PlotWindow, PlotWidget, actions
 from .Colormap import Colormap
 from .Colors import cursorColorForColormap
-from .PlotTools import LimitsToolBar
+from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 
 

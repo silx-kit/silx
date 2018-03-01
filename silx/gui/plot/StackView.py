@@ -78,7 +78,7 @@ from .. import icons
 from . import items, PlotWindow, actions
 from .Colormap import Colormap
 from .Colors import cursorColorForColormap
-from .PlotTools import LimitsToolBar
+from .tools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 

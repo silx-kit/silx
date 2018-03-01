@@ -45,7 +45,6 @@ from .actions import control as actions_control
 from .actions import histogram as actions_histogram
 from . import PlotToolButtons
 from . import tools
-from .PlotTools import PositionInfo
 from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
@@ -91,7 +90,7 @@ class PlotWindow(PlotWidget):
                      (Default: False).
                      It also supports a list of (name, funct(x, y)->value)
                      to customize the displayed values.
-                     See :class:`silx.gui.plot.PlotTools.PositionInfo`.
+                     See :class:`~silx.gui.plot.tools.PositionInfo`.
     :param bool roi: Toggle visibilty of ROI action.
     :param bool mask: Toggle visibilty of mask action.
     :param bool fit: Toggle visibilty of fit action.
@@ -250,7 +249,7 @@ class PlotWindow(PlotWidget):
                     converters = position
                 else:
                     converters = None
-                self.positionWidget = PositionInfo(
+                self.positionWidget = tools.PositionInfo(
                     plot=self, converters=converters)
                 self.positionWidget.autoSnapToActiveCurve = True
 

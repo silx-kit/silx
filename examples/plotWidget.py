@@ -28,7 +28,7 @@ It subclasses :class:`QMainWindow`, uses a :class:`~silx.gui.plot.PlotWidget`
 as its central widget and adds toolbars and a colorbar by using pluggable widgets:
 
 - :class:`~silx.gui.plot.PlotWidget` from :mod:`silx.gui.plot`
-- QToolBar from :mod:`silx.gui.plot.tools` and :mod:`silx.gui.plot.PlotTools`
+- QToolBar from :mod:`silx.gui.plot.tools`
 - QAction from :mod:`silx.gui.plot.actions`
 - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
 - :class:`silx.gui.plot.ColorBar.ColorBarWidget`
@@ -46,7 +46,6 @@ from silx.gui.plot import PlotWidget
 from silx.gui.plot import tools   # QToolbars to use with PlotWidget
 from silx.gui.plot import actions  # QAction to use with PlotWidget
 from silx.gui.plot import PlotToolButtons  # QToolButton to use with PlotWidget
-from silx.gui.plot.PlotTools import LimitsToolBar
 from silx.gui.plot.ColorBar import ColorBarWidget
 
 
@@ -110,7 +109,7 @@ class MyPlotWindow(qt.QMainWindow):
         self.addActions(outputToolBar.actions())
 
         # Add limits tool bar from silx.gui.plot.PlotTools
-        limitsToolBar = LimitsToolBar(parent=self, plot=self._plot)
+        limitsToolBar = tools.LimitsToolBar(parent=self, plot=self._plot)
         self.addToolBar(qt.Qt.BottomToolBarArea, limitsToolBar)
 
     def getPlotWidget(self):
