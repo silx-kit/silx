@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,7 @@ from .actions import fit as actions_fit
 from .actions import control as actions_control
 from .actions import histogram as actions_histogram
 from . import PlotToolButtons
+from . import tools
 from .PlotTools import PositionInfo
 from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
@@ -121,11 +122,6 @@ class PlotWindow(PlotWidget):
         # Init actions
         self.group = qt.QActionGroup(self)
         self.group.setExclusive(False)
-
-        self.zoomModeAction = self.group.addAction(
-            actions.mode.ZoomModeAction(self))
-        self.panModeAction = self.group.addAction(
-            actions.mode.PanModeAction(self))
 
         self.resetZoomAction = self.group.addAction(
             actions.control.ResetZoomAction(self))
@@ -209,18 +205,6 @@ class PlotWindow(PlotWidget):
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
 
-        self.copyAction = self.group.addAction(actions.io.CopyAction(self))
-        self.copyAction.setVisible(copy)
-        self.addAction(self.copyAction)
-
-        self.saveAction = self.group.addAction(actions.io.SaveAction(self))
-        self.saveAction.setVisible(save)
-        self.addAction(self.saveAction)
-
-        self.printAction = self.group.addAction(actions.io.PrintAction(self))
-        self.printAction.setVisible(print_)
-        self.addAction(self.printAction)
-
         self.fitAction = self.group.addAction(actions_fit.FitAction(self))
         self.fitAction.setVisible(fit)
         self.addAction(self.fitAction)
@@ -283,8 +267,32 @@ class PlotWindow(PlotWidget):
             gridLayout.addWidget(bottomBar, 1, 0, 1, -1)
 
         # Creating the toolbar also create actions for toolbuttons
+        self._interactiveModeToolBar = tools.InteractiveModeToolBar(
+            parent=self, plot=self)
+        self.addToolBar(self._interactiveModeToolBar)
+
         self._toolbar = self._createToolBar(title='Plot', parent=None)
         self.addToolBar(self._toolbar)
+
+        self._outputToolBar = tools.OutputToolBar(parent=self, plot=self)
+        self._outputToolBar.getCopyAction().setVisible(copy)
+        self._outputToolBar.getSaveAction().setVisible(save)
+        self._outputToolBar.getPrintAction().setVisible(print_)
+        self.addToolBar(self._outputToolBar)
+
+    def getInteractiveModeToolBar(self):
+        """Returns QToolBar controlling interactive mode.
+
+        :rtype: QToolBar
+        """
+        return self._interactiveModeToolBar
+
+    def getOutputToolBar(self):
+        """Returns QToolBar containing save, copy and print actions
+
+        :rtype: QToolBar
+        """
+        return self._outputToolBar
 
     def getSelectionMask(self):
         """Return the current mask handled by :attr:`maskToolsDockWidget`.
@@ -355,8 +363,6 @@ class PlotWindow(PlotWidget):
                     self.yAxisInvertedAction = toolbar.addWidget(obj)
                 else:
                     raise RuntimeError()
-            if obj is self.panModeAction:
-                toolbar.addSeparator()
         return toolbar
 
     def toolBar(self):
@@ -667,21 +673,21 @@ class PlotWindow(PlotWidget):
 
         :rtype: actions.PlotAction
         """
-        return self.copyAction
+        return self.getOutputToolBar().getCopyAction()
 
     def getSaveAction(self):
         """Action to save plot
 
         :rtype: actions.PlotAction
         """
-        return self.saveAction
+        return self.getOutputToolBar().getSaveAction()
 
     def getPrintAction(self):
         """Action to print plot
 
         :rtype: actions.PlotAction
         """
-        return self.printAction
+        return self.getOutputToolBar().getPrintAction()
 
     def getFitAction(self):
         """Action to fit selected curve
