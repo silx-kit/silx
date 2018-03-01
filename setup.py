@@ -604,12 +604,11 @@ class BuildExt(build_ext):
         elif self.compiler.compiler_type == 'unix':
             # Avoids runtime symbol collision for manylinux1 platform
             # See issue #1070
-            if sys.version_info[0] <= 2:
-                ext.extra_compile_args.append(
-                    '''-fvisibility=hidden -D'PyMODINIT_FUNC=__attribute__((visibility("default"))) void ' ''')
-            else:  # Python3
-                ext.extra_compile_args.append(
-                    '''-fvisibility=hidden -D'PyMODINIT_FUNC=__attribute__((visibility("default"))) PyObject* ' ''')
+            extern = 'extern "C" ' if ext.language == 'c++' else ''
+            return_type = 'void' if sys.version_info[0] <= 2 else 'PyObject*'
+
+            ext.extra_compile_args.append(
+                '''-fvisibility=hidden -D'PyMODINIT_FUNC=%s__attribute__((visibility("default"))) %s ' ''' % (extern, return_type))
 
     def is_debug_interpreter(self):
         """
