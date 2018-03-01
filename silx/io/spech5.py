@@ -705,7 +705,7 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
             channels_dataset = scan.mca.channels[analyser_index]
 
         channels_length = len(channels_dataset) 
-        if (channels_length > 0) and (spectrum_length > 0):
+        if (channels_length > 1) and (spectrum_length > 0):
             # this should always be the case
             if channels_length > spectrum_length:
                 channels_dataset = channels_dataset[:spectrum_length]
