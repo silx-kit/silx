@@ -2,7 +2,7 @@
 # coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -600,6 +600,15 @@ class BuildExt(build_ext):
                                       for f in ext.extra_compile_args]
             ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
                                    for f in ext.extra_link_args]
+
+        elif self.compiler.compiler_type == 'unix':
+            # Avoids runtime symbol collision for manylinux1 platform
+            # See issue #1070
+            extern = 'extern "C" ' if ext.language == 'c++' else ''
+            return_type = 'void' if sys.version_info[0] <= 2 else 'PyObject*'
+
+            ext.extra_compile_args.append(
+                '''-fvisibility=hidden -D'PyMODINIT_FUNC=%s__attribute__((visibility("default"))) %s ' ''' % (extern, return_type))
 
     def is_debug_interpreter(self):
         """
