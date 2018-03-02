@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,11 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Basic tests for PlotTools"""
+"""Basic tests for silx.gui.plot.tools package"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "02/03/2018"
 
 
 import numpy
@@ -36,8 +36,9 @@ from silx.utils.testutils import ParametricTestCase, TestLogging
 from silx.gui.test.utils import (
     qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
-from silx.gui.plot import Plot2D, PlotWindow, PlotTools
-from .utils import PlotWidgetTestCase
+from silx.gui.plot import Plot2D, PlotWindow
+from silx.gui.plot import tools
+from silx.gui.plot.test.utils import PlotWidgetTestCase
 
 
 # Makes sure a QApplication exists
@@ -99,7 +100,7 @@ class TestPositionInfo(PlotWidgetTestCase):
         for index, name in enumerate(converterNames):
             self.assertEqual(converters[index][0], name)
 
-        with TestLogging(PlotTools.__name__, **kwargs):
+        with TestLogging(tools.__name__, **kwargs):
             # Move mouse to center
             center = self.plot.size() / 2
             self.mouseMove(self.plot, pos=(center.width(), center.height()))
@@ -108,7 +109,7 @@ class TestPositionInfo(PlotWidgetTestCase):
 
     def testDefaultConverters(self):
         """Test PositionInfo with default converters"""
-        positionWidget = PlotTools.PositionInfo(plot=self.plot)
+        positionWidget = tools.PositionInfo(plot=self.plot)
         self._test(positionWidget, ('X', 'Y'))
 
     def testCustomConverters(self):
@@ -118,8 +119,8 @@ class TestPositionInfo(PlotWidgetTestCase):
             ('Radius', lambda x, y: numpy.sqrt(x * x + y * y)),
             ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))
         ]
-        positionWidget = PlotTools.PositionInfo(plot=self.plot,
-                                                converters=converters)
+        positionWidget = tools.PositionInfo(plot=self.plot,
+                                            converters=converters)
         self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
 
     def testFailingConverters(self):
@@ -127,7 +128,7 @@ class TestPositionInfo(PlotWidgetTestCase):
         def raiseException(x, y):
             raise RuntimeError()
 
-        positionWidget = PlotTools.PositionInfo(
+        positionWidget = tools.PositionInfo(
             plot=self.plot,
             converters=[('Exception', raiseException)])
         self._test(positionWidget, ['Exception'], error=2)
