@@ -134,6 +134,19 @@ class TestPositionInfo(PlotWidgetTestCase):
         self._test(positionWidget, ['Exception'], error=2)
 
 
+class TestPlotToolsToolbars(PlotWidgetTestCase):
+    """Tests toolbars from silx.gui.plot.tools"""
+
+    def test(self):
+        """"Add all toolbars"""
+        for tbClass in (tools.InteractiveModeToolBar,
+                        tools.ImageToolBar,
+                        tools.CurveToolBar,
+                        tools.OutputToolBar):
+            tb = tbClass(parent=self.plot, plot=self.plot)
+        self.plot.addToolBar(tb)
+
+
 class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
     """Tests for ProfileToolBar widget."""
 
@@ -191,7 +204,9 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
 def suite():
     test_suite = unittest.TestSuite()
     # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestPositionInfo, TestPixelIntensitiesHisto):
+    for testClass in (TestPositionInfo,
+                      TestPlotToolsToolbars,
+                      TestPixelIntensitiesHisto):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
