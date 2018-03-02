@@ -37,7 +37,7 @@ Public modules
    items.rst
    actions/index.rst
    plottoolbuttons.rst
-   plottools.rst
+   tools.rst
    profile.rst
    roi.rst
    printpreviewtoolbutton.rst

@@ -208,14 +208,15 @@ Sample code that adds specific tools or functions to plot widgets.
      - .. image:: img/plotWidget.png
          :height: 150px
          :align: center
-     - This script shows how to subclass :class:`~silx.gui.plot.PlotWidget` to tune its tools.
+     - This script shows how to create a custom window around a PlotWidget.
 
-       It subclasses a :class:`~silx.gui.plot.PlotWidget` and adds toolbars and
-       a colorbar by using pluggable widgets:
+       It subclasses :class:`QMainWindow`, uses a :class:`~silx.gui.plot.PlotWidget`
+       as its central widget and adds toolbars and a colorbar by using pluggable widgets:
 
+       - :class:`~silx.gui.plot.PlotWidget` from :mod:`silx.gui.plot`
+       - QToolBar from :mod:`silx.gui.plot.tools`
        - QAction from :mod:`silx.gui.plot.actions`
        - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
-       - QToolBar from :mod:`silx.gui.plot.PlotTools`
        - :class:`silx.gui.plot.ColorBar.ColorBarWidget`
    * - :download:`plotContextMenu.py <../../../examples/plotContextMenu.py>`
      - .. image:: img/plotContextMenu.png
