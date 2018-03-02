@@ -40,7 +40,7 @@ class InteractiveModeToolBar(qt.QToolBar):
     """Toolbar with interactive mode actions
 
     :param parent: See :class:`QWidget`
-    :param PlotWidget plot: PlotWidget to control
+    :param silx.gui.plot.PlotWidget plot: PlotWidget to control
     :param str title: Title of the toolbar.
     """
 
@@ -76,7 +76,7 @@ class OutputToolBar(qt.QToolBar):
     """Toolbar providing icons to copy, save and print a PlotWidget
 
     :param parent: See :class:`QWidget`
-    :param PlotWidget plot: PlotWidget to control
+    :param silx.gui.plot.PlotWidget plot: PlotWidget to control
     :param str title: Title of the toolbar.
     """
 
@@ -120,7 +120,7 @@ class ImageToolBar(qt.QToolBar):
     """Toolbar providing PlotAction suited when displaying images
 
     :param parent: See :class:`QWidget`
-    :param PlotWidget plot: PlotWidget to control
+    :param silx.gui.plot.PlotWidget plot: PlotWidget to control
     :param str title: Title of the toolbar.
     """
 
@@ -178,7 +178,7 @@ class CurveToolBar(qt.QToolBar):
     """Toolbar providing PlotAction suited when displaying curves
 
     :param parent: See :class:`QWidget`
-    :param PlotWidget plot: PlotWidget to control
+    :param silx.gui.plot.PlotWidget plot: PlotWidget to control
     :param str title: Title of the toolbar.
     """
 
