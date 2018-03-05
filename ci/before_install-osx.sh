@@ -3,7 +3,7 @@
 VENV_DIR=./venv
 
 # Use brew for python3
-brew install python3
+brew outdated python3 || brew upgrade python3
 PYTHON_EXE=`brew list python3 | grep "bin/python3$" | head -n 1`
 # Create virtual env
 $PYTHON_EXE -m venv $VENV_DIR
