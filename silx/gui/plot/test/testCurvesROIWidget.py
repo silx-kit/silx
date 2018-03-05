@@ -24,7 +24,7 @@
 # ###########################################################################*/
 """Basic tests for CurvesROIWidget"""
 
-__authors__ = ["T. Vincent", "P. Knobel"]
+__authors__ = ["T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
 __date__ = "16/11/2017"
 
@@ -32,9 +32,8 @@ __date__ = "16/11/2017"
 import logging
 import os.path
 import unittest
-
+from collections import OrderedDict
 import numpy
-
 from silx.gui import qt
 from silx.test.utils import temp_dir
 from silx.gui.test.utils import TestCaseQt
@@ -152,6 +151,25 @@ class TestCurvesROIWidget(TestCaseQt):
                                   (-x <= output["negative"]["to"]))[0]
         self.assertEqual(output["negative"]["rawcounts"],
                          y[selection].sum(), "Calculation failed on negative X coordinates")
+
+    def testDeferedInit(self):
+        x = numpy.arange(100.)
+        y = numpy.arange(100.)
+        self.plot.addCurve(x=x, y=y, legend="name", replace="True")
+        roisDefs = OrderedDict([
+            ["range1",
+             OrderedDict([["from", 20], ["to", 200], ["type", "energy"]])],
+            ["range2",
+             OrderedDict([["from", 300], ["to", 500], ["type", "energy"]])]
+        ])
+
+        roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
+        self.assertFalse(roiWidget._isInit)
+        self.plot.getCurvesRoiDockWidget().setRois(roisDefs)
+        self.assertTrue(len(roiWidget.getRois()) is len(roisDefs))
+        self.plot.getCurvesRoiDockWidget().setVisible(True)
+        self.assertTrue(len(roiWidget.getRois()) is len(roisDefs))
+
 
 def suite():
     test_suite = unittest.TestSuite()
