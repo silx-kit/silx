@@ -28,7 +28,7 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "05/03/2018"
 
 
 import sys
@@ -494,7 +494,9 @@ class _CatchResizeEvent(qt.QObject):
 
 class AbstractDataFileDialog(qt.QDialog):
     """The `AbstractFileDialog` provides a generic GUI to create a custom dialog
-    allowing to access to file resources like HDF5 files or HDF5 datasets
+    allowing to access to file resources like HDF5 files or HDF5 datasets.
+
+    .. image:: img/abstractdatafiledialog.png
 
     The dialog contains:
 
