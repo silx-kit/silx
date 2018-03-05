@@ -743,6 +743,34 @@ class CurvesROIWidget(qt.QWidget):
         if len(self.getRois()) is 0:
             self._roiSignal({'event': "AddROI"})
 
+    def showAllMarkers(self, _show=True):
+        if self._middleROIMarkerFlag:
+            self.plot.remove('ROI middle', kind='marker')
+        roiList, roiDict = self.roiTable.getROIListAndDict()
+
+        for roi in roiDict:
+            fromdata = roiDict[roi]['from']
+            todata = roiDict[roi]['to']
+            _name = roi
+            _nameRoiMin = _name + ' ROI min'
+            _nameRoiMax = _name + ' ROI max'
+            if _show:
+                draggable = False if _name == 'ICR' else True
+                color = 'blue'
+                self.plot.addXMarker(fromdata,
+                                     legend=_nameRoiMin,
+                                     text=_nameRoiMin,
+                                     color=color,
+                                     draggable=draggable)
+                self.plot.addXMarker(todata,
+                                     legend=_nameRoiMax,
+                                     text=_nameRoiMax,
+                                     color=color,
+                                     draggable=draggable)
+            else:
+                self.plot.remove(_nameRoiMin, kind = 'marker')
+                self.plot.remove(_nameRoiMax, kind = 'marker')
+
 
 class ROITable(qt.QTableWidget):
     """Table widget displaying ROI information.

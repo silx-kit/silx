@@ -170,6 +170,27 @@ class TestCurvesROIWidget(TestCaseQt):
         self.plot.getCurvesRoiDockWidget().setVisible(True)
         self.assertTrue(len(roiWidget.getRois()) is len(roisDefs))
 
+    def testShowAllROI(self):
+        x = numpy.arange(100.)
+        y = numpy.arange(100.)
+        self.plot.addCurve(x=x, y=y, legend="name", replace="True")
+        roisDefs = {
+            "range1": {"from": 20, "to": 200,"type": "energy"},
+            "range2": {"from": 300, "to": 500, "type": "energy"}
+        }
+        self.plot.getCurvesRoiDockWidget().setRois(roisDefs)
+        self.assertTrue(len(self.plot._getAllMarkers()) is 2)
+        roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
+        self.plot.getCurvesRoiDockWidget().setVisible(True)
+
+        self.assertTrue(len(self.plot._getAllMarkers()) is 2)
+        roiWidget.showAllMarkers(True)
+        self.plot.show()
+        self.assertTrue(len(self.plot._getAllMarkers()) is (len(roisDefs) * 2 + 2))
+        # + 2 because not removing the one of the selected one.
+        roiWidget.showAllMarkers(False)
+        self.assertTrue(len(self.plot._getAllMarkers()) is 2)
+
 
 def suite():
     test_suite = unittest.TestSuite()
