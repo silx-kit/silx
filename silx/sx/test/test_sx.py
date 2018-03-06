@@ -136,13 +136,47 @@ class SXTest(TestCaseQt, ParametricTestCase):
         plt = sx.imshow(img, origin='upper', title='origin="lower"')
         self._expose_and_close(plt)
 
+    def test_scatter(self):
+        """Test scatter function"""
+        x = numpy.arange(100)
+        y = numpy.arange(100)
+        values = numpy.arange(100)
+
+        # simple scatter
+        plt = sx.scatter(x, y, values)
+        self._expose_and_close(plt)
+
+        # No value
+        plt = sx.scatter(x, y, values)
+        self._expose_and_close(plt)
+
+        # single value
+        plt = sx.scatter(x, y, 10.)
+        self._expose_and_close(plt)
+
+        # set size
+        plt = sx.scatter(x, y, values, size=20)
+        self._expose_and_close(plt)
+
+        # set colormap
+        plt = sx.scatter(x, y, values, cmap='jet')
+        self._expose_and_close(plt)
+
+        # set colormap range
+        plt = sx.scatter(x, y, values, vmin=2, vmax=50)
+        self._expose_and_close(plt)
+
+        # set colormap normalisation
+        plt = sx.scatter(x, y, values, norm='log')
+        self._expose_and_close(plt)
+
     def test_ginput(self):
         """Test ginput function
 
         This does NOT perform interactive tests
         """
 
-        for create_plot in (sx.plot, sx.imshow):
+        for create_plot in (sx.plot, sx.imshow, sx.scatter):
             with self.subTest(create_plot.__name__):
                 plt = create_plot()
                 self.qWaitForWindowExposed(plt)
