@@ -25,7 +25,7 @@
 """A widget dedicated to display scatter plots
 
 It is based on a :class:`!silx.gui.plot.PlotWidget` with additional tools
-for scatter plots..
+for scatter plots.
 """
 
 __authors__ = ["T. Vincent"]
