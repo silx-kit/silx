@@ -140,7 +140,7 @@ class build_py(_build_py):
 ########
 
 class PyTest(Command):
-    """Command to start tests running the script: run_tests.py -i"""
+    """Command to start tests running the script: run_tests.py"""
     user_options = []
 
     def initialize_options(self):
