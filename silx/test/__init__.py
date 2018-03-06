@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 def suite():
     from . import test_version
     from . import test_resources
-    from . import test_sx
+    from ..sx import test as test_sx
     from ..io import test as test_io
     from ..math import test as test_math
     from ..image import test as test_image
@@ -54,6 +54,7 @@ def suite():
     from ..utils import test as test_utils
     from ..opencl import test as test_ocl
     from ..app import test as test_app
+
     test_suite = unittest.TestSuite()
     # test sx first cause qui tests load ipython module
     test_suite.addTest(test_sx.suite())
