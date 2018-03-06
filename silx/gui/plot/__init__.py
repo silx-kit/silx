@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ List of Qt widgets:
 - :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
 - :class:`.Plot1D`: A widget with tools for curves.
 - :class:`.Plot2D`: A widget with tools for images.
+- :class:`.PlotScatter`: A widget with tools for scatter plot.
 - :class:`.ImageView`: A widget with tools for images and a side histogram.
 - :class:`.StackView`: A widget with tools for a stack of images.
 
@@ -64,6 +65,7 @@ from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
 from .items.axis import TickMode
 from .ImageView import ImageView  # noqa
 from .StackView import StackView  # noqa
+from .PlotScatter import PlotScatter  # noqa
 
 __all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D',
-           'StackView', 'TickMode']
+           'StackView', 'PlotScatter', 'TickMode']
