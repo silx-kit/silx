@@ -473,7 +473,7 @@ class SaveAction(PlotAction):
 
         self._filters[dataKind][nameFilter] = func
 
-    def getFileFilter(self, dataKind):
+    def getFileFilters(self, dataKind):
         """Returns the nameFilter and associated function for a kind of data.
 
         :param str dataKind:

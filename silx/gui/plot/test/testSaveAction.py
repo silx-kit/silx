@@ -102,14 +102,14 @@ class TestSaveActionExtension(PlotWidgetTestCase):
         # Add a new file filter
         nameFilter = 'Dummy file (*.dummy)'
         saveAction.setFileFilter('all', nameFilter, self._dummySaveFunction)
-        self.assertTrue(nameFilter in saveAction.getFileFilter('all'))
-        self.assertEqual(saveAction.getFileFilter('all')[nameFilter],
+        self.assertTrue(nameFilter in saveAction.getFileFilters('all'))
+        self.assertEqual(saveAction.getFileFilters('all')[nameFilter],
                          self._dummySaveFunction)
 
         # Update an existing file filter
         nameFilter = SaveAction.IMAGE_FILTER_EDF
         saveAction.setFileFilter('image', nameFilter, self._dummySaveFunction)
-        self.assertEqual(saveAction.getFileFilter('image')[nameFilter],
+        self.assertEqual(saveAction.getFileFilters('image')[nameFilter],
                          self._dummySaveFunction)
 
 
