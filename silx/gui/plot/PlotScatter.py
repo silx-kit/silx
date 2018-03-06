@@ -161,6 +161,11 @@ class PlotScatter(qt.QMainWindow):
 
     clear.__doc__ = PlotWidget.clear.__doc__
 
+    def resetZoom(self, *args, **kwargs):
+        return self.getPlotWidget().resetZoom(*args, **kwargs)
+
+    resetZoom.__doc__ = PlotWidget.resetZoom.__doc__
+
     def setSelectionMask(self, *args, **kwargs):
         return self._maskToolsWidget.setSelectionMask(*args, **kwargs)
 
