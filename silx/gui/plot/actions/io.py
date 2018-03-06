@@ -76,7 +76,7 @@ class SaveAction(PlotAction):
     SNAPSHOT_FILTER_SVG = 'Plot Snapshot as SVG (*.svg)'
     SNAPSHOT_FILTER_PNG = 'Plot Snapshot as PNG (*.png)'
 
-    SNAPSHOT_FILTERS = (SNAPSHOT_FILTER_PNG, SNAPSHOT_FILTER_SVG)
+    DEFAULT_ALL_FILTERS = (SNAPSHOT_FILTER_PNG, SNAPSHOT_FILTER_SVG)
 
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
@@ -100,10 +100,10 @@ class SaveAction(PlotAction):
 
     CURVE_FILTER_NXDATA = 'Curve as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
 
-    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY,
-                                                      CURVE_FILTER_NXDATA]
+    DEFAULT_CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [
+        CURVE_FILTER_NPY, CURVE_FILTER_NXDATA]
 
-    ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
+    DEFAULT_ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)",)
 
     IMAGE_FILTER_EDF = 'Image data as EDF (*.edf)'
     IMAGE_FILTER_TIFF = 'Image data as TIFF (*.tif)'
@@ -115,19 +115,19 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
     IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
     IMAGE_FILTER_NXDATA = 'Image as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
-    IMAGE_FILTERS = (IMAGE_FILTER_EDF,
-                     IMAGE_FILTER_TIFF,
-                     IMAGE_FILTER_NUMPY,
-                     IMAGE_FILTER_ASCII,
-                     IMAGE_FILTER_CSV_COMMA,
-                     IMAGE_FILTER_CSV_SEMICOLON,
-                     IMAGE_FILTER_CSV_TAB,
-                     IMAGE_FILTER_RGB_PNG,
-                     IMAGE_FILTER_RGB_TIFF,
-                     IMAGE_FILTER_NXDATA)
+    DEFAULT_IMAGE_FILTERS = (IMAGE_FILTER_EDF,
+                             IMAGE_FILTER_TIFF,
+                             IMAGE_FILTER_NUMPY,
+                             IMAGE_FILTER_ASCII,
+                             IMAGE_FILTER_CSV_COMMA,
+                             IMAGE_FILTER_CSV_SEMICOLON,
+                             IMAGE_FILTER_CSV_TAB,
+                             IMAGE_FILTER_RGB_PNG,
+                             IMAGE_FILTER_RGB_TIFF,
+                             IMAGE_FILTER_NXDATA)
 
     SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
-    SCATTER_FILTERS = (SCATTER_FILTER_NXDATA, )
+    DEFAULT_SCATTER_FILTERS = (SCATTER_FILTER_NXDATA,)
 
     def __init__(self, plot, parent=None):
         self._filters = {
@@ -138,23 +138,23 @@ class SaveAction(PlotAction):
             'scatter': OrderedDict()}
 
         # Initialize filters
-        for nameFilter in self.SNAPSHOT_FILTERS:
+        for nameFilter in self.DEFAULT_ALL_FILTERS:
             self.setFileFilter(
                 dataKind='all', nameFilter=nameFilter, func=self._saveSnapshot)
 
-        for nameFilter in self.CURVE_FILTERS:
+        for nameFilter in self.DEFAULT_CURVE_FILTERS:
             self.setFileFilter(
                 dataKind='curve', nameFilter=nameFilter, func=self._saveCurve)
 
-        for nameFilter in self.ALL_CURVES_FILTERS:
+        for nameFilter in self.DEFAULT_ALL_CURVES_FILTERS:
             self.setFileFilter(
                 dataKind='curves', nameFilter=nameFilter, func=self._saveCurves)
 
-        for nameFilter in self.IMAGE_FILTERS:
+        for nameFilter in self.DEFAULT_IMAGE_FILTERS:
             self.setFileFilter(
                 dataKind='image', nameFilter=nameFilter, func=self._saveImage)
 
-        for nameFilter in self.SCATTER_FILTERS:
+        for nameFilter in self.DEFAULT_SCATTER_FILTERS:
             self.setFileFilter(
                 dataKind='scatter', nameFilter=nameFilter, func=self._saveScatter)
 
@@ -203,7 +203,7 @@ class SaveAction(PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        if nameFilter not in self.CURVE_FILTERS:
+        if nameFilter not in self.DEFAULT_CURVE_FILTERS:
             return False
 
         # Check if a curve is to be saved
@@ -268,7 +268,7 @@ class SaveAction(PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        if nameFilter not in self.ALL_CURVES_FILTERS:
+        if nameFilter not in self.DEFAULT_ALL_CURVES_FILTERS:
             return False
 
         curves = plot.getAllCurves()
@@ -321,7 +321,7 @@ class SaveAction(PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        if nameFilter not in self.IMAGE_FILTERS:
+        if nameFilter not in self.DEFAULT_IMAGE_FILTERS:
             return False
 
         image = plot.getActiveImage()
@@ -426,7 +426,7 @@ class SaveAction(PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        if nameFilter not in self.SCATTER_FILTERS:
+        if nameFilter not in self.DEFAULT_SCATTER_FILTERS:
             return False
 
         if nameFilter == self.SCATTER_FILTER_NXDATA:
