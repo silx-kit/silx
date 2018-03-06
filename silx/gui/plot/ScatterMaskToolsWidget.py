@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -467,7 +467,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                 event['event'] == 'drawingFinished'):
             doMask = self._isMasking()
             vertices = event['points']
-            vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (y, x)
+            vertices = vertices[:, (1, 0)]  # (y, x)
             self._mask.updatePolygon(level, vertices, doMask)
             self._mask.commit()
 
