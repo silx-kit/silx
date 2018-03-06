@@ -60,7 +60,7 @@ else:
 _logger = logging.getLogger(__name__)
 
 
-_NEXUS_HDF5_EXT = [".nx5", ".nxs",  ".hdf", ".hdf5", ".cxi", ".h5"]
+_NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs",  ".hdf", ".hdf5", ".cxi"]
 _NEXUS_HDF5_EXT_STR = ' '.join(['*' + ext for ext in _NEXUS_HDF5_EXT])
 
 
@@ -72,7 +72,6 @@ class SaveAction(PlotAction):
     :param plot: :class:`.PlotWidget` instance on which to operate.
     :param parent: See :class:`QAction`.
     """
-    # TODO find a way to make the filter list selectable and extensible
 
     SNAPSHOT_FILTER_SVG = 'Plot Snapshot as SVG (*.svg)'
     SNAPSHOT_FILTER_PNG = 'Plot Snapshot as PNG (*.png)'
@@ -131,6 +130,34 @@ class SaveAction(PlotAction):
     SCATTER_FILTERS = (SCATTER_FILTER_NXDATA, )
 
     def __init__(self, plot, parent=None):
+        self._filters = {
+            'all': OrderedDict(),
+            'curve': OrderedDict(),
+            'curves': OrderedDict(),
+            'image': OrderedDict(),
+            'scatter': OrderedDict()}
+
+        # Initialize filters
+        for nameFilter in self.SNAPSHOT_FILTERS:
+            self.setFileFilter(
+                dataKind='all', nameFilter=nameFilter, func=self._saveSnapshot)
+
+        for nameFilter in self.CURVE_FILTERS:
+            self.setFileFilter(
+                dataKind='curve', nameFilter=nameFilter, func=self._saveCurve)
+
+        for nameFilter in self.ALL_CURVES_FILTERS:
+            self.setFileFilter(
+                dataKind='curves', nameFilter=nameFilter, func=self._saveCurves)
+
+        for nameFilter in self.IMAGE_FILTERS:
+            self.setFileFilter(
+                dataKind='image', nameFilter=nameFilter, func=self._saveImage)
+
+        for nameFilter in self.SCATTER_FILTERS:
+            self.setFileFilter(
+                dataKind='scatter', nameFilter=nameFilter, func=self._saveScatter)
+
         super(SaveAction, self).__init__(
             plot, icon='document-save', text='Save as...',
             tooltip='Save curve/image/plot snapshot dialog',
@@ -148,7 +175,7 @@ class SaveAction(PlotAction):
         msg.setDetailedText(traceback.format_exc())
         msg.exec_()
 
-    def _saveSnapshot(self, filename, nameFilter):
+    def _saveSnapshot(self, plot, filename, nameFilter):
         """Save a snapshot of the :class:`PlotWindow` widget.
 
         :param str filename: The name of the file to write
@@ -165,10 +192,10 @@ class SaveAction(PlotAction):
                 'Saving plot snapshot failed: format not supported')
             return False
 
-        self.plot.saveGraph(filename, fileFormat=fileFormat)
+        plot.saveGraph(filename, fileFormat=fileFormat)
         return True
 
-    def _saveCurve(self, filename, nameFilter):
+    def _saveCurve(self, plot, filename, nameFilter):
         """Save a curve from the plot.
 
         :param str filename: The name of the file to write
@@ -180,11 +207,11 @@ class SaveAction(PlotAction):
             return False
 
         # Check if a curve is to be saved
-        curve = self.plot.getActiveCurve()
+        curve = plot.getActiveCurve()
         # before calling _saveCurve, if there is no selected curve, we
         # make sure there is only one curve on the graph
         if curve is None:
-            curves = self.plot.getAllCurves()
+            curves = plot.getAllCurves()
             if not curves:
                 self._errorMessage("No curve to be saved")
                 return False
@@ -202,10 +229,10 @@ class SaveAction(PlotAction):
         # If curve has no associated label, get the default from the plot
         xlabel = curve.getXLabel()
         if xlabel is None:
-            xlabel = self.plot.getXAxis().getLabel()
+            xlabel = plot.getXAxis().getLabel()
         ylabel = curve.getYLabel()
         if ylabel is None:
-            ylabel = self.plot.getYAxis().getLabel()
+            ylabel = plot.getYAxis().getLabel()
 
         if nameFilter == self.CURVE_FILTER_NXDATA:
             return save_NXdata(
@@ -218,7 +245,7 @@ class SaveAction(PlotAction):
                 axes_long_names=[xlabel],
                 signal_errors=curve.getYErrorData(copy=False),
                 axes_errors=[curve.getXErrorData(copy=True)],
-                title=self.plot.getGraphTitle())
+                title=plot.getGraphTitle())
 
         try:
             save1D(filename,
@@ -233,7 +260,7 @@ class SaveAction(PlotAction):
 
         return True
 
-    def _saveCurves(self, filename, nameFilter):
+    def _saveCurves(self, plot, filename, nameFilter):
         """Save all curves from the plot.
 
         :param str filename: The name of the file to write
@@ -244,7 +271,7 @@ class SaveAction(PlotAction):
         if nameFilter not in self.ALL_CURVES_FILTERS:
             return False
 
-        curves = self.plot.getAllCurves()
+        curves = plot.getAllCurves()
         if not curves:
             self._errorMessage("No curves to be saved")
             return False
@@ -252,8 +279,8 @@ class SaveAction(PlotAction):
         curve = curves[0]
         scanno = 1
         try:
-            xlabel = curve.getXLabel() or self.plot.getGraphXLabel()
-            ylabel = curve.getYLabel() or self.plot.getGraphYLabel(curve.getYAxis())
+            xlabel = curve.getXLabel() or plot.getGraphXLabel()
+            ylabel = curve.getYLabel() or plot.getGraphYLabel(curve.getYAxis())
             specfile = savespec(filename,
                                 curve.getXData(copy=False),
                                 curve.getYData(copy=False),
@@ -269,8 +296,8 @@ class SaveAction(PlotAction):
         for curve in curves[1:]:
             try:
                 scanno += 1
-                xlabel = curve.getXLabel() or self.plot.getGraphXLabel()
-                ylabel = curve.getYLabel() or self.plot.getGraphYLabel(curve.getYAxis())
+                xlabel = curve.getXLabel() or plot.getGraphXLabel()
+                ylabel = curve.getYLabel() or plot.getGraphYLabel(curve.getYAxis())
                 specfile = savespec(specfile,
                                     curve.getXData(copy=False),
                                     curve.getYData(copy=False),
@@ -286,7 +313,7 @@ class SaveAction(PlotAction):
 
         return True
 
-    def _saveImage(self, filename, nameFilter):
+    def _saveImage(self, plot, filename, nameFilter):
         """Save an image from the plot.
 
         :param str filename: The name of the file to write
@@ -297,10 +324,10 @@ class SaveAction(PlotAction):
         if nameFilter not in self.IMAGE_FILTERS:
             return False
 
-        image = self.plot.getActiveImage()
+        image = plot.getActiveImage()
         if image is None:
             qt.QMessageBox.warning(
-                self.plot, "No Data", "No image to be saved")
+                plot, "No Data", "No image to be saved")
             return False
 
         data = image.getData(copy=False)
@@ -329,8 +356,8 @@ class SaveAction(PlotAction):
             xscale, yscale = image.getScale()
             xaxis = xorigin + xscale * numpy.arange(data.shape[1])
             yaxis = yorigin + yscale * numpy.arange(data.shape[0])
-            xlabel = image.getXLabel() or self.plot.getGraphXLabel()
-            ylabel = image.getYLabel() or self.plot.getGraphYLabel()
+            xlabel = image.getXLabel() or plot.getGraphXLabel()
+            ylabel = image.getYLabel() or plot.getGraphYLabel()
             interpretation = "image" if len(data.shape) == 2 else "rgba-image"
 
             return save_NXdata(filename,
@@ -339,7 +366,7 @@ class SaveAction(PlotAction):
                                signal_name="image",
                                axes_names=["y", "x"],
                                axes_long_names=[ylabel, xlabel],
-                               title=self.plot.getGraphTitle(),
+                               title=plot.getGraphTitle(),
                                interpretation=interpretation)
 
         elif nameFilter in (self.IMAGE_FILTER_ASCII,
@@ -391,7 +418,7 @@ class SaveAction(PlotAction):
 
         return False
 
-    def _saveScatter(self, filename, nameFilter):
+    def _saveScatter(self, plot, filename, nameFilter):
         """Save an image from the plot.
 
         :param str filename: The name of the file to write
@@ -403,7 +430,7 @@ class SaveAction(PlotAction):
             return False
 
         if nameFilter == self.SCATTER_FILTER_NXDATA:
-            scatter = self.plot.getScatter()
+            scatter = plot.getScatter()
             # TODO: we could get all scatters on this plot and concatenate their (x, y, values)
             x = scatter.getXData(copy=False)
             y = scatter.getYData(copy=False)
@@ -417,8 +444,8 @@ class SaveAction(PlotAction):
             if isinstance(yerror, float):
                 yerror = yerror * numpy.ones(x.shape, dtype=numpy.float32)
 
-            xlabel = self.plot.getGraphXLabel()
-            ylabel = self.plot.getGraphYLabel()
+            xlabel = plot.getGraphXLabel()
+            ylabel = plot.getGraphYLabel()
 
             return save_NXdata(
                 filename,
@@ -428,36 +455,65 @@ class SaveAction(PlotAction):
                 axes_names=["x", "y"],
                 axes_long_names=[xlabel, ylabel],
                 axes_errors=[xerror, yerror],
-                title=self.plot.getGraphTitle())
+                title=plot.getGraphTitle())
+
+    def setFileFilter(self, dataKind, nameFilter, func):
+        """Set a name filter to add/replace a file format support
+
+        :param str dataKind:
+            The kind of data for which the provided filter is valid.
+            On of: 'all', 'curve', 'curves', 'image', 'scatter'
+        :param str nameFilter: The name filter in the QFileDialog.
+            See :meth:`QFileDialog.setNameFilters`.
+        :param callable func: The function to call to perform saving.
+           Expected signature is:
+           bool func(PlotWidget plot, str filename, str nameFilter)
+        """
+        assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
+
+        self._filters[dataKind][nameFilter] = func
+
+    def getFileFilter(self, dataKind):
+        """Returns the nameFilter and associated function for a kind of data.
+
+        :param str dataKind:
+            The kind of data for which the provided filter is valid.
+            On of: 'all', 'curve', 'curves', 'image', 'scatter'
+        :return: {nameFilter: function} associations.
+        :rtype: collections.OrderedDict
+        """
+        assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
+
+        return self._filters[dataKind].copy()
 
     def _actionTriggered(self, checked=False):
         """Handle save action."""
         # Set-up filters
-        filters = []
+        filters = OrderedDict()
 
         # Add image filters if there is an active image
         if self.plot.getActiveImage() is not None:
-            filters.extend(self.IMAGE_FILTERS)
+            filters.update(self._filters['image'].items())
 
         # Add curve filters if there is a curve to save
         if (self.plot.getActiveCurve() is not None or
                 len(self.plot.getAllCurves()) == 1):
-            filters.extend(self.CURVE_FILTERS)
+            filters.update(self._filters['curve'].items())
         if len(self.plot.getAllCurves()) > 1:
-            filters.extend(self.ALL_CURVES_FILTERS)
+            filters.update(self._filters['curves'].items())
 
         # Add scatter filters if there is a scatter
         # todo: CSV
         if self.plot.getScatter() is not None:
-            filters.extend(self.SCATTER_FILTERS)
+            filters.update(self._filters['scatter'].items())
 
-        filters.extend(self.SNAPSHOT_FILTERS)
+        filters.update(self._filters['all'].items())
 
         # Create and run File dialog
         dialog = qt.QFileDialog(self.plot)
         dialog.setWindowTitle("Output File Selection")
         dialog.setModal(1)
-        dialog.setNameFilters(filters)
+        dialog.setNameFilters(list(filters.keys()))
 
         dialog.setFileMode(dialog.AnyFile)
         dialog.setAcceptMode(dialog.AcceptSave)
@@ -469,34 +525,25 @@ class SaveAction(PlotAction):
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
-        # Forces the filename extension to match the chosen filter
-        if "NXdata" in nameFilter:
-            has_allowed_ext = False
-            for ext in _NEXUS_HDF5_EXT:
+        if '(' in nameFilter and ')' == nameFilter.strip()[-1]:
+            # Check for correct file extension
+            # Extract file extensions as .something
+            extensions = [ext[ext.find('.'):] for ext in
+                          nameFilter[nameFilter.find('(')+1:-1].split()]
+            for ext in extensions:
                 if (len(filename) > len(ext) and
                         filename[-len(ext):].lower() == ext.lower()):
-                    has_allowed_ext = True
-            if not has_allowed_ext:
-                filename += ".h5"
-        else:
-            default_extension = nameFilter.split()[-1][2:-1]
-            if (len(filename) <= len(default_extension) or
-                    filename[-len(default_extension):].lower() != default_extension.lower()):
-                filename += default_extension
+                    break
+            else:  # filename has no extension supported in nameFilter, add one
+                if len(extensions) >= 1:
+                    filename += extensions[0]
 
         # Handle save
-        if nameFilter in self.SNAPSHOT_FILTERS:
-            return self._saveSnapshot(filename, nameFilter)
-        elif nameFilter in self.CURVE_FILTERS:
-            return self._saveCurve(filename, nameFilter)
-        elif nameFilter in self.ALL_CURVES_FILTERS:
-            return self._saveCurves(filename, nameFilter)
-        elif nameFilter in self.IMAGE_FILTERS:
-            return self._saveImage(filename, nameFilter)
-        elif nameFilter in self.SCATTER_FILTERS:
-            return self._saveScatter(filename, nameFilter)
+        func = filters.get(nameFilter, None)
+        if func is not None:
+            return func(self.plot, filename, nameFilter)
         else:
-            _logger.warning('Unsupported file filter: %s', nameFilter)
+            _logger.error('Unsupported file filter: %s', nameFilter)
             return False
 
 
