@@ -77,13 +77,13 @@ class PlotScatter(qt.QMainWindow):
         self._colorbar.setPalette(palette)
 
         # Create PositionInfo widget
-        self.__valueCache = '-'
+        self.__indexCache = '-'
         self._positionInfo = tools.PositionInfo(
             plot=plot,
             converters=(('X', lambda x, y: x),
                         ('Y', lambda x, y: y),
-                        ('Index', lambda x, y: self._getScatterIndex(x, y)),
-                        ('Data', lambda x, y: self._getScatterValue(x, y))))
+                        ('Data', lambda x, y: self._getScatterValue(x, y)),
+                        ('Index', lambda x, y: self._getScatterIndex(x, y))))
 
         # Combine plot, position info and colorbar into central widget
         gridLayout = qt.QGridLayout()
@@ -127,15 +127,15 @@ class PlotScatter(qt.QMainWindow):
             for action in toolbar.actions():
                 self.addAction(action)
 
-    def _getScatterIndex(self, x, y):
-        """Get data index of top most scatter plot at position (x, y)
+    def _getScatterValue(self, x, y):
+        """Get data value of top most scatter plot at position (x, y)
 
         :param float x: X position in plot coordinates
         :param float y: Y position in plot coordinates
         :return: The data index at that point or None
         """
-        self.__valueCache = '-'
-        dataIndex = '-'
+        self.__indexCache = '-'
+        value = '-'
         valueZ = -float('inf')
 
         plot = self.getPlotWidget()
@@ -149,12 +149,13 @@ class PlotScatter(qt.QMainWindow):
                     if dataIndices:
                         # Return last index, with matplotlib it should be the top-most point
                         dataIndex = dataIndices[-1]
-                        self.__valueCache = scatter.getValueData(copy=False)[dataIndex]
+                        value = scatter.getValueData(copy=False)[dataIndex]
+                        self.__indexCache = dataIndex
 
-        return dataIndex
+        return value
 
-    def _getScatterValue(self, x, y):
-        return self.__valueCache
+    def _getScatterIndex(self, x, y):
+        return self.__indexCache
 
     _PICK_OFFSET = 3  # Offset in pixel used for picking
 
