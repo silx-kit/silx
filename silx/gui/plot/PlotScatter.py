@@ -77,13 +77,13 @@ class PlotScatter(qt.QMainWindow):
         self._colorbar.setPalette(palette)
 
         # Create PositionInfo widget
+        self.__valueCache = '-'
         self._positionInfo = tools.PositionInfo(
             plot=plot,
             converters=(('X', lambda x, y: x),
                         ('Y', lambda x, y: y),
-                        # TODO this is inefficient
-                        ('Index', lambda x, y: self._getScatterValue(x, y)[0]),
-                        ('Data', lambda x, y: self._getScatterValue(x, y)[1])))
+                        ('Index', lambda x, y: self._getScatterIndex(x, y)),
+                        ('Data', lambda x, y: self._getScatterValue(x, y))))
 
         # Combine plot, position info and colorbar into central widget
         gridLayout = qt.QGridLayout()
@@ -127,15 +127,15 @@ class PlotScatter(qt.QMainWindow):
             for action in toolbar.actions():
                 self.addAction(action)
 
-    def _getScatterValue(self, x, y):
-        """Get status bar value of top most image at position (x, y)
+    def _getScatterIndex(self, x, y):
+        """Get data index of top most scatter plot at position (x, y)
 
         :param float x: X position in plot coordinates
         :param float y: Y position in plot coordinates
-        :return: The index and value at that point or None
+        :return: The data index at that point or None
         """
-        dataIndex = None
-        value = None
+        self.__valueCache = '-'
+        dataIndex = '-'
         valueZ = -float('inf')
 
         plot = self.getPlotWidget()
@@ -146,14 +146,15 @@ class PlotScatter(qt.QMainWindow):
                     valueZ = zIndex
                     xPixel, yPixel = plot.dataToPixel(x, y, axis='left', check=False)
                     dataIndices = self._pick(scatter, xPixel, yPixel)
-                    if len(dataIndices) > 0:
-                        dataIndex = dataIndices[0]
-                        value = scatter.getValueData(copy=False)[dataIndex]
+                    if dataIndices:
+                        # Return last index, with matplotlib it should be the top-most point
+                        dataIndex = dataIndices[-1]
+                        self.__valueCache = scatter.getValueData(copy=False)[dataIndex]
 
-        if dataIndex is None:
-            return '-', '-'
-        else:
-            return dataIndex, value
+        return dataIndex
+
+    def _getScatterValue(self, x, y):
+        return self.__valueCache
 
     _PICK_OFFSET = 3  # Offset in pixel used for picking
 
