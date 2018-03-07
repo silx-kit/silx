@@ -173,20 +173,20 @@ class SceneWindow(qt.QMainWindow):
     def getInteractiveModeToolBar(self):
         """Returns the interactive mode toolbar.
 
-        :rtype: InteractiveModeToolBar
+        :rtype: ~silx.gui.plot3d.tools.InteractiveModeToolBar
         """
         return self._interactiveModeToolBar
 
     def getViewpointToolBar(self):
         """Returns the viewpoint toolbar.
 
-        :rtype: ViewpointToolBar
+        :rtype: ~silx.gui.plot3d.tools.ViewpointToolBar
         """
         return self._viewpointToolBar
 
     def getOutputToolBar(self):
         """Returns the output toolbar.
 
-        :rtype: OutputToolBar
+        :rtype: ~silx.gui.plot3d.tools.OutputToolBar
         """
         return self._outputToolBar

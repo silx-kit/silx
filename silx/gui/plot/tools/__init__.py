@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,19 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Set of widgets to associate with a :class:'PlotWidget'.
-"""
+"""This package provides a set of widgets working with :class:`PlotWidget`.
 
-from __future__ import absolute_import
+It provides some QToolBar and QWidget.
+"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/03/2018"
 
 
-from ...utils.deprecation import deprecated_warning
+from .toolbars import InteractiveModeToolBar  # noqa
+from .toolbars import OutputToolBar  # noqa
+from .toolbars import ImageToolBar, CurveToolBar  # noqa
 
-deprecated_warning(type_='module',
-                   name=__file__,
-                   reason='Plot tools refactoring',
-                   replacement='silx.gui.plot.tools',
-                   since_version='0.8')
-
-from .tools import PositionInfo, LimitsToolBar  # noqa
+from .LimitsToolBar import LimitsToolBar  # noqa
+from .PositionInfo import PositionInfo  # noqa

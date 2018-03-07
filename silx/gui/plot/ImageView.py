@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ from .. import qt
 from . import items, PlotWindow, PlotWidget, actions
 from .Colormap import Colormap
 from .Colors import cursorColorForColormap
-from .PlotTools import LimitsToolBar
+from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 
 
@@ -810,17 +810,17 @@ class ImageViewMainWindow(ImageView):
         self.statusBar()
 
         menu = self.menuBar().addMenu('File')
-        menu.addAction(self.saveAction)
-        menu.addAction(self.printAction)
+        menu.addAction(self.getOutputToolBar().getSaveAction())
+        menu.addAction(self.getOutputToolBar().getPrintAction())
         menu.addSeparator()
         action = menu.addAction('Quit')
         action.triggered[bool].connect(qt.QApplication.instance().quit)
 
         menu = self.menuBar().addMenu('Edit')
-        menu.addAction(self.copyAction)
+        menu.addAction(self.getOutputToolBar().getCopyAction())
         menu.addSeparator()
-        menu.addAction(self.resetZoomAction)
-        menu.addAction(self.colormapAction)
+        menu.addAction(self.getResetZoomAction())
+        menu.addAction(self.getColormapAction())
         menu.addAction(actions.control.KeepAspectRatioAction(self, self))
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
 
