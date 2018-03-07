@@ -32,8 +32,11 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "06/03/2018"
 
+
 import logging
 import weakref
+
+import numpy
 
 from . import PlotWidget
 from . import tools
@@ -73,12 +76,22 @@ class PlotScatter(qt.QMainWindow):
         palette.setColor(qt.QPalette.Window, qt.Qt.white)
         self._colorbar.setPalette(palette)
 
-        # Combine plot and colorbar into central widget
+        # Create PositionInfo widget
+        self._positionInfo = tools.PositionInfo(
+            plot=plot,
+            converters=(('X', lambda x, y: x),
+                        ('Y', lambda x, y: y),
+                        # TODO this is inefficient
+                        ('Index', lambda x, y: self._getScatterValue(x, y)[0]),
+                        ('Data', lambda x, y: self._getScatterValue(x, y)[1])))
+
+        # Combine plot, position info and colorbar into central widget
         gridLayout = qt.QGridLayout()
         gridLayout.setSpacing(0)
         gridLayout.setContentsMargins(0, 0, 0, 0)
         gridLayout.addWidget(plot, 0, 0)
         gridLayout.addWidget(self._colorbar, 0, 1)
+        gridLayout.addWidget(self._positionInfo, 1, 0, 1, -1)
         gridLayout.setRowStretch(0, 1)
         gridLayout.setColumnStretch(0, 1)
         centralWidget = qt.QWidget()
@@ -113,6 +126,86 @@ class PlotScatter(qt.QMainWindow):
             self.addToolBar(toolbar)
             for action in toolbar.actions():
                 self.addAction(action)
+
+    def _getScatterValue(self, x, y):
+        """Get status bar value of top most image at position (x, y)
+
+        :param float x: X position in plot coordinates
+        :param float y: Y position in plot coordinates
+        :return: The index and value at that point or None
+        """
+        dataIndex = None
+        value = None
+        valueZ = -float('inf')
+
+        plot = self.getPlotWidget()
+        if plot is not None:
+            for scatter in plot._getItems(kind='scatter'):
+                zIndex = scatter.getZValue()
+                if zIndex >= valueZ:
+                    valueZ = zIndex
+                    xPixel, yPixel = plot.dataToPixel(x, y, axis='left', check=False)
+                    dataIndices = self._pick(scatter, xPixel, yPixel)
+                    if len(dataIndices) > 0:
+                        dataIndex = dataIndices[0]
+                        value = scatter.getValueData(copy=False)[dataIndex]
+
+        if dataIndex is None:
+            return '-', '-'
+        else:
+            return dataIndex, value
+
+    _PICK_OFFSET = 3  # Offset in pixel used for picking
+
+    def _mouseInPlotArea(self, x, y):
+        plot = self.getPlotWidget()
+        left, top, width, height = plot.getPlotBoundsInPixels()
+        xPlot = numpy.clip(x, left, left + width -1)
+        yPlot = numpy.clip(y, top, top + height - 1)
+        return xPlot, yPlot
+
+    def _pick(self, scatter, x, y):
+        plot = self.getPlotWidget()
+
+        offset = self._PICK_OFFSET
+
+        markerSize = scatter.getSymbolSize()
+        offset = max(markerSize / 2., offset)
+        # TODO convert markerSize from points to pixel +
+        # TODO markerSize consistency between matplotlib and opengl
+
+        inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
+        dataPos = plot.pixelToData(inAreaPos[0], inAreaPos[1],
+                                   axis='left', check=True)
+        if dataPos is None:
+            return ()
+        xPick0, yPick0 = dataPos
+
+        inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
+        dataPos = plot.pixelToData(inAreaPos[0], inAreaPos[1],
+                                   axis='left', check=True)
+        if dataPos is None:
+            return ()
+        xPick1, yPick1 = dataPos
+
+        if xPick0 < xPick1:
+            xPickMin, xPickMax = xPick0, xPick1
+        else:
+            xPickMin, xPickMax = xPick1, xPick0
+
+        if yPick0 < yPick1:
+            yPickMin, yPickMax = yPick0, yPick1
+        else:
+            yPickMin, yPickMax = yPick1, yPick0
+
+        xData = scatter.getXData(copy=False)
+        yData = scatter.getYData(copy=False)
+
+        indices = numpy.nonzero((xData >= xPickMin) &
+                                (xData <= xPickMax) &
+                                (yData >= yPickMin) &
+                                (yData <= yPickMax))[0].tolist()
+        return indices
 
     def getPlotWidget(self):
         """Returns the :class:`~silx.gui.plot.PlotWidget` this window is based on.
