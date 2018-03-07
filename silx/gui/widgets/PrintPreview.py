@@ -31,7 +31,7 @@ The user can interactively move and resize the items.
 """
 import sys
 import logging
-from silx.gui import qt
+from silx.gui import qt, printer
 
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
@@ -387,7 +387,7 @@ class PrintPreviewDialog(qt.QDialog):
         *None*.
         """
         if self.printer is None:
-            self.printer = qt.QPrinter()
+            self.printer = printer.getDefaultPrinter()
         if self.printDialog is None:
             self.printDialog = qt.QPrintDialog(self.printer, self)
         if self.printDialog.exec_():
