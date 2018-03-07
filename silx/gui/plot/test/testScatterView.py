@@ -37,7 +37,7 @@ from silx.gui.plot import ScatterView
 from silx.gui.plot.test.utils import PlotWidgetTestCase
 
 
-class TestPlotScatter(PlotWidgetTestCase):
+class TestScatterView(PlotWidgetTestCase):
     """Test of ScatterView widget"""
 
     def _createPlot(self):
@@ -63,7 +63,7 @@ class TestPlotScatter(PlotWidgetTestCase):
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestPlotScatter))
+    test_suite.addTest(loadTests(TestScatterView))
     return test_suite
 
 
