@@ -47,6 +47,13 @@
    :show-inheritance:
    :members:
 
+:class:`ScatterToolBar` class
+-----------------------------
+
+.. autoclass:: ScatterToolBar
+   :show-inheritance:
+   :members:
+
 .. currentmodule:: silx.gui.plot
 
 :mod:`ColorBar`: ColorBar Widget

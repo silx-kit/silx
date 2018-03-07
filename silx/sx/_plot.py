@@ -333,7 +333,7 @@ def scatter(x=None, y=None, value=None, size=None,
     :param float vmin: The value to use for the min of the colormap
     :param float vmax: The value to use for the max of the colormap
     :return: The widget plotting the scatter plot
-    :rtype: silx.gui.plot.PlotScatter
+    :rtype: silx.gui.plot.ScatterView.ScatterView
     """
     plt = ScatterView()
 

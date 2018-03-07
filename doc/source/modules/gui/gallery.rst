@@ -179,7 +179,10 @@ Plotting widgets:
        2D dataset of complex data.
        It allows to switch between viewing amplitude, phase, real, imaginary,
        colored phase with amplitude or log10(amplitude) as brightness.
-
+   * - .. image:: plot/img/ScatterView.png
+          :height: 150px
+          :align: center
+     - :class:`ScatterView` is a widget dedicated to visualize a scatter plot.
 
 Additional widgets:
 
