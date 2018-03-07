@@ -24,7 +24,6 @@
 # ###########################################################################*/
 """Full silx test suite.
 
-
 It is possible to disable tests depending on Qt by setting
 `silx.test.utils.test_options.WITH_QT_TEST = False`
 It will skip all tests from :mod:`silx.test.gui`.
@@ -36,17 +35,35 @@ __date__ = "09/11/2017"
 
 
 import logging
-import os
 import unittest
+
+from silx.test.utils import test_options
 
 
 logger = logging.getLogger(__name__)
 
 
 def suite():
+    # In case Qt tests are not run, do not load sx as it loads Qt
+    # instead add a skipped test class to the suite
+    if not test_options.WITH_QT_TEST:
+        # Explicitly disabled tests
+        msg = "silx.sx tests disabled %s" % test_options.WITH_QT_TEST_REASON
+        logger.warning(msg)
+
+        class SkipSXTest(unittest.TestCase):
+            def runTest(self):
+                self.skipTest(test_options.WITH_QT_TEST_REASON)
+
+        def test_sx_suite():
+            suite = unittest.TestSuite()
+            suite.addTest(SkipSXTest())
+            return suite
+    else:
+        from ..sx.test import suite as test_sx_suite
+
     from . import test_version
     from . import test_resources
-    from ..sx import test as test_sx
     from ..io import test as test_io
     from ..math import test as test_math
     from ..image import test as test_image
@@ -57,7 +74,7 @@ def suite():
 
     test_suite = unittest.TestSuite()
     # test sx first cause qui tests load ipython module
-    test_suite.addTest(test_sx.suite())
+    test_suite.addTest(test_sx_suite())
     test_suite.addTest(test_gui.suite())
     # then test no-gui tests
     test_suite.addTest(test_utils.suite())
