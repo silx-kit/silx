@@ -50,7 +50,7 @@ from .. import qt, icons
 _logger = logging.getLogger(__name__)
 
 
-class PlotScatter(qt.QMainWindow):
+class ScatterView(qt.QMainWindow):
     """Main window with a PlotWidget and tools specific for scatter plots.
 
     :param parent: The parent of this widget
@@ -60,9 +60,9 @@ class PlotScatter(qt.QMainWindow):
     """
 
     def __init__(self, parent=None, backend=None):
-        super(PlotScatter, self).__init__(parent=parent)
+        super(ScatterView, self).__init__(parent=parent)
         if parent is None:
-            self.setWindowTitle('PlotScatter')
+            self.setWindowTitle('ScatterView')
 
         # Create plot widget
         plot = PlotWidget(parent=self, backend=backend)

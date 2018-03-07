@@ -39,7 +39,7 @@ import numpy
 
 from ..utils.weakref import WeakList
 from ..gui import qt
-from ..gui.plot import Plot1D, Plot2D, PlotScatter, PlotWidget
+from ..gui.plot import Plot1D, Plot2D, ScatterView, PlotWidget
 from ..gui.colors import COLORDICT
 from ..gui.colors import Colormap
 from silx.third_party import six
@@ -296,7 +296,7 @@ def scatter(x=None, y=None, value=None, size=None,
             cmap=None, norm=Colormap.LINEAR,
             vmin=None, vmax=None):
     """
-    Plot scattered data in a :class:`~silx.gui.plot.PlotScatter` widget.
+    Plot scattered data in a :class:`~silx.gui.plot.ScatterView` widget.
 
     How to use:
 
@@ -335,7 +335,7 @@ def scatter(x=None, y=None, value=None, size=None,
     :return: The widget plotting the scatter plot
     :rtype: silx.gui.plot.PlotScatter
     """
-    plt = PlotScatter()
+    plt = ScatterView()
 
     # Update default colormap with input parameters
     colormap = plt.getPlotWidget().getDefaultColormap()

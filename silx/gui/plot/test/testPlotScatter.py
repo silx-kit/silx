@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Basic tests for PlotScatter"""
+"""Basic tests for ScatterView"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -33,15 +33,15 @@ import unittest
 
 import numpy
 
-from silx.gui.plot import PlotScatter
+from silx.gui.plot import ScatterView
 from silx.gui.plot.test.utils import PlotWidgetTestCase
 
 
 class TestPlotScatter(PlotWidgetTestCase):
-    """Test of PlotScatter widget"""
+    """Test of ScatterView widget"""
 
     def _createPlot(self):
-        return PlotScatter()
+        return ScatterView()
 
     def test(self):
         """Simple tests"""

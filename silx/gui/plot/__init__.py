@@ -37,7 +37,7 @@ List of Qt widgets:
 - :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
 - :class:`.Plot1D`: A widget with tools for curves.
 - :class:`.Plot2D`: A widget with tools for images.
-- :class:`.PlotScatter`: A widget with tools for scatter plot.
+- :class:`.ScatterView`: A widget with tools for scatter plot.
 - :class:`.ImageView`: A widget with tools for images and a side histogram.
 - :class:`.StackView`: A widget with tools for a stack of images.
 
@@ -65,7 +65,7 @@ from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
 from .items.axis import TickMode
 from .ImageView import ImageView  # noqa
 from .StackView import StackView  # noqa
-from .PlotScatter import PlotScatter  # noqa
+from .ScatterView import ScatterView  # noqa
 
 __all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D',
-           'StackView', 'PlotScatter', 'TickMode']
+           'StackView', 'ScatterView', 'TickMode']
