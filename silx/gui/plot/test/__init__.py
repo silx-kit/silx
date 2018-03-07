@@ -32,6 +32,7 @@ import unittest
 from .._utils import test
 from . import testColorBar
 from . import testCurvesROIWidget
+from . import testCurvesStatsWidget
 from . import testAlphaSlider
 from . import testInteraction
 from . import testLegendSelector
@@ -58,6 +59,7 @@ def suite():
         [test.suite(),
          testColorBar.suite(),
          testCurvesROIWidget.suite(),
+         testCurvesStatsWidget.suite(),
          testAlphaSlider.suite(),
          testInteraction.suite(),
          testLegendSelector.suite(),
