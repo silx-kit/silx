@@ -47,17 +47,15 @@ __license__ = "MIT"
 __date__ = "13/11/2017"
 
 from collections import OrderedDict
-
 import logging
 import os
 import sys
 import weakref
-
+import functools
 import numpy
-
 from silx.io import dictdump
 from silx.utils import deprecation
-
+from silx.utils.weakref import WeakMethodProxy
 from .. import icons, qt
 
 
@@ -796,270 +794,278 @@ class ROITable(qt.QTableWidget):
     """Signal of ROI table modifications.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(ROITable, self).__init__(*args, **kwargs)
-        self.setRowCount(1)
-        self.labels = 'ROI', 'Type', 'From', 'To', 'Raw Counts', 'Net Counts'
-        self.setColumnCount(len(self.labels))
-        self.setSortingEnabled(False)
+    COLUMNS_INDEX = OrderedDict([
+        ('ROI', 0),
+        ('Type', 1),
+        ('From', 2),
+        ('To', 3),
+        ('Raw Counts', 4),
+        ('Net Counts', 5),
+        ('ROI Object', 6)
+    ])
 
-        for index, label in enumerate(self.labels):
-            item = self.horizontalHeaderItem(index)
-            if item is None:
-                item = qt.QTableWidgetItem(label,
-                                           qt.QTableWidgetItem.Type)
-            item.setText(label)
-            self.setHorizontalHeaderItem(index, item)
+    COLUMNS = list(COLUMNS_INDEX.keys())
 
+    INFO_NOT_FOUND = '????????'
+
+
+    def __init__(self, parent=None, plot=None, rois=None):
+        super(ROITable, self).__init__(parent)
+        self._RoiToItems = {}
         self.roidict = {}
-        self.roilist = []
-
-        self.building = False
-        self.fillFromROIDict(roilist=self.roilist, roidict=self.roidict)
-
-        self.cellClicked[(int, int)].connect(self._cellClickedSlot)
-        self.cellChanged[(int, int)].connect(self._cellChangedSlot)
-        verticalHeader = self.verticalHeader()
-        verticalHeader.sectionClicked[int].connect(self._rowChangedSlot)
-
+        self.setColumnCount(len(self.COLUMNS))
+        self.setPlot(plot)
         self.__setTooltip()
 
+    def clear(self):
+        self._RoiToItems = {}
+        qt.QTableWidget.clear(self)
+        self.setRowCount(0)
+        self.setHorizontalHeaderLabels(self.COLUMNS)
+        self.horizontalHeader().setSectionResizeMode(
+            qt.QHeaderView.ResizeToContents)
+        self.setColumnHidden(self.COLUMNS_INDEX['ROI Object'], True)
+        self.sortByColumn(2, qt.Qt.AscendingOrder)
+
+    def setPlot(self, plot):
+        self.clear()
+        self.plot = plot
+
     def __setTooltip(self):
-        assert(self.labels[0] == 'ROI')
-        self.horizontalHeaderItem(0).setToolTip('Region of interest identifier')
-        assert(self.labels[1] == 'Type')
-        self.horizontalHeaderItem(1).setToolTip('Type of the ROI')
-        assert(self.labels[2] == 'From')
-        self.horizontalHeaderItem(2).setToolTip('X-value of the min point')
-        assert(self.labels[3] == 'To')
-        self.horizontalHeaderItem(3).setToolTip('X-value of the max point')
-        assert(self.labels[4] == 'Raw Counts')
-        self.horizontalHeaderItem(4).setToolTip('Estimation of the integral \
-            between y=0 and the selected curve')
-        assert(self.labels[5] == 'Net Counts')
-        self.horizontalHeaderItem(5).setToolTip('Estimation of the integral \
-            between the segment [maxPt, minPt] and the selected curve')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['ROI']).setToolTip(
+            'Region of interest identifier')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['Type']).setToolTip(
+            'Type of the ROI')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['From']).setToolTip(
+            'X-value of the min point')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['To']).setToolTip(
+            'X-value of the max point')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['Raw Counts']).setToolTip(
+            'Estimation of the integral between y=0 and the selected curve')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['Net Counts']).setToolTip(
+            'Estimation of the integral between the segment [maxPt, minPt] '
+            'and the selected curve')
 
     def addRoi(self, roi):
-        pass
+        assert isinstance(roi, _ROI)
+        self.setRowCount(self.rowCount() + 1)
+        itemName = qt.QTableWidgetItem(roi.name, type=qt.QTableWidgetItem.Type)
+        if roi.name.upper() in ('ICR', 'DEFAULT'):
+            itemName.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+        else:
+            itemName.setFlags(qt.Qt.ItemIsSelectable |
+                              qt.Qt.ItemIsEnabled |
+                              qt.Qt.ItemIsEditable)
+        itemType = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+        itemType.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+        itemFrom = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+        itemFrom.setFlags(qt.Qt.ItemIsSelectable |
+                          qt.Qt.ItemIsEnabled |
+                          qt.Qt.ItemIsEditable)
+        itemTo = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+        itemTo.setFlags(qt.Qt.ItemIsSelectable |
+                        qt.Qt.ItemIsEnabled |
+                        qt.Qt.ItemIsEditable)
+        itemRawCounts = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+        itemNetCounts = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+        itemRoi = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+        itemRoi.setData(qt.QTableWidgetItem.Type, weakref.ref(roi))
 
-    def delRoi(self, roi):
-        pass
+        indexTable = self.rowCount() - 1
+        self.setItem(indexTable, self.COLUMNS_INDEX['ROI'], itemName)
+        self.setItem(indexTable, self.COLUMNS_INDEX['Type'], itemType)
+        self.setItem(indexTable, self.COLUMNS_INDEX['From'], itemFrom)
+        self.setItem(indexTable, self.COLUMNS_INDEX['To'], itemTo)
+        self.setItem(indexTable, self.COLUMNS_INDEX['Raw Counts'], itemRawCounts)
+        self.setItem(indexTable, self.COLUMNS_INDEX['Net Counts'], itemNetCounts)
+        self.setItem(indexTable, self.COLUMNS_INDEX['ROI Object'], itemRoi)
+
+        self._RoiToItems[roi.name] = itemName
+        self.roidict[roi.name] = weakref.ref(roi)
+        self.activeRoi = weakref.ref(roi)
+        self._updateRoiInfo(roi.name)
+        callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
+                                     roi.name)
+        roi.sigChanged.connect(callback)
+
+    def _computeRawAndNetCounts(self, roi):
+        if not self.plot:
+            return None, None
+
+        activeCurve = self.plot.getActiveCurve(just_legend=False)
+        if activeCurve is None:
+            if roiName == 'ICR':
+                assert roi.editable is False
+                roi.fromdata = 0
+                roi.todata = -1
+            return None, None
+
+        x = activeCurve.getXData(copy=False)
+        y = activeCurve.getYData(copy=False)
+        idx = numpy.argsort(x, kind='mergesort')
+        xproc = numpy.take(x, idx)
+        yproc = numpy.take(y, idx)
+
+        # update from and to only in the case of the non editable 'ICR' ROI
+        if roiName == 'ICR':
+            roi.fromdata = xproc.min()
+            roi.todata = xproc.max()
+
+        idx = numpy.nonzero((roi.fromdata <= xproc) & (xproc <= roi.todata))[0]
+        if len(idx):
+            xw = xproc[idx]
+            yw = yproc[idx]
+            rawCounts = yw.sum(dtype=numpy.float)
+            deltaX = xw[-1] - xw[0]
+            deltaY = yw[-1] - yw[0]
+            if deltaX > 0.0:
+                slope = (deltaY / deltaX)
+                background = yw[0] + slope * (xw - xw[0])
+                netCounts = (rawCounts -
+                             background.sum(dtype=numpy.float))
+            else:
+                netCounts = 0.0
+            return rawCounts, netCounts
+        else:
+            return 0.0, 0.0
+
+    def _updateRoiInfo(self, roiName):
+        if roiName not in self.roidict:
+            return
+        if not self.roidict[roiName]():
+            del self.roidict[roiName]
+            self._RoiToItems[roiName]
+            return
+        roi = self.roidict[roiName]()
+        assert roi.name in self._RoiToItems
+
+        itemName = self._RoiToItems[roi.name]
+        itemType = self.item(itemName.row(), self.COLUMNS_INDEX['Type'])
+        itemType.setText(roi.type or self.INFO_NOT_FOUND)
+
+        itemFrom = self.item(itemName.row(), self.COLUMNS_INDEX['From'])
+        fromdata = str(roi.fromdata) if roi.fromdata is not None else self.INFO_NOT_FOUND
+        itemFrom.setText(fromdata)
+
+        itemTo = self.item(itemName.row(), self.COLUMNS_INDEX['To'])
+        todata = str(roi.todata) if roi.todata is not None else self.INFO_NOT_FOUND
+        itemTo.setText(todata)
+
+        self._computeRawAndNetCounts(roi)
+        itemRawCounts = self.item(itemName.row(), self.COLUMNS_INDEX['Raw Counts'])
+        rawCounts = str(roi.rawCounts) if roi.rawCounts is not None else self.INFO_NOT_FOUND
+        itemRawCounts.setText(rawCounts)
+
+        itemNetCounts = self.item(itemName.row(), self.COLUMNS_INDEX['Net Counts'])
+        netCounts = str(roi.netCounts) if roi.netCounts is not None else self.INFO_NOT_FOUND
+        itemNetCounts.setText(netCounts)
 
     def currentChanged(self, current, previous):
-        pass
-        qt.QTableWidget.currentChanged(current, previous)
-
-    def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
-        """Set the ROIs by providing a list of ROI names and a dictionary
-        of ROI information for each ROI.
-
-        The ROI names must match an existing dictionary key.
-        The name list is used to provide an order for the ROIs.
-
-        The dictionary's values are sub-dictionaries containing 3
-        mandatory fields:
-
-           - ``"from"``: x coordinate of the left limit, as a float
-           - ``"to"``: x coordinate of the right limit, as a float
-           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
-
-        :param roilist: List of ROI names (keys of roidict)
-        :type roilist: List
-        :param dict roidict: Dict of ROI information
-        :param currentroi: Name of the selected ROI or None (no selection)
-        """
-        if roidict is None:
-            roidict = {}
-
-        for roi in roilist:
-            assert isinstance(roi, _ROI)
-
-        self.building = True
-        line0 = 0
-        print(roilist)
-        self.roilist = []
-        self.roidict = {}
-        for roi in roilist:
-            assert roi.name in list(roidict.keys())
-            key = roi.name
-            roi = roidict[key]
-            self.roilist.append(roi)
-            self.roidict[key] = roi
-            line0 = line0 + 1
-            nlines = self.rowCount()
-            if (line0 > nlines):
-                self.setRowCount(line0)
-            line = line0 - 1
-            self.roidict[key]['line'] = line
-            ROI = key
-            roitype = "%s" % roi['type']
-            fromdata = "%6g" % (roi['from'])
-            todata = "%6g" % (roi['to'])
-            if 'rawcounts' in roi:
-                rawcounts = "%6g" % (roi['rawcounts'])
-            else:
-                rawcounts = " ?????? "
-            if 'netcounts' in roi:
-                netcounts = "%6g" % (roi['netcounts'])
-            else:
-                netcounts = " ?????? "
-            fields = [ROI, roitype, fromdata, todata, rawcounts, netcounts]
-            col = 0
-            for field in fields:
-                key2 = self.item(line, col)
-                if key2 is None:
-                    key2 = qt.QTableWidgetItem(field,
-                                               qt.QTableWidgetItem.Type)
-                    self.setItem(line, col, key2)
-                else:
-                    key2.setText(field)
-                if (ROI.upper() == 'ICR') or (ROI.upper() == 'DEFAULT'):
-                        key2.setFlags(qt.Qt.ItemIsSelectable |
-                                      qt.Qt.ItemIsEnabled)
-                else:
-                    if col in [0, 2, 3]:
-                        key2.setFlags(qt.Qt.ItemIsSelectable |
-                                      qt.Qt.ItemIsEnabled |
-                                      qt.Qt.ItemIsEditable)
-                    else:
-                        key2.setFlags(qt.Qt.ItemIsSelectable |
-                                      qt.Qt.ItemIsEnabled)
-                col = col + 1
-        print('line0 is %s' % line0)
-        self.setRowCount(line0)
-        i = 0
-        for _label in self.labels:
-            self.resizeColumnToContents(i)
-            i = i + 1
-        self.sortByColumn(2, qt.Qt.AscendingOrder)
-        # for i in range(len(self.roilist)):
-        #     key = str(self.item(i, 0).text())
-        #     self.roilist[i] = key
-        #     self.roidict[key]['line'] = i
-        # if len(self.roilist) == 1:
-        #     self.selectRow(0)
-        # else:
-        #     if currentroi in self.roidict.keys():
-        #         self.selectRow(self.roidict[currentroi]['line'])
-        #         _logger.debug("Qt4 ensureCellVisible to be implemented")
-        self.building = False
-
-    def getROIListAndDict(self):
-        """Return the currently defined ROIs, as a 2-tuple
-        ``(roiList, roiDict)``
-
-        ``roiList`` is a list of ROI names.
-        ``roiDict`` is a dictionary of ROI info.
-
-        The ROI names must match an existing dictionary key.
-        The name list is used to provide an order for the ROIs.
-
-        The dictionary's values are sub-dictionaries containing 3
-        fields:
-
-           - ``"from"``: x coordinate of the left limit, as a float
-           - ``"to"``: x coordinate of the right limit, as a float
-           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
-
-
-        :return: ordered dict as a tuple of (list of ROI names, dict of info)
-        """
-        return self.roilist, self.roidict
-
-    def _cellClickedSlot(self, *var, **kw):
-        # selection changed event, get the current selection
-        row = self.currentRow()
-        col = self.currentColumn()
-        if row >= 0 and row < len(self.roilist):
-            item = self.item(row, 0)
-            text = '' if item is None else str(item.text())
-            self.roilist[row] = text
-            self._emitSelectionChangedSignal(row, col)
-
-    def _rowChangedSlot(self, row):
-        self._emitSelectionChangedSignal(row, 0)
-
-    def _cellChangedSlot(self, row, col):
-        _logger.debug("_cellChangedSlot(%d, %d)", row, col)
-        if self.building:
-            return
-        if col == 0:
-            self.nameSlot(row, col)
-        else:
-            self._valueChanged(row, col)
-
-    def _valueChanged(self, row, col):
-        if col not in [2, 3]:
-            return
-        item = self.item(row, col)
-        if item is None:
-            return
-        text = str(item.text())
-        try:
-            value = float(text)
-        except:
-            return
-        if row >= len(self.roilist):
-            _logger.debug("deleting???")
-            return
-        item = self.item(row, 0)
-        if item is None:
-            text = ""
-        else:
-            text = str(item.text())
-        if not len(text):
-            return
-        if col == 2:
-            self.roidict[text]['from'] = value
-        elif col == 3:
-            self.roidict[text]['to'] = value
-        self._emitSelectionChangedSignal(row, col)
-
-    def nameSlot(self, row, col):
-        if col != 0:
-            return
-        if row >= len(self.roilist):
-            _logger.debug("deleting???")
-            return
-        item = self.item(row, col)
-        if item is None:
-            text = ""
-        else:
-            text = str(item.text())
-        if len(text) and (text not in self.roilist):
-            old = self.roilist[row]
-            self.roilist[row] = text
-            self.roidict[text] = {}
-            self.roidict[text].update(self.roidict[old])
-            del self.roidict[old]
-            self._emitSelectionChangedSignal(row, col)
-
-    def _emitSelectionChangedSignal(self, row, col):
-        ddict = {}
-        ddict['event'] = "selectionChanged"
-        ddict['row'] = row
-        ddict['col'] = col
-        ddict['roi'] = self.roidict[self.roilist[row]]
-        ddict['key'] = self.roilist[row]
-        ddict['colheader'] = self.labels[col]
-        ddict['rowheader'] = "%d" % row
-        self.sigROITableSignal.emit(ddict)
+        if previous and current.row() != previous.row():
+            # note: roi is registred as a weak ref
+            self.activeRoi = self.item(current.row(), self.COLUMNS_INDEX['ROI Object']).data(
+                qt.QTableWidgetItem.Type)()
+            assert self.activeRoi
+            # self._updateMarkers()
+        qt.QTableWidget.currentChanged(self, current, previous)
+    #
+    # def _cellClickedSlot(self, *var, **kw):
+    #     # selection changed event, get the current selection
+    #     row = self.currentRow()
+    #     col = self.currentColumn()
+    #     if row >= 0 and row < len(self.roilist):
+    #         item = self.item(row, 0)
+    #         text = '' if item is None else str(item.text())
+    #         self.roilist[row] = text
+    #         self._emitSelectionChangedSignal(row, col)
+    #
+    # def _rowChangedSlot(self, row):
+    #     self._emitSelectionChangedSignal(row, 0)
+    #
+    # def _cellChangedSlot(self, row, col):
+    #     _logger.debug("_cellChangedSlot(%d, %d)", row, col)
+    #     if self.building:
+    #         return
+    #     if col == 0:
+    #         self.nameSlot(row, col)
+    #     else:
+    #         self._valueChanged(row, col)
+    #
+    # def _valueChanged(self, row, col):
+    #     if col not in [2, 3]:
+    #         return
+    #     item = self.item(row, col)
+    #     if item is None:
+    #         return
+    #     text = str(item.text())
+    #     try:
+    #         value = float(text)
+    #     except:
+    #         return
+    #     if row >= len(self.roilist):
+    #         _logger.debug("deleting???")
+    #         return
+    #     item = self.item(row, 0)
+    #     if item is None:
+    #         text = ""
+    #     else:
+    #         text = str(item.text())
+    #     if not len(text):
+    #         return
+    #     if col == 2:
+    #         self.roidict[text]['from'] = value
+    #     elif col == 3:
+    #         self.roidict[text]['to'] = value
+    #     self._emitSelectionChangedSignal(row, col)
+    #
+    # def nameSlot(self, row, col):
+    #     if col != 0:
+    #         return
+    #     if row >= len(self.roilist):
+    #         _logger.debug("deleting???")
+    #         return
+    #     item = self.item(row, col)
+    #     if item is None:
+    #         text = ""
+    #     else:
+    #         text = str(item.text())
+    #     if len(text) and (text not in self.roilist):
+    #         old = self.roilist[row]
+    #         self.roilist[row] = text
+    #         self.roidict[text] = {}
+    #         self.roidict[text].update(self.roidict[old])
+    #         del self.roidict[old]
+    #         self._emitSelectionChangedSignal(row, col)
+    #
+    # def _emitSelectionChangedSignal(self, row, col):
+    #     ddict = {}
+    #     ddict['event'] = "selectionChanged"
+    #     ddict['row'] = row
+    #     ddict['col'] = col
+    #     ddict['roi'] = self.roidict[self.roilist[row]]
+    #     ddict['key'] = self.roilist[row]
+    #     ddict['colheader'] = self.labels[col]
+    #     ddict['rowheader'] = "%d" % row
+    #     self.sigROITableSignal.emit(ddict)
 
 
 class _ROI(qt.QObject):
 
-    sigChanged = qt.QObject()
-    def __init__(self, name):
+    sigChanged = qt.Signal()
+
+    def __init__(self, name, fromdata=None, todata=None):
         qt.QObject.__init__(self)
         assert type(name) is str
         self.name = name
-        self.fromdata = None
-        self.todata = None
+        self.fromdata = fromdata
+        self.todata = todata
         self.marker = None
         self.draggable = False
         self.color = 'blue'
         self.type = 'Default'
+        self.editable=True
+        self.rawCounts = None
+        self.netCounts = None
 
     def fromDict(self, ddict):
         pass
