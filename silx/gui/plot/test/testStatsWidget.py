@@ -105,9 +105,62 @@ class TestStatsWidgetWithCurves(TestCaseQt):
         self.assertTrue(self.widget.rowCount() is 1)
 
 
+class TestStatsWidgetWithImages(TestCaseQt):
+    """Basic test for StatsWidget with images"""
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.plot = Plot2D()
+
+        self.plot.addImage(data=numpy.arange(128*128).reshape(128, 128),
+                           legend='test1', replace=False)
+
+        self.widget = StatsWidget.StatsTable(plot=self.plot)
+
+    def tearDown(self):
+        del self.widget
+        del self.plot
+        TestCaseQt.tearDown(self)
+
+    def test(self):
+        pass
+
+
+class TestStatsWidgetWithScatter(TestCaseQt):
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.scatterPlot = Plot2D()
+        self.scatterPlot.addScatter([0, 1, 2, 20, 50, 60],
+                                    [2, 3, 4, 26, 69, 6],
+                                    [5, 6, 7, 10, 90, 20],
+                                    legend='scatter plot')
+        self.widget = StatsWidget.StatsTable(plot=self.scatterPlot)
+
+    def tearDown(self):
+        del self.widget
+        del self.scatterPlot
+        TestCaseQt.tearDown(self)
+
+    def testStats(self):
+        columnsIndex = StatsWidget.StatsTable.COLUMNS_INDEX
+        itemLegend = self.widget._legendToItems['scatter plot']
+        itemMin = self.widget.item(itemLegend.row(), columnsIndex['min'])
+        itemMax = self.widget.item(itemLegend.row(), columnsIndex['max'])
+        itemDelta = self.widget.item(itemLegend.row(), columnsIndex['delta'])
+        itemCoordsMin = self.widget.item(itemLegend.row(),
+                                         columnsIndex['coords min'])
+        itemCoordsMax = self.widget.item(itemLegend.row(),
+                                         columnsIndex['coords max'])
+        self.assertTrue(itemMin.text() == '5')
+        self.assertTrue(itemMax.text() == '90')
+        self.assertTrue(itemDelta.text() == '85')
+        self.assertTrue(itemCoordsMin.text() == '(0, 2)')
+        self.assertTrue(itemCoordsMax.text() == '(50, 69)')
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    for TestClass in (TestStatsWidgetWithCurves,):
+    for TestClass in (TestStatsWidgetWithCurves, TestStatsWidgetWithImages,
+                      TestStatsWidgetWithScatter):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite

@@ -64,8 +64,7 @@ class StatsTable(qt.QTableWidget):
         ('std', 6),
         ('mean', 7),
         ('COM', 8),
-        ('COM coords', 9),
-        ('kind', 10),
+        ('kind', 9),
     ])
 
     COLUMNS = COLUMNS_INDEX.keys()
@@ -105,7 +104,7 @@ class StatsTable(qt.QTableWidget):
         if action == 'add':
             self._addItem(self.plot.getCurve(legend))
         elif action == 'remove':
-            self._removeItem(legend)
+            self._removeItem(legend, kind)
 
     def clear(self):
         self._plotItemToItemsIndex = {}
@@ -114,7 +113,7 @@ class StatsTable(qt.QTableWidget):
         self.setHorizontalHeaderLabels(self.COLUMNS)
         self.horizontalHeader().setSectionResizeMode(qt.QHeaderView.ResizeToContents)
         self.horizontalHeader().setStretchLastSection(True)
-        self.setRowHidden(self.COLUMNS_INDEX['kind'], True)
+        self.setColumnHidden(self.COLUMNS_INDEX['kind'], True)
 
     def _addItem(self, item):
         def getKind(myItem):
@@ -128,7 +127,7 @@ class StatsTable(qt.QTableWidget):
                 return None
         assert isinstance(item, self.COMPATAIBLE_ITEMS)
         if item.getLegend() in self._legendToItems:
-            self._updateStats(item)
+            self._updateStats(item, getKind(item))
             return
 
         self.setRowCount(self.rowCount() + 1)
@@ -137,7 +136,6 @@ class StatsTable(qt.QTableWidget):
         indexTable = self.rowCount() - 1
         kind = getKind(item)
         for itemName in self.COLUMNS:
-            print(itemName)
             _item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
             if itemName == 'legend':
                 _item.setText(item.getLegend())
@@ -163,7 +161,6 @@ class StatsTable(qt.QTableWidget):
             silx.utils.weakref.WeakMethodProxy(self._updateStats),
             legend,
             kind)
-
         if kind == 'curve':
             item = self.plot.getCurve(legend)
         elif kind == 'image':
@@ -178,7 +175,79 @@ class StatsTable(qt.QTableWidget):
         del self._legendToItems[legend]
         self.removeRow(self.firstItem.row())
 
-    def _updateStats(self, legend, kind):
+    def _updateStats(self, legend, kind, *args, **kwargs):
+        def computeCurveStats(item):
+            res = {}
+            if item is None:
+                return res
+            # TODO: reduce data according to the plot zoom
+            xData, yData = item.getData(copy=False)[0:2]
+            min, max = min_max(yData)
+            res['min'], res['max'], res['delta'] = min, max, (max - min)
+            res['coords min'] = xData[numpy.where(yData == min)]
+            res['coords max'] = xData[numpy.where(yData == max)]
+            com = numpy.sum(xData * yData) / numpy.sum(yData)
+            res['COM'] = com
+            res['std'] = numpy.std(yData)
+            res['mean'] = numpy.mean(yData)
+            return res
+
+        def computeImageStats(item):
+            def getCoordsFor(data, value):
+                coordsY, coordsX = numpy.where(data==value)
+                if len(coordsX) is 0:
+                    return []
+                if len(coordsX) is 1:
+                    return (coordsX[0], coordsY[0])
+                coords = []
+                for xCoord, yCoord in zip(coordsX, coordsY):
+                    coord = (xCoord, yCoord)
+                    coords.append(coord)
+                return coords
+
+            res = {}
+            if item is None:
+                return res
+            # TODO: reduce data according to the plot zoom
+            data = item.getData(copy=False)
+            min, max = min_max(data)
+            res['min'], res['max'], res['delta'] = min, max, (max - min)
+            res['coords min'] = getCoordsFor(min, data)
+            res['coords max'] = getCoordsFor(max, data)
+
+            com = numpy.sum(data) / data.size
+            res['COM'] = com
+            res['std'] = numpy.std(data)
+            res['mean'] = numpy.mean(data)
+            return res
+
+        def computeScatterStats(item):
+            def getCoordsFor(xData, yData, valueData, value):
+                indexes = numpy.where(valueData == value)
+                if len(indexes) is 0:
+                    return []
+                if len(indexes) is 1:
+                    return (xData[indexes[0][0]], yData[indexes[0][0]])
+                res = []
+                for index in indexes:
+                    assert(len(index) is 1)
+                    res.append((xData[index[0]], yData[index[0]]))
+                return res
+            res = {}
+            if item is None:
+                return res
+            # TODO: reduce data according to the plot zoom
+            xData, yData, valueData, xerror, yerror = item.getData(copy=False)
+            min, max = min_max(valueData)
+            res['min'], res['max'], res['delta'] = min, max, (max - min)
+            res['coords min'] = getCoordsFor(xData, yData, valueData, min)
+            res['coords max'] = getCoordsFor(xData, yData, valueData, max)
+            com = numpy.sum(xData * yData) / numpy.sum(yData)
+            res['COM'] = com
+            res['std'] = numpy.std(valueData)
+            res['mean'] = numpy.mean(valueData)
+            return res
+
         def retrieveItems(item):
             items = {}
             itemLegend = self._legendToItems[item.getLegend()]
@@ -195,10 +264,13 @@ class StatsTable(qt.QTableWidget):
         assert kind in ('curve', 'image', 'scatter')
         if kind == 'curve':
             item = self.plot.getCurve(legend)
+            stats = computeCurveStats(item)
         elif kind == 'image':
             item = self.plot.getImage(legend)
+            stats = computeImageStats(item)
         elif kind == 'scatter':
             item = self.plot.getScatter(legend)
+            stats = computeScatterStats(item)
         else:
             raise ValueError('kind not managed')
 
@@ -209,34 +281,22 @@ class StatsTable(qt.QTableWidget):
 
         items = retrieveItems(item)
 
-        # TODO: reduce data according to the plot zoom
-        xData, yData = item.getData(copy=False)[0:2]
-        min, max = min_max(yData)
-        items['min'].setText(str(min))
-        items['coords min'].setText(str(xData[numpy.where(yData==min)]))
-        items['max'].setText(str(max))
-        items['coords max'].setText(str(xData[numpy.where(yData==max)]))
-        items['delta'].setText(str(max - min))
-        com = numpy.sum(yData) / len(yData)
-        # TODO : add the coords of the COM
-        comCoords = xData[(numpy.abs(yData - com)).argmin()]
-        items['COM'].setText(str(com))
-        items['COM coords'].setText(str(comCoords))
-
-        std = numpy.std(yData)
-        items['std'].setText(str(std))
-        mean = numpy.mean(yData)
-        items['mean'].setText(str(mean))
+        for itemLabel in self.COLUMNS:
+            if itemLabel in ('legend', 'kind'):
+                continue
+            assert itemLabel in stats
+            items[itemLabel].setText(str(stats[itemLabel]))
 
     def currentChanged(self, current, previous):
         legendItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
-        kindItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
+        kindItem = self.item(current.row(), self.COLUMNS_INDEX['kind'])
+        kind = kindItem.text()
         if kind == 'curve':
             self.plot.setActiveCurve(legendItem.text())
         elif kind =='image':
             self.plot.setActiveImage(legendItem.text())
         elif kind =='scatter':
-            self.plot.setActiveScatter(legendItem.text())
+            self.plot._setActiveItem('scatter', legendItem.text())
         else:
             raise ValueError('kind not managed')
         qt.QTableWidget.currentChanged(self, current, previous)
