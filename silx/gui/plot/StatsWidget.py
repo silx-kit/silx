@@ -41,7 +41,7 @@ import silx
 
 class CurvesStatsTable(qt.QTableWidget):
     """
-    TableWidget displying for each curves contained by the Plot some
+    TableWidget displaying for each curves contained by the Plot some
     information:
     
     * legend
@@ -55,8 +55,14 @@ class CurvesStatsTable(qt.QTableWidget):
     COLUMNS_INDEX = OrderedDict([
         ('legend', 0),
         ('min', 1),
-        ('max', 2),
-        ('std', 3)
+        ('coords min', 2),
+        ('max', 3),
+        ('coords max', 4),
+        ('delta', 5),
+        ('std', 6),
+        ('mean', 7),
+        ('COM', 8),
+        ('COM coords', 9),
     ])
 
     COLUMNS = COLUMNS_INDEX.keys()
@@ -110,17 +116,18 @@ class CurvesStatsTable(qt.QTableWidget):
 
         self.setRowCount(self.rowCount() + 1)
 
-        itemLegend = qt.QTableWidgetItem(curve.getLegend(),
-                                         type=qt.QTableWidgetItem.Type)
-        itemMin = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-        itemMax = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-        itemStd = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-
+        itemLegend = None
         indexTable = self.rowCount() - 1
-        self.setItem(indexTable, self.COLUMNS_INDEX['legend'], itemLegend)
-        self.setItem(indexTable, self.COLUMNS_INDEX['min'], itemMin)
-        self.setItem(indexTable, self.COLUMNS_INDEX['max'], itemMax)
-        self.setItem(indexTable, self.COLUMNS_INDEX['std'], itemStd)
+        print('set on %s' % indexTable)
+        for itemName in self.COLUMNS:
+            print(itemName)
+            item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+            if itemName == 'legend':
+                item.setText(curve.getLegend())
+                itemLegend = item
+            self.setItem(indexTable, self.COLUMNS_INDEX[itemName], item)
+
+        assert itemLegend
         self._curveToItems[curve.getLegend()] = itemLegend
         self._updateCurveStats(legend=curve.getLegend())
 
@@ -143,24 +150,44 @@ class CurvesStatsTable(qt.QTableWidget):
         self.removeRow(self.firstItem.row())
 
     def _updateCurveStats(self, legend, *args, **kwargs):
+        def retrieveItems(curve):
+            items = {}
+            itemLegend = self._curveToItems[curve.getLegend()]
+            items['legend'] = itemLegend
+            assert itemLegend
+            for itemName in self.COLUMNS:
+                if itemName == 'legend':
+                    continue
+                items[itemName] = self.item(itemLegend.row(),
+                                            self.COLUMNS_INDEX[itemName])
+            return items
+
         curve = self.plot.getCurve(legend)
         if not curve:
             return
         assert isinstance(curve, CurveItem)
         assert curve.getLegend() in self._curveToItems
 
-        itemLegend = self._curveToItems[curve.getLegend()]
-        itemMin = self.item(itemLegend.row(), self.COLUMNS_INDEX['min'])
-        itemMax = self.item(itemLegend.row(), self.COLUMNS_INDEX['max'])
-        itemStd = self.item(itemLegend.row(), self.COLUMNS_INDEX['std'])
+        items = retrieveItems(curve)
 
-        yData = curve.getData(copy=False)[1]
+        # TODO: reduce data according to the plot zoom
+        xData, yData = curve.getData(copy=False)[0:2]
         min, max = min_max(yData)
-        itemMin.setText(str(min))
-        itemMax.setText(str(max))
+        items['min'].setText(str(min))
+        items['coords min'].setText(str(xData[numpy.where(yData==min)]))
+        items['max'].setText(str(max))
+        items['coords max'].setText(str(xData[numpy.where(yData==max)]))
+        items['delta'].setText(str(max - min))
+        com = numpy.sum(yData) / len(yData)
+        # TODO : add the coords of the COM
+        comCoords = xData[(numpy.abs(yData - com)).argmin()]
+        items['COM'].setText(str(com))
+        items['COM coords'].setText(str(comCoords))
 
         std = numpy.std(yData)
-        itemStd.setText(str(std))
+        items['std'].setText(str(std))
+        mean = numpy.mean(yData)
+        items['mean'].setText(str(mean))
 
     def currentChanged(self, current, previous):
         legendItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
