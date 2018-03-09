@@ -41,6 +41,57 @@ import numpy
 import silx
 
 
+class StatsWidget(qt.QWidget):
+    class OptionsWidget(qt.QWidget):
+
+        ITEM_SEL_OPTS = ('All items', 'Active item only')
+
+        ITEM_DATA_RANGE_OPTS = ('full data range', 'visible data range')
+
+        def __init__(self, parent=None):
+            qt.QWidget.__init__(self, parent)
+            self.setLayout(qt.QHBoxLayout())
+            spacer = qt.QWidget(parent=self)
+            spacer.setSizePolicy(qt.QSizePolicy.Expanding,
+                                 qt.QSizePolicy.Minimum)
+            self.layout().setContentsMargins(0, 0, 0, 0)
+            self.layout().addWidget(qt.QLabel('Stats opts:', parent=self))
+            self.layout().addWidget(spacer)
+            self.layout().addWidget(qt.QLabel('display', parent=self))
+            self.itemSelection = qt.QComboBox(parent=self)
+            for opt in self.ITEM_SEL_OPTS:
+                self.itemSelection.addItem(opt)
+            self.layout().addWidget(self.itemSelection)
+            self.layout().addWidget(qt.QLabel('compute stats on', parent=self))
+            self.dataRangeSelection = qt.QComboBox(parent=self)
+            for opt in self.ITEM_DATA_RANGE_OPTS:
+                self.dataRangeSelection.addItem(opt)
+            self.layout().addWidget(self.dataRangeSelection)
+
+    def __init__(self, parent=None, plot=None):
+        qt.QWidget.__init__(self, parent)
+        self.setLayout(qt.QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self._options = self.OptionsWidget(parent=self)
+        self.layout().addWidget(self._options)
+        self._statsTable = StatsTable(parent=self, plot=plot)
+        self.layout().addWidget(self._statsTable)
+        self.setPlot = self._statsTable.setPlot
+
+        self._options.itemSelection.currentTextChanged.connect(
+            self._optSelectionChanged)
+        self._options.dataRangeSelection.currentTextChanged.connect(
+            self._optDataRangeChanged)
+
+    def _optSelectionChanged(self, opt):
+        assert opt in self.OptionsWidget.ITEM_SEL_OPTS
+        self._statsTable.setDisplayOnlyActiveItem(opt == 'Active item only')
+
+    def _optDataRangeChanged(self, opt):
+        assert opt in self.OptionsWidget.ITEM_DATA_RANGE_OPTS
+        self._statsTable.setStatsOnVisibleData(opt == 'visible data range')
+
+
 class StatsTable(qt.QTableWidget):
     """
     TableWidget displaying for each curves contained by the Plot some
@@ -76,7 +127,12 @@ class StatsTable(qt.QTableWidget):
         qt.QTableWidget.__init__(self, parent)
         """Next freeID for the curve"""
         self.plot = None
+        self._displayOnlyActItem = False
+        self._statsOnVisibleData = False
         self._legendToItems = {}
+        self.callbackImage = None
+        self.callbackScatter = None
+        self.callbackCurve = None
         """Associate the curve legend to his first item"""
         self.setColumnCount(len(self.COLUMNS))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -93,21 +149,62 @@ class StatsTable(qt.QTableWidget):
         self.plot = plot
         self.clear()
         if self.plot:
-            [self._addItem(curve) for curve in self.plot.getAllCurves()]
-            [self._addItem(image) for image in self.plot.getAllImages()]
-            [self._addItem(scatter) for scatter in self.plot.getAllScatters()]
-            self.plot.sigContentChanged.connect(self._plotContentChanged)
+            self._updateItemObserve(init=True)
 
-    def _plotContentChanged(self, action, kind, legend):
-        if kind != 'curve':
-            return
-        if action == 'add':
-            self._addItem(self.plot.getCurve(legend))
-        elif action == 'remove':
-            self._removeItem(legend, kind)
+    def _updateItemObserve(self, switchItemsDisplayedType=False, init=False):
+        if self.plot:
+            if init is False:
+                self._dealWithPlotConnection(create=False)
+            self.clear()
+            if switchItemsDisplayedType:
+                self._displayOnlyActItem = not self._displayOnlyActItem
+            if self._displayOnlyActItem is True:
+                activeCurve = self.plot.getActiveCurve(just_legend=False)
+                activeScatter = self.plot._getActiveItem(kind='scatter',
+                                                         just_legend=False)
+                activeImage = self.plot.getActiveImage(just_legend=False)
+                if activeCurve:
+                    self._addItem(activeCurve)
+                if activeImage:
+                    self._addItem(activeImage)
+                if activeScatter:
+                    self._addItem(activeScatter)
+            else:
+                [self._addItem(curve) for curve in self.plot.getAllCurves()]
+                [self._addItem(image) for image in self.plot.getAllImages()]
+                [self._addItem(scatter) for scatter in self.plot.getAllScatters()]
+                self.plot.sigContentChanged.connect(self._plotContentChanged)
+            self._dealWithPlotConnection(create=True)
 
-    def clear(self):
-        self._plotItemToItemsIndex = {}
+    def _dealWithPlotConnection(self, create=True):
+        if self._displayOnlyActItem:
+            if self.callbackImage is None:
+                self.callbackImage = functools.partial(self._activeItemChanged, 'image')
+                self.callbackScatter = functools.partial(self._activeItemChanged,
+                                                    'scatter')
+                self.callbackCurve = functools.partial(self._activeItemChanged, 'curve')
+            if create is True:
+                self.plot.sigActiveImageChanged.connect(self.callbackImage)
+                self.plot.sigActiveScatterChanged.connect(self.callbackScatter)
+                self.plot.sigActiveCurveChanged.connect(self.callbackCurve)
+            else:
+                self.plot.sigActiveImageChanged.disconnect(self.callbackImage)
+                self.plot.sigActiveScatterChanged.disconnect(self.callbackScatter)
+                self.plot.sigActiveCurveChanged.disconnect(self.callbackCurve)
+        else:
+            if create is True:
+                self.plot.sigContentChanged.connect(self._plotContentChanged)
+            else:
+                self.plot.sigContentChanged.disconnect(self._plotContentChanged)
+                # Note: connection on Item arre managed by the _removeItem function
+
+    def clear(self, rmConnections=False):
+        legends = list(self._legendToItems.keys())
+        for legend in legends:
+            kind = self.item(self._legendToItems[legend].row(),
+                             self.COLUMNS_INDEX['kind']).text()
+            self._removeItem(legend=legend, kind=kind)
+        self._legendToItems = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
@@ -169,8 +266,6 @@ class StatsTable(qt.QTableWidget):
             item = self.plot.getScatter(legend)
         else:
             raise ValueError('Kind not managed')
-        if item:
-            item.sigItemChanged.discconnect(callback)
         self.firstItem = self._legendToItems[legend]
         del self._legendToItems[legend]
         self.removeRow(self.firstItem.row())
@@ -301,6 +396,42 @@ class StatsTable(qt.QTableWidget):
             raise ValueError('kind not managed')
         qt.QTableWidget.currentChanged(self, current, previous)
 
+    def setDisplayOnlyActiveItem(self, b):
+        if self._displayOnlyActItem != b:
+            self._updateItemObserve(switchItemsDisplayedType=True)
+
+    def setStatsOnVisibleData(self, b):
+        if self._statsOnVisibleData != b:
+            self._statsOnVisibleData = b
+            self._updateStats()
+
+    def _activeItemChanged(self, kind):
+        """Callback used when plotting only the active item"""
+        assert kind not in ('curve', 'image', 'scatter')
+
+        if kind == 'curve':
+            item = self.plot.getActiveCurve(just_legend=False)
+        elif kind == 'image':
+            item = self.plot.getActiveImage(just_legend=False)
+        elif kind == 'scatter':
+            item = self.plot.getActiveScatter(just_legend=False)
+        else:
+            raise ValueError('kind not managed')
+        if item.getLegend() not in self._legendToItems:
+            self.clear()
+            self._addItem(item)
+        else:
+            self._updateStats()
+
+    def _plotContentChanged(self, action, kind, legend):
+        """Callback used when plotting all the plot items"""
+        if kind not in ('curve', 'image', 'scatter'):
+            return
+        if action == 'add':
+            self._addItem(self.plot.getCurve(legend))
+        elif action == 'remove':
+            self._removeItem(legend, kind)
+
 
 class StatsDockWidget(qt.QDockWidget):
     """
@@ -308,5 +439,5 @@ class StatsDockWidget(qt.QDockWidget):
     def __init__(self, parent=None, plot=None):
         qt.QDockWidget.__init__(self, parent)
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self._statsTable = StatsTable(parent=self, plot=plot)
+        self._statsTable = StatsWidget(parent=self, plot=plot)
         self.setWidget(self._statsTable)
