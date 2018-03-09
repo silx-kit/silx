@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -73,12 +73,14 @@ def suite():
     from ..widgets import test as test_widgets
     from ..data import test as test_data
     from ..dialog import test as test_dialog
+    from ..utils import test as test_utils
+
     from . import test_qt
     # Console tests disabled due to corruption of python environment
     # (see issue #538 on github)
     # from . import test_console
     from . import test_icons
-    from . import test_utils
+    from . import test_utils as test_utils_private
 
     try:
         from ..plot3d.test import suite as test_plot3d_suite
@@ -104,6 +106,7 @@ def suite():
     test_suite.addTest(test_icons.suite())
     test_suite.addTest(test_data.suite())
     test_suite.addTest(test_utils.suite())
+    test_suite.addTest(test_utils_private.suite())
     test_suite.addTest(test_plot3d_suite())
     test_suite.addTest(test_dialog.suite())
     return test_suite
