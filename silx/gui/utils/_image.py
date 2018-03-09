@@ -40,7 +40,7 @@ __date__ = "16/01/2017"
 import sys
 import numpy
 
-from . import qt
+from .. import qt
 
 
 def convertArrayToQImage(image):

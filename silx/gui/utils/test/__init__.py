@@ -33,13 +33,16 @@ __date__ = "09/03/2018"
 import unittest
 
 from . import test_async
+from . import test_image
 
 
 def suite():
     """Test suite for module silx.image.test"""
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_async.suite())
+    test_suite.addTest(test_image.suite())
     return test_suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')

@@ -28,17 +28,12 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/01/2017"
 
-
-import threading
+import numpy
 import unittest
 
-import numpy
-
-from silx.third_party.concurrent_futures import wait
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
-
-from silx.gui import _utils
+from silx.gui.utils import _image
 
 
 class TestQImageConversion(TestCaseQt):
@@ -47,7 +42,7 @@ class TestQImageConversion(TestCaseQt):
     def testConvertArrayToQImage(self):
         """Test conversion of numpy array to QImage"""
         image = numpy.ones((3, 3, 3), dtype=numpy.uint8)
-        qimage = _utils.convertArrayToQImage(image)
+        qimage = _image.convertArrayToQImage(image)
 
         self.assertEqual(qimage.height(), image.shape[0])
         self.assertEqual(qimage.width(), image.shape[1])
@@ -60,7 +55,7 @@ class TestQImageConversion(TestCaseQt):
         """Test conversion of QImage to numpy array"""
         qimage = qt.QImage(3, 3, qt.QImage.Format_RGB888)
         qimage.fill(0x010101)
-        image = _utils.convertQImageToArray(qimage)
+        image = _image.convertQImageToArray(qimage)
 
         self.assertEqual(qimage.height(), image.shape[0])
         self.assertEqual(qimage.width(), image.shape[1])

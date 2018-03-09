@@ -31,8 +31,8 @@ import logging
 import os
 import sys
 import unittest
-from silx.test.utils import test_options
 
+from silx.test.utils import test_options
 
 _logger = logging.getLogger(__name__)
 
@@ -80,7 +80,6 @@ def suite():
     # (see issue #538 on github)
     # from . import test_console
     from . import test_icons
-    from . import test_utils as test_utils_private
 
     try:
         from ..plot3d.test import suite as test_plot3d_suite
@@ -106,7 +105,6 @@ def suite():
     test_suite.addTest(test_icons.suite())
     test_suite.addTest(test_data.suite())
     test_suite.addTest(test_utils.suite())
-    test_suite.addTest(test_utils_private.suite())
     test_suite.addTest(test_plot3d_suite())
     test_suite.addTest(test_dialog.suite())
     return test_suite
