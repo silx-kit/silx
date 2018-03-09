@@ -37,7 +37,7 @@ from silx.third_party.concurrent_futures import wait
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 
-from silx.gui.utils import async
+from silx.gui.utils import concurrent
 
 
 class TestSubmitToQtThread(TestCaseQt):
@@ -45,7 +45,7 @@ class TestSubmitToQtThread(TestCaseQt):
 
     def setUp(self):
         # Reset executor to test lazy-loading in different conditions
-        async._executor = None
+        concurrent._executor = None
         super(TestSubmitToQtThread, self).setUp()
 
     def _task(self, value1, value2):
@@ -57,12 +57,12 @@ class TestSubmitToQtThread(TestCaseQt):
     def testFromMainThread(self):
         """Call submitToQtMainThread from the main thread"""
         value1, value2 = 0, 1
-        future = async.submitToQtMainThread(self._task, value1, value2=value2)
+        future = concurrent.submitToQtMainThread(self._task, value1, value2=value2)
         self.assertTrue(future.done())
         self.assertEqual(future.result(1), (value1, value2))
         self.assertIsNone(future.exception(1))
 
-        future = async.submitToQtMainThread(self._taskWithException)
+        future = concurrent.submitToQtMainThread(self._taskWithException)
         self.assertTrue(future.done())
         with self.assertRaises(RuntimeError):
             future.result(1)
@@ -71,7 +71,7 @@ class TestSubmitToQtThread(TestCaseQt):
     def _threadedTest(self):
         """Function run in a thread for the tests"""
         value1, value2 = 0, 1
-        future = async.submitToQtMainThread(self._task, value1, value2=value2)
+        future = concurrent.submitToQtMainThread(self._task, value1, value2=value2)
 
         wait([future], 3)
 
@@ -79,7 +79,7 @@ class TestSubmitToQtThread(TestCaseQt):
         self.assertEqual(future.result(1), (value1, value2))
         self.assertIsNone(future.exception(1))
 
-        future = async.submitToQtMainThread(self._taskWithException)
+        future = concurrent.submitToQtMainThread(self._taskWithException)
 
         wait([future], 3)
 
