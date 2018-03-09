@@ -46,36 +46,9 @@ import time
 import numpy
 
 from silx.gui import qt
+from silx.gui.utils import concurrent
+
 from silx.gui.plot import Plot1D
-
-
-class ThreadSafePlot1D(Plot1D):
-    """Add a thread-safe :meth:`addCurveThreadSafe` method to Plot1D.
-    """
-
-    _sigAddCurve = qt.Signal(tuple, dict)
-    """Signal used to perform addCurve in the main thread.
-
-    It takes args and kwargs as arguments.
-    """
-
-    def __init__(self, parent=None):
-        super(ThreadSafePlot1D, self).__init__(parent)
-        # Connect the signal to the method actually calling addCurve
-        self._sigAddCurve.connect(self.__addCurve)
-
-    def __addCurve(self, args, kwargs):
-        """Private method calling addCurve from _sigAddCurve"""
-        self.addCurve(*args, **kwargs)
-
-    def addCurveThreadSafe(self, *args, **kwargs):
-        """Thread-safe version of :meth:`silx.gui.plot.Plot.addCurve`
-
-        This method takes the same arguments as Plot.addCurve.
-
-        WARNING: This method does not return a value as opposed to Plot.addCurve
-        """
-        self._sigAddCurve.emit(args, kwargs)
 
 
 class UpdateThread(threading.Thread):
@@ -97,8 +70,12 @@ class UpdateThread(threading.Thread):
         """Method implementing thread loop that updates the plot"""
         while self.running:
             time.sleep(1)
-            self.plot1d.addCurveThreadSafe(
-                numpy.arange(1000), numpy.random.random(1000), resetzoom=False)
+            # Run plot update asynchronously
+            concurrent.submitToQtMainThread(
+                self.plot1d.addCurve,
+                numpy.arange(1000),
+                numpy.random.random(1000),
+                resetzoom=False)
 
     def stop(self):
         """Stop the update thread"""
@@ -110,8 +87,8 @@ def main():
     global app
     app = qt.QApplication([])
 
-    # Create a ThreadSafePlot1D, set its limits and display it
-    plot1d = ThreadSafePlot1D()
+    # Create a Plot1D, set its limits and display it
+    plot1d = Plot1D()
     plot1d.setLimits(0., 1000., 0., 1.)
     plot1d.show()
 

@@ -50,41 +50,12 @@ import time
 import numpy
 
 from silx.gui import qt
+from silx.gui.utils import concurrent
 from silx.gui.plot import Plot2D
 
 
 Nx = 150
 Ny = 50
-
-
-class ThreadSafePlot2D(Plot2D):
-    """Add a thread-safe :meth:`addImageThreadSafe` method to Plot2D.
-    """
-
-    _sigAddImage = qt.Signal(tuple, dict)
-    """Signal used to perform addImage in the main thread.
-
-    It takes args and kwargs as arguments.
-    """
-
-    def __init__(self, parent=None):
-        super(ThreadSafePlot2D, self).__init__(parent)
-        # Connect the signal to the method actually calling addImage
-        self._sigAddImage.connect(self.__addImage)
-
-    def __addImage(self, args, kwargs):
-        """Private method calling addImage from _sigAddImage"""
-        self.addImage(*args, **kwargs)
-
-    def addImageThreadSafe(self, *args, **kwargs):
-        """Thread-safe version of :meth:`silx.gui.plot.Plot.addImage`
-
-        This method takes the same arguments as Plot.addImage.
-
-        WARNING: This method does not return a value as opposed to
-        Plot.addImage
-        """
-        self._sigAddImage.emit(args, kwargs)
 
 
 class UpdateThread(threading.Thread):
@@ -123,8 +94,10 @@ class UpdateThread(threading.Thread):
             # random walk of center of peak ('drift')
             pos['x0'] += 0.05 * (numpy.random.random() - 0.5)
             pos['y0'] += 0.05 * (numpy.random.random() - 0.5)
-            # plot the data
-            self.plot2d.addImage(signal, replace=True, resetzoom=False)
+            # plot the data asynchronously
+            concurrent.submitToQtMainThread(
+                self.plot2d.addImage,
+                signal, replace=True, resetzoom=False)
 
     def stop(self):
         """Stop the update thread"""
@@ -136,8 +109,8 @@ def main():
     global app
     app = qt.QApplication([])
 
-    # Create a ThreadSafePlot2D, set its limits and display it
-    plot2d = ThreadSafePlot2D()
+    # Create a Plot2D, set its limits and display it
+    plot2d = Plot2D()
     plot2d.setLimits(0, Nx, 0, Ny)
     plot2d.show()
 
