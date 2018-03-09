@@ -49,7 +49,7 @@ from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
-from .StatsWidget import CurvesStatsDockWidget
+from .StatsWidget import StatsDockWidget
 from .ColorBar import ColorBarWidget
 try:
     from ..console import IPythonDockWidget
@@ -115,7 +115,7 @@ class PlotWindow(PlotWidget):
         self._curvesROIDockWidget = None
         self._maskToolsDockWidget = None
         self._consoleDockWidget = None
-        self._curvesStatsDockWidget = None
+        self._statsDockWidget = None
 
         # Create color bar, hidden by default for backward compatibility
         self._colorbar = ColorBarWidget(parent=self, plot=self)
@@ -208,7 +208,7 @@ class PlotWindow(PlotWidget):
 
         # lazy loaded actions needed by the controlButton menu
         self._consoleAction = None
-        self._curvesStatsAction = None
+        self._statsAction = None
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
 
@@ -338,8 +338,8 @@ class PlotWindow(PlotWidget):
 
         self._consoleDockWidget.setVisible(isChecked)
 
-    def _toggleCurvesStatsVisibility(self, isChecked=False):
-        self.getCurvesStatsDockWidget().setVisible(isChecked)
+    def _toggleStatsVisibility(self, isChecked=False):
+        self.getStatsDockWidget().setVisible(isChecked)
 
     def _createToolBar(self, title, parent):
         """Create a QToolBar from the QAction of the PlotWindow.
@@ -393,7 +393,7 @@ class PlotWindow(PlotWidget):
         controlMenu.clear()
         controlMenu.addAction(self.getLegendsDockWidget().toggleViewAction())
         controlMenu.addAction(self.getRoiAction())
-        controlMenu.addAction(self.getCurvesStatsAction())
+        controlMenu.addAction(self.getStatsAction())
         controlMenu.addAction(self.getMaskAction())
         controlMenu.addAction(self.getConsoleAction())
 
@@ -487,13 +487,13 @@ class PlotWindow(PlotWidget):
             self.addTabbedDockWidget(self._maskToolsDockWidget)
         return self._maskToolsDockWidget
 
-    def getCurvesStatsDockWidget(self):
+    def getStatsDockWidget(self):
         """DockWidget with Legend panel"""
-        if self._curvesStatsDockWidget is None:
-            self._curvesStatsDockWidget = CurvesStatsDockWidget(plot=self)
-            self._curvesStatsDockWidget.hide()
-            self.addTabbedDockWidget(self._curvesStatsDockWidget)
-        return self._curvesStatsDockWidget
+        if self._statsDockWidget is None:
+            self._statsDockWidget = StatsDockWidget(plot=self)
+            self._statsDockWidget.hide()
+            self.addTabbedDockWidget(self._statsDockWidget)
+        return self._statsDockWidget
 
     # getters for actions
     @property
@@ -566,12 +566,12 @@ class PlotWindow(PlotWidget):
     def roiAction(self):
         return self.getRoiAction()
 
-    def getCurvesStatsAction(self):
-        if self._curvesStatsAction is None:
-            self._curvesStatsAction = qt.QAction('Curves stats', self)
-            self._curvesStatsAction.setCheckable(True)
-            self._curvesStatsAction.toggled.connect(self._toggleCurvesStatsVisibility)
-        return self._curvesStatsAction
+    def getStatsAction(self):
+        if self._statsAction is None:
+            self._statsAction = qt.QAction('Curves stats', self)
+            self._statsAction.setCheckable(True)
+            self._statsAction.toggled.connect(self._toggleStatsVisibility)
+        return self._statsAction
 
     def getRoiAction(self):
         """QAction toggling curve ROI dock widget

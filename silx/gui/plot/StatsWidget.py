@@ -32,6 +32,8 @@ __date__ = "07/03/2018"
 
 from silx.gui import qt
 from silx.gui.plot.items.curve import Curve as CurveItem
+from silx.gui.plot.items.image import ImageBase as ImageItem
+from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from collections import OrderedDict
 from silx.math.combo import min_max
 import functools
@@ -39,7 +41,7 @@ import numpy
 import silx
 
 
-class CurvesStatsTable(qt.QTableWidget):
+class StatsTable(qt.QTableWidget):
     """
     TableWidget displaying for each curves contained by the Plot some
     information:
@@ -63,16 +65,19 @@ class CurvesStatsTable(qt.QTableWidget):
         ('mean', 7),
         ('COM', 8),
         ('COM coords', 9),
+        ('kind', 10),
     ])
 
     COLUMNS = COLUMNS_INDEX.keys()
+
+    COMPATAIBLE_ITEMS = (CurveItem, ImageItem, ScatterItem)
 
 
     def __init__(self, parent=None, plot=None):
         qt.QTableWidget.__init__(self, parent)
         """Next freeID for the curve"""
         self.plot = None
-        self._curveToItems = {}
+        self._legendToItems = {}
         """Associate the curve legend to his first item"""
         self.setColumnCount(len(self.COLUMNS))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -89,70 +94,94 @@ class CurvesStatsTable(qt.QTableWidget):
         self.plot = plot
         self.clear()
         if self.plot:
-            [self._addCurve(curve) for curve in self.plot.getAllCurves()]
+            [self._addItem(curve) for curve in self.plot.getAllCurves()]
+            [self._addItem(image) for image in self.plot.getAllImages()]
+            [self._addItem(scatter) for scatter in self.plot.getAllScatters()]
             self.plot.sigContentChanged.connect(self._plotContentChanged)
 
     def _plotContentChanged(self, action, kind, legend):
         if kind != 'curve':
             return
         if action == 'add':
-            self._addCurve(self.plot.getCurve(legend))
+            self._addItem(self.plot.getCurve(legend))
         elif action == 'remove':
-            self._removeCurve(legend)
+            self._removeItem(legend)
 
     def clear(self):
-        self._curveToItemsIndex = {}
+        self._plotItemToItemsIndex = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
         self.horizontalHeader().setSectionResizeMode(qt.QHeaderView.ResizeToContents)
         self.horizontalHeader().setStretchLastSection(True)
+        self.setRowHidden(self.COLUMNS_INDEX['kind'], True)
 
-    def _addCurve(self, curve):
-        assert isinstance(curve, CurveItem)
-        if curve.getLegend() in self._curveToItems:
-            self._updateCurveStats(curve)
+    def _addItem(self, item):
+        def getKind(myItem):
+            if isinstance(myItem, CurveItem):
+                return 'curve'
+            elif isinstance(myItem, ImageItem):
+                return 'image'
+            elif isinstance(myItem, ScatterItem):
+                return 'scatter'
+            else:
+                return None
+        assert isinstance(item, self.COMPATAIBLE_ITEMS)
+        if item.getLegend() in self._legendToItems:
+            self._updateStats(item)
             return
 
         self.setRowCount(self.rowCount() + 1)
 
         itemLegend = None
         indexTable = self.rowCount() - 1
-        print('set on %s' % indexTable)
+        kind = getKind(item)
         for itemName in self.COLUMNS:
             print(itemName)
-            item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+            _item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
             if itemName == 'legend':
-                item.setText(curve.getLegend())
-                itemLegend = item
-            self.setItem(indexTable, self.COLUMNS_INDEX[itemName], item)
+                _item.setText(item.getLegend())
+                itemLegend = _item
+            if itemName == 'kind':
+                _item.setText(kind)
+            self.setItem(indexTable, self.COLUMNS_INDEX[itemName], _item)
 
         assert itemLegend
-        self._curveToItems[curve.getLegend()] = itemLegend
-        self._updateCurveStats(legend=curve.getLegend())
+        self._legendToItems[item.getLegend()] = itemLegend
+        self._updateStats(legend=item.getLegend(), kind=kind)
 
-        callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self._updateCurveStats), curve.getLegend())
-        curve.sigItemChanged.connect(callback)
+        callback = functools.partial(
+            silx.utils.weakref.WeakMethodProxy(self._updateStats),
+            item.getLegend(), kind)
+        item.sigItemChanged.connect(callback)
 
-    def _removeCurve(self, legend):
-        if legend not in self._curveToItems or not self.plot:
+    def _removeItem(self, legend, kind):
+        if legend not in self._legendToItems or not self.plot:
             return
 
         callback = functools.partial(
-            silx.utils.weakref.WeakMethodProxy(self._updateCurveStats),
-            legend)
+            silx.utils.weakref.WeakMethodProxy(self._updateStats),
+            legend,
+            kind)
 
-        curve = self.plot.getCurve(legend)
-        if curve:
-            curve.sigItemChanged.discconnect(callback)
-        self.firstItem = self._curveToItems[legend]
-        del self._curveToItems[legend]
+        if kind == 'curve':
+            item = self.plot.getCurve(legend)
+        elif kind == 'image':
+            item = self.plot.getImage(legend)
+        elif kind == 'scatter':
+            item = self.plot.getScatter(legend)
+        else:
+            raise ValueError('Kind not managed')
+        if item:
+            item.sigItemChanged.discconnect(callback)
+        self.firstItem = self._legendToItems[legend]
+        del self._legendToItems[legend]
         self.removeRow(self.firstItem.row())
 
-    def _updateCurveStats(self, legend, *args, **kwargs):
-        def retrieveItems(curve):
+    def _updateStats(self, legend, kind):
+        def retrieveItems(item):
             items = {}
-            itemLegend = self._curveToItems[curve.getLegend()]
+            itemLegend = self._legendToItems[item.getLegend()]
             items['legend'] = itemLegend
             assert itemLegend
             for itemName in self.COLUMNS:
@@ -162,16 +191,26 @@ class CurvesStatsTable(qt.QTableWidget):
                                             self.COLUMNS_INDEX[itemName])
             return items
 
-        curve = self.plot.getCurve(legend)
-        if not curve:
-            return
-        assert isinstance(curve, CurveItem)
-        assert curve.getLegend() in self._curveToItems
 
-        items = retrieveItems(curve)
+        assert kind in ('curve', 'image', 'scatter')
+        if kind == 'curve':
+            item = self.plot.getCurve(legend)
+        elif kind == 'image':
+            item = self.plot.getImage(legend)
+        elif kind == 'scatter':
+            item = self.plot.getScatter(legend)
+        else:
+            raise ValueError('kind not managed')
+
+        if not item:
+            return
+        assert item.getLegend() in self._legendToItems
+        assert isinstance(item, self.COMPATAIBLE_ITEMS)
+
+        items = retrieveItems(item)
 
         # TODO: reduce data according to the plot zoom
-        xData, yData = curve.getData(copy=False)[0:2]
+        xData, yData = item.getData(copy=False)[0:2]
         min, max = min_max(yData)
         items['min'].setText(str(min))
         items['coords min'].setText(str(xData[numpy.where(yData==min)]))
@@ -191,25 +230,23 @@ class CurvesStatsTable(qt.QTableWidget):
 
     def currentChanged(self, current, previous):
         legendItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
-        self.plot.setActiveCurve(legendItem.text())
+        kindItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
+        if kind == 'curve':
+            self.plot.setActiveCurve(legendItem.text())
+        elif kind =='image':
+            self.plot.setActiveImage(legendItem.text())
+        elif kind =='scatter':
+            self.plot.setActiveScatter(legendItem.text())
+        else:
+            raise ValueError('kind not managed')
         qt.QTableWidget.currentChanged(self, current, previous)
 
 
-class CurvesStatsDockWidget(qt.QDockWidget):
+class StatsDockWidget(qt.QDockWidget):
     """
     """
     def __init__(self, parent=None, plot=None):
         qt.QDockWidget.__init__(self, parent)
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self._curveStatsTable = CurvesStatsTable(parent=self, plot=plot)
-        self.setWidget(self._curveStatsTable)
-
-
-if __name__ == "__main__":
-    app = qt.QApplication([])
-
-    tablewidget = CurvesStatsWidget()
-    tablewidget.setWindowTitle("TableWidget")
-    tablewidget.show()
-
-    app.exec_()
+        self._statsTable = StatsTable(parent=self, plot=plot)
+        self.setWidget(self._statsTable)

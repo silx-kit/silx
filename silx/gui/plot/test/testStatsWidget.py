@@ -41,8 +41,8 @@ from silx.gui.plot import StatsWidget
 _logger = logging.getLogger(__name__)
 
 
-class TestCurvesStatsWidget(TestCaseQt):
-    """Basic test for CurvesStatsWidget"""
+class TestStatsWidgetWithCurves(TestCaseQt):
+    """Basic test for StatsWidget with curves"""
     def setUp(self):
         TestCaseQt.setUp(self)
         self.plot = Plot1D()
@@ -53,7 +53,7 @@ class TestCurvesStatsWidget(TestCaseQt):
         self.plot.addCurve(x, y, legend='curve1')
         y = range(-2, 18)
         self.plot.addCurve(x, y, legend='curve2')
-        self.widget = StatsWidget.CurvesStatsTable(plot=self.plot)
+        self.widget = StatsWidget.StatsTable(plot=self.plot)
 
     def tearDown(self):
         del self.widget
@@ -87,15 +87,15 @@ class TestCurvesStatsWidget(TestCaseQt):
         curve"""
         self.plot.addCurve(legend='curve0', x=range(10), y=range(10))
         self.assertTrue(self.widget.rowCount() is 3)
-        itemMax = self.widget.item(self.widget._curveToItems['curve0'].row(),
-                                   StatsWidget.CurvesStatsTable.COLUMNS_INDEX['max'])
+        itemMax = self.widget.item(self.widget._legendToItems['curve0'].row(),
+                                   StatsWidget.StatsTable.COLUMNS_INDEX['max'])
         self.assertTrue(itemMax.text() == '9')
 
     def testUpdateCurveFrmCurveObj(self):
         self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
         self.assertTrue(self.widget.rowCount() is 3)
-        itemMax = self.widget.item(self.widget._curveToItems['curve0'].row(),
-                                   StatsWidget.CurvesStatsTable.COLUMNS_INDEX['max'])
+        itemMax = self.widget.item(self.widget._legendToItems['curve0'].row(),
+                                   StatsWidget.StatsTable.COLUMNS_INDEX['max'])
         self.assertTrue(itemMax.text() == '3')
 
     def testSetAnotherPlot(self):
@@ -107,7 +107,7 @@ class TestCurvesStatsWidget(TestCaseQt):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for TestClass in (TestCurvesStatsWidget, ):
+    for TestClass in (TestStatsWidgetWithCurves,):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
