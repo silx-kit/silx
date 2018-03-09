@@ -35,7 +35,7 @@ import unittest
 import logging
 import numpy
 from silx.gui.plot import Plot1D, Plot2D
-from silx.gui.plot import CurvesStatsWidget
+from silx.gui.plot import StatsWidget
 
 
 _logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class TestCurvesStatsWidget(TestCaseQt):
         self.plot.addCurve(x, y, legend='curve1')
         y = range(-2, 18)
         self.plot.addCurve(x, y, legend='curve2')
-        self.widget = CurvesStatsWidget.CurvesStatsTable(plot=self.plot)
+        self.widget = StatsWidget.CurvesStatsTable(plot=self.plot)
 
     def tearDown(self):
         del self.widget
@@ -88,14 +88,14 @@ class TestCurvesStatsWidget(TestCaseQt):
         self.plot.addCurve(legend='curve0', x=range(10), y=range(10))
         self.assertTrue(self.widget.rowCount() is 3)
         itemMax = self.widget.item(self.widget._curveToItems['curve0'].row(),
-                                   CurvesStatsWidget.CurvesStatsTable.COLUMNS_INDEX['max'])
+                                   StatsWidget.CurvesStatsTable.COLUMNS_INDEX['max'])
         self.assertTrue(itemMax.text() == '9')
 
     def testUpdateCurveFrmCurveObj(self):
         self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
         self.assertTrue(self.widget.rowCount() is 3)
         itemMax = self.widget.item(self.widget._curveToItems['curve0'].row(),
-                                   CurvesStatsWidget.CurvesStatsTable.COLUMNS_INDEX['max'])
+                                   StatsWidget.CurvesStatsTable.COLUMNS_INDEX['max'])
         self.assertTrue(itemMax.text() == '3')
 
     def testSetAnotherPlot(self):

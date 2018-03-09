@@ -49,7 +49,7 @@ from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
-from .CurvesStatsWidget import CurvesStatsDockWidget
+from .StatsWidget import CurvesStatsDockWidget
 from .ColorBar import ColorBarWidget
 try:
     from ..console import IPythonDockWidget
