@@ -93,6 +93,12 @@ before_script:
           sleep 3;
       fi
 
+    # First install any temporary pinned/additional requirements
+    - if [ -s "ci/requirements-pinned.txt" ];
+      then
+          pip install -r ci/requirements-pinned.txt;
+      fi
+
     # Install optional dependencies for running test
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==$PYOPENCL_VERSION
     # This installs PyQt and scipy if wheels are available
