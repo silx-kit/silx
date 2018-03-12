@@ -23,7 +23,7 @@ environment:
         WIN_SDK_ROOT: "C:\\Program Files\\Microsoft SDKs\\Windows"
         VENV_BUILD_DIR: "venv_build"
         VENV_TEST_DIR: "venv_test"
-        PINNED_REQ: "ci\requirements-pinned.txt"
+        PINNED_REQ: ci\requirements-pinned.txt
 
     matrix:
         # Python 3.6
@@ -82,7 +82,7 @@ before_test:
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
 
     # First install any temporary pinned/additional requirements
-    - ps: If ((Test-Path $PINNED_REQ) -and ((Get-Item $PINNED_REQ).length -gt 0)) { pip install -r $PINNED_REQ }
+    - ps: If ((Test-Path $env:PINNED_REQ) -and ((Get-Item $env:PINNED_REQ).length -gt 0)) { pip install -r $env:PINNED_REQ }
 
     # Install dependencies
     - pip install --pre -r requirements.txt

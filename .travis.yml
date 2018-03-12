@@ -96,7 +96,7 @@ before_script:
     # First install any temporary pinned/additional requirements
     - if [ -s "ci/requirements-pinned.txt" ];
       then
-          pip install -r ci/requirements-pinned.txt
+          pip install -r ci/requirements-pinned.txt;
       fi
 
     # Install optional dependencies for running test
