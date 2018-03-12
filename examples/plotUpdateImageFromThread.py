@@ -66,6 +66,7 @@ class UpdateThread(threading.Thread):
     def __init__(self, plot2d):
         self.plot2d = plot2d
         self.running = False
+        self.future_result = None
         super(UpdateThread, self).__init__()
 
     def start(self):
@@ -74,12 +75,15 @@ class UpdateThread(threading.Thread):
         super(UpdateThread, self).start()
 
     def run(self, pos={'x0': 0, 'y0': 0}):
-        """Method implementing thread loop that updates the plot"""
+        """Method implementing thread loop that updates the plot
+
+        It produces an image every 10 ms or so, and
+        either updates the plot or skip the image
+        """
         while self.running:
-            time.sleep(1)
-            # pixels in plot (defined at beginning of file)
-            # Nx = 70
-            # Ny = 50
+            time.sleep(0.01)
+
+            # Create image
             # width of peak
             sigma_x = 0.15
             sigma_y = 0.25
@@ -94,10 +98,13 @@ class UpdateThread(threading.Thread):
             # random walk of center of peak ('drift')
             pos['x0'] += 0.05 * (numpy.random.random() - 0.5)
             pos['y0'] += 0.05 * (numpy.random.random() - 0.5)
-            # plot the data asynchronously
-            concurrent.submitToQtMainThread(
-                self.plot2d.addImage,
-                signal, replace=True, resetzoom=False)
+
+            # If previous frame was not added to the plot yet, skip this one
+            if self.future_result is None or self.future_result.done():
+                # plot the data asynchronously, and
+                # keep a reference to the `future` object
+                self.future_result = concurrent.submitToQtMainThread(
+                    self.plot2d.addImage, signal, resetzoom=False)
 
     def stop(self):
         """Stop the update thread"""
@@ -112,6 +119,7 @@ def main():
     # Create a Plot2D, set its limits and display it
     plot2d = Plot2D()
     plot2d.setLimits(0, Nx, 0, Ny)
+    plot2d.getDefaultColormap().setVRange(0., 1.5)
     plot2d.show()
 
     # Create the thread that calls ThreadSafePlot2D.addImageThreadSafe
