@@ -462,7 +462,7 @@ class SaveAction(PlotAction):
 
         :param str dataKind:
             The kind of data for which the provided filter is valid.
-            On of: 'all', 'curve', 'curves', 'image', 'scatter'
+            One of: 'all', 'curve', 'curves', 'image', 'scatter'
         :param str nameFilter: The name filter in the QFileDialog.
             See :meth:`QFileDialog.setNameFilters`.
         :param callable func: The function to call to perform saving.
