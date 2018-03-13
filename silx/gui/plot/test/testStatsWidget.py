@@ -122,7 +122,21 @@ class TestStatsWidgetWithImages(TestCaseQt):
         TestCaseQt.tearDown(self)
 
     def test(self):
-        pass
+        columnsIndex = StatsWidget.StatsTable.COLUMNS_INDEX
+        itemLegend = self.widget._legendToItems['scatter plot']
+        itemMin = self.widget.item(itemLegend.row(), columnsIndex['min'])
+        itemMax = self.widget.item(itemLegend.row(), columnsIndex['max'])
+        itemDelta = self.widget.item(itemLegend.row(), columnsIndex['delta'])
+        itemCoordsMin = self.widget.item(itemLegend.row(),
+                                         columnsIndex['coords min'])
+        itemCoordsMax = self.widget.item(itemLegend.row(),
+                                         columnsIndex['coords max'])
+        max = (128 * 128) - 1
+        self.assertTrue(itemMin.text() == '0')
+        self.assertTrue(itemMax.text() == str(max))
+        self.assertTrue(itemDelta.text() == str(max))
+        self.assertTrue(itemCoordsMin.text() == '(0, 0)')
+        self.assertTrue(itemCoordsMax.text() == '(127, 127)')
 
 
 class TestStatsWidgetWithScatter(TestCaseQt):

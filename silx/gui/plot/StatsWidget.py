@@ -146,9 +146,11 @@ class StatsTable(qt.QTableWidget):
         """
         if self.plot:
             self.plot.sigContentChanged.disconnect(self._plotContentChanged)
+            self.plot.sigPlotSignal.disconnect(self._zoomPlotChanged)
         self.plot = plot
         self.clear()
         if self.plot:
+            self.plot.sigPlotSignal.connect(self._zoomPlotChanged)
             self._updateItemObserve(init=True)
 
     def _updateItemObserve(self, switchItemsDisplayedType=False, init=False):
@@ -270,13 +272,35 @@ class StatsTable(qt.QTableWidget):
         del self._legendToItems[legend]
         self.removeRow(self.firstItem.row())
 
+    def _updateCurrentStats(self):
+        for legend in self._legendToItems:
+            kindItem = self.item(self._legendToItems[legend].row(),
+                                 self.COLUMNS_INDEX['kind'])
+            kind = kindItem.text()
+            self._updateStats(legend, kind)
+
     def _updateStats(self, legend, kind, *args, **kwargs):
+        def noDataSelected():
+            res = {}
+            res['min'] = res['max'] = res['delta'] = None
+            res['coords min'] = res['coords max'] = None
+            res['COM'] = res['std'] = res['mean'] = None
+            return res
+
         def computeCurveStats(item):
             res = {}
             if item is None:
                 return res
-            # TODO: reduce data according to the plot zoom
-            xData, yData = item.getData(copy=False)[0:2]
+            xData, yData = item.getData(copy=True)[0:2]
+
+            assert self.plot
+            if self._statsOnVisibleData:
+                minX, maxX = self.plot.getXAxis().getLimits()
+                yData = yData[(minX<=xData) & (xData<=maxX)]
+                xData = xData[(minX<=xData) & (xData<=maxX)]
+
+            if yData.size is 0:
+                return noDataSelected()
             min, max = min_max(yData)
             res['min'], res['max'], res['delta'] = min, max, (max - min)
             res['coords min'] = xData[numpy.where(yData == min)]
@@ -303,12 +327,33 @@ class StatsTable(qt.QTableWidget):
             res = {}
             if item is None:
                 return res
-            # TODO: reduce data according to the plot zoom
-            data = item.getData(copy=False)
-            min, max = min_max(data)
-            res['min'], res['max'], res['delta'] = min, max, (max - min)
-            res['coords min'] = getCoordsFor(min, data)
-            res['coords max'] = getCoordsFor(max, data)
+
+            data = item.getData(copy=True)
+            assert self.plot
+            if self._statsOnVisibleData:
+                minX, maxX = self.plot.getXAxis().getLimits()
+                minY, maxY = self.plot.getYAxis().getLimits()
+                originX, originY = item.getOrigin()
+
+                XMinBoundary = int(minX-originX)
+                XMaxBoundary = int(maxX-originX)
+                YMinBoundary = int(minY-originY)
+                YMaxBoundary = int(maxY-originY)
+
+                if XMaxBoundary < 0 or YMaxBoundary < 0:
+                    return noDataSelected()
+                XMinBoundary = max(XMinBoundary, 0)
+                YMinBoundary = max(YMinBoundary, 0)
+                data = data[XMinBoundary:XMaxBoundary+1,
+                            YMinBoundary:YMaxBoundary+1]
+
+            if data.size is 0:
+                return noDataSelected()
+
+            _min, _max = min_max(data)
+            res['min'], res['max'], res['delta'] = _min, _max, (_max - _min)
+            res['coords min'] = getCoordsFor(_min, data)
+            res['coords max'] = getCoordsFor(_max, data)
 
             com = numpy.sum(data) / data.size
             res['COM'] = com
@@ -331,8 +376,23 @@ class StatsTable(qt.QTableWidget):
             res = {}
             if item is None:
                 return res
-            # TODO: reduce data according to the plot zoom
-            xData, yData, valueData, xerror, yerror = item.getData(copy=False)
+
+            xData, yData, valueData, xerror, yerror = item.getData(copy=True)
+            assert self.plot
+            if self._statsOnVisibleData:
+                minX, maxX = self.plot.getXAxis().getLimits()
+                minY, maxY = self.plot.getYAxis().getLimits()
+                # filter on X axis
+                valueData = valueData[(minX<=xData) & (xData<=maxX)]
+                yData = yData[(minX<=xData) & (xData<=maxX)]
+                xData = xData[(minX<=xData) & (xData<=maxX)]
+                # filter on Y axis
+                valueData = valueData[(minY<=yData) & (yData<=maxY)]
+                xData = xData[(minY<=yData) & (yData<=maxY)]
+                yData = yData[(minY<=yData) & (yData<=maxY)]
+
+            if valueData.size is 0:
+                return noDataSelected()
             min, max = min_max(valueData)
             res['min'], res['max'], res['delta'] = min, max, (max - min)
             res['coords min'] = getCoordsFor(xData, yData, valueData, min)
@@ -403,7 +463,7 @@ class StatsTable(qt.QTableWidget):
     def setStatsOnVisibleData(self, b):
         if self._statsOnVisibleData != b:
             self._statsOnVisibleData = b
-            self._updateStats()
+            self._updateCurrentStats()
 
     def _activeItemChanged(self, kind):
         """Callback used when plotting only the active item"""
@@ -421,7 +481,7 @@ class StatsTable(qt.QTableWidget):
             self.clear()
             self._addItem(item)
         else:
-            self._updateStats()
+            self._updateCurrentStats()
 
     def _plotContentChanged(self, action, kind, legend):
         """Callback used when plotting all the plot items"""
@@ -431,6 +491,11 @@ class StatsTable(qt.QTableWidget):
             self._addItem(self.plot.getCurve(legend))
         elif action == 'remove':
             self._removeItem(legend, kind)
+
+    def _zoomPlotChanged(self, event):
+        if self._statsOnVisibleData is True:
+            if 'event' in event and event['event'] == 'limitsChanged':
+                self._updateCurrentStats()
 
 
 class StatsDockWidget(qt.QDockWidget):
