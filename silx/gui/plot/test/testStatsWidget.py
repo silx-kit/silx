@@ -112,7 +112,7 @@ class TestStatsWidgetWithImages(TestCaseQt):
         self.plot = Plot2D()
 
         self.plot.addImage(data=numpy.arange(128*128).reshape(128, 128),
-                           legend='test1', replace=False)
+                           legend='test image', replace=False)
 
         self.widget = StatsWidget.StatsTable(plot=self.plot)
 
@@ -123,7 +123,7 @@ class TestStatsWidgetWithImages(TestCaseQt):
 
     def test(self):
         columnsIndex = StatsWidget.StatsTable.COLUMNS_INDEX
-        itemLegend = self.widget._legendToItems['scatter plot']
+        itemLegend = self.widget._legendToItems['test image']
         itemMin = self.widget.item(itemLegend.row(), columnsIndex['min'])
         itemMax = self.widget.item(itemLegend.row(), columnsIndex['max'])
         itemDelta = self.widget.item(itemLegend.row(), columnsIndex['delta'])

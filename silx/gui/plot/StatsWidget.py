@@ -210,7 +210,10 @@ class StatsTable(qt.QTableWidget):
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
-        self.horizontalHeader().setSectionResizeMode(qt.QHeaderView.ResizeToContents)
+        if hasattr(self.horizontalHeader(), 'setSectionResizeMode'):  # Qt5
+            self.horizontalHeader().setSectionResizeMode(qt.QHeaderView.ResizeToContents)
+        else:  # Qt4
+            self.horizontalHeader().setResizeMode(qt.QHeaderView.ResizeToContents)
         self.horizontalHeader().setStretchLastSection(True)
         self.setColumnHidden(self.COLUMNS_INDEX['kind'], True)
 
