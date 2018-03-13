@@ -360,6 +360,18 @@ class CurvesROIWidget(qt.QWidget):
         return xmin, ymin, xmax, ymax
 
 
+class _FloatItem(qt.QTableWidgetItem):
+    def __init__(self):
+        qt.QTableWidgetItem.__init__(self, type=qt.QTableWidgetItem.Type)
+
+    def __lt__(self, other):
+        if self.text() in ('', ROITable.INFO_NOT_FOUND):
+            return False
+        if other.text() in ('', ROITable.INFO_NOT_FOUND):
+            return True
+        return float(self.text()) < float(other.text())
+
+
 class ROITable(qt.QTableWidget):
     """Table widget displaying ROI information.
 
@@ -394,6 +406,7 @@ class ROITable(qt.QTableWidget):
         self.setColumnCount(len(self.COLUMNS))
         self.setPlot(plot)
         self.__setTooltip()
+        self.setSortingEnabled(True)
 
     def clear(self):
         self._RoiToItems = {}
@@ -451,8 +464,6 @@ class ROITable(qt.QTableWidget):
                 assert isinstance(roi, _ROI)
                 self.addRoi(roi)
 
-        # TODO : order using the column / header
-
     def addRoi(self, roi):
         """
         TODO
@@ -462,44 +473,54 @@ class ROITable(qt.QTableWidget):
         """
         assert isinstance(roi, ROI)
         self.setRowCount(self.rowCount() + 1)
-        itemName = qt.QTableWidgetItem(roi.name, type=qt.QTableWidgetItem.Type)
-        if roi.name.upper() in ('ICR', 'DEFAULT'):
-            itemName.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
-        else:
-            itemName.setFlags(qt.Qt.ItemIsSelectable |
-                              qt.Qt.ItemIsEnabled |
-                              qt.Qt.ItemIsEditable)
-        itemType = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-        itemType.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
-        itemFrom = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-        itemFrom.setFlags(qt.Qt.ItemIsSelectable |
-                          qt.Qt.ItemIsEnabled |
-                          qt.Qt.ItemIsEditable)
-        itemTo = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-        itemTo.setFlags(qt.Qt.ItemIsSelectable |
-                        qt.Qt.ItemIsEnabled |
-                        qt.Qt.ItemIsEditable)
-        itemRawCounts = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-        itemNetCounts = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-        itemRoi = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-        itemRoi.setData(qt.QTableWidgetItem.Type, weakref.ref(roi))
-
         indexTable = self.rowCount() - 1
-        self.setItem(indexTable, self.COLUMNS_INDEX['ROI'], itemName)
-        self.setItem(indexTable, self.COLUMNS_INDEX['Type'], itemType)
-        self.setItem(indexTable, self.COLUMNS_INDEX['From'], itemFrom)
-        self.setItem(indexTable, self.COLUMNS_INDEX['To'], itemTo)
-        self.setItem(indexTable, self.COLUMNS_INDEX['Raw Counts'], itemRawCounts)
-        self.setItem(indexTable, self.COLUMNS_INDEX['Net Counts'], itemNetCounts)
-        self.setItem(indexTable, self.COLUMNS_INDEX['ROI Object'], itemRoi)
 
-        self._RoiToItems[roi.name] = itemName
+        self._RoiToItems[roi.name] = self._getItem('ROI', indexTable, roi)
         self.roidict[roi.name] = roi
         self.activeRoi = roi
         self._updateRoiInfo(roi.name)
         callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
                                      roi.name)
         roi.sigChanged.connect(callback)
+
+    def _getItem(self, name, row, roi):
+        item = self.item(row, self.COLUMNS_INDEX[name])
+        if item:
+            return item
+        else:
+            if name == 'ROI':
+                item = qt.QTableWidgetItem(roi.name if roi else '',
+                                               type=qt.QTableWidgetItem.Type)
+                if roi.name.upper() in ('ICR', 'DEFAULT'):
+                    item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                else:
+                    item.setFlags(qt.Qt.ItemIsSelectable |
+                                      qt.Qt.ItemIsEnabled |
+                                      qt.Qt.ItemIsEditable)
+            elif name == 'Type':
+                item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+                item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+            elif name == 'To':
+                item = _FloatItem()
+                item.setFlags(qt.Qt.ItemIsSelectable |
+                              qt.Qt.ItemIsEnabled |
+                              qt.Qt.ItemIsEditable)
+            elif name == 'From':
+                item = _FloatItem()
+                item.setFlags(qt.Qt.ItemIsSelectable |
+                              qt.Qt.ItemIsEnabled |
+                              qt.Qt.ItemIsEditable)
+            elif name in ('Raw Counts', 'Net Counts'):
+                item = _FloatItem()
+            elif name == 'ROI object':
+                item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+                if roi:
+                    item.setData(qt.QTableWidgetItem.Type, weakref.ref(roi))
+            else:
+                raise ValueError('item type not recognized')
+
+            self.setItem(row, self.COLUMNS_INDEX[name], item)
+            return item
 
     def deleteActiveRoi(self):
         """
@@ -590,31 +611,35 @@ class ROITable(qt.QTableWidget):
         assert roi.name in self._RoiToItems
 
         itemName = self._RoiToItems[roi.name]
-        itemType = self.item(itemName.row(), self.COLUMNS_INDEX['Type'])
+        itemType = self._getItem(name='Type', row=itemName.row(), roi=roi)
         itemType.setText(roi.type or self.INFO_NOT_FOUND)
 
-        itemFrom = self.item(itemName.row(), self.COLUMNS_INDEX['From'])
+        itemFrom = self._getItem(name='From', row=itemName.row(), roi=roi)
         fromdata = str(roi.fromdata) if roi.fromdata is not None else self.INFO_NOT_FOUND
         itemFrom.setText(fromdata)
 
-        itemTo = self.item(itemName.row(), self.COLUMNS_INDEX['To'])
+        itemTo = self._getItem(name='To', row=itemName.row(), roi=roi)
         todata = str(roi.todata) if roi.todata is not None else self.INFO_NOT_FOUND
         itemTo.setText(todata)
 
         self._computeRawAndNetCounts(roi)
-        itemRawCounts = self.item(itemName.row(), self.COLUMNS_INDEX['Raw Counts'])
+        itemRawCounts = self._getItem(name='Raw Counts', row=itemName.row(),
+                                      roi=roi)
         rawCounts = str(roi._rawCounts) if roi._rawCounts is not None else self.INFO_NOT_FOUND
         itemRawCounts.setText(rawCounts)
 
-        itemNetCounts = self.item(itemName.row(), self.COLUMNS_INDEX['Net Counts'])
+        itemNetCounts = self._getItem(name='Net Counts', row=itemName.row(),
+                                      roi=roi)
         netCounts = str(roi._netCounts) if roi._netCounts is not None else self.INFO_NOT_FOUND
         itemNetCounts.setText(netCounts)
 
     def currentChanged(self, current, previous):
         if previous and current.row() != previous.row():
             # note: roi is registred as a weak ref
-            self.activeRoi = self.item(current.row(), self.COLUMNS_INDEX['ROI Object']).data(
-                qt.QTableWidgetItem.Type)()
+
+            roiItem = self.item(current.row(), self.COLUMNS_INDEX['ROI'])
+            assert roiItem
+            self.activeRoi = self.roidict[roiItem.text()]
             self._updateMarkers()
         qt.QTableWidget.currentChanged(self, current, previous)
 
