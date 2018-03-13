@@ -115,7 +115,6 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_CSV_SEMICOLON = 'Image data as ;-separated CSV (*.csv)'
     IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
-    IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
     IMAGE_FILTER_NXDATA = 'Image as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
     IMAGE_FILTERS = (IMAGE_FILTER_EDF,
                      IMAGE_FILTER_TIFF,
@@ -125,7 +124,6 @@ class SaveAction(PlotAction):
                      IMAGE_FILTER_CSV_SEMICOLON,
                      IMAGE_FILTER_CSV_TAB,
                      IMAGE_FILTER_RGB_PNG,
-                     IMAGE_FILTER_RGB_TIFF,
                      IMAGE_FILTER_NXDATA)
 
     SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
@@ -369,19 +367,13 @@ class SaveAction(PlotAction):
                 return False
             return True
 
-        elif nameFilter in (self.IMAGE_FILTER_RGB_PNG,
-                            self.IMAGE_FILTER_RGB_TIFF):
+        elif nameFilter == self.IMAGE_FILTER_RGB_PNG:
             # Get displayed image
             rgbaImage = image.getRgbaImageData(copy=False)
             # Convert RGB QImage
             qimage = convertArrayToQImage(rgbaImage[:, :, :3])
 
-            if nameFilter == self.IMAGE_FILTER_RGB_PNG:
-                fileFormat = 'PNG'
-            else:
-                fileFormat = 'TIFF'
-
-            if qimage.save(filename, fileFormat):
+            if qimage.save(filename, 'PNG'):
                 return True
             else:
                 _logger.error('Failed to save image as %s', filename)
