@@ -92,6 +92,14 @@ class StatsWidget(qt.QWidget):
         self._statsTable.setStatsOnVisibleData(opt == 'visible data range')
 
 
+class _FloatItem(qt.QTableWidgetItem):
+    def __init__(self):
+        qt.QTableWidgetItem.__init__(self, type=qt.QTableWidgetItem.Type)
+
+    def __lt__(self, other):
+        return float(self.text()) < float(other.text())
+
+
 class StatsTable(qt.QTableWidget):
     """
     TableWidget displaying for each curves contained by the Plot some
@@ -137,6 +145,7 @@ class StatsTable(qt.QTableWidget):
         self.setColumnCount(len(self.COLUMNS))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         self.setPlot(plot)
+        self.setSortingEnabled(True)
 
     def setPlot(self, plot):
         """
@@ -238,7 +247,10 @@ class StatsTable(qt.QTableWidget):
         indexTable = self.rowCount() - 1
         kind = getKind(item)
         for itemName in self.COLUMNS:
-            _item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+            if itemName in ('min', 'max', 'COM', 'delta', 'std', 'mean'):
+                _item = _FloatItem()
+            else:
+                _item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
             if itemName == 'legend':
                 _item.setText(item.getLegend())
                 itemLegend = _item
