@@ -57,6 +57,7 @@ from silx.io import dictdump
 from silx.utils import deprecation
 from silx.utils.weakref import WeakMethodProxy
 from .. import icons, qt
+from silx.gui.plot.items.curve import Curve
 
 
 _logger = logging.getLogger(__name__)
@@ -547,45 +548,6 @@ class ROITable(qt.QTableWidget):
             assert name in self.roidict
             del self.roidict[name]
 
-    def _computeRawAndNetCounts(self, roi):
-        assert isinstance(roi, ROI)
-        if not self.plot:
-            return None, None
-
-        activeCurve = self.plot.getActiveCurve(just_legend=False)
-        if activeCurve is None:
-            return None, None
-
-        x = activeCurve.getXData(copy=False)
-        y = activeCurve.getYData(copy=False)
-        idx = numpy.argsort(x, kind='mergesort')
-        xproc = numpy.take(x, idx)
-        yproc = numpy.take(y, idx)
-
-        # update from and to only in the case of the non editable 'ICR' ROI
-        if roiName == 'ICR':
-            # TODO : limit on the visible effect
-            roi.fromdata = xproc.min()
-            roi.todata = xproc.max()
-
-        idx = numpy.nonzero((roi.fromdata <= xproc) & (xproc <= roi.todata))[0]
-        if len(idx):
-            xw = xproc[idx]
-            yw = yproc[idx]
-            rawCounts = yw.sum(dtype=numpy.float)
-            deltaX = xw[-1] - xw[0]
-            deltaY = yw[-1] - yw[0]
-            if deltaX > 0.0:
-                slope = (deltaY / deltaX)
-                background = yw[0] + slope * (xw - xw[0])
-                netCounts = (rawCounts -
-                             background.sum(dtype=numpy.float))
-            else:
-                netCounts = 0.0
-            return rawCounts, netCounts
-        else:
-            return 0.0, 0.0
-
     def setActiveRoi(self, roi):
         """
         TODO
@@ -616,15 +578,16 @@ class ROITable(qt.QTableWidget):
         todata = str(roi.todata) if roi.todata is not None else self.INFO_NOT_FOUND
         itemTo.setText(todata)
 
-        self._computeRawAndNetCounts(roi)
+        rawCounts, netCounts = roi.computeRawAndNetCounts(
+            curve=self.plot.getActiveCurve(just_legend=False))
         itemRawCounts = self._getItem(name='Raw Counts', row=itemName.row(),
                                       roi=roi)
-        rawCounts = str(roi._rawCounts) if roi._rawCounts is not None else self.INFO_NOT_FOUND
+        rawCounts = str(rawCounts) if rawCounts is not None else self.INFO_NOT_FOUND
         itemRawCounts.setText(rawCounts)
 
         itemNetCounts = self._getItem(name='Net Counts', row=itemName.row(),
                                       roi=roi)
-        netCounts = str(roi._netCounts) if roi._netCounts is not None else self.INFO_NOT_FOUND
+        netCounts = str(netCounts) if netCounts is not None else self.INFO_NOT_FOUND
         itemNetCounts.setText(netCounts)
 
     def currentChanged(self, current, previous):
@@ -719,7 +682,6 @@ class ROITable(qt.QTableWidget):
                                      text=_nameRoiMax,
                                      color=roiDict[roi]._color,
                                      draggable=roiDict[roi]._draggable)
-
         else:
             if not self.activeRoi or not self.plot:
                 return
@@ -851,8 +813,6 @@ class ROI(qt.QObject):
         self._draggable = False
         self._color = 'blue'
         self.type = 'Default'
-        self._rawCounts = None
-        self._netCounts = None
 
     def toDict(self):
         return {
@@ -861,6 +821,41 @@ class ROI(qt.QObject):
             'from': self.fromdata,
             'to': self.todata,
         }
+
+    def computeRawAndNetCounts(self, curve):
+        assert isinstance(curve, Curve) or curve is None
+
+        if curve is None:
+            return None, None
+
+        x = curve.getXData(copy=False)
+        y = curve.getYData(copy=False)
+        idx = numpy.argsort(x, kind='mergesort')
+        xproc = numpy.take(x, idx)
+        yproc = numpy.take(y, idx)
+
+        # update from and to only in the case of the non editable 'ICR' ROI
+        if self.name == 'ICR':
+            # if ICr make sure we are dealing with the entire curve elements
+            self.fromdata = xproc.min()
+            self.todata = xproc.max()
+
+        idx = numpy.nonzero((self.fromdata <= xproc) & (xproc <= self.todata))[0]
+        if len(idx):
+            xw = xproc[idx]
+            yw = yproc[idx]
+            rawCounts = yw.sum(dtype=numpy.float)
+            deltaX = xw[-1] - xw[0]
+            deltaY = yw[-1] - yw[0]
+            if deltaX > 0.0:
+                slope = (deltaY / deltaX)
+                background = yw[0] + slope * (xw - xw[0])
+                netCounts = (rawCounts - background.sum(dtype=numpy.float))
+            else:
+                netCounts = 0.0
+            return rawCounts, netCounts
+        else:
+            return 0.0, 0.0
 
 
 class CurvesROIDockWidget(qt.QDockWidget):
