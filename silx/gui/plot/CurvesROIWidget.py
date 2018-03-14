@@ -388,8 +388,7 @@ class ROITable(qt.QTableWidget):
         ('From', 2),
         ('To', 3),
         ('Raw Counts', 4),
-        ('Net Counts', 5),
-        ('ROI Object', 6)
+        ('Net Counts', 5)
     ])
 
     COLUMNS = list(COLUMNS_INDEX.keys())
@@ -415,7 +414,6 @@ class ROITable(qt.QTableWidget):
         self.setHorizontalHeaderLabels(self.COLUMNS)
         self.horizontalHeader().setSectionResizeMode(
             qt.QHeaderView.ResizeToContents)
-        self.setColumnHidden(self.COLUMNS_INDEX['ROI Object'], True)
         self.sortByColumn(2, qt.Qt.AscendingOrder)
 
     def setPlot(self, plot):
@@ -512,10 +510,6 @@ class ROITable(qt.QTableWidget):
                               qt.Qt.ItemIsEditable)
             elif name in ('Raw Counts', 'Net Counts'):
                 item = _FloatItem()
-            elif name == 'ROI object':
-                item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-                if roi:
-                    item.setData(qt.QTableWidgetItem.Type, weakref.ref(roi))
             else:
                 raise ValueError('item type not recognized')
 
