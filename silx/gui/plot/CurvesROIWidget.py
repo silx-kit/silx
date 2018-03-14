@@ -553,12 +553,16 @@ class ROITable(qt.QTableWidget):
             return item
 
     def _itemChanged(self, item):
-        if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
+        def getROI():
             IDItem = self.item(item.row(), self.COLUMNS_INDEX['ID'])
             assert IDItem
             id = int(IDItem.text())
             assert id in self._roidict
             roi = self._roidict[id]
+            return roi
+
+        if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
+            roi = getROI()
             if item.text() not in ('', self.INFO_NOT_FOUND):
                 try:
                     value = float(item.text())
@@ -570,6 +574,9 @@ class ROITable(qt.QTableWidget):
                     assert(item.column() == self.COLUMNS_INDEX['From'])
                     roi.fromdata = value
                 self._updateMarker(roi.name)
+        if item.column() is self.COLUMNS_INDEX['ROI']:
+            roi = getROI()
+            roi.name = item.text()
 
     def deleteActiveRoi(self):
         """
