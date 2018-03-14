@@ -64,27 +64,21 @@ _logger = logging.getLogger(__name__)
 
 
 class CurvesROIWidget(qt.QWidget):
-    """Widget displaying a table of ROI information.
+    """
+    Widget displaying a table of ROI information.
+    
+    Implements also the following behavior:
+    
+    * if the roiTable has no ROI when showing create the default ICR one
 
     :param parent: See :class:`QWidget`
     :param str name: The title of this widget
     """
 
-    # sigROIWidgetSignal = qt.Signal(object)
-    """Signal of ROIs modifications.
-
-    Modification information if given as a dict with an 'event' key
-    providing the type of events.
-
-    Type of events:
-
-    - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
-
-    - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
-      'rowheader'
-    """
-
     sigROISignal = qt.Signal(object)
+    """Deprecated signal for backward compatibility with silx < 0.7.
+    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
+    """
 
     def __init__(self, parent=None, name=None, plot=None):
         super(CurvesROIWidget, self).__init__(parent)
@@ -165,7 +159,6 @@ class CurvesROIWidget(qt.QWidget):
 
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
-        self.roiTable.sigROITableSignal.connect(self._forward)
 
         self._middleROIMarkerFlag = False
         self._isConnected = False  # True if connected to plot signals
@@ -181,8 +174,6 @@ class CurvesROIWidget(qt.QWidget):
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
         qt.QWidget.showEvent(self, event)
-
-        self._isInit = False
 
     @property
     def roiFileDir(self):
@@ -240,10 +231,6 @@ class CurvesROIWidget(qt.QWidget):
     def _del(self):
         """Delete button clicked handler"""
         self.roiTable.deleteActiveRoi()
-
-    def _forward(self, ddict):
-        """Broadcast events from ROITable signal"""
-        self.sigROIWidgetSignal.emit(ddict)
 
     def _reset(self):
         """Reset button clicked handler"""
@@ -360,8 +347,30 @@ class CurvesROIWidget(qt.QWidget):
 
         return xmin, ymin, xmax, ymax
 
+    def showEvent(self, event):
+        self._visibilityChangedHandler(visible=True)
+        qt.QWidget.showEvent(self, event)
+
+    def hideEvent(self, event):
+        self._visibilityChangedHandler(visible=False)
+        qt.QWidget.hideEvent(self, event)
+
+    def _visibilityChangedHandler(self, visible):
+        """Handle widget's visibility updates.
+
+        It is connected to plot signals only when visible.
+        """
+        if visible:
+            # if no ROI existing yet, add the default one
+            if len(self.roiTable.roidict) is 0:
+                self._add()
+                self.calculateRois()
+
 
 class _FloatItem(qt.QTableWidgetItem):
+    """
+    Simple QTableWidgetItem overloading the < operator to deal with ordering
+    """
     def __init__(self):
         qt.QTableWidgetItem.__init__(self, type=qt.QTableWidgetItem.Type)
 
@@ -377,6 +386,9 @@ class ROITable(qt.QTableWidget):
     """Table widget displaying ROI information.
 
     See :class:`QTableWidget` for constructor arguments.
+    
+    Behavior: listen at the active curve changed only when the widget is
+    visible. Otherwise won't compute the row and net counts...
     """
 
     sigROITableSignal = qt.Signal(object)
@@ -401,6 +413,7 @@ class ROITable(qt.QTableWidget):
         self.activeRoi = None
         self._showAllMarkers = False
         self._middleROIMarkerFlag = False
+        self._isConnected = False
         self._RoiToItems = {}
         self.roidict = {}
         self.setColumnCount(len(self.COLUMNS))
@@ -648,37 +661,6 @@ class ROITable(qt.QTableWidget):
         for roiName in self.roidict:
             self._updateRoiInfo(roiName)
 
-    # def showEvent(self, event):
-    #     self._visibilityChangedHandler(visible=True)
-    #     qt.QWidget.showEvent(self, event)
-    #
-    # def hideEvent(self, event):
-    #     self._visibilityChangedHandler(visible=False)
-    #     qt.QWidget.hideEvent(self, event)
-
-    def _visibilityChangedHandler(self, visible):
-        """Handle widget's visibility updates.
-
-        It is connected to plot signals only when visible.
-        """
-        if visible:
-            if not self._isInit:
-                # Deferred ROI widget init finalization
-                self._finalizeInit()
-            if not self._isConnected:
-                self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
-                self.plot.sigActiveCurveChanged.connect(
-                    self._activeCurveChanged)
-                self._isConnected = True
-
-                self.calculateRois()
-        else:
-            if self._isConnected:
-                self.plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
-                self.plot.sigActiveCurveChanged.disconnect(
-                    self._activeCurveChanged)
-                self._isConnected = False
-
     def _updateMarker(self, roiname):
         """Make sure the marker of the given roi name is updated"""
         if self._showAllMarkers or \
@@ -824,6 +806,92 @@ class ROITable(qt.QTableWidget):
         """
         self._middleROIMarkerFlag = flag
 
+    def _handleROIMarkerEvent(self, ddict):
+        """Handle plot signals related to marker events."""
+        if ddict['event'] == 'markerMoved':
+            label = ddict['label']
+            if label in ['ROI min', 'ROI max', 'ROI middle']:
+                roiMoved = self.activeRoi
+            else:
+                raise NotImplemendedError('')
+
+            assert roiMoved
+            if roiMoved.name not in self.roidict:
+                return
+
+            x = ddict['x']
+
+            if label.endswith('ROI min'):
+                roiMoved.fromdata = x
+                if self._middleROIMarkerFlag:
+                    pos = 0.5 * (roiMoved.todata + roiMoved.fromdata)
+                    self.plot.addXMarker(pos,
+                                         legend=label,
+                                         text='',
+                                         color='yellow',
+                                         draggable=True)
+            elif label.endswith('ROI max'):
+                roiMoved.todata = x
+                if self._middleROIMarkerFlag:
+                    pos = 0.5 * (roiMoved.todata + roiMoved.fromdata)
+                    self.plot.addXMarker(pos,
+                                         legend=label,
+                                         text='',
+                                         color='yellow',
+                                         draggable=True)
+            elif label.endswith('ROI middle'):
+                delta = x - 0.5 * (roiMoved.fromdata + roiMoved.todata)
+                roiMoved.fromdata += delta
+                roiMoved.todata += delta
+                self.plot.addXMarker(roiMoved.fromdata,
+                                     legend=label,
+                                     text=label,
+                                     color='blue',
+                                     draggable=True)
+                self.plot.addXMarker(roiMoved.todata,
+                                     legend=label,
+                                     text=label,
+                                     color='blue',
+                                     draggable=True)
+
+            self._updateRoiInfo(roiMoved.name)
+            self._emitCurrentROISignal()
+
+    def _emitCurrentROISignal(self):
+        ddict = {}
+        ddict['event'] = "currentROISignal"
+        if self.activeRoi:
+            ddict['ROI'] = self.activeRoi.toDict()
+        ddict['current'] = self.activeRoi.name if self.activeRoi else None
+
+        self.sigROITableSignal .emit(ddict)
+
+    def showEvent(self, event):
+        self._visibilityChangedHandler(visible=True)
+        qt.QWidget.showEvent(self, event)
+
+    def hideEvent(self, event):
+        self._visibilityChangedHandler(visible=False)
+        qt.QWidget.hideEvent(self, event)
+
+    def _visibilityChangedHandler(self, visible):
+        """Handle widget's visibility updates.
+
+        It is connected to plot signals only when visible.
+        """
+        if visible:
+            assert self.plot
+            if self._isConnected is False:
+                self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
+                self.plot.sigActiveCurveChanged.connect(self.calculateRois)
+                self._isConnected = True
+            self.calculateRois()
+        else:
+            if self._isConnected:
+                self.plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
+                self.plot.sigActiveCurveChanged.disconnect(self.calculateRois)
+                self._isConnected = False
+
 
 class ROI(qt.QObject):
 
@@ -938,58 +1006,3 @@ class CurvesROIDockWidget(qt.QDockWidget):
         """
         self.raise_()
         qt.QDockWidget.showEvent(self, event)
-
-    def _handleROIMarkerEvent(self, ddict):
-        """Handle plot signals related to marker events."""
-        if ddict['event'] == 'markerMoved':
-
-            label = ddict['label']
-            if label not in ['ROI min', 'ROI max', 'ROI middle']:
-                return
-
-            roiList, roiDict = self.roiTable.getROIListAndDict()
-            if self.currentRoi is None:
-                return
-            if self.currentRoi not in roiDict:
-                return
-            x = ddict['x']
-
-            if label == 'ROI min':
-                roiDict[self.currentRoi]['from'] = x
-                if self._middleROIMarkerFlag:
-                    pos = 0.5 * (roiDict[self.currentRoi]['to'] +
-                                 roiDict[self.currentRoi]['from'])
-                    self.plot.addXMarker(pos,
-                                         legend='ROI middle',
-                                         text='',
-                                         color='yellow',
-                                         draggable=True)
-            elif label == 'ROI max':
-                roiDict[self.currentRoi]['to'] = x
-                if self._middleROIMarkerFlag:
-                    pos = 0.5 * (roiDict[self.currentRoi]['to'] +
-                                 roiDict[self.currentRoi]['from'])
-                    self.plot.addXMarker(pos,
-                                         legend='ROI middle',
-                                         text='',
-                                         color='yellow',
-                                         draggable=True)
-            elif label == 'ROI middle':
-                delta = x - 0.5 * (roiDict[self.currentRoi]['from'] +
-                                   roiDict[self.currentRoi]['to'])
-                roiDict[self.currentRoi]['from'] += delta
-                roiDict[self.currentRoi]['to'] += delta
-                self.plot.addXMarker(roiDict[self.currentRoi]['from'],
-                                     legend='ROI min',
-                                     text='ROI min',
-                                     color='blue',
-                                     draggable=True)
-                self.plot.addXMarker(roiDict[self.currentRoi]['to'],
-                                     legend='ROI max',
-                                     text='ROI max',
-                                     color='blue',
-                                     draggable=True)
-            else:
-                return
-            self.calculateRois(roiList, roiDict)
-            self._emitCurrentROISignal()
