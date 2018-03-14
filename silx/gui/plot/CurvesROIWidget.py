@@ -364,7 +364,7 @@ class CurvesROIWidget(qt.QWidget):
         """
         if visible:
             # if no ROI existing yet, add the default one
-            if len(self.roiTable.roidict) is 0:
+            if self.roiTable.rowCount() is 0:
                 self._add()
                 self.calculateRois()
 
@@ -398,12 +398,13 @@ class ROITable(qt.QTableWidget):
     """
 
     COLUMNS_INDEX = OrderedDict([
-        ('ROI', 0),
-        ('Type', 1),
-        ('From', 2),
-        ('To', 3),
-        ('Raw Counts', 4),
-        ('Net Counts', 5)
+        ('ID', 0),
+        ('ROI', 1),
+        ('Type', 2),
+        ('From', 3),
+        ('To', 4),
+        ('Raw Counts', 5),
+        ('Net Counts', 6),
     ])
 
     COLUMNS = list(COLUMNS_INDEX.keys())
@@ -417,21 +418,36 @@ class ROITable(qt.QTableWidget):
         self._middleROIMarkerFlag = False
         self._isConnected = False
         self._RoiToItems = {}
-        self.roidict = {}
+        self._roidict = {}
+
         self.setColumnCount(len(self.COLUMNS))
         self.setPlot(plot)
         self.__setTooltip()
         self.setSortingEnabled(True)
         self.itemChanged.connect(self._itemChanged)
 
+    @property
+    def roidict(self):
+        return self._getRoiDict()
+
+    def _getRoiDict(self):
+        ddict = {}
+        for id in self._roidict:
+            ddict[self._roidict[id].name] = self._roidict[id]
+        return ddict
+
     def clear(self):
+        """
+        .. note:: clear the interface only. keep the roidict...
+        """
         self._RoiToItems = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
         self.horizontalHeader().setSectionResizeMode(
             qt.QHeaderView.ResizeToContents)
-        self.sortByColumn(2, qt.Qt.AscendingOrder)
+        self.sortByColumn(0, qt.Qt.AscendingOrder)
+        self.hideColumn(self.COLUMNS_INDEX['ID'])
 
     def setPlot(self, plot):
         self.clear()
@@ -488,12 +504,12 @@ class ROITable(qt.QTableWidget):
         self.setRowCount(self.rowCount() + 1)
         indexTable = self.rowCount() - 1
 
-        self._RoiToItems[roi.name] = self._getItem('ROI', indexTable, roi)
-        self.roidict[roi.name] = roi
+        self._RoiToItems[roi._id] = self._getItem('ID', indexTable, roi)
+        self._roidict[roi._id] = roi
         self.activeRoi = roi
-        self._updateRoiInfo(roi.name)
+        self._updateRoiInfo(roi._id)
         callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
-                                     roi.name)
+                                     roi._id)
         roi.sigChanged.connect(callback)
 
     def _getItem(self, name, row, roi):
@@ -526,6 +542,10 @@ class ROITable(qt.QTableWidget):
             elif name in ('Raw Counts', 'Net Counts'):
                 item = _FloatItem()
                 item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+            elif name == 'ID':
+                assert roi
+                item = qt.QTableWidgetItem(str(roi._id),
+                                           type=qt.QTableWidgetItem.Type)
             else:
                 raise ValueError('item type not recognized')
 
@@ -534,10 +554,11 @@ class ROITable(qt.QTableWidget):
 
     def _itemChanged(self, item):
         if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
-            roiItem = self.item(item.row(), self.COLUMNS_INDEX['ROI'])
-            assert roiItem
-            assert roiItem.text() in self.roidict
-            roi = self.roidict[roiItem.text()]
+            IDItem = self.item(item.row(), self.COLUMNS_INDEX['ID'])
+            assert IDItem
+            id = int(IDItem.text())
+            assert id in self._roidict
+            roi = self._roidict[id]
             if item.text() not in ('', self.INFO_NOT_FOUND):
                 try:
                     value = float(item.text())
@@ -554,29 +575,29 @@ class ROITable(qt.QTableWidget):
         """
         remove the current active roi
         """
-        activeItem = self.selectedItems()
-        if len(activeItem) is 0:
+        activeItems = self.selectedItems()
+        if len(activeItems) is 0:
             return
         roiToRm = set()
-        for item in activeItem:
+        for item in activeItems:
             row = item.row()
-            itemName = self.item(row, 0)
-            roiToRm.add(itemName.text())
-        [self.removeROI(roiName) for roiName in roiToRm]
+            itemID = self.item(row, self.COLUMNS_INDEX['ID'])
+            roiToRm.add(self._roidict[int(itemID.text())])
+        [self.removeROI(roi) for roi in roiToRm]
 
-    def removeROI(self, name):
+    def removeROI(self, roi):
         """
         remove the requested roi
 
         :param str name: the name of the roi to remove from the table
         """
-        if name in self._RoiToItems:
-            item = self._RoiToItems[name]
+        if roi and roi._id in self._RoiToItems:
+            item = self._RoiToItems[roi._id]
             self.removeRow(item.row())
-            del self._RoiToItems[name]
+            del self._RoiToItems[roi._id]
 
             assert name in self.roidict
-            del self.roidict[name]
+            del self._roidict[roi._id]
 
     def setActiveRoi(self, roi):
         """
@@ -587,36 +608,38 @@ class ROITable(qt.QTableWidget):
         :param :class:`ROI` roi: the roi to defined as active
         """
         assert isinstance(roi, ROI)
-        if roi.name in self._RoiToItems.keys():
+        if roi and roi._id in self._RoiToItems.keys():
             self.activeRoi = roi
-            self.selectRow(self._RoiToItems[roi.name].row())
+            self.selectRow(self._RoiToItems[roi._id].row())
 
-    def _updateRoiInfo(self, roiName):
-        if roiName not in self.roidict:
+    def _updateRoiInfo(self, roiID):
+        if roiID not in self._roidict:
             return
-        roi = self.roidict[roiName]
-        assert roi.name in self._RoiToItems
+        roi = self._roidict[roiID]
+        assert roi._id in self._RoiToItems
 
-        itemName = self._RoiToItems[roi.name]
-        itemType = self._getItem(name='Type', row=itemName.row(), roi=roi)
+        itemID = self._RoiToItems[roi._id]
+        itemName = self._getItem(name='ROI', row=itemID.row(), roi=roi)
+        itemName.setText(roi.name)
+        itemType = self._getItem(name='Type', row=itemID.row(), roi=roi)
         itemType.setText(roi.type or self.INFO_NOT_FOUND)
 
-        itemFrom = self._getItem(name='From', row=itemName.row(), roi=roi)
+        itemFrom = self._getItem(name='From', row=itemID.row(), roi=roi)
         fromdata = str(roi.fromdata) if roi.fromdata is not None else self.INFO_NOT_FOUND
         itemFrom.setText(fromdata)
 
-        itemTo = self._getItem(name='To', row=itemName.row(), roi=roi)
+        itemTo = self._getItem(name='To', row=itemID.row(), roi=roi)
         todata = str(roi.todata) if roi.todata is not None else self.INFO_NOT_FOUND
         itemTo.setText(todata)
 
         rawCounts, netCounts = roi.computeRawAndNetCounts(
             curve=self.plot.getActiveCurve(just_legend=False))
-        itemRawCounts = self._getItem(name='Raw Counts', row=itemName.row(),
+        itemRawCounts = self._getItem(name='Raw Counts', row=itemID.row(),
                                       roi=roi)
         rawCounts = str(rawCounts) if rawCounts is not None else self.INFO_NOT_FOUND
         itemRawCounts.setText(rawCounts)
 
-        itemNetCounts = self._getItem(name='Net Counts', row=itemName.row(),
+        itemNetCounts = self._getItem(name='Net Counts', row=itemID.row(),
                                       roi=roi)
         netCounts = str(netCounts) if netCounts is not None else self.INFO_NOT_FOUND
         itemNetCounts.setText(netCounts)
@@ -635,7 +658,8 @@ class ROITable(qt.QTableWidget):
         :return: the list of roi objects and the dictionnary of roi name to roi
                  object.
         """
-        return list(self.roidict.values()), self.roidict
+        roidict = self.roidict
+        return list(roidict.values()), roidict
 
     def calculateRois(self, roiList=None, roiDict=None):
         """
@@ -653,13 +677,13 @@ class ROITable(qt.QTableWidget):
             deprecated_warning(name=roiList, type='Parameter',
                                reason='Unused parameter', since_version="0.8.0")
 
-        for roiName in self.roidict:
-            self._updateRoiInfo(roiName)
+        for roiID in self._roidict:
+            self._updateRoiInfo(roiID)
 
-    def _updateMarker(self, roiname):
+    def _updateMarker(self, roiID):
         """Make sure the marker of the given roi name is updated"""
         if self._showAllMarkers or (self.activeRoi
-                                    and self.activeRoi.name == roiname):
+                                    and self.activeRoi.name == roiID):
             self._updateMarkers()
 
     def _updateMarkers(self):
@@ -667,24 +691,28 @@ class ROITable(qt.QTableWidget):
         if self._showAllMarkers is True:
             if self._middleROIMarkerFlag:
                 self.plot.remove('ROI middle', kind='marker')
-            roiList, roiDict = self.getROIListAndDict()
 
-            for roi in roiDict:
-                fromdata = roiDict[roi].fromdata
-                todata = roiDict[roi].todata
-                _name = roi
-                _nameRoiMin = _name + ' ROI min'
-                _nameRoiMax = _name + ' ROI max'
-                self.plot.addXMarker(fromdata,
+            for roiID, roi in self._roidict.items():
+                _nameRoiMin = roi.name + ' ROI min'
+                _nameRoiMax = roi.name + ' ROI max'
+                self.plot.addXMarker(roi.fromdata,
                                      legend=_nameRoiMin,
                                      text=_nameRoiMin,
-                                     color=roiDict[roi]._color,
-                                     draggable=roiDict[roi]._draggable)
-                self.plot.addXMarker(todata,
+                                     color=roi._color,
+                                     draggable=roi._draggable)
+                self.plot.addXMarker(roi.todata,
                                      legend=_nameRoiMax,
                                      text=_nameRoiMax,
-                                     color=roiDict[roi]._color,
-                                     draggable=roiDict[roi]._draggable)
+                                     color=roi._color,
+                                     draggable=roi._draggable)
+                if self.activeRoi._draggable and self._middleROIMarkerFlag:
+                    _nameRoiMiddle = roi.name + ' ROI middle'
+                    pos = 0.5 * (fromdata + todata)
+                    self.plot.addXMarker(pos,
+                                         legend=_nameRoiMiddle,
+                                         text=_nameRoiMiddle,
+                                         color='yellow',
+                                         draggable=self.activeRoi._draggable)
         else:
             if not self.activeRoi or not self.plot:
                 return
@@ -752,10 +780,9 @@ class ROITable(qt.QTableWidget):
         :param str filename: The file to which to save the ROIs
         """
         self.roiTable.save(filename)
-        _roilist, _roidict = self.roiTable.getROIListAndDict()
         roilist = []
         roidict = {}
-        for roi in _roilist:
+        for roiID, roi in self._roidict:
             roilist.append(roi.toDict())
             roidict[roi.name] = roi.toDict()
         datadict = {'ROI': {'roilist': roilist, 'roidict': roidict}}
@@ -776,7 +803,7 @@ class ROITable(qt.QTableWidget):
             roiDict.pop('netcounts', None)
             rois.append(ROI._frmDict(roiDict))
 
-        self.roiTable.setRois(rois)
+        self.setRois(rois)
 
     def showAllMarkers(self, _show=True):
         """
@@ -850,7 +877,7 @@ class ROITable(qt.QTableWidget):
                                      color='blue',
                                      draggable=True)
 
-            self._updateRoiInfo(roiMoved.name)
+            self._updateRoiInfo(roiMoved._id)
             self._emitCurrentROISignal()
 
     def _emitCurrentROISignal(self):
@@ -892,14 +919,20 @@ class ROITable(qt.QTableWidget):
         self.calculateRois()
 
 
+_indexNextROI = 0
+
+
 class ROI(qt.QObject):
 
     sigChanged = qt.Signal()
 
     def __init__(self, name, fromdata=None, todata=None):
+        global _indexNextROI
         qt.QObject.__init__(self)
         assert type(name) is str
         self.name = name
+        self._id = _indexNextROI
+        _indexNextROI += 1
         self.fromdata = fromdata
         self.todata = todata
         self._marker = None
