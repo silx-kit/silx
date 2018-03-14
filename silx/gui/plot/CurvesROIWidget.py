@@ -22,15 +22,16 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Widget to handle regions of interest (ROI) on curves displayed in a PlotWindow.
+"""
+Widget to handle regions of interest (ROI) on curves displayed in a PlotWindow.
 
 This widget is meant to work with :class:`PlotWindow`.
 
 ROI are defined by :
 
 - A name (`ROI` column)
-- A type. The type is the label of the x axis.
-  This can be used to apply or not some ROI to a curve and do some post processing.
+- A type. The type is the label of the x axis. This can be used to apply or
+  not some ROI to a curve and do some post processing.
 - The x coordinate of the left limit (`from` column)
 - The x coordinate of the right limit (`to` column)
 - Raw counts: Sum of the curve's values in the defined Region Of Intereset.
@@ -66,9 +67,9 @@ _logger = logging.getLogger(__name__)
 class CurvesROIWidget(qt.QWidget):
     """
     Widget displaying a table of ROI information.
-    
+
     Implements also the following behavior:
-    
+
     * if the roiTable has no ROI when showing create the default ICR one
 
     :param parent: See :class:`QWidget`
@@ -131,7 +132,8 @@ class CurvesROIWidget(qt.QWidget):
         self.addButton.setToolTip('Remove the selected ROI')
         self.resetButton = qt.QPushButton(hbox)
         self.resetButton.setText("Reset")
-        self.addButton.setToolTip('Clear all created ROIs. We only let the default ROI')
+        self.addButton.setToolTip('Clear all created ROIs. We only let the '
+                                  'default ROI')
 
         hboxlayout.addWidget(self.addButton)
         hboxlayout.addWidget(self.delButton)
@@ -186,7 +188,7 @@ class CurvesROIWidget(qt.QWidget):
     def roiFileDir(self, roiFileDir):
         self._roiFileDir = str(roiFileDir)
 
-    def setRois(self, roidict, order=None):
+    def setRois(self, rois, order=None):
         return self.roiTable.setRois(rois, order)
 
     def getRois(self, order=None):
@@ -386,7 +388,7 @@ class ROITable(qt.QTableWidget):
     """Table widget displaying ROI information.
 
     See :class:`QTableWidget` for constructor arguments.
-    
+
     Behavior: listen at the active curve changed only when the widget is
     visible. Otherwise won't compute the row and net counts...
     """
@@ -474,15 +476,13 @@ class ROITable(qt.QTableWidget):
             if isinstance(roi, weakref.ref):
                 _roi = _roi()
             if _roi:
-                assert isinstance(roi, _ROI)
+                assert isinstance(roi, ROI)
                 self.addRoi(roi)
 
     def addRoi(self, roi):
         """
-        TODO
 
-        :param roi: 
-        :return: 
+        :param :class:`ROI` roi: roi to add to the table
         """
         assert isinstance(roi, ROI)
         self.setRowCount(self.rowCount() + 1)
@@ -503,7 +503,7 @@ class ROITable(qt.QTableWidget):
         else:
             if name == 'ROI':
                 item = qt.QTableWidgetItem(roi.name if roi else '',
-                                               type=qt.QTableWidgetItem.Type)
+                                           type=qt.QTableWidgetItem.Type)
                 if roi.name.upper() in ('ICR', 'DEFAULT'):
                     item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
                 else:
@@ -552,9 +552,7 @@ class ROITable(qt.QTableWidget):
 
     def deleteActiveRoi(self):
         """
-        TODO
-        
-        :return: 
+        remove the current active roi
         """
         activeItem = self.selectedItems()
         if len(activeItem) is 0:
@@ -568,10 +566,9 @@ class ROITable(qt.QTableWidget):
 
     def removeROI(self, name):
         """
-        TODO
-        
-        :param name: 
-        :return: 
+        remove the requested roi
+
+        :param str name: the name of the roi to remove from the table
         """
         if name in self._RoiToItems:
             item = self._RoiToItems[name]
@@ -583,10 +580,11 @@ class ROITable(qt.QTableWidget):
 
     def setActiveRoi(self, roi):
         """
-        TODO
-        
-        :param roi: 
-        :return: 
+        Define the given roi as the active one.
+
+        .. warning:: this roi should already be registred / added to the table
+
+        :param :class:`ROI` roi: the roi to defined as active
         """
         assert isinstance(roi, ROI)
         if roi.name in self._RoiToItems.keys():
@@ -625,8 +623,6 @@ class ROITable(qt.QTableWidget):
 
     def currentChanged(self, current, previous):
         if previous and current.row() != previous.row():
-            # note: roi is registred as a weak ref
-
             roiItem = self.item(current.row(), self.COLUMNS_INDEX['ROI'])
             assert roiItem
             self.activeRoi = self.roidict[roiItem.text()]
@@ -635,19 +631,18 @@ class ROITable(qt.QTableWidget):
 
     def getROIListAndDict(self):
         """
-        TODO
-        
-        :return: 
+
+        :return: the list of roi objects and the dictionnary of roi name to roi
+                 object.
         """
         return list(self.roidict.values()), self.roidict
 
     def calculateRois(self, roiList=None, roiDict=None):
         """
-        TODO
-        
-        :param roiList: 
-        :param roiDict: 
-        :return: 
+        Update values of all registred rois (raw and net counts in particular)
+
+        :param roiList: deprecated parameter
+        :param roiDict: deprecated parameter
         """
         if roiDict:
             from silx.utils.deprecation import deprecated_warning
@@ -663,8 +658,8 @@ class ROITable(qt.QTableWidget):
 
     def _updateMarker(self, roiname):
         """Make sure the marker of the given roi name is updated"""
-        if self._showAllMarkers or \
-            (self.activeRoi and self.activeRoi.name == roiname):
+        if self._showAllMarkers or (self.activeRoi
+                                    and self.activeRoi.name == roiname):
             self._updateMarkers()
 
     def _updateMarkers(self):
@@ -733,7 +728,7 @@ class ROITable(qt.QTableWidget):
 
         The dictionary keys are the ROI names.
         Each value is a :class:`ROI` object..
-        
+
         :param order: Field used for ordering the ROIs.
              One of "from", "to", "type", "netcounts", "rawcounts".
              None (default) to get the same order as displayed in the widget.
@@ -785,9 +780,10 @@ class ROITable(qt.QTableWidget):
 
     def showAllMarkers(self, _show=True):
         """
-        TODO
-        :param _show: 
-        :return: 
+
+        :param bool _show: if true show all the markers of all the ROIs
+                           boundaries otherwise will only show the one of
+                           the active ROI.
         """
         if self._showAllMarkers == _show:
             return
@@ -813,7 +809,7 @@ class ROITable(qt.QTableWidget):
             if label in ['ROI min', 'ROI max', 'ROI middle']:
                 roiMoved = self.activeRoi
             else:
-                raise NotImplemendedError('')
+                raise NotImplementedError('')
 
             assert roiMoved
             if roiMoved.name not in self.roidict:
