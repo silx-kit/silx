@@ -39,3 +39,9 @@ Project
   - Linux and MacOS X: `Travis <https://travis-ci.org/silx-kit/silx>`_
   - Windows: `AppVeyor <https://ci.appveyor.com/project/ESRF/silx>`_
 
+Additional Material
+-------------------
+
+- Code Camp Talks. *silx* follows a quarterly release cycle. Prior to each release, a code camp takes place in which the novelties are presented and interested users make use of the development version in order to spot bugs or missing features. The PDFs of the talks are available for download (`v0.7.0 <http://ftp.esrf.fr/pub/scisoft/silx/talks/IntroductionCodeCamp_v0.7.0.pdf>`_, `v0.6.0 <http://ftp.esrf.fr/pub/scisoft/silx/talks/IntroductionCodeCamp_v0.6.0.pdf>`_, `v0.5.0 <http://ftp.esrf.fr/pub/scisoft/silx/talks/IntroductionCodeCamp_v0.5.0.pdf>`_, `v0.4.0 <http://ftp.esrf.fr/pub/scisoft/silx/talks/IntroductionCodeCamp_v0.4.0.pdf>`_, `v0.3.0 <http://ftp.esrf.fr/pub/scisoft/silx/talks/IntroductionCodeCamp_v0.3.0.pdf>`_, `v0.2.0 <http://ftp.esrf.fr/pub/scisoft/silx/talks/IntroductionCodeCamp_v0.2.0.pdf>`_)
+
+
