@@ -407,6 +407,7 @@ class ROITable(qt.QTableWidget):
         self.setPlot(plot)
         self.__setTooltip()
         self.setSortingEnabled(True)
+        self.itemChanged.connect(self._itemChanged)
 
     def clear(self):
         self._RoiToItems = {}
@@ -494,8 +495,8 @@ class ROITable(qt.QTableWidget):
                     item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
                 else:
                     item.setFlags(qt.Qt.ItemIsSelectable |
-                                      qt.Qt.ItemIsEnabled |
-                                      qt.Qt.ItemIsEditable)
+                                  qt.Qt.ItemIsEnabled |
+                                  qt.Qt.ItemIsEditable)
             elif name == 'Type':
                 item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
                 item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
@@ -511,11 +512,30 @@ class ROITable(qt.QTableWidget):
                               qt.Qt.ItemIsEditable)
             elif name in ('Raw Counts', 'Net Counts'):
                 item = _FloatItem()
+                item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
             else:
                 raise ValueError('item type not recognized')
 
             self.setItem(row, self.COLUMNS_INDEX[name], item)
             return item
+
+    def _itemChanged(self, item):
+        if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
+            roiItem = self.item(item.row(), self.COLUMNS_INDEX['ROI'])
+            assert roiItem
+            assert roiItem.text() in self.roidict
+            roi = self.roidict[roiItem.text()]
+            if item.text() not in ('', self.INFO_NOT_FOUND):
+                try:
+                    value = float(item.text())
+                except ValueError:
+                    value = 0
+                if item.column() == self.COLUMNS_INDEX['To']:
+                    roi.todata = value
+                else:
+                    assert(item.column() == self.COLUMNS_INDEX['From'])
+                    roi.fromdata = value
+                self._updateMarker(roi.name)
 
     def deleteActiveRoi(self):
         """
@@ -658,6 +678,12 @@ class ROITable(qt.QTableWidget):
                 self.plot.sigActiveCurveChanged.disconnect(
                     self._activeCurveChanged)
                 self._isConnected = False
+
+    def _updateMarker(self, roiname):
+        """Make sure the marker of the given roi name is updated"""
+        if self._showAllMarkers or \
+            (self.activeRoi and self.activeRoi.name == roiname):
+            self._updateMarkers()
 
     def _updateMarkers(self):
         self._clearMarkers()
