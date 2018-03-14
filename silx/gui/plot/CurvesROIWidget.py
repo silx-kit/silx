@@ -879,14 +879,17 @@ class ROITable(qt.QTableWidget):
             assert self.plot
             if self._isConnected is False:
                 self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
-                self.plot.sigActiveCurveChanged.connect(self.calculateRois)
+                self.plot.sigActiveCurveChanged.connect(self._activeCurveChanged)
                 self._isConnected = True
             self.calculateRois()
         else:
             if self._isConnected:
                 self.plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
-                self.plot.sigActiveCurveChanged.disconnect(self.calculateRois)
+                self.plot.sigActiveCurveChanged.disconnect(self._activeCurveChanged)
                 self._isConnected = False
+
+    def _activeCurveChanged(self, curve):
+        self.calculateRois()
 
 
 class ROI(qt.QObject):
