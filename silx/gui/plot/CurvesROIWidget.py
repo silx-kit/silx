@@ -448,8 +448,11 @@ class ROITable(qt.QTableWidget):
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
-        self.horizontalHeader().setSectionResizeMode(
-            qt.QHeaderView.ResizeToContents)
+        header = self.horizontalHeader()
+        if hasattr(header, 'setSectionResizeMode'):  # Qt5
+            header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
+        else:  # Qt4
+            header.setResizeMode(qt.QHeaderView.ResizeToContents)
         self.sortByColumn(0, qt.Qt.AscendingOrder)
         self.hideColumn(self.COLUMNS_INDEX['ID'])
 
@@ -863,7 +866,6 @@ class ROITable(qt.QTableWidget):
                                          text='',
                                          color='yellow',
                                          draggable=True)
-                    roiMoved._markers.add(labelMiddle)
             elif label.endswith('ROI max'):
                 roiMoved.todata = x
                 if self._middleROIMarkerFlag:
@@ -874,7 +876,6 @@ class ROITable(qt.QTableWidget):
                                          text='',
                                          color='yellow',
                                          draggable=True)
-                    roiMoved._markers.add(labelMiddle)
             elif label.endswith('ROI middle'):
                 delta = x - 0.5 * (roiMoved.fromdata + roiMoved.todata)
                 roiMoved.fromdata += delta
@@ -886,14 +887,12 @@ class ROITable(qt.QTableWidget):
                                      text=labelMin,
                                      color='blue',
                                      draggable=True)
-                roiMoved._markers.add(labelMin)
                 labelMax = roi.name + ' ROI max'
                 self.plot.addXMarker(roiMoved.todata,
                                      legend=labelMax,
                                      text=labelMax,
                                      color='blue',
                                      draggable=True)
-                roiMoved._markers.add(labelMax)
 
             self._updateRoiInfo(roiMoved._id)
             self._emitCurrentROISignal()
