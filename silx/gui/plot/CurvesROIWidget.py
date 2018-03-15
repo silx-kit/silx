@@ -419,7 +419,11 @@ class ROITable(qt.QTableWidget):
         self._isConnected = False
         self._RoiToItems = {}
         self._roidict = {}
-
+        self._markerLgds = {}
+        """
+        Associate for each marker legend used when the `_showAllMarkers` option
+        is active a roi.
+        """
         self.setColumnCount(len(self.COLUMNS))
         self.setPlot(plot)
         self.__setTooltip()
@@ -577,6 +581,8 @@ class ROITable(qt.QTableWidget):
         if item.column() is self.COLUMNS_INDEX['ROI']:
             roi = getROI()
             roi.name = item.text()
+            if self._showAllMarkers:
+                self._updateMarkers()
 
     def deleteActiveRoi(self):
         """
@@ -696,12 +702,11 @@ class ROITable(qt.QTableWidget):
     def _updateMarkers(self):
         self._clearMarkers()
         if self._showAllMarkers is True:
-            if self._middleROIMarkerFlag:
-                self.plot.remove('ROI middle', kind='marker')
-
             for roiID, roi in self._roidict.items():
                 _nameRoiMin = roi.name + ' ROI min'
                 _nameRoiMax = roi.name + ' ROI max'
+                self._markerLgds[_nameRoiMin] = roi
+                self._markerLgds[_nameRoiMax] = roi
                 self.plot.addXMarker(roi.fromdata,
                                      legend=_nameRoiMin,
                                      text=_nameRoiMin,
@@ -714,6 +719,7 @@ class ROITable(qt.QTableWidget):
                                      draggable=roi._draggable)
                 if self.activeRoi._draggable and self._middleROIMarkerFlag:
                     _nameRoiMiddle = roi.name + ' ROI middle'
+                    self._markerLgds[_nameRoiMiddle] = roi
                     pos = 0.5 * (fromdata + todata)
                     self.plot.addXMarker(pos,
                                          legend=_nameRoiMiddle,
@@ -734,7 +740,7 @@ class ROITable(qt.QTableWidget):
                                  text='ROI max',
                                  color=self.activeRoi._color,
                                  draggable=self.activeRoi._draggable)
-            if self.activeRoi._draggable and self._middleROIMarkerFlag:
+            if self._middleROIMarkerFlag:
                 pos = 0.5 * (fromdata + todata)
                 self.plot.addXMarker(pos,
                                      legend='ROI middle',
@@ -749,13 +755,9 @@ class ROITable(qt.QTableWidget):
         self.plot.remove('ROI max', kind='marker')
         self.plot.remove('ROI middle', kind='marker')
 
-        roilist, roidict = self.getROIListAndDict()
-        for roi in roidict:
-            _name = roi
-            _nameRoiMin = _name + ' ROI min'
-            _nameRoiMax = _name + ' ROI max'
-            self.plot.remove(_nameRoiMin, kind='marker')
-            self.plot.remove(_nameRoiMax, kind='marker')
+        for markerLgd in self._markerLgds:
+            self.plot.remove(markerLgd, kind='marker')
+        self._markerLgds = {}
 
     def getRois(self, order, asDict=False):
         """
@@ -843,7 +845,7 @@ class ROITable(qt.QTableWidget):
             if label in ['ROI min', 'ROI max', 'ROI middle']:
                 roiMoved = self.activeRoi
             else:
-                raise NotImplementedError('')
+                roiMoved = self._markerLgds[label]
 
             assert roiMoved
             if roiMoved.name not in self.roidict:
@@ -854,35 +856,44 @@ class ROITable(qt.QTableWidget):
             if label.endswith('ROI min'):
                 roiMoved.fromdata = x
                 if self._middleROIMarkerFlag:
+                    labelMiddle = roi.name + ' ROI middle'
                     pos = 0.5 * (roiMoved.todata + roiMoved.fromdata)
                     self.plot.addXMarker(pos,
-                                         legend=label,
+                                         legend=labelMiddle,
                                          text='',
                                          color='yellow',
                                          draggable=True)
+                    roiMoved._markers.add(labelMiddle)
             elif label.endswith('ROI max'):
                 roiMoved.todata = x
                 if self._middleROIMarkerFlag:
                     pos = 0.5 * (roiMoved.todata + roiMoved.fromdata)
+                    labelMiddle = roi.name + ' ROI middle'
                     self.plot.addXMarker(pos,
-                                         legend=label,
+                                         legend=labelMiddle,
                                          text='',
                                          color='yellow',
                                          draggable=True)
+                    roiMoved._markers.add(labelMiddle)
             elif label.endswith('ROI middle'):
                 delta = x - 0.5 * (roiMoved.fromdata + roiMoved.todata)
                 roiMoved.fromdata += delta
                 roiMoved.todata += delta
+
+                labelMin = roi.name + ' ROI min'
                 self.plot.addXMarker(roiMoved.fromdata,
-                                     legend=label,
-                                     text=label,
+                                     legend=labelMin,
+                                     text=labelMin,
                                      color='blue',
                                      draggable=True)
+                roiMoved._markers.add(labelMin)
+                labelMax = roi.name + ' ROI max'
                 self.plot.addXMarker(roiMoved.todata,
-                                     legend=label,
-                                     text=label,
+                                     legend=labelMax,
+                                     text=labelMax,
                                      color='blue',
                                      draggable=True)
+                roiMoved._markers.add(labelMax)
 
             self._updateRoiInfo(roiMoved._id)
             self._emitCurrentROISignal()
