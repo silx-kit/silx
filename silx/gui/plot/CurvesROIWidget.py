@@ -194,8 +194,10 @@ class CurvesROIWidget(qt.QWidget):
     def getRois(self, order=None):
         return self.roiTable.getRois(order)
 
+    @deprecation.deprecated(reason="Moved to ROITable",
+                            since_version="0.8.0")
     def setMiddleROIMarkerFlag(self, flag=True):
-        return self.roiTable.setMiddleRoiMarkerFlag(flag)
+        return self.roiTable.setMiddleROIMarkerFlag(flag)
 
     def _add(self):
         """Add button clicked handler"""
@@ -494,11 +496,19 @@ class ROITable(qt.QTableWidget):
         """
         assert order in [None, "from", "to", "type"]
         self.clear()
-        for roi in rois:
-            _roi = roi
-            if isinstance(roi, weakref.ref):
-                _roi = _roi()
-            if _roi:
+
+        # backward comptaibility since 0.8.0
+        if isinstance(rois, dict):
+            deprecation.deprecated_warning(name='rois', type_='Parameter',
+                                           reason='Rois should now be a list '
+                                                  'of ROI object',
+                                           since_version="0.8.0")
+            for roiName, roi in rois.items():
+                roi['name'] = roiName
+                _roi = ROI._fromDict(roi)
+                self.addRoi(_roi)
+        else:
+            for roi in rois:
                 assert isinstance(roi, ROI)
                 self.addRoi(roi)
 
@@ -508,10 +518,7 @@ class ROITable(qt.QTableWidget):
         :param :class:`ROI` roi: roi to add to the table
         """
         assert isinstance(roi, ROI)
-        self.setRowCount(self.rowCount() + 1)
-        indexTable = self.rowCount() - 1
-
-        self._RoiToItems[roi._id] = self._getItem('ID', indexTable, roi)
+        self._getItem(name='ID', row=None, roi=roi)
         self._roidict[roi._id] = roi
         self.activeRoi = roi
         self._updateRoiInfo(roi._id)
@@ -520,11 +527,25 @@ class ROITable(qt.QTableWidget):
         roi.sigChanged.connect(callback)
 
     def _getItem(self, name, row, roi):
-        item = self.item(row, self.COLUMNS_INDEX[name])
+        if row:
+            item = self.item(row, self.COLUMNS_INDEX[name])
+        else:
+            item = None
         if item:
             return item
         else:
-            if name == 'ROI':
+            if name == 'ID':
+                assert roi
+                if roi._id in self._RoiToItems:
+                    return self._RoiToItems[roi._id]
+                else:
+                    # create a new row
+                    row = self.rowCount()
+                    self.setRowCount(self.rowCount() + 1)
+                    item = qt.QTableWidgetItem(str(roi._id),
+                                               type=qt.QTableWidgetItem.Type)
+                    self._RoiToItems[roi._id] = item
+            elif name == 'ROI':
                 item = qt.QTableWidgetItem(roi.name if roi else '',
                                            type=qt.QTableWidgetItem.Type)
                 if roi.name.upper() in ('ICR', 'DEFAULT'):
@@ -549,10 +570,6 @@ class ROITable(qt.QTableWidget):
             elif name in ('Raw Counts', 'Net Counts'):
                 item = _FloatItem()
                 item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
-            elif name == 'ID':
-                assert roi
-                item = qt.QTableWidgetItem(str(roi._id),
-                                           type=qt.QTableWidgetItem.Type)
             else:
                 raise ValueError('item type not recognized')
 
@@ -632,9 +649,8 @@ class ROITable(qt.QTableWidget):
         if roiID not in self._roidict:
             return
         roi = self._roidict[roiID]
-        assert roi._id in self._RoiToItems
 
-        itemID = self._RoiToItems[roi._id]
+        itemID = self._getItem(name='ID', roi=roi, row=None)
         itemName = self._getItem(name='ROI', row=itemID.row(), roi=roi)
         itemName.setText(roi.name)
         itemType = self._getItem(name='Type', row=itemID.row(), roi=roi)
@@ -685,13 +701,13 @@ class ROITable(qt.QTableWidget):
         :param roiDict: deprecated parameter
         """
         if roiDict:
-            from silx.utils.deprecation import deprecated_warning
-            deprecated_warning(name=roiDict, type='Parameter',
-                               reason='Unused parameter', since_version="0.8.0")
+            deprecation.deprecated_warning(name='roiDict', type_='Parameter',
+                                           reason='Unused parameter',
+                                           since_version="0.8.0")
         if roiList:
-            from silx.utils.deprecation import deprecated_warning
-            deprecated_warning(name=roiList, type='Parameter',
-                               reason='Unused parameter', since_version="0.8.0")
+            deprecation.deprecated_warning(name='roiList', type_='Parameter',
+                                           reason='Unused parameter',
+                                           since_version="0.8.0")
 
         for roiID in self._roidict:
             self._updateRoiInfo(roiID)
@@ -744,7 +760,7 @@ class ROITable(qt.QTableWidget):
                                  color=self.activeRoi._color,
                                  draggable=self.activeRoi._draggable)
             if self._middleROIMarkerFlag:
-                pos = 0.5 * (fromdata + todata)
+                pos = 0.5 * (self.activeRoi.fromdata + self.activeRoi.todata)
                 self.plot.addXMarker(pos,
                                      legend='ROI middle',
                                      text="",
@@ -775,15 +791,17 @@ class ROITable(qt.QTableWidget):
         :return: Ordered dictionary of ROI information
         """
 
-        roilist, roidict = self.roiTable.getROIListAndDict()
+        roilist, roidict = self.getROIListAndDict()
         if order is None or order.lower() == "none":
             ordered_roilist = roilist
+            res = OrderedDict([(roi.name, roidict[roi.name]) for roi in ordered_roilist])
         else:
             assert order in ["from", "to", "type", "netcounts", "rawcounts"]
             ordered_roilist = sorted(roidict.keys(),
                                      key=lambda roi_name: roidict[roi_name].get(order))
+            res = OrderedDict([(name, roidict[name]) for name in ordered_roilist])
 
-        return OrderedDict([(name, roidict[name]) for name in ordered_roilist])
+        return res
 
     def save(self, filename):
         """
@@ -791,7 +809,6 @@ class ROITable(qt.QTableWidget):
 
         :param str filename: The file to which to save the ROIs
         """
-        self.roiTable.save(filename)
         roilist = []
         roidict = {}
         for roiID, roi in self._roidict:
@@ -813,7 +830,7 @@ class ROITable(qt.QTableWidget):
         for roiDict in roisDict['ROI']['roidict'].values():
             roiDict.pop('rawcounts', None)
             roiDict.pop('netcounts', None)
-            rois.append(ROI._frmDict(roiDict))
+            rois.append(ROI._fromDict(roiDict))
 
         self.setRois(rois)
 
@@ -943,7 +960,7 @@ class ROI(qt.QObject):
 
     sigChanged = qt.Signal()
 
-    def __init__(self, name, fromdata=None, todata=None):
+    def __init__(self, name, fromdata=None, todata=None, type_=None):
         global _indexNextROI
         qt.QObject.__init__(self)
         assert type(name) is str
@@ -955,7 +972,7 @@ class ROI(qt.QObject):
         self._marker = None
         self._draggable = False
         self._color = 'blue'
-        self.type = 'Default'
+        self.type = type_ or 'Default'
 
     def toDict(self):
         return {
@@ -964,6 +981,18 @@ class ROI(qt.QObject):
             'from': self.fromdata,
             'to': self.todata,
         }
+
+    @staticmethod
+    def _fromDict(dic):
+        assert 'name' in dic
+        roi = ROI(name=dic['name'])
+        if 'from' in dic:
+            roi.fromdata = dic['from']
+        if 'to' in dic:
+            roi.todata = dic['to']
+        if 'type' in dic:
+            roi.fromdata = dic['type']
+        return roi
 
     def computeRawAndNetCounts(self, curve):
         assert isinstance(curve, Curve) or curve is None
