@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -115,24 +115,10 @@ import sys
 
 _logger = logging.getLogger(__name__)
 
-cimport numpy
 cimport cython
 from libc.stdlib cimport free
 
 cimport specfile_wrapper
-
-# hack to avoid C compiler warnings about unused functions in the NumPy header files
-# Sources: Cython test suite.
-cdef extern from *:
-    bint FALSE "0"
-    void import_array()
-    void import_umath()
-
-if FALSE:
-    import_array()
-    import_umath()
-
-numpy.import_array()
 
 
 SF_ERR_NO_ERRORS = 0
@@ -654,7 +640,7 @@ cdef class SpecFile(object):
         str filename
 
     def __cinit__(self, filename):
-        cdef int error = SF_ERR_NO_ERRORS
+        cdef int error = 0
         self.handle = NULL
 
         if is_specfile(filename):
@@ -890,6 +876,7 @@ cdef class SpecFile(object):
             int i, j
             int error = SF_ERR_NO_ERRORS
             long nlines, ncolumns, regular
+            double[:, :] ret_array
 
         sfdata_error = specfile_wrapper.SfData(self.handle,
                                                scan_index + 1,
@@ -907,15 +894,15 @@ cdef class SpecFile(object):
             ncolumns = 0
             regular = 0
 
-        cdef numpy.ndarray ret_array = numpy.empty((nlines, ncolumns),
-                                                   dtype=numpy.double)
+        ret_array = numpy.empty((nlines, ncolumns), dtype=numpy.double)
+
         for i in range(nlines):
             for j in range(ncolumns):
                 ret_array[i, j] = mydata[i][j]
 
         specfile_wrapper.freeArrNZ(<void ***>&mydata, nlines)
         free(data_info)
-        return ret_array
+        return numpy.asarray(ret_array)
 
     def data_column_by_name(self, scan_index, label):
         """Returns data column for the specified scan index and column label.
@@ -934,6 +921,7 @@ cdef class SpecFile(object):
             double* data_column
             long i, nlines
             int error = SF_ERR_NO_ERRORS
+            double[:] ret_array
 
         label = _string_to_char_star(label)
 
@@ -944,13 +932,13 @@ cdef class SpecFile(object):
                                                   &error)
         self._handle_error(error)
 
-        cdef numpy.ndarray ret_array = numpy.empty((nlines,),
-                                                   dtype=numpy.double)
+        ret_array = numpy.empty((nlines,), dtype=numpy.double)
+
         for i in range(nlines):
             ret_array[i] = data_column[i]
 
         free(data_column)
-        return ret_array
+        return numpy.asarray(ret_array)
 
     def scan_header(self, scan_index):
         """Return list of scan header lines.
@@ -1255,6 +1243,7 @@ cdef class SpecFile(object):
             int error = SF_ERR_NO_ERRORS
             double* mca_data
             long  len_mca
+            double[:] ret_array
 
         len_mca = specfile_wrapper.SfGetMca(self.handle,
                                             scan_index + 1,
@@ -1263,10 +1252,10 @@ cdef class SpecFile(object):
                                             &error)
         self._handle_error(error)
 
-        cdef numpy.ndarray ret_array = numpy.empty((len_mca,),
-                                                   dtype=numpy.double)
+        ret_array = numpy.empty((len_mca,), dtype=numpy.double)
+
         for i in range(len_mca):
             ret_array[i] = mca_data[i]
 
         free(mca_data)
-        return ret_array
+        return numpy.asarray(ret_array)
