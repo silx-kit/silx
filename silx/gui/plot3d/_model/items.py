@@ -519,7 +519,7 @@ class GroupItemRow(Item3DRow):
 
         # Find item
         for row in self.children():
-            if row.item() is item:
+            if isinstance(row, Item3DRow) and row.item() is item:
                 self.removeRow(row)
                 break  # Got it
         else:
