@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -409,9 +409,9 @@ def _median_filter_int16(cnumpy.int16_t[:, ::1] input_buffer not None,
 @cython.wraparound(False)
 @cython.initializedcheck(False)
 def _median_filter_uint16(
-      cnumpy.ndarray[cnumpy.uint16_t, ndim=2, mode='c'] input_buffer not None,
-      cnumpy.ndarray[cnumpy.uint16_t, ndim=2, mode='c'] output_buffer not None,
-      cnumpy.ndarray[cnumpy.int32_t, ndim=1, mode='c'] kernel_size not None,
+      cnumpy.uint16_t[:, ::1] input_buffer not None,
+      cnumpy.uint16_t[:, ::1] output_buffer not None,
+      cnumpy.int32_t[::1] kernel_size not None,
       bool conditional,
       int mode):
 
