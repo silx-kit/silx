@@ -76,9 +76,9 @@ if _IS_NOTEBOOK:
 else:
     from silx.gui import qt
 
-    if hasattr(_sys, 'ps1'):  # If from console, make sure QApplication runs
-        qapp = qt.QApplication.instance() or qt.QApplication([])
+    qapp = qt.QApplication.instance() or qt.QApplication([])
 
+    if hasattr(_sys, 'ps1'):  # If from console, make sure QApplication runs
         # Change windows default icon
         from silx.gui import icons as _icons
         qapp.setWindowIcon(_icons.getQIcon('silx'))
