@@ -43,6 +43,7 @@ __date__ = "16/01/2017"
 
 import logging as _logging
 import sys as _sys
+import os as _os
 
 
 _logger = _logging.getLogger(__name__)
@@ -51,6 +52,9 @@ _logger = _logging.getLogger(__name__)
 # Init logging when used from the console
 if hasattr(_sys, 'ps1'):
     _logging.basicConfig()
+
+# Probe DISPLAY available on linux
+_NO_DISPLAY = _sys.platform.startswith('linux') and not _os.environ.get('DISPLAY')
 
 # Probe ipython
 try:
@@ -68,10 +72,14 @@ else:
     _IS_NOTEBOOK = False
 
 
-# Load Qt and widgets only if running from console
+# Load Qt and widgets only if running from console and display available
 if _IS_NOTEBOOK:
     _logger.warning(
         'Not loading silx.gui features: Running from the notebook')
+
+elif _NO_DISPLAY:  # Missing DISPLAY under linux
+    _logger.warning(
+        'Not loading silx.gui features: No DISPLAY available')
 
 else:
     from silx.gui import qt
@@ -101,16 +109,17 @@ else:
 if _get_ipython is not None and _get_ipython() is not None:
     if _IS_NOTEBOOK:
         _get_ipython().enable_pylab(gui='inline', import_all=False)
-    else:
+    elif not _NO_DISPLAY:  # Not loading pylab without display
         from IPython.core.pylabtools import import_pylab as _import_pylab
         _import_pylab(_get_ipython().user_ns, import_all=False)
 
 
 # Clean-up
+del _os
 del _sys
 del _get_ipython
 del _IS_NOTEBOOK
-
+del _NO_DISPLAY
 
 # Load some silx stuff in namespace
 from silx import version  # noqa
