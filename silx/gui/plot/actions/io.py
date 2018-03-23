@@ -146,6 +146,9 @@ class SaveAction(PlotAction):
     SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
     DEFAULT_SCATTER_FILTERS = (SCATTER_FILTER_NXDATA,)
 
+    DEFAULT_ALL_NXDATA_FILTERS = (CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
+                                  SCATTER_FILTER_NXDATA)
+
     def __init__(self, plot, parent=None):
         self._filters = {
             'all': OrderedDict(),
@@ -554,12 +557,23 @@ class SaveAction(PlotAction):
 
         # Create and run File dialog
         dialog = qt.QFileDialog(self.plot)
+        dialog.setOption(dialog.DontUseNativeDialog)
         dialog.setWindowTitle("Output File Selection")
         dialog.setModal(1)
         dialog.setNameFilters(list(filters.keys()))
 
         dialog.setFileMode(dialog.AnyFile)
         dialog.setAcceptMode(dialog.AcceptSave)
+
+        def onFilterSelection(filt_):
+            # disable overwrite confirmation for NXdata types,
+            # because we append the data to existing files
+            if filt_ in self.DEFAULT_ALL_NXDATA_FILTERS:
+                dialog.setOption(dialog.DontConfirmOverwrite)
+            else:
+                dialog.setOption(dialog.DontConfirmOverwrite, False)
+
+        dialog.filterSelected.connect(onFilterSelection)
 
         if not dialog.exec_():
             return False
