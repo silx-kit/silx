@@ -307,7 +307,8 @@ class CurvesROIWidget(qt.QWidget):
         self.headerLabel.setText("<b>%s<\b>" % text)
 
     @deprecation.deprecated(replacement="calculateRois",
-                            reason="CamelCase convention")
+                            reason="CamelCase convention",
+                            since_version="0.7")
     def calculateROIs(self, *args, **kw):
         self.calculateRois(*args, **kw)
 
