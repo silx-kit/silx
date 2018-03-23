@@ -44,11 +44,13 @@ from silx.io.utils import save1D, savespec
 from silx.io.nxdata import save_NXdata
 import logging
 import sys
+import os.path
 from collections import OrderedDict
 import traceback
 import numpy
 from silx.utils.deprecation import deprecated
 from silx.gui import qt, printer
+from silx.gui.dialog.GroupDialog import GroupDialog
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.gui._utils import convertArrayToQImage
@@ -63,6 +65,22 @@ _logger = logging.getLogger(__name__)
 
 _NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs",  ".hdf", ".hdf5", ".cxi"]
 _NEXUS_HDF5_EXT_STR = ' '.join(['*' + ext for ext in _NEXUS_HDF5_EXT])
+
+
+def selectOutputGroup(h5filename):
+    """Open a dialog to prompt the user to select a group in
+    which to output data.
+
+    :param str h5filename: name of an existing HDF5 file
+    :rtype: str
+    :return: Name of output group, or None if the dialog was cancelled
+    """
+    dialog = GroupDialog()
+    dialog.addFile(h5filename)
+    dialog.setWindowTitle("Select an output group")
+    if not dialog.exec_():
+        return None
+    return dialog.selected_url.data_path()
 
 
 class SaveAction(PlotAction):
@@ -194,6 +212,41 @@ class SaveAction(PlotAction):
         plot.saveGraph(filename, fileFormat=fileFormat)
         return True
 
+    def _getAxesLabels(self, item):
+        # If curve has no associated label, get the default from the plot
+        xlabel = item.getXLabel() or self.plot.getXAxis().getLabel()
+        ylabel = item.getYLabel() or self.plot.getYAxis().getLabel()
+        return xlabel, ylabel
+
+    def _saveCurveAsNXdata(self, curve, filename):
+        if os.path.exists(filename) and os.path.isfile(filename) \
+                and os.access(filename, os.W_OK):
+            entryPath = selectOutputGroup(filename)
+            if entryPath is None:
+                _logger.info("Save operation cancelled")
+                return False
+        else:
+            self._errorMessage('Save failed (file access issue)\n')
+            return False
+        if entryPath is None:
+            _logger.info("Save operation cancelled")
+            return False
+
+        xlabel, ylabel = self._getAxesLabels(curve)
+
+        return save_NXdata(
+            filename,
+            nxentry_name=entryPath,
+            signal=curve.getYData(copy=False),
+            axes=[curve.getXData(copy=False)],
+            signal_name="y",
+            axes_names=["x"],
+            signal_long_name=ylabel,
+            axes_long_names=[xlabel],
+            signal_errors=curve.getYErrorData(copy=False),
+            axes_errors=[curve.getXErrorData(copy=True)],
+            title=self.plot.getGraphTitle())
+
     def _saveCurve(self, plot, filename, nameFilter):
         """Save a curve from the plot.
 
@@ -225,26 +278,10 @@ class SaveAction(PlotAction):
             # .npy or nxdata
             fmt, csvdelim, autoheader = ("", "", False)
 
-        # If curve has no associated label, get the default from the plot
-        xlabel = curve.getXLabel()
-        if xlabel is None:
-            xlabel = plot.getXAxis().getLabel()
-        ylabel = curve.getYLabel()
-        if ylabel is None:
-            ylabel = plot.getYAxis().getLabel()
+        xlabel, ylabel = self._getAxesLabels(curve)
 
         if nameFilter == self.CURVE_FILTER_NXDATA:
-            return save_NXdata(
-                filename,
-                signal=curve.getYData(copy=False),
-                axes=[curve.getXData(copy=False)],
-                signal_name="y",
-                axes_names=["x"],
-                signal_long_name=ylabel,
-                axes_long_names=[xlabel],
-                signal_errors=curve.getYErrorData(copy=False),
-                axes_errors=[curve.getXErrorData(copy=True)],
-                title=plot.getGraphTitle())
+            self._saveCurveAsNXdata(curve, filename)
 
         try:
             save1D(filename,
@@ -355,8 +392,7 @@ class SaveAction(PlotAction):
             xscale, yscale = image.getScale()
             xaxis = xorigin + xscale * numpy.arange(data.shape[1])
             yaxis = yorigin + yscale * numpy.arange(data.shape[0])
-            xlabel = image.getXLabel() or plot.getGraphXLabel()
-            ylabel = image.getYLabel() or plot.getGraphYLabel()
+            xlabel, ylabel = self._getAxesLabels(image)
             interpretation = "image" if len(data.shape) == 2 else "rgba-image"
 
             return save_NXdata(filename,
