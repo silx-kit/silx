@@ -191,11 +191,12 @@ class CurvesROIWidget(qt.QWidget):
             if nrois == 0:
                 return "ICR"
             else:
-                for i in range(nrois):
+                i = 1
+                newroi = "newroi %d" % i
+                while newroi in self.roiTable.roidict.keys():
                     i += 1
                     newroi = "newroi %d" % i
-                    if newroi not in self.roiTable.roidict.keys():
-                        return newroi
+                return newroi
 
         roi = ROI(name=getNextROIName())
 
