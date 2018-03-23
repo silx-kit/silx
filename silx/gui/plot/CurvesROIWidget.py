@@ -574,8 +574,10 @@ class ROITable(qt.QTableWidget):
             roi = self._roiDict[id]
             return roi
 
+        self._userIsEditingROI = True
         if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
             roi = getROI()
+
             if item.text() not in ('', self.INFO_NOT_FOUND):
                 try:
                     value = float(item.text())
@@ -593,6 +595,7 @@ class ROITable(qt.QTableWidget):
             roi.setName(item.text())
             if self._showAllMarkers:
                 self._updateMarkers()
+        self._userIsEditingROI = False
 
     def deleteActiveRoi(self):
         """
@@ -674,7 +677,7 @@ class ROITable(qt.QTableWidget):
 
     def currentChanged(self, current, previous):
         if previous and current.row() != previous.row():
-            roiItem = self.item(current.row(), self.COLUMNS_INDEX['ROI'])
+            roiItem = self.item(current.row(), self.COLUMNS_INDEX['ID'])
             assert roiItem
             self.activeRoi = self._roiDict[int(roiItem.text())]
             self._updateMarkers()
@@ -764,7 +767,7 @@ class ROITable(qt.QTableWidget):
                                  color=_color,
                                  draggable=_draggable)
             if self._middleROIMarkerFlag:
-                pos = 0.5 * (self.activeRoi.getFrom() + self.activeRoi.getto())
+                pos = 0.5 * (self.activeRoi.getFrom() + self.activeRoi.getTo())
                 self.plot.addXMarker(pos,
                                      legend='ROI middle',
                                      text="",
