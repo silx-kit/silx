@@ -23,24 +23,10 @@
 #
 # ###########################################################################*/
 """
-Widget to handle regions of interest (ROI) on curves displayed in a PlotWindow.
+Widget to handle regions of interest (:class:`ROI`) on curves displayed in a
+:class:`PlotWindow`.
 
 This widget is meant to work with :class:`PlotWindow`.
-
-ROI are defined by :
-
-- A name (`ROI` column)
-- A type. The type is the label of the x axis. This can be used to apply or
-  not some ROI to a curve and do some post processing.
-- The x coordinate of the left limit (`from` column)
-- The x coordinate of the right limit (`to` column)
-- Raw counts: Sum of the curve's values in the defined Region Of Intereset.
-
-  .. image:: img/rawCounts.png
-
-- Net counts: Raw counts minus background
-
-  .. image:: img/netCounts.png
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
@@ -208,25 +194,23 @@ class CurvesROIWidget(qt.QWidget):
                 for i in range(nrois):
                     i += 1
                     newroi = "newroi %d" % i
-                    if newroi not in self.roiTable.roiDict.keys():
+                    if newroi not in self.roiTable.roidict.keys():
                         return newroi
 
         roi = ROI(name=getNextROIName())
-        roi._color = 'black' if roi.name == 'ICR' else 'blue'
-        roi._draggable = False if roi.name == 'ICR' else True
 
-        if roi.name == "ICR":
-            roi.type = "Default"
+        if roi.getName() == "ICR":
+            roi.setType("Default")
         else:
-            roi.type = self.plot.getXAxis().getLabel()
+            roi.setType(self.plot.getXAxis().getLabel())
 
         xmin, xmax = self.plot.getXAxis().getLimits()
         fromdata = xmin + 0.25 * (xmax - xmin)
         todata = xmin + 0.75 * (xmax - xmin)
-        if roi.name == 'ICR':
+        if roi.getName() == 'ICR':
             fromdata, dummy0, todata, dummy1 = self._getAllLimits()
-        roi.fromdata = fromdata
-        roi.todata = todata
+        roi.setFrom(fromdata)
+        roi.setTo(todata)
 
         self.roiTable.addRoi(roi)
 
@@ -545,9 +529,9 @@ class ROITable(qt.QTableWidget):
                                                type=qt.QTableWidgetItem.Type)
                     self._RoiToItems[roi._id] = item
             elif name == 'ROI':
-                item = qt.QTableWidgetItem(roi.name if roi else '',
+                item = qt.QTableWidgetItem(roi.getName() if roi else '',
                                            type=qt.QTableWidgetItem.Type)
-                if roi.name.upper() in ('ICR', 'DEFAULT'):
+                if roi.getName().upper() in ('ICR', 'DEFAULT'):
                     item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
                 else:
                     item.setFlags(qt.Qt.ItemIsSelectable |
@@ -653,14 +637,14 @@ class ROITable(qt.QTableWidget):
         itemName = self._getItem(name='ROI', row=itemID.row(), roi=roi)
         itemName.setText(roi.name)
         itemType = self._getItem(name='Type', row=itemID.row(), roi=roi)
-        itemType.setText(roi.type or self.INFO_NOT_FOUND)
+        itemType.setText(roi.getType() or self.INFO_NOT_FOUND)
 
         itemFrom = self._getItem(name='From', row=itemID.row(), roi=roi)
-        fromdata = str(roi.fromdata) if roi.fromdata is not None else self.INFO_NOT_FOUND
+        fromdata = str(roi.getFrom()) if roi.getFrom() is not None else self.INFO_NOT_FOUND
         itemFrom.setText(fromdata)
 
         itemTo = self._getItem(name='To', row=itemID.row(), roi=roi)
-        todata = str(roi.todata) if roi.todata is not None else self.INFO_NOT_FOUND
+        todata = str(roi.getTo()) if roi.getTo() is not None else self.INFO_NOT_FOUND
         itemTo.setText(todata)
 
         rawCounts, netCounts = roi.computeRawAndNetCounts(
@@ -724,6 +708,9 @@ class ROITable(qt.QTableWidget):
         self._clearMarkers()
         if self._showAllMarkers is True:
             for roiID, roi in self._roidict.items():
+                _color = 'black' if roi.isICR() == 'ICR' else 'blue'
+                _draggable = False if roi.isICR() == 'ICR' else True
+
                 _nameRoiMin = roi.name + ' ROI min'
                 _nameRoiMax = roi.name + ' ROI max'
                 self._markerLgds[_nameRoiMin] = roi
@@ -731,43 +718,45 @@ class ROITable(qt.QTableWidget):
                 self.plot.addXMarker(roi.fromdata,
                                      legend=_nameRoiMin,
                                      text=_nameRoiMin,
-                                     color=roi._color,
-                                     draggable=roi._draggable)
+                                     color=_color,
+                                     draggable=_draggable)
                 self.plot.addXMarker(roi.todata,
                                      legend=_nameRoiMax,
                                      text=_nameRoiMax,
-                                     color=roi._color,
-                                     draggable=roi._draggable)
-                if self.activeRoi._draggable and self._middleROIMarkerFlag:
+                                     color=_color,
+                                     draggable=_draggable)
+                if self.roi._draggable and self._middleROIMarkerFlag:
                     _nameRoiMiddle = roi.name + ' ROI middle'
                     self._markerLgds[_nameRoiMiddle] = roi
-                    pos = 0.5 * (fromdata + todata)
+                    pos = 0.5 * (self.roi.getFrom() + self.roi.getTo())
                     self.plot.addXMarker(pos,
                                          legend=_nameRoiMiddle,
                                          text=_nameRoiMiddle,
                                          color='yellow',
-                                         draggable=self.activeRoi._draggable)
+                                         draggable=_draggable)
         else:
             if not self.activeRoi or not self.plot:
                 return
             assert isinstance(self.activeRoi, ROI)
-            self.plot.addXMarker(self.activeRoi.fromdata,
+            _color = 'black' if self.activeRoi.isICR() == 'ICR' else 'blue'
+            _draggable = False if self.activeRoi.isICR() == 'ICR' else True
+            self.plot.addXMarker(self.activeRoi.getFrom(),
                                  legend='ROI min',
                                  text='ROI min',
-                                 color=self.activeRoi._color,
-                                 draggable=self.activeRoi._draggable)
-            self.plot.addXMarker(self.activeRoi.todata,
+                                 color=_color,
+                                 draggable=_draggable)
+            self.plot.addXMarker(self.activeRoi.getTo(),
                                  legend='ROI max',
                                  text='ROI max',
-                                 color=self.activeRoi._color,
-                                 draggable=self.activeRoi._draggable)
+                                 color=_color,
+                                 draggable=_draggable)
             if self._middleROIMarkerFlag:
-                pos = 0.5 * (self.activeRoi.fromdata + self.activeRoi.todata)
+                pos = 0.5 * (self.activeRoi.getFrom() + self.activeRoi.getto())
                 self.plot.addXMarker(pos,
                                      legend='ROI middle',
                                      text="",
                                      color='yellow',
-                                     draggable=self.activeRoi._draggable)
+                                     draggable=_draggable)
 
     def _clearMarkers(self):
         if not self.plot:
@@ -877,8 +866,8 @@ class ROITable(qt.QTableWidget):
             if label.endswith('ROI min'):
                 roiMoved.fromdata = x
                 if self._middleROIMarkerFlag:
-                    labelMiddle = roi.name + ' ROI middle'
-                    pos = 0.5 * (roiMoved.todata + roiMoved.fromdata)
+                    labelMiddle = roiMoved.getName() + ' ROI middle'
+                    pos = 0.5 * (roiMoved.getTo() + roiMoved.getFrom())
                     self.plot.addXMarker(pos,
                                          legend=labelMiddle,
                                          text='',
@@ -888,7 +877,7 @@ class ROITable(qt.QTableWidget):
                 roiMoved.todata = x
                 if self._middleROIMarkerFlag:
                     pos = 0.5 * (roiMoved.todata + roiMoved.fromdata)
-                    labelMiddle = roi.name + ' ROI middle'
+                    labelMiddle = roiMoved.getName() + ' ROI middle'
                     self.plot.addXMarker(pos,
                                          legend=labelMiddle,
                                          text='',
@@ -899,14 +888,14 @@ class ROITable(qt.QTableWidget):
                 roiMoved.fromdata += delta
                 roiMoved.todata += delta
 
-                labelMin = roi.name + ' ROI min'
-                self.plot.addXMarker(roiMoved.fromdata,
+                labelMin = roiMoved.getName() + ' ROI min'
+                self.plot.addXMarker(roiMoved.getFrom(),
                                      legend=labelMin,
                                      text=labelMin,
                                      color='blue',
                                      draggable=True)
-                labelMax = roi.name + ' ROI max'
-                self.plot.addXMarker(roiMoved.todata,
+                labelMax = roiMoved.getName() + ' ROI max'
+                self.plot.addXMarker(roiMoved.getTo(),
                                      legend=labelMax,
                                      text=labelMax,
                                      color='blue',
@@ -958,29 +947,95 @@ _indexNextROI = 0
 
 
 class ROI(qt.QObject):
+    """The Region Of Interest is defined by:
+
+    - A name
+    - A type. The type is the label of the x axis. This can be used to apply or 
+    not some ROI to a curve and do some post processing.
+    - The x coordinate of the left limit (fromdata)
+    - The x coordinate of the right limit (todata)
+    """
 
     sigChanged = qt.Signal()
+    """Signal emitted when the ROI is edited"""
 
     def __init__(self, name, fromdata=None, todata=None, type_=None):
-        global _indexNextROI
         qt.QObject.__init__(self)
         assert type(name) is str
-        self.name = name
+        global _indexNextROI
         self._id = _indexNextROI
         _indexNextROI += 1
-        self.fromdata = fromdata
-        self.todata = todata
-        self._marker = None
-        self._draggable = False
-        self._color = 'blue'
-        self.type = type_ or 'Default'
+
+        self.setName(name)
+        self.setFrom(fromdata)
+        self.setTo(todata)
+
+        self.setMarkerDraggable(False)
+        self.setType(type_ or 'Default')
+
+    def setType(self, type_):
+        """
+
+        :param str type_:
+        """
+        self._type = type_
+
+    def getType(self):
+        """
+
+        :return str: the type of the ROI.
+        """
+        return self._type
+
+    def setName(self, name):
+        """
+        Set the name of the :class:`ROI`
+
+        :param str name:
+        """
+        self._name = name
+
+    def getName(self):
+        """
+
+        :return str: name of the :class:`ROI`
+        """
+        return self._name
+
+    def setFrom(self, frm):
+        """
+
+        :param frm: set x coordinate of the left limit
+        """
+        self._fromdata = frm
+
+    def getFrom(self):
+        """
+
+        :return: x coordinate of the left limit
+        """
+        return self._fromdata
+
+    def setTo(self, to):
+        """
+
+        :param to: x coordinate of the right limit
+        """
+        self._todata = to
+
+    def getTo(self):
+        """
+
+        :return: x coordinate of the right limit
+        """
+        return self._todata
 
     def toDict(self):
         return {
-            'type': self.type,
-            'name': self.name,
-            'from': self.fromdata,
-            'to': self.todata,
+            'type': self._type,
+            'name': self._name,
+            'from': self._fromdata,
+            'to': self._todata,
         }
 
     @staticmethod
@@ -988,14 +1043,36 @@ class ROI(qt.QObject):
         assert 'name' in dic
         roi = ROI(name=dic['name'])
         if 'from' in dic:
-            roi.fromdata = dic['from']
+            roi.setFrom(dic['from'])
         if 'to' in dic:
-            roi.todata = dic['to']
+            roi.setto(dic['to'])
         if 'type' in dic:
-            roi.fromdata = dic['type']
+            roi.setType(dic['type'])
         return roi
 
+    def isICR(self):
+        """
+
+        :return: True if the ROI is the `ICR`
+        """
+        return self._name == 'ICR'
+
     def computeRawAndNetCounts(self, curve):
+        """Compute the Raw and net counts in the ROI for the given curve.
+
+        - Raw counts: integral of the curve between the min ROI point and the
+        max ROI point to the y = 0 line
+
+          .. image:: img/rawCounts.png
+
+        - Net counts: the integral of the curve between the min ROI point and
+        the max ROI point to [ROI min point, ROI max point] segment
+
+          .. image:: img/netCounts.png
+
+        :param CurveItem curve:
+        :return tuple: rawCounts, netCounts
+        """
         assert isinstance(curve, Curve) or curve is None
 
         if curve is None:
@@ -1010,10 +1087,10 @@ class ROI(qt.QObject):
         # update from and to only in the case of the non editable 'ICR' ROI
         if self.name == 'ICR':
             # if ICr make sure we are dealing with the entire curve elements
-            self.fromdata = xproc.min()
-            self.todata = xproc.max()
+            self._fromdata = xproc.min()
+            self._todata = xproc.max()
 
-        idx = numpy.nonzero((self.fromdata <= xproc) & (xproc <= self.todata))[0]
+        idx = numpy.nonzero((self._fromdata <= xproc) & (xproc <= self._todata))[0]
         if len(idx):
             xw = xproc[idx]
             yw = yproc[idx]
