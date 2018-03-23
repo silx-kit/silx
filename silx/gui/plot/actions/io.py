@@ -287,7 +287,7 @@ class SaveAction(PlotAction):
         xlabel, ylabel = self._getAxesLabels(curve)
 
         if nameFilter == self.CURVE_FILTER_NXDATA:
-            self._saveCurveAsNXdata(curve, filename)
+            return self._saveCurveAsNXdata(curve, filename)
 
         try:
             save1D(filename,
