@@ -207,6 +207,33 @@ class TestCurvesROIWidget(TestCaseQt):
                 roiWidget.showAllMarkers(False)
                 self.assertTrue(len(self.plot._getAllMarkers()) is 2)
 
+    def testRoiEdition(self):
+        """Make sure if the ROI object is edited the ROITable will be updated
+        """
+        roi = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
+        self.widget.roiWidget.setRois((roi, ))
+
+        x = (0, 1, 1, 2, 2, 3)
+        y = (1, 1, 2, 2, 1, 1)
+        self.plot.addCurve(x=(0, 1, 1, 2, 2, 3), y=(1, 1, 2, 2, 1, 1),
+                           legend='linearCurve')
+        self.plot.setActiveCurve(legend='linearCurve')
+        self.widget.calculateROIs()
+
+        roiTable = self.widget.roiWidget.roiTable
+        roiItem = roiTable._RoiToItems[roi._id]
+        ItemNetCounts = roiTable._getItem(name='Net Counts',
+                                          roi=roi,
+                                          row=roiItem.row())
+        ItemRawCounts = roiTable._getItem(name='Raw Counts',
+                                          roi=roi,
+                                          row=roiItem.row())
+        self.assertTrue(ItemRawCounts.text() == '4.0')
+        self.assertTrue(ItemNetCounts.text() == '1.0')
+        roi.setTo(1.0)
+        self.assertTrue(ItemRawCounts.text() == '1.0')
+        self.assertTrue(ItemNetCounts.text() == '0.0')
+
 
 def suite():
     test_suite = unittest.TestSuite()
