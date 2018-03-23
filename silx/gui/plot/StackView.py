@@ -156,6 +156,12 @@ class StackView(qt.QMainWindow):
     integer.
     """
 
+    sigFrameChanged = qt.Signal(int)
+    """Signal emitter when the frame number has changed.
+
+    This signal provides the current frame number.
+    """
+
     def __init__(self, parent=None, resetzoom=True, backend=None,
                  autoScale=False, logScale=False, grid=False,
                  colormap=True, aspectRatio=True, yinverted=True,
@@ -221,6 +227,7 @@ class StackView(qt.QMainWindow):
         self._browser_label = qt.QLabel("Image index (Dim0):")
 
         self._browser = HorizontalSliderWithBrowser(central_widget)
+        self._browser.setRange(0, 0)
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._browser.setEnabled(False)
 
@@ -345,6 +352,7 @@ class StackView(qt.QMainWindow):
                             legend=self.__imageLegend,
                             resetzoom=False)
         self._updateTitle()
+        self.sigFrameChanged.emit(index)
 
     def _set3DScaleAndOrigin(self, calibrations):
         """Set scale and origin for all 3 axes, to be used when plotting
@@ -587,6 +595,14 @@ class StackView(qt.QMainWindow):
         """
         self._browser.setValue(number)
 
+    def getFrameNumber(self):
+        """Set the frame selection to a specific value
+
+        :return: Index of currently displayed frame
+        :rtype: int
+        """
+        return self._browser.value()
+
     def setFirstStackDimension(self, first_stack_dimension):
         """When viewing the last 3 dimensions of an n-D array (n>3), you can
         use this method to change the text in the combobox.
@@ -642,6 +658,7 @@ class StackView(qt.QMainWindow):
         self.__transposed_view = None
         self._perspective = 0
         self._browser.setEnabled(False)
+        self._browser.setRange(0, 0)
         self._plot.clear()
 
     def setLabels(self, labels=None):
