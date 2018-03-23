@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,13 @@ import unittest
 import tempfile
 import os
 
+from silx.gui.plot.test.utils import PlotWidgetTestCase
+
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.actions.io import SaveAction
 
 
-class TestSaveAction(unittest.TestCase):
+class TestSaveActionSaveCurvesAsSpec(unittest.TestCase):
 
     def setUp(self):
         self.plot = PlotWidget(backend='none')
@@ -63,8 +65,9 @@ class TestSaveAction(unittest.TestCase):
                            ylabel="curve2 Y")
         self.plot.addCurve([3, 1], [7, 6], "curve with no labels")
 
-        self.saveAction._saveCurves(self.out_fname,
-                                    SaveAction.ALL_CURVES_FILTERS[0])  # "All curves as SpecFile (*.dat)"
+        self.saveAction._saveCurves(self.plot,
+                                    self.out_fname,
+                                    SaveAction.DEFAULT_ALL_CURVES_FILTERS[0])  # "All curves as SpecFile (*.dat)"
 
         with open(self.out_fname, "rb") as f:
             file_content = f.read()
@@ -86,10 +89,35 @@ class TestSaveAction(unittest.TestCase):
             self.assertIn("#L graph x label  graph y label", file_content)
 
 
+class TestSaveActionExtension(PlotWidgetTestCase):
+    """Test SaveAction file filter API"""
+
+    def _dummySaveFunction(self, plot, filename, nameFilter):
+        pass
+
+    def testFileFilterAPI(self):
+        """Test addition/update of a file filter"""
+        saveAction = SaveAction(plot=self.plot, parent=self.plot)
+
+        # Add a new file filter
+        nameFilter = 'Dummy file (*.dummy)'
+        saveAction.setFileFilter('all', nameFilter, self._dummySaveFunction)
+        self.assertTrue(nameFilter in saveAction.getFileFilters('all'))
+        self.assertEqual(saveAction.getFileFilters('all')[nameFilter],
+                         self._dummySaveFunction)
+
+        # Update an existing file filter
+        nameFilter = SaveAction.IMAGE_FILTER_EDF
+        saveAction.setFileFilter('image', nameFilter, self._dummySaveFunction)
+        self.assertEqual(saveAction.getFileFilters('image')[nameFilter],
+                         self._dummySaveFunction)
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSaveAction))
+    for cls in (TestSaveActionSaveCurvesAsSpec, TestSaveActionExtension):
+        test_suite.addTest(
+            unittest.defaultTestLoader.loadTestsFromTestCase(cls))
     return test_suite
 
 
