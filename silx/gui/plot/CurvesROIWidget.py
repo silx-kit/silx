@@ -679,7 +679,7 @@ class ROITable(qt.QTableWidget):
         itemNetCounts.setText(netCounts)
 
     def currentChanged(self, current, previous):
-        if previous and current.row() != previous.row():
+        if previous and current.row() != previous.row() and current.row() >= 0:
             roiItem = self.item(current.row(), self.COLUMNS_INDEX['ID'])
             assert roiItem
             self.activeRoi = self._roiDict[int(roiItem.text())]

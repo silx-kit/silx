@@ -101,7 +101,9 @@ class TestCurvesROIWidget(TestCaseQt):
                             qt.Qt.LeftButton)
             rois = self.widget.getRois()
             self.assertTrue(len(rois) is 1)
-            self.assertTrue(rois[0].name == 'ICR')
+            print(rois)
+            roiID = list(rois.keys())[0]
+            self.assertTrue(rois[roiID].getName() == 'ICR')
 
             # Load ROIs
             self.widget.roiWidget.load(self.tmpFile)
