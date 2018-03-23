@@ -202,8 +202,7 @@ class CurvesROIWidget(qt.QWidget):
     def _add(self):
         """Add button clicked handler"""
         def getNextROIName():
-            roiList, roiDict = self.roiTable.getROIListAndDict()
-            nrois = len(roiList)
+            nrois = len(self.roiTable.roidict)
             if nrois == 0:
                 return "ICR"
             else:
@@ -791,15 +790,14 @@ class ROITable(qt.QTableWidget):
         :return: Ordered dictionary of ROI information
         """
 
-        roilist, roidict = self.getROIListAndDict()
         if order is None or order.lower() == "none":
-            ordered_roilist = roilist
-            res = OrderedDict([(roi.name, roidict[roi.name]) for roi in ordered_roilist])
+            ordered_roilist = list(self.roidict.values)
+            res = OrderedDict([(roi.name, self.roidict[roi.name]) for roi in ordered_roilist])
         else:
             assert order in ["from", "to", "type", "netcounts", "rawcounts"]
-            ordered_roilist = sorted(roidict.keys(),
-                                     key=lambda roi_name: roidict[roi_name].get(order))
-            res = OrderedDict([(name, roidict[name]) for name in ordered_roilist])
+            ordered_roilist = sorted(self.roidict.keys(),
+                                     key=lambda roi_name: self.roidict[roi_name].get(order))
+            res = OrderedDict([(name, self.roidict[name]) for name in ordered_roilist])
 
         return res
 
