@@ -130,11 +130,11 @@ class FrameBrowser(qt.QWidget):
 
     def _previousClicked(self):
         """Select previous frame number"""
-        self.setValue(self.getCurrentIndex() - 1)
+        self.setValue(self.getValue() - 1)
 
     def _nextClicked(self):
         """Select next frame number"""
-        self.setValue(self.getCurrentIndex() + 1)
+        self.setValue(self.getValue() + 1)
 
     def _lastClicked(self):
         """Select last/highest frame number"""
@@ -183,9 +183,8 @@ class FrameBrowser(qt.QWidget):
         # Update limits
         self._label.setText(" limits: %d, %d " % (bottom, top))
 
-   @deprecation.deprecated(
-       replacement="silx.gui.widgets.FrameBrowser.FrameBrowser.setRange",
-       since_version="0.8")
+    @deprecation.deprecated(replacement="FrameBrowser.setRange",
+                            since_version="0.8")
     def setLimits(self, first, last):
         return self.setRange(first, last)
 
@@ -201,9 +200,13 @@ class FrameBrowser(qt.QWidget):
         # display 1-based index in label
         self._label.setText(" of %d " % top)
 
+    @deprecation.deprecated(replacement="FrameBrowser.getValue",
+                            since_version="0.8")
     def getCurrentIndex(self):
-        """Get 0-based frame index
-        """
+        return self._index
+
+    def getValue(self):
+        """Return current frame index"""
         return self._index
 
     def setValue(self, value):
