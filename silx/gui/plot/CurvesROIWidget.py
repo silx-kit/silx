@@ -514,6 +514,8 @@ class ROITable(qt.QTableWidget):
         callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
                                      roi.getID())
         roi.sigChanged.connect(callback)
+        # set it as the active one
+        self.setActiveRoi(roi)
 
     def _getItem(self, name, row, roi):
         if row:
