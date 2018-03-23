@@ -394,6 +394,9 @@ class SaveAction(PlotAction):
             return True
 
         elif nameFilter == self.IMAGE_FILTER_NXDATA:
+            entryPath = self._selectWriteableOutputGroup(filename)
+            if entryPath is None:
+                return False
             xorigin, yorigin = image.getOrigin()
             xscale, yscale = image.getScale()
             xaxis = xorigin + xscale * numpy.arange(data.shape[1])
@@ -401,9 +404,8 @@ class SaveAction(PlotAction):
             xlabel, ylabel = self._getAxesLabels(image)
             interpretation = "image" if len(data.shape) == 2 else "rgba-image"
 
-
-
             return save_NXdata(filename,
+                               nxentry_name=entryPath,
                                signal=data,
                                axes=[yaxis, xaxis],
                                signal_name="image",
@@ -467,8 +469,11 @@ class SaveAction(PlotAction):
             return False
 
         if nameFilter == self.SCATTER_FILTER_NXDATA:
+            entryPath = self._selectWriteableOutputGroup(filename)
+            if entryPath is None:
+                return False
             scatter = plot.getScatter()
-            # TODO: we could get all scatters on this plot and concatenate their (x, y, values)
+
             x = scatter.getXData(copy=False)
             y = scatter.getYData(copy=False)
             z = scatter.getValueData(copy=False)
@@ -486,6 +491,7 @@ class SaveAction(PlotAction):
 
             return save_NXdata(
                 filename,
+                nxentry_name=entryPath,
                 signal=z,
                 axes=[x, y],
                 signal_name="values",
