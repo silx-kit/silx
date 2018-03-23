@@ -372,6 +372,7 @@ if sphinx is not None:
 else:
     TestDocCommand = SphinxExpectedCommand
 
+
 # ############################# #
 # numpy.distutils Configuration #
 # ############################# #
@@ -762,10 +763,10 @@ class sdist_debian(sdist):
         base, ext = os.path.splitext(basename)
         while ext in [".zip", ".tar", ".bz2", ".gz", ".Z", ".lz", ".orig"]:
             base, ext = os.path.splitext(base)
-        if ext:
-            dest = "".join((base, ext))
-        else:
-            dest = base
+        # if ext:
+        #     dest = "".join((base, ext))
+        # else:
+        #     dest = base
         # sp = dest.split("-")
         # base = sp[:-1]
         # nr = sp[-1]
@@ -874,7 +875,7 @@ def setup_package():
                         'clean', '--name')))
 
     if dry_run:
-        # DRY_RUN implies actions which do not require dependancies, like NumPy
+        # DRY_RUN implies actions which do not require dependencies, like NumPy
         try:
             from setuptools import setup
             logger.info("Use setuptools.setup")
@@ -886,10 +887,11 @@ def setup_package():
             from setuptools import setup
         except ImportError:
             from numpy.distutils.core import setup
-            logger.info("Use numpydistutils.setup")
+            logger.info("Use numpy.distutils.setup")
 
     setup_kwargs = get_project_configuration(dry_run)
     setup(**setup_kwargs)
+
 
 if __name__ == "__main__":
     setup_package()
