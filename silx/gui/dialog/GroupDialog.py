@@ -69,11 +69,14 @@ class GroupDialog(qt.QDialog):
 
         self.tree = Hdf5TreeView(self)
         self.tree.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        self.model = self.tree.findHdf5TreeModel()
-
         self.tree.activated.connect(self._onActivation)
         self.tree.selectionModel().selectionChanged.connect(
             self._onSelectionChange)
+
+        self.model = self.tree.findHdf5TreeModel()
+
+        self.header = self.tree.header()
+        self.setShowAllSections(False)
 
         buttonBox = qt.QDialogButtonBox()
         self.okButton = buttonBox.addButton(qt.QDialogButtonBox.Ok)
@@ -93,8 +96,41 @@ class GroupDialog(qt.QDialog):
         vlayout.addWidget(self.statusBar)
         self.setLayout(vlayout)
 
+        self.setMinimumWidth(400)
+
         self.selected_url = None
         """None or a :class:`DataUrl` with a file path and a data path."""
+
+    def setShowAllSections(self, flag):
+        """Show all columns or only the ones relevant to groups.
+
+        You can also do more advanced tuning via the API of the
+        :class:`silx.gui.hdf5.Hdf5HeaderView` class::
+
+            dialog = GroupDialog()
+            dialog.header.setSections([dialog.model.NAME_COLUMN,
+                                       dialog.model.NODE_COLUMN])
+
+        See :class:`silx.gui.hdf5.Hdf5TreeModel` to find a list of all column
+        identifiers.
+
+        .. note::
+
+            Users can interactively show and hide columns with a right
+            click on the header bar.
+
+        :param bool flag: True to show all columns, including the ones that
+            are relevant only to datasets. False to show only information
+            specific to groups (name, node type, link).
+        """
+        if flag:
+            # all columns, including dataset specific info
+            self.header.setSections(self.model.COLUMN_IDS)
+        else:
+            # only columns relevant to groups
+            self.header.setSections([self.model.NAME_COLUMN,
+                                     self.model.NODE_COLUMN,
+                                     self.model.LINK_COLUMN])
 
     def addFile(self, path):
         """Add a HDF5 file to the tree.
@@ -109,7 +145,6 @@ class GroupDialog(qt.QDialog):
         will be selectable in the dialog.
 
         :param h5py.Group group: HDF5 group
-        :return:
         """
         self.model.insertH5pyObject(group)
 
@@ -129,7 +164,7 @@ class GroupDialog(qt.QDialog):
                                             data_path=node.local_name)
                 self.okButton.setEnabled(True)
                 self.statusBar.showMessage(
-                        "DataUrl('%s')" % self.selected_url.path())
+                        self.selected_url.path())
             else:
                 self.selected_url = None
                 self.okButton.setEnabled(False)
