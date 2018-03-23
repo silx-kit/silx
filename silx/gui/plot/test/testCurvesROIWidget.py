@@ -221,7 +221,7 @@ class TestCurvesROIWidget(TestCaseQt):
         self.widget.calculateROIs()
 
         roiTable = self.widget.roiWidget.roiTable
-        roiItem = roiTable._RoiToItems[roi._id]
+        roiItem = roiTable._roiToItems[roi._id]
         ItemNetCounts = roiTable._getItem(name='Net Counts',
                                           roi=roi,
                                           row=roiItem.row())

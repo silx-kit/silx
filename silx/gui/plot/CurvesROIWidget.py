@@ -187,13 +187,16 @@ class CurvesROIWidget(qt.QWidget):
     def _add(self):
         """Add button clicked handler"""
         def getNextROIName():
-            nrois = len(self.roiTable.roidict)
+            rois = self.roiTable.getRois(order=None)
+            roisNames = []
+            [roisNames.append(roiName) for roiName in rois]
+            nrois = len(rois)
             if nrois == 0:
                 return "ICR"
             else:
                 i = 1
                 newroi = "newroi %d" % i
-                while newroi in self.roiTable.roidict.keys():
+                while newroi in roisNames:
                     i += 1
                     newroi = "newroi %d" % i
                 return newroi
@@ -402,9 +405,11 @@ class ROITable(qt.QTableWidget):
         self.activeRoi = None
         self._showAllMarkers = False
         self._middleROIMarkerFlag = False
+        self._userIsEditingROI = False
+        """bool used to avoid conflict when editing the ROI object"""
         self._isConnected = False
-        self._RoiToItems = {}
-        self._roidict = {}
+        self._roiToItems = {}
+        self._roiDict = {}
         self._markerLgds = {}
         """
         Associate for each marker legend used when the `_showAllMarkers` option
@@ -422,15 +427,15 @@ class ROITable(qt.QTableWidget):
 
     def _getRoiDict(self):
         ddict = {}
-        for id in self._roidict:
-            ddict[self._roidict[id].name] = self._roidict[id]
+        for id in self._roiDict:
+            ddict[self._roiDict[id].name] = self._roiDict[id]
         return ddict
 
     def clear(self):
         """
         .. note:: clear the interface only. keep the roidict...
         """
-        self._RoiToItems = {}
+        self._roiToItems = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
@@ -599,7 +604,7 @@ class ROITable(qt.QTableWidget):
         for item in activeItems:
             row = item.row()
             itemID = self.item(row, self.COLUMNS_INDEX['ID'])
-            roiToRm.add(self._roidict[int(itemID.text())])
+            roiToRm.add(self._roiDict[int(itemID.text())])
         [self.removeROI(roi) for roi in roiToRm]
 
     def removeROI(self, roi):
@@ -670,7 +675,7 @@ class ROITable(qt.QTableWidget):
         if previous and current.row() != previous.row():
             roiItem = self.item(current.row(), self.COLUMNS_INDEX['ROI'])
             assert roiItem
-            self.activeRoi = self.roidict[roiItem.text()]
+            self.activeRoi = self._roiDict[int(roiItem.text())]
             self._updateMarkers()
         qt.QTableWidget.currentChanged(self, current, previous)
 
@@ -683,7 +688,7 @@ class ROITable(qt.QTableWidget):
         :return: the list of roi objects and the dictionnary of roi name to roi
                  object.
         """
-        roidict = self.roidict
+        roidict = self._roiDict
         return list(roidict.values()), roidict
 
     def calculateRois(self, roiList=None, roiDict=None):
@@ -702,7 +707,7 @@ class ROITable(qt.QTableWidget):
                                            reason='Unused parameter',
                                            since_version="0.8.0")
 
-        for roiID in self._roidict:
+        for roiID in self._roiDict:
             self._updateRoiInfo(roiID)
 
     def _updateMarker(self, roiID):
@@ -714,7 +719,7 @@ class ROITable(qt.QTableWidget):
     def _updateMarkers(self):
         self._clearMarkers()
         if self._showAllMarkers is True:
-            for roiID, roi in self._roidict.items():
+            for roiID, roi in self._roiDict.items():
                 _color = 'black' if roi.isICR() == 'ICR' else 'blue'
                 _draggable = False if roi.isICR() == 'ICR' else True
 
@@ -808,7 +813,7 @@ class ROITable(qt.QTableWidget):
         """
         roilist = []
         roidict = {}
-        for roiID, roi in self._roidict:
+        for roiID, roi in self._roiDict:
             roilist.append(roi.toDict())
             roidict[roi.name] = roi.toDict()
         datadict = {'ROI': {'roilist': roilist, 'roidict': roidict}}
