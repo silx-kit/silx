@@ -136,13 +136,18 @@ class TestCurvesROIWidget(TestCaseQt):
         # Add two ROIs
         roi_neg = CurvesROIWidget.ROI(name='negative', fromdata=-20,
                                       todata=-10, type_='X')
-        roi_pos = CurvesROIWidget.ROI(name='negative', fromdata=10,
+        roi_pos = CurvesROIWidget.ROI(name='positive', fromdata=10,
                                       todata=20, type_='X')
 
         self.widget.roiWidget.setRois((roi_pos, roi_neg))
 
-        # And calculate the expected output
-        self.widget.calculateROIs()
+        self.plot.setActiveCurve('positive')
+        posCurve = self.plot.getCurve('positive')
+        print(roi_pos.computeRawAndNetCounts(posCurve))
+        print(roi_neg.computeRawAndNetCounts(posCurve))
+
+        self.assertTrue(roi_pos.computeRawAndNetCounts(posCurve),
+                        numpy.trapz(y=[10, 20], x=[10, 20]))
 
         output = self.widget.roiWidget.getRois()
         self.assertEqual(output["positive"]["rawcounts"],
