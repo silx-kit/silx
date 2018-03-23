@@ -503,11 +503,11 @@ class ROITable(qt.QTableWidget):
         """
         assert isinstance(roi, ROI)
         self._getItem(name='ID', row=None, roi=roi)
-        self._roidict[roi._id] = roi
+        self._roiDict[roi.getID()] = roi
         self.activeRoi = roi
-        self._updateRoiInfo(roi._id)
+        self._updateRoiInfo(roi.getID())
         callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
-                                     roi._id)
+                                     roi.getID())
         roi.sigChanged.connect(callback)
 
     def _getItem(self, name, row, roi):
@@ -520,15 +520,15 @@ class ROITable(qt.QTableWidget):
         else:
             if name == 'ID':
                 assert roi
-                if roi._id in self._RoiToItems:
-                    return self._RoiToItems[roi._id]
+                if roi.getID() in self._roiToItems:
+                    return self._roiToItems[roi.getID()]
                 else:
                     # create a new row
                     row = self.rowCount()
                     self.setRowCount(self.rowCount() + 1)
-                    item = qt.QTableWidgetItem(str(roi._id),
+                    item = qt.QTableWidgetItem(str(roi.getID()),
                                                type=qt.QTableWidgetItem.Type)
-                    self._RoiToItems[roi._id] = item
+                    self._roiToItems[roi.getID()] = item
             elif name == 'ROI':
                 item = qt.QTableWidgetItem(roi.getName() if roi else '',
                                            type=qt.QTableWidgetItem.Type)
@@ -565,8 +565,8 @@ class ROITable(qt.QTableWidget):
             IDItem = self.item(item.row(), self.COLUMNS_INDEX['ID'])
             assert IDItem
             id = int(IDItem.text())
-            assert id in self._roidict
-            roi = self._roidict[id]
+            assert id in self._roiDict
+            roi = self._roiDict[id]
             return roi
 
         if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
@@ -608,16 +608,16 @@ class ROITable(qt.QTableWidget):
 
         :param str name: the name of the roi to remove from the table
         """
-        if roi and roi._id in self._RoiToItems:
-            item = self._RoiToItems[roi._id]
+        if roi and roi.getID() in self._roiToItems:
+            item = self._roiToItems[roi.getID()]
             self.removeRow(item.row())
-            del self._RoiToItems[roi._id]
+            del self._roiToItems[roi.getID()]
 
-            assert roi.name in self.roidict
-            del self._roidict[roi._id]
+            assert roi.name in self._roiDict
+            del self._roiDict[roi.getID()]
 
             callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
-                                         roi._id)
+                                         roi.getID())
             roi.sigChanged.connect(callback)
 
     def setActiveRoi(self, roi):
@@ -629,14 +629,16 @@ class ROITable(qt.QTableWidget):
         :param :class:`ROI` roi: the roi to defined as active
         """
         assert isinstance(roi, ROI)
-        if roi and roi._id in self._RoiToItems.keys():
+        if roi and roi.getID() in self._roiToItems.keys():
             self.activeRoi = roi
-            self.selectRow(self._RoiToItems[roi._id].row())
+            self.selectRow(self._roiToItems[roi.getID()].row())
 
     def _updateRoiInfo(self, roiID):
-        if roiID not in self._roidict:
+        if self._userIsEditingROI is True:
             return
-        roi = self._roidict[roiID]
+        if roiID not in self._roiDict:
+            return
+        roi = self._roiDict[roiID]
 
         itemID = self._getItem(name='ID', roi=roi, row=None)
         itemName = self._getItem(name='ROI', row=itemID.row(), roi=roi)
@@ -788,13 +790,13 @@ class ROITable(qt.QTableWidget):
         """
 
         if order is None or order.lower() == "none":
-            ordered_roilist = list(self.roidict.values)
-            res = OrderedDict([(roi.name, self.roidict[roi.name]) for roi in ordered_roilist])
+            ordered_roilist = list(self._roiDict.values())
+            res = OrderedDict([(roi.getName(), self._roiDict[roi.getID()]) for roi in ordered_roilist])
         else:
             assert order in ["from", "to", "type", "netcounts", "rawcounts"]
-            ordered_roilist = sorted(self.roidict.keys(),
-                                     key=lambda roi_name: self.roidict[roi_name].get(order))
-            res = OrderedDict([(name, self.roidict[name]) for name in ordered_roilist])
+            ordered_roilist = sorted(self._roiDict.keys(),
+                                     key=lambda roi_id: self._roiDict[roi_id].get(order))
+            res = OrderedDict([(name, self._roiDict[id]) for id in ordered_roilist])
 
         return res
 
@@ -863,7 +865,7 @@ class ROITable(qt.QTableWidget):
                 roiMoved = self._markerLgds[label]
 
             assert roiMoved
-            if roiMoved.name not in self.roidict:
+            if roiMoved.getID() not in self._roiDict:
                 return
 
             x = ddict['x']
@@ -906,7 +908,7 @@ class ROITable(qt.QTableWidget):
                                      color='blue',
                                      draggable=True)
 
-            self._updateRoiInfo(roiMoved._id)
+            self._updateRoiInfo(roiMoved.getID())
             self._emitCurrentROISignal()
 
     def _emitCurrentROISignal(self):
@@ -975,6 +977,10 @@ class ROI(qt.QObject):
         self._fromdata = fromdata
         self._todata = todata
         self._type = type_ or 'Default'
+
+    def getID(self):
+        """Return the unique id of the ROI"""
+        return self._id
 
     def setType(self, type_):
         """
