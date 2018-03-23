@@ -218,18 +218,24 @@ class SaveAction(PlotAction):
         ylabel = item.getYLabel() or self.plot.getYAxis().getLabel()
         return xlabel, ylabel
 
-    def _saveCurveAsNXdata(self, curve, filename):
+    def _selectWriteableOutputGroup(self, filename):
         if os.path.exists(filename) and os.path.isfile(filename) \
                 and os.access(filename, os.W_OK):
             entryPath = selectOutputGroup(filename)
             if entryPath is None:
                 _logger.info("Save operation cancelled")
-                return False
+                return None
+            return entryPath
+        elif not os.path.exists(filename):
+            # create new entry in new file
+            return "/entry"
         else:
             self._errorMessage('Save failed (file access issue)\n')
-            return False
+            return None
+
+    def _saveCurveAsNXdata(self, curve, filename):
+        entryPath = self._selectWriteableOutputGroup(filename)
         if entryPath is None:
-            _logger.info("Save operation cancelled")
             return False
 
         xlabel, ylabel = self._getAxesLabels(curve)
@@ -394,6 +400,8 @@ class SaveAction(PlotAction):
             yaxis = yorigin + yscale * numpy.arange(data.shape[0])
             xlabel, ylabel = self._getAxesLabels(image)
             interpretation = "image" if len(data.shape) == 2 else "rgba-image"
+
+
 
             return save_NXdata(filename,
                                signal=data,
