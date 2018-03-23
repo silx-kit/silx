@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -208,7 +208,18 @@ class FrameBrowser(qt.QWidget):
     def setValue(self, value):
         """Set 0-based frame index
 
+        Value is clipped to current range.
+
         :param int value: Frame number"""
+        bottom = self.lineEdit().validator().bottom()
+        top = self.lineEdit().validator().top()
+        value = int(value)
+
+        if value < bottom:
+            value = bottom
+        elif value > top:
+            value = top
+
         self._lineEdit.setText("%d" % value)
         self._textChangedSlot()
 
