@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,52 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "23/03/2018"
+
+
 import unittest
 
-from . import test_periodictable
-from . import test_tablewidget
-from . import test_threadpoolpushbutton
-from . import test_hierarchicaltableview
-from . import test_printpreview
-from . import test_framebrowser
+from silx.gui.test.utils import TestCaseQt
+from silx.gui.widgets.FrameBrowser import FrameBrowser
 
-__authors__ = ["V. Valls", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "19/07/2017"
+
+class TestFrameBrowser(TestCaseQt):
+    """Test for FrameBrowser"""
+
+    def test(self):
+        """Test FrameBrowser"""
+        widget = FrameBrowser()
+        widget.show()
+        self.qWaitForWindowExposed(widget)
+
+        nFrames = 20
+        widget.setNFrames(nFrames)
+        self.assertEqual(widget.getRange(), (0, nFrames - 1))
+        self.assertEqual(widget.getValue(), 0)
+
+        range_ = -100, 100
+        widget.setRange(*range_)
+        self.assertEqual(widget.getRange(), range_)
+        self.assertEqual(widget.getValue(), range_[0])
+
+        widget.setValue(0)
+        self.assertEqual(widget.getValue(), 0)
+
+        widget.setValue(range_[1] + 100)
+        self.assertEqual(widget.getValue(), range_[1])
+
+        widget.setValue(range_[0] - 100)
+        self.assertEqual(widget.getValue(), range_[0])
 
 
 def suite():
+    loader = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_threadpoolpushbutton.suite(),
-         test_tablewidget.suite(),
-         test_periodictable.suite(),
-         test_printpreview.suite(),
-         test_hierarchicaltableview.suite(),
-         test_framebrowser.suite(),
-         ])
+    test_suite.addTest(loader(TestFrameBrowser))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

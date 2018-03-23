@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@
 """
 from silx.gui import qt
 from silx.gui import icons
+from silx.utils import deprecation
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -50,7 +51,9 @@ class FrameBrowser(qt.QWidget):
     :param QWidget parent: Parent widget
     :param int n: Number of frames. This will set the range
         of frame indices to 0--n-1.
-        If None, the range is initialized to the default QSlider range (0--99)."""
+        If None, the range is initialized to the default QSlider range (0--99).
+    """
+
     sigIndexChanged = qt.pyqtSignal(object)
 
     def __init__(self, parent=None, n=None):
@@ -123,25 +126,19 @@ class FrameBrowser(qt.QWidget):
 
     def _firstClicked(self):
         """Select first/lowest frame number"""
-        self._lineEdit.setText("%d" % self._lineEdit.validator().bottom())
-        self._textChangedSlot()
+        self.setValue(self.getRange()[0])
 
     def _previousClicked(self):
         """Select previous frame number"""
-        if self._index > self._lineEdit.validator().bottom():
-            self._lineEdit.setText("%d" % (self._index - 1))
-            self._textChangedSlot()
+        self.setValue(self.getValue() - 1)
 
     def _nextClicked(self):
         """Select next frame number"""
-        if self._index < (self._lineEdit.validator().top()):
-            self._lineEdit.setText("%d" % (self._index + 1))
-            self._textChangedSlot()
+        self.setValue(self.getValue() + 1)
 
     def _lastClicked(self):
         """Select last/highest frame number"""
-        self._lineEdit.setText("%d" % self._lineEdit.validator().top())
-        self._textChangedSlot()
+        self.setValue(self.getRange()[1])
 
     def _textChangedSlot(self):
         """Select frame number typed in the line edit widget"""
@@ -161,17 +158,17 @@ class FrameBrowser(qt.QWidget):
         self._index = new_value
         self.sigIndexChanged.emit(ddict)
 
+    def getRange(self):
+        """Returns frame range
+
+        :return: (first_index, last_index)
+        """
+        validator = self.lineEdit().validator()
+        return validator.bottom(), validator.top()
+
     def setRange(self, first, last):
-        """Set minimum and maximum frame indices
-        Initialize the frame index to *first*.
-        Update the label text to *" limits: first, last"*
-
-        :param int first: Minimum frame index
-        :param int last: Maximum frame index"""
-        return self.setLimits(first, last)
-
-    def setLimits(self, first, last):
         """Set minimum and maximum frame indices.
+
         Initialize the frame index to *first*.
         Update the label text to *" limits: first, last"*
 
@@ -181,34 +178,52 @@ class FrameBrowser(qt.QWidget):
         top = max(first, last)
         self._lineEdit.validator().setTop(top)
         self._lineEdit.validator().setBottom(bottom)
-        self._index = bottom
-        self._lineEdit.setText("%d" % self._index)
+        self.setValue(bottom)
+
+        # Update limits
         self._label.setText(" limits: %d, %d " % (bottom, top))
+
+    @deprecation.deprecated(replacement="FrameBrowser.setRange",
+                            since_version="0.8")
+    def setLimits(self, first, last):
+        return self.setRange(first, last)
 
     def setNFrames(self, nframes):
         """Set minimum=0 and maximum=nframes-1 frame numbers.
+
         Initialize the frame index to 0.
         Update the label text to *"1 of nframes"*
 
         :param int nframes: Number of frames"""
-        bottom = 0
         top = nframes - 1
-        self._lineEdit.validator().setTop(top)
-        self._lineEdit.validator().setBottom(bottom)
-        self._index = bottom
-        self._lineEdit.setText("%d" % self._index)
+        self.setRange(0, top)
         # display 1-based index in label
-        self._label.setText(" %d of %d " % (self._index + 1, top + 1))
+        self._label.setText(" of %d " % top)
 
+    @deprecation.deprecated(replacement="FrameBrowser.getValue",
+                            since_version="0.8")
     def getCurrentIndex(self):
-        """Get 0-based frame index
-        """
+        return self._index
+
+    def getValue(self):
+        """Return current frame index"""
         return self._index
 
     def setValue(self, value):
         """Set 0-based frame index
 
+        Value is clipped to current range.
+
         :param int value: Frame number"""
+        bottom = self.lineEdit().validator().bottom()
+        top = self.lineEdit().validator().top()
+        value = int(value)
+
+        if value < bottom:
+            value = bottom
+        elif value > top:
+            value = top
+
         self._lineEdit.setText("%d" % value)
         self._textChangedSlot()
 

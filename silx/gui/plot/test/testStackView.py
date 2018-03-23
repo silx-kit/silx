@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ __date__ = "20/03/2017"
 import unittest
 import numpy
 
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.test.utils import TestCaseQt, SignalListener
 
 from silx.gui import qt
 from silx.gui.plot import StackView
@@ -186,6 +186,17 @@ class TestStackView(TestCaseQt):
                     "Là, vous faites sirop de vingt-et-un et vous dites : "
                     "beau sirop, mi-sirop, siroté, gagne-sirop, sirop-grelot,"
                     " passe-montagne, sirop au bon goût.")
+
+    def testStackFrameNumber(self):
+        self.stackview.setStack(self.mystack)
+        self.assertEqual(self.stackview.getFrameNumber(), 0)
+
+        listener = SignalListener()
+        self.stackview.sigFrameChanged.connect(listener)
+
+        self.stackview.setFrameNumber(1)
+        self.assertEqual(self.stackview.getFrameNumber(), 1)
+        self.assertEqual(listener.arguments(), [(1,)])
 
 
 class TestStackViewMainWindow(TestCaseQt):
