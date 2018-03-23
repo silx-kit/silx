@@ -1093,7 +1093,6 @@ class ROI(qt.QObject):
         """
         assert isinstance(curve, Curve) or curve is None
 
-        print('computeRawAndNetCounts')
         if curve is None:
             return None, None
 
