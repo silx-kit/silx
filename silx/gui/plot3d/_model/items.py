@@ -519,7 +519,7 @@ class GroupItemRow(Item3DRow):
 
         # Find item
         for row in self.children():
-            if row.item() is item:
+            if isinstance(row, Item3DRow) and row.item() is item:
                 self.removeRow(row)
                 break  # Got it
         else:
@@ -764,7 +764,7 @@ class ColormapRow(_ColormapBaseProxyRow):
 
     def _getName(self):
         """Proxy for :meth:`Colormap.getName`"""
-        if self._colormap is not None:
+        if self._colormap is not None and self._colormap.getName() is not None:
             return self._colormap.getName().title()
         else:
             return ''

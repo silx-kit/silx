@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Set of widgets to associate with a :class:'PlotWidget'.
+"""This module provides a singleton QPrinter used by default by silx widgets.
 """
 
 from __future__ import absolute_import
@@ -32,12 +32,31 @@ __license__ = "MIT"
 __date__ = "01/03/2018"
 
 
-from ...utils.deprecation import deprecated_warning
+from . import qt
 
-deprecated_warning(type_='module',
-                   name=__file__,
-                   reason='Plot tools refactoring',
-                   replacement='silx.gui.plot.tools',
-                   since_version='0.8')
 
-from .tools import PositionInfo, LimitsToolBar  # noqa
+_printer = None
+"""Shared QPrinter instance"""
+
+
+def getDefaultPrinter():
+    """Returns the default printer.
+
+    This allows reusing the same QPrinter across widgets.
+
+    :return: QPrinter
+    """
+    global _printer
+    if _printer is None:
+        _printer = qt.QPrinter()
+    return _printer
+
+
+def setDefaultPrinter(printer):
+    """Set the printer used by default by silx widgets.
+
+    :param QPrinter printer:
+    """
+    assert isinstance(printer, qt.QPrinter)
+    global _printer
+    _printer = printer

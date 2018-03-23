@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "29/01/2018"
+__date__ = "02/03/2018"
 __license__ = "MIT"
 
 import distutils.util
@@ -292,7 +292,12 @@ def build_project(name, root_dir):
     p = subprocess.Popen([sys.executable, "setup.py", "build"],
                          shell=False, cwd=root_dir)
     logger.debug("subprocess ended with rc= %s", p.wait())
-    return home
+
+    if os.path.isdir(home):
+        return home
+    alt_home = os.path.join(os.path.dirname(home), "lib")
+    if os.path.isdir(alt_home):
+        return alt_home
 
 
 def import_project_module(project_name, project_dir):
@@ -311,7 +316,8 @@ def import_project_module(project_name, project_dir):
                 PROJECT_NAME)
     else:  # Use built source
         build_dir = build_project(project_name, project_dir)
-
+        if build_dir is None:
+            logging.error("Built project is not available !!! investigate")
         sys.path.insert(0, build_dir)
         logger.warning("Patched sys.path, added: '%s'", build_dir)
         module = importer(project_name)

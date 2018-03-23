@@ -25,19 +25,33 @@ See :ref:`plot-gallery` gallery.
 Public modules
 --------------
 
+Main plot widgets:
+
 .. toctree::
    :maxdepth: 2
 
    plotwidget.rst
    plotwindow.rst
+   compleximageview.rst
    imageview.rst
    stackview.rst
-   compleximageview.rst
+
+Classes describing plot content:
+
+.. toctree::
+   :maxdepth: 2
+
    colormap.rst
    items.rst
+
+Additionnal plot tool widgets:
+
+.. toctree::
+   :maxdepth: 2
+
    actions/index.rst
    plottoolbuttons.rst
-   plottools.rst
+   tools.rst
    profile.rst
    roi.rst
    printpreviewtoolbutton.rst

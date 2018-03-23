@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('backends.glutils')
     config.add_subpackage('items')
     config.add_subpackage('test')
+    config.add_subpackage('tools')
     config.add_subpackage('actions')
 
     return config

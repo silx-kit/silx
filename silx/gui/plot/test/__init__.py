@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ from . import testLegendSelector
 from . import testMaskToolsWidget
 from . import testScatterMaskToolsWidget
 from . import testPlotInteraction
-from . import testPlotTools
+from . import testTools
 from . import testPlotWidgetNoBackend
 from . import testPlotWidget
 from . import testPlotWindow
@@ -70,7 +70,7 @@ def suite():
          testScatterMaskToolsWidget.suite(),
          testPlotInteraction.suite(),
          testPlotWidgetNoBackend.suite(),
-         testPlotTools.suite(),
+         testTools.suite(),
          testPlotWidget.suite(),
          testPlotWindow.suite(),
          testProfile.suite(),
