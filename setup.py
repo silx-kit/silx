@@ -781,9 +781,18 @@ class sdist_debian(sdist):
 
 def get_project_configuration(dry_run):
     """Returns project arguments for setup"""
+    # Use installed numpy version as minimal required version
+    # This is useful for wheels to advertise the numpy version they were built with
+    if dry_run:
+        numpy_requested_version = ""
+    else:
+        from numpy.version import version as numpy_version
+        numpy_requested_version = " >= %s" % numpy_version
+        logger.info("Install requires: numpy %s", numpy_requested_version)
+
     install_requires = [
         # for most of the computation
-        "numpy",
+        "numpy %s" % numpy_requested_version,
         # for the script launcher
         "setuptools"]
 
