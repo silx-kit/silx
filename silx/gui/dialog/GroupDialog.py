@@ -84,6 +84,7 @@ class GroupDialog(qt.QDialog):
         buttonBox.rejected.connect(self.reject)
 
         self.statusBar = qt.QStatusBar()
+        self.statusBar.setStyleSheet("color: gray")
         self.statusBar.showMessage("Select a group")
 
         vlayout = qt.QVBoxLayout(self)
