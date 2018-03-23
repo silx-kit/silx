@@ -51,7 +51,6 @@ from collections import OrderedDict
 import logging
 import os
 import sys
-import weakref
 import functools
 import numpy
 from silx.io import dictdump
@@ -209,7 +208,7 @@ class CurvesROIWidget(qt.QWidget):
                 for i in range(nrois):
                     i += 1
                     newroi = "newroi %d" % i
-                    if newroi not in roiDict.keys():
+                    if newroi not in self.roiTable.roiDict.keys():
                         return newroi
 
         roi = ROI(name=getNextROIName())
@@ -629,7 +628,7 @@ class ROITable(qt.QTableWidget):
             self.removeRow(item.row())
             del self._RoiToItems[roi._id]
 
-            assert name in self.roidict
+            assert roi.name in self.roidict
             del self._roidict[roi._id]
 
     def setActiveRoi(self, roi):
