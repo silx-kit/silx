@@ -684,6 +684,9 @@ class ROITable(qt.QTableWidget):
             self._updateMarkers()
         qt.QTableWidget.currentChanged(self, current, previous)
 
+    @deprecation.deprecated(reason="Removed",
+                            replacement="roidict and roidict.values()",
+                            since_version="0.8.0")
     def getROIListAndDict(self):
         """
 
