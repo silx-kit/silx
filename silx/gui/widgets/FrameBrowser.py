@@ -33,6 +33,7 @@
 """
 from silx.gui import qt
 from silx.gui import icons
+from silx.utils import deprecation
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -50,7 +51,9 @@ class FrameBrowser(qt.QWidget):
     :param QWidget parent: Parent widget
     :param int n: Number of frames. This will set the range
         of frame indices to 0--n-1.
-        If None, the range is initialized to the default QSlider range (0--99)."""
+        If None, the range is initialized to the default QSlider range (0--99).
+    """
+
     sigIndexChanged = qt.pyqtSignal(object)
 
     def __init__(self, parent=None, n=None):
@@ -171,15 +174,6 @@ class FrameBrowser(qt.QWidget):
 
         :param int first: Minimum frame index
         :param int last: Maximum frame index"""
-        return self.setLimits(first, last)
-
-    def setLimits(self, first, last):
-        """Set minimum and maximum frame indices.
-        Initialize the frame index to *first*.
-        Update the label text to *" limits: first, last"*
-
-        :param int first: Minimum frame index
-        :param int last: Maximum frame index"""
         bottom = min(first, last)
         top = max(first, last)
         self._lineEdit.validator().setTop(top)
@@ -188,6 +182,12 @@ class FrameBrowser(qt.QWidget):
 
         # Update limits
         self._label.setText(" limits: %d, %d " % (bottom, top))
+
+   @deprecation.deprecated(
+       replacement="silx.gui.widgets.FrameBrowser.FrameBrowser.setRange",
+       since_version="0.8")
+    def setLimits(self, first, last):
+        return self.setRange(first, last)
 
     def setNFrames(self, nframes):
         """Set minimum=0 and maximum=nframes-1 frame numbers.
