@@ -1082,37 +1082,28 @@ class ROI(qt.QObject):
         """
         assert isinstance(curve, Curve) or curve is None
 
+        print('computeRawAndNetCounts')
         if curve is None:
             return None, None
 
         x = curve.getXData(copy=False)
         y = curve.getYData(copy=False)
-        idx = numpy.argsort(x, kind='mergesort')
-        xproc = numpy.take(x, idx)
-        yproc = numpy.take(y, idx)
 
-        # update from and to only in the case of the non editable 'ICR' ROI
-        if self.name == 'ICR':
-            # if ICr make sure we are dealing with the entire curve elements
-            self._fromdata = xproc.min()
-            self._todata = xproc.max()
+        y = y[(x >= self._fromdata) & (x <= self._todata)]
+        x = x[(x >= self._fromdata) & (x <= self._todata)]
 
-        idx = numpy.nonzero((self._fromdata <= xproc) & (xproc <= self._todata))[0]
-        if len(idx):
-            xw = xproc[idx]
-            yw = yproc[idx]
-            rawCounts = yw.sum(dtype=numpy.float)
-            deltaX = xw[-1] - xw[0]
-            deltaY = yw[-1] - yw[0]
-            if deltaX > 0.0:
-                slope = (deltaY / deltaX)
-                background = yw[0] + slope * (xw - xw[0])
-                netCounts = (rawCounts - background.sum(dtype=numpy.float))
-            else:
-                netCounts = 0.0
-            return rawCounts, netCounts
-        else:
+        if x.size is 0:
             return 0.0, 0.0
+
+        rawCounts = numpy.trapz(y, x=x)
+        # to speed up and avoid an intersection calculation we are taking the
+        # closest index to the ROI
+        closestXLeftIndex = (numpy.abs(x - self.getFrom())).argmin()
+        closestXRightIndex = (numpy.abs(x - self.getTo())).argmin()
+        yBackground = y[closestXLeftIndex], y[closestXRightIndex]
+        background = numpy.trapz(yBackground, x=x)
+        netCounts = rawCounts - background
+        return rawCounts, netCounts
 
 
 class CurvesROIDockWidget(qt.QDockWidget):
