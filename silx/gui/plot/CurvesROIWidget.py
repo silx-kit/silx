@@ -817,9 +817,9 @@ class ROITable(qt.QTableWidget):
         """
         roilist = []
         roidict = {}
-        for roiID, roi in self._roiDict:
+        for roiID, roi in self._roiDict.items():
             roilist.append(roi.toDict())
-            roidict[roi.name] = roi.toDict()
+            roidict[roi.getName()] = roi.toDict()
         datadict = {'ROI': {'roilist': roilist, 'roidict': roidict}}
         dictdump.dump(datadict, filename)
 
