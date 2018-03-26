@@ -146,8 +146,9 @@ class SaveAction(PlotAction):
     SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
     DEFAULT_SCATTER_FILTERS = (SCATTER_FILTER_NXDATA,)
 
-    DEFAULT_ALL_NXDATA_FILTERS = (CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
-                                  SCATTER_FILTER_NXDATA)
+    # filters for which we don't want an "overwrite existing file" warning
+    ALL_APPEND_FILTERS = [CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
+                          SCATTER_FILTER_NXDATA]
 
     def __init__(self, plot, parent=None):
         self._filters = {
@@ -503,7 +504,8 @@ class SaveAction(PlotAction):
                 axes_errors=[xerror, yerror],
                 title=plot.getGraphTitle())
 
-    def setFileFilter(self, dataKind, nameFilter, func):
+    def setFileFilter(self, dataKind, nameFilter, func,
+                      overwriteWarning=True):
         """Set a name filter to add/replace a file format support
 
         :param str dataKind:
@@ -512,10 +514,19 @@ class SaveAction(PlotAction):
         :param str nameFilter: The name filter in the QFileDialog.
             See :meth:`QFileDialog.setNameFilters`.
         :param callable func: The function to call to perform saving.
-           Expected signature is:
-           bool func(PlotWidget plot, str filename, str nameFilter)
+            Expected signature is:
+            bool func(PlotWidget plot, str filename, str nameFilter)
+        :param bool overwriteWarning: Set this to False, to suppress the
+            warning dialog "do you want to overwrite existing file?" when
+            selecting  an existing file. Useful for functions appending
+            data to existing files.
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
+
+        if not overwriteWarning:
+            self.ALL_APPEND_FILTERS.append(nameFilter)
+        elif nameFilter in self.ALL_APPEND_FILTERS:
+            self.ALL_APPEND_FILTERS.remove(nameFilter)
 
         self._filters[dataKind][nameFilter] = func
 
@@ -568,7 +579,7 @@ class SaveAction(PlotAction):
         def onFilterSelection(filt_):
             # disable overwrite confirmation for NXdata types,
             # because we append the data to existing files
-            if filt_ in self.DEFAULT_ALL_NXDATA_FILTERS:
+            if filt_ in self.ALL_APPEND_FILTERS:
                 dialog.setOption(dialog.DontConfirmOverwrite)
             else:
                 dialog.setOption(dialog.DontConfirmOverwrite, False)
