@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -328,7 +328,7 @@ class WeakList(list):
         ref = self.__create_ref(obj)
         self.__list.insert(index, ref)
 
-    def pop(self, index):
+    def pop(self, index=-1):
         """Remove and return an object at the requested index"""
         self.__clean()
         obj = self.__list.pop(index)()
