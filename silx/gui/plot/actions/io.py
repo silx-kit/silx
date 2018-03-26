@@ -80,7 +80,7 @@ def selectOutputGroup(h5filename):
     dialog.setWindowTitle("Select an output group")
     if not dialog.exec_():
         return None
-    return dialog.selected_url.data_path()
+    return dialog.getselectedUrl().data_path()
 
 
 class SaveAction(PlotAction):

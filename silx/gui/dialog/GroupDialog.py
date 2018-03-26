@@ -67,70 +67,75 @@ class GroupDialog(qt.QDialog):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle("HDF5 group selection")
 
-        self.tree = Hdf5TreeView(self)
-        self.tree.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        self.tree.activated.connect(self._onActivation)
-        self.tree.selectionModel().selectionChanged.connect(
+        self._tree = Hdf5TreeView(self)
+        self._tree.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        self._tree.activated.connect(self._onActivation)
+        self._tree.selectionModel().selectionChanged.connect(
             self._onSelectionChange)
 
-        self.model = self.tree.findHdf5TreeModel()
+        self._model = self._tree.findHdf5TreeModel()
 
-        self.header = self.tree.header()
-        self.setShowAllSections(False)
+        self._header = self._tree.header()
+        self._header.setSections([self._model.NAME_COLUMN,
+                                  self._model.NODE_COLUMN,
+                                  self._model.LINK_COLUMN])
 
         buttonBox = qt.QDialogButtonBox()
-        self.okButton = buttonBox.addButton(qt.QDialogButtonBox.Ok)
-        self.okButton.setEnabled(False)
+        self._okButton = buttonBox.addButton(qt.QDialogButtonBox.Ok)
+        self._okButton.setEnabled(False)
         buttonBox.addButton(qt.QDialogButtonBox.Cancel)
 
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
-        self.statusBar = qt.QStatusBar()
-        self.statusBar.setStyleSheet("color: gray")
-        self.statusBar.showMessage("Select a group")
+        self._statusBar = qt.QStatusBar()
+        self._statusBar.setStyleSheet("color: gray")
+        self._statusBar.showMessage("Select a group")
 
         vlayout = qt.QVBoxLayout(self)
-        vlayout.addWidget(self.tree)
+        vlayout.addWidget(self._tree)
         vlayout.addWidget(buttonBox)
-        vlayout.addWidget(self.statusBar)
+        vlayout.addWidget(self._statusBar)
         self.setLayout(vlayout)
 
         self.setMinimumWidth(400)
 
-        self.selected_url = None
-        """None or a :class:`DataUrl` with a file path and a data path."""
+        self._selectedUrl = None
 
-    def setShowAllSections(self, flag):
-        """Show all columns or only the ones relevant to groups.
+    def getHeaderView(self):
+        """Return the header view.
 
-        You can also do more advanced tuning via the API of the
-        :class:`silx.gui.hdf5.Hdf5HeaderView` class::
+        This allows to some tuning via the API of the
+        :class:`silx.gui.hdf5.Hdf5HeaderView.Hdf5HeaderView` class::
 
             dialog = GroupDialog()
-            dialog.header.setSections([dialog.model.NAME_COLUMN,
-                                       dialog.model.NODE_COLUMN])
+            dialog.getHeaderView().setSections(
+                [dialog.getTreeModel().NAME_COLUMN,
+                 dialog.getTreeModel().NODE_COLUMN])
 
-        See :class:`silx.gui.hdf5.Hdf5TreeModel` to find a list of all column
-        identifiers.
+        To show all sections::
+
+            dialog.getHeaderView().setSections(
+                dialog.getTreeModel().COLUMN_IDS)
+
+        See :class:`silx.gui.hdf5.Hdf5TreeModel.Hdf5TreeModel` to find a list
+        of all column identifiers.
 
         .. note::
 
             Users can interactively show and hide columns with a right
             click on the header bar.
 
-        :param bool flag: True to show all columns, including the ones that
-            are relevant only to datasets. False to show only information
-            specific to groups (name, node type, link).
+        :return: :class:`silx.gui.hdf5.Hdf5HeaderView.Hdf5HeaderView`
         """
-        if flag:
-            # all columns, including dataset specific info
-            self.header.setSections(self.model.COLUMN_IDS)
-        else:
-            # only columns relevant to groups
-            self.header.setSections([self.model.NAME_COLUMN,
-                                     self.model.NODE_COLUMN,
-                                     self.model.LINK_COLUMN])
+        return self._header
+
+    def getTreeModel(self):
+        """Return the tree model.
+
+        :return: silx.gui.hdf5.Hdf5TreeModel.Hdf5TreeModel
+        """
+        return self._model
 
     def addFile(self, path):
         """Add a HDF5 file to the tree.
@@ -138,7 +143,7 @@ class GroupDialog(qt.QDialog):
 
         :param str path: File path
         """
-        self.model.insertFile(path)
+        self._model.insertFile(path)
 
     def addGroup(self, group):
         """Add a HDF5 group to the tree. This group and all its subgroups
@@ -146,26 +151,35 @@ class GroupDialog(qt.QDialog):
 
         :param h5py.Group group: HDF5 group
         """
-        self.model.insertH5pyObject(group)
+        self._model.insertH5pyObject(group)
 
     def _onActivation(self, idx):
         # double-click or enter press
-        nodes = list(self.tree.selectedH5Nodes())
+        nodes = list(self._tree.selectedH5Nodes())
         node = nodes[0]
         if silx.io.is_group(node.h5py_object):
             self.accept()
 
     def _onSelectionChange(self, old, new):
-        nodes = list(self.tree.selectedH5Nodes())
+        nodes = list(self._tree.selectedH5Nodes())
         if nodes:
             node = nodes[0]
             if silx.io.is_group(node.h5py_object):
-                self.selected_url = DataUrl(file_path=node.local_filename,
+                self._selectedUrl = DataUrl(file_path=node.local_filename,
                                             data_path=node.local_name)
-                self.okButton.setEnabled(True)
-                self.statusBar.showMessage(
-                        self.selected_url.path())
+                self._okButton.setEnabled(True)
+                self._statusBar.showMessage(
+                        self._selectedUrl.path())
             else:
-                self.selected_url = None
-                self.okButton.setEnabled(False)
-                self.statusBar.showMessage("Select a group")
+                self._selectedUrl = None
+                self._okButton.setEnabled(False)
+                self._statusBar.showMessage("Select a group")
+
+    def getSelectedDataUrl(self):
+        """Return a :class:`DataUrl` with a file path and a data path.
+        Return None if the dialog was cancelled.
+
+        :return: :class:`silx.io.url.DataUrl` object pointing to the
+            selected group.
+        """
+        return self._selectedUrl
