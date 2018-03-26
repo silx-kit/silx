@@ -1246,12 +1246,12 @@ class _Points(Geometry):
         $clippingCall(vCameraPosition);
 
         float alpha = alphaSymbol(gl_PointCoord, vSize);
-        if (alpha == 0.0) {
-            discard;
-        }
 
         gl_FragColor = $valueToColorCall(vValue);
         gl_FragColor.a *= alpha;
+        if (gl_FragColor.a == 0.0) {
+            discard;
+        }
     }
     """))
 
