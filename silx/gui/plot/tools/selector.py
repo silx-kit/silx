@@ -47,12 +47,13 @@ class Selector(qt.QObject):
 
     Example:
 
-    .. code-block::
+    .. code-block:: python
 
        from silx import sx
-       from silx.gui.plot.tools.selector import Selector
+       from silx.gui.plot.tools import Selector
 
        plot = sx.PlotWindow()  # Create a PlotWindow
+       plot.show()
        selector = Selector(plot)  # Create a Selector for this PlotWindow
 
        # Add the selection mode action to the PlotWindow toolbar
