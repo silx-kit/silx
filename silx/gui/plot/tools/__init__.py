@@ -24,7 +24,17 @@
 # ###########################################################################*/
 """This package provides a set of widgets working with :class:`PlotWidget`.
 
-It provides some QToolBar and QWidget.
+It provides some QToolBar and QWidget:
+
+- :class:`InteractiveModeToolBar`
+- :class:`OutputToolBar`
+- :class:`ImageToolBar`
+- :class:`CurveToolBar`
+- :class:`LimitsToolBar`
+- :class:`PositionInfo`
+
+It also provides a :class:`Selector` that handles interactive selections
+on a :class:`~silx.gui.plot.PlotWidget`.
 """
 
 __authors__ = ["T. Vincent"]
@@ -38,3 +48,5 @@ from .toolbars import ImageToolBar, CurveToolBar, ScatterToolBar  # noqa
 
 from .LimitsToolBar import LimitsToolBar  # noqa
 from .PositionInfo import PositionInfo  # noqa
+
+from .selector import Selector
