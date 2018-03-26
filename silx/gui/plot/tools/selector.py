@@ -223,12 +223,17 @@ class Selector(qt.QObject):
     # Selection API
 
     def getSelection(self):
-        """Returns the current selection control points
+        """Returns the current selection control points.
+
+        It returns an empty tuple if there is currently no selection.
 
         :return: Tuple of arrays of (x, y) position in plot coordinates
         :rtype: tuple ox Nx2 numpy array
         """
-        return tuple(points.copy() for points in self._selection)
+        if self._selection:
+            return tuple(points.copy() for points in self._selection)
+        else:
+            return ()
 
     def _appendSelection(self, x, y, kind):
         """Add a shape to the selection
