@@ -54,6 +54,12 @@
    :show-inheritance:
    :members:
 
+:class:`Selector` class
+-----------------------
+
+.. autoclass:: Selector
+   :members:
+
 .. currentmodule:: silx.gui.plot
 
 :mod:`ColorBar`: ColorBar Widget
