@@ -54,10 +54,10 @@
    :show-inheritance:
    :members:
 
-:class:`Selector` class
------------------------
+:class:`InteractiveSelection` class
+-----------------------------------
 
-.. autoclass:: Selector
+.. autoclass:: InteractiveSelection
    :members:
 
 .. currentmodule:: silx.gui.plot

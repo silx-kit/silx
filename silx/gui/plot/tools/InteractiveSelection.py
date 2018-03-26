@@ -39,7 +39,7 @@ from .. import items
 from ..Colors import rgba
 
 
-class Selector(qt.QObject):
+class InteractiveSelection(qt.QObject):
     """Class handling a selection interaction on a :class:`PlotWidget`
 
     It supports the selection of multiple points, rectangles, polygons,
@@ -50,17 +50,19 @@ class Selector(qt.QObject):
     .. code-block:: python
 
        from silx import sx
-       from silx.gui.plot.tools import Selector
+       from silx.gui.plot.tools import InteractiveSelection
 
        plot = sx.PlotWindow()  # Create a PlotWindow
        plot.show()
-       selector = Selector(plot)  # Create a Selector for this PlotWindow
+
+       # Create object controlling interactive selection
+       selector = InteractiveSelection(plot)
 
        # Add the selection mode action to the PlotWindow toolbar
        toolbar = plot.getInteractiveModeToolBar()
        toolbar.addAction(selector.getSelectionModeAction())
 
-       # Connect Selector messages to PlotWindow status bar
+       # Connect InteractiveSelection messages to PlotWindow status bar
        statusBar = plot.statusBar()
        selector.sigMessageChanged.connect(statusBar.showMessage)
 
@@ -91,7 +93,7 @@ class Selector(qt.QObject):
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
-        super(Selector, self).__init__(parent)
+        super(InteractiveSelection, self).__init__(parent)
         self._selection = []
         self._isStarted = False
         self._isInteractiveModeStarted = False
@@ -173,7 +175,7 @@ class Selector(qt.QObject):
                 self.stop()
                 return True  # Stop further handling of those keys
 
-        return super(Selector, self).eventFilter(obj, event)
+        return super(InteractiveSelection, self).eventFilter(obj, event)
 
     # Handle selection interaction
 
