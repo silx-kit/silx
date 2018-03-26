@@ -372,6 +372,7 @@ if sphinx is not None:
 else:
     TestDocCommand = SphinxExpectedCommand
 
+
 # ############################# #
 # numpy.distutils Configuration #
 # ############################# #
@@ -762,10 +763,10 @@ class sdist_debian(sdist):
         base, ext = os.path.splitext(basename)
         while ext in [".zip", ".tar", ".bz2", ".gz", ".Z", ".lz", ".orig"]:
             base, ext = os.path.splitext(base)
-        if ext:
-            dest = "".join((base, ext))
-        else:
-            dest = base
+        # if ext:
+        #     dest = "".join((base, ext))
+        # else:
+        #     dest = base
         # sp = dest.split("-")
         # base = sp[:-1]
         # nr = sp[-1]
@@ -781,9 +782,18 @@ class sdist_debian(sdist):
 
 def get_project_configuration(dry_run):
     """Returns project arguments for setup"""
+    # Use installed numpy version as minimal required version
+    # This is useful for wheels to advertise the numpy version they were built with
+    if dry_run:
+        numpy_requested_version = ""
+    else:
+        from numpy.version import version as numpy_version
+        numpy_requested_version = " >= %s" % numpy_version
+        logger.info("Install requires: numpy %s", numpy_requested_version)
+
     install_requires = [
         # for most of the computation
-        "numpy",
+        "numpy %s" % numpy_requested_version,
         # for the script launcher
         "setuptools"]
 
@@ -865,7 +875,7 @@ def setup_package():
                         'clean', '--name')))
 
     if dry_run:
-        # DRY_RUN implies actions which do not require dependancies, like NumPy
+        # DRY_RUN implies actions which do not require dependencies, like NumPy
         try:
             from setuptools import setup
             logger.info("Use setuptools.setup")
@@ -877,10 +887,11 @@ def setup_package():
             from setuptools import setup
         except ImportError:
             from numpy.distutils.core import setup
-            logger.info("Use numpydistutils.setup")
+            logger.info("Use numpy.distutils.setup")
 
     setup_kwargs = get_project_configuration(dry_run)
     setup(**setup_kwargs)
+
 
 if __name__ == "__main__":
     setup_package()
