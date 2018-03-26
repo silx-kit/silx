@@ -80,7 +80,7 @@ def selectOutputGroup(h5filename):
     dialog.setWindowTitle("Select an output group")
     if not dialog.exec_():
         return None
-    return dialog.getselectedUrl().data_path()
+    return dialog.getSelectedDataUrl().data_path()
 
 
 class SaveAction(PlotAction):
@@ -147,8 +147,8 @@ class SaveAction(PlotAction):
     DEFAULT_SCATTER_FILTERS = (SCATTER_FILTER_NXDATA,)
 
     # filters for which we don't want an "overwrite existing file" warning
-    ALL_APPEND_FILTERS = [CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
-                          SCATTER_FILTER_NXDATA]
+    DEFAULT_APPEND_FILTERS = (CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
+                              SCATTER_FILTER_NXDATA)
 
     def __init__(self, plot, parent=None):
         self._filters = {
@@ -504,8 +504,7 @@ class SaveAction(PlotAction):
                 axes_errors=[xerror, yerror],
                 title=plot.getGraphTitle())
 
-    def setFileFilter(self, dataKind, nameFilter, func,
-                      overwriteWarning=True):
+    def setFileFilter(self, dataKind, nameFilter, func):
         """Set a name filter to add/replace a file format support
 
         :param str dataKind:
@@ -522,11 +521,6 @@ class SaveAction(PlotAction):
             data to existing files.
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
-
-        if not overwriteWarning:
-            self.ALL_APPEND_FILTERS.append(nameFilter)
-        elif nameFilter in self.ALL_APPEND_FILTERS:
-            self.ALL_APPEND_FILTERS.remove(nameFilter)
 
         self._filters[dataKind][nameFilter] = func
 
@@ -579,7 +573,7 @@ class SaveAction(PlotAction):
         def onFilterSelection(filt_):
             # disable overwrite confirmation for NXdata types,
             # because we append the data to existing files
-            if filt_ in self.ALL_APPEND_FILTERS:
+            if filt_ in self.DEFAULT_APPEND_FILTERS:
                 dialog.setOption(dialog.DontConfirmOverwrite)
             else:
                 dialog.setOption(dialog.DontConfirmOverwrite, False)
