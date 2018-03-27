@@ -22,19 +22,17 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script illustrates the update of a :mod:`silx.gui.plot` widget from a
-thread.
+"""This script illustrates the update of a :class:`~silx.gui.plot.Plot2D`
+widget from a thread.
 
 The problem is that plot and GUI methods should be called from the main thread.
-To safely update the plot from another thread, one need to make the update
-asynchronously from the main thread.
-In this example, this is achieved through a Qt signal.
+To safely update the plot from another thread, one need to execute the update
+asynchronously in the main thread.
+In this example, this is achieved with
+:func:`~silx.gui.utils.concurrent.submitToQtMainThread`.
 
-In this example we create a subclass of
-:class:`~silx.gui.plot.PlotWindow.Plot2D`
-that adds a thread-safe method to add images:
-:meth:`ThreadSafePlot1D.addImageThreadSafe`.
-This thread-safe method is then called from a thread to update the plot.
+In this example a thread calls submitToQtMainThread to update the image
+of a plot.
 
 Update from 1d to 2d example by Hans Fangohr, European XFEL GmbH, 26 Feb 2018.
 """
@@ -59,9 +57,9 @@ Ny = 50
 
 
 class UpdateThread(threading.Thread):
-    """Thread updating the image of a :class:`ThreadSafePlot2D`
+    """Thread updating the image of a :class:`~sil.gui.plot.Plot2D`
 
-    :param plot2d: The ThreadSafePlot2D to update."""
+    :param plot2d: The Plot2D to update."""
 
     def __init__(self, plot2d):
         self.plot2d = plot2d
@@ -122,7 +120,7 @@ def main():
     plot2d.getDefaultColormap().setVRange(0., 1.5)
     plot2d.show()
 
-    # Create the thread that calls ThreadSafePlot2D.addImageThreadSafe
+    # Create the thread that calls submitToQtMainThread
     updateThread = UpdateThread(plot2d)
     updateThread.start()  # Start updating the plot
 

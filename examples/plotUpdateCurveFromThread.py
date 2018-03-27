@@ -25,14 +25,13 @@
 """This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
 
 The problem is that plot and GUI methods should be called from the main thread.
-To safely update the plot from another thread, one need to make the update
-asynchronously from the main thread.
-In this example, this is achieved through a Qt signal.
+To safely update the plot from another thread, one need to execute the update
+asynchronously in the main thread.
+In this example, this is achieved with
+:func:`~silx.gui.utils.concurrent.submitToQtMainThread`.
 
-In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot1D`
-that adds a thread-safe method to add curves:
-:meth:`ThreadSafePlot1D.addCurveThreadSafe`.
-This thread-safe method is then called from a thread to update the plot.
+In this example a thread calls submitToQtMainThread to update the curve
+of a plot.
 """
 
 __authors__ = ["T. Vincent"]
@@ -52,9 +51,9 @@ from silx.gui.plot import Plot1D
 
 
 class UpdateThread(threading.Thread):
-    """Thread updating the curve of a :class:`ThreadSafePlot1D`
+    """Thread updating the curve of a :class:`~silx.gui.plot.Plot1D`
 
-    :param plot1d: The ThreadSafePlot1D to update."""
+    :param plot1d: The Plot1D to update."""
 
     def __init__(self, plot1d):
         self.plot1d = plot1d
@@ -92,7 +91,7 @@ def main():
     plot1d.setLimits(0., 1000., 0., 1.)
     plot1d.show()
 
-    # Create the thread that calls ThreadSafePlot1D.addCurveThreadSafe
+    # Create the thread that calls submitToQtMainThread
     updateThread = UpdateThread(plot1d)
     updateThread.start()  # Start updating the plot
 
