@@ -19,6 +19,7 @@ The ``silx.gui`` package provides a set of PyQt widgets.
    plot/index.rst
    plot3d/index.rst
    qt.rst
+   utils.rst
    widgets/index.rst
 
 

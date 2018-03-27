@@ -88,7 +88,7 @@ _executor = None
 
 
 def submitToQtMainThread(fn, *args, **kwargs):
-    """Run fn(*args, **kwargs) in Qt's main thread.
+    """Run fn(args, kwargs) in Qt's main thread.
 
     If not called from the main thread, this is run asynchronously.
 
