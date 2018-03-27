@@ -30,6 +30,7 @@ __date__ = "24/04/2018"
 import unittest
 
 from .._utils import test
+from ..tools import test as testTools
 from . import testColorBar
 from . import testCurvesROIWidget
 from . import testAlphaSlider
@@ -38,7 +39,6 @@ from . import testLegendSelector
 from . import testMaskToolsWidget
 from . import testScatterMaskToolsWidget
 from . import testPlotInteraction
-from . import testTools
 from . import testPlotWidgetNoBackend
 from . import testPlotWidget
 from . import testPlotWindow
@@ -51,12 +51,14 @@ from . import testComplexImageView
 from . import testImageView
 from . import testSaveAction
 from . import testScatterView
+from . import testPixelIntensityHistoAction
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         [test.suite(),
+         testTools.suite(),
          testColorBar.suite(),
          testCurvesROIWidget.suite(),
          testAlphaSlider.suite(),
@@ -66,7 +68,6 @@ def suite():
          testScatterMaskToolsWidget.suite(),
          testPlotInteraction.suite(),
          testPlotWidgetNoBackend.suite(),
-         testTools.suite(),
          testPlotWidget.suite(),
          testPlotWindow.suite(),
          testProfile.suite(),
@@ -78,5 +79,6 @@ def suite():
          testImageView.suite(),
          testSaveAction.suite(),
          testScatterView.suite(),
-         ])
+         testPixelIntensityHistoAction.suite()
+        ])
     return test_suite
