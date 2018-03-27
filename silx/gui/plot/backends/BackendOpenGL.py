@@ -1548,6 +1548,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # Graph axes
 
+    def isXAxisTimeSeries(self):
+        return self._plotFrame.xAxis.isTimeSeries
+
+    def setXAxisTimeSeries(self, isTimeSeries):
+        self._plotFrame.xAxis.isTimeSeries = isTimeSeries
+
     def setXAxisLogarithmic(self, flag):
         if flag != self._plotFrame.xAxis.isLog:
             if flag and self._keepDataAspectRatio:

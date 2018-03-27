@@ -241,6 +241,22 @@ class Axis(qt.QObject):
         flag = bool(flag)
         self.setScale(self.LOGARITHMIC if flag else self.LINEAR)
 
+
+    def isTimeSeries(self):
+        """Return True if this axis scale shows datetime objects.
+
+        :rtype: bool
+        """
+        raise NotImplementedError()
+
+    def setTimeSeries(self, flag):
+        """Set whether this axis is a time series
+
+        :param bool flag: True to switch to time series, False for regular axis.
+        """
+        raise NotImplementedError()
+
+
     def isAutoScale(self):
         """Return True if axis is automatically adjusting its limits.
 
@@ -307,6 +323,12 @@ class XAxis(Axis):
 
     # TODO With some changes on the backend, it will be able to remove all this
     #      specialised implementations (prefixel by '_internal')
+
+    def isTimeSeries(self):
+        self._plot._backend.isXAxisTimeSeries()
+
+    def setTimeSeries(self, flag):
+        self._plot._backend.setXAxisTimeSeries(flag)
 
     def _internalSetCurrentLabel(self, label):
         self._plot._backend.setGraphXLabel(label)

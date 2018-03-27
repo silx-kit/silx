@@ -35,6 +35,7 @@ __date__ = "03/04/2017"
 # keep aspect ratio managed here?
 # smarter dirty flag handling?
 
+import datetime as dt
 import math
 import weakref
 import logging
@@ -68,6 +69,7 @@ class PlotAxis(object):
 
         self._plot = weakref.ref(plot)
 
+        self._isDateTime = False
         self._isLog = False
         self._dataRange = 1., 100.
         self._displayCoords = (0., 0.), (1., 0.)
@@ -107,6 +109,18 @@ class PlotAxis(object):
         isLog = bool(isLog)
         if isLog != self._isLog:
             self._isLog = isLog
+            self._dirtyTicks()
+
+    @property
+    def isTimeSeries(self):
+        """Whether the axis is showing floats as datetime objects"""
+        return self._isDateTime
+
+    @isTimeSeries.setter
+    def isTimeSeries(self, isTimeSeries):
+        isTimeSeries = bool(isTimeSeries)
+        if isTimeSeries != self._isDateTime:
+            self._isDateTime = isTimeSeries
             self._dirtyTicks()
 
     @property
@@ -277,7 +291,11 @@ class PlotAxis(object):
                         xPixel = x0 + (dataPos - dataMin) * xScale
                         yPixel = y0 + (dataPos - dataMin) * yScale
 
-                        if nbFrac == 0:
+                        if self.isTimeSeries:
+                            dateTime = dt.datetime.fromtimestamp(dataPos)
+                            #text = dateTime.strftime("%Y-%m-%dT%H:%M:%S")
+                            text = dateTime.strftime("%H:%M:%S") # TODO dynamic
+                        elif nbFrac == 0:
                             text = '%g' % dataPos
                         else:
                             text = ('%.' + str(nbFrac) + 'f') % dataPos
