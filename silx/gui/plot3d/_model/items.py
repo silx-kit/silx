@@ -40,7 +40,7 @@ import numpy
 
 from silx.third_party import six
 
-from ..._utils import convertArrayToQImage
+from ...utils._image import convertArrayToQImage
 from ...plot.Colormap import preferredColormaps
 from ... import qt, icons
 from .. import items

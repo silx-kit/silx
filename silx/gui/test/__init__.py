@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@ import logging
 import os
 import sys
 import unittest
-from silx.test.utils import test_options
 
+from silx.test.utils import test_options
 
 _logger = logging.getLogger(__name__)
 
@@ -73,12 +73,13 @@ def suite():
     from ..widgets import test as test_widgets
     from ..data import test as test_data
     from ..dialog import test as test_dialog
+    from ..utils import test as test_utils
+
     from . import test_qt
     # Console tests disabled due to corruption of python environment
     # (see issue #538 on github)
     # from . import test_console
     from . import test_icons
-    from . import test_utils
 
     try:
         from ..plot3d.test import suite as test_plot3d_suite
