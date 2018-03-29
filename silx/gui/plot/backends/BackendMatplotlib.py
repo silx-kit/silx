@@ -32,7 +32,7 @@ __date__ = "18/10/2017"
 
 
 import logging
-
+import datetime as dt
 import numpy
 
 
@@ -52,6 +52,7 @@ from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
+from matplotlib.ticker import FuncFormatter, ScalarFormatter
 
 from ..matplotlib.ModestImage import ModestImage
 from . import BackendBase
@@ -168,6 +169,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.matplotlibVersion = matplotlib.__version__
 
         self._enableAxis('right', False)
+        self._isXAxisTimeSeries = False
 
     # Add methods
 
@@ -670,6 +672,37 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._updateMarkers()
 
     # Graph axes
+
+
+    def _formatDate(self, x, pos=None):
+        """Converts a POSIX timestamp to a formated string for the ticks.
+           Will be used in a matplotlib,ticker.FuncFormatter, which expects two parameters:
+           a tick value x and a tick position pos.
+        """
+        dateTime = dt.datetime.fromtimestamp(x)
+        tickStr = dateTime.strftime('%Y-%m-%d')
+        return tickStr
+
+
+    def isXAxisTimeSeries(self):
+        return self._isXAxisTimeSeries
+
+
+    def setXAxisTimeSeries(self, isTimeSeries):
+        self._isXAxisTimeSeries = isTimeSeries
+        if self._isXAxisTimeSeries:
+            # We can't use a matplotlib.dates.DateFormatter because it expects the data to be
+            # in datetimes. Silx works internally with timestampes (floats).
+            self.ax.xaxis.set_major_formatter(FuncFormatter(self._formatDate))
+        else:
+            try:
+                scalarFormatter = ScalarFormatter(useOffset=False)
+            except:
+                _logger.warning('Cannot disabled axes offsets in %s ' % matplotlib.__version__)
+                scalarFormatter = ScalarFormatter()
+            self.ax.xaxis.set_major_formatter(scalarFormatter)
+
+
 
     def setXAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis

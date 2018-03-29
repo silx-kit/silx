@@ -414,6 +414,7 @@ class BackendBase(object):
         """
         return self._plotFrame.xAxis.isTimeSeries
 
+
     def setXAxisTimeSeries(self, isTimeSeries):
         """Set whether the X-axis is a time series
 
