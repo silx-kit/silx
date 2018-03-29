@@ -187,7 +187,6 @@ class FindContours(qt.QMainWindow):
         dummy = numpy.array([[0]])
         self.__plot.addImage(dummy, legend="image", z=-10, replace=False)
         dummy = numpy.array([[[0, 0, 0, 0]]])
-        self.__plot.addImage(dummy, legend="mask", z=-5, replace=False)
         self.__plot.addImage(dummy, legend="iso-pixels", z=0, replace=False)
 
         self.__algo = None
@@ -195,6 +194,7 @@ class FindContours(qt.QMainWindow):
         self.__customPolygons = []
         self.__image = None
         self.__mask = None
+        self.__customValue = None
 
         mainPanel = qt.QWidget(self)
         layout = qt.QHBoxLayout()
@@ -255,27 +255,39 @@ class FindContours(qt.QMainWindow):
         layout.addWidget(button)
         self.__kind.addButton(button)
 
-        layout.addSpacing(5)
-
         button = qt.QPushButton(parent=panel)
-        button.setText("Generate")
+        button.setText("Re-generate map")
         button.clicked.connect(self.generate)
         layout.addWidget(button)
-        self.__kind.addButton(button)
 
-        layout.addSpacing(5)
+        layout.addSpacing(10)
+
+        button = qt.QPushButton(parent=panel)
+        button.setText("Use the plot's mask")
+        button.setCheckable(True)
+        button.setChecked(True)
+        button.clicked.connect(self.updateContours)
+        layout.addWidget(button)
+        self.__useMaskButton = button
+
+        button = qt.QPushButton(parent=panel)
+        button.setText("Update contours")
+        button.clicked.connect(self.updateContours)
+        layout.addWidget(button)
+
+        layout.addSpacing(10)
 
         label = qt.QLabel(parent=panel)
         label.setText("Custom level:")
         self.__value = qt.QSlider(panel)
-        self.__value.sliderMoved.connect(self.updateValue)
-        self.__value.valueChanged.connect(self.updateValue)
+        self.__value.sliderMoved.connect(self.__updateCustomContours)
+        self.__value.valueChanged.connect(self.__updateCustomContours)
         layout.addWidget(label)
         layout.addWidget(self.__value)
 
         return panel
 
-    def __cleanCustomValue(self):
+    def __cleanCustomContour(self):
         for name in self.__customPolygons:
             self.__plot.removeCurve(name)
         self.__customPolygons = []
@@ -283,23 +295,32 @@ class FindContours(qt.QMainWindow):
         item = self.__plot.getImage(legend="iso-pixels")
         item.setData([[[0, 0, 0, 0]]])
 
-    def clean(self):
-        self.__cleanCustomValue()
+    def __cleanPolygons(self):
         for name in self.__polygons:
             self.__plot.removeCurve(name)
+
+    def clean(self):
+        self.__cleanCustomContour()
+        self.__cleanPolygons()
         self.__polygons = []
         self.__image = None
         self.__mask = None
-        item = self.__plot.getImage(legend="image")
-        item.setData([[0]])
-        item = self.__plot.getImage(legend="mask")
-        item.setData([[[0, 0, 0, 0]]])
 
-    def updateValue(self, value):
+    def updateContours(self):
+        self.__redrawContours()
+        self.updateCustomContours()
+
+    def __updateCustomContours(self, value):
+        self.__customValue = value
+        self.updateCustomContours()
+
+    def updateCustomContours(self):
         if self.__algo is None:
             return
-
-        self.__cleanCustomValue()
+        value = self.__customValue
+        self.__cleanCustomContour()
+        if value is None:
+            return
 
         # iso pixels
         iso_pixels = self.__algo.find_pixels(value)
@@ -325,32 +346,49 @@ class FindContours(qt.QMainWindow):
             self.__customPolygons.append(legend)
             self.__plot.addCurve(x=x, y=y, linestyle="--", color="red", linewidth=2.0, legend=legend, resetzoom=False)
 
-    def setData(self, image, mask=None, value=0.0):
-        self.clean()
-        if MarchingSquareSciKitImage is not None:
-            self.__algo = MarchingSquareSciKitImage(image, mask)
+    def __updateAlgo(self, image, mask=None):
+        if mask is None:
+            if self.__useMaskButton.isChecked():
+                mask = self.__plot.getMaskToolsDockWidget().getSelectionMask()
+                if len(mask.shape) != 2:
+                    # Well, mask size can be bad
+                    mask = None
+
         self.__image = image
         self.__mask = mask
+
+        if MarchingSquareSciKitImage is not None:
+            self.__algo = MarchingSquareSciKitImage(self.__image, self.__mask)
+        else:
+            self.__algo = None
+
+    def setData(self, image, mask=None, value=0.0):
+        self.clean()
+
+        self.__updateAlgo(image, mask=None)
 
         # image
         item = self.__plot.getImage(legend="image")
         item.setData(image)
         item.setColormap(self.__colormap)
 
-        # mask
-        if mask is not None:
-            mask = createRgbaMaskImage(mask, color=numpy.array([255, 0, 255, 128]))
-            item = self.__plot.getImage(legend="mask")
-            item.setData(mask)
-
         self.__plot.resetZoom()
 
-    def __drawRings(self, values, lineStyleCallback=None):
+    def __redrawContours(self):
+        self.__updateAlgo(self.__image)
+        if self.__algo is None:
+            return
+        self.__cleanPolygons()
+        self.__drawContours(self.__values, self.__lineStyleCallback)
+
+    def __drawContours(self, values, lineStyleCallback=None):
         if self.__algo is None:
             return
 
-        # iso contours
-        values = range(-800, 5000, 200)
+        self.__values = values
+        self.__lineStyleCallback = lineStyleCallback
+        if self.__values is None:
+            return
 
         # iso contours
         ipolygon = 0
@@ -376,12 +414,13 @@ class FindContours(qt.QMainWindow):
         # and many artefacts
         if value is None:
             value = self.__image.mean()
+        self.__customValue = value
         div = 12
         delta = (self.__image.max() - self.__image.min()) / div
         self.__value.setValue(value)
         self.__value.setRange(self.__image.min() + delta,
                               self.__image.min() + delta * (div - 1))
-        self.updateValue(value)
+        self.updateCustomContours()
 
     def generate(self):
         self.__kind.checkedButton().click()
@@ -392,7 +431,7 @@ class FindContours(qt.QMainWindow):
         freq = numpy.random.randint(2, 50)
         image = create_spiral(shape, nb_spiral, freq)
         image *= 1000.0
-        self.__colormap = Colormap("viridis")
+        self.__colormap = Colormap("cool")
         self.setData(image=image, mask=None)
         self.__defineDefaultValues()
 
@@ -413,11 +452,11 @@ class FindContours(qt.QMainWindow):
                 style = {"linestyle": "--", "linewidth": 0.1, "color": "black"}
             return style
 
-        self.__drawRings(values, styleCallback)
+        self.__drawContours(values, styleCallback)
 
         self.__value.setValue(0)
         self.__value.setRange(0, 5000)
-        self.updateValue(0)
+        self.__updateCustomContours(0)
 
     def generateMagneticField(self):
         shape = 512
@@ -443,7 +482,7 @@ class FindContours(qt.QMainWindow):
                 style = {"linestyle": "-", "linewidth": 0.5, "color": "white"}
             return style
 
-        self.__drawRings(values, styleCallback)
+        self.__drawContours(values, styleCallback)
         self.__defineDefaultValues(value=0)
 
     def generateGravityField(self):
@@ -465,7 +504,7 @@ class FindContours(qt.QMainWindow):
         def styleCallback(value, ivalue, ipolygon):
             return {"linestyle": "-", "linewidth": 0.1, "color": "white"}
 
-        self.__drawRings(values, styleCallback)
+        self.__drawContours(values, styleCallback)
         self.__defineDefaultValues()
 
     def generateRings(self):
@@ -479,6 +518,7 @@ class FindContours(qt.QMainWindow):
         image *= 1000.0
         self.__colormap = Colormap("viridis")
         self.setData(image=image, mask=None)
+        self.__drawContours(None, None)
         self.__defineDefaultValues()
 
     def generateGradient(self):
@@ -491,6 +531,7 @@ class FindContours(qt.QMainWindow):
         image *= 1000.0
         self.__colormap = Colormap("viridis")
         self.setData(image=image, mask=None)
+        self.__drawContours(None, None)
         self.__defineDefaultValues()
 
 
