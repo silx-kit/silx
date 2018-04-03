@@ -122,6 +122,40 @@ def create_gradient(size, dx=0, dy=0, sx=1.0, sy=1.0):
     return distance
 
 
+def create_composite_gradient(size, dx=0, dy=0, sx=1.0, sy=1.0):
+    hole = (size - 4) // 4
+    gap = 10
+    base = create_gradient(size + hole + gap * 4, dx, dy, sx, sy)
+    result = numpy.zeros((size, size))
+    width = (size - 2) // 2
+    half_hole = hole // 2
+
+    def copy_module(x1, y1, x2, y2, width, height):
+        result[y1:y1 + height, x1:x1 + width] = base[y2:y2 + height, x2:x2 + width]
+
+    y1 = 0
+    y2 = 0
+    copy_module(0, y1, half_hole, y2, width, hole)
+    copy_module(width + 1, y1, half_hole + width, y2, width, hole)
+
+    y1 += hole + 1
+    y2 += hole + gap
+    copy_module(0, y1, 0, y2, width, hole)
+    copy_module(width + 1, y1, width + hole, y2, width, hole)
+
+    y1 += hole + 1
+    y2 += hole + gap
+    copy_module(0, y1, half_hole, y2, width, hole)
+    copy_module(width + 1, y1, half_hole + width, y2, width, hole)
+
+    y1 += hole + 1
+    y2 += hole + gap
+    copy_module(0, y1, half_hole, y2, width, hole)
+    copy_module(width + 1, y1, half_hole + width, y2, width, hole)
+
+    return result
+
+
 def create_value_noise(shape, octaves=8, weights=None, first_array=None):
     data = numpy.zeros(shape, dtype=numpy.float32)
     t = 2
@@ -251,6 +285,13 @@ class FindContours(qt.QMainWindow):
         button = qt.QPushButton(parent=panel)
         button.setText("Gradient")
         button.clicked.connect(self.generateGradient)
+        button.setCheckable(True)
+        layout.addWidget(button)
+        self.__kind.addButton(button)
+
+        button = qt.QPushButton(parent=panel)
+        button.setText("Composite gradient")
+        button.clicked.connect(self.generateCompositeGradient)
         button.setCheckable(True)
         layout.addWidget(button)
         self.__kind.addButton(button)
@@ -529,6 +570,21 @@ class FindContours(qt.QMainWindow):
         sy = numpy.random.randint(10, 5000) / 10.0
         image = create_gradient(shape, dx=dx, dy=dy, sx=sx, sy=sy)
         image *= 1000.0
+        self.__colormap = Colormap("viridis")
+        self.setData(image=image, mask=None)
+        self.__drawContours(None, None)
+        self.__defineDefaultValues()
+
+    def generateCompositeGradient(self):
+        shape = 512
+        hole = 1 / 4.0
+        dx = numpy.random.random() * hole - hole / 2.0
+        dy = numpy.random.random() * hole - hole * 2
+        sx = numpy.random.random() * 10.0 + 1
+        sy = numpy.random.random() * 10.0 + 1
+        image = create_composite_gradient(shape, dx, dy, sx, sy)
+        image *= 1000.0
+
         self.__colormap = Colormap("viridis")
         self.setData(image=image, mask=None)
         self.__drawContours(None, None)
