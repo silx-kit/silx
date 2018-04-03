@@ -103,16 +103,6 @@ def create_gravity_field(size, objects):
     return numpy.log(result) * 1000
 
 
-def create_rings(size, dx=0, dy=0, freq=100, sx=1.0, sy=1.0):
-    half = size // 2
-    yy, xx = numpy.ogrid[-half:half, -half:half]
-    coef = 1 / half
-    yy, xx = (yy - (dy * half)) * coef, (xx - (dx * half)) * coef + 0.0001
-    distance = numpy.sqrt(numpy.sqrt(xx * xx * sx + yy * yy * sy))
-    data = numpy.fmod(distance * freq * half / 100, 1, dtype=numpy.float32)
-    return data
-
-
 def create_gradient(size, dx=0, dy=0, sx=1.0, sy=1.0):
     half = size // 2
     yy, xx = numpy.ogrid[-half:half, -half:half]
@@ -271,13 +261,6 @@ class FindContours(qt.QMainWindow):
         button = qt.QPushButton(parent=panel)
         button.setText("Spiral")
         button.clicked.connect(self.generateSpiral)
-        button.setCheckable(True)
-        layout.addWidget(button)
-        self.__kind.addButton(button)
-
-        button = qt.QPushButton(parent=panel)
-        button.setText("Rings")
-        button.clicked.connect(self.generateRings)
         button.setCheckable(True)
         layout.addWidget(button)
         self.__kind.addButton(button)
@@ -546,20 +529,6 @@ class FindContours(qt.QMainWindow):
             return {"linestyle": "-", "linewidth": 0.1, "color": "white"}
 
         self.__drawContours(values, styleCallback)
-        self.__defineDefaultValues()
-
-    def generateRings(self):
-        shape = 512
-        dx = numpy.random.random() * 2 - 1
-        dy = numpy.random.random() * 2 - 1
-        freq = numpy.random.randint(1, 100) / 100.0
-        sx = numpy.random.randint(10, 5000) / 10.0
-        sy = numpy.random.randint(10, 5000) / 10.0
-        image = create_rings(shape, dx=dx, dy=dy, freq=freq, sx=sx, sy=sy)
-        image *= 1000.0
-        self.__colormap = Colormap("viridis")
-        self.setData(image=image, mask=None)
-        self.__drawContours(None, None)
         self.__defineDefaultValues()
 
     def generateGradient(self):
