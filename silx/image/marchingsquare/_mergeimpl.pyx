@@ -292,7 +292,6 @@ cdef class MarchingSquareMergeImpl(object):
                     # Note: Store the mask in the index. It could be usefull to
                     #     generate accurate segments in some cases, but yet it
                     #     is not used
-                    mask_ptr += 1
                     if mask_ptr[0] > 0:
                         index += 16
                     if mask_ptr[1] > 0:
@@ -301,6 +300,7 @@ cdef class MarchingSquareMergeImpl(object):
                         index += 128
                     if mask_ptr[self._dim_x + 1] > 0:
                         index += 64
+                    mask_ptr += 1
 
                 if index < 16 and index != 0 and index != 15:
                     self._insert_pattern(context, x, y, index, isovalue)
