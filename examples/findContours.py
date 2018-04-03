@@ -549,7 +549,7 @@ class FindContours(qt.QMainWindow):
         values = numpy.arange(image.min(), image.max(), delta)
         values = values[1:8]
 
-        self.__colormap = Colormap("gray")
+        self.__colormap = Colormap("Greys")
         self.setData(image=image, mask=None)
         self.__drawContours(values, styleCallback)
         self.__defineDefaultValues()
@@ -573,7 +573,7 @@ class FindContours(qt.QMainWindow):
         values = numpy.arange(image.min(), image.max(), delta)
         values = values[1:8]
 
-        self.__colormap = Colormap("gray")
+        self.__colormap = Colormap("Greys")
         self.setData(image=image, mask=None)
         self.__drawContours(values, styleCallback)
         self.__defineDefaultValues()
