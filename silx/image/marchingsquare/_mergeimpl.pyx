@@ -251,38 +251,35 @@ cdef class MarchingSquareMergeImpl(object):
         cdef:
             int x, y, index
             cnumpy.float64_t tmpf
-            cnumpy.float32_t *_image_ptr
-            cnumpy.int8_t *_mask_ptr
-            vector[TileContext_t*] contexts
-            int dim_x, dim_y
+            cnumpy.float32_t *image_ptr
+            cnumpy.int8_t *mask_ptr
 
-        # context.polygons.reserve(context.dim_x * 2 + context.dim_y * 2)
-        _image_ptr = self._image_ptr + (context.pos_y * self._dim_x + context.pos_x)
+        image_ptr = self._image_ptr + (context.pos_y * self._dim_x + context.pos_x)
         if self._mask_ptr != NULL:
-            _mask_ptr = self._mask_ptr + (context.pos_y * self._dim_x + context.pos_x)
+            mask_ptr = self._mask_ptr + (context.pos_y * self._dim_x + context.pos_x)
         else:
-            _mask_ptr = NULL
+            mask_ptr = NULL
 
         for y in range(context.pos_y, context.pos_y + context.dim_y):
             for x in range(context.pos_x, context.pos_x + context.dim_x):
                 # Calculate index.
                 index = 0
-                if _image_ptr[0] > isovalue:
+                if image_ptr[0] > isovalue:
                     index += 1
-                if _image_ptr[1] > isovalue:
+                if image_ptr[1] > isovalue:
                     index += 2
-                if _image_ptr[self._dim_x] > isovalue:
+                if image_ptr[self._dim_x] > isovalue:
                     index += 8
-                if _image_ptr[self._dim_x + 1] > isovalue:
+                if image_ptr[self._dim_x + 1] > isovalue:
                     index += 4
 
                 # Resolve ambiguity
                 if index == 5 or index == 10:
                     # Calculate value of cell center (i.e. average of corners)
-                    tmpf = 0.25 * (_image_ptr[0] +
-                                   _image_ptr[1] +
-                                   _image_ptr[self._dim_x] +
-                                   _image_ptr[self._dim_x + 1])
+                    tmpf = 0.25 * (image_ptr[0] +
+                                   image_ptr[1] +
+                                   image_ptr[self._dim_x] +
+                                   image_ptr[self._dim_x + 1])
                     # If below isovalue, swap
                     if tmpf <= isovalue:
                         if index == 5:
@@ -291,26 +288,29 @@ cdef class MarchingSquareMergeImpl(object):
                             index = 5
 
                 # Cache mask information
-                if _mask_ptr != NULL:
-                    _mask_ptr += 1
-                    if _mask_ptr[0] > 0:
+                if mask_ptr != NULL:
+                    # Note: Store the mask in the index. It could be usefull to
+                    #     generate accurate segments in some cases, but yet it
+                    #     is not used
+                    mask_ptr += 1
+                    if mask_ptr[0] > 0:
                         index += 16
-                    if _mask_ptr[1] > 0:
+                    if mask_ptr[1] > 0:
                         index += 32
-                    if _mask_ptr[self._dim_x] > 0:
+                    if mask_ptr[self._dim_x] > 0:
                         index += 128
-                    if _mask_ptr[self._dim_x + 1] > 0:
+                    if mask_ptr[self._dim_x + 1] > 0:
                         index += 64
 
                 if index < 16 and index != 0 and index != 15:
                     self._insert_pattern(context, x, y, index, isovalue)
 
-                _image_ptr += 1
+                image_ptr += 1
 
             # There is a missing pixel at the end of each rows
-            _image_ptr += self._dim_x - context.dim_x
-            if _mask_ptr != NULL:
-                _mask_ptr += self._dim_x - context.dim_x
+            image_ptr += self._dim_x - context.dim_x
+            if mask_ptr != NULL:
+                mask_ptr += self._dim_x - context.dim_x
 
     cdef void _insert_pattern(self, TileContext_t *context, int x, int y, int pattern, cnumpy.float64_t isovalue) nogil:
         cdef:
