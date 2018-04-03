@@ -24,4 +24,72 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/03/2018"
+__date__ = "03/04/2018"
+
+
+from ._mergeimpl import MarchingSquareMergeImpl
+
+
+def _factory(engine, image, mask):
+    """Factory to create the marching square implementation from the engine
+    name"""
+    if engine == "merge":
+        return MarchingSquareMergeImpl(image, mask)
+    elif engine == "skimage":
+        from _skimage import MarchingSquareSciKitImage
+        return MarchingSquareSciKitImage(image, mask)
+    else:
+        raise ValueError("Engine '%s' is not supported ('merge' or 'skimage' expected).")
+
+
+def find_pixels(image, level, mask=None, engine="merge"):
+    """
+    Compute the pixels from the image over the requested iso contours
+    at this `level`.
+
+    :param numpy.ndarray image: Image to process
+    :param float level: Level of the requested iso contours.
+    :param numpy.ndarray mask: An optional mask (a non-zero value invalidate
+        the pixels of the image)
+    :param str engine: Engine to use. Currently 2 implentation are available.
+
+        - merge: An implentation using Cython and supporting OpenMP.
+        - skimage: Provide an implementation based on the library skimage. If
+          it is used with a mask, the computation will not be accurate nor
+          efficient. Provided to compare implementation. The library `skimage`
+          have to be installed.
+
+    :returns: A list of array containg y-x coordinates of points
+    :rtype: List[numpy.ndarray]
+    """
+    assert(image is not None)
+    if mask is not None:
+        assert(image.shape == mask.shape)
+    impl = _factory(engine, image, mask)
+    return impl.find_pixels(level)
+
+
+def find_contours(image, level, mask=None, engine="merge"):
+    """
+    Compute the list of polygons of the iso contours at this `level`.
+
+    :param numpy.ndarray image: Image to process
+    :param float level: Level of the requested iso contours.
+    :param numpy.ndarray mask: An optional mask (a non-zero value invalidate
+        the pixels of the image)
+    :param str engine: Engine to use. Currently 2 implentation are available.
+
+        - merge: An implentation using Cython and supporting OpenMP.
+        - skimage: Provide an implementation based on the library skimage. If
+          it is used with a mask, the computation will not be accurate nor
+          efficient. Provided to compare implementation. The library `skimage`
+          have to be installed.
+
+    :returns: A list of array containg y-x coordinates of points
+    :rtype: List[numpy.ndarray]
+    """
+    assert(image is not None)
+    if mask is not None:
+        assert(image.shape == mask.shape)
+    impl = _factory(engine, image, mask)
+    return impl.find_contours(level)
