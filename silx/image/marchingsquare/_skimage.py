@@ -114,7 +114,7 @@ class MarchingSquareSciKitImage(object):
 
     def find_contours(self, level):
         """
-        Compute the list of polygons of the iso iso contours at this `level`.
+        Compute the list of polygons of the iso contours at this `level`.
 
         If no mask is involved, the result is the same as
         `skimage.measure.find_contours`.
