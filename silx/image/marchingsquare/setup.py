@@ -24,13 +24,20 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/03/2018"
+__date__ = "03/04/2018"
 
+import numpy
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
     config = Configuration('marchingsquare', parent_package, top_path)
+
+    config.add_extension('_mergeimpl',
+                         sources=['_mergeimpl.pyx'],
+                         include_dirs=[numpy.get_include()],
+                         language='c++')
+
     return config
 
 
