@@ -49,15 +49,15 @@ cdef extern from "include/patterns.h":
     cdef unsigned char EDGE_TO_POINT[][2]
     cdef unsigned char CELL_TO_EDGE[][5]
 
-ctypedef cnumpy.int64_t hash_index_t
+ctypedef cnumpy.uint32_t point_index_t
 
 cdef struct point_t:
     cnumpy.float32_t x
     cnumpy.float32_t y
 
 cdef cppclass polygon_description_t:
-    hash_index_t begin
-    hash_index_t end
+    point_index_t begin
+    point_index_t end
     clist[point_t] points
 
     polygon_description_t() nogil:
@@ -71,7 +71,7 @@ cdef cppclass TileContext_t:
 
     clist[polygon_description_t*] final_polygons
 
-    map[hash_index_t, polygon_description_t*] polygons
+    map[point_index_t, polygon_description_t*] polygons
 
     TileContext_t() nogil:
         pass
@@ -320,32 +320,24 @@ cdef class MarchingSquareMergeImpl(object):
             end_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 1]
             self._insert_segment(context, x, y, begin_edge, end_edge, isovalue)
 
-    cdef hash_index_t _create_hash_index(self, int x, int y, cnumpy.uint8_t edge) nogil:
-        """Create an identifier for a tuple x-y-edge (which is reversible)
+    cdef point_index_t _create_point_index(self, int yx, int dim_x, cnumpy.uint8_t edge) nogil:
+        """Create an unique identifier for a point of a polygon.
 
-        There is no way to create hashable struct in cython. Then it uses
-        a standard hashable type.
-
-        For example, the tuple (x=0, y=0, edge=2) is equal to (x=1, y=0, edge=0)
+        It can be shared by different pixel coordinates. For example, the tuple
+        (x=0, y=0, edge=2) is equal to (x=1, y=0, edge=0).
         """
-        cdef:
-            hash_index_t v = 0
         if edge == 2:
-            y += 1
+            yx += dim_x
             edge = 0
+        elif edge == 1:
+            yx += 1
         elif edge == 3:
-            x -= 1
             edge = 1
-        # Avoid negative values
-        x += 1
-        y += 1
 
-        v += edge
-        v <<= 20
-        v += x
-        v <<= 20
-        v += y
-        return v
+        # Reserve the zero value
+        yx += 1
+
+        return edge + (yx << 1)
 
     cdef void _insert_segment(self, TileContext_t *context,
                               int x, int y,
@@ -353,17 +345,18 @@ cdef class MarchingSquareMergeImpl(object):
                               cnumpy.uint8_t end_edge,
                               cnumpy.float64_t isovalue) nogil:
         cdef:
-            int i
+            int i, yx
             point_t point
-            hash_index_t begin, end
+            point_index_t begin, end
             polygon_description_t *description
             polygon_description_t *description_begin
             polygon_description_t *description_end
-            map[hash_index_t, polygon_description_t*].iterator it_begin
-            map[hash_index_t, polygon_description_t*].iterator it_end
+            map[point_index_t, polygon_description_t*].iterator it_begin
+            map[point_index_t, polygon_description_t*].iterator it_end
 
-        begin = self._create_hash_index(x, y, begin_edge)
-        end = self._create_hash_index(x, y, end_edge)
+        yx = context.dim_x * y + x
+        begin = self._create_point_index(yx, context.dim_x, begin_edge)
+        end = self._create_point_index(yx, context.dim_x, end_edge)
 
         it_begin = context.polygons.find(begin)
         it_end = context.polygons.find(end)
@@ -464,13 +457,13 @@ cdef class MarchingSquareMergeImpl(object):
     @cython.cdivision(True)
     cdef void _merge_context(self, TileContext_t *context, TileContext_t *other) nogil:
         cdef:
-            map[hash_index_t, polygon_description_t*].iterator it_begin
-            map[hash_index_t, polygon_description_t*].iterator it_end
-            map[hash_index_t, polygon_description_t*].iterator it
+            map[point_index_t, polygon_description_t*].iterator it_begin
+            map[point_index_t, polygon_description_t*].iterator it_end
+            map[point_index_t, polygon_description_t*].iterator it
             polygon_description_t *description_other
             polygon_description_t *description
             polygon_description_t *description2
-            hash_index_t vhash
+            point_index_t point_index
             vector[polygon_description_t*] mergeable_polygons
             int i
 
@@ -480,9 +473,9 @@ cdef class MarchingSquareMergeImpl(object):
         # mergeable_polygons.reserve(other.polygons.size() / 2)
         it = other.polygons.begin()
         while it != other.polygons.end():
-            vhash = dereference(it).first
+            point_index = dereference(it).first
             description_other = dereference(it).second
-            if description_other.begin == vhash:
+            if description_other.begin == point_index:
                 mergeable_polygons.push_back(description_other)
             preincrement(it)
 
@@ -606,7 +599,7 @@ cdef class MarchingSquareMergeImpl(object):
         cdef:
             int i, i_pixel
             cnumpy.uint8_t index
-            map[hash_index_t, polygon_description_t*].iterator it
+            map[point_index_t, polygon_description_t*].iterator it
             vector[polygon_description_t*] descriptions
             clist[point_t].iterator it_points
             polygon_description_t *description
