@@ -159,7 +159,7 @@ def create_value_noise(shape, octaves=8, weights=None, first_array=None):
                 w = (256 >> i) - 1
             else:
                 w = weights[i]
-            d = numpy.random.randint(w, size=(t, t), dtype=numpy.uint8)
+            d = numpy.random.randint(w, size=(t, t)).astype(dtype=numpy.uint8)
         d = rescale_image(d, shape)
         data = data + d
         t = t << 1

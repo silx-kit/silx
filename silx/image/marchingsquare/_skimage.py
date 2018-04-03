@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/03/2018"
+__date__ = "03/04/2018"
 
 
 import numpy
@@ -84,8 +84,8 @@ class MarchingSquareSciKitImage(object):
             result[size:size + len(polyline)] = integer_polyline
             size += len(polyline)
 
-        if len(result) > 0:
-            result = numpy.unique(result, axis=0)
+        if len(result) == 0:
+            return result
 
         if self._mask is not None:
             # filter out pixels over the mask
@@ -93,12 +93,23 @@ class MarchingSquareSciKitImage(object):
             indexes = result[:, 0] * x_dim + result[:, 1]
             indexes = indexes.ravel()
             mask = self._mask.ravel()
+            indexes = numpy.unique(indexes)
             indexes = indexes[mask[indexes] == 0]
             pixels = numpy.concatenate((indexes // x_dim, indexes % x_dim))
             pixels.shape = 2, -1
             pixels = pixels.T
             result = pixels
-
+        else:
+            # Note: Cound be done using a single line numpy.unique(result, axis=0)
+            # But here it supports Debian 8
+            x_dim = self._image.shape[1]
+            indexes = result[:, 0] * x_dim + result[:, 1]
+            indexes = indexes.ravel()
+            indexes = numpy.unique(indexes)
+            pixels = numpy.concatenate((indexes // x_dim, indexes % x_dim))
+            pixels.shape = 2, -1
+            pixels = pixels.T
+            result = pixels
         return result
 
     def find_contours(self, level):
