@@ -611,12 +611,7 @@ cdef class MarchingSquareMergeImpl(object):
             clist[point_t].iterator it_points
             polygon_description_t *description
 
-        it = self._final_context.polygons.begin()
-        while it != self._final_context.polygons.end():
-            vhash = dereference(it).first
-            description = dereference(it).second
-            preincrement(it)
-
+        # move all the polygons in a final structure
         with nogil:
             it = self._final_context.polygons.begin()
             while it != self._final_context.polygons.end():
