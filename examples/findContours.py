@@ -570,9 +570,19 @@ class FindContours(qt.QMainWindow):
         sy = numpy.random.randint(10, 5000) / 10.0
         image = create_gradient(shape, dx=dx, dy=dy, sx=sx, sy=sy)
         image *= 1000.0
-        self.__colormap = Colormap("viridis")
+
+        def styleCallback(value, ivalue, ipolygon):
+            colors = ["#9400D3", "#4B0082", "#0000FF", "#00FF00", "#FFFF00", "#FF7F00", "#FF0000"]
+            color = colors[ivalue % len(colors)]
+            style = {"linestyle": "-", "linewidth": 2.0, "color": color}
+            return style
+        delta = (image.max() - image.min()) / 9.0
+        values = numpy.arange(image.min(), image.max(), delta)
+        values = values[1:8]
+
+        self.__colormap = Colormap("gray")
         self.setData(image=image, mask=None)
-        self.__drawContours(None, None)
+        self.__drawContours(values, styleCallback)
         self.__defineDefaultValues()
 
     def generateCompositeGradient(self):
@@ -585,9 +595,18 @@ class FindContours(qt.QMainWindow):
         image = create_composite_gradient(shape, dx, dy, sx, sy)
         image *= 1000.0
 
-        self.__colormap = Colormap("viridis")
+        def styleCallback(value, ivalue, ipolygon):
+            colors = ["#9400D3", "#4B0082", "#0000FF", "#00FF00", "#FFFF00", "#FF7F00", "#FF0000"]
+            color = colors[ivalue % len(colors)]
+            style = {"linestyle": "-", "linewidth": 2.0, "color": color}
+            return style
+        delta = (image.max() - image.min()) / 9.0
+        values = numpy.arange(image.min(), image.max(), delta)
+        values = values[1:8]
+
+        self.__colormap = Colormap("gray")
         self.setData(image=image, mask=None)
-        self.__drawContours(None, None)
+        self.__drawContours(values, styleCallback)
         self.__defineDefaultValues()
 
 
