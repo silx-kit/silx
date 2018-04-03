@@ -32,6 +32,7 @@
 import logging
 import sys
 import numpy
+import time
 
 logging.basicConfig()
 _logger = logging.getLogger("find_contours")
@@ -45,12 +46,14 @@ import silx.image.bilinear
 try:
     import skimage
 except ImportError:
+    _logger.debug("Error while importing skimage", exc_info=True)
     skimage = None
 
 if skimage is not None:
     try:
         from silx.image.marchingsquare._skimage import MarchingSquareSciKitImage
     except ImportError:
+        _logger.debug("Error while importing MarchingSquareSciKitImage", exc_info=True)
         MarchingSquareSciKitImage = None
 else:
     MarchingSquareSciKitImage = None
@@ -236,6 +239,10 @@ class FindContours(qt.QMainWindow):
         self.__kind = qt.QButtonGroup(self)
         self.__kind.setExclusive(True)
 
+        label = qt.QLabel(parent=panel)
+        label.setText("Image:")
+        layout.addWidget(label)
+
         button = qt.QPushButton(parent=panel)
         button.setText("Island")
         button.clicked.connect(self.generateIsland)
@@ -280,11 +287,15 @@ class FindContours(qt.QMainWindow):
         self.__kind.addButton(button)
 
         button = qt.QPushButton(parent=panel)
-        button.setText("Re-generate map")
+        button.setText("Generate a new image")
         button.clicked.connect(self.generate)
         layout.addWidget(button)
 
         layout.addSpacing(10)
+
+        label = qt.QLabel(parent=panel)
+        label.setText("Options:")
+        layout.addWidget(label)
 
         button = qt.QPushButton(parent=panel)
         button.setText("Use the plot's mask")
@@ -301,6 +312,43 @@ class FindContours(qt.QMainWindow):
 
         layout.addSpacing(10)
 
+        self.__impl = qt.QButtonGroup(self)
+        self.__impl.setExclusive(True)
+
+        label = qt.QLabel(parent=panel)
+        label.setText("Implementation:")
+        layout.addWidget(label)
+
+        button = qt.QPushButton(parent=panel)
+        button.setText("silx")
+        button.clicked.connect(self.updateContours)
+        button.setCheckable(True)
+        button.setChecked(True)
+        layout.addWidget(button)
+        self.__implMerge = button
+        self.__impl.addButton(button)
+
+        button = qt.QPushButton(parent=panel)
+        button.setText("skimage")
+        button.clicked.connect(self.updateContours)
+        button.setCheckable(True)
+        layout.addWidget(button)
+        self.__implSkimage = button
+        self.__impl.addButton(button)
+        if MarchingSquareSciKitImage is None:
+            button.setEnabled(False)
+            button.setToolTip("skimage is not installed or not compatible")
+
+        layout.addSpacing(10)
+
+        label = qt.QLabel(parent=panel)
+        label.setText("Info:")
+        layout.addWidget(label)
+
+        layout.addLayout(self.__createInfoLayout(parent))
+
+        layout.addSpacing(10)
+
         label = qt.QLabel(parent=panel)
         label.setText("Custom level:")
         self.__value = qt.QSlider(panel)
@@ -310,6 +358,35 @@ class FindContours(qt.QMainWindow):
         layout.addWidget(self.__value)
 
         return panel
+
+    def __createInfoLayout(self, parent):
+        layout = qt.QGridLayout()
+
+        header = qt.QLabel(parent=parent)
+        header.setText("Time: ")
+        label = qt.QLabel(parent=parent)
+        label.setText("")
+        layout.addWidget(header, 0, 0)
+        layout.addWidget(label, 0, 1)
+        self.__timeLabel = label
+
+        header = qt.QLabel(parent=parent)
+        header.setText("Nb polygons: ")
+        label = qt.QLabel(parent=parent)
+        label.setText("")
+        layout.addWidget(header, 2, 0)
+        layout.addWidget(label, 2, 1)
+        self.__polygonsLabel = label
+
+        header = qt.QLabel(parent=parent)
+        header.setText("Nb points: ")
+        label = qt.QLabel(parent=parent)
+        label.setText("")
+        layout.addWidget(header, 1, 0)
+        layout.addWidget(label, 1, 1)
+        self.__pointsLabel = label
+
+        return layout
 
     def __cleanCustomContour(self):
         for name in self.__customPolygons:
@@ -381,9 +458,14 @@ class FindContours(qt.QMainWindow):
         self.__image = image
         self.__mask = mask
 
-        if MarchingSquareSciKitImage is not None:
+        implButton = self.__impl.checkedButton()
+        if implButton == self.__implMerge:
+            from silx.image.marchingsquare import MarchingSquareMergeImpl
+            self.__algo = MarchingSquareMergeImpl(self.__image, self.__mask)
+        elif implButton == self.__implSkimage and MarchingSquareSciKitImage is not None:
             self.__algo = MarchingSquareSciKitImage(self.__image, self.__mask)
         else:
+            _logger.error("No algorithm available")
             self.__algo = None
 
     def setData(self, image, mask=None, value=0.0):
@@ -414,13 +496,21 @@ class FindContours(qt.QMainWindow):
         if self.__values is None:
             return
 
+        nbTime = 0
+        nbPolygons = 0
+        nbPoints = 0
+
         # iso contours
         ipolygon = 0
         for ivalue, value in enumerate(values):
+            startTime = time.time()
             polygons = self.__algo.find_contours(value)
+            nbTime += (time.time() - startTime)
+            nbPolygons += len(polygons)
             for polygon in polygons:
                 if len(polygon) == 0:
                     continue
+                nbPoints += len(polygon)
                 isClosed = numpy.allclose(polygon[0], polygon[-1])
                 x = polygon[:, 1] + 0.5
                 y = polygon[:, 0] + 0.5
@@ -432,6 +522,10 @@ class FindContours(qt.QMainWindow):
                 self.__polygons.append(legend)
                 self.__plot.addCurve(x=x, y=y, legend=legend, resetzoom=False, **extraStyle)
                 ipolygon += 1
+
+        self.__timeLabel.setText("%0.3fs" % nbTime)
+        self.__polygonsLabel.setText("%d" % nbPolygons)
+        self.__pointsLabel.setText("%d" % nbPoints)
 
     def __defineDefaultValues(self, value=None):
         # Do not use min and max to avoid to create iso contours on small
