@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,9 +34,8 @@ the widgets' methods from the console.
 .. note::
 
     This module has a dependency on
-    `IPython <https://pypi.python.org/pypi/ipython>`_ and
-    `qtconsole <https://pypi.python.org/pypi/qtconsole>`_ (or *ipython.qt* for
-    older versions of *IPython*). An ``ImportError`` will be raised if it is
+    `qtconsole <https://pypi.org/project/qtconsole/>`_.
+    An ``ImportError`` will be raised if it is
     imported while the dependencies are not satisfied.
 
 Basic usage example::
@@ -76,11 +75,7 @@ from . import qt
 
 _logger = logging.getLogger(__name__)
 
-try:
-    import IPython
-except ImportError as e:
-    raise ImportError("Failed to import IPython, required by " + __name__)
-    
+
 # This widget cannot be used inside an interactive IPython shell.
 # It would raise MultipleInstanceError("Multiple incompatible subclass
 # instances of InProcessInteractiveShell are being created").
@@ -92,48 +87,14 @@ else:
     msg = "Module " + __name__ + " cannot be used within an IPython shell"
     raise ImportError(msg)
 
-# qtconsole is a separate module in recent versions of IPython/Jupyter
-# http://blog.jupyter.org/2015/04/15/the-big-split/
-if IPython.__version__.startswith("2"):
-    qtconsole = None
-else:
-    try:
-        import qtconsole
-    except ImportError:
-        qtconsole = None
 
-if qtconsole is not None:
-    try:
-        from qtconsole.rich_ipython_widget import RichJupyterWidget as \
-            RichIPythonWidget
-    except ImportError:
-        try:
-            from qtconsole.rich_ipython_widget import RichIPythonWidget
-        except ImportError as e:
-            qtconsole = None
-        else:
-            from qtconsole.inprocess import QtInProcessKernelManager
-    else:
-        from qtconsole.inprocess import QtInProcessKernelManager
+try:
+    from qtconsole.rich_ipython_widget import RichJupyterWidget as \
+        RichIPythonWidget
+except ImportError:
+    from qtconsole.rich_ipython_widget import RichIPythonWidget
 
-
-if qtconsole is None:
-    # Import the console machinery from ipython
-
-    # The `has_binding` test of IPython does not find the Qt bindings
-    # in case silx is used in a frozen binary
-    import IPython.external.qt_loaders
-
-    def has_binding(*var, **kw):
-        return True
-
-    IPython.external.qt_loaders.has_binding = has_binding
-
-    try:
-        from IPython.qtconsole.rich_ipython_widget import RichIPythonWidget
-    except ImportError:
-        from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-    from IPython.qt.inprocess import QtInProcessKernelManager
+from qtconsole.inprocess import QtInProcessKernelManager
 
 
 class IPythonWidget(RichIPythonWidget):
