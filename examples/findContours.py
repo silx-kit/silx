@@ -329,6 +329,14 @@ class FindContours(qt.QMainWindow):
         self.__impl.addButton(button)
 
         button = qt.QPushButton(parent=panel)
+        button.setText("silx with cache")
+        button.clicked.connect(self.updateContours)
+        button.setCheckable(True)
+        layout.addWidget(button)
+        self.__implMergeCache = button
+        self.__impl.addButton(button)
+
+        button = qt.QPushButton(parent=panel)
         button.setText("skimage")
         button.clicked.connect(self.updateContours)
         button.setCheckable(True)
@@ -462,6 +470,9 @@ class FindContours(qt.QMainWindow):
         if implButton == self.__implMerge:
             from silx.image.marchingsquare import MarchingSquareMergeImpl
             self.__algo = MarchingSquareMergeImpl(self.__image, self.__mask)
+        elif implButton == self.__implMergeCache:
+            from silx.image.marchingsquare import MarchingSquareMergeImpl
+            self.__algo = MarchingSquareMergeImpl(self.__image, self.__mask, use_minmax_cache=True)
         elif implButton == self.__implSkimage and MarchingSquareSciKitImage is not None:
             self.__algo = MarchingSquareSciKitImage(self.__image, self.__mask)
         else:
