@@ -34,6 +34,7 @@ import os.path
 import numpy
 from .utils import is_dataset, is_group, is_file
 from silx.third_party import six
+from silx.utils.deprecation import deprecated
 
 try:
     import h5py
@@ -70,6 +71,11 @@ def _nxdata_warning(msg, group_name=""):
     else:
         warning_prefix += ": "
     _logger.warning(warning_prefix + msg)
+
+
+@deprecated(since_version="0.8.0", replacement="get_attr_as_unicode")
+def get_attr_as_string(*args, **kwargs):
+    return get_attr_as_unicode(*args, **kwargs)
 
 
 def get_attr_as_unicode(item, attr_name, default=None):
