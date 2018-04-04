@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/04/2018"
+__date__ = "04/04/2018"
 
 
 from ._mergeimpl import MarchingSquareMergeImpl
@@ -45,7 +45,7 @@ def _factory(engine, image, mask):
 def find_pixels(image, level, mask=None, engine="merge"):
     """
     Compute the pixels from the image over the requested iso contours
-    at this `level`.
+    at this `level`. Pixels are those over the bound of the segments.
 
     :param numpy.ndarray image: Image to process
     :param float level: Level of the requested iso contours.
@@ -56,7 +56,7 @@ def find_pixels(image, level, mask=None, engine="merge"):
         - merge: An implentation using Cython and supporting OpenMP.
         - skimage: Provide an implementation based on the library skimage. If
           it is used with a mask, the computation will not be accurate nor
-          efficient. Provided to compare implementation. The library `skimage`
+          efficient. Provided to compare implementation. The `skimage` library
           have to be installed.
 
     :returns: A list of array containg y-x coordinates of points
@@ -82,7 +82,7 @@ def find_contours(image, level, mask=None, engine="merge"):
         - merge: An implentation using Cython and supporting OpenMP.
         - skimage: Provide an implementation based on the library skimage. If
           it is used with a mask, the computation will not be accurate nor
-          efficient. Provided to compare implementation. The library `skimage`
+          efficient. Provided to compare implementation. The `skimage` library
           have to be installed.
 
     :returns: A list of array containg y-x coordinates of points

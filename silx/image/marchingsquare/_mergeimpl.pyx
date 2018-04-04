@@ -872,7 +872,7 @@ cdef class MarchingSquareMergeImpl(object):
     def find_pixels(self, level):
         """
         Compute the pixels from the image over the requested iso contours
-        at this `level`.
+        at this `level`. Pixels are those over the bound of the segments.
 
         :param float level: Level of the requested iso contours.
         :returns: An array of y-x coordinates.
