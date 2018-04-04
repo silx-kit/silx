@@ -35,7 +35,7 @@ from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
-from silx.io.nxdata import get_attr_as_string
+from silx.io.nxdata import get_attr_as_unicode
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.actions.control import ColormapAction
 
@@ -130,7 +130,7 @@ class DataInfo(object):
 
         if silx.io.is_dataset(data):
             if "interpretation" in data.attrs:
-                self.interpretation = get_attr_as_string(data, "interpretation")
+                self.interpretation = get_attr_as_unicode(data, "interpretation")
             else:
                 self.interpretation = None
         elif self.hasNXdata:
@@ -1024,7 +1024,7 @@ class _InvalidNXdataView(DataView):
         data = self.normalizeData(data)
         if silx.io.is_group(data):
             nxd = nxdata.get_default(data)
-            nx_class = get_attr_as_string(data, "NX_class")
+            nx_class = get_attr_as_unicode(data, "NX_class")
 
             if nxd is None:
                 if nx_class == "NXdata":
@@ -1040,7 +1040,7 @@ class _InvalidNXdataView(DataView):
                     default_nxdata_name = data.attrs["default"]
                     if default_nxdata_name not in data:
                         self._msg += " but no corresponding NXdata group exists."
-                    elif get_attr_as_string(data[default_nxdata_name], "NX_class") != "NXdata":
+                    elif get_attr_as_unicode(data[default_nxdata_name], "NX_class") != "NXdata":
                         self._msg += " but the corresponding item is not a "
                         self._msg += "NXdata group."
                     else:
@@ -1065,7 +1065,7 @@ class _InvalidNXdataView(DataView):
                     self._msg += "@default attribute, "
                     if default_nxdata_name not in default_entry:
                         self._msg += " but no corresponding NXdata group exists."
-                    elif get_attr_as_string(default_entry[default_nxdata_name],
+                    elif get_attr_as_unicode(default_entry[default_nxdata_name],
                                             "NX_class") != "NXdata":
                         self._msg += " but the corresponding item is not a "
                         self._msg += "NXdata group."

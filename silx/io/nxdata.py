@@ -72,12 +72,12 @@ def _nxdata_warning(msg, group_name=""):
     _logger.warning(warning_prefix + msg)
 
 
-def get_attr_as_string(item, attr_name, default=None):
-    """Return item.attrs[attr_name]. If it is a byte-string or an array of
-    byte-strings, return it as a default python string.
+def get_attr_as_unicode(item, attr_name, default=None):
+    """Return item.attrs[attr_name] as unicode or as a
+    list of unicode.
 
-    For Python 3, this involves a coercion from bytes into unicode.
-    For Python 2, there is nothing special to do, as strings are bytes.
+    Numpy arrays of strings or bytes returned by h5py are converted to
+    lists of unicode.
 
     :param item: Group or dataset
     :param attr_name: Attribute name
@@ -85,27 +85,21 @@ def get_attr_as_string(item, attr_name, default=None):
     :return: item.attrs[attr_name]
     """
     attr = item.attrs.get(attr_name, default)
-    if six.PY2:
-        if isinstance(attr, six.text_type):
-            # unicode
-            return attr.encode("utf-8")
-        else:
-            return attr
-    if six.PY3:
-        if hasattr(attr, "decode"):
-            # byte-string
-            return attr.decode("utf-8")
-        elif isinstance(attr, numpy.ndarray) and not attr.shape and\
-                hasattr(attr[()], "decode"):
-            # byte string as ndarray scalar
-            return attr[()].decode("utf-8")
-        elif isinstance(attr, numpy.ndarray) and len(attr.shape) and\
-                hasattr(attr[0], "decode"):
-            # array of byte-strings
-            return [element.decode("utf-8") for element in attr]
-        else:
-            # attr is not a byte-string
-            return attr
+
+    if isinstance(attr, six.binary_type):
+        # byte-string
+        return attr.decode("utf-8")
+    elif isinstance(attr, numpy.ndarray) and not attr.shape and\
+            isinstance(attr[()], six.binary_type):
+        # byte string as ndarray scalar
+        return attr[()].decode("utf-8")
+    elif isinstance(attr, numpy.ndarray) and len(attr.shape) and\
+            hasattr(attr[0], "decode"):
+        # array of byte-strings
+        return [element.decode("utf-8") for element in attr]
+
+    else:
+        return attr
 
 
 def is_valid_nxdata(group):   # noqa
@@ -124,7 +118,7 @@ def is_valid_nxdata(group):   # noqa
     """
     if not is_group(group):
         raise TypeError("group must be a h5py-like group")
-    if get_attr_as_string(group, "NX_class") != "NXdata":
+    if get_attr_as_unicode(group, "NX_class") != "NXdata":
         return False
     if "signal" not in group.attrs:
         _logger.info("NXdata group %s does not define a signal attr. "
@@ -143,7 +137,7 @@ def is_valid_nxdata(group):   # noqa
                             group.name)
             return False
     else:
-        signal_name = get_attr_as_string(group, "signal")
+        signal_name = get_attr_as_unicode(group, "signal")
 
     if signal_name not in group or not is_dataset(group[signal_name]):
         _nxdata_warning(
@@ -151,8 +145,8 @@ def is_valid_nxdata(group):   # noqa
             group.name)
         return False
 
-    auxiliary_signals_names = get_attr_as_string(group, "auxiliary_signals",
-                                                 default=[])
+    auxiliary_signals_names = get_attr_as_unicode(group, "auxiliary_signals",
+                                                  default=[])
     if isinstance(auxiliary_signals_names, (six.text_type, six.binary_type)):
         auxiliary_signals_names = [auxiliary_signals_names]
     for asn in auxiliary_signals_names:
@@ -170,7 +164,7 @@ def is_valid_nxdata(group):   # noqa
     ndim = len(group[signal_name].shape)
 
     if "axes" in group.attrs:
-        axes_names = get_attr_as_string(group, "axes")
+        axes_names = get_attr_as_unicode(group, "axes")
         if isinstance(axes_names, (six.text_type, six.binary_type)):
             axes_names = [axes_names]
 
@@ -186,9 +180,9 @@ def is_valid_nxdata(group):   # noqa
         # case of less axes than dimensions: number of axes must match
         # dimensionality defined by @interpretation
         if ndim > len(axes_names):
-            interpretation = get_attr_as_string(group[signal_name], "interpretation")
+            interpretation = get_attr_as_unicode(group[signal_name], "interpretation")
             if interpretation is None:
-                interpretation = get_attr_as_string(group, "interpretation")
+                interpretation = get_attr_as_unicode(group, "interpretation")
             if interpretation is None:
                 _nxdata_warning("No @interpretation and not enough" +
                                 " @axes defined.", group.name)
@@ -221,9 +215,9 @@ def is_valid_nxdata(group):   # noqa
                 return False
 
         # Test consistency of @uncertainties
-        uncertainties_names = get_attr_as_string(group, "uncertainties")
+        uncertainties_names = get_attr_as_unicode(group, "uncertainties")
         if uncertainties_names is None:
-            uncertainties_names = get_attr_as_string(group[signal_name], "uncertainties")
+            uncertainties_names = get_attr_as_unicode(group[signal_name], "uncertainties")
         if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
@@ -331,7 +325,7 @@ class NXdata(object):
         the other ones can be found in :attr:`auxiliary_signals`.
         """
 
-        self.signal_name = get_attr_as_string(self.signal, "long_name")
+        self.signal_name = get_attr_as_unicode(self.signal, "long_name")
         """Signal long name, as specified in the @long_name attribute of the
         signal dataset. If not specified, the dataset name is used."""
         if self.signal_name is None:
@@ -356,7 +350,7 @@ class NXdata(object):
         # check if axis dataset defines @long_name
         for i, dsname in enumerate(self.axes_dataset_names):
             if dsname is not None and "long_name" in self.group[dsname].attrs:
-                self.axes_names.append(get_attr_as_string(self.group[dsname], "long_name"))
+                self.axes_names.append(get_attr_as_unicode(self.group[dsname], "long_name"))
             else:
                 self.axes_names.append(dsname)
 
@@ -366,7 +360,7 @@ class NXdata(object):
     @property
     def signal_dataset_name(self):
         """Name of the main signal dataset."""
-        signal_dataset_name = get_attr_as_string(self.group, "signal")
+        signal_dataset_name = get_attr_as_unicode(self.group, "signal")
         if signal_dataset_name is None:
             # find a dataset with @signal == 1
             for dsname in self.group:
@@ -389,9 +383,9 @@ class NXdata(object):
         but has a dataset with an attribute *@signal=1*,
         we look for datasets with attributes *@signal=2, @signal=3...*
         (deprecated NXdata specification)."""
-        signal_dataset_name = get_attr_as_string(self.group, "signal")
+        signal_dataset_name = get_attr_as_unicode(self.group, "signal")
         if signal_dataset_name is not None:
-            auxiliary_signals_names = get_attr_as_string(self.group, "auxiliary_signals")
+            auxiliary_signals_names = get_attr_as_unicode(self.group, "auxiliary_signals")
             if auxiliary_signals_names is not None:
                 if not isinstance(auxiliary_signals_names,
                                   (tuple, list, numpy.ndarray)):
@@ -471,9 +465,9 @@ class NXdata(object):
                                    "rgba-image",  # "hsla-image", "cmyk-image"
                                    "vertex"]
 
-        interpretation = get_attr_as_string(self.signal, "interpretation")
+        interpretation = get_attr_as_unicode(self.signal, "interpretation")
         if interpretation is None:
-            interpretation = get_attr_as_string(self.group, "interpretation")
+            interpretation = get_attr_as_unicode(self.group, "interpretation")
 
         if interpretation not in allowed_interpretations:
             _logger.warning("Interpretation %s is not valid." % interpretation +
@@ -545,10 +539,10 @@ class NXdata(object):
         output list in its position.
         """
         numbered_names = []     # used in case of @axis=0 (old spec)
-        axes_dataset_names = get_attr_as_string(self.group, "axes")
+        axes_dataset_names = get_attr_as_unicode(self.group, "axes")
         if axes_dataset_names is None:
             # try @axes on signal dataset (older NXdata specification)
-            axes_dataset_names = get_attr_as_string(self.signal, "axes")
+            axes_dataset_names = get_attr_as_unicode(self.signal, "axes")
             if axes_dataset_names is not None:
                 # we expect a comma separated string
                 if hasattr(axes_dataset_names, "split"):
@@ -653,7 +647,7 @@ class NXdata(object):
         if axis_name not in self.group:
             # tolerate axis_name given as @long_name
             for item in self.group:
-                long_name = get_attr_as_string(self.group[item], "long_name")
+                long_name = get_attr_as_unicode(self.group[item], "long_name")
                 if long_name is not None and long_name == axis_name:
                     axis_name = item
                     break
@@ -674,16 +668,16 @@ class NXdata(object):
             else:
                 return self.group[errors_name]
         # case of uncertainties dataset name provided in @uncertainties
-        uncertainties_names = get_attr_as_string(self.group, "uncertainties")
+        uncertainties_names = get_attr_as_unicode(self.group, "uncertainties")
         if uncertainties_names is None:
-            uncertainties_names = get_attr_as_string(self.signal, "uncertainties")
+            uncertainties_names = get_attr_as_unicode(self.signal, "uncertainties")
         if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
             # take the uncertainty with the same index as the axis in @axes
-            axes_ds_names = get_attr_as_string(self.group, "axes")
+            axes_ds_names = get_attr_as_unicode(self.group, "axes")
             if axes_ds_names is None:
-                axes_ds_names = get_attr_as_string(self.signal, "axes")
+                axes_ds_names = get_attr_as_unicode(self.signal, "axes")
             if isinstance(axes_ds_names, str):
                 axes_ds_names = [axes_ds_names]
             elif isinstance(axes_ds_names, numpy.ndarray):
@@ -814,7 +808,7 @@ def is_NXentry_with_default_NXdata(group):
     if not is_group(group):
         return False
 
-    if get_attr_as_string(group, "NX_class") != "NXentry":
+    if get_attr_as_unicode(group, "NX_class") != "NXentry":
         return False
 
     default_nxdata_name = group.attrs.get("default")
@@ -839,7 +833,7 @@ def is_NXroot_with_default_NXdata(group):
     # is therefore optional. We accept groups that are not located at the root
     # if they have @NX_class=NXroot (use case: several nexus files archived
     # in a single HDF5 file)
-    if get_attr_as_string(group, "NX_class") != "NXroot" and not is_file(group):
+    if get_attr_as_unicode(group, "NX_class") != "NXroot" and not is_file(group):
         return False
 
     default_nxentry_name = group.attrs.get("default")
