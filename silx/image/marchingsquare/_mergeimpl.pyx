@@ -27,7 +27,7 @@ Marching squares implementation based on a merge of segements and polygons.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/04/2018"
+__date__ = "04/04/2018"
 
 import numpy
 cimport numpy as cnumpy
@@ -99,6 +99,18 @@ cdef class MarchingSquareMergeImpl(object):
     pre-computed informations (min and max of each tile groups). It was
     designed to improve the efficiency of the extraction of many contour levels
     from the same gradient image.
+
+    :param numpy.ndarray image: Image to process.
+        If the image is not a continuous array of native float 32bits, the data
+        will be first normalized. This can reduce efficiency.
+    :param numpy.ndarray mask: An optional mask (a non-zero value invalidate
+        the pixels of the image)
+        If the image is not a continuous array of signed integer 8bits, the
+        data will be first normalized. This can reduce efficiency.
+    :param int group_size: Specify the size of the tile to split the
+        computation with OpenMP. It is also used as tile size to compute the
+        min/max cache
+    :param bool use_minmax_cache: If true the min/max cache is enabled.
     """
 
     cdef cnumpy.float32_t[:, :] _image
@@ -109,7 +121,6 @@ cdef class MarchingSquareMergeImpl(object):
     cdef int _dim_x
     cdef int _dim_y
     cdef int _group_size
-    cdef int _group_mode
     cdef bool _use_minmax_cache
 
     cdef TileContext_t* _final_context
@@ -119,8 +130,7 @@ cdef class MarchingSquareMergeImpl(object):
 
     def __init__(self,
                  image, mask=None,
-                 openmp_group_mode="tile",
-                 openmp_group_size=256,
+                 group_size=256,
                  use_minmax_cache=False):
         self._image = numpy.ascontiguousarray(image, numpy.float32)
         self._image_ptr = &self._image[0][0]
@@ -131,8 +141,7 @@ cdef class MarchingSquareMergeImpl(object):
         else:
             self._mask = None
             self._mask_ptr = NULL
-        self._group_mode = {"tile": 0, "row": 1, "col": 2}[openmp_group_mode]
-        self._group_size = openmp_group_size
+        self._group_size = group_size
         self._use_minmax_cache = use_minmax_cache
         if self._use_minmax_cache:
             self._min_cache = None
@@ -176,32 +185,18 @@ cdef class MarchingSquareMergeImpl(object):
             int dim_x, dim_y
             int ix, iy
 
-        if self._group_mode == 0:
-            iy = 0
-            for y in range(0, self._dim_y - 1, self._group_size):
-                ix = 0
-                for x in range(0, self._dim_x - 1, self._group_size):
-                    if self._use_minmax_cache:
-                        if isovalue < self._min_cache[iy, ix] or isovalue > self._max_cache[iy, ix]:
-                            ix += 1
-                            continue
-                    context = self._create_context(x, y, self._group_size, self._group_size)
-                    contexts.push_back(context)
-                    ix += 1
-                iy += 1
-        elif self._group_mode == 1:
-            # row
-            for y in range(0, self._dim_y - 1, self._group_size):
-                context = self._create_context(0, y, self._dim_x - 1, self._group_size)
-                contexts.push_back(context)
-        elif self._group_mode == 2:
-            # col
+        iy = 0
+        for y in range(0, self._dim_y - 1, self._group_size):
+            ix = 0
             for x in range(0, self._dim_x - 1, self._group_size):
-                context = self._create_context(x, 0, self._group_size, self._dim_y - 1)
+                if self._use_minmax_cache:
+                    if isovalue < self._min_cache[iy, ix] or isovalue > self._max_cache[iy, ix]:
+                        ix += 1
+                        continue
+                context = self._create_context(x, y, self._group_size, self._group_size)
                 contexts.push_back(context)
-        else:
-            # FIXME: Good to add check
-            pass
+                ix += 1
+            iy += 1
 
         if contexts.size() == 0:
             # shortcut
