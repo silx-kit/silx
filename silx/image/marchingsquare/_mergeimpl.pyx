@@ -315,14 +315,14 @@ cdef class MarchingSquareMergeImpl(object):
             end_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 1]
             self._insert_segment(context, x, y, begin_edge, end_edge, isovalue)
 
-    cdef point_index_t _create_point_index(self, int yx, int dim_x, cnumpy.uint8_t edge) nogil:
+    cdef point_index_t _create_point_index(self, int yx, cnumpy.uint8_t edge) nogil:
         """Create an unique identifier for a point of a polygon.
 
         It can be shared by different pixel coordinates. For example, the tuple
         (x=0, y=0, edge=2) is equal to (x=1, y=0, edge=0).
         """
         if edge == 2:
-            yx += dim_x
+            yx += self._dim_x
             edge = 0
         elif edge == 1:
             yx += 1
@@ -349,9 +349,9 @@ cdef class MarchingSquareMergeImpl(object):
             map[point_index_t, polygon_description_t*].iterator it_begin
             map[point_index_t, polygon_description_t*].iterator it_end
 
-        yx = context.dim_x * y + x
-        begin = self._create_point_index(yx, context.dim_x, begin_edge)
-        end = self._create_point_index(yx, context.dim_x, end_edge)
+        yx = self._dim_x * y + x
+        begin = self._create_point_index(yx, begin_edge)
+        end = self._create_point_index(yx, end_edge)
 
         it_begin = context.polygons.find(begin)
         it_end = context.polygons.find(end)
