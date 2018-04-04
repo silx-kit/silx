@@ -244,7 +244,7 @@ cdef class MarchingSquareMergeImpl(object):
     @cython.cdivision(True)
     cdef void _marching_squares_mp(self, TileContext_t *context, cnumpy.float64_t isovalue) nogil:
         cdef:
-            int x, y, index
+            int x, y, pattern
             cnumpy.float64_t tmpf
             cnumpy.float32_t *image_ptr
             cnumpy.int8_t *mask_ptr
@@ -258,18 +258,18 @@ cdef class MarchingSquareMergeImpl(object):
         for y in range(context.pos_y, context.pos_y + context.dim_y):
             for x in range(context.pos_x, context.pos_x + context.dim_x):
                 # Calculate index.
-                index = 0
+                pattern = 0
                 if image_ptr[0] > isovalue:
-                    index += 1
+                    pattern += 1
                 if image_ptr[1] > isovalue:
-                    index += 2
+                    pattern += 2
                 if image_ptr[self._dim_x] > isovalue:
-                    index += 8
+                    pattern += 8
                 if image_ptr[self._dim_x + 1] > isovalue:
-                    index += 4
+                    pattern += 4
 
                 # Resolve ambiguity
-                if index == 5 or index == 10:
+                if pattern == 5 or pattern == 10:
                     # Calculate value of cell center (i.e. average of corners)
                     tmpf = 0.25 * (image_ptr[0] +
                                    image_ptr[1] +
@@ -277,10 +277,10 @@ cdef class MarchingSquareMergeImpl(object):
                                    image_ptr[self._dim_x + 1])
                     # If below isovalue, swap
                     if tmpf <= isovalue:
-                        if index == 5:
-                            index = 10
+                        if pattern == 5:
+                            pattern = 10
                         else:
-                            index = 5
+                            pattern = 5
 
                 # Cache mask information
                 if mask_ptr != NULL:
@@ -288,17 +288,17 @@ cdef class MarchingSquareMergeImpl(object):
                     #     generate accurate segments in some cases, but yet it
                     #     is not used
                     if mask_ptr[0] > 0:
-                        index += 16
+                        pattern += 16
                     if mask_ptr[1] > 0:
-                        index += 32
+                        pattern += 32
                     if mask_ptr[self._dim_x] > 0:
-                        index += 128
+                        pattern += 128
                     if mask_ptr[self._dim_x + 1] > 0:
-                        index += 64
+                        pattern += 64
                     mask_ptr += 1
 
-                if index < 16 and index != 0 and index != 15:
-                    self._insert_pattern(context, x, y, index, isovalue)
+                if pattern < 16 and pattern != 0 and pattern != 15:
+                    self._insert_pattern(context, x, y, pattern, isovalue)
 
                 image_ptr += 1
 
