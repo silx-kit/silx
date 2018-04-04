@@ -37,6 +37,7 @@ from libcpp.list cimport list as clist
 from libcpp.map cimport map
 from libcpp cimport bool
 from libc.math cimport fabs
+from libc.math cimport floor
 
 from cython.parallel import prange
 from cython.operator cimport dereference
@@ -463,16 +464,7 @@ cdef class MarchingSquareMergeImpl(object):
                     mask_ptr += 1
 
                 if pattern < 16 and pattern != 0 and pattern != 15:
-                    # Trivial implementation
-                    # Could be improved, to avoid to add some pixels
-                    index = self._create_point_index(y0 + x, 0)
-                    context.polygons[index] = NULL
-                    index = self._create_point_index(y0 + x + 1, 0)
-                    context.polygons[index] = NULL
-                    index = self._create_point_index(y0 + x + self._dim_x, 0)
-                    context.polygons[index] = NULL
-                    index = self._create_point_index(y0 + x + self._dim_x + 1, 0)
-                    context.polygons[index] = NULL
+                    self._insert_pixels_pattern(context, x, y, pattern, isovalue)
 
                 image_ptr += 1
 
@@ -481,6 +473,30 @@ cdef class MarchingSquareMergeImpl(object):
             image_ptr += self._dim_x - context.dim_x
             if mask_ptr != NULL:
                 mask_ptr += self._dim_x - context.dim_x
+
+    cdef void _insert_pixels_pattern(self, TileContext_t *context, int x, int y, int pattern, cnumpy.float64_t isovalue) nogil:
+        cdef:
+            point_t point
+            int segment, begin_edge, end_edge
+            point_index_t index
+            int yx
+            int ix, iy
+
+        for segment in range(CELL_TO_EDGE[pattern][0]):
+            begin_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 0]
+            end_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 1]
+
+            self._compute_point(x, y, begin_edge, isovalue, &point)
+            ix, iy = int(floor(point.x + 0.5)), int(floor(point.y + 0.5))
+            yx = iy * self._dim_x + ix
+            index = self._create_point_index(yx, 0)
+            context.polygons[index] = NULL
+
+            self._compute_point(x, y, end_edge, isovalue, &point)
+            ix, iy = int(floor(point.x + 0.5)), int(floor(point.y + 0.5))
+            yx = iy * self._dim_x + ix
+            index = self._create_point_index(yx, 0)
+            context.polygons[index] = NULL
 
     cdef void _insert_pattern(self, TileContext_t *context, int x, int y, int pattern, cnumpy.float64_t isovalue) nogil:
         cdef:
