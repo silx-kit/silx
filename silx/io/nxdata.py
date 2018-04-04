@@ -89,15 +89,20 @@ def get_attr_as_unicode(item, attr_name, default=None):
     if isinstance(attr, six.binary_type):
         # byte-string
         return attr.decode("utf-8")
-    elif isinstance(attr, numpy.ndarray) and not attr.shape and\
-            isinstance(attr[()], six.binary_type):
-        # byte string as ndarray scalar
-        return attr[()].decode("utf-8")
-    elif isinstance(attr, numpy.ndarray) and len(attr.shape) and\
-            hasattr(attr[0], "decode"):
-        # array of byte-strings
-        return [element.decode("utf-8") for element in attr]
-
+    elif isinstance(attr, numpy.ndarray) and not attr.shape:
+        if isinstance(attr[()], six.binary_type):
+            # byte string as ndarray scalar
+            return attr[()].decode("utf-8")
+        else:
+            # other scalar, possibly unicode
+            return attr[()]
+    elif isinstance(attr, numpy.ndarray) and len(attr.shape):
+        if hasattr(attr[0], "decode"):
+            # array of byte-strings
+            return [element.decode("utf-8") for element in attr]
+        else:
+            # other array, most likely unicode objects
+            return [element for element in attr]
     else:
         return attr
 
