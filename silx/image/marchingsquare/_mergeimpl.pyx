@@ -41,6 +41,9 @@ from libc.math cimport fabs
 from cython.parallel import prange
 from cython.operator cimport dereference
 from cython.operator cimport preincrement
+cimport libc.stdlib
+cimport libc.string
+
 cimport cython
 
 cdef double EPSILON = numpy.finfo(numpy.float64).eps
@@ -125,8 +128,8 @@ cdef class MarchingSquareMergeImpl(object):
 
     cdef TileContext_t* _final_context
 
-    cdef cnumpy.float32_t[:, :] _min_cache
-    cdef cnumpy.float32_t[:, :] _max_cache
+    cdef cnumpy.float32_t[:] _min_cache
+    cdef cnumpy.float32_t[:] _max_cache
 
     def __init__(self,
                  image, mask=None,
@@ -154,70 +157,115 @@ cdef class MarchingSquareMergeImpl(object):
         """Python code to compute min/max cache per block of an image"""
         if block_size == 0:
             return None
+
         size = numpy.array(array.shape)
         size = size // block_size + (size % block_size > 0)
-        min_per_block = numpy.empty(size, dtype=numpy.float32)
-        max_per_block = numpy.empty(size, dtype=numpy.float32)
-        for y in range(size[1]):
+        min_per_block = numpy.empty(size[0] * size[1], dtype=numpy.float32)
+        max_per_block = numpy.empty(size[0] * size[1], dtype=numpy.float32)
+        iblock = 0
+        for y in range(size[0]):
             yend = (y + 1) * block_size
-            if y + 1 == size[1]:
-                yy = slice(y * block_size, array.shape[1])
+            if y + 1 == size[0]:
+                yy = slice(y * block_size, array.shape[0])
             else:
                 yy = slice(y * block_size, yend)
-            for x in range(size[0]):
+            for x in range(size[1]):
                 xend = (x + 1) * block_size
-                if xend > size[0]:
-                    xx = slice(x * block_size, array.shape[0])
+                if xend > size[1]:
+                    xx = slice(x * block_size, array.shape[1])
                 else:
                     xx = slice(x * block_size, xend)
-                min_per_block[x, y] = numpy.min(array[xx, yy])
-                max_per_block[x, y] = numpy.max(array[xx, yy])
+                min_per_block[iblock] = numpy.min(array[yy, xx])
+                max_per_block[iblock] = numpy.max(array[yy, xx])
+                iblock += 1
         return (min_per_block, max_per_block, block_size)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _marching_squares(self, cnumpy.float64_t isovalue):
+    cdef void _find_contours(self, cnumpy.float64_t isovalue):
         cdef:
-            int x, y, i
-            vector[TileContext_t*] contexts
-            TileContext_t *context
-            int dim_x, dim_y
-            int ix, iy
+            TileContext_t** contexts
+            TileContext_t** valid_contexts
+            int nb_contexts, nb_valid_contexts
+            int i, j
+            TileContext_t* context
 
-        iy = 0
-        for y in range(0, self._dim_y - 1, self._group_size):
-            ix = 0
-            for x in range(0, self._dim_x - 1, self._group_size):
-                if self._use_minmax_cache:
-                    if isovalue < self._min_cache[iy, ix] or isovalue > self._max_cache[iy, ix]:
-                        ix += 1
-                        continue
-                context = self._create_context(x, y, self._group_size, self._group_size)
-                contexts.push_back(context)
-                ix += 1
-            iy += 1
+        contexts = self._create_contexts(isovalue, &nb_contexts, &nb_valid_contexts)
 
-        if contexts.size() == 0:
+        if nb_valid_contexts == 0:
             # shortcut
             self._final_context = new TileContext_t()
+            libc.stdlib.free(contexts)
             return
 
-        # openmp
-        for i in prange(contexts.size(), nogil=True):
-            self._marching_squares_mp(contexts[i], isovalue)
+        valid_contexts = <TileContext_t **>libc.stdlib.malloc(nb_valid_contexts * sizeof(TileContext_t*))
+        for i in xrange(nb_contexts):
+            if contexts[i] != NULL:
+                valid_contexts[j] = contexts[i]
+                j += 1
 
-        if contexts.size() == 1:
+        # openmp
+        for i in prange(nb_valid_contexts, nogil=True):
+            self._find_contours_mp(valid_contexts[i], isovalue)
+
+        if nb_valid_contexts == 1:
             # shortcut
-            self._final_context = contexts[0]
+            self._final_context = valid_contexts[0]
+            libc.stdlib.free(valid_contexts)
+            libc.stdlib.free(contexts)
             return
 
         # merge
         self._final_context = new TileContext_t()
-        # self._final_context.polygons.reserve(self._dim_x * 2 + self._dim_y * 2)
-        for i in range(contexts.size()):
-            self._merge_context(self._final_context, contexts[i])
-            del contexts[i]
+        for i in xrange(nb_contexts):
+            if contexts[i] != NULL:
+                self._merge_context(self._final_context, contexts[i])
+                del contexts[i]
+        libc.stdlib.free(valid_contexts)
+        libc.stdlib.free(contexts)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef TileContext_t** _create_contexts(self, cnumpy.float64_t isovalue, int *nb_contexts, int *nb_valid_contexts) nogil:
+        cdef:
+            int context_dim_x, context_dim_y
+            int context_size, valid_contexts
+            int x, y
+            int icontext
+            TileContext_t* context
+            TileContext_t** contexts
+
+        context_dim_x = self._dim_x // self._group_size + (self._dim_x % self._group_size > 0)
+        context_dim_y = self._dim_y // self._group_size + (self._dim_y % self._group_size > 0)
+        context_size = context_dim_x * context_dim_y
+        contexts = <TileContext_t **>libc.stdlib.malloc(context_size * sizeof(TileContext_t*))
+        libc.string.memset(contexts, 0, context_size * sizeof(TileContext_t*))
+
+        valid_contexts = 0
+        icontext = 0
+        y = 0
+        while y < self._dim_y - 1:
+            x = 0
+            while x < self._dim_x - 1:
+                if self._use_minmax_cache:
+                    if isovalue < self._min_cache[icontext] or isovalue > self._max_cache[icontext]:
+                        icontext += 1
+                        x += self._group_size
+                        continue
+                context = self._create_context(x, y, self._group_size, self._group_size)
+                contexts[icontext] = context
+                icontext += 1
+                valid_contexts += 1
+                x += self._group_size
+            y += self._group_size
+
+        # dereference is not working here... then we uses array index but
+        # it is not the proper way
+        nb_contexts[0] = context_size
+        nb_valid_contexts[0] = valid_contexts
+        return contexts
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -242,7 +290,7 @@ cdef class MarchingSquareMergeImpl(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _marching_squares_mp(self, TileContext_t *context, cnumpy.float64_t isovalue) nogil:
+    cdef void _find_contours_mp(self, TileContext_t *context, cnumpy.float64_t isovalue) nogil:
         cdef:
             int x, y, pattern
             cnumpy.float64_t tmpf
@@ -662,6 +710,6 @@ cdef class MarchingSquareMergeImpl(object):
             self._min_cache = r[0]
             self._max_cache = r[1]
 
-        self._marching_squares(level)
+        self._find_contours(level)
         polygons = self._extract_polygons()
         return polygons
