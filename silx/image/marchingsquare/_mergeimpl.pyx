@@ -199,6 +199,7 @@ cdef class MarchingSquareMergeImpl(object):
             libc.stdlib.free(contexts)
             return
 
+        j = 0
         valid_contexts = <TileContext_t **>libc.stdlib.malloc(nb_valid_contexts * sizeof(TileContext_t*))
         for i in xrange(nb_contexts):
             if contexts[i] != NULL:
@@ -221,6 +222,52 @@ cdef class MarchingSquareMergeImpl(object):
         for i in xrange(nb_contexts):
             if contexts[i] != NULL:
                 self._merge_context(self._final_context, contexts[i])
+                del contexts[i]
+        libc.stdlib.free(valid_contexts)
+        libc.stdlib.free(contexts)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _find_pixels(self, cnumpy.float64_t isovalue):
+        cdef:
+            TileContext_t** contexts
+            TileContext_t** valid_contexts
+            int nb_contexts, nb_valid_contexts
+            int i, j
+            TileContext_t* context
+
+        contexts = self._create_contexts(isovalue, &nb_contexts, &nb_valid_contexts)
+
+        if nb_valid_contexts == 0:
+            # shortcut
+            self._final_context = new TileContext_t()
+            libc.stdlib.free(contexts)
+            return
+
+        j = 0
+        valid_contexts = <TileContext_t **>libc.stdlib.malloc(nb_valid_contexts * sizeof(TileContext_t*))
+        for i in xrange(nb_contexts):
+            if contexts[i] != NULL:
+                valid_contexts[j] = contexts[i]
+                j += 1
+
+        # openmp
+        for i in prange(nb_valid_contexts, nogil=True):
+            self._find_pixels_mp(valid_contexts[i], isovalue)
+
+        if nb_valid_contexts == 1:
+            # shortcut
+            self._final_context = valid_contexts[0]
+            libc.stdlib.free(valid_contexts)
+            libc.stdlib.free(contexts)
+            return
+
+        # merge
+        self._final_context = new TileContext_t()
+        for i in xrange(nb_contexts):
+            if contexts[i] != NULL:
+                self._merge_pixels_context(self._final_context, contexts[i])
                 del contexts[i]
         libc.stdlib.free(valid_contexts)
         libc.stdlib.free(contexts)
@@ -355,6 +402,86 @@ cdef class MarchingSquareMergeImpl(object):
             if mask_ptr != NULL:
                 mask_ptr += self._dim_x - context.dim_x
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _find_pixels_mp(self, TileContext_t *context, cnumpy.float64_t isovalue) nogil:
+        cdef:
+            int x, y, y0, pattern
+            point_index_t index
+            cnumpy.float64_t tmpf
+            cnumpy.float32_t *image_ptr
+            cnumpy.int8_t *mask_ptr
+
+        image_ptr = self._image_ptr + (context.pos_y * self._dim_x + context.pos_x)
+        if self._mask_ptr != NULL:
+            mask_ptr = self._mask_ptr + (context.pos_y * self._dim_x + context.pos_x)
+        else:
+            mask_ptr = NULL
+
+        y0 = context.pos_y * self._dim_x
+        for y in range(context.pos_y, context.pos_y + context.dim_y):
+            for x in range(context.pos_x, context.pos_x + context.dim_x):
+                # Calculate index.
+                pattern = 0
+                if image_ptr[0] > isovalue:
+                    pattern += 1
+                if image_ptr[1] > isovalue:
+                    pattern += 2
+                if image_ptr[self._dim_x] > isovalue:
+                    pattern += 8
+                if image_ptr[self._dim_x + 1] > isovalue:
+                    pattern += 4
+
+                # Resolve ambiguity
+                if pattern == 5 or pattern == 10:
+                    # Calculate value of cell center (i.e. average of corners)
+                    tmpf = 0.25 * (image_ptr[0] +
+                                   image_ptr[1] +
+                                   image_ptr[self._dim_x] +
+                                   image_ptr[self._dim_x + 1])
+                    # If below isovalue, swap
+                    if tmpf <= isovalue:
+                        if pattern == 5:
+                            pattern = 10
+                        else:
+                            pattern = 5
+
+                # Cache mask information
+                if mask_ptr != NULL:
+                    # Note: Store the mask in the index. It could be usefull to
+                    #     generate accurate segments in some cases, but yet it
+                    #     is not used
+                    if mask_ptr[0] > 0:
+                        pattern += 16
+                    if mask_ptr[1] > 0:
+                        pattern += 32
+                    if mask_ptr[self._dim_x] > 0:
+                        pattern += 128
+                    if mask_ptr[self._dim_x + 1] > 0:
+                        pattern += 64
+                    mask_ptr += 1
+
+                if pattern < 16 and pattern != 0 and pattern != 15:
+                    # Trivial implementation
+                    # Could be improved, to avoid to add some pixels
+                    index = self._create_point_index(y0 + x, 0)
+                    context.polygons[index] = NULL
+                    index = self._create_point_index(y0 + x + 1, 0)
+                    context.polygons[index] = NULL
+                    index = self._create_point_index(y0 + x + self._dim_x, 0)
+                    context.polygons[index] = NULL
+                    index = self._create_point_index(y0 + x + self._dim_x + 1, 0)
+                    context.polygons[index] = NULL
+
+                image_ptr += 1
+
+            # There is a missing pixel at the end of each rows
+            y0 += self._dim_x
+            image_ptr += self._dim_x - context.dim_x
+            if mask_ptr != NULL:
+                mask_ptr += self._dim_x - context.dim_x
+
     cdef void _insert_pattern(self, TileContext_t *context, int x, int y, int pattern, cnumpy.float64_t isovalue) nogil:
         cdef:
             int segment
@@ -381,6 +508,13 @@ cdef class MarchingSquareMergeImpl(object):
         yx += 1
 
         return edge + (yx << 1)
+
+    cdef void _extract_coords_from_point_index(self, point_index_t index, int *x, int *y) nogil:
+        """Extract the base position from a point index (as is the edge was
+        zero)"""
+        index = (index >> 1) - 1
+        y[0] = index // self._dim_x
+        x[0] = index % self._dim_x
 
     cdef void _insert_segment(self, TileContext_t *context,
                               int x, int y,
@@ -494,6 +628,22 @@ cdef class MarchingSquareMergeImpl(object):
                 context.polygons.erase(end)
                 context.polygons[description.begin] = description
                 context.polygons[description.end] = description
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _merge_pixels_context(self, TileContext_t *context, TileContext_t *other) nogil:
+        cdef:
+            map[point_index_t, polygon_description_t*].iterator it
+            point_index_t index
+            int xx, yy
+
+        # Merge every pixels to the main context
+        it = other.polygons.begin()
+        while it != other.polygons.end():
+            index = dereference(it).first
+            context.polygons[index] = NULL
+            preincrement(it)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -638,6 +788,28 @@ cdef class MarchingSquareMergeImpl(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
+    cdef _extract_pixels(self):
+        cdef:
+            int i, x, y
+            point_index_t index
+            map[point_index_t, polygon_description_t*].iterator it
+
+        # create result
+        pixels = numpy.empty((self._final_context.polygons.size(), 2), dtype=numpy.int32)
+        i = 0
+        it = self._final_context.polygons.begin()
+        while it != self._final_context.polygons.end():
+            index = dereference(it).first
+            self._extract_coords_from_point_index(index, &x, &y)
+            pixels[i, 0] = y
+            pixels[i, 1] = x
+            preincrement(it)
+            i += 1
+        return pixels
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
     cdef _extract_polygons(self):
         cdef:
             int i, i_pixel
@@ -690,8 +862,12 @@ cdef class MarchingSquareMergeImpl(object):
         :returns: An array of y-x coordinates.
         :rtype: numpy.ndarray
         """
-        # FIXME: Implement it
-        pixels = numpy.zeros((0, 2), dtype=numpy.int32)
+        if self._use_minmax_cache and self._min_cache is None:
+            r = self._get_minmax_block(self._image, self._group_size)
+            self._min_cache = r[0]
+            self._max_cache = r[1]
+        self._find_pixels(level)
+        pixels = self._extract_pixels()
         return pixels
 
     @cython.boundscheck(False)
