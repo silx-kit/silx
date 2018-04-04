@@ -567,7 +567,7 @@ class SceneWidget(Plot3DWidget):
 
     def clearItems(self):
         """Remove all item from :class:`SceneWidget`."""
-        return self.getSceneGroup().clear()
+        return self.getSceneGroup().clearItems()
 
     # Colors
 

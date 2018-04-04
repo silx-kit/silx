@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,27 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""silx.gui.utils tests"""
+
+
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "09/03/2018"
+
+
 import unittest
 
-from . import test_periodictable
-from . import test_tablewidget
-from . import test_threadpoolpushbutton
-from . import test_hierarchicaltableview
-from . import test_printpreview
-from . import test_framebrowser
-
-__authors__ = ["V. Valls", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "19/07/2017"
+from . import test_async
+from . import test_image
 
 
 def suite():
+    """Test suite for module silx.image.test"""
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_threadpoolpushbutton.suite(),
-         test_tablewidget.suite(),
-         test_periodictable.suite(),
-         test_printpreview.suite(),
-         test_hierarchicaltableview.suite(),
-         test_framebrowser.suite(),
-         ])
+    test_suite.addTest(test_async.suite())
+    test_suite.addTest(test_image.suite())
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

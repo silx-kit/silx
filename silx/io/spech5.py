@@ -72,7 +72,7 @@ Specfile data structure exposed by this API:
 appear in the original file, as a string of lines separated by newline (``\\n``) characters.
 
 The title is the content of the ``#S`` scan header line without the leading
-``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
+``#S`` and without the scan number (e.g ``"ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
 
 The start time is converted to ISO8601 format (``"2016-02-23T22:49:05Z"``),
 if the original date format is standard.

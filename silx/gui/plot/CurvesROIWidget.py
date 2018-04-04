@@ -416,6 +416,7 @@ class CurvesROIWidget(qt.QWidget):
                 draggable = False
                 color = 'black'
             else:
+                # find the next index free for newroi.
                 for i in range(nrois):
                     i += 1
                     newroi = "newroi %d" % i
@@ -690,10 +691,7 @@ class CurvesROIWidget(qt.QWidget):
         if visible:
             if not self._isInit:
                 # Deferred ROI widget init finalization
-                self._isInit = True
-                self.sigROIWidgetSignal.connect(self._roiSignal)
-                # initialize with the ICR
-                self._roiSignal({'event': "AddROI"})
+                self._finalizeInit()
 
             if not self._isConnected:
                 self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
@@ -712,6 +710,13 @@ class CurvesROIWidget(qt.QWidget):
     def _activeCurveChanged(self, *args):
         """Recompute ROIs when active curve changed."""
         self.calculateRois()
+
+    def _finalizeInit(self):
+        self._isInit = True
+        self.sigROIWidgetSignal.connect(self._roiSignal)
+        # initialize with the ICR if no ROi existing yet
+        if len(self.getRois()) is 0:
+            self._roiSignal({'event': "AddROI"})
 
 
 class ROITable(qt.QTableWidget):

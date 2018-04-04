@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,32 +27,32 @@ __license__ = "MIT"
 __date__ = "15/05/2016"
 
 
-cimport numpy as np  # noqa
+cimport numpy as cnumpy  # noqa
 cimport cython
 import numpy as np
 
 ctypedef fused sample_t:
-    np.float64_t
-    np.float32_t
-    np.int32_t
-    np.int64_t
+    cnumpy.float64_t
+    cnumpy.float32_t
+    cnumpy.int32_t
+    cnumpy.int64_t
 
 ctypedef fused cumul_t:
-    np.float64_t
-    np.float32_t
-    np.int32_t
-    np.int64_t
+    cnumpy.float64_t
+    cnumpy.float32_t
+    cnumpy.int32_t
+    cnumpy.int64_t
 
 ctypedef fused weights_t:
-    np.float64_t
-    np.float32_t
-    np.int32_t
-    np.int64_t
+    cnumpy.float64_t
+    cnumpy.float32_t
+    cnumpy.int32_t
+    cnumpy.int64_t
 
 ctypedef fused lut_t:
-    np.int64_t
-    np.int32_t
-    np.int16_t
+    cnumpy.int64_t
+    cnumpy.int32_t
+    cnumpy.int16_t
 
 
 def histogramnd_get_lut(sample,
@@ -331,7 +331,7 @@ def histogramnd_from_lut(weights,
 @cython.cdivision(True)
 def _histogramnd_from_lut_fused(weights_t[:] i_weights,
                                 lut_t[:] i_lut,
-                                np.uint32_t[:] o_histo,
+                                cnumpy.uint32_t[:] o_histo,
                                 cumul_t[:] o_weighted_histo,
                                 int i_n_elems,
                                 bint i_filt_min_weights,
@@ -364,7 +364,7 @@ def _histogramnd_get_lut_fused(sample_t[:] i_sample,
                                double[:] i_histo_range,
                                int[:] i_n_bins,
                                lut_t[:] o_lut,
-                               np.uint32_t[:] o_histo,
+                               cnumpy.uint32_t[:] o_histo,
                                bint last_bin_closed):
 
     cdef:
