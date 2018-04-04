@@ -48,7 +48,7 @@ from ..._utils import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
-
+from ..._utils.dtime_ticklayout import calcTicksAdaptive, DATE_FORMAT_STRINGS
 
 _logger = logging.getLogger(__name__)
 
@@ -249,6 +249,10 @@ class PlotAxis(object):
             (x0, y0), (x1, y1) = self.displayCoords
 
             if self.isLog:
+
+                if self.isTimeSeries:
+                    _logger.warning("Time series not implemented for log-scale")
+
                 logMin, logMax = math.log10(dataMin), math.log10(dataMax)
                 tickMin, tickMax, step, _ = niceNumbersForLog10(logMin, logMax)
 
@@ -283,23 +287,44 @@ class PlotAxis(object):
 
                 # Density of 1.3 label per 92 pixels
                 # i.e., 1.3 label per inch on a 92 dpi screen
-                tickMin, tickMax, step, nbFrac = niceNumbersAdaptative(
-                    dataMin, dataMax, nbPixels, 1.3 / 92)
+                tickDensity = 1.3 / 92
 
-                for dataPos in self._frange(tickMin, tickMax, step):
-                    if dataMin <= dataPos <= dataMax:
-                        xPixel = x0 + (dataPos - dataMin) * xScale
-                        yPixel = y0 + (dataPos - dataMin) * yScale
+                if not self.isTimeSeries:
+                    tickMin, tickMax, step, nbFrac = niceNumbersAdaptative(
+                        dataMin, dataMax, nbPixels, tickDensity)
 
-                        if self.isTimeSeries:
-                            dateTime = dt.datetime.fromtimestamp(dataPos)
-                            #text = dateTime.strftime("%Y-%m-%dT%H:%M:%S")
-                            text = dateTime.strftime("%H:%M:%S") # TODO dynamic
-                        elif nbFrac == 0:
-                            text = '%g' % dataPos
+                    for dataPos in self._frange(tickMin, tickMax, step):
+                        if dataMin <= dataPos <= dataMax:
+                            xPixel = x0 + (dataPos - dataMin) * xScale
+                            yPixel = y0 + (dataPos - dataMin) * yScale
+
+                            if nbFrac == 0:
+                                text = '%g' % dataPos
+                            else:
+                                text = ('%.' + str(nbFrac) + 'f') % dataPos
+                            yield ((xPixel, yPixel), dataPos, text)
+                else:
+                    # Time series
+                    dtMin = dt.datetime.fromtimestamp(dataMin)
+                    dtMax = dt.datetime.fromtimestamp(dataMax)
+
+                    tickDateTimes, unit = calcTicksAdaptive(
+                        dtMin, dtMax, nbPixels, tickDensity)
+
+                    for tickDateTime in tickDateTimes:
+                        if dtMin <= tickDateTime <= dtMax:
+
+                            dataPos = tickDateTime.timestamp()
+                            xPixel = x0 + (dataPos - dataMin) * xScale
+                            yPixel = y0 + (dataPos - dataMin) * yScale
+
+                            text = tickDateTime.strftime(
+                                DATE_FORMAT_STRINGS[unit])
+
+                            yield ((xPixel, yPixel), dataPos, text)
                         else:
-                            text = ('%.' + str(nbFrac) + 'f') % dataPos
-                        yield ((xPixel, yPixel), dataPos, text)
+                            _logger.critical("Discarded: {}".format(tickDateTime))
+
 
 
 # GLPlotFrame #################################################################
