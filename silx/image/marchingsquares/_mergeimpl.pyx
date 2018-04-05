@@ -671,6 +671,9 @@ cdef class MarchingSquaresMergeImpl(object):
     cdef cnumpy.float32_t[:] _min_cache
     cdef cnumpy.float32_t[:] _max_cache
 
+    cdef _MarchingSquaresContours _contours_algo
+    cdef _MarchingSquaresPixels _pixels_algo
+
     def __init__(self,
                  image, mask=None,
                  group_size=256,
@@ -692,6 +695,8 @@ cdef class MarchingSquaresMergeImpl(object):
         with nogil:
             self._dim_y = self._image.shape[0]
             self._dim_x = self._image.shape[1]
+        self._contours_algo = None
+        self._pixels_algo = None
 
     def _get_minmax_block(self, array, block_size):
         """Python code to compute min/max cache per block of an image"""
@@ -812,16 +817,20 @@ cdef class MarchingSquaresMergeImpl(object):
             self._min_cache = r[0]
             self._max_cache = r[1]
 
-        algo = _MarchingSquaresPixels()
-        algo._image_ptr = self._image_ptr
-        algo._mask_ptr = self._mask_ptr
-        algo._dim_x = self._dim_x
-        algo._dim_y = self._dim_y
-        algo._group_size = self._group_size
-        algo._use_minmax_cache = self._use_minmax_cache
-        if self._use_minmax_cache:
-            algo._min_cache = self._min_cache
-            algo._max_cache = self._max_cache
+        if self._pixels_algo is None:
+            algo = _MarchingSquaresPixels()
+            algo._image_ptr = self._image_ptr
+            algo._mask_ptr = self._mask_ptr
+            algo._dim_x = self._dim_x
+            algo._dim_y = self._dim_y
+            algo._group_size = self._group_size
+            algo._use_minmax_cache = self._use_minmax_cache
+            if self._use_minmax_cache:
+                algo._min_cache = self._min_cache
+                algo._max_cache = self._max_cache
+            self._pixels_algo = algo
+        else:
+            algo = self._pixels_algo
 
         algo._marching_squares(level)
         pixels = self._extract_pixels(algo._final_context)
@@ -845,16 +854,20 @@ cdef class MarchingSquaresMergeImpl(object):
             self._min_cache = r[0]
             self._max_cache = r[1]
 
-        algo = _MarchingSquaresContours()
-        algo._image_ptr = self._image_ptr
-        algo._mask_ptr = self._mask_ptr
-        algo._dim_x = self._dim_x
-        algo._dim_y = self._dim_y
-        algo._group_size = self._group_size
-        algo._use_minmax_cache = self._use_minmax_cache
-        if self._use_minmax_cache:
-            algo._min_cache = self._min_cache
-            algo._max_cache = self._max_cache
+        if self._contours_algo is None:
+            algo = _MarchingSquaresContours()
+            algo._image_ptr = self._image_ptr
+            algo._mask_ptr = self._mask_ptr
+            algo._dim_x = self._dim_x
+            algo._dim_y = self._dim_y
+            algo._group_size = self._group_size
+            algo._use_minmax_cache = self._use_minmax_cache
+            if self._use_minmax_cache:
+                algo._min_cache = self._min_cache
+                algo._max_cache = self._max_cache
+            self._contours_algo = algo
+        else:
+            algo = self._contours_algo
 
         algo._marching_squares(level)
         polygons = self._extract_polygons(algo._final_context)
