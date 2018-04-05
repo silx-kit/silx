@@ -89,6 +89,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     cdef int _dim_y
     cdef int _group_size
     cdef bool _use_minmax_cache
+    cdef bool _force_sequencial_reduction
 
     cdef TileContext* _final_context
 
@@ -96,7 +97,8 @@ cdef class _MarchingSquaresAlgorithm(object):
     cdef cnumpy.float32_t *_max_cache
 
     def __init__(self):
-        pass
+        self._use_minmax_cache = False
+        self._force_sequencial_reduction = False
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -108,8 +110,10 @@ cdef class _MarchingSquaresAlgorithm(object):
             int nb_contexts, nb_valid_contexts
             int i, j
             TileContext* context
+            int dim_x, dim_y
 
-        contexts = self._create_contexts(isovalue, &nb_contexts, &nb_valid_contexts)
+        contexts = self._create_contexts(isovalue, &dim_x, &dim_y, &nb_valid_contexts)
+        nb_contexts = dim_x * dim_y
 
         if nb_valid_contexts == 0:
             # shortcut
@@ -135,14 +139,91 @@ cdef class _MarchingSquaresAlgorithm(object):
             libc.stdlib.free(contexts)
             return
 
+        if self._force_sequencial_reduction:
+            self._sequencial_reduction(nb_valid_contexts, valid_contexts)
+        # FIXME can only be used if compiled with openmp
+        # elif copenmp.omp_get_num_threads() <= 1:
+        #     self._sequencial_reduction(nb_valid_contexts, valid_contexts)
+        else:
+            self._reduction_2d(dim_x, dim_y, contexts)
+
+        libc.stdlib.free(valid_contexts)
+        libc.stdlib.free(contexts)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _reduction_2d(self, int dim_x, int dim_y, TileContext **contexts) nogil:
+        """
+        Reduce the problem taking care of the neigbours using OpenMP.
+        """
+        cdef:
+            int x1, y1, x2, y2, i
+            int delta = 1
+
+        while True:
+            if delta >= dim_x and delta >= dim_y:
+                break
+            for i in prange(0, dim_x, (delta + delta)):
+                x1 = i
+                if x1 + delta >= dim_x:
+                    break
+                y1 = 0
+                while True:
+                    if y1 >= dim_y:
+                        break
+                    self._merge_array_contexts(contexts, y1 * dim_x + x1, y1 * dim_x + x1 + delta)
+                    y1 = y1 + delta
+            for i in prange(0, dim_y, (delta + delta)):
+                y2 = i
+                if y2 + delta >= dim_y:
+                    break
+                x2 = 0
+                while True:
+                    if x2 >= dim_x:
+                        break
+                    self._merge_array_contexts(contexts, y2 * dim_x + x2, (y2 + delta) * dim_x + x2)
+                    x2 = x2 + delta + delta
+            delta <<= 1
+
+        self._final_context = contexts[0]
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef inline void _merge_array_contexts(self, TileContext **contexts, int index1, int index2) nogil:
+        """
+        Merge contexts from index2 to index1 and delete the one from index2.
+        If the one from index1 was NULL, the one from index2 is moved to index1
+        and is not deleted.
+
+        This intermediate function was needed to avoid compilation problem of
+        Cython + OpenMP.
+        """
+        cdef:
+            TileContext *context1
+            TileContext *context2
+
+        context1 = contexts[index1]
+        context2 = contexts[index2]
+        if context1 != NULL and context2 != NULL:
+            self._merge_context(context1, context2)
+            del context2
+        elif context2 != NULL:
+            contexts[index1] = context2
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _sequencial_reduction(self, int nb_contexts, TileContext **contexts) nogil:
+        cdef:
+            int i
         # merge
         self._final_context = new TileContext()
         for i in xrange(nb_contexts):
             if contexts[i] != NULL:
                 self._merge_context(self._final_context, contexts[i])
                 del contexts[i]
-        libc.stdlib.free(valid_contexts)
-        libc.stdlib.free(contexts)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -227,7 +308,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef TileContext** _create_contexts(self, cnumpy.float64_t isovalue, int *nb_contexts, int *nb_valid_contexts) nogil:
+    cdef TileContext** _create_contexts(self, cnumpy.float64_t isovalue, int *dim_x, int *dim_y, int *nb_valid_contexts) nogil:
         cdef:
             int context_dim_x, context_dim_y
             int context_size, valid_contexts
@@ -262,7 +343,8 @@ cdef class _MarchingSquaresAlgorithm(object):
 
         # dereference is not working here... then we uses array index but
         # it is not the proper way
-        nb_contexts[0] = context_size
+        dim_x[0] = context_dim_x
+        dim_y[0] = context_dim_y
         nb_valid_contexts[0] = valid_contexts
         return contexts
 
@@ -829,6 +911,7 @@ cdef class MarchingSquaresMergeImpl(object):
             algo._dim_y = self._dim_y
             algo._group_size = self._group_size
             algo._use_minmax_cache = self._use_minmax_cache
+            # algo._force_sequencial_reduction = True
             if self._use_minmax_cache:
                 algo._min_cache = self._min_cache
                 algo._max_cache = self._max_cache
