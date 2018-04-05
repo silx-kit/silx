@@ -36,7 +36,9 @@ def configuration(parent_package='', top_path=None):
     config.add_extension('_mergeimpl',
                          sources=['_mergeimpl.pyx'],
                          include_dirs=[numpy.get_include()],
-                         language='c++')
+                         language='c++',
+                         extra_link_args=['-fopenmp'],
+                         extra_compile_args=['-fopenmp'])
 
     return config
 
