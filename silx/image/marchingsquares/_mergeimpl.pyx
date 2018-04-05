@@ -165,14 +165,14 @@ cdef class MarchingSquaresMergeImpl(object):
         max_per_block = numpy.empty(size[0] * size[1], dtype=numpy.float32)
         iblock = 0
         for y in range(size[0]):
-            yend = (y + 1) * block_size
+            yend = (y + 1) * block_size + 1
             if y + 1 == size[0]:
                 yy = slice(y * block_size, array.shape[0])
             else:
                 yy = slice(y * block_size, yend)
             for x in range(size[1]):
-                xend = (x + 1) * block_size
-                if xend > size[1]:
+                xend = (x + 1) * block_size + 1
+                if x + 1 == size[1]:
                     xx = slice(x * block_size, array.shape[1])
                 else:
                     xx = slice(x * block_size, xend)
