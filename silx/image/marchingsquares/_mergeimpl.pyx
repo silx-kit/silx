@@ -92,8 +92,8 @@ cdef class _MarchingSquaresAlgorithm(object):
 
     cdef TileContext* _final_context
 
-    cdef cnumpy.float32_t[:] _min_cache
-    cdef cnumpy.float32_t[:] _max_cache
+    cdef cnumpy.float32_t *_min_cache
+    cdef cnumpy.float32_t *_max_cache
 
     def __init__(self):
         pass
@@ -668,8 +668,8 @@ cdef class MarchingSquaresMergeImpl(object):
     cdef int _group_size
     cdef bool _use_minmax_cache
 
-    cdef cnumpy.float32_t[:] _min_cache
-    cdef cnumpy.float32_t[:] _max_cache
+    cdef cnumpy.float32_t *_min_cache
+    cdef cnumpy.float32_t *_max_cache
 
     cdef _MarchingSquaresContours _contours_algo
     cdef _MarchingSquaresPixels _pixels_algo
@@ -689,24 +689,31 @@ cdef class MarchingSquaresMergeImpl(object):
             self._mask_ptr = NULL
         self._group_size = group_size
         self._use_minmax_cache = use_minmax_cache
-        if self._use_minmax_cache:
-            self._min_cache = None
-            self._max_cache = None
+        self._min_cache = NULL
+        self._max_cache = NULL
         with nogil:
             self._dim_y = self._image.shape[0]
             self._dim_x = self._image.shape[1]
         self._contours_algo = None
         self._pixels_algo = None
 
-    def _get_minmax_block(self, array, block_size):
+    def __dealloc__(self):
+        if self._min_cache != NULL:
+            libc.stdlib.free(self._min_cache)
+        if self._max_cache != NULL:
+            libc.stdlib.free(self._max_cache)
+
+    def _create_minmax_cache(self, array, block_size):
         """Python code to compute min/max cache per block of an image"""
         if block_size == 0:
             return None
 
         size = numpy.array(array.shape)
         size = size // block_size + (size % block_size > 0)
-        min_per_block = numpy.empty(size[0] * size[1], dtype=numpy.float32)
-        max_per_block = numpy.empty(size[0] * size[1], dtype=numpy.float32)
+
+        self._min_cache = <cnumpy.float32_t *>libc.stdlib.malloc(size[0] * size[1] * sizeof(cnumpy.float32_t))
+        self._max_cache = <cnumpy.float32_t *>libc.stdlib.malloc(size[0] * size[1] * sizeof(cnumpy.float32_t))
+
         iblock = 0
         for y in range(size[0]):
             yend = (y + 1) * block_size + 1
@@ -720,10 +727,9 @@ cdef class MarchingSquaresMergeImpl(object):
                     xx = slice(x * block_size, array.shape[1])
                 else:
                     xx = slice(x * block_size, xend)
-                min_per_block[iblock] = numpy.min(array[yy, xx])
-                max_per_block[iblock] = numpy.max(array[yy, xx])
+                self._min_cache[iblock] = numpy.min(array[yy, xx])
+                self._max_cache[iblock] = numpy.max(array[yy, xx])
                 iblock += 1
-        return (min_per_block, max_per_block, block_size)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -812,10 +818,8 @@ cdef class MarchingSquaresMergeImpl(object):
         :returns: An array of y-x coordinates.
         :rtype: numpy.ndarray
         """
-        if self._use_minmax_cache and self._min_cache is None:
-            r = self._get_minmax_block(self._image, self._group_size)
-            self._min_cache = r[0]
-            self._max_cache = r[1]
+        if self._use_minmax_cache and self._min_cache == NULL:
+            self._create_minmax_cache(self._image, self._group_size)
 
         if self._pixels_algo is None:
             algo = _MarchingSquaresPixels()
@@ -849,10 +853,8 @@ cdef class MarchingSquaresMergeImpl(object):
         :returns: A list of array containg y-x coordinates of points
         :rtype: List[numpy.ndarray]
         """
-        if self._use_minmax_cache and self._min_cache is None:
-            r = self._get_minmax_block(self._image, self._group_size)
-            self._min_cache = r[0]
-            self._max_cache = r[1]
+        if self._use_minmax_cache and self._min_cache == NULL:
+            self._create_minmax_cache(self._image, self._group_size)
 
         if self._contours_algo is None:
             algo = _MarchingSquaresContours()
