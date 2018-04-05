@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "29/03/2018"
+__date__ = "05/04/2018"
 
 from numpy.distutils.misc_util import Configuration
 
@@ -38,7 +38,7 @@ def configuration(parent_package='', top_path=None):
     config.add_extension('shapes',
                          sources=["shapes.pyx"],
                          language='c')
-    config.add_subpackage('marchingsquare')
+    config.add_subpackage('marchingsquares')
     return config
 
 

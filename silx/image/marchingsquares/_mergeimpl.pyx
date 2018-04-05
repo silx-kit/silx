@@ -27,7 +27,7 @@ Marching squares implementation based on a merge of segements and polygons.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/04/2018"
+__date__ = "05/04/2018"
 
 import numpy
 cimport numpy as cnumpy
@@ -81,7 +81,7 @@ cdef cppclass TileContext_t:
         pass
 
 
-cdef class MarchingSquareMergeImpl(object):
+cdef class MarchingSquaresMergeImpl(object):
     """
     Marching squares implementation based on a merge of segements and polygons.
 

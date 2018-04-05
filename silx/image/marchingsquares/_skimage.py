@@ -24,15 +24,15 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/04/2018"
+__date__ = "05/04/2018"
 
 
 import numpy
 import skimage.measure
 
 
-class MarchingSquareSciKitImage(object):
-    """Reference implementation of a marching square using sci-kit image.
+class MarchingSquaresSciKitImage(object):
+    """Reference implementation of a marching squares using sci-kit image.
 
     It uses `skimage.measure.find_contours` to find iso contours taking care of
     an optional mask. As result the computation is not accurate but can be used

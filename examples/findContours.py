@@ -51,10 +51,10 @@ except ImportError:
 
 if skimage is not None:
     try:
-        from silx.image.marchingsquare._skimage import MarchingSquareSciKitImage
+        from silx.image.marchingsquares._skimage import MarchingSquaresSciKitImage
     except ImportError:
-        _logger.debug("Error while importing MarchingSquareSciKitImage", exc_info=True)
-        MarchingSquareSciKitImage = None
+        _logger.debug("Error while importing MarchingSquaresSciKitImage", exc_info=True)
+        MarchingSquaresSciKitImage = None
 else:
     MarchingSquareSciKitImage = None
 
@@ -343,7 +343,7 @@ class FindContours(qt.QMainWindow):
         layout.addWidget(button)
         self.__implSkimage = button
         self.__impl.addButton(button)
-        if MarchingSquareSciKitImage is None:
+        if MarchingSquaresSciKitImage is None:
             button.setEnabled(False)
             button.setToolTip("skimage is not installed or not compatible")
 
@@ -468,13 +468,13 @@ class FindContours(qt.QMainWindow):
 
         implButton = self.__impl.checkedButton()
         if implButton == self.__implMerge:
-            from silx.image.marchingsquare import MarchingSquareMergeImpl
-            self.__algo = MarchingSquareMergeImpl(self.__image, self.__mask)
+            from silx.image.marchingsquares import MarchingSquaresMergeImpl
+            self.__algo = MarchingSquaresMergeImpl(self.__image, self.__mask)
         elif implButton == self.__implMergeCache:
-            from silx.image.marchingsquare import MarchingSquareMergeImpl
-            self.__algo = MarchingSquareMergeImpl(self.__image, self.__mask, use_minmax_cache=True)
-        elif implButton == self.__implSkimage and MarchingSquareSciKitImage is not None:
-            self.__algo = MarchingSquareSciKitImage(self.__image, self.__mask)
+            from silx.image.marchingsquares import MarchingSquaresMergeImpl
+            self.__algo = MarchingSquaresMergeImpl(self.__image, self.__mask, use_minmax_cache=True)
+        elif implButton == self.__implSkimage and MarchingSquaresSciKitImage is not None:
+            self.__algo = MarchingSquaresSciKitImage(self.__image, self.__mask)
         else:
             _logger.error("No algorithm available")
             self.__algo = None

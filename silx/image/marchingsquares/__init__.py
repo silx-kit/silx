@@ -24,20 +24,20 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/04/2018"
+__date__ = "05/04/2018"
 
 
-from ._mergeimpl import MarchingSquareMergeImpl
+from ._mergeimpl import MarchingSquaresMergeImpl
 
 
 def _factory(engine, image, mask):
     """Factory to create the marching square implementation from the engine
     name"""
     if engine == "merge":
-        return MarchingSquareMergeImpl(image, mask)
+        return MarchingSquaresMergeImpl(image, mask)
     elif engine == "skimage":
-        from _skimage import MarchingSquareSciKitImage
-        return MarchingSquareSciKitImage(image, mask)
+        from _skimage import MarchingSquaresSciKitImage
+        return MarchingSquaresSciKitImage(image, mask)
     else:
         raise ValueError("Engine '%s' is not supported ('merge' or 'skimage' expected).")
 
