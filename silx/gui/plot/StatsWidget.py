@@ -34,6 +34,7 @@ from silx.gui import qt
 from silx.gui.plot.items.curve import Curve as CurveItem
 from silx.gui.plot.items.image import ImageBase as ImageItem
 from silx.gui.plot.items.scatter import Scatter as ScatterItem
+from silx.gui.widgets.TableWidget import TableWidget
 from collections import OrderedDict
 from silx.math.combo import min_max
 import functools
@@ -100,7 +101,7 @@ class _FloatItem(qt.QTableWidgetItem):
         return float(self.text()) < float(other.text())
 
 
-class StatsTable(qt.QTableWidget):
+class StatsTable(TableWidget):
     """
     TableWidget displaying for each curves contained by the Plot some
     information:
