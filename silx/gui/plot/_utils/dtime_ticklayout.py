@@ -259,16 +259,38 @@ NICE_DATE_VALUES = {
 }
 
 
-# Format strings per unit (to use in datetime.strftime)
-DATE_FORMAT_STRINGS = {
-    DtUnit.YEARS: "%Y",
-    DtUnit.MONTHS: "%Y-%m",
-    DtUnit.DAYS: "%Y-%m-%d",
-    DtUnit.HOURS: "%H:%M",
-    DtUnit.MINUTES: "%H:%M",
-    DtUnit.SECONDS: "%H:%M:%S",
-    DtUnit.MICRO_SECONDS : "%S.%f", # floats for microsec
-}
+def bestFormatString(spacing, unit):
+    """ Finds the best format string given the spacing and DtUnit.
+
+    If the spacing is a fractional number < 1 the format string will take this
+    into account
+
+    :param spacing: spacing between ticks
+    :param DtUnit unit:
+    :return: Format string for use in strftime
+    :rtype: str
+    """
+    isSmall = spacing < 1
+
+    if unit == DtUnit.YEARS:
+        return "%Y" if isSmall else "%Y-m"
+    elif unit == DtUnit.MONTHS:
+        return "%Y-%m" if isSmall else "%Y-%m-%d"
+    elif unit == DtUnit.DAYS:
+        return "%Y-%m-%d" if isSmall else "%H:%M:%S"
+    elif unit == DtUnit.HOURS:
+        return "%H:%M:%S" if isSmall else "%H:%M:%S"
+    elif unit == DtUnit.MINUTES:
+        return "%H:%M:%S" if isSmall else "%H:%M:%S"
+    elif unit == DtUnit.SECONDS:
+        return "%H:%M:%S" if isSmall else "%S.%f"
+    elif unit == DtUnit.MICRO_SECONDS:
+        return "%S.%f"
+    else:
+        raise ValueError("Unexpected DtUnit: {}".format(unit))
+
+
+
 
 
 def niceDateTimeElement(value, unit, isRound=False):
@@ -364,7 +386,7 @@ def calcTicks(dMin, dMax, nTicks):
     assert result[-1] >= dMax, \
         "Last nice date ({}) should be >= dMax {}".format(result[-1], dMax)
 
-    return result, unit
+    return result, niceSpacing, unit
 
 
 def calcTicksAdaptive(dMin, dMax, axisLength, tickDensity):
@@ -372,6 +394,7 @@ def calcTicksAdaptive(dMin, dMax, axisLength, tickDensity):
     # At least 2 ticks
     nticks = max(2, int(round(tickDensity * axisLength)))
     return  calcTicks(dMin, dMax, nticks)
+
 
 
 

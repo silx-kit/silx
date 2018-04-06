@@ -48,7 +48,7 @@ from ..._utils import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
-from ..._utils.dtime_ticklayout import calcTicksAdaptive, DATE_FORMAT_STRINGS
+from ..._utils.dtime_ticklayout import calcTicksAdaptive, bestFormatString
 
 _logger = logging.getLogger(__name__)
 
@@ -308,7 +308,7 @@ class PlotAxis(object):
                     dtMin = dt.datetime.fromtimestamp(dataMin)
                     dtMax = dt.datetime.fromtimestamp(dataMax)
 
-                    tickDateTimes, unit = calcTicksAdaptive(
+                    tickDateTimes, spacing, unit = calcTicksAdaptive(
                         dtMin, dtMax, nbPixels, tickDensity)
 
                     for tickDateTime in tickDateTimes:
@@ -318,8 +318,8 @@ class PlotAxis(object):
                             xPixel = x0 + (dataPos - dataMin) * xScale
                             yPixel = y0 + (dataPos - dataMin) * yScale
 
-                            text = tickDateTime.strftime(
-                                DATE_FORMAT_STRINGS[unit])
+                            fmtStr = bestFormatString(spacing, unit)
+                            text = tickDateTime.strftime(fmtStr)
 
                             yield ((xPixel, yPixel), dataPos, text)
 
