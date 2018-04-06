@@ -61,7 +61,13 @@ class DtUnit(enum.Enum):
 
 
 def getDateElement(dateTime, unit):
+    """ Picks the date element with the unit from the dateTime
 
+    E.g. getDateElement(datetime(1970, 5, 6), DtUnit.Day) will return 6
+
+    :param datetime dateTime: date/time to pick from
+    :param DtUnit unit: The unit describing the date element.
+    """
     if unit == DtUnit.YEARS:
         return dateTime.year
     elif unit == DtUnit.MONTHS:
@@ -83,10 +89,10 @@ def getDateElement(dateTime, unit):
 def setDateElement(dateTime, value, unit):
     """ Returns a copy of dateTime with the tickStep unit set to value
 
-        :param datetime.datetime dateTime: date time object
-        :param int value: value to set
-        :param DtUnit unit: unit
-        :return: datetime.datetime
+    :param datetime.datetime dateTime: date time object
+    :param int value: value to set
+    :param DtUnit unit: unit
+    :return: datetime.datetime
     """
     intValue = int(value)
     _logger.debug("setDateElement({}, {} (int={}), {})"
@@ -127,9 +133,9 @@ def setDateElement(dateTime, value, unit):
 def roundToElement(dateTime, unit):
     """ Returns a copy of dateTime with the
 
-        :param datetime.datetime dateTime: date time object
-        :param DtUnit unit: unit
-        :return: datetime.datetime
+    :param datetime.datetime dateTime: date time object
+    :param DtUnit unit: unit
+    :return: datetime.datetime
     """
     year = dateTime.year
     month = dateTime.month
@@ -158,7 +164,17 @@ def roundToElement(dateTime, unit):
 
 
 def addValueToDate(dateTime, value, unit):
+    """ Adds a value with unit to a dateTime.
 
+    Uses dateutil.relativedelta.relativedelta from the standard library to do
+    the actual math. This function doesn't allow for fractional month or years,
+    so month and year are truncated to integers before adding.
+
+    :param datetime dateTime: date time
+    :param float value: value to be added
+    :param DtUnit unit: of the value
+    :return:
+    """
     #logger.debug("addValueToDate({}, {}, {})".format(dateTime, value, unit))
 
     if unit == DtUnit.YEARS:
@@ -216,14 +232,15 @@ def bestUnit(durationInSeconds):
                 DtUnit.MICRO_SECONDS)
 
 
-
-
 def niceNumGeneric(value, niceFractions, isRound=False):
+    """ A more generic implementation of the _utils.ticklayout._niceNum function
 
+    Allows to the user to specify the fractions instead of using a hardcoded
+    list of [1, 2, 5, 10.0]
+    """
     if value == 0:
         return value
 
-    #niceFractions = [1.0, 2.0, 5.0, 10.]
     roundFractions = list(niceFractions)
 
     if isRound:
@@ -290,10 +307,11 @@ def bestFormatString(spacing, unit):
         raise ValueError("Unexpected DtUnit: {}".format(unit))
 
 
-
-
-
 def niceDateTimeElement(value, unit, isRound=False):
+    """ Uses the Nice Numbers algorithm to determine a nice value.
+
+    The fractions are optimized for the unit of the date element.
+    """
 
     niceValues = NICE_DATE_VALUES[unit]
     elemValue = niceNumGeneric(value, niceValues, isRound=isRound)
@@ -305,9 +323,11 @@ def niceDateTimeElement(value, unit, isRound=False):
 
 
 def findStartDate(dMin, dMax, nTicks):
-    """ Rounds a date down to the nearest nice number of ticks"""
+    """ Rounds a date down to the nearest nice number of ticks
+    """
+    assert dMax > dMin, \
+        "dMin ({}) should come before dMax ({})".format(dMin, dMax)
 
-    assert dMax > dMin, "dMin ({}) should come before dMax ({})".format(dMin, dMax)
     delta = dMax - dMin
     lengthSec = delta.total_seconds()
     _logger.debug("findStartDate: {}, {} (duration = {} sec, {} days)"
@@ -342,19 +362,30 @@ def findStartDate(dMin, dMax, nTicks):
     return startDate, niceSpacing, unit
 
 
-def dateRange(dMin, dMax, tickStep, unit, includeFirstBeyond = False):
+def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
+    """ Generates a range of dates
 
-    if unit == DtUnit.YEARS or unit == DtUnit.MONTHS or unit == DtUnit.MICRO_SECONDS:
+    :param datetime dMin: start date
+    :param datetime dMax: end date
+    :param int step: the step size
+    :param DtUnit unit: the unit of the step size
+    :param bool includeFirstBeyond: if True the first date later than dMax will
+        be included in the range. If False (the default), the last generated
+        datetime will always be smaller than dMax.
+    :return:
+    """
+    if (unit == DtUnit.YEARS or unit == DtUnit.MONTHS or
+        unit == DtUnit.MICRO_SECONDS):
 
         # Month and years will be converted to integers
-        assert int(tickStep) > 0, "Integer value or tickstep is 0"
+        assert int(step) > 0, "Integer value or tickstep is 0"
     else:
-        assert tickStep > 0, "tickstep is 0"
+        assert step > 0, "tickstep is 0"
 
     dateTime = dMin
-    while dateTime <= dMax:
+    while dateTime < dMax:
         yield dateTime
-        dateTime = addValueToDate(dateTime, tickStep, unit)
+        dateTime = addValueToDate(dateTime, step, unit)
 
     if includeFirstBeyond:
         yield dateTime
@@ -390,7 +421,8 @@ def calcTicks(dMin, dMax, nTicks):
 
 
 def calcTicksAdaptive(dMin, dMax, axisLength, tickDensity):
-
+    """ Calls calcTicks with a variable number of ticks, depending on axisLength
+    """
     # At least 2 ticks
     nticks = max(2, int(round(tickDensity * axisLength)))
     return  calcTicks(dMin, dMax, nticks)
