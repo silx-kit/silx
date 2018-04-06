@@ -52,14 +52,14 @@ from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
-from matplotlib.ticker import FuncFormatter, ScalarFormatter, Locator
+from matplotlib.ticker import Formatter, ScalarFormatter, Locator
 
 
 
 from ..matplotlib.ModestImage import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
-from .._utils.dtime_ticklayout import calcTicks
+from .._utils.dtime_ticklayout import calcTicks, bestFormatString
 
 
 
@@ -73,6 +73,19 @@ class NiceDateLocator(Locator):
     """
     def __init__(self, numTicks=5):
         self.numTicks = numTicks
+
+        self._spacing = None
+        self._unit = None
+
+    @property
+    def spacing(self):
+        """ The current spacing. Will be updated when new tick value are made"""
+        return self._spacing
+
+    @property
+    def unit(self):
+        """ The current DtUnit. Will be updated when new tick value are made"""
+        return self._unit
 
     def __call__(self):
         """Return the locations of the ticks"""
@@ -88,11 +101,46 @@ class NiceDateLocator(Locator):
         # vmin and vmax should be timestamps (i.e. seconds since 1 Jan 1970)
         dtMin = dt.datetime.fromtimestamp(vmin)
         dtMax = dt.datetime.fromtimestamp(vmax)
-        dtTicks, _ = calcTicks(dtMin, dtMax, self.numTicks)
+        dtTicks, self._spacing, self._unit = \
+            calcTicks(dtMin, dtMax, self.numTicks)
 
         # Convert datetime back to time stamps.
         ticks = [dtTick.timestamp() for dtTick in dtTicks]
         return ticks
+
+
+
+class NiceAutoDateFormatter(Formatter):
+    """
+    Matplotlib FuncFormatter that is linked to a NiceDateLocator and gives the
+    best possible formats given the locators current spacing an date unit.
+    """
+
+    def __init__(self, locator):
+        """
+        :param niceDateLocator: a NiceDateLocator object
+        """
+        super().__init__()
+        self.locator = locator
+
+    @property
+    def formatString(self):
+        if self.locator.spacing is None or self.locator.unit is None:
+            # Locator has no spacing or units yet. Return elaborate fmtString
+            return "Y-%m-%d %H:%M:%S"
+        else:
+            return bestFormatString(self.locator.spacing, self.locator.unit)
+
+
+    def __call__(self, x, pos=None):
+        """Return the format for tick val *x* at position *pos*
+           Expects x to be a POSIX timestamp (seconds since 1 Jan 1970)
+        """
+        dateTime = dt.datetime.fromtimestamp(x)
+        tickStr = dateTime.strftime(self.formatString)
+        return tickStr
+
+
 
 
 class _MarkerContainer(Container):
@@ -710,17 +758,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
 
-    def _formatDate(self, x, pos=None):
-        """Converts a POSIX timestamp to a formated string for the ticks.
-           Will be used in a matplotlib,ticker.FuncFormatter, which expects two parameters:
-           a tick value x and a tick position pos.
-        """
-        dateTime = dt.datetime.fromtimestamp(x)
-        # tickStr = dateTime.strftime('%Y-%m-%d')
-        tickStr = dateTime.strftime('%d %H:%M:%S')
-        #tickStr = dateTime.strftime('%H:%M:%S.%f')
-        return tickStr
-
 
     def isXAxisTimeSeries(self):
         return self._isXAxisTimeSeries
@@ -732,8 +769,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
             # We can't use a matplotlib.dates.DateFormatter because it expects
             # the data to be in datetimes. Silx works internally with
             # timestamps (floats).
-            self.ax.xaxis.set_major_locator(NiceDateLocator())
-            self.ax.xaxis.set_major_formatter(FuncFormatter(self._formatDate))
+            locator = NiceDateLocator()
+            self.ax.xaxis.set_major_locator(locator)
+            self.ax.xaxis.set_major_formatter(NiceAutoDateFormatter(locator))
         else:
             try:
                 scalarFormatter = ScalarFormatter(useOffset=False)

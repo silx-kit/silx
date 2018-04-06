@@ -273,17 +273,17 @@ def bestFormatString(spacing, unit):
     isSmall = spacing < 1
 
     if unit == DtUnit.YEARS:
-        return "%Y" if isSmall else "%Y-m"
+        return "%Y-m" if isSmall else "%Y"
     elif unit == DtUnit.MONTHS:
-        return "%Y-%m" if isSmall else "%Y-%m-%d"
+        return "%Y-%m-%d" if isSmall else "%Y-%m"
     elif unit == DtUnit.DAYS:
-        return "%Y-%m-%d" if isSmall else "%H:%M:%S"
+        return "%H:%M" if isSmall else "%Y-%m-%d"
     elif unit == DtUnit.HOURS:
-        return "%H:%M:%S" if isSmall else "%H:%M:%S"
+        return "%H:%M" if isSmall else "%H:%M"
     elif unit == DtUnit.MINUTES:
-        return "%H:%M:%S" if isSmall else "%H:%M:%S"
+        return "%H:%M:%S" if isSmall else "%H:%M"
     elif unit == DtUnit.SECONDS:
-        return "%H:%M:%S" if isSmall else "%S.%f"
+        return "%S.%f" if isSmall else "%H:%M:%S"
     elif unit == DtUnit.MICRO_SECONDS:
         return "%S.%f"
     else:
