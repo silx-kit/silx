@@ -52,11 +52,47 @@ from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
-from matplotlib.ticker import FuncFormatter, ScalarFormatter
+from matplotlib.ticker import FuncFormatter, ScalarFormatter, Locator
+
+
 
 from ..matplotlib.ModestImage import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
+from .._utils.dtime_ticklayout import calcTicks
+
+
+
+class NiceDateLocator(Locator):
+    """
+    Matplotlib Locator that uses Nice Numbers algorithm (adapted to dates)
+    to find the tick locations. This results in the same number behaviour
+    as when using the silx Open GL backend.
+
+    Expects the data to be posix timestampes (i.e. seconds since 1970)
+    """
+    def __init__(self, numTicks=5):
+        self.numTicks = numTicks
+
+    def __call__(self):
+        """Return the locations of the ticks"""
+        vmin, vmax = self.axis.get_view_interval()
+        return self.tick_values(vmin, vmax)
+
+    def tick_values(self, vmin, vmax):
+        """ Calculates tick values
+        """
+        if vmax < vmin:
+            vmin, vmax = vmax, vmin
+
+        # vmin and vmax should be timestamps (i.e. seconds since 1 Jan 1970)
+        dtMin = dt.datetime.fromtimestamp(vmin)
+        dtMax = dt.datetime.fromtimestamp(vmax)
+        dtTicks, _ = calcTicks(dtMin, dtMax, self.numTicks)
+
+        # Convert datetime back to time stamps.
+        ticks = [dtTick.timestamp() for dtTick in dtTicks]
+        return ticks
 
 
 class _MarkerContainer(Container):
@@ -680,7 +716,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
            a tick value x and a tick position pos.
         """
         dateTime = dt.datetime.fromtimestamp(x)
-        tickStr = dateTime.strftime('%Y-%m-%d')
+        # tickStr = dateTime.strftime('%Y-%m-%d')
+        tickStr = dateTime.strftime('%d %H:%M:%S')
+        #tickStr = dateTime.strftime('%H:%M:%S.%f')
         return tickStr
 
 
@@ -691,14 +729,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setXAxisTimeSeries(self, isTimeSeries):
         self._isXAxisTimeSeries = isTimeSeries
         if self._isXAxisTimeSeries:
-            # We can't use a matplotlib.dates.DateFormatter because it expects the data to be
-            # in datetimes. Silx works internally with timestampes (floats).
+            # We can't use a matplotlib.dates.DateFormatter because it expects
+            # the data to be in datetimes. Silx works internally with
+            # timestamps (floats).
+            self.ax.xaxis.set_major_locator(NiceDateLocator())
             self.ax.xaxis.set_major_formatter(FuncFormatter(self._formatDate))
         else:
             try:
                 scalarFormatter = ScalarFormatter(useOffset=False)
             except:
-                _logger.warning('Cannot disabled axes offsets in %s ' % matplotlib.__version__)
+                _logger.warning('Cannot disabled axes offsets in %s ' %
+                                matplotlib.__version__)
                 scalarFormatter = ScalarFormatter()
             self.ax.xaxis.set_major_formatter(scalarFormatter)
 

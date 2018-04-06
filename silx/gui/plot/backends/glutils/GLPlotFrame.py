@@ -322,8 +322,6 @@ class PlotAxis(object):
                                 DATE_FORMAT_STRINGS[unit])
 
                             yield ((xPixel, yPixel), dataPos, text)
-                        else:
-                            _logger.critical("Discarded: {}".format(tickDateTime))
 
 
 
