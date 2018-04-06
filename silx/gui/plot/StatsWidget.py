@@ -131,6 +131,11 @@ class StatsTable(TableWidget):
 
     COMPATAIBLE_ITEMS = (CurveItem, ImageItem, ScatterItem)
 
+    FORMATED_COLUMNS = ('mean', 'com', 'std', 'delta', 'min', 'max', 'delta')
+    """The Columns for which we want to apply a specific format"""
+
+    NUMBER_FORMAT = '{0:.3f}'
+    """The format to apply to the `FORMATED_COLUMNS`"""
 
     def __init__(self, parent=None, plot=None):
         qt.QTableWidget.__init__(self, parent)
@@ -320,7 +325,7 @@ class StatsTable(TableWidget):
             res['min'], res['max'], res['delta'] = min, max, (max - min)
             res['coords min'] = xData[numpy.where(yData == min)]
             res['coords max'] = xData[numpy.where(yData == max)]
-            com = numpy.sum(xData * yData) / numpy.sum(yData)
+            com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(yData).astype(numpy.float32)
             res['COM'] = com
             res['std'] = numpy.std(yData)
             res['mean'] = numpy.mean(yData)
@@ -370,7 +375,7 @@ class StatsTable(TableWidget):
             res['coords min'] = getCoordsFor(_min, data)
             res['coords max'] = getCoordsFor(_max, data)
 
-            com = numpy.sum(data) / data.size
+            com = numpy.sum(data).astype(numpy.float32) / data.size.astype(numpy.float32)
             res['COM'] = com
             res['std'] = numpy.std(data)
             res['mean'] = numpy.mean(data)
@@ -412,7 +417,7 @@ class StatsTable(TableWidget):
             res['min'], res['max'], res['delta'] = min, max, (max - min)
             res['coords min'] = getCoordsFor(xData, yData, valueData, min)
             res['coords max'] = getCoordsFor(xData, yData, valueData, max)
-            com = numpy.sum(xData * yData) / numpy.sum(yData)
+            com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(yData).astype(numpy.float32)
             res['COM'] = com
             res['std'] = numpy.std(valueData)
             res['mean'] = numpy.mean(valueData)
@@ -455,7 +460,10 @@ class StatsTable(TableWidget):
             if itemLabel in ('legend', 'kind'):
                 continue
             assert itemLabel in stats
-            items[itemLabel].setText(str(stats[itemLabel]))
+            val = stats[itemLabel]
+            if itemLabel in self.FORMATED_COLUMNS:
+                val = self.NUMBER_FORMAT.format(val)
+            items[itemLabel].setText(str(val))
 
     def currentChanged(self, current, previous):
         legendItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
