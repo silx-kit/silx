@@ -224,7 +224,6 @@ class StatsTable(TableWidget):
             self.horizontalHeader().setSectionResizeMode(qt.QHeaderView.ResizeToContents)
         else:  # Qt4
             self.horizontalHeader().setResizeMode(qt.QHeaderView.ResizeToContents)
-        self.horizontalHeader().setStretchLastSection(True)
         self.setColumnHidden(self.COLUMNS_INDEX['kind'], True)
 
     def _addItem(self, item):
