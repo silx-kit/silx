@@ -394,7 +394,7 @@ class StatsTable(TableWidget):
             tableItem.setText(str(statVal))
 
     def currentChanged(self, current, previous):
-        if current.row() > 0:
+        if current.row() >= 0:
             legendItem = self.item(current.row(), self._columns_index['legend'])
             assert legendItem
             kindItem = self.item(current.row(), self._columns_index['kind'])
