@@ -556,7 +556,8 @@ class InteractiveSelection(qt.QObject):
     def exec_(self, count=1, kind='point', timeout=0):
         """Block until selection is done or timeout is elapsed.
 
-        :param int count: The number of selection to request
+        :param int count: The number of selection to request.
+           Use None for an undefined number of selection.
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
         :param int timeout: Maximum duration in seconds to block.
