@@ -178,7 +178,8 @@ class InteractiveSelection(qt.QObject):
                     # Stop further handling of keys if something was undone
                     return True
 
-            elif event.key() == qt.Qt.Key_Return:
+            elif (event.key() == qt.Qt.Key_Return and
+                    self.getValidationMode() == self.ValidationMode.ENTER):
                 self.stop()
                 return True  # Stop further handling of those keys
 
