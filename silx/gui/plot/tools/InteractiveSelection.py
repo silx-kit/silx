@@ -99,7 +99,7 @@ class InteractiveSelection(qt.QObject):
         self._isInteractiveModeStarted = False
         self._nbSelection = 0
 
-        self._autoValidation = False
+        self._validationMode = 'enter'
         self._statusMessage = ''
 
         self._shapeKind = 'point'
@@ -299,10 +299,13 @@ class InteractiveSelection(qt.QObject):
 
             else:
                 self._stopSelectionInteraction(resetInteractiveMode=True)
-                if self.isAutoValidation():
+                validationMode = self.getValidationMode()
+                if validationMode == 'auto':
                     self.stop()
-                else:
+                elif validationMode == 'enter':
                     self._updateStatusMessage(extra='Press Enter to confirm')
+                else:
+                    self._updateStatusMessage()
 
     def reset(self):
         """Reset current selection
@@ -347,24 +350,28 @@ class InteractiveSelection(qt.QObject):
 
     # Selection parameters
 
-    def isAutoValidation(self):
-        """Returns whether automatic selection validation is on or not
+    def getValidationMode(self):
+        """Returns the selection validation mode in use.
 
-        :rtype: bool
+        :rtype: str
         """
-        return self._autoValidation
+        return self._validationMode
 
-    def setAutoValidation(self, auto):
-        """Toggle automatic selection validation.
+    def setValidationMode(self, mode):
+        """Set the way to perform selection validation.
 
-        When automatic validation is on, entering the last selection
-        terminates the selection.
+        The following modes are supported:
 
-        :param bool auto:
-            True to validation selection automatically upon last input,
-            False (by default) to wait for explicit validation.
+        - 'auto': Automatic validation,
+          entering the last selection terminates the selection.
+        - 'enter': Press the *Enter* key to terminate the selection (default).
+        - 'none': The selection can only be terminated through
+          :meth:`stop` or :meth:`cancel`.
+
+        :param str mode: The mode of selection validation to use.
         """
-        self._autoValidation = bool(auto)
+        assert mode in ('auto', 'enter', 'none')
+        self._validationMode = mode
 
     def getColor(self):
         """Return the color of the selections
