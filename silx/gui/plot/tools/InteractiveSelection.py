@@ -220,8 +220,9 @@ class InteractiveSelection(qt.QObject):
         :rtype: bool
         """
         selection = self.getSelection()
-        if (len(selection) < self._nbSelection and
-                not self._isInteractiveModeStarted and self.isStarted()):
+        if (not self._isInteractiveModeStarted and self.isStarted() and
+                (self._nbSelection is None or
+                 len(selection) < self._nbSelection)):
             self._isInteractiveModeStarted = True
             plot = self.parent()
 
@@ -262,7 +263,8 @@ class InteractiveSelection(qt.QObject):
         :param y: y coordinates of the shape control points
         :param str kind: the kind of shape
         """
-        assert len(self.getSelection()) < self._nbSelection
+        assert (self._nbSelection is None or
+                len(self.getSelection()) < self._nbSelection)
 
         plot = self.parent()
         if plot is None:
@@ -296,12 +298,12 @@ class InteractiveSelection(qt.QObject):
     def _selectionUpdated(self):
         """Handle update of the selection"""
         selection = self.getSelection()
-        assert len(selection) <= self._nbSelection
+        assert self._nbSelection is None or len(selection) <= self._nbSelection
 
         self.sigSelectionChanged.emit(selection)
 
         if self.isStarted():
-            if len(selection) < self._nbSelection:
+            if self._nbSelection is None or len(selection) < self._nbSelection:
                 self._startSelectionInteraction()
                 self._updateStatusMessage()
 
@@ -392,7 +394,10 @@ class InteractiveSelection(qt.QObject):
         :param ValidationMode mode: The mode of selection validation to use.
         """
         assert isinstance(mode, self.ValidationMode)
-        self._validationMode = mode
+        if mode != self._validationMode:
+            self._validationMode = mode
+            if self.isStarted():
+                self._updateStatusMessage()
 
     def getColor(self):
         """Return the color of the selections
@@ -432,11 +437,18 @@ class InteractiveSelection(qt.QObject):
         :param str extra: Additional info to display after main message
         """
         if message is None:
-            if self._nbSelection <= 1:
+            if self._nbSelection is None:
+                message = 'Select %ss (%d selected)' % (
+                    self._shapeKind, len(self.getSelection()))
+
+            elif self._nbSelection <= 1:
                 message = 'Select a %s' % self._shapeKind
             else:
                 message = 'Select %d/%d %ss' % (
                     len(self.getSelection()), self._nbSelection, self._shapeKind)
+
+            if self.getValidationMode() == self.ValidationMode.ENTER:
+                message += ' - Press Enter to validate'
 
         else:
             message = str(message)
@@ -459,7 +471,8 @@ class InteractiveSelection(qt.QObject):
     def start(self, count=1, kind='point'):
         """Start an interactive selection.
 
-        :param int count: The number of selection to request
+        :param int count: The maximum number of selections to request
+            If count is None, there is no limit of number of selection.
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
         """
