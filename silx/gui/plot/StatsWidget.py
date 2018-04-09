@@ -35,14 +35,27 @@ from silx.gui.plot.items.curve import Curve as CurveItem
 from silx.gui.plot.items.image import ImageBase as ImageItem
 from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from silx.gui.widgets.TableWidget import TableWidget
+from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
 from collections import OrderedDict
-from silx.math.combo import min_max
 import functools
-import numpy
 import silx
 
 
 class StatsWidget(qt.QWidget):
+    """
+    Widget displaying a set of :class:`Stat` to be displayed on a
+    :class:`StatsTable` and to be apply on items contained in the :class:`Plot`
+    Also contains options to:
+
+    * compute statistics on all the data or on visible data only
+    * show statistics of all items or only the active one
+
+    :param parent: Qt parent
+    :param plot: the plot containing items on which we want statistics.
+    """
+
+    NUMBER_FORMAT = '{0:.3f}'
+
     class OptionsWidget(qt.QWidget):
 
         ITEM_SEL_OPTS = ('All items', 'Active item only')
@@ -69,13 +82,17 @@ class StatsWidget(qt.QWidget):
                 self.dataRangeSelection.addItem(opt)
             self.layout().addWidget(self.dataRangeSelection)
 
-    def __init__(self, parent=None, plot=None):
+    def __init__(self, parent=None, plot=None, stats=None):
+        self._stats = stats
+        if stats is None:
+            self._stats = stats
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self._options = self.OptionsWidget(parent=self)
         self.layout().addWidget(self._options)
         self._statsTable = StatsTable(parent=self, plot=plot)
+        self._statsTable.setStats(self._stats)
         self.layout().addWidget(self._statsTable)
         self.setPlot = self._statsTable.setPlot
 
@@ -93,66 +110,56 @@ class StatsWidget(qt.QWidget):
         self._statsTable.setStatsOnVisibleData(opt == 'visible data range')
 
 
-class _FloatItem(qt.QTableWidgetItem):
-    def __init__(self):
-        qt.QTableWidgetItem.__init__(self, type=qt.QTableWidgetItem.Type)
+class BasicStatsWidget(StatsWidget):
+    """
+    Widget defining a simple set of :class:`Stat` to be displayed on a
+    :class:`StatsWidget`.
 
-    def __lt__(self, other):
-        return float(self.text()) < float(other.text())
+    :param parent: Qt parent
+    :param plot: the plot containing items on which we want statistics.
+    """
+
+    STATS = StatsHandler((
+        (statsmdl.StatMin()),
+        (statsmdl.StatCoordMin(), StatFormatter(None, qt.QTableWidgetItem)),
+        (statsmdl.StatMax()),
+        (statsmdl.StatCoordMax(), StatFormatter(None, qt.QTableWidgetItem)),
+        (statsmdl.StatStd()),
+        (statsmdl.StatMean()),
+        (statsmdl.StatCOM())
+    ))
+
+    def __init__(self, parent=None, plot=None):
+        StatsWidget.__init__(self, parent=parent, plot=plot, stats=self.STATS)
 
 
 class StatsTable(TableWidget):
     """
     TableWidget displaying for each curves contained by the Plot some
     information:
-    
+
     * legend
     * minimal value
     * maximal value
     * standard deviation (std)
-    
+
     :param parent: The widget's parent.
     :param plot: :class:`.PlotWidget` instance on which to operate
     """
-    COLUMNS_INDEX = OrderedDict([
-        ('legend', 0),
-        ('kind', 1),
-        ('min', 2),
-        ('coords min', 3),
-        ('max', 4),
-        ('coords max', 5),
-        ('delta', 6),
-        ('std', 7),
-        ('mean', 8),
-        ('COM', 9),
-    ])
-
-    COLUMNS = COLUMNS_INDEX.keys()
 
     COMPATIBLE_KINDS = {
         'curve': CurveItem,
-        'image':ImageItem,
+        'image': ImageItem,
         'scatter': ScatterItem
     }
 
     COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
 
-    FORMATED_COLUMNS = ('mean', 'com', 'std', 'delta', 'min', 'max', 'delta')
-    """The Columns for which we want to apply a specific format"""
-
-    NUMBER_FORMAT = '{0:.3f}'
-    """The format to apply to the `FORMATED_COLUMNS`"""
-
-    @staticmethod
-    def getKind(myItem):
-        if isinstance(myItem, CurveItem):
-            return 'curve'
-        elif isinstance(myItem, ImageItem):
-            return 'image'
-        elif isinstance(myItem, ScatterItem):
-            return 'scatter'
-        else:
-            return None
+    # FORMATED_COLUMNS = ('mean', 'com', 'std', 'delta', 'min', 'max', 'delta')
+    # """The Columns for which we want to apply a specific format"""
+    #
+    #
+    # """The format to apply to the `FORMATED_COLUMNS`"""
 
     def __init__(self, parent=None, plot=None):
         qt.QTableWidget.__init__(self, parent)
@@ -166,16 +173,62 @@ class StatsTable(TableWidget):
         self.callbackScatter = None
         self.callbackCurve = None
         """Associate the curve legend to his first item"""
-        self.setColumnCount(len(self.COLUMNS))
+        self._statsHandler = None
+        self._resetColumns()
+
+        self.setColumnCount(len(self._columns))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         self.setPlot(plot)
         self.setSortingEnabled(True)
+
+    def _resetColumns(self):
+        self._columns_index = OrderedDict([('legend', 0), ('kind', 1)])
+        self._columns = self._columns_index.keys()
+        self.setColumnCount(len(self._columns))
+
+    def setStats(self, statsHandler):
+        """
+
+        :param statsHandler: Set the statistics to be displayed and how to
+                             format them using
+        :rtype: :class:`StatsHandler`
+        """
+        assert isinstance(statsHandler, StatsHandler)
+        self._resetColumns()
+        self.clear()
+
+        for statName, stat in list(statsHandler.stats.items()):
+            assert isinstance(stat, statsmdl.StatBase)
+            self._columns_index[statName] = len(self._columns_index)
+        self._statsHandler = statsHandler
+        self._columns = self._columns_index.keys()
+        self.setColumnCount(len(self._columns))
+
+        self._updateItemObserve(init=True)
+        self._updateAllStats()
+
+    def _updateAllStats(self):
+        for (legend, kind) in self._lgdAndKindToItems:
+            self._updateStats(legend, kind)
+
+    @staticmethod
+    def _getKind(myItem):
+        if isinstance(myItem, CurveItem):
+            return 'curve'
+        elif isinstance(myItem, ImageItem):
+            return 'image'
+        elif isinstance(myItem, ScatterItem):
+            return 'scatter'
+        else:
+            return None
 
     def setPlot(self, plot):
         """
         Define the plot to interact with
 
-        :param plot: :class:`.PlotWidget` instance on which to operate 
+        :param plot: the plot containing the items on which statistics are
+                     applied
+        :rtype: :class:`.PlotWidget`
         """
         if self.plot:
             self.plot.sigContentChanged.disconnect(self._plotContentChanged)
@@ -216,7 +269,7 @@ class StatsTable(TableWidget):
             if self.callbackImage is None:
                 self.callbackImage = functools.partial(self._activeItemChanged, 'image')
                 self.callbackScatter = functools.partial(self._activeItemChanged,
-                                                    'scatter')
+                                                         'scatter')
                 self.callbackCurve = functools.partial(self._activeItemChanged, 'curve')
             if create is True:
                 self.plot.sigActiveImageChanged.connect(self.callbackImage)
@@ -233,45 +286,41 @@ class StatsTable(TableWidget):
                 self.plot.sigContentChanged.disconnect(self._plotContentChanged)
                 # Note: connection on Item arre managed by the _removeItem function
 
-    def clear(self, rmConnections=False):
+    def clear(self):
+        """
+        Clear all existing items
+        """
         lgdsAndKinds = list(self._lgdAndKindToItems.keys())
         for lgdAndKind in lgdsAndKinds:
             self._removeItem(legend=lgdAndKind[0], kind=lgdAndKind[1])
         self._lgdAndKindToItems = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
-        self.setHorizontalHeaderLabels(self.COLUMNS)
+        self.setHorizontalHeaderLabels(self._columns)
         if hasattr(self.horizontalHeader(), 'setSectionResizeMode'):  # Qt5
             self.horizontalHeader().setSectionResizeMode(qt.QHeaderView.ResizeToContents)
         else:  # Qt4
             self.horizontalHeader().setResizeMode(qt.QHeaderView.ResizeToContents)
-        self.setColumnHidden(self.COLUMNS_INDEX['kind'], True)
+        self.setColumnHidden(self._columns_index['kind'], True)
 
     def _addItem(self, item):
         assert isinstance(item, self.COMPATIBLE_ITEMS)
-        if (item.getLegend(), self.getKind(item)) in self._lgdAndKindToItems:
-            self._updateStats(item, self.getKind(item))
+        if (item.getLegend(), self._getKind(item)) in self._lgdAndKindToItems:
+            self._updateStats(item, self._getKind(item))
             return
 
         self.setRowCount(self.rowCount() + 1)
-
-        itemLegend = None
         indexTable = self.rowCount() - 1
-        kind = self.getKind(item)
-        for itemName in self.COLUMNS:
-            if itemName in ('min', 'max', 'COM', 'delta', 'std', 'mean'):
-                _item = _FloatItem()
-            else:
-                _item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-            if itemName == 'legend':
-                _item.setText(item.getLegend())
-                itemLegend = _item
-            if itemName == 'kind':
-                _item.setText(kind)
-            self.setItem(indexTable, self.COLUMNS_INDEX[itemName], _item)
+        kind = self._getKind(item)
 
-        assert itemLegend
-        self._lgdAndKindToItems[(item.getLegend(), kind)] = itemLegend
+        self._lgdAndKindToItems[(item.getLegend(), kind)] = {}
+
+        # the get item will manage the item creation of not existing
+        _createItem = self._getItem
+        for itemName in self._columns:
+            _createItem(name=itemName, legend=item.getLegend(), kind=kind,
+                        indexTable=indexTable)
+
         self._updateStats(legend=item.getLegend(), kind=kind)
 
         callback = functools.partial(
@@ -279,23 +328,31 @@ class StatsTable(TableWidget):
             item.getLegend(), kind)
         item.sigItemChanged.connect(callback)
 
+    def _getItem(self, name, legend, kind, indexTable):
+        if (legend, kind) not in self._lgdAndKindToItems:
+            self._lgdAndKindToItems[(legend, kind)] = {}
+        if not (name in self._lgdAndKindToItems[(legend, kind)] and
+                self._lgdAndKindToItems[(legend, kind)]):
+            if name in ('legend', 'kind'):
+                _item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+                if name == 'legend':
+                    _item.setText(legend)
+                else:
+                    assert name == 'kind'
+                    _item.setText(kind)
+            else:
+                assert self._statsHandler.formatters[name]
+                _item = self._statsHandler.formatters[name].tabWidgetItemClass()
+            self.setItem(indexTable, self._columns_index[name], _item)
+            self._lgdAndKindToItems[(legend, kind)][name] = _item
+
+        return self._lgdAndKindToItems[(legend, kind)][name]
+
     def _removeItem(self, legend, kind):
         if (legend, kind) not in self._lgdAndKindToItems or not self.plot:
             return
 
-        callback = functools.partial(
-            silx.utils.weakref.WeakMethodProxy(self._updateStats),
-            legend,
-            kind)
-        if kind == 'curve':
-            item = self.plot.getCurve(legend)
-        elif kind == 'image':
-            item = self.plot.getImage(legend)
-        elif kind == 'scatter':
-            item = self.plot.getScatter(legend)
-        else:
-            raise ValueError('Kind not managed')
-        self.firstItem = self._lgdAndKindToItems[(legend, kind)]
+        self.firstItem = self._lgdAndKindToItems[(legend, kind)]['legend']
         del self._lgdAndKindToItems[(legend, kind)]
         self.removeRow(self.firstItem.row())
 
@@ -304,152 +361,16 @@ class StatsTable(TableWidget):
             self._updateStats(lgdAndKind[0], lgdAndKind[1])
 
     def _updateStats(self, legend, kind, *args, **kwargs):
-        def noDataSelected():
-            res = {}
-            res['min'] = res['max'] = res['delta'] = None
-            res['coords min'] = res['coords max'] = None
-            res['COM'] = res['std'] = res['mean'] = None
-            return res
-
-        def computeCurveStats(item):
-            res = {}
-            if item is None:
-                return res
-            xData, yData = item.getData(copy=True)[0:2]
-
-            assert self.plot
-            if self._statsOnVisibleData:
-                minX, maxX = self.plot.getXAxis().getLimits()
-                yData = yData[(minX<=xData) & (xData<=maxX)]
-                xData = xData[(minX<=xData) & (xData<=maxX)]
-
-            if yData.size is 0:
-                return noDataSelected()
-            min, max = min_max(yData)
-            res['min'], res['max'], res['delta'] = min, max, (max - min)
-            res['coords min'] = xData[numpy.where(yData == min)]
-            res['coords max'] = xData[numpy.where(yData == max)]
-            com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(yData).astype(numpy.float32)
-            res['COM'] = com
-            res['std'] = numpy.std(yData)
-            res['mean'] = numpy.mean(yData)
-            return res
-
-        def computeImageStats(item):
-            def getCoordsFor(data, value):
-                coordsY, coordsX = numpy.where(data==value)
-                if len(coordsX) is 0:
-                    return []
-                if len(coordsX) is 1:
-                    return (coordsX[0], coordsY[0])
-                coords = []
-                for xCoord, yCoord in zip(coordsX, coordsY):
-                    coord = (xCoord, yCoord)
-                    coords.append(coord)
-                return coords
-
-            res = {}
-            if item is None:
-                return res
-
-            data = item.getData(copy=True)
-            assert self.plot
-            if self._statsOnVisibleData:
-                minX, maxX = self.plot.getXAxis().getLimits()
-                minY, maxY = self.plot.getYAxis().getLimits()
-                originX, originY = item.getOrigin()
-
-                XMinBoundary = int(minX-originX)
-                XMaxBoundary = int(maxX-originX)
-                YMinBoundary = int(minY-originY)
-                YMaxBoundary = int(maxY-originY)
-
-                if XMaxBoundary < 0 or YMaxBoundary < 0:
-                    return noDataSelected()
-                XMinBoundary = max(XMinBoundary, 0)
-                YMinBoundary = max(YMinBoundary, 0)
-                data = data[XMinBoundary:XMaxBoundary+1,
-                            YMinBoundary:YMaxBoundary+1]
-
-            if data.size is 0:
-                return noDataSelected()
-
-            _min, _max = min_max(data)
-            res['min'], res['max'], res['delta'] = _min, _max, (_max - _min)
-            res['coords min'] = getCoordsFor(_min, data)
-            res['coords max'] = getCoordsFor(_max, data)
-
-            com = numpy.sum(data).astype(numpy.float32) / data.size.astype(numpy.float32)
-            res['COM'] = com
-            res['std'] = numpy.std(data)
-            res['mean'] = numpy.mean(data)
-            return res
-
-        def computeScatterStats(item):
-            def getCoordsFor(xData, yData, valueData, value):
-                indexes = numpy.where(valueData == value)
-                if len(indexes) is 0:
-                    return []
-                if len(indexes) is 1:
-                    return (xData[indexes[0][0]], yData[indexes[0][0]])
-                res = []
-                for index in indexes:
-                    assert(len(index) is 1)
-                    res.append((xData[index[0]], yData[index[0]]))
-                return res
-            res = {}
-            if item is None:
-                return res
-
-            xData, yData, valueData, xerror, yerror = item.getData(copy=True)
-            assert self.plot
-            if self._statsOnVisibleData:
-                minX, maxX = self.plot.getXAxis().getLimits()
-                minY, maxY = self.plot.getYAxis().getLimits()
-                # filter on X axis
-                valueData = valueData[(minX<=xData) & (xData<=maxX)]
-                yData = yData[(minX<=xData) & (xData<=maxX)]
-                xData = xData[(minX<=xData) & (xData<=maxX)]
-                # filter on Y axis
-                valueData = valueData[(minY<=yData) & (yData<=maxY)]
-                xData = xData[(minY<=yData) & (yData<=maxY)]
-                yData = yData[(minY<=yData) & (yData<=maxY)]
-
-            if valueData.size is 0:
-                return noDataSelected()
-            min, max = min_max(valueData)
-            res['min'], res['max'], res['delta'] = min, max, (max - min)
-            res['coords min'] = getCoordsFor(xData, yData, valueData, min)
-            res['coords max'] = getCoordsFor(xData, yData, valueData, max)
-            com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(yData).astype(numpy.float32)
-            res['COM'] = com
-            res['std'] = numpy.std(valueData)
-            res['mean'] = numpy.mean(valueData)
-            return res
-
-        def retrieveItems(item, kind):
-            items = {}
-            itemLegend = self._lgdAndKindToItems[item.getLegend(), kind]
-            items['legend'] = itemLegend
-            assert itemLegend
-            for itemName in self.COLUMNS:
-                if itemName == 'legend':
-                    continue
-                items[itemName] = self.item(itemLegend.row(),
-                                            self.COLUMNS_INDEX[itemName])
-            return items
-
+        if self._statsHandler is None:
+            return
 
         assert kind in ('curve', 'image', 'scatter')
         if kind == 'curve':
             item = self.plot.getCurve(legend)
-            stats = computeCurveStats(item)
         elif kind == 'image':
             item = self.plot.getImage(legend)
-            stats = computeImageStats(item)
         elif kind == 'scatter':
             item = self.plot.getScatter(legend)
-            stats = computeScatterStats(item)
         else:
             raise ValueError('kind not managed')
 
@@ -459,39 +380,48 @@ class StatsTable(TableWidget):
         assert (item.getLegend(), kind) in self._lgdAndKindToItems
         assert isinstance(item, self.COMPATIBLE_ITEMS)
 
-        items = retrieveItems(item, kind)
+        statsValDict = self._statsHandler.calculate(item, self.plot,
+                                                    self._statsOnVisibleData)
 
-        for itemLabel in self.COLUMNS:
-            if itemLabel in ('legend', 'kind'):
-                continue
-            assert itemLabel in stats
-            val = stats[itemLabel]
-            if itemLabel in self.FORMATED_COLUMNS:
-                val = self.NUMBER_FORMAT.format(val)
-            assert items[itemLabel] is not None
-            items[itemLabel].setText(str(val))
+        lgdItem = self._lgdAndKindToItems[(item.getLegend(), kind)]['legend']
+        assert lgdItem
+        rowStat = lgdItem.row()
+
+        for statName, statVal in list(statsValDict.items()):
+            assert statName in self._lgdAndKindToItems[(item.getLegend(), kind)]
+            tableItem = self._getItem(name=statName, legend=item.getLegend(),
+                                      kind=kind, indexTable=rowStat)
+            tableItem.setText(str(statVal))
 
     def currentChanged(self, current, previous):
         if current.row() > 0:
-            legendItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
+            legendItem = self.item(current.row(), self._columns_index['legend'])
             assert legendItem
-            kindItem = self.item(current.row(), self.COLUMNS_INDEX['kind'])
+            kindItem = self.item(current.row(), self._columns_index['kind'])
             kind = kindItem.text()
             if kind == 'curve':
                 self.plot.setActiveCurve(legendItem.text())
-            elif kind =='image':
+            elif kind == 'image':
                 self.plot.setActiveImage(legendItem.text())
-            elif kind =='scatter':
+            elif kind == 'scatter':
                 self.plot._setActiveItem('scatter', legendItem.text())
             else:
                 raise ValueError('kind not managed')
         qt.QTableWidget.currentChanged(self, current, previous)
 
     def setDisplayOnlyActiveItem(self, b):
+        """
+
+        :param bool b: True if we want to only show active item
+        """
         if self._displayOnlyActItem != b:
             self._updateItemObserve(switchItemsDisplayedType=True)
 
     def setStatsOnVisibleData(self, b):
+        """
+
+        :param bool b: True if we want to apply statistics only on visible data
+        """
         if self._statsOnVisibleData != b:
             self._statsOnVisibleData = b
             self._updateCurrentStats()
@@ -535,5 +465,5 @@ class StatsDockWidget(qt.QDockWidget):
     def __init__(self, parent=None, plot=None):
         qt.QDockWidget.__init__(self, parent)
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self._statsTable = StatsWidget(parent=self, plot=plot)
+        self._statsTable = BasicStatsWidget(parent=self, plot=plot)
         self.setWidget(self._statsTable)

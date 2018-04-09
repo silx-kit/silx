@@ -88,14 +88,14 @@ class TestStatsWidgetWithCurves(TestCaseQt):
         self.plot.addCurve(legend='curve0', x=range(10), y=range(10))
         self.assertTrue(self.widget.rowCount() is 3)
         itemMax = self.widget.item(self.widget._lgdAndKindToItems[('curve0', 'curve')].row(),
-                                   StatsWidget.StatsTable.COLUMNS_INDEX['max'])
+                                   StatsWidget.StatsTable._columns_index['max'])
         self.assertTrue(itemMax.text() == '9')
 
     def testUpdateCurveFrmCurveObj(self):
         self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
         self.assertTrue(self.widget.rowCount() is 3)
         itemMax = self.widget.item(self.widget._lgdAndKindToItems[('curve0', 'curve')].row(),
-                                   StatsWidget.StatsTable.COLUMNS_INDEX['max'])
+                                   StatsWidget.StatsTable._columns_index['max'])
         self.assertTrue(itemMax.text() == '3')
 
     def testSetAnotherPlot(self):
@@ -122,7 +122,7 @@ class TestStatsWidgetWithImages(TestCaseQt):
         TestCaseQt.tearDown(self)
 
     def test(self):
-        columnsIndex = StatsWidget.StatsTable.COLUMNS_INDEX
+        columnsIndex = StatsWidget.StatsTable._columns_index
         itemLegend = self.widget._lgdAndKindToItems[('test image', 'image')]
         itemMin = self.widget.item(itemLegend.row(), columnsIndex['min'])
         itemMax = self.widget.item(itemLegend.row(), columnsIndex['max'])
@@ -155,7 +155,7 @@ class TestStatsWidgetWithScatter(TestCaseQt):
         TestCaseQt.tearDown(self)
 
     def testStats(self):
-        columnsIndex = StatsWidget.StatsTable.COLUMNS_INDEX
+        columnsIndex = StatsWidget.StatsTable._columns_index
         itemLegend = self.widget._lgdAndKindToItems[('scatter plot', 'scatter')]
         itemMin = self.widget.item(itemLegend.row(), columnsIndex['min'])
         itemMax = self.widget.item(itemLegend.row(), columnsIndex['max'])
