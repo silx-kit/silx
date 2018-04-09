@@ -206,8 +206,14 @@ class InteractiveSelection(qt.QObject):
                     plot.setInteractiveMode(mode='select', source=self)
 
     def _startSelectionInteraction(self):
-        """Start selection interaction if it was not running"""
-        if not self._isInteractiveModeStarted and self.isStarted():
+        """Start selection interaction if it was not running
+
+        :return: True if interaction has changed, False otherwise
+        :rtype: bool
+        """
+        selection = self.getSelection()
+        if (len(selection) < self._nbSelection and
+                not self._isInteractiveModeStarted and self.isStarted()):
             self._isInteractiveModeStarted = True
             plot = self.parent()
 
@@ -221,6 +227,10 @@ class InteractiveSelection(qt.QObject):
                                         label=self._label)
 
             plot.sigPlotSignal.connect(self._handleInteraction)
+            return True
+
+        else:
+            return False
 
     # Selection API
 
