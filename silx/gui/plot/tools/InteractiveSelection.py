@@ -73,6 +73,12 @@ class InteractiveSelection(qt.QObject):
     :param PlotWidget parent: The plot widget the selection is done on
     """
 
+    sigSelectionStarted = qt.Signal(str)
+    """Signal emitted whenever a selection has started.
+
+    It provides the shape used for the selection.
+    """
+
     sigSelectionChanged = qt.Signal(tuple)
     """Signal emitted whenever the selection has changed.
 
@@ -476,6 +482,8 @@ class InteractiveSelection(qt.QObject):
         plot.installEventFilter(self)
 
         self._updateStatusMessage()
+
+        self.sigSelectionStarted.emit(kind)
 
     def _terminateSelection(self):
         """Terminate a selection.
