@@ -113,7 +113,7 @@ class InteractiveSelection(qt.QObject):
         self._color = rgba('red')
 
         self._label = "selector-%d" % id(parent)
-        self._items = WeakList()  # List of plot items displaying the selection
+        self._items = []  # List of list of plot items displaying the selection
 
         self._eventLoop = None
 
@@ -279,8 +279,28 @@ class InteractiveSelection(qt.QObject):
                 text='%d' % len(self._items),
                 color=rgba(self.getColor()),
                 draggable=False)
-            item = plot._getItem(kind='marker', legend=legend)
+            items = (plot._getItem(kind='marker', legend=legend),)
             points = numpy.array([(x, y)], dtype=numpy.float64)
+
+        elif kind == 'hline':
+            plot.addYMarker(
+                y[0],
+                legend=legend,
+                text='%d' % len(self._items),
+                color=rgba(self.getColor()),
+                draggable=False)
+            items = (plot._getItem(kind='marker', legend=legend),)
+            points = numpy.array((x, y), dtype=numpy.float64).T
+
+        elif kind == 'vline':
+            plot.addXMarker(
+                x[0],
+                legend=legend,
+                text='%d' % len(self._items),
+                color=rgba(self.getColor()),
+                draggable=False)
+            items = (plot._getItem(kind='marker', legend=legend),)
+            points = numpy.array((x, y), dtype=numpy.float64).T
 
         else:
             plot.addItem(x, y,
@@ -288,10 +308,29 @@ class InteractiveSelection(qt.QObject):
                          shape='polylines' if kind == 'line' else kind,
                          color=rgba(self.getColor()),
                          fill=False)
-            item = plot._getItem(kind='item', legend=legend)
+
+            if kind == 'rectangle':
+                name_x, name_y = min(x), min(y)
+            elif kind == 'line':
+                index = numpy.argmin(x)
+                name_x, name_y = x[index], y[index]
+            elif kind == 'polygon':
+                index = numpy.argmin(y)
+                name_x, name_y = x[index], y[index]
+            else:
+                raise RuntimeError('Unsupported selection kind: %s' % kind)
+
+            plot.addMarker(name_x, name_y,
+                           legend=legend + '-name',
+                           text='%d' % len(self._items),
+                           color=rgba(self.getColor()),
+                           symbol='',
+                           draggable=False)
+            items = (plot._getItem(kind='item', legend=legend),
+                     plot._getItem(kind='marker', legend=legend + '-name'))
             points = numpy.array((x, y), dtype=numpy.float).T
 
-        self._items.append(item)
+        self._items.append(WeakList(items))
         self._selection.append(points)
         self._selectionUpdated()
 
@@ -317,6 +356,16 @@ class InteractiveSelection(qt.QObject):
                 else:
                     self._updateStatusMessage()
 
+    def _removePlotItems(self, items):
+        """Remove items from their plot.
+
+        :param items: Iterable of plot items to remove
+        """
+        for item in items:
+            plot = item.getPlot()
+            if plot is not None:
+                plot._remove(item)
+
     def reset(self):
         """Reset current selection
 
@@ -325,12 +374,10 @@ class InteractiveSelection(qt.QObject):
         """
         if self.getSelection():  # Something to reset
             # Reset plot items corresponding to selection
-            for item in list(self._items):
-                plot = item.getPlot()
-                if plot is not None:
-                    plot._remove(item)
+            for items in list(self._items):
+                self._removePlotItems(items)
 
-            self._items = WeakList()
+            self._items = []
             self._selection = []
 
             self._selectionUpdated()
@@ -347,10 +394,8 @@ class InteractiveSelection(qt.QObject):
         """
         if self.getSelection():  # Something to undo
             self._selection.pop()
-            item = self._items.pop()
-            plot = item.getPlot()
-            if plot is not None:
-                plot._remove(item)
+            items = self._items.pop()
+            self._removePlotItems(items)
 
             self._selectionUpdated()
             return True
@@ -415,9 +460,10 @@ class InteractiveSelection(qt.QObject):
         self._color = rgba(color)
 
         # Update color of selection items in the plot
-        for item in self._items:
-            if isinstance(item, items.ColorMixIn):
-                item.setColor(rgba(color))
+        for items in self._items:
+            for item in items:
+                if isinstance(item, items.ColorMixIn):
+                    item.setColor(rgba(color))
 
     # Status message
 
