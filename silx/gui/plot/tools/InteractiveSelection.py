@@ -279,7 +279,7 @@ class InteractiveSelection(qt.QObject):
                 text='%d' % len(self._items),
                 color=rgba(self.getColor()),
                 draggable=False)
-            items = (plot._getItem(kind='marker', legend=legend),)
+            item_list = (plot._getItem(kind='marker', legend=legend),)
             points = numpy.array([(x, y)], dtype=numpy.float64)
 
         elif kind == 'hline':
@@ -289,7 +289,7 @@ class InteractiveSelection(qt.QObject):
                 text='%d' % len(self._items),
                 color=rgba(self.getColor()),
                 draggable=False)
-            items = (plot._getItem(kind='marker', legend=legend),)
+            item_list = (plot._getItem(kind='marker', legend=legend),)
             points = numpy.array((x, y), dtype=numpy.float64).T
 
         elif kind == 'vline':
@@ -299,7 +299,7 @@ class InteractiveSelection(qt.QObject):
                 text='%d' % len(self._items),
                 color=rgba(self.getColor()),
                 draggable=False)
-            items = (plot._getItem(kind='marker', legend=legend),)
+            item_list = (plot._getItem(kind='marker', legend=legend),)
             points = numpy.array((x, y), dtype=numpy.float64).T
 
         else:
@@ -326,11 +326,11 @@ class InteractiveSelection(qt.QObject):
                            color=rgba(self.getColor()),
                            symbol='',
                            draggable=False)
-            items = (plot._getItem(kind='item', legend=legend),
-                     plot._getItem(kind='marker', legend=legend + '-name'))
+            item_list = (plot._getItem(kind='item', legend=legend),
+                         plot._getItem(kind='marker', legend=legend + '-name'))
             points = numpy.array((x, y), dtype=numpy.float).T
 
-        self._items.append(WeakList(items))
+        self._items.append(WeakList(item_list))
         self._selection.append(points)
         self._selectionUpdated()
 
@@ -356,12 +356,12 @@ class InteractiveSelection(qt.QObject):
                 else:
                     self._updateStatusMessage()
 
-    def _removePlotItems(self, items):
+    def _removePlotItems(self, item_list):
         """Remove items from their plot.
 
-        :param items: Iterable of plot items to remove
+        :param item_list: Iterable of plot items to remove
         """
-        for item in items:
+        for item in item_list:
             plot = item.getPlot()
             if plot is not None:
                 plot._remove(item)
@@ -374,8 +374,8 @@ class InteractiveSelection(qt.QObject):
         """
         if self.getSelection():  # Something to reset
             # Reset plot items corresponding to selection
-            for items in list(self._items):
-                self._removePlotItems(items)
+            for item_list in list(self._items):
+                self._removePlotItems(item_list)
 
             self._items = []
             self._selection = []
@@ -394,8 +394,8 @@ class InteractiveSelection(qt.QObject):
         """
         if self.getSelection():  # Something to undo
             self._selection.pop()
-            items = self._items.pop()
-            self._removePlotItems(items)
+            item_list = self._items.pop()
+            self._removePlotItems(item_list)
 
             self._selectionUpdated()
             return True
@@ -460,8 +460,8 @@ class InteractiveSelection(qt.QObject):
         self._color = rgba(color)
 
         # Update color of selection items in the plot
-        for items in self._items:
-            for item in items:
+        for item_list in self._items:
+            for item in item_list:
                 if isinstance(item, items.ColorMixIn):
                     item.setColor(rgba(color))
 
