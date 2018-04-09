@@ -40,6 +40,200 @@ from .. import items
 from ..Colors import rgba
 
 
+class _Selection(qt.QObject):
+    """Object describing a selection in a plot.
+
+    :param QObject parent: The selector that created this selection
+    :param str kind: The kind of selection represented by this object
+    """
+
+    sigChanged = qt.Signal()  # TODO
+    """Signal emitted when this selection has changed"""
+
+    def __init__(self, parent, kind):
+        assert isinstance(parent, InteractiveSelection)
+        super(_Selection, self).__init__(parent)
+        self._color = rgba('red')
+        self._items = WeakList()
+        self._points = None
+        self._label = ''
+        self._kind = str(kind)
+
+    def __del__(self):
+        # Clean-up plot items
+        self._removePlotItems()
+
+    def _removedFromSelector(self):
+        """Remove this selection from the selector that created it"""
+        self._removePlotItems()
+        self.setParent(None)
+
+    def getKind(self):
+        """Return kind of selection
+
+        :rtype: str
+        """
+        return self._kind
+
+    def getColor(self):
+        """Returns the color of this selection
+
+        :rtype: QColor
+        """
+        return qt.QColor.fromRgbF(*self._color)
+
+    def setColor(self, color):
+        """Set the color used for this selection.
+
+        :param color: The color to use for selection shape as
+           either a color name, a QColor, a list of uint8 or float in [0, 1].
+        """
+        color = rgba(color)
+        if color != self._color:
+            self._color = color
+
+            # Update color of selection items in the plot
+            for item in self._items:
+                if isinstance(item, items.ColorMixIn):
+                    item.setColor(rgba(color))
+
+    def getLabel(self):
+        """Returns the label displayed for this selection.
+
+        :rtype: str
+        """
+        return self._label
+
+    def setLabel(self, label):
+        """Set the label displayed with this selection.
+
+        :param str label: The text label to display
+        """
+        label = str(label)
+        if label != self._label:
+            self._label = label
+            for item in self._items:
+                if isinstance(item, items.Marker):
+                    item.setText(self._label)
+
+    def getControlPoints(self):
+        """Returns the current selection control points.
+
+        It returns an empty tuple if there is currently no selection.
+
+        :return: Array of (x, y) position in plot coordinates
+        :rtype: numpy.ndarray
+        """
+        return None if self._points is None else numpy.array(self._points)
+
+    def setControlPoints(self, points):
+        """Set this selection control points.
+
+        :param points: Iterable of (x, y) control points
+        """
+        points = numpy.array(points)
+        assert points.ndim == 2
+        assert points.shape[1] == 2
+
+        if (self._points is None or
+                not numpy.all(numpy.equal(points, self._points))):
+            kind = self.getKind()
+
+            if kind in ('point', 'hline', 'vline'):
+                assert len(points) == 1
+                markerPos = points[0]
+
+            elif kind == 'rectangle':
+                assert len(points) == 2
+                markerPos = points.min(axis=0)
+            elif kind == 'line':
+                assert len(points) == 2
+                markerPos = points[numpy.argmin(points[:, 0])]
+            elif kind == 'polygon':
+                assert len(points) > 2
+                markerPos = points[numpy.argmin(points[:, 1])]
+            else:
+                raise RuntimeError('Unsupported selection kind: %s' % kind)
+
+            if self._items:  # Update plot items
+                for item in self._items:
+                    if isinstance(item, items.Shape):
+                        item.setPoints(points)
+                    elif isinstance(item, items.Marker):
+                        item.setPosition(*markerPos)
+
+            else:  # Create plot items
+                self._createPlotItems(points, markerPos)
+
+            self._points = points
+
+    def _createPlotItems(self, points, markerPos):
+        """Create items displaying the selection in the plot.
+
+        :param numpy.ndarray points: Control points as a 2D array of (x, y)
+        :param markerPos: (x, y) position of the label marker
+        """
+        selector = self.parent()
+        plot = selector.parent()
+
+        x, y = points.T
+        kind = self.getKind()
+        legend = "__Selection-%d__" % id(self)
+
+        if kind == 'point':
+            plot.addMarker(
+                x[0], y[0],
+                legend=legend,
+                text=self.getLabel(),
+                color=rgba(self.getColor()),
+                draggable=False)
+            item_list = [plot._getItem(kind='marker', legend=legend)]
+
+        elif kind == 'hline':
+            plot.addYMarker(
+                y[0],
+                legend=legend,
+                text=self.getLabel(),
+                color=rgba(self.getColor()),
+                draggable=False)
+            item_list = [plot._getItem(kind='marker', legend=legend)]
+
+        elif kind == 'vline':
+            plot.addXMarker(
+                x[0],
+                legend=legend,
+                text=self.getLabel(),
+                color=rgba(self.getColor()),
+                draggable=False)
+            item_list = [plot._getItem(kind='marker', legend=legend)]
+
+        else:  # rectangle, line, polygon
+            plot.addItem(x, y,
+                         legend=legend,
+                         shape='polylines' if kind == 'line' else kind,
+                         color=rgba(self.getColor()),
+                         fill=False)
+
+            plot.addMarker(*markerPos,
+                           legend=legend + '-name',
+                           text=self.getLabel(),
+                           color=rgba(self.getColor()),
+                           symbol='',
+                           draggable=False)
+            item_list = [plot._getItem(kind='item', legend=legend),
+                         plot._getItem(kind='marker', legend=legend + '-name')]
+
+        self._items = WeakList(item_list)
+
+    def _removePlotItems(self):
+        """Remove items from their plot."""
+        for item in list(self._items):
+            plot = item.getPlot()
+            if plot is not None:
+                plot._remove(item)
+        self._items = WeakList()
+
+
 class InteractiveSelection(qt.QObject):
     """Class handling a selection interaction on a :class:`PlotWidget`
 
@@ -113,7 +307,6 @@ class InteractiveSelection(qt.QObject):
         self._color = rgba('red')
 
         self._label = "selector-%d" % id(parent)
-        self._items = []  # List of list of plot items displaying the selection
 
         self._eventLoop = None
 
@@ -219,10 +412,9 @@ class InteractiveSelection(qt.QObject):
         :return: True if interaction has changed, False otherwise
         :rtype: bool
         """
-        selection = self.getSelection()
         if (not self._isInteractiveModeStarted and self.isStarted() and
                 (self._nbSelection is None or
-                 len(selection) < self._nbSelection)):
+                 len(self.getSelections()) < self._nbSelection)):
             self._isInteractiveModeStarted = True
             plot = self.parent()
 
@@ -243,18 +435,22 @@ class InteractiveSelection(qt.QObject):
 
     # Selection API
 
-    def getSelection(self):
-        """Returns the current selection control points.
+    def getSelectionPoints(self):
+        """Returns the current selection control points
+
+        :return: Tuple of arrays of (x, y) points in plot coordinates
+        :rtype: tuple of Nx2 numpy.ndarray
+        """
+        return tuple(s.getControlPoints() for s in self._selection)
+
+    def getSelections(self):
+        """Returns the list of current selection.
 
         It returns an empty tuple if there is currently no selection.
 
-        :return: Tuple of arrays of (x, y) position in plot coordinates
-        :rtype: tuple ox Nx2 numpy array
+        :return: Tuple of arrays of objects describing the selection
         """
-        if self._selection:
-            return tuple(points.copy() for points in self._selection)
-        else:
-            return ()
+        return tuple(self._selection)
 
     def _appendSelection(self, x, y, kind):
         """Add a shape to the selection
@@ -263,86 +459,35 @@ class InteractiveSelection(qt.QObject):
         :param y: y coordinates of the shape control points
         :param str kind: the kind of shape
         """
-        assert (self._nbSelection is None or
-                len(self.getSelection()) < self._nbSelection)
+        selections = self.getSelections()
+        assert self._nbSelection is None or len(selections) < self._nbSelection
 
         plot = self.parent()
         if plot is None:
             return
 
-        legend = "%s %d" % (self._label, len(self._items))
-
+        # Create new selection object
+        selection = _Selection(parent=self, kind=kind)
+        selection.setColor(self.getColor())
+        selection.setLabel('%d' % len(selections))
         if kind == 'point':
-            plot.addMarker(
-                x, y,
-                legend=legend,
-                text='%d' % len(self._items),
-                color=rgba(self.getColor()),
-                draggable=False)
-            item_list = (plot._getItem(kind='marker', legend=legend),)
             points = numpy.array([(x, y)], dtype=numpy.float64)
-
-        elif kind == 'hline':
-            plot.addYMarker(
-                y[0],
-                legend=legend,
-                text='%d' % len(self._items),
-                color=rgba(self.getColor()),
-                draggable=False)
-            item_list = (plot._getItem(kind='marker', legend=legend),)
-            points = numpy.array((x, y), dtype=numpy.float64).T
-
-        elif kind == 'vline':
-            plot.addXMarker(
-                x[0],
-                legend=legend,
-                text='%d' % len(self._items),
-                color=rgba(self.getColor()),
-                draggable=False)
-            item_list = (plot._getItem(kind='marker', legend=legend),)
-            points = numpy.array((x, y), dtype=numpy.float64).T
-
         else:
-            plot.addItem(x, y,
-                         legend=legend,
-                         shape='polylines' if kind == 'line' else kind,
-                         color=rgba(self.getColor()),
-                         fill=False)
-
-            if kind == 'rectangle':
-                name_x, name_y = min(x), min(y)
-            elif kind == 'line':
-                index = numpy.argmin(x)
-                name_x, name_y = x[index], y[index]
-            elif kind == 'polygon':
-                index = numpy.argmin(y)
-                name_x, name_y = x[index], y[index]
-            else:
-                raise RuntimeError('Unsupported selection kind: %s' % kind)
-
-            plot.addMarker(name_x, name_y,
-                           legend=legend + '-name',
-                           text='%d' % len(self._items),
-                           color=rgba(self.getColor()),
-                           symbol='',
-                           draggable=False)
-            item_list = (plot._getItem(kind='item', legend=legend),
-                         plot._getItem(kind='marker', legend=legend + '-name'))
             points = numpy.array((x, y), dtype=numpy.float).T
+        selection.setControlPoints(points)
 
-        self._items.append(WeakList(item_list))
-        self._selection.append(points)
+        self._selection.append(selection)
         self._selectionUpdated()
 
     def _selectionUpdated(self):
         """Handle update of the selection"""
-        selection = self.getSelection()
-        assert self._nbSelection is None or len(selection) <= self._nbSelection
+        selections = self.getSelections()
+        assert self._nbSelection is None or len(selections) <= self._nbSelection
 
-        self.sigSelectionChanged.emit(selection)
+        self.sigSelectionChanged.emit(selections)
 
         if self.isStarted():
-            if self._nbSelection is None or len(selection) < self._nbSelection:
+            if self._nbSelection is None or len(selections) < self._nbSelection:
                 self._startSelectionInteraction()
                 self._updateStatusMessage()
 
@@ -372,14 +517,11 @@ class InteractiveSelection(qt.QObject):
         :return: True if a selection was reset.
         :rtype: bool
         """
-        if self.getSelection():  # Something to reset
-            # Reset plot items corresponding to selection
-            for item_list in list(self._items):
-                self._removePlotItems(item_list)
-
-            self._items = []
+        if self.getSelections():  # Something to reset
+            selections = self._selection
             self._selection = []
-
+            for selection in selections:
+                selection._removedFromSelector()
             self._selectionUpdated()
             return True
 
@@ -392,11 +534,9 @@ class InteractiveSelection(qt.QObject):
         :return: True if a selection was undone.
         :rtype: bool
         """
-        if self.getSelection():  # Something to undo
-            self._selection.pop()
-            item_list = self._items.pop()
-            self._removePlotItems(item_list)
-
+        if self.getSelections():  # Something to undo
+            selection = self._selection.pop()
+            selection._removedFromSelector()
             self._selectionUpdated()
             return True
 
@@ -452,18 +592,14 @@ class InteractiveSelection(qt.QObject):
         return qt.QColor.fromRgbF(*self._color)
 
     def setColor(self, color):
-        """Set the color used for the selection.
+        """Set the color to use for selections.
 
-        :param color: The color to use for selection shape as
+        Existing selections are not affected.
+
+        :param color: The color to use for displaying selections as
            either a color name, a QColor, a list of uint8 or float in [0, 1].
         """
         self._color = rgba(color)
-
-        # Update color of selection items in the plot
-        for item_list in self._items:
-            for item in item_list:
-                if isinstance(item, items.ColorMixIn):
-                    item.setColor(rgba(color))
 
     # Status message
 
@@ -483,15 +619,16 @@ class InteractiveSelection(qt.QObject):
         :param str extra: Additional info to display after main message
         """
         if message is None:
+            selections = self.getSelections()
             if self._nbSelection is None:
                 message = 'Select %ss (%d selected)' % (
-                    self._shapeKind, len(self.getSelection()))
+                    self._shapeKind, len(selections))
 
             elif self._nbSelection <= 1:
                 message = 'Select a %s' % self._shapeKind
             else:
                 message = 'Select %d/%d %ss' % (
-                    len(self.getSelection()), self._nbSelection, self._shapeKind)
+                    len(selections), self._nbSelection, self._shapeKind)
 
             if self.getValidationMode() == self.ValidationMode.ENTER:
                 message += ' - Press Enter to validate'
@@ -580,7 +717,7 @@ class InteractiveSelection(qt.QObject):
         """
         if self._terminateSelection():
             self.reset()
-            self.sigSelectionFinished.emit(self.getSelection())
+            self.sigSelectionFinished.emit(self.getSelectionPoints())
             self._updateStatusMessage('Selection cancelled')
             return True
         else:
@@ -593,7 +730,7 @@ class InteractiveSelection(qt.QObject):
         :rtype: bool
         """
         if self._terminateSelection():
-            self.sigSelectionFinished.emit(self.getSelection())
+            self.sigSelectionFinished.emit(self.getSelectionPoints())
             self._updateStatusMessage('Selection done')
             return True
         else:
@@ -631,6 +768,6 @@ class InteractiveSelection(qt.QObject):
 
         self.stop()
 
-        selection = self.getSelection()
+        selection = self.getSelectionPoints()
         self.reset()
         return selection
