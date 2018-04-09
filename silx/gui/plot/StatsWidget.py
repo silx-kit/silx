@@ -116,20 +116,26 @@ class StatsTable(TableWidget):
     """
     COLUMNS_INDEX = OrderedDict([
         ('legend', 0),
-        ('min', 1),
-        ('coords min', 2),
-        ('max', 3),
-        ('coords max', 4),
-        ('delta', 5),
-        ('std', 6),
-        ('mean', 7),
-        ('COM', 8),
-        ('kind', 9),
+        ('kind', 1),
+        ('min', 2),
+        ('coords min', 3),
+        ('max', 4),
+        ('coords max', 5),
+        ('delta', 6),
+        ('std', 7),
+        ('mean', 8),
+        ('COM', 9),
     ])
 
     COLUMNS = COLUMNS_INDEX.keys()
 
-    COMPATAIBLE_ITEMS = (CurveItem, ImageItem, ScatterItem)
+    COMPATIBLE_KINDS = {
+        'curve': CurveItem,
+        'image':ImageItem,
+        'scatter': ScatterItem
+    }
+
+    COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
 
     FORMATED_COLUMNS = ('mean', 'com', 'std', 'delta', 'min', 'max', 'delta')
     """The Columns for which we want to apply a specific format"""
@@ -137,13 +143,25 @@ class StatsTable(TableWidget):
     NUMBER_FORMAT = '{0:.3f}'
     """The format to apply to the `FORMATED_COLUMNS`"""
 
+    @staticmethod
+    def getKind(myItem):
+        if isinstance(myItem, CurveItem):
+            return 'curve'
+        elif isinstance(myItem, ImageItem):
+            return 'image'
+        elif isinstance(myItem, ScatterItem):
+            return 'scatter'
+        else:
+            return None
+
     def __init__(self, parent=None, plot=None):
         qt.QTableWidget.__init__(self, parent)
         """Next freeID for the curve"""
         self.plot = None
         self._displayOnlyActItem = False
         self._statsOnVisibleData = False
-        self._legendToItems = {}
+        self._lgdAndKindToItems = {}
+        """Associate to a tuple(legend, kind) the items legend"""
         self.callbackImage = None
         self.callbackScatter = None
         self.callbackCurve = None
@@ -216,12 +234,10 @@ class StatsTable(TableWidget):
                 # Note: connection on Item arre managed by the _removeItem function
 
     def clear(self, rmConnections=False):
-        legends = list(self._legendToItems.keys())
-        for legend in legends:
-            kind = self.item(self._legendToItems[legend].row(),
-                             self.COLUMNS_INDEX['kind']).text()
-            self._removeItem(legend=legend, kind=kind)
-        self._legendToItems = {}
+        lgdsAndKinds = list(self._lgdAndKindToItems.keys())
+        for lgdAndKind in lgdsAndKinds:
+            self._removeItem(legend=lgdAndKind[0], kind=lgdAndKind[1])
+        self._lgdAndKindToItems = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
@@ -232,25 +248,16 @@ class StatsTable(TableWidget):
         self.setColumnHidden(self.COLUMNS_INDEX['kind'], True)
 
     def _addItem(self, item):
-        def getKind(myItem):
-            if isinstance(myItem, CurveItem):
-                return 'curve'
-            elif isinstance(myItem, ImageItem):
-                return 'image'
-            elif isinstance(myItem, ScatterItem):
-                return 'scatter'
-            else:
-                return None
-        assert isinstance(item, self.COMPATAIBLE_ITEMS)
-        if item.getLegend() in self._legendToItems:
-            self._updateStats(item, getKind(item))
+        assert isinstance(item, self.COMPATIBLE_ITEMS)
+        if (item.getLegend(), self.getKind(item)) in self._lgdAndKindToItems:
+            self._updateStats(item, self.getKind(item))
             return
 
         self.setRowCount(self.rowCount() + 1)
 
         itemLegend = None
         indexTable = self.rowCount() - 1
-        kind = getKind(item)
+        kind = self.getKind(item)
         for itemName in self.COLUMNS:
             if itemName in ('min', 'max', 'COM', 'delta', 'std', 'mean'):
                 _item = _FloatItem()
@@ -264,7 +271,7 @@ class StatsTable(TableWidget):
             self.setItem(indexTable, self.COLUMNS_INDEX[itemName], _item)
 
         assert itemLegend
-        self._legendToItems[item.getLegend()] = itemLegend
+        self._lgdAndKindToItems[(item.getLegend(), kind)] = itemLegend
         self._updateStats(legend=item.getLegend(), kind=kind)
 
         callback = functools.partial(
@@ -273,7 +280,7 @@ class StatsTable(TableWidget):
         item.sigItemChanged.connect(callback)
 
     def _removeItem(self, legend, kind):
-        if legend not in self._legendToItems or not self.plot:
+        if (legend, kind) not in self._lgdAndKindToItems or not self.plot:
             return
 
         callback = functools.partial(
@@ -288,16 +295,13 @@ class StatsTable(TableWidget):
             item = self.plot.getScatter(legend)
         else:
             raise ValueError('Kind not managed')
-        self.firstItem = self._legendToItems[legend]
-        del self._legendToItems[legend]
+        self.firstItem = self._lgdAndKindToItems[(legend, kind)]
+        del self._lgdAndKindToItems[(legend, kind)]
         self.removeRow(self.firstItem.row())
 
     def _updateCurrentStats(self):
-        for legend in self._legendToItems:
-            kindItem = self.item(self._legendToItems[legend].row(),
-                                 self.COLUMNS_INDEX['kind'])
-            kind = kindItem.text()
-            self._updateStats(legend, kind)
+        for lgdAndKind in self._lgdAndKindToItems:
+            self._updateStats(lgdAndKind[0], lgdAndKind[1])
 
     def _updateStats(self, legend, kind, *args, **kwargs):
         def noDataSelected():
@@ -423,9 +427,9 @@ class StatsTable(TableWidget):
             res['mean'] = numpy.mean(valueData)
             return res
 
-        def retrieveItems(item):
+        def retrieveItems(item, kind):
             items = {}
-            itemLegend = self._legendToItems[item.getLegend()]
+            itemLegend = self._lgdAndKindToItems[item.getLegend(), kind]
             items['legend'] = itemLegend
             assert itemLegend
             for itemName in self.COLUMNS:
@@ -449,12 +453,13 @@ class StatsTable(TableWidget):
         else:
             raise ValueError('kind not managed')
 
-        if not item:
+        if not item or (item.getLegend(), kind) not in self._lgdAndKindToItems:
             return
-        assert item.getLegend() in self._legendToItems
-        assert isinstance(item, self.COMPATAIBLE_ITEMS)
 
-        items = retrieveItems(item)
+        assert (item.getLegend(), kind) in self._lgdAndKindToItems
+        assert isinstance(item, self.COMPATIBLE_ITEMS)
+
+        items = retrieveItems(item, kind)
 
         for itemLabel in self.COLUMNS:
             if itemLabel in ('legend', 'kind'):
@@ -463,20 +468,23 @@ class StatsTable(TableWidget):
             val = stats[itemLabel]
             if itemLabel in self.FORMATED_COLUMNS:
                 val = self.NUMBER_FORMAT.format(val)
+            assert items[itemLabel] is not None
             items[itemLabel].setText(str(val))
 
     def currentChanged(self, current, previous):
-        legendItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
-        kindItem = self.item(current.row(), self.COLUMNS_INDEX['kind'])
-        kind = kindItem.text()
-        if kind == 'curve':
-            self.plot.setActiveCurve(legendItem.text())
-        elif kind =='image':
-            self.plot.setActiveImage(legendItem.text())
-        elif kind =='scatter':
-            self.plot._setActiveItem('scatter', legendItem.text())
-        else:
-            raise ValueError('kind not managed')
+        if current.row() > 0:
+            legendItem = self.item(current.row(), self.COLUMNS_INDEX['legend'])
+            assert legendItem
+            kindItem = self.item(current.row(), self.COLUMNS_INDEX['kind'])
+            kind = kindItem.text()
+            if kind == 'curve':
+                self.plot.setActiveCurve(legendItem.text())
+            elif kind =='image':
+                self.plot.setActiveImage(legendItem.text())
+            elif kind =='scatter':
+                self.plot._setActiveItem('scatter', legendItem.text())
+            else:
+                raise ValueError('kind not managed')
         qt.QTableWidget.currentChanged(self, current, previous)
 
     def setDisplayOnlyActiveItem(self, b):
@@ -490,7 +498,7 @@ class StatsTable(TableWidget):
 
     def _activeItemChanged(self, kind):
         """Callback used when plotting only the active item"""
-        assert kind not in ('curve', 'image', 'scatter')
+        assert kind in ('curve', 'image', 'scatter')
 
         if kind == 'curve':
             item = self.plot.getActiveCurve(just_legend=False)
@@ -500,7 +508,7 @@ class StatsTable(TableWidget):
             item = self.plot.getActiveScatter(just_legend=False)
         else:
             raise ValueError('kind not managed')
-        if item.getLegend() not in self._legendToItems:
+        if (item.getLegend(), kind) not in self._lgdAndKindToItems:
             self.clear()
             self._addItem(item)
         else:
