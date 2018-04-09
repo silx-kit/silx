@@ -32,6 +32,7 @@ __date__ = "22/03/2018"
 
 import numpy
 
+from ....third_party import enum
 from ....utils.weakref import WeakList
 from ... import qt, icons
 from .. import PlotWidget
@@ -99,7 +100,7 @@ class InteractiveSelection(qt.QObject):
         self._isInteractiveModeStarted = False
         self._nbSelection = 0
 
-        self._validationMode = 'enter'
+        self._validationMode = self.ValidationMode.ENTER
         self._statusMessage = ''
 
         self._shapeKind = 'point'
@@ -300,9 +301,9 @@ class InteractiveSelection(qt.QObject):
             else:
                 self._stopSelectionInteraction(resetInteractiveMode=True)
                 validationMode = self.getValidationMode()
-                if validationMode == 'auto':
+                if validationMode == self.ValidationMode.AUTO:
                     self.stop()
-                elif validationMode == 'enter':
+                elif validationMode == self.ValidationMode.ENTER:
                     self._updateStatusMessage(extra='Press Enter to confirm')
                 else:
                     self._updateStatusMessage()
@@ -350,27 +351,40 @@ class InteractiveSelection(qt.QObject):
 
     # Selection parameters
 
+    @enum.unique
+    class ValidationMode(enum.Enum):
+        """Mode of validation of the selection"""
+
+        AUTO = 'auto'
+        """Automatically ends the selection once the user terminates the last shape"""
+
+        ENTER = 'enter'
+        """Ends the selection when the *Enter* key is pressed"""
+
+        NONE = 'none'
+        """Do not provide the user a way to end the selection.
+
+        The end of a selection must be done through :meth:`stop` or :meth:`cancel`.
+        This is useful if the application is willing to provide its own way of
+        ending the selection (e.g., a button).
+        """
+
     def getValidationMode(self):
         """Returns the selection validation mode in use.
 
-        :rtype: str
+        :rtype: ValidationMode
         """
         return self._validationMode
 
     def setValidationMode(self, mode):
         """Set the way to perform selection validation.
 
-        The following modes are supported:
+        See :class:`ValidationMode` enumeration for the supported
+        validation modes.
 
-        - 'auto': Automatic validation,
-          entering the last selection terminates the selection.
-        - 'enter': Press the *Enter* key to terminate the selection (default).
-        - 'none': The selection can only be terminated through
-          :meth:`stop` or :meth:`cancel`.
-
-        :param str mode: The mode of selection validation to use.
+        :param ValidationMode mode: The mode of selection validation to use.
         """
-        assert mode in ('auto', 'enter', 'none')
+        assert isinstance(mode, self.ValidationMode)
         self._validationMode = mode
 
     def getColor(self):
