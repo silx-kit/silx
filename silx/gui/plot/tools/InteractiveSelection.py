@@ -340,6 +340,7 @@ class Selection(qt.QObject):
             if plot is not None:
                 plot._remove(item)
         self._items = WeakList()
+        self._editAnchors = WeakList()
 
 
 class InteractiveSelection(qt.QObject):
@@ -798,7 +799,7 @@ class InteractiveSelection(qt.QObject):
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
         :param bool clear: True (default) to reset previous selection,
             False to keep it (In this case the current number of selection
-            must be below the requested count.
+            must be below the requested count).
         """
         self.cancel()
         if clear:
