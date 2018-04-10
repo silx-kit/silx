@@ -603,14 +603,14 @@ class InteractiveSelection(qt.QObject):
                 self._updateStatusMessage()
 
     def getColor(self):
-        """Return the color of the selections
+        """Return the default color of the selections
 
         :rtype: QColor
         """
         return qt.QColor.fromRgbF(*self._color)
 
     def setColor(self, color):
-        """Set the color to use for selections.
+        """Set the default color to use for selections.
 
         Existing selections are not affected.
 
@@ -669,16 +669,23 @@ class InteractiveSelection(qt.QObject):
         :rtype: bool"""
         return self._isStarted
 
-    def start(self, count=1, kind='point'):
+    def start(self, count=1, kind='point', clear=True):
         """Start an interactive selection.
 
         :param int count: The maximum number of selections to request
             If count is None, there is no limit of number of selection.
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param bool clear: True (default) to reset previous selection,
+            False to keep it (In this case the current number of selection
+            must be below the requested count.
         """
         self.cancel()
-        self.clearSelections()
+        if clear:
+            self.clearSelections()
+        elif len(self.getSelections()) > count:
+            raise RuntimeError(
+                'Cannot start selection: Already too many selections')
 
         plot = self.parent()
         if plot is None:
