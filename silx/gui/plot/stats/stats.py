@@ -382,14 +382,18 @@ class StatCOM(StatBase):
             return com
         elif context.kind == 'scatter':
             xData = context.data[0]
-            yData = context.data[1]
-            com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(
-                yData).astype(numpy.float32)
+            values = context.values
+            com = numpy.sum(xData * values).astype(numpy.float32) / numpy.sum(
+                values).astype(numpy.float32)
             return com
         elif context.kind == 'image':
-            data = context.data
-            com = numpy.sum(data).astype(numpy.float32) / data.size.astype(
-                numpy.float32)
-            return com
+            yData = numpy.sum(context.data, axis=1)
+            xData = numpy.sum(context.data, axis=0)
+            dataXRange = range(context.data.shape[1])
+            dataYRange = range(context.data.shape[0])
+
+            ycom = numpy.sum(yData * dataYRange) / numpy.sum(yData)
+            xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
+            return (xcom, ycom)
         else:
             raise ValueError('kind not managed')
