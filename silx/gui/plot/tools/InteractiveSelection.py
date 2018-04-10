@@ -150,8 +150,13 @@ class _Selection(qt.QObject):
                 assert len(points) == 2
                 markerPos = points[numpy.argmin(points[:, 0])]
             elif kind == 'polygon':
-                assert len(points) > 2
                 markerPos = points[numpy.argmin(points[:, 1])]
+
+                # Makes sure first and last points are different
+                if numpy.all(numpy.equal(points[0], points[-1])):
+                    points = points[:-1]
+                assert len(points) > 2
+
             else:
                 raise RuntimeError('Unsupported selection kind: %s' % kind)
 
