@@ -64,7 +64,7 @@ class StatFormatter(object):
 
     def format(self, val):
         if self.formatter is None:
-            return val
+            return str(val)
         else:
             self.formatter.format(val)
 
