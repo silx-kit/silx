@@ -303,7 +303,7 @@ class InteractiveSelection(qt.QObject):
         self._selection = []
         self._isStarted = False
         self._isInteractiveModeStarted = False
-        self._nbSelection = 0
+        self._maxSelection = None
 
         self._validationMode = self.ValidationMode.ENTER
         self._statusMessage = ''
@@ -422,8 +422,8 @@ class InteractiveSelection(qt.QObject):
         :rtype: bool
         """
         if (not self._isInteractiveModeStarted and self.isStarted() and
-                (self._nbSelection is None or
-                 len(self.getSelections()) < self._nbSelection)):
+                (self._maxSelection is None or
+                 len(self.getSelections()) < self._maxSelection)):
             self._isInteractiveModeStarted = True
             plot = self.parent()
 
@@ -492,8 +492,8 @@ class InteractiveSelection(qt.QObject):
            number of selection has been reached.
         """
         selections = self.getSelections()
-        if (self._nbSelection is not None and
-                len(selections) >= self._nbSelection):
+        if (self._maxSelection is not None and
+                len(selections) >= self._maxSelection):
             raise RuntimeError(
                 'Cannot add selection: Maximum number of selections reached')
 
@@ -529,12 +529,12 @@ class InteractiveSelection(qt.QObject):
     def _selectionUpdated(self):
         """Handle update of the selection"""
         selections = self.getSelections()
-        assert self._nbSelection is None or len(selections) <= self._nbSelection
+        assert self._maxSelection is None or len(selections) <= self._maxSelection
 
         self.sigSelectionChanged.emit(selections)
 
         if self.isStarted():
-            if self._nbSelection is None or len(selections) < self._nbSelection:
+            if self._maxSelection is None or len(selections) < self._maxSelection:
                 self._startSelectionInteraction()
                 self._updateStatusMessage()
 
@@ -638,15 +638,15 @@ class InteractiveSelection(qt.QObject):
         """
         if message is None:
             selections = self.getSelections()
-            if self._nbSelection is None:
+            if self._maxSelection is None:
                 message = 'Select %ss (%d selected)' % (
                     self._shapeKind, len(selections))
 
-            elif self._nbSelection <= 1:
+            elif self._maxSelection <= 1:
                 message = 'Select a %s' % self._shapeKind
             else:
                 message = 'Select %d/%d %ss' % (
-                    len(selections), self._nbSelection, self._shapeKind)
+                    len(selections), self._maxSelection, self._shapeKind)
 
             if self.getValidationMode() == self.ValidationMode.ENTER:
                 message += ' - Press Enter to validate'
@@ -687,7 +687,7 @@ class InteractiveSelection(qt.QObject):
         assert kind in ('point', 'rectangle', 'line',
                         'polygon', 'hline', 'vline')
         self._shapeKind = kind
-        self._nbSelection = count
+        self._maxSelection = count
 
         self._isStarted = True
         self._startSelectionInteraction()
@@ -716,7 +716,7 @@ class InteractiveSelection(qt.QObject):
         self._stopSelectionInteraction(resetInteractiveMode=False)
 
         self._isStarted = False
-        self._nbSelection = 0
+        self._maxSelection = None
 
         self.getSelectionModeAction().setEnabled(False)
 
