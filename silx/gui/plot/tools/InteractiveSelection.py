@@ -30,6 +30,8 @@ __license__ = "MIT"
 __date__ = "22/03/2018"
 
 
+import functools
+import itertools
 import numpy
 
 from ....third_party import enum
@@ -55,9 +57,11 @@ class Selection(qt.QObject):
         super(Selection, self).__init__(parent)
         self._color = rgba('red')
         self._items = WeakList()
+        self._editAnchors = WeakList()
         self._points = None
         self._label = ''
         self._kind = str(kind)
+        self._editable = False
 
     def __del__(self):
         # Clean-up plot items
@@ -116,6 +120,27 @@ class Selection(qt.QObject):
                 if isinstance(item, items.Marker):
                     item.setText(self._label)
 
+    def isEditable(self):
+        """Returns whether the selection is editable by the user or not.
+
+        :rtype: bool
+        """
+        return self._editable
+
+    def setEditable(self, editable):
+        """Set whether selection can be changed interactively.
+
+        :param bool editable: True to allow edition by the user,
+           False to disable.
+        """
+        editable = bool(editable)
+        if self._editable != editable:
+            self._editable = editable
+            # Recreate plot items
+            # This can be avoided once marker.setDraggable is public
+            self._removePlotItems()
+            self._createPlotItems()
+
     def getControlPoints(self):
         """Returns the current selection control points.
 
@@ -139,52 +164,72 @@ class Selection(qt.QObject):
                 not numpy.all(numpy.equal(points, self._points))):
             kind = self.getKind()
 
-            if kind in ('point', 'hline', 'vline'):
-                assert len(points) == 1
-                markerPos = points[0]
-
-            elif kind == 'rectangle':
-                assert len(points) == 2
-                markerPos = points.min(axis=0)
-            elif kind == 'line':
-                assert len(points) == 2
-                markerPos = points[numpy.argmin(points[:, 0])]
-            elif kind == 'polygon':
-                markerPos = points[numpy.argmin(points[:, 1])]
-
+            if kind == 'polygon':
                 # Makes sure first and last points are different
                 if numpy.all(numpy.equal(points[0], points[-1])):
                     points = points[:-1]
                 assert len(points) > 2
 
-            else:
-                raise RuntimeError('Unsupported selection kind: %s' % kind)
+            self._points = points
 
             if self._items:  # Update plot items
                 for item in self._items:
                     if isinstance(item, items.Shape):
                         item.setPoints(points)
                     elif isinstance(item, items.Marker):
+                        markerPos = self._getMarkerPosition(points, kind)
                         item.setPosition(*markerPos)
 
-            else:  # Create plot items
-                self._createPlotItems(points, markerPos)
+                if self._editAnchors:  # Update anchors
+                    if len(self._editAnchors) == len(points) + 1:
+                        # Also update center anchor
+                        points = numpy.append(points,
+                                              [numpy.mean(points, axis=0)], axis=0)
 
-            self._points = points
+                    for anchor, point in zip(self._editAnchors, points):
+                        anchor.setPosition(*point)
+
+            else:  # Create plot items
+                self._createPlotItems()
+
             self.sigControlPointsChanged.emit()
 
-    def _createPlotItems(self, points, markerPos):
-        """Create items displaying the selection in the plot.
+    @staticmethod
+    def _getMarkerPosition(points, kind):
+        """Compute marker position.
 
-        :param numpy.ndarray points: Control points as a 2D array of (x, y)
-        :param markerPos: (x, y) position of the label marker
+        :param numpy.ndarray points: Array of (x, y) control points
+        :param str kind: The kind of selection shape to use
+        :return: (x, y) position of the marker
         """
+        if kind in ('point', 'hline', 'vline'):
+            assert len(points) == 1
+            return points[0]
+
+        elif kind == 'rectangle':
+            assert len(points) == 2
+            return points.min(axis=0)
+
+        elif kind == 'line':
+            assert len(points) == 2
+            return points[numpy.argmin(points[:, 0])]
+
+        elif kind == 'polygon':
+            return points[numpy.argmin(points[:, 1])]
+
+        else:
+            raise RuntimeError('Unsupported selection kind: %s' % kind)
+
+    def _createPlotItems(self):
+        """Create items displaying the selection in the plot."""
         selector = self.parent()
         plot = selector.parent()
 
-        x, y = points.T
+        x, y = self._points.T
         kind = self.getKind()
         legend = "__Selection-%d__" % id(self)
+
+        self._items = WeakList()
 
         if kind == 'point':
             plot.addMarker(
@@ -192,8 +237,8 @@ class Selection(qt.QObject):
                 legend=legend,
                 text=self.getLabel(),
                 color=rgba(self.getColor()),
-                draggable=False)
-            item_list = [plot._getItem(kind='marker', legend=legend)]
+                draggable=self.isEditable())
+            self._items.append(plot._getItem(kind='marker', legend=legend))
 
         elif kind == 'hline':
             plot.addYMarker(
@@ -201,8 +246,8 @@ class Selection(qt.QObject):
                 legend=legend,
                 text=self.getLabel(),
                 color=rgba(self.getColor()),
-                draggable=False)
-            item_list = [plot._getItem(kind='marker', legend=legend)]
+                draggable=self.isEditable())
+            self._items.append(plot._getItem(kind='marker', legend=legend))
 
         elif kind == 'vline':
             plot.addXMarker(
@@ -210,8 +255,8 @@ class Selection(qt.QObject):
                 legend=legend,
                 text=self.getLabel(),
                 color=rgba(self.getColor()),
-                draggable=False)
-            item_list = [plot._getItem(kind='marker', legend=legend)]
+                draggable=self.isEditable())
+            self._items.append(plot._getItem(kind='marker', legend=legend))
 
         else:  # rectangle, line, polygon
             plot.addItem(x, y,
@@ -219,21 +264,78 @@ class Selection(qt.QObject):
                          shape='polylines' if kind == 'line' else kind,
                          color=rgba(self.getColor()),
                          fill=False)
+            self._items.append(plot._getItem(kind='item', legend=legend))
 
+            # Add label marker
+            markerPos = self._getMarkerPosition(self._points, kind)
             plot.addMarker(*markerPos,
                            legend=legend + '-name',
                            text=self.getLabel(),
                            color=rgba(self.getColor()),
                            symbol='',
                            draggable=False)
-            item_list = [plot._getItem(kind='item', legend=legend),
-                         plot._getItem(kind='marker', legend=legend + '-name')]
+            self._items.append(
+                plot._getItem(kind='marker', legend=legend + '-name'))
 
-        self._items = WeakList(item_list)
+            if self.isEditable():  # Add draggable anchors
+                self._editAnchors = WeakList()
+
+                for index, point in enumerate(self._points):
+                    anchorLegend = legend + '-anchor-%d' % index
+                    plot.addMarker(*point,
+                                   legend=anchorLegend,
+                                   text='',
+                                   color=rgba(self.getColor()),
+                                   symbol='s',
+                                   draggable=True)
+                    item = plot._getItem(kind='marker', legend=anchorLegend)
+                    item.sigItemChanged.connect(functools.partial(
+                        self._controlPointAnchorChanged, index))
+                    self._editAnchors.append(item)
+
+                # Add an anchor to the center of the rectangle
+                if kind == 'rectangle':
+                    center = numpy.mean(self._points, axis=0)
+                    anchorLegend = legend + '-anchor-center'
+                    plot.addMarker(*center,
+                                   legend=anchorLegend,
+                                   text='',
+                                   color=rgba(self.getColor()),
+                                   symbol='o',
+                                   draggable=True)
+                    item = plot._getItem(kind='marker', legend=anchorLegend)
+                    item.sigItemChanged.connect(self._centerAnchorChanged)
+                    self._editAnchors.append(item)
+
+    def _controlPointAnchorChanged(self, index, event):
+        """Handle update of position of an edition anchor
+
+        :param int index: Index of the anchor
+        :param ItemChangedType event: Event type
+        """
+        if event == items.ItemChangedType.POSITION:
+            anchor = self._editAnchors[index]
+            points = self.getControlPoints()
+            points[index] = anchor.getPosition()
+            self.setControlPoints(points)
+
+    def _centerAnchorChanged(self, event):
+        """Handle update of position of the center anchor
+
+        :param ItemChangedType event: Event type
+        """
+        if event == items.ItemChangedType.POSITION:
+            anchor = self._editAnchors[-1]
+            points = self.getControlPoints()
+            center = numpy.mean(points, axis=0)
+            offset = anchor.getPosition() - center
+            points += offset
+            self.setControlPoints(points)
 
     def _removePlotItems(self):
         """Remove items from their plot."""
-        for item in list(self._items):
+        for item in itertools.chain(list(self._items),
+                                    list(self._editAnchors)):
             plot = item.getPlot()
             if plot is not None:
                 plot._remove(item)
@@ -701,7 +803,7 @@ class InteractiveSelection(qt.QObject):
         self.cancel()
         if clear:
             self.clearSelections()
-        elif len(self.getSelections()) > count:
+        elif count is not None and len(self.getSelections()) > count:
             raise RuntimeError(
                 'Cannot start selection: Already too many selections')
 
