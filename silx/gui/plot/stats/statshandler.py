@@ -66,7 +66,7 @@ class StatFormatter(object):
         if self.formatter is None:
             return str(val)
         else:
-            self.formatter.format(val)
+            return self.formatter.format(val)
 
 
 class StatsHandler(object):
