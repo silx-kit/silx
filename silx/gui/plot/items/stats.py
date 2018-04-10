@@ -114,6 +114,7 @@ class StatsContext(object):
         self.min = None
         self.max = None
         self.data = None
+        self.values = None
         self.createContext(item, plot, onlimits)
 
     def createContext(self, item, plot, onlimits):
@@ -145,6 +146,7 @@ class CurveContext(StatsContext):
         self.yData = yData
         self.min, self.max = min_max(yData)
         self.data = (xData, yData)
+        self.values = yData
 
 
 class ScatterContext(StatsContext):
@@ -175,6 +177,7 @@ class ScatterContext(StatsContext):
             xData = xData[(minY <= yData) & (yData <= maxY)]
             yData = yData[(minY <= yData) & (yData <= maxY)]
             self.data = (xData, yData, valueData)
+            self.values = valueData
 
 
 class ImageContext(StatsContext):
@@ -206,6 +209,7 @@ class ImageContext(StatsContext):
         data = item.getData()
         self.data = data[XMinBound:XMaxBound + 1, YMinBound:YMaxBound + 1]
         self.min, self.max = min_max(self.data)
+        self.values = self.data
 
 
 class StatBase(object):
@@ -236,6 +240,26 @@ BASIC_COMPATIBLE_KINDS = {
     'image': ImageItem,
     'scatter': ScatterItem
 }
+
+
+class Stat(StatBase):
+    """
+    Create a StatBase class based on pointer on the function.
+    
+    :param str name: name of the statistic. Used as id
+    :param fct: function which should have as unique mandatory parameter the
+                data. Should be able to adapt to all `kinds` defined as
+                compatible
+    :param tuple kinds: the compatible item kinds of the function (curve,
+                        image...)
+    """
+    def __init__(self, name, fct, kinds=BASIC_COMPATIBLE_KINDS):
+        self.name = name
+        self.compatibleKinds = kinds
+        self._fct = fct
+
+    def calculate(self, context):
+        return self._fct(context.values)
 
 
 class StatMin(StatBase):
@@ -319,48 +343,6 @@ class StatCoordMax(StatBase):
             return xData[numpy.where(yData == context.max)]
         elif context.kind == 'image':
             return self.getImgCoordsFor(context.data, context.max)
-        else:
-            raise ValueError('kind not managed')
-
-
-class StatStd(StatBase):
-    """
-    Compute data standard deviation
-    """
-    def __init__(self):
-        StatBase.__init__(self, name='std',
-                          compatibleKinds=BASIC_COMPATIBLE_KINDS)
-
-    def calculate(self, context):
-        if context.kind == 'curve':
-            yData = context.data[1]
-            return numpy.std(yData)
-        elif context.kind == 'scatter':
-            valueData = context.data[2]
-            return numpy.std(valueData)
-        elif context.kind == 'image':
-            return numpy.std(context.data)
-        else:
-            raise ValueError('kind not managed')
-
-
-class StatMean(StatBase):
-    """
-    Compute data mean
-    """
-    def __init__(self):
-        StatBase.__init__(self, name='mean',
-                          compatibleKinds=BASIC_COMPATIBLE_KINDS)
-
-    def calculate(self, context):
-        if context.kind == 'curve':
-            yData = context.data[1]
-            return numpy.mean(yData)
-        elif context.kind == 'scatter':
-            valueData = context.data[2]
-            return numpy.mean(valueData)
-        elif context.kind == 'image':
-            return numpy.mean(context.data)
         else:
             raise ValueError('kind not managed')
 

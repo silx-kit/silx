@@ -32,6 +32,10 @@ __date__ = "07/03/2018"
 
 from silx.gui import qt
 from silx.gui.plot.items import stats as statsmdl
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class _FloatItem(qt.QTableWidgetItem):
     """Simple QTableWidgetItem allowing ordering on floats"""
@@ -83,13 +87,11 @@ class StatsHandler(object):
         self.stats = statsmdl.Stats()
         self.formatters = {}
         for elmt in _listStatFormatter:
-            if type(elmt) in (tuple, list):
-                assert len(elmt) is 2
-                self.add(stat=elmt[0], formatter=elmt[1])
-            else:
-                self.add(stat=elmt)
+            helper = _StatHelper(elmt)
+            self.add(stat=helper.stat, formatter=helper.statFormatter)
 
     def add(self, stat, formatter=None):
+        print(stat)
         assert isinstance(stat, statsmdl.StatBase)
         self.stats.add(stat)
         _formatter = formatter
@@ -129,3 +131,51 @@ class StatsHandler(object):
         for resName, resValue in list(res.items()):
             res[resName] = self.format(resName, res[resName])
         return res
+
+
+class _StatHelper(object):
+    """
+    Helper class to generated the requested StatBase instance and the
+    associated StatFormatter
+    """
+
+    def __init__(self, arg):
+        assert isinstance(arg, (tuple, statsmdl.StatBase))
+        self.statFormatter = None
+        self.stat = None
+
+        if isinstance(arg, statsmdl.StatBase):
+            self.stat = arg
+        else:
+            assert len(arg) > 0
+            if isinstance(arg[0], statsmdl.StatBase):
+                self.dealWithStatAndFormatter(arg)
+            else:
+                self.createStatInstanceAndFormatter(arg)
+
+    def dealWithStatAndFormatter(self, arg):
+        assert isinstance(arg[0], statsmdl.StatBase)
+        self.stat = arg[0]
+        if len(arg) > 2:
+            raise ValueError('To many argument with %s. At most one '
+                             'argument can be associated with the '
+                             'BaseStat (the `StatFormatter`')
+        if len(arg) is 2:
+            assert isinstance(arg[1], StatFormatter)
+            self.statFormatter = arg[1]
+
+    def createStatInstanceAndFormatter(self, arg):
+        if type(arg[0]) is not str:
+            raise ValueError('first element of the tuple should be a string'
+                             ' or a StatBase instance')
+        if len(arg) is 1:
+            raise ValueError('A function should be associated with the'
+                             'stat name')
+        if len(arg) > 3:
+            raise ValueError('Two much argument given for defining statistic.'
+                             'Take at most three arguments (name, function, '
+                             'kinds)')
+        if len(arg) is 2:
+            self.stat = statsmdl.Stat(name=arg[0], fct=arg[1])
+        else:
+            self.stat = statsmdl.Stat(name=arg[0], fct=arg[1], kinds=arg[2])

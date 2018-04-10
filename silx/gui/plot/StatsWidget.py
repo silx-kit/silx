@@ -38,7 +38,11 @@ from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
 from collections import OrderedDict
 import functools
+import numpy
 import silx
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class StatsWidget(qt.QWidget):
@@ -120,13 +124,13 @@ class BasicStatsWidget(StatsWidget):
     """
 
     STATS = StatsHandler((
-        (statsmdl.StatMin()),
+        statsmdl.StatMin(),
         (statsmdl.StatCoordMin(), StatFormatter(None, qt.QTableWidgetItem)),
-        (statsmdl.StatMax()),
+        statsmdl.StatMax(),
         (statsmdl.StatCoordMax(), StatFormatter(None, qt.QTableWidgetItem)),
-        (statsmdl.StatStd()),
-        (statsmdl.StatMean()),
-        (statsmdl.StatCOM())
+        ('std', numpy.std),
+        ('mean', numpy.mean),
+        statsmdl.StatCOM()
     ))
 
     def __init__(self, parent=None, plot=None):
