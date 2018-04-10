@@ -233,7 +233,7 @@ class StatBase(object):
         :param context:
         :return dict: key is stat name, statistic computed is the dict value
         """
-        raise NotImplemented('Base class')
+        raise NotImplementedError('Base class')
 
 
 BASIC_COMPATIBLE_KINDS = {
