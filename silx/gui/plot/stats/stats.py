@@ -166,8 +166,8 @@ class ScatterContext(StatsContext):
         xData, yData, valueData, xerror, yerror = item.getData(copy=True)
         assert plot
         if onlimits:
-            minX, maxX = self.plot.getXAxis().getLimits()
-            minY, maxY = self.plot.getYAxis().getLimits()
+            minX, maxX = plot.getXAxis().getLimits()
+            minY, maxY = plot.getYAxis().getLimits()
             # filter on X axis
             valueData = valueData[(minX <= xData) & (xData <= maxX)]
             yData = yData[(minX <= xData) & (xData <= maxX)]
