@@ -47,8 +47,8 @@ class Selection(qt.QObject):
     :param str kind: The kind of selection represented by this object
     """
 
-    sigChanged = qt.Signal()  # TODO
-    """Signal emitted when this selection has changed"""
+    sigControlPointsChanged = qt.Signal()
+    """Signal emitted when this control points has changed"""
 
     def __init__(self, parent, kind):
         assert isinstance(parent, InteractiveSelection)
@@ -171,6 +171,7 @@ class Selection(qt.QObject):
                 self._createPlotItems(points, markerPos)
 
             self._points = points
+            self.sigControlPointsChanged.emit()
 
     def _createPlotItems(self, points, markerPos):
         """Create items displaying the selection in the plot.
@@ -300,7 +301,7 @@ class InteractiveSelection(qt.QObject):
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
         super(InteractiveSelection, self).__init__(parent)
-        self._selection = []
+        self._selections = []
         self._isStarted = False
         self._isInteractiveModeStarted = False
         self._maxSelection = None
@@ -444,22 +445,30 @@ class InteractiveSelection(qt.QObject):
 
     # Selection API
 
+    def getSelectionLabels(self):
+        """Returns the current selection labels
+
+        :return: Tuple of labels
+        :rtype: List[str]
+        """
+        return tuple(s.getLabel() for s in self.getSelections())
+
     def getSelectionPoints(self):
         """Returns the current selection control points
 
         :return: Tuple of arrays of (x, y) points in plot coordinates
         :rtype: tuple of Nx2 numpy.ndarray
         """
-        return tuple(s.getControlPoints() for s in self._selection)
+        return tuple(s.getControlPoints() for s in self.getSelections())
 
     def getSelections(self):
-        """Returns the list of current selection.
+        """Returns the list of current selections.
 
         It returns an empty tuple if there is currently no selection.
 
         :return: Tuple of arrays of objects describing the selection
         """
-        return tuple(self._selection)
+        return tuple(self._selections)
 
     def clearSelections(self):
         """Reset current selections
@@ -468,15 +477,20 @@ class InteractiveSelection(qt.QObject):
         :rtype: bool
         """
         if self.getSelections():  # Something to reset
-            selections = self._selection
-            self._selection = []
-            for selection in selections:
+            for selection in self._selections:
+                selection.sigControlPointsChanged.disconnect(
+                    self._selectionPointsChanged)
                 selection._removedFromSelector()
+            self._selections = []
             self._selectionUpdated()
             return True
 
         else:
             return False
+
+    def _selectionPointsChanged(self):
+        """Handle selection object points changed"""
+        self.sigSelectionChanged.emit(self.getSelections())
 
     def addSelection(self, kind, points, label='', index=None):
         """Add a selection to current selections
@@ -507,11 +521,13 @@ class InteractiveSelection(qt.QObject):
         selection.setColor(self.getColor())
         selection.setLabel(str(label))
         selection.setControlPoints(points)
+        selection.sigControlPointsChanged.connect(
+            self._selectionPointsChanged)
 
         if index is None:
-            self._selection.append(selection)
+            self._selections.append(selection)
         else:
-            self._selection.insert(index, selection)
+            self._selections.insert(index, selection)
         self._selectionUpdated()
 
     def removeSelection(self, selection):
@@ -522,7 +538,9 @@ class InteractiveSelection(qt.QObject):
         assert isinstance(selection, Selection)
         assert selection.parent() is self
 
-        self._selection.remove(selection)
+        self._selections.remove(selection)
+        selection.sigControlPointsChanged.disconnect(
+            self._selectionPointsChanged)
         selection._removedFromSelector()
         self._selectionUpdated()
 
