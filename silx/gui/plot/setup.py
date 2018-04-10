@@ -35,6 +35,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('_utils')
     config.add_subpackage('utils')
     config.add_subpackage('matplotlib')
+    config.add_subpackage('stats')
     config.add_subpackage('backends')
     config.add_subpackage('backends.glutils')
     config.add_subpackage('items')

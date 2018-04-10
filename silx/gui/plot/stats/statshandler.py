@@ -30,9 +30,10 @@ __license__ = "MIT"
 __date__ = "07/03/2018"
 
 
-from silx.gui import qt
-from silx.gui.plot.items import stats as statsmdl
 import logging
+
+from silx.gui import qt
+from silx.gui.plot import stats as statsmdl
 
 logger = logging.getLogger(__name__)
 

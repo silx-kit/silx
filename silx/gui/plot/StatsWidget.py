@@ -30,16 +30,19 @@ __license__ = "MIT"
 __date__ = "07/03/2018"
 
 
+import functools
+import logging
+from collections import OrderedDict
+from silx.gui.plot.items.statshandler import StatsHandler, StatFormatter
+import silx
 from silx.gui import qt
 from silx.gui.plot.items.curve import Curve as CurveItem
 from silx.gui.plot.items.image import ImageBase as ImageItem
 from silx.gui.plot.items.scatter import Scatter as ScatterItem
+from silx.gui.plot import stats as statsmdl
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
 from collections import OrderedDict
-import functools
-import numpy
-import silx
 import logging
 
 logger = logging.getLogger(__name__)
