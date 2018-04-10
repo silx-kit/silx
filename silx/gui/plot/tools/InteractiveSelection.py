@@ -40,7 +40,7 @@ from .. import items
 from ..Colors import rgba
 
 
-class _Selection(qt.QObject):
+class Selection(qt.QObject):
     """Object describing a selection in a plot.
 
     :param QObject parent: The selector that created this selection
@@ -52,7 +52,7 @@ class _Selection(qt.QObject):
 
     def __init__(self, parent, kind):
         assert isinstance(parent, InteractiveSelection)
-        super(_Selection, self).__init__(parent)
+        super(Selection, self).__init__(parent)
         self._color = rgba('red')
         self._items = WeakList()
         self._points = None
@@ -389,12 +389,22 @@ class InteractiveSelection(qt.QObject):
         """Handle mouse interaction for selection"""
         if self._shapeKind == 'point':
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
-                self._appendSelection(event['x'], event['y'], self._shapeKind)
+                selections = self.getSelections()
+                label = '%d' % len(selections)
+                points = numpy.array([(event['x'], event['y'])],
+                                     dtype=numpy.float64)
+                self.addSelection(
+                    kind=self._shapeKind, points=points, label=label)
+
         else:  # other shapes
             if (event['event'] == 'drawingFinished' and
                     event['parameters']['label'] == self._label):
-                self._appendSelection(
-                    event['xdata'], event['ydata'], self._shapeKind)
+                selections = self.getSelections()
+                label = '%d' % len(selections)
+                points = numpy.array((event['xdata'], event['ydata']),
+                                     dtype=numpy.float64).T
+                self.addSelection(
+                    kind=self._shapeKind, points=points, label=label)
 
     def _stopSelectionInteraction(self, resetInteractiveMode):
         """Stop selection interaction if if was running
@@ -457,31 +467,57 @@ class InteractiveSelection(qt.QObject):
         """
         return tuple(self._selection)
 
-    def _appendSelection(self, x, y, kind):
-        """Add a shape to the selection
+    def clearSelections(self):
+        """Reset current selections
 
-        :param x: x coordinates
-        :param y: y coordinates of the shape control points
-        :param str kind: the kind of shape
+        :return: True if selections were reset.
+        :rtype: bool
+        """
+        if self.getSelections():  # Something to reset
+            selections = self._selection
+            self._selection = []
+            for selection in selections:
+                selection._removedFromSelector()
+            self._selectionUpdated()
+            return True
+
+        else:
+            return False
+
+    def addSelection(self, kind, points, label='', index=None):
+        """Add a selection to current selections
+
+        :param str kind: The kind of selection to add
+        :param numpy.ndarray points: The control points of the selection shape
+        :param str label: The label to display with the selected
+        :param int index: The position where to insert the selection,
+            By default it is appended to the end of the list of selections
+        :return: The created Selection object
+        :rtype: Selection
+        :raise RuntimeError: When selection cannot be added because the maximum
+           number of selection has been reached.
         """
         selections = self.getSelections()
-        assert self._nbSelection is None or len(selections) < self._nbSelection
+        if (self._nbSelection is not None and
+                len(selections) >= self._nbSelection):
+            raise RuntimeError(
+                'Cannot add selection: Maximum number of selections reached')
 
         plot = self.parent()
         if plot is None:
-            return
+            raise RuntimeError(
+                'Cannot add selection: PlotWidget no more available')
 
         # Create new selection object
-        selection = _Selection(parent=self, kind=kind)
+        selection = Selection(parent=self, kind=kind)
         selection.setColor(self.getColor())
-        selection.setLabel('%d' % len(selections))
-        if kind == 'point':
-            points = numpy.array([(x, y)], dtype=numpy.float64)
-        else:
-            points = numpy.array((x, y), dtype=numpy.float).T
+        selection.setLabel(str(label))
         selection.setControlPoints(points)
 
-        self._selection.append(selection)
+        if index is None:
+            self._selection.append(selection)
+        else:
+            self._selection.insert(index, selection)
         self._selectionUpdated()
 
     def _selectionUpdated(self):
@@ -505,33 +541,6 @@ class InteractiveSelection(qt.QObject):
                     self._updateStatusMessage(extra='Press Enter to confirm')
                 else:
                     self._updateStatusMessage()
-
-    def _removePlotItems(self, item_list):
-        """Remove items from their plot.
-
-        :param item_list: Iterable of plot items to remove
-        """
-        for item in item_list:
-            plot = item.getPlot()
-            if plot is not None:
-                plot._remove(item)
-
-    def clearSelections(self):
-        """Reset current selections
-
-        :return: True if selections were reset.
-        :rtype: bool
-        """
-        if self.getSelections():  # Something to reset
-            selections = self._selection
-            self._selection = []
-            for selection in selections:
-                selection._removedFromSelector()
-            self._selectionUpdated()
-            return True
-
-        else:
-            return False
 
     def undo(self):
         """Remove last selection from the selection list.
