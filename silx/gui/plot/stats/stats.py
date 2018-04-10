@@ -194,8 +194,8 @@ class ImageContext(StatsContext):
                               plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        minX, maxX = self.plot.getXAxis().getLimits()
-        minY, maxY = self.plot.getYAxis().getLimits()
+        minX, maxX = plot.getXAxis().getLimits()
+        minY, maxY = plot.getYAxis().getLimits()
         originX, originY = item.getOrigin()
 
         XMinBound = int(minX - originX)
