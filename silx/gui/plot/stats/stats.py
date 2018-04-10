@@ -176,8 +176,9 @@ class ScatterContext(StatsContext):
             valueData = valueData[(minY <= yData) & (yData <= maxY)]
             xData = xData[(minY <= yData) & (yData <= maxY)]
             yData = yData[(minY <= yData) & (yData <= maxY)]
-            self.data = (xData, yData, valueData)
-            self.values = valueData
+        self.min, self.max = min_max(valueData)
+        self.data = (xData, yData, valueData)
+        self.values = valueData
 
 
 class ImageContext(StatsContext):
