@@ -56,13 +56,13 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
     def testSelection(self):
         """Test selection of different shapes"""
         tests = (  # shape, points=[list of (x, y), list of (x, y)]
-            ('point', numpy.array(((10., 15.), (20., 25.)))),
+            ('point', numpy.array(([(10., 15.)], [(20., 25.)]))),
             ('rectangle', numpy.array((((1., 10.), (11., 20.)),
                                        ((2., 3.), (12., 13.))))),
             ('polygon', numpy.array((((0., 1.), (0., 10.), (10., 0.)),
                                      ((5., 6.), (5., 16.), (15., 6.))))),
-            ('line', numpy.array((((10., 20.),),
-                                  ((30., 40.),)))),
+            ('line', numpy.array((((10., 20.), (10., 30.)),
+                                  ((30., 40.), (30., 50.))))),
         )
 
         for kind, points in tests:
@@ -70,7 +70,7 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                 selector = InteractiveSelection(self.plot)
                 selector.start(count=2, kind=kind)
 
-                self.assertEqual(selector.getSelection(), ())
+                self.assertEqual(selector.getSelections(), ())
 
                 finishListener = SignalListener()
                 selector.sigSelectionFinished.connect(finishListener)
@@ -79,60 +79,52 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                 selector.sigSelectionChanged.connect(changedListener)
 
                 # Add a point
-                x, y = points[0].T
-                selector._appendSelection(x, y, kind)
+                selector.addSelection(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelection(), (numpy.atleast_2d(points[0]),))))
+                    selector.getSelectionPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 1)
 
                 # Undo it
                 result = selector.undo()
                 self.assertTrue(result)
-                self.assertEqual(selector.getSelection(), ())
+                self.assertEqual(selector.getSelections(), ())
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Add two point
-                x, y = points[0].T
-                selector._appendSelection(x, y, kind)
+                selector.addSelection(kind, points[0])
                 self.qapp.processEvents()
-                x, y = points[1].T
-                selector._appendSelection(x, y, kind)
+                selector.addSelection(kind, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelection(),
-                    (numpy.atleast_2d(points[0]),
-                     numpy.atleast_2d(points[1])))))
+                    selector.getSelectionPoints(),
+                    (points[0], points[1]))))
                 self.assertEqual(changedListener.callCount(), 4)
 
                 # Reset it
-                result = selector.reset()
+                result = selector.clearSelections()
                 self.assertTrue(result)
-                self.assertEqual(selector.getSelection(), ())
+                self.assertEqual(selector.getSelections(), ())
                 self.assertEqual(changedListener.callCount(), 5)
 
                 changedListener.clear()
 
                 # Add two point
-                x, y = points[0].T
-                selector._appendSelection(x, y, kind)
+                selector.addSelection(kind, points[0])
                 self.qapp.processEvents()
-                x, y = points[1].T
-                selector._appendSelection(x, y, kind)
+                selector.addSelection(kind, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelection(),
-                    (numpy.atleast_2d(points[0]),
-                     numpy.atleast_2d(points[1])))))
+                    selector.getSelectionPoints(),
+                    (points[0], points[1]))))
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # stop
                 result = selector.stop()
                 self.assertTrue(result)
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelection(),
-                    (numpy.atleast_2d(points[0]),
-                     numpy.atleast_2d(points[1])))))
+                    selector.getSelectionPoints(),
+                    (points[0], points[1]))))
 
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 1)
@@ -140,20 +132,19 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                 # restart
                 changedListener.clear()
                 selector.start(count=3, kind=kind)
-                self.assertEqual(selector.getSelection(), ())
+                self.assertEqual(selector.getSelections(), ())
                 self.assertEqual(changedListener.callCount(), 1)
 
                 # Add a point
-                x, y = points[0].T
-                selector._appendSelection(x, y, kind)
+                selector.addSelection(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelection(), (numpy.atleast_2d(points[0]),))))
+                    selector.getSelectionPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # cancel
                 selector.cancel()
-                self.assertEqual(selector.getSelection(), ())
+                self.assertEqual(selector.getSelections(), ())
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 2)
                 self.assertEqual(changedListener.callCount(), 3)
@@ -172,7 +163,7 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
         selectionAction = selector.getSelectionModeAction()
         selectionAction.trigger()
 
-        selector.reset()
+        selector.clearSelections()
 
 
 def suite():
