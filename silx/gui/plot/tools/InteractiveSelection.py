@@ -516,10 +516,10 @@ class InteractiveSelection(qt.QObject):
             if plot is not None:
                 plot._remove(item)
 
-    def reset(self):
-        """Reset current selection
+    def clearSelections(self):
+        """Reset current selections
 
-        :return: True if a selection was reset.
+        :return: True if selections were reset.
         :rtype: bool
         """
         if self.getSelections():  # Something to reset
@@ -665,7 +665,7 @@ class InteractiveSelection(qt.QObject):
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
         """
         self.cancel()
-        self.reset()
+        self.clearSelections()
 
         plot = self.parent()
         if plot is None:
@@ -715,13 +715,13 @@ class InteractiveSelection(qt.QObject):
     def cancel(self):
         """Cancel interactive selection.
 
-        Current selection is reset.
+        Current selections are reset.
 
         :return: True if a selection was actually cancelled
         :rtype: bool
         """
         if self._terminateSelection():
-            self.reset()
+            self.clearSelections()
             self.sigSelectionFinished.emit(self.getSelectionPoints())
             self._updateStatusMessage('Selection cancelled')
             return True
@@ -774,5 +774,5 @@ class InteractiveSelection(qt.QObject):
         self.stop()
 
         selection = self.getSelectionPoints()
-        self.reset()
+        self.clearSelections()
         return selection
