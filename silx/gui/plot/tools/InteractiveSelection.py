@@ -520,6 +520,18 @@ class InteractiveSelection(qt.QObject):
             self._selection.insert(index, selection)
         self._selectionUpdated()
 
+    def removeSelection(self, selection):
+        """Remove a selection from the list of current selections
+
+        :param Selection selection: The selection to remove
+        """
+        assert isinstance(selection, Selection)
+        assert selection.parent() is self
+
+        self._selection.remove(selection)
+        selection._removedFromSelector()
+        self._selectionUpdated()
+
     def _selectionUpdated(self):
         """Handle update of the selection"""
         selections = self.getSelections()
@@ -548,12 +560,10 @@ class InteractiveSelection(qt.QObject):
         :return: True if a selection was undone.
         :rtype: bool
         """
-        if self.getSelections():  # Something to undo
-            selection = self._selection.pop()
-            selection._removedFromSelector()
-            self._selectionUpdated()
+        selections = self.getSelections()
+        if selections:  # Something to undo
+            self.removeSelection(selections[-1])
             return True
-
         else:
             return False
 
