@@ -159,7 +159,7 @@ class ScatterContext(StatsContext):
                           visible data.
     """
     def __init__(self, item, plot, onlimits):
-        StatsContext.__init__(self, kind='scatter', plot=plot,
+        StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
                               onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
@@ -190,7 +190,8 @@ class ImageContext(StatsContext):
                           visible data.
     """
     def __init__(self, item, plot, onlimits):
-        StatsContext.__init__(self, kind='image', plot=plot, onlimits=onlimits)
+        StatsContext.__init__(self, kind='image', item=item,
+                              plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
         minX, maxX = self.plot.getXAxis().getLimits()
