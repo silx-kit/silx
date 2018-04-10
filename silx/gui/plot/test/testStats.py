@@ -36,9 +36,100 @@ import logging
 import numpy
 from silx.gui.plot import Plot1D, Plot2D
 from silx.gui.plot import StatsWidget
+from silx.gui.plot import stats
 
 
 _logger = logging.getLogger(__name__)
+
+
+class TestStats(TestCaseQt):
+    """
+    Test :class:`BaseClass` class and inheriting classes
+    """
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.createCurveContext()
+        self.createImageContext()
+        self.createScatterContext()
+
+    def createCurveContext(self):
+        self.plot1d = Plot1D()
+        x = range(20)
+        y = range(20)
+        self.plot1d.addCurve(x, y, legend='curve0')
+
+        self.curveContext = CurveContext(item=self.plot1d.getCurve('curve0'),
+                                         plot=self.plot1d)
+
+    def createScatterContext(self):
+        self.scatterPlot = Plot2D()
+        lgd = 'scatter plot'
+        self.scatterPlot.addScatter([0, 1, 2, 20, 50, 60],
+                                    [2, 3, 4, 26, 69, 6],
+                                    [5, 6, 7, 10, 90, 20],
+                                    legend=lgd)
+        self.scatterContext = ScatterContext(item=self.scatterPlot.getScatter(lgd),
+                                             plot=self.scatterPlot)
+
+    def createImageContext(self):
+        self.plot2d = Plot2D()
+        lgd = 'test image'
+        self.plot2d.addImage(data=numpy.arange(128*128).reshape(128, 128),
+                           legend=lgd, replace=False)
+        self.imageContext = ImageContext(item=self.plot2d.getImage(lgd),
+                                         plot=self.plot2d)
+
+    def getBasicStats(self):
+        return {
+            'min': stats.StatMin(),
+            'minCoords': stats.StatCoordMin(),
+            'max': stats.StatMax(),
+            'maxCoords': stats.StatCoordMax(),
+            'std': stats.Stat(name='std', fct=numpy.std),
+            'mean': stats.Stat(name='mean', fct=numpy.mean),
+            'com': stats.StatCOM()
+        }
+
+    def testBasicStatsCurve(self):
+        """Test result for simple stats on a curve"""
+        _stats = self.getBasicStats()
+        self.assertTrue(_stats['min'] == 0)
+        self.assertTrue(_stats['max'] == 19)
+        self.assertTrue(_stats['minCoords'] == '[0]')
+        self.assertTrue(_stats['maxCoords'] == '[19]')
+        self.assertTrue(_stats['std'] == numpy.std(range(20)))
+        self.assertTrue(_stats['mean'] == numpy.mean(range(20)))
+        com = numpy.sum(range(20) * range(20)) / numpy.sum(range(20))
+        self.assertTrue(numpy.almostEqual(_stats['com'], com)
+
+    def testBasicStatsImage(self):
+        """Test result for simple stats on an image"""
+        _stats = self.getBasicStats()
+        for _stat in _stats:
+            _stat.compute(self.imageContext)
+
+    def testBasicStatsScatter(self):
+        """Test result for simple stats on a scatter"""
+        _stats = self.getBasicStats()
+        for _stat in _stats:
+            _stat.compute(self.scatterPlot)
+
+    def testKindNotManagedByStat(self):
+        """"""
+        b = StatBase(name='toto', compatibleKinds='curve')
+        with self.assertRaises(NotImplementedError):
+            b.compute()
+
+    def testKindNotManagedByContext(self):
+        """"""
+        pass
+#
+# class TestStatsFormatter(unittest.TestCase):
+#     def testStatNameRepetition(self):
+#         pass
+#
+# class TestStatsHandler(unittest.TestCase):
+#     pass
 
 
 class TestStatsWidgetWithCurves(TestCaseQt):
@@ -174,7 +265,7 @@ class TestStatsWidgetWithScatter(TestCaseQt):
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestStatsWidgetWithCurves, TestStatsWidgetWithImages,
-                      TestStatsWidgetWithScatter):
+                      TestStatsWidgetWithScatter, TestStats):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite

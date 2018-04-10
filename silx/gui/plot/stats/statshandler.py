@@ -92,7 +92,6 @@ class StatsHandler(object):
             self.add(stat=helper.stat, formatter=helper.statFormatter)
 
     def add(self, stat, formatter=None):
-        print(stat)
         assert isinstance(stat, statsmdl.StatBase)
         self.stats.add(stat)
         _formatter = formatter
