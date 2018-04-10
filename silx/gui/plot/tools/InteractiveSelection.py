@@ -389,22 +389,16 @@ class InteractiveSelection(qt.QObject):
         """Handle mouse interaction for selection"""
         if self._shapeKind == 'point':
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
-                selections = self.getSelections()
-                label = '%d' % len(selections)
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
-                self.addSelection(
-                    kind=self._shapeKind, points=points, label=label)
+                self.addSelection(kind=self._shapeKind, points=points)
 
         else:  # other shapes
             if (event['event'] == 'drawingFinished' and
                     event['parameters']['label'] == self._label):
-                selections = self.getSelections()
-                label = '%d' % len(selections)
                 points = numpy.array((event['xdata'], event['ydata']),
                                      dtype=numpy.float64).T
-                self.addSelection(
-                    kind=self._shapeKind, points=points, label=label)
+                self.addSelection(kind=self._shapeKind, points=points)
 
     def _stopSelectionInteraction(self, resetInteractiveMode):
         """Stop selection interaction if if was running
@@ -489,7 +483,7 @@ class InteractiveSelection(qt.QObject):
 
         :param str kind: The kind of selection to add
         :param numpy.ndarray points: The control points of the selection shape
-        :param str label: The label to display with the selected
+        :param str label: The label to display along with the selection.
         :param int index: The position where to insert the selection,
             By default it is appended to the end of the list of selections
         :return: The created Selection object
