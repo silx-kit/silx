@@ -208,7 +208,7 @@ class ImageContext(StatsContext):
         XMinBound = max(XMinBound, 0)
         YMinBound = max(YMinBound, 0)
         data = item.getData()
-        self.data = data[XMinBound:XMaxBound + 1, YMinBound:YMaxBound + 1]
+        self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
         self.min, self.max = min_max(self.data)
         self.values = self.data
 
