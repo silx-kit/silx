@@ -300,8 +300,8 @@ class StatDelta(StatBase):
         return context.max - context.min
 
 
-def _getImgCoordsFor(data, value):
-    coordsY, coordsX = numpy.where(data == value)
+def _getImgCoordsFor(data, searchValue):
+    coordsY, coordsX = numpy.where(data == searchValue)
     if len(coordsX) is 0:
         return []
     if len(coordsX) is 1:
@@ -310,6 +310,19 @@ def _getImgCoordsFor(data, value):
     for xCoord, yCoord in zip(coordsX, coordsY):
         coord = (xCoord, yCoord)
         coords.append(coord)
+    return coords
+
+
+def _getScatterCoordsFor(scatterData, searchValue):
+    xData, yData, values = scatterData
+    indexes = numpy.where(values == searchValue)[0]
+    if len(indexes) is 0:
+        return []
+    if len(indexes) is 1:
+        return (yData[indexes[0]], xData[indexes[0]])
+    coords = []
+    for index in indexes:
+        coords.append((yData[index], xData[index]))
     return coords
 
 
@@ -322,11 +335,13 @@ class StatCoordMin(StatBase):
                           compatibleKinds=BASIC_COMPATIBLE_KINDS)
 
     def calculate(self, context):
-        if context.kind in ('curve', 'scatter'):
+        if context.kind == 'curve':
             xData, yData = context.data
             return xData[numpy.where(yData == context.min)]
+        elif context.kind == 'scatter':
+            return _getScatterCoordsFor(context.data, context.min)
         elif context.kind == 'image':
-            return self.getImgCoordsFor(context.data, context.min)
+            return _getImgCoordsFor(context.data, context.min)
         else:
             raise ValueError('kind not managed')
 
@@ -340,11 +355,13 @@ class StatCoordMax(StatBase):
                           compatibleKinds=BASIC_COMPATIBLE_KINDS)
 
     def calculate(self, context):
-        if context.kind in ('curve', 'scatter'):
+        if context.kind == 'curve':
             xData, yData = context.data
             return xData[numpy.where(yData == context.max)]
+        elif context.kind == 'scatter':
+            return _getScatterCoordsFor(context.data, context.max)
         elif context.kind == 'image':
-            return self.getImgCoordsFor(context.data, context.max)
+            return _getImgCoordsFor(context.data, context.max)
         else:
             raise ValueError('kind not managed')
 
