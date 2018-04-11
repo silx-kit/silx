@@ -140,7 +140,6 @@ class _StatHelper(object):
     """
 
     def __init__(self, arg):
-        assert isinstance(arg, (tuple, statsmdl.StatBase))
         self.statFormatter = None
         self.stat = None
 
