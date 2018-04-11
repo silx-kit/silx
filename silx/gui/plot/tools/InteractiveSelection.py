@@ -389,6 +389,18 @@ class InteractiveSelection(qt.QObject):
     It provides the shape used for the selection.
     """
 
+    sigSelectionAdded = qt.Signal(Selection)
+    """Signal emitted when a new selection has been added.
+
+    It provides the newly add :class:`Selection` object.
+    """
+
+    sigSelectionAboutToBeRemoved = qt.Signal(Selection)
+    """Signal emitted just before a selection is removed.
+
+    It provides the :class:`Selection` object that is about to be removed.
+    """
+
     sigSelectionChanged = qt.Signal(tuple)
     """Signal emitted whenever the selection has changed.
 
@@ -659,6 +671,7 @@ class InteractiveSelection(qt.QObject):
             self._selections.append(selection)
         else:
             self._selections.insert(index, selection)
+        self.sigSelectionAdded.emit(selection)
         self._selectionUpdated()
 
     def removeSelection(self, selection):
@@ -668,6 +681,9 @@ class InteractiveSelection(qt.QObject):
         """
         assert isinstance(selection, Selection)
         assert selection.parent() is self
+        assert selection in self._selections
+
+        self.sigSelectionAboutToBeRemoved.emit(selection)
 
         self._selections.remove(selection)
         selection.sigControlPointsChanged.disconnect(

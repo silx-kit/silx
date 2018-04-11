@@ -70,8 +70,19 @@ toolbar.addAction(selector.getSelectionModeAction())
 statusBar = plot.statusBar()
 selector.sigMessageChanged.connect(statusBar.showMessage)
 
+# Set the name of each created selection
+def updateAddedSelection(selection):
+    """Called for each added selection: set the name"""
+    if selection.getLabel() == '':
+        selection.setLabel('ROI %d' % (1 + len(selector.getSelections())))
+
+selector.sigSelectionAdded.connect(updateAddedSelection)
+
 # Add a rectangle selection
-selector.addSelection('rectangle', ((50, 50), (200, 200)), 'roi1')
+selector.addSelection('rectangle',
+                      points=((50, 50), (200, 200)),
+                      label='Initial ROI')
+
 
 # Create the table widget displaying
 selectionTable = InteractiveSelectionTableWidget()
