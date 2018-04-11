@@ -22,7 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides selection interaction for with :class:`PlotWidget`.
+"""This module provides selection interaction to work with :class:`PlotWidget`.
+
+This module is not mature and API will probably change in the future.
 """
 
 __authors__ = ["T. Vincent"]
@@ -32,6 +34,7 @@ __date__ = "22/03/2018"
 
 import functools
 import itertools
+import logging
 import numpy
 
 from ....third_party import enum
@@ -40,6 +43,9 @@ from ... import qt, icons
 from .. import PlotWidget
 from .. import items
 from ..Colors import rgba
+
+
+logger = logging.getLogger(__name__)
 
 
 class Selection(qt.QObject):
@@ -97,7 +103,8 @@ class Selection(qt.QObject):
             self._color = color
 
             # Update color of selection items in the plot
-            for item in self._items:
+            for item in itertools.chain(list(self._items),
+                                        list(self._editAnchors)):
                 if isinstance(item, items.ColorMixIn):
                     item.setColor(rgba(color))
 
@@ -329,7 +336,7 @@ class Selection(qt.QObject):
             points = self.getControlPoints()
             center = numpy.mean(points, axis=0)
             offset = anchor.getPosition() - center
-            points += offset
+            points = points + offset
             self.setControlPoints(points)
 
     def _removePlotItems(self):
@@ -793,7 +800,7 @@ class InteractiveSelection(qt.QObject):
     def start(self, count=1, kind='point', clear=True):
         """Start an interactive selection.
 
-        :param int count: The maximum number of selections to request
+        :param int count: The maximum number of selections to request.
             If count is None, there is no limit of number of selection.
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
@@ -917,3 +924,104 @@ class InteractiveSelection(qt.QObject):
         selection = self.getSelectionPoints()
         self.clearSelections()
         return selection
+
+
+class InteractiveSelectionWidget(qt.QTableWidget):
+    """Widget displaying the selection of an :class:`InteractiveSelection`"""
+
+    def __init__(self, parent=None):
+        super(InteractiveSelectionWidget, self).__init__(parent)
+        self._selection = None
+
+        self.setColumnCount(3)
+        self.setHorizontalHeaderLabels(['Label', 'Edit', ''])
+        horizontalHeader = self.horizontalHeader()
+        if hasattr(horizontalHeader, 'setResizeMode'):  # Qt 4
+            setSectionResizeMode = horizontalHeader.setResizeMode
+        else:  # Qt5
+            setSectionResizeMode = horizontalHeader.setSectionResizeMode
+
+        setSectionResizeMode(0, qt.QHeaderView.Interactive)
+        setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
+        setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
+
+        verticalHeader = self.verticalHeader()
+        verticalHeader.setVisible(False)
+
+        self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+
+        self.itemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, item):
+        """Handle item updates"""
+        column = item.column()
+        selection = item.data(qt.Qt.UserRole)
+        if column == 0:
+            selection.setLabel(item.text())
+        elif column == 1:
+            selection.setEditable(
+                item.checkState() == qt.Qt.Checked)
+        elif column == 2:
+            pass  # TODO
+        else:
+            logger.error('Unhandled column %d', column)
+
+    def setInteractiveSelection(self, selector):
+        """Set the :class:`InteractiveSelection` object to sync with
+
+        :param InteractiveSelection selector:
+        """
+        assert selector is None or isinstance(selector, InteractiveSelection)
+
+        if self._selection is not None:
+            self.setRowCount(0)
+            self._selection.sigSelectionChanged.disconnect(self._sync)
+
+        self._selection = selector  # TODO weakref
+
+        self._sync()
+
+        if self._selection is not None:
+            self._selection.sigSelectionChanged.connect(self._sync)
+
+    def _sync(self, *args):
+        """Update widget content according to selector"""
+        if self._selection is None:
+            self.setRowCount(0)
+            return
+
+        selections = self._selection.getSelections()
+
+        self.setRowCount(len(selections))
+        for index, selection in enumerate(selections):
+            label = selection.getLabel()
+            item = qt.QTableWidgetItem(label)
+            item.setFlags(qt.Qt.ItemIsSelectable |
+                          qt.Qt.ItemIsEditable |
+                          qt.Qt.ItemIsEnabled)
+            item.setData(qt.Qt.UserRole, selection)
+            self.setItem(index, 0, item)
+
+            item = qt.QTableWidgetItem()
+            item.setFlags(qt.Qt.ItemIsSelectable |
+                          qt.Qt.ItemIsEditable |
+                          qt.Qt.ItemIsEnabled |
+                          qt.Qt.ItemIsUserCheckable)
+            item.setData(qt.Qt.UserRole, selection)
+            item.setCheckState(
+                qt.Qt.Checked if selection.isEditable() else qt.Qt.Unchecked)
+            self.setItem(index, 1, item)
+
+            delBtn = qt.QToolButton()
+            delBtn.setIcon(icons.getQIcon('remove'))
+            self.setCellWidget(index, 2, delBtn)
+
+    def getInteractiveSelection(self):
+        """Returns the :class:`InteractiveSelection` this widget supervise.
+
+        It returns None if not sync with an :class:`InteractiveSelection`.
+
+        :rtype: InteractiveSelection
+        """
+        return self._selection
