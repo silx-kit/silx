@@ -29,7 +29,7 @@ matrix:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=True
               - PYOPENCL_VERSION=2015.1
-              
+
         - python: 3.6
           os: linux
           env:
