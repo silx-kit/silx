@@ -808,10 +808,12 @@ class InteractiveSelection(qt.QObject):
             False to keep it (In this case the current number of selection
             must be below the requested count).
         """
-        self.cancel()
         if clear:
-            self.clearSelections()
-        elif count is not None and len(self.getSelections()) > count:
+            self.cancel()
+        else:
+            self.stop()
+
+        if count is not None and len(self.getSelections()) > count:
             raise RuntimeError(
                 'Cannot start selection: Already too many selections')
 
@@ -926,11 +928,11 @@ class InteractiveSelection(qt.QObject):
         return selection
 
 
-class InteractiveSelectionWidget(qt.QTableWidget):
+class InteractiveSelectionTableWidget(qt.QTableWidget):
     """Widget displaying the selection of an :class:`InteractiveSelection`"""
 
     def __init__(self, parent=None):
-        super(InteractiveSelectionWidget, self).__init__(parent)
+        super(InteractiveSelectionTableWidget, self).__init__(parent)
         self._selection = None
 
         self.setColumnCount(3)
