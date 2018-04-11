@@ -70,11 +70,13 @@ toolbar.addAction(selector.getSelectionModeAction())
 statusBar = plot.statusBar()
 selector.sigMessageChanged.connect(statusBar.showMessage)
 
+
 # Set the name of each created selection
 def updateAddedSelection(selection):
     """Called for each added selection: set the name"""
     if selection.getLabel() == '':
         selection.setLabel('ROI %d' % (1 + len(selector.getSelections())))
+
 
 selector.sigSelectionAdded.connect(updateAddedSelection)
 
@@ -92,11 +94,15 @@ selectionTable.setInteractiveSelection(selector)
 addROIPushButton = qt.QPushButton('Add ROIs')
 addROIPushButton.setCheckable(True)
 
+
 def addROIToggled(checked):
+    """Called when the button is checked/unchecked"""
     if checked:
         selector.start('rectangle')
     else:
         selector.stop()
+
+
 addROIPushButton.toggled.connect(addROIToggled)
 
 btnLayout = qt.QHBoxLayout()

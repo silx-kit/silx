@@ -1024,14 +1024,26 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
 
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags)
+
             points = selection.getControlPoints()
-            if selection.getKind() == 'rectangle':
+            kind = selection.getKind()
+            if kind == 'rectangle':
                 origin = numpy.min(points, axis=0)
                 w, h = numpy.max(points, axis=0) - origin
-                item.setText('origin: (%f, %f); width: %f; height: %f' %
+                item.setText('origin: (%f; %f); width: %f; height: %f' %
                              (origin[0], origin[1], w, h))
-            else:
-                item.setText(str(selection.getControlPoints()))
+
+            elif kind == 'point':
+                item.setText('(%f; %f)' % (points[0, 0], points[0, 1]))
+
+            elif kind == 'hline':
+                item.setText('y: %f' % points[0, 1])
+
+            elif kind == 'vline':
+                item.setText('x: %f' % points[0, 0])
+
+            else:  # default (polygon, line)
+                item.setText('; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points))
             self.setItem(index, 3, item)
 
     def getInteractiveSelection(self):
