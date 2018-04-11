@@ -388,7 +388,7 @@ class InteractiveSelection(qt.QObject):
        selector.sigMessageChanged.connect(statusBar.showMessage)
 
        # Start a selection of 3 points
-       selector.start(count=3, kind='point')
+       selector.start('point')
 
     :param PlotWidget parent: The plot widget the selection is done on
     """
@@ -421,7 +421,6 @@ class InteractiveSelection(qt.QObject):
     """Signal emitted when selection is terminated.
 
     It provides the selection.
-    If the selection was cancelled, the returned selection is empty.
     """
 
     sigMessageChanged = qt.Signal(str)
@@ -751,7 +750,7 @@ class InteractiveSelection(qt.QObject):
         NONE = 'none'
         """Do not provide the user a way to end the selection.
 
-        The end of a selection must be done through :meth:`stop` or :meth:`cancel`.
+        The end of a selection must be done through :meth:`stop`.
         This is useful if the application is willing to provide its own way of
         ending the selection (e.g., a button).
         """
@@ -844,13 +843,11 @@ class InteractiveSelection(qt.QObject):
         :rtype: bool"""
         return self._isStarted
 
-    def start(self, kind, count=None):
+    def start(self, kind):
         """Start an interactive selection.
 
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
-        :param int count: The maximum number of selections to request.
-            If count is None, there is no limit of number of selection.
         """
         self.stop()
 
@@ -873,10 +870,11 @@ class InteractiveSelection(qt.QObject):
 
         self.sigSelectionStarted.emit(kind)
 
-    def _terminateSelection(self):
-        """Terminate a selection.
+    def stop(self):
+        """Stop interactive selection
 
-        :return: True if a selection was running, False otherwise
+        :return: True if a selection was actually stopped
+        :rtype: bool
         """
         if not self.isStarted():
             return False
@@ -895,50 +893,22 @@ class InteractiveSelection(qt.QObject):
         if self._eventLoop is not None:
             self._eventLoop.quit()
 
+        self.sigSelectionFinished.emit(self.getSelectionPoints())
+        self._updateStatusMessage('Selection done')
+
         return True
 
-    def cancel(self):
-        """Cancel interactive selection.
-
-        Current selections are reset.
-
-        :return: True if a selection was actually cancelled
-        :rtype: bool
-        """
-        if self._terminateSelection():
-            self.clearSelections()
-            self.sigSelectionFinished.emit(self.getSelectionPoints())
-            self._updateStatusMessage('Selection cancelled')
-            return True
-        else:
-            return False
-
-    def stop(self):
-        """Stop interactive selection
-
-        :return: True if a selection was actually cancelled
-        :rtype: bool
-        """
-        if self._terminateSelection():
-            self.sigSelectionFinished.emit(self.getSelectionPoints())
-            self._updateStatusMessage('Selection done')
-            return True
-        else:
-            return False
-
-    def exec_(self, kind, count=None, timeout=0):
+    def exec_(self, kind, timeout=0):
         """Block until selection is done or timeout is elapsed.
 
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
-        :param int count: The number of selection to request.
-           Use None for an undefined number of selection.
         :param int timeout: Maximum duration in seconds to block.
             Default: No timeout
         :return: The current selection
         :rtype: tuple
         """
-        self.start(kind=kind, count=count)
+        self.start(kind=kind)
 
         plot = self.parent()
         plot.show()
