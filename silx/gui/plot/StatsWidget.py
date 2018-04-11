@@ -128,12 +128,12 @@ class BasicStatsWidget(StatsWidget):
     """
 
     STATS = StatsHandler((
-        statsmdl.StatMin(),
-        (statsmdl.StatCoordMin(), StatFormatter(None, qt.QTableWidgetItem)),
-        statsmdl.StatMax(),
-        (statsmdl.StatCoordMax(), StatFormatter(None, qt.QTableWidgetItem)),
-        ('std', numpy.std),
-        ('mean', numpy.mean),
+        (statsmdl.StatMin(), StatFormatter()),
+        statsmdl.StatCoordMin(),
+        (statsmdl.StatMax(), StatFormatter()),
+        statsmdl.StatCoordMax(),
+        (('std', numpy.std), StatFormatter()),
+        (('mean', numpy.mean), StatFormatter()),
         statsmdl.StatCOM()
     ))
 
