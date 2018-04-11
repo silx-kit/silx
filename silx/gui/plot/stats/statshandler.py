@@ -136,9 +136,8 @@ class _StatHelper(object):
     Helper class to generated the requested StatBase instance and the
     associated StatFormatter
     """
-    DEFAULT_FORMATTER = StatFormatter()
     def __init__(self, arg):
-        self.statFormatter = self.DEFAULT_FORMATTER
+        self.statFormatter = None
         self.stat = None
 
         if isinstance(arg, statsmdl.StatBase):
@@ -148,7 +147,13 @@ class _StatHelper(object):
             if isinstance(arg[0], statsmdl.StatBase):
                 self.dealWithStatAndFormatter(arg)
             else:
-                self.createStatInstanceAndFormatter(arg)
+                _arg = arg
+                formatter = None
+                if isinstance(arg[0], tuple):
+                    _arg = arg[0]
+                    if len(arg) > 1:
+                        self.statFormatter = arg[1]
+                self.createStatInstanceAndFormatter(_arg)
 
     def dealWithStatAndFormatter(self, arg):
         assert isinstance(arg[0], statsmdl.StatBase)

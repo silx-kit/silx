@@ -264,14 +264,14 @@ class TestStatsHandler(unittest.TestCase):
         res = handler0.calculate(item=self.curveItem, plot=self.plot1d,
                                  onlimits=False)
         self.assertTrue('min' in res)
-        self.assertTrue(res['min'] == '0.000')
+        self.assertTrue(res['min'] == '0')
         self.assertTrue('max' in res)
-        self.assertTrue(res['max'] == '19.000')
+        self.assertTrue(res['max'] == '19')
 
         handler1 = statshandler.StatsHandler(
             (
                 (stats.StatMin(), statshandler.StatFormatter(formatter=None)),
-                (stats.StatMax(), statshandler.StatFormatter(formatter=None))
+                (stats.StatMax(), statshandler.StatFormatter())
             )
         )
 
@@ -280,7 +280,7 @@ class TestStatsHandler(unittest.TestCase):
         self.assertTrue('min' in res)
         self.assertTrue(res['min'] == '0')
         self.assertTrue('max' in res)
-        self.assertTrue(res['max'] == '19')
+        self.assertTrue(res['max'] == '19.000')
 
         handler2 = statshandler.StatsHandler(
             (
@@ -296,7 +296,7 @@ class TestStatsHandler(unittest.TestCase):
         self.assertTrue(res['max'] == '19.000')
 
         handler3 = statshandler.StatsHandler((
-            ('amin', numpy.argmin),
+            (('amin', numpy.argmin), statshandler.StatFormatter()),
             ('amax', numpy.argmax)
         ))
 
@@ -305,7 +305,7 @@ class TestStatsHandler(unittest.TestCase):
         self.assertTrue('amin' in res)
         self.assertTrue(res['amin'] == '0.000')
         self.assertTrue('amax' in res)
-        self.assertTrue(res['amax'] == '19.000')
+        self.assertTrue(res['amax'] == '19')
 
         with self.assertRaises(ValueError):
             statshandler.StatsHandler(('name'))
@@ -372,14 +372,14 @@ class TestStatsWidgetWithCurves(TestCaseQt):
         self.assertTrue(self.widget.rowCount() is 3)
         itemMax = self.widget._getItem(name='max', legend='curve0',
                                        kind='curve', indexTable=None)
-        self.assertTrue(itemMax.text() == '9.000')
+        self.assertTrue(itemMax.text() == '9')
 
     def testUpdateCurveFrmCurveObj(self):
         self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
         self.assertTrue(self.widget.rowCount() is 3)
         itemMax = self.widget._getItem(name='max', legend='curve0',
                                        kind='curve', indexTable=None)
-        self.assertTrue(itemMax.text() == '3.000')
+        self.assertTrue(itemMax.text() == '3')
 
     def testSetAnotherPlot(self):
         plot2 = Plot1D()
@@ -400,11 +400,11 @@ class TestStatsWidgetWithImages(TestCaseQt):
         self.widget = StatsWidget.StatsTable(plot=self.plot)
 
         mystats = statshandler.StatsHandler((
-            stats.StatMin(),
+            (stats.StatMin(), statshandler.StatFormatter()),
             (stats.StatCoordMin(), statshandler.StatFormatter(None, qt.QTableWidgetItem)),
-            stats.StatMax(),
+            (stats.StatMax(), statshandler.StatFormatter()),
             (stats.StatCoordMax(), statshandler.StatFormatter(None, qt.QTableWidgetItem)),
-            stats.StatDelta(),
+            (stats.StatDelta(), statshandler.StatFormatter()),
             ('std', numpy.std),
             ('mean', numpy.mean),
             (stats.StatCOM(), statshandler.StatFormatter(None))
@@ -473,9 +473,9 @@ class TestStatsWidgetWithScatters(TestCaseQt):
                                          columnsIndex['coords min'])
         itemCoordsMax = self.widget.item(itemLegend.row(),
                                          columnsIndex['coords max'])
-        self.assertTrue(itemMin.text() == '5.000')
-        self.assertTrue(itemMax.text() == '90.000')
-        self.assertTrue(itemDelta.text() == '85.000')
+        self.assertTrue(itemMin.text() == '5')
+        self.assertTrue(itemMax.text() == '90')
+        self.assertTrue(itemDelta.text() == '85')
         self.assertTrue(itemCoordsMin.text() == '(2, 0)')
         self.assertTrue(itemCoordsMax.text() == '(69, 50)')
 
