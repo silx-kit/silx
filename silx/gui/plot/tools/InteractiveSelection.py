@@ -797,21 +797,15 @@ class InteractiveSelection(qt.QObject):
         :rtype: bool"""
         return self._isStarted
 
-    def start(self, count=1, kind='point', clear=True):
+    def start(self, kind, count=None):
         """Start an interactive selection.
 
-        :param int count: The maximum number of selections to request.
-            If count is None, there is no limit of number of selection.
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
-        :param bool clear: True (default) to reset previous selection,
-            False to keep it (In this case the current number of selection
-            must be below the requested count).
+        :param int count: The maximum number of selections to request.
+            If count is None, there is no limit of number of selection.
         """
-        if clear:
-            self.cancel()
-        else:
-            self.stop()
+        self.stop()
 
         if count is not None and len(self.getSelections()) > count:
             raise RuntimeError(
@@ -891,19 +885,19 @@ class InteractiveSelection(qt.QObject):
         else:
             return False
 
-    def exec_(self, count=1, kind='point', timeout=0):
+    def exec_(self, kind, count=None, timeout=0):
         """Block until selection is done or timeout is elapsed.
 
-        :param int count: The number of selection to request.
-           Use None for an undefined number of selection.
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param int count: The number of selection to request.
+           Use None for an undefined number of selection.
         :param int timeout: Maximum duration in seconds to block.
             Default: No timeout
         :return: The current selection
         :rtype: tuple
         """
-        self.start(count=count, kind=kind)
+        self.start(kind=kind, count=count)
 
         plot = self.parent()
         plot.show()

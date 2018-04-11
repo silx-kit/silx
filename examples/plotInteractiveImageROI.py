@@ -83,7 +83,7 @@ addROIPushButton.setCheckable(True)
 
 def addROIToggled(checked):
     if checked:
-        selector.start(count=None, kind='rectangle', clear=False)
+        selector.start('rectangle')
     else:
         selector.stop()
 addROIPushButton.toggled.connect(addROIToggled)
