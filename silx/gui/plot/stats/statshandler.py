@@ -57,8 +57,9 @@ class StatFormatter(object):
                        which will be used to display the result of the
                        statistic computation.
     """
+    DEFAULT_FORMATTER = '{0:.3f}'
 
-    def __init__(self, formatter=None, qItemClass=_FloatItem):
+    def __init__(self, formatter=DEFAULT_FORMATTER, qItemClass=_FloatItem):
         self.formatter = formatter
         self.tabWidgetItemClass = qItemClass
 
@@ -94,10 +95,7 @@ class StatsHandler(object):
     def add(self, stat, formatter=None):
         assert isinstance(stat, statsmdl.StatBase)
         self.stats.add(stat)
-        _formatter = formatter
-        if _formatter is None:
-            _formatter = StatFormatter()
-        self.formatters[stat.name] = _formatter
+        self.formatters[stat.name] = formatter
 
     def format(self, name, val):
         """
@@ -160,7 +158,7 @@ class _StatHelper(object):
                              'argument can be associated with the '
                              'BaseStat (the `StatFormatter`')
         if len(arg) is 2:
-            assert isinstance(arg[1], StatFormatter)
+            assert isinstance(arg[1], (StatFormatter, type(None)))
             self.statFormatter = arg[1]
 
     def createStatInstanceAndFormatter(self, arg):
