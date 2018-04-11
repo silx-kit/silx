@@ -34,7 +34,8 @@ It provides some QToolBar and QWidget:
 - :class:`PositionInfo`
 
 It also provides a :class:`InteractiveSelection` that handles interactive
-selections on a :class:`~silx.gui.plot.PlotWidget`.
+selections on a :class:`~silx.gui.plot.PlotWidget` and
+:class:`InteractiveSelectionTableWidget`.
 """
 
 __authors__ = ["T. Vincent"]
@@ -50,3 +51,4 @@ from .LimitsToolBar import LimitsToolBar  # noqa
 from .PositionInfo import PositionInfo  # noqa
 
 from .InteractiveSelection import InteractiveSelection  # noqa
+from .InteractiveSelection import InteractiveSelectionTableWidget  # noqa
