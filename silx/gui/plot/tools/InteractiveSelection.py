@@ -103,10 +103,17 @@ class Selection(qt.QObject):
             self._color = color
 
             # Update color of selection items in the plot
-            for item in itertools.chain(list(self._items),
-                                        list(self._editAnchors)):
+            rgbaColor = rgba(color)
+            for item in list(self._items):
                 if isinstance(item, items.ColorMixIn):
-                    item.setColor(rgba(color))
+                    item.setColor(rgbaColor)
+
+            # Use tranparency for anchors
+            rgbaColor = rgbaColor[:3] + (0.5,)
+
+            for item in list(self._editAnchors):
+                if isinstance(item, items.ColorMixIn):
+                    item.setColor(rgbaColor)
 
     def getLabel(self):
         """Returns the label displayed for this selection.
@@ -287,12 +294,15 @@ class Selection(qt.QObject):
             if self.isEditable():  # Add draggable anchors
                 self._editAnchors = WeakList()
 
+                color = rgba(self.getColor())
+                color = color[:3] + (0.5,)
+
                 for index, point in enumerate(self._points):
                     anchorLegend = legend + '-anchor-%d' % index
                     plot.addMarker(*point,
                                    legend=anchorLegend,
                                    text='',
-                                   color=rgba(self.getColor()),
+                                   color=color,
                                    symbol='s',
                                    draggable=True)
                     item = plot._getItem(kind='marker', legend=anchorLegend)
@@ -307,7 +317,7 @@ class Selection(qt.QObject):
                     plot.addMarker(*center,
                                    legend=anchorLegend,
                                    text='',
-                                   color=rgba(self.getColor()),
+                                   color=color,
                                    symbol='o',
                                    draggable=True)
                     item = plot._getItem(kind='marker', legend=anchorLegend)
