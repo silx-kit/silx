@@ -182,6 +182,8 @@ class StatsTable(TableWidget):
         self.callbackCurve = None
         """Associate the curve legend to his first item"""
         self._statsHandler = None
+        self._legendsSet = []
+        """list of legends actually displayed"""
         self._resetColumns()
 
         self.setColumnCount(len(self._columns))
@@ -335,6 +337,9 @@ class StatsTable(TableWidget):
             silx.utils.weakref.WeakMethodProxy(self._updateStats),
             item.getLegend(), kind)
         item.sigItemChanged.connect(callback)
+        self.setColumnHidden(self._columns_index['kind'],
+                             item.getLegend() not in self._legendsSet)
+        self._legendsSet.append(item.getLegend())
 
     def _getItem(self, name, legend, kind, indexTable):
         if (legend, kind) not in self._lgdAndKindToItems:
@@ -366,6 +371,9 @@ class StatsTable(TableWidget):
         self.firstItem = self._lgdAndKindToItems[(legend, kind)]['legend']
         del self._lgdAndKindToItems[(legend, kind)]
         self.removeRow(self.firstItem.row())
+        self._legendsSet.remove(legend)
+        self.setColumnHidden(self._columns_index['kind'],
+                             legend not in self._legendsSet)
 
     def _updateCurrentStats(self):
         for lgdAndKind in self._lgdAndKindToItems:
@@ -446,7 +454,7 @@ class StatsTable(TableWidget):
         elif kind == 'image':
             item = self.plot.getActiveImage(just_legend=False)
         elif kind == 'scatter':
-            item = self.plot.getActiveScatter(just_legend=False)
+            item = self.plot._getActiveItem(kind='scatter', just_legend=False)
         else:
             raise ValueError('kind not managed')
         if item is not None:
