@@ -447,11 +447,12 @@ class StatsTable(TableWidget):
             item = self.plot.getActiveScatter(just_legend=False)
         else:
             raise ValueError('kind not managed')
-        if (item.getLegend(), kind) not in self._lgdAndKindToItems:
-            self.clear()
-            self._addItem(item)
-        else:
-            self._updateCurrentStats()
+        if item is not None:
+            if (item.getLegend(), kind) not in self._lgdAndKindToItems:
+                self.clear()
+                self._addItem(item)
+            else:
+                self._updateCurrentStats()
 
     def _plotContentChanged(self, action, kind, legend):
         """Callback used when plotting all the plot items"""
