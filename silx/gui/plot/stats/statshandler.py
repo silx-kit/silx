@@ -136,9 +136,9 @@ class _StatHelper(object):
     Helper class to generated the requested StatBase instance and the
     associated StatFormatter
     """
-
+    DEFAULT_FORMATTER = StatFormatter()
     def __init__(self, arg):
-        self.statFormatter = None
+        self.statFormatter = self.DEFAULT_FORMATTER
         self.stat = None
 
         if isinstance(arg, statsmdl.StatBase):
