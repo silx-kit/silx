@@ -960,9 +960,10 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
         super(InteractiveSelectionTableWidget, self).__init__(parent)
         self._selection = None
 
-        self.setColumnCount(3)
-        self.setHorizontalHeaderLabels(['Label', 'Edit', ''])
+        self.setColumnCount(4)
+        self.setHorizontalHeaderLabels(['Label', 'Edit', 'Delete', 'Coordinates'])
         horizontalHeader = self.horizontalHeader()
+        horizontalHeader.setDefaultAlignment(qt.Qt.AlignLeft)
         if hasattr(horizontalHeader, 'setResizeMode'):  # Qt 4
             setSectionResizeMode = horizontalHeader.setResizeMode
         else:  # Qt5
@@ -971,12 +972,12 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
         setSectionResizeMode(0, qt.QHeaderView.Interactive)
         setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
         setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
+        setSectionResizeMode(3, qt.QHeaderView.Stretch)
 
         verticalHeader = self.verticalHeader()
         verticalHeader.setVisible(False)
 
-        self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
         self.itemChanged.connect(self.__itemChanged)
 
@@ -989,7 +990,7 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
         elif column == 1:
             selection.setEditable(
                 item.checkState() == qt.Qt.Checked)
-        elif column == 2:
+        elif column in (2, 3):
             pass  # TODO
         else:
             logger.error('Unhandled column %d', column)
@@ -1022,19 +1023,16 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
 
         self.setRowCount(len(selections))
         for index, selection in enumerate(selections):
+            baseFlags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
+
             label = selection.getLabel()
             item = qt.QTableWidgetItem(label)
-            item.setFlags(qt.Qt.ItemIsSelectable |
-                          qt.Qt.ItemIsEditable |
-                          qt.Qt.ItemIsEnabled)
+            item.setFlags(baseFlags | qt.Qt.ItemIsEditable)
             item.setData(qt.Qt.UserRole, selection)
             self.setItem(index, 0, item)
 
             item = qt.QTableWidgetItem()
-            item.setFlags(qt.Qt.ItemIsSelectable |
-                          qt.Qt.ItemIsEditable |
-                          qt.Qt.ItemIsEnabled |
-                          qt.Qt.ItemIsUserCheckable)
+            item.setFlags(baseFlags | qt.Qt.ItemIsUserCheckable)
             item.setData(qt.Qt.UserRole, selection)
             item.setCheckState(
                 qt.Qt.Checked if selection.isEditable() else qt.Qt.Unchecked)
@@ -1043,6 +1041,18 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
             delBtn = qt.QToolButton()
             delBtn.setIcon(icons.getQIcon('remove'))
             self.setCellWidget(index, 2, delBtn)
+
+            item = qt.QTableWidgetItem()
+            item.setFlags(baseFlags)
+            points = selection.getControlPoints()
+            if selection.getKind() == 'rectangle':
+                origin = numpy.min(points, axis=0)
+                w, h = numpy.max(points, axis=0) - origin
+                item.setText('origin: (%f, %f); width: %f; height: %f' %
+                             (origin[0], origin[1], w, h))
+            else:
+                item.setText(str(selection.getControlPoints()))
+            self.setItem(index, 3, item)
 
     def getInteractiveSelection(self):
         """Returns the :class:`InteractiveSelection` this widget supervise.
