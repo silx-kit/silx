@@ -111,7 +111,7 @@ class StatsHandler(object):
             return val
         else:
             if self.formatters[name] is None:
-                return val
+                return str(val)
             else:
                 return self.formatters[name].format(val)
 
