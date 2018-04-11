@@ -351,6 +351,7 @@ class StatsTable(TableWidget):
             else:
                 assert self._statsHandler.formatters[name]
                 _item = self._statsHandler.formatters[name].tabWidgetItemClass()
+            _item.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
             self.setItem(indexTable, self._columns_index[name], _item)
             self._lgdAndKindToItems[(legend, kind)][name] = _item
 
