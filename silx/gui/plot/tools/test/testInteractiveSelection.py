@@ -68,7 +68,7 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
         for kind, points in tests:
             with self.subTest(kind=kind):
                 selector = InteractiveSelection(self.plot)
-                selector.start(count=2, kind=kind)
+                selector.start(kind)
 
                 self.assertEqual(selector.getSelections(), ())
 
@@ -131,9 +131,10 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
 
                 # restart
                 changedListener.clear()
-                selector.start(count=3, kind=kind)
+                selector.clearSelections()
                 self.assertEqual(selector.getSelections(), ())
                 self.assertEqual(changedListener.callCount(), 1)
+                selector.start(kind)
 
                 # Add a point
                 selector.addSelection(kind, points[0])
@@ -142,9 +143,9 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                     selector.getSelectionPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 2)
 
-                # cancel
-                selector.cancel()
-                self.assertEqual(selector.getSelections(), ())
+                # stop
+                selector.stop()
+                selector.clearSelections()
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 2)
                 self.assertEqual(changedListener.callCount(), 3)
@@ -152,7 +153,7 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
         selector = InteractiveSelection(self.plot)
-        selector.start(count=2, kind='point')
+        selector.start('point')
 
         # Change to pan mode
         interactiveModeToolBar = self.plot.getInteractiveModeToolBar()
