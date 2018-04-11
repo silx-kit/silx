@@ -602,6 +602,27 @@ class InteractiveSelection(qt.QObject):
         """Handle selection object points changed"""
         self.sigSelectionChanged.emit(self.getSelections())
 
+    def getMaxSelections(self):
+        """Returns the maximum number of selections or None if no limit
+
+        :rtype: Union[int, None]
+        """
+        return self._maxSelection
+
+    def setMaxSelections(self, max):
+        """Set the maximum number of selections
+
+        :param Union[int, None] max: The max limit or None for no limit.
+        :raise ValueError: If there is more selections than max value
+        """
+        if max is not None:
+            max = int(max)
+            if len(self.getSelections()) > max:
+                raise ValueError(
+                    'Cannot set max limit: Already too many selections')
+
+        self._maxSelection = max
+
     def addSelection(self, kind, points, label='', index=None):
         """Add a selection to current selections
 
@@ -807,10 +828,6 @@ class InteractiveSelection(qt.QObject):
         """
         self.stop()
 
-        if count is not None and len(self.getSelections()) > count:
-            raise RuntimeError(
-                'Cannot start selection: Already too many selections')
-
         plot = self.parent()
         if plot is None:
             raise RuntimeError('No plot to perform selection')
@@ -818,7 +835,6 @@ class InteractiveSelection(qt.QObject):
         assert kind in ('point', 'rectangle', 'line',
                         'polygon', 'hline', 'vline')
         self._shapeKind = kind
-        self._maxSelection = count
 
         self._isStarted = True
         self._startSelectionInteraction()
@@ -847,7 +863,6 @@ class InteractiveSelection(qt.QObject):
         self._stopSelectionInteraction(resetInteractiveMode=False)
 
         self._isStarted = False
-        self._maxSelection = None
 
         self.getSelectionModeAction().setEnabled(False)
 
