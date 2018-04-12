@@ -164,7 +164,11 @@ cdef class _MarchingSquaresAlgorithm(object):
         while True:
             if delta >= dim_x and delta >= dim_y:
                 break
-            for i in prange(0, dim_x, (delta + delta)):
+            # NOTE: Cython 0.21.1 is buggy with prange + steps
+            # It is needed to add a delta and the 'to'
+            # Here is what we can use with Cython 0.28:
+            #     for i in prange(0, dim_x, (delta + delta)):
+            for i in prange(0, dim_x + (delta + delta - 1), (delta + delta)):
                 x1 = i
                 if x1 + delta >= dim_x:
                     break
@@ -174,7 +178,11 @@ cdef class _MarchingSquaresAlgorithm(object):
                         break
                     self._merge_array_contexts(contexts, y1 * dim_x + x1, y1 * dim_x + x1 + delta)
                     y1 = y1 + delta
-            for i in prange(0, dim_y, (delta + delta)):
+            # NOTE: Cython 0.21.1 is buggy with prange + steps
+            # It is needed to add a delta and the 'to'
+            # Here is what we can use with Cython 0.28:
+            #     for i in prange(0, dim_y, (delta + delta)):
+            for i in prange(0, dim_y + (delta + delta - 1), (delta + delta)):
                 y2 = i
                 if y2 + delta >= dim_y:
                     break
