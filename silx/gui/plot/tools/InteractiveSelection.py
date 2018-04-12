@@ -933,6 +933,28 @@ class InteractiveSelection(qt.QObject):
         return selection
 
 
+class _DeleteSelectionToolButton(qt.QToolButton):
+    """Tool button deleting a selection object
+
+    :param parent: See QWidget
+    :param Selection selection: The selection to delete
+    """
+
+    def __init__(self, parent, selection):
+        super(_DeleteSelectionToolButton, self).__init__(parent)
+        self.setIcon(icons.getQIcon('remove'))
+        self.__selection = selection
+        self.clicked.connect(self.__clicked)
+
+    def __clicked(self, checked):
+        """Handle button clicked"""
+        if self.__selection is not None:
+            selector = self.__selection.parent()
+            if selector is not None:
+                selector.removeSelection(self.__selection)
+                self.__selection = None
+
+
 class InteractiveSelectionTableWidget(qt.QTableWidget):
     """Widget displaying the selection of an :class:`InteractiveSelection`"""
 
@@ -1008,12 +1030,14 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
         for index, selection in enumerate(selections):
             baseFlags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
 
+            # Label
             label = selection.getLabel()
             item = qt.QTableWidgetItem(label)
             item.setFlags(baseFlags | qt.Qt.ItemIsEditable)
             item.setData(qt.Qt.UserRole, selection)
             self.setItem(index, 0, item)
 
+            # Editable
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags | qt.Qt.ItemIsUserCheckable)
             item.setData(qt.Qt.UserRole, selection)
@@ -1021,10 +1045,20 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
                 qt.Qt.Checked if selection.isEditable() else qt.Qt.Unchecked)
             self.setItem(index, 1, item)
 
-            delBtn = qt.QToolButton()
-            delBtn.setIcon(icons.getQIcon('remove'))
-            self.setCellWidget(index, 2, delBtn)
+            # Delete
+            delBtn = _DeleteSelectionToolButton(None, selection)
 
+            widget = qt.QWidget()
+            layout = qt.QHBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(0)
+            widget.setLayout(layout)
+            layout.addStretch(1)
+            layout.addWidget(delBtn)
+            layout.addStretch(1)
+            self.setCellWidget(index, 2, widget)
+
+            # Kind
             kind = selection.getKind()
             item = qt.QTableWidgetItem(kind.capitalize())
             item.setFlags(baseFlags)
@@ -1033,6 +1067,7 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags)
 
+            # Coordinates
             points = selection.getControlPoints()
             if kind == 'rectangle':
                 origin = numpy.min(points, axis=0)
