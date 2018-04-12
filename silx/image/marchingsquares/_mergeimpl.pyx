@@ -493,8 +493,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             # insert the beggining point to an existing polygon
             self._compute_point(x, y, begin_edge, isovalue, &point)
             description = dereference(it_end).second
-            # FIXME: We should erase using the iterator
-            context.polygons.erase(end)
+            context.polygons.erase(it_end)
             if end == description.begin:
                 # insert at start
                 description.points.push_front(point)
@@ -509,8 +508,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             # insert the endding point to an existing polygon
             self._compute_point(x, y, end_edge, isovalue, &point)
             description = dereference(it_begin).second
-            # FIXME: We should erase using the iterator
-            context.polygons.erase(begin)
+            context.polygons.erase(it_begin)
             if begin == description.begin:
                 # insert at start
                 description.points.push_front(point)
@@ -564,9 +562,8 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
 
                 description.points.splice(description.points.end(), description_end.points)
 
-                # FIXME: We should erase using the iterator
-                context.polygons.erase(begin)
-                context.polygons.erase(end)
+                context.polygons.erase(it_begin)
+                context.polygons.erase(it_end)
                 context.polygons[description.begin] = description
                 context.polygons[description.end] = description
 
