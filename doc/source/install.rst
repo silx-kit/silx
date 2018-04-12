@@ -38,6 +38,7 @@ The GUI widgets depend on the following extra packages:
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 * `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_
   for the ``silx.gui.console`` widget.
+* `dateutil <https://pypi.org/project/python-dateutil/>`_
 
 Tools for reading and writing files depend on the following packages:
 
