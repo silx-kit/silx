@@ -96,7 +96,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     cdef cnumpy.float32_t *_min_cache
     cdef cnumpy.float32_t *_max_cache
 
-    def __init__(self):
+    def __cinit__(self):
         self._use_minmax_cache = False
         self._force_sequencial_reduction = False
 
