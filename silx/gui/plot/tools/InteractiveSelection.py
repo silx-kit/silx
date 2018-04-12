@@ -191,7 +191,9 @@ class Selection(qt.QObject):
                 for item in self._items:
                     if isinstance(item, items.Shape):
                         item.setPoints(points)
-                    elif isinstance(item, items.Marker):
+                    elif isinstance(item, (items.Marker,
+                                           items.XMarker,
+                                           items.YMarker)):
                         markerPos = self._getMarkerPosition(points, kind)
                         item.setPosition(*markerPos)
 
@@ -569,6 +571,14 @@ class InteractiveSelection(qt.QObject):
                     event['parameters']['label'] == self._label):
                 points = numpy.array((event['xdata'], event['ydata']),
                                      dtype=numpy.float64).T
+
+                if self._shapeKind == 'hline':
+                    points = numpy.array([(float('nan'), points[0, 1])],
+                                         dtype=numpy.float64)
+                elif self._shapeKind == 'vline':
+                    points = numpy.array([(points[0, 0], float('nan'))],
+                                         dtype=numpy.float64)
+
                 self.addSelection(kind=self._shapeKind, points=points)
 
     def _stopSelectionInteraction(self, resetInteractiveMode):
