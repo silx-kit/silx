@@ -27,7 +27,7 @@ Marching squares implementation based on a merge of segements and polygons.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/04/2018"
+__date__ = "12/04/2018"
 
 import numpy
 cimport numpy as cnumpy
@@ -55,6 +55,10 @@ cdef extern from "include/patterns.h":
 
 ctypedef cnumpy.uint32_t point_index_t
 
+cdef struct coord_t:
+    cnumpy.int16_t x
+    cnumpy.int16_t y
+
 cdef struct point_t:
     cnumpy.float32_t x
     cnumpy.float32_t y
@@ -73,9 +77,13 @@ cdef cppclass TileContext:
     int dim_x
     int dim_y
 
+    # Only used to find contours
     clist[PolygonDescription*] final_polygons
-
     map[point_index_t, PolygonDescription*] polygons
+
+    # Only used to find pixels
+    clist[coord_t] final_pixels
+    map[point_index_t, coord_t] pixels
 
     TileContext() nogil:
         pass
@@ -676,42 +684,84 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
     @cython.cdivision(True)
     cdef void _insert_pattern(self, TileContext *context, int x, int y, int pattern, cnumpy.float64_t isovalue) nogil:
         cdef:
-            point_t point
-            int segment, begin_edge, end_edge
-            point_index_t index
-            int yx
-            int ix, iy
-
+            int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
             begin_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 0]
             end_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 1]
+            self._insert_segment(context, x, y, begin_edge, end_edge, isovalue)
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _insert_segment(self, TileContext *context,
+                              int x, int y,
+                              cnumpy.uint8_t begin_edge,
+                              cnumpy.uint8_t end_edge,
+                              cnumpy.float64_t isovalue) nogil:
+        cdef:
+            int yx
+            point_t point
+            point_index_t begin, end, index
+            coord_t coord
+            map[point_index_t, coord_t].iterator it_begin
+            map[point_index_t, coord_t].iterator it_end
+
+        yx = self._dim_x * y + x
+
+        begin = self._create_point_index(yx, begin_edge)
+        it_begin = context.pixels.find(begin)
+
+        if it_begin != context.pixels.end():
+            # We only can found points 2 times
+            # If it already exists, we can remove it
+            coord = dereference(it_begin).second
+            context.final_pixels.push_back(coord)
+            context.pixels.erase(it_begin)
+        else:
             self._compute_point(x, y, begin_edge, isovalue, &point)
-            ix, iy = int(floor(point.x + 0.5)), int(floor(point.y + 0.5))
-            yx = iy * self._dim_x + ix
-            index = self._create_point_index(yx, 0)
-            context.polygons[index] = NULL
+            coord.x, coord.y = int(floor(point.x + 0.5)), int(floor(point.y + 0.5))
+            context.pixels[begin] = coord
 
+        end = self._create_point_index(yx, end_edge)
+        it_end = context.pixels.find(end)
+
+        if it_end != context.pixels.end():
+            # We only can found points 2 times
+            # If it already exists, we can remove it
+            coord = dereference(it_end).second
+            context.final_pixels.push_back(coord)
+            context.pixels.erase(it_end)
+        else:
             self._compute_point(x, y, end_edge, isovalue, &point)
-            ix, iy = int(floor(point.x + 0.5)), int(floor(point.y + 0.5))
-            yx = iy * self._dim_x + ix
-            index = self._create_point_index(yx, 0)
-            context.polygons[index] = NULL
+            coord.x, coord.y = int(floor(point.x + 0.5)), int(floor(point.y + 0.5))
+            context.pixels[end] = coord
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void _merge_context(self, TileContext *context, TileContext *other) nogil:
         cdef:
-            map[point_index_t, PolygonDescription*].iterator it
+            map[point_index_t, coord_t].iterator it
+            map[point_index_t, coord_t].iterator it2
             point_index_t index
             int xx, yy
 
+        # merge final pixels
+        context.final_pixels.splice(context.final_pixels.end(), other.final_pixels)
+
         # Merge every pixels to the main context
-        it = other.polygons.begin()
-        while it != other.polygons.end():
+        it = other.pixels.begin()
+        while it != other.pixels.end():
             index = dereference(it).first
-            context.polygons[index] = NULL
+
+            it2 = context.pixels.find(index)
+            if it2 != context.pixels.end():
+                # We only can found points 2 times
+                # If it already exists, we can remove it
+                context.final_pixels.push_back(dereference(it2).second)
+                context.pixels.erase(it2)
+            else:
+                context.pixels[index] = dereference(it).second
             preincrement(it)
 
 
@@ -827,33 +877,32 @@ cdef class MarchingSquaresMergeImpl(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _extract_coords_from_point_index(self, point_index_t index, int *x, int *y) nogil:
-        """Extract the base position from a point index (as is the edge was
-        zero)"""
-        index = (index >> 1) - 1
-        y[0] = index // self._dim_x
-        x[0] = index % self._dim_x
-
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    @cython.cdivision(True)
     cdef _extract_pixels(self, TileContext *final_context):
         cdef:
             int i, x, y
             point_index_t index
-            map[point_index_t, PolygonDescription*].iterator it
+            map[point_index_t, coord_t].iterator it
+            clist[coord_t].iterator it_coord
+            coord_t coord
 
         # create result
-        pixels = numpy.empty((final_context.polygons.size(), 2), dtype=numpy.int32)
-        i = 0
-        it = final_context.polygons.begin()
-        while it != final_context.polygons.end():
-            index = dereference(it).first
-            self._extract_coords_from_point_index(index, &x, &y)
-            pixels[i, 0] = y
-            pixels[i, 1] = x
+        it = final_context.pixels.begin()
+        while it != final_context.pixels.end():
+            coord = dereference(it).second
+            final_context.final_pixels.push_back(coord)
             preincrement(it)
+
+        pixels = numpy.empty((final_context.final_pixels.size(), 2), dtype=numpy.int32)
+        i = 0
+
+        it_coord = final_context.final_pixels.begin()
+        while it_coord != final_context.final_pixels.end():
+            coord = dereference(it_coord)
+            pixels[i, 0] = coord.y
+            pixels[i, 1] = coord.x
             i += 1
+            preincrement(it_coord)
+
         return pixels
 
     @cython.boundscheck(False)
