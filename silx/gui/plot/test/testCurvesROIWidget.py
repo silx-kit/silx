@@ -143,28 +143,18 @@ class TestCurvesROIWidget(TestCaseQt):
 
         self.widget.roiWidget.setRois((roi_pos, roi_neg))
 
-        self.plot.setActiveCurve('positive')
         posCurve = self.plot.getCurve('positive')
-        print(roi_pos.computeRawAndNetCounts(posCurve))
-        print(roi_neg.computeRawAndNetCounts(posCurve))
+        negCurve = self.plot.getCurve('negative')
 
-        self.assertTrue(roi_pos.computeRawAndNetCounts(posCurve),
-                        numpy.trapz(y=[10, 20], x=[10, 20]))
-
-        output = self.widget.roiWidget.getRois()
-        self.assertEqual(output["positive"]["rawcounts"],
-                         y[ddict["positive"]["from"]:ddict["positive"]["to"]+1].sum(),
-                         "Calculation failed on positive X coordinates")
-
-        # Set the curve with negative X coordinates as active
-        self.plot.setActiveCurve("negative")
-
-        # the ROIs should have been automatically updated
-        output = self.widget.roiWidget.getRois()
-        selection = numpy.nonzero((-x >= output["negative"]["from"]) & \
-                                  (-x <= output["negative"]["to"]))[0]
-        self.assertEqual(output["negative"]["rawcounts"],
-                         y[selection].sum(), "Calculation failed on negative X coordinates")
+        self.assertEqual(roi_pos.computeRawAndNetCounts(posCurve),
+                        (numpy.trapz(y=[10, 20], x=[10, 20]),
+                        0.0))
+        self.assertEqual(roi_pos.computeRawAndNetCounts(negCurve),
+                         (0.0, 0.0))
+        self.assertEqual(roi_neg.computeRawAndNetCounts(posCurve),
+                         ((0.0), 0.0))
+        self.assertEqual(roi_neg.computeRawAndNetCounts(negCurve),
+                         ((-150.0), 0.0))
 
     def testDeferedInit(self):
         x = numpy.arange(100.)
@@ -228,18 +218,17 @@ class TestCurvesROIWidget(TestCaseQt):
         self.widget.calculateROIs()
 
         roiTable = self.widget.roiWidget.roiTable
-        roiItem = roiTable._roiToItems[roi._id]
-        ItemNetCounts = roiTable._getItem(name='Net Counts',
-                                          roi=roi,
-                                          row=roiItem.row())
-        ItemRawCounts = roiTable._getItem(name='Raw Counts',
-                                          roi=roi,
-                                          row=roiItem.row())
-        self.assertTrue(ItemRawCounts.text() == '4.0')
-        self.assertTrue(ItemNetCounts.text() == '1.0')
+        indexesColumns = CurvesROIWidget.ROITable.COLUMNS_INDEX
+        itemRawCounts = roiTable.item(0, indexesColumns['Raw Counts'])
+        itemNetCounts = roiTable.item(0, indexesColumns['Net Counts'])
+
+        self.assertTrue(itemRawCounts.text() == '4.0')
+        self.assertTrue(itemNetCounts.text() == '1.0')
         roi.setTo(1.0)
-        self.assertTrue(ItemRawCounts.text() == '1.0')
-        self.assertTrue(ItemNetCounts.text() == '0.0')
+        itemRawCounts = roiTable.item(0, indexesColumns['Raw Counts'])
+        itemNetCounts = roiTable.item(0, indexesColumns['Net Counts'])
+        self.assertTrue(itemRawCounts.text() == '1.0')
+        self.assertTrue(itemNetCounts.text() == '0.0')
 
 
 def suite():
