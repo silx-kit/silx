@@ -131,7 +131,8 @@ class Selection(qt.QObject):
         if label != self._label:
             self._label = label
             for item in self._items:
-                if isinstance(item, items.Marker):
+                if isinstance(
+                        item, (items.Marker, items.XMarker, items.YMarker)):
                     item.setText(self._label)
 
     def isEditable(self):
