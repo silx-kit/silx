@@ -44,6 +44,7 @@ from silx.utils import deprecation
 from silx.utils.weakref import WeakMethodProxy
 from .. import icons, qt
 from silx.gui.plot.items.curve import Curve
+import weakref
 
 
 _logger = logging.getLogger(__name__)
@@ -211,7 +212,7 @@ class CurvesROIWidget(qt.QWidget):
         xmin, xmax = self.plot.getXAxis().getLimits()
         fromdata = xmin + 0.25 * (xmax - xmin)
         todata = xmin + 0.75 * (xmax - xmin)
-        if roi.getName() == 'ICR':
+        if roi.isICR():
             fromdata, dummy0, todata, dummy1 = self._getAllLimits()
         roi.setFrom(fromdata)
         roi.setTo(todata)
@@ -410,7 +411,7 @@ class ROITable(qt.QTableWidget):
         self._isConnected = False
         self._roiToItems = {}
         self._roiDict = {}
-        self._markerLgds = {}
+        self._markersHandler = _RoiMarkerManager()
         """
         Associate for each marker legend used when the `_showAllMarkers` option
         is active a roi.
@@ -435,7 +436,10 @@ class ROITable(qt.QTableWidget):
         """
         .. note:: clear the interface only. keep the roidict...
         """
+        self._markersHandler.clear()
         self._roiToItems = {}
+        self._roiDict = {}
+
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
@@ -446,7 +450,7 @@ class ROITable(qt.QTableWidget):
             header.setResizeMode(qt.QHeaderView.ResizeToContents)
         self.sortByColumn(0, qt.Qt.AscendingOrder)
         self.hideColumn(self.COLUMNS_INDEX['ID'])
-        self._roiDict = {}
+
 
     def setPlot(self, plot):
         self.clear()
@@ -510,6 +514,7 @@ class ROITable(qt.QTableWidget):
         assert isinstance(roi, ROI)
         self._getItem(name='ID', row=None, roi=roi)
         self._roiDict[roi.getID()] = roi
+        self._markersHandler.add(roi, _RoiMarkerHandler(roi, self.plot))
         self.activeRoi = roi
         self._updateRoiInfo(roi.getID())
         callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
@@ -596,8 +601,7 @@ class ROITable(qt.QTableWidget):
         if item.column() is self.COLUMNS_INDEX['ROI']:
             roi = getROI()
             roi.setName(item.text())
-            if self._showAllMarkers:
-                self._updateMarkers()
+            self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
         self._userIsEditingROI = False
 
     def deleteActiveRoi(self):
@@ -627,6 +631,7 @@ class ROITable(qt.QTableWidget):
 
             assert roi.getID() in self._roiDict
             del self._roiDict[roi.getID()]
+            self._markersHandler.remove(roi)
 
             callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
                                          roi.getID())
@@ -644,6 +649,7 @@ class ROITable(qt.QTableWidget):
         if roi and roi.getID() in self._roiToItems.keys():
             self.activeRoi = roi
             self.selectRow(self._roiToItems[roi.getID()].row())
+            self._markersHandler.setActiveRoi(self.activeRoi)
 
     def _updateRoiInfo(self, roiID):
         if self._userIsEditingROI is True:
@@ -682,8 +688,8 @@ class ROITable(qt.QTableWidget):
         if previous and current.row() != previous.row() and current.row() >= 0:
             roiItem = self.item(current.row(), self.COLUMNS_INDEX['ID'])
             assert roiItem
-            self.activeRoi = self._roiDict[int(roiItem.text())]
-            self._updateMarkers()
+            self.setActiveRoi(self._roiDict[int(roiItem.text())])
+            self._markersHandler.updateAllMarkers()
         qt.QTableWidget.currentChanged(self, current, previous)
 
     @deprecation.deprecated(reason="Removed",
@@ -692,7 +698,7 @@ class ROITable(qt.QTableWidget):
     def getROIListAndDict(self):
         """
 
-        :return: the list of roi objects and the dictionnary of roi name to roi
+        :return: the list of roi objects and the dictionary of roi name to roi
                  object.
         """
         roidict = self._roiDict
@@ -724,69 +730,15 @@ class ROITable(qt.QTableWidget):
             self._updateMarkers()
 
     def _updateMarkers(self):
-        self._clearMarkers()
         if self._showAllMarkers is True:
-            for roiID, roi in self._roiDict.items():
-                _color = 'black' if roi.isICR() == 'ICR' else 'blue'
-                _draggable = False if roi.isICR() == 'ICR' else True
-
-                _nameRoiMin = roi.getName() + ' ROI min'
-                _nameRoiMax = roi.getName() + ' ROI max'
-                self._markerLgds[_nameRoiMin] = roi
-                self._markerLgds[_nameRoiMax] = roi
-                self.plot.addXMarker(roi.getFrom(),
-                                     legend=_nameRoiMin,
-                                     text=_nameRoiMin,
-                                     color=_color,
-                                     draggable=_draggable)
-                self.plot.addXMarker(roi.getTo(),
-                                     legend=_nameRoiMax,
-                                     text=_nameRoiMax,
-                                     color=_color,
-                                     draggable=_draggable)
-                if _draggable and self._middleROIMarkerFlag:
-                    _nameRoiMiddle = roi.getName() + ' ROI middle'
-                    self._markerLgds[_nameRoiMiddle] = roi
-                    pos = 0.5 * (roi.getFrom() + roi.getTo())
-                    self.plot.addXMarker(pos,
-                                         legend=_nameRoiMiddle,
-                                         text=_nameRoiMiddle,
-                                         color='yellow',
-                                         draggable=_draggable)
+            self._markersHandler.updateMarkers()
         else:
             if not self.activeRoi or not self.plot:
                 return
             assert isinstance(self.activeRoi, ROI)
-            _color = 'black' if self.activeRoi.isICR() == 'ICR' else 'blue'
-            _draggable = False if self.activeRoi.isICR() == 'ICR' else True
-            self.plot.addXMarker(self.activeRoi.getFrom(),
-                                 legend='ROI min',
-                                 text='ROI min',
-                                 color=_color,
-                                 draggable=_draggable)
-            self.plot.addXMarker(self.activeRoi.getTo(),
-                                 legend='ROI max',
-                                 text='ROI max',
-                                 color=_color,
-                                 draggable=_draggable)
-            if self._middleROIMarkerFlag:
-                pos = 0.5 * (self.activeRoi.getFrom() + self.activeRoi.getTo())
-                self.plot.addXMarker(pos,
-                                     legend='ROI middle',
-                                     text="",
-                                     color='yellow',
-                                     draggable=_draggable)
-
-    def _clearMarkers(self):
-        if not self.plot:
-            return
-        self.plot.remove('ROI min', kind='marker')
-        self.plot.remove('ROI max', kind='marker')
-        self.plot.remove('ROI middle', kind='marker')
-
-        for markerLgd in self._markerLgds:
-            self.plot.remove(markerLgd, kind='marker')
-        self._markerLgds = {}
+            markerHandler = self._markersHandler.getMarkerHandler(self.activeRoi.getID())
+            assert markerHandler
+            markerHandler.updateMarkers()
 
     def getRois(self, order, asDict=False):
         """
@@ -808,7 +760,7 @@ class ROITable(qt.QTableWidget):
             assert order in ["from", "to", "type", "netcounts", "rawcounts"]
             ordered_roilist = sorted(self._roiDict.keys(),
                                      key=lambda roi_id: self._roiDict[roi_id].get(order))
-            res = OrderedDict([(name, self._roiDict[id]) for id in ordered_roilist])
+            res = OrderedDict([(roi.getName(), self._roiDict[id]) for id in ordered_roilist])
 
         return res
 
@@ -850,11 +802,7 @@ class ROITable(qt.QTableWidget):
                            boundaries otherwise will only show the one of
                            the active ROI.
         """
-        if self._showAllMarkers == _show:
-            return
-
-        self._showAllMarkers = _show
-        self._updateMarkers()
+        self._markersHandler.setShowAllMarkers(_show)
 
     def setMiddleROIMarkerFlag(self, flag=True):
         """
@@ -871,57 +819,12 @@ class ROITable(qt.QTableWidget):
         """Handle plot signals related to marker events."""
         if ddict['event'] == 'markerMoved':
             label = ddict['label']
-            if label in ['ROI min', 'ROI max', 'ROI middle']:
-                roiMoved = self.activeRoi
-            else:
-                roiMoved = self._markerLgds[label]
-
-            assert roiMoved
-            if roiMoved.getID() not in self._roiDict:
-                return
-
-            x = ddict['x']
-
-            if label.endswith('ROI min'):
-                roiMoved.setFrom(x)
-                if self._middleROIMarkerFlag:
-                    labelMiddle = roiMoved.getName() + ' ROI middle'
-                    pos = 0.5 * (roiMoved.getTo() + roiMoved.getFrom())
-                    self.plot.addXMarker(pos,
-                                         legend=labelMiddle,
-                                         text='',
-                                         color='yellow',
-                                         draggable=True)
-            elif label.endswith('ROI max'):
-                roiMoved.setTo(x)
-                if self._middleROIMarkerFlag:
-                    pos = 0.5 * (roiMoved.getTo() + roiMoved.getFrom())
-                    labelMiddle = roiMoved.getName() + ' ROI middle'
-                    self.plot.addXMarker(pos,
-                                         legend=labelMiddle,
-                                         text='',
-                                         color='yellow',
-                                         draggable=True)
-            elif label.endswith('ROI middle'):
-                delta = x - 0.5 * (roiMoved.getFrom() + roiMoved.getTo())
-                roiMoved.setFrom(roiMoved.getFrom() + delta)
-                roiMoved.setTo(roiMoved.getTo() + delta)
-
-                labelMin = roiMoved.getName() + ' ROI min'
-                self.plot.addXMarker(roiMoved.getFrom(),
-                                     legend=labelMin,
-                                     text=labelMin,
-                                     color='blue',
-                                     draggable=True)
-                labelMax = roiMoved.getName() + ' ROI max'
-                self.plot.addXMarker(roiMoved.getTo(),
-                                     legend=labelMax,
-                                     text=labelMax,
-                                     color='blue',
-                                     draggable=True)
-
-            self._updateRoiInfo(roiMoved.getID())
-            self._emitCurrentROISignal()
+            roiID = self._markersHandler.getRoiID(markerID=label)
+            if roiID:
+                self._markersHandler.changePosition(markerID=label,
+                                                    x=ddict['x'])
+                self._updateRoiInfo(roiID)
+                self._emitCurrentROISignal()
 
     def _emitCurrentROISignal(self):
         ddict = {}
@@ -969,10 +872,15 @@ class ROI(qt.QObject):
     """The Region Of Interest is defined by:
 
     - A name
-    - A type. The type is the label of the x axis. This can be used to apply or 
+    - A type. The type is the label of the x axis. This can be used to apply or
     not some ROI to a curve and do some post processing.
     - The x coordinate of the left limit (fromdata)
     - The x coordinate of the right limit (todata)
+
+    :param str: name of the ROI
+    :param fromdata: left limit of the roi
+    :param todata: right limit of the roi
+    :param type: type of the ROI
     """
 
     sigChanged = qt.Signal()
@@ -991,7 +899,10 @@ class ROI(qt.QObject):
         self._type = type_ or 'Default'
 
     def getID(self):
-        """Return the unique id of the ROI"""
+        """
+
+        :return int: the unique ID of the ROI
+        """
         return self._id
 
     def setType(self, type_):
@@ -1055,7 +966,18 @@ class ROI(qt.QObject):
         """
         return self._todata
 
+    def getMiddle(self):
+        """
+
+        :return: middle position between 'from' and 'to' values
+        """
+        return 0.5 * (self.getFrom() + self.getTo())
+
     def toDict(self):
+        """
+
+        :return: dict containing the roi parameters
+        """
         return {
             'type': self._type,
             'name': self._name,
@@ -1121,6 +1043,243 @@ class ROI(qt.QObject):
         background = numpy.trapz(yBackground, x=x)
         netCounts = rawCounts - background
         return rawCounts, netCounts
+
+
+class _RoiMarkerManager(object):
+    """
+    Deal with all the ROI markers
+    """
+    def __init__(self):
+        self._roiMarkerHandlers = {}
+        self._middleROIMarkerFlag = False
+        self._showAllMarkers = False
+        self._activeRoi = None
+
+    def setActiveRoi(self, roi):
+        self._activeRoi = roi
+        self.updateAllMarkers()
+
+    def setShowAllMarkers(self, show):
+        if show != self._showAllMarkers:
+            self._showAllMarkers = show
+            self.updateAllMarkers()
+
+    def add(self, roi, markersHandler):
+        assert isinstance(roi, ROI)
+        assert isinstance(markersHandler, _RoiMarkerHandler)
+        if roi.getID() in self._roiMarkerHandlers:
+            raise ValueError('roi with the same ID already existing')
+        else:
+            self._roiMarkerHandlers[roi.getID()] = markersHandler
+
+    def getMarkerHandler(self, roiID):
+        if roiID in self._roiMarkerHandlers:
+            return self._roiMarkerHandlers[roiID]
+        else:
+            return None
+
+    def clear(self):
+        roisHandler = list(self._roiMarkerHandlers.values())
+        for roiHandler in roisHandler:
+            self.remove(roiHandler.roi)
+
+    def remove(self, roi):
+        if roi is None:
+            return
+        assert isinstance(roi, ROI)
+        if roi.getID() in self._roiMarkerHandlers:
+            self._roiMarkerHandlers[roi.getID()].clear()
+            del self._roiMarkerHandlers[roi.getID()]
+
+    def hasMarker(self, markerID):
+        assert type(markerID) is str
+        return self.getMarker(markerID) is not None
+
+    def changePosition(self, markerID, x):
+        markerHandler = self.getMarker(markerID)
+        if markerHandler is None:
+            raise ValueError('Marker %s not register' % markerID)
+        markerHandler.changePosition(markerID=markerID, x=x)
+
+    def updateMarker(self, markerID):
+        markerHandler = self.getMarker(markerID)
+        if markerHandler is None:
+            raise ValueError('Marker %s not register' % markerID)
+        roiID = self.getRoiID(markerID)
+        visible = (self._activeRoi and self._activeRoi.getID() == roiID) or self._showAllMarkers is True
+        markerHandler.setVisible(visible)
+        markerHandler.updateAllMarkers()
+
+    def updateRoiMarkers(self, roiID):
+        if roiID in self._roiMarkerHandlers:
+            visible = ((self._activeRoi and self._activeRoi.getID() == roiID)
+                       or self._showAllMarkers is True)
+            self._roiMarkerHandlers[roiID].setVisible(visible)
+            self._roiMarkerHandlers[roiID].updateMarkers()
+
+    def getMarker(self, markerID):
+        assert type(markerID) is str
+        for marker in list(self._roiMarkerHandlers.values()):
+            if marker.hasMarker(markerID):
+                return marker
+
+    def updateMarkers(self):
+        for markerHandler in list(self._roiMarkerHandlers.values()):
+            markerHandler.updateMarkers()
+
+    def getRoiID(self, markerID):
+        for roiID, markerHandler in self._roiMarkerHandlers.items():
+            if markerHandler.hasMarker(markerID):
+                return roiID
+        return None
+
+    def setShowMiddleMarkers(self, show):
+        self._middleROIMarkerFlag = show
+        self._roiMarkerHandlers.updateAllMarkers()
+
+    def updateAllMarkers(self):
+        for roiID in self._roiMarkerHandlers:
+            self.updateRoiMarkers(roiID)
+
+    def getVisibleRois(self):
+        res = {}
+        for roiID, roiHandler in self._roiMarkerHandlers.items():
+            markers = (roiHandler.getMarker('min'), roiHandler.getMarker('max'),
+                       roiHandler.getMarker('middle'))
+            for marker in markers:
+                if marker.isVisible():
+                    if roiID not in res:
+                        res[roiID] = []
+                    res[roiID].append(marker)
+        return res
+
+
+class _RoiMarkerHandler(object):
+    """Used to deal with ROI markers used in ROITable"""
+    def __init__(self, roi, plot):
+        assert roi and isinstance(roi, ROI)
+        assert plot
+
+        self._roi = weakref.ref(roi)
+        self._plot = weakref.ref(plot)
+        self.draggable = False if roi.isICR() else True
+        self._color = 'blue' if roi.isICR() else 'black'
+        self._displayMidMarker = True
+        self._visible = True
+
+    @property
+    def plot(self):
+        return self._plot()
+
+    def clear(self):
+        if self.plot and self.roi:
+            self.plot.removeMarker(self._markerID('min'))
+            self.plot.removeMarker(self._markerID('max'))
+            self.plot.removeMarker(self._markerID('middle'))
+
+    @property
+    def roi(self):
+        return self._roi()
+
+    def setVisible(self, visible):
+        if visible != self._visible:
+            self._visible = visible
+            self.updateMarkers()
+
+    def showMiddleMarker(self, visible):
+        self._displayMidMarker = visible
+        self.getMarker('middle').setVisible(self._displayMidMarker)
+
+    def updateMarkers(self):
+        if self.roi is None:
+            return
+        self._updateMinMarkerPos()
+        self._updateMaxMarkerPos()
+        self._updateMiddleMarkerPos()
+
+    def _updateMinMarkerPos(self):
+        self.getMarker('min').setPosition(x=self.roi.getFrom(), y=None)
+        self.getMarker('min').setVisible(self._visible)
+
+    def _updateMaxMarkerPos(self):
+        self.getMarker('max').setPosition(x=self.roi.getTo(), y=None)
+        self.getMarker('max').setVisible(self._visible)
+
+    def _updateMiddleMarkerPos(self):
+        self.getMarker('middle').setPosition(x=self.roi.getMiddle(), y=None)
+        self.getMarker('middle').setVisible(self._displayMidMarker and self._visible)
+
+    def getMarker(self, markerType):
+        if self.plot is None:
+            return None
+        assert markerType in ('min', 'max', 'middle')
+        if self.plot._getMarker(self._markerID(markerType)) is None:
+            assert self.roi
+            if markerType == 'min':
+                val = self.roi.getFrom()
+            elif markerType == 'max':
+                val = self.roi.getTo()
+            else:
+                val = self.roi.getMiddle()
+
+            _color = self._color
+            if markerType == 'middle':
+                _color = 'yellow'
+            self.plot.addXMarker(val,
+                                 legend=self._markerID(markerType),
+                                 text=self.getMarkerName(markerType),
+                                 color=_color,
+                                 draggable=self.draggable)
+        return self.plot._getMarker(self._markerID(markerType))
+
+    def _markerID(self, markerType):
+        assert markerType in ('min', 'max', 'middle')
+        assert self.roi
+        return '_'.join((str(self.roi.getID()), markerType))
+
+    def getMarkerName(self, markerType):
+        assert markerType in ('min', 'max', 'middle')
+        assert self.roi
+        return ' '.join((self.roi.getName(), markerType))
+
+    def updateTexts(self):
+        self.getMarker('min').setText(self.getMarkerName('min'))
+        self.getMarker('max').setText(self.getMarkerName('max'))
+        self.getMarker('middle').setText(self.getMarkerName('middle'))
+
+    def changePosition(self, markerID, x):
+        assert self.hasMarker(markerID)
+        markerType = self._getMarkerType(markerID)
+        assert markerType is not None
+        if self.roi is None:
+            return
+        if markerType == 'min':
+            self.roi.setFrom(x)
+            self._updateMiddleMarkerPos()
+        elif markerType == 'max':
+            self.roi.setTo(x)
+            self._updateMiddleMarkerPos()
+        else:
+            delta = x - 0.5 * (self.roi.getFrom() + self.roi.getTo())
+            self.roi.setFrom(self.roi.getFrom() + delta)
+            self.roi.setTo(self.roi.getTo() + delta)
+            self._updateMinMarkerPos()
+            self._updateMaxMarkerPos()
+
+    def hasMarker(self, marker):
+        return marker in (self._markerID('min'),
+                          self._markerID('max'),
+                          self._markerID('middle'))
+
+    def _getMarkerType(self, markerID):
+        if markerID.endswith('_min'):
+            return 'min'
+        elif markerID.endswith('_max'):
+            return 'max'
+        elif markerID.endswith('_middle'):
+            return 'middle'
+        else:
+            return None
 
 
 class CurvesROIDockWidget(qt.QDockWidget):

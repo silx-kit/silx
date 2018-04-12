@@ -52,7 +52,8 @@ class TestCurvesROIWidget(TestCaseQt):
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
-        self.widget = CurvesROIWidget.CurvesROIDockWidget(plot=self.plot, name='TEST')
+        self.widget = self.plot.getCurvesRoiDockWidget()
+
         self.widget.show()
         self.qWaitForWindowExposed(self.widget)
 
@@ -113,16 +114,19 @@ class TestCurvesROIWidget(TestCaseQt):
 
     def testMiddleMarker(self):
         """Test with middle marker enabled"""
-        self.widget.roiWidget.setMiddleROIMarkerFlag(True)
+        self.widget.roiWidget.roiTable.setMiddleROIMarkerFlag(True)
 
         # Add a ROI
         self.mouseClick(self.widget.roiWidget.addButton, qt.Qt.LeftButton)
 
-        xleftMarker = self.plot._getMarker(legend='ROI min').getXPosition()
-        xMiddleMarker = self.plot._getMarker(legend='ROI middle').getXPosition()
-        xRightMarker = self.plot._getMarker(legend='ROI max').getXPosition()
-        self.assertAlmostEqual(xMiddleMarker,
-                               xleftMarker + (xRightMarker - xleftMarker) / 2.)
+        for roiID in self.widget.roiWidget.roiTable._markersHandler._roiMarkerHandlers:
+            handler = self.widget.roiWidget.roiTable._markersHandler._roiMarkerHandlers[roiID]
+            assert handler.getMarker('min')
+            xleftMarker = handler.getMarker('min').getXPosition()
+            xMiddleMarker = handler.getMarker('middle').getXPosition()
+            xRightMarker = handler.getMarker('max').getXPosition()
+            thValue = xleftMarker + (xRightMarker - xleftMarker) / 2.
+            self.assertAlmostEqual(xMiddleMarker, thValue)
 
     def testCalculation(self):
         x = numpy.arange(100.)
@@ -184,25 +188,37 @@ class TestCurvesROIWidget(TestCaseQt):
         }
 
         roisDefsObj = (
-            CurvesROIWidget.ROI(name='range1', fromdata=20, todata=200,
+            CurvesROIWidget.ROI(name='range3', fromdata=20, todata=200,
                                 type_='energy'),
-            CurvesROIWidget.ROI(name='range2', fromdata=300, todata=500,
+            CurvesROIWidget.ROI(name='range4', fromdata=300, todata=500,
                                 type_='energy')
         )
+        self.widget.roiWidget.showAllMarkers(True)
+        roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
+        roiWidget.setRois(roisDefsDict)
+        self.assertTrue(len(self.plot._getAllMarkers()) is 2*3)
 
-        for roisDefs in (roisDefsDict, roisDefsObj):
-            with self.subTest(roisDefs=roisDefs):
-                self.plot.getCurvesRoiDockWidget().setRois(roisDefs)
-                self.assertTrue(len(self.plot._getAllMarkers()) is 2)
-                roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
-                self.plot.getCurvesRoiDockWidget().setVisible(True)
+        markersHandler = self.widget.roiWidget.roiTable._markersHandler
+        roiWidget.showAllMarkers(True)
+        ICRROI = markersHandler.getVisibleRois()
+        self.assertTrue(len(ICRROI) is 2)
 
-                self.assertTrue(len(self.plot._getAllMarkers()) is 2)
-                roiWidget.showAllMarkers(True)
-                self.plot.show()
-                self.assertTrue(len(self.plot._getAllMarkers()) is (len(roisDefs) * 2))
-                roiWidget.showAllMarkers(False)
-                self.assertTrue(len(self.plot._getAllMarkers()) is 2)
+        roiWidget.showAllMarkers(False)
+        ICRROI = markersHandler.getVisibleRois()
+        self.assertTrue(len(ICRROI) is 1)
+
+        roiWidget.setRois(roisDefsObj)
+        self.qapp.processEvents()
+        self.assertTrue(len(self.plot._getAllMarkers()) is 2*3)
+
+        markersHandler = self.widget.roiWidget.roiTable._markersHandler
+        roiWidget.showAllMarkers(True)
+        ICRROI = markersHandler.getVisibleRois()
+        self.assertTrue(len(ICRROI) is 2)
+
+        roiWidget.showAllMarkers(False)
+        ICRROI = markersHandler.getVisibleRois()
+        self.assertTrue(len(ICRROI) is 1)
 
     def testRoiEdition(self):
         """Make sure if the ROI object is edited the ROITable will be updated
