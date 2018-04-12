@@ -940,8 +940,10 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
         super(InteractiveSelectionTableWidget, self).__init__(parent)
         self._selection = None
 
-        self.setColumnCount(4)
-        self.setHorizontalHeaderLabels(['Label', 'Edit', 'Delete', 'Coordinates'])
+        self.setColumnCount(5)
+        self.setHorizontalHeaderLabels(
+            ['Label', 'Edit', 'Delete', 'Kind', 'Coordinates'])
+
         horizontalHeader = self.horizontalHeader()
         horizontalHeader.setDefaultAlignment(qt.Qt.AlignLeft)
         if hasattr(horizontalHeader, 'setResizeMode'):  # Qt 4
@@ -952,7 +954,8 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
         setSectionResizeMode(0, qt.QHeaderView.Interactive)
         setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
         setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(3, qt.QHeaderView.Stretch)
+        setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
+        setSectionResizeMode(4, qt.QHeaderView.Stretch)
 
         verticalHeader = self.verticalHeader()
         verticalHeader.setVisible(False)
@@ -970,7 +973,7 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
         elif column == 1:
             selection.setEditable(
                 item.checkState() == qt.Qt.Checked)
-        elif column in (2, 3):
+        elif column in (2, 3, 4):
             pass  # TODO
         else:
             logger.error('Unhandled column %d', column)
@@ -1022,29 +1025,33 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
             delBtn.setIcon(icons.getQIcon('remove'))
             self.setCellWidget(index, 2, delBtn)
 
+            kind = selection.getKind()
+            item = qt.QTableWidgetItem(kind.capitalize())
+            item.setFlags(baseFlags)
+            self.setItem(index, 3, item)
+
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags)
 
             points = selection.getControlPoints()
-            kind = selection.getKind()
             if kind == 'rectangle':
                 origin = numpy.min(points, axis=0)
                 w, h = numpy.max(points, axis=0) - origin
-                item.setText('origin: (%f; %f); width: %f; height: %f' %
+                item.setText('Origin: (%f; %f); Width: %f; Height: %f' %
                              (origin[0], origin[1], w, h))
 
             elif kind == 'point':
                 item.setText('(%f; %f)' % (points[0, 0], points[0, 1]))
 
             elif kind == 'hline':
-                item.setText('y: %f' % points[0, 1])
+                item.setText('Y: %f' % points[0, 1])
 
             elif kind == 'vline':
-                item.setText('x: %f' % points[0, 0])
+                item.setText('X: %f' % points[0, 0])
 
             else:  # default (polygon, line)
                 item.setText('; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points))
-            self.setItem(index, 3, item)
+            self.setItem(index, 4, item)
 
     def getInteractiveSelection(self):
         """Returns the :class:`InteractiveSelection` this widget supervise.
