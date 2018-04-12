@@ -252,7 +252,11 @@ class Selection(qt.QObject):
                 text=self.getLabel(),
                 color=rgba(self.getColor()),
                 draggable=self.isEditable())
-            self._items.append(plot._getItem(kind='marker', legend=legend))
+            item = plot._getItem(kind='marker', legend=legend)
+            self._items.append(item)
+
+            if self.isEditable():
+                item.sigItemChanged.connect(self._markerChanged)
 
         elif kind == 'hline':
             plot.addYMarker(
@@ -261,7 +265,11 @@ class Selection(qt.QObject):
                 text=self.getLabel(),
                 color=rgba(self.getColor()),
                 draggable=self.isEditable())
-            self._items.append(plot._getItem(kind='marker', legend=legend))
+            item = plot._getItem(kind='marker', legend=legend)
+            self._items.append(item)
+
+            if self.isEditable():
+                item.sigItemChanged.connect(self._markerChanged)
 
         elif kind == 'vline':
             plot.addXMarker(
@@ -270,7 +278,11 @@ class Selection(qt.QObject):
                 text=self.getLabel(),
                 color=rgba(self.getColor()),
                 draggable=self.isEditable())
-            self._items.append(plot._getItem(kind='marker', legend=legend))
+            item = plot._getItem(kind='marker', legend=legend)
+            self._items.append(item)
+
+            if self.isEditable():
+                item.sigItemChanged.connect(self._markerChanged)
 
         else:  # rectangle, line, polygon
             plot.addItem(x, y,
@@ -323,6 +335,32 @@ class Selection(qt.QObject):
                     item = plot._getItem(kind='marker', legend=anchorLegend)
                     item.sigItemChanged.connect(self._centerAnchorChanged)
                     self._editAnchors.append(item)
+
+    def _markerChanged(self, event):
+        """Handle draggable marker changed.
+
+        Used for 'point', 'hline', 'vline'.
+
+        :param ItemChangeType event:
+        """
+        if event == items.ItemChangedType.POSITION:
+            kind = self.getKind()
+
+            marker = self.sender()
+            position = marker.getPosition()
+
+            if kind == 'point':
+                points = [position]
+            elif kind == 'hline':
+                points = self.getControlPoints()
+                points[:, 1] = position[1]
+            elif kind == 'vline':
+                points = self.getControlPoints()
+                points[:, 0] = position[0]
+            else:
+                raise RuntimeError('Unhandled kind %s' % kind)
+
+            self.setControlPoints(points)
 
     def _controlPointAnchorChanged(self, index, event):
         """Handle update of position of an edition anchor
