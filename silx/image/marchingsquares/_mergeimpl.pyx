@@ -410,6 +410,9 @@ cdef class _MarchingSquaresAlgorithm(object):
         result_point.x = x + fx
         result_point.y = y + fy
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
     cdef point_index_t _create_point_index(self, int yx, cnumpy.uint8_t edge) nogil:
         """Create an unique identifier for a point of a polygon.
 
@@ -899,6 +902,9 @@ cdef class MarchingSquaresMergeImpl(object):
             del description
         return polygons
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
     def find_pixels(self, level):
         """
         Compute the pixels from the image over the requested iso contours
