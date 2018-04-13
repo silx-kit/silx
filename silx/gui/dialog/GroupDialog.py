@@ -80,6 +80,13 @@ class GroupDialog(qt.QDialog):
                                   self._model.NODE_COLUMN,
                                   self._model.LINK_COLUMN])
 
+        self._label = qt.QLabel(self)
+        self._label.setText("Subgroup name (optional)")
+        self._lineEdit = qt.QLineEdit(self)
+        self._lineEdit.setToolTip("Specify the name of a new subgroup "
+                                  "to be created in the selected group.")
+        self._lineEdit.textChanged.connect(self._onSubgroupNameChange)
+
         buttonBox = qt.QDialogButtonBox()
         self._okButton = buttonBox.addButton(qt.QDialogButtonBox.Ok)
         self._okButton.setEnabled(False)
@@ -88,12 +95,14 @@ class GroupDialog(qt.QDialog):
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
-        self._statusBar = qt.QStatusBar()
+        self._statusBar = qt.QStatusBar(self)
         self._statusBar.setStyleSheet("color: gray")
         self._statusBar.showMessage("Select a group")
 
         vlayout = qt.QVBoxLayout(self)
         vlayout.addWidget(self._tree)
+        vlayout.addWidget(self._label)
+        vlayout.addWidget(self._lineEdit)
         vlayout.addWidget(buttonBox)
         vlayout.addWidget(self._statusBar)
         self.setLayout(vlayout)
@@ -161,12 +170,22 @@ class GroupDialog(qt.QDialog):
             self.accept()
 
     def _onSelectionChange(self, old, new):
+        self._updateUrl()
+
+    def _onSubgroupNameChange(self, text):
+        self._updateUrl()
+
+    def _updateUrl(self):
         nodes = list(self._tree.selectedH5Nodes())
+        subgroupName = self._lineEdit.text()
         if nodes:
             node = nodes[0]
             if silx.io.is_group(node.h5py_object):
+                data_path = node.local_name
+                if subgroupName.lstrip("/"):
+                    data_path += "/" + subgroupName.lstrip("/")
                 self._selectedUrl = DataUrl(file_path=node.local_filename,
-                                            data_path=node.local_name)
+                                            data_path=data_path)
                 self._okButton.setEnabled(True)
                 self._statusBar.showMessage(
                         self._selectedUrl.path())
