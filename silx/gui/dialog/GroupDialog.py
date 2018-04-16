@@ -154,7 +154,9 @@ class GroupDialog(qt.QDialog):
             if silx.io.is_group(node.h5py_object):
                 data_path = node.local_name
                 if subgroupName.lstrip("/"):
-                    data_path += "/" + subgroupName.lstrip("/")
+                    if not data_path.endswith("/"):
+                        data_path += "/"
+                    data_path += subgroupName.lstrip("/")
                 self._selectedUrl = DataUrl(file_path=node.local_filename,
                                             data_path=data_path)
                 self._okButton.setEnabled(True)
