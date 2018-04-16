@@ -84,6 +84,6 @@ typedef struct coord_t {
 	        return false;
 	    }
 	}
-};
+} coord_t;
 
 #endif /*__MARCHINGSQUARE_PATTERNS_H__*/

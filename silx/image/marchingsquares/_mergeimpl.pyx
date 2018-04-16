@@ -53,7 +53,7 @@ cdef double EPSILON = numpy.finfo(numpy.float64).eps
 cdef extern from "include/patterns.h":
     cdef unsigned char EDGE_TO_POINT[][2]
     cdef unsigned char CELL_TO_EDGE[][5]
-    struct coord_t:
+    cdef struct coord_t:
         short x
         short y
 
@@ -82,8 +82,8 @@ cdef cppclass TileContext:
     map[point_index_t, PolygonDescription*] polygons
 
     # Only used to find pixels
-    cset[coord_t] final_pixels
-    map[point_index_t, coord_t] pixels
+    clist[coord_t] final_pixels
+    cset[coord_t] pixels
 
     TileContext() nogil:
         pass
@@ -308,6 +308,14 @@ cdef class _MarchingSquaresAlgorithm(object):
             image_ptr += self._dim_x - context.dim_x
             if mask_ptr != NULL:
                 mask_ptr += self._dim_x - context.dim_x
+
+        self._after_marching_squares(context)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _after_marching_squares(self, TileContext *context) nogil:
+        pass
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -731,73 +739,51 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
                               cnumpy.uint8_t end_edge,
                               cnumpy.float64_t isovalue) nogil:
         cdef:
-            int yx
-            point_index_t begin, end, index
             coord_t coord
-            map[point_index_t, coord_t].iterator it_begin
-            map[point_index_t, coord_t].iterator it_end
+        self._compute_ipoint(x, y, begin_edge, isovalue, &coord)
+        context.pixels.insert(coord)
+        self._compute_ipoint(x, y, end_edge, isovalue, &coord)
+        context.pixels.insert(coord)
 
-        yx = self._dim_x * y + x
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _after_marching_squares(self, TileContext *context) nogil:
+        cdef:
+            coord_t coord
+            cset[coord_t].iterator it_coord
+            cset[coord_t].iterator it_coord_erase
+        pass
 
-        begin = self._create_point_index(yx, begin_edge)
-        it_begin = context.pixels.find(begin)
-
-        if it_begin != context.pixels.end():
-            # We only can found points 2 times
-            # If it already exists, we can remove it
-            coord = dereference(it_begin).second
-            context.final_pixels.insert(coord)
-            context.pixels.erase(it_begin)
-        else:
-            self._compute_ipoint(x, y, begin_edge, isovalue, &coord)
-            context.pixels[begin] = coord
-
-        end = self._create_point_index(yx, end_edge)
-        it_end = context.pixels.find(end)
-
-        if it_end != context.pixels.end():
-            # We only can found points 2 times
-            # If it already exists, we can remove it
-            coord = dereference(it_end).second
-            context.final_pixels.insert(coord)
-            context.pixels.erase(it_end)
-        else:
-            self._compute_ipoint(x, y, end_edge, isovalue, &coord)
-            context.pixels[end] = coord
+        it_coord = context.pixels.begin()
+        while it_coord != context.pixels.end():
+            coord = dereference(it_coord)
+            if (coord.x > context.pos_x and coord.x < context.pos_x + context.dim_x - 1 and
+                    coord.y > context.pos_y and coord.y < context.pos_y + context.dim_y - 1):
+                it_coord_erase = it_coord
+                preincrement(it_coord)
+                context.pixels.erase(it_coord_erase)
+                context.final_pixels.push_back(coord)
+            else:
+                preincrement(it_coord)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void _merge_context(self, TileContext *context, TileContext *other) nogil:
         cdef:
-            map[point_index_t, coord_t].iterator it
-            map[point_index_t, coord_t].iterator it2
-            point_index_t index
-            int xx, yy
             cset[coord_t].iterator it_coord
+
+        # merge final pixels
+        context.final_pixels.splice(context.final_pixels.end(), other.final_pixels)
 
         # merge final pixels
         # NOTE: This is not declared in Cython
         #     context.final_pixels.insert(other.final_pixels.begin(), other.final_pixels.end())
-        it_coord = other.final_pixels.begin()
-        while it_coord != other.final_pixels.end():
-            context.final_pixels.insert(dereference(it_coord))
+        it_coord = other.pixels.begin()
+        while it_coord != other.pixels.end():
+            context.pixels.insert(dereference(it_coord))
             preincrement(it_coord)
-
-        # Merge every pixels to the main context
-        it = other.pixels.begin()
-        while it != other.pixels.end():
-            index = dereference(it).first
-
-            it2 = context.pixels.find(index)
-            if it2 != context.pixels.end():
-                # We only can found points 2 times
-                # If it already exists, we can remove it
-                context.final_pixels.insert(dereference(it2).second)
-                context.pixels.erase(it2)
-            else:
-                context.pixels[index] = dereference(it).second
-            preincrement(it)
 
 
 cdef class MarchingSquaresMergeImpl(object):
@@ -916,15 +902,15 @@ cdef class MarchingSquaresMergeImpl(object):
         cdef:
             int i, x, y
             point_index_t index
-            map[point_index_t, coord_t].iterator it
-            cset[coord_t].iterator it_coord
+            cset[coord_t].iterator it
+            clist[coord_t].iterator it_coord
             coord_t coord
 
         # create result
         it = final_context.pixels.begin()
         while it != final_context.pixels.end():
-            coord = dereference(it).second
-            final_context.final_pixels.insert(coord)
+            coord = dereference(it)
+            final_context.final_pixels.push_back(coord)
             preincrement(it)
 
         pixels = numpy.empty((final_context.final_pixels.size(), 2), dtype=numpy.int32)
