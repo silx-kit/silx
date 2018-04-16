@@ -57,8 +57,8 @@ class GroupDialog(qt.QDialog):
         dialog.addFile(filepath2)
 
         if dialog.exec_():
-            print("File path: %s" % dialog.selected_url.file_path())
-            print("HDF5 group path : %s " % dialog.selected_url.data_path())
+            print("File path: %s" % dialog.getSelectedDataUrl().file_path())
+            print("HDF5 group path : %s " % dialog.getSelectedDataUrl().data_path())
         else:
             print("Operation cancelled :(")
 
