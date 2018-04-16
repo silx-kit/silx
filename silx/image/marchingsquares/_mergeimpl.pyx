@@ -50,6 +50,11 @@ cimport cython
 
 cdef double EPSILON = numpy.finfo(numpy.float64).eps
 
+# Windows compatibility: Cross-platform INFINITY
+from libc.float cimport DBL_MAX
+cdef double INFINITY = DBL_MAX + DBL_MAX
+# from libc.math cimport INFINITY
+
 cdef extern from "include/patterns.h":
     cdef unsigned char EDGE_TO_POINT[][2]
     cdef unsigned char CELL_TO_EDGE[][5]
@@ -862,33 +867,76 @@ cdef class MarchingSquaresMergeImpl(object):
         if self._max_cache != NULL:
             libc.stdlib.free(self._max_cache)
 
-    def _create_minmax_cache(self, array, block_size):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _compute_minmax_on_block(self, int block_x, int block_y, int block_index) nogil:
+        cdef:
+            int x, y
+            int pos_x, end_x, pos_y, end_y
+            cnumpy.float32_t minimum, maximum, value
+            cnumpy.float32_t *image_ptr
+            cnumpy.int8_t *mask_ptr
+
+        pos_x = block_x * self._group_size
+        end_x = pos_x + self._group_size + 1
+        if end_x > self._dim_x:
+            end_x = self._dim_x
+        pos_y = block_y * self._group_size
+        end_y = pos_y + self._group_size + 1
+        if end_y > self._dim_y:
+            end_y = self._dim_y
+
+        image_ptr = self._image_ptr + (pos_y * self._dim_x + pos_x)
+        if self._mask_ptr != NULL:
+            mask_ptr = self._mask_ptr + (pos_y * self._dim_x + pos_x)
+        else:
+            mask_ptr = NULL
+        minimum = INFINITY
+        maximum = -INFINITY
+
+        for y in range(pos_y, end_y):
+            for x in range(pos_x, end_x):
+                if mask_ptr != NULL:
+                    if mask_ptr[0] != 0:
+                        image_ptr += 1
+                        mask_ptr += 1
+                        continue
+                value = image_ptr[0]
+                if value < minimum:
+                    minimum = value
+                if value > maximum:
+                    maximum = value
+                image_ptr += 1
+                if mask_ptr != NULL:
+                    mask_ptr += 1
+            image_ptr += self._dim_x + pos_x - end_x
+            if mask_ptr != NULL:
+                mask_ptr += self._dim_x + pos_x - end_x
+
+        self._min_cache[block_index] = minimum
+        self._max_cache[block_index] = maximum
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef void _create_minmax_cache(self) nogil:
         """Python code to compute min/max cache per block of an image"""
-        if block_size == 0:
-            return None
+        cdef:
+            int icontext, context_x, context_y
+            int context_dim_x, context_dim_y, context_size
 
-        size = numpy.array(array.shape)
-        size = size // block_size + (size % block_size > 0)
+        context_dim_x = self._dim_x // self._group_size + (self._dim_x % self._group_size > 0)
+        context_dim_y = self._dim_y // self._group_size + (self._dim_y % self._group_size > 0)
+        context_size = context_dim_x * context_dim_y
 
-        self._min_cache = <cnumpy.float32_t *>libc.stdlib.malloc(size[0] * size[1] * sizeof(cnumpy.float32_t))
-        self._max_cache = <cnumpy.float32_t *>libc.stdlib.malloc(size[0] * size[1] * sizeof(cnumpy.float32_t))
+        self._min_cache = <cnumpy.float32_t *>libc.stdlib.malloc(context_size * sizeof(cnumpy.float32_t))
+        self._max_cache = <cnumpy.float32_t *>libc.stdlib.malloc(context_size * sizeof(cnumpy.float32_t))
 
-        iblock = 0
-        for y in range(size[0]):
-            yend = (y + 1) * block_size + 1
-            if y + 1 == size[0]:
-                yy = slice(y * block_size, array.shape[0])
-            else:
-                yy = slice(y * block_size, yend)
-            for x in range(size[1]):
-                xend = (x + 1) * block_size + 1
-                if x + 1 == size[1]:
-                    xx = slice(x * block_size, array.shape[1])
-                else:
-                    xx = slice(x * block_size, xend)
-                self._min_cache[iblock] = numpy.min(array[yy, xx])
-                self._max_cache[iblock] = numpy.max(array[yy, xx])
-                iblock += 1
+        for icontext in prange(context_size, nogil=True):
+            context_x = icontext % context_dim_x
+            context_y = icontext // context_dim_x
+            self._compute_minmax_on_block(context_x, context_y, icontext)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -966,6 +1014,7 @@ cdef class MarchingSquaresMergeImpl(object):
             polygon.shape = -1, 2
             polygons.append(polygon)
             del description
+
         return polygons
 
     @cython.boundscheck(False)
@@ -981,7 +1030,7 @@ cdef class MarchingSquaresMergeImpl(object):
         :rtype: numpy.ndarray
         """
         if self._use_minmax_cache and self._min_cache == NULL:
-            self._create_minmax_cache(self._image, self._group_size)
+            self._create_minmax_cache()
 
         if self._pixels_algo is None:
             algo = _MarchingSquaresPixels()
@@ -1019,7 +1068,7 @@ cdef class MarchingSquaresMergeImpl(object):
         :rtype: List[numpy.ndarray]
         """
         if self._use_minmax_cache and self._min_cache == NULL:
-            self._create_minmax_cache(self._image, self._group_size)
+            self._create_minmax_cache()
 
         if self._contours_algo is None:
             algo = _MarchingSquaresContours()
