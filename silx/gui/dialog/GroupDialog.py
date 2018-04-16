@@ -80,12 +80,21 @@ class GroupDialog(qt.QDialog):
                                   self._model.NODE_COLUMN,
                                   self._model.LINK_COLUMN])
 
-        self._label = qt.QLabel(self)
-        self._label.setText("Subgroup name (optional)")
-        self._lineEdit = qt.QLineEdit(self)
-        self._lineEdit.setToolTip("Specify the name of a new subgroup "
-                                  "to be created in the selected group.")
-        self._lineEdit.textChanged.connect(self._onSubgroupNameChange)
+        _labelSubgroup = qt.QLabel(self)
+        _labelSubgroup.setText("Subgroup name (optional)")
+        self._lineEditSubgroup = qt.QLineEdit(self)
+        self._lineEditSubgroup.setToolTip(
+                "Specify the name of a new subgroup "
+                "to be created in the selected group.")
+        self._lineEditSubgroup.textChanged.connect(
+                self._onSubgroupNameChange)
+
+        _labelSelectionTitle = qt.QLabel(self)
+        _labelSelectionTitle.setText("Current selection")
+        self._labelSelection = qt.QLabel(self)
+        self._labelSelection.setStyleSheet("color: gray")
+        self._labelSelection.setWordWrap(True)
+        self._labelSelection.setText("Select a group")
 
         buttonBox = qt.QDialogButtonBox()
         self._okButton = buttonBox.addButton(qt.QDialogButtonBox.Ok)
@@ -95,16 +104,13 @@ class GroupDialog(qt.QDialog):
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
-        self._statusBar = qt.QStatusBar(self)
-        self._statusBar.setStyleSheet("color: gray")
-        self._statusBar.showMessage("Select a group")
-
         vlayout = qt.QVBoxLayout(self)
         vlayout.addWidget(self._tree)
-        vlayout.addWidget(self._label)
-        vlayout.addWidget(self._lineEdit)
+        vlayout.addWidget(_labelSubgroup)
+        vlayout.addWidget(self._lineEditSubgroup)
+        vlayout.addWidget(_labelSelectionTitle)
+        vlayout.addWidget(self._labelSelection)
         vlayout.addWidget(buttonBox)
-        vlayout.addWidget(self._statusBar)
         self.setLayout(vlayout)
 
         self.setMinimumWidth(400)
@@ -142,7 +148,7 @@ class GroupDialog(qt.QDialog):
 
     def _updateUrl(self):
         nodes = list(self._tree.selectedH5Nodes())
-        subgroupName = self._lineEdit.text()
+        subgroupName = self._lineEditSubgroup.text()
         if nodes:
             node = nodes[0]
             if silx.io.is_group(node.h5py_object):
@@ -152,12 +158,12 @@ class GroupDialog(qt.QDialog):
                 self._selectedUrl = DataUrl(file_path=node.local_filename,
                                             data_path=data_path)
                 self._okButton.setEnabled(True)
-                self._statusBar.showMessage(
+                self._labelSelection.setText(
                         self._selectedUrl.path())
             else:
                 self._selectedUrl = None
                 self._okButton.setEnabled(False)
-                self._statusBar.showMessage("Select a group")
+                self._labelSelection.setText("Select a group")
 
     def getSelectedDataUrl(self):
         """Return a :class:`DataUrl` with a file path and a data path.
