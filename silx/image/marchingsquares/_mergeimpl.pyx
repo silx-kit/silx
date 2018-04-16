@@ -1005,10 +1005,12 @@ cdef class MarchingSquaresMergeImpl(object):
             algo = self._pixels_algo
 
         algo._marching_squares(level)
-        pixels = self._extract_pixels(algo._final_context)
-        del algo._final_context
-
-        return pixels
+        if algo._final_context == NULL:
+            return numpy.empty((0, 2), dtype=numpy.int32)
+        else:
+            pixels = self._extract_pixels(algo._final_context)
+            del algo._final_context
+            return pixels
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -1040,7 +1042,9 @@ cdef class MarchingSquaresMergeImpl(object):
             algo = self._contours_algo
 
         algo._marching_squares(level)
-        polygons = self._extract_polygons(algo._final_context)
-        del algo._final_context
-
-        return polygons
+        if algo._final_context == NULL:
+            return []
+        else:
+            polygons = self._extract_polygons(algo._final_context)
+            del algo._final_context
+            return polygons
