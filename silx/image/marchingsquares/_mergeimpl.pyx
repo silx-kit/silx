@@ -227,6 +227,8 @@ cdef class _MarchingSquaresAlgorithm(object):
             del context2
         elif context2 != NULL:
             contexts[index1] = context2
+        # for sanity
+        # contexts[index2] = NULL
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
