@@ -623,7 +623,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             PolygonDescription *description2
             point_index_t point_index
             vector[PolygonDescription*] mergeable_polygons
-            int i
+            size_t i
 
         # merge final polygons
         context.final_polygons.splice(context.final_polygons.end(), other.final_polygons)
@@ -931,7 +931,8 @@ cdef class MarchingSquaresMergeImpl(object):
     @cython.cdivision(True)
     cdef _extract_polygons(self, TileContext *final_context):
         cdef:
-            int i, i_pixel
+            size_t i
+            int i_pixel
             cnumpy.uint8_t index
             map[point_index_t, PolygonDescription*].iterator it
             vector[PolygonDescription*] descriptions
