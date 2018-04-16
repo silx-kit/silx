@@ -166,7 +166,7 @@ cdef class _MarchingSquaresAlgorithm(object):
         Reduce the problem taking care of the neigbours using OpenMP.
         """
         cdef:
-            int x1, y1, x2, y2, i
+            int x1, y1, x2, y2, i1, i2
             int delta = 1
 
         while True:
@@ -176,30 +176,25 @@ cdef class _MarchingSquaresAlgorithm(object):
             # It is needed to add a delta and the 'to'
             # Here is what we can use with Cython 0.28:
             #     for i in prange(0, dim_x, (delta + delta)):
-            for i in prange(0, dim_x + (delta + delta - 1), (delta + delta)):
-                x1 = i
-                if x1 + delta >= dim_x:
-                    break
-                y1 = 0
-                while True:
-                    if y1 >= dim_y:
-                        break
-                    self._merge_array_contexts(contexts, y1 * dim_x + x1, y1 * dim_x + x1 + delta)
-                    y1 = y1 + delta
+            for i1 in prange(0, dim_x + (delta + delta - 1), delta + delta, nogil=True):
+                x1 = i1
+                if x1 + delta < dim_x:
+                    y1 = 0
+                    while y1 < dim_y:
+                        self._merge_array_contexts(contexts, y1 * dim_x + x1, y1 * dim_x + x1 + delta)
+                        y1 = y1 + delta
+
             # NOTE: Cython 0.21.1 is buggy with prange + steps
             # It is needed to add a delta and the 'to'
             # Here is what we can use with Cython 0.28:
             #     for i in prange(0, dim_y, (delta + delta)):
-            for i in prange(0, dim_y + (delta + delta - 1), (delta + delta)):
-                y2 = i
-                if y2 + delta >= dim_y:
-                    break
-                x2 = 0
-                while True:
-                    if x2 >= dim_x:
-                        break
-                    self._merge_array_contexts(contexts, y2 * dim_x + x2, (y2 + delta) * dim_x + x2)
-                    x2 = x2 + delta + delta
+            for i2 in prange(0, dim_y + (delta + delta - 1), delta + delta, nogil=True):
+                y2 = i2
+                if y2 + delta < dim_y:
+                    x2 = 0
+                    while x2 < dim_x:
+                        self._merge_array_contexts(contexts, y2 * dim_x + x2, (y2 + delta) * dim_x + x2)
+                        x2 = x2 + delta + delta
             delta <<= 1
 
         self._final_context = contexts[0]
