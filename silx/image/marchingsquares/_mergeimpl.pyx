@@ -27,13 +27,14 @@ Marching squares implementation based on a merge of segements and polygons.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/04/2018"
+__date__ = "16/04/2018"
 
 import numpy
 cimport numpy as cnumpy
 
 from libcpp.vector cimport vector
 from libcpp.list cimport list as clist
+from libcpp.set cimport set as cset
 from libcpp.map cimport map
 from libcpp cimport bool
 from libc.math cimport fabs
@@ -52,12 +53,11 @@ cdef double EPSILON = numpy.finfo(numpy.float64).eps
 cdef extern from "include/patterns.h":
     cdef unsigned char EDGE_TO_POINT[][2]
     cdef unsigned char CELL_TO_EDGE[][5]
+    struct coord_t:
+        short x
+        short y
 
 ctypedef cnumpy.uint32_t point_index_t
-
-cdef struct coord_t:
-    cnumpy.int16_t x
-    cnumpy.int16_t y
 
 cdef struct point_t:
     cnumpy.float32_t x
@@ -82,7 +82,7 @@ cdef cppclass TileContext:
     map[point_index_t, PolygonDescription*] polygons
 
     # Only used to find pixels
-    clist[coord_t] final_pixels
+    cset[coord_t] final_pixels
     map[point_index_t, coord_t] pixels
 
     TileContext() nogil:
@@ -712,7 +712,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
             # We only can found points 2 times
             # If it already exists, we can remove it
             coord = dereference(it_begin).second
-            context.final_pixels.push_back(coord)
+            context.final_pixels.insert(coord)
             context.pixels.erase(it_begin)
         else:
             self._compute_point(x, y, begin_edge, isovalue, &point)
@@ -726,7 +726,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
             # We only can found points 2 times
             # If it already exists, we can remove it
             coord = dereference(it_end).second
-            context.final_pixels.push_back(coord)
+            context.final_pixels.insert(coord)
             context.pixels.erase(it_end)
         else:
             self._compute_point(x, y, end_edge, isovalue, &point)
@@ -742,9 +742,15 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
             map[point_index_t, coord_t].iterator it2
             point_index_t index
             int xx, yy
+            cset[coord_t].iterator it_coord
 
         # merge final pixels
-        context.final_pixels.splice(context.final_pixels.end(), other.final_pixels)
+        # NOTE: This is not declared in Cython
+        #     context.final_pixels.insert(other.final_pixels.begin(), other.final_pixels.end())
+        it_coord = other.final_pixels.begin()
+        while it_coord != other.final_pixels.end():
+            context.final_pixels.insert(dereference(it_coord))
+            preincrement(it_coord)
 
         # Merge every pixels to the main context
         it = other.pixels.begin()
@@ -755,7 +761,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
             if it2 != context.pixels.end():
                 # We only can found points 2 times
                 # If it already exists, we can remove it
-                context.final_pixels.push_back(dereference(it2).second)
+                context.final_pixels.insert(dereference(it2).second)
                 context.pixels.erase(it2)
             else:
                 context.pixels[index] = dereference(it).second
@@ -879,14 +885,14 @@ cdef class MarchingSquaresMergeImpl(object):
             int i, x, y
             point_index_t index
             map[point_index_t, coord_t].iterator it
-            clist[coord_t].iterator it_coord
+            cset[coord_t].iterator it_coord
             coord_t coord
 
         # create result
         it = final_context.pixels.begin()
         while it != final_context.pixels.end():
             coord = dereference(it).second
-            final_context.final_pixels.push_back(coord)
+            final_context.final_pixels.insert(coord)
             preincrement(it)
 
         pixels = numpy.empty((final_context.final_pixels.size(), 2), dtype=numpy.int32)

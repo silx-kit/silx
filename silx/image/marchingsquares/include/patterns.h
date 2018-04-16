@@ -70,4 +70,20 @@ const unsigned char CELL_TO_EDGE[][5] = {
 	{0, 0, 0, 0, 0},  // Case 15: 1111
 };
 
+
+typedef struct coord_t {
+	short x;
+	short y;
+
+	bool operator<(const coord_t& other) const {
+	    if (y < other.y) {
+	        return true;
+	    } else if (y == other.y) {
+	        return x < other.x;
+	    } else {
+	        return false;
+	    }
+	}
+};
+
 #endif /*__MARCHINGSQUARE_PATTERNS_H__*/
