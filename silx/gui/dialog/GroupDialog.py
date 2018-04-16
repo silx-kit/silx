@@ -111,41 +111,6 @@ class GroupDialog(qt.QDialog):
 
         self._selectedUrl = None
 
-    def getHeaderView(self):
-        """Return the header view.
-
-        This allows to some tuning via the API of the
-        :class:`silx.gui.hdf5.Hdf5HeaderView.Hdf5HeaderView` class::
-
-            dialog = GroupDialog()
-            dialog.getHeaderView().setSections(
-                [dialog.getTreeModel().NAME_COLUMN,
-                 dialog.getTreeModel().NODE_COLUMN])
-
-        To show all sections::
-
-            dialog.getHeaderView().setSections(
-                dialog.getTreeModel().COLUMN_IDS)
-
-        See :class:`silx.gui.hdf5.Hdf5TreeModel.Hdf5TreeModel` to find a list
-        of all column identifiers.
-
-        .. note::
-
-            Users can interactively show and hide columns with a right
-            click on the header bar.
-
-        :return: :class:`silx.gui.hdf5.Hdf5HeaderView.Hdf5HeaderView`
-        """
-        return self._header
-
-    def getTreeModel(self):
-        """Return the tree model.
-
-        :return: silx.gui.hdf5.Hdf5TreeModel.Hdf5TreeModel
-        """
-        return self._model
-
     def addFile(self, path):
         """Add a HDF5 file to the tree.
         All groups it contains will be selectable in the dialog.
