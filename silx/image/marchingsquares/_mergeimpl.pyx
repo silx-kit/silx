@@ -421,6 +421,41 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
+    cdef void _compute_ipoint(self,
+                              cnumpy.uint_t x,
+                              cnumpy.uint_t y,
+                              cnumpy.uint8_t edge,
+                              cnumpy.float64_t isovalue,
+                              coord_t *result_coord) nogil:
+        cdef:
+            int dx1, dy1, index1
+            int dx2, dy2, index2
+            cnumpy.float64_t fx, fy, ff, weight1, weight2
+        # Use these to look up the relative positions of the pixels to interpolate
+        dx1, dy1 = EDGE_TO_POINT[edge][0], EDGE_TO_POINT[edge][1]
+        dx2, dy2 = EDGE_TO_POINT[edge + 1][0], EDGE_TO_POINT[edge + 1][1]
+        # Define "strength" of each corner of the cube that we need
+        index1 = (y + dy1) * self._dim_x + x + dx1
+        index2 = (y + dy2) * self._dim_x + x + dx2
+        weight1 = EPSILON + fabs(self._image_ptr[index1] - isovalue)
+        weight2 = EPSILON + fabs(self._image_ptr[index2] - isovalue)
+        # Apply a kind of center-of-mass method
+        if edge == 0:
+            result_coord.x = x + (weight1 > weight2)
+            result_coord.y = y
+        elif edge == 1:
+            result_coord.x = x + 1
+            result_coord.y = y + (weight1 > weight2)
+        elif edge == 2:
+            result_coord.x = x + (weight1 < weight2)
+            result_coord.y = y + 1
+        elif edge == 3:
+            result_coord.x = x
+            result_coord.y = y + (weight1 < weight2)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
     cdef point_index_t _create_point_index(self, int yx, cnumpy.uint8_t edge) nogil:
         """Create an unique identifier for a point of a polygon.
 
@@ -697,7 +732,6 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
                               cnumpy.float64_t isovalue) nogil:
         cdef:
             int yx
-            point_t point
             point_index_t begin, end, index
             coord_t coord
             map[point_index_t, coord_t].iterator it_begin
@@ -715,8 +749,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
             context.final_pixels.insert(coord)
             context.pixels.erase(it_begin)
         else:
-            self._compute_point(x, y, begin_edge, isovalue, &point)
-            coord.x, coord.y = int(floor(point.x + 0.5)), int(floor(point.y + 0.5))
+            self._compute_ipoint(x, y, begin_edge, isovalue, &coord)
             context.pixels[begin] = coord
 
         end = self._create_point_index(yx, end_edge)
@@ -729,8 +762,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
             context.final_pixels.insert(coord)
             context.pixels.erase(it_end)
         else:
-            self._compute_point(x, y, end_edge, isovalue, &point)
-            coord.x, coord.y = int(floor(point.x + 0.5)), int(floor(point.y + 0.5))
+            self._compute_ipoint(x, y, end_edge, isovalue, &coord)
             context.pixels[end] = coord
 
     @cython.boundscheck(False)
