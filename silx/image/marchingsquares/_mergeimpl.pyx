@@ -63,11 +63,14 @@ cdef extern from "include/patterns.h":
         short y
 
 ctypedef cnumpy.uint32_t point_index_t
+"""Type of the unique index identifying a connection for the polygons."""
 
+"""Define a point of a polygon."""
 cdef struct point_t:
     cnumpy.float32_t x
     cnumpy.float32_t y
 
+"""Description of a non-final polygon."""
 cdef cppclass PolygonDescription:
     point_index_t begin
     point_index_t end
@@ -76,6 +79,12 @@ cdef cppclass PolygonDescription:
     PolygonDescription() nogil:
         pass
 
+"""Description of a tile context.
+
+It contains structure to store intermediate and final data of a thread.
+Pixels and contours structures are merged together as it looks to have
+mostly no cost.
+"""
 cdef cppclass TileContext:
     int pos_x
     int pos_y
@@ -95,6 +104,12 @@ cdef cppclass TileContext:
 
 
 cdef class _MarchingSquaresAlgorithm(object):
+    """Abstract class managing a marching squares algorithm.
+
+    It provides common methods to execute the process, witht e support of
+    OpenMP, plus some hooks. Mostly created to be able to reuse part of the
+    logic between `_MarchingSquaresContours` and `_MarchingSquaresPixels`.
+    """
 
     cdef cnumpy.float32_t *_image_ptr
     cdef cnumpy.int8_t *_mask_ptr
@@ -116,7 +131,12 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void marching_squares(self, cnumpy.float64_t isovalue) nogil:
+    cdef void marching_squares(self, cnumpy.float64_t level) nogil:
+        """
+        Main method to execute the marching squares.
+
+        :param level: The level expected.
+        """
         cdef:
             TileContext** contexts
             TileContext** valid_contexts
@@ -125,7 +145,7 @@ cdef class _MarchingSquaresAlgorithm(object):
             TileContext* context
             int dim_x, dim_y
 
-        contexts = self.create_contexts(isovalue, &dim_x, &dim_y, &nb_valid_contexts)
+        contexts = self.create_contexts(level, &dim_x, &dim_y, &nb_valid_contexts)
         nb_contexts = dim_x * dim_y
 
         if nb_valid_contexts == 0:
@@ -143,7 +163,7 @@ cdef class _MarchingSquaresAlgorithm(object):
 
         # openmp
         for i in prange(nb_valid_contexts, nogil=True):
-            self.marching_squares_mp(valid_contexts[i], isovalue)
+            self.marching_squares_mp(valid_contexts[i], level)
 
         if nb_valid_contexts == 1:
             # shortcut
@@ -168,7 +188,12 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.cdivision(True)
     cdef void reduction_2d(self, int dim_x, int dim_y, TileContext **contexts) nogil:
         """
-        Reduce the problem taking care of the neigbours using OpenMP.
+        Reduce the problem merging first neigbours together in a recussive
+        process. Optimized with OpenMP.
+
+        :param dim_x: Number of contexts in the x dimension
+        :param dim_y: Number of contexts in the y dimension
+        :param contexts: Array of contexts
         """
         cdef:
             int x1, y1, x2, y2, i1, i2
@@ -212,7 +237,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                                           int index1,
                                           int index2) nogil:
         """
-        Merge contexts from index2 to index1 and delete the one from index2.
+        Merge contexts from `index2` to `index1` and delete the one from index2.
         If the one from index1 was NULL, the one from index2 is moved to index1
         and is not deleted.
 
@@ -239,6 +264,12 @@ cdef class _MarchingSquaresAlgorithm(object):
     cdef void sequencial_reduction(self,
                                    int nb_contexts,
                                    TileContext **contexts) nogil:
+        """
+        Reduce the problem sequencially without taking care of the topology
+
+        :param nb_contexts: Number of contexts
+        :param contexts: Array of contexts
+        """
         cdef:
             int i
         # merge
@@ -253,7 +284,13 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.cdivision(True)
     cdef void marching_squares_mp(self,
                                   TileContext *context,
-                                  cnumpy.float64_t isovalue) nogil:
+                                  cnumpy.float64_t level) nogil:
+        """
+        Main entry of the marching squares algorithm for each threads.
+
+        :param context: Context used by the thread to store data
+        :param level: The requested level
+        """
         cdef:
             int x, y, pattern
             cnumpy.float64_t tmpf
@@ -270,13 +307,13 @@ cdef class _MarchingSquaresAlgorithm(object):
             for x in range(context.pos_x, context.pos_x + context.dim_x):
                 # Calculate index.
                 pattern = 0
-                if image_ptr[0] > isovalue:
+                if image_ptr[0] > level:
                     pattern += 1
-                if image_ptr[1] > isovalue:
+                if image_ptr[1] > level:
                     pattern += 2
-                if image_ptr[self._dim_x] > isovalue:
+                if image_ptr[self._dim_x] > level:
                     pattern += 8
-                if image_ptr[self._dim_x + 1] > isovalue:
+                if image_ptr[self._dim_x + 1] > level:
                     pattern += 4
 
                 # Resolve ambiguity
@@ -286,8 +323,8 @@ cdef class _MarchingSquaresAlgorithm(object):
                                    image_ptr[1] +
                                    image_ptr[self._dim_x] +
                                    image_ptr[self._dim_x + 1])
-                    # If below isovalue, swap
-                    if tmpf <= isovalue:
+                    # If below level, swap
+                    if tmpf <= level:
                         if pattern == 5:
                             pattern = 10
                         else:
@@ -309,7 +346,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                     mask_ptr += 1
 
                 if pattern < 16 and pattern != 0 and pattern != 15:
-                    self.insert_pattern(context, x, y, pattern, isovalue)
+                    self.insert_pattern(context, x, y, pattern, level)
 
                 image_ptr += 1
 
@@ -324,6 +361,12 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void after_marching_squares(self, TileContext *context) nogil:
+        """
+        Called by each threads after execution of the marching squares
+        algorithm. Called before merging together the contextes.
+
+        :param context: Context used by the thread to store data
+        """
         pass
 
     @cython.boundscheck(False)
@@ -334,7 +377,16 @@ cdef class _MarchingSquaresAlgorithm(object):
                              int x,
                              int y,
                              int pattern,
-                             cnumpy.float64_t isovalue) nogil:
+                             cnumpy.float64_t level) nogil:
+        """
+        Called by the marching squares algorithm each time a pattern is found.
+
+        :param context: Context used by the thread to store data
+        :param x: X location of the pattern
+        :param y: Y location of the pattern
+        :param pattern: Binary-field identifying lower and higher pixel levels
+        :param level: The requested level
+        """
         pass
 
     @cython.boundscheck(False)
@@ -343,16 +395,36 @@ cdef class _MarchingSquaresAlgorithm(object):
     cdef void merge_context(self,
                             TileContext *context,
                             TileContext *other) nogil:
+        """
+        Merge into a context another context.
+
+        :param context: Context which will contains the merge result
+        :param other: Context to merge into the other one. The merging process
+            is destructive. The context may returns empty.
+        """
         pass
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef TileContext** create_contexts(self,
-                                       cnumpy.float64_t isovalue,
+                                       cnumpy.float64_t level,
                                        int* dim_x,
                                        int* dim_y,
                                        int* nb_valid_contexts) nogil:
+        """
+        Create and initialize a 2d-array of contexts.
+
+        If the minmax cache is used, only useful context will be created.
+        Thous with the minmax range excluding the level will not be created and
+        will have a `NULL` reference in the context array.
+
+        :param level: The requested level
+        :param dim_x: Resulting X dimension of context array
+        :param dim_x: Resulting Y dimension of context array
+        :param nb_valid_contexts: Resulting number of created contexts
+        :return: The context array
+        """
         cdef:
             int context_dim_x, context_dim_y
             int context_size, valid_contexts
@@ -374,7 +446,7 @@ cdef class _MarchingSquaresAlgorithm(object):
             x = 0
             while x < self._dim_x - 1:
                 if self._use_minmax_cache:
-                    if isovalue < self._min_cache[icontext] or isovalue > self._max_cache[icontext]:
+                    if level < self._min_cache[icontext] or level > self._max_cache[icontext]:
                         icontext += 1
                         x += self._group_size
                         continue
@@ -400,6 +472,15 @@ cdef class _MarchingSquaresAlgorithm(object):
                                      int y,
                                      int dim_x,
                                      int dim_y) nogil:
+        """
+        Allocate and initialize a context.
+
+        :param x: Left location of the context into the image
+        :param y: Top location of the context into the image
+        :param dim_x: Size of the context in the X dimension of the image
+        :param dim_y: Size of the context in the Y dimension of the image
+        :return: The context
+        """
         cdef:
             TileContext *context
         context = new TileContext()
@@ -423,8 +504,18 @@ cdef class _MarchingSquaresAlgorithm(object):
                             cnumpy.uint_t x,
                             cnumpy.uint_t y,
                             cnumpy.uint8_t edge,
-                            cnumpy.float64_t isovalue,
+                            cnumpy.float64_t level,
                             point_t *result_point) nogil:
+        """
+        Compute the location of a point of the polygons according to the level
+        and the neighbours.
+
+        :param x: X location of the 4-pixels
+        :param y: Y location of the 4-pixels
+        :param edge: Enumeration identifying the 2-pixels to process
+        :param level: The requested level
+        :param result_point: Resulting value of the point
+        """
         cdef:
             int dx1, dy1, index1
             int dx2, dy2, index2
@@ -435,8 +526,8 @@ cdef class _MarchingSquaresAlgorithm(object):
         # Define "strength" of each corner of the cube that we need
         index1 = (y + dy1) * self._dim_x + x + dx1
         index2 = (y + dy2) * self._dim_x + x + dx2
-        weight1 = 1.0 / (EPSILON + fabs(self._image_ptr[index1] - isovalue))
-        weight2 = 1.0 / (EPSILON + fabs(self._image_ptr[index2] - isovalue))
+        weight1 = 1.0 / (EPSILON + fabs(self._image_ptr[index1] - level))
+        weight2 = 1.0 / (EPSILON + fabs(self._image_ptr[index2] - level))
         # Apply a kind of center-of-mass method
         fx, fy, ff = 0.0, 0.0, 0.0
         fx += dx1 * weight1
@@ -457,8 +548,21 @@ cdef class _MarchingSquaresAlgorithm(object):
                              cnumpy.uint_t x,
                              cnumpy.uint_t y,
                              cnumpy.uint8_t edge,
-                             cnumpy.float64_t isovalue,
+                             cnumpy.float64_t level,
                              coord_t *result_coord) nogil:
+        """
+        Compute the location of pixel which contains the point of the polygons
+        according to the level and the neighbours.
+
+        This implementation is supposed to be faster than `compute_point` when
+        we only request the location of the pixel.
+
+        :param x: X location of the 4-pixels
+        :param y: Y location of the 4-pixels
+        :param edge: Enumeration identifying the 2-pixels to process
+        :param level: The requested level
+        :param result_coord: Resulting location of the pixel
+        """
         cdef:
             int dx1, dy1, index1
             int dx2, dy2, index2
@@ -469,8 +573,8 @@ cdef class _MarchingSquaresAlgorithm(object):
         # Define "strength" of each corner of the cube that we need
         index1 = (y + dy1) * self._dim_x + x + dx1
         index2 = (y + dy2) * self._dim_x + x + dx2
-        weight1 = EPSILON + fabs(self._image_ptr[index1] - isovalue)
-        weight2 = EPSILON + fabs(self._image_ptr[index2] - isovalue)
+        weight1 = EPSILON + fabs(self._image_ptr[index1] - level)
+        weight2 = EPSILON + fabs(self._image_ptr[index2] - level)
         # Apply a kind of center-of-mass method
         if edge == 0:
             result_coord.x = x + (weight1 > weight2)
@@ -489,10 +593,17 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef point_index_t create_point_index(self, int yx, cnumpy.uint8_t edge) nogil:
-        """Create an unique identifier for a point of a polygon.
+        """
+        Create a unique identifier for a point of a polygon bsased on the
+        pattern location and the edge.
 
-        It can be shared by different pixel coordinates. For example, the tuple
-        (x=0, y=0, edge=2) is equal to (x=1, y=0, edge=0).
+        A index can be shared by different pixel coordinates. For example,
+        the index of the tuple (x=0, y=0, edge=2) is equal to the one of
+        (x=1, y=0, edge=0).
+
+        :param yx: Index of the location of the pattern in the image
+        :param edge: Enumeration identifying the edge of the pixel
+        :return: An index
         """
         if edge == 2:
             yx += self._dim_x
@@ -509,6 +620,8 @@ cdef class _MarchingSquaresAlgorithm(object):
 
 
 cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
+    """Implementation of the marching squares algorithm to find iso contours.
+    """
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -518,13 +631,13 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                              int x,
                              int y,
                              int pattern,
-                             cnumpy.float64_t isovalue) nogil:
+                             cnumpy.float64_t level) nogil:
         cdef:
             int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
             begin_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 0]
             end_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 1]
-            self.insert_segment(context, x, y, begin_edge, end_edge, isovalue)
+            self.insert_segment(context, x, y, begin_edge, end_edge, level)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -533,7 +646,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                              int x, int y,
                              cnumpy.uint8_t begin_edge,
                              cnumpy.uint8_t end_edge,
-                             cnumpy.float64_t isovalue) nogil:
+                             cnumpy.float64_t level) nogil:
         cdef:
             int i, yx
             point_t point
@@ -555,15 +668,15 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             description = new PolygonDescription()
             description.begin = begin
             description.end = end
-            self.compute_point(x, y, begin_edge, isovalue, &point)
+            self.compute_point(x, y, begin_edge, level, &point)
             description.points.push_back(point)
-            self.compute_point(x, y, end_edge, isovalue, &point)
+            self.compute_point(x, y, end_edge, level, &point)
             description.points.push_back(point)
             context.polygons[begin] = description
             context.polygons[end] = description
         elif it_begin == context.polygons.end():
             # insert the beggining point to an existing polygon
-            self.compute_point(x, y, begin_edge, isovalue, &point)
+            self.compute_point(x, y, begin_edge, level, &point)
             description = dereference(it_end).second
             context.polygons.erase(it_end)
             if end == description.begin:
@@ -578,7 +691,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                 context.polygons[begin] = description
         elif it_end == context.polygons.end():
             # insert the endding point to an existing polygon
-            self.compute_point(x, y, end_edge, isovalue, &point)
+            self.compute_point(x, y, end_edge, level, &point)
             description = dereference(it_begin).second
             context.polygons.erase(it_begin)
             if begin == description.begin:
@@ -801,6 +914,9 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
 
 
 cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
+    """Implementation of the marching squares algorithm to find pixels of the
+    image containing points of the polygons of the iso contours.
+    """
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -810,13 +926,13 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
                              int x,
                              int y,
                              int pattern,
-                             cnumpy.float64_t isovalue) nogil:
+                             cnumpy.float64_t level) nogil:
         cdef:
             int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
             begin_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 0]
             end_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 1]
-            self.insert_segment(context, x, y, begin_edge, end_edge, isovalue)
+            self.insert_segment(context, x, y, begin_edge, end_edge, level)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -825,12 +941,12 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
                              int x, int y,
                              cnumpy.uint8_t begin_edge,
                              cnumpy.uint8_t end_edge,
-                             cnumpy.float64_t isovalue) nogil:
+                             cnumpy.float64_t level) nogil:
         cdef:
             coord_t coord
-        self.compute_ipoint(x, y, begin_edge, isovalue, &coord)
+        self.compute_ipoint(x, y, begin_edge, level, &coord)
         context.pixels.insert(coord)
-        self.compute_ipoint(x, y, end_edge, isovalue, &coord)
+        self.compute_ipoint(x, y, end_edge, level, &coord)
         context.pixels.insert(coord)
 
     @cython.boundscheck(False)
@@ -915,24 +1031,62 @@ cdef class MarchingSquaresMergeImpl(object):
     """
     Marching squares implementation based on a merge of segements and polygons.
 
-    The main algorithm is based on the common marching squares algorims.
-    Segments of the iso contours are identified using a pattern based on a group
-    of 2*2 pixels. The image is  read sequencially and when a segment is
-    identified it is inserted at a right place is a set of valid polygons.
+    The main logic is based on the common marching squares algorithms.
+    Segments of the iso-valued contours are identified using a pattern based
+    on blocks of 2*2 pixels. The image is read sequencially and when a segment
+    is identified it is inserted at a right place is a set of valid polygons.
+    This process can grow up polygons on bounds, or merge polygons together.
 
-    The algorithm can take care of a mask. If a pixel is invalidated by the
-    mask, the computed pattern is simply cancelled and no segements are
-    generated.
+    The algorithm can take care of a mask. If a pixel is invalidated by a
+    non-zero value of the mask at it's location, the computation of the pattern
+    cancelled and no segements are generated.
 
-    It implements a multi process algorithms using OpenMP based on divide and
-    conquer algorithm. The image is subdivised into many tiles, each one is
-    processed independantly. The result is finally reduced by consecutives
-    polygon merges.
+    This implementation based on merge allow to use divide and conquer
+    implementation in multi process using OpenMP.The image is subdivised into
+    many tiles, each one is processed independantly. The result is finally
+    reduced by consecutives polygon merges.
 
     The OpenMP group size can also by used to skip part of the image using
-    pre-computed informations (min and max of each tile groups). It was
+    pre-computed informations. `use_minmax_cache` can enable the computation of
+    minimum and maximum pixel levels available on each tile groups. It was
     designed to improve the efficiency of the extraction of many contour levels
     from the same gradient image.
+
+    Finally the implementation provides an implementation to reach polygons
+    (:meth:`find_contours`) or pixels (:meth:`find_pixels`) from the iso-values
+    data.
+
+    .. code-block:: python
+
+        # Example using a mask
+        shape = 100, 100
+        image = numpy.random.random(shape)
+        mask = numpy.random.random(shape) < 0.01
+        ms = MarchingSquaresMergeImpl(image, mask)
+        polygons = ms.find_contours(level=0.5)
+        for polygon in polygons:
+            print(polygon)
+
+    .. code-block:: python
+
+        # Example using multi requests
+        shape = 1000, 1000
+        image = numpy.random.random(shape)
+        ms = MarchingSquaresMergeImpl(image)
+        levels = numpy.arange(0, 1, 0.05)
+        for level in levels:
+            polygons = ms.find_contours(level=level)
+
+    .. code-block:: python
+
+        # Efficient cache using multi requests
+        shape = 1000, 1000
+        image = numpy.arange(shape[0] * shape[1]) / (shape[0] * shape[1])
+        image.shape = shape
+        ms = MarchingSquaresMergeImpl(image, use_minmax_cache=True)
+        levels = numpy.arange(0, 1, 0.05)
+        for level in levels:
+            polygons = ms.find_contours(level=level)
 
     :param numpy.ndarray image: Image to process.
         If the image is not a continuous array of native float 32bits, the data
@@ -996,6 +1150,23 @@ cdef class MarchingSquaresMergeImpl(object):
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void _compute_minmax_on_block(self, int block_x, int block_y, int block_index) nogil:
+        """
+        Initialize the minmax cache.
+
+        The cache is computed for each tiles of the image. It reuses the OpenMP
+        group size for the size of the tile, which allow to skip a full OpenMP
+        context in case the requested level do not match the cache.
+
+        The minmax is compuded with an overlap of 1 pixel, in order to match
+        the marching squares algorithm.
+
+        The mask is taking into accound. As result if a tile is fully masked,
+        the minmax cache result for this tile will have infinit values.
+
+        :param block_x: X location of tile in block unit
+        :param block_y: Y location of tile in block unit
+        :param block_index: Index of the tile in the minmax cache structure
+        """
         cdef:
             int x, y
             int pos_x, end_x, pos_y, end_y
@@ -1046,7 +1217,9 @@ cdef class MarchingSquaresMergeImpl(object):
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void _create_minmax_cache(self) nogil:
-        """Python code to compute min/max cache per block of an image"""
+        """
+        Create and initialize minmax cache.
+        """
         cdef:
             int icontext, context_x, context_y
             int context_dim_x, context_dim_y, context_size
