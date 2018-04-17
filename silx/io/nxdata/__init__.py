@@ -26,7 +26,8 @@
 """
 
 
-from .nxdata import NXdata
-from .nxdata import is_valid_nxdata, is_NXentry_with_default_NXdata,\
-    is_NXroot_with_default_NXdata, get_default, save_NXdata,\
-    get_attr_as_unicode, get_attr_as_string
+from .parse import NXdata, get_default
+from .validate import is_valid_nxdata, is_NXentry_with_default_NXdata,\
+    is_NXroot_with_default_NXdata
+from ._utils import get_attr_as_unicode, get_attr_as_string
+from .write import save_NXdata
