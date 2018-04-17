@@ -23,6 +23,15 @@
 #
 # ###########################################################################*/
 """NXdata parsing and validation package.
+
+To parse an existing NXdata qroup, use :class:`NXdata`.
+
+Following functions help you check the validity of a existing NXdata group:
+ - :func:`is_valid_nxdata`
+ - :func:`is_NXentry_with_default_NXdata`
+ - :func:`is_NXroot_with_default_NXdata`
+
+To help you write a NXdata group, you can use :func:`save_NXdata`.
 """
 
 

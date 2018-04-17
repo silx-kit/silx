@@ -22,17 +22,13 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a collection of functions to work with h5py-like
-groups following the NeXus *NXdata* specification.
-
-See http://download.nexusformat.org/sphinx/classes/base_classes/NXdata.html
-
+"""NXdata validation module.
 """
 import logging
+
 from silx.io.utils import is_dataset, is_group, is_file
 from silx.third_party import six
-
-from ._utils import get_attr_as_unicode
+from ._utils import get_attr_as_unicode, _INTERPDIM
 
 try:
     import h5py
@@ -44,16 +40,6 @@ __license__ = "MIT"
 __date__ = "12/02/2018"
 
 _logger = logging.getLogger(__name__)
-
-
-_INTERPDIM = {"scalar": 0,
-              "spectrum": 1,
-              "image": 2,
-              "rgba-image": 3,  # "hsla-image": 3, "cmyk-image": 3, # TODO
-              "vertex": 1}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
-"""Number of signal dimensions associated to each possible @interpretation
-attribute.
-"""
 
 
 def _nxdata_warning(msg, group_name=""):

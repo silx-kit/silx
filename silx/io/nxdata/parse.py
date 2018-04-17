@@ -22,14 +22,24 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""This package provides a collection of functions to work with h5py-like
+groups following the NeXus *NXdata* specification.
+
+See http://download.nexusformat.org/sphinx/classes/base_classes/NXdata.html
+
+The main class is :class:`NXdata`.
+You can also fetch the default NXdata in a NXroot or a NXentry with function
+:func:`get_default`.
+
+"""
+
 import logging
 import numpy
 from silx.io.utils import is_dataset, is_group
 from .validate import is_valid_nxdata,\
     is_NXroot_with_default_NXdata,\
     is_NXentry_with_default_NXdata
-from .validate import _INTERPDIM
-from ._utils import get_attr_as_unicode
+from ._utils import get_attr_as_unicode, _INTERPDIM
 from silx.third_party import six
 
 __authors__ = ["P. Knobel"]

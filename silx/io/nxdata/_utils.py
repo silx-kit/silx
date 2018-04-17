@@ -22,6 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Utility functions used by NXdata validation and parsing."""
 
 from silx.utils.deprecation import deprecated
 import numpy
@@ -31,6 +32,16 @@ from silx.third_party import six
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "17/04/2018"
+
+
+_INTERPDIM = {"scalar": 0,
+              "spectrum": 1,
+              "image": 2,
+              "rgba-image": 3,  # "hsla-image": 3, "cmyk-image": 3, # TODO
+              "vertex": 1}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
+"""Number of signal dimensions associated to each possible @interpretation
+attribute.
+"""
 
 
 @deprecated(since_version="0.8.0", replacement="get_attr_as_unicode")
