@@ -28,8 +28,72 @@ __license__ = "MIT"
 __date__ = "17/04/2018"
 
 import unittest
+import numpy
+import silx.image.marchingsquares
+
+
+class MockMarchingSquares(object):
+
+    last = None
+
+    def __init__(self, image, mask=None):
+        MockMarchingSquares.last = self
+        self.events = []
+        self.events.append(("image", image))
+        self.events.append(("mask", mask))
+
+    def find_pixels(self, level):
+        self.events.append(("find_pixels", level))
+        return None
+
+    def find_contours(self, level):
+        self.events.append(("find_contours", level))
+        return None
+
+
+class TestFunctionalApi(unittest.TestCase):
+    """Test that the default functional API is called using the right
+    parameters to the right location."""
+
+    def setUp(self):
+        self.old_impl = silx.image.marchingsquares.MarchingSquaresMergeImpl
+        silx.image.marchingsquares.MarchingSquaresMergeImpl = MockMarchingSquares
+
+    def tearDown(self):
+        silx.image.marchingsquares.MarchingSquaresMergeImpl = self.old_impl
+        del self.old_impl
+
+    def test_default_find_contours(self):
+        image = numpy.ones((2, 2), dtype=numpy.float32)
+        mask = numpy.zeros((2, 2), dtype=numpy.int32)
+        level = 2.5
+        silx.image.marchingsquares.find_contours(image=image, level=level, mask=mask)
+        events = MockMarchingSquares.last.events
+        self.assertEqual(len(events), 3)
+        self.assertEqual(events[0][0], "image")
+        self.assertEqual(events[0][1][0, 0], 1)
+        self.assertEqual(events[1][0], "mask")
+        self.assertEqual(events[1][1][0, 0], 0)
+        self.assertEqual(events[2][0], "find_contours")
+        self.assertEqual(events[2][1], level)
+
+    def test_default_find_pixels(self):
+        image = numpy.ones((2, 2), dtype=numpy.float32)
+        mask = numpy.zeros((2, 2), dtype=numpy.int32)
+        level = 3.5
+        silx.image.marchingsquares.find_pixels(image=image, level=level, mask=mask)
+        events = MockMarchingSquares.last.events
+        self.assertEqual(len(events), 3)
+        self.assertEqual(events[0][0], "image")
+        self.assertEqual(events[0][1][0, 0], 1)
+        self.assertEqual(events[1][0], "mask")
+        self.assertEqual(events[1][1][0, 0], 0)
+        self.assertEqual(events[2][0], "find_pixels")
+        self.assertEqual(events[2][1], level)
 
 
 def suite():
     test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestFunctionalApi))
     return test_suite
