@@ -66,6 +66,7 @@ else:
 def configuration(parent_package='', top_path=None):
     config = Configuration('io', parent_package, top_path)
     config.add_subpackage('test')
+    config.add_subpackage('nxdata')
 
     srcfiles = ['sfheader', 'sfinit', 'sflists', 'sfdata', 'sfindex',
                 'sflabel', 'sfmca', 'sftools', 'locale_management']

@@ -32,7 +32,7 @@ import logging
 import os
 import os.path
 import numpy
-from .utils import is_dataset, is_group, is_file
+from silx.io.utils import is_dataset, is_group, is_file
 from silx.third_party import six
 from silx.utils.deprecation import deprecated
 
