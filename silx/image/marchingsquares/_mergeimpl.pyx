@@ -870,6 +870,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             vector[PolygonDescription*] descriptions
             clist[point_t].iterator it_points
             PolygonDescription *description
+            cnumpy.float32_t[:, :] polygon
 
         if self._final_context == NULL:
             return []
@@ -898,16 +899,15 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
         polygons = []
         for i in range(descriptions.size()):
             description = descriptions[i]
-            polygon = numpy.empty(description.points.size() * 2, dtype=numpy.float32)
+            polygon = numpy.empty((description.points.size(), 2), dtype=numpy.float32)
             it_points = description.points.begin()
             i_pixel = 0
             while it_points != description.points.end():
-                polygon[i_pixel + 0] = dereference(it_points).y
-                polygon[i_pixel + 1] = dereference(it_points).x
-                i_pixel += 2
+                polygon[i_pixel, 0] = dereference(it_points).y
+                polygon[i_pixel, 1] = dereference(it_points).x
+                i_pixel += 1
                 preincrement(it_points)
-            polygon.shape = -1, 2
-            polygons.append(polygon)
+            polygons.append(numpy.asarray(polygon))
             del description
 
         return polygons
@@ -999,6 +999,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
             cset[coord_t].iterator it
             clist[coord_t].iterator it_coord
             coord_t coord
+            cnumpy.int32_t[:, :] pixels
 
         if self._final_context == NULL:
             return numpy.empty((0, 2), dtype=numpy.int32)
@@ -1024,7 +1025,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
         del self._final_context
         self._final_context = NULL
 
-        return pixels
+        return numpy.asarray(pixels)
 
 
 cdef class MarchingSquaresMergeImpl(object):
