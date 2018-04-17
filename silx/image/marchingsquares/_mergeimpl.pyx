@@ -25,9 +25,9 @@
 Marching squares implementation based on a merge of segements and polygons.
 """
 
-__authors__ = ["V. Valls"]
+__authors__ = ["Almar Klein", "Jerome Kieffer", "Valentin Valls"]
 __license__ = "MIT"
-__date__ = "16/04/2018"
+__date__ = "17/04/2018"
 
 import numpy
 cimport numpy as cnumpy
