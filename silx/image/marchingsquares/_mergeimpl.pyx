@@ -1122,11 +1122,20 @@ cdef class MarchingSquaresMergeImpl(object):
                  image, mask=None,
                  group_size=256,
                  use_minmax_cache=False):
-        self._image = numpy.ascontiguousarray(image, numpy.float32)
+        if not isinstance(image, numpy.ndarray) or len(image.shape) != 2:
+            raise ValueError("Only 2D arrays are supported.")
+        if image.shape[0] < 2 or image.shape[1] < 2:
+            raise ValueError("Input array must be at least 2x2.")
+        # Force contiguous native array
+        self._image = numpy.ascontiguousarray(image, dtype='=f4')
         self._image_ptr = &self._image[0][0]
         if mask is not None:
-            assert(image.shape == mask.shape)
-            self._mask = numpy.ascontiguousarray(mask, numpy.int8)
+            if not isinstance(mask, numpy.ndarray):
+                raise ValueError("Only 2D arrays are supported.")
+            if image.shape != mask.shape:
+                raise ValueError("Mask size and image size must be the same.")
+            # Force contiguous native array
+            self._mask = numpy.ascontiguousarray(mask, dtype='=i1')
             self._mask_ptr = &self._mask[0][0]
         else:
             self._mask = None
