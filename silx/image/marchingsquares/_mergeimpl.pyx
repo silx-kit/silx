@@ -1053,7 +1053,7 @@ cdef class MarchingSquaresMergeImpl(object):
     from the same gradient image.
 
     Finally the implementation provides an implementation to reach polygons
-    (:meth:`find_contours`) or pixels (:meth:`find_pixels`) from the iso-values
+    (:meth:`find_contours`) or pixels (:meth:`find_pixels`) from the iso-valued
     data.
 
     .. code-block:: python
