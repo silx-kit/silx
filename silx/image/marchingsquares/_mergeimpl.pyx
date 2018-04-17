@@ -116,7 +116,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _marching_squares(self, cnumpy.float64_t isovalue) nogil:
+    cdef void marching_squares(self, cnumpy.float64_t isovalue) nogil:
         cdef:
             TileContext** contexts
             TileContext** valid_contexts
@@ -125,7 +125,7 @@ cdef class _MarchingSquaresAlgorithm(object):
             TileContext* context
             int dim_x, dim_y
 
-        contexts = self._create_contexts(isovalue, &dim_x, &dim_y, &nb_valid_contexts)
+        contexts = self.create_contexts(isovalue, &dim_x, &dim_y, &nb_valid_contexts)
         nb_contexts = dim_x * dim_y
 
         if nb_valid_contexts == 0:
@@ -143,7 +143,7 @@ cdef class _MarchingSquaresAlgorithm(object):
 
         # openmp
         for i in prange(nb_valid_contexts, nogil=True):
-            self._marching_squares_mp(valid_contexts[i], isovalue)
+            self.marching_squares_mp(valid_contexts[i], isovalue)
 
         if nb_valid_contexts == 1:
             # shortcut
@@ -153,12 +153,12 @@ cdef class _MarchingSquaresAlgorithm(object):
             return
 
         if self._force_sequencial_reduction:
-            self._sequencial_reduction(nb_valid_contexts, valid_contexts)
+            self.sequencial_reduction(nb_valid_contexts, valid_contexts)
         # FIXME can only be used if compiled with openmp
         # elif copenmp.omp_get_num_threads() <= 1:
         #     self._sequencial_reduction(nb_valid_contexts, valid_contexts)
         else:
-            self._reduction_2d(dim_x, dim_y, contexts)
+            self.reduction_2d(dim_x, dim_y, contexts)
 
         libc.stdlib.free(valid_contexts)
         libc.stdlib.free(contexts)
@@ -166,7 +166,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _reduction_2d(self, int dim_x, int dim_y, TileContext **contexts) nogil:
+    cdef void reduction_2d(self, int dim_x, int dim_y, TileContext **contexts) nogil:
         """
         Reduce the problem taking care of the neigbours using OpenMP.
         """
@@ -186,7 +186,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                 if x1 + delta < dim_x:
                     y1 = 0
                     while y1 < dim_y:
-                        self._merge_array_contexts(contexts, y1 * dim_x + x1, y1 * dim_x + x1 + delta)
+                        self.merge_array_contexts(contexts, y1 * dim_x + x1, y1 * dim_x + x1 + delta)
                         y1 = y1 + delta
 
             # NOTE: Cython 0.21.1 is buggy with prange + steps
@@ -198,7 +198,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                 if y2 + delta < dim_y:
                     x2 = 0
                     while x2 < dim_x:
-                        self._merge_array_contexts(contexts, y2 * dim_x + x2, (y2 + delta) * dim_x + x2)
+                        self.merge_array_contexts(contexts, y2 * dim_x + x2, (y2 + delta) * dim_x + x2)
                         x2 = x2 + delta + delta
             delta <<= 1
 
@@ -207,7 +207,10 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef inline void _merge_array_contexts(self, TileContext **contexts, int index1, int index2) nogil:
+    cdef inline void merge_array_contexts(self,
+                                          TileContext **contexts,
+                                          int index1,
+                                          int index2) nogil:
         """
         Merge contexts from index2 to index1 and delete the one from index2.
         If the one from index1 was NULL, the one from index2 is moved to index1
@@ -223,7 +226,7 @@ cdef class _MarchingSquaresAlgorithm(object):
         context1 = contexts[index1]
         context2 = contexts[index2]
         if context1 != NULL and context2 != NULL:
-            self._merge_context(context1, context2)
+            self.merge_context(context1, context2)
             del context2
         elif context2 != NULL:
             contexts[index1] = context2
@@ -233,20 +236,24 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _sequencial_reduction(self, int nb_contexts, TileContext **contexts) nogil:
+    cdef void sequencial_reduction(self,
+                                   int nb_contexts,
+                                   TileContext **contexts) nogil:
         cdef:
             int i
         # merge
         self._final_context = new TileContext()
         for i in xrange(nb_contexts):
             if contexts[i] != NULL:
-                self._merge_context(self._final_context, contexts[i])
+                self.merge_context(self._final_context, contexts[i])
                 del contexts[i]
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _marching_squares_mp(self, TileContext *context, cnumpy.float64_t isovalue) nogil:
+    cdef void marching_squares_mp(self,
+                                  TileContext *context,
+                                  cnumpy.float64_t isovalue) nogil:
         cdef:
             int x, y, pattern
             cnumpy.float64_t tmpf
@@ -302,7 +309,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                     mask_ptr += 1
 
                 if pattern < 16 and pattern != 0 and pattern != 15:
-                    self._insert_pattern(context, x, y, pattern, isovalue)
+                    self.insert_pattern(context, x, y, pattern, isovalue)
 
                 image_ptr += 1
 
@@ -311,30 +318,41 @@ cdef class _MarchingSquaresAlgorithm(object):
             if mask_ptr != NULL:
                 mask_ptr += self._dim_x - context.dim_x
 
-        self._after_marching_squares(context)
+        self.after_marching_squares(context)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _after_marching_squares(self, TileContext *context) nogil:
+    cdef void after_marching_squares(self, TileContext *context) nogil:
         pass
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _insert_pattern(self, TileContext *context, int x, int y, int pattern, cnumpy.float64_t isovalue) nogil:
+    cdef void insert_pattern(self,
+                             TileContext *context,
+                             int x,
+                             int y,
+                             int pattern,
+                             cnumpy.float64_t isovalue) nogil:
         pass
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _merge_context(self, TileContext *context, TileContext *other) nogil:
+    cdef void merge_context(self,
+                            TileContext *context,
+                            TileContext *other) nogil:
         pass
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef TileContext** _create_contexts(self, cnumpy.float64_t isovalue, int *dim_x, int *dim_y, int *nb_valid_contexts) nogil:
+    cdef TileContext** create_contexts(self,
+                                       cnumpy.float64_t isovalue,
+                                       int* dim_x,
+                                       int* dim_y,
+                                       int* nb_valid_contexts) nogil:
         cdef:
             int context_dim_x, context_dim_y
             int context_size, valid_contexts
@@ -360,7 +378,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                         icontext += 1
                         x += self._group_size
                         continue
-                context = self._create_context(x, y, self._group_size, self._group_size)
+                context = self.create_context(x, y, self._group_size, self._group_size)
                 contexts[icontext] = context
                 icontext += 1
                 valid_contexts += 1
@@ -377,7 +395,11 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef TileContext *_create_context(self, int x, int y, int dim_x, int dim_y) nogil:
+    cdef TileContext *create_context(self,
+                                     int x,
+                                     int y,
+                                     int dim_x,
+                                     int dim_y) nogil:
         cdef:
             TileContext *context
         context = new TileContext()
@@ -397,12 +419,12 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _compute_point(self,
-                             cnumpy.uint_t x,
-                             cnumpy.uint_t y,
-                             cnumpy.uint8_t edge,
-                             cnumpy.float64_t isovalue,
-                             point_t *result_point) nogil:
+    cdef void compute_point(self,
+                            cnumpy.uint_t x,
+                            cnumpy.uint_t y,
+                            cnumpy.uint8_t edge,
+                            cnumpy.float64_t isovalue,
+                            point_t *result_point) nogil:
         cdef:
             int dx1, dy1, index1
             int dx2, dy2, index2
@@ -431,12 +453,12 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _compute_ipoint(self,
-                              cnumpy.uint_t x,
-                              cnumpy.uint_t y,
-                              cnumpy.uint8_t edge,
-                              cnumpy.float64_t isovalue,
-                              coord_t *result_coord) nogil:
+    cdef void compute_ipoint(self,
+                             cnumpy.uint_t x,
+                             cnumpy.uint_t y,
+                             cnumpy.uint8_t edge,
+                             cnumpy.float64_t isovalue,
+                             coord_t *result_coord) nogil:
         cdef:
             int dx1, dy1, index1
             int dx2, dy2, index2
@@ -466,7 +488,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef point_index_t _create_point_index(self, int yx, cnumpy.uint8_t edge) nogil:
+    cdef point_index_t create_point_index(self, int yx, cnumpy.uint8_t edge) nogil:
         """Create an unique identifier for a point of a polygon.
 
         It can be shared by different pixel coordinates. For example, the tuple
@@ -491,22 +513,27 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _insert_pattern(self, TileContext *context, int x, int y, int pattern, cnumpy.float64_t isovalue) nogil:
+    cdef void insert_pattern(self,
+                             TileContext *context,
+                             int x,
+                             int y,
+                             int pattern,
+                             cnumpy.float64_t isovalue) nogil:
         cdef:
             int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
             begin_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 0]
             end_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 1]
-            self._insert_segment(context, x, y, begin_edge, end_edge, isovalue)
+            self.insert_segment(context, x, y, begin_edge, end_edge, isovalue)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _insert_segment(self, TileContext *context,
-                              int x, int y,
-                              cnumpy.uint8_t begin_edge,
-                              cnumpy.uint8_t end_edge,
-                              cnumpy.float64_t isovalue) nogil:
+    cdef void insert_segment(self, TileContext *context,
+                             int x, int y,
+                             cnumpy.uint8_t begin_edge,
+                             cnumpy.uint8_t end_edge,
+                             cnumpy.float64_t isovalue) nogil:
         cdef:
             int i, yx
             point_t point
@@ -518,8 +545,8 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             map[point_index_t, PolygonDescription*].iterator it_end
 
         yx = self._dim_x * y + x
-        begin = self._create_point_index(yx, begin_edge)
-        end = self._create_point_index(yx, end_edge)
+        begin = self.create_point_index(yx, begin_edge)
+        end = self.create_point_index(yx, end_edge)
 
         it_begin = context.polygons.find(begin)
         it_end = context.polygons.find(end)
@@ -528,15 +555,15 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             description = new PolygonDescription()
             description.begin = begin
             description.end = end
-            self._compute_point(x, y, begin_edge, isovalue, &point)
+            self.compute_point(x, y, begin_edge, isovalue, &point)
             description.points.push_back(point)
-            self._compute_point(x, y, end_edge, isovalue, &point)
+            self.compute_point(x, y, end_edge, isovalue, &point)
             description.points.push_back(point)
             context.polygons[begin] = description
             context.polygons[end] = description
         elif it_begin == context.polygons.end():
             # insert the beggining point to an existing polygon
-            self._compute_point(x, y, begin_edge, isovalue, &point)
+            self.compute_point(x, y, begin_edge, isovalue, &point)
             description = dereference(it_end).second
             context.polygons.erase(it_end)
             if end == description.begin:
@@ -551,7 +578,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                 context.polygons[begin] = description
         elif it_end == context.polygons.end():
             # insert the endding point to an existing polygon
-            self._compute_point(x, y, end_edge, isovalue, &point)
+            self.compute_point(x, y, end_edge, isovalue, &point)
             description = dereference(it_begin).second
             context.polygons.erase(it_begin)
             if begin == description.begin:
@@ -615,7 +642,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _merge_context(self, TileContext *context, TileContext *other) nogil:
+    cdef void merge_context(self, TileContext *context, TileContext *other) nogil:
         cdef:
             map[point_index_t, PolygonDescription*].iterator it_begin
             map[point_index_t, PolygonDescription*].iterator it_end
@@ -718,39 +745,98 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                     del description_other
                     del description2
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef extract_polygons(self):
+        cdef:
+            size_t i
+            int i_pixel
+            cnumpy.uint8_t index
+            map[point_index_t, PolygonDescription*].iterator it
+            vector[PolygonDescription*] descriptions
+            clist[point_t].iterator it_points
+            PolygonDescription *description
+
+        if self._final_context == NULL:
+            return []
+
+        # move all the polygons in a final structure
+        with nogil:
+            it = self._final_context.polygons.begin()
+            while it != self._final_context.polygons.end():
+                description = dereference(it).second
+                if dereference(it).first == description.begin:
+                    # polygones are stored 2 times
+                    # only use one
+                    descriptions.push_back(description)
+                preincrement(it)
+            self._final_context.polygons.clear()
+
+            descriptions.insert(descriptions.end(),
+                                self._final_context.final_polygons.begin(),
+                                self._final_context.final_polygons.end())
+            self._final_context.final_polygons.clear()
+
+        del self._final_context
+        self._final_context = NULL
+
+        # create result and clean up allocated memory
+        polygons = []
+        for i in range(descriptions.size()):
+            description = descriptions[i]
+            polygon = numpy.empty(description.points.size() * 2, dtype=numpy.float32)
+            it_points = description.points.begin()
+            i_pixel = 0
+            while it_points != description.points.end():
+                polygon[i_pixel + 0] = dereference(it_points).y
+                polygon[i_pixel + 1] = dereference(it_points).x
+                i_pixel += 2
+                preincrement(it_points)
+            polygon.shape = -1, 2
+            polygons.append(polygon)
+            del description
+
+        return polygons
+
 
 cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _insert_pattern(self, TileContext *context, int x, int y, int pattern, cnumpy.float64_t isovalue) nogil:
+    cdef void insert_pattern(self,
+                             TileContext *context,
+                             int x,
+                             int y,
+                             int pattern,
+                             cnumpy.float64_t isovalue) nogil:
         cdef:
             int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
             begin_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 0]
             end_edge = CELL_TO_EDGE[pattern][1 + segment * 2 + 1]
-            self._insert_segment(context, x, y, begin_edge, end_edge, isovalue)
+            self.insert_segment(context, x, y, begin_edge, end_edge, isovalue)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _insert_segment(self, TileContext *context,
-                              int x, int y,
-                              cnumpy.uint8_t begin_edge,
-                              cnumpy.uint8_t end_edge,
-                              cnumpy.float64_t isovalue) nogil:
+    cdef void insert_segment(self, TileContext *context,
+                             int x, int y,
+                             cnumpy.uint8_t begin_edge,
+                             cnumpy.uint8_t end_edge,
+                             cnumpy.float64_t isovalue) nogil:
         cdef:
             coord_t coord
-        self._compute_ipoint(x, y, begin_edge, isovalue, &coord)
+        self.compute_ipoint(x, y, begin_edge, isovalue, &coord)
         context.pixels.insert(coord)
-        self._compute_ipoint(x, y, end_edge, isovalue, &coord)
+        self.compute_ipoint(x, y, end_edge, isovalue, &coord)
         context.pixels.insert(coord)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _after_marching_squares(self, TileContext *context) nogil:
+    cdef void after_marching_squares(self, TileContext *context) nogil:
         cdef:
             coord_t coord
             cset[coord_t].iterator it_coord
@@ -772,7 +858,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _merge_context(self, TileContext *context, TileContext *other) nogil:
+    cdef void merge_context(self, TileContext *context, TileContext *other) nogil:
         cdef:
             cset[coord_t].iterator it_coord
 
@@ -786,6 +872,43 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
         while it_coord != other.pixels.end():
             context.pixels.insert(dereference(it_coord))
             preincrement(it_coord)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.cdivision(True)
+    cdef extract_pixels(self):
+        cdef:
+            int i, x, y
+            point_index_t index
+            cset[coord_t].iterator it
+            clist[coord_t].iterator it_coord
+            coord_t coord
+
+        if self._final_context == NULL:
+            return numpy.empty((0, 2), dtype=numpy.int32)
+
+        # create result
+        it = self._final_context.pixels.begin()
+        while it != self._final_context.pixels.end():
+            coord = dereference(it)
+            self._final_context.final_pixels.push_back(coord)
+            preincrement(it)
+
+        pixels = numpy.empty((self._final_context.final_pixels.size(), 2), dtype=numpy.int32)
+        i = 0
+
+        it_coord = self._final_context.final_pixels.begin()
+        while it_coord != self._final_context.final_pixels.end():
+            coord = dereference(it_coord)
+            pixels[i, 0] = coord.y
+            pixels[i, 1] = coord.x
+            i += 1
+            preincrement(it_coord)
+
+        del self._final_context
+        self._final_context = NULL
+
+        return pixels
 
 
 cdef class MarchingSquaresMergeImpl(object):
@@ -943,85 +1066,6 @@ cdef class MarchingSquaresMergeImpl(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef _extract_pixels(self, TileContext *final_context):
-        cdef:
-            int i, x, y
-            point_index_t index
-            cset[coord_t].iterator it
-            clist[coord_t].iterator it_coord
-            coord_t coord
-
-        # create result
-        it = final_context.pixels.begin()
-        while it != final_context.pixels.end():
-            coord = dereference(it)
-            final_context.final_pixels.push_back(coord)
-            preincrement(it)
-
-        pixels = numpy.empty((final_context.final_pixels.size(), 2), dtype=numpy.int32)
-        i = 0
-
-        it_coord = final_context.final_pixels.begin()
-        while it_coord != final_context.final_pixels.end():
-            coord = dereference(it_coord)
-            pixels[i, 0] = coord.y
-            pixels[i, 1] = coord.x
-            i += 1
-            preincrement(it_coord)
-
-        return pixels
-
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    @cython.cdivision(True)
-    cdef _extract_polygons(self, TileContext *final_context):
-        cdef:
-            size_t i
-            int i_pixel
-            cnumpy.uint8_t index
-            map[point_index_t, PolygonDescription*].iterator it
-            vector[PolygonDescription*] descriptions
-            clist[point_t].iterator it_points
-            PolygonDescription *description
-
-        # move all the polygons in a final structure
-        with nogil:
-            it = final_context.polygons.begin()
-            while it != final_context.polygons.end():
-                description = dereference(it).second
-                if dereference(it).first == description.begin:
-                    # polygones are stored 2 times
-                    # only use one
-                    descriptions.push_back(description)
-                preincrement(it)
-            final_context.polygons.clear()
-
-            descriptions.insert(descriptions.end(),
-                                final_context.final_polygons.begin(),
-                                final_context.final_polygons.end())
-            final_context.final_polygons.clear()
-
-        # create result and clean up allocated memory
-        polygons = []
-        for i in range(descriptions.size()):
-            description = descriptions[i]
-            polygon = numpy.empty(description.points.size() * 2, dtype=numpy.float32)
-            it_points = description.points.begin()
-            i_pixel = 0
-            while it_points != description.points.end():
-                polygon[i_pixel + 0] = dereference(it_points).y
-                polygon[i_pixel + 1] = dereference(it_points).x
-                i_pixel += 2
-                preincrement(it_points)
-            polygon.shape = -1, 2
-            polygons.append(polygon)
-            del description
-
-        return polygons
-
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    @cython.cdivision(True)
     def find_pixels(self, level):
         """
         Compute the pixels from the image over the requested iso contours
@@ -1050,13 +1094,9 @@ cdef class MarchingSquaresMergeImpl(object):
         else:
             algo = self._pixels_algo
 
-        algo._marching_squares(level)
-        if algo._final_context == NULL:
-            return numpy.empty((0, 2), dtype=numpy.int32)
-        else:
-            pixels = self._extract_pixels(algo._final_context)
-            del algo._final_context
-            return pixels
+        algo.marching_squares(level)
+        pixels = algo.extract_pixels()
+        return pixels
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -1087,10 +1127,6 @@ cdef class MarchingSquaresMergeImpl(object):
         else:
             algo = self._contours_algo
 
-        algo._marching_squares(level)
-        if algo._final_context == NULL:
-            return []
-        else:
-            polygons = self._extract_polygons(algo._final_context)
-            del algo._final_context
-            return polygons
+        algo.marching_squares(level)
+        polygons = algo.extract_polygons()
+        return polygons
