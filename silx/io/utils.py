@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "14/02/2018"
+__date__ = "18/04/2018"
 
 import numpy
 import os.path
@@ -86,8 +86,8 @@ def supported_extensions(flat_formats=True):
     """
     formats = {}
     if h5py is not None:
-        formats["HDF5 files"] = set(["*.h5", "*.hdf"])
-        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf"])
+        formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
+        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
     formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
     if flat_formats:
         try:
