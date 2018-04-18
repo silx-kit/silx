@@ -27,7 +27,7 @@ Marching squares implementation based on a merge of segements and polygons.
 
 __authors__ = ["Almar Klein", "Jerome Kieffer", "Valentin Valls"]
 __license__ = "MIT"
-__date__ = "17/04/2018"
+__date__ = "18/04/2018"
 
 import numpy
 cimport numpy as cnumpy
@@ -501,8 +501,8 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void compute_point(self,
-                            cnumpy.uint_t x,
-                            cnumpy.uint_t y,
+                            cnumpy.uint32_t x,
+                            cnumpy.uint32_t y,
                             cnumpy.uint8_t edge,
                             cnumpy.float64_t level,
                             point_t *result_point) nogil:
@@ -545,8 +545,8 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void compute_ipoint(self,
-                             cnumpy.uint_t x,
-                             cnumpy.uint_t y,
+                             cnumpy.uint32_t x,
+                             cnumpy.uint32_t y,
                              cnumpy.uint8_t edge,
                              cnumpy.float64_t level,
                              coord_t *result_coord) nogil:
