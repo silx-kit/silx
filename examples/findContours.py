@@ -73,7 +73,7 @@ def rescale_image(image, shape):
 def create_spiral(size, nb=1, freq=100):
     half = size // 2
     y, x = numpy.ogrid[-half:half, -half:half]
-    coef = 1 / half
+    coef = 1.0 / half
     y, x = y * coef, x * coef + 0.0001
     distance = numpy.sqrt(x * x + y * y)
     angle = numpy.arctan(y / x)
@@ -84,7 +84,7 @@ def create_spiral(size, nb=1, freq=100):
 def create_magnetic_field(size, x1=0.0, y1=0.0, x2=0.0, y2=0.0):
     half = size // 2
     yy, xx = numpy.ogrid[-half:half, -half:half]
-    coef = 1 / half
+    coef = 1.0 / half
     yy1, xx1 = (yy + half * y1) * coef, (xx + half * x1) * coef
     distance1 = numpy.sqrt(xx1 * xx1 + yy1 * yy1)
     yy2, xx2 = (yy + half * y2) * coef, (xx + half * x2) * coef
@@ -95,7 +95,7 @@ def create_magnetic_field(size, x1=0.0, y1=0.0, x2=0.0, y2=0.0):
 def create_gravity_field(size, objects):
     half = size // 2
     yy, xx = numpy.ogrid[-half:half, -half:half]
-    coef = 1 / half
+    coef = 1.0 / half
 
     def distance(x, y):
         yy1, xx1 = (yy + half * y) * coef, (xx + half * x) * coef
@@ -109,7 +109,7 @@ def create_gravity_field(size, objects):
 def create_gradient(size, dx=0, dy=0, sx=1.0, sy=1.0):
     half = size // 2
     yy, xx = numpy.ogrid[-half:half, -half:half]
-    coef = 1 / half
+    coef = 1.0 / half
     yy, xx = (yy - (dy * half)) * coef, (xx - (dx * half)) * coef + 0.0001
     distance = numpy.sqrt(xx * xx * sx + yy * yy * sy)
     return distance
@@ -627,8 +627,8 @@ class FindContours(qt.QMainWindow):
         self.__colormap = Colormap("inferno")
         self.setData(image=image, mask=None)
 
-        delta = int((image.max() - image.min()) // 30)
-        values = range(int(image.min()), int(image.max()), delta)
+        delta = (image.max() - image.min()) / 30.0
+        values = numpy.arange(image.min(), image.max(), delta)
 
         def styleCallback(value, ivalue, ipolygon):
             return {"linestyle": "-", "linewidth": 0.1, "color": "white"}
