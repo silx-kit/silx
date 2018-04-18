@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "11/04/2018"
+__date__ = "18/04/2018"
 __license__ = "MIT"
 
 
@@ -672,7 +672,6 @@ class BuildExt(build_ext):
             self.patch_extension(ext)
         build_ext.build_extensions(self)
 
-
 ################################################################################
 # Clean command
 ################################################################################
@@ -737,6 +736,36 @@ class CleanCommand(Clean):
                     logger.info("removing '%s'", path)
                 except OSError:
                     pass
+
+################################################################################
+# Source tree
+################################################################################
+
+class SourceDistWithCython(sdist):
+    """
+    Force cythonization of the extensions before generating the source
+    distribution.
+
+    To provide the widest compatibility the cythonized files are provided
+    without suppport of OpenMP.
+    """
+
+    def finalize_options(self):
+        sdist.finalize_options(self)
+        self.extensions = self.distribution.ext_modules
+
+    def run(self):
+        self.cythonize_extensions()
+        sdist.run(self)
+
+    def cythonize_extensions(self):
+        from Cython.Build import cythonize
+        cythonize(
+            self.extensions,
+            compiler_directives={'embedsignature': True},
+            force=True,
+            compile_time_env={"HAVE_OPENMP": False}
+        )
 
 ################################################################################
 # Debian source tree
@@ -853,6 +882,7 @@ def get_project_configuration(dry_run):
         build_ext=BuildExt,
         build_man=BuildMan,
         clean=CleanCommand,
+        sdist=SourceDistWithCython,
         debian_src=sdist_debian)
 
     if dry_run:
