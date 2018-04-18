@@ -239,131 +239,137 @@ class FindContours(qt.QMainWindow):
         self.__kind = qt.QButtonGroup(self)
         self.__kind.setExclusive(True)
 
-        label = qt.QLabel(parent=panel)
-        label.setText("Image:")
-        layout.addWidget(label)
+        group = qt.QGroupBox(self)
+        group.setTitle("Image")
+        layout.addWidget(group)
+        groupLayout = qt.QVBoxLayout(group)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("Island")
         button.clicked.connect(self.generateIsland)
         button.setCheckable(True)
         button.setChecked(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__kind.addButton(button)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("Gravity")
         button.clicked.connect(self.generateGravityField)
         button.setCheckable(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__kind.addButton(button)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("Magnetic")
         button.clicked.connect(self.generateMagneticField)
         button.setCheckable(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__kind.addButton(button)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("Spiral")
         button.clicked.connect(self.generateSpiral)
         button.setCheckable(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__kind.addButton(button)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("Gradient")
         button.clicked.connect(self.generateGradient)
         button.setCheckable(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__kind.addButton(button)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("Composite gradient")
         button.clicked.connect(self.generateCompositeGradient)
         button.setCheckable(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__kind.addButton(button)
 
         button = qt.QPushButton(parent=panel)
         button.setText("Generate a new image")
         button.clicked.connect(self.generate)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
 
-        layout.addSpacing(10)
+        # Contours
 
-        label = qt.QLabel(parent=panel)
-        label.setText("Options:")
-        layout.addWidget(label)
+        group = qt.QGroupBox(self)
+        group.setTitle("Contours")
+        layout.addWidget(group)
+        groupLayout = qt.QVBoxLayout(group)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QCheckBox(parent=panel)
         button.setText("Use the plot's mask")
         button.setCheckable(True)
         button.setChecked(True)
         button.clicked.connect(self.updateContours)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__useMaskButton = button
 
         button = qt.QPushButton(parent=panel)
         button.setText("Update contours")
         button.clicked.connect(self.updateContours)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
 
-        layout.addSpacing(10)
+        # Implementations
+
+        group = qt.QGroupBox(self)
+        group.setTitle("Implementation")
+        layout.addWidget(group)
+        groupLayout = qt.QVBoxLayout(group)
 
         self.__impl = qt.QButtonGroup(self)
         self.__impl.setExclusive(True)
 
-        label = qt.QLabel(parent=panel)
-        label.setText("Implementation:")
-        layout.addWidget(label)
-
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("silx")
         button.clicked.connect(self.updateContours)
         button.setCheckable(True)
         button.setChecked(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__implMerge = button
         self.__impl.addButton(button)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("silx with cache")
         button.clicked.connect(self.updateContours)
         button.setCheckable(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__implMergeCache = button
         self.__impl.addButton(button)
 
-        button = qt.QPushButton(parent=panel)
+        button = qt.QRadioButton(parent=panel)
         button.setText("skimage")
         button.clicked.connect(self.updateContours)
         button.setCheckable(True)
-        layout.addWidget(button)
+        groupLayout.addWidget(button)
         self.__implSkimage = button
         self.__impl.addButton(button)
         if MarchingSquaresSciKitImage is None:
             button.setEnabled(False)
             button.setToolTip("skimage is not installed or not compatible")
 
-        layout.addSpacing(10)
+        # Processing
+
+        group = qt.QGroupBox(self)
+        group.setTitle("Processing")
+        layout.addWidget(group)
+        group.setLayout(self.__createInfoLayout(group))
+
+        # Processing
+
+        group = qt.QGroupBox(self)
+        group.setTitle("Custom level")
+        layout.addWidget(group)
+        groupLayout = qt.QVBoxLayout(group)
 
         label = qt.QLabel(parent=panel)
-        label.setText("Info:")
-        layout.addWidget(label)
-
-        layout.addLayout(self.__createInfoLayout(parent))
-
-        layout.addSpacing(10)
-
-        label = qt.QLabel(parent=panel)
-        label.setText("Custom level:")
         self.__value = qt.QSlider(panel)
+        self.__value.setOrientation(qt.Qt.Horizontal)
         self.__value.sliderMoved.connect(self.__updateCustomContours)
         self.__value.valueChanged.connect(self.__updateCustomContours)
-        layout.addWidget(label)
-        layout.addWidget(self.__value)
+        groupLayout.addWidget(self.__value)
 
         return panel
 
