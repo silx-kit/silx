@@ -32,11 +32,14 @@ __date__ = "04/04/2018"
 
 
 import datetime as dt
-import enum
 import logging
 import math
 
 from dateutil.relativedelta import relativedelta
+
+
+from silx.third_party import enum
+
 
 _logger = logging.getLogger(__name__)
 
