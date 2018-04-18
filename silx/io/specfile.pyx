@@ -883,6 +883,11 @@ cdef class SpecFile(object):
                                                &mydata,
                                                &data_info,
                                                &error)
+        if sfdata_error == -1 and not error:
+            # this has happened in some situations with empty scans (#1759)
+            _logger.warning("SfData returned -1 without an error."
+                            " Assuming aborted scan.")
+
         self._handle_error(error)
 
         if <long>data_info != 0:
@@ -931,6 +936,12 @@ cdef class SpecFile(object):
                                                   &data_column,
                                                   &error)
         self._handle_error(error)
+
+        if nlines == -1:
+            # this can happen on empty scans in some situations (see 1759)
+            _logger.warning("SfDataColByName returned -1 without an error."
+                            " Assuming aborted scan.")
+            nlines = 0
 
         ret_array = numpy.empty((nlines,), dtype=numpy.double)
 
