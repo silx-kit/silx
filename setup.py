@@ -143,6 +143,8 @@ class PyTest(Command):
     """Command to start tests running the script: run_tests.py"""
     user_options = []
 
+    description = "Execute the unittests"
+
     def initialize_options(self):
         pass
 
@@ -179,6 +181,9 @@ if sphinx is None:
 
 class BuildMan(Command):
     """Command to build man pages"""
+
+    description = "Build man pages of the provided entry points"
+
     user_options = []
 
     def initialize_options(self):
@@ -750,6 +755,8 @@ class SourceDistWithCython(sdist):
     without suppport of OpenMP.
     """
 
+    description = "Create a source distribution including cythonozed files (tarball, zip file, etc.)"
+
     def finalize_options(self):
         sdist.finalize_options(self)
         self.extensions = self.distribution.ext_modules
@@ -781,6 +788,9 @@ class sdist_debian(sdist):
     * remove .bat files
     * include .l man files
     """
+
+    description = "Create a source distribution for Debian (tarball, zip file, etc.)"
+
     @staticmethod
     def get_debian_name():
         import version
