@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "27/02/2018"
+__date__ = "18/04/2018"
 __license__ = "MIT"
 
 
@@ -143,6 +143,8 @@ class PyTest(Command):
     """Command to start tests running the script: run_tests.py"""
     user_options = []
 
+    description = "Execute the unittests"
+
     def initialize_options(self):
         pass
 
@@ -179,6 +181,9 @@ if sphinx is None:
 
 class BuildMan(Command):
     """Command to build man pages"""
+
+    description = "Build man pages of the provided entry points"
+
     user_options = []
 
     def initialize_options(self):
@@ -672,7 +677,6 @@ class BuildExt(build_ext):
             self.patch_extension(ext)
         build_ext.build_extensions(self)
 
-
 ################################################################################
 # Clean command
 ################################################################################
@@ -697,12 +701,35 @@ class CleanCommand(Clean):
                 path_list2.append(path)
         return path_list2
 
+    def find(self, path_list):
+        """Find a file pattern if directories.
+
+        Could be done using "**/*.c" but it is only supported in Python 3.5.
+
+        :param list[str] path_list: A list of path which may contains magic
+        :rtype: list[str]
+        :returns: A list of path without magic
+        """
+        import fnmatch
+        path_list2 = []
+        for pattern in path_list:
+            for root, _, filenames in os.walk('.'):
+                for filename in fnmatch.filter(filenames, pattern):
+                    path_list2.append(os.path.join(root, filename))
+        return path_list2
+
     def run(self):
         Clean.run(self)
+
+        cython_files = self.find(["*.pyx"])
+        cythonized_files = [path.replace(".pyx", ".c") for path in cython_files]
+        cythonized_files += [path.replace(".pyx", ".cpp") for path in cython_files]
+
         # really remove the directories
         # and not only if they are empty
         to_remove = [self.build_base]
         to_remove = self.expand(to_remove)
+        to_remove += cythonized_files
 
         if not self.dry_run:
             for path in to_remove:
@@ -714,6 +741,38 @@ class CleanCommand(Clean):
                     logger.info("removing '%s'", path)
                 except OSError:
                     pass
+
+################################################################################
+# Source tree
+################################################################################
+
+class SourceDistWithCython(sdist):
+    """
+    Force cythonization of the extensions before generating the source
+    distribution.
+
+    To provide the widest compatibility the cythonized files are provided
+    without suppport of OpenMP.
+    """
+
+    description = "Create a source distribution including cythonozed files (tarball, zip file, etc.)"
+
+    def finalize_options(self):
+        sdist.finalize_options(self)
+        self.extensions = self.distribution.ext_modules
+
+    def run(self):
+        self.cythonize_extensions()
+        sdist.run(self)
+
+    def cythonize_extensions(self):
+        from Cython.Build import cythonize
+        cythonize(
+            self.extensions,
+            compiler_directives={'embedsignature': True},
+            force=True,
+            compile_time_env={"HAVE_OPENMP": False}
+        )
 
 ################################################################################
 # Debian source tree
@@ -729,6 +788,9 @@ class sdist_debian(sdist):
     * remove .bat files
     * include .l man files
     """
+
+    description = "Create a source distribution for Debian (tarball, zip file, etc.)"
+
     @staticmethod
     def get_debian_name():
         import version
@@ -830,6 +892,7 @@ def get_project_configuration(dry_run):
         build_ext=BuildExt,
         build_man=BuildMan,
         clean=CleanCommand,
+        sdist=SourceDistWithCython,
         debian_src=sdist_debian)
 
     if dry_run:

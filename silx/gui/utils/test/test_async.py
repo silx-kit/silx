@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,50 +22,22 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Test of utils module."""
+"""Test of async module."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "09/03/2018"
 
 
 import threading
 import unittest
 
-import numpy
 
 from silx.third_party.concurrent_futures import wait
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 
-from silx.gui import _utils
-
-
-class TestQImageConversion(TestCaseQt):
-    """Tests conversion of QImage to/from numpy array."""
-
-    def testConvertArrayToQImage(self):
-        """Test conversion of numpy array to QImage"""
-        image = numpy.ones((3, 3, 3), dtype=numpy.uint8)
-        qimage = _utils.convertArrayToQImage(image)
-
-        self.assertEqual(qimage.height(), image.shape[0])
-        self.assertEqual(qimage.width(), image.shape[1])
-        self.assertEqual(qimage.format(), qt.QImage.Format_RGB888)
-
-        color = qt.QColor(1, 1, 1).rgb()
-        self.assertEqual(qimage.pixel(1, 1), color)
-
-    def testConvertQImageToArray(self):
-        """Test conversion of QImage to numpy array"""
-        qimage = qt.QImage(3, 3, qt.QImage.Format_RGB888)
-        qimage.fill(0x010101)
-        image = _utils.convertQImageToArray(qimage)
-
-        self.assertEqual(qimage.height(), image.shape[0])
-        self.assertEqual(qimage.width(), image.shape[1])
-        self.assertEqual(image.shape[2], 3)
-        self.assertTrue(numpy.all(numpy.equal(image, 1)))
+from silx.gui.utils import concurrent
 
 
 class TestSubmitToQtThread(TestCaseQt):
@@ -73,7 +45,7 @@ class TestSubmitToQtThread(TestCaseQt):
 
     def setUp(self):
         # Reset executor to test lazy-loading in different conditions
-        _utils._executor = None
+        concurrent._executor = None
         super(TestSubmitToQtThread, self).setUp()
 
     def _task(self, value1, value2):
@@ -85,12 +57,12 @@ class TestSubmitToQtThread(TestCaseQt):
     def testFromMainThread(self):
         """Call submitToQtMainThread from the main thread"""
         value1, value2 = 0, 1
-        future = _utils.submitToQtMainThread(self._task, value1, value2=value2)
+        future = concurrent.submitToQtMainThread(self._task, value1, value2=value2)
         self.assertTrue(future.done())
         self.assertEqual(future.result(1), (value1, value2))
         self.assertIsNone(future.exception(1))
 
-        future = _utils.submitToQtMainThread(self._taskWithException)
+        future = concurrent.submitToQtMainThread(self._taskWithException)
         self.assertTrue(future.done())
         with self.assertRaises(RuntimeError):
             future.result(1)
@@ -99,7 +71,7 @@ class TestSubmitToQtThread(TestCaseQt):
     def _threadedTest(self):
         """Function run in a thread for the tests"""
         value1, value2 = 0, 1
-        future = _utils.submitToQtMainThread(self._task, value1, value2=value2)
+        future = concurrent.submitToQtMainThread(self._task, value1, value2=value2)
 
         wait([future], 3)
 
@@ -107,7 +79,7 @@ class TestSubmitToQtThread(TestCaseQt):
         self.assertEqual(future.result(1), (value1, value2))
         self.assertIsNone(future.exception(1))
 
-        future = _utils.submitToQtMainThread(self._taskWithException)
+        future = concurrent.submitToQtMainThread(self._taskWithException)
 
         wait([future], 3)
 
@@ -155,8 +127,6 @@ class TestSubmitToQtThread(TestCaseQt):
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestQImageConversion))
     test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
         TestSubmitToQtThread))
     return test_suite

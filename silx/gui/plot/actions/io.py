@@ -51,7 +51,7 @@ from silx.utils.deprecation import deprecated
 from silx.gui import qt, printer
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
-from silx.gui._utils import convertArrayToQImage
+from ...utils._image import convertArrayToQImage
 if sys.version_info[0] == 3:
     from io import BytesIO
 else:

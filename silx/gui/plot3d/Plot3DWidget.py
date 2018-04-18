@@ -36,7 +36,7 @@ import logging
 from silx.gui import qt
 from silx.gui.plot.Colors import rgba
 from . import actions
-from .._utils import convertArrayToQImage
+from ..utils._image import convertArrayToQImage
 
 from .. import _glutils as glu
 from .scene import interaction, primitives, transform
