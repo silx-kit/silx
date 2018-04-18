@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/04/2018"
+__date__ = "18/04/2018"
 
 import unittest
 import numpy
@@ -225,6 +225,43 @@ class TestMergeImplContours(unittest.TestCase):
         ms = MarchingSquaresMergeImpl(image, mask)
         polygons = ms.find_contours(0.5)
         self.assertEqual(len(polygons), 1)
+
+    def count_closed_polygons(self, polygons):
+        closed = 0
+        for polygon in polygons:
+            if list(polygon[0]) == list(polygon[-1]):
+                closed += 1
+        return closed
+
+    def test_image(self):
+        # example from skimage
+        x, y = numpy.ogrid[-numpy.pi:numpy.pi:100j, -numpy.pi:numpy.pi:100j]
+        image = numpy.sin(numpy.exp((numpy.sin(x)**3 + numpy.cos(y)**2)))
+        mask = None
+        ms = MarchingSquaresMergeImpl(image, mask)
+        polygons = ms.find_contours(0.5)
+        self.assertEqual(len(polygons), 11)
+        self.assertEqual(self.count_closed_polygons(polygons), 3)
+
+    def test_image_tiled(self):
+        # example from skimage
+        x, y = numpy.ogrid[-numpy.pi:numpy.pi:100j, -numpy.pi:numpy.pi:100j]
+        image = numpy.sin(numpy.exp((numpy.sin(x)**3 + numpy.cos(y)**2)))
+        mask = None
+        ms = MarchingSquaresMergeImpl(image, mask, group_size=50)
+        polygons = ms.find_contours(0.5)
+        self.assertEqual(len(polygons), 11)
+        self.assertEqual(self.count_closed_polygons(polygons), 3)
+
+    def test_image_tiled_minmax(self):
+        # example from skimage
+        x, y = numpy.ogrid[-numpy.pi:numpy.pi:100j, -numpy.pi:numpy.pi:100j]
+        image = numpy.sin(numpy.exp((numpy.sin(x)**3 + numpy.cos(y)**2)))
+        mask = None
+        ms = MarchingSquaresMergeImpl(image, mask, group_size=50, use_minmax_cache=True)
+        polygons = ms.find_contours(0.5)
+        self.assertEqual(len(polygons), 11)
+        self.assertEqual(self.count_closed_polygons(polygons), 3)
 
 
 def suite():
