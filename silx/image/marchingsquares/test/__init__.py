@@ -1,6 +1,9 @@
-# coding: utf-8
-# /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# -*- coding: utf-8 -*-
+#
+#    Project: silx
+#             https://github.com/silx-kit/silx
+#
+#    Copyright (C) 2012-2016  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,29 +22,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
-# ############################################################################*/
 
-__authors__ = ["J. Kieffer"]
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/04/2018"
+__date__ = "17/04/2018"
 
-from numpy.distutils.misc_util import Configuration
-
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('image', parent_package, top_path)
-    config.add_subpackage('test')
-    config.add_extension('bilinear',
-                         sources=["bilinear.pyx"],
-                         language='c')
-    config.add_extension('shapes',
-                         sources=["shapes.pyx"],
-                         language='c')
-    config.add_subpackage('marchingsquares')
-    return config
+import unittest
+from . import test_funcapi
+from . import test_mergeimpl
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-    setup(configuration=configuration)
+def suite():
+    """Test suite for module silx.image.test"""
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(test_funcapi.suite())
+    test_suite.addTest(test_mergeimpl.suite())
+    return test_suite
