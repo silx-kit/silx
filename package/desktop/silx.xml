@@ -18,6 +18,7 @@
      <glob pattern="*.nxs"/>
      <glob pattern="*.h5"/>
      <glob pattern="*.hdf"/>
+     <glob pattern="*.hdf5"/>
    </mime-type>
 
    <!-- Spec formats -->
