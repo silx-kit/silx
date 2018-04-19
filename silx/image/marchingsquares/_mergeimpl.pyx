@@ -27,7 +27,7 @@ Marching squares implementation based on a merge of segements and polygons.
 
 __authors__ = ["Almar Klein", "Jerome Kieffer", "Valentin Valls"]
 __license__ = "MIT"
-__date__ = "17/04/2018"
+__date__ = "18/04/2018"
 
 import numpy
 cimport numpy as cnumpy
@@ -501,8 +501,8 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void compute_point(self,
-                            cnumpy.uint_t x,
-                            cnumpy.uint_t y,
+                            cnumpy.uint32_t x,
+                            cnumpy.uint32_t y,
                             cnumpy.uint8_t edge,
                             cnumpy.float64_t level,
                             point_t *result_point) nogil:
@@ -545,8 +545,8 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef void compute_ipoint(self,
-                             cnumpy.uint_t x,
-                             cnumpy.uint_t y,
+                             cnumpy.uint32_t x,
+                             cnumpy.uint32_t y,
                              cnumpy.uint8_t edge,
                              cnumpy.float64_t level,
                              coord_t *result_coord) nogil:
@@ -870,7 +870,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             vector[PolygonDescription*] descriptions
             clist[point_t].iterator it_points
             PolygonDescription *description
-            cnumpy.float32_t[:, :] polygon
+            cnumpy.float32_t[:, ::1] polygon
 
         if self._final_context == NULL:
             return []
@@ -999,7 +999,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
             cset[coord_t].iterator it
             clist[coord_t].iterator it_coord
             coord_t coord
-            cnumpy.int32_t[:, :] pixels
+            cnumpy.int32_t[:, ::1] pixels
 
         if self._final_context == NULL:
             return numpy.empty((0, 2), dtype=numpy.int32)
@@ -1102,8 +1102,8 @@ cdef class MarchingSquaresMergeImpl(object):
     :param bool use_minmax_cache: If true the min/max cache is enabled.
     """
 
-    cdef cnumpy.float32_t[:, :] _image
-    cdef cnumpy.int8_t[:, :] _mask
+    cdef cnumpy.float32_t[:, ::1] _image
+    cdef cnumpy.int8_t[:, ::1] _mask
 
     cdef cnumpy.float32_t *_image_ptr
     cdef cnumpy.int8_t *_mask_ptr
