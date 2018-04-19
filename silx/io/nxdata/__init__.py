@@ -22,9 +22,11 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""NXdata parsing and validation package.
+"""
+:mod:`nxdata`: NXdata parsing and validation
+--------------------------------------------
 
-To parse an existing NXdata qroup, use :class:`NXdata`.
+To parse an existing NXdata group, use :class:`NXdata`.
 
 Following functions help you check the validity of a existing NXdata group:
  - :func:`is_valid_nxdata`
@@ -32,11 +34,39 @@ Following functions help you check the validity of a existing NXdata group:
  - :func:`is_NXroot_with_default_NXdata`
 
 To help you write a NXdata group, you can use :func:`save_NXdata`.
-"""
 
+.. currentmodule:: silx.io.nxdata
+
+Classes
++++++++
+
+.. autoclass:: NXdata
+    :members:
+
+
+Functions
++++++++++
+
+.. autofunction:: get_default
+
+.. autofunction:: is_valid_nxdata
+
+.. autofunction:: is_NXentry_with_default_NXdata
+
+.. autofunction:: is_NXroot_with_default_NXdata
+
+.. autofunction:: save_NXdata
+
+"""
 
 from .parse import NXdata, get_default
 from .validate import is_valid_nxdata, is_NXentry_with_default_NXdata,\
     is_NXroot_with_default_NXdata
 from ._utils import get_attr_as_unicode, get_attr_as_string
 from .write import save_NXdata
+
+__all__ = ["NXdata",
+           "get_attr_as_unicode", "get_attr_as_string", "get_default",
+           "is_valid_nxdata", "is_NXentry_with_default_NXdata",
+           "is_NXroot_with_default_NXdata",
+           "save_NXdata"]
