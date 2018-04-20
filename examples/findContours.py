@@ -48,6 +48,7 @@ try:
 except ImportError:
     _logger.debug("Error while importing skimage", exc_info=True)
     skimage = None
+    MarchingSquaresSciKitImage = None
 
 if skimage is not None:
     try:
