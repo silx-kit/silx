@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,25 @@
 #
 # ############################################################################*/
 
-__authors__ = ["J. Kieffer"]
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/04/2018"
+__date__ = "17/04/2018"
 
+import numpy
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
-    config = Configuration('image', parent_package, top_path)
+    config = Configuration('marchingsquares', parent_package, top_path)
     config.add_subpackage('test')
-    config.add_extension('bilinear',
-                         sources=["bilinear.pyx"],
-                         language='c')
-    config.add_extension('shapes',
-                         sources=["shapes.pyx"],
-                         language='c')
-    config.add_subpackage('marchingsquares')
+
+    config.add_extension('_mergeimpl',
+                         sources=['_mergeimpl.pyx'],
+                         include_dirs=[numpy.get_include()],
+                         language='c++',
+                         extra_link_args=['-fopenmp'],
+                         extra_compile_args=['-fopenmp'])
+
     return config
 
 
