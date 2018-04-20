@@ -938,7 +938,7 @@ cdef class SpecFile(object):
         self._handle_error(error)
 
         if nlines == -1:
-            # this can happen on empty scans in some situations (see 1759)
+            # this can happen on empty scans in some situations (see #1759)
             _logger.warning("SfDataColByName returned -1 without an error."
                             " Assuming aborted scan.")
             nlines = 0
