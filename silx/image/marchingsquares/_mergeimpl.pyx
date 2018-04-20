@@ -106,7 +106,7 @@ cdef cppclass TileContext:
 cdef class _MarchingSquaresAlgorithm(object):
     """Abstract class managing a marching squares algorithm.
 
-    It provides common methods to execute the process, witht e support of
+    It provides common methods to execute the process, with the support of
     OpenMP, plus some hooks. Mostly created to be able to reuse part of the
     logic between `_MarchingSquaresContours` and `_MarchingSquaresPixels`.
     """
@@ -188,7 +188,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.cdivision(True)
     cdef void reduction_2d(self, int dim_x, int dim_y, TileContext **contexts) nogil:
         """
-        Reduce the problem merging first neigbours together in a recussive
+        Reduce the problem merging first neighbours together in a recursive
         process. Optimized with OpenMP.
 
         :param dim_x: Number of contexts in the x dimension
@@ -594,7 +594,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.cdivision(True)
     cdef point_index_t create_point_index(self, int yx, cnumpy.uint8_t edge) nogil:
         """
-        Create a unique identifier for a point of a polygon bsased on the
+        Create a unique identifier for a point of a polygon based on the
         pattern location and the edge.
 
         A index can be shared by different pixel coordinates. For example,
@@ -675,7 +675,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
             context.polygons[begin] = description
             context.polygons[end] = description
         elif it_begin == context.polygons.end():
-            # insert the beggining point to an existing polygon
+            # insert the beginning point to an existing polygon
             self.compute_point(x, y, begin_edge, level, &point)
             description = dereference(it_end).second
             context.polygons.erase(it_end)
@@ -690,7 +690,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                 description.end = begin
                 context.polygons[begin] = description
         elif it_end == context.polygons.end():
-            # insert the endding point to an existing polygon
+            # insert the ending point to an existing polygon
             self.compute_point(x, y, end_edge, level, &point)
             description = dereference(it_begin).second
             context.polygons.erase(it_begin)
