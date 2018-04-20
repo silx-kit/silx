@@ -48,7 +48,6 @@ try:
 except ImportError:
     _logger.debug("Error while importing skimage", exc_info=True)
     skimage = None
-    MarchingSquaresSciKitImage = None
 
 if skimage is not None:
     try:
@@ -57,7 +56,7 @@ if skimage is not None:
         _logger.debug("Error while importing MarchingSquaresSciKitImage", exc_info=True)
         MarchingSquaresSciKitImage = None
 else:
-    MarchingSquareSciKitImage = None
+    MarchingSquaresSciKitImage = None
 
 
 def rescale_image(image, shape):
