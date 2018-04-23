@@ -514,7 +514,7 @@ class ROITable(qt.QTableWidget):
         assert isinstance(roi, ROI)
         self._getItem(name='ID', row=None, roi=roi)
         self._roiDict[roi.getID()] = roi
-        self._markersHandler.add(roi, _RoiMarkerHandler(roi, self.plot))
+        self._markersHandler.add(_RoiMarkerHandler(roi, self.plot))
         self.activeRoi = roi
         self._updateRoiInfo(roi.getID())
         callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
@@ -631,7 +631,7 @@ class ROITable(qt.QTableWidget):
 
             assert roi.getID() in self._roiDict
             del self._roiDict[roi.getID()]
-            self._markersHandler.remove(roi)
+            self._markersHandler.remove(roi.getID())
 
             callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
                                          roi.getID())
@@ -1064,13 +1064,13 @@ class _RoiMarkerManager(object):
             self._showAllMarkers = show
             self.updateAllMarkers()
 
-    def add(self, roi, markersHandler):
-        assert isinstance(roi, ROI)
+    def add(self, markersHandler):
+        assert isinstance(markersHandler.roi, ROI)
         assert isinstance(markersHandler, _RoiMarkerHandler)
-        if roi.getID() in self._roiMarkerHandlers:
+        if markersHandler.roi.getID() in self._roiMarkerHandlers:
             raise ValueError('roi with the same ID already existing')
         else:
-            self._roiMarkerHandlers[roi.getID()] = markersHandler
+            self._roiMarkerHandlers[markersHandler.roi.getID()] = markersHandler
 
     def getMarkerHandler(self, roiID):
         if roiID in self._roiMarkerHandlers:
