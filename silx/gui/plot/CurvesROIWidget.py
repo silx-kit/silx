@@ -1083,13 +1083,12 @@ class _RoiMarkerManager(object):
         for roiHandler in roisHandler:
             self.remove(roiHandler.roi)
 
-    def remove(self, roi):
-        if roi is None:
+    def remove(self, roiID):
+        if roiID is None:
             return
-        assert isinstance(roi, ROI)
-        if roi.getID() in self._roiMarkerHandlers:
-            self._roiMarkerHandlers[roi.getID()].clear()
-            del self._roiMarkerHandlers[roi.getID()]
+        if roiID in self._roiMarkerHandlers:
+            self._roiMarkerHandlers[roiID].clear()
+            del self._roiMarkerHandlers[roiID]
 
     def hasMarker(self, markerID):
         assert type(markerID) is str
