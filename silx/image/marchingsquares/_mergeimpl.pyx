@@ -27,7 +27,7 @@ Marching squares implementation based on a merge of segements and polygons.
 
 __authors__ = ["Almar Klein", "Jerome Kieffer", "Valentin Valls"]
 __license__ = "MIT"
-__date__ = "18/04/2018"
+__date__ = "23/04/2018"
 
 import numpy
 cimport numpy as cnumpy
@@ -47,6 +47,9 @@ cimport libc.stdlib
 cimport libc.string
 
 cimport cython
+
+include "../../utils/_have_openmp.pxi"
+"""Store in the module if it was compiled with OpenMP"""
 
 cdef double EPSILON = numpy.finfo(numpy.float64).eps
 
@@ -1269,7 +1272,7 @@ cdef class MarchingSquaresMergeImpl(object):
             algo._dim_y = self._dim_y
             algo._group_size = self._group_size
             algo._use_minmax_cache = self._use_minmax_cache
-            # algo._force_sequencial_reduction = True
+            algo._force_sequencial_reduction = COMPILED_WITH_OPENMP == 0
             if self._use_minmax_cache:
                 algo._min_cache = self._min_cache
                 algo._max_cache = self._max_cache
@@ -1303,6 +1306,7 @@ cdef class MarchingSquaresMergeImpl(object):
             algo._dim_y = self._dim_y
             algo._group_size = self._group_size
             algo._use_minmax_cache = self._use_minmax_cache
+            algo._force_sequencial_reduction = COMPILED_WITH_OPENMP == 0
             if self._use_minmax_cache:
                 algo._min_cache = self._min_cache
                 algo._max_cache = self._max_cache
