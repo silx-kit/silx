@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/02/2018"
+__date__ = "23/04/2018"
 
 import sys
 import os
@@ -48,6 +48,7 @@ if "silx.gui.qt" not in sys.modules:
         pass
 
 from silx.gui import qt
+from .SilxViewDataContext import SilxViewDataContext
 
 
 class Viewer(qt.QMainWindow):
@@ -75,6 +76,8 @@ class Viewer(qt.QMainWindow):
         """Silx HDF5 TreeView"""
 
         self.__dataViewer = DataViewerFrame(self)
+        context = SilxViewDataContext(self)
+        self.__dataViewer.setDataContext(context)
         vSpliter = qt.QSplitter(qt.Qt.Vertical)
         vSpliter.addWidget(self.__dataViewer)
         vSpliter.setSizes([10, 0])
