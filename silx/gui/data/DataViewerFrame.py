@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/09/2017"
+__date__ = "23/04/2018"
 
 from silx.gui import qt
 from .DataViewer import DataViewer
@@ -112,6 +112,13 @@ class DataViewerFrame(qt.QWidget):
     def __displayedViewChanged(self, view):
         """Called when the displayed view changes"""
         self.displayedViewChanged.emit(view)
+
+    def setDataContext(self, context):
+        """Set a data context for all the views
+
+        :param DataContext context: The context to use
+        """
+        return self.__dataViewer.setDataContext(context)
 
     def availableViews(self):
         """Returns the list of registered views
