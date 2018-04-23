@@ -77,7 +77,8 @@ class ScatterView(qt.QMainWindow):
         self._colorbar.setPalette(palette)
 
         # Create PositionInfo widget
-        self.__indexCache = '-'
+        self.__lastPickingPos = None
+        self.__pickingCache = None
         self._positionInfo = tools.PositionInfo(
             plot=plot,
             converters=(('X', lambda x, y: x),
@@ -127,46 +128,80 @@ class ScatterView(qt.QMainWindow):
             for action in toolbar.actions():
                 self.addAction(action)
 
+    def _pickScatterData(self, x, y):
+        """Get data and index and value of top most scatter plot at position (x, y)
+
+        :param float x: X position in plot coordinates
+        :param float y: Y position in plot coordinates
+        :return: The data index and value at that point or None
+        """
+        pickingPos = x, y
+        if self.__lastPickingPos != pickingPos:
+            self.__pickingCache = None
+            self.__lastPickingPos = pickingPos
+
+            plot = self.getPlotWidget()
+            if plot is not None:
+                valueZ = -float('inf')
+                for scatter in plot._getItems(kind='scatter'):
+                    zIndex = scatter.getZValue()
+                    if zIndex >= valueZ:
+                        valueZ = zIndex
+                        xPixel, yPixel = plot.dataToPixel(
+                            x, y, axis='left', check=False)
+                        dataIndices = self._pick(scatter, xPixel, yPixel)
+                        if dataIndices:
+                            # Return last index
+                            # with matplotlib it should be the top-most point
+                            dataIndex = dataIndices[-1]
+                            self.__pickingCache = (
+                                dataIndex,
+                                scatter.getValueData(copy=False)[dataIndex])
+
+        return self.__pickingCache
+
     def _getScatterValue(self, x, y):
         """Get data value of top most scatter plot at position (x, y)
 
         :param float x: X position in plot coordinates
         :param float y: Y position in plot coordinates
-        :return: The data index at that point or None
+        :return: The data value at that point or '-'
         """
-        self.__indexCache = '-'
-        value = '-'
-        valueZ = -float('inf')
-
-        plot = self.getPlotWidget()
-        if plot is not None:
-            for scatter in plot._getItems(kind='scatter'):
-                zIndex = scatter.getZValue()
-                if zIndex >= valueZ:
-                    valueZ = zIndex
-                    xPixel, yPixel = plot.dataToPixel(x, y, axis='left', check=False)
-                    dataIndices = self._pick(scatter, xPixel, yPixel)
-                    if dataIndices:
-                        # Return last index, with matplotlib it should be the top-most point
-                        dataIndex = dataIndices[-1]
-                        value = scatter.getValueData(copy=False)[dataIndex]
-                        self.__indexCache = dataIndex
-
-        return value
+        picking = self._pickScatterData(x, y)
+        return '-' if picking is None else picking[1]
 
     def _getScatterIndex(self, x, y):
-        return self.__indexCache
+        """Get data index of top most scatter plot at position (x, y)
+
+        :param float x: X position in plot coordinates
+        :param float y: Y position in plot coordinates
+        :return: The data index at that point or '-'
+        """
+        picking = self._pickScatterData(x, y)
+        return '-' if picking is None else picking[0]
 
     _PICK_OFFSET = 3  # Offset in pixel used for picking
 
     def _mouseInPlotArea(self, x, y):
+        """Clip mouse coordinates to plot area coordinates
+
+        :param float x: X position in pixels
+        :param float y: Y position in pixels
+        :return: (x, y) in data coordinates
+        """
         plot = self.getPlotWidget()
         left, top, width, height = plot.getPlotBoundsInPixels()
-        xPlot = numpy.clip(x, left, left + width -1)
+        xPlot = numpy.clip(x, left, left + width - 1)
         yPlot = numpy.clip(y, top, top + height - 1)
         return xPlot, yPlot
 
     def _pick(self, scatter, x, y):
+        """Pick points in a particular scatter item in the plot
+
+        :param float x: X position in plot coordinates
+        :param float y: Y position in plot coordinates
+        :return: Indices of picked points
+        """
         plot = self.getPlotWidget()
 
         offset = self._PICK_OFFSET
