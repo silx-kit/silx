@@ -23,6 +23,12 @@
 #
 # ###########################################################################*/
 """NXdata validation module.
+
+Public functions:
+
+ - :func:`is_valid_nxdata`
+ - :func:`is_NXroot_with_default_NXdata`
+ - :func:`is_NXentry_with_default_NXdata`
 """
 import logging
 
@@ -85,7 +91,7 @@ def _get_auxiliary_signals_names(group):
     return auxiliary_signals_names
 
 
-def _validate_auxiliary_signals(group, signal_name, auxiliary_signals_names):
+def _are_auxiliary_signals_valid(group, signal_name, auxiliary_signals_names):
     """Check data dimensionality and size. Return False if invalid."""
     for asn in auxiliary_signals_names:
         if asn not in group or not is_dataset(group[asn]):
@@ -99,6 +105,66 @@ def _validate_auxiliary_signals(group, signal_name, auxiliary_signals_names):
                             group.name)
             return False
     return True
+
+
+def _has_valid_number_of_axes(group, signal_name, num_axes):
+    ndims = len(group[signal_name].shape)
+    if 1 < ndims < num_axes:
+        # ndim = 1 with several axes could be a scatter
+        _nxdata_warning(
+            "More @axes defined than there are " +
+            "signal dimensions: " +
+            "%d axes, %d dimensions." % (num_axes, ndims),
+            group.name)
+        return False
+
+    # case of less axes than dimensions: number of axes must match
+    # dimensionality defined by @interpretation
+    if ndims > num_axes:
+        interpretation = get_attr_as_unicode(group[signal_name], "interpretation")
+        if interpretation is None:
+            interpretation = get_attr_as_unicode(group, "interpretation")
+        if interpretation is None:
+            _nxdata_warning("No @interpretation and not enough" +
+                            " @axes defined.", group.name)
+            return False
+
+        if interpretation not in _INTERPDIM:
+            _nxdata_warning("Unrecognized @interpretation=" + interpretation +
+                            " for data with wrong number of defined @axes.",
+                            group.name)
+            return False
+        if interpretation == "rgba-image":
+            if ndims != 3 or group[signal_name].shape[-1] not in [3, 4]:
+                _nxdata_warning(
+                    "Inconsistent RGBA Image. Expected 3 dimensions with " +
+                    "last one of length 3 or 4. Got ndim=%d " % ndims +
+                    "with last dimension of length %d." % group[signal_name].shape[-1],
+                    group.name)
+                return False
+            if num_axes != 2:
+                _nxdata_warning(
+                    "Inconsistent number of axes for RGBA Image. Expected "
+                    "3, but got %d." % ndims, group.name)
+                return False
+
+        elif num_axes != _INTERPDIM[interpretation]:
+            _nxdata_warning(
+                "%d-D signal with @interpretation=%s " % (ndims, interpretation) +
+                "must define %d or %d axes." % (ndims, _INTERPDIM[interpretation]),
+                group.name)
+            return False
+    return True
+
+
+def _get_uncertainties_names(group, signal_name):
+    # Test consistency of @uncertainties
+    uncertainties_names = get_attr_as_unicode(group, "uncertainties")
+    if uncertainties_names is None:
+        uncertainties_names = get_attr_as_unicode(group[signal_name], "uncertainties")
+    if isinstance(uncertainties_names, six.text_type):
+        uncertainties_names = [uncertainties_names]
+    return uncertainties_names
 
 
 def is_valid_nxdata(group):   # noqa
@@ -134,67 +200,22 @@ def is_valid_nxdata(group):   # noqa
         return False
 
     auxiliary_signals_names = _get_auxiliary_signals_names(group)
-    _validate_auxiliary_signals(group, signal_name, auxiliary_signals_names)
-
-    ndim = len(group[signal_name].shape)
+    if not _are_auxiliary_signals_valid(group,
+                                        signal_name,
+                                        auxiliary_signals_names):
+        return False
 
     if "axes" in group.attrs:
         axes_names = get_attr_as_unicode(group, "axes")
         if isinstance(axes_names, (six.text_type, six.binary_type)):
             axes_names = [axes_names]
 
-        if 1 < ndim < len(axes_names):
-            # ndim = 1 with several axes could be a scatter
-            _nxdata_warning(
-                "More @axes defined than there are " +
-                "signal dimensions: " +
-                "%d axes, %d dimensions." % (len(axes_names), ndim),
-                group.name)
+        if not _has_valid_number_of_axes(group, signal_name,
+                                         num_axes=len(axes_names)):
             return False
 
-        # case of less axes than dimensions: number of axes must match
-        # dimensionality defined by @interpretation
-        if ndim > len(axes_names):
-            interpretation = get_attr_as_unicode(group[signal_name], "interpretation")
-            if interpretation is None:
-                interpretation = get_attr_as_unicode(group, "interpretation")
-            if interpretation is None:
-                _nxdata_warning("No @interpretation and not enough" +
-                                " @axes defined.", group.name)
-                return False
-
-            if interpretation not in _INTERPDIM:
-                _nxdata_warning("Unrecognized @interpretation=" + interpretation +
-                                " for data with wrong number of defined @axes.",
-                                group.name)
-                return False
-            if interpretation == "rgba-image":
-                if ndim != 3 or group[signal_name].shape[-1] not in [3, 4]:
-                    _nxdata_warning(
-                        "Inconsistent RGBA Image. Expected 3 dimensions with " +
-                        "last one of length 3 or 4. Got ndim=%d " % ndim +
-                        "with last dimension of length %d." % group[signal_name].shape[-1],
-                        group.name)
-                    return False
-                if len(axes_names) != 2:
-                    _nxdata_warning(
-                        "Inconsistent number of axes for RGBA Image. Expected "
-                        "3, but got %d." % ndim, group.name)
-                    return False
-
-            elif len(axes_names) != _INTERPDIM[interpretation]:
-                _nxdata_warning(
-                    "%d-D signal with @interpretation=%s " % (ndim, interpretation) +
-                    "must define %d or %d axes." % (ndim, _INTERPDIM[interpretation]),
-                    group.name)
-                return False
-
         # Test consistency of @uncertainties
-        uncertainties_names = get_attr_as_unicode(group, "uncertainties")
-        if uncertainties_names is None:
-            uncertainties_names = get_attr_as_unicode(group[signal_name], "uncertainties")
-        if isinstance(uncertainties_names, six.text_type):
-            uncertainties_names = [uncertainties_names]
+        uncertainties_names = _get_uncertainties_names(group, signal_name)
         if uncertainties_names is not None:
             if len(uncertainties_names) != len(axes_names):
                 _nxdata_warning("@uncertainties does not define the same " +
