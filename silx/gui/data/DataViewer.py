@@ -37,7 +37,7 @@ from silx.utils.property import classproperty
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/02/2018"
+__date__ = "24/04/2018"
 
 
 _logger = logging.getLogger(__name__)
@@ -167,6 +167,7 @@ class DataViewer(qt.QFrame):
         self.__currentAvailableViews = []
         self.__currentView = None
         self.__data = None
+        self.__info = None
         self.__useAxisSelection = False
         self.__userSelectedView = None
 
@@ -250,7 +251,7 @@ class DataViewer(qt.QFrame):
         """
         previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
-        info = DataViews.DataInfo(self.__data)
+        info = self._getInfo()
         axisNames = self.__currentView.axesNames(self.__data, info)
         if info.isArray and info.size != 0 and self.__data is not None and axisNames is not None:
             self.__useAxisSelection = True
@@ -390,8 +391,8 @@ class DataViewer(qt.QFrame):
         Update available views from the current data.
         """
         data = self.__data
+        info = self._getInfo()
         # sort available views according to priority
-        info = DataViews.DataInfo(data)
         priorities = [v.getDataPriority(data, info) for v in self.__views]
         views = zip(priorities, self.__views)
         views = filter(lambda t: t[0] > DataViews.DataView.UNSUPPORTED, views)
@@ -490,6 +491,7 @@ class DataViewer(qt.QFrame):
         :param numpy.ndarray data: The data.
         """
         self.__data = data
+        self._invalidateInfo()
         self.__displayedData = None
         self.__updateView()
         self.__updateNumpySelectionAxis()
@@ -511,6 +513,21 @@ class DataViewer(qt.QFrame):
     def data(self):
         """Returns the data"""
         return self.__data
+
+    def _invalidateInfo(self):
+        """Invalidate DataInfo cache."""
+        self.__info = None
+
+    def _getInfo(self):
+        """Returns the DataInfo of the current selected data.
+
+        This value is cached.
+
+        :rtype: DataInfo
+        """
+        if self.__info is None:
+            self.__info = DataViews.DataInfo(self.__data)
+        return self.__info
 
     def displayMode(self):
         """Returns the current display mode"""
