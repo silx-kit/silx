@@ -20,7 +20,6 @@ The different events emitted by :class:`Plot` and by the interaction modes are c
 
 The :class:`PlotWindow` uses additional widgets:
 
-- :mod:`.ColormapDialog` to change colormap settings.
 - :mod:`.CurvesROIWidget` to create regions of interest for curves
 - :mod:`.LegendSelector` to display a list of curves legends which provides some control on the curves (e.g., select, delete).
 - :mod:`.MaskToolsWidget` to provide tools to draw a mask on an image.
@@ -86,14 +85,6 @@ The following modules are the modules used internally by the plot package.
 .. currentmodule:: silx.gui.plot.backends.BackendMatplotlib
 
 .. automodule:: silx.gui.plot.backends.BackendMatplotlib
-   :members:
-
-:mod:`ColormapDialog`
-+++++++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.ColormapDialog
-
-.. automodule:: silx.gui.plot.ColormapDialog
    :members:
 
 :mod:`Colors`

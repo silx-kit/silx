@@ -42,7 +42,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/08/2017"
+__date__ = "24/04/2018"
 
 
 import logging
@@ -51,7 +51,7 @@ import numpy
 from .. import qt
 
 from . import items, PlotWindow, PlotWidget, actions
-from .Colormap import Colormap
+from ..colors import Colormap
 from .Colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar

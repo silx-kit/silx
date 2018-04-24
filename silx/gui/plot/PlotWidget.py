@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2017"
+__date__ = "24/04/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -45,7 +45,7 @@ from silx.utils.deprecation import deprecated
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
 
-from .Colormap import Colormap
+from ..colors import Colormap
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents

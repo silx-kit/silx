@@ -28,14 +28,14 @@ from __future__ import absolute_import
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/05/2017"
+__date__ = "24/04/2018"
 
 
 from silx.utils.deprecation import deprecated
 import logging
 import numpy
 
-from .Colormap import Colormap
+from ..colors import Colormap
 
 
 _logger = logging.getLogger(__name__)

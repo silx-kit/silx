@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "24/04/2018"
 
 import collections
 from copy import deepcopy
@@ -38,7 +38,7 @@ from silx.third_party import six, enum
 
 from ... import qt
 from .. import Colors
-from ..Colormap import Colormap
+from ...colors import Colormap
 
 
 _logger = logging.getLogger(__name__)

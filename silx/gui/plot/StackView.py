@@ -69,14 +69,14 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "24/04/2018"
 
 import numpy
 
 from silx.gui import qt
 from .. import icons
 from . import items, PlotWindow, actions
-from .Colormap import Colormap
+from ..colors import Colormap
 from .Colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import Profile3DToolBar

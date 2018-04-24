@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/02/2018"
+__date__ = "24/04/2018"
 
 
 from collections import Iterable
@@ -38,7 +38,7 @@ from ..gui import qt
 from ..gui.plot3d.SceneWindow import SceneWindow
 from ..gui.plot3d.ScalarFieldView import ScalarFieldView
 from ..gui.plot3d import SFViewParamTree
-from ..gui.plot.Colormap import Colormap
+from ..gui.colors import Colormap
 from ..gui.plot.Colors import rgba
 
 

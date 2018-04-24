@@ -36,12 +36,12 @@ from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.plot.actions.control import ColormapAction
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/01/2018"
+__date__ = "24/04/2018"
 
 _logger = logging.getLogger(__name__)
 

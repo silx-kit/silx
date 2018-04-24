@@ -29,13 +29,13 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "24/04/2018"
 
 import unittest
 import numpy
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.plot.Colormap import Colormap
-from silx.gui.plot.Colormap import preferredColormaps, setPreferredColormaps
+from silx.gui.colors import Colormap
+from silx.gui.colors import preferredColormaps, setPreferredColormaps
 from silx.utils.exceptions import NotEditableError
 
 
@@ -289,7 +289,7 @@ class TestObjectAPI(ParametricTestCase):
             ((0, 0, 0, 255), (255, 255, 255, 255)))))
 
     def testEditableMode(self):
-        """Make sure the colormap will raise NotEditableError when try to 
+        """Make sure the colormap will raise NotEditableError when try to
         change a colormap not editable"""
         colormap = Colormap()
         colormap.setEditable(False)

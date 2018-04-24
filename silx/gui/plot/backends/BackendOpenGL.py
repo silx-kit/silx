@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "24/04/2018"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -39,7 +39,6 @@ import numpy
 from .._utils import FLOAT32_MINPOS
 from . import BackendBase
 from .. import Colors
-from ..Colormap import Colormap
 from ... import qt
 
 from ..._glutils import gl

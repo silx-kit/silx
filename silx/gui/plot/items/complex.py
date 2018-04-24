@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/01/2018"
+__date__ = "24/04/2018"
 
 
 import logging
@@ -37,7 +37,7 @@ import numpy
 
 from silx.third_party import enum
 
-from ..Colormap import Colormap
+from ...colors import Colormap
 from .core import ColormapMixIn, ItemChangedType
 from .image import ImageBase
 

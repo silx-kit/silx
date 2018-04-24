@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "24/04/2018"
 
 
 import numpy
@@ -35,7 +35,7 @@ import unittest
 from silx.utils.testutils import ParametricTestCase
 
 from silx.gui.plot import Colors
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 
 class TestRGBA(ParametricTestCase):
     """Basic tests of rgba function"""

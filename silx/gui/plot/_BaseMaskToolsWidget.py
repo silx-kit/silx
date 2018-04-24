@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "24/04/2018"
 
 import os
 
@@ -37,7 +37,7 @@ import numpy
 
 from silx.gui import qt, icons
 from silx.gui.widgets.FloatEdit import FloatEdit
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.plot.Colors import rgba
 from .actions.mode import PanModeAction
 

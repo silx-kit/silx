@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/02/2018"
+__date__ = "24/04/2018"
 
 
 import collections
@@ -41,7 +41,7 @@ from ..utils.weakref import WeakList
 from ..gui import qt
 from ..gui.plot import Plot1D, Plot2D, PlotWidget
 from ..gui.plot.Colors import COLORDICT
-from ..gui.plot.Colormap import Colormap
+from ..gui.colors import Colormap
 from silx.third_party import six
 
 
