@@ -41,3 +41,4 @@ from .image import ImageData, ImageRgba  # noqa
 from .mesh import Mesh  # noqa
 from .scatter import Scatter2D, Scatter3D  # noqa
 from .volume import ScalarField3D  # noqa
+from .box import Box
