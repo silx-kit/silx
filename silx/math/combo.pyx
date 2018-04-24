@@ -281,7 +281,7 @@ def min_max(data not None, bint min_positive=False, bint finite=False):
     NaNs are ignored while computing min/max unless all data is NaNs,
     in which case returned min/max are NaNs.
 
-    The result will use data type of the input data, else for some cases.
+    The result data type is that of the input data, except for the following cases.
     For input using non-native bytes order, the result is returned as native
     floating-point or integers. For input using 16-bits floating-point,
     the result is returned as 32-bits floating-point.
