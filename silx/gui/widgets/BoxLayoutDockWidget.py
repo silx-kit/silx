@@ -43,7 +43,7 @@ class BoxLayoutDockWidget(qt.QDockWidget):
     :param flags: See :class:`QDockWidget`
     """
 
-    def __init__(self, parent=None, flags=None):
+    def __init__(self, parent=None, flags=qt.Qt.Widget):
         super(BoxLayoutDockWidget, self).__init__(parent, flags)
         self._currentArea = qt.Qt.NoDockWidgetArea
         self.dockLocationChanged.connect(self._dockLocationChanged)
