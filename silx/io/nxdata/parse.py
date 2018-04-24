@@ -54,9 +54,13 @@ class NXdata(object):
     """
 
     :param group: h5py-like group following the NeXus *NXdata* specification.
+    :param boolean validate: Set this parameter to *False* to skip the initial
+        validation. This option is provided for optimisation purposes, in cases
+        where :meth:`silx.io.nxdata.is_valid_nxdata` has already been called
+        prior to instantiating this :class:`NXdata`.
     """
-    def __init__(self, group):
-        if not is_valid_nxdata(group):
+    def __init__(self, group, validate=True):
+        if validate and not is_valid_nxdata(group):
             raise TypeError("group is not a valid NXdata class")
         super(NXdata, self).__init__()
 
@@ -579,4 +583,4 @@ def get_default(group):
     else:
         return None
 
-    return NXdata(default_data)
+    return NXdata(default_data, validate=False)

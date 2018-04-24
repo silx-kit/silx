@@ -109,6 +109,7 @@ class DataInfo(object):
         self.isBoolean = False
         self.isRecord = False
         self.hasNXdata = False
+        self.isInvalidNXdata = False
         self.shape = tuple()
         self.dim = 0
         self.size = 0
@@ -118,8 +119,28 @@ class DataInfo(object):
 
         if silx.io.is_group(data):
             nxd = nxdata.get_default(data)
+            nx_class = get_attr_as_unicode(data, "NX_class")
             if nxd is not None:
                 self.hasNXdata = True
+                # can we plot it?
+                is_scalar = nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]
+                if not (is_scalar or nxd.is_curve or nxd.is_x_y_value_scatter or
+                        nxd.is_image or nxd.is_stack):
+                    # invalid: cannot be plotted by any widget
+                    self.isInvalidNXdata = True
+            elif nx_class == "NXdata":
+                # group claiming to be NXdata could not be parsed
+                self.isInvalidNXdata = True
+            elif nx_class == "NXentry" and "default" in data.attrs:
+                # entry claiming to have a default NXdata could not be parsed
+                self.isInvalidNXdata = True
+            elif nx_class == "NXroot" or silx.io.is_file(data):
+                # root claiming to have a default entry
+                if "default" in data.attrs:
+                    def_entry = data.attrs["default"]
+                    if def_entry in data and "default" in data[def_entry].attrs:
+                        # and entry claims to have default NXdata
+                        self.isInvalidNXdata = True
 
         if isinstance(data, numpy.ndarray):
             self.isArray = True
@@ -1022,70 +1043,46 @@ class _InvalidNXdataView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if silx.io.is_group(data):
-            nxd = nxdata.get_default(data)
+
+        if not info.isInvalidNXdata:
+            return DataView.UNSUPPORTED
+
+        if info.hasNXdata:
+            self._msg = "NXdata seems valid, but cannot be displayed "
+            self._msg += "by any existing plot widget."
+        else:
             nx_class = get_attr_as_unicode(data, "NX_class")
-
-            if nxd is None:
-                if nx_class == "NXdata":
-                    # invalid: could not even be parsed by NXdata
-                    self._msg = "Group has @NX_class = NXdata, but could not be interpreted"
-                    self._msg += " as valid NXdata."
-                    return 100
-                elif nx_class == "NXentry":
-                    if "default" not in data.attrs:
-                        # no link to NXdata, no problem
-                        return DataView.UNSUPPORTED
-                    self._msg = "NXentry group provides a @default attribute,"
-                    default_nxdata_name = data.attrs["default"]
-                    if default_nxdata_name not in data:
-                        self._msg += " but no corresponding NXdata group exists."
-                    elif get_attr_as_unicode(data[default_nxdata_name], "NX_class") != "NXdata":
-                        self._msg += " but the corresponding item is not a "
-                        self._msg += "NXdata group."
-                    else:
-                        self._msg += " but the corresponding NXdata seems to be"
-                        self._msg += " malformed."
-                    return 100
-                elif nx_class == "NXroot" or silx.io.is_file(data):
-                    if "default" not in data.attrs:
-                        # no link to NXentry, no problem
-                        return DataView.UNSUPPORTED
-                    default_entry_name = data.attrs["default"]
-                    if default_entry_name not in data:
-                        # this is a problem, but not NXdata related
-                        return DataView.UNSUPPORTED
-                    default_entry = data[default_entry_name]
-                    if "default" not in default_entry.attrs:
-                        # no NXdata specified, no problemo
-                        return DataView.UNSUPPORTED
-                    default_nxdata_name = default_entry.attrs["default"]
-                    self._msg = "NXroot group provides a @default attribute "
-                    self._msg += "pointing to a NXentry which defines its own "
-                    self._msg += "@default attribute, "
-                    if default_nxdata_name not in default_entry:
-                        self._msg += " but no corresponding NXdata group exists."
-                    elif get_attr_as_unicode(default_entry[default_nxdata_name],
-                                            "NX_class") != "NXdata":
-                        self._msg += " but the corresponding item is not a "
-                        self._msg += "NXdata group."
-                    else:
-                        self._msg += " but the corresponding NXdata seems to be"
-                        self._msg += " malformed."
-                    return 100
+            if nx_class == "NXdata":
+                # invalid: could not even be parsed by NXdata
+                self._msg = "Group has @NX_class = NXdata, but could not be interpreted"
+                self._msg += " as valid NXdata."
+            elif nx_class == "NXentry":
+                self._msg = "NXentry group provides a @default attribute,"
+                default_nxdata_name = data.attrs["default"]
+                if default_nxdata_name not in data:
+                    self._msg += " but no corresponding NXdata group exists."
+                elif get_attr_as_unicode(data[default_nxdata_name], "NX_class") != "NXdata":
+                    self._msg += " but the corresponding item is not a "
+                    self._msg += "NXdata group."
                 else:
-                    # Not pretending to be NXdata, no problem
-                    return DataView.UNSUPPORTED
-
-            is_scalar = nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]
-            if not (is_scalar or nxd.is_curve or nxd.is_x_y_value_scatter or
-                    nxd.is_image or nxd.is_stack):
-                # invalid: cannot be plotted by any widget (I cannot imagine a case)
-                self._msg = "NXdata seems valid, but cannot be displayed "
-                self._msg += "by any existing plot widget."
-                return 100
-
-        return DataView.UNSUPPORTED
+                    self._msg += " but the corresponding NXdata seems to be"
+                    self._msg += " malformed."
+            elif nx_class == "NXroot" or silx.io.is_file(data):
+                default_entry = data[data.attrs["default"]]
+                default_nxdata_name = default_entry.attrs["default"]
+                self._msg = "NXroot group provides a @default attribute "
+                self._msg += "pointing to a NXentry which defines its own "
+                self._msg += "@default attribute, "
+                if default_nxdata_name not in default_entry:
+                    self._msg += " but no corresponding NXdata group exists."
+                elif get_attr_as_unicode(default_entry[default_nxdata_name],
+                                         "NX_class") != "NXdata":
+                    self._msg += " but the corresponding item is not a "
+                    self._msg += "NXdata group."
+                else:
+                    self._msg += " but the corresponding NXdata seems to be"
+                    self._msg += " malformed."
+        return 100
 
 
 class _NXdataScalarView(DataView):
