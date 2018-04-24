@@ -40,6 +40,111 @@ from silx.utils.exceptions import NotEditableError
 
 _logger = logging.getLogger(__file__)
 
+
+_COLORDICT = {}
+"""Dictionary of common colors."""
+
+_COLORDICT['b'] = _COLORDICT['blue'] = '#0000ff'
+_COLORDICT['r'] = _COLORDICT['red'] = '#ff0000'
+_COLORDICT['g'] = _COLORDICT['green'] = '#00ff00'
+_COLORDICT['k'] = _COLORDICT['black'] = '#000000'
+_COLORDICT['w'] = _COLORDICT['white'] = '#ffffff'
+_COLORDICT['pink'] = '#ff66ff'
+_COLORDICT['brown'] = '#a52a2a'
+_COLORDICT['orange'] = '#ff9900'
+_COLORDICT['violet'] = '#6600ff'
+_COLORDICT['gray'] = _COLORDICT['grey'] = '#a0a0a4'
+# _COLORDICT['darkGray'] = _COLORDICT['darkGrey'] = '#808080'
+# _COLORDICT['lightGray'] = _COLORDICT['lightGrey'] = '#c0c0c0'
+_COLORDICT['y'] = _COLORDICT['yellow'] = '#ffff00'
+_COLORDICT['m'] = _COLORDICT['magenta'] = '#ff00ff'
+_COLORDICT['c'] = _COLORDICT['cyan'] = '#00ffff'
+_COLORDICT['darkBlue'] = '#000080'
+_COLORDICT['darkRed'] = '#800000'
+_COLORDICT['darkGreen'] = '#008000'
+_COLORDICT['darkBrown'] = '#660000'
+_COLORDICT['darkCyan'] = '#008080'
+_COLORDICT['darkYellow'] = '#808000'
+_COLORDICT['darkMagenta'] = '#800080'
+
+
+# FIXME: It could be nice to expose a functional API instead of that attribute
+COLORDICT = _COLORDICT
+
+
+def rgba(color, colorDict=None):
+    """Convert color code '#RRGGBB' and '#RRGGBBAA' to (R, G, B, A)
+
+    It also convert RGB(A) values from uint8 to float in [0, 1] and
+    accept a QColor as color argument.
+
+    :param str color: The color to convert
+    :param dict colorDict: A dictionary of color name conversion to color code
+    :returns: RGBA colors as floats in [0., 1.]
+    :rtype: tuple
+    """
+    if colorDict is None:
+        colorDict = _COLORDICT
+
+    if hasattr(color, 'getRgbF'):  # QColor support
+        color = color.getRgbF()
+
+    values = numpy.asarray(color).ravel()
+
+    if values.dtype.kind in 'iuf':  # integer or float
+        # Color is an array
+        assert len(values) in (3, 4)
+
+        # Convert from integers in [0, 255] to float in [0, 1]
+        if values.dtype.kind in 'iu':
+            values = values / 255.
+
+        # Clip to [0, 1]
+        values[values < 0.] = 0.
+        values[values > 1.] = 1.
+
+        if len(values) == 3:
+            return values[0], values[1], values[2], 1.
+        else:
+            return tuple(values)
+
+    # We assume color is a string
+    if not color.startswith('#'):
+        color = colorDict[color]
+
+    assert len(color) in (7, 9) and color[0] == '#'
+    r = int(color[1:3], 16) / 255.
+    g = int(color[3:5], 16) / 255.
+    b = int(color[5:7], 16) / 255.
+    a = int(color[7:9], 16) / 255. if len(color) == 9 else 1.
+    return r, g, b, a
+
+
+_COLORMAP_CURSOR_COLORS = {
+    'gray': 'pink',
+    'reversed gray': 'pink',
+    'temperature': 'pink',
+    'red': 'green',
+    'green': 'pink',
+    'blue': 'yellow',
+    'jet': 'pink',
+    'viridis': 'pink',
+    'magma': 'green',
+    'inferno': 'green',
+    'plasma': 'green',
+}
+
+
+def cursorColorForColormap(colormapName):
+    """Get a color suitable for overlay over a colormap.
+
+    :param str colormapName: The name of the colormap.
+    :return: Name of the color.
+    :rtype: str
+    """
+    return _COLORMAP_CURSOR_COLORS.get(colormapName, 'black')
+
+
 DEFAULT_COLORMAPS = (
     'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
 """Tuple of supported colormap names."""

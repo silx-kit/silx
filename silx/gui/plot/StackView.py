@@ -77,7 +77,7 @@ from silx.gui import qt
 from .. import icons
 from . import items, PlotWindow, actions
 from ..colors import Colormap
-from .Colors import cursorColorForColormap
+from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser

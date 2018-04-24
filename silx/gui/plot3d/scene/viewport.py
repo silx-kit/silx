@@ -33,12 +33,12 @@ from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "24/04/2018"
 
 
 import numpy
 
-from silx.gui.plot.Colors import rgba
+from silx.gui.colors import rgba
 
 from ..._glutils import gl
 

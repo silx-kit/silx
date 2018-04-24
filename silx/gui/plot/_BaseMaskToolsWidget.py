@@ -38,7 +38,7 @@ import numpy
 from silx.gui import qt, icons
 from silx.gui.widgets.FloatEdit import FloatEdit
 from silx.gui.colors import Colormap
-from silx.gui.plot.Colors import rgba
+from silx.gui.colors import rgba
 from .actions.mode import PanModeAction
 
 

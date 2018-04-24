@@ -40,7 +40,7 @@ import numpy
 from ..utils.weakref import WeakList
 from ..gui import qt
 from ..gui.plot import Plot1D, Plot2D, PlotWidget
-from ..gui.plot.Colors import COLORDICT
+from ..gui.colors import COLORDICT
 from ..gui.colors import Colormap
 from silx.third_party import six
 

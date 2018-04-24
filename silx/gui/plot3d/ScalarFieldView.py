@@ -42,7 +42,7 @@ from collections import deque
 import numpy
 
 from silx.gui import qt, icons
-from silx.gui.plot.Colors import rgba
+from silx.gui.colors import rgba
 from silx.gui.colors import Colormap
 
 from silx.math.marchingcubes import MarchingCubes

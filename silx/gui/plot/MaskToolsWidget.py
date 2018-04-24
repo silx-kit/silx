@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/06/2017"
+__date__ = "24/04/2018"
 
 
 import os
@@ -48,7 +48,7 @@ from silx.image import shapes
 
 from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
 from . import items
-from .Colors import cursorColorForColormap, rgba
+from ..colors import cursorColorForColormap, rgba
 from .. import qt
 
 from silx.third_party.EdfFile import EdfFile

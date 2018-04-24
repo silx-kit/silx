@@ -39,7 +39,7 @@ from ..gui.plot3d.SceneWindow import SceneWindow
 from ..gui.plot3d.ScalarFieldView import ScalarFieldView
 from ..gui.plot3d import SFViewParamTree
 from ..gui.colors import Colormap
-from ..gui.plot.Colors import rgba
+from ..gui.colors import rgba
 
 
 _logger = logging.getLogger(__name__)

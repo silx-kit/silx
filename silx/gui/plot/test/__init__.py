@@ -31,7 +31,6 @@ import unittest
 
 from .._utils import test
 from . import testColorBar
-from . import testColors
 from . import testCurvesROIWidget
 from . import testAlphaSlider
 from . import testInteraction
@@ -58,7 +57,6 @@ def suite():
     test_suite.addTests(
         [test.suite(),
          testColorBar.suite(),
-         testColors.suite(),
          testCurvesROIWidget.suite(),
          testAlphaSlider.suite(),
          testInteraction.suite(),

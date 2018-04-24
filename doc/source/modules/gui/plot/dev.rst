@@ -38,7 +38,6 @@ The :class:`PlotWindow` uses additional widgets:
 
 The widgets also use the following miscellaneous modules:
 
-- :mod:`.Colors` to convert colors from name to RGB(A)
 - :mod:`._utils`: utility functions
 
 The :mod:`backends` package provide the implementation of the rendering used by the :class:`Plot`.
@@ -86,14 +85,6 @@ The following modules are the modules used internally by the plot package.
 
 .. automodule:: silx.gui.plot.backends.BackendMatplotlib
    :members:
-
-:mod:`Colors`
-+++++++++++++
-
-.. currentmodule:: silx.gui.plot.Colors
-
-.. automodule:: silx.gui.plot.Colors
-   :members: rgba
 
 :mod:`CurvesROIWidget`
 ++++++++++++++++++++++
