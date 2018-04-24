@@ -290,6 +290,10 @@ class ScatterToolBar(qt.QToolBar):
             parent=self, plot=plot)
         self.addAction(self._yAxisLogarithmicAction)
 
+        self._keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
+            parent=self, plot=plot)
+        self.addWidget(self._keepDataAspectRatioButton)
+
         self._gridAction = actions.control.GridAction(
             parent=self, plot=plot)
         self.addAction(self._gridAction)
@@ -301,10 +305,6 @@ class ScatterToolBar(qt.QToolBar):
         self._symbolToolButton = PlotToolButtons.SymbolToolButton(
             parent=self, plot=plot)
         self.addWidget(self._symbolToolButton)
-
-        self._keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
-            parent=self, plot=plot)
-        self.addWidget(self._keepDataAspectRatioButton)
 
     def getResetZoomAction(self):
         """Returns the QAction to reset the zoom.
