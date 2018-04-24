@@ -1108,7 +1108,7 @@ class _NXdataScalarView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         # data could be a NXdata or an NXentry
-        nxd = nxdata.get_default(data)
+        nxd = nxdata.get_default(data, validate=False)
         signal = nxd.signal
         self.getWidget().setArrayData(signal,
                                       labels=True)
@@ -1116,8 +1116,8 @@ class _NXdataScalarView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
 
-        if info.hasNXdata:
-            nxd = nxdata.get_default(data)
+        if info.hasNXdata and not info.isInvalidNXdata:
+            nxd = nxdata.get_default(data, validate=False)
             if nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]:
                 return 100
         return DataView.UNSUPPORTED
@@ -1148,7 +1148,7 @@ class _NXdataCurveView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = nxdata.get_default(data)
+        nxd = nxdata.get_default(data, validate=False)
         signals_names = [nxd.signal_name] + nxd.auxiliary_signals_names
         if nxd.axes_dataset_names[-1] is not None:
             x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
@@ -1174,8 +1174,8 @@ class _NXdataCurveView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.hasNXdata:
-            if nxdata.get_default(data).is_curve:
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_curve:
                 return 100
         return DataView.UNSUPPORTED
 
@@ -1201,7 +1201,7 @@ class _NXdataXYVScatterView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = nxdata.get_default(data)
+        nxd = nxdata.get_default(data, validate=False)
         x_axis, y_axis = nxd.axes[-2:]
 
         x_label, y_label = nxd.axes_names[-2:]
@@ -1223,8 +1223,8 @@ class _NXdataXYVScatterView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.hasNXdata:
-            if nxdata.get_default(data).is_x_y_value_scatter:
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_x_y_value_scatter:
                 return 100
 
         return DataView.UNSUPPORTED
@@ -1253,7 +1253,7 @@ class _NXdataImageView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = nxdata.get_default(data)
+        nxd = nxdata.get_default(data, validate=False)
         isRgba = nxd.interpretation == "rgba-image"
 
         # last two axes are Y & X
@@ -1271,8 +1271,8 @@ class _NXdataImageView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
 
-        if info.hasNXdata:
-            if nxdata.get_default(data).is_image:
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_image:
                 return 100
 
         return DataView.UNSUPPORTED
@@ -1299,7 +1299,7 @@ class _NXdataStackView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        nxd = nxdata.get_default(data)
+        nxd = nxdata.get_default(data, validate=False)
         signal_name = nxd.signal_name
         z_axis, y_axis, x_axis = nxd.axes[-3:]
         z_label, y_label, x_label = nxd.axes_names[-3:]
@@ -1316,8 +1316,8 @@ class _NXdataStackView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
-        if info.hasNXdata:
-            if nxdata.get_default(data).is_stack:
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_stack:
                 return 100
 
         return DataView.UNSUPPORTED

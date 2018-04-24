@@ -555,7 +555,7 @@ class NXdata(object):
         return True
 
 
-def get_default(group):
+def get_default(group, validate=True):
     """Return a :class:`NXdata` object corresponding to the default NXdata group
     in the group specified as parameter.
 
@@ -567,18 +567,21 @@ def get_default(group):
 
     :param group: h5py-like group following the Nexus specification
         (NXdata, NXentry or NXroot).
+    :param bool validate: Set this to False if you are sure that group
+        is valid NXdata (i.e. :func:`silx.io.nxdata.is_valid_nxdata(group)`
+        returns True). Parameter provided for optimisation purposes.
     :return: :class:`NXdata` object or None
     :raise TypeError: if group is not a h5py-like group
     """
     if not is_group(group):
         raise TypeError("Provided parameter is not a h5py-like group")
 
-    if is_NXroot_with_default_NXdata(group):
+    if is_NXroot_with_default_NXdata(group, validate=validate):
         default_entry = group[group.attrs["default"]]
         default_data = default_entry[default_entry.attrs["default"]]
-    elif is_NXentry_with_default_NXdata(group):
+    elif is_NXentry_with_default_NXdata(group, validate=validate):
         default_data = group[group.attrs["default"]]
-    elif is_valid_nxdata(group):
+    elif not validate or is_valid_nxdata(group):
         default_data = group
     else:
         return None
