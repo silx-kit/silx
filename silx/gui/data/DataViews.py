@@ -41,7 +41,7 @@ from silx.gui.plot.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/04/2018"
+__date__ = "24/04/2018"
 
 _logger = logging.getLogger(__name__)
 
@@ -177,8 +177,8 @@ class DataInfo(object):
         return _normalizeData(data)
 
 
-class DataContext(object):
-    """A set of hooks defined to custom data viewer."""
+class DataViewHooks(object):
+    """A set of hooks defined to custom the behaviour of the data views."""
 
     def getColormap(self, view):
         """Returns a colormap for this view."""
@@ -210,21 +210,21 @@ class DataView(object):
         if icon is None:
             icon = qt.QIcon()
         self.__icon = icon
-        self.__context = None
+        self.__hooks = None
 
-    def getDataContext(self):
-        """Returns the data context used by this view.
+    def getHooks(self):
+        """Returns the data viewer hooks used by this view.
 
-        :rtype: DataContext
+        :rtype: DataViewHooks
         """
-        return self.__context
+        return self.__hooks
 
-    def setDataContext(self, context):
-        """Set the data context to use with this view.
+    def setHooks(self, hooks):
+        """Set the data view hooks to use with this view.
 
-        :param DataContext context: The context to use
+        :param DataViewHooks hooks: The data view hooks to use
         """
-        self.__context = context
+        self.__hooks = hooks
 
     def defaultColormap(self):
         """Returns a default colormap.
@@ -232,8 +232,8 @@ class DataView(object):
         :rtype: Colormap
         """
         colormap = None
-        if self.__context is not None:
-            colormap = self.__context.getColormap(self)
+        if self.__hooks is not None:
+            colormap = self.__hooks.getColormap(self)
         if colormap is None:
             colormap = Colormap(name="viridis")
         return colormap
@@ -244,8 +244,8 @@ class DataView(object):
         :rtype: ColormapDialog
         """
         dialog = None
-        if self.__context is not None:
-            dialog = self.__context.getColormapDialog(self)
+        if self.__hooks is not None:
+            dialog = self.__hooks.getColormapDialog(self)
         if dialog is None:
             dialog = ColormapDialog()
             dialog.setModal(False)
@@ -365,18 +365,21 @@ class CompositeDataView(DataView):
         self.__views = OrderedDict()
         self.__currentView = None
 
-    def setDataContext(self, context):
+    def setHooks(self, hooks):
         """Set the data context to use with this view.
 
-        :param DataContext context: The context to use
+        :param DataViewHooks hooks: The data view hooks to use
         """
-        super(CompositeDataView, self).setDataContext(context)
-        for v in self.__views:
-            v.setDataContext(context)
+        super(CompositeDataView, self).setHooks(hooks)
+        if hooks is not None:
+            for v in self.__views:
+                v.setHooks(hooks)
 
     def addView(self, dataView):
         """Add a new dataview to the available list."""
-        dataView.setDataContext(self.getDataContext())
+        hooks = self.getHooks()
+        if hooks is not None:
+            dataView.setHooks(hooks)
         self.__views[dataView] = None
 
     def availableViews(self):
@@ -476,7 +479,9 @@ class CompositeDataView(DataView):
                 break
             elif isinstance(view, CompositeDataView):
                 # recurse
-                newView.setDataContext(self.getDataContext())
+                hooks = self.getHooks()
+                if hooks is not None:
+                    newView.setHooks(hooks)
                 if view.replaceView(modeId, newView):
                     return True
         if oldView is None:

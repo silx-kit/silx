@@ -25,17 +25,17 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/04/2018"
+__date__ = "24/04/2018"
 
 import weakref
 
-from silx.gui.data.DataViews import DataContext
+from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.ColormapDialog import ColormapDialog
 
 
-class SilxViewDataContext(DataContext):
-    """Overwrite of the DataContext to custom the use of the DataViewer for
+class SilxViewDataViewHooks(DataViewHooks):
+    """Overwrite of the DataViewHooks to custom the use of the DataViewer for
     the silx view application.
 
     - Create a single colormap shared with all the views
@@ -61,7 +61,6 @@ class SilxViewDataContext(DataContext):
 
         :rtype: ColorDialog
         """
-        print("getColormapDialog")
         if self.__defaultColormapDialog is None:
             parent = self.__parent()
             if parent is None:
