@@ -138,7 +138,7 @@ class SXTest(TestCaseQt, ParametricTestCase):
         This does NOT perform interactive tests
         """
 
-        for create_plot in (sx.plot, sx.imshow, sx.scatter):
+        for create_plot in (sx.plot, sx.imshow):
             with self.subTest(create_plot.__name__):
                 plt = create_plot()
                 self.qWaitForWindowExposed(plt)
