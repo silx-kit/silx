@@ -298,6 +298,10 @@ class ScatterToolBar(qt.QToolBar):
             parent=self, plot=plot)
         self.addAction(self._colormapAction)
 
+        self._symbolToolButton = PlotToolButtons.SymbolToolButton(
+            parent=self, plot=plot)
+        self.addWidget(self._symbolToolButton)
+
         self._keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
             parent=self, plot=plot)
         self.addWidget(self._keepDataAspectRatioButton)
@@ -336,6 +340,13 @@ class ScatterToolBar(qt.QToolBar):
         :rtype: PlotAction
         """
         return self._colormapAction
+
+    def getSymbolToolButton(self):
+        """Returns the QToolButton controlling symbol size and marker.
+
+        :rtype: SymbolToolButton
+        """
+        return self._symbolToolButton
 
     def getKeepDataAspectRatioButton(self):
         """Returns the QToolButton controlling data aspect ratio.
