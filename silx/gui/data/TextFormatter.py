@@ -27,7 +27,7 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/12/2017"
+__date__ = "24/04/2018"
 
 import numpy
 import numbers
@@ -204,7 +204,7 @@ class TextFormatter(qt.QObject):
     def __formatBinary(self, data):
         if isinstance(data, numpy.void):
             if six.PY2:
-                data = [ord(d) for d in data.item()]
+                data = [ord(d) for d in data.data]
             else:
                 data = data.item().astype(numpy.uint8)
         elif six.PY2:
