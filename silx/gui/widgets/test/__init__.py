@@ -30,6 +30,7 @@ from . import test_threadpoolpushbutton
 from . import test_hierarchicaltableview
 from . import test_printpreview
 from . import test_framebrowser
+from . import test_boxlayoutdockwidget
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -45,5 +46,6 @@ def suite():
          test_printpreview.suite(),
          test_hierarchicaltableview.suite(),
          test_framebrowser.suite(),
+         test_boxlayoutdockwidget.suite(),
          ])
     return test_suite
