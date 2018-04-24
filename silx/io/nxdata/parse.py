@@ -424,14 +424,14 @@ class NXdata(object):
         uncertainties_names = get_attr_as_unicode(self.group, "uncertainties")
         if uncertainties_names is None:
             uncertainties_names = get_attr_as_unicode(self.signal, "uncertainties")
-        if isinstance(uncertainties_names, str):
+        if isinstance(uncertainties_names, six.text_type):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
             # take the uncertainty with the same index as the axis in @axes
             axes_ds_names = get_attr_as_unicode(self.group, "axes")
             if axes_ds_names is None:
                 axes_ds_names = get_attr_as_unicode(self.signal, "axes")
-            if isinstance(axes_ds_names, str):
+            if isinstance(axes_ds_names, six.text_type):
                 axes_ds_names = [axes_ds_names]
             elif isinstance(axes_ds_names, numpy.ndarray):
                 # transform numpy.ndarray into list

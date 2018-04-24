@@ -193,7 +193,7 @@ def is_valid_nxdata(group):   # noqa
         uncertainties_names = get_attr_as_unicode(group, "uncertainties")
         if uncertainties_names is None:
             uncertainties_names = get_attr_as_unicode(group[signal_name], "uncertainties")
-        if isinstance(uncertainties_names, str):
+        if isinstance(uncertainties_names, six.text_type):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
             if len(uncertainties_names) != len(axes_names):
