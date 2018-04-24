@@ -300,6 +300,7 @@ class SymbolToolButton(PlotToolButton):
         super(SymbolToolButton, self).__init__(parent=parent, plot=plot)
 
         self.setToolTip('Set symbol size and marker')
+        self.setIcon(icons.getQIcon('plot-symbols'))
 
         menu = qt.QMenu(self)
 
