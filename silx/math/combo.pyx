@@ -30,7 +30,7 @@ of first occurrences (i.e., argmin/argmax) in a single pass.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2017"
+__date__ = "24/04/2018"
 
 cimport cython
 
@@ -281,6 +281,11 @@ def min_max(data not None, bint min_positive=False, bint finite=False):
     NaNs are ignored while computing min/max unless all data is NaNs,
     in which case returned min/max are NaNs.
 
+    The result will use data type of the input data, else for some cases.
+    For input using non-native bytes order, the result is returned as native
+    floating-point or integers. For input using 16-bits floating-point,
+    the result is returned as 32-bits floating-point.
+
     Examples:
 
     >>> import numpy
@@ -324,6 +329,9 @@ def min_max(data not None, bint min_positive=False, bint finite=False):
     """
     data = numpy.array(data, copy=False)
     native_endian_dtype = data.dtype.newbyteorder('N')
+    if native_endian_dtype.kind == 'f' and native_endian_dtype.itemsize == 2:
+        # Use native float32 instead of float16
+        native_endian_dtype = "=f4"
     data = numpy.ascontiguousarray(data, dtype=native_endian_dtype).ravel()
     if finite and data.dtype.kind == 'f':
         return _finite_min_max(data, min_positive)
