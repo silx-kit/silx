@@ -170,6 +170,7 @@ class DataViewer(qt.QFrame):
         self.__info = None
         self.__useAxisSelection = False
         self.__userSelectedView = None
+        self.__hooks = None
 
         self.__views = []
         self.__index = {}
@@ -182,6 +183,15 @@ class DataViewer(qt.QFrame):
         views = self.createDefaultViews(self.__stack)
         self.__views = list(views)
         self.setDisplayMode(DataViews.EMPTY_MODE)
+
+    def setGlobalHooks(self, hooks):
+        """Set a data view hooks for all the views
+
+        :param DataViewHooks context: The hooks to use
+        """
+        self.__hooks = hooks
+        for v in self.__views:
+            v.setHooks(hooks)
 
     def createDefaultViews(self, parent=None):
         """Create and returns available views which can be displayed by default
@@ -360,6 +370,8 @@ class DataViewer(qt.QFrame):
 
         :param DataView view: A dataview
         """
+        if self.__hooks is not None:
+            view.setHooks(self.__hooks)
         self.__views.append(view)
         # TODO It can be skipped if the view do not support the data
         self.__updateAvailableViews()
@@ -569,6 +581,8 @@ class DataViewer(qt.QFrame):
         isReplaced = False
         for idx, view in enumerate(self.__views):
             if view.modeId() == modeId:
+                if self.__hooks is not None:
+                    newView.setHooks(self.__hooks)
                 self.__views[idx] = newView
                 isReplaced = True
                 break
