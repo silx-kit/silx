@@ -1853,6 +1853,25 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='histogram', legend=legend)
 
+    def getAllHistograms(self, just_legend=False):
+        """Returns all histogram legend or objects.
+
+        It returns an empty list in case of not having any scatter.
+
+        If just_legend is False, it returns a list of :class:`items.ImageBase`
+        objects describing the images.
+        If just_legend is True, it returns a list of legends.
+
+        :param bool just_legend: True to get the legend of the images,
+                                 False (the default) to get the images'
+                                 object.
+        :return: list of images' legend or :class:`.items.ImageBase`
+        :rtype: list of str or list of :class:`.items.ImageBase`
+        """
+        return self._getItems(kind='histogram',
+                              just_legend=just_legend,
+                              withhidden=True)
+
     def _getItems(self, kind=ITEM_KINDS, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot
 
