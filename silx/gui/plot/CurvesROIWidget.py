@@ -1007,17 +1007,60 @@ class ROI(qt.QObject):
     def computeRawAndNetCounts(self, curve):
         """Compute the Raw and net counts in the ROI for the given curve.
 
-        - Raw counts: Points values sum of the curve in the defined Region Of
+        - Raw count: Points values sum of the curve in the defined Region Of
            Interest.
 
           .. image:: img/rawCounts.png
 
-        - Net counts: Raw counts minus background
+        - Net count: Raw counts minus background
 
           .. image:: img/netCounts.png
 
         :param CurveItem curve:
-        :return tuple: rawCounts, netCounts
+        :return tuple: rawCount, netCount
+        """
+        assert isinstance(curve, Curve) or curve is None
+
+        if curve is None:
+            return None, None
+
+        x = curve.getXData(copy=False)
+        y = curve.getYData(copy=False)
+
+        idx = numpy.nonzero((self._fromdata <= x) &
+                            (x <= self._todata))[0]
+        if len(idx):
+            xw = x[idx]
+            yw = y[idx]
+            rawCounts = yw.sum(dtype=numpy.float)
+            deltaX = xw[-1] - xw[0]
+            deltaY = yw[-1] - yw[0]
+            if deltaX > 0.0:
+                slope = (deltaY / deltaX)
+                background = yw[0] + slope * (xw - xw[0])
+                netCounts = (rawCounts -
+                             background.sum(dtype=numpy.float))
+            else:
+                netCounts = 0.0
+        else:
+            rawCounts = 0.0
+            netCounts = 0.0
+        return rawCounts, netCounts
+
+    def computeRawAndNetArea(self, curve):
+        """Compute the Raw and net counts in the ROI for the given curve.
+
+        - Raw area: integral of the curve between the min ROI point and the
+           max ROI point to the y = 0 line.
+
+          .. image:: img/rawAreas.png
+
+        - Net area: Raw counts minus background
+
+          .. image:: img/netAreas.png
+
+        :param CurveItem curve:
+        :return tuple: rawArea, netArea
         """
         assert isinstance(curve, Curve) or curve is None
 
@@ -1033,15 +1076,15 @@ class ROI(qt.QObject):
         if x.size is 0:
             return 0.0, 0.0
 
-        rawCounts = numpy.trapz(y, x=x)
+        rawArea = numpy.trapz(y, x=x)
         # to speed up and avoid an intersection calculation we are taking the
         # closest index to the ROI
         closestXLeftIndex = (numpy.abs(x - self.getFrom())).argmin()
         closestXRightIndex = (numpy.abs(x - self.getTo())).argmin()
         yBackground = y[closestXLeftIndex], y[closestXRightIndex]
         background = numpy.trapz(yBackground, x=x)
-        netCounts = rawCounts - background
-        return rawCounts, netCounts
+        netArea = rawArea - background
+        return rawArea, netArea
 
 
 class _RoiMarkerManager(object):

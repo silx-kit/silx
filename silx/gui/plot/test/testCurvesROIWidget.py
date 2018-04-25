@@ -128,7 +128,7 @@ class TestCurvesROIWidget(TestCaseQt):
             thValue = xleftMarker + (xRightMarker - xleftMarker) / 2.
             self.assertAlmostEqual(xMiddleMarker, thValue)
 
-    def testCalculation(self):
+    def testAreaCalculation(self):
         x = numpy.arange(100.)
         y = numpy.arange(100.)
 
@@ -150,14 +150,14 @@ class TestCurvesROIWidget(TestCaseQt):
         posCurve = self.plot.getCurve('positive')
         negCurve = self.plot.getCurve('negative')
 
-        self.assertEqual(roi_pos.computeRawAndNetCounts(posCurve),
+        self.assertEqual(roi_pos.computeRawAndNetArea(posCurve),
                         (numpy.trapz(y=[10, 20], x=[10, 20]),
                         0.0))
-        self.assertEqual(roi_pos.computeRawAndNetCounts(negCurve),
+        self.assertEqual(roi_pos.computeRawAndNetArea(negCurve),
                          (0.0, 0.0))
-        self.assertEqual(roi_neg.computeRawAndNetCounts(posCurve),
+        self.assertEqual(roi_neg.computeRawAndNetArea(posCurve),
                          ((0.0), 0.0))
-        self.assertEqual(roi_neg.computeRawAndNetCounts(negCurve),
+        self.assertEqual(roi_neg.computeRawAndNetArea(negCurve),
                          ((-150.0), 0.0))
 
     def testDeferedInit(self):
@@ -228,7 +228,7 @@ class TestCurvesROIWidget(TestCaseQt):
 
         x = (0, 1, 1, 2, 2, 3)
         y = (1, 1, 2, 2, 1, 1)
-        self.plot.addCurve(x=(0, 1, 1, 2, 2, 3), y=(1, 1, 2, 2, 1, 1),
+        self.plot.addCurve(x=x, y=y,
                            legend='linearCurve')
         self.plot.setActiveCurve(legend='linearCurve')
         self.widget.calculateROIs()
@@ -238,13 +238,8 @@ class TestCurvesROIWidget(TestCaseQt):
         itemRawCounts = roiTable.item(0, indexesColumns['Raw Counts'])
         itemNetCounts = roiTable.item(0, indexesColumns['Net Counts'])
 
-        self.assertTrue(itemRawCounts.text() == '4.0')
-        self.assertTrue(itemNetCounts.text() == '1.0')
-        roi.setTo(1.0)
-        itemRawCounts = roiTable.item(0, indexesColumns['Raw Counts'])
-        itemNetCounts = roiTable.item(0, indexesColumns['Net Counts'])
-        self.assertTrue(itemRawCounts.text() == '1.0')
-        self.assertTrue(itemNetCounts.text() == '0.0')
+        self.assertTrue(itemRawCounts.text() == '8.0')
+        self.assertTrue(itemNetCounts.text() == '2.0')
 
 
 def suite():
