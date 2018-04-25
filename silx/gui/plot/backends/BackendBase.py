@@ -431,16 +431,14 @@ class BackendBase(object):
 
         :rtype: bool
         """
-        return self._plotFrame.xAxis.isTimeSeries
-
+        raise NotImplementedError()
 
     def setXAxisTimeSeries(self, isTimeSeries):
         """Set whether the X-axis is a time series
 
         :param bool flag: True to switch to time series, False for regular axis.
         """
-        self._plotFrame.xAxis.isTimeSeries = isTimeSeries
-
+        raise NotImplementedError()
 
     def setXAxisLogarithmic(self, flag):
         """Set the X axis scale between linear and log.
