@@ -252,7 +252,7 @@ class Axis(qt.QObject):
         flag = bool(flag)
         self.setScale(self.LOGARITHMIC if flag else self.LINEAR)
 
-    def timeZone(self):
+    def getTimeZone(self):
         """Sets tzinfo that is used if this axis plots date times.
 
         None means the datetimes are interpreted as local time.
@@ -353,7 +353,7 @@ class XAxis(Axis):
     # TODO With some changes on the backend, it will be able to remove all this
     #      specialised implementations (prefixel by '_internal')
 
-    def timeZone(self):
+    def getTimeZone(self):
         return self._plot._backend.getxAxisTimeZone()
 
     def setTimeZone(self, tz):

@@ -70,6 +70,7 @@ class PlotAxis(object):
         self._plot = weakref.ref(plot)
 
         self._isDateTime = False
+        self._timeZone = None
         self._isLog = False
         self._dataRange = 1., 100.
         self._displayCoords = (0., 0.), (1., 0.)

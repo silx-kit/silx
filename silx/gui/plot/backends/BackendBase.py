@@ -33,7 +33,6 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/08/2017"
 
-
 import weakref
 from ... import qt
 
@@ -408,7 +407,7 @@ class BackendBase(object):
     # Graph axes
 
 
-    def xAxisTimeZone(self):
+    def getXAxisTimeZone(self):
         """Returns tzinfo that is used if the X-Axis plots date-times.
 
         None means the datetimes are interpreted as local time.

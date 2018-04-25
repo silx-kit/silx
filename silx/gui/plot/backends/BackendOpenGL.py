@@ -1549,10 +1549,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # Graph axes
 
     def isXAxisTimeZone(self):
-        return self._plotFrame.xAxis.timeZone
+        return self._plotFrame.xAxis.getTimeZone
 
     def setXAxisTimeZone(self, tz):
-        self._plotFrame.xAxis.timeZone = tz
+        self._plotFrame.xAxis.getTimeZone = tz
 
     def isXAxisTimeSeries(self):
         return self._plotFrame.xAxis.isTimeSeries

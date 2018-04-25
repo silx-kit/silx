@@ -779,10 +779,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
             # We can't use a matplotlib.dates.DateFormatter because it expects
             # the data to be in datetimes. Silx works internally with
             # timestamps (floats).
-            locator = NiceDateLocator(tz=self.xAxisTimeZone())
+            locator = NiceDateLocator(tz=self.getXAxisTimeZone())
             self.ax.xaxis.set_major_locator(locator)
             self.ax.xaxis.set_major_formatter(
-                NiceAutoDateFormatter(locator, tz=self.xAxisTimeZone()))
+                NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone()))
         else:
             try:
                 scalarFormatter = ScalarFormatter(useOffset=False)
