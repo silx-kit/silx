@@ -51,28 +51,68 @@ def numberOfDigits(tickSpacing):
 
 # Nice Numbers ################################################################
 
+# This is the original niceNum implementation. For the date time ticks a more
+# generic implementation was needed. This gives slightly different value when
+# the isRound paramter is True. See the comments below. It doesn't result in
+# noticable differences.
+#
+# def _niceNum(value, isRound=False):
+#     expvalue = math.floor(math.log10(value))
+#     frac = value/pow(10., expvalue)
+#     if isRound:
+#         if frac < 1.5:
+#             nicefrac = 1.
+#         elif frac < 3.:    # In niceNumGeneric this is (2+5)/2 = 3.5
+#             nicefrac = 2.
+#         elif frac < 7.:
+#             nicefrac = 5.  # In niceNumGeneric this is (5+10)/2 = 7.5
+#         else:
+#             nicefrac = 10.
+#     else:
+#         if frac <= 1.:
+#             nicefrac = 1.
+#         elif frac <= 2.:
+#             nicefrac = 2.
+#         elif frac <= 5.:
+#             nicefrac = 5.
+#         else:
+#             nicefrac = 10.
+#     return nicefrac * pow(10., expvalue)
+
 def _niceNum(value, isRound=False):
-    expvalue = math.floor(math.log10(value))
-    frac = value/pow(10., expvalue)
+    """ Calls niceNumGeneric with niceFractions: [1.0, 2.0, 5.0, 10.0]"""
+    return niceNumGeneric(value, [1.0, 2.0, 5.0, 10.0], isRound=isRound)
+
+
+def niceNumGeneric(value, niceFractions, isRound=False):
+    """ A more generic implementation of the _niceNum function
+
+    Allows to the user to specify the fractions instead of using a hardcoded
+    list of [1, 2, 5, 10.0].
+    """
+    if value == 0:
+        return value
+
+    roundFractions = list(niceFractions)
+
     if isRound:
-        if frac < 1.5:
-            nicefrac = 1.
-        elif frac < 3.:
-            nicefrac = 2.
-        elif frac < 7.:
-            nicefrac = 5.
-        else:
-            nicefrac = 10.
-    else:
-        if frac <= 1.:
-            nicefrac = 1.
-        elif frac <= 2.:
-            nicefrac = 2.
-        elif frac <= 5.:
-            nicefrac = 5.
-        else:
-            nicefrac = 10.
-    return nicefrac * pow(10., expvalue)
+        # Take the average with the next element. The last remains the same.
+        for i in range(len(roundFractions) - 1):
+            roundFractions[i] = (niceFractions[i] + niceFractions[i+1]) / 2
+
+    highest = niceFractions[-1]
+    value = float(value)
+
+    expvalue = math.floor(math.log(value, highest))
+    frac = value/pow(highest, expvalue)
+
+    for niceFrac, roundFrac in zip(niceFractions, roundFractions):
+        if frac <= roundFrac:
+            return niceFrac * pow(highest, expvalue)
+
+    # should not come here
+    assert False, "should not come here"
+
 
 
 def niceNumbers(vMin, vMax, nTicks=5):
