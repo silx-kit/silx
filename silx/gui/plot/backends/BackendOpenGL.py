@@ -953,8 +953,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
-        x = numpy.array(x, dtype=numpy.float32, copy=False, order='C')
-        y = numpy.array(y, dtype=numpy.float32, copy=False, order='C')
+        x = numpy.array(x, dtype=numpy.float64, copy=False, order='C')
+        y = numpy.array(y, dtype=numpy.float64, copy=False, order='C')
         if xerror is not None:
             xerror = numpy.array(
                 xerror, dtype=numpy.float32, copy=False, order='C')
