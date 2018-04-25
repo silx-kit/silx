@@ -64,7 +64,7 @@ class StatFormatter(object):
         self.tabWidgetItemClass = qItemClass
 
     def format(self, val):
-        if self.formatter is None:
+        if self.formatter is None or val is None:
             return str(val)
         else:
             return self.formatter.format(val)
