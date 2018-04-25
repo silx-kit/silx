@@ -127,12 +127,15 @@ class _Fill2D(object):
 
     def __init__(self, xFillVboData=None, yFillVboData=None,
                  xMin=None, yMin=None, xMax=None, yMax=None,
-                 color=(0., 0., 0., 1.)):
+                 color=(0., 0., 0., 1.),
+                 scale=(1., 1.), offset=(0., 0.)):
         self.xFillVboData = xFillVboData
         self.yFillVboData = yFillVboData
         self.xMin, self.yMin = xMin, yMin
         self.xMax, self.yMax = xMax, yMax
         self.color = color
+        self._scale = scale
+        self._offset = offset
 
         self._bboxVertices = None
         self._indices = None
@@ -161,6 +164,12 @@ class _Fill2D(object):
         prog = self._programs[transform]
         prog.use()
 
+        matrix = numpy.array(matrix, dtype=numpy.float64)
+        normalizationMatrix = numpy.array(((self._scale[0], 0., 0., self._offset[0]),
+                                           (0., self._scale[1], 0., self._offset[1]),
+                                           (0., 0., 1., 0.),
+                                           (0., 0., 0., 1.)), dtype=numpy.float64)
+        matrix = numpy.dot(matrix, normalizationMatrix).astype(numpy.float32)
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
 
         gl.glUniform4f(prog.uniforms['color'], *self.color)
@@ -327,7 +336,8 @@ class _Lines2D(object):
     def __init__(self, xVboData=None, yVboData=None,
                  colorVboData=None, distVboData=None,
                  style=SOLID, color=(0., 0., 0., 1.),
-                 width=1, dashPeriod=20, drawMode=None):
+                 width=1, dashPeriod=20, drawMode=None,
+                 scale=(1., 1.), offset=(0., 0.)):
         self.xVboData = xVboData
         self.yVboData = yVboData
         self.distVboData = distVboData
@@ -340,6 +350,8 @@ class _Lines2D(object):
         self._style = None
         self.style = style
         self.dashPeriod = dashPeriod
+        self._scale = scale
+        self._offset = offset
 
         self._drawMode = drawMode if drawMode is not None else gl.GL_LINE_STRIP
 
@@ -407,6 +419,12 @@ class _Lines2D(object):
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
+        matrix = numpy.array(matrix, dtype=numpy.float64)
+        normalizationMatrix = numpy.array(((self._scale[0], 0., 0., self._offset[0]),
+                                           (0., self._scale[1], 0., self._offset[1]),
+                                           (0., 0., 1., 0.),
+                                           (0., 0., 0., 1.)), dtype=numpy.float64)
+        matrix = numpy.dot(matrix, normalizationMatrix).astype(numpy.float32)
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
 
         colorAttrib = prog.attributes['color']
@@ -441,6 +459,12 @@ class _Lines2D(object):
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
+        matrix = numpy.array(matrix, dtype=numpy.float64)
+        normalizationMatrix = numpy.array(((self._scale[0], 0., 0., self._offset[0]),
+                                           (0., self._scale[1], 0., self._offset[1]),
+                                           (0., 0., 1., 0.),
+                                           (0., 0., 0., 1.)), dtype=numpy.float64)
+        matrix = numpy.dot(matrix, normalizationMatrix).astype(numpy.float32)
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
         x, y, viewWidth, viewHeight = gl.glGetFloatv(gl.GL_VIEWPORT)
         gl.glUniform2f(prog.uniforms['halfViewportSize'],
@@ -665,12 +689,15 @@ class _Points2D(object):
     _programs = {}
 
     def __init__(self, xVboData=None, yVboData=None, colorVboData=None,
-                 marker=SQUARE, color=(0., 0., 0., 1.), size=7):
+                 marker=SQUARE, color=(0., 0., 0., 1.), size=7,
+                 scale=(1., 1.), offset=(0., 0.)):
         self.color = color
         self._marker = None
         self.marker = marker
         self._size = 1
         self.size = size
+        self._scale = scale
+        self._offset = offset
 
         self.xVboData = xVboData
         self.yVboData = yVboData
@@ -748,7 +775,15 @@ class _Points2D(object):
 
         prog = self._getProgram(transform, self.marker)
         prog.use()
+
+        matrix = numpy.array(matrix, dtype=numpy.float64)
+        normalizationMatrix = numpy.array(((self._scale[0], 0., 0., self._offset[0]),
+                                           (0., self._scale[1], 0., self._offset[1]),
+                                           (0., 0., 1., 0.),
+                                           (0., 0., 0., 1.)), dtype=numpy.float64)
+        matrix = numpy.dot(matrix, normalizationMatrix).astype(numpy.float32)
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
+
         if self.marker == PIXEL:
             size = 1
         elif self.marker == POINT:
@@ -1022,11 +1057,6 @@ class GLPlotCurve2D(object):
         self._isYLog = False
         self.xData, self.yData, self.colorData = xData, yData, colorData
 
-        if fillColor is not None:
-            self.fill = _Fill2D(color=fillColor)
-        else:
-            self.fill = None
-
         # Compute x bounds
         if xError is None:
             result = min_max(xData, min_positive=True)
@@ -1061,10 +1091,18 @@ class GLPlotCurve2D(object):
             self.yMinPos = result.min_positive
             self.yMax = (yData + yErrorPlus).max()
 
+        scale = self.xMax - self.xMin, self.yMax - self.yMin
+        offset = self.xMin, self.yMin
+
+        if fillColor is not None:
+            self.fill = _Fill2D(color=fillColor, scale=scale, offset=offset)
+        else:
+            self.fill = None
+
         self._errorBars = _ErrorBars(xData, yData, xError, yError,
                                      self.xMin, self.yMin)
 
-        kwargs = {'style': lineStyle}
+        kwargs = {'style': lineStyle, 'scale': scale, 'offset': offset}
         if lineColor is not None:
             kwargs['color'] = lineColor
         if lineWidth is not None:
@@ -1073,7 +1111,7 @@ class GLPlotCurve2D(object):
             kwargs['dashPeriod'] = lineDashPeriod
         self.lines = _Lines2D(**kwargs)
 
-        kwargs = {'marker': marker}
+        kwargs = {'marker': marker, 'scale': scale, 'offset': offset}
         if markerColor is not None:
             kwargs['color'] = markerColor
         if markerSize is not None:
@@ -1157,6 +1195,10 @@ class GLPlotCurve2D(object):
                 self.discard()  # discard existing VBOs
 
         if self.xVboData is None:
+            # Normalize data
+            xData = ((self.xData - self.xMin) / (self.xMax - self.xMin)).astype(numpy.float32)
+            yData = ((self.yData - self.yMin) / (self.yMax - self.yMin)).astype(numpy.float32)
+
             xAttrib, yAttrib, cAttrib, dAttrib = None, None, None, None
             if self.lineStyle in (DASHED, DASHDOT, DOTTED):
                 dists = _distancesFromArrays(xData, yData)
