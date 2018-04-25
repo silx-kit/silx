@@ -28,11 +28,15 @@ __license__ = "MIT"
 __date__ = "25/04/2018"
 
 import weakref
+import logging
 
 from silx.gui import qt
 from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.ColormapDialog import ColormapDialog
+
+
+_logger = logging.getLogger(__name__)
 
 
 class ApplicationContext(DataViewHooks):
@@ -61,13 +65,31 @@ class ApplicationContext(DataViewHooks):
 
     def restoreSettings(self):
         """Restore the settings of all the application"""
+        settings = self.__settings
         parent = self.__parent()
-        parent.restoreSettings(self.__settings)
+        parent.restoreSettings(settings)
+
+        settings.beginGroup("colormap")
+        byteArray = settings.value("default", None)
+        if byteArray is not None:
+            try:
+                colormap = Colormap()
+                colormap.restoreState(byteArray)
+                self.__defaultColormap = colormap
+            except Exception:
+                _logger.debug("Backtrace", exc_info=True)
+        settings.endGroup()
 
     def saveSettings(self):
         """Save the settings of all the application"""
+        settings = self.__settings
         parent = self.__parent()
-        parent.saveSettings(self.__settings)
+        parent.saveSettings(settings)
+
+        if self.__defaultColormap is not None:
+            settings.beginGroup("colormap")
+            settings.setValue("default", self.__defaultColormap.saveState())
+            settings.endGroup()
 
     def getColormap(self, view):
         """Returns a default colormap.
