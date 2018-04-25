@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "25/04/2018"
 
 import weakref
 
@@ -34,8 +34,11 @@ from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.ColormapDialog import ColormapDialog
 
 
-class SilxViewDataViewHooks(DataViewHooks):
-    """Overwrite of the DataViewHooks to custom the use of the DataViewer for
+class ApplicationContext(DataViewHooks):
+    """
+    Store the conmtext of the application
+
+    It overwrites the DataViewHooks to custom the use of the DataViewer for
     the silx view application.
 
     - Create a single colormap shared with all the views

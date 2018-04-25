@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "09/11/2017"
+__date__ = "25/04/2018"
 
 
 import unittest
@@ -36,10 +36,12 @@ from silx.test.utils import test_options
 
 if not test_options.WITH_QT_TEST:
     view = None
+    Viewer = None
     TestCaseQt = unittest.TestCase
 else:
     from silx.gui.test.utils import TestCaseQt
     from .. import view
+    from ..view import Viewer
 
 
 class QApplicationMock(object):
@@ -82,13 +84,13 @@ class TestLauncher(unittest.TestCase):
     def setUpClass(cls):
         super(TestLauncher, cls).setUpClass()
         cls._Viewer = view.Viewer
-        view.Viewer = ViewerMock
+        Viewer.Viewer = ViewerMock
         cls._QApplication = view.qt.QApplication
         view.qt.QApplication = QApplicationMock
 
     @classmethod
     def tearDownClass(cls):
-        view.Viewer = cls._Viewer
+        Viewer.Viewer = cls._Viewer
         view.qt.QApplication = cls._QApplication
         cls._Viewer = None
         super(TestLauncher, cls).tearDownClass()
@@ -130,7 +132,7 @@ class TestViewer(TestCaseQt):
     @unittest.skipUnless(test_options.WITH_QT_TEST, test_options.WITH_QT_TEST_REASON)
     def testConstruct(self):
         if view is not None:
-            widget = view.Viewer()
+            widget = Viewer.Viewer()
         self.qWaitForWindowExposed(widget)
 
 
