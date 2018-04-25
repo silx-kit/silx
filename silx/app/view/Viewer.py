@@ -59,6 +59,7 @@ class Viewer(qt.QMainWindow):
         self.setWindowTitle("Silx viewer")
 
         self.__context = ApplicationContext(self)
+        self.__context.restoreLibrarySettings()
 
         self.__asyncload = False
         self.__dialogState = None
@@ -171,11 +172,50 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.about)
         self._aboutAction = action
 
+        group = qt.QActionGroup(self)
+        group.setExclusive(True)
+
+        action = qt.QAction("Plot rendered using matplotlib", self)
+        action.setStatusTip("Plot will be rendered using matplotlib")
+        action.setCheckable(True)
+        action.triggered.connect(self.__forceMatplotlibBackend)
+        group.addAction(action)
+        self._usePlotWithMatplotlib = action
+
+        action = qt.QAction("Plot rendered using OpenGL", self)
+        action.setStatusTip("Plot will be rendered using OpenGL")
+        action.setCheckable(True)
+        action.triggered.connect(self.__forceOpenglBackend)
+        group.addAction(action)
+        self._usePlotWithOpengl = action
+
+    def __updateOptionMenu(self):
+        """Update the state of the checked options as it is based on global
+        environment values."""
+        from silx.gui.plot import PlotWidget
+        action = self._usePlotWithMatplotlib
+        action.setChecked(PlotWidget.DEFAULT_BACKEND == "matplotlib")
+        title = action.text().split(" (", 1)[0]
+        if not action.isChecked():
+            title += " (applied after application restart)"
+        action.setText(title)
+
+        action = self._usePlotWithOpengl
+        action.setChecked("gl" in PlotWidget.DEFAULT_BACKEND)
+        title = action.text().split(" (", 1)[0]
+        if not action.isChecked():
+            title += " (applied after application restart)"
+        action.setText(title)
+
     def createMenus(self):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self._openAction)
         fileMenu.addSeparator()
         fileMenu.addAction(self._exitAction)
+        optionMenu = self.menuBar().addMenu("&Options")
+        optionMenu.addAction(self._usePlotWithMatplotlib)
+        optionMenu.addAction(self._usePlotWithOpengl)
+        optionMenu.aboutToShow.connect(self.__updateOptionMenu)
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
 
@@ -235,6 +275,14 @@ class Viewer(qt.QMainWindow):
     def about(self):
         from .About import About
         About.about(self, "Silx viewer")
+
+    def __forceMatplotlibBackend(self):
+        from silx.gui.plot import PlotWidget
+        PlotWidget.setDefaultBackend("matplotlib")
+
+    def __forceOpenglBackend(self):
+        from silx.gui.plot import PlotWidget
+        PlotWidget.setDefaultBackend("opengl")
 
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)

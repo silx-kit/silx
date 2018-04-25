@@ -111,10 +111,6 @@ def main(argv):
     # Run the application
     #
 
-    if options.use_opengl_plot:
-        from silx.gui.plot import PlotWidget
-        PlotWidget.setDefaultBackend("opengl")
-
     app = qt.QApplication([])
     qt.QLocale.setDefault(qt.QLocale.c())
 
@@ -123,6 +119,11 @@ def main(argv):
     from .Viewer import Viewer
     window = Viewer()
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
+
+    if options.use_opengl_plot:
+        # It have to be done after the settings (after the Viewer creation)
+        from silx.gui.plot import PlotWidget
+        PlotWidget.setDefaultBackend("opengl")
 
     for filename in options.files:
         try:

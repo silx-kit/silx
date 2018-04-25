@@ -63,6 +63,17 @@ class ApplicationContext(DataViewHooks):
         """
         return self.__settings
 
+    def restoreLibrarySettings(self):
+        """Restore the library settings, which must be done early"""
+        settings = self.__settings
+        settings.beginGroup("library")
+        plotBackend = settings.value("plot.backend", "")
+        settings.endGroup()
+
+        if plotBackend != "":
+            from silx.gui.plot import PlotWidget
+            PlotWidget.setDefaultBackend(plotBackend)
+
     def restoreSettings(self):
         """Restore the settings of all the application"""
         settings = self.__settings
@@ -90,6 +101,12 @@ class ApplicationContext(DataViewHooks):
             settings.beginGroup("colormap")
             settings.setValue("default", self.__defaultColormap.saveState())
             settings.endGroup()
+
+        settings.beginGroup("library")
+        from silx.gui.plot import PlotWidget
+        plotBackend = PlotWidget.DEFAULT_BACKEND
+        settings.setValue("plot.backend", plotBackend)
+        settings.endGroup()
 
     def getColormap(self, view):
         """Returns a default colormap.
