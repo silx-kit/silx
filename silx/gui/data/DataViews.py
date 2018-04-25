@@ -37,11 +37,11 @@ from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
 from silx.gui.plot.Colormap import Colormap
-from silx.gui.plot.actions.control import ColormapAction
+from silx.gui.plot.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/01/2018"
+__date__ = "24/04/2018"
 
 _logger = logging.getLogger(__name__)
 
@@ -177,18 +177,24 @@ class DataInfo(object):
         return _normalizeData(data)
 
 
+class DataViewHooks(object):
+    """A set of hooks defined to custom the behaviour of the data views."""
+
+    def getColormap(self, view):
+        """Returns a colormap for this view."""
+        return None
+
+    def getColormapDialog(self, view):
+        """Returns a color dialog for this view."""
+        return None
+
+
 class DataView(object):
     """Holder for the data view."""
 
     UNSUPPORTED = -1
     """Priority returned when the requested data can't be displayed by the
     view."""
-
-    _defaultColormap = None
-    """Store a default colormap shared with all the views"""
-
-    _defaultColorDialog = None
-    """Store a default color dialog shared with all the views"""
 
     def __init__(self, parent, modeId=None, icon=None, label=None):
         """Constructor
@@ -204,32 +210,46 @@ class DataView(object):
         if icon is None:
             icon = qt.QIcon()
         self.__icon = icon
+        self.__hooks = None
 
-    @staticmethod
-    def defaultColormap():
-        """Returns a shared colormap as default for all the views.
+    def getHooks(self):
+        """Returns the data viewer hooks used by this view.
+
+        :rtype: DataViewHooks
+        """
+        return self.__hooks
+
+    def setHooks(self, hooks):
+        """Set the data view hooks to use with this view.
+
+        :param DataViewHooks hooks: The data view hooks to use
+        """
+        self.__hooks = hooks
+
+    def defaultColormap(self):
+        """Returns a default colormap.
 
         :rtype: Colormap
         """
-        if DataView._defaultColormap is None:
-            DataView._defaultColormap = Colormap(name="viridis")
-        return DataView._defaultColormap
+        colormap = None
+        if self.__hooks is not None:
+            colormap = self.__hooks.getColormap(self)
+        if colormap is None:
+            colormap = Colormap(name="viridis")
+        return colormap
 
-    @staticmethod
-    def defaultColorDialog():
-        """Returns a shared color dialog as default for all the views.
+    def defaultColorDialog(self):
+        """Returns a default color dialog.
 
-        :rtype: ColorDialog
+        :rtype: ColormapDialog
         """
-        if DataView._defaultColorDialog is None:
-            DataView._defaultColorDialog = ColormapAction._createDialog(qt.QApplication.instance().activeWindow())
-        return DataView._defaultColorDialog
-
-    @staticmethod
-    def _cleanUpCache():
-        """Clean up the cache. Needed for tests"""
-        DataView._defaultColormap = None
-        DataView._defaultColorDialog = None
+        dialog = None
+        if self.__hooks is not None:
+            dialog = self.__hooks.getColormapDialog(self)
+        if dialog is None:
+            dialog = ColormapDialog()
+            dialog.setModal(False)
+        return dialog
 
     def icon(self):
         """Returns the default icon"""
@@ -345,8 +365,21 @@ class CompositeDataView(DataView):
         self.__views = OrderedDict()
         self.__currentView = None
 
+    def setHooks(self, hooks):
+        """Set the data context to use with this view.
+
+        :param DataViewHooks hooks: The data view hooks to use
+        """
+        super(CompositeDataView, self).setHooks(hooks)
+        if hooks is not None:
+            for v in self.__views:
+                v.setHooks(hooks)
+
     def addView(self, dataView):
         """Add a new dataview to the available list."""
+        hooks = self.getHooks()
+        if hooks is not None:
+            dataView.setHooks(hooks)
         self.__views[dataView] = None
 
     def availableViews(self):
@@ -446,6 +479,9 @@ class CompositeDataView(DataView):
                 break
             elif isinstance(view, CompositeDataView):
                 # recurse
+                hooks = self.getHooks()
+                if hooks is not None:
+                    newView.setHooks(hooks)
                 if view.replaceView(modeId, newView):
                     return True
         if oldView is None:
