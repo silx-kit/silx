@@ -30,9 +30,13 @@ __date__ = "25/04/2018"
 
 import os
 import collections
+import logging
 
 from silx.gui import qt
 from .ApplicationContext import ApplicationContext
+
+
+_logger = logging.getLogger(__name__)
 
 
 class Viewer(qt.QMainWindow):
@@ -54,14 +58,15 @@ class Viewer(qt.QMainWindow):
         qt.QMainWindow.__init__(self)
         self.setWindowTitle("Silx viewer")
 
+        self.__context = ApplicationContext(self)
+
         self.__asyncload = False
         self.__dialogState = None
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
         """Silx HDF5 TreeView"""
 
         self.__dataViewer = DataViewerFrame(self)
-        context = ApplicationContext(self)
-        self.__dataViewer.setGlobalHooks(context)
+        self.__dataViewer.setGlobalHooks(self.__context)
         vSpliter = qt.QSplitter(qt.Qt.Vertical)
         vSpliter.addWidget(self.__dataViewer)
         vSpliter.setSizes([10, 0])
@@ -70,6 +75,7 @@ class Viewer(qt.QMainWindow):
         spliter.addWidget(self.__treeview)
         spliter.addWidget(vSpliter)
         spliter.setStretchFactor(1, 1)
+        self.__spliter = spliter
 
         main_panel = qt.QWidget(self)
         layout = qt.QVBoxLayout()
@@ -91,6 +97,62 @@ class Viewer(qt.QMainWindow):
 
         self.createActions()
         self.createMenus()
+        self.__context.restoreSettings()
+
+    def closeEvent(self, event):
+        self.__context.saveSettings()
+
+    def saveSettings(self, settings):
+        """Save the window settings to this settings object
+
+        :param qt.QSettings settings: Initialized settings
+        """
+        isFullScreen = bool(self.windowState() & qt.Qt.WindowFullScreen)
+        if isFullScreen:
+            # show in normal to catch the normal geometry
+            self.showNormal()
+
+        settings.beginGroup("mainwindow")
+        settings.setValue("size", self.size())
+        settings.setValue("pos", self.pos())
+        settings.setValue("full-screen", isFullScreen)
+        settings.endGroup()
+
+        settings.beginGroup("mainlayout")
+        settings.setValue("spliter", self.__spliter.sizes())
+        settings.endGroup()
+
+        if isFullScreen:
+            self.showFullScreen()
+
+    def restoreSettings(self, settings):
+        """Restore the window settings using this settings object
+
+        :param qt.QSettings settings: Initialized settings
+        """
+        settings.beginGroup("mainwindow")
+        size = settings.value("size", qt.QSize(640, 480))
+        pos = settings.value("pos", qt.QPoint())
+        isFullScreen = settings.value("full-screen", False)
+        if not isinstance(isFullScreen, bool):
+            isFullScreen = False
+        settings.endGroup()
+
+        settings.beginGroup("mainlayout")
+        try:
+            data = settings.value("spliter")
+            data = [int(d) for d in data]
+            self.__spliter.setSizes(data)
+        except Exception:
+            _logger.debug("Backtrace", exc_info=True)
+        settings.endGroup()
+
+        if not pos.isNull():
+            self.move(pos)
+        if not size.isNull():
+            self.resize(size)
+        if isFullScreen:
+            self.showFullScreen()
 
     def createActions(self):
         action = qt.QAction("E&xit", self)

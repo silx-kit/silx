@@ -29,6 +29,7 @@ __date__ = "25/04/2018"
 
 import weakref
 
+from silx.gui import qt
 from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.plot.Colormap import Colormap
 from silx.gui.plot.ColormapDialog import ColormapDialog
@@ -49,9 +50,29 @@ class ApplicationContext(DataViewHooks):
         self.__parent = weakref.ref(parent)
         self.__defaultColormap = None
         self.__defaultColormapDialog = None
+        self.__settings = qt.QSettings("silx", "silx-view", parent=parent)
+
+    def getSettings(self):
+        """Returns actual application settings.
+
+        :rtype: qt.QSettings
+        """
+        return self.__settings
+
+    def restoreSettings(self):
+        """Restore the settings of all the application"""
+        parent = self.__parent()
+        parent.restoreSettings(self.__settings)
+
+    def saveSettings(self):
+        """Save the settings of all the application"""
+        parent = self.__parent()
+        parent.saveSettings(self.__settings)
 
     def getColormap(self, view):
         """Returns a default colormap.
+
+        Override from DataViewHooks
 
         :rtype: Colormap
         """
@@ -61,6 +82,8 @@ class ApplicationContext(DataViewHooks):
 
     def getColormapDialog(self, view):
         """Returns a shared color dialog as default for all the views.
+
+        Override from DataViewHooks
 
         :rtype: ColorDialog
         """
