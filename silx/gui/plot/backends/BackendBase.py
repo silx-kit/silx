@@ -33,7 +33,6 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/08/2017"
 
-
 import weakref
 from ... import qt
 
@@ -59,6 +58,7 @@ class BackendBase(object):
         self.__yLimits = {'left': (1., 100.), 'right': (1., 100.)}
         self.__yAxisInverted = False
         self.__keepDataAspectRatio = False
+        self._xAxisTimeZone = None
         self._axesDisplayed = True
         # Store a weakref to get access to the plot state.
         self._setPlot(plot)
@@ -407,21 +407,37 @@ class BackendBase(object):
     # Graph axes
 
 
+    def getXAxisTimeZone(self):
+        """Returns tzinfo that is used if the X-Axis plots date-times.
+
+        None means the datetimes are interpreted as local time.
+
+        :rtype: datetime.tzinfo of None.
+        """
+        return self._xAxisTimeZone
+
+    def setXAxisTimeZone(self, tz):
+        """Sets tzinfo that is used if the X-Axis plots date-times.
+
+        Use None to let the datetimes be interpreted as local time.
+
+        :rtype: datetime.tzinfo of None.
+        """
+        self._xAxisTimeZone = tz
+
     def isXAxisTimeSeries(self):
         """Return True if the X-axis scale shows datetime objects.
 
         :rtype: bool
         """
-        return self._plotFrame.xAxis.isTimeSeries
-
+        raise NotImplementedError()
 
     def setXAxisTimeSeries(self, isTimeSeries):
         """Set whether the X-axis is a time series
 
         :param bool flag: True to switch to time series, False for regular axis.
         """
-        self._plotFrame.xAxis.isTimeSeries = isTimeSeries
-
+        raise NotImplementedError()
 
     def setXAxisLogarithmic(self, flag):
         """Set the X axis scale between linear and log.

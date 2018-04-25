@@ -37,9 +37,8 @@ import math
 
 from dateutil.relativedelta import relativedelta
 
-
 from silx.third_party import enum
-
+from .ticklayout import niceNumGeneric
 
 _logger = logging.getLogger(__name__)
 
@@ -92,7 +91,7 @@ def getDateElement(dateTime, unit):
 def setDateElement(dateTime, value, unit):
     """ Returns a copy of dateTime with the tickStep unit set to value
 
-    :param datetime.datetime dateTime: date time object
+    :param datetime.datetime: date time object
     :param int value: value to set
     :param DtUnit unit: unit
     :return: datetime.datetime
@@ -129,14 +128,15 @@ def setDateElement(dateTime, value, unit):
     _logger.debug("creating date time {}"
         .format((year, month, day, hour, minute, second, microsecond)))
 
-    return dt.datetime(year, month, day, hour, minute, second, microsecond)
+    return dt.datetime(year, month, day, hour, minute, second, microsecond,
+                       tzinfo=dateTime.tzinfo)
 
 
 
 def roundToElement(dateTime, unit):
     """ Returns a copy of dateTime with the
 
-    :param datetime.datetime dateTime: date time object
+    :param datetime.datetime: date time object
     :param DtUnit unit: unit
     :return: datetime.datetime
     """
@@ -163,7 +163,10 @@ def roundToElement(dateTime, unit):
     if unit.value < DtUnit.MICRO_SECONDS.value:
         microsecond = 0
 
-    return dt.datetime(year, month, day, hour, minute, second, microsecond)
+    result = dt.datetime(year, month, day, hour, minute, second, microsecond,
+                         tzinfo=dateTime.tzinfo)
+
+    return result
 
 
 def addValueToDate(dateTime, value, unit):
@@ -233,39 +236,6 @@ def bestUnit(durationInSeconds):
     else:
         return (durationInSeconds * MICROSECONDS_PER_SECOND,
                 DtUnit.MICRO_SECONDS)
-
-
-def niceNumGeneric(value, niceFractions, isRound=False):
-    """ A more generic implementation of the _utils.ticklayout._niceNum function
-
-    Allows to the user to specify the fractions instead of using a hardcoded
-    list of [1, 2, 5, 10.0]
-    """
-    if value == 0:
-        return value
-
-    roundFractions = list(niceFractions)
-
-    if isRound:
-        # Take the average with the next element. The last remains the same.
-        for i in range(len(roundFractions) - 1):
-            roundFractions[i] = (niceFractions[i] + niceFractions[i+1]) / 2
-
-    _logger.debug("Used fractions ({}): {}".format(isRound, roundFractions))
-
-    highest = niceFractions[-1]
-    value = float(value)
-
-    expvalue = math.floor(math.log(value, highest))
-    frac = value/pow(highest, expvalue)
-
-    for niceFrac, roundFrac in zip(niceFractions, roundFractions):
-        if frac <= roundFrac:
-            return niceFrac * pow(highest, expvalue)
-
-    # should not come here
-    assert False, "should not come here"
-
 
 
 NICE_DATE_VALUES = {
@@ -398,8 +368,8 @@ def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
 def calcTicks(dMin, dMax, nTicks):
     """Returns tick positions.
 
-    :param datetime dMin: The min value on the axis
-    :param datetime dMax: The max value on the axis
+    :param datetime.datetime dMin: The min value on the axis
+    :param datetime.datetime dMax: The max value on the axis
     :param int nTicks: The target number of ticks. The actual number of found
         ticks may differ.
     :returns: (list of datetimes, DtUnit) tuple

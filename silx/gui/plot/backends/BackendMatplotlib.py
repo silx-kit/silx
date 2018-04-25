@@ -71,11 +71,16 @@ class NiceDateLocator(Locator):
 
     Expects the data to be posix timestampes (i.e. seconds since 1970)
     """
-    def __init__(self, numTicks=5):
+    def __init__(self, numTicks=5, tz=None):
+        """
+        :param numTicks: target number of ticks
+        :param datetime.tzinfo tz: optional time zone. None is local time.
+        """
         self.numTicks = numTicks
 
         self._spacing = None
         self._unit = None
+        self.tz = tz
 
     @property
     def spacing(self):
@@ -99,8 +104,8 @@ class NiceDateLocator(Locator):
             vmin, vmax = vmax, vmin
 
         # vmin and vmax should be timestamps (i.e. seconds since 1 Jan 1970)
-        dtMin = dt.datetime.fromtimestamp(vmin)
-        dtMax = dt.datetime.fromtimestamp(vmax)
+        dtMin = dt.datetime.fromtimestamp(vmin, tz=self.tz)
+        dtMax = dt.datetime.fromtimestamp(vmax, tz=self.tz)
         dtTicks, self._spacing, self._unit = \
             calcTicks(dtMin, dtMax, self.numTicks)
 
@@ -116,12 +121,14 @@ class NiceAutoDateFormatter(Formatter):
     best possible formats given the locators current spacing an date unit.
     """
 
-    def __init__(self, locator):
+    def __init__(self, locator, tz=None):
         """
         :param niceDateLocator: a NiceDateLocator object
+        :param datetime.tzinfo tz: optional time zone. None is local time.
         """
         super().__init__()
         self.locator = locator
+        self.tz = tz
 
     @property
     def formatString(self):
@@ -136,7 +143,7 @@ class NiceAutoDateFormatter(Formatter):
         """Return the format for tick val *x* at position *pos*
            Expects x to be a POSIX timestamp (seconds since 1 Jan 1970)
         """
-        dateTime = dt.datetime.fromtimestamp(x)
+        dateTime = dt.datetime.fromtimestamp(x, tz=self.tz)
         tickStr = dateTime.strftime(self.formatString)
         return tickStr
 
@@ -757,11 +764,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Graph axes
 
+    def setXAxisTimeZone(self, tz):
+        super().setXAxisTimeZone(tz)
 
+        # Make new formatter and locator with the time zone.
+        self.setXAxisTimeSeries(self.isXAxisTimeSeries())
 
     def isXAxisTimeSeries(self):
         return self._isXAxisTimeSeries
-
 
     def setXAxisTimeSeries(self, isTimeSeries):
         self._isXAxisTimeSeries = isTimeSeries
@@ -769,9 +779,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
             # We can't use a matplotlib.dates.DateFormatter because it expects
             # the data to be in datetimes. Silx works internally with
             # timestamps (floats).
-            locator = NiceDateLocator()
+            locator = NiceDateLocator(tz=self.getXAxisTimeZone())
             self.ax.xaxis.set_major_locator(locator)
-            self.ax.xaxis.set_major_formatter(NiceAutoDateFormatter(locator))
+            self.ax.xaxis.set_major_formatter(
+                NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone()))
         else:
             try:
                 scalarFormatter = ScalarFormatter(useOffset=False)
@@ -780,8 +791,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                 matplotlib.__version__)
                 scalarFormatter = ScalarFormatter()
             self.ax.xaxis.set_major_formatter(scalarFormatter)
-
-
 
     def setXAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
