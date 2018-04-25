@@ -2764,6 +2764,39 @@ class PlotWidget(qt.QMainWindow):
 
         return None
 
+    def _pick(self, x, y):
+        """Pick items in the plot at given position.
+
+        :param float x: X position in pixels
+        :param float y: Y position in pixels
+        :return: Iterable of (plot item, indices) at picked position.
+            Items are ordered from back to front.
+        """
+        items = []
+
+        # Convert backend result to plot items
+        for itemInfo in self._backend.pickItems(
+                x, y, kinds=('marker', 'curve', 'image')):
+            kind, legend = itemInfo['kind'], itemInfo['legend']
+
+            if kind in ('marker', 'image'):
+                item = self._getItem(kind=kind, legend=legend)
+                indices = None  # TODO compute indices for images
+
+            else:  # backend kind == 'curve'
+                for kind in ('curve', 'histogram', 'scatter'):
+                    item = self._getItem(kind=kind, legend=legend)
+                    if item is not None:
+                        indices = itemInfo['indices']
+                        break
+                else:
+                    _logger.error(
+                        'Cannot find corresponding picked item')
+                    continue
+            items.append((item, indices))
+
+        return tuple(items)
+
     # User event handling #
 
     def _isPositionInPlotArea(self, x, y):
