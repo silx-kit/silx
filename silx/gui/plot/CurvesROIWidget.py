@@ -33,13 +33,11 @@ ROI are defined by :
   This can be used to apply or not some ROI to a curve and do some post processing.
 - The x coordinate of the left limit (`from` column)
 - The x coordinate of the right limit (`to` column)
-- Raw counts: integral of the curve between the
-  min ROI point and the max ROI point to the y = 0 line
+- Raw counts: Points values sum of the curve in the defined Region Of Intereset.
 
   .. image:: img/rawCounts.png
 
-- Net counts: the integral of the curve between the
-  min ROI point and the max ROI point to [ROI min point, ROI max point] segment
+- Net counts: Raw counts minus background
 
   .. image:: img/netCounts.png
 """
