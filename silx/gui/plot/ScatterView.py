@@ -38,6 +38,7 @@ import weakref
 
 import numpy
 
+from . import items
 from . import PlotWidget
 from . import tools
 from .ColorBar import ColorBarWidget
@@ -142,21 +143,18 @@ class ScatterView(qt.QMainWindow):
 
             plot = self.getPlotWidget()
             if plot is not None:
-                valueZ = -float('inf')
-                for scatter in plot._getItems(kind='scatter'):
-                    zIndex = scatter.getZValue()
-                    if zIndex >= valueZ:
-                        valueZ = zIndex
-                        xPixel, yPixel = plot.dataToPixel(
-                            x, y, axis='left', check=False)
-                        dataIndices = self._pick(scatter, xPixel, yPixel)
-                        if dataIndices:
-                            # Return last index
+                pixelPos = plot.dataToPixel(x, y)
+                if pixelPos is not None:
+                    # Start from top-most item
+                    for item, indices in reversed(plot._pick(*pixelPos)):
+                        if isinstance(item, items.Scatter):
+                            # Get last index
                             # with matplotlib it should be the top-most point
-                            dataIndex = dataIndices[-1]
+                            dataIndex = indices[-1]
                             self.__pickingCache = (
                                 dataIndex,
-                                scatter.getValueData(copy=False)[dataIndex])
+                                item.getValueData(copy=False)[dataIndex])
+                            break
 
         return self.__pickingCache
 
@@ -194,55 +192,6 @@ class ScatterView(qt.QMainWindow):
         xPlot = numpy.clip(x, left, left + width - 1)
         yPlot = numpy.clip(y, top, top + height - 1)
         return xPlot, yPlot
-
-    def _pick(self, scatter, x, y):
-        """Pick points in a particular scatter item in the plot
-
-        :param float x: X position in plot coordinates
-        :param float y: Y position in plot coordinates
-        :return: Indices of picked points
-        """
-        plot = self.getPlotWidget()
-
-        offset = self._PICK_OFFSET
-
-        markerSize = scatter.getSymbolSize()
-        offset = max(markerSize / 2., offset)
-        # TODO convert markerSize from points to pixel +
-        # TODO markerSize consistency between matplotlib and opengl
-
-        inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
-        dataPos = plot.pixelToData(inAreaPos[0], inAreaPos[1],
-                                   axis='left', check=True)
-        if dataPos is None:
-            return ()
-        xPick0, yPick0 = dataPos
-
-        inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
-        dataPos = plot.pixelToData(inAreaPos[0], inAreaPos[1],
-                                   axis='left', check=True)
-        if dataPos is None:
-            return ()
-        xPick1, yPick1 = dataPos
-
-        if xPick0 < xPick1:
-            xPickMin, xPickMax = xPick0, xPick1
-        else:
-            xPickMin, xPickMax = xPick1, xPick0
-
-        if yPick0 < yPick1:
-            yPickMin, yPickMax = yPick0, yPick1
-        else:
-            yPickMin, yPickMax = yPick1, yPick0
-
-        xData = scatter.getXData(copy=False)
-        yData = scatter.getYData(copy=False)
-
-        indices = numpy.nonzero((xData >= xPickMin) &
-                                (xData <= xPickMax) &
-                                (yData >= yPickMin) &
-                                (yData <= yPickMax))[0].tolist()
-        return indices
 
     def getPlotWidget(self):
         """Returns the :class:`~silx.gui.plot.PlotWidget` this window is based on.
