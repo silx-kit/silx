@@ -37,6 +37,7 @@ from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
 import silx
 from silx.gui import qt
 from silx.gui.plot.items.curve import Curve as CurveItem
+from silx.gui.plot.items.histogram import Histogram as HistogramItem
 from silx.gui.plot.items.image import ImageBase as ImageItem
 from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from silx.gui.plot import stats as statsmdl
@@ -158,7 +159,8 @@ class StatsTable(TableWidget):
     COMPATIBLE_KINDS = {
         'curve': CurveItem,
         'image': ImageItem,
-        'scatter': ScatterItem
+        'scatter': ScatterItem,
+        'histogram': HistogramItem
     }
 
     COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
@@ -229,6 +231,8 @@ class StatsTable(TableWidget):
             return 'image'
         elif isinstance(myItem, ScatterItem):
             return 'scatter'
+        elif isinstance(myItem, HistogramItem):
+            return 'histogram'
         else:
             return None
 
@@ -271,6 +275,7 @@ class StatsTable(TableWidget):
                 [self._addItem(curve) for curve in self.plot.getAllCurves()]
                 [self._addItem(image) for image in self.plot.getAllImages()]
                 [self._addItem(scatter) for scatter in self.plot.getAllScatters()]
+                [self._addItem(histogram) for histogram in self.plot.getAllHistograms()]
                 self.plot.sigContentChanged.connect(self._plotContentChanged)
             self._dealWithPlotConnection(create=True)
 
@@ -383,13 +388,15 @@ class StatsTable(TableWidget):
         if self._statsHandler is None:
             return
 
-        assert kind in ('curve', 'image', 'scatter')
+        assert kind in ('curve', 'image', 'scatter', 'histogram')
         if kind == 'curve':
             item = self.plot.getCurve(legend)
         elif kind == 'image':
             item = self.plot.getImage(legend)
         elif kind == 'scatter':
             item = self.plot.getScatter(legend)
+        elif kind == 'histogram':
+            item = self.plot.getHistogram(legend)
         else:
             raise ValueError('kind not managed')
 
@@ -424,6 +431,8 @@ class StatsTable(TableWidget):
                 self.plot.setActiveImage(legendItem.text())
             elif kind == 'scatter':
                 self.plot._setActiveItem('scatter', legendItem.text())
+            elif kind == 'histogram':
+                self.plot.setActiveHistogram(legendItem.text())
             else:
                 raise ValueError('kind not managed')
         qt.QTableWidget.currentChanged(self, current, previous)
@@ -447,7 +456,7 @@ class StatsTable(TableWidget):
 
     def _activeItemChanged(self, kind):
         """Callback used when plotting only the active item"""
-        assert kind in ('curve', 'image', 'scatter')
+        assert kind in ('curve', 'image', 'scatter', 'histogram')
 
         if kind == 'curve':
             item = self.plot.getActiveCurve(just_legend=False)
@@ -455,6 +464,8 @@ class StatsTable(TableWidget):
             item = self.plot.getActiveImage(just_legend=False)
         elif kind == 'scatter':
             item = self.plot._getActiveItem(kind='scatter', just_legend=False)
+        elif kind == 'histogram':
+            item = self.plot.getActiveHistogram(just_legend=False)
         else:
             raise ValueError('kind not managed')
         if item is not None:
@@ -466,7 +477,7 @@ class StatsTable(TableWidget):
 
     def _plotContentChanged(self, action, kind, legend):
         """Callback used when plotting all the plot items"""
-        if kind not in ('curve', 'image', 'scatter'):
+        if kind not in ('curve', 'image', 'scatter', 'histogram'):
             return
         if action == 'add':
             self._addItem(self.plot.getCurve(legend))

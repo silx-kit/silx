@@ -34,6 +34,7 @@ import numpy
 from silx.gui.plot.items.curve import Curve as CurveItem
 from silx.gui.plot.items.image import ImageBase as ImageItem
 from silx.gui.plot.items.scatter import Scatter as ScatterItem
+from silx.gui.plot.items.histogram import Histogram as HistogramItem
 from silx.math.combo import min_max
 import logging
 
@@ -77,6 +78,8 @@ class Stats(dict):
             context = ImageContext(item, plot, onlimits)
         elif isinstance(item, ScatterItem):
             context = ScatterContext(item, plot, onlimits)
+        elif isinstance(item, HistogramItem):
+            context = HistogramContext(item, plot, onlimits)
         else:
             raise ValueError('Item type not managed')
         for statName, stat in list(self.items()):
@@ -137,6 +140,34 @@ class CurveContext(StatsContext):
     def createContext(self, item, plot, onlimits):
         xData, yData = item.getData(copy=True)[0:2]
 
+        if onlimits:
+            minX, maxX = plot.getXAxis().getLimits()
+            yData = yData[(minX <= xData) & (xData <= maxX)]
+            xData = xData[(minX <= xData) & (xData <= maxX)]
+
+        self.xData = xData
+        self.yData = yData
+        self.min, self.max = min_max(yData)
+        self.data = (xData, yData)
+        self.values = yData
+
+
+class HistogramContext(StatsContext):
+    """
+    StatsContext for :class:`Curve`
+
+    :param item: the item for which we want to compute the context
+    :param plot: the plot containing the item
+    :param bool onlimits: True if we want to apply statistic only on
+                          visible data.
+    """
+    def __init__(self, item, plot, onlimits):
+        StatsContext.__init__(self, kind='histogram', item=item,
+                              plot=plot, onlimits=onlimits)
+
+    def createContext(self, item, plot, onlimits):
+        xData, edges = item.getData(copy=True)[0:2]
+        yData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
             yData = yData[(minX <= xData) & (xData <= maxX)]
@@ -240,7 +271,8 @@ class StatBase(object):
 BASIC_COMPATIBLE_KINDS = {
     'curve': CurveItem,
     'image': ImageItem,
-    'scatter': ScatterItem
+    'scatter': ScatterItem,
+    'histogram': HistogramItem,
 }
 
 
@@ -339,7 +371,7 @@ class StatCoordMin(StatBase):
                           compatibleKinds=BASIC_COMPATIBLE_KINDS)
 
     def calculate(self, context):
-        if context.kind == 'curve':
+        if context.kind in ('curve', 'histogram'):
             xData, yData = context.data
             return xData[numpy.where(yData == context.min)]
         elif context.kind == 'scatter':
@@ -359,7 +391,7 @@ class StatCoordMax(StatBase):
                           compatibleKinds=BASIC_COMPATIBLE_KINDS)
 
     def calculate(self, context):
-        if context.kind == 'curve':
+        if context.kind in ('curve', 'histogram'):
             xData, yData = context.data
             return xData[numpy.where(yData == context.max)]
         elif context.kind == 'scatter':
@@ -379,7 +411,7 @@ class StatCOM(StatBase):
                           compatibleKinds=BASIC_COMPATIBLE_KINDS)
 
     def calculate(self, context):
-        if context.kind == 'curve':
+        if context.kind in ('curve', 'histogram'):
             xData, yData = context.data
             com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(
                 yData).astype(numpy.float32)
