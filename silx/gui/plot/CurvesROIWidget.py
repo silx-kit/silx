@@ -1007,13 +1007,12 @@ class ROI(qt.QObject):
     def computeRawAndNetCounts(self, curve):
         """Compute the Raw and net counts in the ROI for the given curve.
 
-        - Raw counts: integral of the curve between the min ROI point and the
-        max ROI point to the y = 0 line
+        - Raw counts: Points values sum of the curve in the defined Region Of
+           Interest.
 
           .. image:: img/rawCounts.png
 
-        - Net counts: the integral of the curve between the min ROI point and
-        the max ROI point to [ROI min point, ROI max point] segment
+        - Net counts: Raw counts minus background
 
           .. image:: img/netCounts.png
 
