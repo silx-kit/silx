@@ -30,6 +30,7 @@ __license__ = "MIT"
 __date__ = "06/12/2017"
 
 import datetime as dt
+import enum
 import logging
 
 import dateutil.tz
@@ -37,6 +38,12 @@ import dateutil.tz
 from ... import qt
 
 _logger = logging.getLogger(__name__)
+
+
+class TickMode(enum.Enum):
+    """Determines if ticks are regular number or datetimes."""
+    DEFAULT = 0       # Ticks are regular numbers
+    TIME_SERIES = 1   # Ticks are datetime objects
 
 
 class Axis(qt.QObject):
@@ -255,7 +262,7 @@ class Axis(qt.QObject):
         raise NotImplementedError()
 
     def setTimeZone(self, tz):
-        """Sets tzinfo that is used if this axis plots date times.
+        """Sets tzinfo that is used if this axis' tickMode is TIME_SERIES
 
         The tz must be a descendant of the datetime.tzinfo class, "UTC" or None.
         Use None to let the datetimes be interpreted as local time.
@@ -265,20 +272,19 @@ class Axis(qt.QObject):
         """
         raise NotImplementedError()
 
-    def isTimeSeries(self):
-        """Return True if this axis scale shows datetime objects.
+    def getTickMode(self):
+        """Determines if axis ticks are number or datetimes.
 
-        :rtype: bool
+        :rtype: TickMode enum.
         """
         raise NotImplementedError()
 
-    def setTimeSeries(self, flag):
-        """Set whether this axis is a time series
+    def setTickMode(self, tickMode):
+        """Determines if axis ticks are number or datetimes.
 
-        :param bool flag: True to switch to time series, False for regular axis.
+        :param TickMode tickMode: tick mode enum.
         """
         raise NotImplementedError()
-
 
     def isAutoScale(self):
         """Return True if axis is automatically adjusting its limits.
@@ -358,11 +364,19 @@ class XAxis(Axis):
 
         self._plot._backend.setXAxisTimeZone(tz)
 
-    def isTimeSeries(self):
-        self._plot._backend.isXAxisTimeSeries()
+    def getTickMode(self):
+        if self._plot._backend.isXAxisTimeSeries():
+            return TickMode.TIME_SERIES
+        else:
+            return TickMode.DEFAULT
 
-    def setTimeSeries(self, flag):
-        self._plot._backend.setXAxisTimeSeries(flag)
+    def setTickMode(self, tickMode):
+        if tickMode == TickMode.DEFAULT:
+            self._plot._backend.setXAxisTimeSeries(False)
+        elif tickMode == TickMode.TIME_SERIES:
+            self._plot._backend.setXAxisTimeSeries(True)
+        else:
+            raise ValueError("Unexpected TickMode: {}".format(tickMode))
 
     def _internalSetCurrentLabel(self, label):
         self._plot._backend.setGraphXLabel(label)
