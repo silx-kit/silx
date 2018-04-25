@@ -29,7 +29,11 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "06/12/2017"
 
+import datetime as dt
 import logging
+
+import dateutil.tz
+
 from ... import qt
 
 _logger = logging.getLogger(__name__)
@@ -241,6 +245,25 @@ class Axis(qt.QObject):
         flag = bool(flag)
         self.setScale(self.LOGARITHMIC if flag else self.LINEAR)
 
+    def timeZone(self):
+        """Sets tzinfo that is used if this axis plots date times.
+
+        None means the datetimes are interpreted as local time.
+
+        :rtype: datetime.tzinfo of None.
+        """
+        raise NotImplementedError()
+
+    def setTimeZone(self, tz):
+        """Sets tzinfo that is used if this axis plots date times.
+
+        The tz must be a descendant of the datetime.tzinfo class, "UTC" or None.
+        Use None to let the datetimes be interpreted as local time.
+        Use the string "UTC" to let the date datetimes be in UTC time.
+
+        :param tz: datetime.tzinfo, "UTC" or None.
+        """
+        raise NotImplementedError()
 
     def isTimeSeries(self):
         """Return True if this axis scale shows datetime objects.
@@ -323,6 +346,17 @@ class XAxis(Axis):
 
     # TODO With some changes on the backend, it will be able to remove all this
     #      specialised implementations (prefixel by '_internal')
+
+    def timeZone(self):
+        return self._plot._backend.getxAxisTimeZone()
+
+    def setTimeZone(self, tz):
+        if isinstance(tz, str) and tz.upper() == "UTC":
+            tz = dateutil.tz.tzutc()
+        elif not(tz is None or isinstance(tz, dt.tzinfo)):
+            raise TypeError("tz must be a dt.tzinfo object, None or 'UTC'.")
+
+        self._plot._backend.setXAxisTimeZone(tz)
 
     def isTimeSeries(self):
         self._plot._backend.isXAxisTimeSeries()

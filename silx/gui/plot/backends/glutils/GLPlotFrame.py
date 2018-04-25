@@ -112,6 +112,16 @@ class PlotAxis(object):
             self._dirtyTicks()
 
     @property
+    def timeZone(self):
+        """Returnss datetime.tzinfo that is used if this axis plots date times."""
+        return self._timeZone
+
+    @timeZone.setter
+    def timeZone(self, tz):
+        """Sets dateetime.tzinfo that is used if this axis plots date times."""
+        self._timeZone = tz
+
+    @property
     def isTimeSeries(self):
         """Whether the axis is showing floats as datetime objects"""
         return self._isDateTime
@@ -305,8 +315,8 @@ class PlotAxis(object):
                             yield ((xPixel, yPixel), dataPos, text)
                 else:
                     # Time series
-                    dtMin = dt.datetime.fromtimestamp(dataMin)
-                    dtMax = dt.datetime.fromtimestamp(dataMax)
+                    dtMin = dt.datetime.fromtimestamp(dataMin, tz=self.timeZone)
+                    dtMax = dt.datetime.fromtimestamp(dataMax, tz=self.timeZone)
 
                     tickDateTimes, spacing, unit = calcTicksAdaptive(
                         dtMin, dtMax, nbPixels, tickDensity)

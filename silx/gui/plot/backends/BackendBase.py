@@ -59,6 +59,7 @@ class BackendBase(object):
         self.__yLimits = {'left': (1., 100.), 'right': (1., 100.)}
         self.__yAxisInverted = False
         self.__keepDataAspectRatio = False
+        self._xAxisTimeZone = None
         self._axesDisplayed = True
         # Store a weakref to get access to the plot state.
         self._setPlot(plot)
@@ -406,6 +407,24 @@ class BackendBase(object):
 
     # Graph axes
 
+
+    def xAxisTimeZone(self):
+        """Returns tzinfo that is used if the X-Axis plots date-times.
+
+        None means the datetimes are interpreted as local time.
+
+        :rtype: datetime.tzinfo of None.
+        """
+        return self._xAxisTimeZone
+
+    def setXAxisTimeZone(self, tz):
+        """Sets tzinfo that is used if the X-Axis plots date-times.
+
+        Use None to let the datetimes be interpreted as local time.
+
+        :rtype: datetime.tzinfo of None.
+        """
+        self._xAxisTimeZone = tz
 
     def isXAxisTimeSeries(self):
         """Return True if the X-axis scale shows datetime objects.

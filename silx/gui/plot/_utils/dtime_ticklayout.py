@@ -89,7 +89,7 @@ def getDateElement(dateTime, unit):
 def setDateElement(dateTime, value, unit):
     """ Returns a copy of dateTime with the tickStep unit set to value
 
-    :param datetime.datetime dateTime: date time object
+    :param datetime.datetime: date time object
     :param int value: value to set
     :param DtUnit unit: unit
     :return: datetime.datetime
@@ -126,14 +126,15 @@ def setDateElement(dateTime, value, unit):
     _logger.debug("creating date time {}"
         .format((year, month, day, hour, minute, second, microsecond)))
 
-    return dt.datetime(year, month, day, hour, minute, second, microsecond)
+    return dt.datetime(year, month, day, hour, minute, second, microsecond,
+                       tzinfo=dateTime.tzinfo)
 
 
 
 def roundToElement(dateTime, unit):
     """ Returns a copy of dateTime with the
 
-    :param datetime.datetime dateTime: date time object
+    :param datetime.datetime: date time object
     :param DtUnit unit: unit
     :return: datetime.datetime
     """
@@ -160,7 +161,10 @@ def roundToElement(dateTime, unit):
     if unit.value < DtUnit.MICRO_SECONDS.value:
         microsecond = 0
 
-    return dt.datetime(year, month, day, hour, minute, second, microsecond)
+    result = dt.datetime(year, month, day, hour, minute, second, microsecond,
+                         tzinfo=dateTime.tzinfo)
+
+    return result
 
 
 def addValueToDate(dateTime, value, unit):
@@ -395,8 +399,8 @@ def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
 def calcTicks(dMin, dMax, nTicks):
     """Returns tick positions.
 
-    :param datetime dMin: The min value on the axis
-    :param datetime dMax: The max value on the axis
+    :param datetime.datetime dMin: The min value on the axis.
+    :param datetime.datetime dMax: The max value on the axis.
     :param int nTicks: The target number of ticks. The actual number of found
         ticks may differ.
     :returns: (list of datetimes, DtUnit) tuple
