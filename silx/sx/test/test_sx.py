@@ -132,6 +132,10 @@ class SXTest(TestCaseQt, ParametricTestCase):
                         title='origin=(10, 10), scale=(2, 2)')
         self._expose_and_close(plt)
 
+        # image, origin='lower'
+        plt = sx.imshow(img, origin='upper', title='origin="lower"')
+        self._expose_and_close(plt)
+
     def test_ginput(self):
         """Test ginput function
 

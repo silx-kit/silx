@@ -202,7 +202,7 @@ def plot(*args, **kwargs):
 def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
            vmin=None, vmax=None,
            aspect=False,
-           origin=(0., 0.), scale=(1., 1.),
+           origin='lower', scale=(1., 1.),
            title='', xlabel='X', ylabel='Y'):
     """
     Plot an image in a :class:`~silx.gui.plot.PlotWindow.Plot2D` widget.
@@ -214,6 +214,12 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
 
     >>> data = numpy.random.random(1024 * 1024).reshape(1024, 1024)
     >>> plt = sx.imshow(data, title='Random data')
+
+    Warning: By default, the image origin is displayed in the lower left
+    corner of the plot. To invert the Y axis, and place the image origin
+    in the upper left corner of the plot, use the *origin* parameter:
+
+     >>> plt = sx.imshow(data, origin='upper')
 
     This function supports a subset of `matplotlib.pyplot.imshow
     <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow>`_
@@ -227,8 +233,10 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     :param float vmin: The value to use for the min of the colormap
     :param float vmax: The value to use for the max of the colormap
     :param bool aspect: True to keep aspect ratio (Default: False)
-    :param origin: (ox, oy) The coordinates of the image origin in the plot
-    :type origin: 2-tuple of floats
+    :param origin: Either image origin as the Y axis orientation:
+        'lower' (default) or 'upper'
+        or the coordinates (ox, oy) of the image origin in the plot.
+    :type origin: str or 2-tuple of floats
     :param scale: (sx, sy) The scale of the image in the plot
                   (i.e., the size of the image's pixel in plot coordinates)
     :type scale: 2-tuple of floats
@@ -259,6 +267,11 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     else:
         _logger.warning(
             'imshow: Unhandled aspect argument: %s', str(aspect))
+
+    # Handle matplotlib-like origin
+    if origin in ('upper', 'lower'):
+        plt.setYAxisInverted(origin == 'upper')
+        origin = 0., 0.  # Set origin to the definition of silx
 
     if data is not None:
         data = numpy.array(data, copy=True)
