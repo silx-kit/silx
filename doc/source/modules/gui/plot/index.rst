@@ -55,6 +55,8 @@ Additionnal plot tool widgets:
    profile.rst
    roi.rst
    printpreviewtoolbutton.rst
+   statswidget.rst
+   stats/index.rst
 
 Internals
 ---------
