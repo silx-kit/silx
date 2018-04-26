@@ -35,6 +35,7 @@ import numpy
 
 from ..scene import primitives
 from .core import DataItem3D, ItemChangedType
+from ..scene.utils import trianglesNormal
 
 
 class Mesh(DataItem3D):
@@ -151,7 +152,7 @@ class _CylindricalVolume(DataItem3D):
         DataItem3D.__init__(self, parent=parent)
         self._mesh = None
 
-    def _setData(self, position, radius, height, color, nbFaces=0, normal=None, copy=True):
+    def _setData(self, position, radius, height, color, nbFaces=0, copy=True):
 
         self._getScenePrimitive().children = []  # Remove any previous mesh
         self.N = nbFaces
@@ -184,11 +185,16 @@ class _CylindricalVolume(DataItem3D):
             c6 = numpy.array([0,                         0,                         height/2])
 
             volume = numpy.ndarray(shape=(self.N, 12, 3), dtype=numpy.float32)
+            normal = numpy.ndarray(shape=(self.N, 12, 3), dtype=numpy.float32)
             for i in range(0, self.N):
-                volume[i] = numpy.array([c1, c2, c3,
-                                         c2, c4, c3,
-                                         c3, c4, c5,
-                                         c4, c6, c5])
+                volume[i] = numpy.array([c1, c3, c2,
+                                         c2, c3, c4,
+                                         c3, c5, c4,
+                                         c4, c5, c6])
+                normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1), numpy.cross(c2-c3, c1-c3), numpy.cross(c1-c2, c3-c2),
+                                         numpy.cross(c3-c2, c4-c2), numpy.cross(c4-c3, c2-c3), numpy.cross(c2-c4, c3-c4),
+                                         numpy.cross(c5-c3, c4-c3), numpy.cross(c4-c5, c3-c5), numpy.cross(c3-c4, c5-c4),
+                                         numpy.cross(c5-c4, c6-c4), numpy.cross(c6-c5, c5-c5), numpy.cross(c4-c6, c5-c6)])
                 alpha += 2 * numpy.pi / self.N
                 c2 = c3
                 c4 = c5
@@ -197,12 +203,15 @@ class _CylindricalVolume(DataItem3D):
 
             # construct one volume at each position
             vertices = numpy.ndarray(shape=(len(position), self.N, 12, 3), dtype=numpy.float32)
+            normals = numpy.ndarray(shape=(len(position), self.N, 12, 3), dtype=numpy.float32)
             for i in range(0, len(position)):
                 numpy.add(volume, position[i], out=vertices[i])
+                normals[i] = normal
             vertices = numpy.reshape(vertices, (-1, 3))
+            normals = numpy.reshape(normals, (-1,3))
 
             self._mesh = primitives.Mesh3D(
-                vertices, color, normal, mode='triangles', copy=copy)
+                vertices, color, normals, mode='triangles', copy=copy)
             self._getScenePrimitive().children.append(self._mesh)
 
         self.sigItemChanged.emit(ItemChangedType.DATA)
@@ -213,8 +222,8 @@ class Box(_CylindricalVolume):
     def __init__(self, parent=None):
         super(Box, self).__init__(parent)
 
-    def setData(self, position, size, color, normal=None, copy=True):
-        self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2], color, 4, normal, copy)
+    def setData(self, position, size, color, copy=True):
+        self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2], color, 4, copy)
 
 
 class Cylinder(_CylindricalVolume):
@@ -222,8 +231,8 @@ class Cylinder(_CylindricalVolume):
     def __init__(self, parent=None):
         super(Cylinder, self).__init__(parent)
 
-    def setData(self, position, radius, height, color, nbFaces=20, normal=None, copy=True):
-        self._setData(position, radius, height, color, nbFaces, normal, copy)
+    def setData(self, position, radius, height, color, nbFaces=20, copy=True):
+        self._setData(position, radius, height, color, nbFaces, copy)
 
 
 class Hexagon(_CylindricalVolume):
@@ -231,5 +240,5 @@ class Hexagon(_CylindricalVolume):
     def __init__(self, parent=None):
         super(Hexagon, self).__init__(parent)
 
-    def setData(self, position, radius, height, color, normal=None, copy=True):
-        self._setData(position, radius, height, color, 6, normal, copy)
+    def setData(self, position, radius, height, color, copy=True):
+        self._setData(position, radius, height, color, 6, copy)
