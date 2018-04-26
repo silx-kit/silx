@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -52,9 +52,7 @@ def numberOfDigits(tickSpacing):
 # Nice Numbers ################################################################
 
 # This is the original niceNum implementation. For the date time ticks a more
-# generic implementation was needed. This gives slightly different value when
-# the isRound paramter is True. See the comments below. It doesn't result in
-# noticable differences.
+# generic implementation was needed.
 #
 # def _niceNum(value, isRound=False):
 #     expvalue = math.floor(math.log10(value))
@@ -79,32 +77,32 @@ def numberOfDigits(tickSpacing):
 #             nicefrac = 10.
 #     return nicefrac * pow(10., expvalue)
 
-def _niceNum(value, isRound=False):
-    """ Calls niceNumGeneric with niceFractions: [1.0, 2.0, 5.0, 10.0]"""
-    return niceNumGeneric(value, [1.0, 2.0, 5.0, 10.0], isRound=isRound)
 
-
-def niceNumGeneric(value, niceFractions, isRound=False):
+def niceNumGeneric(value, niceFractions=None, isRound=False):
     """ A more generic implementation of the _niceNum function
 
-    Allows to the user to specify the fractions instead of using a hardcoded
+    Allows the user to specify the fractions instead of using a hardcoded
     list of [1, 2, 5, 10.0].
     """
     if value == 0:
         return value
 
-    roundFractions = list(niceFractions)
+    if niceFractions is None:  # Use default values
+        niceFractions = 1., 2., 5., 10.
+        roundFractions = (1.5, 3., 7., 10.) if isRound else niceFractions
 
-    if isRound:
-        # Take the average with the next element. The last remains the same.
-        for i in range(len(roundFractions) - 1):
-            roundFractions[i] = (niceFractions[i] + niceFractions[i+1]) / 2
+    else:
+        roundFractions = list(niceFractions)
+        if isRound:
+            # Take the average with the next element. The last remains the same.
+            for i in range(len(roundFractions) - 1):
+                roundFractions[i] = (niceFractions[i] + niceFractions[i+1]) / 2
 
     highest = niceFractions[-1]
     value = float(value)
 
     expvalue = math.floor(math.log(value, highest))
-    frac = value/pow(highest, expvalue)
+    frac = value / pow(highest, expvalue)
 
     for niceFrac, roundFrac in zip(niceFractions, roundFractions):
         if frac <= roundFrac:
@@ -112,7 +110,6 @@ def niceNumGeneric(value, niceFractions, isRound=False):
 
     # should not come here
     assert False, "should not come here"
-
 
 
 def niceNumbers(vMin, vMax, nTicks=5):
@@ -129,8 +126,8 @@ def niceNumbers(vMin, vMax, nTicks=5):
               number of fractional digit to show
     :rtype: tuple
     """
-    vrange = _niceNum(vMax - vMin, False)
-    spacing = _niceNum(vrange / nTicks, True)
+    vrange = niceNumGeneric(vMax - vMin, isRound=False)
+    spacing = niceNumGeneric(vrange / nTicks, isRound=True)
     graphmin = math.floor(vMin / spacing) * spacing
     graphmax = math.ceil(vMax / spacing) * spacing
     nfrac = numberOfDigits(spacing)
