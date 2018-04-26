@@ -100,6 +100,8 @@ class Stats(dict):
 
 class StatsContext(object):
     """
+    The context is designed to be a simple buffer and avoid repetition of
+    calculations that can appear during stats evaluation.
     StatsContext is a simple buffer to avoid several identical
     calculation that can appear during stats calculation
 
