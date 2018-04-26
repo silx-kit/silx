@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +23,33 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""This module contains library wide configuration.
+"""
 
-from __future__ import absolute_import, print_function, division
-
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "26/04/2018"
 
-import os as _os
-import logging as _logging
-from ._config import Config as _Config
 
-config = _Config()
-"""Global configuration shared with the whole library"""
+class Config(object):
+    """
+    Class containing shared global configuration for the silx library.
 
-# Attach a do nothing logging handler for silx
-_logging.getLogger(__name__).addHandler(_logging.NullHandler())
+    .. versionadded:: 0.8
+    """
 
+    DEFAULT_PLOT_BACKEND = "matplotlib"
+    """Default plot backend.
 
-project = _os.path.basename(_os.path.dirname(_os.path.abspath(__file__)))
+    It will be used as default backend for all the next created PlotWidget.
 
-try:
-    from ._version import __date__ as date  # noqa
-    from ._version import version, version_info, hexversion, strictversion  # noqa
-except ImportError:
-    raise RuntimeError("Do NOT use %s from its sources: build it and use the built version" % project)
+    This value can be set with:
+
+    - 'matplotlib' (default) or 'mpl'
+    - 'opengl', 'gl'
+    - 'none'
+    - A :class:`silx.gui.plot.backend.BackendBase.BackendBase` class
+    - A callable returning backend class or binding name
+
+    .. versionadded:: 0.8
+    """

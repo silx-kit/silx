@@ -148,7 +148,6 @@ Misc.
 
 .. automethod:: PlotWidget.getWidgetHandle
 .. automethod:: PlotWidget.saveGraph
-.. automethod:: PlotWidget.setDefaultBackend
 
 Signals
 .......

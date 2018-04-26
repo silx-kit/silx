@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "26/04/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -41,6 +41,9 @@ import logging
 
 import numpy
 
+import silx
+from silx.utils import deprecation
+from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
@@ -110,8 +113,12 @@ class PlotWidget(qt.QMainWindow):
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 
-    DEFAULT_BACKEND = 'matplotlib'
-    """Class attribute setting the default backend for all instances."""
+    # TODO: Can be removed for silx 0.10
+    @classproperty
+    @deprecation.deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
+    def DEFAULT_BACKEND(self):
+        """Class attribute setting the default backend for all instances."""
+        return silx.config.DEFAULT_PLOT_BACKEND
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
@@ -209,7 +216,7 @@ class PlotWidget(qt.QMainWindow):
             self.setWindowTitle('PlotWidget')
 
         if backend is None:
-            backend = self.DEFAULT_BACKEND
+            backend = silx.config.DEFAULT_PLOT_BACKEND
 
         if hasattr(backend, "__call__"):
             self._backend = backend(self, parent)
@@ -296,7 +303,9 @@ class PlotWidget(qt.QMainWindow):
         self.setGraphYLimits(0., 100., axis='right')
         self.setGraphYLimits(0., 100., axis='left')
 
+    # TODO: Can be removed for silx 0.10
     @staticmethod
+    @deprecation.deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
     def setDefaultBackend(backend):
         """Set system wide default plot backend.
 
@@ -306,7 +315,7 @@ class PlotWidget(qt.QMainWindow):
                         'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
                         or a :class:`BackendBase.BackendBase` class
         """
-        PlotWidget.DEFAULT_BACKEND = backend
+        silx.config.DEFAULT_PLOT_BACKEND = backend
 
     def _getDirtyPlot(self):
         """Return the plot dirty flag.
