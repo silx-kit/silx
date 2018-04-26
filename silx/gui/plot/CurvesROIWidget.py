@@ -395,6 +395,8 @@ class ROITable(qt.QTableWidget):
         ('To', 4),
         ('Raw Counts', 5),
         ('Net Counts', 6),
+        ('Raw Area', 7),
+        ('Net Area', 8),
     ])
 
     COLUMNS = list(COLUMNS_INDEX.keys())
@@ -564,7 +566,7 @@ class ROITable(qt.QTableWidget):
                 item.setFlags(qt.Qt.ItemIsSelectable |
                               qt.Qt.ItemIsEnabled |
                               qt.Qt.ItemIsEditable)
-            elif name in ('Raw Counts', 'Net Counts'):
+            elif name in ('Raw Counts', 'Net Counts', 'Raw Area', 'Net Area'):
                 item = _FloatItem()
                 item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
             else:
@@ -683,6 +685,18 @@ class ROITable(qt.QTableWidget):
                                       roi=roi)
         netCounts = str(netCounts) if netCounts is not None else self.INFO_NOT_FOUND
         itemNetCounts.setText(netCounts)
+
+        rawArea, netArea = roi.computeRawAndNetArea(
+            curve=self.plot.getActiveCurve(just_legend=False))
+        itemRawArea = self._getItem(name='Raw Area', row=itemID.row(),
+                                      roi=roi)
+        rawArea = str(rawArea) if rawArea is not None else self.INFO_NOT_FOUND
+        itemRawArea.setText(rawArea)
+
+        itemNetArea = self._getItem(name='Net Area', row=itemID.row(),
+                                    roi=roi)
+        netArea = str(netArea) if netArea is not None else self.INFO_NOT_FOUND
+        itemNetArea.setText(netArea)
 
     def currentChanged(self, current, previous):
         if previous and current.row() != previous.row() and current.row() >= 0:

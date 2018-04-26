@@ -259,8 +259,7 @@ class TestCurvesROIWidget(TestCaseQt):
 
         x = (0, 1, 1, 2, 2, 3)
         y = (1, 1, 2, 2, 1, 1)
-        self.plot.addCurve(x=x, y=y,
-                           legend='linearCurve')
+        self.plot.addCurve(x=x, y=y, legend='linearCurve')
         self.plot.setActiveCurve(legend='linearCurve')
         self.widget.calculateROIs()
 
@@ -271,6 +270,19 @@ class TestCurvesROIWidget(TestCaseQt):
 
         self.assertTrue(itemRawCounts.text() == '8.0')
         self.assertTrue(itemNetCounts.text() == '2.0')
+
+        itemRawArea = roiTable.item(0, indexesColumns['Raw Area'])
+        itemNetArea = roiTable.item(0, indexesColumns['Net Area'])
+
+        self.assertTrue(itemRawArea.text() == '4.0')
+        self.assertTrue(itemNetArea.text() == '1.0')
+
+        roi.setTo(2)
+        itemRawArea = roiTable.item(0, indexesColumns['Raw Area'])
+        self.assertTrue(itemRawArea.text() == '3.0')
+        roi.setFrom(1)
+        itemRawArea = roiTable.item(0, indexesColumns['Raw Area'])
+        self.assertTrue(itemRawArea.text() == '2.0')
 
 
 def suite():
