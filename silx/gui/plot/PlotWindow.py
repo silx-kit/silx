@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "26/04/2018"
 
 import collections
 import logging
@@ -786,7 +786,7 @@ class Plot2D(PlotWindow):
 
         # Put colorbar action after colormap action
         actions = self.toolBar().actions()
-        for index, action in enumerate(actions):
+        for action in actions:
             if action is self.getColormapAction():
                 break
 
