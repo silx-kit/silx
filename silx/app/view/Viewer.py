@@ -162,7 +162,7 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.close)
         self._exitAction = action
 
-        action = qt.QAction("&Open", self)
+        action = qt.QAction("&Open...", self)
         action.setStatusTip("Open a file")
         action.triggered.connect(self.open)
         self._openAction = action
