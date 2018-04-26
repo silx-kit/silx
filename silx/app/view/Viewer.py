@@ -33,6 +33,7 @@ import collections
 import logging
 import functools
 
+import silx
 from silx.gui import qt
 from .ApplicationContext import ApplicationContext
 
@@ -227,16 +228,15 @@ class Viewer(qt.QMainWindow):
     def __updateOptionMenu(self):
         """Update the state of the checked options as it is based on global
         environment values."""
-        from silx.gui.plot import PlotWidget
         action = self._usePlotWithMatplotlib
-        action.setChecked(PlotWidget.DEFAULT_BACKEND == "matplotlib")
+        action.setChecked(silx.config.DEFAULT_PLOT_BACKEND in ["matplotlib", "mpl"])
         title = action.text().split(" (", 1)[0]
         if not action.isChecked():
             title += " (applied after application restart)"
         action.setText(title)
 
         action = self._usePlotWithOpengl
-        action.setChecked("gl" in PlotWidget.DEFAULT_BACKEND)
+        action.setChecked(silx.config.DEFAULT_PLOT_BACKEND in ["opengl", "gl"])
         title = action.text().split(" (", 1)[0]
         if not action.isChecked():
             title += " (applied after application restart)"
@@ -314,12 +314,10 @@ class Viewer(qt.QMainWindow):
         About.about(self, "Silx viewer")
 
     def __forceMatplotlibBackend(self):
-        from silx.gui.plot import PlotWidget
-        PlotWidget.setDefaultBackend("matplotlib")
+        silx.config.DEFAULT_PLOT_BACKEND = "matplotlib"
 
     def __forceOpenglBackend(self):
-        from silx.gui.plot import PlotWidget
-        PlotWidget.setDefaultBackend("opengl")
+        silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)

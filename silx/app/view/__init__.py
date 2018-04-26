@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/04/2018"
+__date__ = "26/04/2018"
 
 import sys
 import argparse
@@ -46,6 +46,7 @@ if "silx.gui.qt" not in sys.modules:
     except ImportError:
         pass
 
+import silx
 from silx.gui import qt
 
 
@@ -122,8 +123,7 @@ def main(argv):
 
     if options.use_opengl_plot:
         # It have to be done after the settings (after the Viewer creation)
-        from silx.gui.plot import PlotWidget
-        PlotWidget.setDefaultBackend("opengl")
+        silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
     for filename in options.files:
         try:

@@ -30,6 +30,7 @@ __date__ = "26/04/2018"
 import weakref
 import logging
 
+import silx
 from silx.gui import qt
 from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.plot.Colormap import Colormap
@@ -72,8 +73,7 @@ class ApplicationContext(DataViewHooks):
         settings.endGroup()
 
         if plotBackend != "":
-            from silx.gui.plot import PlotWidget
-            PlotWidget.setDefaultBackend(plotBackend)
+            silx.config.DEFAULT_PLOT_BACKEND = plotBackend
 
     def restoreSettings(self):
         """Restore the settings of all the application"""
@@ -113,8 +113,7 @@ class ApplicationContext(DataViewHooks):
             settings.endGroup()
 
         settings.beginGroup("library")
-        from silx.gui.plot import PlotWidget
-        plotBackend = PlotWidget.DEFAULT_BACKEND
+        plotBackend = silx.config.DEFAULT_PLOT_BACKEND
         settings.setValue("plot.backend", plotBackend)
         settings.endGroup()
 
