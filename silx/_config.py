@@ -53,3 +53,12 @@ class Config(object):
 
     .. versionadded:: 0.8
     """
+
+    DEFAULT_COLORMAP_NAME = 'gray'
+    """Default LUT for the plot widgets.
+
+    The available list of names are availaible in the module
+    :module:`silx.gui.colors`.
+
+    .. versionadded:: 0.8
+    """

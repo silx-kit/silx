@@ -2280,7 +2280,7 @@ class PlotWidget(qt.QMainWindow):
             autoscale gray colormap.
         """
         if colormap is None:
-            colormap = Colormap(name='gray',
+            colormap = Colormap(name=silx.config.DEFAULT_COLORMAP_NAME,
                                 normalization='linear',
                                 vmin=None,
                                 vmax=None)
