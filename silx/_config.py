@@ -43,7 +43,7 @@ class Config(object):
 
     It will be used as default backend for all the next created PlotWidget.
 
-    This value can be set with:
+    This attribute can be set with:
 
     - 'matplotlib' (default) or 'mpl'
     - 'opengl', 'gl'
@@ -59,6 +59,25 @@ class Config(object):
 
     The available list of names are availaible in the module
     :module:`silx.gui.colors`.
+
+    .. versionadded:: 0.8
+    """
+
+    DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = 'upward'
+    """Default Y-axis orientation for plot widget displaying images.
+
+    This attribute can be set with:
+
+    - 'upward' (default), which set the origin to the bottom with an upward
+        orientation.
+    - 'downward', which set the origin to the top with a backward orientation.
+
+    It will have an influence on:
+
+    - :class:`silx.gui.plot.StackWidget`
+    - :class:`silx.gui.plot.ComplexImageView`
+    - :class:`silx.gui.plot.Plot2D`
+    - :class:`silx.gui.plot.ImageView`
 
     .. versionadded:: 0.8
     """

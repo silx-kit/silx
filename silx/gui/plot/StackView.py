@@ -69,10 +69,11 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "26/04/2018"
 
 import numpy
 
+import silx
 from silx.gui import qt
 from .. import icons
 from . import items, PlotWindow, actions
@@ -211,6 +212,9 @@ class StackView(qt.QMainWindow):
         self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal
+
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+            self._plot.getYAxis().setInverted(True)
 
         self._addColorBarAction()
 

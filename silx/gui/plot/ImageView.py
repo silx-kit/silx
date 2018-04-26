@@ -42,12 +42,13 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "26/04/2018"
 
 
 import logging
 import numpy
 
+import silx
 from .. import qt
 
 from . import items, PlotWindow, PlotWidget, actions
@@ -295,6 +296,9 @@ class ImageView(PlotWindow):
                                         roi=False, mask=True)
         if parent is None:
             self.setWindowTitle('ImageView')
+
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+            self.getYAxis().setInverted(True)
 
         self._initWidgets(backend)
 

@@ -34,6 +34,7 @@ __date__ = "26/04/2018"
 import collections
 import logging
 
+import silx
 from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
@@ -777,6 +778,9 @@ class Plot2D(PlotWindow):
             self.setWindowTitle('Plot2D')
         self.getXAxis().setLabel('Columns')
         self.getYAxis().setLabel('Rows')
+
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+            self.getYAxis().setInverted(True)
 
         self.profile = ProfileToolBar(plot=self)
         self.addToolBar(self.profile)
