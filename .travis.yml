@@ -41,6 +41,16 @@ matrix:
               - PYOPENCL_VERSION=2018.1
               - SILX_OPENCL=0
 
+        # Temporary: Allow to check if AMD APPSDK is back
+        # TODO: Remove it when we are able to enable SILX_OPENCL everywhere
+        - python: 3.6
+          os: linux
+          env:
+              - BUILD_COMMAND=sdist
+              - WITH_QT_TEST=True
+              - PYOPENCL_VERSION=2018.1
+              - SILX_OPENCL=1
+
         - language: generic
           os: osx
           env:
