@@ -14,6 +14,7 @@ matrix:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=False
               - PYOPENCL_VERSION=2015.1
+              - SILX_OPENCL=0
 
         - python: 3.4
           os: linux
@@ -22,6 +23,7 @@ matrix:
               - WITH_QT_TEST=False
               - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
               - PYOPENCL_VERSION=2015.1
+              - SILX_OPENCL=0
 
         - python: 3.5
           os: linux
@@ -29,6 +31,7 @@ matrix:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=True
               - PYOPENCL_VERSION=2015.1
+              - SILX_OPENCL=0
 
         - python: 3.6
           os: linux
@@ -36,6 +39,17 @@ matrix:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=True
               - PYOPENCL_VERSION=2018.1
+              - SILX_OPENCL=0
+
+        # Temporary: Allow to check if AMD APPSDK is back
+        # TODO: Remove it when we are able to enable SILX_OPENCL everywhere
+        - python: 3.6
+          os: linux
+          env:
+              - BUILD_COMMAND=sdist
+              - WITH_QT_TEST=True
+              - PYOPENCL_VERSION=2018.1
+              - SILX_OPENCL=1
 
         - language: generic
           os: osx
