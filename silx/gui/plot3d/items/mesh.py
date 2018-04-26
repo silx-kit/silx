@@ -214,7 +214,7 @@ class Box(_CylindricalVolume):
         super(Box, self).__init__(parent)
 
     def setData(self, position, size, color, normal=None, copy=True):
-        self._setData(position, size[0]/2, size[2], color, 4, normal, copy)
+        self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2], color, 4, normal, copy)
 
 
 class Cylinder(_CylindricalVolume):
