@@ -905,6 +905,29 @@ class ROITable(qt.QTableWidget):
             self.hideColumn(self.COLUMNS_INDEX['Raw Area'])
             self.hideColumn(self.COLUMNS_INDEX['Net Area'])
 
+    @deprecation.deprecated(reason="API modification",
+                            replacement="setRois",
+                            since_version="0.8.0")
+    def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
+        """Set the ROIs by providing a list of ROI names and a dictionary
+        of ROI information for each ROI.
+        The ROI names must match an existing dictionary key.
+        The name list is used to provide an order for the ROIs.
+        The dictionary's values are sub-dictionaries containing 3
+        mandatory fields:
+           - ``"from"``: x coordinate of the left limit, as a float
+           - ``"to"``: x coordinate of the right limit, as a float
+           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+        :param roilist: List of ROI names (keys of roidict)
+        :type roilist: List
+        :param dict roidict: Dict of ROI information
+        :param currentroi: Name of the selected ROI or None (no selection)
+        """
+        self.setRois(roilist)
+        if currentroi:
+            self.setActiveRoi(currentroi)
+
+
 _indexNextROI = 0
 
 
