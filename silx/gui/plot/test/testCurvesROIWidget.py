@@ -160,6 +160,37 @@ class TestCurvesROIWidget(TestCaseQt):
         self.assertEqual(roi_neg.computeRawAndNetArea(negCurve),
                          ((-150.0), 0.0))
 
+    def testCountsCalculation(self):
+        x = numpy.arange(100.)
+        y = numpy.arange(100.)
+
+        # Add two curves
+        self.plot.addCurve(x, y, legend="positive")
+        self.plot.addCurve(-x, y, legend="negative")
+
+        # Make sure there is an active curve and it is the positive one
+        self.plot.setActiveCurve("positive")
+
+        # Add two ROIs
+        roi_neg = CurvesROIWidget.ROI(name='negative', fromdata=-20,
+                                      todata=-10, type_='X')
+        roi_pos = CurvesROIWidget.ROI(name='positive', fromdata=10,
+                                      todata=20, type_='X')
+
+        self.widget.roiWidget.setRois((roi_pos, roi_neg))
+
+        posCurve = self.plot.getCurve('positive')
+        negCurve = self.plot.getCurve('negative')
+
+        self.assertEqual(roi_pos.computeRawAndNetCounts(posCurve),
+                         (y[10:21].sum(), 0.0))
+        self.assertEqual(roi_pos.computeRawAndNetCounts(negCurve),
+                         (0.0, 0.0))
+        self.assertEqual(roi_neg.computeRawAndNetCounts(posCurve),
+                         ((0.0), 0.0))
+        self.assertEqual(roi_neg.computeRawAndNetCounts(negCurve),
+                         (y[10:21].sum(), 0.0))
+
     def testDeferedInit(self):
         x = numpy.arange(100.)
         y = numpy.arange(100.)
