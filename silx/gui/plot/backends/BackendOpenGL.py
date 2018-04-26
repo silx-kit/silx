@@ -880,30 +880,29 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             isXLog, isYLog)
 
         # Render Items
+        gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
+
         self._progBase.use()
         gl.glUniformMatrix4fv(self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                              self._plotFrame.transformedDataProjMat)
-        gl.glUniform2i(self._progBase.uniforms['isLog'],
-                       self._plotFrame.xAxis.isLog,
-                       self._plotFrame.yAxis.isLog)
+                              self.matScreenProj)
+        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
         gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
 
         for item in self._items.values():
-            shape2D = item.get('_shape2D')
-            if shape2D is None:
-                closed = item['shape'] != 'polylines'
-                shape2D = Shape2D(tuple(zip(item['x'], item['y'])),
-                                  fill=item['fill'],
-                                  fillColor=item['color'],
-                                  stroke=True,
-                                  strokeColor=item['color'],
-                                  strokeClosed=closed)
-                item['_shape2D'] = shape2D
-
-            if ((isXLog and shape2D.xMin < FLOAT32_MINPOS) or
-                    (isYLog and shape2D.yMin < FLOAT32_MINPOS)):
+            if ((isXLog and numpy.min(item['x']) < FLOAT32_MINPOS) or
+                    (isYLog and numpy.min(item['y']) < FLOAT32_MINPOS)):
                 # Ignore items <= 0. on log axes
                 continue
+
+            closed = item['shape'] != 'polylines'
+            points = [self.dataToPixel(x, y, axis='left', check=False)
+                      for (x, y) in zip(item['x'], item['y'])]
+            shape2D = Shape2D(points,
+                              fill=item['fill'],
+                              fillColor=item['color'],
+                              stroke=True,
+                              strokeColor=item['color'],
+                              strokeClosed=closed)
 
             posAttrib = self._progBase.attributes['position']
             colorUnif = self._progBase.uniforms['color']
