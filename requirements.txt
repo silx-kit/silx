@@ -15,7 +15,7 @@ qtconsole                 # For silx.gui.console
 matplotlib >= 1.2.0       # For silx.gui.plot
 PyOpenGL                  # For silx.gui.plot3d
 Pillow                    # For silx.opencl.image.test
-dateutil                  # For silx.gui.plot
+python-dateutil           # For silx.gui.plot
 
 # PyQt4, PyQt5 or PySide  # For silx.gui
 # Try to install a Qt binding from a wheel
