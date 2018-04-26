@@ -143,3 +143,93 @@ class Mesh(DataItem3D):
         :rtype: str
         """
         return self._mesh.drawMode
+
+
+class _CylindricalVolume(DataItem3D):
+
+    def __init__(self, parent=None):
+        DataItem3D.__init__(self, parent=parent)
+        self._mesh = None
+
+    def _setData(self, position, radius, height, color, nbFaces=0, normal=None, copy=True):
+
+        self._getScenePrimitive().children = []  # Remove any previous mesh
+        self.N = nbFaces
+
+        if position is None or len(position) == 0:
+            self._mesh = 0
+        else:
+            alpha = (2 * numpy.pi / self.N)
+            """
+                   c6
+                   /\
+                  /  \
+                 /    \
+              c4|------|c5
+                | \    |
+                |  \   |
+                |   \  |
+                |    \ |
+              c2|------|c3
+                 \    /
+                  \  /
+                   \/
+                   c1     
+            """
+            c1 = numpy.array([0,                         0,                         -height/2])
+            c2 = numpy.array([radius,                    0,                         -height/2])
+            c3 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), -height/2])
+            c4 = numpy.array([radius,                    0,                         height/2])
+            c5 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), height/2])
+            c6 = numpy.array([0,                         0,                         height/2])
+
+            volume = numpy.ndarray(shape=(self.N, 12, 3), dtype=numpy.float32)
+            for i in range(0, self.N):
+                volume[i] = numpy.array([c1, c2, c3,
+                                         c2, c4, c3,
+                                         c3, c4, c5,
+                                         c4, c6, c5])
+                alpha += 2 * numpy.pi / self.N
+                c2 = c3
+                c4 = c5
+                c3 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), -height/2])
+                c5 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), height/2])
+
+            # construct one volume at each position
+            vertices = numpy.ndarray(shape=(len(position), self.N, 12, 3), dtype=numpy.float32)
+            for i in range(0, len(position)):
+                numpy.add(volume, position[i], out=vertices[i])
+            vertices = numpy.reshape(vertices, (-1, 3))
+
+            self._mesh = primitives.Mesh3D(
+                vertices, color, normal, mode='triangles', copy=copy)
+            self._getScenePrimitive().children.append(self._mesh)
+
+        self.sigItemChanged.emit(ItemChangedType.DATA)
+
+
+class Box(_CylindricalVolume):
+
+    def __init__(self, parent=None):
+        super(Box, self).__init__(parent)
+
+    def setData(self, position, size, color, normal=None, copy=True):
+        self._setData(position, size[0]/2, size[2], color, 4, normal, copy)
+
+
+class Cylinder(_CylindricalVolume):
+
+    def __init__(self, parent=None):
+        super(Cylinder, self).__init__(parent)
+
+    def setData(self, position, radius, height, color, nbFaces=20, normal=None, copy=True):
+        self._setData(position, radius, height, color, nbFaces, normal, copy)
+
+
+class Hexagon(_CylindricalVolume):
+
+    def __init__(self, parent=None):
+        super(Hexagon, self).__init__(parent)
+
+    def setData(self, position, radius, height, color, normal=None, copy=True):
+        self._setData(position, radius, height, color, 6, normal, copy)
