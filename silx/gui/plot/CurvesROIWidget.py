@@ -33,7 +33,7 @@ ROI are defined by :
   This can be used to apply or not some ROI to a curve and do some post processing.
 - The x coordinate of the left limit (`from` column)
 - The x coordinate of the right limit (`to` column)
-- Raw counts: Points values sum of the curve in the defined Region Of Intereset.
+- Raw counts: Sum of the curve's values in the defined Region Of Intereset.
 
   .. image:: img/rawCounts.png
 
