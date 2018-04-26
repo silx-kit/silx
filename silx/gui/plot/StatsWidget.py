@@ -165,12 +165,6 @@ class StatsTable(TableWidget):
 
     COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
 
-    # FORMATED_COLUMNS = ('mean', 'com', 'std', 'delta', 'min', 'max', 'delta')
-    # """The Columns for which we want to apply a specific format"""
-    #
-    #
-    # """The format to apply to the `FORMATED_COLUMNS`"""
-
     def __init__(self, parent=None, plot=None):
         qt.QTableWidget.__init__(self, parent)
         """Next freeID for the curve"""
