@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/04/2018"
+__date__ = "26/04/2018"
 
 import weakref
 import logging
@@ -55,6 +55,7 @@ class ApplicationContext(DataViewHooks):
         self.__defaultColormap = None
         self.__defaultColormapDialog = None
         self.__settings = qt.QSettings("silx", "silx-view", parent=parent)
+        self.__recentFiles = []
 
     def getSettings(self):
         """Returns actual application settings.
@@ -91,6 +92,15 @@ class ApplicationContext(DataViewHooks):
                 _logger.debug("Backtrace", exc_info=True)
         settings.endGroup()
 
+        self.__recentFiles = []
+        settings.beginGroup("recent-files")
+        for index in range(1, 10 + 1):
+            if not settings.contains("path%d" % index):
+                break
+            filePath = settings.value("path%d" % index)
+            self.__recentFiles.append(filePath)
+        settings.endGroup()
+
     def saveSettings(self):
         """Save the settings of all the application"""
         settings = self.__settings
@@ -107,6 +117,47 @@ class ApplicationContext(DataViewHooks):
         plotBackend = PlotWidget.DEFAULT_BACKEND
         settings.setValue("plot.backend", plotBackend)
         settings.endGroup()
+
+        settings.beginGroup("recent-files")
+        for index in range(0, 11):
+            key = "path%d" % (index + 1)
+            if index < len(self.__recentFiles):
+                filePath = self.__recentFiles[index]
+                settings.setValue(key, filePath)
+            else:
+                settings.remove(key)
+        settings.endGroup()
+
+    def getRecentFiles(self):
+        """Returns the list of recently opened files.
+
+        The list is limited to the last 10 entries. The newest file path is
+        in first.
+
+        :rtype: List[str]
+        """
+        return self.__recentFiles
+
+    def pushRecentFile(self, filePath):
+        """Push a new recent file to the list.
+
+        If the file is duplicated in the list, all duplications are removed
+        before inserting the new filePath.
+
+        If the list becan bigger than 10 items, oldest paths are removed.
+
+        :param filePath: File path to push
+        """
+        # Remove old occurencies
+        self.__recentFiles[:] = (f for f in self.__recentFiles if f != filePath)
+        self.__recentFiles.insert(0, filePath)
+        while len(self.__recentFiles) > 10:
+            self.__recentFiles.pop()
+
+    def clearRencentFiles(self):
+        """Clear the history of the rencent files.
+        """
+        self.__recentFiles[:] = []
 
     def getColormap(self, view):
         """Returns a default colormap.
