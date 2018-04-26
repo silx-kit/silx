@@ -25,12 +25,13 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/04/2018"
+__date__ = "26/04/2018"
 
 
 import os
 import collections
 import logging
+import functools
 
 from silx.gui import qt
 from .ApplicationContext import ApplicationContext
@@ -167,6 +168,11 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.open)
         self._openAction = action
 
+        action = qt.QAction("Open Recent", self)
+        action.setStatusTip("Open a recently openned file")
+        action.triggered.connect(self.open)
+        self._openRecentAction = action
+
         action = qt.QAction("&About", self)
         action.setStatusTip("Show the application's About box")
         action.triggered.connect(self.about)
@@ -189,6 +195,35 @@ class Viewer(qt.QMainWindow):
         group.addAction(action)
         self._usePlotWithOpengl = action
 
+    def fileOpened(self, fileName):
+        self.__context.pushRecentFile(fileName)
+
+    def __updateFileMenu(self):
+        files = self.__context.getRecentFiles()
+        self._openRecentAction.setEnabled(len(files) != 0)
+        menu = None
+        if len(files) != 0:
+            menu = qt.QMenu()
+            for filePath in files:
+                baseName = os.path.basename(filePath)
+                action = qt.QAction(baseName, self)
+                action.setToolTip(filePath)
+                action.triggered.connect(functools.partial(self.__openRecentFile, filePath))
+                menu.addAction(action)
+            menu.addSeparator()
+            baseName = os.path.basename(filePath)
+            action = qt.QAction("Clear history", self)
+            action.setToolTip("Clear the history of the recent files")
+            action.triggered.connect(self.__clearRecentFile)
+            menu.addAction(action)
+        self._openRecentAction.setMenu(menu)
+
+    def __clearRecentFile(self):
+        self.__context.clearRencentFiles()
+
+    def __openRecentFile(self, filePath):
+        self.appendFile(filePath)
+
     def __updateOptionMenu(self):
         """Update the state of the checked options as it is based on global
         environment values."""
@@ -210,8 +245,10 @@ class Viewer(qt.QMainWindow):
     def createMenus(self):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self._openAction)
+        fileMenu.addAction(self._openRecentAction)
         fileMenu.addSeparator()
         fileMenu.addAction(self._exitAction)
+        fileMenu.aboutToShow.connect(self.__updateFileMenu)
         optionMenu = self.menuBar().addMenu("&Options")
         optionMenu.addAction(self._usePlotWithMatplotlib)
         optionMenu.addAction(self._usePlotWithOpengl)
@@ -286,6 +323,7 @@ class Viewer(qt.QMainWindow):
 
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)
+        self.fileOpened(filename)
 
     def displayData(self):
         """Called to update the dataviewer with the selected data.
