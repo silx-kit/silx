@@ -164,7 +164,6 @@ class _Fill2D(object):
         prog = self._programs[transform]
         prog.use()
 
-        matrix = numpy.array(matrix, dtype=numpy.float64)
         normalizationMatrix = numpy.array(((self._scale[0], 0., 0., self._offset[0]),
                                            (0., self._scale[1], 0., self._offset[1]),
                                            (0., 0., 1., 0.),
@@ -419,7 +418,6 @@ class _Lines2D(object):
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        matrix = numpy.array(matrix, dtype=numpy.float64)
         normalizationMatrix = numpy.array(((self._scale[0], 0., 0., self._offset[0]),
                                            (0., self._scale[1], 0., self._offset[1]),
                                            (0., 0., 1., 0.),
@@ -459,7 +457,6 @@ class _Lines2D(object):
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        matrix = numpy.array(matrix, dtype=numpy.float64)
         normalizationMatrix = numpy.array(((self._scale[0], 0., 0., self._offset[0]),
                                            (0., self._scale[1], 0., self._offset[1]),
                                            (0., 0., 1., 0.),
@@ -776,7 +773,6 @@ class _Points2D(object):
         prog = self._getProgram(transform, self.marker)
         prog.use()
 
-        matrix = numpy.array(matrix, dtype=numpy.float64)
         normalizationMatrix = numpy.array(((self._scale[0], 0., 0., self._offset[0]),
                                            (0., self._scale[1], 0., self._offset[1]),
                                            (0., 0., 1., 0.),

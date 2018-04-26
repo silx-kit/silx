@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -350,8 +350,11 @@ class GLPlotColormap(_GLPlotData2D):
 
         gl.glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
 
-        mat = matrix * mat4Translate(*self.origin) * mat4Scale(*self.scale)
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, mat)
+        mat = numpy.dot(numpy.dot(matrix,
+                                  mat4Translate(*self.origin)),
+                        mat4Scale(*self.scale))
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              mat.astype(numpy.float32))
 
         gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
 
@@ -377,9 +380,11 @@ class GLPlotColormap(_GLPlotData2D):
 
         gl.glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
 
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
-        mat = mat4Translate(ox, oy) * mat4Scale(*self.scale)
-        gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE, mat)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              matrix.astype(numpy.float32))
+        mat = numpy.dot(mat4Translate(ox, oy), mat4Scale(*self.scale))
+        gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE,
+                              mat.astype(numpy.float32))
 
         gl.glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
 
@@ -598,8 +603,10 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         gl.glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
 
-        mat = matrix * mat4Translate(*self.origin) * mat4Scale(*self.scale)
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, mat)
+        mat = numpy.dot(numpy.dot(matrix, mat4Translate(*self.origin)),
+                        mat4Scale(*self.scale))
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              mat.astype(numpy.float32))
 
         gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
 
@@ -617,9 +624,11 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         gl.glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
 
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
-        mat = mat4Translate(ox, oy) * mat4Scale(*self.scale)
-        gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE, mat)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              matrix.astype(numpy.float32))
+        mat = numpy.dot(mat4Translate(ox, oy), mat4Scale(*self.scale))
+        gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE,
+                              mat.astype(numpy.float32))
 
         gl.glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
 

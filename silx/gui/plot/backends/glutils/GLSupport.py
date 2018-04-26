@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -158,35 +158,35 @@ class Shape2D(object):
 
 def mat4Ortho(left, right, bottom, top, near, far):
     """Orthographic projection matrix (row-major)"""
-    return numpy.matrix((
+    return numpy.array((
         (2./(right - left), 0., 0., -(right+left)/float(right-left)),
         (0., 2./(top - bottom), 0., -(top+bottom)/float(top-bottom)),
         (0., 0., -2./(far-near),    -(far+near)/float(far-near)),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+        (0., 0., 0., 1.)), dtype=numpy.float64)
 
 
 def mat4Translate(x=0., y=0., z=0.):
     """Translation matrix (row-major)"""
-    return numpy.matrix((
+    return numpy.array((
         (1., 0., 0., x),
         (0., 1., 0., y),
         (0., 0., 1., z),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+        (0., 0., 0., 1.)), dtype=numpy.float64)
 
 
 def mat4Scale(sx=1., sy=1., sz=1.):
     """Scale matrix (row-major)"""
-    return numpy.matrix((
+    return numpy.array((
         (sx, 0., 0., 0.),
         (0., sy, 0., 0.),
         (0., 0., sz, 0.),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+        (0., 0., 0., 1.)), dtype=numpy.float64)
 
 
 def mat4Identity():
     """Identity matrix"""
-    return numpy.matrix((
+    return numpy.array((
         (1., 0., 0., 0.),
         (0., 1., 0., 0.),
         (0., 0., 1., 0.),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+        (0., 0., 0., 1.)), dtype=numpy.float64)
