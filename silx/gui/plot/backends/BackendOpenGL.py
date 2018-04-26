@@ -499,7 +499,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         gl.glUniform1i(self._progTex.uniforms['tex'], texUnit)
         gl.glUniformMatrix4fv(self._progTex.uniforms['matrix'], 1, gl.GL_TRUE,
-                              mat4Identity())
+                              mat4Identity().astype(numpy.float32))
 
         stride = self._plotVertices.shape[-1] * self._plotVertices.itemsize
         gl.glEnableVertexAttribArray(self._progTex.attributes['position'])
@@ -663,8 +663,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         # Prepare vertical and horizontal markers rendering
         self._progBase.use()
-        gl.glUniformMatrix4fv(self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                              self._plotFrame.transformedDataProjMat)
+        gl.glUniformMatrix4fv(
+            self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
+            self._plotFrame.transformedDataProjMat.astype(numpy.float32))
         gl.glUniform2i(self._progBase.uniforms['isLog'], isXLog, isYLog)
         gl.glUniform1i(self._progBase.uniforms['hatchStep'], 0)
         gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
@@ -802,8 +803,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               self._plotFrame.margins.bottom,
                               plotWidth, plotHeight)
 
-                gl.glUniformMatrix4fv(matrixUnif, 1, gl.GL_TRUE,
-                                      self._plotFrame.transformedDataProjMat)
+                gl.glUniformMatrix4fv(
+                    matrixUnif, 1, gl.GL_TRUE,
+                    self._plotFrame.transformedDataProjMat.astype(numpy.float32))
 
                 for shape in self._selectionAreas.values():
                     if shape.isVideoInverted:
@@ -821,7 +823,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
                 gl.glUniformMatrix4fv(matrixUnif, 1, gl.GL_TRUE,
-                                      self.matScreenProj)
+                                      self.matScreenProj.astype(numpy.float32))
 
                 color, lineWidth = self._crosshairCursor
                 gl.glUniform4f(colorUnif, *color)
@@ -884,7 +886,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         self._progBase.use()
         gl.glUniformMatrix4fv(self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                              self.matScreenProj)
+                              self.matScreenProj.astype(numpy.float32))
         gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
         gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
 
