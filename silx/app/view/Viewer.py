@@ -196,6 +196,23 @@ class Viewer(qt.QMainWindow):
         group.addAction(action)
         self._usePlotWithOpengl = action
 
+        group = qt.QActionGroup(self)
+        group.setExclusive(True)
+
+        action = qt.QAction("Plot image origin on top", self)
+        action.setStatusTip("Plot images will use a downward Y-axis orientation")
+        action.setCheckable(True)
+        action.triggered.connect(self.__forcePlotImageDownward)
+        group.addAction(action)
+        self._useYAxisOrientationDownward = action
+
+        action = qt.QAction("Plot image origin on bottom", self)
+        action.setStatusTip("Plot images will use a upward Y-axis orientation")
+        action.setCheckable(True)
+        action.triggered.connect(self.__forcePlotImageUpward)
+        group.addAction(action)
+        self._useYAxisOrientationUpward = action
+
     def fileOpened(self, fileName):
         self.__context.pushRecentFile(fileName)
 
@@ -242,6 +259,20 @@ class Viewer(qt.QMainWindow):
             title += " (applied after application restart)"
         action.setText(title)
 
+        action = self._useYAxisOrientationDownward
+        action.setChecked(silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward")
+        title = action.text().split(" (", 1)[0]
+        if not action.isChecked():
+            title += " (applied after application restart)"
+        action.setText(title)
+
+        action = self._useYAxisOrientationUpward
+        action.setChecked(silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION != "downward")
+        title = action.text().split(" (", 1)[0]
+        if not action.isChecked():
+            title += " (applied after application restart)"
+        action.setText(title)
+
     def createMenus(self):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self._openAction)
@@ -249,10 +280,15 @@ class Viewer(qt.QMainWindow):
         fileMenu.addSeparator()
         fileMenu.addAction(self._exitAction)
         fileMenu.aboutToShow.connect(self.__updateFileMenu)
+
         optionMenu = self.menuBar().addMenu("&Options")
+        optionMenu.addAction(self._useYAxisOrientationDownward)
+        optionMenu.addAction(self._useYAxisOrientationUpward)
+        optionMenu.addSeparator()
         optionMenu.addAction(self._usePlotWithMatplotlib)
         optionMenu.addAction(self._usePlotWithOpengl)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
+
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
 
@@ -312,6 +348,12 @@ class Viewer(qt.QMainWindow):
     def about(self):
         from .About import About
         About.about(self, "Silx viewer")
+
+    def __forcePlotImageDownward(self):
+        silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "downward"
+
+    def __forcePlotImageUpward(self):
+        silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "upward"
 
     def __forceMatplotlibBackend(self):
         silx.config.DEFAULT_PLOT_BACKEND = "matplotlib"

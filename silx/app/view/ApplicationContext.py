@@ -70,10 +70,13 @@ class ApplicationContext(DataViewHooks):
         settings = self.__settings
         settings.beginGroup("library")
         plotBackend = settings.value("plot.backend", "")
+        plotImageYAxisOrientation = settings.value("plot-image.y-axis-orientation", "")
         settings.endGroup()
 
         if plotBackend != "":
             silx.config.DEFAULT_PLOT_BACKEND = plotBackend
+        if plotImageYAxisOrientation != "":
+            silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = plotImageYAxisOrientation
 
     def restoreSettings(self):
         """Restore the settings of all the application"""
@@ -113,8 +116,8 @@ class ApplicationContext(DataViewHooks):
             settings.endGroup()
 
         settings.beginGroup("library")
-        plotBackend = silx.config.DEFAULT_PLOT_BACKEND
-        settings.setValue("plot.backend", plotBackend)
+        settings.setValue("plot.backend", silx.config.DEFAULT_PLOT_BACKEND)
+        settings.setValue("plot-image.y-axis-orientation", silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION)
         settings.endGroup()
 
         settings.beginGroup("recent-files")
