@@ -37,7 +37,7 @@ from silx.utils.property import classproperty
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/02/2018"
+__date__ = "24/04/2018"
 
 
 _logger = logging.getLogger(__name__)
@@ -167,8 +167,10 @@ class DataViewer(qt.QFrame):
         self.__currentAvailableViews = []
         self.__currentView = None
         self.__data = None
+        self.__info = None
         self.__useAxisSelection = False
         self.__userSelectedView = None
+        self.__hooks = None
 
         self.__views = []
         self.__index = {}
@@ -181,6 +183,15 @@ class DataViewer(qt.QFrame):
         views = self.createDefaultViews(self.__stack)
         self.__views = list(views)
         self.setDisplayMode(DataViews.EMPTY_MODE)
+
+    def setGlobalHooks(self, hooks):
+        """Set a data view hooks for all the views
+
+        :param DataViewHooks context: The hooks to use
+        """
+        self.__hooks = hooks
+        for v in self.__views:
+            v.setHooks(hooks)
 
     def createDefaultViews(self, parent=None):
         """Create and returns available views which can be displayed by default
@@ -250,7 +261,7 @@ class DataViewer(qt.QFrame):
         """
         previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
-        info = DataViews.DataInfo(self.__data)
+        info = self._getInfo()
         axisNames = self.__currentView.axesNames(self.__data, info)
         if info.isArray and info.size != 0 and self.__data is not None and axisNames is not None:
             self.__useAxisSelection = True
@@ -359,6 +370,8 @@ class DataViewer(qt.QFrame):
 
         :param DataView view: A dataview
         """
+        if self.__hooks is not None:
+            view.setHooks(self.__hooks)
         self.__views.append(view)
         # TODO It can be skipped if the view do not support the data
         self.__updateAvailableViews()
@@ -390,8 +403,8 @@ class DataViewer(qt.QFrame):
         Update available views from the current data.
         """
         data = self.__data
+        info = self._getInfo()
         # sort available views according to priority
-        info = DataViews.DataInfo(data)
         priorities = [v.getDataPriority(data, info) for v in self.__views]
         views = zip(priorities, self.__views)
         views = filter(lambda t: t[0] > DataViews.DataView.UNSUPPORTED, views)
@@ -490,6 +503,7 @@ class DataViewer(qt.QFrame):
         :param numpy.ndarray data: The data.
         """
         self.__data = data
+        self._invalidateInfo()
         self.__displayedData = None
         self.__updateView()
         self.__updateNumpySelectionAxis()
@@ -511,6 +525,21 @@ class DataViewer(qt.QFrame):
     def data(self):
         """Returns the data"""
         return self.__data
+
+    def _invalidateInfo(self):
+        """Invalidate DataInfo cache."""
+        self.__info = None
+
+    def _getInfo(self):
+        """Returns the DataInfo of the current selected data.
+
+        This value is cached.
+
+        :rtype: DataInfo
+        """
+        if self.__info is None:
+            self.__info = DataViews.DataInfo(self.__data)
+        return self.__info
 
     def displayMode(self):
         """Returns the current display mode"""
@@ -552,6 +581,8 @@ class DataViewer(qt.QFrame):
         isReplaced = False
         for idx, view in enumerate(self.__views):
             if view.modeId() == modeId:
+                if self.__hooks is not None:
+                    newView.setHooks(self.__hooks)
                 self.__views[idx] = newView
                 isReplaced = True
                 break

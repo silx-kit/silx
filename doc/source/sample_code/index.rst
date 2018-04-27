@@ -142,7 +142,7 @@ Widgets
      - .. image:: img/colormapDialog.png
          :height: 150px
          :align: center
-     - This script shows the features of a :mod:`~silx.gui.plot.ColormapDialog`.
+     - This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
 
 :class:`silx.gui.plot.actions.PlotAction`
 .........................................
@@ -254,14 +254,13 @@ Sample code that adds specific tools or functions to plot widgets.
      - This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
 
        The problem is that plot and GUI methods should be called from the main thread.
-       To safely update the plot from another thread, one need to make the update
-       asynchronously from the main thread.
-       In this example, this is achieved through a Qt signal.
+       To safely update the plot from another thread, one need to execute the update
+       asynchronously in the main thread.
+       In this example, this is achieved with
+       :func:`~silx.gui.utils.concurrent.submitToQtMainThread`.
 
-       In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot1D`
-       that adds a thread-safe method to add curves:
-       :meth:`ThreadSafePlot1D.addCurveThreadSafe`.
-       This thread-safe method is then called from a thread to update the plot.
+       In this example a thread calls submitToQtMainThread to update the curve
+       of a plot.
    * - :download:`plotUpdateImageFromThread.py <../../../examples/plotUpdateImageFromThread.py>`
      - .. image:: img/plotUpdateImageFromThread.png
          :height: 150px
@@ -269,13 +268,13 @@ Sample code that adds specific tools or functions to plot widgets.
      - This script illustrates the update of a :mod:`silx.gui.plot` widget from a thread.
 
        The problem is that plot and GUI methods should be called from the main thread.
-       To safely update the plot from another thread, one need to make the update
-       asynchronously from the main thread.
-       In this example, this is achieved through a Qt signal.
+       To safely update the plot from another thread, one need to execute the update
+       asynchronously in the main thread.
+       In this example, this is achieved with
+       :func:`~silx.gui.utils.concurrent.submitToQtMainThread`.
 
-       In this example we create a subclass of :class:`~silx.gui.plot.PlotWindow.Plot2D`
-       that adds a thread-safe method to add images: :meth:`ThreadSafePlot1D.addImageThreadSafe`.
-       This thread-safe method is then called from a thread to update the plot.
+       In this example a thread calls submitToQtMainThread to update the curve
+       of a plot.
    * - :download:`printPreview.py <../../../examples/printPreview.py>`
      - .. image:: img/printPreview.png
          :height: 150px

@@ -22,19 +22,17 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script illustrates the update of a :mod:`silx.gui.plot` widget from a
-thread.
+"""This script illustrates the update of a :class:`~silx.gui.plot.Plot2D`
+widget from a thread.
 
 The problem is that plot and GUI methods should be called from the main thread.
-To safely update the plot from another thread, one need to make the update
-asynchronously from the main thread.
-In this example, this is achieved through a Qt signal.
+To safely update the plot from another thread, one need to execute the update
+asynchronously in the main thread.
+In this example, this is achieved with
+:func:`~silx.gui.utils.concurrent.submitToQtMainThread`.
 
-In this example we create a subclass of
-:class:`~silx.gui.plot.PlotWindow.Plot2D`
-that adds a thread-safe method to add images:
-:meth:`ThreadSafePlot1D.addImageThreadSafe`.
-This thread-safe method is then called from a thread to update the plot.
+In this example a thread calls submitToQtMainThread to update the image
+of a plot.
 
 Update from 1d to 2d example by Hans Fangohr, European XFEL GmbH, 26 Feb 2018.
 """
@@ -50,6 +48,7 @@ import time
 import numpy
 
 from silx.gui import qt
+from silx.gui.utils import concurrent
 from silx.gui.plot import Plot2D
 
 
@@ -57,44 +56,15 @@ Nx = 150
 Ny = 50
 
 
-class ThreadSafePlot2D(Plot2D):
-    """Add a thread-safe :meth:`addImageThreadSafe` method to Plot2D.
-    """
-
-    _sigAddImage = qt.Signal(tuple, dict)
-    """Signal used to perform addImage in the main thread.
-
-    It takes args and kwargs as arguments.
-    """
-
-    def __init__(self, parent=None):
-        super(ThreadSafePlot2D, self).__init__(parent)
-        # Connect the signal to the method actually calling addImage
-        self._sigAddImage.connect(self.__addImage)
-
-    def __addImage(self, args, kwargs):
-        """Private method calling addImage from _sigAddImage"""
-        self.addImage(*args, **kwargs)
-
-    def addImageThreadSafe(self, *args, **kwargs):
-        """Thread-safe version of :meth:`silx.gui.plot.Plot.addImage`
-
-        This method takes the same arguments as Plot.addImage.
-
-        WARNING: This method does not return a value as opposed to
-        Plot.addImage
-        """
-        self._sigAddImage.emit(args, kwargs)
-
-
 class UpdateThread(threading.Thread):
-    """Thread updating the image of a :class:`ThreadSafePlot2D`
+    """Thread updating the image of a :class:`~sil.gui.plot.Plot2D`
 
-    :param plot2d: The ThreadSafePlot2D to update."""
+    :param plot2d: The Plot2D to update."""
 
     def __init__(self, plot2d):
         self.plot2d = plot2d
         self.running = False
+        self.future_result = None
         super(UpdateThread, self).__init__()
 
     def start(self):
@@ -103,12 +73,15 @@ class UpdateThread(threading.Thread):
         super(UpdateThread, self).start()
 
     def run(self, pos={'x0': 0, 'y0': 0}):
-        """Method implementing thread loop that updates the plot"""
+        """Method implementing thread loop that updates the plot
+
+        It produces an image every 10 ms or so, and
+        either updates the plot or skip the image
+        """
         while self.running:
-            time.sleep(1)
-            # pixels in plot (defined at beginning of file)
-            # Nx = 70
-            # Ny = 50
+            time.sleep(0.01)
+
+            # Create image
             # width of peak
             sigma_x = 0.15
             sigma_y = 0.25
@@ -123,8 +96,13 @@ class UpdateThread(threading.Thread):
             # random walk of center of peak ('drift')
             pos['x0'] += 0.05 * (numpy.random.random() - 0.5)
             pos['y0'] += 0.05 * (numpy.random.random() - 0.5)
-            # plot the data
-            self.plot2d.addImage(signal, replace=True, resetzoom=False)
+
+            # If previous frame was not added to the plot yet, skip this one
+            if self.future_result is None or self.future_result.done():
+                # plot the data asynchronously, and
+                # keep a reference to the `future` object
+                self.future_result = concurrent.submitToQtMainThread(
+                    self.plot2d.addImage, signal, resetzoom=False)
 
     def stop(self):
         """Stop the update thread"""
@@ -136,12 +114,13 @@ def main():
     global app
     app = qt.QApplication([])
 
-    # Create a ThreadSafePlot2D, set its limits and display it
-    plot2d = ThreadSafePlot2D()
+    # Create a Plot2D, set its limits and display it
+    plot2d = Plot2D()
     plot2d.setLimits(0, Nx, 0, Ny)
+    plot2d.getDefaultColormap().setVRange(0., 1.5)
     plot2d.show()
 
-    # Create the thread that calls ThreadSafePlot2D.addImageThreadSafe
+    # Create the thread that calls submitToQtMainThread
     updateThread = UpdateThread(plot2d)
     updateThread.start()  # Start updating the plot
 

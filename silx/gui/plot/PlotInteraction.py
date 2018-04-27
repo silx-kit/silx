@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "24/04/2018"
 
 
 import math
@@ -34,7 +34,7 @@ import numpy
 import time
 import weakref
 
-from . import Colors
+from .. import colors
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
@@ -1419,7 +1419,7 @@ class PlotInteraction(object):
         assert plot is not None
 
         if color not in (None, 'video inverted'):
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
 
         if mode == 'draw':
             assert shape in self._DRAW_MODES

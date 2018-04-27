@@ -1,16 +1,16 @@
 
-.. currentmodule:: silx.gui.plot.Colormap
+.. currentmodule:: silx.gui.colors
 
 :mod:`Colormap`: Colormap API
 =============================
 
-.. automodule:: silx.gui.plot.Colormap
+.. automodule:: silx.gui.colors
 
-.. currentmodule:: silx.gui.plot.Colormap
+.. currentmodule:: silx.gui.colors
 
 :class:`Colormap` class
 -----------------------
 
-.. autoclass:: Colormap
+.. autoclass:: silx.gui.colors.Colormap
    :show-inheritance:
    :members:

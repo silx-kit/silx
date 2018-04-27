@@ -29,14 +29,60 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "24/04/2018"
 
 import unittest
 import numpy
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.plot.Colormap import Colormap
-from silx.gui.plot.Colormap import preferredColormaps, setPreferredColormaps
+from silx.gui import colors
+from silx.gui.colors import Colormap
+from silx.gui.colors import preferredColormaps, setPreferredColormaps
 from silx.utils.exceptions import NotEditableError
+
+
+class TestRGBA(ParametricTestCase):
+    """Basic tests of rgba function"""
+
+    def testRGBA(self):
+        """"Test rgba function with accepted values"""
+        tests = {  # name: (colors, expected values)
+            'blue': ('blue', (0., 0., 1., 1.)),
+            '#010203': ('#010203', (1. / 255., 2. / 255., 3. / 255., 1.)),
+            '#01020304': ('#01020304', (1. / 255., 2. / 255., 3. / 255., 4. / 255.)),
+            '3 x uint8': (numpy.array((1, 255, 0), dtype=numpy.uint8),
+                          (1 / 255., 1., 0., 1.)),
+            '4 x uint8': (numpy.array((1, 255, 0, 1), dtype=numpy.uint8),
+                          (1 / 255., 1., 0., 1 / 255.)),
+            '3 x float overflow': ((3., 0.5, 1.), (1., 0.5, 1., 1.)),
+        }
+
+        for name, test in tests.items():
+            color, expected = test
+            with self.subTest(msg=name):
+                result = colors.rgba(color)
+                self.assertEqual(result, expected)
+
+
+class TestApplyColormapToData(ParametricTestCase):
+    """Tests of applyColormapToData function"""
+
+    def testApplyColormapToData(self):
+        """Simple test of applyColormapToData function"""
+        colormap = Colormap(name='gray', normalization='linear',
+                            vmin=0, vmax=255)
+
+        size = 10
+        expected = numpy.empty((size, 4), dtype='uint8')
+        expected[:, 0] = numpy.arange(size, dtype='uint8')
+        expected[:, 1] = expected[:, 0]
+        expected[:, 2] = expected[:, 0]
+        expected[:, 3] = 255
+
+        for dtype in ('uint8', 'int32', 'float32', 'float64'):
+            with self.subTest(dtype=dtype):
+                array = numpy.arange(size, dtype=dtype)
+                result = colormap.applyToData(data=array)
+                self.assertTrue(numpy.all(numpy.equal(result, expected)))
 
 
 class TestDictAPI(unittest.TestCase):
@@ -289,7 +335,7 @@ class TestObjectAPI(ParametricTestCase):
             ((0, 0, 0, 255), (255, 255, 255, 255)))))
 
     def testEditableMode(self):
-        """Make sure the colormap will raise NotEditableError when try to 
+        """Make sure the colormap will raise NotEditableError when try to
         change a colormap not editable"""
         colormap = Colormap()
         colormap.setEditable(False)
@@ -342,10 +388,12 @@ class TestPreferredColormaps(unittest.TestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for ui in (TestDictAPI, TestObjectAPI, TestPreferredColormaps):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(ui))
-
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestApplyColormapToData))
+    test_suite.addTest(loadTests(TestRGBA))
+    test_suite.addTest(loadTests(TestDictAPI))
+    test_suite.addTest(loadTests(TestObjectAPI))
+    test_suite.addTest(loadTests(TestPreferredColormaps))
     return test_suite
 
 

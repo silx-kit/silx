@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "17/08/2017"
+__date__ = "24/04/2018"
 
 
 import weakref
@@ -40,7 +40,7 @@ from silx.image.bilinear import BilinearImage
 from .. import icons
 from .. import qt
 from . import items
-from .Colors import cursorColorForColormap
+from ..colors import cursorColorForColormap
 from . import actions
 from .PlotToolButtons import ProfileToolButton
 from .ProfileMainWindow import ProfileMainWindow

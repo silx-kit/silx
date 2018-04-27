@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "24/04/2018"
 
 
 import unittest
@@ -50,7 +50,7 @@ import silx.io.url
 from silx.gui import qt
 from silx.gui.test import utils
 from ..ImageFileDialog import ImageFileDialog
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.hdf5 import Hdf5TreeModel
 
 _tmpDirectory = None

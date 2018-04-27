@@ -35,4 +35,5 @@ Public modules:
    datafiledialog.rst
    abstractdatafiledialog.rst
    groupdialog.rst
+   colormapdialog.rst
 
