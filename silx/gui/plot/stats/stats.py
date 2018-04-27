@@ -291,7 +291,7 @@ class StatBase(object):
 
 class Stat(StatBase):
     """
-    Create a StatBase class based on pointer on the function.
+    Create a StatBase class based on a function pointer.
     
     :param str name: name of the statistic. Used as id
     :param fct: function which should have as unique mandatory parameter the
