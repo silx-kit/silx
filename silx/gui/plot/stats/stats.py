@@ -258,6 +258,14 @@ class ImageContext(StatsContext):
         self.values = self.data
 
 
+BASIC_COMPATIBLE_KINDS = {
+    'curve': CurveItem,
+    'image': ImageItem,
+    'scatter': ScatterItem,
+    'histogram': HistogramItem,
+}
+
+
 class StatBase(object):
     """
     Base class for defining a statistic.
@@ -267,7 +275,7 @@ class StatBase(object):
                             the statistic apply.
     :rtype: tuple or list
     """
-    def __init__(self, name, compatibleKinds):
+    def __init__(self, name, compatibleKinds=BASIC_COMPATIBLE_KINDS):
         self.name = name
         self.compatibleKinds = compatibleKinds
 
@@ -279,14 +287,6 @@ class StatBase(object):
         :return dict: key is stat name, statistic computed is the dict value
         """
         raise NotImplementedError('Base class')
-
-
-BASIC_COMPATIBLE_KINDS = {
-    'curve': CurveItem,
-    'image': ImageItem,
-    'scatter': ScatterItem,
-    'histogram': HistogramItem,
-}
 
 
 class Stat(StatBase):
@@ -318,8 +318,7 @@ class StatMin(StatBase):
     Compute the minimal value on data
     """
     def __init__(self):
-        StatBase.__init__(self, name='min',
-                          compatibleKinds=BASIC_COMPATIBLE_KINDS)
+        StatBase.__init__(self, name='min')
 
     def calculate(self, context):
         return context.min
@@ -330,8 +329,7 @@ class StatMax(StatBase):
     Compute the maximal value on data
     """
     def __init__(self):
-        StatBase.__init__(self, name='max',
-                          compatibleKinds=BASIC_COMPATIBLE_KINDS)
+        StatBase.__init__(self, name='max')
 
     def calculate(self, context):
         return context.max
@@ -342,8 +340,7 @@ class StatDelta(StatBase):
     Compute the delta between minimal and maximal on data
     """
     def __init__(self):
-        StatBase.__init__(self, name='delta',
-                          compatibleKinds=BASIC_COMPATIBLE_KINDS)
+        StatBase.__init__(self, name='delta')
 
     def calculate(self, context):
         return context.max - context.min
@@ -380,8 +377,7 @@ class StatCoordMin(StatBase):
     Compute the coordinates of the data minimal value
     """
     def __init__(self):
-        StatBase.__init__(self, name='coords min',
-                          compatibleKinds=BASIC_COMPATIBLE_KINDS)
+        StatBase.__init__(self, name='coords min')
 
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
@@ -400,8 +396,7 @@ class StatCoordMax(StatBase):
     Compute the coordinates of the data minimal value
     """
     def __init__(self):
-        StatBase.__init__(self, name='coords max',
-                          compatibleKinds=BASIC_COMPATIBLE_KINDS)
+        StatBase.__init__(self, name='coords max')
 
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
@@ -420,8 +415,7 @@ class StatCOM(StatBase):
     Compute data center of mass
     """
     def __init__(self):
-        StatBase.__init__(self, name='COM',
-                          compatibleKinds=BASIC_COMPATIBLE_KINDS)
+        StatBase.__init__(self, name='COM')
 
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
