@@ -50,12 +50,11 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "24/04/2018"
 
 from . import PlotAction
 import logging
 from silx.gui.plot import items
-from silx.gui.plot.ColormapDialog import ColormapDialog
 from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.gui import qt
 from silx.gui import icons
@@ -344,6 +343,7 @@ class ColormapAction(PlotAction):
         :parent QWidget parent: Parent of the new colormap
         :rtype: ColormapDialog
         """
+        from silx.gui.dialog.ColormapDialog import ColormapDialog
         dialog = ColormapDialog(parent=parent)
         dialog.setModal(False)
         return dialog
@@ -408,7 +408,7 @@ class ColorBarAction(PlotAction):
     :param parent: See :class:`QAction`
     """
     def __init__(self, plot, parent=None):
-        self._dialog = None  # To store an instance of ColormapDialog
+        self._dialog = None  # To store an instance of ColorBar
         super(ColorBarAction, self).__init__(
             plot, icon='colorbar', text='Colorbar',
             tooltip="Show/Hide the colorbar",

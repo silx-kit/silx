@@ -30,7 +30,7 @@ from __future__ import absolute_import, division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/01/2018"
+__date__ = "24/04/2018"
 
 
 import functools
@@ -41,7 +41,7 @@ import numpy
 from silx.third_party import six
 
 from ...utils._image import convertArrayToQImage
-from ...plot.Colormap import preferredColormaps
+from ...colors import preferredColormaps
 from ... import qt, icons
 from .. import items
 from ..items.volume import Isosurface, CutPlane

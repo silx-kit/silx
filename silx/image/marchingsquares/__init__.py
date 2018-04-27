@@ -77,9 +77,9 @@ def find_pixels(image, level, mask=None, engine="merge"):
     :param float level: Level of the requested iso contours.
     :param numpy.ndarray mask: An optional mask (a non-zero value invalidate
         the pixels of the image)
-    :param str engine: Engine to use. Currently 2 implentations are available.
+    :param str engine: Engine to use. Currently 2 implementations are available.
 
-        - `merge`: An implentation using Cython and supporting OpenMP based on
+        - `merge`: An implementation using Cython and supporting OpenMP based on
           :class:`MarchingSquaresMergeImpl`.
         - `skimage`: Provide an implementation based on the `skimage` library. If
           it is used with a mask, the computation will not be accurate nor
@@ -114,16 +114,16 @@ def find_contours(image, level, mask=None, engine="merge"):
     :param float level: Level of the requested iso contours.
     :param numpy.ndarray mask: An optional mask (a non-zero value invalidate
         the pixels of the image)
-    :param str engine: Engine to use. Currently 2 implentations are available.
+    :param str engine: Engine to use. Currently 2 implementations are available.
 
-        - `merge`: An implentation using Cython and supporting OpenMP based on
+        - `merge`: An implementation using Cython and supporting OpenMP based on
           :class:`MarchingSquaresMergeImpl`.
         - `skimage`: Provide an implementation based on the `skimage` library. If
           it is used with a mask, the computation will not be accurate nor
           efficient. Provided to compare implementation. The `skimage` library
           have to be installed.
 
-    :returns: A list of array containg y-x coordinates of points
+    :returns: A list of array containing y-x coordinates of points
     :rtype: List[numpy.ndarray]
     """
     assert(image is not None)

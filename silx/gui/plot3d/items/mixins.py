@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/11/2017"
+__date__ = "24/04/2018"
 
 
 import collections
@@ -38,7 +38,7 @@ from silx.math.combo import min_max
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
 from ...plot.items.core import SymbolMixIn as _SymbolMixIn
-from ...plot.Colors import rgba
+from ...colors import rgba
 
 from ..scene import primitives
 from .core import Item3DChangedType, ItemChangedType

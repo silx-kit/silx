@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/11/2017"
+__date__ = "24/04/2018"
 
 
 import logging
@@ -80,6 +80,7 @@ def suite():
     # (see issue #538 on github)
     # from . import test_console
     from . import test_icons
+    from . import test_colors
 
     try:
         from ..plot3d.test import suite as test_plot3d_suite
@@ -103,6 +104,7 @@ def suite():
     test_suite.addTest(test_widgets.suite())
     # test_suite.addTest(test_console.suite())   # see issue #538 on github
     test_suite.addTest(test_icons.suite())
+    test_suite.addTest(test_colors.suite())
     test_suite.addTest(test_data.suite())
     test_suite.addTest(test_utils.suite())
     test_suite.addTest(test_plot3d_suite())

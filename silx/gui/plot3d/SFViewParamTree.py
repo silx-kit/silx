@@ -30,7 +30,7 @@ from __future__ import absolute_import
 
 __authors__ = ["D. N."]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "24/04/2018"
 
 import logging
 import sys
@@ -40,7 +40,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.icons import getQIcon
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.widgets.FloatEdit import FloatEdit
 
 from .ScalarFieldView import Isosurface

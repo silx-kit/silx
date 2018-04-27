@@ -28,11 +28,11 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/01/2018"
+__date__ = "24/04/2018"
 
 from ....gui import qt
-from ....gui.plot.Colormap import Colormap
-from ....gui.plot.ColormapDialog import ColormapDialog
+from ....gui.colors import Colormap
+from ....gui.dialog.ColormapDialog import ColormapDialog
 
 from ..items import SymbolMixIn, ColormapMixIn
 

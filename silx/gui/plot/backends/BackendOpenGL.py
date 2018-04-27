@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "24/04/2018"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -38,8 +38,7 @@ import numpy
 
 from .._utils import FLOAT32_MINPOS
 from . import BackendBase
-from .. import Colors
-from ..Colormap import Colormap
+from ... import colors
 from ... import qt
 
 from ..._glutils import gl
@@ -973,7 +972,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             color = None
         else:
             colorArray = None
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
 
         if alpha < 1.:  # Apply image transparency
             if colorArray is not None and colorArray.shape[1] == 4:
@@ -1106,7 +1105,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         self._items[legend] = {
             'shape': shape,
-            'color': Colors.rgba(color),
+            'color': colors.rgba(color),
             'fill': 'hatch' if fill else None,
             'x': x,
             'y': y
@@ -1145,7 +1144,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'y': y,
             'legend': legend,
             'text': text,
-            'color': Colors.rgba(color),
+            'color': colors.rgba(color),
             'behaviors': behaviors,
             'constraint': constraint if isConstraint else None,
             'symbol': symbol,
@@ -1204,7 +1203,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 "BackendOpenGL.setGraphCursor linestyle parameter ignored")
 
         if flag:
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
             crosshairCursor = color, linewidth
         else:
             crosshairCursor = None

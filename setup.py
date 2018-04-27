@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "18/04/2018"
+__date__ = "23/04/2018"
 __license__ = "MIT"
 
 
@@ -588,8 +588,7 @@ class BuildExt(build_ext):
             patched_exts = cythonize(
                 [ext],
                 compiler_directives={'embedsignature': True},
-                force=self.force_cython,
-                compile_time_env={"HAVE_OPENMP": self.use_openmp}
+                force=self.force_cython
             )
             ext.sources = patched_exts[0].sources
 
@@ -770,8 +769,7 @@ class SourceDistWithCython(sdist):
         cythonize(
             self.extensions,
             compiler_directives={'embedsignature': True},
-            force=True,
-            compile_time_env={"HAVE_OPENMP": False}
+            force=True
         )
 
 ################################################################################
