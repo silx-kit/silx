@@ -110,6 +110,10 @@ class StatsWidget(qt.QWidget):
         self._options.dataRangeSelection.currentTextChanged.connect(
             self._optDataRangeChanged)
 
+        self.setStats = self._statsTable.setStats
+        self.setDisplayOnlyActiveItem = self._statsTable.setDisplayOnlyActiveItem
+        self.setStatsOnVisibleData = self._statsTable.setStatsOnVisibleData
+
     def _optSelectionChanged(self, opt):
         assert opt in self.OptionsWidget.ITEM_SEL_OPTS
         self._statsTable.setDisplayOnlyActiveItem(opt == 'Active item only')
@@ -490,5 +494,9 @@ class StatsDockWidget(qt.QDockWidget):
     def __init__(self, parent=None, plot=None):
         qt.QDockWidget.__init__(self, parent)
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self._statsTable = BasicStatsWidget(parent=self, plot=plot)
-        self.setWidget(self._statsTable)
+        self._statsWidget = BasicStatsWidget(parent=self, plot=plot)
+        self.setWidget(self._statsWidget)
+
+        self.setStats = self._statsWidget.setStats
+        self.setDisplayOnlyActiveItem = self._statsWidget.setDisplayOnlyActiveItem
+        self.setStatsOnVisibleData = self._statsWidget.setStatsOnVisibleData
