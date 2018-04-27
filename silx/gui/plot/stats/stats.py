@@ -147,7 +147,10 @@ class CurveContext(StatsContext):
 
         self.xData = xData
         self.yData = yData
-        self.min, self.max = min_max(yData)
+        if len(yData) > 0:
+            self.min, self.max = min_max(yData)
+        else:
+            self.min, self.max = None, None
         self.data = (xData, yData)
         self.values = yData
 
@@ -175,7 +178,10 @@ class HistogramContext(StatsContext):
 
         self.xData = xData
         self.yData = yData
-        self.min, self.max = min_max(yData)
+        if len(yData) > 0:
+            self.min, self.max = min_max(yData)
+        else:
+            self.min, self.max = None, None
         self.data = (xData, yData)
         self.values = yData
 
@@ -207,7 +213,10 @@ class ScatterContext(StatsContext):
             valueData = valueData[(minY <= yData) & (yData <= maxY)]
             xData = xData[(minY <= yData) & (yData <= maxY)]
             yData = yData[(minY <= yData) & (yData <= maxY)]
-        self.min, self.max = min_max(valueData)
+        if len(valueData) > 0:
+            self.min, self.max = min_max(valueData)
+        else:
+            self.min, self.max = None, None
         self.data = (xData, yData, valueData)
         self.values = valueData
 
@@ -241,7 +250,10 @@ class ImageContext(StatsContext):
         YMinBound = max(YMinBound, 0)
         data = item.getData()
         self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
-        self.min, self.max = min_max(self.data)
+        if len(data) > 0:
+            self.min, self.max = min_max(self.data)
+        else:
+            self.min, self.max = None, None
         self.values = self.data
 
 
