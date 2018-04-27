@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/09/2017"
+__date__ = "24/04/2018"
 
 
 import unittest
@@ -36,7 +36,7 @@ from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
 
 from silx.gui.plot import ImageView
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 
 
 class TestImageView(TestCaseQt):

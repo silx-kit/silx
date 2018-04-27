@@ -24,16 +24,13 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/11/2017"
+__date__ = "24/04/2018"
 
 
 import unittest
 
 from .._utils import test
 from . import testColorBar
-from . import testColormap
-from . import testColormapDialog
-from . import testColors
 from . import testCurvesROIWidget
 from . import testAlphaSlider
 from . import testInteraction
@@ -60,8 +57,6 @@ def suite():
     test_suite.addTests(
         [test.suite(),
          testColorBar.suite(),
-         testColors.suite(),
-         testColormapDialog.suite(),
          testCurvesROIWidget.suite(),
          testAlphaSlider.suite(),
          testInteraction.suite(),
@@ -75,7 +70,6 @@ def suite():
          testPlotWindow.suite(),
          testProfile.suite(),
          testStackView.suite(),
-         testColormap.suite(),
          testItem.suite(),
          testUtilsAxis.suite(),
          testLimitConstraints.suite(),

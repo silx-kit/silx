@@ -142,7 +142,7 @@ Widgets
      - .. image:: img/colormapDialog.png
          :height: 150px
          :align: center
-     - This script shows the features of a :mod:`~silx.gui.plot.ColormapDialog`.
+     - This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
 
 :class:`silx.gui.plot.actions.PlotAction`
 .........................................

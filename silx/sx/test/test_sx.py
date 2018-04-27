@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/02/2018"
+__date__ = "24/04/2018"
 
 
 import logging
@@ -37,7 +37,7 @@ from silx.test.utils import test_options
 from silx.gui import qt
 # load TestCaseQt before sx
 from silx.gui.test.utils import TestCaseQt
-from silx.gui.plot.Colors import rgba
+from silx.gui.colors import rgba
 from silx import sx
 
 

@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "07/04/2017"
+__date__ = "24/04/2018"
 
 
 import math
@@ -48,7 +48,7 @@ from .. import qt
 from ...image import shapes
 
 from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
-from .Colors import cursorColorForColormap, rgba
+from ..colors import cursorColorForColormap, rgba
 
 
 _logger = logging.getLogger(__name__)
