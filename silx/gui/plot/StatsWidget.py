@@ -203,14 +203,17 @@ class StatsTable(TableWidget):
                              format them using
         :rtype: :class:`StatsHandler`
         """
-        assert isinstance(statsHandler, StatsHandler)
+        _statsHandler = statsHandler
+        if isinstance(_statsHandler, (list, tuple)):
+            _statsHandler = StatsHandler(_statsHandler)
+        assert isinstance(_statsHandler, StatsHandler)
         self._resetColumns()
         self.clear()
 
-        for statName, stat in list(statsHandler.stats.items()):
+        for statName, stat in list(_statsHandler.stats.items()):
             assert isinstance(stat, statsmdl.StatBase)
             self._columns_index[statName] = len(self._columns_index)
-        self._statsHandler = statsHandler
+        self._statsHandler = _statsHandler
         self._columns = self._columns_index.keys()
         self.setColumnCount(len(self._columns))
 
