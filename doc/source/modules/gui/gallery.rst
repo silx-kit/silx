@@ -77,7 +77,7 @@ Widgets gallery
          :align: center
      - :class:`DataFileDialog` is a dialog that allows users to select
        any datasets or groups from any HDF5-like file. It features a file
-       browser that can also browse the content of HDF5 file is if they were
+       browser that can also browse the content of HDF5 file as if they were
        directories.
    * - .. image:: dialog/img/imagefiledialog_h5.png
          :height: 150px
