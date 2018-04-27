@@ -32,6 +32,7 @@ On this example we will:
    - show sum of values for each type
    - compute curve integrals (only for 'curve').
    - compute center of mass for all possible items
+
 .. note:: for now the possible types manged by the Stats are ('curve', 'image',
           'scatter' and 'histogram')
 """

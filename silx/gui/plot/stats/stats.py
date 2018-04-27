@@ -104,6 +104,11 @@ class StatsContext(object):
     The context is designed to be a simple buffer and avoid repetition of
     calculations that can appear during stats evaluation.
 
+    .. warning:: this class gives access to the data to be used for computation
+                 . It deal with filtering data visible by the user on plot.
+                 The filtering is a simple data sub-sampling. No interpolation
+                 is made to fit data to boundaries.
+
     :param item: the item for which we want to compute the context
     :param str kind: the kind of the item
     :param plot: the plot containing the item

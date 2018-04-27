@@ -91,6 +91,13 @@ class StatsWidget(qt.QWidget):
                 self.dataRangeSelection.addItem(opt)
             self.layout().addWidget(self.dataRangeSelection)
 
+            self.dataRangeSelection.setToolTip(
+                "When visible data is activated we will process to a simple "
+                "filtering of visible data by the user.\nThe filtering is a "
+                "simple data sub-sampling.\nNo interpolation is made to fit "
+                "data to boundaries."
+            )
+
     def __init__(self, parent=None, plot=None, stats=None):
         self._stats = stats
         if stats is None:
@@ -448,6 +455,10 @@ class StatsTable(TableWidget):
 
     def setStatsOnVisibleData(self, b):
         """
+        .. warning:: When visible data is activated we will process to a simple
+                     filtering of visible data by the user. The filtering is a
+                     simple data sub-sampling. No interpolation is made to fit
+                     data to boundaries.
 
         :param bool b: True if we want to apply statistics only on visible data
         """
