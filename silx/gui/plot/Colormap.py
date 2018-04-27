@@ -36,7 +36,7 @@ import silx.utils.deprecation
 silx.utils.deprecation.deprecated_warning("Module",
                                           name="silx.gui.plot.Colormap",
                                           reason="moved",
-                                          replacement="silx.gui.utils.Colormap",
+                                          replacement="silx.gui.colors.Colormap",
                                           since_version="0.8.0",
                                           only_once=True,
                                           skip_backtrace_count=1)
