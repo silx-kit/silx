@@ -84,7 +84,8 @@ class Stats(dict):
             raise ValueError('Item type not managed')
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
-                logger.warning('kind not managed for %s' % stat.name)
+                logger.warning('kind %s not managed by statistic %s'
+                               '' % (context.kind, stat.name))
                 res[statName] = None
             else:
                 res[statName] = stat.calculate(context)
