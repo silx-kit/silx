@@ -204,6 +204,13 @@ class TestCurvesROIWidget(TestCaseQt):
         self.plot.getCurvesRoiDockWidget().setVisible(True)
         self.assertTrue(len(roiWidget.getRois()) is len(roisDefs))
 
+    def testDictCompatibility(self):
+        """Test that ROI api is valid with dict and not information is lost"""
+        roiDict = {'from': 20, 'to': 200, 'type': 'energy', 'comment': 'no',
+                   'name': 'myROI', 'calibration': [1, 2, 3]}
+        roi = CurvesROIWidget.ROI._fromDict(roiDict)
+        self.assertTrue(roi.toDict() == roiDict)
+
     def testShowAllROI(self):
         x = numpy.arange(100.)
         y = numpy.arange(100.)

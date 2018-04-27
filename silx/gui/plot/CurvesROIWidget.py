@@ -1041,23 +1041,31 @@ class ROI(qt.QObject):
 
         :return: dict containing the roi parameters
         """
-        return {
+        ddict = {
             'type': self._type,
             'name': self._name,
             'from': self._fromdata,
             'to': self._todata,
         }
+        if hasattr(self, '_extraInfo'):
+            ddict.update(self._extraInfo)
+        return ddict
 
     @staticmethod
     def _fromDict(dic):
         assert 'name' in dic
         roi = ROI(name=dic['name'])
-        if 'from' in dic:
-            roi.setFrom(dic['from'])
-        if 'to' in dic:
-            roi.setTo(dic['to'])
-        if 'type' in dic:
-            roi.setType(dic['type'])
+        roi._extraInfo = {}
+        for key in dic:
+            if key == 'from':
+                roi.setFrom(dic['from'])
+            elif key == 'to':
+                roi.setTo(dic['to'])
+            elif key == 'type':
+                roi.setType(dic['type'])
+            else:
+                roi._extraInfo[key] = dic[key]
+
         return roi
 
     def isICR(self):
