@@ -515,10 +515,6 @@ class SaveAction(PlotAction):
         :param callable func: The function to call to perform saving.
             Expected signature is:
             bool func(PlotWidget plot, str filename, str nameFilter)
-        :param bool overwriteWarning: Set this to False, to suppress the
-            warning dialog "do you want to overwrite existing file?" when
-            selecting  an existing file. Useful for functions appending
-            data to existing files.
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
 
