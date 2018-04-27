@@ -36,7 +36,7 @@ from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
 from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
-from silx.gui.colors.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
