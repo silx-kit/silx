@@ -68,10 +68,6 @@ class TestCurvesROIWidget(TestCaseQt):
 
         super(TestCurvesROIWidget, self).tearDown()
 
-    def testEmptyPlot(self):
-        """Empty plot, display ROI widget"""
-        pass
-
     def testWithCurves(self):
         """Plot with curves: test all ROI widget buttons"""
         for offset in range(2):
