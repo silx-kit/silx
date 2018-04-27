@@ -201,14 +201,12 @@ class _CylindricalVolume(DataItem3D):
                 c3 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), -height/2])
                 c5 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), height/2])
 
-            # construct one volume at each position
-            vertices = numpy.ndarray(shape=(len(position), self.N, 12, 3), dtype=numpy.float32)
-            normals = numpy.ndarray(shape=(len(position), self.N, 12, 3), dtype=numpy.float32)
-            for i in range(0, len(position)):
-                numpy.add(volume, position[i], out=vertices[i])
-                normals[i] = normal
-            vertices = numpy.reshape(vertices, (-1, 3))
-            normals = numpy.reshape(normals, (-1,3))
+            # Multiplication according to the number of positions
+            vertices = numpy.tile(volume.reshape(-1, 3), (len(position), 1)).reshape((-1, 3))
+            normals = numpy.tile(normal.reshape(-1, 3), (len(position), 1)).reshape((-1, 3))
+
+            # Translations
+            numpy.add(vertices, numpy.tile(position, (1, self.N * 12)).reshape((-1, 3)), out=vertices)
 
             self._mesh = primitives.Mesh3D(
                 vertices, color, normals, mode='triangles', copy=copy)
