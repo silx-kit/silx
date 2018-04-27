@@ -152,7 +152,7 @@ class _CylindricalVolume(DataItem3D):
         DataItem3D.__init__(self, parent=parent)
         self._mesh = None
 
-    def _setData(self, position, radius, height, color, nbFaces=0, copy=True):
+    def _setData(self, position, radius, height, color, nbFaces=0, flatFaces=True, copy=True):
 
         self._getScenePrimitive().children = []  # Remove any previous mesh
         self.N = nbFaces
@@ -184,6 +184,7 @@ class _CylindricalVolume(DataItem3D):
             c5 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), height/2])
             c6 = numpy.array([0,                         0,                         height/2])
 
+            # One volume
             volume = numpy.ndarray(shape=(self.N, 12, 3), dtype=numpy.float32)
             normal = numpy.ndarray(shape=(self.N, 12, 3), dtype=numpy.float32)
             for i in range(0, self.N):
@@ -191,10 +192,16 @@ class _CylindricalVolume(DataItem3D):
                                          c2, c3, c4,
                                          c3, c5, c4,
                                          c4, c5, c6])
-                normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1), numpy.cross(c2-c3, c1-c3), numpy.cross(c1-c2, c3-c2),
-                                         numpy.cross(c3-c2, c4-c2), numpy.cross(c4-c3, c2-c3), numpy.cross(c2-c4, c3-c4),
-                                         numpy.cross(c5-c3, c4-c3), numpy.cross(c4-c5, c3-c5), numpy.cross(c3-c4, c5-c4),
-                                         numpy.cross(c5-c4, c6-c4), numpy.cross(c6-c5, c5-c5), numpy.cross(c4-c6, c5-c6)])
+                if flatFaces:
+                    normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1), numpy.cross(c2-c3, c1-c3), numpy.cross(c1-c2, c3-c2),
+                                            numpy.cross(c3-c2, c4-c2), numpy.cross(c4-c3, c2-c3), numpy.cross(c2-c4, c3-c4),
+                                            numpy.cross(c5-c3, c4-c3), numpy.cross(c4-c5, c3-c5), numpy.cross(c3-c4, c5-c4),
+                                            numpy.cross(c5-c4, c6-c4), numpy.cross(c6-c5, c5-c5), numpy.cross(c4-c6, c5-c6)])
+                else:
+                    normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1), numpy.cross(c2-c3, c1-c3), numpy.cross(c1-c2, c3-c2),
+                                             c2-c1, c3-c1, c4-c6,
+                                             c3-c1, c5-c6, c4-c6,
+                                             numpy.cross(c5-c4, c6-c4), numpy.cross(c6-c5, c5-c5), numpy.cross(c4-c6, c5-c6)])
                 alpha += 2 * numpy.pi / self.N
                 c2 = c3
                 c4 = c5
@@ -221,7 +228,7 @@ class Box(_CylindricalVolume):
         super(Box, self).__init__(parent)
 
     def setData(self, position, size, color, copy=True):
-        self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2], color, 4, copy)
+        self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2], color, 4, True, copy)
 
 
 class Cylinder(_CylindricalVolume):
@@ -230,7 +237,7 @@ class Cylinder(_CylindricalVolume):
         super(Cylinder, self).__init__(parent)
 
     def setData(self, position, radius, height, color, nbFaces=20, copy=True):
-        self._setData(position, radius, height, color, nbFaces, copy)
+        self._setData(position, radius, height, color, nbFaces, False, copy)
 
 
 class Hexagon(_CylindricalVolume):
@@ -239,4 +246,4 @@ class Hexagon(_CylindricalVolume):
         super(Hexagon, self).__init__(parent)
 
     def setData(self, position, radius, height, color, copy=True):
-        self._setData(position, radius, height, color, 6, copy)
+        self._setData(position, radius, height, color, 6, True, copy)
