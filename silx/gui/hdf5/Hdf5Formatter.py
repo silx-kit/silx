@@ -27,7 +27,7 @@ text."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/01/2018"
+__date__ = "30/04/2018"
 
 import numpy
 from silx.third_party import six
@@ -119,7 +119,11 @@ class Hdf5Formatter(qt.QObject):
         return text
 
     def humanReadableType(self, dataset, full=False):
-        dtype = dataset.dtype
+        if hasattr(dataset, "dtype"):
+            dtype = dataset.dtype
+        else:
+            # Fallback...
+            dtype = type(dataset)
         return self.humanReadableDType(dtype, full)
 
     def humanReadableDType(self, dtype, full=False):
