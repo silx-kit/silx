@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2018"
+__date__ = "30/04/2018"
 
 import weakref
 import logging
@@ -33,8 +33,8 @@ import logging
 import silx
 from silx.gui import qt
 from silx.gui.data.DataViews import DataViewHooks
-from silx.gui.plot.Colormap import Colormap
-from silx.gui.plot.ColormapDialog import ColormapDialog
+from silx.gui.colors import Colormap
+from silx.gui.dialog.ColormapDialog import ColormapDialog
 
 
 _logger = logging.getLogger(__name__)
