@@ -157,7 +157,7 @@ class _CylindricalVolume(DataItem3D):
         self._mesh = None
 
     def _setData(self, position, radius, height, color, nbFaces, flatFaces,
-                 phase, copy=True):
+                 phase):
         """Set volume geometry data.
 
         :param numpy.ndarray position:
@@ -171,8 +171,6 @@ class _CylindricalVolume(DataItem3D):
         :param float phase:
             rotation angle (in degrees) of the volume along z axis.
             If 0, the first edge is on y = 0.
-        :param bool copy: True (default) to copy the data,
-                          False to use as is (do not modify!).
         """
 
         self._getScenePrimitive().children = []  # Remove any previous mesh
@@ -259,7 +257,7 @@ class _CylindricalVolume(DataItem3D):
                       .reshape((-1, 3)), out=vertices)
 
             self._mesh = primitives.Mesh3D(
-                vertices, color, normals, mode='triangles', copy=copy)
+                vertices, color, normals, mode='triangles', copy=False)
             self._getScenePrimitive().children.append(self._mesh)
 
         self.sigItemChanged.emit(ItemChangedType.DATA)
@@ -275,7 +273,7 @@ class Box(_CylindricalVolume):
     def __init__(self, parent=None):
         super(Box, self).__init__(parent)
 
-    def setData(self, position, size, color, phase=45, copy=True):
+    def setData(self, position, size, color, phase=45):
         """
         Set Box geometry data.
 
@@ -286,11 +284,9 @@ class Box(_CylindricalVolume):
         :param float phase:
             Rotation angle (in degrees) of the volume along z (default 45).
             If 0, the first edge is on y = 0.
-        :param bool copy: True (default) to copy the data,
-                          False to use as is (do not modify!).
         """
         self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2],
-                      color, 4, True, phase, copy)
+                      color, 4, True, phase)
 
 
 class Cylinder(_CylindricalVolume):
@@ -302,7 +298,7 @@ class Cylinder(_CylindricalVolume):
     def __init__(self, parent=None):
         super(Cylinder, self).__init__(parent)
 
-    def setData(self, position, radius, height, color, nbFaces=20, copy=True):
+    def setData(self, position, radius, height, color, nbFaces=20):
         """
         Set the cylinder geometry data
 
@@ -313,10 +309,8 @@ class Cylinder(_CylindricalVolume):
         :param numpy.array color: RGB color of the cylinder(s).
         :param int nbFaces:
             Number of faces for cylinder approximation (default 20).
-        :param bool copy: True (default) to copy the data,
-                          False to use as is (do not modify!).
         """
-        self._setData(position, radius, height, color, nbFaces, False, 0, copy)
+        self._setData(position, radius, height, color, nbFaces, False, 0)
 
 
 class Hexagon(_CylindricalVolume):
@@ -329,7 +323,7 @@ class Hexagon(_CylindricalVolume):
     def __init__(self, parent=None):
         super(Hexagon, self).__init__(parent)
 
-    def setData(self, position, radius, height, color, phase=0, copy=True):
+    def setData(self, position, radius, height, color, phase=0):
         """
         Set the uniform hexagonal prism geometry data
 
@@ -341,7 +335,5 @@ class Hexagon(_CylindricalVolume):
         :param float phase:
                 Rotation angle (in degrees) of the prism(s).
                 If 0 (default), the first edge is on y = 0.
-        :param bool copy: True (default) to copy the data,
-                          False to use as is (do not modify!).
         """
-        self._setData(position, radius, height, color, 6, True, phase, copy)
+        self._setData(position, radius, height, color, 6, True, phase)
