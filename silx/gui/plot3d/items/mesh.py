@@ -161,7 +161,7 @@ class _CylindricalVolume(DataItem3D):
         """Set volume geometry data.
 
         :param numpy.ndarray position:
-            Position (x, y, z) of each volume as (N, 3) array.
+            Center position (x, y, z) of each volume as (N, 3) array.
         :param float radius: External radius ot the volume.
         :param float height: Height of the volume(s).
         :param numpy.array color: RGB color of the volume(s).
@@ -280,7 +280,7 @@ class Box(_CylindricalVolume):
         Set Box geometry data.
 
         :param numpy.ndarray position:
-            Position (x, y, z) of each box as a (N, 3) array.
+            Center position (x, y, z) of each box as a (N, 3) array.
         :param numpy.array size: Size (dx, dy, dz) of the box(es).
         :param numpy.array color: RGB color of the box(es).
         :param float phase:
@@ -307,7 +307,7 @@ class Cylinder(_CylindricalVolume):
         Set the cylinder geometry data
 
         :param numpy.ndarray position:
-            Position (x, y, z) of each cylinder as a (N, 3) array.
+            Center position (x, y, z) of each cylinder as a (N, 3) array.
         :param float radius: Radius of the cylinder(s).
         :param float height: Height of the cylinder(s).
         :param numpy.array color: RGB color of the cylinder(s).
@@ -334,7 +334,7 @@ class Hexagon(_CylindricalVolume):
         Set the uniform hexagonal prism geometry data
 
         :param numpy.ndarray position:
-            Position (x, y, z) of each prism as a (N, 3) array
+            Center position (x, y, z) of each prism as a (N, 3) array
         :param float radius: External radius of the hexagonal prism
         :param float height: Height of the hexagonal prism
         :param numpy.array color: RGB color of the prism(s)
