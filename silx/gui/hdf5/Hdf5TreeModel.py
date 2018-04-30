@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "30/04/2018"
 
 
 import os
@@ -205,6 +205,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     ]
     """List of logical columns available"""
 
+    sigH5pyObjectLoaded = qt.Signal(object)
+    """Emitted when a new root item was loaded and inserted to the model."""
+
+    sigH5pyObjectRemoved = qt.Signal(object)
+    """Emitted when a root item is removed from the model."""
+
+    sigH5pyObjectSynchronized = qt.Signal(object, object)
+    """Emitted when an item was synchronized."""
+
     def __init__(self, parent=None):
         super(Hdf5TreeModel, self).__init__(parent)
 
@@ -295,6 +304,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             self.beginInsertRows(rootIndex, row, row)
             self.__root.insertChild(row, newItem)
             self.endInsertRows()
+
+            if isinstance(oldItem, Hdf5LoadingItem):
+                self.sigH5pyObjectLoaded.emit(newItem.obj)
+            else:
+                self.sigH5pyObjectSynchronized.emit(oldItem.obj, newItem.obj)
+
         # FIXME the error must be displayed
 
     def isFileDropEnabled(self):
@@ -543,8 +558,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             return
 
         filename = node.obj.filename
-        self.removeIndex(index)
-        self.insertFileAsync(filename, index.row())
+        self.insertFileAsync(filename, index.row(), synchronizingNode=node)
 
     def synchronizeH5pyObject(self, h5pyObject):
         """
@@ -560,8 +574,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             if item.obj is h5pyObject:
                 qindex = self.index(index, 0, qt.QModelIndex())
                 self.synchronizeIndex(qindex)
-            else:
-                index += 1
+            index += 1
 
     def removeIndex(self, index):
         """
@@ -576,6 +589,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.beginRemoveRows(qt.QModelIndex(), index.row(), index.row())
         self.__root.removeChildAtIndex(index.row())
         self.endRemoveRows()
+        self.sigH5pyObjectRemoved.emit(node.obj)
 
     def removeH5pyObject(self, h5pyObject):
         """
@@ -608,14 +622,17 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def hasPendingOperations(self):
         return len(self.__runnerSet) > 0
 
-    def insertFileAsync(self, filename, row=-1):
+    def insertFileAsync(self, filename, row=-1, synchronizingNode=None):
         if not os.path.isfile(filename):
             raise IOError("Filename '%s' must be a file path" % filename)
 
         # create temporary item
-        text = os.path.basename(filename)
-        item = Hdf5LoadingItem(text=text, parent=self.__root, animatedIcon=self.__animatedIcon)
-        self.insertNode(row, item)
+        if synchronizingNode is None:
+            text = os.path.basename(filename)
+            item = Hdf5LoadingItem(text=text, parent=self.__root, animatedIcon=self.__animatedIcon)
+            self.insertNode(row, item)
+        else:
+            item = synchronizingNode
 
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)
@@ -635,6 +652,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         try:
             h5file = silx_io.open(filename)
             self.__openedFiles.append(h5file)
+            self.sigH5pyObjectLoaded.emit(h5file)
             self.insertH5pyObject(h5file, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
