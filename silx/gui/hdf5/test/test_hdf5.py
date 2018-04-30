@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/04/2018"
+__date__ = "03/05/2018"
 
 
 import time
@@ -377,9 +377,12 @@ class TestHdf5TreeModelSignals(TestCaseQt):
         self.model.sigH5pyObjectSynchronized.connect(self.listener.partial(signal="synchronized"))
 
     def tearDown(self):
-        self.h5 = None
-        self.model = None
         self.signals = None
+        ref = weakref.ref(self.model)
+        self.model = None
+        self.qWaitForDestroy(ref)
+        self.h5.close()
+        self.h5 = None
         TestCaseQt.tearDown(self)
 
     def waitForPendingOperations(self, model):
