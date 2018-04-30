@@ -95,7 +95,7 @@ class TestHdf5TreeModel(TestCaseQt):
             self.skipTest("h5py is not available")
 
     def waitForPendingOperations(self, model):
-        for i in range(10):
+        for _ in range(10):
             if not model.hasPendingOperations():
                 break
             self.qWait(10)
