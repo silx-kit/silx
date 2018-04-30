@@ -362,6 +362,63 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertEquals(index, qt.QModelIndex())
 
 
+class TestHdf5TreeModelSignals(TestCaseQt):
+
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.model = hdf5.Hdf5TreeModel()
+        filename = _tmpDirectory + "/data.h5"
+        self.h5 = h5py.File(filename)
+        self.model.insertH5pyObject(self.h5)
+
+        self.listener = SignalListener()
+        self.model.sigH5pyObjectLoaded.connect(self.listener.partial(signal="loaded"))
+        self.model.sigH5pyObjectRemoved.connect(self.listener.partial(signal="removed"))
+        self.model.sigH5pyObjectSynchronized.connect(self.listener.partial(signal="synchronized"))
+
+    def tearDown(self):
+        self.h5 = None
+        self.model = None
+        self.signals = None
+        TestCaseQt.tearDown(self)
+
+    def waitForPendingOperations(self, model):
+        for _ in range(10):
+            if not model.hasPendingOperations():
+                break
+            self.qWait(10)
+        else:
+            raise RuntimeError("Still waiting for a pending operation")
+
+    def testInsert(self):
+        filename = _tmpDirectory + "/data.h5"
+        h5 = h5py.File(filename)
+        self.model.insertH5pyObject(h5)
+        self.assertEquals(self.listener.callCount(), 0)
+
+    def testLoaded(self):
+        filename = _tmpDirectory + "/data.h5"
+        self.model.insertFile(filename)
+        self.assertEquals(self.listener.callCount(), 1)
+        self.assertEquals(self.listener.karguments(argumentName="signal")[0], "loaded")
+        self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
+        self.assertEquals(self.listener.arguments(callIndex=0)[0].filename, filename)
+
+    def testRemoved(self):
+        self.model.removeH5pyObject(self.h5)
+        self.assertEquals(self.listener.callCount(), 1)
+        self.assertEquals(self.listener.karguments(argumentName="signal")[0], "removed")
+        self.assertIs(self.listener.arguments(callIndex=0)[0], self.h5)
+
+    def testSynchonized(self):
+        self.model.synchronizeH5pyObject(self.h5)
+        self.waitForPendingOperations(self.model)
+        self.assertEquals(self.listener.callCount(), 1)
+        self.assertEquals(self.listener.karguments(argumentName="signal")[0], "synchronized")
+        self.assertIs(self.listener.arguments(callIndex=0)[0], self.h5)
+        self.assertIsNot(self.listener.arguments(callIndex=0)[1], self.h5)
+
+
 class TestNexusSortFilterProxyModel(TestCaseQt):
 
     def getChildNames(self, model, index):
@@ -898,6 +955,7 @@ def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTests(TestHdf5TreeModel))
+    test_suite.addTest(loadTests(TestHdf5TreeModelSignals))
     test_suite.addTest(loadTests(TestNexusSortFilterProxyModel))
     test_suite.addTest(loadTests(TestHdf5TreeView))
     test_suite.addTest(loadTests(TestH5Node))
