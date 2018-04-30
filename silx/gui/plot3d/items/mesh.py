@@ -147,12 +147,33 @@ class Mesh(DataItem3D):
 
 
 class _CylindricalVolume(DataItem3D):
+    """Class that represents a volume with a rotational symmetry along z
+
+    :param parent: The View widget this item belongs to.
+    """
 
     def __init__(self, parent=None):
         DataItem3D.__init__(self, parent=parent)
         self._mesh = None
 
-    def _setData(self, position, radius, height, color, nbFaces, flatFaces, phase, copy=True):
+    def _setData(self, position, radius, height, color, nbFaces, flatFaces,
+                 phase, copy=True):
+        """Set volume geometry data.
+
+        :param numpy.ndarray position:
+            Position (x, y, z) of each volume as (N, 3) array.
+        :param float radius: External radius ot the volume.
+        :param float height: Height of the volume(s).
+        :param numpy.array color: RGB color of the volume(s).
+        :param int nbFaces: Number of faces (symmetry order).
+        :param bool flatFaces:
+            If the volume as flat faces or not. Used for normals calculation.
+        :param float phase:
+            rotation angle (in degrees) of the volume along z axis.
+            If 0, the first edge is on y = 0.
+        :param bool copy: True (default) to copy the data,
+                          False to use as is (do not modify!).
+        """
 
         self._getScenePrimitive().children = []  # Remove any previous mesh
         self.N = nbFaces
@@ -178,12 +199,16 @@ class _CylindricalVolume(DataItem3D):
                    \/
                    c1     
             """
-            c1 = numpy.array([0,                         0,                         -height/2])
-            c2 = numpy.array([radius * numpy.cos(phase), radius * numpy.sin(phase), -height/2])
-            c3 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), -height/2])
-            c4 = numpy.array([radius * numpy.cos(phase), radius * numpy.sin(phase),  height/2])
-            c5 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha),  height/2])
-            c6 = numpy.array([0,                         0,                          height/2])
+            c1 = numpy.array([0, 0, -height/2])
+            c2 = numpy.array([radius * numpy.cos(phase),
+                              radius * numpy.sin(phase), -height/2])
+            c3 = numpy.array([radius * numpy.cos(alpha),
+                              radius * numpy.sin(alpha), -height/2])
+            c4 = numpy.array([radius * numpy.cos(phase),
+                              radius * numpy.sin(phase), height/2])
+            c5 = numpy.array([radius * numpy.cos(alpha),
+                              radius * numpy.sin(alpha), height/2])
+            c6 = numpy.array([0, 0, height/2])
 
             # One volume
             volume = numpy.ndarray(shape=(self.N, 12, 3), dtype=numpy.float32)
@@ -194,27 +219,44 @@ class _CylindricalVolume(DataItem3D):
                                          c3, c5, c4,
                                          c4, c5, c6])
                 if flatFaces:
-                    normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1), numpy.cross(c2-c3, c1-c3), numpy.cross(c1-c2, c3-c2),
-                                            numpy.cross(c3-c2, c4-c2), numpy.cross(c4-c3, c2-c3), numpy.cross(c2-c4, c3-c4),
-                                            numpy.cross(c5-c3, c4-c3), numpy.cross(c4-c5, c3-c5), numpy.cross(c3-c4, c5-c4),
-                                            numpy.cross(c5-c4, c6-c4), numpy.cross(c6-c5, c5-c5), numpy.cross(c4-c6, c5-c6)])
+                    normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1),  # c1
+                                             numpy.cross(c2-c3, c1-c3),  # c3
+                                             numpy.cross(c1-c2, c3-c2),  # c2
+                                             numpy.cross(c3-c2, c4-c2),  # c2
+                                             numpy.cross(c4-c3, c2-c3),  # c3
+                                             numpy.cross(c2-c4, c3-c4),  # c4
+                                             numpy.cross(c5-c3, c4-c3),  # c3
+                                             numpy.cross(c4-c5, c3-c5),  # c5
+                                             numpy.cross(c3-c4, c5-c4),  # c4
+                                             numpy.cross(c5-c4, c6-c4),  # c4
+                                             numpy.cross(c6-c5, c5-c5),  # c5
+                                             numpy.cross(c4-c6, c5-c6)])  # c6
                 else:
-                    normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1), numpy.cross(c2-c3, c1-c3), numpy.cross(c1-c2, c3-c2),
-                                             c2-c1, c3-c1, c4-c6,
-                                             c3-c1, c5-c6, c4-c6,
-                                             numpy.cross(c5-c4, c6-c4), numpy.cross(c6-c5, c5-c5), numpy.cross(c4-c6, c5-c6)])
+                    normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1),
+                                             numpy.cross(c2-c3, c1-c3),
+                                             numpy.cross(c1-c2, c3-c2),
+                                             c2-c1, c3-c1, c4-c6,  # c2 c2 c4
+                                             c3-c1, c5-c6, c4-c6,  # c3 c5 c4
+                                             numpy.cross(c5-c4, c6-c4),
+                                             numpy.cross(c6-c5, c5-c5),
+                                             numpy.cross(c4-c6, c5-c6)])
                 alpha += 2 * numpy.pi / self.N
                 c2 = c3
                 c4 = c5
-                c3 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), -height/2])
-                c5 = numpy.array([radius * numpy.cos(alpha), radius * numpy.sin(alpha), height/2])
+                c3 = numpy.array([radius * numpy.cos(alpha),
+                                  radius * numpy.sin(alpha), -height/2])
+                c5 = numpy.array([radius * numpy.cos(alpha),
+                                  radius * numpy.sin(alpha), height/2])
 
             # Multiplication according to the number of positions
-            vertices = numpy.tile(volume.reshape(-1, 3), (len(position), 1)).reshape((-1, 3))
-            normals = numpy.tile(normal.reshape(-1, 3), (len(position), 1)).reshape((-1, 3))
+            vertices = numpy.tile(volume.reshape(-1, 3), (len(position), 1))\
+                .reshape((-1, 3))
+            normals = numpy.tile(normal.reshape(-1, 3), (len(position), 1))\
+                .reshape((-1, 3))
 
             # Translations
-            numpy.add(vertices, numpy.tile(position, (1, self.N * 12)).reshape((-1, 3)), out=vertices)
+            numpy.add(vertices, numpy.tile(position, (1, self.N * 12))
+                      .reshape((-1, 3)), out=vertices)
 
             self._mesh = primitives.Mesh3D(
                 vertices, color, normals, mode='triangles', copy=copy)
@@ -224,27 +266,82 @@ class _CylindricalVolume(DataItem3D):
 
 
 class Box(_CylindricalVolume):
+    """Description of a box.
+    Can be used to draw one box or an array of the same box.
+
+    :param parent: The View widget this item belongs to.
+    """
 
     def __init__(self, parent=None):
         super(Box, self).__init__(parent)
 
     def setData(self, position, size, color, phase=45, copy=True):
-        self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2], color, 4, True, phase, copy)
+        """
+        Set Box geometry data.
+
+        :param numpy.ndarray position:
+            Position (x, y, z) of each box as a (N, 3) array.
+        :param numpy.array size: Size (dx, dy, dz) of the box(es).
+        :param numpy.array color: RGB color of the box(es).
+        :param float phase:
+            Rotation angle (in degrees) of the volume along z (default 45).
+            If 0, the first edge is on y = 0.
+        :param bool copy: True (default) to copy the data,
+                          False to use as is (do not modify!).
+        """
+        self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2],
+                      color, 4, True, phase, copy)
 
 
 class Cylinder(_CylindricalVolume):
+    """Description of a cylinder.
+    Can be used to draw one cylinder or an array of the same cylinder.
 
+    :param parent: The View widget this item belongs to.
+    """
     def __init__(self, parent=None):
         super(Cylinder, self).__init__(parent)
 
     def setData(self, position, radius, height, color, nbFaces=20, copy=True):
+        """
+        Set the cylinder geometry data
+
+        :param numpy.ndarray position:
+            Position (x, y, z) of each cylinder as a (N, 3) array.
+        :param float radius: Radius of the cylinder(s).
+        :param float height: Height of the cylinder(s).
+        :param numpy.array color: RGB color of the cylinder(s).
+        :param int nbFaces:
+            Number of faces for cylinder approximation (default 20).
+        :param bool copy: True (default) to copy the data,
+                          False to use as is (do not modify!).
+        """
         self._setData(position, radius, height, color, nbFaces, False, 0, copy)
 
 
 class Hexagon(_CylindricalVolume):
+    """Description of a uniform hexagonal prism.
+    Can be used to draw one hexagonal prim or an array of the same hexagonal
+    prism.
 
+    :param parent: The View widget this item belongs to.
+    """
     def __init__(self, parent=None):
         super(Hexagon, self).__init__(parent)
 
     def setData(self, position, radius, height, color, phase=0, copy=True):
+        """
+        Set the uniform hexagonal prism geometry data
+
+        :param numpy.ndarray position:
+            Position (x, y, z) of each prism as a (N, 3) array
+        :param float radius: External radius of the hexagonal prism
+        :param float height: Height of the hexagonal prism
+        :param numpy.array color: RGB color of the prism(s)
+        :param float phase:
+                Rotation angle (in degrees) of the prism(s).
+                If 0 (default), the first edge is on y = 0.
+        :param bool copy: True (default) to copy the data,
+                          False to use as is (do not modify!).
+        """
         self._setData(position, radius, height, color, 6, True, phase, copy)
