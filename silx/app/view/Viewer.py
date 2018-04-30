@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2018"
+__date__ = "30/04/2018"
 
 
 import os
@@ -35,6 +35,7 @@ import functools
 
 import silx
 from silx.gui import qt
+from silx.gui import icons
 from .ApplicationContext import ApplicationContext
 
 
@@ -97,6 +98,9 @@ class Viewer(qt.QMainWindow):
         columns.remove(treeModel.DESCRIPTION_COLUMN)
         columns.remove(treeModel.NODE_COLUMN)
         self.__treeview.header().setSections(columns)
+
+        self._iconUpward = icons.getQIcon('plot-yup')
+        self._iconDownward = icons.getQIcon('plot-ydown')
 
         self.createActions()
         self.createMenus()
@@ -179,38 +183,60 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.about)
         self._aboutAction = action
 
+        # Plot backend
+
+        action = qt.QAction("Plot rendering backend", self)
+        action.setStatusTip("Select plot rendering backend")
+        self._plotBackendSelection = action
+
+        menu = qt.QMenu()
+        action.setMenu(menu)
         group = qt.QActionGroup(self)
         group.setExclusive(True)
 
-        action = qt.QAction("Plot rendered using matplotlib", self)
+        action = qt.QAction("matplotlib", self)
         action.setStatusTip("Plot will be rendered using matplotlib")
         action.setCheckable(True)
         action.triggered.connect(self.__forceMatplotlibBackend)
         group.addAction(action)
+        menu.addAction(action)
         self._usePlotWithMatplotlib = action
 
-        action = qt.QAction("Plot rendered using OpenGL", self)
+        action = qt.QAction("OpenGL", self)
         action.setStatusTip("Plot will be rendered using OpenGL")
         action.setCheckable(True)
         action.triggered.connect(self.__forceOpenglBackend)
         group.addAction(action)
+        menu.addAction(action)
         self._usePlotWithOpengl = action
 
+        # Plot image orientation
+
+        action = qt.QAction("Default plot image y-axis orientation", self)
+        action.setStatusTip("Select the default y-axis orientation used by plot displaying images")
+        self._plotImageOrientation = action
+
+        menu = qt.QMenu()
+        action.setMenu(menu)
         group = qt.QActionGroup(self)
         group.setExclusive(True)
 
-        action = qt.QAction("Plot image origin on top", self)
+        action = qt.QAction("Downward, origin on top", self)
+        action.setIcon(self._iconDownward)
         action.setStatusTip("Plot images will use a downward Y-axis orientation")
         action.setCheckable(True)
         action.triggered.connect(self.__forcePlotImageDownward)
         group.addAction(action)
+        menu.addAction(action)
         self._useYAxisOrientationDownward = action
 
-        action = qt.QAction("Plot image origin on bottom", self)
+        action = qt.QAction("Upward, origin on bottom", self)
+        action.setIcon(self._iconUpward)
         action.setStatusTip("Plot images will use a upward Y-axis orientation")
         action.setCheckable(True)
         action.triggered.connect(self.__forcePlotImageUpward)
         group.addAction(action)
+        menu.addAction(action)
         self._useYAxisOrientationUpward = action
 
     def fileOpened(self, fileName):
@@ -245,6 +271,13 @@ class Viewer(qt.QMainWindow):
     def __updateOptionMenu(self):
         """Update the state of the checked options as it is based on global
         environment values."""
+
+        # plot backend
+
+        action = self._plotBackendSelection
+        title = action.text().split(": ", 1)[0]
+        action.setText("%s: %s" % (title, silx.config.DEFAULT_PLOT_BACKEND))
+
         action = self._usePlotWithMatplotlib
         action.setChecked(silx.config.DEFAULT_PLOT_BACKEND in ["matplotlib", "mpl"])
         title = action.text().split(" (", 1)[0]
@@ -258,6 +291,15 @@ class Viewer(qt.QMainWindow):
         if not action.isChecked():
             title += " (applied after application restart)"
         action.setText(title)
+
+        # plot orientation
+
+        action = self._plotImageOrientation
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward":
+            action.setIcon(self._iconDownward)
+        else:
+            action.setIcon(self._iconUpward)
+        action.setIconVisibleInMenu(True)
 
         action = self._useYAxisOrientationDownward
         action.setChecked(silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward")
@@ -282,11 +324,8 @@ class Viewer(qt.QMainWindow):
         fileMenu.aboutToShow.connect(self.__updateFileMenu)
 
         optionMenu = self.menuBar().addMenu("&Options")
-        optionMenu.addAction(self._useYAxisOrientationDownward)
-        optionMenu.addAction(self._useYAxisOrientationUpward)
-        optionMenu.addSeparator()
-        optionMenu.addAction(self._usePlotWithMatplotlib)
-        optionMenu.addAction(self._usePlotWithOpengl)
+        optionMenu.addAction(self._plotImageOrientation)
+        optionMenu.addAction(self._plotBackendSelection)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
 
         helpMenu = self.menuBar().addMenu("&Help")
