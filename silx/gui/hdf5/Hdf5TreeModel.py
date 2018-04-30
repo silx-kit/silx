@@ -214,7 +214,14 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     sigH5pyObjectSynchronized = qt.Signal(object, object)
     """Emitted when an item was synchronized."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ownFiles=True):
+        """
+        Constructor
+
+        :param qt.QWidget parent: Parent widget
+        :param bool ownFiles: If true (default) the model will manage the files
+            life cycle when they was added using path (like DnD).
+        """
         super(Hdf5TreeModel, self).__init__(parent)
 
         self.header_labels = [None] * len(self.COLUMN_IDS)
@@ -244,6 +251,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__icons.append(icons.getQIcon("item-3dim"))
         self.__icons.append(icons.getQIcon("item-ndim"))
 
+        self.__ownFiles = ownFiles
         self.__openedFiles = []
         """Store the list of files opened by the model itself."""
         # FIXME: It should be managed one by one by Hdf5Item itself
@@ -294,13 +302,16 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         newItem = _unwrapNone(newItem)
         error = _unwrapNone(error)
         row = self.__root.indexOfChild(oldItem)
+
         rootIndex = qt.QModelIndex()
         self.beginRemoveRows(rootIndex, row, row)
         self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
+
         if newItem is not None:
             rootIndex = qt.QModelIndex()
-            self.__openedFiles.append(newItem.obj)
+            if self.__ownFiles:
+                self.__openedFiles.append(newItem.obj)
             self.beginInsertRows(rootIndex, row, row)
             self.__root.insertChild(row, newItem)
             self.endInsertRows()
@@ -651,7 +662,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """
         try:
             h5file = silx_io.open(filename)
-            self.__openedFiles.append(h5file)
+            if self.__ownFiles:
+                self.__openedFiles.append(h5file)
             self.sigH5pyObjectLoaded.emit(h5file)
             self.insertH5pyObject(h5file, row=row)
         except IOError:
