@@ -690,14 +690,11 @@ class PlotWidget(qt.QMainWindow):
             if yerror is None:
                 yerror = curve.getYErrorData(copy=False)
 
-            # Set x-axis to time series if the first element of x is a datetime.
             # Convert x to timestamps so that the internal representation
-            # remains floating points. Use the timezone of the first element.
-            # This assumes all elements have the same time zone and all curves in
-            # the plot will be a time series.
+            # remains floating points. The user is expected to set the axis'
+            # tickMode to TickMode.TIME_SERIES and, if necessary, set the axis
+            # to the correct time zone.
             if len(x) > 0 and isinstance(x[0], dt.datetime):
-                self.getXAxis().setTickMode(TickMode.TIME_SERIES)
-                self.getXAxis().setTimeZone(x[0].tzinfo)
                 x = [timestamp(d) for d in x]
 
             curve.setData(x, y, xerror, yerror, copy=copy)
