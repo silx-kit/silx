@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,25 +34,12 @@ import datetime as dt
 import unittest
 
 
-from silx.gui.plot._utils.ticklayout import _niceNum
 from silx.gui.plot._utils.dtime_ticklayout import (
-    niceNumGeneric, calcTicks, DtUnit, SECONDS_PER_YEAR)
+    calcTicks, DtUnit, SECONDS_PER_YEAR)
 
 
 class DtTestTickLayout(unittest.TestCase):
     """Test ticks layout algorithms"""
-
-    def testNiceNumGen(self):
-        """ Tests if niceNumGeneric givest the same results as _niceNum"""
-
-        value = 0.1
-        for idx in range(30):
-            value = value * 1.5
-
-            niceOld = _niceNum(value)
-            niceNew = niceNumGeneric(value, [1, 2, 5, 10])
-            self.assertEqual(niceNew, niceOld)
-
 
     def testSmallMonthlySpacing(self):
         """ Tests a range that did result in a spacing of less than 1 month.
