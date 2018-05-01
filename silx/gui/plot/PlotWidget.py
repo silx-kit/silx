@@ -58,7 +58,7 @@ from .items.axis import TickMode
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
-
+from ...gui.plot._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
 
@@ -698,7 +698,7 @@ class PlotWidget(qt.QMainWindow):
             if len(x) > 0 and isinstance(x[0], dt.datetime):
                 self.getXAxis().setTickMode(TickMode.TIME_SERIES)
                 self.getXAxis().setTimeZone(x[0].tzinfo)
-                x = [d.timestamp() for d in x]
+                x = [timestamp(d) for d in x]
 
             curve.setData(x, y, xerror, yerror, copy=copy)
 

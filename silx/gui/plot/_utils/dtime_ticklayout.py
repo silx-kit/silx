@@ -34,6 +34,9 @@ __date__ = "04/04/2018"
 import datetime as dt
 import logging
 import math
+import time
+
+import dateutil.tz
 
 from dateutil.relativedelta import relativedelta
 
@@ -49,6 +52,35 @@ SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE
 SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR
 SECONDS_PER_YEAR = 365.25 * SECONDS_PER_DAY
 SECONDS_PER_MONTH_AVERAGE = SECONDS_PER_YEAR / 12 # Seconds per average month
+
+
+# No dt.timezone in Python 2.7 so we use dateutil.tz.tzutc
+_EPOCH = dt.datetime(1970, 1, 1, tzinfo=dateutil.tz.tzutc())
+
+def timestamp(dtObj):
+    """ Returns POSIX timestamp of a datetime objects.
+
+    If the dtObj object has a timestamp() method (python 3.3), this is
+    used. Otherwise (e.g. python 2.7) it is calculated here.
+
+    The POSIX timestamp is a floating point value of the number of seconds
+    since the start of an epoch (typically 1970-01-01). For details see:
+    https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
+
+    :param datetime.datetime dtObj: date-time representation.
+    :return: POSIX timestamp
+    :rtype: float
+    """
+    if hasattr(dtObj, "timestamp"):
+        return dtObj.timestamp()
+    else:
+        # Back ported from Python 3.5
+        if dtObj.tzinfo is None:
+            return time.mktime((dtObj.year, dtObj.month, dtObj.day,
+                                dtObj.hour, dtObj.minute, dtObj.second,
+                                -1, -1, -1)) + dtObj.microsecond / 1e6
+        else:
+            return (dtObj - _EPOCH).total_seconds()
 
 
 @enum.unique

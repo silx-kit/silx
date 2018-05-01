@@ -59,7 +59,7 @@ from matplotlib.ticker import Formatter, ScalarFormatter, Locator
 from ..matplotlib.ModestImage import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
-from .._utils.dtime_ticklayout import calcTicks, bestFormatString
+from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
 
 
 
@@ -76,6 +76,7 @@ class NiceDateLocator(Locator):
         :param numTicks: target number of ticks
         :param datetime.tzinfo tz: optional time zone. None is local time.
         """
+        super(NiceDateLocator, self).__init__()
         self.numTicks = numTicks
 
         self._spacing = None
@@ -110,7 +111,7 @@ class NiceDateLocator(Locator):
             calcTicks(dtMin, dtMax, self.numTicks)
 
         # Convert datetime back to time stamps.
-        ticks = [dtTick.timestamp() for dtTick in dtTicks]
+        ticks = [timestamp(dtTick) for dtTick in dtTicks]
         return ticks
 
 
@@ -126,7 +127,7 @@ class NiceAutoDateFormatter(Formatter):
         :param niceDateLocator: a NiceDateLocator object
         :param datetime.tzinfo tz: optional time zone. None is local time.
         """
-        super().__init__()
+        super(NiceAutoDateFormatter, self).__init__()
         self.locator = locator
         self.tz = tz
 
@@ -765,7 +766,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Graph axes
 
     def setXAxisTimeZone(self, tz):
-        super().setXAxisTimeZone(tz)
+        super(BackendMatplotlib, self).setXAxisTimeZone(tz)
 
         # Make new formatter and locator with the time zone.
         self.setXAxisTimeSeries(self.isXAxisTimeSeries())

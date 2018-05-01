@@ -49,6 +49,7 @@ from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
 from ..._utils.dtime_ticklayout import calcTicksAdaptive, bestFormatString
+from ..._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
 
@@ -326,7 +327,7 @@ class PlotAxis(object):
                     for tickDateTime in tickDateTimes:
                         if dtMin <= tickDateTime <= dtMax:
 
-                            dataPos = tickDateTime.timestamp()
+                            dataPos = timestamp(tickDateTime)
                             xPixel = x0 + (dataPos - dataMin) * xScale
                             yPixel = y0 + (dataPos - dataMin) * yScale
 
