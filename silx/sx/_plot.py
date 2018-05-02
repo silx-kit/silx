@@ -202,7 +202,7 @@ def plot(*args, **kwargs):
 def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
            vmin=None, vmax=None,
            aspect=False,
-           origin='lower', scale=(1., 1.),
+           origin='upper', scale=(1., 1.),
            title='', xlabel='X', ylabel='Y'):
     """
     Plot an image in a :class:`~silx.gui.plot.PlotWindow.Plot2D` widget.
@@ -215,11 +215,11 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     >>> data = numpy.random.random(1024 * 1024).reshape(1024, 1024)
     >>> plt = sx.imshow(data, title='Random data')
 
-    Warning: By default, the image origin is displayed in the lower left
+    By default, the image origin is displayed in the upper left
     corner of the plot. To invert the Y axis, and place the image origin
-    in the upper left corner of the plot, use the *origin* parameter:
+    in the lower left corner of the plot, use the *origin* parameter:
 
-     >>> plt = sx.imshow(data, origin='upper')
+     >>> plt = sx.imshow(data, origin='lower')
 
     This function supports a subset of `matplotlib.pyplot.imshow
     <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow>`_
@@ -234,7 +234,7 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     :param float vmax: The value to use for the max of the colormap
     :param bool aspect: True to keep aspect ratio (Default: False)
     :param origin: Either image origin as the Y axis orientation:
-        'lower' (default) or 'upper'
+        'upper' (default) or 'lower'
         or the coordinates (ox, oy) of the image origin in the plot.
     :type origin: str or 2-tuple of floats
     :param scale: (sx, sy) The scale of the image in the plot
