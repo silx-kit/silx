@@ -34,7 +34,7 @@ The following QAction are available:
 from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "27/06/2017"
+__date__ = "30/04/2018"
 __license__ = "MIT"
 
 from . import PlotAction
@@ -129,7 +129,7 @@ class PixelIntensitiesHistoAction(PlotAction):
                               edges=edges,
                               legend='pixel intensity',
                               fill=True,
-                              color='red')
+                              color='#66aad7')
             plot.resetZoom()
 
     def eventFilter(self, qobject, event):
