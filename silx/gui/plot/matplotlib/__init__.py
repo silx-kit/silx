@@ -22,6 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+
+from __future__ import absolute_import
+
 """This module inits matplotlib and setups the backend to use.
 
 It MUST be imported prior to any other import of matplotlib.
