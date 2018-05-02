@@ -62,7 +62,6 @@ class Viewer(qt.QMainWindow):
         self.__context = ApplicationContext(self, settings)
         self.__context.restoreLibrarySettings()
 
-        self.__asyncload = False
         self.__dialogState = None
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
         """Silx HDF5 TreeView"""
@@ -444,9 +443,6 @@ class Viewer(qt.QMainWindow):
             # Update the viewer for a single selection
             data = selected[0]
             self.__dataViewer.setData(data)
-
-    def useAsyncLoad(self, useAsync):
-        self.__asyncload = useAsync
 
     def closeAndSyncCustomContextMenu(self, event):
         """Called to populate the context menu
