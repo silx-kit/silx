@@ -245,7 +245,7 @@ def is_valid_nxdata(group):   # noqa
         polynomial_axes_names = []
         for i, axis_name in enumerate(axes_names):
 
-            if axis_name == ".":
+            if axis_name in [None, "."]:
                 continue
             if axis_name not in group or not is_dataset(group[axis_name]):
                 _nxdata_warning("Could not find axis dataset '%s'" % axis_name,
