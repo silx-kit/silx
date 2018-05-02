@@ -27,11 +27,14 @@ from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "23/05/2016"
+__date__ = "26/04/2018"
 
 import os as _os
 import logging as _logging
+from ._config import Config as _Config
 
+config = _Config()
+"""Global configuration shared with the whole library"""
 
 # Attach a do nothing logging handler for silx
 _logging.getLogger(__name__).addHandler(_logging.NullHandler())

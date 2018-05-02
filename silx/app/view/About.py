@@ -21,11 +21,11 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""Qt utils for Silx applications"""
+"""About box for Silx viewer"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/09/2017"
+__date__ = "25/04/2018"
 
 import sys
 

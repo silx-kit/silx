@@ -29,11 +29,12 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "26/04/2018"
 
 import collections
 import logging
 
+import silx
 from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
@@ -778,6 +779,9 @@ class Plot2D(PlotWindow):
         self.getXAxis().setLabel('Columns')
         self.getYAxis().setLabel('Rows')
 
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+            self.getYAxis().setInverted(True)
+
         self.profile = ProfileToolBar(plot=self)
         self.addToolBar(self.profile)
 
@@ -786,7 +790,7 @@ class Plot2D(PlotWindow):
 
         # Put colorbar action after colormap action
         actions = self.toolBar().actions()
-        for index, action in enumerate(actions):
+        for action in actions:
             if action is self.getColormapAction():
                 break
 
