@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "24/04/2018"
 
 import re
 import logging
@@ -42,8 +42,8 @@ from collections import deque
 import numpy
 
 from silx.gui import qt, icons
-from silx.gui.plot.Colors import rgba
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import rgba
+from silx.gui.colors import Colormap
 
 from silx.math.marchingcubes import MarchingCubes
 from silx.math.combo import min_max

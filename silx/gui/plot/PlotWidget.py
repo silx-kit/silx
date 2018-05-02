@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2017"
+__date__ = "24/04/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -45,8 +45,8 @@ from silx.utils.deprecation import deprecated
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
 
-from .Colormap import Colormap
-from . import Colors
+from ..colors import Colormap
+from .. import colors
 from . import PlotInteraction
 from . import PlotEvents
 from .LimitsHistory import LimitsHistory
@@ -61,7 +61,7 @@ from ._utils.panzoom import ViewConstraints
 _logger = logging.getLogger(__name__)
 
 
-_COLORDICT = Colors.COLORDICT
+_COLORDICT = colors.COLORDICT
 _COLORLIST = [_COLORDICT['black'],
               _COLORDICT['blue'],
               _COLORDICT['red'],
@@ -533,7 +533,7 @@ class PlotWidget(qt.QMainWindow):
                              curves
         :param color: color(s) to be used
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
-                     one of the predefined color names defined in Colors.py
+                     one of the predefined color names defined in colors.py
         :param str symbol: Symbol to be drawn at each (x, y) position::
 
             - 'o' circle
@@ -739,7 +739,7 @@ class PlotWidget(qt.QMainWindow):
             The legend to be associated to the histogram (or None)
         :param color: color to be used
         :type color: str ("#RRGGBB") or RGB unsigned byte array or
-                     one of the predefined color names defined in Colors.py
+                     one of the predefined color names defined in colors.py
         :param bool fill: True to fill the curve, False otherwise (default).
         :param str align:
             In case histogram values and edges have the same length N,
@@ -1478,7 +1478,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: Toggle the display of a crosshair cursor.
                           The crosshair cursor is hidden by default.
         :param color: The color to use for the crosshair.
-        :type color: A string (either a predefined color name in Colors.py
+        :type color: A string (either a predefined color name in colors.py
                     or "#RRGGBB")) or a 4 columns unsigned byte array
                     (Default: black).
         :param int linewidth: The width of the lines of the crosshair
@@ -2962,7 +2962,7 @@ class PlotWidget(qt.QMainWindow):
         :param str label: Associated text for identifying draw signals
         :param color: The color to use to draw the selection area
         :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in Colors.py
+                     one of the predefined color names defined in colors.py
         """
         _logger.warning(
             'setDrawModeEnabled deprecated, use setInteractiveMode instead')
@@ -3014,7 +3014,7 @@ class PlotWidget(qt.QMainWindow):
                       (Default: 'black')
         :param color: The color to use to draw the selection area
         :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in Colors.py
+                     one of the predefined color names defined in colors.py
         """
         _logger.warning(
             'setZoomModeEnabled deprecated, use setInteractiveMode instead')

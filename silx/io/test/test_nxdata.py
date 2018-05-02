@@ -449,6 +449,22 @@ class TestLegacyNXdata(unittest.TestCase):
         self.assertTrue(numpy.array_equal(nxd.axes[1],
                                           numpy.arange(6)))
 
+    def testAsciiUndefinedAxesAttrs(self):
+        """Some files may not be using utf8 for str attrs"""
+        g = self.h5f.create_group("bytes_attrs")
+        g.attrs["NX_class"] = b"NXdata"
+        g.attrs["signal"] = b"image0"
+        g.attrs["axes"] = b"yaxis", b"."
+
+        g.create_dataset("image0",
+                         data=numpy.arange(4 * 6).reshape((4, 6)))
+        g.create_dataset("yaxis",
+                         data=numpy.arange(4))
+
+        nxd = nxdata.NXdata(self.h5f["bytes_attrs"])
+        self.assertEqual(nxd.axes_dataset_names,
+                         ["yaxis", None])
+
 
 class TestSaveNXdata(unittest.TestCase):
     def setUp(self):

@@ -35,12 +35,12 @@ To change the active image slick on the image you want to set active.
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "03/05/2017"
+__date__ = "24/04/2018"
 
 
 from silx.gui import qt
 import numpy
-from silx.gui.plot import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.plot.PlotWidget import PlotWidget
 

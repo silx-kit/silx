@@ -27,13 +27,13 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/03/2017"
+__date__ = "24/04/2018"
 
 
 import logging
 import numpy
 
-from .. import Colors
+from ... import colors
 from .core import (Points, LabelsMixIn, ColorMixIn, YAxisMixIn,
                    FillMixIn, LineMixIn, ItemChangedType)
 
@@ -170,9 +170,9 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
 
         :param color: color(s) to be used for highlight
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
-                     one of the predefined color names defined in Colors.py
+                     one of the predefined color names defined in colors.py
         """
-        color = Colors.rgba(color)
+        color = colors.rgba(color)
         if color != self._highlightColor:
             self._highlightColor = color
             self._updated(ItemChangedType.HIGHLIGHTED_COLOR)

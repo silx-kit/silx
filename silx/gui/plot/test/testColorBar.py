@@ -26,13 +26,13 @@
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "11/04/2017"
+__date__ = "24/04/2018"
 
 import unittest
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.plot import Plot2D
 from silx.gui import qt
 import numpy
@@ -64,7 +64,7 @@ class TestColorScale(TestCaseQt):
                                      vmin=0.0,
                                      vmax=1.0)
         self.colorScaleWidget.setColormap(self.colorMapLin1)
-        
+
         self.assertTrue(
             self.colorScaleWidget.getValueFromRelativePosition(0.25) == 0.25)
         self.assertTrue(
@@ -77,7 +77,7 @@ class TestColorScale(TestCaseQt):
                                      vmin=-10,
                                      vmax=0)
         self.colorScaleWidget.setColormap(self.colorMapLin2)
-        
+
         self.assertTrue(
             self.colorScaleWidget.getValueFromRelativePosition(0.25) == -7.5)
         self.assertTrue(
@@ -98,7 +98,7 @@ class TestColorScale(TestCaseQt):
 
         val = self.colorScaleWidget.getValueFromRelativePosition(0.5)
         self.assertTrue(val == 10.0)
-        
+
         val = self.colorScaleWidget.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
 
@@ -225,7 +225,7 @@ class TestColorBarWidget(TestCaseQt):
         self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 30)
 
         # if data is positive
-        data[data<1] = data.max()
+        data[data < 1] = data.max()
         self.plot.addImage(data=data,
                            colormap=colormapLog,
                            legend='toto',

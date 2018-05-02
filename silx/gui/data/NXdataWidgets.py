@@ -26,14 +26,14 @@
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/12/2017"
+__date__ = "24/04/2018"
 
 import numpy
 
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration

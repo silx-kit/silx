@@ -31,7 +31,7 @@ This API is a simplified version of PyMca PlotBackend API.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "24/04/2018"
 
 
 import weakref
@@ -109,7 +109,7 @@ class BackendBase(object):
         :param str legend: The legend to be associated to the curve
         :param color: color(s) to be used
         :type color: string ("#RRGGBB") or (npoints, 4) unsigned byte array or
-                     one of the predefined color names defined in Colors.py
+                     one of the predefined color names defined in colors.py
         :param str symbol: Symbol to be drawn at each (x, y) position::
 
             - ' ' or '' no symbol
@@ -252,7 +252,7 @@ class BackendBase(object):
 
         :param bool flag: Toggle the display of a crosshair cursor.
         :param color: The color to use for the crosshair.
-        :type color: A string (either a predefined color name in Colors.py
+        :type color: A string (either a predefined color name in colors.py
                     or "#RRGGBB")) or a 4 columns unsigned byte array.
         :param int linewidth: The width of the lines of the crosshair.
         :param linestyle: Type of line::

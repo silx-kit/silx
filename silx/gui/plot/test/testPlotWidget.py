@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/01/2018"
+__date__ = "24/04/2018"
 
 
 import unittest
@@ -41,7 +41,7 @@ from silx.utils import deprecation
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
 

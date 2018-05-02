@@ -36,7 +36,7 @@ The GUI widgets depend on the following extra packages:
   `PySide <https://pypi.python.org/pypi/PySide/>`_, or `PySide2 <https://wiki.qt.io/PySide2>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
-* `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_
+* `qt_console <https://pypi.python.org/pypi/qtconsole>`_
   for the ``silx.gui.console`` widget.
 
 Tools for reading and writing files depend on the following packages:

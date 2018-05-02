@@ -1,3 +1,4 @@
+
 dist: trusty
 sudo: required
 
@@ -14,6 +15,7 @@ matrix:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=False
               - PYOPENCL_VERSION=2015.1
+              - SILX_OPENCL=1
 
         - python: 3.4
           os: linux
@@ -22,6 +24,7 @@ matrix:
               - WITH_QT_TEST=False
               - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
               - PYOPENCL_VERSION=2015.1
+              - SILX_OPENCL=1
 
         - python: 3.5
           os: linux
@@ -29,13 +32,15 @@ matrix:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=True
               - PYOPENCL_VERSION=2015.1
-              
+              - SILX_OPENCL=1
+
         - python: 3.6
           os: linux
           env:
               - BUILD_COMMAND=sdist
               - WITH_QT_TEST=True
               - PYOPENCL_VERSION=2018.1
+              - SILX_OPENCL=1
 
         - language: generic
           os: osx
@@ -51,7 +56,8 @@ addons:
     apt:
         packages:
             - libegl1-mesa  # Required by Qt xcb platform plugin
-            - libboost-python-dev # for PyOpenCL
+            - opencl-headers
+            - ocl-icd-libopencl1
             - opencl-headers
             - libgl1-mesa-glx  # For OpenGL
             - xserver-xorg-video-dummy  # For OpenGL
@@ -69,6 +75,7 @@ install:
     # Install build dependencies
     - pip install --upgrade wheel
     - pip install --upgrade numpy
+    - pip install --upgrade cython
 
     # Print Python info
     - python ./ci/info_platform.py

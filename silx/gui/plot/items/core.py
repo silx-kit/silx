@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "24/04/2018"
 
 import collections
 from copy import deepcopy
@@ -37,8 +37,8 @@ import numpy
 from silx.third_party import six, enum
 
 from ... import qt
-from .. import Colors
-from ..Colormap import Colormap
+from ... import colors
+from ...colors import Colormap
 
 
 _logger = logging.getLogger(__name__)
@@ -619,17 +619,17 @@ class ColorMixIn(ItemMixInBase):
 
         :param color: color(s) to be used
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
-                     one of the predefined color names defined in Colors.py
+                     one of the predefined color names defined in colors.py
         :param bool copy: True (Default) to get a copy,
                          False to use internal representation (do not modify!)
         """
         if isinstance(color, six.string_types):
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
         else:
             color = numpy.array(color, copy=copy)
             # TODO more checks + improve color array support
             if color.ndim == 1:  # Single RGBA color
-                color = Colors.rgba(color)
+                color = colors.rgba(color)
             else:  # Array of colors
                 assert color.ndim == 2
 

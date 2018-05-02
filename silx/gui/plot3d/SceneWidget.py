@@ -28,14 +28,14 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/10/2017"
+__date__ = "24/04/2018"
 
 import numpy
 import weakref
 
 from silx.third_party import enum
 from .. import qt
-from ..plot.Colors import rgba
+from ..colors import rgba
 
 from .Plot3DWidget import Plot3DWidget
 from . import items

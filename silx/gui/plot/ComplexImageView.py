@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/01/2018"
+__date__ = "24/04/2018"
 
 
 import logging
@@ -410,7 +410,7 @@ class ComplexImageView(qt.QWidget):
         WARNING: This colormap is not used when displaying both
         amplitude and phase.
 
-        :param ~silx.gui.plot.Colormap.Colormap colormap: The colormap
+        :param ~silx.gui.colors.Colormap colormap: The colormap
         :param Mode mode: If specified, set the colormap of this specific mode
         """
         self._plotImage.setColormap(colormap, mode)
@@ -419,7 +419,7 @@ class ComplexImageView(qt.QWidget):
         """Returns the colormap used to display the data.
 
         :param Mode mode: If specified, set the colormap of this specific mode
-        :rtype: ~silx.gui.plot.Colormap.Colormap
+        :rtype: ~silx.gui.colors.Colormap
         """
         return self._plotImage.getColormap(mode=mode)
 

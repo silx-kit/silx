@@ -30,8 +30,9 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/10/2017"
+__date__ = "30/04/2018"
 
+import collections
 import functools
 import os.path
 import logging
@@ -41,6 +42,7 @@ from .TextFormatter import TextFormatter
 import silx.gui.hdf5
 from silx.gui.widgets import HierarchicalTableView
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
+from ..hdf5._utils import htmlFromDict
 
 try:
     import h5py
@@ -54,7 +56,7 @@ _logger = logging.getLogger(__name__)
 class _CellData(object):
     """Store a table item
     """
-    def __init__(self, value=None, isHeader=False, span=None):
+    def __init__(self, value=None, isHeader=False, span=None, tooltip=None):
         """
         Constructor
 
@@ -65,6 +67,7 @@ class _CellData(object):
         self.__value = value
         self.__isHeader = isHeader
         self.__span = span
+        self.__tooltip = tooltip
 
     def isHeader(self):
         """Returns true if the property is a sub-header title.
@@ -84,6 +87,13 @@ class _CellData(object):
         :rtype: tuple
         """
         return self.__span
+
+    def tooltip(self):
+        """Returns the tooltip of the item.
+
+        :rtype: tuple
+        """
+        return self.__tooltip
 
 
 class _TableData(object):
@@ -143,7 +153,7 @@ class _TableData(object):
         item = _CellData(value=headerLabel, isHeader=True, span=(1, self.__colCount))
         self.__data.append([item])
 
-    def addHeaderValueRow(self, headerLabel, value):
+    def addHeaderValueRow(self, headerLabel, value, tooltip=None):
         """Append the table with a row using the first column as an header and
         other cells as a single cell for the value.
 
@@ -151,7 +161,7 @@ class _TableData(object):
         :param object value: value to store.
         """
         header = _CellData(value=headerLabel, isHeader=True)
-        value = _CellData(value=value, span=(1, self.__colCount))
+        value = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip)
         self.__data.append([header, value])
 
     def addRow(self, *args):
@@ -216,6 +226,11 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             if callable(value):
                 value = value(self.__obj)
             return value
+        elif role == qt.Qt.ToolTipRole:
+            value = cell.tooltip()
+            if callable(value):
+                value = value(self.__obj)
+            return value
         return None
 
     def flags(self, index):
@@ -259,6 +274,14 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
     def __formatHdf5Type(self, dataset):
         """Format the HDF5 type"""
         return self.__hdf5Formatter.humanReadableHdf5Type(dataset)
+
+    def __attributeTooltip(self, attribute):
+        attributeDict = collections.OrderedDict()
+        if hasattr(attribute, "shape"):
+            attributeDict["Shape"] = self.__hdf5Formatter.humanReadableShape(attribute)
+        attributeDict["Data type"] = self.__hdf5Formatter.humanReadableType(attribute, full=True)
+        html = htmlFromDict(attributeDict, title="HDF5 Attribute")
+        return html
 
     def __formatDType(self, dataset):
         """Format the numpy dtype"""
@@ -367,7 +390,10 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                 self.__data.addHeaderRow(headerLabel="Attributes")
                 for key in sorted(obj.attrs.keys()):
                     callback = lambda key, x: self.__formatter.toString(x.attrs[key])
-                    self.__data.addHeaderValueRow(headerLabel=key, value=functools.partial(callback, key))
+                    callbackTooltip = lambda key, x: self.__attributeTooltip(x.attrs[key])
+                    self.__data.addHeaderValueRow(headerLabel=key,
+                                                  value=functools.partial(callback, key),
+                                                  tooltip=functools.partial(callbackTooltip, key))
 
     def __get_filter_info(self, dataset, filterIndex):
         """Get a tuple of readable info from dataset filters
