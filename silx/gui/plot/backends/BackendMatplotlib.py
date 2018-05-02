@@ -32,7 +32,7 @@ __date__ = "18/10/2017"
 
 
 import logging
-
+import datetime as dt
 import numpy
 
 
@@ -52,10 +52,103 @@ from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
+from matplotlib.ticker import Formatter, ScalarFormatter, Locator
+
+
 
 from ..matplotlib.ModestImage import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
+from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
+
+
+
+class NiceDateLocator(Locator):
+    """
+    Matplotlib Locator that uses Nice Numbers algorithm (adapted to dates)
+    to find the tick locations. This results in the same number behaviour
+    as when using the silx Open GL backend.
+
+    Expects the data to be posix timestampes (i.e. seconds since 1970)
+    """
+    def __init__(self, numTicks=5, tz=None):
+        """
+        :param numTicks: target number of ticks
+        :param datetime.tzinfo tz: optional time zone. None is local time.
+        """
+        super(NiceDateLocator, self).__init__()
+        self.numTicks = numTicks
+
+        self._spacing = None
+        self._unit = None
+        self.tz = tz
+
+    @property
+    def spacing(self):
+        """ The current spacing. Will be updated when new tick value are made"""
+        return self._spacing
+
+    @property
+    def unit(self):
+        """ The current DtUnit. Will be updated when new tick value are made"""
+        return self._unit
+
+    def __call__(self):
+        """Return the locations of the ticks"""
+        vmin, vmax = self.axis.get_view_interval()
+        return self.tick_values(vmin, vmax)
+
+    def tick_values(self, vmin, vmax):
+        """ Calculates tick values
+        """
+        if vmax < vmin:
+            vmin, vmax = vmax, vmin
+
+        # vmin and vmax should be timestamps (i.e. seconds since 1 Jan 1970)
+        dtMin = dt.datetime.fromtimestamp(vmin, tz=self.tz)
+        dtMax = dt.datetime.fromtimestamp(vmax, tz=self.tz)
+        dtTicks, self._spacing, self._unit = \
+            calcTicks(dtMin, dtMax, self.numTicks)
+
+        # Convert datetime back to time stamps.
+        ticks = [timestamp(dtTick) for dtTick in dtTicks]
+        return ticks
+
+
+
+class NiceAutoDateFormatter(Formatter):
+    """
+    Matplotlib FuncFormatter that is linked to a NiceDateLocator and gives the
+    best possible formats given the locators current spacing an date unit.
+    """
+
+    def __init__(self, locator, tz=None):
+        """
+        :param niceDateLocator: a NiceDateLocator object
+        :param datetime.tzinfo tz: optional time zone. None is local time.
+        """
+        super(NiceAutoDateFormatter, self).__init__()
+        self.locator = locator
+        self.tz = tz
+
+    @property
+    def formatString(self):
+        if self.locator.spacing is None or self.locator.unit is None:
+            # Locator has no spacing or units yet. Return elaborate fmtString
+            return "Y-%m-%d %H:%M:%S"
+        else:
+            return bestFormatString(self.locator.spacing, self.locator.unit)
+
+
+    def __call__(self, x, pos=None):
+        """Return the format for tick val *x* at position *pos*
+           Expects x to be a POSIX timestamp (seconds since 1 Jan 1970)
+        """
+        dateTime = dt.datetime.fromtimestamp(x, tz=self.tz)
+        tickStr = dateTime.strftime(self.formatString)
+        return tickStr
+
+
 
 
 class _MarkerContainer(Container):
@@ -168,6 +261,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.matplotlibVersion = matplotlib.__version__
 
         self._enableAxis('right', False)
+        self._isXAxisTimeSeries = False
 
     # Add methods
 
@@ -670,6 +764,34 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._updateMarkers()
 
     # Graph axes
+
+    def setXAxisTimeZone(self, tz):
+        super(BackendMatplotlib, self).setXAxisTimeZone(tz)
+
+        # Make new formatter and locator with the time zone.
+        self.setXAxisTimeSeries(self.isXAxisTimeSeries())
+
+    def isXAxisTimeSeries(self):
+        return self._isXAxisTimeSeries
+
+    def setXAxisTimeSeries(self, isTimeSeries):
+        self._isXAxisTimeSeries = isTimeSeries
+        if self._isXAxisTimeSeries:
+            # We can't use a matplotlib.dates.DateFormatter because it expects
+            # the data to be in datetimes. Silx works internally with
+            # timestamps (floats).
+            locator = NiceDateLocator(tz=self.getXAxisTimeZone())
+            self.ax.xaxis.set_major_locator(locator)
+            self.ax.xaxis.set_major_formatter(
+                NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone()))
+        else:
+            try:
+                scalarFormatter = ScalarFormatter(useOffset=False)
+            except:
+                _logger.warning('Cannot disabled axes offsets in %s ' %
+                                matplotlib.__version__)
+                scalarFormatter = ScalarFormatter()
+            self.ax.xaxis.set_major_formatter(scalarFormatter)
 
     def setXAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis

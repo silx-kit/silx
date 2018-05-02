@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,22 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "06/12/2017"
 
+import datetime as dt
 import logging
+
+import dateutil.tz
+
 from ... import qt
 
+from silx.third_party import enum
+
 _logger = logging.getLogger(__name__)
+
+
+class TickMode(enum.Enum):
+    """Determines if ticks are regular number or datetimes."""
+    DEFAULT = 0       # Ticks are regular numbers
+    TIME_SERIES = 1   # Ticks are datetime objects
 
 
 class Axis(qt.QObject):
@@ -241,6 +253,40 @@ class Axis(qt.QObject):
         flag = bool(flag)
         self.setScale(self.LOGARITHMIC if flag else self.LINEAR)
 
+    def getTimeZone(self):
+        """Sets tzinfo that is used if this axis plots date times.
+
+        None means the datetimes are interpreted as local time.
+
+        :rtype: datetime.tzinfo of None.
+        """
+        raise NotImplementedError()
+
+    def setTimeZone(self, tz):
+        """Sets tzinfo that is used if this axis' tickMode is TIME_SERIES
+
+        The tz must be a descendant of the datetime.tzinfo class, "UTC" or None.
+        Use None to let the datetimes be interpreted as local time.
+        Use the string "UTC" to let the date datetimes be in UTC time.
+
+        :param tz: datetime.tzinfo, "UTC" or None.
+        """
+        raise NotImplementedError()
+
+    def getTickMode(self):
+        """Determines if axis ticks are number or datetimes.
+
+        :rtype: TickMode enum.
+        """
+        raise NotImplementedError()
+
+    def setTickMode(self, tickMode):
+        """Determines if axis ticks are number or datetimes.
+
+        :param TickMode tickMode: tick mode enum.
+        """
+        raise NotImplementedError()
+
     def isAutoScale(self):
         """Return True if axis is automatically adjusting its limits.
 
@@ -307,6 +353,32 @@ class XAxis(Axis):
 
     # TODO With some changes on the backend, it will be able to remove all this
     #      specialised implementations (prefixel by '_internal')
+
+    def getTimeZone(self):
+        return self._plot._backend.getXAxisTimeZone()
+
+    def setTimeZone(self, tz):
+        if isinstance(tz, str) and tz.upper() == "UTC":
+            tz = dateutil.tz.tzutc()
+        elif not(tz is None or isinstance(tz, dt.tzinfo)):
+            raise TypeError("tz must be a dt.tzinfo object, None or 'UTC'.")
+
+        self._plot._backend.setXAxisTimeZone(tz)
+        self._plot._setDirtyPlot()
+
+    def getTickMode(self):
+        if self._plot._backend.isXAxisTimeSeries():
+            return TickMode.TIME_SERIES
+        else:
+            return TickMode.DEFAULT
+
+    def setTickMode(self, tickMode):
+        if tickMode == TickMode.DEFAULT:
+            self._plot._backend.setXAxisTimeSeries(False)
+        elif tickMode == TickMode.TIME_SERIES:
+            self._plot._backend.setXAxisTimeSeries(True)
+        else:
+            raise ValueError("Unexpected TickMode: {}".format(tickMode))
 
     def _internalSetCurrentLabel(self, label):
         self._plot._backend.setGraphXLabel(label)

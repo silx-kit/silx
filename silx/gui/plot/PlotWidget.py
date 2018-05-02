@@ -36,6 +36,7 @@ __date__ = "26/04/2018"
 
 from collections import OrderedDict, namedtuple
 from contextlib import contextmanager
+import datetime as dt
 import itertools
 import logging
 
@@ -56,10 +57,11 @@ from .LimitsHistory import LimitsHistory
 from . import _utils
 
 from . import items
+from .items.axis import TickMode
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
-
+from ...gui.plot._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
 
@@ -534,7 +536,9 @@ class PlotWidget(qt.QMainWindow):
 
         :param numpy.ndarray x: The data corresponding to the x coordinates.
           If you attempt to plot an histogram you can set edges values in x.
-          In this case len(x) = len(y) + 1
+          In this case len(x) = len(y) + 1.
+          If x contains datetime objects the XAxis tickMode is set to
+          TickMode.TIME_SERIES.
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param str legend: The legend to be associated to the curve (or None)
         :param info: User-defined information associated to the curve
@@ -694,6 +698,13 @@ class PlotWidget(qt.QMainWindow):
                 xerror = curve.getXErrorData(copy=False)
             if yerror is None:
                 yerror = curve.getYErrorData(copy=False)
+
+            # Convert x to timestamps so that the internal representation
+            # remains floating points. The user is expected to set the axis'
+            # tickMode to TickMode.TIME_SERIES and, if necessary, set the axis
+            # to the correct time zone.
+            if len(x) > 0 and isinstance(x[0], dt.datetime):
+                x = [timestamp(d) for d in x]
 
             curve.setData(x, y, xerror, yerror, copy=copy)
 
