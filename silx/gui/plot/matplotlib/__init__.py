@@ -35,7 +35,7 @@ to the used backend.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "04/05/2017"
+__date__ = "02/05/2018"
 
 
 import sys
@@ -44,31 +44,54 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-if 'matplotlib' in sys.modules:
-    _logger.warning(
-        'matplotlib already loaded, setting its backend may not work')
-
-
-from ... import qt
+_matplotlib_already_loaded = 'matplotlib' in sys.modules
+"""If true, matplotlib was already loaded"""
 
 import matplotlib
+from ... import qt
+
+
+def _configure(backend, backend_qt4=None, backend_qt5=None, check=False):
+    """Configure matplotlib using a specific backend.
+
+    It initialize `matplotlib.rcParams` using the requested backend, or check
+    if it is already configured as requested.
+
+    :param bool check: If true, the function only check that matplotlib
+        is already initialized as request. If not a warning is emitted.
+        If `check` is false, matplotlib is initialized.
+    """
+    if check:
+        valid = matplotlib.rcParams['backend'] == backend
+        if backend_qt4 is not None:
+            valid = valid and matplotlib.rcParams['backend.qt4'] == backend_qt4
+        if backend_qt5 is not None:
+            valid = valid and matplotlib.rcParams['backend.qt5'] == backend_qt5
+
+        if not valid:
+            _logger.warning('matplotlib already loaded, setting its backend may not work')
+    else:
+        matplotlib.rcParams['backend'] = backend
+        if backend_qt4 is not None:
+            matplotlib.rcParams['backend.qt4'] = backend_qt4
+        if backend_qt5 is not None:
+            matplotlib.rcParams['backend.qt5'] = backend_qt5
+
 
 if qt.BINDING == 'PySide':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    matplotlib.rcParams['backend.qt4'] = 'PySide'
+    _configure('Qt4Agg', backend_qt4='PySide', check=_matplotlib_already_loaded)
     import matplotlib.backends.backend_qt4agg as backend
 
 elif qt.BINDING == 'PyQt4':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
+    _configure('Qt4Agg', check=_matplotlib_already_loaded)
     import matplotlib.backends.backend_qt4agg as backend
 
 elif qt.BINDING == 'PySide2':
-    matplotlib.rcParams['backend'] = 'Qt5Agg'
-    matplotlib.rcParams['backend.qt5'] = 'PySide2'
+    _configure('Qt5Agg', backend_qt5="PySide2", check=_matplotlib_already_loaded)
     import matplotlib.backends.backend_qt5agg as backend
 
 elif qt.BINDING == 'PyQt5':
-    matplotlib.rcParams['backend'] = 'Qt5Agg'
+    _configure('Qt5Agg', check=_matplotlib_already_loaded)
     import matplotlib.backends.backend_qt5agg as backend
 
 else:
