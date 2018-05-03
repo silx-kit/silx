@@ -44,6 +44,7 @@ from silx.utils import deprecation
 from silx.utils.weakref import WeakMethodProxy
 from .. import icons, qt
 from silx.gui.plot.items.curve import Curve
+from silx.math.combo import min_max
 import weakref
 
 
@@ -658,10 +659,21 @@ class ROITable(qt.QTableWidget):
         if roiID not in self._roiDict:
             return
         roi = self._roiDict[roiID]
+        if roi.isICR():
+            activeCurve = self.plot.getActiveCurve()
+            if activeCurve:
+                xData = activeCurve.getXData()
+                if len(xData) > 0:
+                    min, max = min_max(xData)
+                    roi.blockSignals(True)
+                    roi.setFrom(min)
+                    roi.setTo(max)
+                    roi.blockSignals(False)
 
         itemID = self._getItem(name='ID', roi=roi, row=None)
         itemName = self._getItem(name='ROI', row=itemID.row(), roi=roi)
         itemName.setText(roi.getName())
+
         itemType = self._getItem(name='Type', row=itemID.row(), roi=roi)
         itemType.setText(roi.getType() or self.INFO_NOT_FOUND)
 
