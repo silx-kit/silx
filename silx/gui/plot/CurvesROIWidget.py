@@ -63,6 +63,16 @@ class CurvesROIWidget(qt.QWidget):
     :param str name: The title of this widget
     """
 
+    sigROIWidgetSignal = qt.Signal(object)
+    """Signal of ROIs modifications.
+       Modification information if given as a dict with an 'event' key
+       providing the type of events.
+       Type of events:
+        - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
+        - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
+          'rowheader'
+    """
+
     sigROISignal = qt.Signal(object)
     """Deprecated signal for backward compatibility with silx < 0.7.
     Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
@@ -220,14 +230,41 @@ class CurvesROIWidget(qt.QWidget):
 
         self.roiTable.addRoi(roi)
 
+        # back compatibility pymca roi signals
+        ddict = {}
+        ddict['event'] = "AddROI"
+        roilist, roidict = self.roiTable.getROIListAndDict()
+        ddict['roilist'] = roilist
+        ddict['roidict'] = roidict
+        self.sigROIWidgetSignal.emit(ddict)
+        # end back compatibility pymca roi signals
+
     def _del(self):
         """Delete button clicked handler"""
         self.roiTable.deleteActiveRoi()
+
+        # back compatibility pymca roi signals
+        ddict = {}
+        roilist, roidict = self.roiTable.getROIListAndDict()
+        ddict['event'] = "DelROI"
+        ddict['roilist'] = roilist
+        ddict['roidict'] = roidict
+        self.sigROIWidgetSignal.emit(ddict)
+        # end back compatibility pymca roi signals
 
     def _reset(self):
         """Reset button clicked handler"""
         self.roiTable.clear()
         self._add()
+
+        # back compatibility pymca roi signals
+        ddict = {}
+        roilist, roidict = self.roiTable.getROIListAndDict()
+        ddict['event'] = "ResetROI"
+        dict['roilist'] = roilist
+        ddict['roidict'] = roidict
+        self.sigROIWidgetSignal.emit(ddict)
+        # end back compatibility pymca roi signals
 
     def _load(self):
         """Load button clicked handler"""
@@ -246,6 +283,15 @@ class CurvesROIWidget(qt.QWidget):
 
         self.roiFileDir = os.path.dirname(outputFile)
         self.roiTable.load(outputFile)
+
+        # back compatibility pymca roi signals
+        ddict = {}
+        roilist, roidict = self.roiTable.getROIListAndDict()
+        ddict['event'] = "LoadROI"
+        dict['roilist'] = roilist
+        ddict['roidict'] = roidict
+        self.sigROIWidgetSignal.emit(ddict)
+        # end back compatibility pymca roi signals
 
     def load(self, filename):
         """Load ROI widget information from a file storing a dict of ROI.
