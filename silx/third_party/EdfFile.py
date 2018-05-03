@@ -833,7 +833,7 @@ class EdfFile(object):
         for i in Header.keys():
             StrHeader = StrHeader + ("%s = %s ;\n" % (i, Header[i]))
             self.Images[Index].Header[i] = Header[i]
-        newsize = (((len(StrHeader) + 1) / HEADER_BLOCK_SIZE) + 1) * HEADER_BLOCK_SIZE - 2
+        newsize = (((len(StrHeader) + 1) // HEADER_BLOCK_SIZE) + 1) * HEADER_BLOCK_SIZE - 2
         newsize = int(newsize)
         StrHeader = StrHeader.ljust(newsize)
         StrHeader = StrHeader + "}\n"
