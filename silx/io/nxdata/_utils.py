@@ -24,8 +24,9 @@
 # ###########################################################################*/
 """Utility functions used by NXdata validation and parsing."""
 
-from silx.utils.deprecation import deprecated
+import copy
 import numpy
+from silx.utils.deprecation import deprecated
 from silx.third_party import six
 
 
@@ -81,4 +82,4 @@ def get_attr_as_unicode(item, attr_name, default=None):
             # other array, most likely unicode objects
             return [element for element in attr]
     else:
-        return attr
+        return copy.deepcopy(attr)
