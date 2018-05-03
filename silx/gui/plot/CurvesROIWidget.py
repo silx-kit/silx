@@ -263,7 +263,7 @@ class CurvesROIWidget(qt.QWidget):
         ddict = {}
         roilist, roidict = self.roiTable.getROIListAndDict()
         ddict['event'] = "ResetROI"
-        dict['roilist'] = roilist
+        ddict['roilist'] = roilist
         ddict['roidict'] = roidict
         self.sigROIWidgetSignal.emit(ddict)
         # end back compatibility pymca roi signals
@@ -290,7 +290,7 @@ class CurvesROIWidget(qt.QWidget):
         ddict = {}
         roilist, roidict = self.roiTable.getROIListAndDict()
         ddict['event'] = "LoadROI"
-        dict['roilist'] = roilist
+        ddict['roilist'] = roilist
         ddict['roidict'] = roidict
         self.sigROIWidgetSignal.emit(ddict)
         # end back compatibility pymca roi signals
