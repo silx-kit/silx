@@ -405,6 +405,12 @@ class CurvesROIWidget(qt.QWidget):
                 self._add()
                 self.calculateRois()
 
+    @deprecation.deprecated(reason="API modification",
+                            replacement="setRois",
+                            since_version="0.8.0")
+    def fillFromROIDict(self, *args, **kwargs):
+        self.roiTable.fillFromROIDict(*args, **kwargs)
+
 
 class _FloatItem(qt.QTableWidgetItem):
     """
