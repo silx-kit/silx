@@ -483,6 +483,18 @@ class PlotWindow(PlotWidget):
 
     # getters for actions
     @property
+    @deprecated(replacement="getInteractiveModeToolBar().getZoomModeAction()",
+                since_version="0.8.0")
+    def zoomModeAction(self):
+        return self.getInteractiveModeToolBar().getZoomModeAction()
+
+    @property
+    @deprecated(replacement="getInteractiveModeToolBar().getPanModeAction()",
+                since_version="0.8.0")
+    def panModeAction(self):
+        return self.getInteractiveModeToolBar().getPanModeAction()
+
+    @property
     @deprecated(replacement="getConsoleAction()", since_version="0.4.0")
     def consoleAction(self):
         return self.getConsoleAction()
