@@ -156,62 +156,61 @@ class _CylindricalVolume(DataItem3D):
         DataItem3D.__init__(self, parent=parent)
         self._mesh = None
 
-    def _setData(self, position, radius, height, color, nbFaces, flatFaces,
-                 phase):
+    def _setData(self, position, radius, height, angles, color, flatFaces):
         """Set volume geometry data.
 
         :param numpy.ndarray position:
             Center position (x, y, z) of each volume as (N, 3) array.
         :param float radius: External radius ot the volume.
         :param float height: Height of the volume(s).
+        :param numpy.ndarray angles: Angles of the edges.
         :param numpy.array color: RGB color of the volume(s).
-        :param int nbFaces: Number of faces (symmetry order).
         :param bool flatFaces:
             If the volume as flat faces or not. Used for normals calculation.
-        :param float phase:
-            rotation angle (in degrees) of the volume along z axis.
-            If 0, the first edge is on y = 0.
         """
 
         self._getScenePrimitive().children = []  # Remove any previous mesh
-        self.N = nbFaces
 
         if position is None or len(position) == 0:
             self._mesh = 0
         else:
-            phase = numpy.deg2rad(phase)
-            alpha = (2 * numpy.pi / self.N) + phase
-            """
-                   c6
-                   /\
-                  /  \
-                 /    \
-              c4|------|c5
-                | \    |
-                |  \   |
-                |   \  |
-                |    \ |
-              c2|------|c3
-                 \    /
-                  \  /
-                   \/
-                   c1     
-            """
-            c1 = numpy.array([0, 0, -height/2])
-            c2 = numpy.array([radius * numpy.cos(phase),
-                              radius * numpy.sin(phase), -height/2])
-            c3 = numpy.array([radius * numpy.cos(alpha),
-                              radius * numpy.sin(alpha), -height/2])
-            c4 = numpy.array([radius * numpy.cos(phase),
-                              radius * numpy.sin(phase), height/2])
-            c5 = numpy.array([radius * numpy.cos(alpha),
-                              radius * numpy.sin(alpha), height/2])
-            c6 = numpy.array([0, 0, height/2])
+            volume = numpy.ndarray(shape=(len(angles) - 1, 12, 3),
+                                   dtype=numpy.float32)
+            normal = numpy.ndarray(shape=(len(angles) - 1, 12, 3),
+                                   dtype=numpy.float32)
 
-            # One volume
-            volume = numpy.ndarray(shape=(self.N, 12, 3), dtype=numpy.float32)
-            normal = numpy.ndarray(shape=(self.N, 12, 3), dtype=numpy.float32)
-            for i in range(0, self.N):
+            for i in range(0, len(angles) - 1):
+                """
+                       c6
+                       /\
+                      /  \
+                     /    \
+                  c4|------|c5
+                    | \    |
+                    |  \   |
+                    |   \  |
+                    |    \ |
+                  c2|------|c3
+                     \    /
+                      \  /
+                       \/
+                       c1     
+                """
+                c1 = numpy.array([0, 0, -height/2])
+                c2 = numpy.array([radius * numpy.cos(angles[i]),
+                                  radius * numpy.sin(angles[i]),
+                                  -height/2])
+                c3 = numpy.array([radius * numpy.cos(angles[i+1]),
+                                  radius * numpy.sin(angles[i+1]),
+                                  -height/2])
+                c4 = numpy.array([radius * numpy.cos(angles[i]),
+                                  radius * numpy.sin(angles[i]),
+                                  height/2])
+                c5 = numpy.array([radius * numpy.cos(angles[i+1]),
+                                  radius * numpy.sin(angles[i+1]),
+                                  height/2])
+                c6 = numpy.array([0, 0, height/2])
+
                 volume[i] = numpy.array([c1, c3, c2,
                                          c2, c3, c4,
                                          c3, c5, c4,
@@ -238,13 +237,6 @@ class _CylindricalVolume(DataItem3D):
                                              numpy.cross(c5-c4, c6-c4),
                                              numpy.cross(c6-c5, c5-c5),
                                              numpy.cross(c4-c6, c5-c6)])
-                alpha += 2 * numpy.pi / self.N
-                c2 = c3
-                c4 = c5
-                c3 = numpy.array([radius * numpy.cos(alpha),
-                                  radius * numpy.sin(alpha), -height/2])
-                c5 = numpy.array([radius * numpy.cos(alpha),
-                                  radius * numpy.sin(alpha), height/2])
 
             # Multiplication according to the number of positions
             vertices = numpy.tile(volume.reshape(-1, 3), (len(position), 1))\
@@ -253,7 +245,7 @@ class _CylindricalVolume(DataItem3D):
                 .reshape((-1, 3))
 
             # Translations
-            numpy.add(vertices, numpy.tile(position, (1, self.N * 12))
+            numpy.add(vertices, numpy.tile(position, (1, (len(angles)-1) * 12))
                       .reshape((-1, 3)), out=vertices)
 
             self._mesh = primitives.Mesh3D(
@@ -273,7 +265,7 @@ class Box(_CylindricalVolume):
     def __init__(self, parent=None):
         super(Box, self).__init__(parent)
 
-    def setData(self, position, size, color, phase=45):
+    def setData(self, position, size, color, phase=0):
         """
         Set Box geometry data.
 
@@ -282,11 +274,22 @@ class Box(_CylindricalVolume):
         :param numpy.array size: Size (dx, dy, dz) of the box(es).
         :param numpy.array color: RGB color of the box(es).
         :param float phase:
-            Rotation angle (in degrees) of the volume along z (default 45).
-            If 0, the first edge is on y = 0.
+            Rotation angle (in degrees) of the volume along z.
+            If 0 (default), the faces are aligned with the the frame axis.
         """
+        diagonal = numpy.sqrt(size[0]**2 + size[1]**2)
+        alpha = 2 * numpy.arcsin(size[1] / diagonal)
+        beta = 2 * numpy.arcsin(size[0] / diagonal)
+        angles = numpy.array([0,
+                              alpha,
+                              alpha + beta,
+                              alpha + beta + alpha,
+                              2 * numpy.pi
+                              ])
+        phase = numpy.deg2rad(phase) - 0.5 * alpha
+        numpy.add(angles, phase, out=angles)
         self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2],
-                      color, 4, True, phase)
+                      angles, color, True)
 
 
 class Cylinder(_CylindricalVolume):
@@ -310,7 +313,8 @@ class Cylinder(_CylindricalVolume):
         :param int nbFaces:
             Number of faces for cylinder approximation (default 20).
         """
-        self._setData(position, radius, height, color, nbFaces, False, 0)
+        angles = numpy.linspace(0, 2*numpy.pi, nbFaces + 1)
+        self._setData(position, radius, height, angles, color, False)
 
 
 class Hexagon(_CylindricalVolume):
@@ -334,6 +338,8 @@ class Hexagon(_CylindricalVolume):
         :param numpy.array color: RGB color of the prism(s)
         :param float phase:
                 Rotation angle (in degrees) of the prism(s).
-                If 0 (default), the first edge is on y = 0.
+                If 0 (default), a face is aligned with x axis.
         """
-        self._setData(position, radius, height, color, 6, True, phase)
+        phase = numpy.deg2rad(phase)
+        angles = numpy.linspace(phase, 2*numpy.pi + phase, 7)
+        self._setData(position, radius, height, angles, color, True)
