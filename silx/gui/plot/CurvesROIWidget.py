@@ -174,6 +174,8 @@ class CurvesROIWidget(qt.QWidget):
         self._visibilityChangedHandler(visible=True)
         qt.QWidget.showEvent(self, event)
 
+        self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
+
     @property
     def roiFileDir(self):
         """The directory from which to load/save ROI from/to files."""
@@ -411,6 +413,16 @@ class CurvesROIWidget(qt.QWidget):
     def fillFromROIDict(self, *args, **kwargs):
         self.roiTable.fillFromROIDict(*args, **kwargs)
 
+    def _emitCurrentROISignal(self):
+        ddict = {}
+        ddict['event'] = "currentROISignal"
+        if self.roiTable.activeRoi is not None:
+            ddict['ROI'] = self.roiTable.activeRoi.toDict()
+            ddict['current'] = self.roiTable.activeRoi.getName()
+        else:
+            ddict['current'] = None
+        self.sigROISignal.emit(ddict)
+
 
 class _FloatItem(qt.QTableWidgetItem):
     """
@@ -439,6 +451,9 @@ class ROITable(qt.QTableWidget):
     sigROITableSignal = qt.Signal(object)
     """Signal of ROI table modifications.
     """
+
+    activeROIChanged = qt.Signal()
+    """Signal emitted when the active roi changed"""
 
     COLUMNS_INDEX = OrderedDict([
         ('ID', 0),
@@ -704,6 +719,7 @@ class ROITable(qt.QTableWidget):
             self.activeRoi = roi
             self.selectRow(self._roiToItems[roi.getID()].row())
             self._markersHandler.setActiveRoi(self.activeRoi)
+            self.activeROIChanged.emit()
 
     def _updateRoiInfo(self, roiID):
         if self._userIsEditingROI is True:
@@ -1487,6 +1503,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.calculateROIs = self.calculateRois = self.roiWidget.calculateRois
         self.setRois = self.roiWidget.setRois
         self.getRois = self.roiWidget.getRois
+
         self.roiWidget.sigROISignal.connect(self._forwardSigROISignal)
         self.currentROI = self.roiWidget.currentROI
 
