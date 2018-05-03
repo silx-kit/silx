@@ -473,7 +473,6 @@ class ROITable(qt.QTableWidget):
 
     def __init__(self, parent=None, plot=None, rois=None):
         super(ROITable, self).__init__(parent)
-        self.activeRoi = None
         self._showAllMarkers = False
         self._middleROIMarkerFlag = False
         self._userIsEditingROI = False
@@ -482,6 +481,7 @@ class ROITable(qt.QTableWidget):
         self._roiToItems = {}
         self._roiDict = {}
         self._markersHandler = _RoiMarkerManager()
+
         """
         Associate for each marker legend used when the `_showAllMarkers` option
         is active a roi.
@@ -495,6 +495,10 @@ class ROITable(qt.QTableWidget):
     @property
     def roidict(self):
         return self._getRoiDict()
+
+    @property
+    def activeRoi(self):
+        return self._markersHandler._activeRoi
 
     def _getRoiDict(self):
         ddict = {}
@@ -584,7 +588,6 @@ class ROITable(qt.QTableWidget):
         self._getItem(name='ID', row=None, roi=roi)
         self._roiDict[roi.getID()] = roi
         self._markersHandler.add(roi, _RoiMarkerHandler(roi, self.plot))
-        self.activeRoi = roi
         self._updateRoiInfo(roi.getID())
         callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
                                      roi.getID())
@@ -716,9 +719,8 @@ class ROITable(qt.QTableWidget):
         """
         assert isinstance(roi, ROI)
         if roi and roi.getID() in self._roiToItems.keys():
-            self.activeRoi = roi
             self.selectRow(self._roiToItems[roi.getID()].row())
-            self._markersHandler.setActiveRoi(self.activeRoi)
+            self._markersHandler.setActiveRoi(roi)
             self.activeROIChanged.emit()
 
     def _updateRoiInfo(self, roiID):
