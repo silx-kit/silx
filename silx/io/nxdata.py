@@ -32,6 +32,7 @@ import logging
 import os
 import os.path
 import numpy
+import copy
 from .utils import is_dataset, is_group, is_file
 from silx.third_party import six
 from silx.utils.deprecation import deprecated
@@ -110,7 +111,7 @@ def get_attr_as_unicode(item, attr_name, default=None):
             # other array, most likely unicode objects
             return [element for element in attr]
     else:
-        return attr
+        return copy.deepcopy(attr)
 
 
 def is_valid_nxdata(group):   # noqa
@@ -245,7 +246,7 @@ def is_valid_nxdata(group):   # noqa
         polynomial_axes_names = []
         for i, axis_name in enumerate(axes_names):
 
-            if axis_name in [None, "."]:
+            if axis_name == ".":
                 continue
             if axis_name not in group or not is_dataset(group[axis_name]):
                 _nxdata_warning("Could not find axis dataset '%s'" % axis_name,
