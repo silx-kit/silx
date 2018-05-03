@@ -33,10 +33,11 @@ import collections
 import logging
 import functools
 
-import silx
+import silx.io.nxdata
 from silx.gui import qt
 from silx.gui import icons
 from .ApplicationContext import ApplicationContext
+from .CustomNxdataWidget import CustomNxdataWidget
 
 
 _logger = logging.getLogger(__name__)
@@ -66,6 +67,10 @@ class Viewer(qt.QMainWindow):
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
         """Silx HDF5 TreeView"""
 
+        rightPanel = qt.QWidget(self)
+        rightLayout = qt.QVBoxLayout(rightPanel)
+        rightLayout.setContentsMargins(0, 0, 0, 0)
+
         # Custom the model to be able to manage the life cycle of the files
         treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeview, ownFiles=False)
         treeModel.sigH5pyObjectLoaded.connect(self.__h5FileLoaded)
@@ -74,16 +79,22 @@ class Viewer(qt.QMainWindow):
         treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
         treeModel2.setSourceModel(treeModel)
         self.__treeview.setModel(treeModel2)
+        rightLayout.addWidget(self.__treeview)
+
+        self.__customNxdata = CustomNxdataWidget(self)
+        self.__customNxdata.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        # optimise the rendering
+        self.__customNxdata.setUniformRowHeights(True)
+        self.__customNxdata.setIconSize(qt.QSize(16, 16))
+
+        rightLayout.addWidget(self.__customNxdata)
 
         self.__dataViewer = DataViewerFrame(self)
         self.__dataViewer.setGlobalHooks(self.__context)
-        vSpliter = qt.QSplitter(qt.Qt.Vertical)
-        vSpliter.addWidget(self.__dataViewer)
-        vSpliter.setSizes([10, 0])
 
         spliter = qt.QSplitter(self)
-        spliter.addWidget(self.__treeview)
-        spliter.addWidget(vSpliter)
+        spliter.addWidget(rightPanel)
+        spliter.addWidget(self.__dataViewer)
         spliter.setStretchFactor(1, 1)
         self.__spliter = spliter
 
@@ -97,7 +108,10 @@ class Viewer(qt.QMainWindow):
 
         model = self.__treeview.selectionModel()
         model.selectionChanged.connect(self.displayData)
-        self.__treeview.addContextMenuCallback(self.closeAndSyncCustomContextMenu)
+        self.__treeview.addContextMenuCallback(self.customContextMenu)
+
+        model = self.__customNxdata.selectionModel()
+        model.selectionChanged.connect(self.displayCustomData)
 
         treeModel = self.__treeview.findHdf5TreeModel()
         columns = list(treeModel.COLUMN_IDS)
@@ -382,7 +396,6 @@ class Viewer(qt.QMainWindow):
         dialog.setModal(True)
 
         # NOTE: hdf5plugin have to be loaded before
-        import silx.io
         extensions = collections.OrderedDict()
         for description, ext in silx.io.supported_extensions().items():
             extensions[description] = " ".join(sorted(list(ext)))
@@ -444,7 +457,20 @@ class Viewer(qt.QMainWindow):
             data = selected[0]
             self.__dataViewer.setData(data)
 
-    def closeAndSyncCustomContextMenu(self, event):
+    def displayCustomData(self):
+        selected = list(self.__customNxdata.selectedNxdata())
+        if len(selected) == 1:
+            # Update the viewer for a single selection
+            data = selected[0]
+            self.__dataViewer.setData(data)
+
+    def useAsNewCustomSignal(self, h5dataset):
+        self.__customNxdata.createFromSignal(h5dataset)
+
+    def useAsNewCustomNxdata(self, h5nxdata):
+        self.__customNxdata.createFromNxdata(h5nxdata)
+
+    def customContextMenu(self, event):
         """Called to populate the context menu
 
         :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
@@ -456,13 +482,23 @@ class Viewer(qt.QMainWindow):
         if not menu.isEmpty():
             menu.addSeparator()
 
-        # Import it here to be sure to use the right logging level
-        import h5py
         for obj in selectedObjects:
-            if obj.ntype is h5py.File:
+            h5 = obj.h5py_object
+
+            if silx.io.is_dataset(h5):
+                action = qt.QAction("Use as a new custom signal", event.source())
+                action.triggered.connect(lambda: self.useAsNewCustomSignal(h5))
+                menu.addAction(action)
+
+            if silx.io.is_group(h5) and silx.io.nxdata.is_valid_nxdata(h5):
+                action = qt.QAction("Use as a new custom NXdata", event.source())
+                action.triggered.connect(lambda: self.useAsNewCustomNxdata(h5))
+                menu.addAction(action)
+
+            if silx.io.is_file(h5):
                 action = qt.QAction("Remove %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(obj.h5py_object))
+                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(h5))
                 menu.addAction(action)
                 action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(obj.h5py_object))
+                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(h5))
                 menu.addAction(action)
