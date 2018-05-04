@@ -626,16 +626,14 @@ class ROITable(qt.QTableWidget):
             elif name == 'Type':
                 item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
                 item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
-            elif name == 'To':
+            elif name in ('To', 'From'):
                 item = _FloatItem()
-                item.setFlags(qt.Qt.ItemIsSelectable |
-                              qt.Qt.ItemIsEnabled |
-                              qt.Qt.ItemIsEditable)
-            elif name == 'From':
-                item = _FloatItem()
-                item.setFlags(qt.Qt.ItemIsSelectable |
-                              qt.Qt.ItemIsEnabled |
-                              qt.Qt.ItemIsEditable)
+                if roi.getName().upper() in ('ICR', 'DEFAULT'):
+                    item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                else:
+                    item.setFlags(qt.Qt.ItemIsSelectable |
+                                  qt.Qt.ItemIsEnabled |
+                                  qt.Qt.ItemIsEditable)
             elif name in ('Raw Counts', 'Net Counts', 'Raw Area', 'Net Area'):
                 item = _FloatItem()
                 item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
