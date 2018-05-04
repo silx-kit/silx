@@ -654,6 +654,10 @@ class ROITable(qt.QTableWidget):
             roi = self._roiDict[id]
             return roi
 
+        def signalChanged(roi):
+            if self.activeRoi and roi.getID() == self.activeRoi.getID():
+                self.activeROIChanged.emit()
+
         self._userIsEditingROI = True
         if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
             roi = getROI()
@@ -669,11 +673,14 @@ class ROITable(qt.QTableWidget):
                     assert(item.column() == self.COLUMNS_INDEX['From'])
                     roi.setFrom(value)
                 self._updateMarker(roi.getName())
+                signalChanged(roi)
 
         if item.column() is self.COLUMNS_INDEX['ROI']:
             roi = getROI()
             roi.setName(item.text())
             self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
+            signalChanged(roi)
+
         self._userIsEditingROI = False
 
     def deleteActiveRoi(self):
