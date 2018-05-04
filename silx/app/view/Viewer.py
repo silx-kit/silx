@@ -65,6 +65,7 @@ class Viewer(qt.QMainWindow):
 
         self.__dialogState = None
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
+        self.__treeview.setExpandsOnDoubleClick(False)
         """Silx HDF5 TreeView"""
 
         rightPanel = qt.QWidget(self)
@@ -86,6 +87,7 @@ class Viewer(qt.QMainWindow):
         # optimise the rendering
         self.__customNxdata.setUniformRowHeights(True)
         self.__customNxdata.setIconSize(qt.QSize(16, 16))
+        self.__customNxdata.setExpandsOnDoubleClick(False)
 
         rightLayout.addWidget(self.__customNxdata)
 
@@ -106,12 +108,9 @@ class Viewer(qt.QMainWindow):
 
         self.setCentralWidget(main_panel)
 
-        model = self.__treeview.selectionModel()
-        model.selectionChanged.connect(self.displayData)
+        self.__treeview.activated.connect(self.displayData)
+        self.__customNxdata.activated.connect(self.displayCustomData)
         self.__treeview.addContextMenuCallback(self.customContextMenu)
-
-        model = self.__customNxdata.selectionModel()
-        model.selectionChanged.connect(self.displayCustomData)
 
         treeModel = self.__treeview.findHdf5TreeModel()
         columns = list(treeModel.COLUMN_IDS)
