@@ -35,7 +35,6 @@ import numpy
 
 from ..scene import primitives
 from .core import DataItem3D, ItemChangedType
-from ..scene.utils import trianglesNormal
 
 
 class Mesh(DataItem3D):
@@ -264,6 +263,9 @@ class Box(_CylindricalVolume):
 
     def __init__(self, parent=None):
         super(Box, self).__init__(parent)
+        self.position = None
+        self.size = None
+        self.color = None
         self.setData()
 
     def setData(self, position=((0, 0, 0),), size=(1, 1, 1), color=(1, 1, 1)):
@@ -274,23 +276,51 @@ class Box(_CylindricalVolume):
             Center position (x, y, z) of each box as a (N, 3) array.
         :param numpy.array size: Size (dx, dy, dz) of the box(es).
         :param numpy.array color: RGB color of the box(es).
-        :param float phase:
-            Rotation angle (in degrees) of the volume along z.
-            If 0 (default), the faces are aligned with the the frame axis.
         """
-        diagonal = numpy.sqrt(size[0]**2 + size[1]**2)
-        alpha = 2 * numpy.arcsin(size[1] / diagonal)
-        beta = 2 * numpy.arcsin(size[0] / diagonal)
+        self.position = numpy.atleast_2d(position)
+        self.size = size
+        self.color = color
+
+        diagonal = numpy.sqrt(self.size[0]**2 + self.size[1]**2)
+        alpha = 2 * numpy.arcsin(self.size[1] / diagonal)
+        beta = 2 * numpy.arcsin(self.size[0] / diagonal)
         angles = numpy.array([0,
                               alpha,
                               alpha + beta,
                               alpha + beta + alpha,
-                              2 * numpy.pi
-                              ])
+                              2 * numpy.pi])
         phase = 0.5 * alpha
-        numpy.add(angles, phase, out=angles)
-        self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2],
-                      angles, color, True)
+        numpy.subtract(angles, phase, out=angles)
+        self._setData(self.position,
+                      numpy.sqrt(self.size[0]**2 + self.size[1]**2)/2,
+                      self.size[2],
+                      angles,
+                      self.color,
+                      True)
+
+    def getPosition(self):
+        """Get box(es) position(s).
+
+        :return: Position of the box(es) as a (N, 3) array.
+        :rtype: numpy.ndarray
+        """
+        return self.position
+
+    def getSize(self):
+        """Get box(es) size.
+
+        :return: Size (dx, dy, dz) of the box(es).
+        :rtype: numpy.ndarray
+        """
+        return self.size
+
+    def getColor(self):
+        """Get box(es) color.
+
+        :return: RGB color of the box(es).
+        :rtype: numpy.ndarray
+        """
+        return self.color
 
 
 class Cylinder(_CylindricalVolume):
@@ -299,8 +329,14 @@ class Cylinder(_CylindricalVolume):
 
     :param parent: The View widget this item belongs to.
     """
+
     def __init__(self, parent=None):
         super(Cylinder, self).__init__(parent)
+        self.position = None
+        self.radius = None
+        self.height = None
+        self.color = None
+        self.nbFaces = 0
         self.setData()
 
     def setData(self, position=((0, 0, 0),), radius=1, height=1,
@@ -316,8 +352,51 @@ class Cylinder(_CylindricalVolume):
         :param int nbFaces:
             Number of faces for cylinder approximation (default 20).
         """
-        angles = numpy.linspace(0, 2*numpy.pi, nbFaces + 1)
-        self._setData(position, radius, height, angles, color, False)
+        self.position = numpy.atleast_2d(position)
+        self.radius = radius
+        self.height = height
+        self.color = color
+        self.nbFaces = nbFaces
+
+        angles = numpy.linspace(0, 2*numpy.pi, self.nbFaces + 1)
+        self._setData(self.position,
+                      self.radius,
+                      self.height,
+                      angles,
+                      self.color,
+                      False)
+
+    def getPosition(self):
+        """Get cylinder(s) position(s).
+
+        :return: Position(s) of the cylinder(s) as a (N, 3) array.
+        :rtype: numpy.ndarray
+        """
+        return self.position
+
+    def getRadius(self):
+        """Get cylinder(s) radius.
+
+        :return: Radius of the cylinder(s).
+        :rtype: float
+        """
+        return self.radius
+
+    def getHeight(self):
+        """Get cylinder(s) height.
+
+        :return: Height of the cylinder(s).
+        :rtype: float
+        """
+        return self.height
+
+    def getColor(self):
+        """Get cylinder(s) color.
+
+        :return: RGB color of the cylinder(s).
+        :rtype: numpy.ndarray
+        """
+        return self.color
 
 
 class Hexagon(_CylindricalVolume):
@@ -327,8 +406,14 @@ class Hexagon(_CylindricalVolume):
 
     :param parent: The View widget this item belongs to.
     """
+
     def __init__(self, parent=None):
         super(Hexagon, self).__init__(parent)
+        self.position = None
+        self.radius = 0
+        self.height = 0
+        self.color = None
+        self.phase = 0
         self.setData()
 
     def setData(self, position=((0, 0, 0),), radius=1, height=1,
@@ -345,6 +430,48 @@ class Hexagon(_CylindricalVolume):
                 Rotation angle (in degrees) of the prism(s).
                 If 0 (default), a face is aligned with x axis.
         """
-        phase = numpy.deg2rad(phase)
-        angles = numpy.linspace(phase, 2*numpy.pi + phase, 7)
-        self._setData(position, radius, height, angles, color, True)
+        self.position = numpy.atleast_2d(position)
+        self.radius = radius
+        self.height = height
+        self.color = color
+        self.phase = numpy.deg2rad(phase)
+
+        angles = numpy.linspace(self.phase, 2*numpy.pi + self.phase, 7)
+        self._setData(self.position,
+                      self.radius,
+                      self.height,
+                      angles,
+                      self.color,
+                      True)
+
+    def getPosition(self):
+        """Get hexagonal prim(s) position(s).
+
+         :return: Position(s) of hexagonal prism(s) as a (N, 3) array.
+         :rtype: numpy.ndarray
+         """
+        return self.position
+
+    def getRadius(self):
+        """Get hexagonal prism(s) radius.
+
+        :return: Radius of hexagon(s).
+        :rtype: float
+        """
+        return self.radius
+
+    def getHeight(self):
+        """Get hexagonal prism(s) height.
+
+        :return: Height of hexagonal prism(s).
+        :rtype: float
+        """
+        return self.height
+
+    def getColor(self):
+        """Get hexagonal prism(s) color.
+
+        :return: RGB color of the hexagonal prism(s).
+        :rtype: numpy.ndarray
+        """
+        return self.color
