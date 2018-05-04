@@ -46,6 +46,7 @@ from .. import icons, qt
 from silx.gui.plot.items.curve import Curve
 from silx.math.combo import min_max
 import weakref
+from silx.gui.widgets.TableWidget import TableWidget
 
 
 _logger = logging.getLogger(__name__)
@@ -442,7 +443,7 @@ class _FloatItem(qt.QTableWidgetItem):
         return float(self.text()) < float(other.text())
 
 
-class ROITable(qt.QTableWidget):
+class ROITable(TableWidget):
     """Table widget displaying ROI information.
 
     See :class:`QTableWidget` for constructor arguments.
