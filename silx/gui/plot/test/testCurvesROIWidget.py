@@ -287,6 +287,16 @@ class TestCurvesROIWidget(TestCaseQt):
         itemRawArea = roiTable.item(0, indexesColumns['Raw Area'])
         self.assertTrue(itemRawArea.text() == '2.0')
 
+    def testRemoveActiveROI(self):
+        roi = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
+        self.widget.roiWidget.setRois((roi,))
+
+        self.widget.roiWidget.roiTable.setActiveRoi(None)
+        self.assertTrue(len(self.widget.roiWidget.roiTable.selectedItems()) is 0)
+        self.widget.roiWidget.setRois((roi,))
+        self.plot.setActiveCurve(legend='linearCurve')
+        self.widget.calculateROIs()
+
 
 def suite():
     test_suite = unittest.TestSuite()

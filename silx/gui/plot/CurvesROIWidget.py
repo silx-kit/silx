@@ -695,6 +695,7 @@ class ROITable(TableWidget):
             itemID = self.item(row, self.COLUMNS_INDEX['ID'])
             roiToRm.add(self._roiDict[int(itemID.text())])
         [self.removeROI(roi) for roi in roiToRm]
+        self.setActiveRoi(None)
 
     def removeROI(self, roi):
         """
@@ -723,11 +724,16 @@ class ROITable(TableWidget):
 
         :param :class:`ROI` roi: the roi to defined as active
         """
-        assert isinstance(roi, ROI)
-        if roi and roi.getID() in self._roiToItems.keys():
-            self.selectRow(self._roiToItems[roi.getID()].row())
-            self._markersHandler.setActiveRoi(roi)
+        if roi is None:
+            self.clearSelection()
+            self._markersHandler.setActiveRoi(None)
             self.activeROIChanged.emit()
+        else:
+            assert isinstance(roi, ROI)
+            if roi and roi.getID() in self._roiToItems.keys():
+                self.selectRow(self._roiToItems[roi.getID()].row())
+                self._markersHandler.setActiveRoi(roi)
+                self.activeROIChanged.emit()
 
     def _updateRoiInfo(self, roiID):
         if self._userIsEditingROI is True:
