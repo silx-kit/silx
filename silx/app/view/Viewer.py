@@ -69,6 +69,15 @@ class Viewer(qt.QMainWindow):
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
         """Silx HDF5 TreeView"""
 
+        # Custom the model to be able to manage the life cycle of the files
+        treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeview, ownFiles=False)
+        treeModel.sigH5pyObjectLoaded.connect(self.__h5FileLoaded)
+        treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
+        treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
+        treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
+        treeModel2.setSourceModel(treeModel)
+        self.__treeview.setModel(treeModel2)
+
         self.__dataViewer = DataViewerFrame(self)
         self.__dataViewer.setGlobalHooks(self.__context)
         vSpliter = qt.QSplitter(qt.Qt.Vertical)
@@ -105,6 +114,30 @@ class Viewer(qt.QMainWindow):
         self.createActions()
         self.createMenus()
         self.__context.restoreSettings()
+
+    def __h5FileLoaded(self, loadedH5):
+        self.__context.pushRecentFile(loadedH5.file.filename)
+
+    def __h5FileRemoved(self, removedH5):
+        data = self.__dataViewer.data()
+        if data is not None:
+            if data.file.filename == removedH5.file.filename:
+                self.__dataViewer.setData(None)
+        removedH5.close()
+
+    def __h5FileSynchonized(self, removedH5, loadedH5):
+        data = self.__dataViewer.data()
+        if data is not None:
+            if data.file.filename == removedH5.file.filename:
+                # Try to synchonize the viewed data
+                try:
+                    # TODO: It have to update the data without changing the view
+                    # which is not so easy
+                    newData = loadedH5[data.name]
+                    self.__dataViewer.setData(newData)
+                except Exception:
+                    _logger.debug("Backtrace", exc_info=True)
+        removedH5.close()
 
     def closeEvent(self, event):
         self.__context.saveSettings()
@@ -238,9 +271,6 @@ class Viewer(qt.QMainWindow):
         group.addAction(action)
         menu.addAction(action)
         self._useYAxisOrientationUpward = action
-
-    def fileOpened(self, fileName):
-        self.__context.pushRecentFile(fileName)
 
     def __updateFileMenu(self):
         files = self.__context.getRecentFiles()
@@ -402,7 +432,6 @@ class Viewer(qt.QMainWindow):
 
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)
-        self.fileOpened(filename)
 
     def displayData(self):
         """Called to update the dataviewer with the selected data.
