@@ -159,6 +159,7 @@ class CurvesROIWidget(qt.QWidget):
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
 
+<<<<<<< HEAD
         self._middleROIMarkerFlag = False
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
@@ -173,6 +174,9 @@ class CurvesROIWidget(qt.QWidget):
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
         qt.QWidget.showEvent(self, event)
+=======
+        self.sigROIWidgetSignal = self.roiTable.sigROITableSignal
+>>>>>>> bea1245... [CurvesROIWidget] move up the active roi
 
         self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
 
@@ -422,6 +426,10 @@ class CurvesROIWidget(qt.QWidget):
         else:
             ddict['current'] = None
         self.sigROISignal.emit(ddict)
+
+    @property
+    def currentRoi(self):
+        return self.roiTable.activeRoi
 
 
 class _FloatItem(qt.QTableWidgetItem):
@@ -1507,7 +1515,10 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.getRois = self.roiWidget.getRois
 
         self.roiWidget.sigROISignal.connect(self._forwardSigROISignal)
+<<<<<<< HEAD
         self.currentROI = self.roiWidget.currentROI
+=======
+>>>>>>> bea1245... [CurvesROIWidget] move up the active roi
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
@@ -1535,3 +1546,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         """
         self.raise_()
         qt.QDockWidget.showEvent(self, event)
+
+    @property
+    def currentROI(self):
+        return self.roiWidget.currentRoi
