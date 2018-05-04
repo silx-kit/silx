@@ -264,8 +264,9 @@ class Box(_CylindricalVolume):
 
     def __init__(self, parent=None):
         super(Box, self).__init__(parent)
+        self.setData()
 
-    def setData(self, position, size, color, phase=0):
+    def setData(self, position=((0, 0, 0),), size=(1, 1, 1), color=(1, 1, 1)):
         """
         Set Box geometry data.
 
@@ -286,7 +287,7 @@ class Box(_CylindricalVolume):
                               alpha + beta + alpha,
                               2 * numpy.pi
                               ])
-        phase = numpy.deg2rad(phase) - 0.5 * alpha
+        phase = 0.5 * alpha
         numpy.add(angles, phase, out=angles)
         self._setData(position, numpy.sqrt(size[0]**2 + size[1]**2)/2, size[2],
                       angles, color, True)
@@ -300,8 +301,10 @@ class Cylinder(_CylindricalVolume):
     """
     def __init__(self, parent=None):
         super(Cylinder, self).__init__(parent)
+        self.setData()
 
-    def setData(self, position, radius, height, color, nbFaces=20):
+    def setData(self, position=((0, 0, 0),), radius=1, height=1,
+                color=(1, 1, 1), nbFaces=20):
         """
         Set the cylinder geometry data
 
@@ -326,8 +329,10 @@ class Hexagon(_CylindricalVolume):
     """
     def __init__(self, parent=None):
         super(Hexagon, self).__init__(parent)
+        self.setData()
 
-    def setData(self, position, radius, height, color, phase=0):
+    def setData(self, position=((0, 0, 0),), radius=1, height=1,
+                color=(1, 1, 1), phase=0):
         """
         Set the uniform hexagonal prism geometry data
 
