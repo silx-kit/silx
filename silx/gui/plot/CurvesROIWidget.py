@@ -159,7 +159,6 @@ class CurvesROIWidget(qt.QWidget):
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
 
-<<<<<<< HEAD
         self._middleROIMarkerFlag = False
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
@@ -174,10 +173,6 @@ class CurvesROIWidget(qt.QWidget):
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
         qt.QWidget.showEvent(self, event)
-=======
-        self.sigROIWidgetSignal = self.roiTable.sigROITableSignal
->>>>>>> bea1245... [CurvesROIWidget] move up the active roi
-
         self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
 
     @property
@@ -456,12 +451,9 @@ class ROITable(qt.QTableWidget):
     visible. Otherwise won't compute the row and net counts...
     """
 
-    sigROITableSignal = qt.Signal(object)
-    """Signal of ROI table modifications.
-    """
-
     activeROIChanged = qt.Signal()
-    """Signal emitted when the active roi changed"""
+    """Signal emitted when the active roi changed or when the value of the
+    active roi are changing"""
 
     COLUMNS_INDEX = OrderedDict([
         ('ID', 0),
@@ -787,9 +779,14 @@ class ROITable(qt.QTableWidget):
         netArea = str(netArea) if netArea is not None else self.INFO_NOT_FOUND
         itemNetArea.setText(netArea)
 
+        if self.activeRoi and roi.getID() == self.activeRoi.getID():
+            self.activeROIChanged.emit()
+
     def currentChanged(self, current, previous):
         if previous and current.row() != previous.row() and current.row() >= 0:
-            roiItem = self.item(current.row(), self.COLUMNS_INDEX['ID'])
+            roiItem = self.item(current.row(),
+                                self.COLUMNS_INDEX['ID'])
+
             assert roiItem
             self.setActiveRoi(self._roiDict[int(roiItem.text())])
             self._markersHandler.updateAllMarkers()
@@ -927,16 +924,6 @@ class ROITable(qt.QTableWidget):
                 self._markersHandler.changePosition(markerID=label,
                                                     x=ddict['x'])
                 self._updateRoiInfo(roiID)
-                self._emitCurrentROISignal()
-
-    def _emitCurrentROISignal(self):
-        ddict = {}
-        ddict['event'] = "currentROISignal"
-        if self.activeRoi:
-            ddict['ROI'] = self.activeRoi.toDict()
-        ddict['current'] = self.activeRoi.getName() if self.activeRoi else None
-
-        self.sigROITableSignal .emit(ddict)
 
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
@@ -1515,10 +1502,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.getRois = self.roiWidget.getRois
 
         self.roiWidget.sigROISignal.connect(self._forwardSigROISignal)
-<<<<<<< HEAD
-        self.currentROI = self.roiWidget.currentROI
-=======
->>>>>>> bea1245... [CurvesROIWidget] move up the active roi
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
