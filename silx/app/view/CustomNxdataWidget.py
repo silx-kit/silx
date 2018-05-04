@@ -31,6 +31,7 @@ __date__ = "04/05/2018"
 from silx.gui import qt
 from silx.io import commonh5
 import silx.io.nxdata
+from silx.gui.hdf5._utils import Hdf5DatasetMimeData
 
 
 class _DatasetItemRow(qt.QStandardItem):
@@ -181,20 +182,6 @@ class _NxDataItem(qt.QStandardItem):
         self._datasetUpdated()
 
 
-class Hdf5DatasetMimeData(qt.QMimeData):
-    """Mimedata class to identify an internal drag and drop of a Hdf5Node."""
-
-    MIME_TYPE = "application/x-internal-h5py-dataset"
-
-    def __init__(self, dataset=None):
-        qt.QMimeData.__init__(self)
-        self.__dataset = dataset
-        self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
-
-    def getDataset(self):
-        return self.__dataset
-
-
 class _Model(qt.QStandardItemModel):
 
     def __init__(self, parent=None):
@@ -248,7 +235,7 @@ class _Model(qt.QStandardItemModel):
             if not isinstance(item, _DatasetItemRow):
                 return False
 
-            dataset = mimedata.getDataset()
+            dataset = mimedata.dataset()
             item.setDataset(dataset)
             return True
 

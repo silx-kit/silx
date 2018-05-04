@@ -77,6 +77,7 @@ class Viewer(qt.QMainWindow):
         treeModel.sigH5pyObjectLoaded.connect(self.__h5FileLoaded)
         treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
         treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
+        treeModel.setDatasetDragEnabled(True)
         treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
         treeModel2.setSourceModel(treeModel)
         self.__treeview.setModel(treeModel2)
