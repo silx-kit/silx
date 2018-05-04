@@ -173,10 +173,10 @@ class _CylindricalVolume(DataItem3D):
         if position is None or len(position) == 0:
             self._mesh = 0
         else:
-            volume = numpy.ndarray(shape=(len(angles) - 1, 12, 3),
-                                   dtype=numpy.float32)
-            normal = numpy.ndarray(shape=(len(angles) - 1, 12, 3),
-                                   dtype=numpy.float32)
+            volume = numpy.empty(shape=(len(angles) - 1, 12, 3),
+                                 dtype=numpy.float32)
+            normal = numpy.empty(shape=(len(angles) - 1, 12, 3),
+                                 dtype=numpy.float32)
 
             for i in range(0, len(angles) - 1):
                 """
