@@ -32,6 +32,13 @@ from silx.gui import qt
 from silx.io import commonh5
 import silx.io.nxdata
 from silx.gui.hdf5._utils import Hdf5DatasetMimeData
+from silx.gui.data.TextFormatter import TextFormatter
+from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
+from silx.gui import icons
+
+
+_formatter = TextFormatter()
+_hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 
 
 class _DatasetItemRow(qt.QStandardItem):
@@ -45,16 +52,54 @@ class _DatasetItemRow(qt.QStandardItem):
         self.__name = qt.QStandardItem()
         self.__name.setEditable(False)
         self.__name.setDropEnabled(True)
+
+        self.__type = qt.QStandardItem()
+        self.__type.setEditable(False)
+        self.__type.setDropEnabled(False)
+        self.__type.setDragEnabled(False)
+
+        self.__shape = qt.QStandardItem()
+        self.__shape.setEditable(False)
+        self.__shape.setDropEnabled(False)
+        self.__shape.setDragEnabled(False)
+
         self.setDataset(dataset)
+
+    def getDefaultFormatter(self):
+        return _hdf5Formatter
 
     def setDataset(self, dataset):
         self.__dataset = dataset
         if self.__dataset is not None:
             name = self.__dataset.name
+
+            if silx.io.is_dataset(dataset):
+                type_ = self.getDefaultFormatter().humanReadableType(dataset)
+                shape = self.getDefaultFormatter().humanReadableShape(dataset)
+
+                if dataset.shape is None:
+                    icon_name = "item-none"
+                elif len(dataset.shape) < 4:
+                    icon_name = "item-%ddim" % len(dataset.shape)
+                else:
+                    icon_name = "item-ndim"
+                icon = icons.getQIcon(icon_name)
+            else:
+                type_ = ""
+                shape = ""
+                icon = qt.QIcon()
         else:
             name = ""
+            type_ = ""
+            shape = ""
+            icon = qt.QIcon()
+
+        self.__icon = icon
         self.__name.setText(name)
         self.__name.setDragEnabled(self.__dataset is not None)
+        self.__name.setIcon(self.__icon)
+        self.__type.setText(type_)
+        self.__shape.setText(shape)
 
         parent = self.parent()
         if parent is not None:
@@ -64,7 +109,7 @@ class _DatasetItemRow(qt.QStandardItem):
         return self.__dataset
 
     def getRow(self):
-        return [self, self.__name]
+        return [self, self.__name, self.__type, self.__shape]
 
 
 class _NxDataItem(qt.QStandardItem):
@@ -79,16 +124,21 @@ class _NxDataItem(qt.QStandardItem):
         self.setEditable(False)
         self.setDragEnabled(False)
         self.setDropEnabled(False)
+        self.setError(None)
 
     def getRow(self):
-        dataset = qt.QStandardItem("")
-        dataset.setEditable(False)
-        dataset.setDragEnabled(False)
-        dataset.setDropEnabled(False)
-        return [self, dataset]
+        row = [self]
+        for _ in range(3):
+            item = qt.QStandardItem("")
+            item.setEditable(False)
+            item.setDragEnabled(False)
+            item.setDropEnabled(False)
+            row.append(item)
+        return row
 
     def _datasetUpdated(self):
         self.__virtual = None
+        self.setError(None)
 
     def createVirtualGroup(self):
         name = ""
@@ -147,12 +197,12 @@ class _NxDataItem(qt.QStandardItem):
 
     def setError(self, error):
         self.__error = error
+        style = qt.QApplication.style()
         if error is None:
-            self.setIcon(qt.QIcon())
+            icon = style.standardIcon(qt.QStyle.SP_DirLinkIcon)
         else:
-            style = qt.QApplication.style()
             icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
-            self.setIcon(icon)
+        self.setIcon(icon)
 
     def getError(self):
         return self.__error
@@ -248,7 +298,7 @@ class CustomNxdataWidget(qt.QTreeView):
         qt.QTreeView.__init__(self, parent=None)
         self.__model = _Model(self)
         self.__model.setColumnCount(2)
-        self.__model.setHorizontalHeaderLabels(["Name", "Dataset"])
+        self.__model.setHorizontalHeaderLabels(["Name", "Dataset", "Type", "Shape"])
         self.setModel(self.__model)
 
         header = self.header()
