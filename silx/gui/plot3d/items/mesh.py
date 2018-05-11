@@ -35,6 +35,7 @@ import numpy
 
 from ..scene import primitives
 from .core import DataItem3D, ItemChangedType
+from ..scene.transform import Rotate
 
 
 class Mesh(DataItem3D):
@@ -155,7 +156,8 @@ class _CylindricalVolume(DataItem3D):
         DataItem3D.__init__(self, parent=parent)
         self._mesh = None
 
-    def _setData(self, position, radius, height, angles, color, flatFaces):
+    def _setData(self, position, radius, height, angles, color, flatFaces,
+                 rotation):
         """Set volume geometry data.
 
         :param numpy.ndarray position:
@@ -196,19 +198,25 @@ class _CylindricalVolume(DataItem3D):
                        c1     
                 """
                 c1 = numpy.array([0, 0, -height/2])
+                c1 = rotation.transformPoint(c1)
                 c2 = numpy.array([radius * numpy.cos(angles[i]),
                                   radius * numpy.sin(angles[i]),
                                   -height/2])
+                c2 = rotation.transformPoint(c2)
                 c3 = numpy.array([radius * numpy.cos(angles[i+1]),
                                   radius * numpy.sin(angles[i+1]),
                                   -height/2])
+                c3 = rotation.transformPoint(c3)
                 c4 = numpy.array([radius * numpy.cos(angles[i]),
                                   radius * numpy.sin(angles[i]),
                                   height/2])
+                c4 = rotation.transformPoint(c4)
                 c5 = numpy.array([radius * numpy.cos(angles[i+1]),
                                   radius * numpy.sin(angles[i+1]),
                                   height/2])
+                c5 = rotation.transformPoint(c5)
                 c6 = numpy.array([0, 0, height/2])
+                c6 = rotation.transformPoint(c6)
 
                 volume[i] = numpy.array([c1, c3, c2,
                                          c2, c3, c4,
@@ -271,9 +279,11 @@ class Box(_CylindricalVolume):
         self.position = None
         self.size = None
         self.color = None
+        self.rotation = None
         self.setData()
 
-    def setData(self, position=((0, 0, 0),), size=(1, 1, 1), color=(1, 1, 1)):
+    def setData(self, position=((0, 0, 0),), size=(1, 1, 1), color=(1, 1, 1),
+                rotation=(0, (0, 0, 0))):
         """
         Set Box geometry data.
 
@@ -285,6 +295,8 @@ class Box(_CylindricalVolume):
         self.position = numpy.atleast_2d(position)
         self.size = size
         self.color = color
+        self.rotation = Rotate(rotation[0],
+                               rotation[1][0], rotation[1][1], rotation[1][2])
 
         diagonal = numpy.sqrt(self.size[0]**2 + self.size[1]**2)
         alpha = 2 * numpy.arcsin(self.size[1] / diagonal)
@@ -294,14 +306,14 @@ class Box(_CylindricalVolume):
                               alpha + beta,
                               alpha + beta + alpha,
                               2 * numpy.pi])
-        phase = 0.5 * alpha
-        numpy.subtract(angles, phase, out=angles)
+        numpy.subtract(angles, 0.5 * alpha, out=angles)
         self._setData(self.position,
                       numpy.sqrt(self.size[0]**2 + self.size[1]**2)/2,
                       self.size[2],
                       angles,
                       self.color,
-                      True)
+                      True,
+                      self.rotation)
 
     def getPosition(self):
         """Get box(es) position(s).
@@ -342,10 +354,11 @@ class Cylinder(_CylindricalVolume):
         self.height = None
         self.color = None
         self.nbFaces = 0
+        self.rotation = None
         self.setData()
 
     def setData(self, position=((0, 0, 0),), radius=1, height=1,
-                color=(1, 1, 1), nbFaces=20):
+                color=(1, 1, 1), nbFaces=20, rotation=(0, (0, 0, 0))):
         """
         Set the cylinder geometry data
 
@@ -362,6 +375,8 @@ class Cylinder(_CylindricalVolume):
         self.height = height
         self.color = color
         self.nbFaces = nbFaces
+        self.rotation = Rotate(rotation[0],
+                               rotation[1][0], rotation[1][1], rotation[1][2])
 
         angles = numpy.linspace(0, 2*numpy.pi, self.nbFaces + 1)
         self._setData(self.position,
@@ -369,7 +384,8 @@ class Cylinder(_CylindricalVolume):
                       self.height,
                       angles,
                       self.color,
-                      False)
+                      False,
+                      self.rotation)
 
     def getPosition(self):
         """Get cylinder(s) position(s).
@@ -418,11 +434,11 @@ class Hexagon(_CylindricalVolume):
         self.radius = 0
         self.height = 0
         self.color = None
-        self.phase = 0
+        self.rotation = None
         self.setData()
 
     def setData(self, position=((0, 0, 0),), radius=1, height=1,
-                color=(1, 1, 1), phase=0):
+                color=(1, 1, 1), rotation=(0,(0, 0, 0))):
         """
         Set the uniform hexagonal prism geometry data
 
@@ -439,15 +455,16 @@ class Hexagon(_CylindricalVolume):
         self.radius = radius
         self.height = height
         self.color = color
-        self.phase = numpy.deg2rad(phase)
-
-        angles = numpy.linspace(self.phase, 2*numpy.pi + self.phase, 7)
+        self.rotation = Rotate(rotation[0], rotation[1][0], rotation[1][1],
+                               rotation[1][2])
+        angles = numpy.linspace(0, 2*numpy.pi, 7)
         self._setData(self.position,
                       self.radius,
                       self.height,
                       angles,
                       self.color,
-                      True)
+                      True,
+                      self.rotation)
 
     def getPosition(self):
         """Get hexagonal prim(s) position(s).
