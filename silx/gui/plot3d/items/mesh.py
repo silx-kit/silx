@@ -247,6 +247,11 @@ class _CylindricalVolume(DataItem3D):
             numpy.add(vertices, numpy.tile(position, (1, (len(angles)-1) * 12))
                       .reshape((-1, 3)), out=vertices)
 
+            # Colors
+            if numpy.ndim(color) == 2:
+                color = numpy.tile(color, (1, 12 * (len(angles) - 1)))\
+                    .reshape(-1, 3)
+
             self._mesh = primitives.Mesh3D(
                 vertices, color, normals, mode='triangles', copy=False)
             self._getScenePrimitive().children.append(self._mesh)
