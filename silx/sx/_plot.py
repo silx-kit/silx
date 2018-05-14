@@ -362,8 +362,8 @@ def scatter(x=None, y=None, value=None, size=None,
         else:
             value = numpy.ones(len(x), dtype=numpy.float) * value
 
-        plt.addScatter(x, y, value)
-        item = plt.getPlotWidget().getScatter()
+        plt.setData(x, y, value)
+        item = plt.getScatterItem()
         item.setSymbol(marker)
         if size is not None:
             item.setSymbolSize(numpy.sqrt(size))
