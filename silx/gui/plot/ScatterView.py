@@ -60,6 +60,9 @@ class ScatterView(qt.QMainWindow):
     :type backend: Union[str, silx.gui.plot.backends.BackendBase.BackendBase]
     """
 
+    _SCATTER_LEGEND = ' '
+    """Legend used for the scatter item"""
+
     def __init__(self, parent=None, backend=None):
         super(ScatterView, self).__init__(parent=parent)
         if parent is None:
@@ -68,6 +71,9 @@ class ScatterView(qt.QMainWindow):
         # Create plot widget
         plot = PlotWidget(parent=self, backend=backend)
         self._plot = weakref.ref(plot)
+
+        # Add an empty scatter
+        plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
 
         # Create colorbar widget with white background
         self._colorbar = ColorBarWidget(parent=self, plot=plot)
@@ -228,29 +234,78 @@ class ScatterView(qt.QMainWindow):
         """
         return self._outputToolBar
 
+    # Control displayed scatter plot
+
+    def setData(self, x, y, value, xerror=None, yerror=None, copy=True):
+        """Set the data of the scatter plot.
+
+        To reset the scatter plot, set x, y and value to None.
+
+        :param Union[numpy.ndarray, None] x: X coordinates.
+        :param Union[numpy.ndarray, None] y: Y coordinates.
+        :param Union[numpy.ndarray, None] value:
+            The data corresponding to the value of the data points.
+        :param xerror: Values with the uncertainties on the x values
+        :type xerror: A float, or a numpy.ndarray of float32.
+                      If it is an array, it can either be a 1D array of
+                      same length as the data or a 2D array with 2 rows
+                      of same length as the data: row 0 for positive errors,
+                      row 1 for negative errors.
+        :param yerror: Values with the uncertainties on the y values
+        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
+        """
+        x = () if x is None else x
+        y = () if y is None else y
+        value = () if value is None else value
+
+        self.getScatterItem().setData(
+            x=x, y=y, value=value, xerror=xerror, yerror=yerror, copy=copy)
+
+    def getData(self, *args, **kwargs):
+        return self.getScatterItem().getData(*args, **kwargs)
+
+    getData.__doc__ = items.Scatter.getData.__doc__
+
+    def getScatterItem(self):
+        """Returns the plot item displaying the scatter data.
+
+        This allows to set the style of the displayed scatter.
+
+        :rtype: ~silx.gui.plot.items.Scatter
+        """
+        plot = self.getPlotWidget()
+        scatter = plot._getItem(kind='scatter', legend=self._SCATTER_LEGEND)
+        if scatter is None:  # Resilient to call to PlotWidget API (e.g., clear)
+            plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
+            scatter = plot._getItem(
+                kind='scatter', legend=self._SCATTER_LEGEND)
+        return scatter
+
     # Convenient proxies
 
-    def addScatter(self, *args, **kwargs):
-        return self.getPlotWidget().addScatter(*args, **kwargs)
+    def getXAxis(self, *args, **kwargs):
+        return self.getPlotWidget().getXAxis(*args, **kwargs)
 
-    addScatter.__doc__ = PlotWidget.addScatter.__doc__
+    getXAxis.__doc__ = PlotWidget.getXAxis.__doc__
 
-    def clear(self, *args, **kwargs):
-        return self.getPlotWidget().clear(*args, **kwargs)
+    def getYAxis(self, *args, **kwargs):
+        return self.getPlotWidget().getYAxis(*args, **kwargs)
 
-    clear.__doc__ = PlotWidget.clear.__doc__
+    getYAxis.__doc__ = PlotWidget.getYAxis.__doc__
+
+    def setGraphTitle(self, *args, **kwargs):
+        return self.getPlotWidget().setGraphTitle(*args, **kwargs)
+
+    setGraphTitle.__doc__ = PlotWidget.setGraphTitle.__doc__
+
+    def getGraphTitle(self, *args, **kwargs):
+        return self.getPlotWidget().getGraphTitle(*args, **kwargs)
+
+    getGraphTitle.__doc__ = PlotWidget.getGraphTitle.__doc__
 
     def resetZoom(self, *args, **kwargs):
         return self.getPlotWidget().resetZoom(*args, **kwargs)
 
     resetZoom.__doc__ = PlotWidget.resetZoom.__doc__
-
-    def setSelectionMask(self, *args, **kwargs):
-        return self._maskToolsWidget.setSelectionMask(*args, **kwargs)
-
-    setSelectionMask.__doc__ = ScatterMaskToolsWidget.setSelectionMask.__doc__
-
-    def getSelectionMask(self, *args, **kwargs):
-        return self._maskToolsWidget.getSelectionMask(*args, **kwargs)
-
-    getSelectionMask.__doc__ = ScatterMaskToolsWidget.getSelectionMask.__doc__

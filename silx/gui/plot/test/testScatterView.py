@@ -33,6 +33,7 @@ import unittest
 
 import numpy
 
+from silx.gui.plot.items import Axis, Scatter
 from silx.gui.plot import ScatterView
 from silx.gui.plot.test.utils import PlotWidgetTestCase
 
@@ -48,8 +49,21 @@ class TestScatterView(PlotWidgetTestCase):
         x = numpy.arange(100)
         y = numpy.arange(100)
         value = numpy.arange(100)
-        self.plot.addScatter(x, y, value)
+        self.plot.setData(x, y, value)
         self.qapp.processEvents()
+
+        data = self.plot.getData()
+        self.assertEqual(len(data), 5)
+        self.assertTrue(numpy.all(numpy.equal(x, data[0])))
+        self.assertTrue(numpy.all(numpy.equal(y, data[1])))
+        self.assertTrue(numpy.all(numpy.equal(value, data[2])))
+        self.assertIsNone(data[3])  # xerror
+        self.assertIsNone(data[4])  # yerror
+
+        # Test access to scatter item
+        self.assertIsInstance(self.plot.getScatterItem(), Scatter)
+
+        # Test toolbar actions
 
         action = self.plot.getScatterToolBar().getXAxisLogarithmicAction()
         action.trigger()
@@ -58,6 +72,36 @@ class TestScatterView(PlotWidgetTestCase):
         maskAction = self.plot.getScatterToolBar().actions()[-1]
         maskAction.trigger()
         self.qapp.processEvents()
+
+        # Test proxy API
+
+        self.plot.resetZoom()
+        self.qapp.processEvents()
+
+        scale = self.plot.getXAxis().getScale()
+        self.assertEqual(scale, Axis.LOGARITHMIC)
+
+        scale = self.plot.getYAxis().getScale()
+        self.assertEqual(scale, Axis.LINEAR)
+
+        title = 'Test ScatterView'
+        self.plot.setGraphTitle(title)
+        self.assertEqual(self.plot.getGraphTitle(), title)
+
+        self.qapp.processEvents()
+
+        # Reset scatter data
+
+        self.plot.setData(None, None, None)
+        self.qapp.processEvents()
+
+        data = self.plot.getData()
+        self.assertEqual(len(data), 5)
+        self.assertEqual(len(data[0]), 0)  # x
+        self.assertEqual(len(data[1]), 0)  # y
+        self.assertEqual(len(data[2]), 0)  # value
+        self.assertIsNone(data[3])  # xerror
+        self.assertIsNone(data[4])  # yerror
 
 
 def suite():
