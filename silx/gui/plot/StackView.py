@@ -72,6 +72,7 @@ __license__ = "MIT"
 __date__ = "26/04/2018"
 
 import numpy
+import logging
 
 import silx
 from silx.gui import qt
@@ -96,6 +97,8 @@ except ImportError:
     h5py = None
 else:
     from silx.io.utils import is_dataset
+
+_logger = logging.getLogger(__name__)
 
 
 class StackView(qt.QMainWindow):
@@ -370,7 +373,7 @@ class StackView(qt.QMainWindow):
                                    calibration.NoCalibration())
         else:
             self.calibrations3D = []
-            for calib in calibrations:
+            for i, calib in enumerate(calibrations):
                 if hasattr(calib, "__len__") and len(calib) == 2:
                     calib = calibration.LinearCalibration(calib[0], calib[1])
                 elif calib is None:
@@ -379,15 +382,31 @@ class StackView(qt.QMainWindow):
                     raise TypeError("calibration must be a 2-tuple, None or" +
                                     " an instance of an AbstractCalibration " +
                                     "subclass")
+                elif not calib.is_affine():
+                    _logger.warning(
+                            "Calibration for dimension %d is not linear, "
+                            "it will be ignored for scaling the graph axes.",
+                            i)
                 self.calibrations3D.append(calib)
 
     def _getXYZCalibs(self):
+        """Return calibrations sorted in the XYZ graph order.
+
+        If the X or Y calibration is not linear, it will be replaced
+        with a :class:`calibration.NoCalibration` object
+        and as a result the corresponding axis will not be scaled."""
         xy_dims = [0, 1, 2]
         xy_dims.remove(self._perspective)
 
         xcalib = self.calibrations3D[max(xy_dims)]
         ycalib = self.calibrations3D[min(xy_dims)]
         zcalib = self.calibrations3D[self._perspective]
+
+        # filter out non-linear calibration for graph axes
+        if not xcalib.is_affine():
+            xcalib = calibration.NoCalibration()
+        if not ycalib.is_affine():
+            ycalib = calibration.NoCalibration()
 
         return xcalib, ycalib, zcalib
 
