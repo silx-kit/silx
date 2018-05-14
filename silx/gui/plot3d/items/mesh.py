@@ -291,12 +291,19 @@ class Box(_CylindricalVolume):
             Center position (x, y, z) of each box as a (N, 3) array.
         :param numpy.array size: Size (dx, dy, dz) of the box(es).
         :param numpy.array color: RGB color of the box(es).
+        :param tuple(float, array) rotation:
+                Angle (in degrees) and axis of rotation.
+                If (0, (0, 0, 0)) (default), the hexagonal faces are on
+                xy plane and a side face is aligned with x axis.
         """
         self.position = numpy.atleast_2d(position)
         self.size = size
         self.color = color
         self.rotation = Rotate(rotation[0],
                                rotation[1][0], rotation[1][1], rotation[1][2])
+
+        assert (numpy.ndim(self.color) == 1 or
+                len(self.color) == len(self.position))
 
         diagonal = numpy.sqrt(self.size[0]**2 + self.size[1]**2)
         alpha = 2 * numpy.arcsin(self.size[1] / diagonal)
@@ -375,6 +382,10 @@ class Cylinder(_CylindricalVolume):
         :param numpy.array color: RGB color of the cylinder(s).
         :param int nbFaces:
             Number of faces for cylinder approximation (default 20).
+        :param tuple(float, array) rotation:
+                Angle (in degrees) and axis of rotation.
+                If (0, (0, 0, 0)) (default), the hexagonal faces are on
+                xy plane and a side face is aligned with x axis.
         """
         self.position = numpy.atleast_2d(position)
         self.radius = radius
@@ -383,6 +394,9 @@ class Cylinder(_CylindricalVolume):
         self.nbFaces = nbFaces
         self.rotation = Rotate(rotation[0],
                                rotation[1][0], rotation[1][1], rotation[1][2])
+
+        assert (numpy.ndim(self.color) == 1 or
+                len(self.color) == len(self.position))
 
         angles = numpy.linspace(0, 2*numpy.pi, self.nbFaces + 1)
         self._setData(self.position,
@@ -450,7 +464,7 @@ class Hexagon(_CylindricalVolume):
         self.setData()
 
     def setData(self, position=((0, 0, 0),), radius=1, height=1,
-                color=(1, 1, 1), rotation=(0,(0, 0, 0))):
+                color=(1, 1, 1), rotation=(0, (0, 0, 0))):
         """
         Set the uniform hexagonal prism geometry data
 
@@ -459,9 +473,10 @@ class Hexagon(_CylindricalVolume):
         :param float radius: External radius of the hexagonal prism
         :param float height: Height of the hexagonal prism
         :param numpy.array color: RGB color of the prism(s)
-        :param float phase:
-                Rotation angle (in degrees) of the prism(s).
-                If 0 (default), a face is aligned with x axis.
+        :param tuple(float, array) rotation:
+                Angle (in degrees) and axis of rotation.
+                If (0, (0, 0, 0)) (default), the hexagonal faces are on
+                xy plane and a side face is aligned with x axis.
         """
         self.position = numpy.atleast_2d(position)
         self.radius = radius
@@ -469,6 +484,10 @@ class Hexagon(_CylindricalVolume):
         self.color = color
         self.rotation = Rotate(rotation[0], rotation[1][0], rotation[1][1],
                                rotation[1][2])
+
+        assert (numpy.ndim(self.color) == 1 or
+                len(self.color) == len(self.position))
+
         angles = numpy.linspace(0, 2*numpy.pi, 7)
         self._setData(self.position,
                       self.radius,
