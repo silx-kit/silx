@@ -315,13 +315,16 @@ class Box(_CylindricalVolume):
                       True,
                       self.rotation)
 
-    def getPosition(self):
+    def getPosition(self, copy=True):
         """Get box(es) position(s).
 
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
         :return: Position of the box(es) as a (N, 3) array.
         :rtype: numpy.ndarray
         """
-        return self.position
+        return numpy.array(self.position, copy=copy)
 
     def getSize(self):
         """Get box(es) size.
@@ -331,13 +334,16 @@ class Box(_CylindricalVolume):
         """
         return self.size
 
-    def getColor(self):
+    def getColor(self, copy=True):
         """Get box(es) color.
 
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
         :return: RGB color of the box(es).
         :rtype: numpy.ndarray
         """
-        return self.color
+        return numpy.array(self.color, copy=copy)
 
 
 class Cylinder(_CylindricalVolume):
@@ -387,13 +393,16 @@ class Cylinder(_CylindricalVolume):
                       False,
                       self.rotation)
 
-    def getPosition(self):
+    def getPosition(self, copy=True):
         """Get cylinder(s) position(s).
 
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
         :return: Position(s) of the cylinder(s) as a (N, 3) array.
         :rtype: numpy.ndarray
         """
-        return self.position
+        return numpy.array(self.position, copy=copy)
 
     def getRadius(self):
         """Get cylinder(s) radius.
@@ -411,13 +420,16 @@ class Cylinder(_CylindricalVolume):
         """
         return self.height
 
-    def getColor(self):
+    def getColor(self, copy=True):
         """Get cylinder(s) color.
 
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
         :return: RGB color of the cylinder(s).
         :rtype: numpy.ndarray
         """
-        return self.color
+        return numpy.array(self.color, copy=copy)
 
 
 class Hexagon(_CylindricalVolume):
@@ -466,13 +478,16 @@ class Hexagon(_CylindricalVolume):
                       True,
                       self.rotation)
 
-    def getPosition(self):
+    def getPosition(self, copy=True):
         """Get hexagonal prim(s) position(s).
 
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
          :return: Position(s) of hexagonal prism(s) as a (N, 3) array.
          :rtype: numpy.ndarray
          """
-        return self.position
+        return numpy.array(self.position, copy=copy)
 
     def getRadius(self):
         """Get hexagonal prism(s) radius.
@@ -490,10 +505,13 @@ class Hexagon(_CylindricalVolume):
         """
         return self.height
 
-    def getColor(self):
+    def getColor(self, copy=True):
         """Get hexagonal prism(s) color.
 
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
         :return: RGB color of the hexagonal prism(s).
         :rtype: numpy.ndarray
         """
-        return self.color
+        return numpy.array(self.color, copy=copy)
