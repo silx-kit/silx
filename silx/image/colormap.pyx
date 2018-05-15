@@ -34,12 +34,13 @@ __date__ = "02/03/2018"
 # TODO nanColor with if type in cython.floating: handle nan
 # TODO test
 # TODO compare result to mpl
+# TODO simplify fastLog10
 # TODO if only RGBA8888 is supported, copy color as a int32 instead of 4 char, probably faster
 
 cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
-from libc.math cimport lrint, HUGE_VAL, isfinite, frexp, NAN
+from libc.math cimport lrint, HUGE_VAL, isfinite, frexp, NAN, asinh
 
 from silx.math.combo import min_max
 
@@ -170,6 +171,34 @@ cdef _cmap(
                 for channel in range(nb_channels):
                     output[index, channel] = colors[lut_index, channel]
 
+    elif normalization == 'arcsinh':
+        normed_vmin = asinh(vmin)
+
+        if vmin == vmax:
+            scale = 0.
+        else:
+            # TODO check this
+            #scale = (nb_colors - 1) / (vmax - vmin)
+            scale = nb_colors / (asinh(vmax) - asinh(vmin))
+
+        with nogil:
+            for index in prange(length):
+                if data[index] <= vmin:
+                    lut_index = 0
+                elif data[index] >= vmax:
+                    lut_index = nb_colors - 1
+                else:
+                    lut_index = <int>((asinh(data[index]) - normed_vmin) * scale)
+                    # Safety net, duplicate previous checks
+                    # TODO needed?
+                    if lut_index < 0:
+                        lut_index = 0
+                    elif lut_index >= nb_colors:
+                        lut_index = nb_colors - 1
+
+                for channel in range(nb_channels):
+                    output[index, channel] = colors[lut_index, channel]
+
     else:  # Normalization linear
         if vmin == vmax:
             scale = 0.
@@ -289,7 +318,7 @@ def cmap(data,
     """
     cdef int nb_channels
 
-    assert normalization in ('linear', 'log')
+    assert normalization in ('linear', 'log', 'arcsinh')
 
     # Make sure data is a numpy array (no need for a contiguous array)
     # TODO check if endianness is an issue
