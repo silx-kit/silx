@@ -34,7 +34,7 @@ __date__ = "01/03/2018"
 
 from .toolbars import InteractiveModeToolBar  # noqa
 from .toolbars import OutputToolBar  # noqa
-from .toolbars import ImageToolBar, CurveToolBar  # noqa
+from .toolbars import ImageToolBar, CurveToolBar, ScatterToolBar  # noqa
 
 from .LimitsToolBar import LimitsToolBar  # noqa
 from .PositionInfo import PositionInfo  # noqa

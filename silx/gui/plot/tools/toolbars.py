@@ -263,3 +263,94 @@ class CurveToolBar(qt.QToolBar):
         :rtype: PlotAction
         """
         return self._curveStyleAction
+
+
+class ScatterToolBar(qt.QToolBar):
+    """Toolbar providing PlotAction suited when displaying scatter plot
+
+    :param parent: See :class:`QWidget`
+    :param silx.gui.plot.PlotWidget plot: PlotWidget to control
+    :param str title: Title of the toolbar.
+    """
+
+    def __init__(self, parent=None, plot=None, title='Scatter Tools'):
+        super(ScatterToolBar, self).__init__(title, parent)
+
+        assert isinstance(plot, PlotWidget)
+
+        self._resetZoomAction = actions.control.ResetZoomAction(
+            parent=self, plot=plot)
+        self.addAction(self._resetZoomAction)
+
+        self._xAxisLogarithmicAction = actions.control.XAxisLogarithmicAction(
+            parent=self, plot=plot)
+        self.addAction(self._xAxisLogarithmicAction)
+
+        self._yAxisLogarithmicAction = actions.control.YAxisLogarithmicAction(
+            parent=self, plot=plot)
+        self.addAction(self._yAxisLogarithmicAction)
+
+        self._keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
+            parent=self, plot=plot)
+        self.addWidget(self._keepDataAspectRatioButton)
+
+        self._gridAction = actions.control.GridAction(
+            parent=self, plot=plot)
+        self.addAction(self._gridAction)
+
+        self._colormapAction = actions.control.ColormapAction(
+            parent=self, plot=plot)
+        self.addAction(self._colormapAction)
+
+        self._symbolToolButton = PlotToolButtons.SymbolToolButton(
+            parent=self, plot=plot)
+        self.addWidget(self._symbolToolButton)
+
+    def getResetZoomAction(self):
+        """Returns the QAction to reset the zoom.
+
+        :rtype: PlotAction
+        """
+        return self._resetZoomAction
+
+    def getXAxisLogarithmicAction(self):
+        """Returns the QAction to toggle X axis log/linear scale.
+
+        :rtype: PlotAction
+        """
+        return self._xAxisLogarithmicAction
+
+    def getYAxisLogarithmicAction(self):
+        """Returns the QAction to toggle Y axis log/linear scale.
+
+        :rtype: PlotAction
+        """
+        return self._yAxisLogarithmicAction
+
+    def getGridAction(self):
+        """Returns the action to toggle the plot grid.
+
+        :rtype: PlotAction
+        """
+        return self._gridAction
+
+    def getColormapAction(self):
+        """Returns the QAction to control the colormap.
+
+        :rtype: PlotAction
+        """
+        return self._colormapAction
+
+    def getSymbolToolButton(self):
+        """Returns the QToolButton controlling symbol size and marker.
+
+        :rtype: SymbolToolButton
+        """
+        return self._symbolToolButton
+
+    def getKeepDataAspectRatioButton(self):
+        """Returns the QToolButton controlling data aspect ratio.
+
+        :rtype: QToolButton
+        """
+        return self._keepDataAspectRatioButton

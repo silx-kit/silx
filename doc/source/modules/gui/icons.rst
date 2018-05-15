@@ -179,6 +179,8 @@ Available icons
      - plot-roi-reset
    * - |plot-roi|
      - plot-roi
+   * - |plot-symbols|
+     - plot-symbols
    * - |plot-toggle-points|
      - plot-toggle-points
    * - |plot-widget|
@@ -358,6 +360,7 @@ Available icons
 .. |plot-roi-between| image:: ../../../../silx/resources/gui/icons/plot-roi-between.png
 .. |plot-roi-reset| image:: ../../../../silx/resources/gui/icons/plot-roi-reset.png
 .. |plot-roi| image:: ../../../../silx/resources/gui/icons/plot-roi.png
+.. |plot-symbols| image:: ../../../../silx/resources/gui/icons/plot-symbols.png
 .. |plot-toggle-points| image:: ../../../../silx/resources/gui/icons/plot-toggle-points.png
 .. |plot-widget| image:: ../../../../silx/resources/gui/icons/plot-widget.png
 .. |plot-window-image| image:: ../../../../silx/resources/gui/icons/plot-window-image.png

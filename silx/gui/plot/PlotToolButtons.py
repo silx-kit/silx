@@ -30,6 +30,7 @@ The following QToolButton are available:
 - :class:`.AspectToolButton`
 - :class:`.YAxisOriginToolButton`
 - :class:`.ProfileToolButton`
+- :class:`.SymbolToolButton`
 
 """
 
@@ -38,9 +39,13 @@ __license__ = "MIT"
 __date__ = "27/06/2017"
 
 
+import functools
 import logging
+
 from .. import icons
 from .. import qt
+
+from .items import SymbolMixIn
 
 
 _logger = logging.getLogger(__name__)
@@ -282,3 +287,71 @@ class ProfileToolButton(PlotToolButton):
 
     def computeProfileIn2D(self):
         self._profileDimensionChanged(2)
+
+
+class SymbolToolButton(PlotToolButton):
+    """A tool button with a drop-down menu to control symbol size and marker.
+
+    :param parent: See QWidget
+    :param plot: The `~silx.gui.plot.PlotWidget` to control
+    """
+
+    def __init__(self, parent=None, plot=None):
+        super(SymbolToolButton, self).__init__(parent=parent, plot=plot)
+
+        self.setToolTip('Set symbol size and marker')
+        self.setIcon(icons.getQIcon('plot-symbols'))
+
+        menu = qt.QMenu(self)
+
+        # Size slider
+
+        slider = qt.QSlider(qt.Qt.Horizontal)
+        slider.setRange(1, 20)
+        slider.setValue(SymbolMixIn._DEFAULT_SYMBOL_SIZE)
+        slider.setTracking(False)
+        slider.valueChanged.connect(self._sizeChanged)
+        widgetAction = qt.QWidgetAction(menu)
+        widgetAction.setDefaultWidget(slider)
+        menu.addAction(widgetAction)
+
+        menu.addSeparator()
+
+        # Marker actions
+
+        for marker, name in zip(SymbolMixIn.getSupportedSymbols(),
+                                SymbolMixIn.getSupportedSymbolNames()):
+            action = qt.QAction(name, menu)
+            action.setCheckable(False)
+            action.triggered.connect(
+                functools.partial(self._markerChanged, marker))
+            menu.addAction(action)
+
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+
+    def _sizeChanged(self, value):
+        """Manage slider value changed
+
+        :param int value: Marker size
+        """
+        plot = self.plot()
+        if plot is None:
+            return
+
+        for item in plot._getItems(withhidden=True):
+            if isinstance(item, SymbolMixIn):
+                item.setSymbolSize(value)
+
+    def _markerChanged(self, marker):
+        """Manage change of marker.
+
+        :param str marker: Letter describing the marker
+        """
+        plot = self.plot()
+        if plot is None:
+            return
+
+        for item in plot._getItems(withhidden=True):
+            if isinstance(item, SymbolMixIn):
+                item.setSymbol(marker)

@@ -50,6 +50,7 @@ from . import testLimitConstraints
 from . import testComplexImageView
 from . import testImageView
 from . import testSaveAction
+from . import testScatterView
 
 
 def suite():
@@ -75,5 +76,7 @@ def suite():
          testLimitConstraints.suite(),
          testComplexImageView.suite(),
          testImageView.suite(),
-         testSaveAction.suite()])
+         testSaveAction.suite(),
+         testScatterView.suite(),
+         ])
     return test_suite

@@ -39,7 +39,7 @@ import numpy
 
 from ..utils.weakref import WeakList
 from ..gui import qt
-from ..gui.plot import Plot1D, Plot2D, PlotWidget
+from ..gui.plot import Plot1D, Plot2D, ScatterView, PlotWidget
 from ..gui.colors import COLORDICT
 from ..gui.colors import Colormap
 from silx.third_party import six
@@ -111,6 +111,8 @@ def plot(*args, **kwargs):
     :param str title: The title of the Plot widget (default: None)
     :param str xlabel: The label of the X axis (default: None)
     :param str ylabel: The label of the Y axis (default: None)
+    :return: The widget plotting the curve(s)
+    :rtype: silx.gui.plot.Plot1D
     """
     plt = Plot1D()
     if 'title' in kwargs:
@@ -243,6 +245,8 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     :param str title: The title of the Plot widget
     :param str xlabel: The label of the X axis
     :param str ylabel: The label of the Y axis
+    :return: The widget plotting the image
+    :rtype: silx.gui.plot.Plot2D
     """
     plt = Plot2D()
     plt.setGraphTitle(title)
@@ -284,6 +288,90 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
 
     plt.show()
     _plots.insert(0, plt)
+    return plt
+
+
+def scatter(x=None, y=None, value=None, size=None,
+            marker='o',
+            cmap=None, norm=Colormap.LINEAR,
+            vmin=None, vmax=None):
+    """
+    Plot scattered data in a :class:`~silx.gui.plot.ScatterView` widget.
+
+    How to use:
+
+    >>> from silx import sx
+    >>> import numpy
+
+    >>> x = numpy.random.random(100)
+    >>> y = numpy.random.random(100)
+    >>> values = numpy.random.random(100)
+    >>> plt = sx.scatter(x, y, values, cmap='viridis')
+
+        Supported symbols:
+
+        - 'o' circle
+        - '.' point
+        - ',' pixel
+        - '+' cross
+        - 'x' x-cross
+        - 'd' diamond
+        - 's' square
+
+    This function supports a subset of `matplotlib.pyplot.scatter
+    <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.scatter>`_
+    arguments.
+
+    :param numpy.ndarray x: 1D array-like of x coordinates
+    :param numpy.ndarray y: 1D array-like of y coordinates
+    :param numpy.ndarray value: 1D array-like of data values
+    :param float size: Size^2 of the markers
+    :param str marker: Symbol used to represent the points (default: 'o')
+    :param str cmap: The name of the colormap to use for the plot.
+    :param str norm: The normalization of the colormap:
+                     'linear' (default) or 'log'
+    :param float vmin: The value to use for the min of the colormap
+    :param float vmax: The value to use for the max of the colormap
+    :return: The widget plotting the scatter plot
+    :rtype: silx.gui.plot.ScatterView.ScatterView
+    """
+    plt = ScatterView()
+
+    # Update default colormap with input parameters
+    colormap = plt.getPlotWidget().getDefaultColormap()
+    if cmap is not None:
+        colormap.setName(cmap)
+    assert norm in Colormap.NORMALIZATIONS
+    colormap.setNormalization(norm)
+    colormap.setVMin(vmin)
+    colormap.setVMax(vmax)
+    plt.getPlotWidget().setDefaultColormap(colormap)
+
+    if x is not None and y is not None:  # Add a scatter plot
+        x = numpy.array(x, copy=True).reshape(-1)
+        y = numpy.array(y, copy=True).reshape(-1)
+        assert len(x) == len(y)
+
+        if value is None:
+            value = numpy.ones(len(x), dtype=numpy.float32)
+
+        elif isinstance(value, collections.Iterable):
+            value = numpy.array(value, copy=True).reshape(-1)
+            assert len(x) == len(value)
+
+        else:
+            value = numpy.ones(len(x), dtype=numpy.float) * value
+
+        plt.setData(x, y, value)
+        item = plt.getScatterItem()
+        item.setSymbol(marker)
+        if size is not None:
+            item.setSymbolSize(numpy.sqrt(size))
+
+        plt.resetZoom()
+
+    plt.show()
+    _plots.insert(0, plt.getPlotWidget())
     return plt
 
 

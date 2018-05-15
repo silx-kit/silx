@@ -329,7 +329,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                    color=actualColor,
                                    marker=symbol,
                                    picker=picker,
-                                   s=symbolsize)
+                                   s=symbolsize**2)
             artists.append(scatter)
 
             if fill:

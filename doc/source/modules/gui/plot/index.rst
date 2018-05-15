@@ -35,6 +35,7 @@ Main plot widgets:
    compleximageview.rst
    imageview.rst
    stackview.rst
+   scatterview.rst
 
 Classes describing plot content:
 
