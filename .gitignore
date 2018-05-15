@@ -1,5 +1,6 @@
 # Cythonized files
 silx/image/bilinear.c
+silx/image/colormap.c
 silx/image/marchingsquares/_mergeimpl.cpp
 silx/image/shapes.c
 silx/io/specfile.c

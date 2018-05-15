@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,11 @@ def configuration(parent_package='', top_path=None):
                          sources=["shapes.pyx"],
                          language='c')
     config.add_subpackage('marchingsquares')
+    config.add_extension('colormap',
+                         sources=["colormap.pyx"],
+                         language='c',
+                         extra_link_args=['-fopenmp'],
+                         extra_compile_args=['-fopenmp'])
     return config
 
 
