@@ -34,10 +34,7 @@ __date__ = "02/03/2018"
 # TODO nanColor with if type in cython.floating: handle nan
 # TODO test
 # TODO compare result to mpl
-# TODO check if not contiguous array has same performance
 # TODO if only RGBA8888 is supported, copy color as a int32 instead of 4 char, probably faster
-# TODO check if numpy.take is faster for lut cmap implementation
-# numpy.digitize seems slower than current implementation and anyway need more memory...
 
 cimport cython
 from cython.parallel import prange
@@ -130,13 +127,13 @@ cdef double fastLog10(double value) nogil:
 @cython.cdivision(True)
 cdef _cmap(
     _image_types[:, ::1] output,
-    cython.floating[::1] data,
+    cython.floating[:] data,
     _image_types[:, ::1] colors,
     double vmin,
     double vmax,
     str normalization):
     """Convert data to colors. See:func:`cmap`"""
-    cdef double scale
+    cdef double scale, normed_vmin
     cdef unsigned int length, channel, nb_channels, nb_colors
     cdef int index, lut_index
 
@@ -146,15 +143,14 @@ cdef _cmap(
 
     # TODO refactor to avoid duplication of code (if performance is OK)
     if normalization == 'log':
-        vmin = fastLog10(vmin)
-        vmax = fastLog10(vmax)
+        normed_vmin = fastLog10(vmin)
 
         if vmin == vmax:
             scale = 0.
         else:
             # TODO check this
             #scale = (nb_colors - 1) / (vmax - vmin)
-            scale = nb_colors / (vmax - vmin)
+            scale = nb_colors / (fastLog10(vmax) - fastLog10(vmin))
 
         with nogil:
             for index in prange(length):
@@ -163,7 +159,7 @@ cdef _cmap(
                 elif data[index] >= vmax:
                     lut_index = nb_colors - 1
                 else:
-                    lut_index = <int>((fastLog10(data[index]) - vmin) * scale)
+                    lut_index = <int>((fastLog10(data[index]) - normed_vmin) * scale)
                     # Safety net, duplicate previous checks
                     # TODO needed?
                     if lut_index < 0:
@@ -207,7 +203,7 @@ cdef _cmap(
 @cython.cdivision(True)
 cdef _cmap_lut(
     _image_types[:, ::1] output,
-    _lut_types[::1] data,
+    _lut_types[:] data,
     _image_types[:, ::1] colors,
     double vmin,
     double vmax,
@@ -216,7 +212,7 @@ cdef _cmap_lut(
 
     Only supports data of type: uint8, uint16, int8, int16.
     """
-    cdef double[::1] values
+    cdef float[:] values
     cdef _image_types[:, ::1] lut
     cdef int type_min, type_max
     cdef unsigned int nb_channels, length, channel
@@ -239,7 +235,7 @@ cdef _cmap_lut(
         type_min = 0
         type_max = 65535
 
-    values = numpy.arange(type_min, type_max + 1, dtype=numpy.float64)
+    values = numpy.arange(type_min, type_max + 1, dtype=numpy.float32)
     lut = numpy.empty((length, nb_channels), dtype=numpy.array(colors, copy=False).dtype)
     _cmap(lut, values, colors, vmin, vmax, normalization)
 
@@ -253,7 +249,7 @@ cdef _cmap_lut(
 
 def _cmap_proxy(
     _image_types[:, ::1] output,
-    _data_types[::1] data,
+    _data_types[:] data,
     _image_types[:, ::1] colors,
     double vmin,
     double vmax,
@@ -295,21 +291,18 @@ def cmap(data,
 
     assert normalization in ('linear', 'log')
 
-    # TODO simpler conversion
-    # Make data a flat contiguous array (and take care of endianness)
+    # Make sure data is a numpy array (no need for a contiguous array)
+    # TODO check if endianness is an issue
     data = numpy.array(data, copy=False)
-    data_shape = data.shape
-    native_endian_dtype = data.dtype.newbyteorder('N')
-    data = numpy.ascontiguousarray(data, dtype=native_endian_dtype).ravel()
 
-    # Make colors a 2D contiguous array (and take care of endianness)
+    # Make colors a contiguous array (and take care of endianness)
     colors = numpy.array(colors, copy=False)
     nb_channels = colors.shape[colors.ndim - 1]
-    native_endian_dtype = colors.dtype.newbyteorder('N')
-    colors = numpy.ascontiguousarray(colors, dtype=native_endian_dtype)
+    colors = numpy.ascontiguousarray(colors,
+                                     dtype=colors.dtype.newbyteorder('N'))
 
     # Allocate output image array
-    image = numpy.empty(data_shape + (nb_channels,), dtype=colors.dtype)
+    image = numpy.empty(data.shape + (nb_channels,), dtype=colors.dtype)
 
     # Init vmin, vmax if not set
     # TODO improve + check fallback with log with only nan, only inf, etc...
