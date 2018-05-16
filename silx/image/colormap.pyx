@@ -36,7 +36,7 @@ __date__ = "02/03/2018"
 cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
-from libc.math cimport lrint, HUGE_VAL, isfinite, isnan, frexp, NAN, asinh
+from libc.math cimport lrint, HUGE_VAL, isfinite, isnan, frexp, NAN, asinh, sqrt
 
 from silx.math.combo import min_max
 
@@ -330,11 +330,27 @@ cdef class ColormapArcsinh:
         return asinh(value)
 
 
+cdef class ColormapSqrt(Colormap):
+    """Class for processing of sqrt normalized colormap."""
+
+    def __cinit__(self):
+        pass
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.nonecheck(False)
+    @cython.cdivision(True)
+    cdef double normalize(self, double value) nogil:
+        """Returns sqrt(value)"""
+        return sqrt(value)
+
+
 # Colormap objects to use for conversion
 _colormaps = {
     'linear': Colormap(),
     'log': ColormapLog(),
-    'arcsinh': ColormapArcsinh()
+    'arcsinh': ColormapArcsinh(),
+    'sqrt': ColormapSqrt(),
 }
 
 
