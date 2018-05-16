@@ -306,7 +306,7 @@ cdef class ColormapLog(Colormap):
         return result
 
 
-cdef class ColormapArcsinh:
+cdef class ColormapArcsinh(Colormap):
     """Class for processing of arcsinh normalized colormap."""
 
     def __cinit__(self):
@@ -355,10 +355,11 @@ def cmap(data,
 
     :param numpy.ndarray data: The data to convert to colors
     :param numpy.ndarray colors: Color look-up table as a 2D array.
+       It MUST be of type uint8 or float32
     :param vmin: Data value to map to the beginning of colormap.
     :param vmax: Data value to map to the end of the colormap.
     :param str normalization: The normalization to apply:
-                              'linear' (default) or 'log'
+                              'linear' (default), 'log', 'arcsinh', 'sqrt'
     :param nan_color: Color to use for NaN value.
         Default: A color with all channels set to 0
     :return: The colors corresponding to data. The shape of the
@@ -372,7 +373,10 @@ def cmap(data,
 
     # Make data a numpy array of native endian type (no need for contiguity)
     data = numpy.array(data, copy=False)
-    data = numpy.array(data, copy=False, dtype=data.dtype.newbyteorder('N'))
+    native_endian_dtype = data.dtype.newbyteorder('N')
+    if native_endian_dtype.kind == 'f' and native_endian_dtype.itemsize == 2:
+        native_endian_dtype = "=f4"  # Use native float32 instead of float16
+    data = numpy.array(data, copy=False, dtype=native_endian_dtype)
 
     # Make colors a contiguous array of native endian type
     colors = numpy.array(colors, copy=False)
