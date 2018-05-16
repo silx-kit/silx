@@ -30,15 +30,13 @@ __license__ = "MIT"
 __date__ = "02/03/2018"
 
 
-# TODO nanColor with if type in cython.floating: handle nan
 # TODO test
 # TODO compare result to mpl
-# TODO if only RGBA8888 is supported, copy color as a int32 instead of 4 char, probably faster
 
 cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
-from libc.math cimport lrint, HUGE_VAL, isfinite, frexp, NAN, asinh
+from libc.math cimport lrint, HUGE_VAL, isfinite, isnan, frexp, NAN, asinh
 
 from silx.math.combo import min_max
 
@@ -114,6 +112,7 @@ cdef class Colormap:
         """For linear colormap, this is a No-Op.
 
         Override in subclass to perform some normalization.
+        This MUST be a monotonic increasing function.
 
         :param value: Value to normalize
         :return: Normalized value
@@ -129,7 +128,8 @@ cdef class Colormap:
               data_types[:] data,
               image_types[:, ::1] colors,
               double vmin,
-              double vmax):
+              double vmax,
+              image_types[::1] nan_color):
         """Apply colormap to data.
 
         :param output: Memory view where to store the result
@@ -137,16 +137,17 @@ cdef class Colormap:
         :param colors: Colors look-up-table
         :param vmin: Lower bound of the colormap range
         :param vmax: Upper bound of the colormap range
+        :param nan_color: Color to use for NaN value.
         """
         # Proxy for calling the right implementation depending on data type
         if data_types in lut_types:  # Use LUT implementation
-            self._cmap_lut(output, data, colors, vmin, vmax)
+            self._cmap_lut(output, data, colors, vmin, vmax, nan_color)
 
         elif data_types in default_types:  # Use default implementation
-            self._cmap(output, data, colors, vmin, vmax)
+            self._cmap(output, data, colors, vmin, vmax, nan_color)
 
         else:
-            raise NotImplementedError() #TODO (u)int32|64
+            raise ValueError('Unsupported data type')
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -157,7 +158,8 @@ cdef class Colormap:
                default_types[:] data,
                image_types[:, ::1] colors,
                double vmin,
-               double vmax):
+               double vmax,
+               image_types[::1] nan_color):
         """Apply colormap to data.
 
         :param output: Memory view where to store the result
@@ -165,8 +167,9 @@ cdef class Colormap:
         :param colors: Colors look-up-table
         :param vmin: Lower bound of the colormap range
         :param vmax: Upper bound of the colormap range
+        :param nan_color: Color to use for NaN value
         """
-        cdef double scale, normed_vmin
+        cdef double scale, value
         cdef unsigned int length, channel, nb_channels, nb_colors
         cdef int index, lut_index
 
@@ -174,23 +177,36 @@ cdef class Colormap:
         nb_channels = colors.shape[1]
         length = data.size
 
-        normed_vmin = self.normalize(vmin)
+        vmin = self.normalize(vmin)
+        if not isfinite(vmin):
+            raise ValueError('Normalized vmin is not a finite value')
+        vmax = self.normalize(vmax)
+        if not isfinite(vmax):
+            raise ValueError('Normalized vmax is not a finite value')
 
         if vmin == vmax:
             scale = 0.
         else:
             # TODO check this
             #scale = (nb_colors - 1) / (vmax - vmin)
-            scale = nb_colors / (self.normalize(vmax) - normed_vmin)
+            scale = nb_colors / (vmax - vmin)
 
         with nogil:
             for index in prange(length):
-                if data[index] <= vmin:
+                value = self.normalize(data[index])
+
+                # Handle NaN
+                if isnan(value):
+                    for channel in range(nb_channels):
+                        output[index, channel] = nan_color[channel]
+                    continue
+
+                if value <= vmin:
                     lut_index = 0
-                elif data[index] >= vmax:
+                elif value >= vmax:
                     lut_index = nb_colors - 1
                 else:
-                    lut_index = <int>((self.normalize(data[index]) - normed_vmin) * scale)
+                    lut_index = <int>((value - vmin) * scale)
                     # Safety net, duplicate previous checks
                     # TODO needed?
                     if lut_index < 0:
@@ -210,12 +226,20 @@ cdef class Colormap:
                    lut_types[:] data,
                    image_types[:, ::1] colors,
                    double vmin,
-                   double vmax):
+                   double vmax,
+                   image_types[::1] nan_color):
         """Convert data to colors using look-up table to speed the process.
 
-        Only supports data of type: uint8, uint16, int8, int16.
+        Only supports data of types: uint8, uint16, int8, int16.
+
+        :param output: Memory view where to store the result
+        :param data: Input data
+        :param colors: Colors look-up-table
+        :param vmin: Lower bound of the colormap range
+        :param vmax: Upper bound of the colormap range
+        :param nan_color: Color to use for NaN values
         """
-        cdef float[:] values
+        cdef double[:] values
         cdef image_types[:, ::1] lut
         cdef int type_min, type_max
         cdef unsigned int nb_channels, length, channel
@@ -238,9 +262,9 @@ cdef class Colormap:
             type_min = 0
             type_max = 65535
 
-        values = numpy.arange(type_min, type_max + 1, dtype=numpy.float32)
+        values = numpy.arange(type_min, type_max + 1, dtype=numpy.float64)
         lut = numpy.empty((length, nb_channels), dtype=numpy.array(colors, copy=False).dtype)
-        self.apply(lut, values, colors, vmin, vmax)
+        self._cmap(lut, values, colors, vmin, vmax, nan_color)
 
         with nogil:
             # Apply LUT
@@ -315,7 +339,8 @@ def cmap(data,
          colors,
          vmin=None,
          vmax=None,
-         str normalization='linear'):
+         str normalization='linear',
+         nan_color=None):
     """Convert data to colors.
 
     :param numpy.ndarray data: The data to convert to colors
@@ -328,6 +353,8 @@ def cmap(data,
         Default: Max of the dataset.
     :param str normalization: The normalization to apply:
                               'linear' (default) or 'log'
+    :param nan_color: Color to use for NaN value.
+        Default: A color with all channels set to 0
     :return: The colors corresponding to data. The shape of the
         returned array is that of data array + the 2nd dimension of colors.
         The dtype of the returned array is that of the colors array.
@@ -338,14 +365,23 @@ def cmap(data,
     assert normalization in _colormaps.keys()
 
     # Make sure data is a numpy array (no need for a contiguous array)
-    # TODO check if endianness is an issue
     data = numpy.array(data, copy=False)
+    # TODO check if endianness is really an issue
+    data = numpy.array(data, copy=False, dtype=data.dtype.newbyteorder('N'))
 
     # Make colors a contiguous array (and take care of endianness)
     colors = numpy.array(colors, copy=False)
     nb_channels = colors.shape[colors.ndim - 1]
     colors = numpy.ascontiguousarray(colors,
                                      dtype=colors.dtype.newbyteorder('N'))
+
+    # Check nan_color
+    if nan_color is None:
+        nan_color = numpy.zeros((nb_channels,), dtype=colors.dtype)
+    else:
+        nan_color = numpy.ascontiguousarrayarray(
+            nan_color, dtype=colors.dtype).reshape(-1)
+    assert nan_color.shape == (nb_channels,)
 
     # Allocate output image array
     image = numpy.empty(data.shape + (nb_channels,), dtype=colors.dtype)
@@ -386,6 +422,6 @@ def cmap(data,
         image.reshape(-1, nb_channels),
         data.reshape(-1),
         colors.reshape(-1, nb_channels),
-        vmin, vmax)
+        vmin, vmax, nan_color)
 
     return image
