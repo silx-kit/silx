@@ -34,7 +34,6 @@ __date__ = "02/03/2018"
 # TODO nanColor with if type in cython.floating: handle nan
 # TODO test
 # TODO compare result to mpl
-# TODO simplify fastLog10
 # TODO if only RGBA8888 is supported, copy color as a int32 instead of 4 char, probably faster
 
 cimport cython
@@ -73,6 +72,7 @@ ctypedef fused _data_types:
     double
     long double
 
+
 # Supported colors/output types
 ctypedef fused _image_types:
     cnumpy.uint8_t
@@ -88,14 +88,12 @@ ctypedef fused _image_types:
     long double
 
 
-# Fast log10 implementation
+# Fast log10 approximation
 
 DEF LOG_LUT_SIZE = 4096
 cdef double _log_lut[LOG_LUT_SIZE + 1]  # index_lut can overflow of 1 !
 
-# Init fast log10 LUT
-# norm_frac in [0.5, 1), 1/log(2) = 1.4426950408889634
-_log_lut = 1.4426950408889634 * numpy.log(
+_log_lut = numpy.log2(
     numpy.linspace(0.5, 1., LOG_LUT_SIZE + 1, endpoint=True, dtype=numpy.float64))
 # Handle  indexLUT == 1 overflow
 _log_lut[LOG_LUT_SIZE] = _log_lut[LOG_LUT_SIZE - 1]
