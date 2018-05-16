@@ -116,10 +116,38 @@ cdef class Colormap:
     @cython.cdivision(True)
     def apply(self,
               _image_types[:, ::1] output,
-              cython.floating[:] data,
+              _data_types[:] data,
               _image_types[:, ::1] colors,
               double vmin,
               double vmax):
+        """Apply colormap to data.
+
+        :param output: Memory view where to store the result
+        :param data: Input data
+        :param colors: Colors look-up-table
+        :param vmin: Lower bound of the colormap range
+        :param vmax: Upper bound of the colormap range
+        """
+        # Proxy for calling the right implementation depending on data type
+        if _data_types in _lut_types:  # Use LUT implementation
+            self._cmap_lut(output, data, colors, vmin, vmax)
+
+        elif _data_types in cython.floating:  # Use float implementation
+            self._cmap(output, data, colors, vmin, vmax)
+
+        else:
+            raise NotImplementedError() #TODO (u)int32|64
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.nonecheck(False)
+    @cython.cdivision(True)
+    cdef _cmap(self,
+               _image_types[:, ::1] output,
+               cython.floating[:] data,
+               _image_types[:, ::1] colors,
+               double vmin,
+               double vmax):
         """Apply colormap to data.
 
         :param output: Memory view where to store the result
@@ -162,6 +190,54 @@ cdef class Colormap:
 
                 for channel in range(nb_channels):
                     output[index, channel] = colors[lut_index, channel]
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.nonecheck(False)
+    @cython.cdivision(True)
+    cdef _cmap_lut(self,
+                   _image_types[:, ::1] output,
+                   _lut_types[:] data,
+                   _image_types[:, ::1] colors,
+                   double vmin,
+                   double vmax):
+        """Convert data to colors using look-up table to speed the process.
+
+        Only supports data of type: uint8, uint16, int8, int16.
+        """
+        cdef float[:] values
+        cdef _image_types[:, ::1] lut
+        cdef int type_min, type_max
+        cdef unsigned int nb_channels, length, channel
+        cdef int index
+        cdef _lut_types lut_index
+
+        length = data.size
+        nb_channels = colors.shape[1]
+
+        if _lut_types is cnumpy.int8_t:
+            type_min = -128
+            type_max = 127
+        elif _lut_types is cnumpy.uint8_t:
+            type_min = 0
+            type_max = 255
+        elif _lut_types is cnumpy.int16_t:
+            type_min = -32768
+            type_max = 32767
+        else:  # uint16_t
+            type_min = 0
+            type_max = 65535
+
+        values = numpy.arange(type_min, type_max + 1, dtype=numpy.float32)
+        lut = numpy.empty((length, nb_channels), dtype=numpy.array(colors, copy=False).dtype)
+        self.apply(lut, values, colors, vmin, vmax)
+
+        with nogil:
+            # Apply LUT
+            for index in prange(length):
+                lut_index = data[index] - type_min
+                for channel in range(nb_channels):
+                    output[index, channel] = lut[lut_index, channel]
 
 
 DEF LOG_LUT_SIZE = 4096
@@ -217,79 +293,12 @@ cdef class ColormapArcsinh:
         return asinh(value)
 
 
+# Colormap objects to use for conversion
 _colormaps = {
     'linear': Colormap(),
     'log': ColormapLog(),
     'arcsinh': ColormapArcsinh()
 }
-
-
-@cython.wraparound(False)
-@cython.boundscheck(False)
-@cython.nonecheck(False)
-@cython.cdivision(True)
-cdef _cmap_lut(
-    _image_types[:, ::1] output,
-    _lut_types[:] data,
-    _image_types[:, ::1] colors,
-    double vmin,
-    double vmax,
-    str normalization):
-    """Convert data to colors using look-up table to speed the process.
-
-    Only supports data of type: uint8, uint16, int8, int16.
-    """
-    cdef float[:] values
-    cdef _image_types[:, ::1] lut
-    cdef int type_min, type_max
-    cdef unsigned int nb_channels, length, channel
-    cdef int index
-    cdef _lut_types lut_index
-
-    length = data.size
-    nb_channels = colors.shape[1]
-
-    if _lut_types is cnumpy.int8_t:
-        type_min = -128
-        type_max = 127
-    elif _lut_types is cnumpy.uint8_t:
-        type_min = 0
-        type_max = 255
-    elif _lut_types is cnumpy.int16_t:
-        type_min = -32768
-        type_max = 32767
-    else:  # uint16_t
-        type_min = 0
-        type_max = 65535
-
-    values = numpy.arange(type_min, type_max + 1, dtype=numpy.float32)
-    lut = numpy.empty((length, nb_channels), dtype=numpy.array(colors, copy=False).dtype)
-    _colormaps[normalization].apply(lut, values, colors, vmin, vmax)
-
-    with nogil:
-        # Apply LUT
-        for index in prange(length):
-            lut_index = data[index] - type_min
-            for channel in range(nb_channels):
-                output[index, channel] = lut[lut_index, channel]
-
-
-def _cmap_proxy(
-    _image_types[:, ::1] output,
-    _data_types[:] data,
-    _image_types[:, ::1] colors,
-    double vmin,
-    double vmax,
-    str normalization):
-    """Proxy for calling the right implementation depending on data type"""
-    if _data_types in _lut_types:  # Use LUT implementation
-        _cmap_lut(output, data, colors, vmin, vmax, normalization)
-
-    elif _data_types in cython.floating:  # Use float implementation
-        _colormaps[normalization].apply(output, data, colors, vmin, vmax)
-
-    else:
-        raise NotImplementedError() #TODO (u)int32|64
 
 
 def cmap(data,
@@ -363,9 +372,10 @@ def cmap(data,
         elif vmax is None:
             vmax = numpy.nanmax(data)
 
-    _cmap_proxy(image.reshape(-1, nb_channels),
-                data.reshape(-1),
-                colors.reshape(-1, nb_channels),
-                vmin, vmax, normalization)
+    _colormaps[normalization].apply(
+        image.reshape(-1, nb_channels),
+        data.reshape(-1),
+        colors.reshape(-1, nb_channels),
+        vmin, vmax)
 
     return image
