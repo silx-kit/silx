@@ -33,7 +33,6 @@ You can also fetch the default NXdata in a NXroot or a NXentry with function
 
 """
 
-import logging
 import numpy
 from silx.io.utils import is_dataset, is_group
 from .validate import is_valid_nxdata,\
@@ -41,13 +40,11 @@ from .validate import is_valid_nxdata,\
     is_NXentry_with_default_NXdata
 from ._utils import get_attr_as_unicode, _INTERPDIM
 from silx.third_party import six
+from . import nxdata_logger
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "17/04/2018"
-
-
-_logger = logging.getLogger(__name__)
 
 
 class NXdata(object):
@@ -156,16 +153,16 @@ class NXdata(object):
             ds = self.group[dsname]
             signal_attr = ds.attrs.get("signal")
             if signal_attr is not None and not is_dataset(ds):
-                _logger.warning("Item %s with @signal=%s is not a dataset (%s)",
-                                dsname, signal_attr, type(ds))
+                nxdata_logger.warning("Item %s with @signal=%s is not a dataset (%s)",
+                                      dsname, signal_attr, type(ds))
                 continue
             if signal_attr is not None:
                 try:
                     signal_number = int(signal_attr)
                 except (ValueError, TypeError):
-                    _logger.warning("Could not parse attr @signal=%s on "
-                                    "dataset %s as an int",
-                                    signal_attr, dsname)
+                    nxdata_logger.warning("Could not parse attr @signal=%s on "
+                                          "dataset %s as an int",
+                                          signal_attr, dsname)
                     continue
                 numbered_names.append((signal_number, dsname))
         return [a[1] for a in sorted(numbered_names)]
@@ -223,8 +220,8 @@ class NXdata(object):
             interpretation = get_attr_as_unicode(self.group, "interpretation")
 
         if interpretation not in allowed_interpretations:
-            _logger.warning("Interpretation %s is not valid." % interpretation +
-                            " Valid values: " + ", ".join(allowed_interpretations))
+            nxdata_logger.warning("Interpretation %s is not valid." % interpretation +
+                                  " Valid values: " + ", ".join(allowed_interpretations))
         return interpretation
 
     @property
@@ -310,8 +307,8 @@ class NXdata(object):
                         try:
                             axis_num = int(axis_attr)
                         except (ValueError, TypeError):
-                            _logger.warning("Could not interpret attr @axis as"
-                                            "int on dataset %s", dsname)
+                            nxdata_logger.warning("Could not interpret attr @axis as"
+                                                  "int on dataset %s", dsname)
                             continue
                         numbered_names.append((axis_num, dsname))
 

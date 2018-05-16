@@ -31,8 +31,8 @@ Public functions:
  - :func:`is_NXentry_with_default_NXdata`
 """
 
-from ._utils import _get_uncertainties_names, _nxdata_warning, _get_signal_name, \
-    _get_auxiliary_signals_names, _are_auxiliary_signals_valid, _has_valid_number_of_axes
+from ._utils import get_uncertainties_names, nxdata_warning, get_signal_name, \
+    get_auxiliary_signals_names, are_auxiliary_signals_valid, has_valid_number_of_axes
 from silx.io.utils import is_dataset, is_group, is_file
 from silx.third_party import six
 from ._utils import get_attr_as_unicode
@@ -66,23 +66,23 @@ def is_valid_nxdata(group):   # noqa
     if get_attr_as_unicode(group, "NX_class") != "NXdata":
         return False
 
-    signal_name = _get_signal_name(group)
+    signal_name = get_signal_name(group)
     if signal_name is None:
-        _nxdata_warning("No @signal attribute on the NXdata group, "
+        nxdata_warning("No @signal attribute on the NXdata group, "
                         "and no dataset with a @signal=1 attr found",
-                        group.name)
+                       group.name)
         return False
 
     if signal_name not in group or not is_dataset(group[signal_name]):
-        _nxdata_warning(
+        nxdata_warning(
             "Cannot find signal dataset '%s'" % signal_name,
             group.name)
         return False
 
-    auxiliary_signals_names = _get_auxiliary_signals_names(group)
-    if not _are_auxiliary_signals_valid(group,
-                                        signal_name,
-                                        auxiliary_signals_names):
+    auxiliary_signals_names = get_auxiliary_signals_names(group)
+    if not are_auxiliary_signals_valid(group,
+                                       signal_name,
+                                       auxiliary_signals_names):
         return False
 
     if "axes" in group.attrs:
@@ -90,15 +90,15 @@ def is_valid_nxdata(group):   # noqa
         if isinstance(axes_names, (six.text_type, six.binary_type)):
             axes_names = [axes_names]
 
-        if not _has_valid_number_of_axes(group, signal_name,
-                                         num_axes=len(axes_names)):
+        if not has_valid_number_of_axes(group, signal_name,
+                                        num_axes=len(axes_names)):
             return False
 
         # Test consistency of @uncertainties
-        uncertainties_names = _get_uncertainties_names(group, signal_name)
+        uncertainties_names = get_uncertainties_names(group, signal_name)
         if uncertainties_names is not None:
             if len(uncertainties_names) != len(axes_names):
-                _nxdata_warning("@uncertainties does not define the same " +
+                nxdata_warning("@uncertainties does not define the same " +
                                 "number of fields than @axes", group.name)
                 return False
 
@@ -113,8 +113,8 @@ def is_valid_nxdata(group):   # noqa
             if axis_name == ".":
                 continue
             if axis_name not in group or not is_dataset(group[axis_name]):
-                _nxdata_warning("Could not find axis dataset '%s'" % axis_name,
-                                group.name)
+                nxdata_warning("Could not find axis dataset '%s'" % axis_name,
+                               group.name)
                 return False
 
             axis_size = 1
@@ -125,9 +125,9 @@ def is_valid_nxdata(group):   # noqa
                 # too me, it makes only sense to have a n-D axis if it's total
                 # size is exactly the signal's size (weird n-d scatter)
                 if axis_size != signal_size:
-                    _nxdata_warning("Axis %s is not a 1D dataset" % axis_name +
+                    nxdata_warning("Axis %s is not a 1D dataset" % axis_name +
                                     " and its shape does not match the signal's shape",
-                                    group.name)
+                                   group.name)
                     return False
                 axis_len = axis_size
             else:
@@ -138,7 +138,7 @@ def is_valid_nxdata(group):   # noqa
 
             if axis_len != signal_size:
                 if axis_len not in group[signal_name].shape + (1, 2):
-                    _nxdata_warning(
+                    nxdata_warning(
                         "Axis %s number of elements does not " % axis_name +
                         "correspond to the length of any signal dimension,"
                         " it does not appear to be a constant or a linear calibration," +
@@ -149,7 +149,7 @@ def is_valid_nxdata(group):   # noqa
                 is_scatter = False
             else:
                 if not is_scatter:
-                    _nxdata_warning(
+                    nxdata_warning(
                         "Axis %s number of elements is equal " % axis_name +
                         "to the length of the signal, but this does not seem" +
                         " to be a scatter (other axes have different sizes)",
@@ -162,7 +162,7 @@ def is_valid_nxdata(group):   # noqa
                 errors_name = uncertainties_names[i]
                 if errors_name in group and axis_name not in polynomial_axes_names:
                     if group[errors_name].shape != group[axis_name].shape:
-                        _nxdata_warning(
+                        nxdata_warning(
                             "Errors '%s' does not have the same " % errors_name +
                             "dimensions as axis '%s'." % axis_name, group.name)
                         return False
@@ -170,9 +170,9 @@ def is_valid_nxdata(group):   # noqa
     # test dimensions of errors associated with signal
     if "errors" in group and is_dataset(group["errors"]):
         if group["errors"].shape != group[signal_name].shape:
-            _nxdata_warning("Dataset containing standard deviations must " +
+            nxdata_warning("Dataset containing standard deviations must " +
                             "have the same dimensions as the signal.",
-                            group.name)
+                           group.name)
             return False
     return True
 

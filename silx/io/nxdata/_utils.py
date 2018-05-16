@@ -25,12 +25,12 @@
 """Utility functions used by NXdata validation and parsing."""
 
 import copy
-import logging
 import numpy
 
 from silx.io import is_dataset
 from silx.utils.deprecation import deprecated
 from silx.third_party import six
+from . import nxdata_logger
 
 
 __authors__ = ["P. Knobel"]
@@ -46,9 +46,6 @@ _INTERPDIM = {"scalar": 0,
 """Number of signal dimensions associated to each possible @interpretation
 attribute.
 """
-
-
-_logger = logging.getLogger(__name__)
 
 
 @deprecated(since_version="0.8.0", replacement="get_attr_as_unicode")
@@ -91,7 +88,7 @@ def get_attr_as_unicode(item, attr_name, default=None):
         return copy.deepcopy(attr)
 
 
-def _get_uncertainties_names(group, signal_name):
+def get_uncertainties_names(group, signal_name):
     # Test consistency of @uncertainties
     uncertainties_names = get_attr_as_unicode(group, "uncertainties")
     if uncertainties_names is None:
@@ -101,7 +98,7 @@ def _get_uncertainties_names(group, signal_name):
     return uncertainties_names
 
 
-def _nxdata_warning(msg, group_name=""):
+def nxdata_warning(msg, group_name=""):
     """Log a warning message prefixed with
     *"NXdata warning: "*
 
@@ -113,18 +110,18 @@ def _nxdata_warning(msg, group_name=""):
         warning_prefix += " (group %s): " % group_name
     else:
         warning_prefix += ": "
-    _logger.warning(warning_prefix + msg)
+    nxdata_logger.warning(warning_prefix + msg)
 
 
-def _get_signal_name(group):
+def get_signal_name(group):
     """Return the name of the (main) signal in a NXdata group.
     Return None if this info is missing (invalid NXdata).
 
     """
     signal_name = get_attr_as_unicode(group, "signal", default=None)
     if signal_name is None:
-        _logger.info("NXdata group %s does not define a signal attr. "
-                     "Testing legacy specification.", group.name)
+        nxdata_logger.info("NXdata group %s does not define a signal attr. "
+                           "Testing legacy specification.", group.name)
         for key in group:
             if "signal" in group[key].attrs:
                 signal_name = key
@@ -135,7 +132,7 @@ def _get_signal_name(group):
     return signal_name
 
 
-def _get_auxiliary_signals_names(group):
+def get_auxiliary_signals_names(group):
     """Return list of auxiliary signals names"""
     auxiliary_signals_names = get_attr_as_unicode(group, "auxiliary_signals",
                                                   default=[])
@@ -144,27 +141,27 @@ def _get_auxiliary_signals_names(group):
     return auxiliary_signals_names
 
 
-def _are_auxiliary_signals_valid(group, signal_name, auxiliary_signals_names):
+def are_auxiliary_signals_valid(group, signal_name, auxiliary_signals_names):
     """Check data dimensionality and size. Return False if invalid."""
     for asn in auxiliary_signals_names:
         if asn not in group or not is_dataset(group[asn]):
-            _nxdata_warning(
+            nxdata_warning(
                 "Cannot find auxiliary signal dataset '%s'" % asn,
                 group.name)
             return False
         if group[signal_name].shape != group[asn].shape:
-            _nxdata_warning("Auxiliary signal dataset '%s' does not" % asn +
-                            " have the same shape as the main signal.",
-                            group.name)
+            nxdata_warning("Auxiliary signal dataset '%s' does not" % asn +
+                           " have the same shape as the main signal.",
+                           group.name)
             return False
     return True
 
 
-def _has_valid_number_of_axes(group, signal_name, num_axes):
+def has_valid_number_of_axes(group, signal_name, num_axes):
     ndims = len(group[signal_name].shape)
     if 1 < ndims < num_axes:
         # ndim = 1 with several axes could be a scatter
-        _nxdata_warning(
+        nxdata_warning(
             "More @axes defined than there are " +
             "signal dimensions: " +
             "%d axes, %d dimensions." % (num_axes, ndims),
@@ -178,31 +175,31 @@ def _has_valid_number_of_axes(group, signal_name, num_axes):
         if interpretation is None:
             interpretation = get_attr_as_unicode(group, "interpretation")
         if interpretation is None:
-            _nxdata_warning("No @interpretation and not enough" +
-                            " @axes defined.", group.name)
+            nxdata_warning("No @interpretation and not enough" +
+                           " @axes defined.", group.name)
             return False
 
         if interpretation not in _INTERPDIM:
-            _nxdata_warning("Unrecognized @interpretation=" + interpretation +
-                            " for data with wrong number of defined @axes.",
-                            group.name)
+            nxdata_warning("Unrecognized @interpretation=" + interpretation +
+                           " for data with wrong number of defined @axes.",
+                           group.name)
             return False
         if interpretation == "rgba-image":
             if ndims != 3 or group[signal_name].shape[-1] not in [3, 4]:
-                _nxdata_warning(
+                nxdata_warning(
                     "Inconsistent RGBA Image. Expected 3 dimensions with " +
                     "last one of length 3 or 4. Got ndim=%d " % ndims +
                     "with last dimension of length %d." % group[signal_name].shape[-1],
                     group.name)
                 return False
             if num_axes != 2:
-                _nxdata_warning(
+                nxdata_warning(
                     "Inconsistent number of axes for RGBA Image. Expected "
                     "3, but got %d." % ndims, group.name)
                 return False
 
         elif num_axes != _INTERPDIM[interpretation]:
-            _nxdata_warning(
+            nxdata_warning(
                 "%d-D signal with @interpretation=%s " % (ndims, interpretation) +
                 "must define %d or %d axes." % (ndims, _INTERPDIM[interpretation]),
                 group.name)
