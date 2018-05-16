@@ -119,18 +119,6 @@ cdef class Colormap:
         """
         return value
 
-    @cython.nonecheck(False)
-    cdef bint check_range(self, double vmin, double vmax) nogil:
-        """Check that the provided colormap range is valid.
-
-        Override in subclass to perform specific checks.
-
-        :param vmin: Lower bound of the colormap range
-        :param vmax: Upper bound of the colormap range
-        :return: True if the colormap range is valid, False otherwise
-        """
-        return True
-
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
@@ -151,15 +139,22 @@ cdef class Colormap:
         :param vmax: Upper bound of the colormap range
         :param nan_color: Color to use for NaN value.
         """
-        if not self.check_range(vmin, vmax):
+        cdef double normalized_vmin, normalized_vmax
+
+        normalized_vmin = self.normalize(vmin)
+        normalized_vmax = self.normalize(vmax)
+
+        if not isfinite(normalized_vmin) or not isfinite(normalized_vmax):
             raise ValueError('Colormap range is not valid')
 
         # Proxy for calling the right implementation depending on data type
         if data_types in lut_types:  # Use LUT implementation
-            self._cmap_lut(output, data, colors, vmin, vmax, nan_color)
+            self._cmap_lut(output, data, colors,
+                           normalized_vmin, normalized_vmax, nan_color)
 
         elif data_types in default_types:  # Use default implementation
-            self._cmap(output, data, colors, vmin, vmax, nan_color)
+            self._cmap(output, data, colors,
+                       normalized_vmin, normalized_vmax, nan_color)
 
         else:
             raise ValueError('Unsupported data type')
@@ -172,16 +167,16 @@ cdef class Colormap:
                image_types[:, ::1] output,
                default_types[:] data,
                image_types[:, ::1] colors,
-               double vmin,
-               double vmax,
+               double normalized_vmin,
+               double normalized_vmax,
                image_types[::1] nan_color):
         """Apply colormap to data.
 
         :param output: Memory view where to store the result
         :param data: Input data
         :param colors: Colors look-up-table
-        :param vmin: Lower bound of the colormap range
-        :param vmax: Upper bound of the colormap range
+        :param normalized_vmin: Normalized lower bound of the colormap range
+        :param normalized_vmax: Normalized upper bound of the colormap range
         :param nan_color: Color to use for NaN value
         """
         cdef double scale, value
@@ -192,19 +187,12 @@ cdef class Colormap:
         nb_channels = colors.shape[1]
         length = data.size
 
-        vmin = self.normalize(vmin)
-        if not isfinite(vmin):
-            raise ValueError('Normalized vmin is not a finite value')
-        vmax = self.normalize(vmax)
-        if not isfinite(vmax):
-            raise ValueError('Normalized vmax is not a finite value')
-
-        if vmin == vmax:
+        if normalized_vmin == normalized_vmax:
             scale = 0.
         else:
             # TODO check this
             #scale = (nb_colors - 1) / (vmax - vmin)
-            scale = nb_colors / (vmax - vmin)
+            scale = nb_colors / (normalized_vmax - normalized_vmin)
 
         with nogil:
             for index in prange(length):
@@ -216,12 +204,12 @@ cdef class Colormap:
                         output[index, channel] = nan_color[channel]
                     continue
 
-                if value <= vmin:
+                if value <= normalized_vmin:
                     lut_index = 0
-                elif value >= vmax:
+                elif value >= normalized_vmax:
                     lut_index = nb_colors - 1
                 else:
-                    lut_index = <int>((value - vmin) * scale)
+                    lut_index = <int>((value - normalized_vmin) * scale)
                     # Safety net, duplicate previous checks
                     # TODO needed?
                     if lut_index < 0:
@@ -240,8 +228,8 @@ cdef class Colormap:
                    image_types[:, ::1] output,
                    lut_types[:] data,
                    image_types[:, ::1] colors,
-                   double vmin,
-                   double vmax,
+                   double normalized_vmin,
+                   double normalized_vmax,
                    image_types[::1] nan_color):
         """Convert data to colors using look-up table to speed the process.
 
@@ -250,8 +238,8 @@ cdef class Colormap:
         :param output: Memory view where to store the result
         :param data: Input data
         :param colors: Colors look-up-table
-        :param vmin: Lower bound of the colormap range
-        :param vmax: Upper bound of the colormap range
+        :param normalized_vmin: Normalized lower bound of the colormap range
+        :param normalized_vmax: Normalized upper bound of the colormap range
         :param nan_color: Color to use for NaN values
         """
         cdef double[:] values
@@ -278,7 +266,8 @@ cdef class Colormap:
 
         values = numpy.arange(type_min, type_max + 1, dtype=numpy.float64)
         lut = numpy.empty((length, nb_channels), dtype=numpy.array(colors, copy=False).dtype)
-        self._cmap(lut, values, colors, vmin, vmax, nan_color)
+        self._cmap(lut, values, colors,
+                   normalized_vmin, normalized_vmax, nan_color)
 
         with nogil:
             # Apply LUT
@@ -324,11 +313,6 @@ cdef class ColormapLog(Colormap):
             # 1/log2(10) = 0.30102999566398114
             result = 0.30102999566398114 * (<double> exponent + self._log_lut[index_lut])
         return result
-
-    @cython.nonecheck(False)
-    cdef bint check_range(self, double vmin, double vmax) nogil:
-        """Returns False if a bound is negative"""
-        return vmin > 0 and vmax > 0
 
 
 cdef class ColormapArcsinh:
