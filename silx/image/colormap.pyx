@@ -76,16 +76,16 @@ ctypedef fused _data_types:
 # Supported colors/output types
 ctypedef fused _image_types:
     cnumpy.uint8_t
-    cnumpy.int8_t
-    cnumpy.uint16_t
-    cnumpy.int16_t
-    cnumpy.uint32_t
-    cnumpy.int32_t
-    cnumpy.uint64_t
-    cnumpy.int64_t
+    # cnumpy.int8_t
+    # cnumpy.uint16_t
+    # cnumpy.int16_t
+    # cnumpy.uint32_t
+    # cnumpy.int32_t
+    # cnumpy.uint64_t
+    # cnumpy.int64_t
     float
-    double
-    long double
+    # double
+    # long double
 
 
 # Fast log10 approximation
@@ -222,6 +222,7 @@ cdef _cmap(
 
                 for channel in range(nb_channels):
                     output[index, channel] = colors[lut_index, channel]
+
 
 
 @cython.wraparound(False)
