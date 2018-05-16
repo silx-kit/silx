@@ -378,7 +378,7 @@ def cmap(data,
     if nan_color is None:
         nan_color = numpy.zeros((nb_channels,), dtype=colors.dtype)
     else:
-        nan_color = numpy.ascontiguousarrayarray(
+        nan_color = numpy.ascontiguousarray(
             nan_color, dtype=colors.dtype).reshape(-1)
     assert nan_color.shape == (nb_channels,)
 
