@@ -88,68 +88,62 @@ ctypedef fused _image_types:
     # long double
 
 
-# Fast log10 approximation
-
-DEF LOG_LUT_SIZE = 4096
-cdef double _log_lut[LOG_LUT_SIZE + 1]  # index_lut can overflow of 1 !
-
-_log_lut = numpy.log2(
-    numpy.linspace(0.5, 1., LOG_LUT_SIZE + 1, endpoint=True, dtype=numpy.float64))
-# Handle  indexLUT == 1 overflow
-_log_lut[LOG_LUT_SIZE] = _log_lut[LOG_LUT_SIZE - 1]
-
-
-cdef double fastLog10(double value) nogil:
-    """Return log10(value) fast approximation based on LUT"""
-    cdef double result = NAN  # if value < 0.0 or value == NAN
-    cdef int exponent, index_lut
-    cdef double mantissa  # in [0.5, 1) unless value == 0 NaN or +/-inf
-
-    if value <= 0.0 or not isfinite(value):
-        if value == 0.0:
-            result = - HUGE_VAL
-        elif value > 0.0:  # i.e., value = +INFINITY
-            result = value  # i.e. +INFINITY
-    else:
-        mantissa = frexp(value, &exponent)
-        index_lut = lrint(LOG_LUT_SIZE * 2 * (mantissa - 0.5))
-        # 1/log2(10) = 0.30102999566398114
-        result = 0.30102999566398114 * (<double> exponent + _log_lut[index_lut])
-    return result
-
-
 # Colormap
 
-@cython.wraparound(False)
-@cython.boundscheck(False)
-@cython.nonecheck(False)
-@cython.cdivision(True)
-cdef _cmap(
-    _image_types[:, ::1] output,
-    cython.floating[:] data,
-    _image_types[:, ::1] colors,
-    double vmin,
-    double vmax,
-    str normalization):
-    """Convert data to colors. See:func:`cmap`"""
-    cdef double scale, normed_vmin
-    cdef unsigned int length, channel, nb_channels, nb_colors
-    cdef int index, lut_index
+cdef class Colormap:
+    """Class for processing of linear normalized colormap."""
 
-    nb_colors = colors.shape[0]
-    nb_channels = colors.shape[1]
-    length = data.size
+    def __cinit__(self):
+        pass
 
-    # TODO refactor to avoid duplication of code (if performance is OK)
-    if normalization == 'log':
-        normed_vmin = fastLog10(vmin)
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.nonecheck(False)
+    @cython.cdivision(True)
+    cdef double normalize(self, double value) nogil:
+        """For linear colormap, this is a No-Op.
+
+        Override in subclass to perform some normalization.
+
+        :param value: Value to normalize
+        :return: Normalized value
+        """
+        return value
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.nonecheck(False)
+    @cython.cdivision(True)
+    def apply(self,
+              _image_types[:, ::1] output,
+              cython.floating[:] data,
+              _image_types[:, ::1] colors,
+              double vmin,
+              double vmax):
+        """Apply colormap to data.
+
+        :param output: Memory view where to store the result
+        :param data: Input data
+        :param colors: Colors look-up-table
+        :param vmin: Lower bound of the colormap range
+        :param vmax: Upper bound of the colormap range
+        """
+        cdef double scale, normed_vmin
+        cdef unsigned int length, channel, nb_channels, nb_colors
+        cdef int index, lut_index
+
+        nb_colors = colors.shape[0]
+        nb_channels = colors.shape[1]
+        length = data.size
+
+        normed_vmin = self.normalize(vmin)
 
         if vmin == vmax:
             scale = 0.
         else:
             # TODO check this
             #scale = (nb_colors - 1) / (vmax - vmin)
-            scale = nb_colors / (fastLog10(vmax) - fastLog10(vmin))
+            scale = nb_colors / (self.normalize(vmax) - normed_vmin)
 
         with nogil:
             for index in prange(length):
@@ -158,7 +152,7 @@ cdef _cmap(
                 elif data[index] >= vmax:
                     lut_index = nb_colors - 1
                 else:
-                    lut_index = <int>((fastLog10(data[index]) - normed_vmin) * scale)
+                    lut_index = <int>((self.normalize(data[index]) - normed_vmin) * scale)
                     # Safety net, duplicate previous checks
                     # TODO needed?
                     if lut_index < 0:
@@ -169,60 +163,65 @@ cdef _cmap(
                 for channel in range(nb_channels):
                     output[index, channel] = colors[lut_index, channel]
 
-    elif normalization == 'arcsinh':
-        normed_vmin = asinh(vmin)
 
-        if vmin == vmax:
-            scale = 0.
+DEF LOG_LUT_SIZE = 4096
+
+cdef class ColormapLog(Colormap):
+    """Class for processing of log normalized colormap."""
+
+    cdef readonly double _log_lut[LOG_LUT_SIZE + 1]  # index_lut can overflow of 1 !
+    """LUT used for fast log approximation"""
+
+    def __cinit__(self):
+        # Initialize log approximation LUT
+        self._log_lut = numpy.log2(
+            numpy.linspace(0.5, 1., LOG_LUT_SIZE + 1, endpoint=True, dtype=numpy.float64))
+        # Handle  indexLUT == 1 overflow
+        self._log_lut[LOG_LUT_SIZE] = self._log_lut[LOG_LUT_SIZE - 1]
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.nonecheck(False)
+    @cython.cdivision(True)
+    cdef double normalize(self, double value) nogil:
+        """Return log10(value) fast approximation based on LUT"""
+        cdef double result = NAN  # if value < 0.0 or value == NAN
+        cdef int exponent, index_lut
+        cdef double mantissa  # in [0.5, 1) unless value == 0 NaN or +/-inf
+
+        if value <= 0.0 or not isfinite(value):
+            if value == 0.0:
+                result = - HUGE_VAL
+            elif value > 0.0:  # i.e., value = +INFINITY
+                result = value  # i.e. +INFINITY
         else:
-            # TODO check this
-            #scale = (nb_colors - 1) / (vmax - vmin)
-            scale = nb_colors / (asinh(vmax) - asinh(vmin))
+            mantissa = frexp(value, &exponent)
+            index_lut = lrint(LOG_LUT_SIZE * 2 * (mantissa - 0.5))
+            # 1/log2(10) = 0.30102999566398114
+            result = 0.30102999566398114 * (<double> exponent + self._log_lut[index_lut])
+        return result
 
-        with nogil:
-            for index in prange(length):
-                if data[index] <= vmin:
-                    lut_index = 0
-                elif data[index] >= vmax:
-                    lut_index = nb_colors - 1
-                else:
-                    lut_index = <int>((asinh(data[index]) - normed_vmin) * scale)
-                    # Safety net, duplicate previous checks
-                    # TODO needed?
-                    if lut_index < 0:
-                        lut_index = 0
-                    elif lut_index >= nb_colors:
-                        lut_index = nb_colors - 1
 
-                for channel in range(nb_channels):
-                    output[index, channel] = colors[lut_index, channel]
+cdef class ColormapArcsinh:
+    """Class for processing of arcsinh normalized colormap."""
 
-    else:  # Normalization linear
-        if vmin == vmax:
-            scale = 0.
-        else:
-            # TODO check this
-            #scale = (nb_colors - 1) / (vmax - vmin)
-            scale = nb_colors / (vmax - vmin)
+    def __cinit__(self):
+        pass
 
-        with nogil:
-            for index in prange(length):
-                if data[index] <= vmin:
-                    lut_index = 0
-                elif data[index] >= vmax:
-                    lut_index = nb_colors - 1
-                else:
-                    lut_index = <int>((data[index] - vmin) * scale)
-                    # Safety net, duplicate previous checks
-                    # TODO needed?
-                    if lut_index < 0:
-                        lut_index = 0
-                    elif lut_index >= nb_colors:
-                        lut_index = nb_colors - 1
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.nonecheck(False)
+    @cython.cdivision(True)
+    cdef double normalize(self, double value) nogil:
+        """Returns arcsinh(value)"""
+        return asinh(value)
 
-                for channel in range(nb_channels):
-                    output[index, channel] = colors[lut_index, channel]
 
+_colormaps = {
+    'linear': Colormap(),
+    'log': ColormapLog(),
+    'arcsinh': ColormapArcsinh()
+}
 
 
 @cython.wraparound(False)
@@ -265,7 +264,7 @@ cdef _cmap_lut(
 
     values = numpy.arange(type_min, type_max + 1, dtype=numpy.float32)
     lut = numpy.empty((length, nb_channels), dtype=numpy.array(colors, copy=False).dtype)
-    _cmap(lut, values, colors, vmin, vmax, normalization)
+    _colormaps[normalization].apply(lut, values, colors, vmin, vmax)
 
     with nogil:
         # Apply LUT
@@ -287,7 +286,7 @@ def _cmap_proxy(
         _cmap_lut(output, data, colors, vmin, vmax, normalization)
 
     elif _data_types in cython.floating:  # Use float implementation
-        _cmap(output, data, colors, vmin, vmax, normalization)
+        _colormaps[normalization].apply(output, data, colors, vmin, vmax)
 
     else:
         raise NotImplementedError() #TODO (u)int32|64
@@ -317,7 +316,7 @@ def cmap(data,
     """
     cdef int nb_channels
 
-    assert normalization in ('linear', 'log', 'arcsinh')
+    assert normalization in _colormaps.keys()
 
     # Make sure data is a numpy array (no need for a contiguous array)
     # TODO check if endianness is an issue
