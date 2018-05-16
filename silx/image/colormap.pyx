@@ -27,18 +27,14 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/03/2018"
+__date__ = "16/05/2018"
 
-
-# TODO test
-# TODO compare result to mpl
 
 cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
-from libc.math cimport lrint, HUGE_VAL, isfinite, isnan, frexp, NAN, asinh, sqrt
-
-from silx.math.combo import min_max
+from libc.math cimport lrint, HUGE_VAL, isfinite, isnan, frexp, NAN
+from libc.math cimport asinh, sqrt
 
 import logging
 import numpy
@@ -84,16 +80,7 @@ ctypedef fused default_types:
 # Supported colors/output types
 ctypedef fused image_types:
     cnumpy.uint8_t
-    # cnumpy.int8_t
-    # cnumpy.uint16_t
-    # cnumpy.int16_t
-    # cnumpy.uint32_t
-    # cnumpy.int32_t
-    # cnumpy.uint64_t
-    # cnumpy.int64_t
     float
-    # double
-    # long double
 
 
 # Colormap
@@ -112,7 +99,7 @@ cdef class Colormap:
         """For linear colormap, this is a No-Op.
 
         Override in subclass to perform some normalization.
-        This MUST be a monotonic increasing function.
+        This MUST be a monotonic function.
 
         :param value: Value to normalize
         :return: Normalized value
@@ -265,7 +252,8 @@ cdef class Colormap:
             type_max = 65535
 
         values = numpy.arange(type_min, type_max + 1, dtype=numpy.float64)
-        lut = numpy.empty((length, nb_channels), dtype=numpy.array(colors, copy=False).dtype)
+        lut = numpy.empty((length, nb_channels),
+                          dtype=numpy.array(colors, copy=False).dtype)
         self._cmap(lut, values, colors,
                    normalized_vmin, normalized_vmax, nan_color)
 
@@ -282,13 +270,15 @@ DEF LOG_LUT_SIZE = 4096
 cdef class ColormapLog(Colormap):
     """Class for processing of log normalized colormap."""
 
-    cdef readonly double _log_lut[LOG_LUT_SIZE + 1]  # index_lut can overflow of 1 !
+    # Size +1 as index_lut can overflow of 1
+    cdef readonly double _log_lut[LOG_LUT_SIZE + 1]
     """LUT used for fast log approximation"""
 
     def __cinit__(self):
         # Initialize log approximation LUT
         self._log_lut = numpy.log2(
-            numpy.linspace(0.5, 1., LOG_LUT_SIZE + 1, endpoint=True, dtype=numpy.float64))
+            numpy.linspace(0.5, 1., LOG_LUT_SIZE + 1,
+                           endpoint=True, dtype=numpy.float64))
         # Handle  indexLUT == 1 overflow
         self._log_lut[LOG_LUT_SIZE] = self._log_lut[LOG_LUT_SIZE - 1]
 
@@ -311,7 +301,8 @@ cdef class ColormapLog(Colormap):
             mantissa = frexp(value, &exponent)
             index_lut = lrint(LOG_LUT_SIZE * 2 * (mantissa - 0.5))
             # 1/log2(10) = 0.30102999566398114
-            result = 0.30102999566398114 * (<double> exponent + self._log_lut[index_lut])
+            result = 0.30102999566398114 * (<double> exponent +
+                                            self._log_lut[index_lut])
         return result
 
 
