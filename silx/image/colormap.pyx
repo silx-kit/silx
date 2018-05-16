@@ -119,6 +119,18 @@ cdef class Colormap:
         """
         return value
 
+    @cython.nonecheck(False)
+    cdef bint check_range(self, double vmin, double vmax) nogil:
+        """Check that the provided colormap range is valid.
+
+        Override in subclass to perform specific checks.
+
+        :param vmin: Lower bound of the colormap range
+        :param vmax: Upper bound of the colormap range
+        :return: True if the colormap range is valid, False otherwise
+        """
+        return True
+
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
@@ -139,6 +151,9 @@ cdef class Colormap:
         :param vmax: Upper bound of the colormap range
         :param nan_color: Color to use for NaN value.
         """
+        if not self.check_range(vmin, vmax):
+            raise ValueError('Colormap range is not valid')
+
         # Proxy for calling the right implementation depending on data type
         if data_types in lut_types:  # Use LUT implementation
             self._cmap_lut(output, data, colors, vmin, vmax, nan_color)
@@ -310,6 +325,11 @@ cdef class ColormapLog(Colormap):
             result = 0.30102999566398114 * (<double> exponent + self._log_lut[index_lut])
         return result
 
+    @cython.nonecheck(False)
+    cdef bint check_range(self, double vmin, double vmax) nogil:
+        """Returns False if a bound is negative"""
+        return vmin > 0 and vmax > 0
+
 
 cdef class ColormapArcsinh:
     """Class for processing of arcsinh normalized colormap."""
@@ -336,20 +356,16 @@ _colormaps = {
 
 def cmap(data,
          colors,
-         vmin=None,
-         vmax=None,
+         double vmin,
+         double vmax,
          str normalization='linear',
          nan_color=None):
     """Convert data to colors.
 
     :param numpy.ndarray data: The data to convert to colors
     :param numpy.ndarray colors: Color look-up table as a 2D array.
-    :param vmin:
-        Data value to map to the beginning of colormap.
-        Default: Min of the dataset.
-    :param vmax:
-        Data value to map to the end of the colormap.
-        Default: Max of the dataset.
+    :param vmin: Data value to map to the beginning of colormap.
+    :param vmax: Data value to map to the end of the colormap.
     :param str normalization: The normalization to apply:
                               'linear' (default) or 'log'
     :param nan_color: Color to use for NaN value.
@@ -363,12 +379,11 @@ def cmap(data,
 
     assert normalization in _colormaps.keys()
 
-    # Make sure data is a numpy array (no need for a contiguous array)
+    # Make data a numpy array of native endian type (no need for contiguity)
     data = numpy.array(data, copy=False)
-    # TODO check if endianness is really an issue
     data = numpy.array(data, copy=False, dtype=data.dtype.newbyteorder('N'))
 
-    # Make colors a contiguous array (and take care of endianness)
+    # Make colors a contiguous array of native endian type
     colors = numpy.array(colors, copy=False)
     nb_channels = colors.shape[colors.ndim - 1]
     colors = numpy.ascontiguousarray(colors,
@@ -384,38 +399,6 @@ def cmap(data,
 
     # Allocate output image array
     image = numpy.empty(data.shape + (nb_channels,), dtype=colors.dtype)
-
-    # Init vmin, vmax if not set
-    # TODO improve + check fallback with log with only nan, only inf, etc...
-    if vmin is None or vmax is None:
-        if vmin is None and vmax is None:
-            if normalization == 'log':
-                result = min_max(data, min_positive=True)
-                vmin = result.min_positive
-                vmax = result.maximum
-                if vmin is None:  # Only negative data
-                    _logger.warning(
-                        'Only negative data, auto min/max error for log scale')
-                    vmin, vmax = 1., 1.
-            else:
-                result = min_max(data, min_positive=False)
-                vmin = result.minimum
-                vmax = result.maximum
-
-        elif vmin is None:
-            if normalization == 'log':
-                positive_data = data[data > 0]
-                if positive_data.size > 0:
-                    vmin = numpy.nanmin(positive_data)
-                else:
-                    _logger.warning(
-                        'Only negative data, auto min error for log scale')
-                    vmin = vmax
-            else:
-                vmin = numpy.nanmin(data)
-
-        elif vmax is None:
-            vmax = numpy.nanmax(data)
 
     _colormaps[normalization].apply(
         image.reshape(-1, nb_channels),
