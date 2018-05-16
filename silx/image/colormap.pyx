@@ -30,7 +30,6 @@ __license__ = "MIT"
 __date__ = "02/03/2018"
 
 
-# TODO make _cmap work with integers
 # TODO nanColor with if type in cython.floating: handle nan
 # TODO test
 # TODO compare result to mpl
@@ -50,31 +49,42 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 
-# Types using a LUT to apply the colormap
-ctypedef fused _lut_types:
-    cnumpy.uint8_t
-    cnumpy.int8_t
-    cnumpy.uint16_t
-    cnumpy.int16_t
-
-
 # Supported data types
-ctypedef fused _data_types:
+ctypedef fused data_types:
     cnumpy.uint8_t
     cnumpy.int8_t
     cnumpy.uint16_t
     cnumpy.int16_t
-    #cnumpy.uint32_t
-    #cnumpy.int32_t
-    #cnumpy.uint64_t
-    #cnumpy.int64_t
+    cnumpy.uint32_t
+    cnumpy.int32_t
+    cnumpy.uint64_t
+    cnumpy.int64_t
+    float
+    double
+    long double
+
+
+# Data types using a LUT to apply the colormap
+ctypedef fused lut_types:
+    cnumpy.uint8_t
+    cnumpy.int8_t
+    cnumpy.uint16_t
+    cnumpy.int16_t
+
+
+# Data types using default colormap implementation
+ctypedef fused default_types:
+    cnumpy.uint32_t
+    cnumpy.int32_t
+    cnumpy.uint64_t
+    cnumpy.int64_t
     float
     double
     long double
 
 
 # Supported colors/output types
-ctypedef fused _image_types:
+ctypedef fused image_types:
     cnumpy.uint8_t
     # cnumpy.int8_t
     # cnumpy.uint16_t
@@ -115,9 +125,9 @@ cdef class Colormap:
     @cython.nonecheck(False)
     @cython.cdivision(True)
     def apply(self,
-              _image_types[:, ::1] output,
-              _data_types[:] data,
-              _image_types[:, ::1] colors,
+              image_types[:, ::1] output,
+              data_types[:] data,
+              image_types[:, ::1] colors,
               double vmin,
               double vmax):
         """Apply colormap to data.
@@ -129,10 +139,10 @@ cdef class Colormap:
         :param vmax: Upper bound of the colormap range
         """
         # Proxy for calling the right implementation depending on data type
-        if _data_types in _lut_types:  # Use LUT implementation
+        if data_types in lut_types:  # Use LUT implementation
             self._cmap_lut(output, data, colors, vmin, vmax)
 
-        elif _data_types in cython.floating:  # Use float implementation
+        elif data_types in default_types:  # Use default implementation
             self._cmap(output, data, colors, vmin, vmax)
 
         else:
@@ -143,9 +153,9 @@ cdef class Colormap:
     @cython.nonecheck(False)
     @cython.cdivision(True)
     cdef _cmap(self,
-               _image_types[:, ::1] output,
-               cython.floating[:] data,
-               _image_types[:, ::1] colors,
+               image_types[:, ::1] output,
+               default_types[:] data,
+               image_types[:, ::1] colors,
                double vmin,
                double vmax):
         """Apply colormap to data.
@@ -196,9 +206,9 @@ cdef class Colormap:
     @cython.nonecheck(False)
     @cython.cdivision(True)
     cdef _cmap_lut(self,
-                   _image_types[:, ::1] output,
-                   _lut_types[:] data,
-                   _image_types[:, ::1] colors,
+                   image_types[:, ::1] output,
+                   lut_types[:] data,
+                   image_types[:, ::1] colors,
                    double vmin,
                    double vmax):
         """Convert data to colors using look-up table to speed the process.
@@ -206,22 +216,22 @@ cdef class Colormap:
         Only supports data of type: uint8, uint16, int8, int16.
         """
         cdef float[:] values
-        cdef _image_types[:, ::1] lut
+        cdef image_types[:, ::1] lut
         cdef int type_min, type_max
         cdef unsigned int nb_channels, length, channel
         cdef int index
-        cdef _lut_types lut_index
+        cdef lut_types lut_index
 
         length = data.size
         nb_channels = colors.shape[1]
 
-        if _lut_types is cnumpy.int8_t:
+        if lut_types is cnumpy.int8_t:
             type_min = -128
             type_max = 127
-        elif _lut_types is cnumpy.uint8_t:
+        elif lut_types is cnumpy.uint8_t:
             type_min = 0
             type_max = 255
-        elif _lut_types is cnumpy.int16_t:
+        elif lut_types is cnumpy.int16_t:
             type_min = -32768
             type_max = 32767
         else:  # uint16_t
