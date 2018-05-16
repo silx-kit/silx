@@ -243,8 +243,7 @@ cdef class Colormap:
         cdef image_types[:, ::1] lut
         cdef int type_min, type_max
         cdef unsigned int nb_channels, length, channel
-        cdef int index
-        cdef lut_types lut_index
+        cdef int index, lut_index
 
         length = data.size
         nb_channels = colors.shape[1]
