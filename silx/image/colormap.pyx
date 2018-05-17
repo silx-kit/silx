@@ -111,7 +111,6 @@ cdef class Colormap:
     @cython.nonecheck(False)
     @cython.cdivision(True)
     def apply(self,
-              image_types[:, ::1] output,
               data_types[:] data,
               image_types[:, ::1] colors,
               double vmin,
@@ -119,12 +118,12 @@ cdef class Colormap:
               image_types[::1] nan_color):
         """Apply colormap to data.
 
-        :param output: Memory view where to store the result
         :param data: Input data
         :param colors: Colors look-up-table
         :param vmin: Lower bound of the colormap range
         :param vmax: Upper bound of the colormap range
         :param nan_color: Color to use for NaN value.
+        :return: The generated image
         """
         cdef double normalized_vmin, normalized_vmax
 
@@ -136,22 +135,23 @@ cdef class Colormap:
 
         # Proxy for calling the right implementation depending on data type
         if data_types in lut_types:  # Use LUT implementation
-            self._cmap_lut(output, data, colors,
-                           normalized_vmin, normalized_vmax, nan_color)
+            output = self._cmap_lut(
+                data, colors, normalized_vmin, normalized_vmax, nan_color)
 
         elif data_types in default_types:  # Use default implementation
-            self._cmap(output, data, colors,
-                       normalized_vmin, normalized_vmax, nan_color)
+            output = self._cmap(
+                data, colors, normalized_vmin, normalized_vmax, nan_color)
 
         else:
             raise ValueError('Unsupported data type')
+
+        return numpy.array(output, copy=False)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
     @cython.cdivision(True)
-    cdef _cmap(self,
-               image_types[:, ::1] output,
+    cdef image_types[:, ::1] _cmap(self,
                default_types[:] data,
                image_types[:, ::1] colors,
                double normalized_vmin,
@@ -159,13 +159,14 @@ cdef class Colormap:
                image_types[::1] nan_color):
         """Apply colormap to data.
 
-        :param output: Memory view where to store the result
         :param data: Input data
         :param colors: Colors look-up-table
         :param normalized_vmin: Normalized lower bound of the colormap range
         :param normalized_vmax: Normalized upper bound of the colormap range
         :param nan_color: Color to use for NaN value
+        :return: Data converted to colors
         """
+        cdef image_types[:, ::1] output
         cdef double scale, value
         cdef unsigned int length, channel, nb_channels, nb_colors
         cdef int index, lut_index
@@ -173,6 +174,9 @@ cdef class Colormap:
         nb_colors = colors.shape[0]
         nb_channels = colors.shape[1]
         length = data.size
+
+        output = numpy.empty((length, nb_channels),
+                             dtype=numpy.array(colors, copy=False).dtype)
 
         if normalized_vmin == normalized_vmax:
             scale = 0.
@@ -207,12 +211,13 @@ cdef class Colormap:
                 for channel in range(nb_channels):
                     output[index, channel] = colors[lut_index, channel]
 
+        return output
+
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
     @cython.cdivision(True)
-    cdef _cmap_lut(self,
-                   image_types[:, ::1] output,
+    cdef image_types[:, ::1] _cmap_lut(self,
                    lut_types[:] data,
                    image_types[:, ::1] colors,
                    double normalized_vmin,
@@ -222,13 +227,14 @@ cdef class Colormap:
 
         Only supports data of types: uint8, uint16, int8, int16.
 
-        :param output: Memory view where to store the result
         :param data: Input data
         :param colors: Colors look-up-table
         :param normalized_vmin: Normalized lower bound of the colormap range
         :param normalized_vmax: Normalized upper bound of the colormap range
         :param nan_color: Color to use for NaN values
+        :return: The generated image
         """
+        cdef image_types[:, ::1] output
         cdef double[:] values
         cdef image_types[:, ::1] lut
         cdef int type_min, type_max
@@ -251,11 +257,13 @@ cdef class Colormap:
             type_min = 0
             type_max = 65535
 
+        colors_dtype = numpy.array(colors).dtype
+
         values = numpy.arange(type_min, type_max + 1, dtype=numpy.float64)
-        lut = numpy.empty((length, nb_channels),
-                          dtype=numpy.array(colors, copy=False).dtype)
-        self._cmap(lut, values, colors,
-                   normalized_vmin, normalized_vmax, nan_color)
+        lut = self._cmap(
+            values, colors, normalized_vmin, normalized_vmax, nan_color)
+
+        output = numpy.empty((length, nb_channels), dtype=colors_dtype)
 
         with nogil:
             # Apply LUT
@@ -263,6 +271,8 @@ cdef class Colormap:
                 lut_index = data[index] - type_min
                 for channel in range(nb_channels):
                     output[index, channel] = lut[lut_index, channel]
+
+        return output
 
 
 DEF LOG_LUT_SIZE = 4096
@@ -392,13 +402,10 @@ def cmap(data,
             nan_color, dtype=colors.dtype).reshape(-1)
     assert nan_color.shape == (nb_channels,)
 
-    # Allocate output image array
-    image = numpy.empty(data.shape + (nb_channels,), dtype=colors.dtype)
-
-    _colormaps[normalization].apply(
-        image.reshape(-1, nb_channels),
+    image = _colormaps[normalization].apply(
         data.reshape(-1),
         colors.reshape(-1, nb_channels),
         vmin, vmax, nan_color)
+    image.shape = data.shape + (nb_channels,)
 
     return image
