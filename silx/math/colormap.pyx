@@ -36,6 +36,7 @@ cimport numpy as cnumpy
 from libc.math cimport lrint, HUGE_VAL, isfinite, isnan, frexp, NAN
 from libc.math cimport asinh, sqrt
 
+
 import logging
 import numpy
 
@@ -281,8 +282,7 @@ DEF LOG_LUT_SIZE = 4096
 cdef class ColormapLog(Colormap):
     """Class for processing of log normalized colormap."""
 
-    # Size +1 as index_lut can overflow of 1
-    cdef readonly double _log_lut[LOG_LUT_SIZE + 1]
+    cdef readonly double[::1] _log_lut
     """LUT used for fast log approximation"""
 
     def __cinit__(self):
@@ -290,7 +290,7 @@ cdef class ColormapLog(Colormap):
         self._log_lut = numpy.log2(
             numpy.linspace(0.5, 1., LOG_LUT_SIZE + 1,
                            endpoint=True, dtype=numpy.float64))
-        # Handle  indexLUT == 1 overflow
+        # index_lut can overflow of 1
         self._log_lut[LOG_LUT_SIZE] = self._log_lut[LOG_LUT_SIZE - 1]
 
     @cython.wraparound(False)
