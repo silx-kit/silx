@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1173,7 +1173,8 @@ class GLPlotCurve2D(object):
                     (xData, yData), prefix=(1, 1), suffix=(1, 1))
             else:
                 xAttrib, yAttrib, cAttrib = vertexBuffer(
-                    (xData, yData, colorData), prefix=(1, 1, 0))
+                    (xData, yData, colorData),
+                    prefix=(1, 1, 0), suffix=(1, 1, 0))
 
             # Shrink VBO
             self.xVboData = xAttrib.copy()
