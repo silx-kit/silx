@@ -362,19 +362,24 @@ def cmap(data,
          double vmax,
          str normalization='linear',
          nan_color=None):
-    """Convert data to colors.
+    """Convert data to colors with provided colors look-up table.
 
-    :param numpy.ndarray data: The data to convert to colors
+    :param numpy.ndarray data: The input data
     :param numpy.ndarray colors: Color look-up table as a 2D array.
        It MUST be of type uint8 or float32
     :param vmin: Data value to map to the beginning of colormap.
     :param vmax: Data value to map to the end of the colormap.
     :param str normalization: The normalization to apply:
-                              'linear' (default), 'log', 'arcsinh', 'sqrt'
+
+        - 'linear' (default)
+        - 'log'
+        - 'arcsinh'
+        - 'sqrt'
+
     :param nan_color: Color to use for NaN value.
         Default: A color with all channels set to 0
-    :return: The colors corresponding to data. The shape of the
-        returned array is that of data array + the 2nd dimension of colors.
+    :return: Array of colors. The shape of the
+        returned array is that of data array + the last dimension of colors.
         The dtype of the returned array is that of the colors array.
     :rtype: numpy.ndarray
     """
