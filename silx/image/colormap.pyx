@@ -39,6 +39,7 @@ from libc.math cimport asinh, sqrt
 import logging
 import numpy
 
+__all__ = ['cmap']
 
 _logger = logging.getLogger(__name__)
 
