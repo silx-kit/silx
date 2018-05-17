@@ -38,9 +38,9 @@ from silx.io.utils import is_dataset, is_group
 from .validate import is_valid_nxdata,\
     is_NXroot_with_default_NXdata,\
     is_NXentry_with_default_NXdata
-from ._utils import get_attr_as_unicode, _INTERPDIM
+from ._utils import get_attr_as_unicode, INTERPDIM, nxdata_logger
 from silx.third_party import six
-from . import nxdata_logger
+
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -57,16 +57,21 @@ class NXdata(object):
         prior to instantiating this :class:`NXdata`.
     """
     def __init__(self, group, validate=True):
-        if validate and not is_valid_nxdata(group):
-            raise TypeError("group is not a valid NXdata class")
         super(NXdata, self).__init__()
+
+        self.group = group
+        """h5py-like group object with @NX_class=NXdata.
+        """
+
+        self.is_valid = True
+        if validate:
+            self._validate()
+
+        if not self.is_valid:
+            raise TypeError("group is not a valid NXdata class")
 
         self._is_scatter = None
         self._axes = None
-
-        self.group = group
-        """h5py-like group object compliant with NeXus NXdata specification.
-        """
 
         self.signal = self.group[self.signal_dataset_name]
         """Main signal dataset in this NXdata group.
@@ -106,6 +111,9 @@ class NXdata(object):
 
         # excludes scatters
         self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
+
+    def _validate(self):
+        self.is_valid = is_valid_nxdata(self.group)
 
     @property
     def signal_dataset_name(self):
@@ -343,8 +351,8 @@ class NXdata(object):
             if self.interpretation != "rgba-image":
                 # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
                 # Use the existing names for the last few dims, and prepend with Nones.
-                assert len(axes_dataset_names) == _INTERPDIM[self.interpretation]
-                all_dimensions_names = [None] * (ndims - _INTERPDIM[self.interpretation])
+                assert len(axes_dataset_names) == INTERPDIM[self.interpretation]
+                all_dimensions_names = [None] * (ndims - INTERPDIM[self.interpretation])
                 for axis_name in axes_dataset_names:
                     all_dimensions_names.append(axis_name)
             else:
