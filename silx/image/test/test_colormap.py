@@ -45,6 +45,8 @@ _logger = logging.getLogger(__name__)
 class TestColormap(ParametricTestCase):
     """Test silx.image.colormap.cmap"""
 
+    NORMALIZATIONS = 'linear', 'log', 'arcsinh', 'sqrt'
+
     def ref_colormap(self, data, colors, vmin, vmax, normalization, nan_color):
         """Reference implementation of colormap
 
@@ -76,8 +78,31 @@ class TestColormap(ParametricTestCase):
 
         return colors[indices]
 
+    def _test(self, data, colors, vmin, vmax, normalization, nan_color):
+        """Run test of colormap against alternative implementation
+
+        :param numpy.ndarray data: Data to convert
+        :param numpy.ndarray colors: Color look-up-table
+        :param float vmin: Lower bound of the colormap range
+        :param float vmax: Upper bound of the colormap range
+        :param str normalization: Normalization to use
+        :param numpy.ndarray nan_color: Color to use for NaN values
+        """
+        image = colormap.cmap(
+            data, colors, vmin, vmax, normalization, nan_color)
+
+        ref_image = self.ref_colormap(
+            data, colors, vmin, vmax, normalization, nan_color)
+
+        self.assertTrue(numpy.allclose(ref_image, image))
+        self.assertEqual(image.dtype, colors.dtype)
+        self.assertEqual(image.shape, data.shape + (colors.shape[-1],))
+
     def test(self):
-        """Test all dtypes with finite data"""
+        """Test all dtypes with finite data
+
+        Test all supported types and endianness
+        """
         colors = numpy.zeros((256, 4), dtype=numpy.uint8)
         colors[:, 0] = numpy.arange(len(colors))
         colors[:, 3] = 255
@@ -91,20 +116,36 @@ class TestColormap(ParametricTestCase):
                   if k != 'f' or i != '1']
         dtypes.append(numpy.dtype(numpy.longdouble).name)  # Add long double
 
-        for normalization in ('linear', 'log', 'arcsinh', 'sqrt'):
+        for normalization in self.NORMALIZATIONS:
             for dtype in dtypes:
                 with self.subTest(dtype=dtype, normalization=normalization):
                     _logger.info('dtype: %s normalization: %s', dtype, normalization)
                     data = numpy.arange(-5, 15, dtype=dtype).reshape(4, 5)
-                    image = colormap.cmap(
-                        data, colors, vmin, vmax, normalization, nan_color)
 
-                    ref_image = self.ref_colormap(
-                        data, colors, vmin, vmax, normalization, nan_color)
+                    self._test(data, colors, vmin, vmax, normalization, nan_color)
 
-                    self.assertTrue(numpy.allclose(ref_image, image))
-                    self.assertEqual(image.dtype, colors.dtype)
-                    self.assertEqual(image.shape, (4, 5, 4))
+    def test_not_finite(self):
+        """Float data with not finite"""
+        colors = numpy.zeros((256, 4), dtype=numpy.uint8)
+        colors[:, 0] = numpy.arange(len(colors))
+        colors[:, 3] = 255
+
+        nan_color = (0, 0, 0, 0)
+        vmin = 1
+        vmax = 10
+
+        test_data = {
+            'no finite values': (float('inf'), float('-inf'), float('nan')),
+            'only NaN': (float('nan'), float('nan'), float('nan')),
+            'mix finite/not finite': (float('inf'), float('-inf'), 1., float('nan')),
+        }
+
+        for normalization in self.NORMALIZATIONS:
+            for name, data in test_data.items():
+                with self.subTest(name, normalization=normalization):
+                    data = numpy.array(data, dtype=numpy.float64)
+                    self._test(data, colors, vmin, vmax, normalization, nan_color)
+
 
 
 def suite():
