@@ -78,6 +78,7 @@ def configuration(parent_package='', top_path=None):
     config.add_extension('colormap',
                          sources=["colormap.pyx"],
                          language='c',
+                         include_dirs=[numpy.get_include()],
                          extra_link_args=['-fopenmp'],
                          extra_compile_args=['-fopenmp'])
 
