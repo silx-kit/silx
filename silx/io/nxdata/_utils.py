@@ -26,11 +26,11 @@
 
 import copy
 import numpy
+import logging
 
 from silx.io import is_dataset
 from silx.utils.deprecation import deprecated
 from silx.third_party import six
-from . import nxdata_logger
 
 
 __authors__ = ["P. Knobel"]
@@ -38,11 +38,14 @@ __license__ = "MIT"
 __date__ = "17/04/2018"
 
 
-_INTERPDIM = {"scalar": 0,
-              "spectrum": 1,
-              "image": 2,
-              "rgba-image": 3,  # "hsla-image": 3, "cmyk-image": 3, # TODO
-              "vertex": 1}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
+nxdata_logger = logging.getLogger("silx.io.nxdata")
+
+
+INTERPDIM = {"scalar": 0,
+             "spectrum": 1,
+             "image": 2,
+             "rgba-image": 3,  # "hsla-image": 3, "cmyk-image": 3, # TODO
+             "vertex": 1}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
 """Number of signal dimensions associated to each possible @interpretation
 attribute.
 """
@@ -179,7 +182,7 @@ def has_valid_number_of_axes(group, signal_name, num_axes):
                            " @axes defined.", group.name)
             return False
 
-        if interpretation not in _INTERPDIM:
+        if interpretation not in INTERPDIM:
             nxdata_warning("Unrecognized @interpretation=" + interpretation +
                            " for data with wrong number of defined @axes.",
                            group.name)
@@ -198,10 +201,10 @@ def has_valid_number_of_axes(group, signal_name, num_axes):
                     "3, but got %d." % ndims, group.name)
                 return False
 
-        elif num_axes != _INTERPDIM[interpretation]:
+        elif num_axes != INTERPDIM[interpretation]:
             nxdata_warning(
                 "%d-D signal with @interpretation=%s " % (ndims, interpretation) +
-                "must define %d or %d axes." % (ndims, _INTERPDIM[interpretation]),
+                "must define %d or %d axes." % (ndims, INTERPDIM[interpretation]),
                 group.name)
             return False
     return True
