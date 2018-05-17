@@ -37,7 +37,7 @@ from .test_marchingcubes import suite as test_marchingcubes_suite
 from ..medianfilter.test import suite as test_medianfilter_suite
 from .test_combo import suite as test_combo_suite
 from .test_calibration import suite as test_calibration_suite
-
+from .test_colormap import suite as test_colormap_suite
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -50,4 +50,5 @@ def suite():
     test_suite.addTest(test_medianfilter_suite())
     test_suite.addTest(test_combo_suite())
     test_suite.addTest(test_calibration_suite())
+    test_suite.addTest(test_colormap_suite())
     return test_suite

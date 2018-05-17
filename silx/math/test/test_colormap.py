@@ -36,7 +36,7 @@ import unittest
 import numpy
 
 from silx.utils.testutils import ParametricTestCase
-from silx.image import colormap
+from silx.math import colormap
 
 
 _logger = logging.getLogger(__name__)

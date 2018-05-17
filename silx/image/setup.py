@@ -39,11 +39,6 @@ def configuration(parent_package='', top_path=None):
                          sources=["shapes.pyx"],
                          language='c')
     config.add_subpackage('marchingsquares')
-    config.add_extension('colormap',
-                         sources=["colormap.pyx"],
-                         language='c',
-                         extra_link_args=['-fopenmp'],
-                         extra_compile_args=['-fopenmp'])
     return config
 
 
