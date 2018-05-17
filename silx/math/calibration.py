@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -119,21 +119,23 @@ class ArrayCalibration(AbstractCalibration):
 
     def __call__(self, x):
         # calibrate the entire axis
-        if isinstance(x, (list, tuple, numpy.ndarray)):
-            assert len(self.calibration_array) == len(x)
+        if isinstance(x, (list, tuple, numpy.ndarray)) and \
+                        len(self.calibration_array) == len(x):
             return self.calibration_array
         # calibrate one value, by index
-        if isinstance(x, int):
-            assert x < len(self.calibration_array)
+        if isinstance(x, int) and x < len(self.calibration_array):
             return self.calibration_array[x]
-        raise ValueError("")
+        raise ValueError("ArrayCalibration must be applied to array of same size "
+                         "or to index.")
 
     def is_affine(self):
         """If all values in the calibration array are regularly spaced,
         return True."""
         if self._is_affine is None:
             delta_x = self.calibration_array[1:] - self.calibration_array[:-1]
-            if not numpy.isclose(delta_x, delta_x[0]).all():
+            # use a less strict relative tolerance to account for rounding errors
+            # e.g. when using float64 into float32 (see #1823)
+            if not numpy.isclose(delta_x, delta_x[0], rtol=1e-4).all():
                 self._is_affine = False
             else:
                 self._is_affine = True
