@@ -47,7 +47,8 @@ class TestColormap(ParametricTestCase):
 
     NORMALIZATIONS = 'linear', 'log', 'arcsinh', 'sqrt'
 
-    def ref_colormap(self, data, colors, vmin, vmax, normalization, nan_color):
+    @staticmethod
+    def ref_colormap(data, colors, vmin, vmax, normalization, nan_color):
         """Reference implementation of colormap
 
         :param numpy.ndarray data: Data to convert
@@ -55,7 +56,7 @@ class TestColormap(ParametricTestCase):
         :param float vmin: Lower bound of the colormap range
         :param float vmax: Upper bound of the colormap range
         :param str normalization: Normalization to use
-        :param numpy.ndarray nan_color: Color to use for NaN values
+        :param Union[numpy.ndarray, None] nan_color: Color to use for NaN
         """
         norm_functions = {'linear': lambda v: v,
                           'log': numpy.log10,
@@ -74,6 +75,8 @@ class TestColormap(ParametricTestCase):
         indices = indices.astype('uint')
 
         # Add NaN color to array
+        if nan_color is None:
+            nan_color = (0,) * colors.shape[-1]
         colors = numpy.append(colors, numpy.atleast_2d(nan_color), axis=0)
 
         return colors[indices]
@@ -86,7 +89,7 @@ class TestColormap(ParametricTestCase):
         :param float vmin: Lower bound of the colormap range
         :param float vmax: Upper bound of the colormap range
         :param str normalization: Normalization to use
-        :param numpy.ndarray nan_color: Color to use for NaN values
+        :param Union[numpy.ndarray, None] nan_color: Color to use for NaN
         """
         image = colormap.cmap(
             data, colors, vmin, vmax, normalization, nan_color)
@@ -107,10 +110,6 @@ class TestColormap(ParametricTestCase):
         colors[:, 0] = numpy.arange(len(colors))
         colors[:, 3] = 255
 
-        nan_color = (0, 0, 0, 0)
-        vmin = 1
-        vmax = 10
-
         # Generates (u)int and floats types
         dtypes = [e + k + i for e in '<>' for k in 'uif' for i in '1248'
                   if k != 'f' or i != '1']
@@ -119,33 +118,55 @@ class TestColormap(ParametricTestCase):
         for normalization in self.NORMALIZATIONS:
             for dtype in dtypes:
                 with self.subTest(dtype=dtype, normalization=normalization):
-                    _logger.info('dtype: %s normalization: %s', dtype, normalization)
+                    _logger.info('normalization: %s, dtype: %s',
+                                 normalization, dtype)
                     data = numpy.arange(-5, 15, dtype=dtype).reshape(4, 5)
 
-                    self._test(data, colors, vmin, vmax, normalization, nan_color)
+                    self._test(data, colors, 1, 10, normalization, None)
 
     def test_not_finite(self):
-        """Float data with not finite"""
+        """Test float data with not finite values"""
         colors = numpy.zeros((256, 4), dtype=numpy.uint8)
         colors[:, 0] = numpy.arange(len(colors))
         colors[:, 3] = 255
 
-        nan_color = (0, 0, 0, 0)
-        vmin = 1
-        vmax = 10
-
-        test_data = {
+        test_data = {  # message: data
             'no finite values': (float('inf'), float('-inf'), float('nan')),
             'only NaN': (float('nan'), float('nan'), float('nan')),
             'mix finite/not finite': (float('inf'), float('-inf'), 1., float('nan')),
         }
 
         for normalization in self.NORMALIZATIONS:
-            for name, data in test_data.items():
-                with self.subTest(name, normalization=normalization):
+            for msg, data in test_data.items():
+                with self.subTest(msg, normalization=normalization):
+                    _logger.info('normalization: %s, %s', normalization, msg)
                     data = numpy.array(data, dtype=numpy.float64)
-                    self._test(data, colors, vmin, vmax, normalization, nan_color)
+                    self._test(data, colors, 1, 10, normalization, (0, 0, 0, 0))
 
+    def test_errors(self):
+        """Test raising exception for bad vmin, vmax, normalization parameters
+        """
+        colors = numpy.zeros((256, 4), dtype=numpy.uint8)
+        colors[:, 0] = numpy.arange(len(colors))
+        colors[:, 3] = 255
+
+        data = numpy.arange(10, dtype=numpy.float64)
+
+        test_params = [  # (vmin, vmax, normalization)
+            (-1., 2., 'log'),
+            (0., 1., 'log'),
+            (1., 0., 'log'),
+            (-1., 1., 'sqrt'),
+            (1., -1., 'sqrt'),
+        ]
+
+        for vmin, vmax, normalization in test_params:
+            with self.subTest(
+                    vmin=vmin, vmax=vmax, normalization=normalization):
+                _logger.info('normalization: %s, range: [%f, %f]',
+                             normalization, vmin, vmax)
+                with self.assertRaises(ValueError):
+                    self._test(data, colors, vmin, vmax, normalization, None)
 
 
 def suite():

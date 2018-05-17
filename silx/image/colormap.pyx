@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""This module provides a function to apply a color LUT (colormap) to a dataset.
+"""This module provides :func:`cmap` which applies a colormap to a dataset.
 """
 
 __authors__ = ["T. Vincent"]
