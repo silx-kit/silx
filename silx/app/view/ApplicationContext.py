@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/04/2018"
+__date__ = "22/05/2018"
 
 import weakref
 import logging
@@ -55,7 +55,11 @@ class ApplicationContext(DataViewHooks):
         self.__parent = weakref.ref(parent)
         self.__defaultColormap = None
         self.__defaultColormapDialog = None
-        self.__settings = qt.QSettings("silx", "silx-view", parent=parent)
+        self.__settings = qt.QSettings(qt.QSettings.IniFormat,
+                                       qt.QSettings.UserScope,
+                                       "silx",
+                                       "silx-view",
+                                       parent=parent)
         self.__recentFiles = []
 
     def getSettings(self):
