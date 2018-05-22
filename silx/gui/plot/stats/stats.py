@@ -36,12 +36,13 @@ from silx.gui.plot.items.image import ImageBase as ImageItem
 from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from silx.gui.plot.items.histogram import Histogram as HistogramItem
 from silx.math.combo import min_max
+from collections import OrderedDict
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class Stats(dict):
+class Stats(OrderedDict):
     """Class to define a set of statistic relative to a dataset
     (image, curve...).
 
@@ -53,6 +54,7 @@ class Stats(dict):
     :param list: statlist list of the :class:`Stat` object to be computed.
     """
     def __init__(self, statslist=None):
+        OrderedDict.__init__(self)
         self.stats = {}
         _statslist = statslist if not None else []
         if statslist is not None:
@@ -93,7 +95,7 @@ class Stats(dict):
 
     def __setitem__(self, key, value):
         assert isinstance(value, StatBase)
-        dict.__setitem__(self, key, value)
+        OrderedDict.__setitem__(self, key, value)
 
     def add(self, stat):
         self.__setitem__(key=stat.name, value=stat)
