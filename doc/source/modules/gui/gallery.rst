@@ -75,13 +75,20 @@ Widgets gallery
    * - .. image:: dialog/img/datafiledialog.png
          :height: 150px
          :align: center
-     - :class:`DataFileDialog` is a dialog that allow users to select
-       any datasets or groups from an HDF5-like file.
+     - :class:`DataFileDialog` is a dialog that allows users to select
+       any datasets or groups from any HDF5-like file. It features a file
+       browser that can also browse the content of HDF5 file as if they were
+       directories.
    * - .. image:: dialog/img/imagefiledialog_h5.png
          :height: 150px
          :align: center
-     - :class:`ImageFileDialog` is a dialog that allow users to select
-       an image from an HDF5-like file.
+     - :class:`ImageFileDialog` is a dialog that allows users to select
+       an image from any HDF5-like file.
+   * - .. image:: dialog/img/groupdialog.png
+         :height: 150px
+         :align: center
+     - :class:`GroupDialog` is a dialog that allows users to select
+       a group from one or several specified HDF5-like files.
 
 
 :mod:`silx.gui.fit` Widgets

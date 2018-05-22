@@ -44,11 +44,13 @@ from silx.io.utils import save1D, savespec
 from silx.io.nxdata import save_NXdata
 import logging
 import sys
+import os.path
 from collections import OrderedDict
 import traceback
 import numpy
 from silx.utils.deprecation import deprecated
 from silx.gui import qt, printer
+from silx.gui.dialog.GroupDialog import GroupDialog
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from ...utils._image import convertArrayToQImage
@@ -63,6 +65,22 @@ _logger = logging.getLogger(__name__)
 
 _NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs",  ".hdf", ".hdf5", ".cxi"]
 _NEXUS_HDF5_EXT_STR = ' '.join(['*' + ext for ext in _NEXUS_HDF5_EXT])
+
+
+def selectOutputGroup(h5filename):
+    """Open a dialog to prompt the user to select a group in
+    which to output data.
+
+    :param str h5filename: name of an existing HDF5 file
+    :rtype: str
+    :return: Name of output group, or None if the dialog was cancelled
+    """
+    dialog = GroupDialog()
+    dialog.addFile(h5filename)
+    dialog.setWindowTitle("Select an output group")
+    if not dialog.exec_():
+        return None
+    return dialog.getSelectedDataUrl().data_path()
 
 
 class SaveAction(PlotAction):
@@ -127,6 +145,10 @@ class SaveAction(PlotAction):
 
     SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
     DEFAULT_SCATTER_FILTERS = (SCATTER_FILTER_NXDATA,)
+
+    # filters for which we don't want an "overwrite existing file" warning
+    DEFAULT_APPEND_FILTERS = (CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
+                              SCATTER_FILTER_NXDATA)
 
     def __init__(self, plot, parent=None):
         self._filters = {
@@ -194,6 +216,47 @@ class SaveAction(PlotAction):
         plot.saveGraph(filename, fileFormat=fileFormat)
         return True
 
+    def _getAxesLabels(self, item):
+        # If curve has no associated label, get the default from the plot
+        xlabel = item.getXLabel() or self.plot.getXAxis().getLabel()
+        ylabel = item.getYLabel() or self.plot.getYAxis().getLabel()
+        return xlabel, ylabel
+
+    def _selectWriteableOutputGroup(self, filename):
+        if os.path.exists(filename) and os.path.isfile(filename) \
+                and os.access(filename, os.W_OK):
+            entryPath = selectOutputGroup(filename)
+            if entryPath is None:
+                _logger.info("Save operation cancelled")
+                return None
+            return entryPath
+        elif not os.path.exists(filename):
+            # create new entry in new file
+            return "/entry"
+        else:
+            self._errorMessage('Save failed (file access issue)\n')
+            return None
+
+    def _saveCurveAsNXdata(self, curve, filename):
+        entryPath = self._selectWriteableOutputGroup(filename)
+        if entryPath is None:
+            return False
+
+        xlabel, ylabel = self._getAxesLabels(curve)
+
+        return save_NXdata(
+            filename,
+            nxentry_name=entryPath,
+            signal=curve.getYData(copy=False),
+            axes=[curve.getXData(copy=False)],
+            signal_name="y",
+            axes_names=["x"],
+            signal_long_name=ylabel,
+            axes_long_names=[xlabel],
+            signal_errors=curve.getYErrorData(copy=False),
+            axes_errors=[curve.getXErrorData(copy=True)],
+            title=self.plot.getGraphTitle())
+
     def _saveCurve(self, plot, filename, nameFilter):
         """Save a curve from the plot.
 
@@ -225,26 +288,10 @@ class SaveAction(PlotAction):
             # .npy or nxdata
             fmt, csvdelim, autoheader = ("", "", False)
 
-        # If curve has no associated label, get the default from the plot
-        xlabel = curve.getXLabel()
-        if xlabel is None:
-            xlabel = plot.getXAxis().getLabel()
-        ylabel = curve.getYLabel()
-        if ylabel is None:
-            ylabel = plot.getYAxis().getLabel()
+        xlabel, ylabel = self._getAxesLabels(curve)
 
         if nameFilter == self.CURVE_FILTER_NXDATA:
-            return save_NXdata(
-                filename,
-                signal=curve.getYData(copy=False),
-                axes=[curve.getXData(copy=False)],
-                signal_name="y",
-                axes_names=["x"],
-                signal_long_name=ylabel,
-                axes_long_names=[xlabel],
-                signal_errors=curve.getYErrorData(copy=False),
-                axes_errors=[curve.getXErrorData(copy=True)],
-                title=plot.getGraphTitle())
+            return self._saveCurveAsNXdata(curve, filename)
 
         try:
             save1D(filename,
@@ -351,15 +398,18 @@ class SaveAction(PlotAction):
             return True
 
         elif nameFilter == self.IMAGE_FILTER_NXDATA:
+            entryPath = self._selectWriteableOutputGroup(filename)
+            if entryPath is None:
+                return False
             xorigin, yorigin = image.getOrigin()
             xscale, yscale = image.getScale()
             xaxis = xorigin + xscale * numpy.arange(data.shape[1])
             yaxis = yorigin + yscale * numpy.arange(data.shape[0])
-            xlabel = image.getXLabel() or plot.getGraphXLabel()
-            ylabel = image.getYLabel() or plot.getGraphYLabel()
+            xlabel, ylabel = self._getAxesLabels(image)
             interpretation = "image" if len(data.shape) == 2 else "rgba-image"
 
             return save_NXdata(filename,
+                               nxentry_name=entryPath,
                                signal=data,
                                axes=[yaxis, xaxis],
                                signal_name="image",
@@ -423,8 +473,11 @@ class SaveAction(PlotAction):
             return False
 
         if nameFilter == self.SCATTER_FILTER_NXDATA:
+            entryPath = self._selectWriteableOutputGroup(filename)
+            if entryPath is None:
+                return False
             scatter = plot.getScatter()
-            # TODO: we could get all scatters on this plot and concatenate their (x, y, values)
+
             x = scatter.getXData(copy=False)
             y = scatter.getYData(copy=False)
             z = scatter.getValueData(copy=False)
@@ -442,6 +495,7 @@ class SaveAction(PlotAction):
 
             return save_NXdata(
                 filename,
+                nxentry_name=entryPath,
                 signal=z,
                 axes=[x, y],
                 signal_name="values",
@@ -459,8 +513,8 @@ class SaveAction(PlotAction):
         :param str nameFilter: The name filter in the QFileDialog.
             See :meth:`QFileDialog.setNameFilters`.
         :param callable func: The function to call to perform saving.
-           Expected signature is:
-           bool func(PlotWidget plot, str filename, str nameFilter)
+            Expected signature is:
+            bool func(PlotWidget plot, str filename, str nameFilter)
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
 
@@ -504,12 +558,23 @@ class SaveAction(PlotAction):
 
         # Create and run File dialog
         dialog = qt.QFileDialog(self.plot)
+        dialog.setOption(dialog.DontUseNativeDialog)
         dialog.setWindowTitle("Output File Selection")
         dialog.setModal(1)
         dialog.setNameFilters(list(filters.keys()))
 
         dialog.setFileMode(dialog.AnyFile)
         dialog.setAcceptMode(dialog.AcceptSave)
+
+        def onFilterSelection(filt_):
+            # disable overwrite confirmation for NXdata types,
+            # because we append the data to existing files
+            if filt_ in self.DEFAULT_APPEND_FILTERS:
+                dialog.setOption(dialog.DontConfirmOverwrite)
+            else:
+                dialog.setOption(dialog.DontConfirmOverwrite, False)
+
+        dialog.filterSelected.connect(onFilterSelection)
 
         if not dialog.exec_():
             return False
