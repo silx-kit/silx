@@ -287,6 +287,7 @@ like this:
 
 .. code-block:: python
 
+    import numpy
     from silx.io.nxdata import save_NXdata
 
     save_NXdata(filename="./myfile.h5",
@@ -307,6 +308,7 @@ datasets, you can simply write:
 
 .. code-block:: python
 
+    import numpy
     from silx.io.nxdata import save_NXdata
 
     save_NXdata(filename="./myfile.h5",
@@ -318,6 +320,7 @@ A scatter plot
 
 .. code-block:: python
 
+    import numpy
     from silx.io.nxdata import save_NXdata
 
     save_NXdata(filename="./myfile.h5",
@@ -335,6 +338,7 @@ A stack of images
 
 .. code-block:: python
 
+    import numpy
     from silx.io.nxdata import save_NXdata
 
     save_NXdata(filename="./myfile.h5",
@@ -345,8 +349,9 @@ A stack of images
                            [8.4, 8.5, 8.6, 8.7],
                            [8.8, 8.9, 9.0, 9.1]]]),
                 signal_name="frames",
+                interpretation="image",
                 axes=[numpy.array([2, 4, 6]),
-                      numpy.array([0.1, 0.02, 0.3, 0.4])],
+                      numpy.array([0.1, 0.2, 0.3, 0.4])],
                 axes_names=["y", "x"],
                 nxentry_name="my_entry",
                 nxdata_name="images")
