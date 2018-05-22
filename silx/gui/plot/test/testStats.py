@@ -480,11 +480,17 @@ class TestStatsWidgetWithScatters(TestCaseQt):
         self.assertTrue(itemCoordsMax.text() == '(69, 50)')
 
 
+class TestEmptyStatsWidget(TestCaseQt):
+    def test(self):
+        widget = StatsWidget.StatsWidget()
+        widget.show()
+
+
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestStats, TestStatsHandler, TestStatsWidgetWithScatters,
                       TestStatsWidgetWithImages, TestStatsWidgetWithCurves,
-                      TestStatsFormatter):
+                      TestStatsFormatter, TestEmptyStatsWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite

@@ -99,16 +99,15 @@ class StatsWidget(qt.QWidget):
             )
 
     def __init__(self, parent=None, plot=None, stats=None):
-        self._stats = stats
-        if stats is None:
-            self._stats = stats
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self._options = self.OptionsWidget(parent=self)
         self.layout().addWidget(self._options)
         self._statsTable = StatsTable(parent=self, plot=plot)
-        self._statsTable.setStats(self._stats)
+        self.setStats = self._statsTable.setStats
+        self.setStats(stats)
+
         self.layout().addWidget(self._statsTable)
         self.setPlot = self._statsTable.setPlot
 
@@ -117,7 +116,6 @@ class StatsWidget(qt.QWidget):
         self._options.dataRangeSelection.currentTextChanged.connect(
             self._optDataRangeChanged)
 
-        self.setStats = self._statsTable.setStats
         self.setDisplayOnlyActiveItem = self._statsTable.setDisplayOnlyActiveItem
         self.setStatsOnVisibleData = self._statsTable.setStatsOnVisibleData
 
@@ -211,6 +209,8 @@ class StatsTable(TableWidget):
         :rtype: :class:`StatsHandler`
         """
         _statsHandler = statsHandler
+        if statsHandler is None:
+            _statsHandler = StatsHandler(statFormatters=())
         if isinstance(_statsHandler, (list, tuple)):
             _statsHandler = StatsHandler(_statsHandler)
         assert isinstance(_statsHandler, StatsHandler)
@@ -226,6 +226,9 @@ class StatsTable(TableWidget):
 
         self._updateItemObserve(init=True)
         self._updateAllStats()
+
+    def getStatsHandler(self):
+        return self._statsHandler
 
     def _updateAllStats(self):
         for (legend, kind) in self._lgdAndKindToItems:

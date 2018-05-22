@@ -78,17 +78,17 @@ class StatsHandler(object):
     * Stats object which will manage the statistic computation
     * Associate formatter and :class:`Stat`
 
-    :param _listStatFormatter: Stat and optional formatter.
-                               If elements are given as a tuple, elements
-                               should be (:class:`Stat`, formatter).
-                               Otherwise should be :class:`Stat` elements.
+    :param statFormatters: Stat and optional formatter.
+                           If elements are given as a tuple, elements
+                           should be (:class:`Stat`, formatter).
+                           Otherwise should be :class:`Stat` elements.
     :rtype: list or tuple
     """
 
-    def __init__(self, _listStatFormatter):
+    def __init__(self, statFormatters):
         self.stats = statsmdl.Stats()
         self.formatters = {}
-        for elmt in _listStatFormatter:
+        for elmt in statFormatters:
             helper = _StatHelper(elmt)
             self.add(stat=helper.stat, formatter=helper.statFormatter)
 
