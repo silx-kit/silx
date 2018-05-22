@@ -161,6 +161,8 @@ a *frame number*.
 NXdata examples
 ---------------
 
+The following examples explain how to write NXdata dircetly with *h5py*.
+
 .. note::
 
    All following examples should be preceded by
@@ -188,19 +190,78 @@ A simple curve
 The simplest NXdata example would be a 1D signal to be plotted as a curve.
 
 
-.. code-block::
+.. code-block:: python
 
     nxdata = entry.create_group("my_curve")
     nxdata.attrs["NX_class"] = "NXdata"
-    nxdata.attrs["signal"] = "y"
-    nxdata.create_dataset("y",
-                          data=numpy.array([0.1, 0.2, 0.15, 0.44]))
+    nxdata.attrs["signal"] = numpy.array("y", dtype=text_dtype)
+    ds = nxdata.create_dataset("y",
+                               data=numpy.array([0.1, 0.2, 0.15, 0.44]))
+    ds.attrs["long_name"] = numpy.array("ordinate", dtype=text_dtype)
 
 To add an axis:
 
-.. code-block::
+.. code-block:: python
 
     nxdata.attrs["axes"] = numpy.array(["x"],
                                        dtype=text_dtype)
+    ds = nxdata.create_dataset("x",
+                               data=numpy.array([101.1, 101.2, 101.3, 101.4]))
+    ds.attrs["long_name"] = numpy.array("abscissa", dtype=text_dtype)
+
+
+A scatter plot
+++++++++++++++
+
+A scatter plot is the only case for which we can have more axes than
+there are signal dimensions. The signal is 1D, and there can be any
+number of axes with the same number of values as the signal.
+
+But the most common case is a 2D scatter plot, with a signal and
+two axes.
+
+
+.. code-block:: python
+
+    nxdata = entry.create_group("my_scatter")
+    nxdata.attrs["NX_class"] = "NXdata"
+    nxdata.attrs["signal"] = numpy.array("values",
+                                         dtype=text_dtype)
+    nxdata.attrs["axes"] = numpy.array(["x", "y"],
+                                       dtype=text_dtype)
+    nxdata.create_dataset("values",
+                          data=numpy.array([0.1, 0.2, 0.15, 0.44]))
     nxdata.create_dataset("x",
                           data=numpy.array([101.1, 101.2, 101.3, 101.4]))
+    nxdata.create_dataset("y",
+                          data=numpy.array([2, 4, 6, 8]))
+
+A stack of images
++++++++++++++++++
+
+The following examples illustrates how to use the `@interpretation`
+attribute to define only two axes for a 3D signal. The first
+dimension of the signal is considered a frame index and is not scaled.
+
+
+.. code-block:: python
+
+    nxdata = entry.create_group("images")
+    nxdata.attrs["NX_class"] = "NXdata"
+    nxdata.attrs["signal"] = numpy.array("frames",
+                                         dtype=text_dtype)
+    nxdata.attrs["axes"] = numpy.array(["y", "x"],
+                                       dtype=text_dtype)
+    # 2 frames of size 3 rows x 4 columns
+    nxdata.create_dataset(
+        "frames",
+        data=numpy.array([[[1., 1.1, 1.2, 1.3],
+                           [1.4, 1.5, 1.6, 1.7],
+                           [1.8, 1.9, 2.0, 2.1]],
+                          [[8., 8.1, 8.2, 8.3],
+                           [8.4, 8.5, 8.6, 8.7],
+                           [8.8, 8.9, 9.0, 9.1]]]))
+    nxdata.create_dataset("x",
+                          data=numpy.array([0.1, 0.02, 0.3, 0.4]))
+    nxdata.create_dataset("y",
+                          data=numpy.array([2, 4, 6]))
