@@ -77,13 +77,130 @@ of data values, or errors an axes.
     you have yourself written, you should adhere to the most recent rules.
     We will only mention these most recent specifications in this tutorial.
 
+Main elements in a NXdata group
+-------------------------------
+
+Signal
+++++++
+
+The `@signal` attribute of the NXdata group provides the name of a dataset
+containing the plottable data. The name of this dataset can be freely chosen
+by the writer.
+
+This signal dataset may have a `@long_name` attribute, that can be used as
+an axis label (e.g. for the Y axis of a curve) or a plot title (e.g. for an image).
+
+Axes
+++++
+
+The `@axes` attributes of the NXdata group provides a list of names of datasets
+to be used as *dimension scales*. The number of axes in this list
+should match the number of dimensions of the signal data, in the general case.
+But in some specific cases, such as scatter plots or stack of images or curves,
+the number of axes may differ from the number of signal dimensions.
+
+An axis should be a 1D dataset, whose length matches the size of the corresponding
+signal dimension.
+
+Silx supports also an axis being a dataset with 2 values :math:`(a, b)`.
+In such a case, it is interpreted as an affine scaling of the indices
+(:math:`i \mapsto a + i * b`).
+
+An axis dataset may have a `@long_name` attribute, that can be used as
+an axis label.
+
+An axis dataset may also define a `@first_good` and `@last_good` attribute.
+These can be used to define a range of indices to be considered valid values
+in the axis.
+
+The name of the dataset can be freely chosen by the writer.
+
+An axis may be omitted for one or more dimensions of the signal. In this
+case, a `"."` should be written in place of the dataset name in the
+list of axes names.
+
+
+Signal errors
++++++++++++++
+
+A dataset named `errors` can be present in a NXdata group. It provides
+the standard deviation of data values. This dataset must have the same
+shape as the signal dataset.
+
+Axes errors
++++++++++++
+
+An axis may have associated errors (uncertainties). These axis errors
+must be provided in a dataset whose name is the axis name with `_errors`
+appended to it.
+
+For instance, an axis whose dataset name is `pressure` may provide errors
+in an another dataset whose name is `pressure_errors`.
+
+This dataset must have the same size as the corresponding axis.
+
+Interpretation
+++++++++++++++
+
+Silx supports an attribute `@interpretation` attached to the signal dataset.
+The supported values for this attribute are `scalar`, `spectrum` or `image`.
+
+This attribute must be provided when the number of axes is lower than the
+number of signal dimensions. For instance, a 3D signal with
+`@interpretation="image"` is interpreted as a stack of images.
+The axes always apply to the last dimensions of the signal, so in this example
+of a 3D stack of images, the first dimension is not scaled and is interpreted as
+a *frame number*.
+
+.. note::
+
+   This additional attribute is not mentionned in the official NXdata
+   specification.
+
 
 NXdata examples
 ---------------
 
+.. note::
+
+   All following examples should be preceded by
+
+   .. code-block:: python
+
+       import h5py
+       import numpy
+       import sys
+
+       # this is needed for writing arrays of utf-8 strings with h5py
+       if sys.version_info < (3,):
+           text_dtype = h5py.special_dtype(vlen=unicode)
+       else:
+           text_dtype = h5py.special_dtype(vlen=str)
+
+       filename = "/path/to/file.h5"
+       h5f = h5py.File(filename, "w")
+       entry = h5f.create_group("my_entry")
+       entry.attrs["NX_class"] = "NXentry"
+
 A simple curve
 ++++++++++++++
 
+The simplest NXdata example would be a 1D signal to be plotted as a curve.
 
 
+.. code-block::
 
+    nxdata = entry.create_group("my_curve")
+    nxdata.attrs["NX_class"] = "NXdata"
+    nxdata.attrs["signal"] = "y"
+    nxdata.create_dataset("y",
+                          data=numpy.array([0.1, 0.2, 0.15, 0.44]))
+
+To add an axis:
+
+.. code-block::
+
+    nxdata.attrs["axes"] = numpy.array(["x"],
+                                       dtype=text_dtype)
+    nxdata.create_dataset("x",
+                          data=numpy.array([101.1, 101.2, 101.3, 101.4]))
