@@ -285,8 +285,14 @@ class StatsTable(TableWidget):
             else:
                 [self._addItem(curve) for curve in self.plot.getAllCurves()]
                 [self._addItem(image) for image in self.plot.getAllImages()]
-                [self._addItem(scatter) for scatter in self.plot.getAllScatters()]
-                [self._addItem(histogram) for histogram in self.plot.getAllHistograms()]
+                scatters = self.plot._getItems(kind='scatter',
+                                               just_legend=False,
+                                               withhidden=True)
+                [self._addItem(scatter) for scatter in scatters]
+                histograms = self.plot._getItems(kind='histogram',
+                                                 just_legend=False,
+                                                 withhidden=True)
+                [self._addItem(histogram) for scatter in histograms]
                 self.plot.sigContentChanged.connect(self._plotContentChanged)
             self._dealWithPlotConnection(create=True)
 
