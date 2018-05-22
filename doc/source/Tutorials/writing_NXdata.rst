@@ -180,7 +180,7 @@ the *h5py* library.
        else:
            text_dtype = h5py.special_dtype(vlen=str)
 
-       filename = "/path/to/file.h5"
+       filename = "./myfile.h5"
        h5f = h5py.File(filename, "w")
        entry = h5f.create_group("my_entry")
        entry.attrs["NX_class"] = "NXentry"
@@ -254,7 +254,7 @@ dimension of the signal is considered a frame index and is not scaled.
     nxdata.attrs["axes"] = numpy.array(["y", "x"],
                                        dtype=text_dtype)
     # 2 frames of size 3 rows x 4 columns
-    nxdata.create_dataset(
+    signal = nxdata.create_dataset(
         "frames",
         data=numpy.array([[[1., 1.1, 1.2, 1.3],
                            [1.4, 1.5, 1.6, 1.7],
@@ -262,8 +262,9 @@ dimension of the signal is considered a frame index and is not scaled.
                           [[8., 8.1, 8.2, 8.3],
                            [8.4, 8.5, 8.6, 8.7],
                            [8.8, 8.9, 9.0, 9.1]]]))
+    signal.attrs["interpretation"] = "image"
     nxdata.create_dataset("x",
-                          data=numpy.array([0.1, 0.02, 0.3, 0.4]))
+                          data=numpy.array([0.1, 0.2, 0.3, 0.4]))
     nxdata.create_dataset("y",
                           data=numpy.array([2, 4, 6]))
 
@@ -288,7 +289,7 @@ like this:
 
     from silx.io.nxdata import save_NXdata
 
-    save_NXdata(filename="/path/to/file.h5",
+    save_NXdata(filename="./myfile.h5",
                 signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
                 signal_name="y",
                 signal_long_name="ordinate",
@@ -308,7 +309,7 @@ datasets, you can simply write:
 
     from silx.io.nxdata import save_NXdata
 
-    save_NXdata(filename="/path/to/file.h5",
+    save_NXdata(filename="./myfile.h5",
                 signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
                 axes=[numpy.array([101.1, 101.2, 101.3, 101.4])])
 
@@ -319,7 +320,7 @@ A scatter plot
 
     from silx.io.nxdata import save_NXdata
 
-    save_NXdata(filename="/path/to/file.h5",
+    save_NXdata(filename="./myfile.h5",
                 signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
                 signal_name="values",
                 axes=[numpy.array([2, 4, 6, 8]),
@@ -336,7 +337,7 @@ A stack of images
 
     from silx.io.nxdata import save_NXdata
 
-    save_NXdata(filename="/path/to/file.h5",
+    save_NXdata(filename="./myfile.h5",
                 signal=numpy.array([[[1., 1.1, 1.2, 1.3],
                            [1.4, 1.5, 1.6, 1.7],
                            [1.8, 1.9, 2.0, 2.1]],
