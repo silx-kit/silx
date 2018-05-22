@@ -158,14 +158,15 @@ a *frame number*.
    specification.
 
 
-NXdata examples
----------------
+Writing NXdata with h5py
+------------------------
 
-The following examples explain how to write NXdata dircetly with *h5py*.
+The following examples explain how to write NXdata directly using
+the *h5py* library.
 
 .. note::
 
-   All following examples should be preceded by
+   All following examples should be preceded by:
 
    .. code-block:: python
 
@@ -265,3 +266,86 @@ dimension of the signal is considered a frame index and is not scaled.
                           data=numpy.array([0.1, 0.02, 0.3, 0.4]))
     nxdata.create_dataset("y",
                           data=numpy.array([2, 4, 6]))
+
+
+Writing NXdata with silx
+------------------------
+
+*silx* provides a convenience function to write NXdata groups:
+:func:`silx.io.nxdata.save_NXdata`
+
+The following examples show how to reproduce the previous examples
+using this function.
+
+
+A simple curve
+++++++++++++++
+
+To get exactly the same output as previously, you can specify all attributes
+like this:
+
+.. code-block:: python
+
+    from silx.io.nxdata import save_NXdata
+
+    save_NXdata(filename="/path/to/file.h5",
+                signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
+                signal_name="y",
+                signal_long_name="ordinate",
+                axes=[numpy.array([101.1, 101.2, 101.3, 101.4])],
+                axes_names=["x"],
+                axes_long_names=["abscissa"],
+                nxentry_name="my_entry",
+                nxdata_name="my_curve")
+
+Most of these parameters are optional, only *filename* and *signal*
+are mandatory parameters. Omitted parameters have default values.
+
+If you do not care about the names of the entry, NXdata and of all the
+datasets, you can simply write:
+
+.. code-block:: python
+
+    from silx.io.nxdata import save_NXdata
+
+    save_NXdata(filename="/path/to/file.h5",
+                signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
+                axes=[numpy.array([101.1, 101.2, 101.3, 101.4])])
+
+A scatter plot
+++++++++++++++
+
+.. code-block:: python
+
+    from silx.io.nxdata import save_NXdata
+
+    save_NXdata(filename="/path/to/file.h5",
+                signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
+                signal_name="values",
+                axes=[numpy.array([2, 4, 6, 8]),
+                      numpy.array([101.1, 101.2, 101.3, 101.4])],
+                axes_names=["x", "y"],
+                nxentry_name="my_entry",
+                nxdata_name="my_scatter")
+
+
+A stack of images
++++++++++++++++++
+
+.. code-block:: python
+
+    from silx.io.nxdata import save_NXdata
+
+    save_NXdata(filename="/path/to/file.h5",
+                signal=numpy.array([[[1., 1.1, 1.2, 1.3],
+                           [1.4, 1.5, 1.6, 1.7],
+                           [1.8, 1.9, 2.0, 2.1]],
+                          [[8., 8.1, 8.2, 8.3],
+                           [8.4, 8.5, 8.6, 8.7],
+                           [8.8, 8.9, 9.0, 9.1]]]),
+                signal_name="frames",
+                axes=[numpy.array([2, 4, 6]),
+                      numpy.array([0.1, 0.02, 0.3, 0.4])],
+                axes_names=["y", "x"],
+                nxentry_name="my_entry",
+                nxdata_name="images")
