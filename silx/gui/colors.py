@@ -36,6 +36,7 @@ import copy as copy_mdl
 import numpy
 import logging
 from silx.math.combo import min_max
+from silx.math.colormap import cmap as _cmap
 from silx.utils.exceptions import NotEditableError
 
 _logger = logging.getLogger(__file__)
@@ -547,10 +548,21 @@ class Colormap(qt.QObject):
 
         :param numpy.ndarray data: The data to convert.
         """
-        # FIXME: If possible remove dependancy to the plot
-        from .plot.matplotlib import Colormap as MPLColormap
-        rgbaImage = MPLColormap.applyColormapToData(colormap=self, data=data)
-        return rgbaImage
+        name = self.getName()
+        if name is not None:  # Get colormap definition from matplotlib
+            # FIXME: If possible remove dependency to the plot
+            from .plot.matplotlib import Colormap as MPLColormap
+            mplColormap = MPLColormap.getColormap(name)
+            colors = mplColormap(
+                numpy.linspace(0., 1., 256, endpoint=True), bytes=True)
+
+        else:  # Use user defined LUT
+            colors = self.getColormapLUT()
+
+        vmin, vmax = self.getColormapRange(data)
+        normalization = self.getNormalization()
+
+        return _cmap(data, colors, vmin, vmax, normalization)
 
     @staticmethod
     def getSupportedColormaps():
@@ -560,7 +572,7 @@ class Colormap(qt.QObject):
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
         :rtype: tuple
         """
-        # FIXME: If possible remove dependancy to the plot
+        # FIXME: If possible remove dependency to the plot
         from .plot.matplotlib import Colormap as MPLColormap
         maps = MPLColormap.getSupportedColormaps()
         return DEFAULT_COLORMAPS + maps
