@@ -38,6 +38,7 @@ from silx.gui import qt
 from silx.gui import icons
 from .ApplicationContext import ApplicationContext
 from .CustomNxdataWidget import CustomNxdataWidget
+from .CustomNxdataWidget import CustomNxDataToolBar
 
 
 _logger = logging.getLogger(__name__)
@@ -68,9 +69,8 @@ class Viewer(qt.QMainWindow):
         self.__treeview.setExpandsOnDoubleClick(False)
         """Silx HDF5 TreeView"""
 
-        rightPanel = qt.QWidget(self)
-        rightLayout = qt.QVBoxLayout(rightPanel)
-        rightLayout.setContentsMargins(0, 0, 0, 0)
+        rightPanel = qt.QSplitter(self)
+        rightPanel.setOrientation(qt.Qt.Vertical)
 
         # Custom the model to be able to manage the life cycle of the files
         treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeview, ownFiles=False)
@@ -81,7 +81,7 @@ class Viewer(qt.QMainWindow):
         treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
         treeModel2.setSourceModel(treeModel)
         self.__treeview.setModel(treeModel2)
-        rightLayout.addWidget(self.__treeview)
+        rightPanel.addWidget(self.__treeview)
 
         self.__customNxdata = CustomNxdataWidget(self)
         self.__customNxdata.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -90,10 +90,13 @@ class Viewer(qt.QMainWindow):
         self.__customNxdata.setIconSize(qt.QSize(16, 16))
         self.__customNxdata.setExpandsOnDoubleClick(False)
 
-        rightLayout.addWidget(self.__customNxdata)
+        self.__customNxdataWindow = self.__createCustomNxdataWindow(self.__customNxdata)
+        rightPanel.addWidget(self.__customNxdataWindow)
 
         self.__dataViewer = DataViewerFrame(self)
         self.__dataViewer.setGlobalHooks(self.__context)
+
+        rightPanel.setStretchFactor(1, 1)
 
         spliter = qt.QSplitter(self)
         spliter.addWidget(rightPanel)
@@ -125,6 +128,20 @@ class Viewer(qt.QMainWindow):
         self.createActions()
         self.createMenus()
         self.__context.restoreSettings()
+
+    def __createCustomNxdataWindow(self, customNxdataWidget):
+        toolbar = CustomNxDataToolBar(self)
+        toolbar.setCustomNxDataWidget(customNxdataWidget)
+        toolbar.setIconSize(qt.QSize(16, 16))
+        toolbar.setStyleSheet("QToolBar { border: 0px }")
+
+        widget = qt.QWidget()
+        layout = qt.QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(toolbar)
+        layout.addWidget(customNxdataWidget)
+        return widget
 
     def __h5FileLoaded(self, loadedH5):
         self.__context.pushRecentFile(loadedH5.file.filename)
