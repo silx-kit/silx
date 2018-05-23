@@ -101,21 +101,6 @@ def get_uncertainties_names(group, signal_name):
     return uncertainties_names
 
 
-def nxdata_warning(msg, group_name=""):
-    """Log a warning message prefixed with
-    *"NXdata warning: "*
-
-    :param str msg: Warning message
-    :param str group_name: Name of NXdata group this warning relates to
-    """
-    warning_prefix = "NXdata warning"
-    if group_name:
-        warning_prefix += " (group %s): " % group_name
-    else:
-        warning_prefix += ": "
-    nxdata_logger.warning(warning_prefix + msg)
-
-
 def get_signal_name(group):
     """Return the name of the (main) signal in a NXdata group.
     Return None if this info is missing (invalid NXdata).
@@ -144,67 +129,55 @@ def get_auxiliary_signals_names(group):
     return auxiliary_signals_names
 
 
-def are_auxiliary_signals_valid(group, signal_name, auxiliary_signals_names):
+def validate_auxiliary_signals(group, signal_name, auxiliary_signals_names):
     """Check data dimensionality and size. Return False if invalid."""
+    issues = []
     for asn in auxiliary_signals_names:
         if asn not in group or not is_dataset(group[asn]):
-            nxdata_warning(
-                "Cannot find auxiliary signal dataset '%s'" % asn,
-                group.name)
-            return False
-        if group[signal_name].shape != group[asn].shape:
-            nxdata_warning("Auxiliary signal dataset '%s' does not" % asn +
-                           " have the same shape as the main signal.",
-                           group.name)
-            return False
-    return True
+            issues.append(
+                "Cannot find auxiliary signal dataset '%s'" % asn)
+        elif group[signal_name].shape != group[asn].shape:
+            issues.append("Auxiliary signal dataset '%s' does not" % asn +
+                           " have the same shape as the main signal.")
+    return issues
 
 
-def has_valid_number_of_axes(group, signal_name, num_axes):
+def validate_number_of_axes(group, signal_name, num_axes):
+    issues = []
     ndims = len(group[signal_name].shape)
     if 1 < ndims < num_axes:
         # ndim = 1 with several axes could be a scatter
-        nxdata_warning(
+        issues.append(
             "More @axes defined than there are " +
             "signal dimensions: " +
-            "%d axes, %d dimensions." % (num_axes, ndims),
-            group.name)
-        return False
+            "%d axes, %d dimensions." % (num_axes, ndims))
 
     # case of less axes than dimensions: number of axes must match
     # dimensionality defined by @interpretation
-    if ndims > num_axes:
+    elif ndims > num_axes:
         interpretation = get_attr_as_unicode(group[signal_name], "interpretation")
         if interpretation is None:
             interpretation = get_attr_as_unicode(group, "interpretation")
         if interpretation is None:
-            nxdata_warning("No @interpretation and not enough" +
-                           " @axes defined.", group.name)
-            return False
+            issues.append("No @interpretation and not enough" +
+                          " @axes defined.")
 
-        if interpretation not in INTERPDIM:
-            nxdata_warning("Unrecognized @interpretation=" + interpretation +
-                           " for data with wrong number of defined @axes.",
-                           group.name)
-            return False
-        if interpretation == "rgba-image":
+        elif interpretation not in INTERPDIM:
+            issues.append("Unrecognized @interpretation=" + interpretation +
+                          " for data with wrong number of defined @axes.")
+        elif interpretation == "rgba-image":
             if ndims != 3 or group[signal_name].shape[-1] not in [3, 4]:
-                nxdata_warning(
+                issues.append(
                     "Inconsistent RGBA Image. Expected 3 dimensions with " +
                     "last one of length 3 or 4. Got ndim=%d " % ndims +
-                    "with last dimension of length %d." % group[signal_name].shape[-1],
-                    group.name)
-                return False
+                    "with last dimension of length %d." % group[signal_name].shape[-1])
             if num_axes != 2:
-                nxdata_warning(
+                issues.append(
                     "Inconsistent number of axes for RGBA Image. Expected "
-                    "3, but got %d." % ndims, group.name)
-                return False
+                    "3, but got %d." % ndims)
 
         elif num_axes != INTERPDIM[interpretation]:
-            nxdata_warning(
+            issues.append(
                 "%d-D signal with @interpretation=%s " % (ndims, interpretation) +
-                "must define %d or %d axes." % (ndims, INTERPDIM[interpretation]),
-                group.name)
-            return False
-    return True
+                "must define %d or %d axes." % (ndims, INTERPDIM[interpretation]))
+    return issues
