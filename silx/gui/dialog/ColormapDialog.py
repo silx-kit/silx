@@ -644,7 +644,7 @@ class ColormapDialog(qt.QDialog):
             return
 
         if data.size == 0:
-            # One or more dimensions are equals to 0
+            # One or more dimensions are equal to 0
             self.setHistogram()
             self.setDataRange()
             return
