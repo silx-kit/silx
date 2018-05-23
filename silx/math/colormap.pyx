@@ -171,8 +171,6 @@ cdef image_types[:, ::1] compute_cmap(
     if normalized_vmin == normalized_vmax:
         scale = 0.
     else:
-        # TODO check this
-        #scale = (nb_colors - 1) / (vmax - vmin)
         scale = nb_colors / (normalized_vmax - normalized_vmin)
 
     with nogil:
@@ -191,11 +189,8 @@ cdef image_types[:, ::1] compute_cmap(
                 lut_index = nb_colors - 1
             else:
                 lut_index = <int>((value - normalized_vmin) * scale)
-                # Safety net, duplicate previous checks
-                # TODO needed?
-                if lut_index < 0:
-                    lut_index = 0
-                elif lut_index >= nb_colors:
+                # Index can overflow of 1
+                if lut_index >= nb_colors:
                     lut_index = nb_colors - 1
 
             for channel in range(nb_channels):
