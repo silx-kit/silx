@@ -499,7 +499,7 @@ class CustomNxdataWidget(qt.QTreeView):
         if name is None:
             name = self.findFreeNxdataTitle()
         item.setTitle(name)
-        self.__model.addNxdata(item.getRow())
+        self.__model.appendRow(item.getRow())
 
     def createFromSignal(self, dataset):
         item = _NxDataItem()
