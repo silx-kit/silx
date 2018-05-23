@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/04/2018"
+__date__ = "23/05/2018"
 
 
 import os
@@ -390,8 +390,13 @@ class Viewer(qt.QMainWindow):
         for description, ext in silx.io.supported_extensions().items():
             extensions[description] = " ".join(sorted(list(ext)))
 
-        # NOTE: hdf5plugin have to be loaded before
-        import fabio
+        try:
+            # NOTE: hdf5plugin have to be loaded before
+            import fabio
+        except Exception:
+            _logger.debug("Backtrace while loading fabio", exc_info=True)
+            fabio = None
+
         if fabio is not None:
             extensions["NeXus layout from EDF files"] = "*.edf"
             extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
