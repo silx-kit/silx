@@ -33,8 +33,16 @@ __date__ = "16/05/2018"
 cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
-from libc.math cimport lrint, HUGE_VAL, isfinite, isnan, frexp, NAN
-from libc.math cimport asinh, sqrt
+from libc.math cimport frexp, sqrt
+
+cdef extern from "math_compatibility.h":
+    double asinh(double x) nogil
+    bint isnan(double x) nogil
+    bint isfinite(double x) nogil
+    long int lrint(double x) nogil
+
+    double INFINITY
+    double NAN
 
 
 import logging
@@ -92,9 +100,17 @@ ctypedef double (*scale_function)(double) nogil
 # Normalization
 
 
-cdef inline double linear_scale(double value) nogil:
+cdef double linear_scale(double value) nogil:
     """No-Op scaling function"""
     return value
+
+
+cdef double asinh_scale(double value) nogil:
+    """asinh scaling function
+
+    Wraps asinh as it is defined as a macro for Windows support.
+    """
+    return asinh(value)
 
 
 DEF LOG_LUT_SIZE = 4096
@@ -121,7 +137,7 @@ cdef double fast_log10(double value) nogil:
 
     if value <= 0.0 or not isfinite(value):
         if value == 0.0:
-            result = - HUGE_VAL
+            result = - INFINITY
         elif value > 0.0:  # i.e., value = +INFINITY
             result = value  # i.e. +INFINITY
     else:
@@ -158,12 +174,12 @@ cdef image_types[:, ::1] compute_cmap(
     """
     cdef image_types[:, ::1] output
     cdef double scale, value
-    cdef unsigned int length, channel, nb_channels, nb_colors
-    cdef int index, lut_index
+    cdef int length, nb_channels, nb_colors
+    cdef int channel, index, lut_index
 
-    nb_colors = colors.shape[0]
-    nb_channels = colors.shape[1]
-    length = data.size
+    nb_colors = <int> colors.shape[0]
+    nb_channels = <int> colors.shape[1]
+    length = <int> data.size
 
     output = numpy.empty((length, nb_channels),
                          dtype=numpy.array(colors, copy=False).dtype)
@@ -175,7 +191,7 @@ cdef image_types[:, ::1] compute_cmap(
 
     with nogil:
         for index in prange(length):
-            value = scale_func(data[index])
+            value = scale_func(<double> data[index])
 
             # Handle NaN
             if isnan(value):
@@ -225,11 +241,11 @@ cdef image_types[:, ::1] compute_cmap_with_lut(
     cdef double[:] values
     cdef image_types[:, ::1] lut
     cdef int type_min, type_max
-    cdef unsigned int nb_channels, length, channel
-    cdef int index, lut_index
+    cdef int nb_channels, length
+    cdef int channel, index, lut_index
 
-    length = data.size
-    nb_channels = colors.shape[1]
+    length = <int> data.size
+    nb_channels = <int> colors.shape[1]
 
     if lut_types is cnumpy.int8_t:
         type_min = -128
@@ -293,7 +309,7 @@ def _cmap(data_types[:] data,
     elif normalization == 'log':
         scale_func = fast_log10
     elif normalization == 'arcsinh':
-        scale_func = asinh
+        scale_func = asinh_scale
     elif normalization == 'sqrt':
         scale_func = sqrt
     else:
