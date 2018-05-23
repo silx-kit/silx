@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/05/2018"
+__date__ = "23/05/2018"
 
 from silx.gui import qt
 from silx.io import commonh5
@@ -112,15 +112,30 @@ class _DatasetItemRow(qt.QStandardItem):
         return [self, self.__name, self.__type, self.__shape]
 
 
+class _DatasetAxisItemRow(_DatasetItemRow):
+
+    def __init__(self, dataset=None, axisId=None):
+        label = "Axis %d" % (axisId + 1)
+        super(_DatasetAxisItemRow, self).__init__(label=label, dataset=dataset)
+        self.__axisId = axisId
+
+    def getAxisId(self):
+        return self.__axisId
+
+
 class _NxDataItem(qt.QStandardItem):
 
     def __init__(self):
         qt.QStandardItem.__init__(self)
         self.__error = None
         self.__title = None
-        self.__signal = None
-        self.__axes = None
+        self.__axes = []
         self.__virtual = None
+
+        item = _DatasetItemRow("Signal", None)
+        self.appendRow(item.getRow())
+        self.__signal = item
+
         self.setEditable(False)
         self.setDragEnabled(False)
         self.setDropEnabled(False)
@@ -159,20 +174,21 @@ class _NxDataItem(qt.QStandardItem):
                 virtual.add_node(node)
 
         axesAttr = []
-        if self.__axes is not None:
-            for i, axis in enumerate(self.__axes):
+        for i, axis in enumerate(self.__axes):
+            if axis is None:
+                name = "."
+            else:
+                axis = axis.getDataset()
                 if axis is None:
                     name = "."
                 else:
-                    axis = axis.getDataset()
-                    if axis is None:
-                        name = "."
-                    else:
-                        name = "axis%d" % i
-                        axis = axis[...]
-                        node = commonh5.Dataset(name, axis)
-                        virtual.add_node(node)
-                axesAttr.append(name)
+                    name = "axis%d" % i
+                    axis = axis[...]
+                    node = commonh5.Dataset(name, axis)
+                    virtual.add_node(node)
+            axesAttr.append(name)
+
+        if axesAttr != []:
             virtual.attrs["axes"] = axesAttr
 
         if not silx.io.nxdata.is_valid_nxdata(virtual):
@@ -209,27 +225,28 @@ class _NxDataItem(qt.QStandardItem):
 
     def setSignal(self, dataset):
         # TODO: Do it well, bad design
-        if self.__signal is None:
-            item = _DatasetItemRow("Signal", dataset)
-            self.appendRow(item.getRow())
-            self.__signal = item
-        else:
-            self.__signal.setDataset(dataset)
+        self.__signal.setDataset(dataset)
         self._datasetUpdated()
 
     def setAxes(self, datasets):
-        # TODO: Do it well, bad design
-        if self.__axes is None:
-            self.__axes = []
-            for i, dataset in enumerate(datasets):
-                label = "Axis %d" % (i + 1)
-                item = _DatasetItemRow(label, dataset)
-                self.__axes.append(item)
-                self.appendRow(item.getRow())
-        else:
-            for i, dataset in enumerate(datasets):
-                self.__axes[i].setDataset(dataset)
+        # TODO: We could avoid to remove all the items all the time
+        if len(self.__axes) > 0:
+            for i in reversed(range(self.rowCount())):
+                item = self.child(i)
+                if isinstance(item, _DatasetAxisItemRow):
+                    self.removeRow(i)
+        self.__axes[:] = []
+        for i, dataset in enumerate(datasets):
+            item = _DatasetAxisItemRow(dataset=dataset, axisId=i)
+            self.__axes.append(item)
+            self.appendRow(item.getRow())
         self._datasetUpdated()
+
+    def getAxesDatasets(self):
+        datasets = []
+        for axis in self.__axes:
+            datasets.append(axis.getDataset())
+        return datasets
 
 
 class _Model(qt.QStandardItemModel):
