@@ -119,7 +119,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getVMin() is None)
         self.assertTrue(self.colormap.getVMax() is None)
         self.assertTrue(self.colormap.isAutoscale() is True)
-     
+
     def testGUIModalCancel(self):
         """Make sure the colormap is not modified if gone through reject"""
         assert self.colormap.isAutoscale() is False
