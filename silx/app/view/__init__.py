@@ -25,11 +25,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2018"
+__date__ = "23/05/2018"
 
 import sys
 import argparse
 import logging
+import signal
 
 
 _logger = logging.getLogger(__name__)
@@ -48,6 +49,11 @@ if "silx.gui.qt" not in sys.modules:
 
 import silx
 from silx.gui import qt
+
+
+def sigintHandler(*args):
+    """Handler for the SIGINT signal."""
+    qt.QApplication.quit()
 
 
 def main(argv):
@@ -115,7 +121,14 @@ def main(argv):
     app = qt.QApplication([])
     qt.QLocale.setDefault(qt.QLocale.c())
 
+    signal.signal(signal.SIGINT, sigintHandler)
     sys.excepthook = qt.exceptionHandler
+
+    timer = qt.QTimer()
+    timer.start(500)
+    # Application have to wake up Python interpreter, else SIGINT is not
+    # catched
+    timer.timeout.connect(lambda: None)
 
     from .Viewer import Viewer
     window = Viewer()
