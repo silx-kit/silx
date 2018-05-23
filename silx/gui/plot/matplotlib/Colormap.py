@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,8 @@ from matplotlib.colors import ListedColormap
 import matplotlib.colors
 import matplotlib.cm
 import silx.resources
+from silx.utils.deprecation import deprecated
+
 
 _logger = logging.getLogger(__name__)
 
@@ -177,6 +179,8 @@ def getScalarMappable(colormap, data=None):
     return matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
 
 
+@deprecated(replacement='silx.colors.Colormap.applyToData',
+            since_version='0.8.0')
 def applyColormapToData(data, colormap):
     """Apply a colormap to the data and returns the RGBA image
 
