@@ -74,6 +74,12 @@ def main(argv):
         action="store_true",
         default=False,
         help='Use OpenGL for plots (instead of matplotlib)')
+    parser.add_argument(
+        '--fresh',
+        dest="fresh_preferences",
+        action="store_true",
+        default=False,
+        help='Start the application using new fresh user preferences')
 
     options = parser.parse_args(argv[1:])
 
@@ -122,6 +128,8 @@ def main(argv):
                             "silx",
                             "silx-view",
                             None)
+    if options.fresh_preferences:
+        settings.clear()
 
     from .Viewer import Viewer
     window = Viewer(parent=None, settings=settings)
