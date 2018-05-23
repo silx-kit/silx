@@ -33,14 +33,7 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 cimport cython
-
-# Replace cimports from libc.math
-# which are not available on Windows for Python2.7
-cdef extern from "math_compatibility.h":
-    bint isnan(double x) nogil
-    bint isfinite(double x) nogil
-
-    double INFINITY
+from math_compatibility cimport isnan, isfinite, INFINITY
 
 
 import numpy

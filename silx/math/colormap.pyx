@@ -34,16 +34,7 @@ cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
 from libc.math cimport frexp, sqrt
-
-cdef extern from "math_compatibility.h":
-    double asinh(double x) nogil
-    bint isnan(double x) nogil
-    bint isfinite(double x) nogil
-    long int lrint(double x) nogil
-
-    double INFINITY
-    double NAN
-
+from math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
 
 import logging
 import numpy
