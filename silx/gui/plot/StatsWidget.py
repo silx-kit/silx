@@ -111,9 +111,9 @@ class StatsWidget(qt.QWidget):
         self.layout().addWidget(self._statsTable)
         self.setPlot = self._statsTable.setPlot
 
-        self._options.itemSelection.currentTextChanged.connect(
+        self._options.itemSelection.currentIndexChanged[str].connect(
             self._optSelectionChanged)
-        self._options.dataRangeSelection.currentTextChanged.connect(
+        self._options.dataRangeSelection.currentIndexChanged[str].connect(
             self._optDataRangeChanged)
 
         self.setDisplayOnlyActiveItem = self._statsTable.setDisplayOnlyActiveItem
