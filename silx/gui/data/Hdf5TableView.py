@@ -347,7 +347,8 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             # it's a real H5py object
             self.__data.addHeaderValueRow("Basename", lambda x: os.path.basename(x.name))
             self.__data.addHeaderValueRow("Name", lambda x: x.name)
-            self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
+            if obj.file is not None:
+                self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
 
             if hasattr(obj, "path"):
                 # That's a link
@@ -359,8 +360,11 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             else:
                 if silx.io.is_file(obj):
                     physical = lambda x: x.filename + SEPARATOR + x.name
+                elif obj.file is not None:
+                        physical = lambda x: x.file.filename + SEPARATOR + x.name
                 else:
-                    physical = lambda x: x.file.filename + SEPARATOR + x.name
+                    # Guess it is a virtual node
+                    physical = "No physical location"
                 self.__data.addHeaderValueRow("Physical", physical)
 
         if hasattr(obj, "dtype"):
