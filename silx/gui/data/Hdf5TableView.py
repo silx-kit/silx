@@ -487,7 +487,7 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
     def setData(self, data):
         """Set the h5py-like object exposed by the model
 
-        :param h5pyObject: A h5py-like object. It can be a `h5py.Dataset`,
+        :param data: A h5py-like object. It can be a `h5py.Dataset`,
             a `h5py.File`, a `h5py.Group`. It also can be a,
             `silx.gui.hdf5.H5Node` which is needed to display some local path
             information.
