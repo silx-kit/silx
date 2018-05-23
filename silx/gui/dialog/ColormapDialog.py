@@ -620,12 +620,9 @@ class ColormapDialog(qt.QDialog):
             return
 
         if data is None:
-            self.setDataRange()
-            self.setHistogram()
             self._data = None
-            return
-
-        self._data = weakref.ref(data, self._dataAboutToFinalize)
+        else:
+            self._data = weakref.ref(data, self._dataAboutToFinalize)
 
         self._updateDataInPlot()
 
@@ -642,6 +639,8 @@ class ColormapDialog(qt.QDialog):
     def _updateDataInPlot(self):
         data = self._getData()
         if data is None:
+            self.setDataRange()
+            self.setHistogram()
             return
 
         if data.size == 0:
