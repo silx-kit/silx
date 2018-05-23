@@ -32,7 +32,9 @@ __date__ = "16/05/2018"
 
 
 import logging
+import sys
 import unittest
+
 import numpy
 
 from silx.utils.testutils import ParametricTestCase
@@ -64,13 +66,21 @@ class TestColormap(ParametricTestCase):
                           'sqrt': numpy.sqrt}
 
         norm_function = norm_functions[normalization]
-        data, vmin, vmax = map(norm_function, (data, vmin, vmax))
+        norm_data, vmin, vmax = map(norm_function, (data, vmin, vmax))
+
+        if normalization == 'arcsinh' and sys.platform == 'win32':
+            # There is a difference of behavior of numpy.arcsinh
+            # between Windows and other OS for results of infinite values
+            # This makes Windows behaves as Linux and MacOS
+            norm_data[data == numpy.inf] = numpy.inf
+            norm_data[data == -numpy.inf] = -numpy.inf
 
         nb_colors = len(colors)
         scale = nb_colors / (vmax - vmin)
 
         # Substraction must be done in float to avoid overflow with uint
-        indices = numpy.clip(scale * (data - float(vmin)), 0, nb_colors - 1)
+        indices = numpy.clip(scale * (norm_data - float(vmin)),
+                             0, nb_colors - 1)
         indices[numpy.isnan(indices)] = nb_colors  # Use an extra index for NaN
         indices = indices.astype('uint')
 

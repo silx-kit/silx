@@ -31,22 +31,23 @@
 
 #include <math.h>
 
-#if (defined (_MSC_VER) && _MSC_VER < 1800)
-#include <float.h>
-
-#define asinh(v) log((v) + sqrt((v)*(v) + 1))
-
-#define isnan(v) _isnan(v)
-#define isfinite(v) _finite(v)
-#define lrint(v) ((long int) (v))
-#endif
-
 #ifndef INFINITY
 #define INFINITY (DBL_MAX+DBL_MAX)
 #endif
 
 #ifndef NAN
 #define NAN (INFINITY-INFINITY)
+#endif
+
+#if (defined (_MSC_VER) && _MSC_VER < 1800)
+#include <float.h>
+
+/* Make sure asinh returns -inf rather than NaN for v=-inf */
+#define asinh(v) (v == -INFINITY ? v : log((v) + sqrt((v)*(v) + 1)))
+
+#define isnan(v) _isnan(v)
+#define isfinite(v) _finite(v)
+#define lrint(v) ((long int) (v))
 #endif
 
 #endif /*__MATH_COMPATIBILITY_H__*/
