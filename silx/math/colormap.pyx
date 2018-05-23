@@ -92,7 +92,7 @@ ctypedef double (*scale_function)(double) nogil
 # Normalization
 
 
-cdef double linear_scale(double value) nogil:
+cdef inline double linear_scale(double value) nogil:
     """No-Op scaling function"""
     return value
 
