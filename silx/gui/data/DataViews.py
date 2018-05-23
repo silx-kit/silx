@@ -41,7 +41,7 @@ from silx.gui.dialog.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "23/05/2018"
 
 _logger = logging.getLogger(__name__)
 
@@ -187,7 +187,11 @@ class DataInfo(object):
         if self.shape is not None:
             self.dim = len(self.shape)
 
-        if hasattr(data, "size"):
+        if hasattr(data, "shape") and data.shape is None:
+            # This test is expected to avoid to fall done on the h5py issue
+            # https://github.com/h5py/h5py/issues/1044
+            self.size = 0
+        elif hasattr(data, "size"):
             self.size = int(data.size)
         else:
             self.size = 1
