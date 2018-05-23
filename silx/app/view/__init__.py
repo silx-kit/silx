@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2018"
+__date__ = "23/05/2018"
 
 import sys
 import argparse
@@ -117,8 +117,14 @@ def main(argv):
 
     sys.excepthook = qt.exceptionHandler
 
+    settings = qt.QSettings(qt.QSettings.IniFormat,
+                            qt.QSettings.UserScope,
+                            "silx",
+                            "silx-view",
+                            None)
+
     from .Viewer import Viewer
-    window = Viewer()
+    window = Viewer(parent=None, settings=settings)
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
 
     if options.use_opengl_plot:
