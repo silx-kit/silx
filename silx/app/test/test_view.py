@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/04/2018"
+__date__ = "23/05/2018"
 
 
 import unittest
@@ -58,7 +58,7 @@ class QApplicationMock(object):
 
 class ViewerMock(object):
 
-    def __init__(self):
+    def __init__(self, parent=None, settings=None):
         super(ViewerMock, self).__init__()
         self.__class__._instance = self
         self.appendFileCalls = []
