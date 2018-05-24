@@ -1,7 +1,7 @@
 #  coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1344,6 +1344,75 @@ class ZoomAndSelect(ItemsInteraction):
             return super(ZoomAndSelect, self).endDrag(startPos, endPos)
 
 
+class PanAndSelect(ItemsInteraction):
+    """Combine Pan and ItemInteraction state machine.
+
+    :param plot: The Plot to which this interaction is attached
+    :param color: The color to use for the zoom area bounding box
+    """
+
+    def __init__(self, plot):
+        super(PanAndSelect, self).__init__(plot)
+        self._pan = Pan(plot)
+        self._doPan = False
+
+    def click(self, x, y, btn):
+        """Handle mouse click
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: True if click is catched by an item, False otherwise
+        """
+        eventDict = self._handleClick(x, y, btn)
+
+        if eventDict is not None:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            clickedEventDict = prepareMouseSignal('mouseClicked', btn,
+                                                  dataPos[0], dataPos[1],
+                                                  x, y)
+            self.plot.notify(**clickedEventDict)
+
+            self.plot.notify(**eventDict)
+
+        else:
+            self._pan.click(x, y, btn)
+
+    def beginDrag(self, x, y):
+        """Handle start drag and switching between zoom and item drag.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        self._doPan = not super(PanAndSelect, self).beginDrag(x, y)
+        if self._doPan:
+            self._pan.beginDrag(x, y)
+
+    def drag(self, x, y):
+        """Handle drag, eventually forwarding to zoom.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        if self._doPan:
+            return self._pan.drag(x, y)
+        else:
+            return super(PanAndSelect, self).drag(x, y)
+
+    def endDrag(self, startPos, endPos):
+        """Handle end of drag, eventually forwarding to zoom.
+
+        :param startPos: (x, y) position at the beginning of the drag
+        :param endPos: (x, y) position at the end of the drag
+        """
+        if self._doPan:
+            return self._pan.endDrag(startPos, endPos)
+        else:
+            return super(PanAndSelect, self).endDrag(startPos, endPos)
+
+
 # Interaction mode control ####################################################
 
 class PlotInteraction(object):
@@ -1389,7 +1458,7 @@ class PlotInteraction(object):
             result['mode'] = 'draw'
             return result
 
-        elif isinstance(self._eventHandler, Pan):
+        elif isinstance(self._eventHandler, PanAndSelect):
             return {'mode': 'pan'}
 
         else:
@@ -1437,7 +1506,7 @@ class PlotInteraction(object):
         elif mode == 'pan':
             # Ignores color, shape and label
             self._eventHandler.cancel()
-            self._eventHandler = Pan(plot)
+            self._eventHandler = PanAndSelect(plot)
 
         elif mode == 'zoom':
             # Ignores shape and label
