@@ -217,15 +217,26 @@ class Colormap(qt.QObject):
         """
         return self._name
 
+    @staticmethod
+    def _convertColorsFromFloatToUint8(colors):
+        """Convert colors from float in [0, 1] to uint8
+
+        :param numpy.ndarray colors: Array of float colors to convert
+        :return: colors as uint8
+        :rtype: numpy.ndarray
+        """
+        # Each bin is [N, N+1[ except the last one: [255, 256]
+        return numpy.clip(
+            colors.astype(numpy.float64) * 256, 0., 255.).astype(numpy.uint8)
+
     def _setColors(self, colors):
         if colors is None:
             self._colors = None
         else:
             colors = numpy.array(colors, copy=False)
             colors.shape = -1, colors.shape[-1]
-            if colors.dtype.kind == 'f':  # Convert float in [0, 1] to uint8
-                # Each bin is [N, N+1[ except the last one: [255, 256]
-                colors = numpy.clip(colors.astype(numpy.float64) * 256, 0., 255.)
+            if colors.dtype.kind == 'f':
+                colors = self._convertColorsFromFloatToUint8(colors)
 
             # Makes sure it is RGBA8888
             self._colors = numpy.zeros((len(colors), 4), dtype=numpy.uint8)
@@ -564,8 +575,8 @@ class Colormap(qt.QObject):
             # FIXME: If possible remove dependency to the plot
             from .plot.matplotlib import Colormap as MPLColormap
             mplColormap = MPLColormap.getColormap(name)
-            colors = mplColormap(
-                numpy.linspace(0., 1., 256, endpoint=True), bytes=True)
+            colors = mplColormap(numpy.linspace(0, 1, 256, endpoint=True))
+            colors = self._convertColorsFromFloatToUint8(colors)
 
         else:  # Use user defined LUT
             colors = self.getColormapLUT()
