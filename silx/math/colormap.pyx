@@ -111,7 +111,7 @@ cdef double[::1] _log_lut
 # Initialize log approximation LUT
 _log_lut = numpy.log2(
     numpy.linspace(0.5, 1., LOG_LUT_SIZE + 1,
-                   endpoint=True, dtype=numpy.float64))
+                   endpoint=True).astype(numpy.float64))
 # index_lut can overflow of 1
 _log_lut[LOG_LUT_SIZE] = _log_lut[LOG_LUT_SIZE - 1]
 
