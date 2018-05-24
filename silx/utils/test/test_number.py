@@ -47,6 +47,10 @@ class TestConversionTypes(unittest.TestCase):
         dtype = number.min_numerical_convertible_type("1456")
         self.assertTrue(numpy.issubdtype(dtype, numpy.unsignedinteger))
 
+    def testTrailledInteger(self):
+        dtype = number.min_numerical_convertible_type(" \t\n\r1456\t\n\r")
+        self.assertTrue(numpy.issubdtype(dtype, numpy.unsignedinteger))
+
     def testPositiveInteger(self):
         dtype = number.min_numerical_convertible_type("+1456")
         self.assertTrue(numpy.issubdtype(dtype, numpy.unsignedinteger))

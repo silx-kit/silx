@@ -33,7 +33,7 @@ import numpy
 import re
 
 
-_parse_numeric_value = re.compile("[-+]?(\d*)(?:\.(\d*))?(?:[eE]([-+]?\d+))?")
+_parse_numeric_value = re.compile("\s*[-+]?(\d*)(?:\.(\d*))?(?:[eE]([-+]?\d+))?\s*")
 """Match integer or floating-point numbers"""
 
 
