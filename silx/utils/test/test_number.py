@@ -127,6 +127,13 @@ class TestConversionTypes(unittest.TestCase):
         dtype = number.min_numerical_convertible_type("14.0e3000")
         self.assertEqual(dtype, numpy.longdouble)
 
+    def testFloat32ToString(self):
+        if not hasattr(numpy, "float128"):
+            self.skipTest("float-80bits not supported")
+        value = str(numpy.float32(numpy.pi))
+        dtype = number.min_numerical_convertible_type(value)
+        self.assertEqual(dtype, numpy.float32)
+
 
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
