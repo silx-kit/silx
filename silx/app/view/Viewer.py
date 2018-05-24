@@ -48,20 +48,18 @@ class Viewer(qt.QMainWindow):
     content.
     """
 
-    def __init__(self):
+    def __init__(self, parent=None, settings=None):
         """
-        :param files_: List of HDF5 or Spec files (pathes or
-            :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
-            instances)
+        Constructor
         """
         # Import it here to be sure to use the right logging level
         import silx.gui.hdf5
         from silx.gui.data.DataViewerFrame import DataViewerFrame
 
-        qt.QMainWindow.__init__(self)
+        qt.QMainWindow.__init__(self, parent)
         self.setWindowTitle("Silx viewer")
 
-        self.__context = ApplicationContext(self)
+        self.__context = ApplicationContext(self, settings)
         self.__context.restoreLibrarySettings()
 
         self.__asyncload = False
