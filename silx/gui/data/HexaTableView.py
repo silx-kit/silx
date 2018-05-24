@@ -37,7 +37,7 @@ from silx.gui.widgets.TableWidget import CopySelectedCellsAction
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "23/05/2018"
 
 
 class _VoidConnector(object):
@@ -54,7 +54,13 @@ class _VoidConnector(object):
     def __getBuffer(self, bufferId):
         if bufferId not in self.__cache:
             pos = bufferId << 10
-            data = self.__data.tobytes()[pos:pos + 1024]
+            data = self.__data
+            if hasattr(data, "tobytes"):
+                data = data.tobytes()[pos:pos + 1024]
+            else:
+                # Old fashion
+                data = data.data[pos:pos + 1024]
+
             self.__cache[bufferId] = data
             if len(self.__cache) > 32:
                 self.__cache.popitem()
