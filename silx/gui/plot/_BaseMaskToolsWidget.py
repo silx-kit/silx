@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -604,8 +604,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
         self.polygonAction.setToolTip(
                 'Polygon selection tool: (Un)Mask a polygonal region <b>S</b><br>'
-                'Left-click to place polygon corners<br>'
-                'Right-click to place the last corner')
+                'Left-click to place new polygon corners<br>'
+                'Left-click on first corner to close the polygon')
         self.polygonAction.setCheckable(True)
         self.polygonAction.triggered.connect(self._activePolygonMode)
         self.addAction(self.polygonAction)
