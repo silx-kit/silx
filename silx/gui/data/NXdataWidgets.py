@@ -32,7 +32,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.gui.plot import Plot1D, Plot2D, StackView
+from silx.gui.plot import Plot1D, Plot2D, StackView, ScatterView
 from silx.gui.colors import Colormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
@@ -211,10 +211,11 @@ class XYVScatterPlot(qt.QWidget):
         self.__y_axis_name = None
         self.__y_axis_errors = None
 
-        self._plot = Plot1D(self)
-        self._plot.setDefaultColormap(Colormap(name="viridis",
-                                               vmin=None, vmax=None,
-                                               normalization=Colormap.LINEAR))
+        self._plot = ScatterView(self)
+        self._plot.getPlotWidget().setDefaultColormap(
+            Colormap(name="viridis",
+                     vmin=None, vmax=None,
+                     normalization=Colormap.LINEAR))
 
         self._slider = HorizontalSliderWithBrowser(parent=self)
         self._slider.setMinimum(0)
@@ -235,9 +236,9 @@ class XYVScatterPlot(qt.QWidget):
     def getPlot(self):
         """Returns the plot used for the display
 
-        :rtype: Plot1D
+        :rtype: PlotWidget
         """
-        return self._plot
+        return self._plot.getPlotWidget()
 
     def setScattersData(self, y, x, values,
                         yerror=None, xerror=None,
@@ -284,8 +285,6 @@ class XYVScatterPlot(qt.QWidget):
         x = self.__x_axis
         y = self.__y_axis
 
-        self._plot.remove(kind=("scatter", ))
-
         idx = self._slider.value()
 
         title = ""
@@ -294,16 +293,15 @@ class XYVScatterPlot(qt.QWidget):
         title += self.__scatter_titles[idx]     # scatter dataset name
 
         self._plot.setGraphTitle(title)
-        self._plot.addScatter(x, y, self.__values[idx],
-                              legend="scatter%d" % idx,
-                              xerror=self.__x_axis_errors,
-                              yerror=self.__y_axis_errors)
+        self._plot.setData(x, y, self.__values[idx],
+                           xerror=self.__x_axis_errors,
+                           yerror=self.__y_axis_errors)
         self._plot.resetZoom()
-        self._plot.getXAxis().setLabel(self.__x_axis_name)
-        self._plot.getYAxis().setLabel(self.__y_axis_name)
+        self._plot.getPlotWidget().getXAxis().setLabel(self.__x_axis_name)
+        self._plot.getPlotWidget().getYAxis().setLabel(self.__y_axis_name)
 
     def clear(self):
-        self._plot.clear()
+        self._plot.getPlotWidget().clear()
 
 
 class ArrayImagePlot(qt.QWidget):
