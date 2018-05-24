@@ -297,8 +297,8 @@ class XYVScatterPlot(qt.QWidget):
                            xerror=self.__x_axis_errors,
                            yerror=self.__y_axis_errors)
         self._plot.resetZoom()
-        self._plot.getPlotWidget().getXAxis().setLabel(self.__x_axis_name)
-        self._plot.getPlotWidget().getYAxis().setLabel(self.__y_axis_name)
+        self._plot.getXAxis().setLabel(self.__x_axis_name)
+        self._plot.getYAxis().setLabel(self.__y_axis_name)
 
     def clear(self):
         self._plot.getPlotWidget().clear()
