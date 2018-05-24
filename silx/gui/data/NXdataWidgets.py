@@ -212,10 +212,9 @@ class XYVScatterPlot(qt.QWidget):
         self.__y_axis_errors = None
 
         self._plot = ScatterView(self)
-        self._plot.getPlotWidget().setDefaultColormap(
-            Colormap(name="viridis",
-                     vmin=None, vmax=None,
-                     normalization=Colormap.LINEAR))
+        self._plot.setColormap(Colormap(name="viridis",
+                                        vmin=None, vmax=None,
+                                        normalization=Colormap.LINEAR))
 
         self._slider = HorizontalSliderWithBrowser(parent=self)
         self._slider.setMinimum(0)

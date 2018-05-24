@@ -237,6 +237,25 @@ class ScatterView(qt.QMainWindow):
         """
         return self._outputToolBar
 
+    def setColormap(self, colormap=None):
+        """Set the colormap for the displayed scatter and the
+        default plot colormap.
+
+        :param silx.gui.plot.Colormap.Colormap colormap:
+            The description of the colormap.
+        """
+        self.getScatterItem().setColormap(colormap)
+        # Resilient to call to PlotWidget API (e.g., clear)
+        self.getPlotWidget().setDefaultColormap(colormap)
+
+    def getColormap(self):
+        """Return the :class:`.Colormap` in use.
+
+        :return: Colormap currently in use
+        :rtype: silx.gui.plot.Colormap.Colormap
+        """
+        self.getScatterItem().getColormap()
+
     # Control displayed scatter plot
 
     def setData(self, x, y, value, xerror=None, yerror=None, copy=True):
