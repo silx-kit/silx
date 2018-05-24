@@ -101,7 +101,10 @@ def min_numerical_convertible_type(string):
         expected = max(expected_mantissa, expected_exponent)
         if expected >= 128:
             # Here we lose precision
-            return numpy.longdouble
+            if hasattr(numpy, "longdouble"):
+                return numpy.longdouble
+            else:
+                return numpy.float64
 
         if expected == 32:
             return numpy.float32

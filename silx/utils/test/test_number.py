@@ -128,8 +128,6 @@ class TestConversionTypes(unittest.TestCase):
         self.assertEqual(dtype, numpy.longdouble)
 
     def testFloat32ToString(self):
-        if not hasattr(numpy, "float128"):
-            self.skipTest("float-80bits not supported")
         value = str(numpy.float32(numpy.pi))
         dtype = number.min_numerical_convertible_type(value)
         self.assertEqual(dtype, numpy.float32)
