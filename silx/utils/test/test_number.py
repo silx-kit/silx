@@ -95,39 +95,37 @@ class TestConversionTypes(unittest.TestCase):
         dtype = number.min_numerical_convertible_type("-.5")
         self.assertTrue(numpy.issubdtype(dtype, numpy.floating))
 
-    def testFloat16(self):
+    def testMantissa16(self):
         dtype = number.min_numerical_convertible_type("1.50")
         self.assertEqual(dtype, numpy.float16)
 
-    def testFloat32(self):
+    def testMantissa32(self):
         dtype = number.min_numerical_convertible_type("1400.50")
         self.assertEqual(dtype, numpy.float32)
 
-    def testFloat64(self):
+    def testMantissa64(self):
         dtype = number.min_numerical_convertible_type("10000.000010")
         self.assertEqual(dtype, numpy.float64)
 
-    def testFloat80(self):
-        if not hasattr(numpy, "float128"):
+    def testMantissa80(self):
+        if not hasattr(numpy, "longdouble"):
             self.skipTest("float-80bits not supported")
         dtype = number.min_numerical_convertible_type("1000000000.0000101")
-        self.assertIn(dtype, (numpy.float128, numpy.longdouble))
+        self.assertEqual(dtype, (numpy.longdouble))
 
-    def testExponentialBiggerThanDecimal(self):
-        dtype = number.min_numerical_convertible_type("14000.0e5")
-        self.assertEqual(dtype, numpy.float64)
-
-    def testExponentialSmallerThanNumber(self):
-        dtype = number.min_numerical_convertible_type("14000.0e-5")
+    def testExponent32(self):
+        dtype = number.min_numerical_convertible_type("14.0e30")
         self.assertEqual(dtype, numpy.float32)
 
-    def testExponentialSmallerThanDecimal(self):
-        dtype = number.min_numerical_convertible_type("0.00001e5")
-        self.assertEqual(dtype, numpy.float32)
-
-    def testExponentialBiggerThanNumber(self):
-        dtype = number.min_numerical_convertible_type("0.00001e-5")
+    def testExponent64(self):
+        dtype = number.min_numerical_convertible_type("14.0e300")
         self.assertEqual(dtype, numpy.float64)
+
+    def testExponent80(self):
+        if not hasattr(numpy, "longdouble"):
+            self.skipTest("float-80bits not supported")
+        dtype = number.min_numerical_convertible_type("14.0e3000")
+        self.assertEqual(dtype, numpy.longdouble)
 
 
 def suite():

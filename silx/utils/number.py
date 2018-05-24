@@ -58,38 +58,59 @@ def min_numerical_convertible_type(string):
         return numpy.min_scalar_type(value).type
     else:
         if number is None:
-            number = 0
-        else:
-            number = len(number)
+            number = ""
         if decimal is None:
-            decimal = 0
-        else:
-            decimal = len(decimal)
+            decimal = ""
+        significante_size = len(number) + len(decimal)
         if exponent is None:
+            if significante_size <= 3:
+                # A float16 is accurate with about 3.311 digits
+                return numpy.float16
             exponent = 0
         else:
-            exponent = int(exponent)
+            exponent = abs(int(exponent))
 
-        if exponent > 0:
-            digits = number + max(decimal, exponent)
-        elif exponent < 0:
-            exponent = -exponent
-            digits = max(number, exponent) + decimal
+        if significante_size <= 7:
+            # Expect at least float 32-bits
+            expected_mantissa = 32
+        elif significante_size <= 15:
+            # Expect at least float 64-bits
+            expected_mantissa = 64
+        elif significante_size <= 19:
+            # Expect at least float 80-bits
+            expected_mantissa = 80
+        elif significante_size <= 34:
+            # Expect at least float 128-bits (real 128-bits, referenced as binary128)
+            # Unsupported by numpy
+            expected_mantissa = 128
         else:
-            digits = number + decimal
+            expected_mantissa = 999
 
-        if digits <= 3:
-            # A float16 is accurate with about 3.311 digits
-            return numpy.float16
-        if digits <= 7:
-            # A float32 is accurate with about 7 digits
+        if exponent <= 37:
+            # Up to 3.402823 * 10**38
+            expected_exponent = 32
+        elif exponent <= 307:
+            # Up to 10**308
+            expected_exponent = 64
+        elif exponent <= 4932:
+            # Up to 10**4932
+            expected_exponent = 80
+        else:
+            expected_exponent = 999
+
+        expected = max(expected_mantissa, expected_exponent)
+        if expected >= 128:
+            # Here we lose precision
+            return numpy.longdouble
+
+        if expected == 32:
             return numpy.float32
-        elif digits <= 16:
-            # A float64 is accurate with about 16 digits
+        elif expected == 64:
             return numpy.float64
-        else:
+        elif expected == 80:
             # A float 80-bits if available (padded using 96 or 128 bits)
             if hasattr(numpy, "longdouble"):
                 return numpy.longdouble
             else:
+                # Here we lose precision
                 return numpy.float64
