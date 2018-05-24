@@ -33,7 +33,7 @@ import numpy
 import re
 
 
-_parse_numeric_value = re.compile("\s*[-+]?(\d*)(?:\.(\d*))?(?:[eE]([-+]?\d+))?\s*")
+_parse_numeric_value = re.compile("^\s*[-+]?(\d*)(?:\.(\d*))?(?:[eE]([-+]?\d+))?\s*$")
 """Match integer or floating-point numbers"""
 
 
@@ -49,7 +49,7 @@ def min_numerical_convertible_type(string):
     if string == "":
         raise ValueError("Not a numerical value")
     match = _parse_numeric_value.match(string)
-    if match.end() != len(string):
+    if match is None:
         raise ValueError("Not a numerical value")
     number, decimal, exponent = match.groups()
     if decimal is None and exponent is None:
