@@ -65,7 +65,10 @@ class ScatterView(qt.QMainWindow):
 
     def __init__(self, parent=None, backend=None):
         super(ScatterView, self).__init__(parent=parent)
-        if parent is None:
+        if parent is not None:
+            # behave as a widget
+            self.setWindowFlags(qt.Qt.Widget)
+        else:
             self.setWindowTitle('ScatterView')
 
         # Create plot widget
