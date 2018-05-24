@@ -951,7 +951,13 @@ class File(commonh5.File):
         if first_file_name is not None:
             _, ext = os.path.splitext(first_file_name)
             ext = ext[1:]
-            use_edf_reader = ext in fabio.edfimage.EdfImage.DEFAULT_EXTENSIONS
+            edfimage = fabio.edfimage.EdfImage
+            if hasattr(edfimage, "DEFAULT_EXTENTIONS"):
+                # Typo on fabio 0.5
+                edf_extensions = edfimage.DEFAULT_EXTENTIONS
+            else:
+                edf_extensions = edfimage.DEFAULT_EXTENSIONS
+            use_edf_reader = ext in edf_extensions
         elif first_image is not None:
             use_edf_reader = isinstance(first_image, fabio.edfimage.EdfImage)
         else:
