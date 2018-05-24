@@ -37,6 +37,12 @@ _logger = logging.getLogger(__name__)
 
 class TestConversionTypes(unittest.TestCase):
 
+    def testEmptyFail(self):
+        self.assertRaises(ValueError, number.min_numerical_convertible_type, "")
+
+    def testStringFail(self):
+        self.assertRaises(ValueError, number.min_numerical_convertible_type, "a")
+
     def testInteger(self):
         dtype = number.min_numerical_convertible_type("1456")
         self.assertTrue(numpy.issubdtype(dtype, numpy.unsignedinteger))
