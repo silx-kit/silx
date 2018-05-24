@@ -221,7 +221,16 @@ class Colormap(qt.QObject):
         if colors is None:
             self._colors = None
         else:
-            self._colors = numpy.array(colors, copy=True)
+            colors = numpy.array(colors, copy=False)
+            colors.shape = -1, colors.shape[-1]
+            if colors.dtype.kind == 'f':  # Convert float in [0, 1] to uint8
+                # Each bin is [N, N+1[ except the last one: [255, 256]
+                colors = numpy.clip(colors.astype(numpy.float64) * 256, 0., 255.)
+
+            # Makes sure it is RGBA8888
+            self._colors = numpy.zeros((len(colors), 4), dtype=numpy.uint8)
+            self._colors[:, 3] = 255  # Alpha channel
+            self._colors[:, :colors.shape[1]] = colors  # Copy colors
 
     def getNColors(self, nbColors=None):
         """Returns N colors computed by sampling the colormap regularly.
@@ -280,7 +289,9 @@ class Colormap(qt.QObject):
     def setColormapLUT(self, colors):
         """Set the colors of the colormap.
 
-        :param numpy.ndarray colors: the colors of the LUT
+        :param numpy.ndarray colors: the colors of the LUT.
+           If float, it is converted from [0, 1] to uint8 range.
+           Otherwise it is casted to uint8.
 
         .. warning: this will set the value of name to None
         """
