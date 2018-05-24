@@ -25,13 +25,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/04/2018"
+__date__ = "23/05/2018"
 
 import weakref
 import logging
 
 import silx
-from silx.gui import qt
 from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
@@ -51,11 +50,11 @@ class ApplicationContext(DataViewHooks):
     - Create a single colormap dialog shared with all the views
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, settings=None):
         self.__parent = weakref.ref(parent)
         self.__defaultColormap = None
         self.__defaultColormapDialog = None
-        self.__settings = qt.QSettings("silx", "silx-view", parent=parent)
+        self.__settings = settings
         self.__recentFiles = []
 
     def getSettings(self):
@@ -68,6 +67,8 @@ class ApplicationContext(DataViewHooks):
     def restoreLibrarySettings(self):
         """Restore the library settings, which must be done early"""
         settings = self.__settings
+        if settings is None:
+            return
         settings.beginGroup("library")
         plotBackend = settings.value("plot.backend", "")
         plotImageYAxisOrientation = settings.value("plot-image.y-axis-orientation", "")
@@ -81,6 +82,8 @@ class ApplicationContext(DataViewHooks):
     def restoreSettings(self):
         """Restore the settings of all the application"""
         settings = self.__settings
+        if settings is None:
+            return
         parent = self.__parent()
         parent.restoreSettings(settings)
 
@@ -107,6 +110,8 @@ class ApplicationContext(DataViewHooks):
     def saveSettings(self):
         """Save the settings of all the application"""
         settings = self.__settings
+        if settings is None:
+            return
         parent = self.__parent()
         parent.saveSettings(settings)
 

@@ -80,6 +80,12 @@ def main(argv):
         action="store_true",
         default=False,
         help='Use OpenGL for plots (instead of matplotlib)')
+    parser.add_argument(
+        '--fresh',
+        dest="fresh_preferences",
+        action="store_true",
+        default=False,
+        help='Start the application using new fresh user preferences')
 
     options = parser.parse_args(argv[1:])
 
@@ -129,9 +135,17 @@ def main(argv):
     # Application have to wake up Python interpreter, else SIGINT is not
     # catched
     timer.timeout.connect(lambda: None)
+    
+    settings = qt.QSettings(qt.QSettings.IniFormat,
+                            qt.QSettings.UserScope,
+                            "silx",
+                            "silx-view",
+                            None)
+    if options.fresh_preferences:
+        settings.clear()
 
     from .Viewer import Viewer
-    window = Viewer()
+    window = Viewer(parent=None, settings=settings)
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
 
     if options.use_opengl_plot:
