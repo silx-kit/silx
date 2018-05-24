@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "23/05/2018"
 
 
 import logging
@@ -620,12 +620,9 @@ class ColormapDialog(qt.QDialog):
             return
 
         if data is None:
-            self.setDataRange()
-            self.setHistogram()
             self._data = None
-            return
-
-        self._data = weakref.ref(data, self._dataAboutToFinalize)
+        else:
+            self._data = weakref.ref(data, self._dataAboutToFinalize)
 
         self._updateDataInPlot()
 
@@ -642,6 +639,14 @@ class ColormapDialog(qt.QDialog):
     def _updateDataInPlot(self):
         data = self._getData()
         if data is None:
+            self.setDataRange()
+            self.setHistogram()
+            return
+
+        if data.size == 0:
+            # One or more dimensions are equal to 0
+            self.setHistogram()
+            self.setDataRange()
             return
 
         mode = self._dataInPlotMode

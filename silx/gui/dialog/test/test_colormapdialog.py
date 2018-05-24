@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "23/05/2018"
 
 
 import doctest
@@ -119,7 +119,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getVMin() is None)
         self.assertTrue(self.colormap.getVMax() is None)
         self.assertTrue(self.colormap.isAutoscale() is True)
-     
+
     def testGUIModalCancel(self):
         """Make sure the colormap is not modified if gone through reject"""
         assert self.colormap.isAutoscale() is False
@@ -307,6 +307,19 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(resetButton.isEnabled())
         colormap.setEditable(False)
         self.assertFalse(resetButton.isEnabled())
+
+    def testImageData(self):
+        data = numpy.random.rand(5, 5)
+        self.colormapDiag.setData(data)
+
+    def testEmptyData(self):
+        data = numpy.empty((10, 0))
+        self.colormapDiag.setData(data)
+
+    def testNoneData(self):
+        data = numpy.random.rand(5, 5)
+        self.colormapDiag.setData(data)
+        self.colormapDiag.setData(None)
 
 
 class TestColormapAction(TestCaseQt):
