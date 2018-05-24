@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/04/2018"
+__date__ = "23/05/2018"
 
 import collections
 import functools
@@ -94,6 +94,12 @@ class _CellData(object):
         :rtype: tuple
         """
         return self.__tooltip
+
+    def invalidateValue(self):
+        self.__value = None
+
+    def invalidateToolTip(self):
+        self.__tooltip = None
 
 
 class _TableData(object):
@@ -224,12 +230,20 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         elif role == qt.Qt.DisplayRole:
             value = cell.value()
             if callable(value):
-                value = value(self.__obj)
+                try:
+                    value = value(self.__obj)
+                except Exception:
+                    cell.invalidateValue()
+                    raise
             return value
         elif role == qt.Qt.ToolTipRole:
             value = cell.tooltip()
             if callable(value):
-                value = value(self.__obj)
+                try:
+                    value = value(self.__obj)
+                except Exception:
+                    cell.invalidateToolTip()
+                    raise
             return value
         return None
 
