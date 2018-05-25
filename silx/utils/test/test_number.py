@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/05/2018"
+__date__ = "25/05/2018"
 
 import logging
 import numpy
@@ -130,7 +130,7 @@ class TestConversionTypes(unittest.TestCase):
     def testFloat32ToString(self):
         value = str(numpy.float32(numpy.pi))
         dtype = number.min_numerical_convertible_type(value)
-        self.assertEqual(dtype, numpy.float32)
+        self.assertIn(dtype, (numpy.float32, numpy.float64))
 
 
 def suite():
