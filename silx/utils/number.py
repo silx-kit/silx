@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/05/2018"
+__date__ = "25/05/2018"
 
 import numpy
 import re
@@ -66,9 +66,9 @@ def min_numerical_convertible_type(string):
             if significante_size <= 3:
                 # A float16 is accurate with about 3.311 digits
                 return numpy.float16
-            exponent = 0
+            exponent = 0 + len(number)
         else:
-            exponent = abs(int(exponent))
+            exponent = abs(int(exponent) + len(number))
 
         if significante_size <= 7:
             # Expect at least float 32-bits
