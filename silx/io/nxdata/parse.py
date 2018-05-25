@@ -156,9 +156,12 @@ class NXdata(object):
         if signal_name is None:
             self.issues.append("No @signal attribute on the NXdata group, "
                                "and no dataset with a @signal=1 attr found")
+            # very difficult to do more consistency tests without signal
+            return
 
         elif signal_name not in self.group or not is_dataset(self.group[signal_name]):
             self.issues.append("Cannot find signal dataset '%s'" % signal_name)
+            return
 
         auxiliary_signals_names = get_auxiliary_signals_names(self.group)
         self.issues += validate_auxiliary_signals(self.group,
