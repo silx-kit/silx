@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "25/05/2018"
 
 from silx.gui import qt
 from silx.io import commonh5
@@ -191,8 +191,16 @@ class _NxDataItem(qt.QStandardItem):
         if axesAttr != []:
             virtual.attrs["axes"] = axesAttr
 
-        if not silx.io.nxdata.is_valid_nxdata(virtual):
-            self.setError("This NXdata is not consistant")
+        validator = silx.io.nxdata.NXdata(virtual)
+        if not validator.is_valid:
+            message = "<html>"
+            message += "This NXdata is not consistant"
+            message += "<ul>"
+            for issue in validator.issues:
+                message += "<li>%s</li>" % issue
+            message += "</ul>"
+            message += "</html>"
+            self.setError(message)
         else:
             self.setError(None)
         return virtual
@@ -215,10 +223,13 @@ class _NxDataItem(qt.QStandardItem):
         self.__error = error
         style = qt.QApplication.style()
         if error is None:
+            message = ""
             icon = style.standardIcon(qt.QStyle.SP_DirLinkIcon)
         else:
+            message = error
             icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
         self.setIcon(icon)
+        self.setToolTip(message)
 
     def getError(self):
         return self.__error
@@ -515,16 +526,15 @@ class CustomNxdataWidget(qt.QTreeView):
         :param h5py.Group nxdata: An h5py group following the NXData
             specification
         """
-        if silx.io.nxdata.is_valid_nxdata(nxdata):
+        validator = silx.io.nxdata.NXdata(nxdata)
+        if validator.is_valid:
             item = _NxDataItem()
-            parsedNxdata = silx.io.nxdata.NXdata(nxdata)
-            title = parsedNxdata.title
+            title = validator.title
             if title in [None or ""]:
                 title = self.findFreeNxdataTitle()
             item.setTitle(title)
-            item.setSignal(parsedNxdata.signal)
-            item.setAxes(parsedNxdata.axes)
+            item.setSignal(validator.signal)
+            item.setAxes(validator.axes)
             self.model().appendRow(item.getRow())
         else:
-            # FIXME: Error message, not a valid NXdata
-            pass
+            raise ValueError("Not a valid NXdata")
