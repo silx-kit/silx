@@ -54,6 +54,10 @@ __license__ = "MIT"
 __date__ = "17/04/2018"
 
 
+class InvalidNXdataError(Exception):
+    pass
+
+
 class NXdata(object):
     """NXdata parser.
 
@@ -64,7 +68,7 @@ class NXdata(object):
 
     :param group: h5py-like group following the NeXus *NXdata* specification.
     :param boolean validate: Set this parameter to *False* to skip the initial
-        validation. This option is provided for optimisation purposes, in cases
+        validation. This option is provided for optimisation purposes, for cases
         where :meth:`silx.io.nxdata.is_valid_nxdata` has already been called
         prior to instantiating this :class:`NXdata`.
     """
@@ -248,7 +252,7 @@ class NXdata(object):
     def signal_dataset_name(self):
         """Name of the main signal dataset."""
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
         signal_dataset_name = get_attr_as_unicode(self.group, "signal")
         if signal_dataset_name is None:
             # find a dataset with @signal == 1
@@ -273,7 +277,7 @@ class NXdata(object):
         we look for datasets with attributes *@signal=2, @signal=3...*
         (deprecated NXdata specification)."""
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
         signal_dataset_name = get_attr_as_unicode(self.group, "signal")
         if signal_dataset_name is not None:
             auxiliary_signals_names = get_attr_as_unicode(self.group, "auxiliary_signals")
@@ -316,7 +320,8 @@ class NXdata(object):
         is used when this attribute is present, instead of the dataset name.
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         signal_names = []
         for asdn in self.auxiliary_signals_dataset_names:
             if "long_name" in self.group[asdn].attrs:
@@ -329,7 +334,8 @@ class NXdata(object):
     def auxiliary_signals(self):
         """List of all auxiliary signal datasets."""
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         return [self.group[dsname] for dsname in self.auxiliary_signals_dataset_names]
 
     @property
@@ -357,7 +363,8 @@ class NXdata(object):
         interpretation is returned anyway.
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         allowed_interpretations = [None, "scalar", "spectrum", "image",
                                    "rgba-image",  # "hsla-image", "cmyk-image"
                                    "vertex"]
@@ -402,7 +409,8 @@ class NXdata(object):
         :rtype: List[Dataset or 1D array or None]
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self._axes is not None:
             # use cache
             return self._axes
@@ -438,7 +446,8 @@ class NXdata(object):
         output list in its position.
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         numbered_names = []     # used in case of @axis=0 (old spec)
         axes_dataset_names = get_attr_as_unicode(self.group, "axes")
         if axes_dataset_names is None:
@@ -521,7 +530,8 @@ class NXdata(object):
         support providing the title as an attribute of the NXdata group.
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         title = self.group.get("title")
         data_dataset_names = [self.signal_name] + self.axes_dataset_names
         if (title is not None and is_dataset(title) and
@@ -545,7 +555,8 @@ class NXdata(object):
         :raise KeyError: if this group does not contain a dataset named axis_name
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         # ensure axis_name is decoded, before comparing it with decoded attributes
         if hasattr(axis_name, "decode"):
             axis_name = axis_name.decode("utf-8")
@@ -608,7 +619,8 @@ class NXdata(object):
         :return: Dataset with errors, or None
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if "errors" not in self.group:
             return None
         return self.group["errors"]
@@ -618,7 +630,8 @@ class NXdata(object):
         """True if the signal is 1D and all the axes have the
         same size as the signal."""
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self._is_scatter is not None:
             return self._is_scatter
         if not self.signal_is_1d:
@@ -641,7 +654,8 @@ class NXdata(object):
     def is_x_y_value_scatter(self):
         """True if this is a scatter with a signal and two axes."""
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         return self.is_scatter and len(self.axes) == 2
 
     # we currently have no widget capable of plotting 4D data
@@ -649,7 +663,8 @@ class NXdata(object):
     def is_unsupported_scatter(self):
         """True if this is a scatter with a signal and more than 2 axes."""
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         return self.is_scatter and len(self.axes) > 2
 
     @property
@@ -658,7 +673,8 @@ class NXdata(object):
         *"spectrum"*, and there is at most one axis with a consistent length.
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self.signal_is_0d or self.interpretation not in [None, "spectrum"]:
             return False
         # the axis, if any, must be of the same length as the last dimension
@@ -680,7 +696,8 @@ class NXdata(object):
         The axes (if any) length must also be consistent with the signal shape.
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self.interpretation in ["scalar", "spectrum", "scaler"]:
             return False
         if self.signal_is_0d or self.signal_is_1d:
@@ -710,7 +727,8 @@ class NXdata(object):
         of the signal.
         """
         if not self.is_valid:
-            return None
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self.signal_ndim < 3 or self.interpretation in [
                 "scalar", "scaler", "spectrum", "image", "rgba-image"]:
             return False
