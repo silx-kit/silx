@@ -63,14 +63,14 @@ def min_numerical_convertible_type(string):
             decimal = ""
         significante_size = len(number) + len(decimal)
         if exponent is None:
-            if significante_size <= 3:
-                # A float16 is accurate with about 3.311 digits
-                return numpy.float16
             exponent = 0 + len(number)
         else:
             exponent = abs(int(exponent) + len(number))
 
-        if significante_size <= 7:
+        if significante_size <= 3:
+            # A float16 is accurate with about 3.311 digits
+            expected_mantissa = 16
+        elif significante_size <= 7:
             # Expect at least float 32-bits
             expected_mantissa = 32
         elif significante_size <= 15:
@@ -86,7 +86,10 @@ def min_numerical_convertible_type(string):
         else:
             expected_mantissa = 999
 
-        if exponent <= 37:
+        if exponent <= 4:
+            # Up to 6.55040 * 10**4
+            expected_exponent = 16
+        elif exponent <= 37:
             # Up to 3.402823 * 10**38
             expected_exponent = 32
         elif exponent <= 307:
@@ -106,7 +109,9 @@ def min_numerical_convertible_type(string):
             else:
                 return numpy.float64
 
-        if expected == 32:
+        if expected == 16:
+            return numpy.float16
+        elif expected == 32:
             return numpy.float32
         elif expected == 64:
             return numpy.float64
