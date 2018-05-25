@@ -445,7 +445,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                 "float128. Data converted to float64.")
                 data = data.astype(numpy.float64)
 
-        if data.ndim == 2:  # Data image, convert ot RGBA image
+        if data.ndim == 2:  # Data image, convert to RGBA image
             data = colormap.applyToData(data)
 
         image.set_data(data)
