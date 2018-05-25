@@ -31,88 +31,228 @@ The main class is :class:`NXdata`.
 You can also fetch the default NXdata in a NXroot or a NXentry with function
 :func:`get_default`.
 
+
+Other public functions:
+
+ - :func:`is_valid_nxdata`
+ - :func:`is_NXroot_with_default_NXdata`
+ - :func:`is_NXentry_with_default_NXdata`
+
 """
 
-import logging
 import numpy
-from silx.io.utils import is_dataset, is_group
-from .validate import is_valid_nxdata,\
-    is_NXroot_with_default_NXdata,\
-    is_NXentry_with_default_NXdata
-from ._utils import get_attr_as_unicode, _INTERPDIM
+from silx.io.utils import is_group, is_file, is_dataset
+
+from ._utils import get_attr_as_unicode, INTERPDIM, nxdata_logger, \
+    get_uncertainties_names, get_signal_name, \
+    get_auxiliary_signals_names, validate_auxiliary_signals, validate_number_of_axes
 from silx.third_party import six
+
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "17/04/2018"
 
 
-_logger = logging.getLogger(__name__)
+class InvalidNXdataError(Exception):
+    pass
 
 
 class NXdata(object):
-    """
+    """NXdata parser.
+
+    .. note::
+
+        Before attempting to access any attribute or property,
+        you should check that :attr:`is_valid` is *True*.
 
     :param group: h5py-like group following the NeXus *NXdata* specification.
     :param boolean validate: Set this parameter to *False* to skip the initial
-        validation. This option is provided for optimisation purposes, in cases
+        validation. This option is provided for optimisation purposes, for cases
         where :meth:`silx.io.nxdata.is_valid_nxdata` has already been called
         prior to instantiating this :class:`NXdata`.
     """
     def __init__(self, group, validate=True):
-        if validate and not is_valid_nxdata(group):
-            raise TypeError("group is not a valid NXdata class")
         super(NXdata, self).__init__()
+
+        self.group = group
+        """h5py-like group object with @NX_class=NXdata.
+        """
+
+        self.issues = []
+        """List of error messages for malformed NXdata."""
+
+        if validate:
+            self._validate()
+        self.is_valid = not self.issues
+        """Validity status for this NXdata.
+        If False, all properties and attributes will be None.
+        """
 
         self._is_scatter = None
         self._axes = None
 
-        self.group = group
-        """h5py-like group object compliant with NeXus NXdata specification.
-        """
-
-        self.signal = self.group[self.signal_dataset_name]
+        self.signal = None
         """Main signal dataset in this NXdata group.
-
         In case more than one signal is present in this group,
         the other ones can be found in :attr:`auxiliary_signals`.
         """
 
-        self.signal_name = get_attr_as_unicode(self.signal, "long_name")
+        self.signal_name = None
         """Signal long name, as specified in the @long_name attribute of the
         signal dataset. If not specified, the dataset name is used."""
-        if self.signal_name is None:
-            self.signal_name = self.signal_dataset_name
 
-        # ndim will be available in very recent h5py versions only
-        self.signal_ndim = getattr(self.signal, "ndim",
-                                   len(self.signal.shape))
+        self.signal_ndim = None
+        self.signal_is_0d = None
+        self.signal_is_1d = None
+        self.signal_is_2d = None
+        self.signal_is_3d = None
 
-        self.signal_is_0d = self.signal_ndim == 0
-        self.signal_is_1d = self.signal_ndim == 1
-        self.signal_is_2d = self.signal_ndim == 2
-        self.signal_is_3d = self.signal_ndim == 3
-
-        self.axes_names = []
+        self.axes_names = None
         """List of axes names in a NXdata group.
 
         This attribute is similar to :attr:`axes_dataset_names` except that
         if an axis dataset has a "@long_name" attribute, it will be used
         instead of the dataset name.
         """
-        # check if axis dataset defines @long_name
-        for i, dsname in enumerate(self.axes_dataset_names):
-            if dsname is not None and "long_name" in self.group[dsname].attrs:
-                self.axes_names.append(get_attr_as_unicode(self.group[dsname], "long_name"))
-            else:
-                self.axes_names.append(dsname)
 
-        # excludes scatters
-        self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
+        if not self.is_valid:
+            nxdata_logger.debug("%s", self.issues)
+        else:
+            self.signal = self.group[self.signal_dataset_name]
+            self.signal_name = get_attr_as_unicode(self.signal, "long_name")
+
+            if self.signal_name is None:
+                self.signal_name = self.signal_dataset_name
+
+            # ndim will be available in very recent h5py versions only
+            self.signal_ndim = getattr(self.signal, "ndim",
+                                       len(self.signal.shape))
+
+            self.signal_is_0d = self.signal_ndim == 0
+            self.signal_is_1d = self.signal_ndim == 1
+            self.signal_is_2d = self.signal_ndim == 2
+            self.signal_is_3d = self.signal_ndim == 3
+
+            self.axes_names = []
+            # check if axis dataset defines @long_name
+            for i, dsname in enumerate(self.axes_dataset_names):
+                if dsname is not None and "long_name" in self.group[dsname].attrs:
+                    self.axes_names.append(get_attr_as_unicode(self.group[dsname], "long_name"))
+                else:
+                    self.axes_names.append(dsname)
+
+            # excludes scatters
+            self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
+
+    def _validate(self):
+        """Fill :attr:`issues` with error messages for each error found."""
+        if not is_group(self.group):
+            raise TypeError("group must be a h5py-like group")
+        if get_attr_as_unicode(self.group, "NX_class") != "NXdata":
+            self.issues.append("Group has no attribute @NX_class='NXdata'")
+
+        signal_name = get_signal_name(self.group)
+        if signal_name is None:
+            self.issues.append("No @signal attribute on the NXdata group, "
+                               "and no dataset with a @signal=1 attr found")
+
+        elif signal_name not in self.group or not is_dataset(self.group[signal_name]):
+            self.issues.append("Cannot find signal dataset '%s'" % signal_name)
+
+        auxiliary_signals_names = get_auxiliary_signals_names(self.group)
+        self.issues += validate_auxiliary_signals(self.group,
+                                                  signal_name,
+                                                  auxiliary_signals_names)
+
+        if "axes" in self.group.attrs:
+            axes_names = get_attr_as_unicode(self.group, "axes")
+            if isinstance(axes_names, (six.text_type, six.binary_type)):
+                axes_names = [axes_names]
+
+            self.issues += validate_number_of_axes(self.group, signal_name,
+                                                   num_axes=len(axes_names))
+
+            # Test consistency of @uncertainties
+            uncertainties_names = get_uncertainties_names(self.group, signal_name)
+            if uncertainties_names is not None:
+                if len(uncertainties_names) != len(axes_names):
+                    self.issues.append("@uncertainties does not define the same " +
+                                       "number of fields than @axes")
+
+            # Test individual axes
+            is_scatter = True  # true if all axes have the same size as the signal
+            signal_size = 1
+            for dim in self.group[signal_name].shape:
+                signal_size *= dim
+            polynomial_axes_names = []
+            for i, axis_name in enumerate(axes_names):
+
+                if axis_name == ".":
+                    continue
+                if axis_name not in self.group or not is_dataset(self.group[axis_name]):
+                    self.issues.append("Could not find axis dataset '%s'" % axis_name)
+                    continue
+
+                axis_size = 1
+                for dim in self.group[axis_name].shape:
+                    axis_size *= dim
+
+                if len(self.group[axis_name].shape) != 1:
+                    # too me, it makes only sense to have a n-D axis if it's total
+                    # size is exactly the signal's size (weird n-d scatter)
+                    if axis_size != signal_size:
+                        self.issues.append("Axis %s is not a 1D dataset" % axis_name +
+                                           " and its shape does not match the signal's shape")
+                        continue
+                    axis_len = axis_size
+                else:
+                    # for a  1-d axis,
+                    fg_idx = self.group[axis_name].attrs.get("first_good", 0)
+                    lg_idx = self.group[axis_name].attrs.get("last_good", len(self.group[axis_name]) - 1)
+                    axis_len = lg_idx + 1 - fg_idx
+
+                if axis_len != signal_size:
+                    if axis_len not in self.group[signal_name].shape + (1, 2):
+                        self.issues.append(
+                                "Axis %s number of elements does not " % axis_name +
+                                "correspond to the length of any signal dimension,"
+                                " it does not appear to be a constant or a linear calibration," +
+                                " and this does not seem to be a scatter plot.")
+                        continue
+                    elif axis_len in (1, 2):
+                        polynomial_axes_names.append(axis_name)
+                    is_scatter = False
+                else:
+                    if not is_scatter:
+                        self.issues.append(
+                                "Axis %s number of elements is equal " % axis_name +
+                                "to the length of the signal, but this does not seem" +
+                                " to be a scatter (other axes have different sizes)")
+                        continue
+
+                # Test individual uncertainties
+                errors_name = axis_name + "_errors"
+                if errors_name not in self.group and uncertainties_names is not None:
+                    errors_name = uncertainties_names[i]
+                    if errors_name in self.group and axis_name not in polynomial_axes_names:
+                        if self.group[errors_name].shape != self.group[axis_name].shape:
+                            self.issues.append(
+                                    "Errors '%s' does not have the same " % errors_name +
+                                    "dimensions as axis '%s'." % axis_name)
+
+        # test dimensions of errors associated with signal
+        if "errors" in self.group and is_dataset(self.group["errors"]):
+            if self.group["errors"].shape != self.group[signal_name].shape:
+                self.issues.append(
+                        "Dataset containing standard deviations must " +
+                        "have the same dimensions as the signal.")
 
     @property
     def signal_dataset_name(self):
         """Name of the main signal dataset."""
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
         signal_dataset_name = get_attr_as_unicode(self.group, "signal")
         if signal_dataset_name is None:
             # find a dataset with @signal == 1
@@ -136,6 +276,8 @@ class NXdata(object):
         but has a dataset with an attribute *@signal=1*,
         we look for datasets with attributes *@signal=2, @signal=3...*
         (deprecated NXdata specification)."""
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
         signal_dataset_name = get_attr_as_unicode(self.group, "signal")
         if signal_dataset_name is not None:
             auxiliary_signals_names = get_attr_as_unicode(self.group, "auxiliary_signals")
@@ -156,16 +298,16 @@ class NXdata(object):
             ds = self.group[dsname]
             signal_attr = ds.attrs.get("signal")
             if signal_attr is not None and not is_dataset(ds):
-                _logger.warning("Item %s with @signal=%s is not a dataset (%s)",
-                                dsname, signal_attr, type(ds))
+                nxdata_logger.warning("Item %s with @signal=%s is not a dataset (%s)",
+                                      dsname, signal_attr, type(ds))
                 continue
             if signal_attr is not None:
                 try:
                     signal_number = int(signal_attr)
                 except (ValueError, TypeError):
-                    _logger.warning("Could not parse attr @signal=%s on "
-                                    "dataset %s as an int",
-                                    signal_attr, dsname)
+                    nxdata_logger.warning("Could not parse attr @signal=%s on "
+                                          "dataset %s as an int",
+                                          signal_attr, dsname)
                     continue
                 numbered_names.append((signal_number, dsname))
         return [a[1] for a in sorted(numbered_names)]
@@ -177,6 +319,9 @@ class NXdata(object):
         Similar to :attr:`auxiliary_signals_dataset_names`, but the @long_name
         is used when this attribute is present, instead of the dataset name.
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         signal_names = []
         for asdn in self.auxiliary_signals_dataset_names:
             if "long_name" in self.group[asdn].attrs:
@@ -188,6 +333,9 @@ class NXdata(object):
     @property
     def auxiliary_signals(self):
         """List of all auxiliary signal datasets."""
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         return [self.group[dsname] for dsname in self.auxiliary_signals_dataset_names]
 
     @property
@@ -214,6 +362,9 @@ class NXdata(object):
         of the allowed values, but no error is raised and the unknown
         interpretation is returned anyway.
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         allowed_interpretations = [None, "scalar", "spectrum", "image",
                                    "rgba-image",  # "hsla-image", "cmyk-image"
                                    "vertex"]
@@ -223,8 +374,8 @@ class NXdata(object):
             interpretation = get_attr_as_unicode(self.group, "interpretation")
 
         if interpretation not in allowed_interpretations:
-            _logger.warning("Interpretation %s is not valid." % interpretation +
-                            " Valid values: " + ", ".join(allowed_interpretations))
+            nxdata_logger.warning("Interpretation %s is not valid." % interpretation +
+                                  " Valid values: " + ", ".join(allowed_interpretations))
         return interpretation
 
     @property
@@ -257,6 +408,9 @@ class NXdata(object):
 
         :rtype: List[Dataset or 1D array or None]
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self._axes is not None:
             # use cache
             return self._axes
@@ -291,6 +445,9 @@ class NXdata(object):
         "." in that position in the *@axes* array), `None` is inserted in the
         output list in its position.
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         numbered_names = []     # used in case of @axis=0 (old spec)
         axes_dataset_names = get_attr_as_unicode(self.group, "axes")
         if axes_dataset_names is None:
@@ -310,8 +467,8 @@ class NXdata(object):
                         try:
                             axis_num = int(axis_attr)
                         except (ValueError, TypeError):
-                            _logger.warning("Could not interpret attr @axis as"
-                                            "int on dataset %s", dsname)
+                            nxdata_logger.warning("Could not interpret attr @axis as"
+                                                  "int on dataset %s", dsname)
                             continue
                         numbered_names.append((axis_num, dsname))
 
@@ -346,8 +503,8 @@ class NXdata(object):
             if self.interpretation != "rgba-image":
                 # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
                 # Use the existing names for the last few dims, and prepend with Nones.
-                assert len(axes_dataset_names) == _INTERPDIM[self.interpretation]
-                all_dimensions_names = [None] * (ndims - _INTERPDIM[self.interpretation])
+                assert len(axes_dataset_names) == INTERPDIM[self.interpretation]
+                all_dimensions_names = [None] * (ndims - INTERPDIM[self.interpretation])
                 for axis_name in axes_dataset_names:
                     all_dimensions_names.append(axis_name)
             else:
@@ -372,6 +529,9 @@ class NXdata(object):
         dataset or an axis dataset happened to be called "title", we also
         support providing the title as an attribute of the NXdata group.
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         title = self.group.get("title")
         data_dataset_names = [self.signal_name] + self.axes_dataset_names
         if (title is not None and is_dataset(title) and
@@ -394,6 +554,9 @@ class NXdata(object):
         :return: Dataset with axis errors, or None
         :raise KeyError: if this group does not contain a dataset named axis_name
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         # ensure axis_name is decoded, before comparing it with decoded attributes
         if hasattr(axis_name, "decode"):
             axis_name = axis_name.decode("utf-8")
@@ -455,6 +618,9 @@ class NXdata(object):
 
         :return: Dataset with errors, or None
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if "errors" not in self.group:
             return None
         return self.group["errors"]
@@ -463,6 +629,9 @@ class NXdata(object):
     def is_scatter(self):
         """True if the signal is 1D and all the axes have the
         same size as the signal."""
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self._is_scatter is not None:
             return self._is_scatter
         if not self.signal_is_1d:
@@ -484,12 +653,18 @@ class NXdata(object):
     @property
     def is_x_y_value_scatter(self):
         """True if this is a scatter with a signal and two axes."""
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         return self.is_scatter and len(self.axes) == 2
 
     # we currently have no widget capable of plotting 4D data
     @property
     def is_unsupported_scatter(self):
         """True if this is a scatter with a signal and more than 2 axes."""
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         return self.is_scatter and len(self.axes) > 2
 
     @property
@@ -497,6 +672,9 @@ class NXdata(object):
         """This property is True if the signal is 1D or :attr:`interpretation` is
         *"spectrum"*, and there is at most one axis with a consistent length.
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self.signal_is_0d or self.interpretation not in [None, "spectrum"]:
             return False
         # the axis, if any, must be of the same length as the last dimension
@@ -517,6 +695,9 @@ class NXdata(object):
         and interpretation *rgba-image*, or >2D with interpretation *image*.
         The axes (if any) length must also be consistent with the signal shape.
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self.interpretation in ["scalar", "spectrum", "scaler"]:
             return False
         if self.signal_is_0d or self.signal_is_1d:
@@ -545,6 +726,9 @@ class NXdata(object):
         The axes length must also be consistent with the last 3 dimensions
         of the signal.
         """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         if self.signal_ndim < 3 or self.interpretation in [
                 "scalar", "scaler", "spectrum", "image", "rgba-image"]:
             return False
@@ -553,6 +737,75 @@ class NXdata(object):
             if axis is not None and len(axis) not in [stack_shape[i], 2]:
                 return False
         return True
+
+
+def is_valid_nxdata(group):   # noqa
+    """Check if a h5py group is a **valid** NX_data group.
+
+    :param group: h5py-like group
+    :return: True if this NXdata group is valid.
+    :raise TypeError: if group is not a h5py group, a spech5 group,
+        or a fabioh5 group
+    """
+    nxd = NXdata(group)
+    return nxd.is_valid
+
+
+def is_NXentry_with_default_NXdata(group, validate=True):
+    """Return True if group is a valid NXentry defining a valid default
+    NXdata.
+
+    :param group: h5py-like object.
+    :param bool validate: Set this to False if you are sure that the target group
+        is valid NXdata (i.e. :func:`silx.io.nxdata.is_valid_nxdata(target_group)`
+        returns True). Parameter provided for optimisation purposes."""
+    if not is_group(group):
+        return False
+
+    if get_attr_as_unicode(group, "NX_class") != "NXentry":
+        return False
+
+    default_nxdata_name = group.attrs.get("default")
+    if default_nxdata_name is None or default_nxdata_name not in group:
+        return False
+
+    default_nxdata_group = group.get(default_nxdata_name)
+
+    if not is_group(default_nxdata_group):
+        return False
+
+    if not validate:
+        return True
+    else:
+        return is_valid_nxdata(default_nxdata_group)
+
+
+def is_NXroot_with_default_NXdata(group, validate=True):
+    """Return True if group is a valid NXroot defining a default NXentry
+    defining a valid default NXdata.
+
+    :param group: h5py-like object.
+    :param bool validate: Set this to False if you are sure that the target group
+        is valid NXdata (i.e. :func:`silx.io.nxdata.is_valid_nxdata(target_group)`
+        returns True). Parameter provided for optimisation purposes.
+    """
+    if not is_group(group):
+        return False
+
+    # A NXroot is supposed to be at the root of a data file, and @NX_class
+    # is therefore optional. We accept groups that are not located at the root
+    # if they have @NX_class=NXroot (use case: several nexus files archived
+    # in a single HDF5 file)
+    if get_attr_as_unicode(group, "NX_class") != "NXroot" and not is_file(group):
+        return False
+
+    default_nxentry_name = group.attrs.get("default")
+    if default_nxentry_name is None or default_nxentry_name not in group:
+        return False
+
+    default_nxentry_group = group.get(default_nxentry_name)
+    return is_NXentry_with_default_NXdata(default_nxentry_group,
+                                          validate=validate)
 
 
 def get_default(group, validate=True):
