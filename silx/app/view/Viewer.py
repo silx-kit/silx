@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "25/05/2018"
 
 
 import os
@@ -65,6 +65,7 @@ class Viewer(qt.QMainWindow):
         self.__context.restoreLibrarySettings()
 
         self.__dialogState = None
+        self.__customNxDataItem = None
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
         self.__treeview.setExpandsOnDoubleClick(False)
         """Silx HDF5 TreeView"""
@@ -114,6 +115,8 @@ class Viewer(qt.QMainWindow):
 
         self.__treeview.activated.connect(self.displayData)
         self.__customNxdata.activated.connect(self.displayCustomData)
+        self.__customNxdata.sigNxdataItemRemoved.connect(self.__customNxdataRemoved)
+        self.__customNxdata.sigNxdataItemUpdated.connect(self.__customNxdataUpdated)
         self.__treeview.addContextMenuCallback(self.customContextMenu)
 
         treeModel = self.__treeview.findHdf5TreeModel()
@@ -472,13 +475,26 @@ class Viewer(qt.QMainWindow):
         if len(selected) == 1:
             # Update the viewer for a single selection
             data = selected[0]
+            self.__customNxDataItem = None
             self.__dataViewer.setData(data)
 
     def displayCustomData(self):
-        selected = list(self.__customNxdata.selectedNxdata())
+        selected = list(self.__customNxdata.selectedItems())
         if len(selected) == 1:
             # Update the viewer for a single selection
-            data = selected[0]
+            item = selected[0]
+            self.__customNxDataItem = item
+            data = item.getVirtualGroup()
+            self.__dataViewer.setData(data)
+
+    def __customNxdataRemoved(self, item):
+        if self.__customNxDataItem is item:
+            self.__customNxDataId = None
+            self.__dataViewer.setData(None)
+
+    def __customNxdataUpdated(self, item):
+        if self.__customNxDataItem is item:
+            data = item.getVirtualGroup()
             self.__dataViewer.setData(data)
 
     def useAsNewCustomSignal(self, h5dataset):
