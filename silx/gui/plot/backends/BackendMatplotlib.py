@@ -794,15 +794,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
-        # Workaround for matplotlib 2.1.0 when one tries to set an axis
-        # to log scale with both limits <= 0
-        # In this case a draw with positive limits is needed first
-        if flag and matplotlib.__version__ >= '2.1.0':
+        # Workaround for matplotlib 2.0 issue with negative bounds
+        # before switching to log scale
+        if flag and matplotlib.__version__ >= '2.0.0':
             redraw = False
-            for axis in (self.ax, self.ax2):
+            for axis, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
                 ylim = axis.get_ylim()
-                if ylim[0] <= 0 and ylim[1] <= 0:
-                    axis.set_ylim(1, 10)
+                if ylim[0] <= 0 or ylim[1] <= 0:
+                    dataRange = self._plot.getDataRange()[dataRangeIndex]
+                    if dataRange is None:
+                        dataRange = 1, 100  # Fallback
+                    axis.set_ylim(*dataRange)
                     redraw = True
             if redraw:
                 self.draw()
