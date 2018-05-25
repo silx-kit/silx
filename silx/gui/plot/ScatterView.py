@@ -65,7 +65,10 @@ class ScatterView(qt.QMainWindow):
 
     def __init__(self, parent=None, backend=None):
         super(ScatterView, self).__init__(parent=parent)
-        if parent is None:
+        if parent is not None:
+            # behave as a widget
+            self.setWindowFlags(qt.Qt.Widget)
+        else:
             self.setWindowTitle('ScatterView')
 
         # Create plot widget
@@ -234,6 +237,25 @@ class ScatterView(qt.QMainWindow):
         """
         return self._outputToolBar
 
+    def setColormap(self, colormap=None):
+        """Set the colormap for the displayed scatter and the
+        default plot colormap.
+
+        :param silx.gui.plot.Colormap.Colormap colormap:
+            The description of the colormap.
+        """
+        self.getScatterItem().setColormap(colormap)
+        # Resilient to call to PlotWidget API (e.g., clear)
+        self.getPlotWidget().setDefaultColormap(colormap)
+
+    def getColormap(self):
+        """Return the :class:`.Colormap` in use.
+
+        :return: Colormap currently in use
+        :rtype: silx.gui.plot.Colormap.Colormap
+        """
+        self.getScatterItem().getColormap()
+
     # Control displayed scatter plot
 
     def setData(self, x, y, value, xerror=None, yerror=None, copy=True):
@@ -241,16 +263,17 @@ class ScatterView(qt.QMainWindow):
 
         To reset the scatter plot, set x, y and value to None.
 
-        :param Union[numpy.ndarray, None] x: X coordinates.
-        :param Union[numpy.ndarray, None] y: Y coordinates.
-        :param Union[numpy.ndarray, None] value:
+        :param Union[numpy.ndarray,None] x: X coordinates.
+        :param Union[numpy.ndarray,None] y: Y coordinates.
+        :param Union[numpy.ndarray,None] value:
             The data corresponding to the value of the data points.
-        :param xerror: Values with the uncertainties on the x values
+        :param xerror: Values with the uncertainties on the x values.
+            If it is an array, it can either be a 1D array of
+            same length as the data or a 2D array with 2 rows
+            of same length as the data: row 0 for positive errors,
+            row 1 for negative errors.
         :type xerror: A float, or a numpy.ndarray of float32.
-                      If it is an array, it can either be a 1D array of
-                      same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param bool copy: True make a copy of the data (default),
