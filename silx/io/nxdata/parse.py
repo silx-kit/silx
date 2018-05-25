@@ -156,9 +156,12 @@ class NXdata(object):
         if signal_name is None:
             self.issues.append("No @signal attribute on the NXdata group, "
                                "and no dataset with a @signal=1 attr found")
+            # very difficult to do more consistency tests without signal
+            return
 
         elif signal_name not in self.group or not is_dataset(self.group[signal_name]):
             self.issues.append("Cannot find signal dataset '%s'" % signal_name)
+            return
 
         auxiliary_signals_names = get_auxiliary_signals_names(self.group)
         self.issues += validate_auxiliary_signals(self.group,
@@ -199,13 +202,9 @@ class NXdata(object):
                     axis_size *= dim
 
                 if len(self.group[axis_name].shape) != 1:
-                    # too me, it makes only sense to have a n-D axis if it's total
-                    # size is exactly the signal's size (weird n-d scatter)
-                    if axis_size != signal_size:
-                        self.issues.append("Axis %s is not a 1D dataset" % axis_name +
-                                           " and its shape does not match the signal's shape")
-                        continue
-                    axis_len = axis_size
+                    # I don't know how to interpret n-D axes
+                    self.issues.append("Axis %s is not 1D" % axis_name)
+                    continue
                 else:
                     # for a  1-d axis,
                     fg_idx = self.group[axis_name].attrs.get("first_good", 0)
