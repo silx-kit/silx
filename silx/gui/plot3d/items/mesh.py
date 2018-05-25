@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -269,7 +269,8 @@ class _CylindricalVolume(DataItem3D):
 
 class Box(_CylindricalVolume):
     """Description of a box.
-    Can be used to draw one box or an array of the same box.
+
+    Can be used to draw one box or many similar boxes.
 
     :param parent: The View widget this item belongs to.
     """
@@ -282,23 +283,23 @@ class Box(_CylindricalVolume):
         self.rotation = None
         self.setData()
 
-    def setData(self, position=((0, 0, 0),), size=(1, 1, 1), color=(1, 1, 1),
-                rotation=(0, (0, 0, 0))):
+    def setData(self, size=(1, 1, 1), color=(1, 1, 1),
+                position=(0, 0, 0), rotation=(0, (0, 0, 0))):
         """
         Set Box geometry data.
 
-        :param numpy.ndarray position:
-            Center position (x, y, z) of each box as a (N, 3) array.
         :param numpy.array size: Size (dx, dy, dz) of the box(es).
         :param numpy.array color: RGB color of the box(es).
+        :param numpy.ndarray position:
+            Center position (x, y, z) of each box as a (N, 3) array.
         :param tuple(float, array) rotation:
                 Angle (in degrees) and axis of rotation.
                 If (0, (0, 0, 0)) (default), the hexagonal faces are on
                 xy plane and a side face is aligned with x axis.
         """
-        self.position = numpy.atleast_2d(position)
-        self.size = size
-        self.color = color
+        self.position = numpy.atleast_2d(numpy.array(position, copy=True))
+        self.size = numpy.array(size, copy=True)
+        self.color = numpy.array(color, copy=True)
         self.rotation = Rotate(rotation[0],
                                rotation[1][0], rotation[1][1], rotation[1][2])
 
@@ -339,7 +340,7 @@ class Box(_CylindricalVolume):
         :return: Size (dx, dy, dz) of the box(es).
         :rtype: numpy.ndarray
         """
-        return self.size
+        return numpy.array(self.size, copy=True)
 
     def getColor(self, copy=True):
         """Get box(es) color.
@@ -355,7 +356,8 @@ class Box(_CylindricalVolume):
 
 class Cylinder(_CylindricalVolume):
     """Description of a cylinder.
-    Can be used to draw one cylinder or an array of the same cylinder.
+
+    Can be used to draw one cylinder or many similar cylinders.
 
     :param parent: The View widget this item belongs to.
     """
@@ -370,28 +372,28 @@ class Cylinder(_CylindricalVolume):
         self.rotation = None
         self.setData()
 
-    def setData(self, position=((0, 0, 0),), radius=1, height=1,
-                color=(1, 1, 1), nbFaces=20, rotation=(0, (0, 0, 0))):
+    def setData(self, radius=1, height=1, color=(1, 1, 1), nbFaces=20,
+                position=(0, 0, 0), rotation=(0, (0, 0, 0))):
         """
         Set the cylinder geometry data
 
-        :param numpy.ndarray position:
-            Center position (x, y, z) of each cylinder as a (N, 3) array.
         :param float radius: Radius of the cylinder(s).
         :param float height: Height of the cylinder(s).
         :param numpy.array color: RGB color of the cylinder(s).
         :param int nbFaces:
             Number of faces for cylinder approximation (default 20).
+        :param numpy.ndarray position:
+            Center position (x, y, z) of each cylinder as a (N, 3) array.
         :param tuple(float, array) rotation:
                 Angle (in degrees) and axis of rotation.
                 If (0, (0, 0, 0)) (default), the hexagonal faces are on
                 xy plane and a side face is aligned with x axis.
         """
-        self.position = numpy.atleast_2d(position)
-        self.radius = radius
-        self.height = height
-        self.color = color
-        self.nbFaces = nbFaces
+        self.position = numpy.atleast_2d(numpy.array(position, copy=True))
+        self.radius = float(radius)
+        self.height = float(height)
+        self.color = numpy.array(color, copy=True)
+        self.nbFaces = int(nbFaces)
         self.rotation = Rotate(rotation[0],
                                rotation[1][0], rotation[1][1], rotation[1][2])
 
@@ -448,8 +450,9 @@ class Cylinder(_CylindricalVolume):
 
 class Hexagon(_CylindricalVolume):
     """Description of a uniform hexagonal prism.
-    Can be used to draw one hexagonal prim or an array of the same hexagonal
-    prism.
+
+    Can be used to draw one hexagonal prim or many similar hexagonal
+    prisms.
 
     :param parent: The View widget this item belongs to.
     """
@@ -463,25 +466,25 @@ class Hexagon(_CylindricalVolume):
         self.rotation = None
         self.setData()
 
-    def setData(self, position=((0, 0, 0),), radius=1, height=1,
-                color=(1, 1, 1), rotation=(0, (0, 0, 0))):
+    def setData(self, radius=1, height=1, color=(1, 1, 1),
+                position=(0, 0, 0), rotation=(0, (0, 0, 0))):
         """
         Set the uniform hexagonal prism geometry data
 
-        :param numpy.ndarray position:
-            Center position (x, y, z) of each prism as a (N, 3) array
         :param float radius: External radius of the hexagonal prism
         :param float height: Height of the hexagonal prism
         :param numpy.array color: RGB color of the prism(s)
+        :param numpy.ndarray position:
+            Center position (x, y, z) of each prism as a (N, 3) array
         :param tuple(float, array) rotation:
                 Angle (in degrees) and axis of rotation.
                 If (0, (0, 0, 0)) (default), the hexagonal faces are on
                 xy plane and a side face is aligned with x axis.
         """
-        self.position = numpy.atleast_2d(position)
-        self.radius = radius
-        self.height = height
-        self.color = color
+        self.position = numpy.atleast_2d(numpy.array(position, copy=True))
+        self.radius = float(radius)
+        self.height = float(height)
+        self.color = numpy.array(color, copy=True)
         self.rotation = Rotate(rotation[0], rotation[1][0], rotation[1][1],
                                rotation[1][2])
 
