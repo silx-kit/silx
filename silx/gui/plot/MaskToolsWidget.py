@@ -329,6 +329,13 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         activeImage = self.plot.getActiveImage()
         if activeImage is None or activeImage.getLegend() == self._maskName:
             # No active image or active image is the mask...
+            self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
+            self._mask.setDataItem(None)
+            self._mask.reset()
+
+            if self.plot.getImage(self._maskName):
+                self.plot.remove(self._maskName, kind='image')
+
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChangedAfterCare)
         else:
