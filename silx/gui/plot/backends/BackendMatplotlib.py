@@ -42,7 +42,6 @@ _logger = logging.getLogger(__name__)
 from ... import qt
 
 # First of all init matplotlib and set its backend
-from ..matplotlib import Colormap as MPLColormap
 from ..matplotlib import FigureCanvasQTAgg
 import matplotlib
 from matplotlib.container import Container
@@ -407,29 +406,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             imageClass = AxesImage
 
-        # the normalization can be a source of time waste
-        # Two possibilities, we receive data or a ready to show image
-        if len(data.shape) == 3:  # RGBA image
-            image = imageClass(self.ax,
-                               label="__IMAGE__" + legend,
-                               interpolation='nearest',
-                               picker=picker,
-                               zorder=z,
-                               origin='lower')
+        # All image are shown as RGBA image
+        image = imageClass(self.ax,
+                           label="__IMAGE__" + legend,
+                           interpolation='nearest',
+                           picker=picker,
+                           zorder=z,
+                           origin='lower')
 
-        else:
-            # Convert colormap argument to matplotlib colormap
-            scalarMappable = MPLColormap.getScalarMappable(colormap, data)
-
-            # try as data
-            image = imageClass(self.ax,
-                               label="__IMAGE__" + legend,
-                               interpolation='nearest',
-                               cmap=scalarMappable.cmap,
-                               picker=picker,
-                               zorder=z,
-                               norm=scalarMappable.norm,
-                               origin='lower')
         if alpha < 1:
             image.set_alpha(alpha)
 
@@ -458,8 +442,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
             dtype = data.dtype
             if dtype.kind == "f" and dtype.itemsize >= 16:
                 _logger.warning("Your matplotlib version do not support "
-                                "float128. Data converted to floa64.")
+                                "float128. Data converted to float64.")
                 data = data.astype(numpy.float64)
+
+        if data.ndim == 2:  # Data image, convert to RGBA image
+            data = colormap.applyToData(data)
 
         image.set_data(data)
 

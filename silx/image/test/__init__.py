@@ -3,7 +3,7 @@
 #    Project: silx
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2016  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2018  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal

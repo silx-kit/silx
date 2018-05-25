@@ -5,6 +5,7 @@ silx/image/shapes.c
 silx/io/specfile.c
 silx/math/chistogramnd.c
 silx/math/chistogramnd_lut.c
+silx/math/colormap.c
 silx/math/combo.c
 silx/math/fit/filters.c
 silx/math/fit/functions.c
