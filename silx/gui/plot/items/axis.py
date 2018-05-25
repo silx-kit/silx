@@ -219,6 +219,13 @@ class Axis(qt.QObject):
         # For the backward compatibility signal
         emitLog = self._scale == self.LOGARITHMIC or scale == self.LOGARITHMIC
 
+        self._scale = scale
+
+        # TODO hackish way of forcing update of curves and images
+        for item in self._plot._getItems(withhidden=True):
+            item._updated()
+        self._plot._invalidateDataRange()
+
         if scale == self.LOGARITHMIC:
             self._internalSetLogarithmic(True)
         elif scale == self.LINEAR:
@@ -226,12 +233,6 @@ class Axis(qt.QObject):
         else:
             raise ValueError("Scale %s unsupported" % scale)
 
-        self._scale = scale
-
-        # TODO hackish way of forcing update of curves and images
-        for item in self._plot._getItems(withhidden=True):
-            item._updated()
-        self._plot._invalidateDataRange()
         self._plot._forceResetZoom()
 
         self.sigScaleChanged.emit(self._scale)
