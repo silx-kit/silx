@@ -154,6 +154,9 @@ class _NxDataItem(qt.QStandardItem):
     def _datasetUpdated(self):
         self.__virtual = None
         self.setError(None)
+        model = self.model()
+        if model is not None:
+            model.sigNxdataUpdated.emit(self.index())
 
     def createVirtualGroup(self):
         name = ""
@@ -261,6 +264,9 @@ class _NxDataItem(qt.QStandardItem):
 
 
 class _Model(qt.QStandardItemModel):
+
+    sigNxdataUpdated = qt.Signal(qt.QModelIndex)
+    """Emitted when stored NXdata was edited"""
 
     def __init__(self, parent=None):
         qt.QStandardItemModel.__init__(self, parent)
@@ -429,12 +435,21 @@ class CustomNxDataToolBar(qt.QToolBar):
 
 class CustomNxdataWidget(qt.QTreeView):
 
+    sigNxdataItemUpdated = qt.Signal(qt.QStandardItem)
+    """Emitted when the NXdata from an NXdata item was edited"""
+
+    sigNxdataItemRemoved = qt.Signal(qt.QStandardItem)
+    """Emitted when an NXdata item was removed"""
+
     def __init__(self, parent=None):
         qt.QTreeView.__init__(self, parent=None)
         self.__model = _Model(self)
         self.__model.setColumnCount(2)
         self.__model.setHorizontalHeaderLabels(["Name", "Dataset", "Type", "Shape"])
         self.setModel(self.__model)
+
+        self.__model.sigNxdataUpdated.connect(self.__nxdataUpdate)
+        self.__model.rowsAboutToBeRemoved.connect(self.__rowsAboutToBeRemoved)
 
         header = self.header()
         if qt.qVersion() < "5.0":
@@ -451,6 +466,22 @@ class CustomNxdataWidget(qt.QTreeView):
 
         self.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         self.customContextMenuRequested[qt.QPoint].connect(self.__executeContextMenu)
+
+    def __rowsAboutToBeRemoved(self, parentIndex, start, end):
+        items = []
+        model = self.model()
+        for index in range(start, end):
+            qindex = model.index(index, 0, parent=parentIndex)
+            item = self.__model.itemFromIndex(qindex)
+            if isinstance(item, _NxDataItem):
+                items.append(item)
+        for item in items:
+            self.sigNxdataItemRemoved.emit(item)
+
+    def __nxdataUpdate(self, index):
+        model = self.model()
+        item = model.itemFromIndex(index)
+        self.sigNxdataItemUpdated.emit(item)
 
     def defaultContextMenu(self, point):
         qindex = self.indexAt(point)
@@ -490,6 +521,20 @@ class CustomNxdataWidget(qt.QTreeView):
             if group is None:
                 break
         return name
+
+    def selectedItems(self):
+        """Returns the list of selected items containing NXdata"""
+        result = []
+        for qindex in self.selectedIndexes():
+            if qindex.column() != 0:
+                continue
+            if not qindex.isValid():
+                continue
+            item = self.__model.itemFromIndex(qindex)
+            if not isinstance(item, _NxDataItem):
+                continue
+            result.append(item)
+        return result
 
     def selectedNxdata(self):
         """Returns the list of selected NXdata"""
