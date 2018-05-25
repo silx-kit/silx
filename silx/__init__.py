@@ -25,7 +25,7 @@
 """The silx package contains the following main sub-packages:
 
 - silx.gui: Qt widgets for data visualization and data file browsing
-- silx.image: some processing functions for 2D images
+- silx.image: Some processing functions for 2D images
 - silx.io: Reading and writing data files (HDF5/NeXus, SPEC, ...)
 - silx.math: Some processing functions for 1D, 2D, 3D, nD arrays
 - silx.opencl: OpenCL-based data processing
