@@ -43,7 +43,7 @@ from ....utils.weakref import WeakList
 from ... import qt, icons
 from .. import PlotWidget
 from .. import items
-from ..Colors import rgba
+from ...colors import rgba
 
 
 logger = logging.getLogger(__name__)
