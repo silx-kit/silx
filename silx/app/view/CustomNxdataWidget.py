@@ -28,6 +28,8 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "28/05/2018"
 
+import logging
+
 from silx.gui import qt
 from silx.io import commonh5
 import silx.io.nxdata
@@ -37,6 +39,7 @@ from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 from silx.gui import icons
 
 
+_logger = logging.getLogger(__name__)
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 
@@ -523,6 +526,79 @@ class CustomNxdataWidget(qt.QTreeView):
             if group is None:
                 break
         return name
+
+    def removeDatasetsFrom(self, root):
+        """
+        Remove all datasets provided by this root
+
+        :param root: The root file of datasets to remove
+        """
+        for row in range(self.__model.rowCount()):
+            qindex = self.__model.index(row, 0)
+            item = self.model().itemFromIndex(qindex)
+
+            edited = False
+            datasets = item.getAxesDatasets()
+            for i, dataset in enumerate(datasets):
+                if dataset is not None:
+                    # That's an approximation, IS can't be used as h5py generates
+                    # To objects for each requests to a node
+                    if dataset.file.filename == root.file.filename:
+                        datasets[i] = None
+                        edited = True
+            if edited:
+                item.setAxes(datasets)
+
+            dataset = item.getSignalDataset()
+            if dataset is not None:
+                # That's an approximation, IS can't be used as h5py generates
+                # To objects for each requests to a node
+                if dataset.file.filename == root.file.filename:
+                    item.setSignal(None)
+
+    def replaceDatasetsFrom(self, removedRoot, loadedRoot):
+        for row in range(self.__model.rowCount()):
+            qindex = self.__model.index(row, 0)
+            item = self.model().itemFromIndex(qindex)
+
+            edited = False
+            datasets = item.getAxesDatasets()
+            for i, dataset in enumerate(datasets):
+                newDataset = self.__replaceDatasetRoot(dataset, removedRoot, loadedRoot)
+                if dataset is not newDataset:
+                    datasets[i] = newDataset
+                    edited = True
+            if edited:
+                item.setAxes(datasets)
+
+        dataset = item.getSignalDataset()
+        newDataset = self.__replaceDatasetRoot(dataset, removedRoot, loadedRoot)
+        if dataset is not newDataset:
+            item.setSignal(newDataset)
+
+    def __replaceDatasetRoot(self, dataset, fromRoot, toRoot):
+        """
+        Replace the dataset by the same dataset name from another root.
+        """
+        if dataset is None:
+            return None
+
+        if dataset.file is None:
+            # Not from the expected root
+            return dataset
+
+        # That's an approximation, IS can't be used as h5py generates
+        # To objects for each requests to a node
+        if dataset.file.filename == fromRoot.file.filename:
+            # Try to find the same dataset name
+            try:
+                return toRoot[dataset.name]
+            except Exception:
+                _logger.debug("Backtrace", exc_info=True)
+                return None
+        else:
+            # Not from the expected root
+            return dataset
 
     def selectedItems(self):
         """Returns the list of selected items containing NXdata"""
