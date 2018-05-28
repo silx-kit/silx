@@ -39,6 +39,7 @@ from silx.gui import icons
 from .ApplicationContext import ApplicationContext
 from .CustomNxdataWidget import CustomNxdataWidget
 from .CustomNxdataWidget import CustomNxDataToolBar
+from . import utils
 
 
 _logger = logging.getLogger(__name__)
@@ -72,7 +73,7 @@ class Viewer(qt.QMainWindow):
 
         rightPanel = qt.QSplitter(self)
         rightPanel.setOrientation(qt.Qt.Vertical)
-        self.__spliter2 = rightPanel
+        self.__splitter2 = rightPanel
 
         # Custom the model to be able to manage the life cycle of the files
         treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeview, ownFiles=False)
@@ -93,18 +94,21 @@ class Viewer(qt.QMainWindow):
         self.__customNxdata.setExpandsOnDoubleClick(False)
 
         self.__customNxdataWindow = self.__createCustomNxdataWindow(self.__customNxdata)
+        self.__customNxdataWindow.setVisible(False)
         rightPanel.addWidget(self.__customNxdataWindow)
 
         self.__dataViewer = DataViewerFrame(self)
         self.__dataViewer.setGlobalHooks(self.__context)
 
         rightPanel.setStretchFactor(1, 1)
+        rightPanel.setCollapsible(0, False)
+        rightPanel.setCollapsible(1, False)
 
         spliter = qt.QSplitter(self)
         spliter.addWidget(rightPanel)
         spliter.addWidget(self.__dataViewer)
         spliter.setStretchFactor(1, 1)
-        self.__spliter = spliter
+        self.__splitter = spliter
 
         main_panel = qt.QWidget(self)
         layout = qt.QVBoxLayout()
@@ -197,8 +201,10 @@ class Viewer(qt.QMainWindow):
         settings.endGroup()
 
         settings.beginGroup("mainlayout")
-        settings.setValue("spliter", self.__spliter.sizes())
-        settings.setValue("spliter2", self.__spliter2.sizes())
+        settings.setValue("spliter", self.__splitter.sizes())
+        settings.setValue("spliter2", self.__splitter2.sizes())
+        isVisible = self.__customNxdataWindow.isVisible()
+        settings.setValue("custom-nxdata-window-visible", isVisible)
         settings.endGroup()
 
         if isFullScreen:
@@ -213,7 +219,10 @@ class Viewer(qt.QMainWindow):
         size = settings.value("size", qt.QSize(640, 480))
         pos = settings.value("pos", qt.QPoint())
         isFullScreen = settings.value("full-screen", False)
-        if not isinstance(isFullScreen, bool):
+        try:
+            if not isinstance(isFullScreen, bool):
+                isFullScreen = utils.stringToBool(isFullScreen)
+        except ValueError:
             isFullScreen = False
         settings.endGroup()
 
@@ -221,15 +230,24 @@ class Viewer(qt.QMainWindow):
         try:
             data = settings.value("spliter")
             data = [int(d) for d in data]
-            self.__spliter.setSizes(data)
+            self.__splitter.setSizes(data)
         except Exception:
             _logger.debug("Backtrace", exc_info=True)
         try:
             data = settings.value("spliter2")
             data = [int(d) for d in data]
-            self.__spliter2.setSizes(data)
+            self.__splitter2.setSizes(data)
         except Exception:
             _logger.debug("Backtrace", exc_info=True)
+        isVisible = settings.value("custom-nxdata-window-visible", False)
+        try:
+            if not isinstance(isVisible, bool):
+                isVisible = utils.stringToBool(isVisible)
+        except ValueError:
+            isVisible = False
+        self.__customNxdataWindow.setVisible(isVisible)
+        self._displayCustomNxdataWindow.setChecked(isVisible)
+
         settings.endGroup()
 
         if not pos.isNull():
@@ -317,6 +335,19 @@ class Viewer(qt.QMainWindow):
         menu.addAction(action)
         self._useYAxisOrientationUpward = action
 
+        # Windows
+
+        action = qt.QAction("Show custom NXdata selector", self)
+        action.setStatusTip("Show a widget which allow to create plot by selecting data and axes")
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_F5))
+        action.toggled.connect(self.__toggleCustomNxdataWindow)
+        self._displayCustomNxdataWindow = action
+
+    def __toggleCustomNxdataWindow(self):
+        isVisible = self._displayCustomNxdataWindow.isChecked()
+        self.__customNxdataWindow.setVisible(isVisible)
+
     def __updateFileMenu(self):
         files = self.__context.getRecentFiles()
         self._openRecentAction.setEnabled(len(files) != 0)
@@ -402,6 +433,9 @@ class Viewer(qt.QMainWindow):
         optionMenu.addAction(self._plotImageOrientation)
         optionMenu.addAction(self._plotBackendSelection)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
+
+        windowMenu = self.menuBar().addMenu("&Windows")
+        windowMenu.addAction(self._displayCustomNxdataWindow)
 
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
