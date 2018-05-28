@@ -175,7 +175,7 @@ class _NxDataItem(qt.QStandardItem):
             signal = self.__signal.getDataset()
             if signal is not None:
                 # Could be done using a link instead of a copy
-                node = commonh5.Dataset("signal", signal[...])
+                node = commonh5.DatasetProxy("signal", target=signal)
                 virtual.attrs["signal"] = "signal"
                 virtual.add_node(node)
 
@@ -189,8 +189,7 @@ class _NxDataItem(qt.QStandardItem):
                     name = "."
                 else:
                     name = "axis%d" % i
-                    axis = axis[...]
-                    node = commonh5.Dataset(name, axis)
+                    node = commonh5.DatasetProxy(name, target=axis)
                     virtual.add_node(node)
             axesAttr.append(name)
 
