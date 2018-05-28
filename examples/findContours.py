@@ -465,8 +465,7 @@ class FindContours(qt.QMainWindow):
         if mask is None:
             if self.__useMaskButton.isChecked():
                 mask = self.__plot.getMaskToolsDockWidget().getSelectionMask()
-                if len(mask.shape) != 2:
-                    # Well, mask size can be bad
+                if mask is not None and mask.size == 0:
                     mask = None
 
         self.__image = image
