@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/05/2018"
+__date__ = "28/05/2018"
 
 
 import os
@@ -152,22 +152,28 @@ class Viewer(qt.QMainWindow):
     def __h5FileRemoved(self, removedH5):
         data = self.__dataViewer.data()
         if data is not None:
-            if data.file.filename == removedH5.file.filename:
-                self.__dataViewer.setData(None)
+            if data.file is not None:
+                # That's an approximation, IS can't be used as h5py generates
+                # To objects for each requests to a node
+                if data.file.filename == removedH5.file.filename:
+                    self.__dataViewer.setData(None)
+        self.__customNxdata.removeDatasetsFrom(removedH5)
         removedH5.close()
 
     def __h5FileSynchonized(self, removedH5, loadedH5):
         data = self.__dataViewer.data()
         if data is not None:
-            if data.file.filename == removedH5.file.filename:
-                # Try to synchonize the viewed data
-                try:
-                    # TODO: It have to update the data without changing the view
-                    # which is not so easy
-                    newData = loadedH5[data.name]
-                    self.__dataViewer.setData(newData)
-                except Exception:
-                    _logger.debug("Backtrace", exc_info=True)
+            if data.file is not None:
+                if data.file.filename == removedH5.file.filename:
+                    # Try to synchonize the viewed data
+                    try:
+                        # TODO: It have to update the data without changing the
+                        # view which is not so easy
+                        newData = loadedH5[data.name]
+                        self.__dataViewer.setData(newData)
+                    except Exception:
+                        _logger.debug("Backtrace", exc_info=True)
+        self.__customNxdata.replaceDatasetsFrom(removedH5, loadedH5)
         removedH5.close()
 
     def closeEvent(self, event):
