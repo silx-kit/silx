@@ -892,14 +892,6 @@ class InteractiveSelection(qt.QObject):
             # Use getStatusMessage to add timeout message
             self.sigMessageChanged.emit(self.getStatusMessage())
 
-    def _updateStatusMessageTimeout(self):
-        """Send event of new message.
-
-        Useful to update message when timeout is set
-        """
-        if self._timeoutEndTime is not None:
-            self.sigMessageChanged.emit(self.getStatusMessage())
-
     # Control selection
 
     def isStarted(self):
@@ -944,6 +936,8 @@ class InteractiveSelection(qt.QObject):
         if not self.isStarted():
             return False
 
+        self._timeoutEndTime = None
+
         plot = self.parent()
         if plot is not None:
             plot.removeEventFilter(self)
@@ -962,6 +956,18 @@ class InteractiveSelection(qt.QObject):
         self._updateStatusMessage('Selection done')
 
         return True
+
+    def _timeoutUpdate(self):
+        """Handle update of timeout"""
+        if self._timeoutEndTime is not None:
+            remaining = self._timeoutEndTime - time.time()
+            if remaining >= 0:
+                self.sigMessageChanged.emit(self.getStatusMessage())
+            else:  # Quit event loop, disable timeout messages
+                self._timeoutEndTime = None
+                self._eventLoop.quit()
+                timer = self.sender()
+                timer.stop()
 
     def exec_(self, kind, timeout=0):
         """Block until selection is done or timeout is elapsed.
@@ -983,17 +989,13 @@ class InteractiveSelection(qt.QObject):
         if timeout != 0:
             # Add timeout to message
             self._timeoutEndTime = time.time() + timeout
-            messageTimer = qt.QTimer()
-            messageTimer.timeout.connect(self._updateStatusMessageTimeout)
-            messageTimer.start(1000)
-
             timer = qt.QTimer()
-            timer.timeout.connect(self._eventLoop.quit)
-            timer.start(int(timeout) * 1000)
-            self._eventLoop.exec_()
-            timer.stop()
+            timer.timeout.connect(self._timeoutUpdate)
+            timer.start(1000)
 
-            messageTimer.stop()
+            self._eventLoop.exec_()
+
+            timer.stop()
             self._timeoutEndTime = None
 
         else:
