@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/05/2018"
+__date__ = "28/05/2018"
 
 from silx.gui import qt
 from silx.io import commonh5
@@ -238,9 +238,11 @@ class _NxDataItem(qt.QStandardItem):
         return self.__error
 
     def setSignal(self, dataset):
-        # TODO: Do it well, bad design
         self.__signal.setDataset(dataset)
         self._datasetUpdated()
+
+    def getSignalDataset(self):
+        return self.__signal.getDataset()
 
     def setAxes(self, datasets):
         # TODO: We could avoid to remove all the items all the time
