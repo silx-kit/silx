@@ -72,6 +72,7 @@ class Viewer(qt.QMainWindow):
 
         rightPanel = qt.QSplitter(self)
         rightPanel.setOrientation(qt.Qt.Vertical)
+        self.__spliter2 = rightPanel
 
         # Custom the model to be able to manage the life cycle of the files
         treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeview, ownFiles=False)
@@ -197,6 +198,7 @@ class Viewer(qt.QMainWindow):
 
         settings.beginGroup("mainlayout")
         settings.setValue("spliter", self.__spliter.sizes())
+        settings.setValue("spliter2", self.__spliter2.sizes())
         settings.endGroup()
 
         if isFullScreen:
@@ -220,6 +222,12 @@ class Viewer(qt.QMainWindow):
             data = settings.value("spliter")
             data = [int(d) for d in data]
             self.__spliter.setSizes(data)
+        except Exception:
+            _logger.debug("Backtrace", exc_info=True)
+        try:
+            data = settings.value("spliter2")
+            data = [int(d) for d in data]
+            self.__spliter2.setSizes(data)
         except Exception:
             _logger.debug("Backtrace", exc_info=True)
         settings.endGroup()
