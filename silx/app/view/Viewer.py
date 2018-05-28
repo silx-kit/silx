@@ -545,10 +545,17 @@ class Viewer(qt.QMainWindow):
             data = item.getVirtualGroup()
             self.__dataViewer.setData(data)
 
+    def __makeSureCustomNxDataWindowIsVisible(self):
+        if not self.__customNxdataWindow.isVisible():
+            self.__customNxdataWindow.setVisible(True)
+            self._displayCustomNxdataWindow.setChecked(True)
+
     def useAsNewCustomSignal(self, h5dataset):
+        self.__makeSureCustomNxDataWindowIsVisible()
         self.__customNxdata.createFromSignal(h5dataset)
 
     def useAsNewCustomNxdata(self, h5nxdata):
+        self.__makeSureCustomNxDataWindowIsVisible()
         self.__customNxdata.createFromNxdata(h5nxdata)
 
     def customContextMenu(self, event):
