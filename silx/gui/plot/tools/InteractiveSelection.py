@@ -552,7 +552,9 @@ class InteractiveSelection(qt.QObject):
                     return True
 
             elif (event.key() == qt.Qt.Key_Return and
-                    self.getValidationMode() == self.ValidationMode.ENTER):
+                    self.getValidationMode() in (
+                        self.ValidationMode.ENTER,
+                        self.ValidationMode.AUTO_ENTER)):
                 self.stop()
                 return True  # Stop further handling of those keys
 
@@ -766,7 +768,8 @@ class InteractiveSelection(qt.QObject):
             else:
                 self._stopSelectionInteraction(resetInteractiveMode=True)
                 validationMode = self.getValidationMode()
-                if validationMode == self.ValidationMode.AUTO:
+                if validationMode in (self.ValidationMode.AUTO,
+                                      self.ValidationMode.AUTO_ENTER):
                     self.stop()
                 elif validationMode == self.ValidationMode.ENTER:
                     self._updateStatusMessage(extra='Press Enter to confirm')
@@ -797,6 +800,10 @@ class InteractiveSelection(qt.QObject):
 
         ENTER = 'enter'
         """Ends the selection when the *Enter* key is pressed"""
+
+        AUTO_ENTER = 'auto_enter'
+        """Ends selection if reaching max selection or on *Enter* key press
+        """
 
         NONE = 'none'
         """Do not provide the user a way to end the selection.
@@ -878,7 +885,8 @@ class InteractiveSelection(qt.QObject):
                 message = 'Select %d/%d %ss' % (
                     len(selections), self._maxSelection, self._shapeKind)
 
-            if self.getValidationMode() == self.ValidationMode.ENTER:
+            if self.getValidationMode() in (
+                    self.ValidationMode.ENTER, self.ValidationMode.AUTO_ENTER):
                 message += ' - Press Enter to validate'
 
         else:
