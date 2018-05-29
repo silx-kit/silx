@@ -36,14 +36,47 @@ from silx.gui.data.DataViewerFrame import DataViewerFrame
 _logger = logging.getLogger(__name__)
 
 
+class _HeaderLabel(qt.QLabel):
+
+    def __init__(self, parent=None):
+        qt.QLabel.__init__(self, parent=parent)
+        self.setFrameShape(qt.QFrame.StyledPanel)
+
+    def sizeHint(self):
+        return qt.QSize(10, 30)
+
+    def paintEvent(self, event):
+        painter = qt.QPainter(self)
+
+        opt = qt.QStyleOptionHeader()
+        opt.orientation = qt.Qt.Horizontal
+        opt.text = self.text()
+        opt.textAlignment = self.alignment()
+        opt.direction = self.layoutDirection()
+        opt.fontMetrics = self.fontMetrics()
+        opt.palette = self.palette()
+        opt.state = qt.QStyle.State_Active
+        opt.position = qt.QStyleOptionHeader.Beginning
+        style = self.style()
+
+        # Background
+        margin = -1
+        opt.rect = self.rect().adjusted(margin, margin, -margin, -margin)
+        style.drawControl(qt.QStyle.CE_HeaderSection, opt, painter, None)
+
+        # Frame border and text
+        super(_HeaderLabel, self).paintEvent(event)
+
+
 class DataPanel(qt.QWidget):
 
     def __init__(self, parent=None, context=None):
-        qt.QWidget.__init__(self, parent)
+        qt.QWidget.__init__(self, parent=parent)
 
         self.__customNxdataItem = None
 
-        self.__dataTitle = qt.QLabel(self)
+        self.__dataTitle = _HeaderLabel(self)
+        self.__dataTitle.setVisible(False)
 
         self.__dataViewer = DataViewerFrame(self)
         self.__dataViewer.setGlobalHooks(context)
@@ -63,9 +96,9 @@ class DataPanel(qt.QWidget):
     def setData(self, data):
         self.__customNxdataItem = None
         self.__dataViewer.setData(data)
-        if data is None:
-            self.__dataTitle.setVisible(False)
-        else:
+        self.__dataTitle.setVisible(data is not None)
+        if data is not None:
+            self.__dataTitle.setVisible(True)
             if hasattr(data, "name"):
                 if hasattr(data, "file"):
                     label = str(data.file.filename)
@@ -81,9 +114,8 @@ class DataPanel(qt.QWidget):
         self.__customNxdataItem = item
         data = item.getVirtualGroup()
         self.__dataViewer.setData(data)
-        if item is None:
-            self.__dataTitle.setVisible(False)
-        else:
+        self.__dataTitle.setVisible(item is not None)
+        if item is not None:
             text = item.text()
             self.__dataTitle.setText(text)
 
