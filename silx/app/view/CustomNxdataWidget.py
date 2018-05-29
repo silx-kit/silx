@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/05/2018"
+__date__ = "29/05/2018"
 
 import logging
 
@@ -437,6 +437,54 @@ class CustomNxDataToolBar(qt.QToolBar):
         self.__addNxDataAxisAction.setEnabled(isinstance(item, _NxDataItem) or isinstance(item, _DatasetItemRow))
 
 
+class _HashDropZones(qt.QStyledItemDelegate):
+    """Delegate item displaying a drop zone when the item do not contains
+    dataset."""
+
+    def __init__(self):
+        super(_HashDropZones, self).__init__()
+        pen = qt.QPen()
+        pen.setColor(qt.QColor("#D0D0D0"))
+        pen.setStyle(qt.Qt.DotLine)
+        pen.setWidth(2)
+        self.__dropPen = pen
+
+    def paint(self, painter, option, index):
+        """
+        Paint the item
+
+        :param qt.QPainter painter: A painter
+        :param qt.QStyleOptionViewItem option: Options of the item to paint
+        :param qt.QModelIndex index: Index of the item to paint
+        """
+        displayDropZone = False
+        if index.isValid():
+            model = index.model()
+            rowIndex = model.index(index.row(), 0, index.parent())
+            rowItem = model.itemFromIndex(rowIndex)
+            if isinstance(rowItem, _DatasetItemRow):
+                displayDropZone = rowItem.getDataset() is None
+
+        if displayDropZone:
+            painter.save()
+
+            # Draw background if selected
+            if option.state & qt.QStyle.State_Selected:
+                colorGroup = qt.QPalette.Inactive
+                if option.state & qt.QStyle.State_Active:
+                    colorGroup = qt.QPalette.Active
+                if not option.state & qt.QStyle.State_Enabled:
+                    colorGroup = qt.QPalette.Disabled
+                brush = option.palette.brush(colorGroup, qt.QPalette.Highlight)
+                painter.fillRect(option.rect, brush)
+
+            painter.setPen(self.__dropPen)
+            painter.drawRect(option.rect.adjusted(3, 3, -3, -3))
+            painter.restore()
+        else:
+            qt.QStyledItemDelegate.paint(self, painter, option, index)
+
+
 class CustomNxdataWidget(qt.QTreeView):
 
     sigNxdataItemUpdated = qt.Signal(qt.QStandardItem)
@@ -451,6 +499,8 @@ class CustomNxdataWidget(qt.QTreeView):
         self.__model.setColumnCount(2)
         self.__model.setHorizontalHeaderLabels(["Name", "Dataset", "Type", "Shape"])
         self.setModel(self.__model)
+
+        self.setItemDelegateForColumn(1, _HashDropZones())
 
         self.__model.sigNxdataUpdated.connect(self.__nxdataUpdate)
         self.__model.rowsAboutToBeRemoved.connect(self.__rowsAboutToBeRemoved)
