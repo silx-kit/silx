@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/05/2018"
+__date__ = "29/05/2018"
 
 
 import os
@@ -118,7 +118,7 @@ class Viewer(qt.QMainWindow):
 
         self.setCentralWidget(main_panel)
 
-        self.__treeview.activated.connect(self.displayData)
+        self.__treeview.activated.connect(self.displaySelectedData)
         self.__customNxdata.activated.connect(self.displayCustomData)
         self.__customNxdata.sigNxdataItemRemoved.connect(self.__customNxdataRemoved)
         self.__customNxdata.sigNxdataItemUpdated.connect(self.__customNxdataUpdated)
@@ -516,15 +516,22 @@ class Viewer(qt.QMainWindow):
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)
 
-    def displayData(self):
+    def displaySelectedData(self):
         """Called to update the dataviewer with the selected data.
         """
         selected = list(self.__treeview.selectedH5Nodes(ignoreBrokenLinks=False))
         if len(selected) == 1:
             # Update the viewer for a single selection
             data = selected[0]
-            self.__customNxDataItem = None
-            self.__dataViewer.setData(data)
+            self.displayData(data)
+        else:
+            _logger.debug("Too much data selected")
+
+    def displayData(self, data):
+        """Called to update the dataviewer with the data.
+        """
+        self.__customNxDataItem = None
+        self.__dataViewer.setData(data)
 
     def displayCustomData(self):
         selected = list(self.__customNxdata.selectedItems())
@@ -572,6 +579,10 @@ class Viewer(qt.QMainWindow):
 
         for obj in selectedObjects:
             h5 = obj.h5py_object
+
+            action = qt.QAction("Show %s" % obj.name, event.source())
+            action.triggered.connect(lambda: self.displayData(h5))
+            menu.addAction(action)
 
             if silx.io.is_dataset(h5):
                 action = qt.QAction("Use as a new custom signal", event.source())
