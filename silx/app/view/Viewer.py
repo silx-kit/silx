@@ -36,10 +36,12 @@ import functools
 import silx.io.nxdata
 from silx.gui import qt
 from silx.gui import icons
+import silx.gui.hdf5
 from .ApplicationContext import ApplicationContext
 from .CustomNxdataWidget import CustomNxdataWidget
 from .CustomNxdataWidget import CustomNxDataToolBar
 from . import utils
+from .DataPanel import DataPanel
 
 
 _logger = logging.getLogger(__name__)
@@ -55,9 +57,6 @@ class Viewer(qt.QMainWindow):
         """
         Constructor
         """
-        # Import it here to be sure to use the right logging level
-        import silx.gui.hdf5
-        from silx.gui.data.DataViewerFrame import DataViewerFrame
 
         qt.QMainWindow.__init__(self, parent)
         self.setWindowTitle("Silx viewer")
@@ -97,16 +96,15 @@ class Viewer(qt.QMainWindow):
         self.__customNxdataWindow.setVisible(False)
         rightPanel.addWidget(self.__customNxdataWindow)
 
-        self.__dataViewer = DataViewerFrame(self)
-        self.__dataViewer.setGlobalHooks(self.__context)
-
         rightPanel.setStretchFactor(1, 1)
         rightPanel.setCollapsible(0, False)
         rightPanel.setCollapsible(1, False)
 
+        self.__dataPanel = DataPanel(self, self.__context)
+
         spliter = qt.QSplitter(self)
         spliter.addWidget(rightPanel)
-        spliter.addWidget(self.__dataViewer)
+        spliter.addWidget(self.__dataPanel)
         spliter.setStretchFactor(1, 1)
         self.__splitter = spliter
 
@@ -119,7 +117,7 @@ class Viewer(qt.QMainWindow):
         self.setCentralWidget(main_panel)
 
         self.__treeview.activated.connect(self.displaySelectedData)
-        self.__customNxdata.activated.connect(self.displayCustomData)
+        self.__customNxdata.activated.connect(self.displaySelectedCustomData)
         self.__customNxdata.sigNxdataItemRemoved.connect(self.__customNxdataRemoved)
         self.__customNxdata.sigNxdataItemUpdated.connect(self.__customNxdataUpdated)
         self.__treeview.addContextMenuCallback(self.customContextMenu)
@@ -155,29 +153,12 @@ class Viewer(qt.QMainWindow):
         self.__context.pushRecentFile(loadedH5.file.filename)
 
     def __h5FileRemoved(self, removedH5):
-        data = self.__dataViewer.data()
-        if data is not None:
-            if data.file is not None:
-                # That's an approximation, IS can't be used as h5py generates
-                # To objects for each requests to a node
-                if data.file.filename == removedH5.file.filename:
-                    self.__dataViewer.setData(None)
+        self.__dataPanel.removeDatasetsFrom(removedH5)
         self.__customNxdata.removeDatasetsFrom(removedH5)
         removedH5.close()
 
     def __h5FileSynchonized(self, removedH5, loadedH5):
-        data = self.__dataViewer.data()
-        if data is not None:
-            if data.file is not None:
-                if data.file.filename == removedH5.file.filename:
-                    # Try to synchonize the viewed data
-                    try:
-                        # TODO: It have to update the data without changing the
-                        # view which is not so easy
-                        newData = loadedH5[data.name]
-                        self.__dataViewer.setData(newData)
-                    except Exception:
-                        _logger.debug("Backtrace", exc_info=True)
+        self.__dataPanel.replaceDatasetsFrom(removedH5, loadedH5)
         self.__customNxdata.replaceDatasetsFrom(removedH5, loadedH5)
         removedH5.close()
 
@@ -523,34 +504,31 @@ class Viewer(qt.QMainWindow):
         if len(selected) == 1:
             # Update the viewer for a single selection
             data = selected[0]
-            self.displayData(data)
+            self.__dataPanel.setData(data)
         else:
-            _logger.debug("Too much data selected")
+            _logger.debug("Too many data selected")
 
     def displayData(self, data):
-        """Called to update the dataviewer with the data.
+        """Called to update the dataviewer with a secific data.
         """
-        self.__customNxDataItem = None
-        self.__dataViewer.setData(data)
+        self.__dataPanel.setData(data)
 
-    def displayCustomData(self):
+    def displaySelectedCustomData(self):
         selected = list(self.__customNxdata.selectedItems())
         if len(selected) == 1:
             # Update the viewer for a single selection
             item = selected[0]
-            self.__customNxDataItem = item
-            data = item.getVirtualGroup()
-            self.__dataViewer.setData(data)
+            self.__dataPanel.setCustomDataItem(item)
+        else:
+            _logger.debug("Too many items selected")
 
     def __customNxdataRemoved(self, item):
-        if self.__customNxDataItem is item:
-            self.__customNxDataId = None
-            self.__dataViewer.setData(None)
+        if self.__dataPanel.getCustomNxdataItem() is item:
+            self.__dataPanel.setCustomDataItem(None)
 
     def __customNxdataUpdated(self, item):
-        if self.__customNxDataItem is item:
-            data = item.getVirtualGroup()
-            self.__dataViewer.setData(data)
+        if self.__dataPanel.getCustomNxdataItem() is item:
+            self.__dataPanel.setCustomDataItem(item)
 
     def __makeSureCustomNxDataWindowIsVisible(self):
         if not self.__customNxdataWindow.isVisible():
