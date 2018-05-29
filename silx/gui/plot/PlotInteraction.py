@@ -1204,6 +1204,48 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.plot.setGraphCursorShape()
 
 
+class ItemsInteractionForCombo(ItemsInteraction):
+    """Interaction with items to combine through :class:`FocusManager`.
+    """
+
+    class Idle(ItemsInteraction.Idle):
+        def onPress(self, x, y, btn):
+            if btn == LEFT_BTN:
+                def test(item):
+                    return (item.isSelectable() or
+                            (isinstance(item, items.DraggableMixIn) and
+                             item.isDraggable()))
+
+                picked = self.machine.plot._pickMarker(x, y, test)
+                if picked is not None:
+                    itemInteraction = True
+
+                else:
+                    picked = self.machine.plot._pickImageOrCurve(x, y, test)
+                    itemInteraction = picked is not None
+
+                if itemInteraction:  # Request focus and handle interaction
+                    self.goto('clickOrDrag', x, y)
+                    return True
+                else:  # Do not request focus
+                    return False
+
+            elif btn == RIGHT_BTN:
+                self.goto('rightClick', x, y)
+                return True
+
+    def __init__(self, plot):
+        _PlotInteraction.__init__(self, plot)
+
+        states = {
+            'idle': ItemsInteractionForCombo.Idle,
+            'rightClick': ClickOrDrag.RightClick,
+            'clickOrDrag': ClickOrDrag.ClickOrDrag,
+            'drag': ClickOrDrag.Drag
+        }
+        StateMachine.__init__(self, states, 'idle')
+
+
 # FocusManager ################################################################
 
 class FocusManager(StateMachine):
@@ -1348,7 +1390,6 @@ class PanAndSelect(ItemsInteraction):
     """Combine Pan and ItemInteraction state machine.
 
     :param plot: The Plot to which this interaction is attached
-    :param color: The color to use for the zoom area bounding box
     """
 
     def __init__(self, plot):
@@ -1453,6 +1494,15 @@ class PlotInteraction(object):
         if isinstance(self._eventHandler, ZoomAndSelect):
             return {'mode': 'zoom', 'color': self._eventHandler.color}
 
+        elif isinstance(self._eventHandler, FocusManager):
+            drawHandler = self._eventHandler.eventHandlers[1]
+            if not isinstance(drawHandler, Select):
+                raise RuntimeError('Unknown interactive mode')
+
+            result = drawHandler.parameters.copy()
+            result['mode'] = 'draw'
+            return result
+
         elif isinstance(self._eventHandler, Select):
             result = self._eventHandler.parameters.copy()
             result['mode'] = 'draw'
@@ -1469,7 +1519,7 @@ class PlotInteraction(object):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
-                         In 'draw', 'pan', 'select', 'zoom'.
+                         In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
                       If None, selection area is not drawn.
@@ -1482,7 +1532,7 @@ class PlotInteraction(object):
         :param str label: Only for 'draw' mode.
         :param float width: Width of the pencil. Only for draw pencil mode.
         """
-        assert mode in ('draw', 'pan', 'select', 'zoom')
+        assert mode in ('draw', 'pan', 'select', 'select-draw', 'zoom')
 
         plot = self._plot()
         assert plot is not None
@@ -1490,7 +1540,7 @@ class PlotInteraction(object):
         if color not in (None, 'video inverted'):
             color = colors.rgba(color)
 
-        if mode == 'draw':
+        if mode in ('draw', 'select-draw'):
             assert shape in self._DRAW_MODES
             eventHandlerClass = self._DRAW_MODES[shape]
             parameters = {
@@ -1499,9 +1549,16 @@ class PlotInteraction(object):
                 'color': color,
                 'width': width,
             }
+            eventHandler = eventHandlerClass(plot, parameters)
 
             self._eventHandler.cancel()
-            self._eventHandler = eventHandlerClass(plot, parameters)
+
+            if mode == 'draw':
+                self._eventHandler = eventHandler
+
+            else:  # mode == 'select-draw'
+                self._eventHandler = FocusManager(
+                    (ItemsInteractionForCombo(plot), eventHandler))
 
         elif mode == 'pan':
             # Ignores color, shape and label
