@@ -110,7 +110,7 @@ class Selection(qt.QObject):
                 if isinstance(item, items.ColorMixIn):
                     item.setColor(rgbaColor)
 
-            # Use tranparency for anchors
+            # Use transparency for anchors
             rgbaColor = rgbaColor[:3] + (0.5,)
 
             for item in list(self._editAnchors):
@@ -1127,7 +1127,8 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
 
         self.itemChanged.connect(self.__itemChanged)
 
-    def __itemChanged(self, item):
+    @staticmethod
+    def __itemChanged(item):
         """Handle item updates"""
         column = item.column()
         selection = item.data(qt.Qt.UserRole)
