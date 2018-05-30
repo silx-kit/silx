@@ -41,7 +41,7 @@ from ..gui import qt
 from ..gui.plot import Plot1D, Plot2D, ScatterView, PlotWidget
 from ..gui.colors import COLORDICT
 from ..gui.colors import Colormap
-from ..gui.plot.tools import InteractiveRegionOfInterestManager
+from ..gui.plot.tools import roi
 from ..gui.plot.tools.toolbars import InteractiveModeToolBar
 from silx.third_party import six
 
@@ -430,7 +430,7 @@ class _GInputResult(tuple):
             return self._data
 
 
-class _GInputHandler(InteractiveRegionOfInterestManager):
+class _GInputHandler(roi.InteractiveRegionOfInterestManager):
     """Implements :func:`ginput`
 
     :param PlotWidget plot:
