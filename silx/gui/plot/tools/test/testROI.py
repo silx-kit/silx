@@ -35,17 +35,17 @@ from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.tools import SelectionManager, SelectionTableWidget
+from silx.gui.plot.tools import RegionOfInterestManager, RegionOfInterestTableWidget
 
 
 class TestSelectionManager(TestCaseQt, ParametricTestCase):
-    """Tests for SelectionManager class"""
+    """Tests for RegionOfInterestManager class"""
 
     def setUp(self):
         super(TestSelectionManager, self).setUp()
         self.plot = PlotWindow()
 
-        self.selectionTableWidget = SelectionTableWidget()
+        self.selectionTableWidget = RegionOfInterestTableWidget()
         dock = qt.QDockWidget()
         dock.setWidget(self.selectionTableWidget)
         self.plot.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
@@ -79,8 +79,8 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
 
         for kind, points in tests:
             with self.subTest(kind=kind):
-                selector = SelectionManager(self.plot)
-                self.selectionTableWidget.setSelectionManager(selector)
+                selector = RegionOfInterestManager(self.plot)
+                self.selectionTableWidget.setRegionOfInterestManager(selector)
                 selector.start(kind)
 
                 self.assertEqual(selector.getSelections(), ())
@@ -175,8 +175,8 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
 
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
-        selector = SelectionManager(self.plot)
-        self.selectionTableWidget.setSelectionManager(selector)
+        selector = RegionOfInterestManager(self.plot)
+        self.selectionTableWidget.setRegionOfInterestManager(selector)
         selector.start('point')
 
         interactiveModeToolBar = self.plot.getInteractiveModeToolBar()

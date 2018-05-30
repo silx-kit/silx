@@ -24,7 +24,7 @@
 # ###########################################################################*/
 """This module provides ROI interaction for :class:`~silx.gui.plot.PlotWidget`.
 
-This module is not mature and API will probably change in the future.
+This API is not mature and will probably change in the future.
 """
 
 __authors__ = ["T. Vincent"]
@@ -52,10 +52,11 @@ from ...colors import rgba
 logger = logging.getLogger(__name__)
 
 
-class Selection(qt.QObject):
-    """Object describing a selection in a plot.
+class RegionOfInterest(qt.QObject):
+    """Object describing a region of interest in a plot.
 
-    :param QObject parent: The selector that created this selection
+    :param QObject parent:
+        The RegionOfInterestManager that created this object
     :param str kind: The kind of selection represented by this object
     """
 
@@ -63,8 +64,8 @@ class Selection(qt.QObject):
     """Signal emitted when this control points has changed"""
 
     def __init__(self, parent, kind):
-        assert isinstance(parent, SelectionManager)
-        super(Selection, self).__init__(parent)
+        assert isinstance(parent, RegionOfInterestManager)
+        super(RegionOfInterest, self).__init__(parent)
         self._color = rgba('red')
         self._items = WeakList()
         self._editAnchors = WeakList()
@@ -243,12 +244,12 @@ class Selection(qt.QObject):
 
     def _createPlotItems(self):
         """Create items displaying the selection in the plot."""
-        selector = self.parent()
-        plot = selector.parent()
+        roiManager = self.parent()
+        plot = roiManager.parent()
 
         x, y = self._points.T
         kind = self.getKind()
-        legend = "__Selection-%d__" % id(self)
+        legend = "__RegionOfInterest-%d__" % id(self)
 
         self._items = WeakList()
 
@@ -405,7 +406,7 @@ class Selection(qt.QObject):
         self._editAnchors = WeakList()
 
 
-class SelectionManager(qt.QObject):
+class RegionOfInterestManager(qt.QObject):
     """Class handling a selection interaction on a PlotWidget.
 
     It supports the selection of multiple points, rectangles, polygons,
@@ -417,16 +418,16 @@ class SelectionManager(qt.QObject):
         The plot widget the selection is done on
     """
 
-    sigSelectionAdded = qt.Signal(Selection)
+    sigSelectionAdded = qt.Signal(RegionOfInterest)
     """Signal emitted when a new selection has been added.
 
-    It provides the newly add :class:`Selection` object.
+    It provides the newly add :class:`RegionOfInterest` object.
     """
 
-    sigSelectionAboutToBeRemoved = qt.Signal(Selection)
+    sigSelectionAboutToBeRemoved = qt.Signal(RegionOfInterest)
     """Signal emitted just before a selection is removed.
 
-    It provides the :class:`Selection` object that is about to be removed.
+    It provides the :class:`RegionOfInterest` object that is about to be removed.
     """
 
     sigSelectionChanged = qt.Signal(tuple)
@@ -458,14 +459,14 @@ class SelectionManager(qt.QObject):
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
-        super(SelectionManager, self).__init__(parent)
+        super(RegionOfInterestManager, self).__init__(parent)
         self._selections = []
         self._maxSelection = None
 
         self._shapeKind = None
         self._color = rgba('red')
 
-        self._label = "__InteractiveSelection__%d" % id(self)
+        self._label = "__RegionOfInterestManager__%d" % id(self)
 
         self._eventLoop = None
 
@@ -571,7 +572,7 @@ class SelectionManager(qt.QObject):
                     self.removeSelection(selections[-1])
             self.addSelection(kind=kind, points=points)
 
-    # Selection API
+    # RegionOfInterest API
 
     def getSelectionPoints(self):
         """Returns the current selection control points
@@ -653,7 +654,7 @@ class SelectionManager(qt.QObject):
         :param int index: The position where to insert the selection,
             By default it is appended to the end of the list of selections
         :return: The created Selection object
-        :rtype: Selection
+        :rtype: RegionOfInterest
         :raise RuntimeError: When selection cannot be added because the maximum
            number of selection has been reached.
         """
@@ -667,7 +668,7 @@ class SelectionManager(qt.QObject):
                 'Cannot add selection: PlotWidget no more available')
 
         # Create new selection object
-        selection = Selection(parent=self, kind=kind)
+        selection = RegionOfInterest(parent=self, kind=kind)
         selection.setColor(self.getColor())
         selection.setLabel(str(label))
         selection.setControlPoints(points)
@@ -684,13 +685,13 @@ class SelectionManager(qt.QObject):
     def removeSelection(self, selection):
         """Remove a selection from the list of current selections
 
-        :param Selection selection: The selection to remove
+        :param RegionOfInterest selection: The selection to remove
         :raise ValueError: When selection is not a selection in this object
         """
-        if not (isinstance(selection, Selection) and
+        if not (isinstance(selection, RegionOfInterest) and
                 selection.parent() is self and
                 selection in self._selections):
-            raise ValueError('Selection does not belong to this instance')
+            raise ValueError('RegionOfInterest does not belong to this instance')
 
         self.sigSelectionAboutToBeRemoved.emit(selection)
 
@@ -704,7 +705,7 @@ class SelectionManager(qt.QObject):
         """Handle update of the selection"""
         self.sigSelectionChanged.emit(self.getSelections())
 
-    # Selection parameters
+    # RegionOfInterest parameters
 
     def getColor(self):
         """Return the default color of the selections
@@ -827,8 +828,8 @@ class SelectionManager(qt.QObject):
         self.stop()
 
 
-class InteractiveSelection(SelectionManager):
-    """SelectionManager with features for use from interpreter.
+class InteractiveRegionOfInterestManager(RegionOfInterestManager):
+    """RegionOfInterestManager with features for use from interpreter.
 
     It is meant to be used through the :meth:`exec_`.
     It provides some messages to display in a status bar and
@@ -844,7 +845,7 @@ class InteractiveSelection(SelectionManager):
     """
 
     def __init__(self, parent):
-        super(InteractiveSelection, self).__init__(parent)
+        super(InteractiveRegionOfInterestManager, self).__init__(parent)
         self.__timeoutEndTime = None
         self.__message = ''
         self.__validationMode = self.ValidationMode.ENTER
@@ -926,7 +927,7 @@ class InteractiveSelection(SelectionManager):
                     # Stop further handling of keys if something was undone
                     return True
 
-        return super(InteractiveSelection, self).eventFilter(obj, event)
+        return super(InteractiveRegionOfInterestManager, self).eventFilter(obj, event)
 
     # Message API
 
@@ -956,7 +957,7 @@ class InteractiveSelection(SelectionManager):
 
     def __aboutToBeRemoved(self, *args, **kwargs):
         """Handle removal of a selection"""
-        # Selection not removed yet
+        # RegionOfInterest not removed yet
         self.__updateMessage(nbSelections=len(self.getSelections()) - 1)
 
     def __started(self, *args, **kwargs):
@@ -970,10 +971,10 @@ class InteractiveSelection(SelectionManager):
     def __updateMessage(self, nbSelections=None):
         """Update message"""
         if not self.isExec():
-            message = 'Selection done'
+            message = 'Done'
 
         elif not self.isStarted():
-            message = 'Use %s selection mode' % self.__execKind
+            message = 'Use %s ROI edition mode' % self.__execKind
 
         else:
             if nbSelections is None:
@@ -1044,13 +1045,13 @@ class InteractiveSelection(SelectionManager):
             timer.timeout.connect(self.__timeoutUpdate)
             timer.start(1000)
 
-            selection = super(InteractiveSelection, self).exec_(kind)
+            selection = super(InteractiveRegionOfInterestManager, self).exec_(kind)
 
             timer.stop()
             self.__timeoutEndTime = None
 
         else:
-            selection = super(InteractiveSelection, self).exec_(kind)
+            selection = super(InteractiveRegionOfInterestManager, self).exec_(kind)
 
         plot.removeEventFilter(self)
 
@@ -1064,7 +1065,7 @@ class _DeleteSelectionToolButton(qt.QToolButton):
     """Tool button deleting a selection object
 
     :param parent: See QWidget
-    :param Selection selection: The selection to delete
+    :param RegionOfInterest selection: The selection to delete
     """
 
     def __init__(self, parent, selection):
@@ -1082,12 +1083,12 @@ class _DeleteSelectionToolButton(qt.QToolButton):
                 self.__selection = None
 
 
-class SelectionTableWidget(qt.QTableWidget):
-    """Widget displaying the selection of a :class:`SelectionManager`"""
+class RegionOfInterestTableWidget(qt.QTableWidget):
+    """Widget displaying the selection of a :class:`RegionOfInterestManager`"""
 
     def __init__(self, parent=None):
-        super(SelectionTableWidget, self).__init__(parent)
-        self._selectionRef = None
+        super(RegionOfInterestTableWidget, self).__init__(parent)
+        self._roiManagerRef = None
 
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
@@ -1128,20 +1129,20 @@ class SelectionTableWidget(qt.QTableWidget):
         else:
             logger.error('Unhandled column %d', column)
 
-    def setSelectionManager(self, selector):
-        """Set the :class:`SelectionManager` object to sync with
+    def setRegionOfInterestManager(self, selector):
+        """Set the :class:`RegionOfInterestManager` object to sync with
 
-        :param SelectionManager selector:
+        :param RegionOfInterestManager selector:
         """
-        assert selector is None or isinstance(selector, SelectionManager)
+        assert selector is None or isinstance(selector, RegionOfInterestManager)
 
-        previousSelector = self.getSelectionManager()
+        previousSelector = self.getRegionOfInterestManager()
 
         if previousSelector is not None:
             previousSelector.sigSelectionChanged.disconnect(self._sync)
         self.setRowCount(0)
 
-        self._selectionRef = weakref.ref(selector)
+        self._roiManagerRef = weakref.ref(selector)
 
         self._sync()
 
@@ -1150,7 +1151,7 @@ class SelectionTableWidget(qt.QTableWidget):
 
     def _sync(self, *args):
         """Update widget content according to selector"""
-        selector = self.getSelectionManager()
+        selector = self.getRegionOfInterestManager()
 
         if selector is None:
             self.setRowCount(0)
@@ -1220,11 +1221,11 @@ class SelectionTableWidget(qt.QTableWidget):
                 item.setText('; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points))
             self.setItem(index, 4, item)
 
-    def getSelectionManager(self):
-        """Returns the :class:`SelectionManager` this widget supervise.
+    def getRegionOfInterestManager(self):
+        """Returns the :class:`RegionOfInterestManager` this widget supervise.
 
-        It returns None if not sync with an :class:`SelectionManager`.
+        It returns None if not sync with an :class:`RegionOfInterestManager`.
 
-        :rtype: SelectionManager
+        :rtype: RegionOfInterestManager
         """
-        return None if self._selectionRef is None else self._selectionRef()
+        return None if self._roiManagerRef is None else self._roiManagerRef()

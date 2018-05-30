@@ -57,24 +57,24 @@
 Interactive selection
 =====================
 
-.. automodule:: silx.gui.plot.tools.InteractiveSelection
+.. automodule:: silx.gui.plot.tools.roi
 
-:class:`SelectionManager` class
--------------------------------
+:class:`RegionOfInterestManager` class
+--------------------------------------
 
-.. autoclass:: silx.gui.plot.tools.SelectionManager
+.. autoclass:: silx.gui.plot.tools.RegionOfInterestManager
    :members:
 
-:class:`InteractiveSelection` class
------------------------------------
+:class:`InteractiveRegionOfInterestManager` class
+-------------------------------------------------
 
-.. autoclass:: silx.gui.plot.tools.InteractiveSelection
+.. autoclass:: silx.gui.plot.tools.InteractiveRegionOfInterestManager
    :members:
 
-:class:`SelectionTableWidget` class
-===================================
+:class:`RegionOfInterestTableWidget` class
+==========================================
 
-.. autoclass:: silx.gui.plot.tools.SelectionTableWidget
+.. autoclass:: silx.gui.plot.tools.RegionOfInterestTableWidget
    :members:
 
 .. currentmodule:: silx.gui.plot

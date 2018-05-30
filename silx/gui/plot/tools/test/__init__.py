@@ -29,14 +29,14 @@ __date__ = "26/03/2018"
 
 import unittest
 
-from . import testInteractiveSelection
+from . import testROI
 from . import testTools
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
-        [testInteractiveSelection.suite(),
+        [testROI.suite(),
          testTools.suite(),
          ])
     return test_suite

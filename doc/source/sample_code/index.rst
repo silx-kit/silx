@@ -281,8 +281,8 @@ Sample code that adds specific tools or functions to plot widgets.
          :align: center
      - This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidget`
 
-       It uses :class:`~silx.gui.plot.tools.SelectionManager` and
-       :class:`~silx.gui.plot.tools.SelectionTableWidget` to handle the
+       It uses :class:`~silx.gui.plot.tools.RegionOfInterestManager` and
+       :class:`~silx.gui.plot.tools.RegionOfInterestTableWidget` to handle the
        interactive selection and to display the list of selected ROIs.
    * - :download:`printPreview.py <../../../examples/printPreview.py>`
      - .. image:: img/printPreview.png

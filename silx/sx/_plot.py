@@ -41,7 +41,7 @@ from ..gui import qt
 from ..gui.plot import Plot1D, Plot2D, ScatterView, PlotWidget
 from ..gui.colors import COLORDICT
 from ..gui.colors import Colormap
-from ..gui.plot.tools.InteractiveSelection import InteractiveSelection
+from ..gui.plot.tools import InteractiveRegionOfInterestManager
 from ..gui.plot.tools.toolbars import InteractiveModeToolBar
 from silx.third_party import six
 
@@ -430,7 +430,7 @@ class _GInputResult(tuple):
             return self._data
 
 
-class _GInputHandler(InteractiveSelection):
+class _GInputHandler(InteractiveRegionOfInterestManager):
     """Implements :func:`ginput`
 
     :param PlotWidget plot:
@@ -484,7 +484,7 @@ class _GInputHandler(InteractiveSelection):
     def __updateSelection(self, selection):
         """Perform picking and update selection list
 
-        :param Selection selection:
+        :param RegionOfInterest selection:
         """
 
         plot = self.parent()
@@ -531,7 +531,7 @@ class _GInputHandler(InteractiveSelection):
     def __selectionAdded(self, selection):
         """Handle new selection added
 
-        :param Selection selection:
+        :param RegionOfInterest selection:
         """
         if selection.getKind() == 'point':  # Only handle points
             selection.setLabel('%d' % len(self.__selections))
