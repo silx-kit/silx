@@ -30,7 +30,6 @@ __date__ = "24/04/2018"
 import unittest
 
 from .._utils import test
-from ..tools import test as testTools
 from . import testColorBar
 from . import testCurvesROIWidget
 from . import testAlphaSlider
@@ -55,6 +54,9 @@ from . import testPixelIntensityHistoAction
 
 
 def suite():
+    # Lazy-loading to avoid cyclic reference
+    from ..tools import test as testTools
+
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         [test.suite(),
