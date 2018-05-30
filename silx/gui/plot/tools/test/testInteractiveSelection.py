@@ -35,11 +35,11 @@ from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.tools import InteractiveSelection
+from silx.gui.plot.tools import SelectionManager
 
 
 class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
-    """Tests for InteractiveSelection class"""
+    """Tests for SelectionManager class"""
 
     def setUp(self):
         super(TestInteractiveSelection, self).setUp()
@@ -48,6 +48,7 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
         self.qWaitForWindowExposed(self.plot)
 
     def tearDown(self):
+        self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
@@ -67,7 +68,7 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
 
         for kind, points in tests:
             with self.subTest(kind=kind):
-                selector = InteractiveSelection(self.plot)
+                selector = SelectionManager(self.plot)
                 selector.start(kind)
 
                 self.assertEqual(selector.getSelections(), ())
@@ -85,8 +86,8 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                     selector.getSelectionPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 1)
 
-                # Undo it
-                result = selector.undo()
+                # Reset it
+                result = selector.clearSelections()
                 self.assertTrue(result)
                 self.assertEqual(selector.getSelections(), ())
                 self.assertEqual(changedListener.callCount(), 2)
@@ -152,7 +153,7 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
 
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
-        selector = InteractiveSelection(self.plot)
+        selector = SelectionManager(self.plot)
         selector.start('point')
 
         # Change to pan mode
@@ -161,7 +162,7 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
         panAction.trigger()
 
         # Change to selection mode
-        selectionAction = selector.getSelectionModeAction()
+        selectionAction = selector.getDrawSelectionModeAction(kind='point')
         selectionAction.trigger()
 
         selector.clearSelections()
