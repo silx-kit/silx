@@ -503,7 +503,6 @@ class SelectionManager(qt.QObject):
             action.setText(text)
             action.setCheckable(True)
             action.setChecked(self.getSelectionKind() == kind)
-            action.setEnabled(not self.isMaxSelections())
 
             action.triggered.connect(
                 functools.partial(self._modeActionTriggered, kind=kind))
@@ -521,10 +520,7 @@ class SelectionManager(qt.QObject):
 
     def _updateModeActions(self):
         """Enable/Disable mode actions depending on max selections"""
-        enabled = not self.isMaxSelections()
-
         for kind, action in self._modeActions.items():
-            action.setEnabled(enabled)
             action.setChecked(kind == self.getSelectionKind())
 
     # PlotWidget eventFilter and listeners
@@ -545,11 +541,12 @@ class SelectionManager(qt.QObject):
         if kind is None:
             return  # Should not happen
 
-        elif kind == 'point':
+        points = None
+
+        if kind == 'point':
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
-                self.addSelection(kind=kind, points=points)
 
         else:  # other shapes
             if (event['event'] == 'drawingFinished' and
@@ -564,7 +561,13 @@ class SelectionManager(qt.QObject):
                     points = numpy.array([(points[0, 0], float('nan'))],
                                          dtype=numpy.float64)
 
-                self.addSelection(kind=kind, points=points)
+        if points is not None:
+            if self.isMaxSelections():
+                # When reaching max number of selections, redo last one
+                selections = self.getSelections()
+                if len(selections) > 0:
+                    self.removeSelection(selections[-1])
+            self.addSelection(kind=kind, points=points)
 
     # Selection API
 
@@ -622,15 +625,14 @@ class SelectionManager(qt.QObject):
         """
         if max_ is not None:
             max_ = int(max_)
-            nbSelection = len(self.getSelections())
-            if nbSelection > max_:
+            if max_ <= 0:
+                raise ValueError('Max limit must be strictly positive')
+
+            if len(self.getSelections()) > max_:
                 raise ValueError(
                     'Cannot set max limit: Already too many selections')
-            elif nbSelection == max_:  # No more addition possible
-                self.stop()
 
         self._maxSelection = max_
-        self._updateModeActions()
 
     def isMaxSelections(self):
         """Returns True if the maximum number of selections is reached.
@@ -677,9 +679,6 @@ class SelectionManager(qt.QObject):
         self.sigSelectionAdded.emit(selection)
         self._selectionUpdated()
 
-        if self.isMaxSelections():
-            self.stop()
-
     def removeSelection(self, selection):
         """Remove a selection from the list of current selections
 
@@ -702,8 +701,6 @@ class SelectionManager(qt.QObject):
     def _selectionUpdated(self):
         """Handle update of the selection"""
         self.sigSelectionChanged.emit(self.getSelections())
-
-        self._updateModeActions()
 
     # Selection parameters
 
@@ -753,9 +750,6 @@ class SelectionManager(qt.QObject):
 
         plot = self.parent()
         if plot is None:
-            return False
-
-        if self.isMaxSelections():
             return False
 
         if kind not in self.getSupportedSelectionKinds():
@@ -926,10 +920,7 @@ class InteractiveSelection(SelectionManager):
                     event.modifiers() & qt.Qt.ControlModifier)):
                 selections = self.getSelections()
                 if selections:  # Something to undo
-                    wasMaxSelections = self.isMaxSelections()
                     self.removeSelection(selections[-1])
-                    if wasMaxSelections and self.__execKind is not None:
-                        self.start(self.__execKind)
                     # Stop further handling of keys if something was undone
                     return True
 
@@ -979,7 +970,7 @@ class InteractiveSelection(SelectionManager):
         if not self.isExec():
             message = 'Selection done'
 
-        elif not self.isStarted() and not self.isMaxSelections():
+        elif not self.isStarted():
             message = 'Use %s selection mode' % self.__execKind
 
         else:
