@@ -35,7 +35,7 @@ import numpy
 from silx.gui import qt
 from silx.gui.plot import Plot2D
 from silx.gui.plot.tools import SelectionManager
-from silx.gui.plot.tools import InteractiveSelectionTableWidget
+from silx.gui.plot.tools import SelectionTableWidget
 
 
 def dummy_image():
@@ -77,7 +77,7 @@ selector.addSelection('rectangle',
 
 
 # Create the table widget displaying
-selectionTable = InteractiveSelectionTableWidget()
+selectionTable = SelectionTableWidget()
 selectionTable.setInteractiveSelection(selector)
 
 # Create buttons for all ROI 'drawing' modes

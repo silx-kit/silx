@@ -35,7 +35,7 @@ It provides some QToolBar and QWidget:
 
 It also provides a :class:`SelectionManager` that handles interactive
 selections on a :class:`~silx.gui.plot.PlotWidget` and
-:class:`InteractiveSelectionTableWidget`.
+:class:`SelectionTableWidget`.
 """
 
 __authors__ = ["T. Vincent"]
@@ -52,4 +52,4 @@ from .PositionInfo import PositionInfo  # noqa
 
 from .InteractiveSelection import SelectionManager  # noqa
 from .InteractiveSelection import InteractiveSelection  # noqa
-from .InteractiveSelection import InteractiveSelectionTableWidget  # noqa
+from .InteractiveSelection import SelectionTableWidget  # noqa

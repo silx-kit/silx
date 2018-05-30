@@ -1096,11 +1096,11 @@ class _DeleteSelectionToolButton(qt.QToolButton):
                 self.__selection = None
 
 
-class InteractiveSelectionTableWidget(qt.QTableWidget):
+class SelectionTableWidget(qt.QTableWidget):
     """Widget displaying the selection of an :class:`SelectionManager`"""
 
     def __init__(self, parent=None):
-        super(InteractiveSelectionTableWidget, self).__init__(parent)
+        super(SelectionTableWidget, self).__init__(parent)
         self._selection = None
 
         self.setColumnCount(5)
