@@ -23,10 +23,11 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script illustrates image ROI selection in a :class:`PlotWidget`
+"""
+This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidget`
 
 It uses :class:`~silx.gui.plot.tools.SelectionManager` and
-:class:`~silx.gui.plot.tools.InteractiveSelectionTable` to handle the
+:class:`~silx.gui.plot.tools.SelectionTableWidget` to handle the
 interactive selection and to display the list of selected ROIs.
 """
 

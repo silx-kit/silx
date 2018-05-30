@@ -275,6 +275,15 @@ Sample code that adds specific tools or functions to plot widgets.
 
        In this example a thread calls submitToQtMainThread to update the curve
        of a plot.
+   * - :download:`plotInteractiveImageROI.py <../../../examples/plotInteractiveImageROI.py>`
+     - .. image:: img/plotInteractiveImageROI.png
+         :height: 150px
+         :align: center
+     - This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidget`
+
+       It uses :class:`~silx.gui.plot.tools.SelectionManager` and
+       :class:`~silx.gui.plot.tools.SelectionTableWidget` to handle the
+       interactive selection and to display the list of selected ROIs.
    * - :download:`printPreview.py <../../../examples/printPreview.py>`
      - .. image:: img/printPreview.png
          :height: 150px

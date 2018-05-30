@@ -54,10 +54,27 @@
    :show-inheritance:
    :members:
 
+Interactive selection
+=====================
+
+.. automodule:: silx.gui.plot.tools.InteractiveSelection
+
 :class:`SelectionManager` class
+-------------------------------
+
+.. autoclass:: silx.gui.plot.tools.SelectionManager
+   :members:
+
+:class:`InteractiveSelection` class
 -----------------------------------
 
-.. autoclass:: SelectionManager
+.. autoclass:: silx.gui.plot.tools.InteractiveSelection
+   :members:
+
+:class:`SelectionTableWidget` class
+===================================
+
+.. autoclass:: silx.gui.plot.tools.SelectionTableWidget
    :members:
 
 .. currentmodule:: silx.gui.plot

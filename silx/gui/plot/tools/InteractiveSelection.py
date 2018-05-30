@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides selection interaction to work with :class:`PlotWidget`.
+"""This module provides ROI interaction for :class:`~silx.gui.plot.PlotWidget`.
 
 This module is not mature and API will probably change in the future.
 """
@@ -404,14 +404,15 @@ class Selection(qt.QObject):
 
 
 class SelectionManager(qt.QObject):
-    """Class handling a selection interaction on a :class:`PlotWidget`
+    """Class handling a selection interaction on a PlotWidget.
 
     It supports the selection of multiple points, rectangles, polygons,
     lines, horizontal and vertical lines.
 
     See ``plotInteractiveImageROI.py`` sample code (:ref:`sample-code`).
 
-    :param PlotWidget parent: The plot widget the selection is done on
+    :param silx.gui.plot.PlotWidget parent:
+        The plot widget the selection is done on
     """
 
     sigSelectionAdded = qt.Signal(Selection)
@@ -617,14 +618,14 @@ class SelectionManager(qt.QObject):
     def getMaxSelections(self):
         """Returns the maximum number of selections or None if no limit
 
-        :rtype: Union[int, None]
+        :rtype: Union[int,None]
         """
         return self._maxSelection
 
     def setMaxSelections(self, max_):
         """Set the maximum number of selections
 
-        :param Union[int, None] max_: The max limit or None for no limit.
+        :param Union[int,None] max_: The max limit or None for no limit.
         :raise ValueError: If there is more selections than max value
         """
         if max_ is not None:
