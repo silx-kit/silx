@@ -25,7 +25,7 @@
 # ###########################################################################*/
 """This script illustrates image ROI selection in a :class:`PlotWidget`
 
-It uses :class:`~silx.gui.plot.tools.InteractiveSelection` and
+It uses :class:`~silx.gui.plot.tools.SelectionManager` and
 :class:`~silx.gui.plot.tools.InteractiveSelectionTable` to handle the
 interactive selection and to display the list of selected ROIs.
 """
@@ -34,7 +34,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot import Plot2D
-from silx.gui.plot.tools import InteractiveSelection
+from silx.gui.plot.tools import SelectionManager
 from silx.gui.plot.tools import InteractiveSelectionTableWidget
 
 
@@ -57,7 +57,7 @@ plot.getDefaultColormap().setName('viridis')
 plot.addImage(dummy_image())
 
 # Create the object controlling the ROI selection and set it up
-selector = InteractiveSelection(plot)
+selector = SelectionManager(plot)
 selector.setColor('pink')  # Set the color of ROI
 
 

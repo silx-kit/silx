@@ -61,7 +61,7 @@ class Selection(qt.QObject):
     """Signal emitted when this control points has changed"""
 
     def __init__(self, parent, kind):
-        assert isinstance(parent, InteractiveSelection)
+        assert isinstance(parent, SelectionManager)
         super(Selection, self).__init__(parent)
         self._color = rgba('red')
         self._items = WeakList()
@@ -403,7 +403,7 @@ class Selection(qt.QObject):
         self._editAnchors = WeakList()
 
 
-class InteractiveSelection(qt.QObject):
+class SelectionManager(qt.QObject):
     """Class handling a selection interaction on a :class:`PlotWidget`
 
     It supports the selection of multiple points, rectangles, polygons,
@@ -455,7 +455,7 @@ class InteractiveSelection(qt.QObject):
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
-        super(InteractiveSelection, self).__init__(parent)
+        super(SelectionManager, self).__init__(parent)
         self._selections = []
         self._maxSelection = None
 
@@ -839,8 +839,8 @@ class InteractiveSelection(qt.QObject):
         self.stop()
 
 
-class InterpreterSelection(InteractiveSelection):
-    """InteractiveSelection with features for use from interpreter.
+class InteractiveSelection(SelectionManager):
+    """SelectionManager with features for use from interpreter.
 
     It is meant to be used through the :meth:`exec_`.
     It provides some messages to display in a status bar and
@@ -856,7 +856,7 @@ class InterpreterSelection(InteractiveSelection):
     """
 
     def __init__(self, parent):
-        super(InterpreterSelection, self).__init__(parent)
+        super(InteractiveSelection, self).__init__(parent)
         self.__timeoutEndTime = None
         self.__message = ''
         self.__validationMode = self.ValidationMode.ENTER
@@ -941,7 +941,7 @@ class InterpreterSelection(InteractiveSelection):
                     # Stop further handling of keys if something was undone
                     return True
 
-        return super(InterpreterSelection, self).eventFilter(obj, event)
+        return super(InteractiveSelection, self).eventFilter(obj, event)
 
     # Message API
 
@@ -1059,13 +1059,13 @@ class InterpreterSelection(InteractiveSelection):
             timer.timeout.connect(self.__timeoutUpdate)
             timer.start(1000)
 
-            selection = super(InterpreterSelection, self).exec_(kind)
+            selection = super(InteractiveSelection, self).exec_(kind)
 
             timer.stop()
             self.__timeoutEndTime = None
 
         else:
-            selection = super(InterpreterSelection, self).exec_(kind)
+            selection = super(InteractiveSelection, self).exec_(kind)
 
         plot.removeEventFilter(self)
 
@@ -1098,7 +1098,7 @@ class _DeleteSelectionToolButton(qt.QToolButton):
 
 
 class InteractiveSelectionTableWidget(qt.QTableWidget):
-    """Widget displaying the selection of an :class:`InteractiveSelection`"""
+    """Widget displaying the selection of an :class:`SelectionManager`"""
 
     def __init__(self, parent=None):
         super(InteractiveSelectionTableWidget, self).__init__(parent)
@@ -1145,9 +1145,9 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
     def setInteractiveSelection(self, selector):
         """Set the :class:`InteractiveSelection` object to sync with
 
-        :param InteractiveSelection selector:
+        :param SelectionManager selector:
         """
-        assert selector is None or isinstance(selector, InteractiveSelection)
+        assert selector is None or isinstance(selector, SelectionManager)
 
         if self._selection is not None:
             self.setRowCount(0)
@@ -1235,6 +1235,6 @@ class InteractiveSelectionTableWidget(qt.QTableWidget):
 
         It returns None if not sync with an :class:`InteractiveSelection`.
 
-        :rtype: InteractiveSelection
+        :rtype: SelectionManager
         """
         return self._selection
