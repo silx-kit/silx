@@ -37,6 +37,8 @@ import functools
 import itertools
 import logging
 import time
+import weakref
+
 import numpy
 
 from ....third_party import enum
@@ -1085,7 +1087,7 @@ class SelectionTableWidget(qt.QTableWidget):
 
     def __init__(self, parent=None):
         super(SelectionTableWidget, self).__init__(parent)
-        self._selection = None
+        self._selectionRef = None
 
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
@@ -1126,31 +1128,35 @@ class SelectionTableWidget(qt.QTableWidget):
         else:
             logger.error('Unhandled column %d', column)
 
-    def setInteractiveSelection(self, selector):
-        """Set the :class:`InteractiveSelection` object to sync with
+    def setSelectionManager(self, selector):
+        """Set the :class:`SelectionManager` object to sync with
 
         :param SelectionManager selector:
         """
         assert selector is None or isinstance(selector, SelectionManager)
 
-        if self._selection is not None:
-            self.setRowCount(0)
-            self._selection.sigSelectionChanged.disconnect(self._sync)
+        previousSelector = self.getSelectionManager()
 
-        self._selection = selector  # TODO weakref
+        if previousSelector is not None:
+            previousSelector.sigSelectionChanged.disconnect(self._sync)
+        self.setRowCount(0)
+
+        self._selectionRef = weakref.ref(selector)
 
         self._sync()
 
-        if self._selection is not None:
-            self._selection.sigSelectionChanged.connect(self._sync)
+        if selector is not None:
+            selector.sigSelectionChanged.connect(self._sync)
 
     def _sync(self, *args):
         """Update widget content according to selector"""
-        if self._selection is None:
+        selector = self.getSelectionManager()
+
+        if selector is None:
             self.setRowCount(0)
             return
 
-        selections = self._selection.getSelections()
+        selections = selector.getSelections()
 
         self.setRowCount(len(selections))
         for index, selection in enumerate(selections):
@@ -1214,11 +1220,11 @@ class SelectionTableWidget(qt.QTableWidget):
                 item.setText('; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points))
             self.setItem(index, 4, item)
 
-    def getInteractiveSelection(self):
-        """Returns the :class:`InteractiveSelection` this widget supervise.
+    def getSelectionManager(self):
+        """Returns the :class:`SelectionManager` this widget supervise.
 
-        It returns None if not sync with an :class:`InteractiveSelection`.
+        It returns None if not sync with an :class:`SelectionManager`.
 
         :rtype: SelectionManager
         """
-        return self._selection
+        return None if self._selectionRef is None else self._selectionRef()

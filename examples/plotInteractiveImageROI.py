@@ -79,7 +79,7 @@ selector.addSelection('rectangle',
 
 # Create the table widget displaying
 selectionTable = SelectionTableWidget()
-selectionTable.setInteractiveSelection(selector)
+selectionTable.setSelectionManager(selector)
 
 # Create buttons for all ROI 'drawing' modes
 btnLayout = qt.QHBoxLayout()  # The layout to store the buttons
