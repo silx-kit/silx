@@ -568,14 +568,6 @@ class SelectionManager(qt.QObject):
 
     # Selection API
 
-    def getSelectionLabels(self):
-        """Returns the current selection labels
-
-        :return: Tuple of labels
-        :rtype: List[str]
-        """
-        return tuple(s.getLabel() for s in self.getSelections())
-
     def getSelectionPoints(self):
         """Returns the current selection control points
 
