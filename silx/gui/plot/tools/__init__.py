@@ -51,4 +51,5 @@ from .LimitsToolBar import LimitsToolBar  # noqa
 from .PositionInfo import PositionInfo  # noqa
 
 from .InteractiveSelection import InteractiveSelection  # noqa
+from .InteractiveSelection import InterpreterSelection  # noqa
 from .InteractiveSelection import InteractiveSelectionTableWidget  # noqa

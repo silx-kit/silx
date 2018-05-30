@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "22/03/2018"
 
 
+import collections
 import functools
 import itertools
 import logging
@@ -408,37 +409,9 @@ class InteractiveSelection(qt.QObject):
     It supports the selection of multiple points, rectangles, polygons,
     lines, horizontal and vertical lines.
 
-    Example:
-
-    .. code-block:: python
-
-       from silx import sx
-       from silx.gui.plot.tools import InteractiveSelection
-
-       plot = sx.PlotWindow()  # Create a PlotWindow
-       plot.show()
-
-       # Create object controlling interactive selection
-       selector = InteractiveSelection(plot)
-
-       # Add the selection mode action to the PlotWindow toolbar
-       toolbar = plot.getInteractiveModeToolBar()
-       toolbar.addAction(selector.getSelectionModeAction())
-
-       # Connect InteractiveSelection messages to PlotWindow status bar
-       statusBar = plot.statusBar()
-       selector.sigMessageChanged.connect(statusBar.showMessage)
-
-       # Start a selection of 3 points
-       selector.start('point')
+    See ``plotInteractiveImageROI.py`` sample code (:ref:`sample-code`).
 
     :param PlotWidget parent: The plot widget the selection is done on
-    """
-
-    sigSelectionStarted = qt.Signal(str)
-    """Signal emitted whenever a selection has started.
-
-    It provides the shape used for the selection.
     """
 
     sigSelectionAdded = qt.Signal(Selection)
@@ -459,116 +432,123 @@ class InteractiveSelection(qt.QObject):
     It provides the selection.
     """
 
+    sigSelectionStarted = qt.Signal(str)
+    """Signal emitted whenever an interactive selection has started.
+
+    It provides the shape used for the selection.
+    """
+
     sigSelectionFinished = qt.Signal(tuple)
-    """Signal emitted when selection is terminated.
+    """Signal emitted when an interactive selection has ended.
 
     It provides the selection.
     """
 
-    sigMessageChanged = qt.Signal(str)
-    """Signal emitted when a new message should be displayed to the user
-
-    It provides the message as a str.
-    """
+    _MODE_ACTIONS_PARAMS = collections.OrderedDict()
+    # Interactive mode: (icon name, text)
+    _MODE_ACTIONS_PARAMS['point'] = 'normal', 'Add point selection'
+    _MODE_ACTIONS_PARAMS['rectangle'] = 'shape-rectangle', 'Add Rectangle ROI'
+    _MODE_ACTIONS_PARAMS['polygon'] = 'shape-polygon', 'Add Polygon ROI'
+    _MODE_ACTIONS_PARAMS['line'] = 'shape-diagonal', 'Add Line ROI'
+    _MODE_ACTIONS_PARAMS['hline'] = 'shape-horizontal', 'Add Horizontal Line ROI'
+    _MODE_ACTIONS_PARAMS['vline'] = 'shape-vertical', 'Add Vertical Line ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
         super(InteractiveSelection, self).__init__(parent)
         self._selections = []
-        self._isStarted = False
-        self._isInteractiveModeStarted = False
         self._maxSelection = None
 
-        self._validationMode = self.ValidationMode.ENTER
-        self._statusMessage = ''
-        self._timeoutEndTime = None
-
-        self._shapeKind = 'point'
+        self._shapeKind = None
         self._color = rgba('red')
 
-        self._label = "selector-%d" % id(parent)
+        self._label = "__InteractiveSelection__%d" % id(self)
 
         self._eventLoop = None
 
-        self._action = qt.QAction(self)
-        self._action.setEnabled(False)
-        self._action.setCheckable(True)
-        self._action.setChecked(False)
-        self._action.setIcon(icons.getQIcon('normal'))
-        self._action.setText('Selection Mode')
-        self._action.setToolTip('Selection mode')
-
-        self._action.changed.connect(self._actionChanged)
-        self._action.triggered.connect(self._actionTriggered)
+        self._modeActions = {}
 
         parent.sigInteractiveModeChanged.connect(
             self._plotInteractiveModeChanged)
 
-    # Associated QAction
+    @classmethod
+    def getSupportedSelectionKinds(cls):
+        """Returns available selection kinds
 
-    def getSelectionModeAction(self):
-        """Returns a QAction for the selection interaction mode
-
-        :rtype: QAction
+        :rtype: List[str]
         """
-        return self._action
+        return tuple(cls._MODE_ACTIONS_PARAMS.keys())
 
-    def _actionChanged(self):
-        """Handle action enabled state changed and sync selector"""
-        # Makes sure action is only enabled while a selection is running
-        action = self.getSelectionModeAction()
-        action.setEnabled(self.isStarted())
+    # Associated QActions
 
-    def _actionTriggered(self, checked=False):
-        """Handle action triggered by user"""
-        self._startSelectionInteraction()
-        self._updateStatusMessage()
+    def getDrawSelectionModeAction(self, kind):
+        """Returns the QAction corresponding to a kind of selection
+
+        The QAction allows to enable the corresponding drawing
+        interactive mode.
+
+        :param str kind: Kind of selection
+        :rtype: QAction
+        :raise ValueError: If kind is not supported
+        """
+        if kind not in self.getSupportedSelectionKinds():
+            raise ValueError('Unsupported kind %s' % kind)
+
+        action = self._modeActions.get(kind, None)
+        if action is None:  # Lazy-loading
+            iconName, text = self._MODE_ACTIONS_PARAMS[kind]
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon(iconName))
+            action.setText(text)
+            action.setCheckable(True)
+            action.setChecked(self.getSelectionKind() == kind)
+            action.setEnabled(not self.isMaxSelections())
+
+            action.triggered.connect(
+                functools.partial(self._modeActionTriggered, kind=kind))
+            self._modeActions[kind] = action
+        return action
+
+    def _modeActionTriggered(self, checked, kind):
+        """Handle mode actions being checked by the user
+
+        :param bool checked:
+        :param str kind: Corresponding shape kind
+        """
+        if checked:
+            self.start(kind)
+
+    def _updateModeActions(self):
+        """Enable/Disable mode actions depending on max selections"""
+        enabled = not self.isMaxSelections()
+
+        for kind, action in self._modeActions.items():
+            action.setEnabled(enabled)
+            action.setChecked(kind == self.getSelectionKind())
 
     # PlotWidget eventFilter and listeners
 
     def _plotInteractiveModeChanged(self, source):
         """Handle change of interactive mode in the plot"""
-        action = self.getSelectionModeAction()
-        action.setChecked(source is self)
+        if source is not self:
+            self.stop()  # Stop any current interaction mode
 
-        if self.isStarted():
-            if source is not self:
-                self._stopSelectionInteraction(resetInteractiveMode=False)
-                self._updateStatusMessage(extra='Use selection mode')
-            else:
-                self._startSelectionInteraction()
-                self._updateStatusMessage()
-
-    def eventFilter(self, obj, event):
-        if event.type() == qt.QEvent.Hide:
-            self.stop()
-
-        elif event.type() == qt.QEvent.KeyPress:
-            if event.key() in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
-                    event.key() == qt.Qt.Key_Z and
-                    event.modifiers() & qt.Qt.ControlModifier):
-                if self.undo():
-                    # Stop further handling of keys if something was undone
-                    return True
-
-            elif (event.key() == qt.Qt.Key_Return and
-                    self.getValidationMode() in (
-                        self.ValidationMode.ENTER,
-                        self.ValidationMode.AUTO_ENTER)):
-                self.stop()
-                return True  # Stop further handling of those keys
-
-        return super(InteractiveSelection, self).eventFilter(obj, event)
+        else:  # Check the corresponding action
+            self._updateModeActions()
 
     # Handle selection interaction
 
     def _handleInteraction(self, event):
         """Handle mouse interaction for selection"""
-        if self._shapeKind == 'point':
+        kind = self.getSelectionKind()
+        if kind is None:
+            return  # Should not happen
+
+        elif kind == 'point':
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
-                self.addSelection(kind=self._shapeKind, points=points)
+                self.addSelection(kind=kind, points=points)
 
         else:  # other shapes
             if (event['event'] == 'drawingFinished' and
@@ -576,56 +556,14 @@ class InteractiveSelection(qt.QObject):
                 points = numpy.array((event['xdata'], event['ydata']),
                                      dtype=numpy.float64).T
 
-                if self._shapeKind == 'hline':
+                if kind == 'hline':
                     points = numpy.array([(float('nan'), points[0, 1])],
                                          dtype=numpy.float64)
-                elif self._shapeKind == 'vline':
+                elif kind == 'vline':
                     points = numpy.array([(points[0, 0], float('nan'))],
                                          dtype=numpy.float64)
 
-                self.addSelection(kind=self._shapeKind, points=points)
-
-    def _stopSelectionInteraction(self, resetInteractiveMode):
-        """Stop selection interaction if if was running
-
-        :param bool resetInteractiveMode:
-            True to reset interactive mode, False to avoid
-        """
-        if self._isInteractiveModeStarted:
-            self._isInteractiveModeStarted = False
-            if self.isStarted():
-                plot = self.parent()
-
-                plot.sigPlotSignal.disconnect(self._handleInteraction)
-                if resetInteractiveMode and self._shapeKind != 'point':
-                    plot.setInteractiveMode(mode='select', source=self)
-
-    def _startSelectionInteraction(self):
-        """Start selection interaction if it was not running
-
-        :return: True if interaction has changed, False otherwise
-        :rtype: bool
-        """
-        if (not self._isInteractiveModeStarted and self.isStarted() and
-                (self._maxSelection is None or
-                 len(self.getSelections()) < self._maxSelection)):
-            self._isInteractiveModeStarted = True
-            plot = self.parent()
-
-            if self._shapeKind == 'point':
-                plot.setInteractiveMode(mode='select', source=self)
-            else:
-                plot.setInteractiveMode(mode='draw',
-                                        source=self,
-                                        shape=self._shapeKind,
-                                        color=rgba(self.getColor()),
-                                        label=self._label)
-
-            plot.sigPlotSignal.connect(self._handleInteraction)
-            return True
-
-        else:
-            return False
+                self.addSelection(kind=kind, points=points)
 
     # Selection API
 
@@ -683,19 +621,31 @@ class InteractiveSelection(qt.QObject):
         """
         return self._maxSelection
 
-    def setMaxSelections(self, max):
+    def setMaxSelections(self, max_):
         """Set the maximum number of selections
 
-        :param Union[int, None] max: The max limit or None for no limit.
+        :param Union[int, None] max_: The max limit or None for no limit.
         :raise ValueError: If there is more selections than max value
         """
-        if max is not None:
-            max = int(max)
-            if len(self.getSelections()) > max:
+        if max_ is not None:
+            max_ = int(max_)
+            nbSelection = len(self.getSelections())
+            if nbSelection > max_:
                 raise ValueError(
                     'Cannot set max limit: Already too many selections')
+            elif nbSelection == max_:  # No more addition possible
+                self.stop()
 
-        self._maxSelection = max
+        self._maxSelection = max_
+        self._updateModeActions()
+
+    def isMaxSelections(self):
+        """Returns True if the maximum number of selections is reached.
+
+        :rtype: bool
+        """
+        max_ = self.getMaxSelections()
+        return max_ is not None and len(self.getSelections()) >= max_
 
     def addSelection(self, kind, points, label='', index=None):
         """Add a selection to current selections
@@ -710,9 +660,7 @@ class InteractiveSelection(qt.QObject):
         :raise RuntimeError: When selection cannot be added because the maximum
            number of selection has been reached.
         """
-        selections = self.getSelections()
-        if (self._maxSelection is not None and
-                len(selections) >= self._maxSelection):
+        if self.isMaxSelections():
             raise RuntimeError(
                 'Cannot add selection: Maximum number of selections reached')
 
@@ -736,14 +684,19 @@ class InteractiveSelection(qt.QObject):
         self.sigSelectionAdded.emit(selection)
         self._selectionUpdated()
 
+        if self.isMaxSelections():
+            self.stop()
+
     def removeSelection(self, selection):
         """Remove a selection from the list of current selections
 
         :param Selection selection: The selection to remove
+        :raise ValueError: When selection is not a selection in this object
         """
-        assert isinstance(selection, Selection)
-        assert selection.parent() is self
-        assert selection in self._selections
+        if not (isinstance(selection, Selection) and
+                selection.parent() is self and
+                selection in self._selections):
+            raise ValueError('Selection does not belong to this instance')
 
         self.sigSelectionAboutToBeRemoved.emit(selection)
 
@@ -756,83 +709,11 @@ class InteractiveSelection(qt.QObject):
     def _selectionUpdated(self):
         """Handle update of the selection"""
         selections = self.getSelections()
-        assert self._maxSelection is None or len(selections) <= self._maxSelection
-
         self.sigSelectionChanged.emit(selections)
 
-        if self.isStarted():
-            if self._maxSelection is None or len(selections) < self._maxSelection:
-                self._startSelectionInteraction()
-                self._updateStatusMessage()
-
-            else:
-                self._stopSelectionInteraction(resetInteractiveMode=True)
-                validationMode = self.getValidationMode()
-                if validationMode in (self.ValidationMode.AUTO,
-                                      self.ValidationMode.AUTO_ENTER):
-                    self.stop()
-                elif validationMode == self.ValidationMode.ENTER:
-                    self._updateStatusMessage(extra='Press Enter to confirm')
-                else:
-                    self._updateStatusMessage()
-
-    def undo(self):
-        """Remove last selection from the selection list.
-
-        :return: True if a selection was undone.
-        :rtype: bool
-        """
-        selections = self.getSelections()
-        if selections:  # Something to undo
-            self.removeSelection(selections[-1])
-            return True
-        else:
-            return False
+        self._updateModeActions()
 
     # Selection parameters
-
-    @enum.unique
-    class ValidationMode(enum.Enum):
-        """Mode of validation of the selection"""
-
-        AUTO = 'auto'
-        """Automatically ends the selection once the user terminates the last shape"""
-
-        ENTER = 'enter'
-        """Ends the selection when the *Enter* key is pressed"""
-
-        AUTO_ENTER = 'auto_enter'
-        """Ends selection if reaching max selection or on *Enter* key press
-        """
-
-        NONE = 'none'
-        """Do not provide the user a way to end the selection.
-
-        The end of a selection must be done through :meth:`stop`.
-        This is useful if the application is willing to provide its own way of
-        ending the selection (e.g., a button).
-        """
-
-    def getValidationMode(self):
-        """Returns the selection validation mode in use.
-
-        :rtype: ValidationMode
-        """
-        return self._validationMode
-
-    def setValidationMode(self, mode):
-        """Set the way to perform selection validation.
-
-        See :class:`ValidationMode` enumeration for the supported
-        validation modes.
-
-        :param ValidationMode mode: The mode of selection validation to use.
-        """
-        assert isinstance(mode, self.ValidationMode)
-        if mode != self._validationMode:
-            self._validationMode = mode
-            if self.isStarted():
-                self._updateStatusMessage()
 
     def getColor(self):
         """Return the default color of the selections
@@ -851,89 +732,58 @@ class InteractiveSelection(qt.QObject):
         """
         self._color = rgba(color)
 
-    # Status message
-
-    def getStatusMessage(self):
-        """Returns the current status message.
-
-        This message is meant to be displayed in a status bar.
-
-        :rtype: str
-        """
-        if self._timeoutEndTime is None:
-            return self._statusMessage
-        else:
-            remaining = self._timeoutEndTime - time.time()
-            return self._statusMessage + (' - %d seconds remaining' %
-                                          max(1, int(remaining)))
-
-    def _updateStatusMessage(self, message=None, extra=None):
-        """Set the status message.
-
-        :param str message: The main message or None to use default message
-        :param str extra: Additional info to display after main message
-        """
-        if message is None:
-            selections = self.getSelections()
-            if self._maxSelection is None:
-                message = 'Select %ss (%d selected)' % (
-                    self._shapeKind, len(selections))
-
-            elif self._maxSelection <= 1:
-                message = 'Select a %s' % self._shapeKind
-            else:
-                message = 'Select %d/%d %ss' % (
-                    len(selections), self._maxSelection, self._shapeKind)
-
-            if self.getValidationMode() in (
-                    self.ValidationMode.ENTER, self.ValidationMode.AUTO_ENTER):
-                message += ' - Press Enter to validate'
-
-        else:
-            message = str(message)
-
-        if extra is not None:
-            message += ' (' + str(extra) + ')'
-
-        if self._statusMessage != message:
-            self._statusMessage = message
-            # Use getStatusMessage to add timeout message
-            self.sigMessageChanged.emit(self.getStatusMessage())
-
     # Control selection
+
+    def getSelectionKind(self):
+        """Returns the current interactive selection mode or None.
+
+        :rtype: Union[str,None]
+        """
+        return self._shapeKind
 
     def isStarted(self):
         """Returns True if the selection is requesting user input.
 
-        :rtype: bool"""
-        return self._isStarted
+        :rtype: bool
+        """
+        return self._shapeKind is not None
 
     def start(self, kind):
         """Start an interactive selection.
 
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :return: True if interactive selection was started, False otherwise
+        :rtype: bool
+        :raise ValueError: If kind is not supported
         """
         self.stop()
 
         plot = self.parent()
         if plot is None:
-            raise RuntimeError('No plot to perform selection')
+            return False
 
-        assert kind in ('point', 'rectangle', 'line',
-                        'polygon', 'hline', 'vline')
+        if self.isMaxSelections():
+            return False
+
+        if kind not in self.getSupportedSelectionKinds():
+            raise ValueError('Unsupported kind %s' % kind)
         self._shapeKind = kind
 
-        self._isStarted = True
-        self._startSelectionInteraction()
+        if self._shapeKind == 'point':
+            plot.setInteractiveMode(mode='select', source=self)
+        else:
+            plot.setInteractiveMode(mode='select-draw',
+                                    source=self,
+                                    shape=self._shapeKind,
+                                    color=rgba(self.getColor()),
+                                    label=self._label)
 
-        self.getSelectionModeAction().setEnabled(True)
-
-        plot.installEventFilter(self)
-
-        self._updateStatusMessage()
+        plot.sigPlotSignal.connect(self._handleInteraction)
 
         self.sigSelectionStarted.emit(kind)
+
+        return True
 
     def stop(self):
         """Stop interactive selection
@@ -944,46 +794,24 @@ class InteractiveSelection(qt.QObject):
         if not self.isStarted():
             return False
 
-        self._timeoutEndTime = None
+        self._shapeKind = None
 
         plot = self.parent()
         if plot is not None:
-            plot.removeEventFilter(self)
-            plot.setInteractiveMode('zoom')
+            plot.sigPlotSignal.disconnect(self._handleInteraction)
+            plot.setInteractiveMode(mode='zoom', source=None)
 
-        self._stopSelectionInteraction(resetInteractiveMode=False)
-
-        self._isStarted = False
-
-        self.getSelectionModeAction().setEnabled(False)
-
-        if self._eventLoop is not None:
-            self._eventLoop.quit()
+        self._updateModeActions()
 
         self.sigSelectionFinished.emit(self.getSelectionPoints())
-        self._updateStatusMessage('Selection done')
 
         return True
 
-    def _timeoutUpdate(self):
-        """Handle update of timeout"""
-        if self._timeoutEndTime is not None:
-            remaining = self._timeoutEndTime - time.time()
-            if remaining >= 0:
-                self.sigMessageChanged.emit(self.getStatusMessage())
-            else:  # Quit event loop, disable timeout messages
-                self._timeoutEndTime = None
-                self._eventLoop.quit()
-                timer = self.sender()
-                timer.stop()
-
-    def exec_(self, kind, timeout=0):
-        """Block until selection is done or timeout is elapsed.
+    def exec_(self, kind):
+        """Block until :meth:`quit` is called.
 
         :param str kind: The kind of shape to select in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
-        :param int timeout: Maximum duration in seconds to block.
-            Default: No timeout
         :return: The current selection
         :rtype: tuple
         """
@@ -994,26 +822,256 @@ class InteractiveSelection(qt.QObject):
         plot.raise_()
 
         self._eventLoop = qt.QEventLoop()
-        if timeout != 0:
-            # Add timeout to message
-            self._timeoutEndTime = time.time() + timeout
-            timer = qt.QTimer()
-            timer.timeout.connect(self._timeoutUpdate)
-            timer.start(1000)
-
-            self._eventLoop.exec_()
-
-            timer.stop()
-            self._timeoutEndTime = None
-
-        else:
-            self._eventLoop.exec_()
+        self._eventLoop.exec_()
         self._eventLoop = None
 
         self.stop()
 
         selection = self.getSelectionPoints()
         self.clearSelections()
+        return selection
+
+    def quit(self):
+        """Stop a blocking :meth:`exec_` or call :meth:`stop`"""
+        if self._eventLoop is not None:
+            self._eventLoop.quit()
+            self._eventLoop = None
+        self.stop()
+
+
+class InterpreterSelection(InteractiveSelection):
+    """InteractiveSelection with features for use from interpreter.
+
+    It is meant to be used through the :meth:`exec_`.
+    It provides some messages to display in a status bar and
+    different modes to end blocking calls to :meth:`exec_`.
+
+    :param parent: See QObject
+    """
+
+    sigMessageChanged = qt.Signal(str)
+    """Signal emitted when a new message should be displayed to the user
+
+    It provides the message as a str.
+    """
+
+    def __init__(self, parent):
+        super(InterpreterSelection, self).__init__(parent)
+        self.__timeoutEndTime = None
+        self.__message = ''
+        self.__validationMode = self.ValidationMode.ENTER
+        self.__execKind = None
+
+        self.sigSelectionAdded.connect(self.__added)
+        self.sigSelectionAboutToBeRemoved.connect(self.__aboutToBeRemoved)
+        self.sigSelectionStarted.connect(self.__started)
+        self.sigSelectionFinished.connect(self.__finished)
+
+    # Validation mode
+
+    @ enum.unique
+    class ValidationMode(enum.Enum):
+        """Mode of validation of the selection"""
+
+        AUTO = 'auto'
+        """Automatically ends the selection once the user terminates the last shape"""
+
+        ENTER = 'enter'
+        """Ends the selection when the *Enter* key is pressed"""
+
+        AUTO_ENTER = 'auto_enter'
+        """Ends selection if reaching max selection or on *Enter* key press
+        """
+
+        NONE = 'none'
+        """Do not provide the user a way to end the selection.
+
+        The end of :meth:`exec_` is done through :meth:`quit` or timeout.
+        """
+
+    def getValidationMode(self):
+        """Returns the selection validation mode in use.
+
+        :rtype: ValidationMode
+        """
+        return self.__validationMode
+
+    def setValidationMode(self, mode):
+        """Set the way to perform selection validation.
+
+        See :class:`ValidationMode` enumeration for the supported
+        validation modes.
+
+        :param ValidationMode mode: The mode of selection validation to use.
+        """
+        assert isinstance(mode, self.ValidationMode)
+        if mode != self.__validationMode:
+            self.__validationMode = mode
+
+        if self.isBlocking():
+            if (self.isMaxSelections() and self.getValidationMode() in
+                    (self.ValidationMode.AUTO,
+                     self.ValidationMode.AUTO_ENTER)):
+                self.quit()
+
+            self.__updateMessage()
+
+    def eventFilter(self, obj, event):
+        if event.type() == qt.QEvent.Hide:
+            self.quit()
+
+        if event.type() == qt.QEvent.KeyPress:
+            key = event.key()
+            if (key == qt.Qt.Key_Return and
+                    self.getValidationMode() in (self.ValidationMode.ENTER,
+                                                 self.ValidationMode.AUTO_ENTER)):
+                # Stop on return key pressed
+                self.quit()
+                return True  # Stop further handling of this keys
+
+            if (key in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
+                    key == qt.Qt.Key_Z and
+                    event.modifiers() & qt.Qt.ControlModifier)):
+                selections = self.getSelections()
+                if selections:  # Something to undo
+                    wasMaxSelections = self.isMaxSelections()
+                    self.removeSelection(selections[-1])
+                    if wasMaxSelections and self.__execKind is not None:
+                        self.start(self.__execKind)
+                    # Stop further handling of keys if something was undone
+                    return True
+
+        return super(InterpreterSelection, self).eventFilter(obj, event)
+
+    # Message API
+
+    def getMessage(self):
+        """Returns the current status message.
+
+        This message is meant to be displayed in a status bar.
+
+        :rtype: str
+        """
+        if self.__timeoutEndTime is None:
+            return self.__message
+        else:
+            remaining = self.__timeoutEndTime - time.time()
+            return self.__message + (' - %d seconds remaining' %
+                                     max(1, int(remaining)))
+
+    # Listen to selection updates
+
+    def __added(self, *args, **kwargs):
+        """Handle new selection added"""
+        self.__updateMessage()
+        if (self.isMaxSelections() and
+                self.getValidationMode() in (self.ValidationMode.AUTO,
+                                             self.ValidationMode.AUTO_ENTER)):
+            self.quit()
+
+    def __aboutToBeRemoved(self, *args, **kwargs):
+        """Handle removal of a selection"""
+        # Selection not removed yet
+        self.__updateMessage(nbSelections=len(self.getSelections()) - 1)
+
+    def __started(self, *args, **kwargs):
+        """Handle interactive mode started"""
+        self.__updateMessage()
+
+    def __finished(self, *args, **kwargs):
+        """Handle interactive mode finished"""
+        self.__updateMessage()
+
+    def __updateMessage(self, nbSelections=None):
+        """Update message"""
+        if not self.isBlocking():
+            message = 'Selection done'
+
+        elif not self.isStarted() and not self.isMaxSelections():
+            message = 'Use %s selection mode' % self.__execKind
+
+        else:
+            if nbSelections is None:
+                nbSelections = len(self.getSelections())
+
+            kind = self.__execKind
+            maxNbSelection = self.getMaxSelections()
+
+            if maxNbSelection is None:
+                message = 'Select %ss (%d selected)' % (kind, nbSelections)
+
+            elif maxNbSelection <= 1:
+                message = 'Select a %s' % kind
+            else:
+                message = 'Select %d/%d %ss' % (nbSelections, maxNbSelection, kind)
+
+            if (self.getValidationMode() == self.ValidationMode.ENTER and
+                    self.isMaxSelections()):
+                message += ' - Press Enter to confirm'
+
+        if message != self.__message:
+            self.__message = message
+            # Use getMessage to add timeout message
+            self.sigMessageChanged.emit(self.getMessage())
+
+    # Handle blocking call
+
+    def __timeoutUpdate(self):
+        """Handle update of timeout"""
+        if (self.__timeoutEndTime is not None and
+                (self.__timeoutEndTime - time.time()) > 0):
+                self.sigMessageChanged.emit(self.getMessage())
+        else:  # Stop selection and message timer
+            timer = self.sender()
+            timer.stop()
+            self.__timeoutEndTime = None
+            self.quit()
+
+    def isBlocking(self):
+        """Returns True if :meth:`exec_` is currently running.
+
+        :rtype: bool"""
+        return self.__execKind is not None
+
+    def exec_(self, kind, timeout=0):
+        """Block until selection is done or timeout is elapsed.
+
+        :meth:`quit` also ends this blocking call.
+
+        :param str kind: The kind of shape to select in:
+           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param int timeout: Maximum duration in seconds to block.
+            Default: No timeout
+        :return: The current selection
+        :rtype: tuple
+        """
+        plot = self.parent()
+        if plot is None:
+            return
+
+        self.__execKind = kind
+
+        plot.installEventFilter(self)
+
+        if timeout > 0:
+            self.__timeoutEndTime = time.time() + timeout
+            timer = qt.QTimer(self)
+            timer.timeout.connect(self.__timeoutUpdate)
+            timer.start(1000)
+
+            selection = super(InterpreterSelection, self).exec_(kind)
+
+            timer.stop()
+            self.__timeoutEndTime = None
+
+        else:
+            selection = super(InterpreterSelection, self).exec_(kind)
+
+        plot.removeEventFilter(self)
+
+        self.__execKind = None
+        self.__updateMessage()
+
         return selection
 
 

@@ -59,16 +59,6 @@ plot.addImage(dummy_image())
 # Create the object controlling the ROI selection and set it up
 selector = InteractiveSelection(plot)
 selector.setColor('pink')  # Set the color of ROI
-selector.setValidationMode(
-    selector.ValidationMode.NONE)  # Disable user validation
-
-# Add a tool button to switch to ROI drawing interactive mode
-toolbar = plot.getInteractiveModeToolBar()
-toolbar.addAction(selector.getSelectionModeAction())
-
-# Connect InteractiveSelection messages to the plot status bar
-statusBar = plot.statusBar()
-selector.sigMessageChanged.connect(statusBar.showMessage)
 
 
 # Set the name of each created selection
@@ -90,23 +80,19 @@ selector.addSelection('rectangle',
 selectionTable = InteractiveSelectionTableWidget()
 selectionTable.setInteractiveSelection(selector)
 
-# Create a button to start/stop the selection
-addROIPushButton = qt.QPushButton('Add ROIs')
-addROIPushButton.setCheckable(True)
+# Create buttons for all ROI 'drawing' modes
+btnLayout = qt.QHBoxLayout()  # The layout to store the buttons
+btnLayout.addStretch(1)
+btnLayout.addWidget(qt.QLabel('Add ROIs:'))
 
+for kind in selector.getSupportedSelectionKinds():
+    # Create a tool button and associate it with the QAction of each mode
+    toolButton = qt.QToolButton()
+    toolButton.setDefaultAction(selector.getDrawSelectionModeAction(kind))
+    btnLayout.addWidget(toolButton, 0, qt.Qt.AlignCenter)
 
-def addROIToggled(checked):
-    """Called when the button is checked/unchecked"""
-    if checked:
-        selector.start('rectangle')
-    else:
-        selector.stop()
+btnLayout.addStretch(1)
 
-
-addROIPushButton.toggled.connect(addROIToggled)
-
-btnLayout = qt.QHBoxLayout()
-btnLayout.addWidget(addROIPushButton, 0, qt.Qt.AlignCenter)
 
 # Add the selection table and the buttons to a dock widget
 widget = qt.QWidget()
