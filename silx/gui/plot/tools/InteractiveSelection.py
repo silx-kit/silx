@@ -708,8 +708,7 @@ class SelectionManager(qt.QObject):
 
     def _selectionUpdated(self):
         """Handle update of the selection"""
-        selections = self.getSelections()
-        self.sigSelectionChanged.emit(selections)
+        self.sigSelectionChanged.emit(self.getSelections())
 
         self._updateModeActions()
 
@@ -832,7 +831,7 @@ class SelectionManager(qt.QObject):
         return selection
 
     def quit(self):
-        """Stop a blocking :meth:`exec_` or call :meth:`stop`"""
+        """Stop a blocking :meth:`exec_` and call :meth:`stop`"""
         if self._eventLoop is not None:
             self._eventLoop.quit()
             self._eventLoop = None
@@ -908,7 +907,7 @@ class InteractiveSelection(SelectionManager):
         if mode != self.__validationMode:
             self.__validationMode = mode
 
-        if self.isBlocking():
+        if self.isExec():
             if (self.isMaxSelections() and self.getValidationMode() in
                     (self.ValidationMode.AUTO,
                      self.ValidationMode.AUTO_ENTER)):
@@ -984,7 +983,7 @@ class InteractiveSelection(SelectionManager):
 
     def __updateMessage(self, nbSelections=None):
         """Update message"""
-        if not self.isBlocking():
+        if not self.isExec():
             message = 'Selection done'
 
         elif not self.isStarted() and not self.isMaxSelections():
@@ -1027,7 +1026,7 @@ class InteractiveSelection(SelectionManager):
             self.__timeoutEndTime = None
             self.quit()
 
-    def isBlocking(self):
+    def isExec(self):
         """Returns True if :meth:`exec_` is currently running.
 
         :rtype: bool"""
