@@ -448,9 +448,7 @@ class _GInputHandler(InteractiveSelection):
         statusBar = window.statusBar()
         self.sigMessageChanged.connect(statusBar.showMessage)
         self.setMaxSelections(n)
-        self.setValidationMode(
-            self.ValidationMode.AUTO if n == 1 else
-            self.ValidationMode.AUTO_ENTER)
+        self.setValidationMode(self.ValidationMode.AUTO_ENTER)
         self.sigSelectionAdded.connect(self.__selectionAdded)
         self.sigSelectionAboutToBeRemoved.connect(self.__selectionRemoved)
 
@@ -472,12 +470,12 @@ class _GInputHandler(InteractiveSelection):
         else:  # Add a toolbar
             toolbar = qt.QToolBar()
             window.addToolBar(toolbar)
-        toolbar.addAction(self.getSelectionModeAction())
+        toolbar.addAction(self.getDrawSelectionModeAction('point'))
 
         super(_GInputHandler, self).exec_(kind='point', timeout=self._timeout)
 
         if isinstance(toolbar, InteractiveModeToolBar):
-            toolbar.removeAction(self.getSelectionModeAction())
+            toolbar.removeAction(self.getDrawSelectionModeAction('point'))
         else:
             toolbar.setParent(None)
 
