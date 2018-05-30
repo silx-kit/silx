@@ -1090,7 +1090,7 @@ class _DeleteSelectionToolButton(qt.QToolButton):
 
 
 class SelectionTableWidget(qt.QTableWidget):
-    """Widget displaying the selection of an :class:`SelectionManager`"""
+    """Widget displaying the selection of a :class:`SelectionManager`"""
 
     def __init__(self, parent=None):
         super(SelectionTableWidget, self).__init__(parent)
