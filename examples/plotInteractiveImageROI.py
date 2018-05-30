@@ -26,8 +26,8 @@
 """
 This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidget`
 
-It uses :class:`~silx.gui.plot.tools.RegionOfInterestManager` and
-:class:`~silx.gui.plot.tools.RegionOfInterestTableWidget` to handle the
+It uses :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager` and
+:class:`~silx.gui.plot.tools.roi.RegionOfInterestTableWidget` to handle the
 interactive selection and to display the list of selected ROIs.
 """
 
@@ -35,8 +35,8 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot import Plot2D
-from silx.gui.plot.tools import RegionOfInterestManager
-from silx.gui.plot.tools import RegionOfInterestTableWidget
+from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
 
 
 def dummy_image():

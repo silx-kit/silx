@@ -54,27 +54,35 @@
    :show-inheritance:
    :members:
 
-Interactive selection
-=====================
+:mod:`~silx.gui.plot.tools.roi` Region of interest
+--------------------------------------------------
 
 .. automodule:: silx.gui.plot.tools.roi
+
+.. currentmodule:: silx.gui.plot.tools.roi
 
 :class:`RegionOfInterestManager` class
 --------------------------------------
 
-.. autoclass:: silx.gui.plot.tools.RegionOfInterestManager
+.. autoclass:: RegionOfInterestManager
+   :members:
+
+:class:`RegionOfInterest` class
+-------------------------------
+
+.. autoclass:: RegionOfInterest
    :members:
 
 :class:`InteractiveRegionOfInterestManager` class
 -------------------------------------------------
 
-.. autoclass:: silx.gui.plot.tools.InteractiveRegionOfInterestManager
+.. autoclass:: InteractiveRegionOfInterestManager
    :members:
 
 :class:`RegionOfInterestTableWidget` class
-==========================================
+------------------------------------------
 
-.. autoclass:: silx.gui.plot.tools.RegionOfInterestTableWidget
+.. autoclass:: RegionOfInterestTableWidget
    :members:
 
 .. currentmodule:: silx.gui.plot

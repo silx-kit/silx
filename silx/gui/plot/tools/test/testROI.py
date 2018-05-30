@@ -35,7 +35,7 @@ from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.tools import RegionOfInterestManager, RegionOfInterestTableWidget
+from silx.gui.plot.tools import roi
 
 
 class TestSelectionManager(TestCaseQt, ParametricTestCase):
@@ -45,16 +45,16 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
         super(TestSelectionManager, self).setUp()
         self.plot = PlotWindow()
 
-        self.selectionTableWidget = RegionOfInterestTableWidget()
+        self.roiTableWidget = roi.RegionOfInterestTableWidget()
         dock = qt.QDockWidget()
-        dock.setWidget(self.selectionTableWidget)
+        dock.setWidget(self.roiTableWidget)
         self.plot.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
 
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
     def tearDown(self):
-        del self.selectionTableWidget
+        del self.roiTableWidget
         self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
@@ -79,8 +79,8 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
 
         for kind, points in tests:
             with self.subTest(kind=kind):
-                selector = RegionOfInterestManager(self.plot)
-                self.selectionTableWidget.setRegionOfInterestManager(selector)
+                selector = roi.RegionOfInterestManager(self.plot)
+                self.roiTableWidget.setRegionOfInterestManager(selector)
                 selector.start(kind)
 
                 self.assertEqual(selector.getSelections(), ())
@@ -175,8 +175,8 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
 
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
-        selector = RegionOfInterestManager(self.plot)
-        self.selectionTableWidget.setRegionOfInterestManager(selector)
+        selector = roi.RegionOfInterestManager(self.plot)
+        self.roiTableWidget.setRegionOfInterestManager(selector)
         selector.start('point')
 
         interactiveModeToolBar = self.plot.getInteractiveModeToolBar()

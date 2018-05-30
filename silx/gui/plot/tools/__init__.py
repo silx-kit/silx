@@ -33,9 +33,8 @@ It provides some QToolBar and QWidget:
 - :class:`LimitsToolBar`
 - :class:`PositionInfo`
 
-It also provides a :class:`RegionOfInterestManager` that handles interactive
-selections on a :class:`~silx.gui.plot.PlotWidget` and
-:class:`RegionOfInterestTableWidget`.
+It also provides a :mod:`~silx.gui.plot.tools.roi` module to handle
+interactive region of interest on a :class:`~silx.gui.plot.PlotWidget`.
 """
 
 __authors__ = ["T. Vincent"]
@@ -49,7 +48,3 @@ from .toolbars import ImageToolBar, CurveToolBar, ScatterToolBar  # noqa
 
 from .LimitsToolBar import LimitsToolBar  # noqa
 from .PositionInfo import PositionInfo  # noqa
-
-from .roi import RegionOfInterestManager  # noqa
-from .roi import InteractiveRegionOfInterestManager  # noqa
-from .roi import RegionOfInterestTableWidget  # noqa
