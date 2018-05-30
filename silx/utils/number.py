@@ -27,98 +27,72 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/05/2018"
+__date__ = "30/05/2018"
 
 import numpy
 import re
+import logging
 
 
-_parse_numeric_value = re.compile("^\s*[-+]?0*(\d+?)?(?:\.(\d+?)0*)?(?:[eE]([-+]?\d+))?\s*$")
-"""Match integer or floating-point numbers"""
+_logger = logging.getLogger(__name__)
 
 
-def min_numerical_convertible_type(string):
+if hasattr(numpy, "longdouble"):
+    _biggest_float = numpy.longdouble
+    _float_types = (numpy.float16, numpy.float32, numpy.float64, numpy.longdouble)
+else:
+    _biggest_float = numpy.float64
+    _float_types = (numpy.float16, numpy.float32, numpy.float64)
+
+
+_parse_numeric_value = re.compile("^\s*[-+]?0*(\d+?)?(?:\.(\d+))?(?:[eE]([-+]?\d+))?\s*$")
+
+
+def min_numerical_convertible_type(string, check_accuracy=True):
     """
     Parse the string and return the minimal numerical type which fit for a
     convertion.
 
     :param str string: Representation of a float/integer with text
+    :param bool check_accuracy: If true, a warning is pushed on the logger
+        in case there is a lose of accuracy.
     :raise ValueError: When the string is not a numerical value
     :retrun: A numpy numerical type
     """
-    if string == "":
-        raise ValueError("Not a numerical value")
-    match = _parse_numeric_value.match(string)
-    if match is None:
-        raise ValueError("Not a numerical value")
-    number, decimal, exponent = match.groups()
-    if decimal is None and exponent is None:
-        # TODO: We could find the int type without converting the number
+    # Try integer
+    try:
         value = int(string)
-        return numpy.min_scalar_type(value).type
+    except ValueError:
+        pass
     else:
-        if number is None:
-            number = ""
-        if decimal is None:
-            decimal = ""
-        significante_size = len(number) + len(decimal)
-        if exponent is None:
-            exponent = 0 + len(number)
-        else:
-            exponent = abs(int(exponent) + len(number))
+        return numpy.min_scalar_type(value).type
 
-        if significante_size <= 3:
-            # A float16 is accurate with about 3.311 digits
-            expected_mantissa = 16
-        elif significante_size <= 7:
-            # Expect at least float 32-bits
-            expected_mantissa = 32
-        elif significante_size <= 15:
-            # Expect at least float 64-bits
-            expected_mantissa = 64
-        elif significante_size <= 19:
-            # Expect at least float 80-bits
-            expected_mantissa = 80
-        elif significante_size <= 34:
-            # Expect at least float 128-bits (real 128-bits, referenced as binary128)
-            # Unsupported by numpy
-            expected_mantissa = 128
-        else:
-            expected_mantissa = 999
+    # Try floating-point
+    try:
+        value = _biggest_float(string)
+    except ValueError:
+        pass
+    else:
+        for numpy_type in _float_types:
+            if numpy.can_cast(value, numpy_type, casting="safe"):
+                break
 
-        if exponent <= 4:
-            # Up to 6.55040 * 10**4
-            expected_exponent = 16
-        elif exponent <= 37:
-            # Up to 3.402823 * 10**38
-            expected_exponent = 32
-        elif exponent <= 307:
-            # Up to 10**308
-            expected_exponent = 64
-        elif exponent <= 4932:
-            # Up to 10**4932
-            expected_exponent = 80
-        else:
-            expected_exponent = 999
+        if check_accuracy and numpy_type == _biggest_float:
+            match = _parse_numeric_value.match(string)
+            if match is None:
+                assert(False)
+            number, decimal, _exponent = match.groups()
+            if number is None:
+                number = ""
+            if decimal is None:
+                decimal = ""
+            expected = number + decimal
+            # This format the number without python convertion to float64
+            result = numpy.array2string(value, precision=len(number) + len(decimal), floatmode="fixed")
+            result = result.replace(".", "").replace("-", "")
+            if not result.startswith(expected):
+                _logger.warning("Not able to convert '%s' using %s without losing precision", string, _biggest_float)
 
-        expected = max(expected_mantissa, expected_exponent)
-        if expected >= 128:
-            # Here we lose precision
-            if hasattr(numpy, "longdouble"):
-                return numpy.longdouble
-            else:
-                return numpy.float64
+        return numpy_type
 
-        if expected == 16:
-            return numpy.float16
-        elif expected == 32:
-            return numpy.float32
-        elif expected == 64:
-            return numpy.float64
-        elif expected == 80:
-            # A float 80-bits if available (padded using 96 or 128 bits)
-            if hasattr(numpy, "longdouble"):
-                return numpy.longdouble
-            else:
-                # Here we lose precision
-                return numpy.float64
+    raise ValueError("Not a numerical value")
