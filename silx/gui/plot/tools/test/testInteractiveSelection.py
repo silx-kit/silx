@@ -35,24 +35,31 @@ from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.tools import SelectionManager
+from silx.gui.plot.tools import SelectionManager, SelectionTableWidget
 
 
-class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
+class TestSelectionManager(TestCaseQt, ParametricTestCase):
     """Tests for SelectionManager class"""
 
     def setUp(self):
-        super(TestInteractiveSelection, self).setUp()
+        super(TestSelectionManager, self).setUp()
         self.plot = PlotWindow()
+
+        self.selectionTableWidget = SelectionTableWidget()
+        dock = qt.QDockWidget()
+        dock.setWidget(self.selectionTableWidget)
+        self.plot.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
+
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
     def tearDown(self):
+        del self.selectionTableWidget
         self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestInteractiveSelection, self).tearDown()
+        super(TestSelectionManager, self).tearDown()
 
     def testSelection(self):
         """Test selection of different shapes"""
@@ -64,11 +71,16 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                                      ((5., 6.), (5., 16.), (15., 6.))))),
             ('line', numpy.array((((10., 20.), (10., 30.)),
                                   ((30., 40.), (30., 50.))))),
+            ('hline', numpy.array((((10., 20.), (10., 30.)),
+                                   ((30., 40.), (30., 50.))))),
+            ('vline', numpy.array((((10., 20.), (10., 30.)),
+                                   ((30., 40.), (30., 50.))))),
         )
 
         for kind, points in tests:
             with self.subTest(kind=kind):
                 selector = SelectionManager(self.plot)
+                self.selectionTableWidget.setSelectionManager(selector)
                 selector.start(kind)
 
                 self.assertEqual(selector.getSelections(), ())
@@ -86,9 +98,8 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                     selector.getSelectionPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 1)
 
-                # Reset it
-                result = selector.clearSelections()
-                self.assertTrue(result)
+                # Remove it
+                selector.removeSelection(selector.getSelections()[0])
                 self.assertEqual(selector.getSelections(), ())
                 self.assertEqual(changedListener.callCount(), 2)
 
@@ -130,6 +141,10 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 1)
 
+                # Try to set max selection to 1 while 2 selections
+                with self.assertRaises(ValueError):
+                    selector.setMaxSelections(1)
+
                 # restart
                 changedListener.clear()
                 selector.clearSelections()
@@ -137,12 +152,19 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
                 self.assertEqual(changedListener.callCount(), 1)
                 selector.start(kind)
 
+                # Set max limit to 1
+                selector.setMaxSelections(1)
+
                 # Add a point
                 selector.addSelection(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
                     selector.getSelectionPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 2)
+
+                # Try to add a 2nd point while max selection is 1
+                with self.assertRaises(RuntimeError):
+                    selector.addSelection(kind, points[1])
 
                 # stop
                 selector.stop()
@@ -154,16 +176,22 @@ class TestInteractiveSelection(TestCaseQt, ParametricTestCase):
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
         selector = SelectionManager(self.plot)
+        self.selectionTableWidget.setSelectionManager(selector)
         selector.start('point')
 
-        # Change to pan mode
         interactiveModeToolBar = self.plot.getInteractiveModeToolBar()
         panAction = interactiveModeToolBar.getPanModeAction()
-        panAction.trigger()
 
-        # Change to selection mode
-        selectionAction = selector.getDrawSelectionModeAction(kind='point')
-        selectionAction.trigger()
+        for kind in selector.getSupportedSelectionKinds():
+            with self.subTest(kind=kind):
+                # Change to pan mode
+                panAction.trigger()
+
+                # Change to selection mode
+                selectionAction = selector.getDrawSelectionModeAction(kind)
+                selectionAction.trigger()
+
+                self.assertEqual(kind, selector.getSelectionKind())
 
         selector.clearSelections()
 
@@ -172,7 +200,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestInteractiveSelection))
+            TestSelectionManager))
     return test_suite
 
 
