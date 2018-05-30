@@ -66,7 +66,7 @@ selector.setColor('pink')  # Set the color of ROI
 def updateAddedSelection(selection):
     """Called for each added selection: set the name"""
     if selection.getLabel() == '':
-        selection.setLabel('ROI %d' % (1 + len(selector.getSelections())))
+        selection.setLabel('ROI %d' % len(selector.getSelections()))
 
 
 selector.sigSelectionAdded.connect(updateAddedSelection)
