@@ -36,6 +36,7 @@ import logging
 import weakref
 
 import silx
+from silx.utils.weakref import WeakMethodProxy
 from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
@@ -777,7 +778,7 @@ class Plot2D(PlotWindow):
         posInfo = [
             ('X', lambda x, y: x),
             ('Y', lambda x, y: y),
-            ('Data', self._getImageValue)]
+            ('Data', WeakMethodProxy(self._getImageValue))]
 
         super(Plot2D, self).__init__(parent=parent, backend=backend,
                                      resetzoom=True, autoScale=False,
