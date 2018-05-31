@@ -33,6 +33,7 @@ __date__ = "26/04/2018"
 
 import collections
 import logging
+import weakref
 
 import silx
 from silx.utils.deprecation import deprecated
@@ -322,7 +323,7 @@ class PlotWindow(PlotWidget):
         show it or hide it."""
         # create widget if needed (first call)
         if self._consoleDockWidget is None:
-            available_vars = {"plt": self}
+            available_vars = {"plt": weakref.proxy(self)}
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
             self._consoleDockWidget = IPythonDockWidget(
