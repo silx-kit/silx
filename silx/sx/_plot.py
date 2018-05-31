@@ -449,8 +449,8 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         self.sigMessageChanged.connect(statusBar.showMessage)
         self.setMaxRegionOfInterests(n)
         self.setValidationMode(self.ValidationMode.AUTO_ENTER)
-        self.sigRegionOfInterestAdded.connect(self.__selectionAdded)
-        self.sigRegionOfInterestAboutToBeRemoved.connect(self.__selectionRemoved)
+        self.sigRegionOfInterestAdded.connect(self.__added)
+        self.sigRegionOfInterestAboutToBeRemoved.connect(self.__removed)
 
     def exec_(self):
         """Request user inputs
@@ -463,7 +463,7 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
 
         window = plot.window()  # Retrieve window containing PlotWidget
 
-        # Add selection mode action
+        # Add ROI point interactive mode action
         for toolbar in window.findChildren(qt.QToolBar):
             if isinstance(toolbar, InteractiveModeToolBar):
                 break
@@ -481,17 +481,17 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
 
         return tuple(self.__selections.values())
 
-    def __updateSelection(self, selection):
+    def __updateSelection(self, roi):
         """Perform picking and update selection list
 
-        :param RegionOfInterest selection:
+        :param RegionOfInterest roi:
         """
 
         plot = self.parent()
         if plot is None:
             return  # No plot, abort
 
-        x, y = selection.getControlPoints()[0]
+        x, y = roi.getControlPoints()[0]
         xPixel, yPixel = plot.dataToPixel(x, y, axis='left', check=False)
 
         # Pick item at selected position
@@ -526,29 +526,29 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
                                    indices=(row, column),
                                    data=data)
 
-        self.__selections[selection] = result
+        self.__selections[roi] = result
 
-    def __selectionAdded(self, selection):
-        """Handle new selection added
+    def __added(self, roi):
+        """Handle new ROI added
 
-        :param RegionOfInterest selection:
+        :param RegionOfInterest roi:
         """
-        if selection.getKind() == 'point':  # Only handle points
-            selection.setLabel('%d' % len(self.__selections))
-            self.__updateSelection(selection)
-            selection.sigControlPointsChanged.connect(
+        if roi.getKind() == 'point':  # Only handle points
+            roi.setLabel('%d' % len(self.__selections))
+            self.__updateSelection(roi)
+            roi.sigControlPointsChanged.connect(
                 self.__controlPointsChanged)
 
-    def __selectionRemoved(self, selection):
-        """Handle selection removed"""
-        if self.__selections.pop(selection, None) is not None:
-            selection.sigControlPointsChanged.disconnect(
+    def __removed(self, roi):
+        """Handle ROI removed"""
+        if self.__selections.pop(roi, None) is not None:
+            roi.sigControlPointsChanged.disconnect(
                 self.__controlPointsChanged)
 
     def __controlPointsChanged(self):
-        """Handle update of a selection"""
-        selection = self.sender()
-        self.__updateSelection(selection)
+        """Handle update of a ROI"""
+        roi = self.sender()
+        self.__updateSelection(roi)
 
 
 def ginput(n=1, timeout=30, plot=None):

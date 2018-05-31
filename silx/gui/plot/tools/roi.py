@@ -1163,10 +1163,10 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         """
         assert manager is None or isinstance(manager, RegionOfInterestManager)
 
-        previousSelector = self.getRegionOfInterestManager()
+        previousManager = self.getRegionOfInterestManager()
 
-        if previousSelector is not None:
-            previousSelector.sigRegionOfInterestChanged.disconnect(self._sync)
+        if previousManager is not None:
+            previousManager.sigRegionOfInterestChanged.disconnect(self._sync)
         self.setRowCount(0)
 
         self._roiManagerRef = weakref.ref(manager)

@@ -28,7 +28,7 @@ This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidg
 
 It uses :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager` and
 :class:`~silx.gui.plot.tools.roi.RegionOfInterestTableWidget` to handle the
-interactive selection and to display the list of selected ROIs.
+interactive ROI selection and to display the list of ROIs.
 """
 
 import numpy
@@ -57,21 +57,21 @@ plot = Plot2D()
 plot.getDefaultColormap().setName('viridis')
 plot.addImage(dummy_image())
 
-# Create the object controlling the ROI selection and set it up
+# Create the object controlling the ROIs and set it up
 roiManager = RegionOfInterestManager(plot)
 roiManager.setColor('pink')  # Set the color of ROI
 
 
-# Set the name of each created selection
-def updateAddedSelection(selection):
-    """Called for each added selection: set the name"""
-    if selection.getLabel() == '':
-        selection.setLabel('ROI %d' % len(roiManager.getRegionOfInterests()))
+# Set the name of each created region of interest
+def updateAddedRegionOfInterest(roi):
+    """Called for each added region of interest: set the name"""
+    if roi.getLabel() == '':
+        roi.setLabel('ROI %d' % len(roiManager.getRegionOfInterests()))
 
 
-roiManager.sigRegionOfInterestAdded.connect(updateAddedSelection)
+roiManager.sigRegionOfInterestAdded.connect(updateAddedRegionOfInterest)
 
-# Add a rectangle selection
+# Add a rectangular region of interest
 roiManager.createRegionOfInterest('rectangle',
                                   points=((50, 50), (200, 200)),
                                   label='Initial ROI')
@@ -95,7 +95,7 @@ for kind in roiManager.getSupportedRegionOfInterestKinds():
 btnLayout.addStretch(1)
 
 
-# Add the selection table and the buttons to a dock widget
+# Add the region of interest table and the buttons to a dock widget
 widget = qt.QWidget()
 layout = qt.QVBoxLayout()
 widget.setLayout(layout)

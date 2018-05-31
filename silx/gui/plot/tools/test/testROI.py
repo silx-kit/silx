@@ -38,11 +38,11 @@ from silx.gui.plot import PlotWindow
 from silx.gui.plot.tools import roi
 
 
-class TestSelectionManager(TestCaseQt, ParametricTestCase):
+class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
     """Tests for RegionOfInterestManager class"""
 
     def setUp(self):
-        super(TestSelectionManager, self).setUp()
+        super(TestRegionOfInterestManager, self).setUp()
         self.plot = PlotWindow()
 
         self.roiTableWidget = roi.RegionOfInterestTableWidget()
@@ -59,10 +59,10 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestSelectionManager, self).tearDown()
+        super(TestRegionOfInterestManager, self).tearDown()
 
-    def testSelection(self):
-        """Test selection of different shapes"""
+    def test(self):
+        """Test ROI of different shapes"""
         tests = (  # shape, points=[list of (x, y), list of (x, y)]
             ('point', numpy.array(([(10., 15.)], [(20., 25.)]))),
             ('rectangle', numpy.array((((1., 10.), (11., 20.)),
@@ -79,128 +79,128 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
 
         for kind, points in tests:
             with self.subTest(kind=kind):
-                selector = roi.RegionOfInterestManager(self.plot)
-                self.roiTableWidget.setRegionOfInterestManager(selector)
-                selector.start(kind)
+                manager = roi.RegionOfInterestManager(self.plot)
+                self.roiTableWidget.setRegionOfInterestManager(manager)
+                manager.start(kind)
 
-                self.assertEqual(selector.getRegionOfInterests(), ())
+                self.assertEqual(manager.getRegionOfInterests(), ())
 
                 finishListener = SignalListener()
-                selector.sigInteractionModeFinished.connect(finishListener)
+                manager.sigInteractionModeFinished.connect(finishListener)
 
                 changedListener = SignalListener()
-                selector.sigRegionOfInterestChanged.connect(changedListener)
+                manager.sigRegionOfInterestChanged.connect(changedListener)
 
                 # Add a point
-                selector.createRegionOfInterest(kind, points[0])
+                manager.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getRegionOfInterestPoints(), (points[0],))))
+                    manager.getRegionOfInterestPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 1)
 
                 # Remove it
-                selector.removeRegionOfInterest(selector.getRegionOfInterests()[0])
-                self.assertEqual(selector.getRegionOfInterests(), ())
+                manager.removeRegionOfInterest(manager.getRegionOfInterests()[0])
+                self.assertEqual(manager.getRegionOfInterests(), ())
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Add two point
-                selector.createRegionOfInterest(kind, points[0])
+                manager.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
-                selector.createRegionOfInterest(kind, points[1])
+                manager.createRegionOfInterest(kind, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getRegionOfInterestPoints(),
+                    manager.getRegionOfInterestPoints(),
                     (points[0], points[1]))))
                 self.assertEqual(changedListener.callCount(), 4)
 
                 # Reset it
-                result = selector.clearRegionOfInterests()
+                result = manager.clearRegionOfInterests()
                 self.assertTrue(result)
-                self.assertEqual(selector.getRegionOfInterests(), ())
+                self.assertEqual(manager.getRegionOfInterests(), ())
                 self.assertEqual(changedListener.callCount(), 5)
 
                 changedListener.clear()
 
                 # Add two point
-                selector.createRegionOfInterest(kind, points[0])
+                manager.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
-                selector.createRegionOfInterest(kind, points[1])
+                manager.createRegionOfInterest(kind, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getRegionOfInterestPoints(),
+                    manager.getRegionOfInterestPoints(),
                     (points[0], points[1]))))
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # stop
-                result = selector.stop()
+                result = manager.stop()
                 self.assertTrue(result)
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getRegionOfInterestPoints(),
+                    manager.getRegionOfInterestPoints(),
                     (points[0], points[1]))))
 
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 1)
 
-                # Try to set max selection to 1 while 2 selections
+                # Try to set max ROI to 1 while there is 2 ROIs
                 with self.assertRaises(ValueError):
-                    selector.setMaxRegionOfInterests(1)
+                    manager.setMaxRegionOfInterests(1)
 
                 # restart
                 changedListener.clear()
-                selector.clearRegionOfInterests()
-                self.assertEqual(selector.getRegionOfInterests(), ())
+                manager.clearRegionOfInterests()
+                self.assertEqual(manager.getRegionOfInterests(), ())
                 self.assertEqual(changedListener.callCount(), 1)
-                selector.start(kind)
+                manager.start(kind)
 
                 # Set max limit to 1
-                selector.setMaxRegionOfInterests(1)
+                manager.setMaxRegionOfInterests(1)
 
                 # Add a point
-                selector.createRegionOfInterest(kind, points[0])
+                manager.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getRegionOfInterestPoints(), (points[0],))))
+                    manager.getRegionOfInterestPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 2)
 
-                # Try to add a 2nd point while max selection is 1
+                # Try to add a 2nd point while max ROI is 1
                 with self.assertRaises(RuntimeError):
-                    selector.createRegionOfInterest(kind, points[1])
+                    manager.createRegionOfInterest(kind, points[1])
 
                 # stop
-                selector.stop()
-                selector.clearRegionOfInterests()
+                manager.stop()
+                manager.clearRegionOfInterests()
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 2)
                 self.assertEqual(changedListener.callCount(), 3)
 
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
-        selector = roi.RegionOfInterestManager(self.plot)
-        self.roiTableWidget.setRegionOfInterestManager(selector)
-        selector.start('point')
+        manager = roi.RegionOfInterestManager(self.plot)
+        self.roiTableWidget.setRegionOfInterestManager(manager)
+        manager.start('point')
 
         interactiveModeToolBar = self.plot.getInteractiveModeToolBar()
         panAction = interactiveModeToolBar.getPanModeAction()
 
-        for kind in selector.getSupportedRegionOfInterestKinds():
+        for kind in manager.getSupportedRegionOfInterestKinds():
             with self.subTest(kind=kind):
                 # Change to pan mode
                 panAction.trigger()
 
-                # Change to selection mode
-                selectionAction = selector.getInteractionModeAction(kind)
-                selectionAction.trigger()
+                # Change to interactive ROI mode
+                action = manager.getInteractionModeAction(kind)
+                action.trigger()
 
-                self.assertEqual(kind, selector.getRegionOfInterestKind())
+                self.assertEqual(kind, manager.getRegionOfInterestKind())
 
-        selector.clearRegionOfInterests()
+        manager.clearRegionOfInterests()
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestSelectionManager))
+            TestRegionOfInterestManager))
     return test_suite
 
 
