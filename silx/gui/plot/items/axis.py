@@ -94,7 +94,23 @@ class Axis(qt.QObject):
         # Store currently displayed labels
         # Current label can differ from input one with active curve handling
         self._currentLabel = ''
-        self._plot = plot
+
+    def _getPlot(self):
+        """Returns the PlotWidget this Axis belongs to.
+
+        :rtype: PlotWidget
+        """
+        plot = self.parent()
+        if plot is None:
+            raise RuntimeError("Axis no longer attached to a PlotWidget")
+        return plot
+
+    def _getBackend(self):
+        """Returns the backend
+
+        :rtype: BackendBase
+        """
+        return self._getPlot()._backend
 
     def getLimits(self):
         """Get the limits of this axis.
@@ -114,7 +130,7 @@ class Axis(qt.QObject):
             return
 
         self._internalSetLimits(vmin, vmax)
-        self._plot._setDirtyPlot()
+        self._getPlot()._setDirtyPlot()
 
         self._emitLimitsChanged()
 
@@ -122,7 +138,7 @@ class Axis(qt.QObject):
         """Emit axis sigLimitsChanged and PlotWidget limitsChanged event"""
         vmin, vmax = self.getLimits()
         self.sigLimitsChanged.emit(vmin, vmax)
-        self._plot._notifyLimitsChanged(emitSignal=False)
+        self._getPlot()._notifyLimitsChanged(emitSignal=False)
 
     def _checkLimits(self, vmin, vmax):
         """Makes sure axis range is not empty
@@ -184,7 +200,7 @@ class Axis(qt.QObject):
         """
         self._defaultLabel = label
         self._setCurrentLabel(label)
-        self._plot._setDirtyPlot()
+        self._getPlot()._setDirtyPlot()
 
     def _setCurrentLabel(self, label):
         """Define the label currently displayed.
@@ -222,9 +238,10 @@ class Axis(qt.QObject):
         self._scale = scale
 
         # TODO hackish way of forcing update of curves and images
-        for item in self._plot._getItems(withhidden=True):
+        plot = self._getPlot()
+        for item in plot._getItems(withhidden=True):
             item._updated()
-        self._plot._invalidateDataRange()
+        plot._invalidateDataRange()
 
         if scale == self.LOGARITHMIC:
             self._internalSetLogarithmic(True)
@@ -233,7 +250,7 @@ class Axis(qt.QObject):
         else:
             raise ValueError("Scale %s unsupported" % scale)
 
-        self._plot._forceResetZoom()
+        plot._forceResetZoom()
 
         self.sigScaleChanged.emit(self._scale)
         if emitLog:
@@ -318,7 +335,7 @@ class Axis(qt.QObject):
         """
         updated = self._setLimitsConstraints(minPos, maxPos)
         if updated:
-            plot = self._plot
+            plot = self._getPlot()
             xMin, xMax = plot.getXAxis().getLimits()
             yMin, yMax = plot.getYAxis().getLimits()
             y2Min, y2Max = plot.getYAxis('right').getLimits()
@@ -341,7 +358,7 @@ class Axis(qt.QObject):
         """
         updated = self._setRangeConstraints(minRange, maxRange)
         if updated:
-            plot = self._plot
+            plot = self._getPlot()
             xMin, xMax = plot.getXAxis().getLimits()
             yMin, yMax = plot.getYAxis().getLimits()
             y2Min, y2Max = plot.getYAxis('right').getLimits()
@@ -356,7 +373,7 @@ class XAxis(Axis):
     #      specialised implementations (prefixel by '_internal')
 
     def getTimeZone(self):
-        return self._plot._backend.getXAxisTimeZone()
+        return self._getBackend().getXAxisTimeZone()
 
     def setTimeZone(self, tz):
         if isinstance(tz, str) and tz.upper() == "UTC":
@@ -364,42 +381,42 @@ class XAxis(Axis):
         elif not(tz is None or isinstance(tz, dt.tzinfo)):
             raise TypeError("tz must be a dt.tzinfo object, None or 'UTC'.")
 
-        self._plot._backend.setXAxisTimeZone(tz)
-        self._plot._setDirtyPlot()
+        self._getBackend().setXAxisTimeZone(tz)
+        self._getPlot()._setDirtyPlot()
 
     def getTickMode(self):
-        if self._plot._backend.isXAxisTimeSeries():
+        if self._getBackend().isXAxisTimeSeries():
             return TickMode.TIME_SERIES
         else:
             return TickMode.DEFAULT
 
     def setTickMode(self, tickMode):
         if tickMode == TickMode.DEFAULT:
-            self._plot._backend.setXAxisTimeSeries(False)
+            self._getBackend().setXAxisTimeSeries(False)
         elif tickMode == TickMode.TIME_SERIES:
-            self._plot._backend.setXAxisTimeSeries(True)
+            self._getBackend().setXAxisTimeSeries(True)
         else:
             raise ValueError("Unexpected TickMode: {}".format(tickMode))
 
     def _internalSetCurrentLabel(self, label):
-        self._plot._backend.setGraphXLabel(label)
+        self._getBackend().setGraphXLabel(label)
 
     def _internalGetLimits(self):
-        return self._plot._backend.getGraphXLimits()
+        return self._getBackend().getGraphXLimits()
 
     def _internalSetLimits(self, xmin, xmax):
-        self._plot._backend.setGraphXLimits(xmin, xmax)
+        self._getBackend().setGraphXLimits(xmin, xmax)
 
     def _internalSetLogarithmic(self, flag):
-        self._plot._backend.setXAxisLogarithmic(flag)
+        self._getBackend().setXAxisLogarithmic(flag)
 
     def _setLimitsConstraints(self, minPos=None, maxPos=None):
-        constrains = self._plot._getViewConstraints()
+        constrains = self._getPlot()._getViewConstraints()
         updated = constrains.update(xMin=minPos, xMax=maxPos)
         return updated
 
     def _setRangeConstraints(self, minRange=None, maxRange=None):
-        constrains = self._plot._getViewConstraints()
+        constrains = self._getPlot()._getViewConstraints()
         updated = constrains.update(minXRange=minRange, maxXRange=maxRange)
         return updated
 
@@ -411,16 +428,16 @@ class YAxis(Axis):
     #      specialised implementations (prefixel by '_internal')
 
     def _internalSetCurrentLabel(self, label):
-        self._plot._backend.setGraphYLabel(label, axis='left')
+        self._getBackend().setGraphYLabel(label, axis='left')
 
     def _internalGetLimits(self):
-        return self._plot._backend.getGraphYLimits(axis='left')
+        return self._getBackend().getGraphYLimits(axis='left')
 
     def _internalSetLimits(self, ymin, ymax):
-        self._plot._backend.setGraphYLimits(ymin, ymax, axis='left')
+        self._getBackend().setGraphYLimits(ymin, ymax, axis='left')
 
     def _internalSetLogarithmic(self, flag):
-        self._plot._backend.setYAxisLogarithmic(flag)
+        self._getBackend().setYAxisLogarithmic(flag)
 
     def setInverted(self, flag=True):
         """Set the axis orientation.
@@ -431,8 +448,8 @@ class YAxis(Axis):
                           False for Y axis going from bottom to top
         """
         flag = bool(flag)
-        self._plot._backend.setYAxisInverted(flag)
-        self._plot._setDirtyPlot()
+        self._getBackend().setYAxisInverted(flag)
+        self._getPlot()._setDirtyPlot()
         self.sigInvertedChanged.emit(flag)
 
     def isInverted(self):
@@ -441,15 +458,15 @@ class YAxis(Axis):
 
         :rtype: bool
         """
-        return self._plot._backend.isYAxisInverted()
+        return self._getBackend().isYAxisInverted()
 
     def _setLimitsConstraints(self, minPos=None, maxPos=None):
-        constrains = self._plot._getViewConstraints()
+        constrains = self._getPlot()._getViewConstraints()
         updated = constrains.update(yMin=minPos, yMax=maxPos)
         return updated
 
     def _setRangeConstraints(self, minRange=None, maxRange=None):
-        constrains = self._plot._getViewConstraints()
+        constrains = self._getPlot()._getViewConstraints()
         updated = constrains.update(minYRange=minRange, maxYRange=maxRange)
         return updated
 
@@ -492,13 +509,13 @@ class YRightAxis(Axis):
         return self.__mainAxis.sigAutoScaleChanged
 
     def _internalSetCurrentLabel(self, label):
-        self._plot._backend.setGraphYLabel(label, axis='right')
+        self._getBackend().setGraphYLabel(label, axis='right')
 
     def _internalGetLimits(self):
-        return self._plot._backend.getGraphYLimits(axis='right')
+        return self._getBackend().getGraphYLimits(axis='right')
 
     def _internalSetLimits(self, ymin, ymax):
-        self._plot._backend.setGraphYLimits(ymin, ymax, axis='right')
+        self._getBackend().setGraphYLimits(ymin, ymax, axis='right')
 
     def setInverted(self, flag=True):
         """Set the Y axis orientation.
