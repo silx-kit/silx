@@ -544,7 +544,7 @@ class RegionOfInterestManager(qt.QObject):
     def _plotInteractiveModeChanged(self, source):
         """Handle change of interactive mode in the plot"""
         if source is not self:
-            self.stop()  # Stop any current interaction mode
+            self.__roiInteractiveModeEnded()
 
         else:  # Check the corresponding action
             self._updateModeActions()
@@ -801,6 +801,19 @@ class RegionOfInterestManager(qt.QObject):
 
         return True
 
+    def __roiInteractiveModeEnded(self):
+        """Handle end of ROI draw interactive mode"""
+        if self.isStarted():
+            self._shapeKind = None
+
+            plot = self.parent()
+            if plot is not None:
+                plot.sigPlotSignal.disconnect(self._handleInteraction)
+
+            self._updateModeActions()
+
+            self.sigInteractionModeFinished.emit(self.getRegionOfInterestPoints())
+
     def stop(self):
         """Stop interactive ROI drawing mode.
 
@@ -810,16 +823,13 @@ class RegionOfInterestManager(qt.QObject):
         if not self.isStarted():
             return False
 
-        self._shapeKind = None
-
         plot = self.parent()
         if plot is not None:
-            plot.sigPlotSignal.disconnect(self._handleInteraction)
+            # This leads to call __roiInteractiveModeEnded through
+            # interactive mode changed signal
             plot.setInteractiveMode(mode='zoom', source=None)
-
-        self._updateModeActions()
-
-        self.sigInteractionModeFinished.emit(self.getRegionOfInterestPoints())
+        else:  # Fallback
+            self.__roiInteractiveModeEnded()
 
         return True
 
