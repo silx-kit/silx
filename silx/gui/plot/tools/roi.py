@@ -57,7 +57,7 @@ class RegionOfInterest(qt.QObject):
 
     :param QObject parent:
         The RegionOfInterestManager that created this object
-    :param str kind: The kind of selection represented by this object
+    :param str kind: The kind of ROI represented by this object
     """
 
     sigControlPointsChanged = qt.Signal()
@@ -92,30 +92,30 @@ class RegionOfInterest(qt.QObject):
         self._createPlotItems()
 
     def getKind(self):
-        """Return kind of selection
+        """Return kind of ROI
 
         :rtype: str
         """
         return self._kind
 
     def getColor(self):
-        """Returns the color of this selection
+        """Returns the color of this ROI
 
         :rtype: QColor
         """
         return qt.QColor.fromRgbF(*self._color)
 
     def setColor(self, color):
-        """Set the color used for this selection.
+        """Set the color used for this ROI.
 
-        :param color: The color to use for selection shape as
+        :param color: The color to use for ROI shape as
            either a color name, a QColor, a list of uint8 or float in [0, 1].
         """
         color = rgba(color)
         if color != self._color:
             self._color = color
 
-            # Update color of selection items in the plot
+            # Update color of shape items in the plot
             rgbaColor = rgba(color)
             for item in list(self._items):
                 if isinstance(item, items.ColorMixIn):
@@ -129,14 +129,14 @@ class RegionOfInterest(qt.QObject):
                     item.setColor(rgbaColor)
 
     def getLabel(self):
-        """Returns the label displayed for this selection.
+        """Returns the label displayed for this ROI.
 
         :rtype: str
         """
         return self._label
 
     def setLabel(self, label):
-        """Set the label displayed with this selection.
+        """Set the label displayed with this ROI.
 
         :param str label: The text label to display
         """
@@ -149,14 +149,14 @@ class RegionOfInterest(qt.QObject):
                     item.setText(self._label)
 
     def isEditable(self):
-        """Returns whether the selection is editable by the user or not.
+        """Returns whether the ROI is editable by the user or not.
 
         :rtype: bool
         """
         return self._editable
 
     def setEditable(self, editable):
-        """Set whether selection can be changed interactively.
+        """Set whether the ROI can be changed interactively.
 
         :param bool editable: True to allow edition by the user,
            False to disable.
@@ -170,9 +170,9 @@ class RegionOfInterest(qt.QObject):
             self._createPlotItems()
 
     def getControlPoints(self):
-        """Returns the current selection control points.
+        """Returns the current ROI control points.
 
-        It returns an empty tuple if there is currently no selection.
+        It returns an empty tuple if there is currently no ROI.
 
         :return: Array of (x, y) position in plot coordinates
         :rtype: numpy.ndarray
@@ -180,7 +180,7 @@ class RegionOfInterest(qt.QObject):
         return None if self._points is None else numpy.array(self._points)
 
     def setControlPoints(self, points):
-        """Set this selection control points.
+        """Set this ROI control points.
 
         :param points: Iterable of (x, y) control points
         """
@@ -229,7 +229,7 @@ class RegionOfInterest(qt.QObject):
         """Compute marker position.
 
         :param numpy.ndarray points: Array of (x, y) control points
-        :param str kind: The kind of selection shape to use
+        :param str kind: The kind of ROI shape to use
         :return: (x, y) position of the marker
         """
         if kind in ('point', 'hline', 'vline'):
@@ -248,10 +248,10 @@ class RegionOfInterest(qt.QObject):
             return points[numpy.argmin(points[:, 1])]
 
         else:
-            raise RuntimeError('Unsupported selection kind: %s' % kind)
+            raise RuntimeError('Unsupported ROI kind: %s' % kind)
 
     def _createPlotItems(self):
-        """Create items displaying the selection in the plot."""
+        """Create items displaying the ROI in the plot."""
         roiManager = self.parent()
         if roiManager is None:
             return
@@ -417,50 +417,50 @@ class RegionOfInterest(qt.QObject):
 
 
 class RegionOfInterestManager(qt.QObject):
-    """Class handling a selection interaction on a PlotWidget.
+    """Class handling ROI interaction on a PlotWidget.
 
-    It supports the selection of multiple points, rectangles, polygons,
+    It supports the multiple ROIs: points, rectangles, polygons,
     lines, horizontal and vertical lines.
 
     See ``plotInteractiveImageROI.py`` sample code (:ref:`sample-code`).
 
     :param silx.gui.plot.PlotWidget parent:
-        The plot widget the selection is done on
+        The plot widget in which to control the ROIs.
     """
 
-    sigSelectionAdded = qt.Signal(RegionOfInterest)
-    """Signal emitted when a new selection has been added.
+    sigRegionOfInterestAdded = qt.Signal(RegionOfInterest)
+    """Signal emitted when a new ROI has been added.
 
     It provides the newly add :class:`RegionOfInterest` object.
     """
 
-    sigSelectionAboutToBeRemoved = qt.Signal(RegionOfInterest)
-    """Signal emitted just before a selection is removed.
+    sigRegionOfInterestAboutToBeRemoved = qt.Signal(RegionOfInterest)
+    """Signal emitted just before a ROI is removed.
 
     It provides the :class:`RegionOfInterest` object that is about to be removed.
     """
 
-    sigSelectionChanged = qt.Signal(tuple)
-    """Signal emitted whenever the selection has changed.
+    sigRegionOfInterestChanged = qt.Signal(tuple)
+    """Signal emitted whenever the ROIs have changed.
 
-    It provides the selection.
+    It provides the list of ROIs.
     """
 
-    sigSelectionStarted = qt.Signal(str)
-    """Signal emitted whenever an interactive selection has started.
+    sigInteractionModeStarted = qt.Signal(str)
+    """Signal emitted when switching to ROI drawing interactive mode.
 
-    It provides the shape used for the selection.
+    It provides the kind of shape of the active interactive mode.
     """
 
-    sigSelectionFinished = qt.Signal(tuple)
-    """Signal emitted when an interactive selection has ended.
+    sigInteractionModeFinished = qt.Signal(tuple)
+    """Signal emitted when leaving and interactive ROI drawing.
 
-    It provides the selection.
+    It provides the list of ROIs.
     """
 
     _MODE_ACTIONS_PARAMS = collections.OrderedDict()
     # Interactive mode: (icon name, text)
-    _MODE_ACTIONS_PARAMS['point'] = 'normal', 'Add point selection'
+    _MODE_ACTIONS_PARAMS['point'] = 'normal', 'Add point markers'
     _MODE_ACTIONS_PARAMS['rectangle'] = 'shape-rectangle', 'Add Rectangle ROI'
     _MODE_ACTIONS_PARAMS['polygon'] = 'shape-polygon', 'Add Polygon ROI'
     _MODE_ACTIONS_PARAMS['line'] = 'shape-diagonal', 'Add Line ROI'
@@ -470,8 +470,8 @@ class RegionOfInterestManager(qt.QObject):
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
         super(RegionOfInterestManager, self).__init__(parent)
-        self._selections = []
-        self._maxSelection = None
+        self._rois = []
+        self._maxROI = None
 
         self._shapeKind = None
         self._color = rgba('red')
@@ -486,8 +486,8 @@ class RegionOfInterestManager(qt.QObject):
             self._plotInteractiveModeChanged)
 
     @classmethod
-    def getSupportedSelectionKinds(cls):
-        """Returns available selection kinds
+    def getSupportedRegionOfInterestKinds(cls):
+        """Returns available ROI kinds
 
         :rtype: List[str]
         """
@@ -495,17 +495,17 @@ class RegionOfInterestManager(qt.QObject):
 
     # Associated QActions
 
-    def getDrawSelectionModeAction(self, kind):
-        """Returns the QAction corresponding to a kind of selection
+    def getInteractionModeAction(self, kind):
+        """Returns the QAction corresponding to a kind of ROI
 
         The QAction allows to enable the corresponding drawing
         interactive mode.
 
-        :param str kind: Kind of selection
+        :param str kind: Kind of ROI
         :rtype: QAction
         :raise ValueError: If kind is not supported
         """
-        if kind not in self.getSupportedSelectionKinds():
+        if kind not in self.getSupportedRegionOfInterestKinds():
             raise ValueError('Unsupported kind %s' % kind)
 
         action = self._modeActions.get(kind, None)
@@ -515,7 +515,7 @@ class RegionOfInterestManager(qt.QObject):
             action.setIcon(icons.getQIcon(iconName))
             action.setText(text)
             action.setCheckable(True)
-            action.setChecked(self.getSelectionKind() == kind)
+            action.setChecked(self.getRegionOfInterestKind() == kind)
 
             action.triggered.connect(
                 functools.partial(self._modeActionTriggered, kind=kind))
@@ -532,9 +532,9 @@ class RegionOfInterestManager(qt.QObject):
             self.start(kind)
 
     def _updateModeActions(self):
-        """Enable/Disable mode actions depending on max selections"""
+        """Check/Uncheck action corresponding to current mode"""
         for kind, action in self._modeActions.items():
-            action.setChecked(kind == self.getSelectionKind())
+            action.setChecked(kind == self.getRegionOfInterestKind())
 
     # PlotWidget eventFilter and listeners
 
@@ -546,11 +546,11 @@ class RegionOfInterestManager(qt.QObject):
         else:  # Check the corresponding action
             self._updateModeActions()
 
-    # Handle selection interaction
+    # Handle ROI interaction
 
     def _handleInteraction(self, event):
-        """Handle mouse interaction for selection"""
-        kind = self.getSelectionKind()
+        """Handle mouse interaction for ROI addition"""
+        kind = self.getRegionOfInterestKind()
         if kind is None:
             return  # Should not happen
 
@@ -575,199 +575,201 @@ class RegionOfInterestManager(qt.QObject):
                                          dtype=numpy.float64)
 
         if points is not None:
-            if self.isMaxSelections():
-                # When reaching max number of selections, redo last one
-                selections = self.getSelections()
-                if len(selections) > 0:
-                    self.removeSelection(selections[-1])
-            self.createSelection(kind=kind, points=points)
+            if self.isMaxRegionOfInterests():
+                # When reaching max number of ROIs, redo last one
+                rois = self.getRegionOfInterests()
+                if len(rois) > 0:
+                    self.removeRegionOfInterest(rois[-1])
+            self.createRegionOfInterest(kind=kind, points=points)
 
     # RegionOfInterest API
 
-    def getSelectionPoints(self):
-        """Returns the current selection control points
+    def getRegionOfInterestPoints(self):
+        """Returns the current ROIs control points
 
         :return: Tuple of arrays of (x, y) points in plot coordinates
         :rtype: tuple of Nx2 numpy.ndarray
         """
-        return tuple(s.getControlPoints() for s in self.getSelections())
+        return tuple(s.getControlPoints() for s in self.getRegionOfInterests())
 
-    def getSelections(self):
-        """Returns the list of current selections.
+    def getRegionOfInterests(self):
+        """Returns the list of ROIs.
 
-        It returns an empty tuple if there is currently no selection.
+        It returns an empty tuple if there is currently no ROI.
 
-        :return: Tuple of arrays of objects describing the selection
+        :return: Tuple of arrays of objects describing the ROIs
+        :rtype: List[RegionOfInterest]
         """
-        return tuple(self._selections)
+        return tuple(self._rois)
 
-    def clearSelections(self):
-        """Reset current selections
+    def clearRegionOfInterests(self):
+        """Reset current ROIs
 
-        :return: True if selections were reset.
+        :return: True if ROIs were reset.
         :rtype: bool
         """
-        if self.getSelections():  # Something to reset
-            for selection in self._selections:
-                selection.sigControlPointsChanged.disconnect(
-                    self._selectionPointsChanged)
-                selection.setParent(None)
-            self._selections = []
-            self._selectionUpdated()
+        if self.getRegionOfInterests():  # Something to reset
+            for roi in self._rois:
+                roi.sigControlPointsChanged.disconnect(
+                    self._regionOfInterestPointsChanged)
+                roi.setParent(None)
+            self._rois = []
+            self._roisUpdated()
             return True
 
         else:
             return False
 
-    def _selectionPointsChanged(self):
-        """Handle selection object points changed"""
-        self.sigSelectionChanged.emit(self.getSelections())
+    def _regionOfInterestPointsChanged(self):
+        """Handle ROI object points changed"""
+        self.sigRegionOfInterestChanged.emit(self.getRegionOfInterests())
 
-    def getMaxSelections(self):
-        """Returns the maximum number of selections or None if no limit
+    def getMaxRegionOfInterests(self):
+        """Returns the maximum number of ROIs or None if no limit.
 
         :rtype: Union[int,None]
         """
-        return self._maxSelection
+        return self._maxROI
 
-    def setMaxSelections(self, max_):
-        """Set the maximum number of selections
+    def setMaxRegionOfInterests(self, max_):
+        """Set the maximum number of ROIs.
 
         :param Union[int,None] max_: The max limit or None for no limit.
-        :raise ValueError: If there is more selections than max value
+        :raise ValueError: If there is more ROIs than max value
         """
         if max_ is not None:
             max_ = int(max_)
             if max_ <= 0:
                 raise ValueError('Max limit must be strictly positive')
 
-            if len(self.getSelections()) > max_:
+            if len(self.getRegionOfInterests()) > max_:
                 raise ValueError(
-                    'Cannot set max limit: Already too many selections')
+                    'Cannot set max limit: Already too many ROIs')
 
-        self._maxSelection = max_
+        self._maxROI = max_
 
-    def isMaxSelections(self):
-        """Returns True if the maximum number of selections is reached.
+    def isMaxRegionOfInterests(self):
+        """Returns True if the maximum number of ROIs is reached.
 
         :rtype: bool
         """
-        max_ = self.getMaxSelections()
-        return max_ is not None and len(self.getSelections()) >= max_
+        max_ = self.getMaxRegionOfInterests()
+        return max_ is not None and len(self.getRegionOfInterests()) >= max_
 
-    def createSelection(self, kind, points, label='', index=None):
-        """Create a new selection abd add it to current selections
+    def createRegionOfInterest(self, kind, points, label='', index=None):
+        """Create a new ROI and add it to list of ROIs.
 
-        :param str kind: The kind of selection to add
-        :param numpy.ndarray points: The control points of the selection shape
-        :param str label: The label to display along with the selection.
-        :param int index: The position where to insert the selection,
-            By default it is appended to the end of the list of selections
-        :return: The created Selection object
+        :param str kind: The kind of ROI to add
+        :param numpy.ndarray points: The control points of the ROI shape
+        :param str label: The label to display along with the ROI.
+        :param int index: The position where to insert the ROI.
+            By default it is appended to the end of the list.
+        :return: The created ROI object
         :rtype: RegionOfInterest
-        :raise RuntimeError: When selection cannot be added because the maximum
-           number of selection has been reached.
+        :raise RuntimeError: When ROI cannot be added because the maximum
+           number of ROIs has been reached.
         """
-        selection = RegionOfInterest(parent=None, kind=kind)
-        selection.setColor(self.getColor())
-        selection.setLabel(str(label))
-        selection.setControlPoints(points)
+        roi = RegionOfInterest(parent=None, kind=kind)
+        roi.setColor(self.getColor())
+        roi.setLabel(str(label))
+        roi.setControlPoints(points)
 
-        self.addSelection(selection, index)
+        self.addRegionOfInterest(roi, index)
 
-    def addSelection(self, selection, index=None):
-        """Add the selection to the current selections
+    def addRegionOfInterest(self, roi, index=None):
+        """Add the ROI to the list of ROIs.
 
-        :param RegionOfInterest selection: The selection to add
-        :param int index: The position where to insert the selection,
-            By default it is appended to the end of the list of selections
-        :raise RuntimeError: When selection cannot be added because the maximum
-           number of selection has been reached.
+        :param RegionOfInterest roi: The ROI to add
+        :param int index: The position where to insert the ROI,
+            By default it is appended to the end of the list of ROIs
+        :raise RuntimeError: When ROI cannot be added because the maximum
+           number of ROIs has been reached.
         """
-        if self.isMaxSelections():
+        if self.isMaxRegionOfInterests():
             raise RuntimeError(
-                'Cannot add selection: Maximum number of selections reached')
+                'Cannot add ROI: Maximum number of ROIs reached')
 
         plot = self.parent()
         if plot is None:
             raise RuntimeError(
-                'Cannot add selection: PlotWidget no more available')
+                'Cannot add ROI: PlotWidget no more available')
 
-        selection.setParent(self)
-        selection.sigControlPointsChanged.connect(
-            self._selectionPointsChanged)
+        roi.setParent(self)
+        roi.sigControlPointsChanged.connect(
+            self._regionOfInterestPointsChanged)
 
         if index is None:
-            self._selections.append(selection)
+            self._rois.append(roi)
         else:
-            self._selections.insert(index, selection)
-        self.sigSelectionAdded.emit(selection)
-        self._selectionUpdated()
+            self._rois.insert(index, roi)
+        self.sigRegionOfInterestAdded.emit(roi)
+        self._roisUpdated()
 
-    def removeSelection(self, selection):
-        """Remove a selection from the list of current selections
+    def removeRegionOfInterest(self, roi):
+        """Remove a ROI from the list of ROIs.
 
-        :param RegionOfInterest selection: The selection to remove
-        :raise ValueError: When selection is not a selection in this object
+        :param RegionOfInterest roi: The ROI to remove
+        :raise ValueError: When ROI does not belong to this object
         """
-        if not (isinstance(selection, RegionOfInterest) and
-                selection.parent() is self and
-                selection in self._selections):
-            raise ValueError('RegionOfInterest does not belong to this instance')
+        if not (isinstance(roi, RegionOfInterest) and
+                roi.parent() is self and
+                roi in self._rois):
+            raise ValueError(
+                'RegionOfInterest does not belong to this instance')
 
-        self.sigSelectionAboutToBeRemoved.emit(selection)
+        self.sigRegionOfInterestAboutToBeRemoved.emit(roi)
 
-        self._selections.remove(selection)
-        selection.sigControlPointsChanged.disconnect(
-            self._selectionPointsChanged)
-        selection.setParent(None)
-        self._selectionUpdated()
+        self._rois.remove(roi)
+        roi.sigControlPointsChanged.disconnect(
+            self._regionOfInterestPointsChanged)
+        roi.setParent(None)
+        self._roisUpdated()
 
-    def _selectionUpdated(self):
-        """Handle update of the selection"""
-        self.sigSelectionChanged.emit(self.getSelections())
+    def _roisUpdated(self):
+        """Handle update of the ROI list"""
+        self.sigRegionOfInterestChanged.emit(self.getRegionOfInterests())
 
     # RegionOfInterest parameters
 
     def getColor(self):
-        """Return the default color of the selections
+        """Return the default color of created ROIs
 
         :rtype: QColor
         """
         return qt.QColor.fromRgbF(*self._color)
 
     def setColor(self, color):
-        """Set the default color to use for selections.
+        """Set the default color to use when creating ROIs.
 
-        Existing selections are not affected.
+        Existing ROIs are not affected.
 
-        :param color: The color to use for displaying selections as
+        :param color: The color to use for displaying ROIs as
            either a color name, a QColor, a list of uint8 or float in [0, 1].
         """
         self._color = rgba(color)
 
-    # Control selection
+    # Control ROI
 
-    def getSelectionKind(self):
-        """Returns the current interactive selection mode or None.
+    def getRegionOfInterestKind(self):
+        """Returns the current interactive ROI drawing mode or None.
 
         :rtype: Union[str,None]
         """
         return self._shapeKind
 
     def isStarted(self):
-        """Returns True if the selection is requesting user input.
+        """Returns True  if an interactive ROI drawing mode is active.
 
         :rtype: bool
         """
         return self._shapeKind is not None
 
     def start(self, kind):
-        """Start an interactive selection.
+        """Start an interactive ROI drawing mode.
 
-        :param str kind: The kind of shape to select in:
+        :param str kind: The kind of ROI shape in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
-        :return: True if interactive selection was started, False otherwise
+        :return: True if interactive ROI drawing was started, False otherwise
         :rtype: bool
         :raise ValueError: If kind is not supported
         """
@@ -777,7 +779,7 @@ class RegionOfInterestManager(qt.QObject):
         if plot is None:
             return False
 
-        if kind not in self.getSupportedSelectionKinds():
+        if kind not in self.getSupportedRegionOfInterestKinds():
             raise ValueError('Unsupported kind %s' % kind)
         self._shapeKind = kind
 
@@ -792,14 +794,14 @@ class RegionOfInterestManager(qt.QObject):
 
         plot.sigPlotSignal.connect(self._handleInteraction)
 
-        self.sigSelectionStarted.emit(kind)
+        self.sigInteractionModeStarted.emit(kind)
 
         return True
 
     def stop(self):
-        """Stop interactive selection
+        """Stop interactive ROI drawing mode.
 
-        :return: True if a selection was actually stopped
+        :return: True if an interactive ROI drawing mode was actually stopped
         :rtype: bool
         """
         if not self.isStarted():
@@ -814,16 +816,16 @@ class RegionOfInterestManager(qt.QObject):
 
         self._updateModeActions()
 
-        self.sigSelectionFinished.emit(self.getSelectionPoints())
+        self.sigInteractionModeFinished.emit(self.getRegionOfInterestPoints())
 
         return True
 
     def exec_(self, kind):
         """Block until :meth:`quit` is called.
 
-        :param str kind: The kind of shape to select in:
+        :param str kind: The kind of ROI shape in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
-        :return: The current selection
+        :return: The list of ROIs
         :rtype: tuple
         """
         self.start(kind=kind)
@@ -838,9 +840,9 @@ class RegionOfInterestManager(qt.QObject):
 
         self.stop()
 
-        selection = self.getSelectionPoints()
-        self.clearSelections()
-        return selection
+        rois = self.getRegionOfInterestPoints()
+        self.clearRegionOfInterests()
+        return rois
 
     def quit(self):
         """Stop a blocking :meth:`exec_` and call :meth:`stop`"""
@@ -873,54 +875,56 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         self.__validationMode = self.ValidationMode.ENTER
         self.__execKind = None
 
-        self.sigSelectionAdded.connect(self.__added)
-        self.sigSelectionAboutToBeRemoved.connect(self.__aboutToBeRemoved)
-        self.sigSelectionStarted.connect(self.__started)
-        self.sigSelectionFinished.connect(self.__finished)
+        self.sigRegionOfInterestAdded.connect(self.__added)
+        self.sigRegionOfInterestAboutToBeRemoved.connect(self.__aboutToBeRemoved)
+        self.sigInteractionModeStarted.connect(self.__started)
+        self.sigInteractionModeFinished.connect(self.__finished)
 
     # Validation mode
 
     @ enum.unique
     class ValidationMode(enum.Enum):
-        """Mode of validation of the selection"""
+        """Mode of validation to leave blocking :meth:`exec_`"""
 
         AUTO = 'auto'
-        """Automatically ends the selection once the user terminates the last shape"""
+        """Automatically ends the interactive mode once
+        the user terminates the last ROI shape."""
 
         ENTER = 'enter'
-        """Ends the selection when the *Enter* key is pressed"""
+        """Ends the interactive mode when the *Enter* key is pressed."""
 
         AUTO_ENTER = 'auto_enter'
-        """Ends selection if reaching max selection or on *Enter* key press
+        """Ends the interactive mode when reaching max ROIs or
+        when the *Enter* key is pressed.
         """
 
         NONE = 'none'
-        """Do not provide the user a way to end the selection.
+        """Do not provide the user a way to end the interactive mode.
 
         The end of :meth:`exec_` is done through :meth:`quit` or timeout.
         """
 
     def getValidationMode(self):
-        """Returns the selection validation mode in use.
+        """Returns the interactive mode validation in use.
 
         :rtype: ValidationMode
         """
         return self.__validationMode
 
     def setValidationMode(self, mode):
-        """Set the way to perform selection validation.
+        """Set the way to perform interactive mode validation.
 
         See :class:`ValidationMode` enumeration for the supported
         validation modes.
 
-        :param ValidationMode mode: The mode of selection validation to use.
+        :param ValidationMode mode: The interactive mode validation to use.
         """
         assert isinstance(mode, self.ValidationMode)
         if mode != self.__validationMode:
             self.__validationMode = mode
 
         if self.isExec():
-            if (self.isMaxSelections() and self.getValidationMode() in
+            if (self.isMaxRegionOfInterests() and self.getValidationMode() in
                     (self.ValidationMode.AUTO,
                      self.ValidationMode.AUTO_ENTER)):
                 self.quit()
@@ -943,9 +947,9 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             if (key in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
                     key == qt.Qt.Key_Z and
                     event.modifiers() & qt.Qt.ControlModifier)):
-                selections = self.getSelections()
-                if selections:  # Something to undo
-                    self.removeSelection(selections[-1])
+                rois = self.getRegionOfInterests()
+                if rois:  # Something to undo
+                    self.removeRegionOfInterest(rois[-1])
                     # Stop further handling of keys if something was undone
                     return True
 
@@ -967,20 +971,20 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             return self.__message + (' - %d seconds remaining' %
                                      max(1, int(remaining)))
 
-    # Listen to selection updates
+    # Listen to ROI updates
 
     def __added(self, *args, **kwargs):
-        """Handle new selection added"""
+        """Handle new ROI added"""
         self.__updateMessage()
-        if (self.isMaxSelections() and
+        if (self.isMaxRegionOfInterests() and
                 self.getValidationMode() in (self.ValidationMode.AUTO,
                                              self.ValidationMode.AUTO_ENTER)):
             self.quit()
 
     def __aboutToBeRemoved(self, *args, **kwargs):
-        """Handle removal of a selection"""
+        """Handle removal of a ROI"""
         # RegionOfInterest not removed yet
-        self.__updateMessage(nbSelections=len(self.getSelections()) - 1)
+        self.__updateMessage(nbrois=len(self.getRegionOfInterests()) - 1)
 
     def __started(self, *args, **kwargs):
         """Handle interactive mode started"""
@@ -990,7 +994,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         """Handle interactive mode finished"""
         self.__updateMessage()
 
-    def __updateMessage(self, nbSelections=None):
+    def __updateMessage(self, nbrois=None):
         """Update message"""
         if not self.isExec():
             message = 'Done'
@@ -999,22 +1003,22 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             message = 'Use %s ROI edition mode' % self.__execKind
 
         else:
-            if nbSelections is None:
-                nbSelections = len(self.getSelections())
+            if nbrois is None:
+                nbrois = len(self.getRegionOfInterests())
 
             kind = self.__execKind
-            maxNbSelection = self.getMaxSelections()
+            max_ = self.getMaxRegionOfInterests()
 
-            if maxNbSelection is None:
-                message = 'Select %ss (%d selected)' % (kind, nbSelections)
+            if max_ is None:
+                message = 'Select %ss (%d selected)' % (kind, nbrois)
 
-            elif maxNbSelection <= 1:
+            elif max_ <= 1:
                 message = 'Select a %s' % kind
             else:
-                message = 'Select %d/%d %ss' % (nbSelections, maxNbSelection, kind)
+                message = 'Select %d/%d %ss' % (nbrois, max_, kind)
 
             if (self.getValidationMode() == self.ValidationMode.ENTER and
-                    self.isMaxSelections()):
+                    self.isMaxRegionOfInterests()):
                 message += ' - Press Enter to confirm'
 
         if message != self.__message:
@@ -1029,7 +1033,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         if (self.__timeoutEndTime is not None and
                 (self.__timeoutEndTime - time.time()) > 0):
                 self.sigMessageChanged.emit(self.getMessage())
-        else:  # Stop selection and message timer
+        else:  # Stop interactive mode and message timer
             timer = self.sender()
             timer.stop()
             self.__timeoutEndTime = None
@@ -1042,16 +1046,16 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         return self.__execKind is not None
 
     def exec_(self, kind, timeout=0):
-        """Block until selection is done or timeout is elapsed.
+        """Block until ROI selection is done or timeout is elapsed.
 
         :meth:`quit` also ends this blocking call.
 
-        :param str kind: The kind of shape to select in:
+        :param str kind: The kind of ROI shape in:
            'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
         :param int timeout: Maximum duration in seconds to block.
             Default: No timeout
-        :return: The current selection
-        :rtype: tuple
+        :return: The list of ROIs
+        :rtype: List[RegionOfInterest]
         """
         plot = self.parent()
         if plot is None:
@@ -1067,46 +1071,47 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             timer.timeout.connect(self.__timeoutUpdate)
             timer.start(1000)
 
-            selection = super(InteractiveRegionOfInterestManager, self).exec_(kind)
+            rois = super(InteractiveRegionOfInterestManager, self).exec_(kind)
 
             timer.stop()
             self.__timeoutEndTime = None
 
         else:
-            selection = super(InteractiveRegionOfInterestManager, self).exec_(kind)
+            rois = super(InteractiveRegionOfInterestManager, self).exec_(kind)
 
         plot.removeEventFilter(self)
 
         self.__execKind = None
         self.__updateMessage()
 
-        return selection
+        return rois
 
 
-class _DeleteSelectionToolButton(qt.QToolButton):
-    """Tool button deleting a selection object
+class _DeleteRegionOfInterestToolButton(qt.QToolButton):
+    """Tool button deleting a ROI object
 
     :param parent: See QWidget
-    :param RegionOfInterest selection: The selection to delete
+    :param RegionOfInterest roi: The ROI to delete
     """
 
-    def __init__(self, parent, selection):
-        super(_DeleteSelectionToolButton, self).__init__(parent)
+    def __init__(self, parent, roi):
+        super(_DeleteRegionOfInterestToolButton, self).__init__(parent)
         self.setIcon(icons.getQIcon('remove'))
-        self.__selection = selection
+        self.__roiRef = roi if roi is None else weakref.ref(roi)
         self.clicked.connect(self.__clicked)
 
     def __clicked(self, checked):
         """Handle button clicked"""
-        if self.__selection is not None:
-            selector = self.__selection.parent()
-            if selector is not None:
-                selector.removeSelection(self.__selection)
-                self.__selection = None
+        roi = None if self.__roiRef is None else self.__roiRef()
+        if roi is not None:
+            manager = roi.parent()
+            if manager is not None:
+                manager.removeRegionOfInterest(roi)
+                self.__roiRef = None
 
 
 class RegionOfInterestTableWidget(qt.QTableWidget):
-    """Widget displaying the selection of a :class:`RegionOfInterestManager`"""
+    """Widget displaying the ROIs of a :class:`RegionOfInterestManager`"""
 
     def __init__(self, parent=None):
         super(RegionOfInterestTableWidget, self).__init__(parent)
@@ -1140,68 +1145,68 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
     def __itemChanged(item):
         """Handle item updates"""
         column = item.column()
-        selection = item.data(qt.Qt.UserRole)
+        roi = item.data(qt.Qt.UserRole)
         if column == 0:
-            selection.setLabel(item.text())
+            roi.setLabel(item.text())
         elif column == 1:
-            selection.setEditable(
+            roi.setEditable(
                 item.checkState() == qt.Qt.Checked)
         elif column in (2, 3, 4):
             pass  # TODO
         else:
             logger.error('Unhandled column %d', column)
 
-    def setRegionOfInterestManager(self, selector):
+    def setRegionOfInterestManager(self, manager):
         """Set the :class:`RegionOfInterestManager` object to sync with
 
-        :param RegionOfInterestManager selector:
+        :param RegionOfInterestManager manager:
         """
-        assert selector is None or isinstance(selector, RegionOfInterestManager)
+        assert manager is None or isinstance(manager, RegionOfInterestManager)
 
         previousSelector = self.getRegionOfInterestManager()
 
         if previousSelector is not None:
-            previousSelector.sigSelectionChanged.disconnect(self._sync)
+            previousSelector.sigRegionOfInterestChanged.disconnect(self._sync)
         self.setRowCount(0)
 
-        self._roiManagerRef = weakref.ref(selector)
+        self._roiManagerRef = weakref.ref(manager)
 
         self._sync()
 
-        if selector is not None:
-            selector.sigSelectionChanged.connect(self._sync)
+        if manager is not None:
+            manager.sigRegionOfInterestChanged.connect(self._sync)
 
     def _sync(self, *args):
-        """Update widget content according to selector"""
-        selector = self.getRegionOfInterestManager()
+        """Update widget content according to ROI manger"""
+        manager = self.getRegionOfInterestManager()
 
-        if selector is None:
+        if manager is None:
             self.setRowCount(0)
             return
 
-        selections = selector.getSelections()
+        rois = manager.getRegionOfInterests()
 
-        self.setRowCount(len(selections))
-        for index, selection in enumerate(selections):
+        self.setRowCount(len(rois))
+        for index, roi in enumerate(rois):
             baseFlags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
 
             # Label
-            label = selection.getLabel()
+            label = roi.getLabel()
             item = qt.QTableWidgetItem(label)
             item.setFlags(baseFlags | qt.Qt.ItemIsEditable)
-            item.setData(qt.Qt.UserRole, selection)
+            item.setData(qt.Qt.UserRole, roi)
             self.setItem(index, 0, item)
 
             # Editable
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags | qt.Qt.ItemIsUserCheckable)
-            item.setData(qt.Qt.UserRole, selection)
+            item.setData(qt.Qt.UserRole, roi)
             item.setCheckState(
-                qt.Qt.Checked if selection.isEditable() else qt.Qt.Unchecked)
+                qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
             self.setItem(index, 1, item)
 
             # Delete
-            delBtn = _DeleteSelectionToolButton(None, selection)
+            delBtn = _DeleteRegionOfInterestToolButton(None, roi)
 
             widget = qt.QWidget()
             layout = qt.QHBoxLayout()
@@ -1214,7 +1219,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             self.setCellWidget(index, 2, widget)
 
             # Kind
-            kind = selection.getKind()
+            kind = roi.getKind()
             item = qt.QTableWidgetItem(kind.capitalize())
             item.setFlags(baseFlags)
             self.setItem(index, 3, item)
@@ -1223,7 +1228,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setFlags(baseFlags)
 
             # Coordinates
-            points = selection.getControlPoints()
+            points = roi.getControlPoints()
             if kind == 'rectangle':
                 origin = numpy.min(points, axis=0)
                 w, h = numpy.max(points, axis=0) - origin

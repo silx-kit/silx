@@ -447,10 +447,10 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         window = plot.window()  # Retrieve window containing PlotWidget
         statusBar = window.statusBar()
         self.sigMessageChanged.connect(statusBar.showMessage)
-        self.setMaxSelections(n)
+        self.setMaxRegionOfInterests(n)
         self.setValidationMode(self.ValidationMode.AUTO_ENTER)
-        self.sigSelectionAdded.connect(self.__selectionAdded)
-        self.sigSelectionAboutToBeRemoved.connect(self.__selectionRemoved)
+        self.sigRegionOfInterestAdded.connect(self.__selectionAdded)
+        self.sigRegionOfInterestAboutToBeRemoved.connect(self.__selectionRemoved)
 
     def exec_(self):
         """Request user inputs
@@ -470,12 +470,12 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         else:  # Add a toolbar
             toolbar = qt.QToolBar()
             window.addToolBar(toolbar)
-        toolbar.addAction(self.getDrawSelectionModeAction('point'))
+        toolbar.addAction(self.getInteractionModeAction('point'))
 
         super(_GInputHandler, self).exec_(kind='point', timeout=self._timeout)
 
         if isinstance(toolbar, InteractiveModeToolBar):
-            toolbar.removeAction(self.getDrawSelectionModeAction('point'))
+            toolbar.removeAction(self.getInteractionModeAction('point'))
         else:
             toolbar.setParent(None)
 

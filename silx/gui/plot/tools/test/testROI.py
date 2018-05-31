@@ -83,51 +83,51 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
                 self.roiTableWidget.setRegionOfInterestManager(selector)
                 selector.start(kind)
 
-                self.assertEqual(selector.getSelections(), ())
+                self.assertEqual(selector.getRegionOfInterests(), ())
 
                 finishListener = SignalListener()
-                selector.sigSelectionFinished.connect(finishListener)
+                selector.sigInteractionModeFinished.connect(finishListener)
 
                 changedListener = SignalListener()
-                selector.sigSelectionChanged.connect(changedListener)
+                selector.sigRegionOfInterestChanged.connect(changedListener)
 
                 # Add a point
-                selector.createSelection(kind, points[0])
+                selector.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelectionPoints(), (points[0],))))
+                    selector.getRegionOfInterestPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 1)
 
                 # Remove it
-                selector.removeSelection(selector.getSelections()[0])
-                self.assertEqual(selector.getSelections(), ())
+                selector.removeRegionOfInterest(selector.getRegionOfInterests()[0])
+                self.assertEqual(selector.getRegionOfInterests(), ())
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Add two point
-                selector.createSelection(kind, points[0])
+                selector.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
-                selector.createSelection(kind, points[1])
+                selector.createRegionOfInterest(kind, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelectionPoints(),
+                    selector.getRegionOfInterestPoints(),
                     (points[0], points[1]))))
                 self.assertEqual(changedListener.callCount(), 4)
 
                 # Reset it
-                result = selector.clearSelections()
+                result = selector.clearRegionOfInterests()
                 self.assertTrue(result)
-                self.assertEqual(selector.getSelections(), ())
+                self.assertEqual(selector.getRegionOfInterests(), ())
                 self.assertEqual(changedListener.callCount(), 5)
 
                 changedListener.clear()
 
                 # Add two point
-                selector.createSelection(kind, points[0])
+                selector.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
-                selector.createSelection(kind, points[1])
+                selector.createRegionOfInterest(kind, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelectionPoints(),
+                    selector.getRegionOfInterestPoints(),
                     (points[0], points[1]))))
                 self.assertEqual(changedListener.callCount(), 2)
 
@@ -135,7 +135,7 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
                 result = selector.stop()
                 self.assertTrue(result)
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelectionPoints(),
+                    selector.getRegionOfInterestPoints(),
                     (points[0], points[1]))))
 
                 self.qapp.processEvents()
@@ -143,32 +143,32 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
 
                 # Try to set max selection to 1 while 2 selections
                 with self.assertRaises(ValueError):
-                    selector.setMaxSelections(1)
+                    selector.setMaxRegionOfInterests(1)
 
                 # restart
                 changedListener.clear()
-                selector.clearSelections()
-                self.assertEqual(selector.getSelections(), ())
+                selector.clearRegionOfInterests()
+                self.assertEqual(selector.getRegionOfInterests(), ())
                 self.assertEqual(changedListener.callCount(), 1)
                 selector.start(kind)
 
                 # Set max limit to 1
-                selector.setMaxSelections(1)
+                selector.setMaxRegionOfInterests(1)
 
                 # Add a point
-                selector.createSelection(kind, points[0])
+                selector.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
-                    selector.getSelectionPoints(), (points[0],))))
+                    selector.getRegionOfInterestPoints(), (points[0],))))
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Try to add a 2nd point while max selection is 1
                 with self.assertRaises(RuntimeError):
-                    selector.createSelection(kind, points[1])
+                    selector.createRegionOfInterest(kind, points[1])
 
                 # stop
                 selector.stop()
-                selector.clearSelections()
+                selector.clearRegionOfInterests()
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 2)
                 self.assertEqual(changedListener.callCount(), 3)
@@ -182,18 +182,18 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
         interactiveModeToolBar = self.plot.getInteractiveModeToolBar()
         panAction = interactiveModeToolBar.getPanModeAction()
 
-        for kind in selector.getSupportedSelectionKinds():
+        for kind in selector.getSupportedRegionOfInterestKinds():
             with self.subTest(kind=kind):
                 # Change to pan mode
                 panAction.trigger()
 
                 # Change to selection mode
-                selectionAction = selector.getDrawSelectionModeAction(kind)
+                selectionAction = selector.getInteractionModeAction(kind)
                 selectionAction.trigger()
 
-                self.assertEqual(kind, selector.getSelectionKind())
+                self.assertEqual(kind, selector.getRegionOfInterestKind())
 
-        selector.clearSelections()
+        selector.clearRegionOfInterests()
 
 
 def suite():

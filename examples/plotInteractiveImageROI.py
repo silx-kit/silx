@@ -66,15 +66,15 @@ roiManager.setColor('pink')  # Set the color of ROI
 def updateAddedSelection(selection):
     """Called for each added selection: set the name"""
     if selection.getLabel() == '':
-        selection.setLabel('ROI %d' % len(roiManager.getSelections()))
+        selection.setLabel('ROI %d' % len(roiManager.getRegionOfInterests()))
 
 
-roiManager.sigSelectionAdded.connect(updateAddedSelection)
+roiManager.sigRegionOfInterestAdded.connect(updateAddedSelection)
 
 # Add a rectangle selection
-roiManager.createSelection('rectangle',
-                           points=((50, 50), (200, 200)),
-                           label='Initial ROI')
+roiManager.createRegionOfInterest('rectangle',
+                                  points=((50, 50), (200, 200)),
+                                  label='Initial ROI')
 
 
 # Create the table widget displaying
@@ -86,10 +86,10 @@ btnLayout = qt.QHBoxLayout()  # The layout to store the buttons
 btnLayout.addStretch(1)
 btnLayout.addWidget(qt.QLabel('Add ROIs:'))
 
-for kind in roiManager.getSupportedSelectionKinds():
+for kind in roiManager.getSupportedRegionOfInterestKinds():
     # Create a tool button and associate it with the QAction of each mode
     toolButton = qt.QToolButton()
-    toolButton.setDefaultAction(roiManager.getDrawSelectionModeAction(kind))
+    toolButton.setDefaultAction(roiManager.getInteractionModeAction(kind))
     btnLayout.addWidget(toolButton, 0, qt.Qt.AlignCenter)
 
 btnLayout.addStretch(1)
