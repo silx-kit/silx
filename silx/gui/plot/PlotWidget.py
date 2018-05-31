@@ -43,6 +43,7 @@ import logging
 import numpy
 
 import silx
+from silx.utils.weakref import WeakMethodProxy
 from silx.utils import deprecation
 from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated
@@ -2391,10 +2392,10 @@ class PlotWidget(qt.QMainWindow):
                                  to handle the graph events
                                  If None (default), use a default listener.
         """
-        # TODO allow multiple listeners, keep a weakref on it
+        # TODO allow multiple listeners
         # allow register listener by event type
         if callbackFunction is None:
-            callbackFunction = self.graphCallback
+            callbackFunction = WeakMethodProxy(self.graphCallback)
         self._callback = callbackFunction
 
     def graphCallback(self, ddict=None):
