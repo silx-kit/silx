@@ -223,7 +223,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
 
-        :param numpy.ndarray mask: The array to use for the mask.
+        :param numpy.ndarray mask:
+            The array to use for the mask or None to reset the mask.
         :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
                     Array of other types are converted.
         :param bool copy: True (the default) to copy the array,
@@ -232,6 +233,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                  The mask can be cropped or padded to fit active image,
                  the returned shape is that of the active image.
         """
+        if mask is None:
+            self.resetSelectionMask()
+            return self._data.shape[:2]
+
         mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
         if len(mask.shape) != 2:
             _logger.error('Not an image, shape: %d', len(mask.shape))
@@ -266,7 +271,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     def _updatePlotMask(self):
         """Update mask image in plot"""
         mask = self.getSelectionMask(copy=False)
-        if len(mask):
+        if mask is not None:
             # get the mask from the plot
             maskItem = self.plot.getImage(self._maskName)
             mustBeAdded = maskItem is None
@@ -304,7 +309,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if not self.browseAction.isChecked():
             self.browseAction.trigger()  # Disable drawing tool
 
-        if len(self.getSelectionMask(copy=False)):
+        if self.getSelectionMask(copy=False) is not None:
             self.plot.sigActiveImageChanged.connect(
                 self._activeImageChangedAfterCare)
 
@@ -348,7 +353,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self._scale = activeImage.getScale()
             self._z = activeImage.getZValue() + 1
             self._data = activeImage.getData(copy=False)
-            if self._data.shape[:2] != self.getSelectionMask(copy=False).shape:
+            if self._data.shape[:2] != self._mask.getMask(copy=False).shape:
                 # Image has not the same size, remove mask and stop listening
                 if self.plot.getImage(self._maskName):
                     self.plot.remove(self._maskName, kind='image')
@@ -386,7 +391,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self._z = activeImage.getZValue() + 1
             self._data = activeImage.getData(copy=False)
             self._mask.setDataItem(activeImage)
-            if self._data.shape[:2] != self.getSelectionMask(copy=False).shape:
+            if self._data.shape[:2] != self._mask.getMask(copy=False).shape:
                 self._mask.reset(self._data.shape[:2])
                 self._mask.commit()
             else:

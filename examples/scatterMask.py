@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -91,7 +91,7 @@ class MaskScatterWidget(qt.QMainWindow):
         :param bool copy: True (default) to get a copy of the mask.
                           If False, the returned array MUST not be modified.
         :return: The array of the mask with dimension of the scatter data.
-                 If there is no scatter data, an empty array is returned.
+                 If there is no scatter data, None is returned.
         :rtype: 1D numpy.ndarray of uint8
         """
         return self._maskToolsWidget.getSelectionMask(copy=copy)
