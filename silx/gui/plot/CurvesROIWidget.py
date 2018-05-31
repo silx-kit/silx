@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +51,7 @@ from collections import OrderedDict
 import logging
 import os
 import sys
+import weakref
 
 import numpy
 
@@ -91,7 +92,8 @@ class CurvesROIWidget(qt.QWidget):
         if name is not None:
             self.setWindowTitle(name)
         assert plot is not None
-        self.plot = plot
+        self.plot = weakref.proxy(plot)
+
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -979,9 +981,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
     def __init__(self, parent=None, plot=None, name=None):
         super(CurvesROIDockWidget, self).__init__(name, parent)
-
-        assert plot is not None
-        self.plot = plot
 
         self.roiWidget = CurvesROIWidget(self, name, plot=plot)
         """Main widget of type :class:`CurvesROIWidget`"""
