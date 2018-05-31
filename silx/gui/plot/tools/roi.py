@@ -1038,7 +1038,8 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
                 self.sigMessageChanged.emit(self.getMessage())
         else:  # Stop interactive mode and message timer
             timer = self.sender()
-            timer.stop()
+            if timer is not None:
+                timer.stop()
             self.__timeoutEndTime = None
             self.quit()
 
