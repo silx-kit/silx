@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 import os
+import weakref
 
 import numpy
 
@@ -372,7 +373,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         # as parent have to be the first argument of the widget to fit
         # QtDesigner need but here plot can't be None by default.
         assert plot is not None
-        self._plot = plot
+        self._plotRef = weakref.ref(plot)
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
 
         self._colormap = Colormap(name="",
@@ -453,7 +454,11 @@ class BaseMaskToolsWidget(qt.QWidget):
     @property
     def plot(self):
         """The :class:`.PlotWindow` this widget is attached to."""
-        return self._plot
+        plot = self._plotRef()
+        if plot is None:
+            raise RuntimeError(
+                'Mask widget attached to a PlotWidget that no longer exists')
+        return plot
 
     def setDirection(self, direction=qt.QBoxLayout.LeftToRight):
         """Set the direction of the layout of the widget
