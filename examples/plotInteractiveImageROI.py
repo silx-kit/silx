@@ -72,9 +72,9 @@ def updateAddedSelection(selection):
 roiManager.sigSelectionAdded.connect(updateAddedSelection)
 
 # Add a rectangle selection
-roiManager.addSelection('rectangle',
-                        points=((50, 50), (200, 200)),
-                        label='Initial ROI')
+roiManager.createSelection('rectangle',
+                           points=((50, 50), (200, 200)),
+                           label='Initial ROI')
 
 
 # Create the table widget displaying

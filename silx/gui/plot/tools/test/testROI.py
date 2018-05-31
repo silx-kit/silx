@@ -92,7 +92,7 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
                 selector.sigSelectionChanged.connect(changedListener)
 
                 # Add a point
-                selector.addSelection(kind, points[0])
+                selector.createSelection(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
                     selector.getSelectionPoints(), (points[0],))))
@@ -104,9 +104,9 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Add two point
-                selector.addSelection(kind, points[0])
+                selector.createSelection(kind, points[0])
                 self.qapp.processEvents()
-                selector.addSelection(kind, points[1])
+                selector.createSelection(kind, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
                     selector.getSelectionPoints(),
@@ -122,9 +122,9 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
                 changedListener.clear()
 
                 # Add two point
-                selector.addSelection(kind, points[0])
+                selector.createSelection(kind, points[0])
                 self.qapp.processEvents()
-                selector.addSelection(kind, points[1])
+                selector.createSelection(kind, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
                     selector.getSelectionPoints(),
@@ -156,7 +156,7 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
                 selector.setMaxSelections(1)
 
                 # Add a point
-                selector.addSelection(kind, points[0])
+                selector.createSelection(kind, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(numpy.all(numpy.equal(
                     selector.getSelectionPoints(), (points[0],))))
@@ -164,7 +164,7 @@ class TestSelectionManager(TestCaseQt, ParametricTestCase):
 
                 # Try to add a 2nd point while max selection is 1
                 with self.assertRaises(RuntimeError):
-                    selector.addSelection(kind, points[1])
+                    selector.createSelection(kind, points[1])
 
                 # stop
                 selector.stop()

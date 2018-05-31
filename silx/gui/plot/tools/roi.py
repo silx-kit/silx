@@ -64,7 +64,7 @@ class RegionOfInterest(qt.QObject):
     """Signal emitted when this control points has changed"""
 
     def __init__(self, parent, kind):
-        assert isinstance(parent, RegionOfInterestManager)
+        assert parent is None or isinstance(parent, RegionOfInterestManager)
         super(RegionOfInterest, self).__init__(parent)
         self._color = rgba('red')
         self._items = WeakList()
@@ -78,10 +78,18 @@ class RegionOfInterest(qt.QObject):
         # Clean-up plot items
         self._removePlotItems()
 
-    def _removedFromSelector(self):
-        """Remove this selection from the selector that created it"""
+    def setParent(self, parent):
+        """Set the parent of the RegionOfInterest
+
+        :param Union[None,RegionOfInterestManager] parent:
+        """
+        if (parent is not None and
+                not isinstance(parent, RegionOfInterestManager)):
+            raise ValueError('Unsupported parent')
+
         self._removePlotItems()
-        self.setParent(None)
+        super(RegionOfInterest, self).setParent(parent)
+        self._createPlotItems()
 
     def getKind(self):
         """Return kind of selection
@@ -245,6 +253,8 @@ class RegionOfInterest(qt.QObject):
     def _createPlotItems(self):
         """Create items displaying the selection in the plot."""
         roiManager = self.parent()
+        if roiManager is None:
+            return
         plot = roiManager.parent()
 
         x, y = self._points.T
@@ -570,7 +580,7 @@ class RegionOfInterestManager(qt.QObject):
                 selections = self.getSelections()
                 if len(selections) > 0:
                     self.removeSelection(selections[-1])
-            self.addSelection(kind=kind, points=points)
+            self.createSelection(kind=kind, points=points)
 
     # RegionOfInterest API
 
@@ -601,7 +611,7 @@ class RegionOfInterestManager(qt.QObject):
             for selection in self._selections:
                 selection.sigControlPointsChanged.disconnect(
                     self._selectionPointsChanged)
-                selection._removedFromSelector()
+                selection.setParent(None)
             self._selections = []
             self._selectionUpdated()
             return True
@@ -645,8 +655,8 @@ class RegionOfInterestManager(qt.QObject):
         max_ = self.getMaxSelections()
         return max_ is not None and len(self.getSelections()) >= max_
 
-    def addSelection(self, kind, points, label='', index=None):
-        """Add a selection to current selections
+    def createSelection(self, kind, points, label='', index=None):
+        """Create a new selection abd add it to current selections
 
         :param str kind: The kind of selection to add
         :param numpy.ndarray points: The control points of the selection shape
@@ -655,6 +665,22 @@ class RegionOfInterestManager(qt.QObject):
             By default it is appended to the end of the list of selections
         :return: The created Selection object
         :rtype: RegionOfInterest
+        :raise RuntimeError: When selection cannot be added because the maximum
+           number of selection has been reached.
+        """
+        selection = RegionOfInterest(parent=None, kind=kind)
+        selection.setColor(self.getColor())
+        selection.setLabel(str(label))
+        selection.setControlPoints(points)
+
+        self.addSelection(selection, index)
+
+    def addSelection(self, selection, index=None):
+        """Add the selection to the current selections
+
+        :param RegionOfInterest selection: The selection to add
+        :param int index: The position where to insert the selection,
+            By default it is appended to the end of the list of selections
         :raise RuntimeError: When selection cannot be added because the maximum
            number of selection has been reached.
         """
@@ -667,11 +693,7 @@ class RegionOfInterestManager(qt.QObject):
             raise RuntimeError(
                 'Cannot add selection: PlotWidget no more available')
 
-        # Create new selection object
-        selection = RegionOfInterest(parent=self, kind=kind)
-        selection.setColor(self.getColor())
-        selection.setLabel(str(label))
-        selection.setControlPoints(points)
+        selection.setParent(self)
         selection.sigControlPointsChanged.connect(
             self._selectionPointsChanged)
 
@@ -698,7 +720,7 @@ class RegionOfInterestManager(qt.QObject):
         self._selections.remove(selection)
         selection.sigControlPointsChanged.disconnect(
             self._selectionPointsChanged)
-        selection._removedFromSelector()
+        selection.setParent(None)
         self._selectionUpdated()
 
     def _selectionUpdated(self):
