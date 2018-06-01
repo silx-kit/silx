@@ -37,7 +37,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-if hasattr(numpy, "longdouble") and numpy.longdouble != numpy.float64:
+if hasattr(numpy, "longdouble") and numpy.finfo(numpy.longdouble).bits != 64:
     _biggest_float = numpy.longdouble
     # From bigger to smaller
     _float_types = (numpy.longdouble, numpy.float64, numpy.float32, numpy.float16)

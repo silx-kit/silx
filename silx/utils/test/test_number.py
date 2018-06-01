@@ -143,7 +143,7 @@ class TestConversionTypes(testutils.ParametricTestCase):
     def skipIfFloat80NotSupported(self):
         if not hasattr(numpy, "longdouble"):
             self.skipTest("float-80bits not supported")
-        if numpy.longdouble == numpy.float64:
+        if numpy.finfo(numpy.longdouble).bits == 64:
             self.skipTest("float-80bits not supported")
 
     def testLosePrecisionUsingFloat80(self):
