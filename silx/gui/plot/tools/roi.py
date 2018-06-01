@@ -42,7 +42,7 @@ import weakref
 import numpy
 
 from ....third_party import enum
-from ....utils.weakref import WeakList
+from ....utils.weakref import WeakList, WeakMethodProxy
 from ... import qt, icons
 from .. import PlotWidget
 from .. import items
@@ -517,8 +517,8 @@ class RegionOfInterestManager(qt.QObject):
             action.setCheckable(True)
             action.setChecked(self.getRegionOfInterestKind() == kind)
 
-            action.triggered.connect(
-                functools.partial(self._modeActionTriggered, kind=kind))
+            action.triggered[bool].connect(functools.partial(
+                WeakMethodProxy(self._modeActionTriggered), kind=kind))
             self._modeActions[kind] = action
         return action
 
