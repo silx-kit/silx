@@ -110,8 +110,7 @@ class TestConversionTypes(testutils.ParametricTestCase):
         self.assertEqual(dtype, numpy.float64)
 
     def testMantissa80(self):
-        if not hasattr(numpy, "longdouble"):
-            self.skipTest("float-80bits not supported")
+        self.skipIfFloat80NotSupported()
         dtype = number.min_numerical_convertible_type("1000000000.00001013")
 
         if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
@@ -132,8 +131,7 @@ class TestConversionTypes(testutils.ParametricTestCase):
         self.assertEqual(dtype, numpy.float64)
 
     def testExponent80(self):
-        if not hasattr(numpy, "longdouble"):
-            self.skipTest("float-80bits not supported")
+        self.skipIfFloat80NotSupported()
         dtype = number.min_numerical_convertible_type("14.0e3000")
         self.assertEqual(dtype, numpy.longdouble)
 
@@ -142,9 +140,14 @@ class TestConversionTypes(testutils.ParametricTestCase):
         dtype = number.min_numerical_convertible_type(value)
         self.assertIn(dtype, (numpy.float32, numpy.float64))
 
-    def testLosePrecisionUsingFloat80(self):
+    def skipIfFloat80NotSupported(self):
         if not hasattr(numpy, "longdouble"):
             self.skipTest("float-80bits not supported")
+        if numpy.longdouble == numpy.float64:
+            self.skipTest("float-80bits not supported")
+
+    def testLosePrecisionUsingFloat80(self):
+        self.skipIfFloat80NotSupported()
         if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
             self.skipTest("numpy > 1.10.4 expected")
         value = "1000000000.00001013332"
