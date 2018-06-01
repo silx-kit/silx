@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/05/2018"
+__date__ = "01/06/2018"
 
 import numpy
 import re
@@ -39,10 +39,12 @@ _logger = logging.getLogger(__name__)
 
 if hasattr(numpy, "longdouble"):
     _biggest_float = numpy.longdouble
-    _float_types = (numpy.float16, numpy.float32, numpy.float64, numpy.longdouble)
+    # From bigger to smaller
+    _float_types = (numpy.longdouble, numpy.float64, numpy.float32, numpy.float16)
 else:
     _biggest_float = numpy.float64
-    _float_types = (numpy.float16, numpy.float32, numpy.float64)
+    # From bigger to smaller
+    _float_types = (numpy.float64, numpy.float32, numpy.float16)
 
 
 _parse_numeric_value = re.compile("^\s*[-+]?0*(\d+?)?(?:\.(\d+))?(?:[eE]([-+]?\d+))?\s*$")
@@ -59,40 +61,67 @@ def min_numerical_convertible_type(string, check_accuracy=True):
     :raise ValueError: When the string is not a numerical value
     :retrun: A numpy numerical type
     """
-    # Try integer
-    try:
+    if string == "":
+        raise ValueError("Not a numerical value")
+    match = _parse_numeric_value.match(string)
+    if match is None:
+        raise ValueError("Not a numerical value")
+    number, decimal, exponent = match.groups()
+
+    if decimal is None and exponent is None:
+        # It's an integer
+        # TODO: We could find the int type without converting the number
         value = int(string)
-    except ValueError:
-        pass
-    else:
         return numpy.min_scalar_type(value).type
 
     # Try floating-point
     try:
         value = _biggest_float(string)
     except ValueError:
-        pass
-    else:
-        for numpy_type in _float_types:
-            if numpy.can_cast(value, numpy_type, casting="safe"):
-                break
+        raise ValueError("Not a numerical value")
 
-        if check_accuracy and numpy_type == _biggest_float:
-            match = _parse_numeric_value.match(string)
-            if match is None:
-                assert(False)
-            number, decimal, _exponent = match.groups()
-            if number is None:
-                number = ""
-            if decimal is None:
-                decimal = ""
-            expected = number + decimal
-            # This format the number without python convertion to float64
+    if number is None:
+        number = ""
+    if decimal is None:
+        decimal = ""
+    if exponent is None:
+        exponent = "0"
+
+    nb_precision_digits = int(exponent) - len(decimal) - 1
+    precision = _biggest_float(10) ** nb_precision_digits
+    previous_type = _biggest_float
+    for numpy_type in _float_types:
+        if numpy_type == _biggest_float:
+            # value was already casted using the bigger type
+            continue
+        reduced_value = numpy_type(value)
+        if not numpy.isfinite(reduced_value):
+            break
+        # numpy isclose(atol=is not accurate enough)
+        diff = value - reduced_value
+        # numpy 1.8.2 looks to do the substraction using float64...
+        # we lose precision here
+        diff = numpy.abs(diff)
+        if diff > precision:
+            break
+        previous_type = numpy_type
+
+    # It's the smaller float type which fit with enougth precision
+    numpy_type = previous_type
+
+    if check_accuracy and numpy_type == _biggest_float:
+        # Check the precision using the original string
+        expected = number + decimal
+        # This format the number without python convertion
+        try:
             result = numpy.array2string(value, precision=len(number) + len(decimal), floatmode="fixed")
-            result = result.replace(".", "").replace("-", "")
-            if not result.startswith(expected):
-                _logger.warning("Not able to convert '%s' using %s without losing precision", string, _biggest_float)
+        except TypeError:
+            # numpy 1.8.2 do not have floatmode argument
+            _logger.warning("Not able to check accuracy of the conversion of '%s' using %s", string, _biggest_float)
+            return numpy_type
 
-        return numpy_type
+        result = result.replace(".", "").replace("-", "")
+        if not result.startswith(expected):
+            _logger.warning("Not able to convert '%s' using %s without losing precision", string, _biggest_float)
 
-    raise ValueError("Not a numerical value")
+    return numpy_type

@@ -25,11 +25,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/05/2018"
+__date__ = "01/06/2018"
 
 import logging
 import numpy
 import unittest
+import pkg_resources
 from silx.utils import number
 
 _logger = logging.getLogger(__name__)
@@ -110,8 +111,16 @@ class TestConversionTypes(unittest.TestCase):
     def testMantissa80(self):
         if not hasattr(numpy, "longdouble"):
             self.skipTest("float-80bits not supported")
-        dtype = number.min_numerical_convertible_type("1000000000.0000101")
-        self.assertEqual(dtype, (numpy.longdouble))
+        dtype = number.min_numerical_convertible_type("1000000000.00001013")
+
+        if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
+            # numpy 1.8.2 -> Debian 8
+            # Checking a float128 precision with numpy 1.8.2 using abs(diff) is not working.
+            # It looks like the difference is done using float64 (diff == 0.0)
+            expected = (numpy.longdouble, numpy.float64)
+        else:
+            expected = (numpy.longdouble, )
+        self.assertIn(dtype, expected)
 
     def testExponent32(self):
         dtype = number.min_numerical_convertible_type("14.0e30")
