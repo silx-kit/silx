@@ -37,7 +37,7 @@ from silx.utils import testutils
 _logger = logging.getLogger(__name__)
 
 
-class TestConversionTypes(unittest.TestCase):
+class TestConversionTypes(testutils.ParametricTestCase):
 
     def testEmptyFail(self):
         self.assertRaises(ValueError, number.min_numerical_convertible_type, "")
@@ -152,6 +152,21 @@ class TestConversionTypes(unittest.TestCase):
         func = func(number.min_numerical_convertible_type)
         dtype = func(value)
         self.assertIn(dtype, (numpy.longdouble, ))
+
+    def testMillisecondEpochTime(self):
+        datetimes = ['1465803236.495412',
+                     '1465803236.999362',
+                     '1465803237.504311',
+                     '1465803238.009261',
+                     '1465803238.512211',
+                     '1465803239.016160',
+                     '1465803239.520110',
+                     '1465803240.026059',
+                     '1465803240.529009']
+        for datetime in datetimes:
+            with self.subTest(datetime=datetime):
+                dtype = number.min_numerical_convertible_type(datetime)
+                self.assertEqual(dtype, numpy.float64)
 
 
 def suite():
