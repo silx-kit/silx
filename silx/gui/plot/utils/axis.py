@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -65,18 +65,14 @@ class SyncAxes(object):
         """
         object.__init__(self)
         self.__locked = False
-        self.__axes = []
+        self.__axisRefs = []
         self.__syncLimits = syncLimits
         self.__syncScale = syncScale
         self.__syncDirection = syncDirection
         self.__callbacks = None
 
-        qtCallback = silxWeakref.WeakMethodProxy(self.__deleteAxisQt)
         for axis in axes:
-            ref = weakref.ref(axis)
-            self.__axes.append(ref)
-            callback = functools.partial(qtCallback, ref)
-            axis.destroyed.connect(callback)
+            self.__axisRefs.append(weakref.ref(axis))
 
         self.start()
 
@@ -91,9 +87,13 @@ class SyncAxes(object):
             raise RuntimeError("Axes already synchronized")
         self.__callbacks = {}
 
+        axes = self.__getAxes()
+        if len(axes) == 0:
+            raise RuntimeError('No axis to synchronize')
+
         # register callback for further sync
-        for refAxis in self.__axes:
-            axis = refAxis()
+        for axis in axes:
+            refAxis = weakref.ref(axis)
             callbacks = []
             if self.__syncLimits:
                 # the weakref is needed to be able ignore self references
@@ -120,8 +120,8 @@ class SyncAxes(object):
             self.__callbacks[refAxis] = callbacks
 
         # sync the current state
-        refMainAxis = self.__axes[0]
-        mainAxis = refMainAxis()
+        mainAxis = axes[0]
+        refMainAxis = weakref.ref(mainAxis)
         if self.__syncLimits:
             self.__axisLimitsChanged(refMainAxis, *mainAxis.getLimits())
         if self.__syncScale:
@@ -129,23 +129,16 @@ class SyncAxes(object):
         if self.__syncDirection:
             self.__axisInvertedChanged(refMainAxis, mainAxis.isInverted())
 
-    def __deleteAxis(self, ref):
-        _logger.debug("Delete axes ref %s", ref)
-        self.__axes.remove(ref)
-        del self.__callbacks[ref]
-
-    def __deleteAxisQt(self, ref, qobject):
-        self.__deleteAxis(ref)
-
     def stop(self):
         """Stop the synchronization of the axes"""
         if self.__callbacks is None:
             raise RuntimeError("Axes not synchronized")
         for ref, callbacks in self.__callbacks.items():
-            axes = ref()
-            for sigName, callback in callbacks:
-                sig = getattr(axes, sigName)
-                sig.disconnect(callback)
+            axis = ref()
+            if axis is not None:
+                for sigName, callback in callbacks:
+                    sig = getattr(axis, sigName)
+                    sig.disconnect(callback)
         self.__callbacks = None
 
     def __del__(self):
@@ -154,6 +147,14 @@ class SyncAxes(object):
         if self.__callbacks is not None:
             self.stop()
 
+    def __getAxes(self):
+        """Returns list of existing axes.
+
+        :rtype: List[Axis]
+        """
+        axes = [ref() for ref in self.__axisRefs]
+        return [axis for axis in axes if axis is not None]
+
     @contextmanager
     def __inhibitSignals(self):
         self.__locked = True
@@ -161,8 +162,7 @@ class SyncAxes(object):
         self.__locked = False
 
     def __otherAxes(self, changedAxis):
-        for axis in self.__axes:
-            axis = axis()
+        for axis in self.__getAxes():
             if axis is changedAxis:
                 continue
             yield axis
