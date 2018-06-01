@@ -52,8 +52,8 @@ _parse_numeric_value = re.compile("^\s*[-+]?0*(\d+?)?(?:\.(\d+))?(?:[eE]([-+]?\d
 
 def min_numerical_convertible_type(string, check_accuracy=True):
     """
-    Parse the string and return the minimal numerical type which fit for a
-    convertion.
+    Parse the string and return the smallest numerical type to use for a safe
+    conversion.
 
     :param str string: Representation of a float/integer with text
     :param bool check_accuracy: If true, a warning is pushed on the logger
