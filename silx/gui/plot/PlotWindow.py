@@ -33,8 +33,10 @@ __date__ = "26/04/2018"
 
 import collections
 import logging
+import weakref
 
 import silx
+from silx.utils.weakref import WeakMethodProxy
 from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
@@ -322,7 +324,7 @@ class PlotWindow(PlotWidget):
         show it or hide it."""
         # create widget if needed (first call)
         if self._consoleDockWidget is None:
-            available_vars = {"plt": self}
+            available_vars = {"plt": weakref.proxy(self)}
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
             self._consoleDockWidget = IPythonDockWidget(
@@ -776,7 +778,7 @@ class Plot2D(PlotWindow):
         posInfo = [
             ('X', lambda x, y: x),
             ('Y', lambda x, y: y),
-            ('Data', self._getImageValue)]
+            ('Data', WeakMethodProxy(self._getImageValue))]
 
         super(Plot2D, self).__init__(parent=parent, backend=backend,
                                      resetzoom=True, autoScale=False,

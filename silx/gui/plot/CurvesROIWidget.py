@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +51,7 @@ from collections import OrderedDict
 import logging
 import os
 import sys
+import weakref
 
 import numpy
 
@@ -91,7 +92,8 @@ class CurvesROIWidget(qt.QWidget):
         if name is not None:
             self.setWindowTitle(name)
         assert plot is not None
-        self.plot = plot
+        self._plotRef = weakref.ref(plot)
+
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -159,6 +161,13 @@ class CurvesROIWidget(qt.QWidget):
         self._middleROIMarkerFlag = False
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
+
+    def getPlotWidget(self):
+        """Returns the associated PlotWidget or None
+
+        :rtype: Union[PlotWidget,None]
+        """
+        return None if self._plotRef is None else self._plotRef()
 
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
@@ -398,14 +407,18 @@ class CurvesROIWidget(qt.QWidget):
     def _roiSignal(self, ddict):
         """Handle ROI widget signal"""
         _logger.debug("CurvesROIWidget._roiSignal %s", str(ddict))
+        plot = self.getPlotWidget()
+        if plot is None:
+            return
+
         if ddict['event'] == "AddROI":
-            xmin, xmax = self.plot.getXAxis().getLimits()
+            xmin, xmax = plot.getXAxis().getLimits()
             fromdata = xmin + 0.25 * (xmax - xmin)
             todata = xmin + 0.75 * (xmax - xmin)
-            self.plot.remove('ROI min', kind='marker')
-            self.plot.remove('ROI max', kind='marker')
+            plot.remove('ROI min', kind='marker')
+            plot.remove('ROI max', kind='marker')
             if self._middleROIMarkerFlag:
-                self.plot.remove('ROI middle', kind='marker')
+                plot.remove('ROI middle', kind='marker')
             roiList, roiDict = self.roiTable.getROIListAndDict()
             nrois = len(roiList)
             if nrois == 0:
@@ -422,29 +435,29 @@ class CurvesROIWidget(qt.QWidget):
                         break
                 color = 'blue'
                 draggable = True
-            self.plot.addXMarker(fromdata,
-                                 legend='ROI min',
-                                 text='ROI min',
-                                 color=color,
-                                 draggable=draggable)
-            self.plot.addXMarker(todata,
-                                 legend='ROI max',
-                                 text='ROI max',
-                                 color=color,
-                                 draggable=draggable)
+            plot.addXMarker(fromdata,
+                            legend='ROI min',
+                            text='ROI min',
+                            color=color,
+                            draggable=draggable)
+            plot.addXMarker(todata,
+                            legend='ROI max',
+                            text='ROI max',
+                            color=color,
+                            draggable=draggable)
             if draggable and self._middleROIMarkerFlag:
                 pos = 0.5 * (fromdata + todata)
-                self.plot.addXMarker(pos,
-                                     legend='ROI middle',
-                                     text="",
-                                     color='yellow',
-                                     draggable=draggable)
+                plot.addXMarker(pos,
+                                legend='ROI middle',
+                                text="",
+                                color='yellow',
+                                draggable=draggable)
             roiList.append(newroi)
             roiDict[newroi] = {}
             if newroi == "ICR":
                 roiDict[newroi]['type'] = "Default"
             else:
-                roiDict[newroi]['type'] = self.plot.getXAxis().getLabel()
+                roiDict[newroi]['type'] = plot.getXAxis().getLabel()
             roiDict[newroi]['from'] = fromdata
             roiDict[newroi]['to'] = todata
             self.roiTable.fillFromROIDict(roilist=roiList,
@@ -453,10 +466,10 @@ class CurvesROIWidget(qt.QWidget):
             self.currentROI = newroi
             self.calculateRois()
         elif ddict['event'] in ['DelROI', "ResetROI"]:
-            self.plot.remove('ROI min', kind='marker')
-            self.plot.remove('ROI max', kind='marker')
+            plot.remove('ROI min', kind='marker')
+            plot.remove('ROI max', kind='marker')
             if self._middleROIMarkerFlag:
-                self.plot.remove('ROI middle', kind='marker')
+                plot.remove('ROI middle', kind='marker')
             roiList, roiDict = self.roiTable.getROIListAndDict()
             roiDictKeys = list(roiDict.keys())
             if len(roiDictKeys):
@@ -479,37 +492,37 @@ class CurvesROIWidget(qt.QWidget):
             self.roilist, self.roidict = self.roiTable.getROIListAndDict()
             fromdata = ddict['roi']['from']
             todata = ddict['roi']['to']
-            self.plot.remove('ROI min', kind='marker')
-            self.plot.remove('ROI max', kind='marker')
+            plot.remove('ROI min', kind='marker')
+            plot.remove('ROI max', kind='marker')
             if ddict['key'] == 'ICR':
                 draggable = False
                 color = 'black'
             else:
                 draggable = True
                 color = 'blue'
-            self.plot.addXMarker(fromdata,
-                                 legend='ROI min',
-                                 text='ROI min',
-                                 color=color,
-                                 draggable=draggable)
-            self.plot.addXMarker(todata,
-                                 legend='ROI max',
-                                 text='ROI max',
-                                 color=color,
-                                 draggable=draggable)
+            plot.addXMarker(fromdata,
+                            legend='ROI min',
+                            text='ROI min',
+                            color=color,
+                            draggable=draggable)
+            plot.addXMarker(todata,
+                            legend='ROI max',
+                            text='ROI max',
+                            color=color,
+                            draggable=draggable)
             if draggable and self._middleROIMarkerFlag:
                 pos = 0.5 * (fromdata + todata)
-                self.plot.addXMarker(pos,
-                                     legend='ROI middle',
-                                     text="",
-                                     color='yellow',
-                                     draggable=True)
+                plot.addXMarker(pos,
+                                legend='ROI middle',
+                                text="",
+                                color='yellow',
+                                draggable=True)
             self.currentROI = ddict['key']
             if ddict['colheader'] in ['From', 'To']:
                 dict0 = {}
                 dict0['event'] = "SetActiveCurveEvent"
-                dict0['legend'] = self.plot.getActiveCurve(just_legend=1)
-                self.plot.setActiveCurve(dict0['legend'])
+                dict0['legend'] = plot.getActiveCurve(just_legend=1)
+                plot.setActiveCurve(dict0['legend'])
             elif ddict['colheader'] == 'Raw Counts':
                 pass
             elif ddict['colheader'] == 'Net Counts':
@@ -522,7 +535,8 @@ class CurvesROIWidget(qt.QWidget):
 
     def _getAllLimits(self):
         """Retrieve the limits based on the curves."""
-        curves = self.plot.getAllCurves()
+        plot = self.getPlotWidget()
+        curves = () if plot is None else plot.getAllCurves()
         if not curves:
             return 1.0, 1.0, 100., 100.
 
@@ -561,7 +575,12 @@ class CurvesROIWidget(qt.QWidget):
         if roiList is None or roiDict is None:
             roiList, roiDict = self.roiTable.getROIListAndDict()
 
-        activeCurve = self.plot.getActiveCurve(just_legend=False)
+        plot = self.getPlotWidget()
+        if plot is None:
+            activeCurve = None
+        else:
+            activeCurve = plot.getActiveCurve(just_legend=False)
+
         if activeCurve is None:
             xproc = None
             yproc = None
@@ -639,6 +658,11 @@ class CurvesROIWidget(qt.QWidget):
                 return
             if self.currentROI not in roiDict:
                 return
+
+            plot = self.getPlotWidget()
+            if plot is None:
+                return
+
             x = ddict['x']
 
             if label == 'ROI min':
@@ -646,36 +670,36 @@ class CurvesROIWidget(qt.QWidget):
                 if self._middleROIMarkerFlag:
                     pos = 0.5 * (roiDict[self.currentROI]['to'] +
                                  roiDict[self.currentROI]['from'])
-                    self.plot.addXMarker(pos,
-                                         legend='ROI middle',
-                                         text='',
-                                         color='yellow',
-                                         draggable=True)
+                    plot.addXMarker(pos,
+                                    legend='ROI middle',
+                                    text='',
+                                    color='yellow',
+                                    draggable=True)
             elif label == 'ROI max':
                 roiDict[self.currentROI]['to'] = x
                 if self._middleROIMarkerFlag:
                     pos = 0.5 * (roiDict[self.currentROI]['to'] +
                                  roiDict[self.currentROI]['from'])
-                    self.plot.addXMarker(pos,
-                                         legend='ROI middle',
-                                         text='',
-                                         color='yellow',
-                                         draggable=True)
+                    plot.addXMarker(pos,
+                                    legend='ROI middle',
+                                    text='',
+                                    color='yellow',
+                                    draggable=True)
             elif label == 'ROI middle':
                 delta = x - 0.5 * (roiDict[self.currentROI]['from'] +
                                    roiDict[self.currentROI]['to'])
                 roiDict[self.currentROI]['from'] += delta
                 roiDict[self.currentROI]['to'] += delta
-                self.plot.addXMarker(roiDict[self.currentROI]['from'],
-                                     legend='ROI min',
-                                     text='ROI min',
-                                     color='blue',
-                                     draggable=True)
-                self.plot.addXMarker(roiDict[self.currentROI]['to'],
-                                     legend='ROI max',
-                                     text='ROI max',
-                                     color='blue',
-                                     draggable=True)
+                plot.addXMarker(roiDict[self.currentROI]['from'],
+                                legend='ROI min',
+                                text='ROI min',
+                                color='blue',
+                                draggable=True)
+                plot.addXMarker(roiDict[self.currentROI]['to'],
+                                legend='ROI max',
+                                text='ROI max',
+                                color='blue',
+                                draggable=True)
             else:
                 return
             self.calculateRois(roiList, roiDict)
@@ -686,23 +710,26 @@ class CurvesROIWidget(qt.QWidget):
 
         It is connected to plot signals only when visible.
         """
+        plot = self.getPlotWidget()
+
         if visible:
             if not self._isInit:
                 # Deferred ROI widget init finalization
                 self._finalizeInit()
 
-            if not self._isConnected:
-                self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
-                self.plot.sigActiveCurveChanged.connect(
+            if not self._isConnected and plot is not None:
+                plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
+                plot.sigActiveCurveChanged.connect(
                     self._activeCurveChanged)
                 self._isConnected = True
 
                 self.calculateRois()
         else:
             if self._isConnected:
-                self.plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
-                self.plot.sigActiveCurveChanged.disconnect(
-                    self._activeCurveChanged)
+                if plot is not None:
+                    plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
+                    plot.sigActiveCurveChanged.disconnect(
+                        self._activeCurveChanged)
                 self._isConnected = False
 
     def _activeCurveChanged(self, *args):
@@ -979,9 +1006,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
     def __init__(self, parent=None, plot=None, name=None):
         super(CurvesROIDockWidget, self).__init__(name, parent)
-
-        assert plot is not None
-        self.plot = plot
 
         self.roiWidget = CurvesROIWidget(self, name, plot=plot)
         """Main widget of type :class:`CurvesROIWidget`"""

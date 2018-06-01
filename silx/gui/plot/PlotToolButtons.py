@@ -41,6 +41,7 @@ __date__ = "27/06/2017"
 
 import functools
 import logging
+import weakref
 
 from .. import icons
 from .. import qt
@@ -57,7 +58,7 @@ class PlotToolButton(qt.QToolButton):
 
     def __init__(self, parent=None, plot=None):
         super(PlotToolButton, self).__init__(parent)
-        self._plot = None
+        self._plotRef = None
         if plot is not None:
             self.setPlot(plot)
 
@@ -65,7 +66,7 @@ class PlotToolButton(qt.QToolButton):
         """
         Returns the plot connected to the widget.
         """
-        return self._plot
+        return None if self._plotRef is None else self._plotRef()
 
     def setPlot(self, plot):
         """
@@ -73,13 +74,18 @@ class PlotToolButton(qt.QToolButton):
 
         :param plot: :class:`.PlotWidget` instance on which to operate.
         """
-        if self._plot is plot:
+        previousPlot = self.plot()
+
+        if previousPlot is plot:
             return
-        if self._plot is not None:
-            self._disconnectPlot(self._plot)
-        self._plot = plot
-        if self._plot is not None:
-            self._connectPlot(self._plot)
+        if previousPlot is not None:
+            self._disconnectPlot(previousPlot)
+
+        if plot is None:
+            self._plotRef = None
+        else:
+            self._plotRef = weakref.ref(plot)
+            self._connectPlot(plot)
 
     def _connectPlot(self, plot):
         """
