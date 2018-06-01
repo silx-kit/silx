@@ -32,6 +32,7 @@ import numpy
 import unittest
 import pkg_resources
 from silx.utils import number
+from silx.utils import testutils
 
 _logger = logging.getLogger(__name__)
 
@@ -140,6 +141,17 @@ class TestConversionTypes(unittest.TestCase):
         value = str(numpy.float32(numpy.pi))
         dtype = number.min_numerical_convertible_type(value)
         self.assertIn(dtype, (numpy.float32, numpy.float64))
+
+    def testLosePrecisionUsingFloat80(self):
+        if not hasattr(numpy, "longdouble"):
+            self.skipTest("float-80bits not supported")
+        if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
+            self.skipTest("numpy > 1.10.4 expected")
+        value = "1000000000.00001013332"
+        func = testutils.test_logging(number._logger.name, warning=1)
+        func = func(number.min_numerical_convertible_type)
+        dtype = func(value)
+        self.assertIn(dtype, (numpy.longdouble, ))
 
 
 def suite():
