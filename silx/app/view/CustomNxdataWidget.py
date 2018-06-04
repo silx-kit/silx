@@ -625,22 +625,44 @@ class CustomNxdataWidget(qt.QTreeView):
         qindex = self.indexAt(point)
         qindex = self.__model.index(qindex.row(), 0, parent=qindex.parent())
         item = self.__model.itemFromIndex(qindex)
-        if isinstance(item, _DatasetItemRow):
-            if item.getDataset() is not None:
-                menu = qt.QMenu()
-                action = qt.QAction("Remove this dataset", menu)
-                action.triggered.connect(lambda: self.__removeItemDataset(item))
-                menu.addAction(action)
-                return menu
 
-        return None
+        menu = qt.QMenu()
+
+        if isinstance(item, _NxDataItem):
+            action = qt.QAction("Add a new axis", menu)
+            action.triggered.connect(lambda: self.model().appendAxisToNxdataItem(item))
+            action.setIcon(icons.getQIcon("nxdata-axis-add"))
+            action.setIconVisibleInMenu(True)
+            menu.addAction(action)
+            menu.addSeparator()
+            action = qt.QAction("Remove this NXdata", menu)
+            action.triggered.connect(lambda: self.model().removeNxdataItem(item))
+            action.setIcon(icons.getQIcon("remove"))
+            action.setIconVisibleInMenu(True)
+            menu.addAction(action)
+        else:
+            if isinstance(item, _DatasetItemRow):
+                if item.getDataset() is not None:
+                    action = qt.QAction("Remove this dataset", menu)
+                    action.triggered.connect(lambda: self.__removeItemDataset(item))
+                    menu.addAction(action)
+
+            if isinstance(item, _DatasetAxisItemRow):
+                menu.addSeparator()
+                action = qt.QAction("Remove this axis", menu)
+                action.triggered.connect(lambda: self.model().removeAxisItem(item))
+                action.setIcon(icons.getQIcon("remove"))
+                action.setIconVisibleInMenu(True)
+                menu.addAction(action)
+
+        return menu
 
     def __removeItemDataset(self, item):
         item.setDataset(None)
 
     def __executeContextMenu(self, point):
         menu = self.defaultContextMenu(point)
-        if menu is None:
+        if menu is None or menu.isEmpty():
             return
         menu.exec_(qt.QCursor.pos())
 
