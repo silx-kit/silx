@@ -31,7 +31,7 @@ but it must have a `NX_class` attribute defining a
 
 Examples of such classes are:
 
- - *NXroot*: root group of the file (may be implicit, if the can be `NX_class` attribute is omitted)
+ - *NXroot*: root group of the file (may be implicit, if the `NX_class` attribute is omitted)
  - *NXentry*: describes a measurement; it is mandatory that there is at least one
    group of this type in the NeXus file
  - *NXsample*: contains information pertaining to the sample, such as its chemical composition,
