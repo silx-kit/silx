@@ -1135,7 +1135,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
-            ['Label', 'Edit', 'Delete', 'Kind', 'Coordinates'])
+            ['Label', 'Edit', 'Kind', 'Coordinates', ''])
 
         horizontalHeader = self.horizontalHeader()
         horizontalHeader.setDefaultAlignment(qt.Qt.AlignLeft)
@@ -1147,8 +1147,8 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         setSectionResizeMode(0, qt.QHeaderView.Interactive)
         setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
         setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(4, qt.QHeaderView.Stretch)
+        setSectionResizeMode(3, qt.QHeaderView.Stretch)
+        setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
 
         verticalHeader = self.verticalHeader()
         verticalHeader.setVisible(False)
@@ -1221,25 +1221,14 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setCheckState(
                 qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
             self.setItem(index, 1, item)
-
-            # Delete
-            delBtn = _DeleteRegionOfInterestToolButton(None, roi)
-
-            widget = qt.QWidget()
-            layout = qt.QHBoxLayout()
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(0)
-            widget.setLayout(layout)
-            layout.addStretch(1)
-            layout.addWidget(delBtn)
-            layout.addStretch(1)
-            self.setCellWidget(index, 2, widget)
+            item.setTextAlignment(qt.Qt.AlignCenter)
+            item.setText(None)
 
             # Kind
             kind = roi.getKind()
             item = qt.QTableWidgetItem(kind.capitalize())
             item.setFlags(baseFlags)
-            self.setItem(index, 3, item)
+            self.setItem(index, 2, item)
 
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags)
@@ -1263,7 +1252,19 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
             else:  # default (polygon, line)
                 item.setText('; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points))
-            self.setItem(index, 4, item)
+            self.setItem(index, 3, item)
+
+            # Delete
+            delBtn = _DeleteRegionOfInterestToolButton(None, roi)
+            widget = qt.QWidget()
+            layout = qt.QHBoxLayout()
+            layout.setContentsMargins(2, 2, 2, 2)
+            layout.setSpacing(0)
+            widget.setLayout(layout)
+            layout.addStretch(1)
+            layout.addWidget(delBtn)
+            layout.addStretch(1)
+            self.setCellWidget(index, 4, widget)
 
     def getRegionOfInterestManager(self):
         """Returns the :class:`RegionOfInterestManager` this widget supervise.
