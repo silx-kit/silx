@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/05/2018"
+__date__ = "04/06/2018"
 
 import logging
 
@@ -275,7 +275,7 @@ class _Model(qt.QStandardItemModel):
     def __init__(self, parent=None):
         qt.QStandardItemModel.__init__(self, parent)
         root = self.invisibleRootItem()
-        root.setDropEnabled(False)
+        root.setDropEnabled(True)
         root.setDragEnabled(False)
 
     def supportedDropActions(self):
@@ -319,15 +319,86 @@ class _Model(qt.QStandardItemModel):
                 # It is not a drop on a specific item
                 return False
             item = self.itemFromIndex(parentIndex)
-            item = item.parent().child(item.row(), 0)
-            if not isinstance(item, _DatasetItemRow):
-                return False
-
-            dataset = mimedata.dataset()
-            item.setDataset(dataset)
+            if item is None or item is self.invisibleRootItem():
+                # Drop at the end
+                dataset = mimedata.dataset()
+                if silx.io.is_dataset(dataset):
+                    self.createFromSignal(dataset)
+                elif silx.io.is_group(dataset):
+                    nxdata = dataset
+                    try:
+                        self.createFromNxdata(nxdata)
+                    except ValueError:
+                        _logger.error("Error while dropping a group as an NXdata")
+                        _logger.debug("Backtrace", exc_info=True)
+                        return False
+                else:
+                    _logger.error("Dropping a wrong object")
+                    return False
+            else:
+                item = item.parent().child(item.row(), 0)
+                if not isinstance(item, _DatasetItemRow):
+                    # Dropped at a bad place
+                    return False
+                dataset = mimedata.dataset()
+                if silx.io.is_dataset(dataset):
+                    item.setDataset(dataset)
+                else:
+                    _logger.error("Dropping a wrong object")
+                    return False
             return True
 
         return False
+
+    def getNxdataByTitle(self, title):
+        for row in range(self.rowCount()):
+            qindex = self.index(row, 0)
+            item = self.itemFromIndex(qindex)
+            if item.getTitle() == title:
+                return item
+        return None
+
+    def findFreeNxdataTitle(self):
+        for i in range(self.rowCount() + 1):
+            name = "NXData #%d" % (i + 1)
+            group = self.getNxdataByTitle(name)
+            if group is None:
+                break
+        return name
+
+    def create(self, name=None):
+        item = _NxDataItem()
+        if name is None:
+            name = self.findFreeNxdataTitle()
+        item.setTitle(name)
+        self.appendRow(item.getRow())
+
+    def createFromSignal(self, dataset):
+        item = _NxDataItem()
+        name = self.findFreeNxdataTitle()
+        item.setTitle(name)
+        item.setSignal(dataset)
+        item.setAxes([None] * len(dataset.shape))
+        self.appendRow(item.getRow())
+
+    def createFromNxdata(self, nxdata):
+        """Create a new custom NXData from an existing NXData group.
+
+        :param h5py.Group nxdata: An h5py group following the NXData
+            specification
+        """
+        validator = silx.io.nxdata.NXdata(nxdata)
+        if validator.is_valid:
+            item = _NxDataItem()
+            title = validator.title
+            if title in [None or ""]:
+                title = self.findFreeNxdataTitle()
+            item.setTitle(title)
+            item.setSignal(validator.signal)
+            item.setAxes(validator.axes)
+            self.appendRow(item.getRow())
+        else:
+            raise ValueError("Not a valid NXdata")
 
 
 class CustomNxDataToolBar(qt.QToolBar):
@@ -560,22 +631,6 @@ class CustomNxdataWidget(qt.QTreeView):
             return
         menu.exec_(qt.QCursor.pos())
 
-    def getNxdataByTitle(self, title):
-        for row in range(self.__model.rowCount()):
-            qindex = self.__model.index(row, 0)
-            item = self.model().itemFromIndex(qindex)
-            if item.getTitle() == title:
-                return item
-        return None
-
-    def findFreeNxdataTitle(self):
-        for i in range(self.__model.rowCount() + 1):
-            name = "NXData #%d" % (i + 1)
-            group = self.getNxdataByTitle(name)
-            if group is None:
-                break
-        return name
-
     def removeDatasetsFrom(self, root):
         """
         Remove all datasets provided by this root
@@ -678,35 +733,10 @@ class CustomNxdataWidget(qt.QTreeView):
         return result
 
     def create(self, name=None):
-        item = _NxDataItem()
-        if name is None:
-            name = self.findFreeNxdataTitle()
-        item.setTitle(name)
-        self.__model.appendRow(item.getRow())
+        self.__model.create(name)
 
     def createFromSignal(self, dataset):
-        item = _NxDataItem()
-        name = self.findFreeNxdataTitle()
-        item.setTitle(name)
-        item.setSignal(dataset)
-        item.setAxes([None] * len(dataset.shape))
-        self.__model.appendRow(item.getRow())
+        self.__model.createFromSignal(dataset)
 
     def createFromNxdata(self, nxdata):
-        """Create a new custom NXData from an existing NXData group.
-
-        :param h5py.Group nxdata: An h5py group following the NXData
-            specification
-        """
-        validator = silx.io.nxdata.NXdata(nxdata)
-        if validator.is_valid:
-            item = _NxDataItem()
-            title = validator.title
-            if title in [None or ""]:
-                title = self.findFreeNxdataTitle()
-            item.setTitle(title)
-            item.setSignal(validator.signal)
-            item.setAxes(validator.axes)
-            self.model().appendRow(item.getRow())
-        else:
-            raise ValueError("Not a valid NXdata")
+        self.__model.createFromNxdata(nxdata)
