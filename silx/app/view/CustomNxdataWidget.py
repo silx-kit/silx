@@ -644,7 +644,7 @@ class CustomNxdataWidget(qt.QTreeView):
             if isinstance(item, _DatasetItemRow):
                 if item.getDataset() is not None:
                     action = qt.QAction("Remove this dataset", menu)
-                    action.triggered.connect(lambda: self.__removeItemDataset(item))
+                    action.triggered.connect(lambda: item.setDataset(None))
                     menu.addAction(action)
 
             if isinstance(item, _DatasetAxisItemRow):
@@ -656,9 +656,6 @@ class CustomNxdataWidget(qt.QTreeView):
                 menu.addAction(action)
 
         return menu
-
-    def __removeItemDataset(self, item):
-        item.setDataset(None)
 
     def __executeContextMenu(self, point):
         menu = self.defaultContextMenu(point)
