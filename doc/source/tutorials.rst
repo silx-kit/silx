@@ -14,6 +14,7 @@ Tutorials and cookbooks:
    Tutorials/io.rst
    Tutorials/convert.rst
    Tutorials/specfile_to_hdf5.rst
+   Tutorials/writing_NXdata.rst
    modules/gui/hdf5/getting_started.rst
    Tutorials/fit.rst
    Tutorials/fitconfig.rst
