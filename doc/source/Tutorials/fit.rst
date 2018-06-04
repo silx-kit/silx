@@ -1,8 +1,8 @@
 
 .. _fit-tutorial:
 
-Fit tools
----------
+Best fit tools
+--------------
 
 .. contents:: :local:
 
@@ -13,15 +13,15 @@ Using :func:`leastsq`
 
 .. currentmodule:: silx.math.fit
 
-Running an iterative fit with :func:`leastsq` involves the following steps:
+Running an iterative best fit process with :func:`leastsq` involves the following steps:
 
-    - designing a fit model function that has the signature ``f(x, ...)``,
+    - designing a fit model function having the signature ``f(x, ...)``,
       where ``x`` is an array of values of the independent variable and all
       remaining parameters are the parameters to be fitted
     - defining the sequence of initial values for all parameters to be fitted.
-      You can usually start with ``[1., 1., ...]`` if you don't know a better
+      You can usually start with ``[1., 1., ...]`` if you don't have a better
       estimate. The algorithm is robust enough to converge to a solution most
-      of the time.
+      of the times.
     - setting constraints (optional)
 
 Data required to perform a fit is:
@@ -29,14 +29,14 @@ Data required to perform a fit is:
     - an array of ``x`` values (abscissa, independent variable)
     - an array of ``y`` data points
     - the ``sigma`` array of uncertainties associated to each data point.
-      This is optional, by default each data point gets assigned a weight of 1.
+      This is optional, by default each data point is assigned a weight of 1.
 
 Default (unweighted) fit
 ************************
 
 Let's demonstrate this process in a short example, using synthetic data.
 We generate an array of synthetic data using a polynomial function of degree 4,
-and try to use :func:`leastsq` to find back the functions parameters.
+and try to use :func:`leastsq` to find back the function parameters.
 
 .. code-block:: python
 
@@ -74,7 +74,7 @@ and try to use :func:`leastsq` to find back the functions parameters.
    print("Optimal parameters for y2 fitting:\n\t" +
          "a=%f, b=%f, c=%f, d=%f, e=%f" % (a, b, c, d, e))
 
-The output of this program is::
+The output of the above program is::
 
    Fit took 35 iterations
    Reduced chi-square: 682592.670690
@@ -87,18 +87,18 @@ The output of this program is::
 
     The exact results may vary depending on your Python version.
 
-We can see that this fit result is poor. In particular, parameters ``d`` and ``e``
+We can see that the fitting result is poor. In particular, parameters ``d`` and ``e``
 are very poorly fitted.
 
 This is due to the fact that data points with large values have a stronger influence
-in the fit process. In our examples, as ``x`` increases, ``y`` increases fast.
-The influence of the weighting, and how to solve this issue is explained in more details
+in the fitting process. In our examples, as ``x`` increases, ``y`` increases fast.
+The influence of the weighting and how to solve this issue is explained in more details
 in the next section.
 
-In the meantime, if you simply limit the ``x`` range, to deal with
+In the meantime, if you simply limit the ``x`` range to deal with
 smaller ``y`` values, you can notice that the fit result becomes perfect.
 
-In our example, replacing ``x`` with::
+In our example, replacing ``x`` by::
 
     x = numpy.arange(100)
 
@@ -116,18 +116,16 @@ Weighted fit
 ************
 
 Since the fitting algorithm minimizes the sum of squared differences between input
-and evaluated data, points with higher y value had a greater weight in the fitting process.
-A solution to this problem, if we want to improve our fit, is to define uncertainties
-for the data.
-The larger the uncertainty on a data sample, the smaller its weight will be
-in the least-square problem.
+and calculated data, points with higher y values have a greater weight in the fitting process.
+A way to improve the fit, is to attach uncertainties to the data.
+The larger the uncertainty on a data sample, the smaller its weight in the least-square problem.
 
-It is important to set the uncertainties correctly, or you risk favoring either
-the lower values or the higher values in your data.
+It is important to set the uncertainties correctly, or you risk to introduce a bias either
+toward the lower values or toward the higher values in your data.
 
-The common approach in counting experiments is to use the square-root of the data
-values as the uncertainty value (assuming a Poissonian law).
-Let's apply it to our previous example:
+The common approach in event counting experiments is to use the squareroot of the data
+values as the uncertainty values (assuming a Poissonian law).
+Let's apply it to the previous example:
 
 .. code-block:: python
 
@@ -151,40 +149,38 @@ This results in a great improvement::
        a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
 
 The resulting fit is perfect. The fit converged even faster than when
-we limited ``x`` range to 0 -- 100.
+we limited the ``x`` range to 0 -- 100.
 
 To use a real world example, when fitting x-ray fluorescence spectroscopy data,
-this common approach means that we consider the variance of each channel to be
+this common approach means that we take the variance of each channel to be
 the number of counts in that channel.
 That corresponds to assuming a normal distribution.
 The true distribution being a Poisson distribution, the Gaussian distribution
 is a good approximation for channels with high number of counts,
-but the approximation is not valid when the number of counts in a channel is small.
+but the approximation is not valid when the number of counts in a channel is low.
 
 Therefore, in spectra where the overall statistics is very low, a
 weighted fit can lead the fitting process to fit the background
-considering the peaks as outliers, because the fit will consider a
-channel with 1 count 100 times more relevant than a channel with 100
-counts.
+considering the peaks as outliers, because the fit procedure will consider a
+channel with 1 count has a 100 times higher weight than a channel with 100 counts.
 
 
 Constrained fit
 ***************
 
-But let's revert back to our unweighted fit, to experiment
-with different approaches to improving the fit.
+Let's revert to our unweighted fit and try out with different approaches for improving the fit.
 
-The :func:`leastsq` functions provides
-a way to set constraints on parameters. You can for instance assert that a given
-parameter must remain equal to it's initial value, or define an acceptable range
+The :func:`leastsq` function provides
+a way to set constraints on parameters. You can for instance enforce that a given
+parameter must remain equal to its initial value, or define an acceptable range
 for it to vary, or decide that a parameter must be equal to another parameter
-multiplied by a certain factor. This is very useful in cases in which you have
+multiplied by a certain factor. This is very useful for cases in which you have
 enough knowledge to make reasonable assumptions on some parameters.
 
-In our case, we will set constraints on ``d`` and ``e``. We will quote ``d`` to
+In our case, we will set constraints on ``d`` and ``e``. We will require ``d`` to
 stay in the range between -25 and -24, and fix ``e`` to 150.
 
-Replace the call to :func:`leastsq` by following lines:
+Replace the call to :func:`leastsq` by the following lines:
 
 .. code-block:: python
 
@@ -209,7 +205,7 @@ The output of this program is::
    Optimal parameters for y fitting:
        a=2.400000, b=-9.999999, c=15.199648, d=-24.533014, e=150.000000
 
-The chi-square value is much improved and the results are much better, at the
+The chi-square value is substantially improved and the results are much better, at the
 cost of more iterations.
 
 .. _fitmanager-tutorial:
@@ -230,7 +226,7 @@ Weighted polynomial fit
 ***********************
 
 The following program accomplishes the same weighted fit of a polynomial as in
-the previous tutorial (`Weighted fit`_)
+the previous tutorial (See `Weighted fit`_)
 
 .. code-block:: python
 
@@ -275,7 +271,7 @@ the previous tutorial (`Weighted fit`_)
           "a=%f, b=%f, c=%f, d=%f, e=%f" % (a, b, c, d, e))
 
 
-The result is the same as in our weighted :func:`leastsq` example,
+The result is the same as in the weighted :func:`leastsq` example,
 as expected::
 
     Fit took 6 iterations
@@ -285,19 +281,19 @@ as expected::
     Optimal parameters for y2 fitting:
         a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
 
-Fitting gaussians
+Fitting Gaussians
 *****************
 
 The :class:`FitManager` object is especially useful for fitting multi-peak
-gaussian-shaped spectra. The *silx* module :mod:`silx.math.fit.fittheories`
-provides fit functions and their associated estimation functions that are
+Gaussian-shaped spectra. The *silx* module :mod:`silx.math.fit.fittheories`
+contains fit functions and their associated estimation functions that are
 specifically designed for this purpose.
 
-These fit functions can handle variable number of parameters defining a
+These fit functions can handle a varying number of parameters defining a
 variable number of peaks, and the estimation functions use a peak detection
 algorithm to determine how many initial parameters must be returned.
 
-For the sake of the example, let's test the multi-peak fitting on synthetic
+For the sake of example, let's test the multi-peak fitting on synthetic
 data, generated using another *silx* module: :mod:`silx.math.fit.functions`.
 
 .. code-block:: python
@@ -333,7 +329,7 @@ data, generated using another *silx* module: :mod:`silx.math.fit.functions`.
         dummy_list.append(param['fitresult'])
     print("chisq = ", fit.chisq)
 
-And the result of this program is::
+The result of this program is::
 
     Searched parameters = [1000, 100.0, 250, 255, 690.0, 45, 1500, 800.5, 95]
     Obtained parameters :
@@ -348,8 +344,8 @@ And the result of this program is::
     ('FWHM3', ' = ', 95.000000000000014)
     ('chisq = ', 0.0)
 
-In addition to gaussians, we could have fitted several other similar type of
-functions: asymetric gaussian functions, lorentzian functions,
+In addition to Gaussians, we could have fitted several other similar types of
+function: asymmetric Gaussian functions, Lorentzian functions,
 pseudo-voigt functions or hypermet tailing functions.
 
 The :meth:`loadtheories` method can also be used to load user defined
@@ -358,13 +354,13 @@ as a parameter. This source file must adhere to certain conventions, as explaine
 in the documentation of :mod:`silx.math.fit.fittheories` and
 :mod:`silx.math.fit.fittheory.FitTheory`.
 
-Subtracting a background
-************************
+Background subtraction
+**********************
 
 :class:`FitManager` provides a few standard background theories, for cases when
 a background signal is superimposed on the multi-peak spectrum.
 
-For example, let's add a linear background to our synthetic data, and see how
+For instance, let's add a linear background to our synthetic data, and see how
 :class:`FitManager` handles the fitting.
 
 In our previous example, redefine ``y`` as follows:
@@ -410,10 +406,11 @@ signal is significantly smoother than the actual signal, it can be easily
 computed.
 
 The main parameters required by the strip function are the strip width *w*
-and the number of iterations. At each iteration, if the contents of channel *i*,
-``y(i)``, is above the average of the contents of the channels at *w* channels of
-distance, ``y(i-w)`` and ``y(i+w)``,  ``y(i)`` is replaced by the average.
-At the end of the process we are left with something that resembles a spectrum
+and the number of iterations. At each iteration, if the content of channel *i*,
+``y(i)`` is above the average of the contents of the channels at a distance *w*
+(measured in channel units) i.e., ``y(i-w)`` and ``y(i+w)``,
+``y(i)`` is replaced by the average value of the neighbouring channels.
+At the end of the process one is left with something that resembles a spectrum
 in which the peaks have been "stripped".
 
 The following example illustrates the strip background removal process:
@@ -470,11 +467,11 @@ The following example illustrates the strip background removal process:
      - Data with background in black (``y``), actual background in red, computed strip
        background in green
    * - |imgStrip2|
-     - Data with background in blue, data after subtracting strip background in black
+     - Data with background in blue, data after subtracting the strip background in black
 
 The strip also removes the statistical noise, so the computed strip background
 will be slightly lower than the actual background. This can be solved by
-performing a smoothing prior to the strip computation.
+smoothing the data prior to the strip computation.
 
 See the `PyMca documentation <http://pymca.sourceforge.net/stripbackground.html>`_
 for more information on the strip background.
@@ -482,15 +479,15 @@ for more information on the strip background.
 To configure the strip background model of :class:`FitManager`, use its :meth:`configure`
 method to modify the following parameters:
 
- - *StripWidth*: strip width parameter *w*, mentionned earlier
+ - *StripWidth*: strip width parameter *w*, mentioned earlier
  - *StripNIterations*: number of iterations
  - *StripThresholdFactor*: if this parameter is left to its default value 1,
    the algorithm behaves as explained earlier: ``y(i)`` is compared to the average of
    ``y(i-1)`` and ``y(i+1)``.
-   If this factor is set to another value *f*, ``y(i)`` is compared to the
-   average multiplied by ``f``.
- - *SmoothStrip*: if this parameter is set to ``True``, a smoothing is applied
-   prior to the strip.
+   If this factor is set to another value, *f*, ``y(i)`` is compared to the
+   average multiplied by *f*.
+ - *SmoothStrip*: if this parameter is set to ``True``, smoothing is performed
+   prior to stripping.
 
 
 These parameters can be modified like this:
@@ -520,7 +517,7 @@ Using :class:`FitWidget`
 Simple usage
 ************
 
-The :class:`FitWidget` is a graphical interface for :class:`FitManager`.
+:class:`FitWidget` is a graphical interface to :class:`FitManager`.
 
 .. code-block:: python
 
@@ -570,9 +567,9 @@ Executing this code opens the following widget.
 
     |imgFitWidget1|
 
-The functions you can choose from are the standard gaussian-shaped functions
+The functions you can choose from the widget are the standard Gaussian-shaped functions
 from :mod:`silx.math.fit.fittheories`. At the top of the list, you will find
-the *Add Function(s)* option, that allows you to load your user defined fit
+the *Add Function(s)* option, that allows loading the user defined fit
 theories from a *.py* source file.
 
 After selecting the *Constant* background model and clicking the *Estimate*
@@ -580,41 +577,40 @@ button, the widget displays this:
 
     |imgFitWidget2|
 
-The 7 peaks have been detected, and their parameters estimated.
-Also, the estimation function defined some constraints (positive height and
-positive full-width at half-maximum).
+7 peaks have been detected, and their parameters estimated.
+Also, the estimation function defines some constraints (positive height and full-width at half-maximum).
 
 You can modify the values in the estimation column of the table, to use different
-initial parameters for the fit.
+initial fit parameters.
 
 The individual constraints can be modified prior to fitting. It is also possible to
-modify the constraints globally by clicking the *Configure* button' to open a
+modify the constraints globally by clicking the *Configure* button to open a
 configuration dialog. To get help on the meaning of the various parameters,
-hover the mouse on the corresponding check box or entry widget, to display a
+hover the mouse cursor on the corresponding check box or entry widget to display a
 tooltip help message.
 
     |imgFitWidget3|
 
 The other configuration tabs can be modified to change the peak search parameters
-and the strip background parameters prior to the estimation.
+and the strip background parameters prior to estimating them.
 After closing the configuration dialog, you must re-run the estimation
 by clicking the *Estimate* button.
 
-After all configuration parameters and all constrants are set according to your
+After all configuration parameters and all constraints are set according to your
 preferences, you can click the *Start Fit* button. This runs the fit and displays
 the results in the *Fit Value* column of the table.
 
     |imgFitWidget4|
 
-Customizing the functions
+Customising the functions
 *************************
 
 .. |imgFitWidget5| image:: img/fitwidget5.png
    :width: 300px
    :align: middle
 
-The :class:`FitWidget` can be initialized with a non-standard
-:class:`FitManager`, to customize the available functions.
+The :class:`FitWidget` can be initialised with a non-standard
+:class:`FitManager` to customise the available functions.
 
 .. code-block:: python
 
@@ -644,16 +640,16 @@ The :class:`FitWidget` can be initialized with a non-standard
 
     a.exec_()
 
-In our previous example, we didn't load a custom :class:`FitManager`.
-Therefore, the fit widget automatically initialized a fit manager and
-loaded the custom gaussian functions.
+In our previous example, we didn't load a customised :class:`FitManager`,
+therefore, the fit widget automatically initialised the default fit manager and
+loaded the default custom Gaussian functions.
 
-This time, we initialized our own :class:`FitManager` and loaded our
+This time, we initialised our own :class:`FitManager` and loaded our
 own function, so only this function is presented as an option in the GUI.
 
 Our custom function does not provide an associated estimation function, so
-the default estimation function of :class:`FitManager` was used. This
-default estimation function returns an array of ones the same length as the
-list of *parameter* names, and set all constraints to *FREE*.
+the default estimation function of the :class:`FitManager` is used. This
+default estimation function returns an array of ones with the same length as the
+list of *parameter* names, and sets all constraints to *FREE*.
 
     |imgFitWidget5|
