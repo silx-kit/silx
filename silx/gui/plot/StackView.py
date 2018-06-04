@@ -352,7 +352,9 @@ class StackView(qt.QMainWindow):
 
         :param index: index of the frame to be displayed
         """
-        assert self.__transposed_view is not None
+        if self.__transposed_view is None:
+            # no data set
+            return
         self._plot.addImage(self.__transposed_view[index, :, :],
                             origin=self._getImageOrigin(),
                             scale=self._getImageScale(),
@@ -682,9 +684,7 @@ class StackView(qt.QMainWindow):
         self._perspective = 0
         self._browser.setEnabled(False)
         # reset browser range
-        self._browser.valueChanged[int].disconnect(self.__updateFrameNumber)
         self._browser.setRange(0, 0)
-        self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._plot.clear()
 
     def setLabels(self, labels=None):
