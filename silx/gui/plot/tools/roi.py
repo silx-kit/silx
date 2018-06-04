@@ -1154,6 +1154,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         verticalHeader.setVisible(False)
 
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
+        self.setFocusPolicy(qt.Qt.NoFocus)
 
         self.itemChanged.connect(self.__itemChanged)
 
