@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/03/2018"
+__date__ = "04/06/2018"
 
 
 import collections
@@ -895,7 +895,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
     # Validation mode
 
-    @ enum.unique
+    @enum.unique
     class ValidationMode(enum.Enum):
         """Mode of validation to leave blocking :meth:`exec_`"""
 
