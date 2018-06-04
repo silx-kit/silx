@@ -46,7 +46,7 @@ _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 
 class _DatasetItemRow(qt.QStandardItem):
 
-    def __init__(self, label, dataset=None):
+    def __init__(self, label="", dataset=None):
         super(_DatasetItemRow, self).__init__(label)
         self.setEditable(False)
         self.setDropEnabled(False)
@@ -117,10 +117,13 @@ class _DatasetItemRow(qt.QStandardItem):
 
 class _DatasetAxisItemRow(_DatasetItemRow):
 
-    def __init__(self, dataset=None, axisId=None):
-        label = "Axis %d" % (axisId + 1)
-        super(_DatasetAxisItemRow, self).__init__(label=label, dataset=dataset)
+    def __init__(self):
+        super(_DatasetAxisItemRow, self).__init__()
+
+    def setAxisId(self, axisId):
         self.__axisId = axisId
+        label = "Axis %d" % (axisId + 1)
+        self.setText(label)
 
     def getAxisId(self):
         return self.__axisId
@@ -247,17 +250,22 @@ class _NxDataItem(qt.QStandardItem):
         return self.__signal.getDataset()
 
     def setAxes(self, datasets):
-        # TODO: We could avoid to remove all the items all the time
-        if len(self.__axes) > 0:
-            for i in reversed(range(self.rowCount())):
-                item = self.child(i)
-                if isinstance(item, _DatasetAxisItemRow):
-                    self.removeRow(i)
-        self.__axes[:] = []
+        # Update axes with new datasets
         for i, dataset in enumerate(datasets):
-            item = _DatasetAxisItemRow(dataset=dataset, axisId=i)
-            self.__axes.append(item)
-            self.appendRow(item.getRow())
+            if i < len(self.__axes):
+                item = self.__axes[i]
+            else:
+                item = _DatasetAxisItemRow()
+                self.__axes.append(item)
+                self.appendRow(item.getRow())
+            item.setAxisId(i)
+            item.setDataset(dataset)
+
+        # Clean up extra axis
+        for i in range(len(datasets), len(self.__axes)):
+            item = self.__axes.pop(len(datasets))
+            self.removeRow(item.row())
+
         self._datasetUpdated()
 
     def getAxesDatasets(self):
