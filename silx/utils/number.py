@@ -57,7 +57,7 @@ def min_numerical_convertible_type(string, check_accuracy=True):
 
     :param str string: Representation of a float/integer with text
     :param bool check_accuracy: If true, a warning is pushed on the logger
-        in case there is a lose of accuracy.
+        in case there is a loss of accuracy.
     :raise ValueError: When the string is not a numerical value
     :retrun: A numpy numerical type
     """
