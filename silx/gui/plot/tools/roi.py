@@ -460,12 +460,12 @@ class RegionOfInterestManager(qt.QObject):
 
     _MODE_ACTIONS_PARAMS = collections.OrderedDict()
     # Interactive mode: (icon name, text)
-    _MODE_ACTIONS_PARAMS['point'] = 'normal', 'Add point markers'
-    _MODE_ACTIONS_PARAMS['rectangle'] = 'shape-rectangle', 'Add Rectangle ROI'
-    _MODE_ACTIONS_PARAMS['polygon'] = 'shape-polygon', 'Add Polygon ROI'
-    _MODE_ACTIONS_PARAMS['line'] = 'shape-diagonal', 'Add Line ROI'
-    _MODE_ACTIONS_PARAMS['hline'] = 'shape-horizontal', 'Add Horizontal Line ROI'
-    _MODE_ACTIONS_PARAMS['vline'] = 'shape-vertical', 'Add Vertical Line ROI'
+    _MODE_ACTIONS_PARAMS['point'] = 'add-shape-point', 'Add point markers'
+    _MODE_ACTIONS_PARAMS['rectangle'] = 'add-shape-rectangle', 'Add Rectangle ROI'
+    _MODE_ACTIONS_PARAMS['polygon'] = 'add-shape-polygon', 'Add Polygon ROI'
+    _MODE_ACTIONS_PARAMS['line'] = 'add-shape-diagonal', 'Add Line ROI'
+    _MODE_ACTIONS_PARAMS['hline'] = 'add-shape-horizontal', 'Add Horizontal Line ROI'
+    _MODE_ACTIONS_PARAMS['vline'] = 'add-shape-vertical', 'Add Vertical Line ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
