@@ -327,7 +327,7 @@ class StackView(qt.QMainWindow):
         assert self._stack is not None
         assert 0 <= self._perspective < 3
 
-        # ensure we have the stack encapsulated in an array like object
+        # ensure we have the stack encapsulated in an array-like object
         # having a transpose() method
         if isinstance(self._stack, numpy.ndarray):
             self.__transposed_view = self._stack
@@ -338,7 +338,7 @@ class StackView(qt.QMainWindow):
         elif isinstance(self._stack, ListOfImages):
             self.__transposed_view = ListOfImages(self._stack)
 
-        # transpose the array like object if necessary
+        # transpose the array-like object if necessary
         if self._perspective == 1:
             self.__transposed_view = self.__transposed_view.transpose((1, 0, 2))
         elif self._perspective == 2:
@@ -352,7 +352,9 @@ class StackView(qt.QMainWindow):
 
         :param index: index of the frame to be displayed
         """
-        assert self.__transposed_view is not None
+        if self.__transposed_view is None:
+            # no data set
+            return
         self._plot.addImage(self.__transposed_view[index, :, :],
                             origin=self._getImageOrigin(),
                             scale=self._getImageScale(),
@@ -681,6 +683,7 @@ class StackView(qt.QMainWindow):
         self.__transposed_view = None
         self._perspective = 0
         self._browser.setEnabled(False)
+        # reset browser range
         self._browser.setRange(0, 0)
         self._plot.clear()
 
