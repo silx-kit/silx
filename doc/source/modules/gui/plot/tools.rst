@@ -54,6 +54,37 @@
    :show-inheritance:
    :members:
 
+:mod:`~silx.gui.plot.tools.roi` Region of interest
+--------------------------------------------------
+
+.. automodule:: silx.gui.plot.tools.roi
+
+.. currentmodule:: silx.gui.plot.tools.roi
+
+:class:`RegionOfInterestManager` class
+--------------------------------------
+
+.. autoclass:: RegionOfInterestManager
+   :members:
+
+:class:`RegionOfInterest` class
+-------------------------------
+
+.. autoclass:: RegionOfInterest
+   :members:
+
+:class:`InteractiveRegionOfInterestManager` class
+-------------------------------------------------
+
+.. autoclass:: InteractiveRegionOfInterestManager
+   :members:
+
+:class:`RegionOfInterestTableWidget` class
+------------------------------------------
+
+.. autoclass:: RegionOfInterestTableWidget
+   :members:
+
 .. currentmodule:: silx.gui.plot
 
 :mod:`ColorBar`: ColorBar Widget

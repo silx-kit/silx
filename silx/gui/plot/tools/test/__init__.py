@@ -22,29 +22,25 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a set of widgets working with :class:`PlotWidget`.
-
-It provides some QToolBar and QWidget:
-
-- :class:`InteractiveModeToolBar`
-- :class:`OutputToolBar`
-- :class:`ImageToolBar`
-- :class:`CurveToolBar`
-- :class:`LimitsToolBar`
-- :class:`PositionInfo`
-
-It also provides a :mod:`~silx.gui.plot.tools.roi` module to handle
-interactive region of interest on a :class:`~silx.gui.plot.PlotWidget`.
-"""
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/03/2018"
+__date__ = "26/03/2018"
 
 
-from .toolbars import InteractiveModeToolBar  # noqa
-from .toolbars import OutputToolBar  # noqa
-from .toolbars import ImageToolBar, CurveToolBar, ScatterToolBar  # noqa
+import unittest
 
-from .LimitsToolBar import LimitsToolBar  # noqa
-from .PositionInfo import PositionInfo  # noqa
+from . import testROI
+from . import testTools
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTests(
+        [testROI.suite(),
+         testTools.suite(),
+         ])
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

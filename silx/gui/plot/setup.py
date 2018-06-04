@@ -40,6 +40,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('items')
     config.add_subpackage('test')
     config.add_subpackage('tools')
+    config.add_subpackage('tools.test')
     config.add_subpackage('actions')
 
     return config
