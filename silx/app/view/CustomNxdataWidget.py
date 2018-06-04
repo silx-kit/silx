@@ -366,7 +366,7 @@ class _Model(qt.QStandardItemModel):
                 break
         return name
 
-    def create(self, name=None):
+    def createNewNxdata(self, name=None):
         item = _NxDataItem()
         if name is None:
             name = self.findFreeNxdataTitle()
@@ -400,6 +400,30 @@ class _Model(qt.QStandardItemModel):
         else:
             raise ValueError("Not a valid NXdata")
 
+    def removeNxdataItem(self, item):
+        if isinstance(item, _NxDataItem):
+            parent = item.parent()
+            assert(parent is None)
+            model = item.model()
+            model.removeRow(item.row())
+
+    def appendAxisToNxdataItem(self, item):
+        if item is not None and not isinstance(item, _NxDataItem):
+            item = item.parent()
+        nxdataItem = item
+        if isinstance(item, _NxDataItem):
+            datasets = nxdataItem.getAxesDatasets()
+            datasets.append(None)
+            nxdataItem.setAxes(datasets)
+
+    def removeAxisItem(self, item):
+        if isinstance(item, _DatasetAxisItemRow):
+            axisId = item.getAxisId()
+            nxdataItem = item.parent()
+            datasets = nxdataItem.getAxesDatasets()
+            del datasets[axisId]
+            nxdataItem.setAxes(datasets)
+
 
 class CustomNxDataToolBar(qt.QToolBar):
 
@@ -413,13 +437,13 @@ class CustomNxDataToolBar(qt.QToolBar):
     def __createActions(self):
         action = qt.QAction("Create a new custom NXdata", self)
         action.setIcon(icons.getQIcon("nxdata-create"))
-        action.triggered.connect(self.__createNewNxData)
+        action.triggered.connect(self.__createNewNxdata)
         self.addAction(action)
         self.__addNxDataAction = action
 
         action = qt.QAction("Remove the selected NXdata", self)
         action.setIcon(icons.getQIcon("nxdata-remove"))
-        action.triggered.connect(self.__removeSelectedNxData)
+        action.triggered.connect(self.__removeSelectedNxdata)
         self.addAction(action)
         self.__removeNxDataAction = action
 
@@ -427,7 +451,7 @@ class CustomNxDataToolBar(qt.QToolBar):
 
         action = qt.QAction("Create a new axis to the selected NXdata", self)
         action.setIcon(icons.getQIcon("nxdata-axis-add"))
-        action.triggered.connect(self.__appendNewAxisToSelectedNxData)
+        action.triggered.connect(self.__appendNewAxisToSelectedNxdata)
         self.addAction(action)
         self.__addNxDataAxisAction = action
 
@@ -447,43 +471,32 @@ class CustomNxDataToolBar(qt.QToolBar):
         item = model.itemFromIndex(index)
         return item
 
-    def __createNewNxData(self):
+    def __createNewNxdata(self):
         if self.__nxdataWidget is None:
             return
-        self.__nxdataWidget.create()
+        model = self.__nxdataWidget.model()
+        model.createNewNxdata()
 
-    def __removeSelectedNxData(self):
+    def __removeSelectedNxdata(self):
         if self.__nxdataWidget is None:
             return
+        model = self.__nxdataWidget.model()
         item = self.__getSelectedItem()
-        if isinstance(item, _NxDataItem):
-            parent = item.parent()
-            assert(parent is None)
-            model = item.model()
-            model.removeRow(item.row())
+        model.removeNxdataItem(item)
 
-    def __appendNewAxisToSelectedNxData(self):
+    def __appendNewAxisToSelectedNxdata(self):
         if self.__nxdataWidget is None:
             return
+        model = self.__nxdataWidget.model()
         item = self.__getSelectedItem()
-        if item is not None and not isinstance(item, _NxDataItem):
-            item = item.parent()
-        nxdataItem = item
-        if isinstance(item, _NxDataItem):
-            datasets = nxdataItem.getAxesDatasets()
-            datasets.append(None)
-            nxdataItem.setAxes(datasets)
+        model.appendAxisToNxdataItem(item)
 
     def __removeSelectedAxis(self):
         if self.__nxdataWidget is None:
             return
+        model = self.__nxdataWidget.model()
         item = self.__getSelectedItem()
-        if isinstance(item, _DatasetAxisItemRow):
-            axisId = item.getAxisId()
-            nxdataItem = item.parent()
-            datasets = nxdataItem.getAxesDatasets()
-            del datasets[axisId]
-            nxdataItem.setAxes(datasets)
+        model.removeAxisItem(item)
 
     def setCustomNxDataWidget(self, widget):
         assert(isinstance(widget, CustomNxdataWidget))
@@ -733,7 +746,7 @@ class CustomNxdataWidget(qt.QTreeView):
         return result
 
     def create(self, name=None):
-        self.__model.create(name)
+        self.__model.createNewNxdata(name)
 
     def createFromSignal(self, dataset):
         self.__model.createFromSignal(dataset)
