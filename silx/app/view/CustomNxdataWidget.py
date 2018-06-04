@@ -411,13 +411,13 @@ class CustomNxDataToolBar(qt.QToolBar):
         self.__currentSelectionChanged(qt.QModelIndex(), qt.QModelIndex())
 
     def __createActions(self):
-        action = qt.QAction("Create a new custom NxData", self)
+        action = qt.QAction("Create a new custom NXdata", self)
         action.setIcon(icons.getQIcon("nxdata-create"))
         action.triggered.connect(self.__createNewNxData)
         self.addAction(action)
         self.__addNxDataAction = action
 
-        action = qt.QAction("Remove the selected NxData", self)
+        action = qt.QAction("Remove the selected NXdata", self)
         action.setIcon(icons.getQIcon("nxdata-remove"))
         action.triggered.connect(self.__removeSelectedNxData)
         self.addAction(action)
@@ -425,13 +425,13 @@ class CustomNxDataToolBar(qt.QToolBar):
 
         self.addSeparator()
 
-        action = qt.QAction("Create a new axis to the selected NxData", self)
+        action = qt.QAction("Create a new axis to the selected NXdata", self)
         action.setIcon(icons.getQIcon("nxdata-axis-add"))
         action.triggered.connect(self.__appendNewAxisToSelectedNxData)
         self.addAction(action)
         self.__addNxDataAxisAction = action
 
-        action = qt.QAction("Remove the selected NxData axis", self)
+        action = qt.QAction("Remove the selected NXdata axis", self)
         action.setIcon(icons.getQIcon("nxdata-axis-remove"))
         action.triggered.connect(self.__removeSelectedAxis)
         self.addAction(action)
