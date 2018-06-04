@@ -516,6 +516,7 @@ class RegionOfInterestManager(qt.QObject):
             action.setText(text)
             action.setCheckable(True)
             action.setChecked(self.getRegionOfInterestKind() == kind)
+            action.setToolTip(text)
 
             action.triggered[bool].connect(functools.partial(
                 WeakMethodProxy(self._modeActionTriggered), kind=kind))
@@ -1111,6 +1112,7 @@ class _DeleteRegionOfInterestToolButton(qt.QToolButton):
     def __init__(self, parent, roi):
         super(_DeleteRegionOfInterestToolButton, self).__init__(parent)
         self.setIcon(icons.getQIcon('remove'))
+        self.setToolTip("Remove this ROI")
         self.__roiRef = roi if roi is None else weakref.ref(roi)
         self.clicked.connect(self.__clicked)
 
