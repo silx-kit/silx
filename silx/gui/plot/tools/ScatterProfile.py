@@ -48,11 +48,7 @@ _logger = logging.getLogger(__name__)
 
 
 # TODO log scale?
-# TODO optimisation: do not update profile if no change
-# TODO interruptible interpolator: subprocess, cooperative code?
-# TODO waiting dialog?
 # TODO move profile window creation outside and add a sigProfileChanged(title, x, y)
-# TODO get profile data
 
 class _BaseProfileToolBar(qt.QToolBar):
     """Base class for QToolBar plot profiling tools
@@ -62,10 +58,14 @@ class _BaseProfileToolBar(qt.QToolBar):
     :param str title: See :class:`QToolBar`.
     """
 
+    sigProfileChanged = qt.Signal()
+    """Signal emitted when the profile has changed"""
+
     def __init__(self, parent=None, plot=None, title=''):
         super(_BaseProfileToolBar, self).__init__(title, parent)
 
         self.__nPoints = 1024
+        self.__profile = None
 
         assert isinstance(plot, PlotWidget)
         self._plotRef = weakref.ref(
@@ -111,6 +111,17 @@ class _BaseProfileToolBar(qt.QToolBar):
         # Listen to plot scale
         plot.getXAxis().sigScaleChanged.connect(self.__plotAxisScaleChanged)
         plot.getYAxis().sigScaleChanged.connect(self.__plotAxisScaleChanged)
+
+    def getProfileData(self, copy=True):
+        """Returns the displayed profile data as (x, y) or None
+
+        :rtype: Union[List[numpy.ndarray],None]
+        """
+        if self.__profile is None:
+            return None
+        else:
+            return (numpy.array(self.__profile[0], copy=copy),
+                    numpy.array(self.__profile[1], copy=copy))
 
     # Handle plot reference
 
@@ -382,9 +393,15 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         yProfile = self.computeProfile(profilePoints)
 
-        if yProfile is not None:
+        if yProfile is None:
+            self.__profile = None
+
+        else:
+            self.__profile = xProfile, yProfile
             profilePlot.addCurve(
                 xProfile, yProfile, legend='Profile', color=self._color)
+
+        self.sigProfileChanged.emit()
 
         self._showProfileMainWindow()
 
