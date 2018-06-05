@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/06/2018"
+__date__ = "05/06/2018"
 
 import logging
 
@@ -44,7 +44,18 @@ _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 
 
-class _DatasetItemRow(qt.QStandardItem):
+class _RowItems(qt.QStandardItem):
+    """Define the list of items used for a specific row."""
+
+    def getRowItems(self):
+        """Returns the list of items used for a specific row.
+
+        The first item should be this class.
+        """
+        raise NotImplementedError()
+
+
+class _DatasetItemRow(_RowItems):
 
     def __init__(self, label="", dataset=None):
         super(_DatasetItemRow, self).__init__(label)
@@ -111,7 +122,7 @@ class _DatasetItemRow(qt.QStandardItem):
     def getDataset(self):
         return self.__dataset
 
-    def getRow(self):
+    def getRowItems(self):
         return [self, self.__name, self.__type, self.__shape]
 
 
@@ -139,7 +150,7 @@ class _NxDataItem(qt.QStandardItem):
         self.__virtual = None
 
         item = _DatasetItemRow("Signal", None)
-        self.appendRow(item.getRow())
+        self.appendRow(item.getRowItems())
         self.__signal = item
 
         self.setEditable(False)
@@ -147,7 +158,7 @@ class _NxDataItem(qt.QStandardItem):
         self.setDropEnabled(False)
         self.setError(None)
 
-    def getRow(self):
+    def getRowItems(self):
         row = [self]
         for _ in range(3):
             item = qt.QStandardItem("")
@@ -257,7 +268,7 @@ class _NxDataItem(qt.QStandardItem):
             else:
                 item = _DatasetAxisItemRow()
                 self.__axes.append(item)
-                self.appendRow(item.getRow())
+                self.appendRow(item.getRowItems())
             item.setAxisId(i)
             item.setDataset(dataset)
 
@@ -379,7 +390,7 @@ class _Model(qt.QStandardItemModel):
         if name is None:
             name = self.findFreeNxdataTitle()
         item.setTitle(name)
-        self.appendRow(item.getRow())
+        self.appendRow(item.getRowItems())
 
     def createFromSignal(self, dataset):
         item = _NxDataItem()
@@ -387,7 +398,7 @@ class _Model(qt.QStandardItemModel):
         item.setTitle(name)
         item.setSignal(dataset)
         item.setAxes([None] * len(dataset.shape))
-        self.appendRow(item.getRow())
+        self.appendRow(item.getRowItems())
 
     def createFromNxdata(self, nxdata):
         """Create a new custom NXData from an existing NXData group.
@@ -404,7 +415,7 @@ class _Model(qt.QStandardItemModel):
             item.setTitle(title)
             item.setSignal(validator.signal)
             item.setAxes(validator.axes)
-            self.appendRow(item.getRow())
+            self.appendRow(item.getRowItems())
         else:
             raise ValueError("Not a valid NXdata")
 
