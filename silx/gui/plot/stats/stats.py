@@ -307,8 +307,7 @@ class Stat(StatBase):
                         image...)
     """
     def __init__(self, name, fct, kinds=BASIC_COMPATIBLE_KINDS):
-        self.name = name
-        self.compatibleKinds = kinds
+        StatBase.__init__(self, name, kinds)
         self._fct = fct
 
     def calculate(self, context):
