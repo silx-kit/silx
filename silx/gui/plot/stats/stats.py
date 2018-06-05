@@ -55,7 +55,6 @@ class Stats(OrderedDict):
     """
     def __init__(self, statslist=None):
         OrderedDict.__init__(self)
-        self.stats = {}
         _statslist = statslist if not None else []
         if statslist is not None:
             for stat in _statslist:
