@@ -141,37 +141,54 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 1)
 
-                # Try to set max ROI to 1 while there is 2 ROIs
-                with self.assertRaises(ValueError):
-                    manager.setMaxRegionOfInterests(1)
-
-                # restart
-                changedListener.clear()
                 manager.clearRegionOfInterests()
-                self.assertEqual(manager.getRegionOfInterests(), ())
-                self.assertEqual(changedListener.callCount(), 1)
-                manager.start(kind)
 
-                # Set max limit to 1
-                manager.setMaxRegionOfInterests(1)
+    def testMaxROI(self):
+        """Test Max ROI"""
+        kind = 'rectangle'
+        points = numpy.array((((1., 10.), (11., 20.)),
+                              ((2., 3.), (12., 13.))))
 
-                # Add a point
-                manager.createRegionOfInterest(kind, points[0])
-                self.qapp.processEvents()
-                self.assertTrue(numpy.all(numpy.equal(
-                    manager.getRegionOfInterestPoints(), (points[0],))))
-                self.assertEqual(changedListener.callCount(), 2)
+        manager = roi.InteractiveRegionOfInterestManager(self.plot)
+        self.roiTableWidget.setRegionOfInterestManager(manager)
+        self.assertEqual(manager.getRegionOfInterests(), ())
 
-                # Try to add a 2nd point while max ROI is 1
-                with self.assertRaises(RuntimeError):
-                    manager.createRegionOfInterest(kind, points[1])
+        changedListener = SignalListener()
+        manager.sigRegionOfInterestChanged.connect(changedListener)
 
-                # stop
-                manager.stop()
-                manager.clearRegionOfInterests()
-                self.qapp.processEvents()
-                self.assertEqual(finishListener.callCount(), 2)
-                self.assertEqual(changedListener.callCount(), 3)
+        # Add two point
+        manager.createRegionOfInterest(kind, points[0])
+        manager.createRegionOfInterest(kind, points[1])
+        self.qapp.processEvents()
+        self.assertTrue(numpy.all(numpy.equal(
+            manager.getRegionOfInterestPoints(),
+            (points[0], points[1]))))
+        self.assertEqual(changedListener.callCount(), 2)
+
+        # Try to set max ROI to 1 while there is 2 ROIs
+        with self.assertRaises(ValueError):
+            manager.setMaxRegionOfInterests(1)
+
+        manager.clearRegionOfInterests()
+        self.assertEqual(manager.getRegionOfInterests(), ())
+        self.assertEqual(changedListener.callCount(), 3)
+
+        # Set max limit to 1
+        manager.setMaxRegionOfInterests(1)
+
+        # Add a point
+        manager.createRegionOfInterest(kind, points[0])
+        self.qapp.processEvents()
+        self.assertTrue(numpy.all(numpy.equal(
+            manager.getRegionOfInterestPoints(), (points[0],))))
+        self.assertEqual(changedListener.callCount(), 4)
+
+        # Add a 2nd point while max ROI is 1
+        manager.createRegionOfInterest(kind, points[1])
+        self.qapp.processEvents()
+        self.assertTrue(numpy.all(numpy.equal(
+            manager.getRegionOfInterestPoints(), (points[1],))))
+        self.assertEqual(changedListener.callCount(), 6)
 
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
