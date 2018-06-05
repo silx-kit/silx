@@ -166,7 +166,6 @@ class RegionOfInterest(qt.QObject):
             self._editable = editable
             # Recreate plot items
             # This can be avoided once marker.setDraggable is public
-            self._removePlotItems()
             self._createPlotItems()
 
     def getControlPoints(self):
@@ -188,19 +187,15 @@ class RegionOfInterest(qt.QObject):
         assert points.ndim == 2
         assert points.shape[1] == 2
 
-        if (self._points is None or
-                not numpy.all(numpy.equal(points, self._points))):
-            kind = self.getKind()
+        nbPointsChanged = (self._points is None or
+                           points.shape != self._points.shape)
 
-            if kind == 'polygon':
-                # Makes sure first and last points are different
-                if numpy.all(numpy.equal(points[0], points[-1])):
-                    points = points[:-1]
-                assert len(points) > 2
+        if nbPointsChanged or not numpy.all(numpy.equal(points, self._points)):
+            kind = self.getKind()
 
             self._points = points
 
-            if self._items:  # Update plot items
+            if self._items and not nbPointsChanged:  # Update plot items
                 for item in self._items:
                     if isinstance(item, items.Shape):
                         item.setPoints(points)
@@ -219,7 +214,8 @@ class RegionOfInterest(qt.QObject):
                     for anchor, point in zip(self._editAnchors, points):
                         anchor.setPosition(*point)
 
-            else:  # Create plot items
+            else:  # No items or new point added
+                # re-create plot items
                 self._createPlotItems()
 
             self.sigControlPointsChanged.emit()
@@ -251,11 +247,16 @@ class RegionOfInterest(qt.QObject):
             raise RuntimeError('Unsupported ROI kind: %s' % kind)
 
     def _createPlotItems(self):
-        """Create items displaying the ROI in the plot."""
+        """Create items displaying the ROI in the plot.
+
+        It first removes any existing plot items.
+        """
         roiManager = self.parent()
         if roiManager is None:
             return
         plot = roiManager.parent()
+
+        self._removePlotItems()
 
         x, y = self._points.T
         kind = self.getKind()
@@ -409,6 +410,7 @@ class RegionOfInterest(qt.QObject):
         """Remove items from their plot."""
         for item in itertools.chain(list(self._items),
                                     list(self._editAnchors)):
+
             plot = item.getPlot()
             if plot is not None:
                 plot._remove(item)
@@ -470,7 +472,8 @@ class RegionOfInterestManager(qt.QObject):
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
         super(RegionOfInterestManager, self).__init__(parent)
-        self._rois = []
+        self._rois = []  # List of ROIs
+        self._drawnROI = None  # New ROI being currently drawn
 
         self._shapeKind = None
         self._color = rgba('red')
@@ -556,15 +559,14 @@ class RegionOfInterestManager(qt.QObject):
         if kind is None:
             return  # Should not happen
 
-        points = None
-
         if kind == 'point':
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
+                self.createRegionOfInterest(kind=kind, points=points)
 
         else:  # other shapes
-            if (event['event'] == 'drawingFinished' and
+            if (event['event'] in ('drawingProgress', 'drawingFinished') and
                     event['parameters']['label'] == self._label):
                 points = numpy.array((event['xdata'], event['ydata']),
                                      dtype=numpy.float64).T
@@ -576,8 +578,17 @@ class RegionOfInterestManager(qt.QObject):
                     points = numpy.array([(points[0, 0], float('nan'))],
                                          dtype=numpy.float64)
 
-        if points is not None:
-            self.createRegionOfInterest(kind=kind, points=points)
+                if self._drawnROI is None:  # Create new ROI
+                    self._drawnROI = self.createRegionOfInterest(
+                        kind=kind, points=points)
+                else:
+                    self._drawnROI.setControlPoints(points)
+
+                if event['event'] == 'drawingFinished':
+                    if kind == 'polygon' and len(points) > 1:
+                        self._drawnROI.setControlPoints(points[:-1])
+                    self._drawnROI = None  # Stop drawing
+
 
     # RegionOfInterest API
 
@@ -640,6 +651,7 @@ class RegionOfInterestManager(qt.QObject):
         roi.setControlPoints(points)
 
         self.addRegionOfInterest(roi, index)
+        return roi
 
     def addRegionOfInterest(self, roi, index=None):
         """Add the ROI to the list of ROIs.
@@ -763,6 +775,11 @@ class RegionOfInterestManager(qt.QObject):
         """Handle end of ROI draw interactive mode"""
         if self.isStarted():
             self._shapeKind = None
+
+            if self._drawnROI is not None:
+                # Cancel ROI create
+                self.removeRegionOfInterest(self._drawnROI)
+                self._drawnROI = None
 
             plot = self.parent()
             if plot is not None:
