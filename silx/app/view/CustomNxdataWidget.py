@@ -29,6 +29,7 @@ __license__ = "MIT"
 __date__ = "05/06/2018"
 
 import logging
+import numpy
 
 from silx.gui import qt
 from silx.io import commonh5
@@ -208,7 +209,7 @@ class _NxDataItem(qt.QStandardItem):
             axesAttr.append(name)
 
         if axesAttr != []:
-            virtual.attrs["axes"] = axesAttr
+            virtual.attrs["axes"] = numpy.array(axesAttr)
 
         validator = silx.io.nxdata.NXdata(virtual)
         if not validator.is_valid:
