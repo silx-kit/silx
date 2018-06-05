@@ -64,31 +64,28 @@ class StatsWidget(qt.QWidget):
 
     NUMBER_FORMAT = '{0:.3f}'
 
-    class OptionsWidget(qt.QWidget):
+    class OptionsWidget(qt.QToolBar):
 
         ITEM_SEL_OPTS = ('All items', 'Active item only')
 
-        ITEM_DATA_RANGE_OPTS = ('full data range', 'visible data range')
+        ITEM_DATA_RANGE_OPTS = ('Use the full data range', 'Use the visible data range')
 
         def __init__(self, parent=None):
-            qt.QWidget.__init__(self, parent)
-            self.setLayout(qt.QHBoxLayout())
-            spacer = qt.QWidget(parent=self)
-            spacer.setSizePolicy(qt.QSizePolicy.Expanding,
-                                 qt.QSizePolicy.Minimum)
-            self.layout().setContentsMargins(0, 0, 0, 0)
-            self.layout().addWidget(qt.QLabel('Stats opts:', parent=self))
-            self.layout().addWidget(spacer)
-            self.layout().addWidget(qt.QLabel('display', parent=self))
+            qt.QToolBar.__init__(self, parent)
+
             self.itemSelection = qt.QComboBox(parent=self)
             for opt in self.ITEM_SEL_OPTS:
                 self.itemSelection.addItem(opt)
-            self.layout().addWidget(self.itemSelection)
-            self.layout().addWidget(qt.QLabel('compute stats on', parent=self))
+            action = qt.QWidgetAction(self)
+            action.setDefaultWidget(self.itemSelection)
+            self.addAction(action)
+
             self.dataRangeSelection = qt.QComboBox(parent=self)
             for opt in self.ITEM_DATA_RANGE_OPTS:
                 self.dataRangeSelection.addItem(opt)
-            self.layout().addWidget(self.dataRangeSelection)
+            action = qt.QWidgetAction(self)
+            action.setDefaultWidget(self.dataRangeSelection)
+            self.addAction(action)
 
             self.dataRangeSelection.setToolTip(
                 "When visible data is activated we will process to a simple "
@@ -96,6 +93,14 @@ class StatsWidget(qt.QWidget):
                 "simple data sub-sampling.\nNo interpolation is made to fit "
                 "data to boundaries."
             )
+
+        def isActiveItemMode(self):
+            opt = self.itemSelection.currentText()
+            return opt == self.ITEM_SEL_OPTS[-1]
+
+        def isVisibleDataRangeMode(self):
+            opt = self.dataRangeSelection.currentText()
+            return opt == self.ITEM_DATA_RANGE_OPTS[-1]
 
     def __init__(self, parent=None, plot=None, stats=None):
         qt.QWidget.__init__(self, parent)
@@ -119,12 +124,11 @@ class StatsWidget(qt.QWidget):
         self.setStatsOnVisibleData = self._statsTable.setStatsOnVisibleData
 
     def _optSelectionChanged(self, opt):
-        assert opt in self.OptionsWidget.ITEM_SEL_OPTS
-        self._statsTable.setDisplayOnlyActiveItem(opt == 'Active item only')
+        self._statsTable.setDisplayOnlyActiveItem(self._options.isActiveItemMode())
 
     def _optDataRangeChanged(self, opt):
         assert opt in self.OptionsWidget.ITEM_DATA_RANGE_OPTS
-        self._statsTable.setStatsOnVisibleData(opt == 'visible data range')
+        self._statsTable.setStatsOnVisibleData(self._options.isVisibleDataRangeMode())
 
 
 class BasicStatsWidget(StatsWidget):
