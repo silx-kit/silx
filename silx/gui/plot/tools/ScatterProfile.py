@@ -48,7 +48,7 @@ _logger = logging.getLogger(__name__)
 
 
 # TODO log scale?
-# TODO hline, vline
+# TODO optimisation: cache last interpolator, do not update profile if no change
 # TODO interruptible interpolator: subprocess, cooperative code?
 # TODO waiting dialog?
 # TODO move profile window creation outside and add a sigProfileChanged(title, x, y)
@@ -102,6 +102,10 @@ class _BaseProfileToolBar(qt.QToolBar):
         # Initialize color
         self._color = None
         self.setColor('red')
+
+        # Listen to plot limits changed
+        plot.getXAxis().sigLimitsChanged.connect(self.updateProfile)
+        plot.getYAxis().sigLimitsChanged.connect(self.updateProfile)
 
     # Handle plot reference
 
@@ -310,13 +314,28 @@ class _BaseProfileToolBar(qt.QToolBar):
             _logger.warning('Unhandled ROI added')
             return
 
-        endPoints = roi.getControlPoints()
+        # Get end points
+        if kind == 'line':
+            endPoints = roi.getControlPoints()
 
-        # Extract relevant value for hline and vline
-        if kind == 'hline':  # TODO compute end points
-            endPoints = endPoints[0, 1]
-        elif kind == 'vline':  # TODO compute end points
-            endPoints = endPoints[0, 0]
+        elif kind in ('hline', 'vline'):
+            plot = self.getPlotWidget()
+            if plot is None:
+                return None
+
+            if kind == 'hline':
+                xmin, xmax = plot.getXAxis().getLimits()
+                y = roi.getControlPoints()[0, 1]
+                endPoints = (xmin, y), (xmax, y)
+
+            elif kind == 'vline':
+                x = roi.getControlPoints()[0, 0]
+                ymin, ymax = plot.getYAxis().getLimits()
+                endPoints = (x, ymin), (x, ymax)
+
+        else:
+            _logger.error('Unsupported kind: {}'.format(kind))
+            return None
 
         # Update plot
         title = self.computeProfileTitle(kind, endPoints)
