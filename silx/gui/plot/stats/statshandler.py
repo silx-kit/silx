@@ -27,7 +27,7 @@
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "07/03/2018"
+__date__ = "05/06/2018"
 
 
 import logging
@@ -72,7 +72,7 @@ class StatFormatter(object):
 
 class StatsHandler(object):
     """
-    Give 
+    Give
     create:
 
     * Stats object which will manage the statistic computation
@@ -151,7 +151,6 @@ class _StatHelper(object):
                 self.dealWithStatAndFormatter(arg)
             else:
                 _arg = arg
-                formatter = None
                 if isinstance(arg[0], tuple):
                     _arg = arg[0]
                     if len(arg) > 1:

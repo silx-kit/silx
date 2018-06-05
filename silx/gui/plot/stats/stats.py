@@ -27,7 +27,7 @@
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "09/04/2018"
+__date__ = "05/06/2018"
 
 
 import numpy
@@ -86,7 +86,7 @@ class Stats(OrderedDict):
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
                 logger.debug('kind %s not managed by statistic %s'
-                               '' % (context.kind, stat.name))
+                             % (context.kind, stat.name))
                 res[statName] = None
             else:
                 res[statName] = stat.calculate(context)
@@ -298,7 +298,7 @@ class StatBase(object):
 class Stat(StatBase):
     """
     Create a StatBase class based on a function pointer.
-    
+
     :param str name: name of the statistic. Used as id
     :param fct: function which should have as unique mandatory parameter the
                 data. Should be able to adapt to all `kinds` defined as
