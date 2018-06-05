@@ -491,10 +491,13 @@ class PlotWindow(PlotWidget):
         return self._maskToolsDockWidget
 
     def getStatsWidget(self):
-        """DockWidget with Legend panel"""
-        if self._statsWidget is None:
+        """Returns a BasicStatsWidget connected to this plot
 
+        :rtype: BasicStatsWidget
+        """
+        if self._statsWidget is None:
             dockWidget = qt.QDockWidget(parent=self)
+            dockWidget.setWindowTitle("Curves stats")
             dockWidget.layout().setContentsMargins(0, 0, 0, 0)
             self._statsWidget = BasicStatsWidget(parent=self, plot=self)
             dockWidget.setWidget(self._statsWidget)
