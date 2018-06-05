@@ -81,26 +81,21 @@ roiManager.createRegionOfInterest('rectangle',
 roiTable = RegionOfInterestTableWidget()
 roiTable.setRegionOfInterestManager(roiManager)
 
-# Create buttons for all ROI 'drawing' modes
-btnLayout = qt.QHBoxLayout()  # The layout to store the buttons
-btnLayout.addStretch(1)
-btnLayout.addWidget(qt.QLabel('Add ROIs:'))
+# Create a toolbar containing buttons for all ROI 'drawing' modes
+roiToolbar = qt.QToolBar()  # The layout to store the buttons
+roiToolbar.setIconSize(qt.QSize(16, 16))
 
 for kind in roiManager.getSupportedRegionOfInterestKinds():
     # Create a tool button and associate it with the QAction of each mode
-    toolButton = qt.QToolButton()
-    toolButton.setDefaultAction(roiManager.getInteractionModeAction(kind))
-    btnLayout.addWidget(toolButton, 0, qt.Qt.AlignCenter)
-
-btnLayout.addStretch(1)
-
+    action = roiManager.getInteractionModeAction(kind)
+    roiToolbar.addAction(action)
 
 # Add the region of interest table and the buttons to a dock widget
 widget = qt.QWidget()
 layout = qt.QVBoxLayout()
 widget.setLayout(layout)
+layout.addWidget(roiToolbar)
 layout.addWidget(roiTable)
-layout.addLayout(btnLayout)
 
 dock = qt.QDockWidget('Image ROI')
 dock.setWidget(widget)

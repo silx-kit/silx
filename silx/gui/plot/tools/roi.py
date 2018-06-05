@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/03/2018"
+__date__ = "04/06/2018"
 
 
 import collections
@@ -460,12 +460,12 @@ class RegionOfInterestManager(qt.QObject):
 
     _MODE_ACTIONS_PARAMS = collections.OrderedDict()
     # Interactive mode: (icon name, text)
-    _MODE_ACTIONS_PARAMS['point'] = 'normal', 'Add point markers'
-    _MODE_ACTIONS_PARAMS['rectangle'] = 'shape-rectangle', 'Add Rectangle ROI'
-    _MODE_ACTIONS_PARAMS['polygon'] = 'shape-polygon', 'Add Polygon ROI'
-    _MODE_ACTIONS_PARAMS['line'] = 'shape-diagonal', 'Add Line ROI'
-    _MODE_ACTIONS_PARAMS['hline'] = 'shape-horizontal', 'Add Horizontal Line ROI'
-    _MODE_ACTIONS_PARAMS['vline'] = 'shape-vertical', 'Add Vertical Line ROI'
+    _MODE_ACTIONS_PARAMS['point'] = 'add-shape-point', 'Add point markers'
+    _MODE_ACTIONS_PARAMS['rectangle'] = 'add-shape-rectangle', 'Add Rectangle ROI'
+    _MODE_ACTIONS_PARAMS['polygon'] = 'add-shape-polygon', 'Add Polygon ROI'
+    _MODE_ACTIONS_PARAMS['line'] = 'add-shape-diagonal', 'Add Line ROI'
+    _MODE_ACTIONS_PARAMS['hline'] = 'add-shape-horizontal', 'Add Horizontal Line ROI'
+    _MODE_ACTIONS_PARAMS['vline'] = 'add-shape-vertical', 'Add Vertical Line ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
@@ -516,6 +516,7 @@ class RegionOfInterestManager(qt.QObject):
             action.setText(text)
             action.setCheckable(True)
             action.setChecked(self.getRegionOfInterestKind() == kind)
+            action.setToolTip(text)
 
             action.triggered[bool].connect(functools.partial(
                 WeakMethodProxy(self._modeActionTriggered), kind=kind))
@@ -895,7 +896,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
     # Validation mode
 
-    @ enum.unique
+    @enum.unique
     class ValidationMode(enum.Enum):
         """Mode of validation to leave blocking :meth:`exec_`"""
 
@@ -1111,6 +1112,7 @@ class _DeleteRegionOfInterestToolButton(qt.QToolButton):
     def __init__(self, parent, roi):
         super(_DeleteRegionOfInterestToolButton, self).__init__(parent)
         self.setIcon(icons.getQIcon('remove'))
+        self.setToolTip("Remove this ROI")
         self.__roiRef = roi if roi is None else weakref.ref(roi)
         self.clicked.connect(self.__clicked)
 
@@ -1133,7 +1135,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
-            ['Label', 'Edit', 'Delete', 'Kind', 'Coordinates'])
+            ['Label', 'Edit', 'Kind', 'Coordinates', ''])
 
         horizontalHeader = self.horizontalHeader()
         horizontalHeader.setDefaultAlignment(qt.Qt.AlignLeft)
@@ -1145,13 +1147,14 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         setSectionResizeMode(0, qt.QHeaderView.Interactive)
         setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
         setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(4, qt.QHeaderView.Stretch)
+        setSectionResizeMode(3, qt.QHeaderView.Stretch)
+        setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
 
         verticalHeader = self.verticalHeader()
         verticalHeader.setVisible(False)
 
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
+        self.setFocusPolicy(qt.Qt.NoFocus)
 
         self.itemChanged.connect(self.__itemChanged)
 
@@ -1218,25 +1221,14 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setCheckState(
                 qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
             self.setItem(index, 1, item)
-
-            # Delete
-            delBtn = _DeleteRegionOfInterestToolButton(None, roi)
-
-            widget = qt.QWidget()
-            layout = qt.QHBoxLayout()
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(0)
-            widget.setLayout(layout)
-            layout.addStretch(1)
-            layout.addWidget(delBtn)
-            layout.addStretch(1)
-            self.setCellWidget(index, 2, widget)
+            item.setTextAlignment(qt.Qt.AlignCenter)
+            item.setText(None)
 
             # Kind
             kind = roi.getKind()
             item = qt.QTableWidgetItem(kind.capitalize())
             item.setFlags(baseFlags)
-            self.setItem(index, 3, item)
+            self.setItem(index, 2, item)
 
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags)
@@ -1260,7 +1252,19 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
             else:  # default (polygon, line)
                 item.setText('; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points))
-            self.setItem(index, 4, item)
+            self.setItem(index, 3, item)
+
+            # Delete
+            delBtn = _DeleteRegionOfInterestToolButton(None, roi)
+            widget = qt.QWidget()
+            layout = qt.QHBoxLayout()
+            layout.setContentsMargins(2, 2, 2, 2)
+            layout.setSpacing(0)
+            widget.setLayout(layout)
+            layout.addStretch(1)
+            layout.addWidget(delBtn)
+            layout.addStretch(1)
+            self.setCellWidget(index, 4, widget)
 
     def getRegionOfInterestManager(self):
         """Returns the :class:`RegionOfInterestManager` this widget supervise.
