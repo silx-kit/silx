@@ -30,9 +30,7 @@ __date__ = "07/03/2018"
 
 
 from silx.gui import qt
-from silx.gui.plot import stats
-from silx.gui.plot.stats.stats import (_CurveContext, _ImageContext,
-                                       _ScatterContext, _HistogramContext)
+from silx.gui.plot.stats import stats
 from silx.gui.plot import StatsWidget
 from silx.gui.plot.stats import statshandler
 from silx.gui.test.utils import TestCaseQt
