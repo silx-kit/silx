@@ -106,6 +106,8 @@ def main():
 
     plot.getStatsWidget().setStats(stats)
     plot.getStatsWidget().parent().setVisible(True)
+    # Update the checkedbox cause we arre playing with the visibility
+    plot.getStatsAction().setChecked(True)
 
     plot.show()
     app.exec_()
