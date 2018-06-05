@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "05/06/2018"
 
 import sys
 import argparse
@@ -135,7 +135,7 @@ def main(argv):
     # Application have to wake up Python interpreter, else SIGINT is not
     # catched
     timer.timeout.connect(lambda: None)
-    
+
     settings = qt.QSettings(qt.QSettings.IniFormat,
                             qt.QSettings.UserScope,
                             "silx",
