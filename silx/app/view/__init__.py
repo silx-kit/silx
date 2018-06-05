@@ -101,7 +101,6 @@ def main(argv):
         import hdf5plugin  # noqa
     except ImportError:
         _logger.debug("Backtrace", exc_info=True)
-        hdf5plugin = None
 
     try:
         import h5py
@@ -114,11 +113,6 @@ def main(argv):
             + " You can install it using \"pip install h5py\"."
         _logger.error(message)
         return -1
-
-    if hdf5plugin is None:
-        message = "Module 'hdf5plugin' is not installed. It supports some hdf5"\
-            + " compressions. You can install it using \"pip install hdf5plugin\"."
-        _logger.warning(message)
 
     #
     # Run the application
