@@ -52,13 +52,17 @@ class _RowItems(qt.QStandardItem):
         """Returns the list of items used for a specific row.
 
         The first item should be this class.
+
+        :rtype: List[qt.QStandardItem]
         """
         raise NotImplementedError()
 
 
 class _DatasetItemRow(_RowItems):
+    """Define a row which can contain a dataset."""
 
     def __init__(self, label="", dataset=None):
+        """Constructor"""
         super(_DatasetItemRow, self).__init__(label)
         self.setEditable(False)
         self.setDropEnabled(False)
@@ -81,9 +85,18 @@ class _DatasetItemRow(_RowItems):
         self.setDataset(dataset)
 
     def getDefaultFormatter(self):
+        """Get the formatter used to display dataset informations.
+
+        :rtype: Hdf5Formatter
+        """
         return _hdf5Formatter
 
     def setDataset(self, dataset):
+        """Set the dataset stored in this item.
+
+        :param Union[numpy.ndarray,h5py.Dataset,silx.io.commonh5.Dataset] dataset:
+            The dataset to store.
+        """
         self.__dataset = dataset
         if self.__dataset is not None:
             name = self.__dataset.name
@@ -121,29 +134,50 @@ class _DatasetItemRow(_RowItems):
             self.parent()._datasetUpdated()
 
     def getDataset(self):
+        """Returns the dataset stored within the item."""
         return self.__dataset
 
     def getRowItems(self):
+        """Returns the list of items used for a specific row.
+
+        The first item should be this class.
+
+        :rtype: List[qt.QStandardItem]
+        """
         return [self, self.__name, self.__type, self.__shape]
 
 
 class _DatasetAxisItemRow(_DatasetItemRow):
+    """Define a row describing an axis."""
 
     def __init__(self):
+        """Constructor"""
         super(_DatasetAxisItemRow, self).__init__()
 
     def setAxisId(self, axisId):
+        """Set the id of the axis (the first axis is 0)
+
+        :param int axisId: Identifier of this axis.
+        """
         self.__axisId = axisId
         label = "Axis %d" % (axisId + 1)
         self.setText(label)
 
     def getAxisId(self):
+        """Returns the identifier of this axis.
+
+        :rtype: int
+        """
         return self.__axisId
 
 
 class _NxDataItem(qt.QStandardItem):
+    """
+    Define a custom NXdata.
+    """
 
     def __init__(self):
+        """Constructor"""
         qt.QStandardItem.__init__(self)
         self.__error = None
         self.__title = None
@@ -157,9 +191,15 @@ class _NxDataItem(qt.QStandardItem):
         self.setEditable(False)
         self.setDragEnabled(False)
         self.setDropEnabled(False)
-        self.setError(None)
+        self.__setError(None)
 
     def getRowItems(self):
+        """Returns the list of items used for a specific row.
+
+        The first item should be this class.
+
+        :rtype: List[qt.QStandardItem]
+        """
         row = [self]
         for _ in range(3):
             item = qt.QStandardItem("")
@@ -170,13 +210,22 @@ class _NxDataItem(qt.QStandardItem):
         return row
 
     def _datasetUpdated(self):
+        """Called when the NXdata contained of the item have changed.
+
+        It invalidates the NXdata stored and send an event `sigNxdataUpdated`.
+        """
         self.__virtual = None
-        self.setError(None)
+        self.__setError(None)
         model = self.model()
         if model is not None:
             model.sigNxdataUpdated.emit(self.index())
 
     def createVirtualGroup(self):
+        """Returns a new virtual Group using a NeXus NXdata structure to store
+        data
+
+        :rtype: silx.io.commonh5.Group
+        """
         name = ""
         if self.__title is not None:
             name = self.__title
@@ -220,26 +269,51 @@ class _NxDataItem(qt.QStandardItem):
                 message += "<li>%s</li>" % issue
             message += "</ul>"
             message += "</html>"
-            self.setError(message)
+            self.__setError(message)
         else:
-            self.setError(None)
+            self.__setError(None)
         return virtual
 
     def isValid(self):
+        """Returns true if the stored NXdata is valid
+
+        :rtype: bool
+        """
         return self.__error is None
 
     def getVirtualGroup(self):
+        """Returns a cached virtual Group using a NeXus NXdata structure to
+        store data.
+
+        If the stored NXdata was invalidated, :meth:`createVirtualGroup` is
+        internally called to update the cache.
+
+        :rtype: silx.io.commonh5.Group
+        """
         if self.__virtual is None:
             self.__virtual = self.createVirtualGroup()
         return self.__virtual
 
     def getTitle(self):
+        """Returns the title of the NXdata
+
+        :rtype: str
+        """
         return self.text()
 
     def setTitle(self, title):
+        """Set the title of the NXdata
+
+        :param str title: The title of this NXdata
+        """
         self.setText(title)
 
-    def setError(self, error):
+    def __setError(self, error):
+        """Set the error message in case of the current state of the stored
+        NXdata is not valid.
+
+        :param str error: Message to display
+        """
         self.__error = error
         style = qt.QApplication.style()
         if error is None:
@@ -252,17 +326,39 @@ class _NxDataItem(qt.QStandardItem):
         self.setToolTip(message)
 
     def getError(self):
+        """Returns the error message in case the NXdata is not valid.
+
+        :rtype: str"""
         return self.__error
 
-    def setSignal(self, dataset):
+    def setSignalDataset(self, dataset):
+        """Set the dataset to use as signal with this NXdata.
+
+        :param Union[numpy.ndarray,h5py.Dataset,silx.io.commonh5.Dataset] dataset:
+            The dataset to use as signal.
+        """
+
         self.__signal.setDataset(dataset)
         self._datasetUpdated()
 
     def getSignalDataset(self):
+        """Returns the dataset used as signal.
+
+        :rtype: Union[numpy.ndarray,h5py.Dataset,silx.io.commonh5.Dataset]
+        """
         return self.__signal.getDataset()
 
-    def setAxes(self, datasets):
-        # Update axes with new datasets
+    def setAxesDatasets(self, datasets):
+        """Set all the available dataset used as axes.
+
+        Axes will be created or removed from the GUI in order to provide the
+        same amount of requested axes.
+
+        A `None` element is an axes with no dataset.
+
+        :param List[Union[numpy.ndarray,h5py.Dataset,silx.io.commonh5.Dataset,None]] datasets:
+            List of dataset to use as axes.
+        """
         for i, dataset in enumerate(datasets):
             if i < len(self.__axes):
                 item = self.__axes[i]
@@ -281,6 +377,12 @@ class _NxDataItem(qt.QStandardItem):
         self._datasetUpdated()
 
     def getAxesDatasets(self):
+        """Returns available axes as dataset.
+
+        A `None` element is an axes with no dataset.
+
+        :rtype: List[Union[numpy.ndarray,h5py.Dataset,silx.io.commonh5.Dataset,None]]
+        """
         datasets = []
         for axis in self.__axes:
             datasets.append(axis.getDataset())
@@ -288,20 +390,27 @@ class _NxDataItem(qt.QStandardItem):
 
 
 class _Model(qt.QStandardItemModel):
+    """Model storing a list of custom NXdata items.
+
+    Supports drag and drop of datasets.
+    """
 
     sigNxdataUpdated = qt.Signal(qt.QModelIndex)
     """Emitted when stored NXdata was edited"""
 
     def __init__(self, parent=None):
+        """Constructor"""
         qt.QStandardItemModel.__init__(self, parent)
         root = self.invisibleRootItem()
         root.setDropEnabled(True)
         root.setDragEnabled(False)
 
     def supportedDropActions(self):
+        """Inherited method to redefine supported drop actions."""
         return qt.Qt.CopyAction | qt.Qt.MoveAction
 
     def mimeTypes(self):
+        """Inherited method to redefine draggable mime types."""
         return [Hdf5DatasetMimeData.MIME_TYPE]
 
     def mimeData(self, indexes):
@@ -331,6 +440,7 @@ class _Model(qt.QStandardItemModel):
         return mimeData
 
     def dropMimeData(self, mimedata, action, row, column, parentIndex):
+        """Inherited method to handle a drop operation to this model."""
         if action == qt.Qt.IgnoreAction:
             return True
 
@@ -370,7 +480,11 @@ class _Model(qt.QStandardItemModel):
 
         return False
 
-    def getNxdataByTitle(self, title):
+    def __getNxdataByTitle(self, title):
+        """Returns an NXdata item by its title, else None.
+
+        :rtype: Union[_NxDataItem,None]
+        """
         for row in range(self.rowCount()):
             qindex = self.index(row, 0)
             item = self.itemFromIndex(qindex)
@@ -379,14 +493,22 @@ class _Model(qt.QStandardItemModel):
         return None
 
     def findFreeNxdataTitle(self):
+        """Returns an NXdata title which is not yet used.
+
+        :rtype: str
+        """
         for i in range(self.rowCount() + 1):
             name = "NXData #%d" % (i + 1)
-            group = self.getNxdataByTitle(name)
+            group = self.__getNxdataByTitle(name)
             if group is None:
                 break
         return name
 
     def createNewNxdata(self, name=None):
+        """Create a new NXdata item.
+
+        :param Union[str,None] name: A title for the new NXdata
+        """
         item = _NxDataItem()
         if name is None:
             name = self.findFreeNxdataTitle()
@@ -394,18 +516,31 @@ class _Model(qt.QStandardItemModel):
         self.appendRow(item.getRowItems())
 
     def createFromSignal(self, dataset):
+        """Create a new NXdata item from a signal dataset.
+
+        This signal will also define an amount of axes according to its number
+        of dimensions.
+
+        :param Union[numpy.ndarray,h5py.Dataset,silx.io.commonh5.Dataset] dataset:
+            A dataset uses as signal.
+        """
+
         item = _NxDataItem()
         name = self.findFreeNxdataTitle()
         item.setTitle(name)
-        item.setSignal(dataset)
-        item.setAxes([None] * len(dataset.shape))
+        item.setSignalDataset(dataset)
+        item.setAxesDatasets([None] * len(dataset.shape))
         self.appendRow(item.getRowItems())
 
     def createFromNxdata(self, nxdata):
-        """Create a new custom NXData from an existing NXData group.
+        """Create a new custom NXdata item from an existing NXdata group.
 
-        :param h5py.Group nxdata: An h5py group following the NXData
-            specification
+        If the NXdata is not valid, nothing is created, and an exception is
+        returned.
+
+        :param Union[h5py.Group,silx.io.commonh5.Group] nxdata: An h5py group
+            following the NXData specification.
+        :raise ValueError:If `nxdata` is not valid.
         """
         validator = silx.io.nxdata.NXdata(nxdata)
         if validator.is_valid:
@@ -414,47 +549,68 @@ class _Model(qt.QStandardItemModel):
             if title in [None or ""]:
                 title = self.findFreeNxdataTitle()
             item.setTitle(title)
-            item.setSignal(validator.signal)
-            item.setAxes(validator.axes)
+            item.setSignalDataset(validator.signal)
+            item.setAxesDatasets(validator.axes)
             self.appendRow(item.getRowItems())
         else:
             raise ValueError("Not a valid NXdata")
 
     def removeNxdataItem(self, item):
+        """Remove an NXdata item from this model.
+
+        :param _NxDataItem item: An item
+        """
         if isinstance(item, _NxDataItem):
             parent = item.parent()
             assert(parent is None)
             model = item.model()
             model.removeRow(item.row())
+        else:
+            _logger.error("Unexpected item")
 
     def appendAxisToNxdataItem(self, item):
+        """Append a new axes to this item (or the NXdata item own by this item).
+
+        :param Union[_NxDataItem,qt.QStandardItem] item: An item
+        """
         if item is not None and not isinstance(item, _NxDataItem):
             item = item.parent()
         nxdataItem = item
         if isinstance(item, _NxDataItem):
             datasets = nxdataItem.getAxesDatasets()
             datasets.append(None)
-            nxdataItem.setAxes(datasets)
+            nxdataItem.setAxesDatasets(datasets)
+        else:
+            _logger.error("Unexpected item")
 
     def removeAxisItem(self, item):
+        """Remove an axis item from this model.
+
+        :param _DatasetAxisItemRow item: An axis item
+        """
         if isinstance(item, _DatasetAxisItemRow):
             axisId = item.getAxisId()
             nxdataItem = item.parent()
             datasets = nxdataItem.getAxesDatasets()
             del datasets[axisId]
-            nxdataItem.setAxes(datasets)
+            nxdataItem.setAxesDatasets(datasets)
+        else:
+            _logger.error("Unexpected item")
 
 
 class CustomNxDataToolBar(qt.QToolBar):
+    """A specialised toolbar to manage custom NXdata model and items."""
 
     def __init__(self, parent=None):
+        """Constructor"""
         super(CustomNxDataToolBar, self).__init__(parent=parent)
         self.__nxdataWidget = None
-        self.__createActions()
+        self.__initContent()
         # Initialize action state
         self.__currentSelectionChanged(qt.QModelIndex(), qt.QModelIndex())
 
-    def __createActions(self):
+    def __initContent(self):
+        """Create all expected actions and set the content of this toolbar."""
         action = qt.QAction("Create a new custom NXdata", self)
         action.setIcon(icons.getQIcon("nxdata-create"))
         action.triggered.connect(self.__createNewNxdata)
@@ -482,6 +638,10 @@ class CustomNxDataToolBar(qt.QToolBar):
         self.__removeNxDataAxisAction = action
 
     def __getSelectedItem(self):
+        """Get the selected item from the linked CustomNxdataWidget.
+
+        :rtype: qt.QStandardItem
+        """
         selectionModel = self.__nxdataWidget.selectionModel()
         index = selectionModel.currentIndex()
         if not index.isValid():
@@ -492,12 +652,15 @@ class CustomNxDataToolBar(qt.QToolBar):
         return item
 
     def __createNewNxdata(self):
+        """Create a new NXdata item to the linked CustomNxdataWidget."""
         if self.__nxdataWidget is None:
             return
         model = self.__nxdataWidget.model()
         model.createNewNxdata()
 
     def __removeSelectedNxdata(self):
+        """Remove the NXdata item currently selected in the linked
+        CustomNxdataWidget."""
         if self.__nxdataWidget is None:
             return
         model = self.__nxdataWidget.model()
@@ -505,6 +668,8 @@ class CustomNxDataToolBar(qt.QToolBar):
         model.removeNxdataItem(item)
 
     def __appendNewAxisToSelectedNxdata(self):
+        """Append a new axis to the NXdata item currently selected in the
+        linked CustomNxdataWidget."""
         if self.__nxdataWidget is None:
             return
         model = self.__nxdataWidget.model()
@@ -512,6 +677,8 @@ class CustomNxDataToolBar(qt.QToolBar):
         model.appendAxisToNxdataItem(item)
 
     def __removeSelectedAxis(self):
+        """Remove the axis item currently selected in the linked
+        CustomNxdataWidget."""
         if self.__nxdataWidget is None:
             return
         model = self.__nxdataWidget.model()
@@ -519,6 +686,7 @@ class CustomNxDataToolBar(qt.QToolBar):
         model.removeAxisItem(item)
 
     def setCustomNxDataWidget(self, widget):
+        """Set the linked CustomNxdataWidget to this toolbar."""
         assert(isinstance(widget, CustomNxdataWidget))
         if self.__nxdataWidget is not None:
             selectionModel = self.__nxdataWidget.selectionModel()
@@ -529,7 +697,8 @@ class CustomNxDataToolBar(qt.QToolBar):
             selectionModel.currentChanged.connect(self.__currentSelectionChanged)
 
     def __currentSelectionChanged(self, current, previous):
-        """Update the actions according to the table selection"""
+        """Update the actions according to the linked CustomNxdataWidget
+        item selection"""
         if not current.isValid():
             item = None
         else:
@@ -546,6 +715,7 @@ class _HashDropZones(qt.QStyledItemDelegate):
     dataset."""
 
     def __init__(self):
+        """Constructor"""
         super(_HashDropZones, self).__init__()
         pen = qt.QPen()
         pen.setColor(qt.QColor("#D0D0D0"))
@@ -590,6 +760,8 @@ class _HashDropZones(qt.QStyledItemDelegate):
 
 
 class CustomNxdataWidget(qt.QTreeView):
+    """Widget providing a table displaying and allowing to custom virtual
+    NXdata."""
 
     sigNxdataItemUpdated = qt.Signal(qt.QStandardItem)
     """Emitted when the NXdata from an NXdata item was edited"""
@@ -598,6 +770,7 @@ class CustomNxdataWidget(qt.QTreeView):
     """Emitted when an NXdata item was removed"""
 
     def __init__(self, parent=None):
+        """Constructor"""
         qt.QTreeView.__init__(self, parent=None)
         self.__model = _Model(self)
         self.__model.setColumnCount(2)
@@ -626,6 +799,7 @@ class CustomNxdataWidget(qt.QTreeView):
         self.customContextMenuRequested[qt.QPoint].connect(self.__executeContextMenu)
 
     def __rowsAboutToBeRemoved(self, parentIndex, start, end):
+        """Called when an item was removed from the model."""
         items = []
         model = self.model()
         for index in range(start, end):
@@ -637,11 +811,13 @@ class CustomNxdataWidget(qt.QTreeView):
             self.sigNxdataItemRemoved.emit(item)
 
     def __nxdataUpdate(self, index):
+        """Called when a virtual NXdata was updated from the model."""
         model = self.model()
         item = model.itemFromIndex(index)
         self.sigNxdataItemUpdated.emit(item)
 
-    def defaultContextMenu(self, point):
+    def createDefaultContextMenu(self, point):
+        """Create a default context menu at this position."""
         qindex = self.indexAt(point)
         qindex = self.__model.index(qindex.row(), 0, parent=qindex.parent())
         item = self.__model.itemFromIndex(qindex)
@@ -678,7 +854,8 @@ class CustomNxdataWidget(qt.QTreeView):
         return menu
 
     def __executeContextMenu(self, point):
-        menu = self.defaultContextMenu(point)
+        """Execute the context menu at this position."""
+        menu = self.createDefaultContextMenu(point)
         if menu is None or menu.isEmpty():
             return
         menu.exec_(qt.QCursor.pos())
@@ -703,16 +880,27 @@ class CustomNxdataWidget(qt.QTreeView):
                         datasets[i] = None
                         edited = True
             if edited:
-                item.setAxes(datasets)
+                item.setAxesDatasets(datasets)
 
             dataset = item.getSignalDataset()
             if dataset is not None:
                 # That's an approximation, IS can't be used as h5py generates
                 # To objects for each requests to a node
                 if dataset.file.filename == root.file.filename:
-                    item.setSignal(None)
+                    item.setSignalDataset(None)
 
     def replaceDatasetsFrom(self, removedRoot, loadedRoot):
+        """
+        Replace any dataset from any NXdata items using the same dataset name
+        from another root.
+
+        Usually used when a file was synchronized.
+
+        :param removedRoot: The h5py root file which is replaced
+            (which have to be removed)
+        :param loadedRoot: The new h5py root file which have to be used
+            instread.
+        """
         for row in range(self.__model.rowCount()):
             qindex = self.__model.index(row, 0)
             item = self.model().itemFromIndex(qindex)
@@ -725,12 +913,12 @@ class CustomNxdataWidget(qt.QTreeView):
                     datasets[i] = newDataset
                     edited = True
             if edited:
-                item.setAxes(datasets)
+                item.setAxesDatasets(datasets)
 
         dataset = item.getSignalDataset()
         newDataset = self.__replaceDatasetRoot(dataset, removedRoot, loadedRoot)
         if dataset is not newDataset:
-            item.setSignal(newDataset)
+            item.setSignalDataset(newDataset)
 
     def __replaceDatasetRoot(self, dataset, fromRoot, toRoot):
         """
@@ -757,7 +945,10 @@ class CustomNxdataWidget(qt.QTreeView):
             return dataset
 
     def selectedItems(self):
-        """Returns the list of selected items containing NXdata"""
+        """Returns the list of selected items containing NXdata
+
+        :rtype: List[qt.QStandardItem]
+        """
         result = []
         for qindex in self.selectedIndexes():
             if qindex.column() != 0:
@@ -771,7 +962,10 @@ class CustomNxdataWidget(qt.QTreeView):
         return result
 
     def selectedNxdata(self):
-        """Returns the list of selected NXdata"""
+        """Returns the list of selected NXdata
+
+        :rtype: List[silx.io.commonh5.Group]
+        """
         result = []
         for qindex in self.selectedIndexes():
             if qindex.column() != 0:
@@ -783,12 +977,3 @@ class CustomNxdataWidget(qt.QTreeView):
                 continue
             result.append(item.getVirtualGroup())
         return result
-
-    def create(self, name=None):
-        self.__model.createNewNxdata(name)
-
-    def createFromSignal(self, dataset):
-        self.__model.createFromSignal(dataset)
-
-    def createFromNxdata(self, nxdata):
-        self.__model.createFromNxdata(nxdata)
