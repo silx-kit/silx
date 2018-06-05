@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "29/05/2018"
 
 
 import os
@@ -33,10 +33,15 @@ import collections
 import logging
 import functools
 
-import silx
+import silx.io.nxdata
 from silx.gui import qt
 from silx.gui import icons
+import silx.gui.hdf5
 from .ApplicationContext import ApplicationContext
+from .CustomNxdataWidget import CustomNxdataWidget
+from .CustomNxdataWidget import CustomNxDataToolBar
+from . import utils
+from .DataPanel import DataPanel
 
 
 _logger = logging.getLogger(__name__)
@@ -52,9 +57,6 @@ class Viewer(qt.QMainWindow):
         """
         Constructor
         """
-        # Import it here to be sure to use the right logging level
-        import silx.gui.hdf5
-        from silx.gui.data.DataViewerFrame import DataViewerFrame
 
         qt.QMainWindow.__init__(self, parent)
         self.setWindowTitle("Silx viewer")
@@ -62,31 +64,49 @@ class Viewer(qt.QMainWindow):
         self.__context = ApplicationContext(self, settings)
         self.__context.restoreLibrarySettings()
 
-        self.__asyncload = False
         self.__dialogState = None
+        self.__customNxDataItem = None
         self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
+        self.__treeview.setExpandsOnDoubleClick(False)
         """Silx HDF5 TreeView"""
+
+        rightPanel = qt.QSplitter(self)
+        rightPanel.setOrientation(qt.Qt.Vertical)
+        self.__splitter2 = rightPanel
 
         # Custom the model to be able to manage the life cycle of the files
         treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeview, ownFiles=False)
         treeModel.sigH5pyObjectLoaded.connect(self.__h5FileLoaded)
         treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
         treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
+        treeModel.setDatasetDragEnabled(True)
         treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
         treeModel2.setSourceModel(treeModel)
         self.__treeview.setModel(treeModel2)
+        rightPanel.addWidget(self.__treeview)
 
-        self.__dataViewer = DataViewerFrame(self)
-        self.__dataViewer.setGlobalHooks(self.__context)
-        vSpliter = qt.QSplitter(qt.Qt.Vertical)
-        vSpliter.addWidget(self.__dataViewer)
-        vSpliter.setSizes([10, 0])
+        self.__customNxdata = CustomNxdataWidget(self)
+        self.__customNxdata.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        # optimise the rendering
+        self.__customNxdata.setUniformRowHeights(True)
+        self.__customNxdata.setIconSize(qt.QSize(16, 16))
+        self.__customNxdata.setExpandsOnDoubleClick(False)
+
+        self.__customNxdataWindow = self.__createCustomNxdataWindow(self.__customNxdata)
+        self.__customNxdataWindow.setVisible(False)
+        rightPanel.addWidget(self.__customNxdataWindow)
+
+        rightPanel.setStretchFactor(1, 1)
+        rightPanel.setCollapsible(0, False)
+        rightPanel.setCollapsible(1, False)
+
+        self.__dataPanel = DataPanel(self, self.__context)
 
         spliter = qt.QSplitter(self)
-        spliter.addWidget(self.__treeview)
-        spliter.addWidget(vSpliter)
+        spliter.addWidget(rightPanel)
+        spliter.addWidget(self.__dataPanel)
         spliter.setStretchFactor(1, 1)
-        self.__spliter = spliter
+        self.__splitter = spliter
 
         main_panel = qt.QWidget(self)
         layout = qt.QVBoxLayout()
@@ -96,9 +116,11 @@ class Viewer(qt.QMainWindow):
 
         self.setCentralWidget(main_panel)
 
-        model = self.__treeview.selectionModel()
-        model.selectionChanged.connect(self.displayData)
-        self.__treeview.addContextMenuCallback(self.closeAndSyncCustomContextMenu)
+        self.__treeview.activated.connect(self.displaySelectedData)
+        self.__customNxdata.activated.connect(self.displaySelectedCustomData)
+        self.__customNxdata.sigNxdataItemRemoved.connect(self.__customNxdataRemoved)
+        self.__customNxdata.sigNxdataItemUpdated.connect(self.__customNxdataUpdated)
+        self.__treeview.addContextMenuCallback(self.customContextMenu)
 
         treeModel = self.__treeview.findHdf5TreeModel()
         columns = list(treeModel.COLUMN_IDS)
@@ -113,28 +135,31 @@ class Viewer(qt.QMainWindow):
         self.createMenus()
         self.__context.restoreSettings()
 
+    def __createCustomNxdataWindow(self, customNxdataWidget):
+        toolbar = CustomNxDataToolBar(self)
+        toolbar.setCustomNxDataWidget(customNxdataWidget)
+        toolbar.setIconSize(qt.QSize(16, 16))
+        toolbar.setStyleSheet("QToolBar { border: 0px }")
+
+        widget = qt.QWidget()
+        layout = qt.QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(toolbar)
+        layout.addWidget(customNxdataWidget)
+        return widget
+
     def __h5FileLoaded(self, loadedH5):
         self.__context.pushRecentFile(loadedH5.file.filename)
 
     def __h5FileRemoved(self, removedH5):
-        data = self.__dataViewer.data()
-        if data is not None:
-            if data.file.filename == removedH5.file.filename:
-                self.__dataViewer.setData(None)
+        self.__dataPanel.removeDatasetsFrom(removedH5)
+        self.__customNxdata.removeDatasetsFrom(removedH5)
         removedH5.close()
 
     def __h5FileSynchonized(self, removedH5, loadedH5):
-        data = self.__dataViewer.data()
-        if data is not None:
-            if data.file.filename == removedH5.file.filename:
-                # Try to synchonize the viewed data
-                try:
-                    # TODO: It have to update the data without changing the view
-                    # which is not so easy
-                    newData = loadedH5[data.name]
-                    self.__dataViewer.setData(newData)
-                except Exception:
-                    _logger.debug("Backtrace", exc_info=True)
+        self.__dataPanel.replaceDatasetsFrom(removedH5, loadedH5)
+        self.__customNxdata.replaceDatasetsFrom(removedH5, loadedH5)
         removedH5.close()
 
     def closeEvent(self, event):
@@ -157,7 +182,10 @@ class Viewer(qt.QMainWindow):
         settings.endGroup()
 
         settings.beginGroup("mainlayout")
-        settings.setValue("spliter", self.__spliter.sizes())
+        settings.setValue("spliter", self.__splitter.sizes())
+        settings.setValue("spliter2", self.__splitter2.sizes())
+        isVisible = self.__customNxdataWindow.isVisible()
+        settings.setValue("custom-nxdata-window-visible", isVisible)
         settings.endGroup()
 
         if isFullScreen:
@@ -172,7 +200,10 @@ class Viewer(qt.QMainWindow):
         size = settings.value("size", qt.QSize(640, 480))
         pos = settings.value("pos", qt.QPoint())
         isFullScreen = settings.value("full-screen", False)
-        if not isinstance(isFullScreen, bool):
+        try:
+            if not isinstance(isFullScreen, bool):
+                isFullScreen = utils.stringToBool(isFullScreen)
+        except ValueError:
             isFullScreen = False
         settings.endGroup()
 
@@ -180,9 +211,24 @@ class Viewer(qt.QMainWindow):
         try:
             data = settings.value("spliter")
             data = [int(d) for d in data]
-            self.__spliter.setSizes(data)
+            self.__splitter.setSizes(data)
         except Exception:
             _logger.debug("Backtrace", exc_info=True)
+        try:
+            data = settings.value("spliter2")
+            data = [int(d) for d in data]
+            self.__splitter2.setSizes(data)
+        except Exception:
+            _logger.debug("Backtrace", exc_info=True)
+        isVisible = settings.value("custom-nxdata-window-visible", False)
+        try:
+            if not isinstance(isVisible, bool):
+                isVisible = utils.stringToBool(isVisible)
+        except ValueError:
+            isVisible = False
+        self.__customNxdataWindow.setVisible(isVisible)
+        self._displayCustomNxdataWindow.setChecked(isVisible)
+
         settings.endGroup()
 
         if not pos.isNull():
@@ -270,6 +316,19 @@ class Viewer(qt.QMainWindow):
         menu.addAction(action)
         self._useYAxisOrientationUpward = action
 
+        # Windows
+
+        action = qt.QAction("Show custom NXdata selector", self)
+        action.setStatusTip("Show a widget which allow to create plot by selecting data and axes")
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_F5))
+        action.toggled.connect(self.__toggleCustomNxdataWindow)
+        self._displayCustomNxdataWindow = action
+
+    def __toggleCustomNxdataWindow(self):
+        isVisible = self._displayCustomNxdataWindow.isChecked()
+        self.__customNxdataWindow.setVisible(isVisible)
+
     def __updateFileMenu(self):
         files = self.__context.getRecentFiles()
         self._openRecentAction.setEnabled(len(files) != 0)
@@ -356,6 +415,9 @@ class Viewer(qt.QMainWindow):
         optionMenu.addAction(self._plotBackendSelection)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
 
+        windowMenu = self.menuBar().addMenu("&Windows")
+        windowMenu.addAction(self._displayCustomNxdataWindow)
+
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
 
@@ -383,7 +445,6 @@ class Viewer(qt.QMainWindow):
         dialog.setModal(True)
 
         # NOTE: hdf5plugin have to be loaded before
-        import silx.io
         extensions = collections.OrderedDict()
         for description, ext in silx.io.supported_extensions().items():
             extensions[description] = " ".join(sorted(list(ext)))
@@ -436,19 +497,53 @@ class Viewer(qt.QMainWindow):
     def appendFile(self, filename):
         self.__treeview.findHdf5TreeModel().appendFile(filename)
 
-    def displayData(self):
+    def displaySelectedData(self):
         """Called to update the dataviewer with the selected data.
         """
         selected = list(self.__treeview.selectedH5Nodes(ignoreBrokenLinks=False))
         if len(selected) == 1:
             # Update the viewer for a single selection
             data = selected[0]
-            self.__dataViewer.setData(data)
+            self.__dataPanel.setData(data)
+        else:
+            _logger.debug("Too many data selected")
 
-    def useAsyncLoad(self, useAsync):
-        self.__asyncload = useAsync
+    def displayData(self, data):
+        """Called to update the dataviewer with a secific data.
+        """
+        self.__dataPanel.setData(data)
 
-    def closeAndSyncCustomContextMenu(self, event):
+    def displaySelectedCustomData(self):
+        selected = list(self.__customNxdata.selectedItems())
+        if len(selected) == 1:
+            # Update the viewer for a single selection
+            item = selected[0]
+            self.__dataPanel.setCustomDataItem(item)
+        else:
+            _logger.debug("Too many items selected")
+
+    def __customNxdataRemoved(self, item):
+        if self.__dataPanel.getCustomNxdataItem() is item:
+            self.__dataPanel.setCustomDataItem(None)
+
+    def __customNxdataUpdated(self, item):
+        if self.__dataPanel.getCustomNxdataItem() is item:
+            self.__dataPanel.setCustomDataItem(item)
+
+    def __makeSureCustomNxDataWindowIsVisible(self):
+        if not self.__customNxdataWindow.isVisible():
+            self.__customNxdataWindow.setVisible(True)
+            self._displayCustomNxdataWindow.setChecked(True)
+
+    def useAsNewCustomSignal(self, h5dataset):
+        self.__makeSureCustomNxDataWindowIsVisible()
+        self.__customNxdata.createFromSignal(h5dataset)
+
+    def useAsNewCustomNxdata(self, h5nxdata):
+        self.__makeSureCustomNxDataWindowIsVisible()
+        self.__customNxdata.createFromNxdata(h5nxdata)
+
+    def customContextMenu(self, event):
         """Called to populate the context menu
 
         :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
@@ -460,13 +555,27 @@ class Viewer(qt.QMainWindow):
         if not menu.isEmpty():
             menu.addSeparator()
 
-        # Import it here to be sure to use the right logging level
-        import h5py
         for obj in selectedObjects:
-            if obj.ntype is h5py.File:
+            h5 = obj.h5py_object
+
+            action = qt.QAction("Show %s" % obj.name, event.source())
+            action.triggered.connect(lambda: self.displayData(h5))
+            menu.addAction(action)
+
+            if silx.io.is_dataset(h5):
+                action = qt.QAction("Use as a new custom signal", event.source())
+                action.triggered.connect(lambda: self.useAsNewCustomSignal(h5))
+                menu.addAction(action)
+
+            if silx.io.is_group(h5) and silx.io.nxdata.is_valid_nxdata(h5):
+                action = qt.QAction("Use as a new custom NXdata", event.source())
+                action.triggered.connect(lambda: self.useAsNewCustomNxdata(h5))
+                menu.addAction(action)
+
+            if silx.io.is_file(h5):
                 action = qt.QAction("Remove %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(obj.h5py_object))
+                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(h5))
                 menu.addAction(action)
                 action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(obj.h5py_object))
+                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(h5))
                 menu.addAction(action)

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/04/2018"
+__date__ = "04/05/2018"
 
 
 import os
@@ -237,6 +237,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root = Hdf5Node()
         self.__fileDropEnabled = True
         self.__fileMoveEnabled = True
+        self.__datasetDragEnabled = False
 
         self.__animatedIcon = icons.getWaitIcon()
         self.__animatedIcon.iconChanged.connect(self.__updateLoadingItems)
@@ -332,6 +333,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     fileDropEnabled = qt.Property(bool, isFileDropEnabled, setFileDropEnabled)
     """Property to enable/disable file dropping in the model."""
 
+    def isDatasetDragEnabled(self):
+        return self.__datasetDragEnabled
+
+    def setDatasetDragEnabled(self, enabled):
+        self.__datasetDragEnabled = enabled
+
+    datasetDragEnabled = qt.Property(bool, isDatasetDragEnabled, setDatasetDragEnabled)
+    """Property to enable/disable drag of datasets."""
+
     def isFileMoveEnabled(self):
         return self.__fileMoveEnabled
 
@@ -349,10 +359,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             return 0
 
     def mimeTypes(self):
+        types = []
         if self.__fileMoveEnabled:
-            return [_utils.Hdf5NodeMimeData.MIME_TYPE]
-        else:
-            return []
+            types.append(_utils.Hdf5NodeMimeData.MIME_TYPE)
+        if self.__datasetDragEnabled:
+            types.append(_utils.Hdf5DatasetMimeData.MIME_TYPE)
+        return types
 
     def mimeData(self, indexes):
         """
@@ -362,7 +374,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param List[qt.QModelIndex] indexes: List of indexes
         :rtype: qt.QMimeData
         """
-        if not self.__fileMoveEnabled or len(indexes) == 0:
+        if len(indexes) == 0:
             return None
 
         indexes = [i for i in indexes if i.column() == 0]
@@ -372,7 +384,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             raise NotImplementedError("Drag of cell is not implemented")
 
         node = self.nodeFromIndex(indexes[0])
-        mimeData = _utils.Hdf5NodeMimeData(node)
+
+        if self.__fileMoveEnabled and node.parent is self.__root:
+            mimeData = _utils.Hdf5NodeMimeData(node=node)
+        elif self.__datasetDragEnabled:
+            mimeData = _utils.Hdf5DatasetMimeData(node=node)
+        else:
+            mimeData = None
         return mimeData
 
     def flags(self, index):
@@ -382,6 +400,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             node = self.nodeFromIndex(index)
             if self.__fileMoveEnabled and node.parent is self.__root:
                 # that's a root
+                return qt.Qt.ItemIsDragEnabled | defaultFlags
+            elif self.__datasetDragEnabled:
                 return qt.Qt.ItemIsDragEnabled | defaultFlags
             return defaultFlags
         elif self.__fileDropEnabled or self.__fileMoveEnabled:

@@ -38,7 +38,7 @@ from .utils import is_dataset
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/10/2017"
+__date__ = "28/05/2018"
 
 
 class _MappingProxyType(collections.MutableMapping):
@@ -462,6 +462,33 @@ class Dataset(Node):
             return getattr(data, item)
 
         raise AttributeError("Dataset has no attribute %s" % item)
+
+
+class DatasetProxy(Dataset):
+    """Virtual dataset providing content of another dataset"""
+
+    def __init__(self, name, target, parent=None):
+        Dataset.__init__(self, name, data=None, parent=parent)
+        self.__target = target
+
+    @property
+    def shape(self):
+        return self.__target.shape
+
+    @property
+    def size(self):
+        return self.__target.size
+
+    @property
+    def dtype(self):
+        return self.__target.dtype
+
+    def _get_data(self):
+        return self.__target[...]
+
+    @property
+    def attrs(self):
+        return self.__target.attrs
 
 
 class _LinkToDataset(Dataset):
