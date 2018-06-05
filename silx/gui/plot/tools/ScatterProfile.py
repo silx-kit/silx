@@ -402,14 +402,21 @@ class _InterpolatorInitThread(qt.QThread):
         super(_InterpolatorInitThread, self).__init__(parent)
         self._points = None
         self._values = None
-        self.__interpolator = None
+        self._interpolator = None
+
+    def getData(self):
+        """Returns points and values used to initialise the interpolator
+
+        :rtype: List[numpy.ndarray]
+        """
+        return self._points, self._values
 
     def getInterpolator(self):
         """Returns the initialised interpolator
 
         :rtype: Union[LinearNDInterpolator,None]
         """
-        return self.__interpolator
+        return self._interpolator
 
     def start(self, points, values, priority=qt.QThread.InheritPriority):
         """Start the thread.
@@ -427,7 +434,7 @@ class _InterpolatorInitThread(qt.QThread):
         """Run the init of the scatter interpolator"""
         startTime = time.time()
 
-        self.__interpolator = None
+        self._interpolator = None
         try:
             interpolator = LinearNDInterpolator(self._points,
                                                 self._values)
@@ -439,7 +446,7 @@ class _InterpolatorInitThread(qt.QThread):
             # First call takes a while, do it here
             interpolator([(0., 0.)])
 
-            self.__interpolator = interpolator
+            self._interpolator = interpolator
             _logger.info("Interpolator initialised in %f s",
                          (time.time() - startTime))
 
@@ -455,7 +462,7 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
     def __init__(self, parent=None, plot=None, title='Scatter Profile'):
         super(ScatterProfileToolBar, self).__init__(parent, plot, title)
         self.__interpolator = None
-        self.__interpolatorCache = None
+        self.__interpolatorCache = None  # points, values, interpolator
         self.__initThread = None
 
         roiManager = self._getRoiManager()
@@ -485,7 +492,6 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
     def __interactionFinished(self, rois):
         """Handle end of ROI interaction"""
         self.__stopInitThread()
-        self.__interpolator = None
 
         plot = self.getPlotWidget()
         if plot is None:
@@ -504,6 +510,8 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         :param Union[str,None] legend:
         """
         self.__stopInitThread()
+
+        # Reset interpolator
         self.__interpolator = None
 
         plot = self.getPlotWidget()
@@ -525,16 +533,31 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
                 else:
                     scatter.sigItemChanged.connect(self.__scatterItemChanged)
 
-                    x = scatter.getXData(copy=False)
-                    y = scatter.getYData(copy=False)
+                    points = numpy.transpose(numpy.array((
+                        scatter.getXData(copy=False),
+                        scatter.getYData(copy=False))))
                     values = scatter.getValueData(copy=False)
 
-                    # Start background processing
+                    # Check interpolator cache
+                    if (self.__interpolatorCache is not None and
+                            len(points) == len(self.__interpolatorCache[0]) and
+                            numpy.all(numpy.equal(self.__interpolatorCache[0], points)) and
+                            numpy.all(numpy.equal(self.__interpolatorCache[1], values))):
+                        # Reuse previous interpolator
+                        _logger.info(
+                            'Active scatter change: Reuse interpolator')
+                        self.__interpolator = self.__interpolatorCache[2]
 
-                    self.__initThread = _InterpolatorInitThread(self)
-                    self.__initThread.finished.connect(
-                        self.__initThreadFinished)
-                    self.__initThread.start(numpy.array((x, y)).T, values)
+                    else:
+                        # Interpolator needs update: Start background processing
+                        _logger.info(
+                            'Active scatter changed: Rebuild interpolator')
+                        self.__interpolator = None
+                        self.__interpolatorCache = None
+                        self.__initThread = _InterpolatorInitThread(self)
+                        self.__initThread.finished.connect(
+                            self.__initThreadFinished)
+                        self.__initThread.start(points, values)
 
         # Refresh profile
         self.updateProfile()
@@ -552,16 +575,30 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
             else:
                 self.__stopInitThread()
 
-                x = scatter.getXData(copy=False)
-                y = scatter.getYData(copy=False)
+                points = numpy.transpose(numpy.array((
+                    scatter.getXData(copy=False),
+                    scatter.getYData(copy=False))))
                 values = scatter.getValueData(copy=False)
 
-                # Start background processing
+                if (self.__interpolatorCache is not None and
+                        len(points) == len(self.__interpolatorCache[0]) and
+                        numpy.all(numpy.equal(self.__interpolatorCache[0], points)) and
+                        numpy.all(numpy.equal(self.__interpolatorCache[1], values))):
+                    # Reuse previous interpolator
+                    _logger.info(
+                        'Scatter changed: Reuse previous interpolator')
+                    self.__interpolator = self.__interpolatorCache[2]
 
-                self.__initThread = _InterpolatorInitThread(self)
-                self.__initThread.finished.connect(
-                    self.__initThreadFinished)
-                self.__initThread.start(numpy.array((x, y)).T, values)
+                else:
+                    # Interpolator needs update: Start background processing
+                    _logger.info(
+                        'Scatter changed: Rebuild interpolator')
+                    self.__interpolator = None
+                    self.__interpolatorCache = None
+                    self.__initThread = _InterpolatorInitThread(self)
+                    self.__initThread.finished.connect(
+                        self.__initThreadFinished)
+                    self.__initThread.start(points, values)
 
     # Handle interpolator init thread
 
@@ -577,6 +614,8 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         """Handle end of init interpolator thread"""
         if self.__initThread is not None:
             self.__interpolator = self.__initThread.getInterpolator()
+            points, values = self.__initThread.getData()
+            self.__interpolatorCache = points, values, self.__interpolator
             self.__initThread = None
             self.updateProfile()
 
