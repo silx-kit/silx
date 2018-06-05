@@ -25,25 +25,9 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/04/2018"
+__date__ = "05/06/2018"
 
 import sys
-
-try:
-    # it should be loaded before h5py
-    import hdf5plugin  # noqa
-except ImportError:
-    hdf5plugin = None
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
-try:
-    import fabio
-except ImportError:
-    fabio = None
 
 from silx.gui import qt
 from silx.gui import icons
@@ -158,9 +142,9 @@ class About(qt.QDialog):
     def __formatOptionalLibraries(name, isAvailable):
         """Utils to format availability of features"""
         if isAvailable:
-            template = '<b>%s</b> is <font color="green">installed</font>'
+            template = '<b>%s</b> is <font color="green">loaded</font>'
         else:
-            template = '<b>%s</b> is <font color="red">not installed</font>'
+            template = '<b>%s</b> is <font color="red">not loaded</font>'
         return template % name
 
     def __updateText(self):
@@ -189,10 +173,15 @@ class About(qt.QDialog):
         Copyright (C) <a href="{esrf_url}">European Synchrotron Radiation Facility</a>
         </p>
         """
+
+        hdf5pluginLoaded = "hdf5plugin" in sys.modules
+        fabioLoaded = "fabio" in sys.modules
+        h5pyLoaded = "h5py" in sys.modules
+
         optional_lib = []
-        optional_lib.append(self.__formatOptionalLibraries("FabIO", fabio is not None))
-        optional_lib.append(self.__formatOptionalLibraries("H5py", h5py is not None))
-        optional_lib.append(self.__formatOptionalLibraries("hdf5plugin", hdf5plugin is not None))
+        optional_lib.append(self.__formatOptionalLibraries("FabIO", fabioLoaded))
+        optional_lib.append(self.__formatOptionalLibraries("H5py", h5pyLoaded))
+        optional_lib.append(self.__formatOptionalLibraries("hdf5plugin", hdf5pluginLoaded))
 
         # Access to the logo in SVG or PNG
         logo = icons.getQFile("../logo/silx")
