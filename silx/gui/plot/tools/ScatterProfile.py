@@ -284,32 +284,26 @@ class _BaseProfileToolBar(qt.QToolBar):
         """
         return None
 
-    def computeProfileTitle(self, kind, points):
+    def computeProfileTitle(self, x0, y0, x1, y1):
         """Compute corresponding plot title
 
         This can be overridden to change title behavior.
 
-        :param str kind:
-        :param points:
+        :param float x0: Profile start point X coord
+        :param float y0: Profile start point Y coord
+        :param float x1: Profile end point X coord
+        :param float y1: Profile end point X coord
         :return: Title to use
         :rtype: str
         """
-        # Set title
-        if kind == 'hline':
-            title = 'Y = {}'.format(points)
-
-        elif kind == 'vline':
-            title = 'X = {}'.format(points)
-
-        else:  # kind == 'line'
-            x0, y0 = points[0]
-            x1, y1 = points[1]
-            if x1 == x0 or y1 == y0:
-                title = 'From (%g, %g) to (%g, %g)' % (x0, y0, x1, y1)
-            else:
-                m = (y1 - y0) / (x1 - x0)
-                b = y0 - m * x0
-                title = 'Y = %g * X %+g' % (m, b)
+        if x0 == x1:
+            title = 'X = %g; Y = [%g, %g]' % (x0, y0, y1)
+        elif y0 == y1:
+            title = 'Y = %g; X = [%g, %g]' % (y0, x0, x1)
+        else:
+            m = (y1 - y0) / (x1 - x0)
+            b = y0 - m * x0
+            title = 'Y = %g * X %+g' % (m, b)
 
         return title
 
@@ -340,7 +334,9 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         # Get end points
         if kind == 'line':
-            endPoints = roi.getControlPoints()
+            points = roi.getControlPoints()
+            x0, y0 = points[0]
+            x1, y1 = points[1]
 
         elif kind in ('hline', 'vline'):
             plot = self.getPlotWidget()
@@ -348,27 +344,24 @@ class _BaseProfileToolBar(qt.QToolBar):
                 return None
 
             if kind == 'hline':
-                xmin, xmax = plot.getXAxis().getLimits()
-                y = roi.getControlPoints()[0, 1]
-                endPoints = (xmin, y), (xmax, y)
+                x0, x1 = plot.getXAxis().getLimits()
+                y0 = y1 = roi.getControlPoints()[0, 1]
+
 
             elif kind == 'vline':
-                x = roi.getControlPoints()[0, 0]
-                ymin, ymax = plot.getYAxis().getLimits()
-                endPoints = (x, ymin), (x, ymax)
+                x0 = x1 = roi.getControlPoints()[0, 0]
+                y0, y1 = plot.getYAxis().getLimits()
 
         else:
             _logger.error('Unsupported kind: {}'.format(kind))
             return None
 
         # Update plot
-        title = self.computeProfileTitle(kind, endPoints)
+        title = self.computeProfileTitle(x0, y0, x1, y1)
         profilePlot.setGraphTitle(title)
 
         nPoints = self.getNPoints()
 
-        x0, y0 = endPoints[0]
-        x1, y1 = endPoints[1]
         if x1 < x0 or (x1 == x0 and y1 < y0):
             # Invert points
             x0, y0, x1, y1 = x1, y1, x0, y0
@@ -588,14 +581,13 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
             self.updateProfile()
 
     # Overridden methods
-
-    def computeProfileTitle(self, kind, points):
+    def computeProfileTitle(self, x0, y0, x1, y1):
         """Compute corresponding plot title
 
-        This can be overridden to change title behavior.
-
-        :param str kind:
-        :param points:
+        :param float x0: Profile start point X coord
+        :param float y0: Profile start point Y coord
+        :param float x1: Profile end point X coord
+        :param float y1: Profile end point X coord
         :return: Title to use
         :rtype: str
         """
@@ -604,7 +596,7 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
 
         else:
             return super(ScatterProfileToolBar, self).computeProfileTitle(
-                kind, points)
+                x0, y0, x1, y1)
 
     def computeProfile(self, points):
         """Compute corresponding profile
