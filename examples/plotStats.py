@@ -103,7 +103,7 @@ def main():
     stats = [
         ('sum', numpy.sum),
         Integral(),
-        (COM(), StatFormatter(formatter='{0:.2f}')),
+        (COM(), '{0:.2f}'),
     ]
 
     plot.getStatsWidget().setStats(stats)
