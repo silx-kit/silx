@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/06/2018"
+__date__ = "05/06/2018"
 
 import numpy
 import re
@@ -37,17 +37,33 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-if hasattr(numpy, "longdouble") and numpy.finfo(numpy.longdouble).bits != 64:
-    _biggest_float = numpy.longdouble
-    # From bigger to smaller
-    _float_types = (numpy.longdouble, numpy.float64, numpy.float32, numpy.float16)
-else:
+_biggest_float = None
+
+if hasattr(numpy, "longdouble"):
+    finfo = numpy.finfo(numpy.longdouble)
+    # The bit for sign is missing here
+    bits = finfo.nexp + finfo.nmant
+    if bits > 64:
+        _biggest_float = numpy.longdouble
+        # From bigger to smaller
+        _float_types = (numpy.longdouble, numpy.float64, numpy.float32, numpy.float16)
+if _biggest_float is None:
     _biggest_float = numpy.float64
     # From bigger to smaller
     _float_types = (numpy.float64, numpy.float32, numpy.float16)
 
 
 _parse_numeric_value = re.compile("^\s*[-+]?0*(\d+?)?(?:\.(\d+))?(?:[eE]([-+]?\d+))?\s*$")
+
+
+def is_longdouble_64bits():
+    """Returns true if the system uses floating-point 64bits for it's
+    long double type.
+
+    .. note:: Comparing `numpy.longdouble` and `numpy.float64` on Windows is not
+        possible (or at least not will all the numpy version)
+    """
+    return _biggest_float == numpy.float64
 
 
 def min_numerical_convertible_type(string, check_accuracy=True):
