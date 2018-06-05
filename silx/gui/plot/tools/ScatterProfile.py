@@ -107,6 +107,10 @@ class _BaseProfileToolBar(qt.QToolBar):
         plot.getXAxis().sigLimitsChanged.connect(self.updateProfile)
         plot.getYAxis().sigLimitsChanged.connect(self.updateProfile)
 
+        # Listen to plot scale
+        plot.getXAxis().sigScaleChanged.connect(self.__plotAxisScaleChanged)
+        plot.getYAxis().sigScaleChanged.connect(self.__plotAxisScaleChanged)
+
     # Handle plot reference
 
     def __plotDestroyed(self, ref):
@@ -185,6 +189,26 @@ class _BaseProfileToolBar(qt.QToolBar):
                 # Place profile on the left
                 self._profileMainWindow.move(
                     max(0, winGeom.left() - profileWindowWidth), winGeom.top())
+
+    # Handle plot in log scale
+
+    def __plotAxisScaleChanged(self, scale):
+        """Handle change of axis scale in the plot widget"""
+        plot = self.getPlotWidget()
+        if plot is None:
+            return
+        xScale = plot.getXAxis().getScale()
+        yScale = plot.getYAxis().getScale()
+
+        if xScale == items.Axis.LINEAR and yScale == items.Axis.LINEAR:
+            self.setEnabled(True)
+        else:
+            self.setEnabled(False)
+            self.clearProfile()
+
+            roiManager = self._getRoiManager()
+            if roiManager is not None:
+                roiManager.stop()  # Stop interactive mode
 
     # Profile color
 
