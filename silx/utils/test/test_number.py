@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/06/2018"
+__date__ = "05/06/2018"
 
 import logging
 import numpy
@@ -141,9 +141,7 @@ class TestConversionTypes(testutils.ParametricTestCase):
         self.assertIn(dtype, (numpy.float32, numpy.float64))
 
     def skipIfFloat80NotSupported(self):
-        if not hasattr(numpy, "longdouble"):
-            self.skipTest("float-80bits not supported")
-        if numpy.finfo(numpy.longdouble).bits == 64:
+        if number.is_longdouble_64bits():
             self.skipTest("float-80bits not supported")
 
     def testLosePrecisionUsingFloat80(self):
