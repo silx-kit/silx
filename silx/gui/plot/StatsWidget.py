@@ -23,18 +23,20 @@
 #
 # ###########################################################################*/
 """
+Module containing widgets displaying stats from items of a plot.
 """
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "07/03/2018"
+__date__ = "05/06/2018"
 
 
 import functools
 import logging
+import numpy
 from collections import OrderedDict
-from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
-import silx
+
+import silx.utils.weakref
 from silx.gui import qt
 from silx.gui.plot.items.curve import Curve as CurveItem
 from silx.gui.plot.items.histogram import Histogram as HistogramItem
@@ -43,9 +45,6 @@ from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from silx.gui.plot import stats as statsmdl
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
-from collections import OrderedDict
-import numpy
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -292,7 +291,7 @@ class StatsTable(TableWidget):
                 histograms = self.plot._getItems(kind='histogram',
                                                  just_legend=False,
                                                  withhidden=True)
-                [self._addItem(histogram) for scatter in histograms]
+                [self._addItem(histogram) for histogram in histograms]
                 self.plot.sigContentChanged.connect(self._plotContentChanged)
             self._dealWithPlotConnection(create=True)
 
