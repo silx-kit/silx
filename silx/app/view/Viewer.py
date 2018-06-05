@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/05/2018"
+__date__ = "05/06/2018"
 
 
 import os
@@ -74,6 +74,8 @@ class Viewer(qt.QMainWindow):
         rightPanel.setOrientation(qt.Qt.Vertical)
         self.__splitter2 = rightPanel
 
+        self.__treeWindow = self.__createTreeWindow(self.__treeview)
+
         # Custom the model to be able to manage the life cycle of the files
         treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeview, ownFiles=False)
         treeModel.sigH5pyObjectLoaded.connect(self.__h5FileLoaded)
@@ -83,7 +85,7 @@ class Viewer(qt.QMainWindow):
         treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
         treeModel2.setSourceModel(treeModel)
         self.__treeview.setModel(treeModel2)
-        rightPanel.addWidget(self.__treeview)
+        rightPanel.addWidget(self.__treeWindow)
 
         self.__customNxdata = CustomNxdataWidget(self)
         self.__customNxdata.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -134,6 +136,89 @@ class Viewer(qt.QMainWindow):
         self.createActions()
         self.createMenus()
         self.__context.restoreSettings()
+
+    def __createTreeWindow(self, treeView):
+        toolbar = qt.QToolBar(self)
+        toolbar.setIconSize(qt.QSize(16, 16))
+        toolbar.setStyleSheet("QToolBar { border: 0px }")
+
+        action = qt.QAction(toolbar)
+        action.setIcon(icons.getQIcon("tree-expand-all"))
+        action.setText("Expand all")
+        action.setToolTip("Expand all selected items")
+        action.triggered.connect(self.__expandAllSelected)
+        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_Plus))
+        toolbar.addAction(action)
+        treeView.addAction(action)
+        self.__expandAllAction = action
+
+        action = qt.QAction(toolbar)
+        action.setIcon(icons.getQIcon("tree-collapse-all"))
+        action.setText("Collapse all")
+        action.setToolTip("Collapse all selected items")
+        action.triggered.connect(self.__collapseAllSelected)
+        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_Minus))
+        toolbar.addAction(action)
+        treeView.addAction(action)
+        self.__collapseAllAction = action
+
+        widget = qt.QWidget()
+        layout = qt.QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(toolbar)
+        layout.addWidget(treeView)
+        return widget
+
+    def __expandAllSelected(self):
+        """Expand all selected items of the tree.
+
+        The depth is fixed to avoid infinite loop with recurssive links.
+        """
+        selection = self.__treeview.selectionModel()
+        indexes = selection.selectedIndexes()
+        model = self.__treeview.model()
+        while len(indexes) > 0:
+            index = indexes.pop(0)
+            if isinstance(index, tuple):
+                index, depth = index
+            else:
+                depth = 0
+
+            if depth > 10:
+                # Avoid infinite loop with recursive links
+                break
+
+            if model.hasChildren(index):
+                self.__treeview.setExpanded(index, True)
+                for row in range(model.rowCount(index)):
+                    childIndex = model.index(row, 0, index)
+                    indexes.append((childIndex, depth + 1))
+
+    def __collapseAllSelected(self):
+        """Collapse all selected items of the tree.
+
+        The depth is fixed to avoid infinite loop with recurssive links.
+        """
+        selection = self.__treeview.selectionModel()
+        indexes = selection.selectedIndexes()
+        model = self.__treeview.model()
+        while len(indexes) > 0:
+            index = indexes.pop(0)
+            if isinstance(index, tuple):
+                index, depth = index
+            else:
+                depth = 0
+
+            if depth > 10:
+                # Avoid infinite loop with recursive links
+                break
+
+            if model.hasChildren(index):
+                self.__treeview.setExpanded(index, False)
+                for row in range(model.rowCount(index)):
+                    childIndex = model.index(row, 0, index)
+                    indexes.append((childIndex, depth + 1))
 
     def __createCustomNxdataWindow(self, customNxdataWidget):
         toolbar = CustomNxDataToolBar(self)
