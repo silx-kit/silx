@@ -39,15 +39,13 @@ On this example we will:
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "27/04/2018"
+__date__ = "05/06/2018"
 
 
 from silx.gui import qt
 from silx.gui.plot import Plot1D
 from silx.gui.plot.stats.stats import StatBase
-from silx.gui.plot.stats.statshandler import StatFormatter
 import numpy
-import numpy.random
 
 
 class Integral(StatBase):
