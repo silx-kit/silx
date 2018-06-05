@@ -66,6 +66,7 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         self.__nPoints = 1024
         self.__profile = None
+        self.__profileTitle = ''
 
         assert isinstance(plot, PlotWidget)
         self._plotRef = weakref.ref(
@@ -113,7 +114,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         plot.getYAxis().sigScaleChanged.connect(self.__plotAxisScaleChanged)
 
     def getProfileData(self, copy=True):
-        """Returns the displayed profile data as (x, y) or None
+        """Returns the profile data as (x, y) or None
 
         :rtype: Union[List[numpy.ndarray],None]
         """
@@ -122,6 +123,13 @@ class _BaseProfileToolBar(qt.QToolBar):
         else:
             return (numpy.array(self.__profile[0], copy=copy),
                     numpy.array(self.__profile[1], copy=copy))
+
+    def getProfileTitle(self):
+        """Returns the profile title
+
+        :rtype: str
+        """
+        return self.__profileTitle
 
     # Handle plot reference
 
@@ -375,8 +383,8 @@ class _BaseProfileToolBar(qt.QToolBar):
             x0, y0, x1, y1 = x1, y1, x0, y0
 
         # Update plot
-        title = self.computeProfileTitle(x0, y0, x1, y1)
-        profilePlot.setGraphTitle(title)
+        self.__profileTitle = self.computeProfileTitle(x0, y0, x1, y1)
+        profilePlot.setGraphTitle(self.__profileTitle)
 
         nPoints = self.getNPoints()
 
