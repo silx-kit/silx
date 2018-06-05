@@ -41,6 +41,7 @@ import numpy
 from . import items
 from . import PlotWidget
 from . import tools
+from .tools.ScatterProfile import ScatterProfileToolBar
 from .ColorBar import ColorBarWidget
 from .ScatterMaskToolsWidget import ScatterMaskToolsWidget
 
@@ -128,11 +129,14 @@ class ScatterView(qt.QMainWindow):
             parent=self, plot=plot)
         self._scatterToolBar.addAction(self._maskAction)
 
+        self._profileToolBar = ScatterProfileToolBar(parent=self, plot=plot)
+
         self._outputToolBar = tools.OutputToolBar(parent=self, plot=plot)
 
         # Activate shortcuts in PlotWindow widget:
         for toolbar in (self._interactiveModeToolBar,
                         self._scatterToolBar,
+                        self._profileToolBar,
                         self._outputToolBar):
             self.addToolBar(toolbar)
             for action in toolbar.actions():
