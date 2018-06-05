@@ -471,7 +471,6 @@ class RegionOfInterestManager(qt.QObject):
         assert isinstance(parent, PlotWidget)
         super(RegionOfInterestManager, self).__init__(parent)
         self._rois = []
-        self._maxROI = None
 
         self._shapeKind = None
         self._color = rgba('red')
@@ -578,11 +577,6 @@ class RegionOfInterestManager(qt.QObject):
                                          dtype=numpy.float64)
 
         if points is not None:
-            if self.isMaxRegionOfInterests():
-                # When reaching max number of ROIs, redo last one
-                rois = self.getRegionOfInterests()
-                if len(rois) > 0:
-                    self.removeRegionOfInterest(rois[-1])
             self.createRegionOfInterest(kind=kind, points=points)
 
     # RegionOfInterest API
@@ -627,38 +621,6 @@ class RegionOfInterestManager(qt.QObject):
         """Handle ROI object points changed"""
         self.sigRegionOfInterestChanged.emit(self.getRegionOfInterests())
 
-    def getMaxRegionOfInterests(self):
-        """Returns the maximum number of ROIs or None if no limit.
-
-        :rtype: Union[int,None]
-        """
-        return self._maxROI
-
-    def setMaxRegionOfInterests(self, max_):
-        """Set the maximum number of ROIs.
-
-        :param Union[int,None] max_: The max limit or None for no limit.
-        :raise ValueError: If there is more ROIs than max value
-        """
-        if max_ is not None:
-            max_ = int(max_)
-            if max_ <= 0:
-                raise ValueError('Max limit must be strictly positive')
-
-            if len(self.getRegionOfInterests()) > max_:
-                raise ValueError(
-                    'Cannot set max limit: Already too many ROIs')
-
-        self._maxROI = max_
-
-    def isMaxRegionOfInterests(self):
-        """Returns True if the maximum number of ROIs is reached.
-
-        :rtype: bool
-        """
-        max_ = self.getMaxRegionOfInterests()
-        return max_ is not None and len(self.getRegionOfInterests()) >= max_
-
     def createRegionOfInterest(self, kind, points, label='', index=None):
         """Create a new ROI and add it to list of ROIs.
 
@@ -688,10 +650,6 @@ class RegionOfInterestManager(qt.QObject):
         :raise RuntimeError: When ROI cannot be added because the maximum
            number of ROIs has been reached.
         """
-        if self.isMaxRegionOfInterests():
-            raise RuntimeError(
-                'Cannot add ROI: Maximum number of ROIs reached')
-
         plot = self.parent()
         if plot is None:
             raise RuntimeError(
@@ -883,6 +841,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
     def __init__(self, parent):
         super(InteractiveRegionOfInterestManager, self).__init__(parent)
+        self._maxROI = None
         self.__timeoutEndTime = None
         self.__message = ''
         self.__validationMode = self.ValidationMode.ENTER
@@ -892,6 +851,40 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         self.sigRegionOfInterestAboutToBeRemoved.connect(self.__aboutToBeRemoved)
         self.sigInteractionModeStarted.connect(self.__started)
         self.sigInteractionModeFinished.connect(self.__finished)
+
+    # Max ROI
+
+    def getMaxRegionOfInterests(self):
+        """Returns the maximum number of ROIs or None if no limit.
+
+        :rtype: Union[int,None]
+        """
+        return self._maxROI
+
+    def setMaxRegionOfInterests(self, max_):
+        """Set the maximum number of ROIs.
+
+        :param Union[int,None] max_: The max limit or None for no limit.
+        :raise ValueError: If there is more ROIs than max value
+        """
+        if max_ is not None:
+            max_ = int(max_)
+            if max_ <= 0:
+                raise ValueError('Max limit must be strictly positive')
+
+            if len(self.getRegionOfInterests()) > max_:
+                raise ValueError(
+                    'Cannot set max limit: Already too many ROIs')
+
+        self._maxROI = max_
+
+    def isMaxRegionOfInterests(self):
+        """Returns True if the maximum number of ROIs is reached.
+
+        :rtype: bool
+        """
+        max_ = self.getMaxRegionOfInterests()
+        return max_ is not None and len(self.getRegionOfInterests()) >= max_
 
     # Validation mode
 
@@ -950,9 +943,10 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
         if event.type() == qt.QEvent.KeyPress:
             key = event.key()
-            if (key == qt.Qt.Key_Return and
-                    self.getValidationMode() in (self.ValidationMode.ENTER,
-                                                 self.ValidationMode.AUTO_ENTER)):
+            if (key in (qt.Qt.Key_Return, qt.Qt.Key_Enter) and
+                    self.getValidationMode() in (
+                        self.ValidationMode.ENTER,
+                        self.ValidationMode.AUTO_ENTER)):
                 # Stop on return key pressed
                 self.quit()
                 return True  # Stop further handling of this keys
@@ -988,6 +982,12 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
     def __added(self, *args, **kwargs):
         """Handle new ROI added"""
+        max_ = self.getMaxRegionOfInterests()
+        if max_ is not None:
+            # When reaching max number of ROIs, redo last one
+            while len(self.getRegionOfInterests()) > max_:
+                self.removeRegionOfInterest(self.getRegionOfInterests()[-2])
+
         self.__updateMessage()
         if (self.isMaxRegionOfInterests() and
                 self.getValidationMode() in (self.ValidationMode.AUTO,
