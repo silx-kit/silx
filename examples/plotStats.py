@@ -106,8 +106,8 @@ def main():
         (COM(), StatFormatter(formatter='{0:.2f}')),
     ]
 
-    plot.getStatsDockWidget().setStats(stats)
-    plot.getStatsDockWidget().setVisible(True)
+    plot.getStatsWidget().setStats(stats)
+    plot.getStatsWidget().parent().setVisible(True)
 
     plot.show()
     app.exec_()
