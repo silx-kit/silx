@@ -48,10 +48,11 @@ _logger = logging.getLogger(__name__)
 
 
 # TODO log scale?
-# TODO optimisation: cache last interpolator, do not update profile if no change
+# TODO optimisation: do not update profile if no change
 # TODO interruptible interpolator: subprocess, cooperative code?
 # TODO waiting dialog?
 # TODO move profile window creation outside and add a sigProfileChanged(title, x, y)
+# TODO get profile data
 
 class _BaseProfileToolBar(qt.QToolBar):
     """Base class for QToolBar plot profiling tools
@@ -197,11 +198,14 @@ class _BaseProfileToolBar(qt.QToolBar):
         plot = self.getPlotWidget()
         if plot is None:
             return
+
         xScale = plot.getXAxis().getScale()
         yScale = plot.getYAxis().getScale()
 
         if xScale == items.Axis.LINEAR and yScale == items.Axis.LINEAR:
             self.setEnabled(True)
+            self.updateProfile()
+
         else:
             self.setEnabled(False)
             self.clearProfile()
@@ -341,12 +345,11 @@ class _BaseProfileToolBar(qt.QToolBar):
         elif kind in ('hline', 'vline'):
             plot = self.getPlotWidget()
             if plot is None:
-                return None
+                return
 
             if kind == 'hline':
                 x0, x1 = plot.getXAxis().getLimits()
                 y0 = y1 = roi.getControlPoints()[0, 1]
-
 
             elif kind == 'vline':
                 x0 = x1 = roi.getControlPoints()[0, 0]
@@ -354,7 +357,7 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         else:
             _logger.error('Unsupported kind: {}'.format(kind))
-            return None
+            return
 
         if x1 < x0 or (x1 == x0 and y1 < y0):
             # Invert points
