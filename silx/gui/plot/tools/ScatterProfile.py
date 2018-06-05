@@ -356,15 +356,15 @@ class _BaseProfileToolBar(qt.QToolBar):
             _logger.error('Unsupported kind: {}'.format(kind))
             return None
 
+        if x1 < x0 or (x1 == x0 and y1 < y0):
+            # Invert points
+            x0, y0, x1, y1 = x1, y1, x0, y0
+
         # Update plot
         title = self.computeProfileTitle(x0, y0, x1, y1)
         profilePlot.setGraphTitle(title)
 
         nPoints = self.getNPoints()
-
-        if x1 < x0 or (x1 == x0 and y1 < y0):
-            # Invert points
-            x0, y0, x1, y1 = x1, y1, x0, y0
 
         profilePoints = numpy.transpose((
             numpy.linspace(x0, x1, nPoints, endpoint=True),
