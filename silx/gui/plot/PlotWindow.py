@@ -52,7 +52,7 @@ from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
-from .StatsWidget import StatsDockWidget
+from .StatsWidget import BasicStatsWidget
 from .ColorBar import ColorBarWidget
 try:
     from ..console import IPythonDockWidget
@@ -118,7 +118,7 @@ class PlotWindow(PlotWidget):
         self._curvesROIDockWidget = None
         self._maskToolsDockWidget = None
         self._consoleDockWidget = None
-        self._statsDockWidget = None
+        self._statsWidget = None
 
         # Create color bar, hidden by default for backward compatibility
         self._colorbar = ColorBarWidget(parent=self, plot=self)
@@ -490,13 +490,17 @@ class PlotWindow(PlotWidget):
             self.addTabbedDockWidget(self._maskToolsDockWidget)
         return self._maskToolsDockWidget
 
-    def getStatsDockWidget(self):
+    def getStatsWidget(self):
         """DockWidget with Legend panel"""
-        if self._statsDockWidget is None:
-            self._statsDockWidget = StatsDockWidget(plot=self)
-            self._statsDockWidget.hide()
-            self.addTabbedDockWidget(self._statsDockWidget)
-        return self._statsDockWidget
+        if self._statsWidget is None:
+
+            dockWidget = qt.QDockWidget(parent=self)
+            dockWidget.layout().setContentsMargins(0, 0, 0, 0)
+            self._statsWidget = BasicStatsWidget(parent=self, plot=self)
+            dockWidget.setWidget(self._statsWidget)
+            dockWidget.hide()
+            self.addTabbedDockWidget(dockWidget)
+        return self._statsWidget
 
     # getters for actions
     @property

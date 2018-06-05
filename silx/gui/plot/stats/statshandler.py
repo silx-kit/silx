@@ -95,7 +95,10 @@ class StatsHandler(object):
     def add(self, stat, formatter=None):
         assert isinstance(stat, statsmdl.StatBase)
         self.stats.add(stat)
-        self.formatters[stat.name] = formatter
+        _formatter = formatter
+        if type(_formatter) is str:
+            _formatter = StatFormatter(formatter=_formatter)
+        self.formatters[stat.name] = _formatter
 
     def format(self, name, val):
         """
@@ -163,7 +166,7 @@ class _StatHelper(object):
                              'argument can be associated with the '
                              'BaseStat (the `StatFormatter`')
         if len(arg) is 2:
-            assert isinstance(arg[1], (StatFormatter, type(None)))
+            assert isinstance(arg[1], (StatFormatter, type(None), str))
             self.statFormatter = arg[1]
 
     def createStatInstanceAndFormatter(self, arg):

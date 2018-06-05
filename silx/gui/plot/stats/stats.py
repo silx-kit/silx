@@ -55,7 +55,6 @@ class Stats(OrderedDict):
     """
     def __init__(self, statslist=None):
         OrderedDict.__init__(self)
-        self.stats = {}
         _statslist = statslist if not None else []
         if statslist is not None:
             for stat in _statslist:
@@ -75,18 +74,18 @@ class Stats(OrderedDict):
         """
         res = {}
         if isinstance(item, CurveItem):
-            context = CurveContext(item, plot, onlimits)
+            context = _CurveContext(item, plot, onlimits)
         elif isinstance(item, ImageItem):
-            context = ImageContext(item, plot, onlimits)
+            context = _ImageContext(item, plot, onlimits)
         elif isinstance(item, ScatterItem):
-            context = ScatterContext(item, plot, onlimits)
+            context = _ScatterContext(item, plot, onlimits)
         elif isinstance(item, HistogramItem):
-            context = HistogramContext(item, plot, onlimits)
+            context = _HistogramContext(item, plot, onlimits)
         else:
             raise ValueError('Item type not managed')
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
-                logger.warning('kind %s not managed by statistic %s'
+                logger.debug('kind %s not managed by statistic %s'
                                '' % (context.kind, stat.name))
                 res[statName] = None
             else:
@@ -101,7 +100,7 @@ class Stats(OrderedDict):
         self.__setitem__(key=stat.name, value=stat)
 
 
-class StatsContext(object):
+class _StatsContext(object):
     """
     The context is designed to be a simple buffer and avoid repetition of
     calculations that can appear during stats evaluation.
@@ -132,7 +131,7 @@ class StatsContext(object):
         raise NotImplementedError("Base class")
 
 
-class CurveContext(StatsContext):
+class _CurveContext(_StatsContext):
     """
     StatsContext for :class:`Curve`
 
@@ -142,8 +141,8 @@ class CurveContext(StatsContext):
                           visible data.
     """
     def __init__(self, item, plot, onlimits):
-        StatsContext.__init__(self, kind='curve', item=item,
-                              plot=plot, onlimits=onlimits)
+        _StatsContext.__init__(self, kind='curve', item=item,
+                               plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
         xData, yData = item.getData(copy=True)[0:2]
@@ -163,7 +162,7 @@ class CurveContext(StatsContext):
         self.values = yData
 
 
-class HistogramContext(StatsContext):
+class _HistogramContext(_StatsContext):
     """
     StatsContext for :class:`Curve`
 
@@ -173,8 +172,8 @@ class HistogramContext(StatsContext):
                           visible data.
     """
     def __init__(self, item, plot, onlimits):
-        StatsContext.__init__(self, kind='histogram', item=item,
-                              plot=plot, onlimits=onlimits)
+        _StatsContext.__init__(self, kind='histogram', item=item,
+                               plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
         xData, edges = item.getData(copy=True)[0:2]
@@ -194,7 +193,7 @@ class HistogramContext(StatsContext):
         self.values = yData
 
 
-class ScatterContext(StatsContext):
+class _ScatterContext(_StatsContext):
     """
     StatsContext for :class:`Scatter`
 
@@ -204,8 +203,8 @@ class ScatterContext(StatsContext):
                           visible data.
     """
     def __init__(self, item, plot, onlimits):
-        StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
-                              onlimits=onlimits)
+        _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
+                               onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
         xData, yData, valueData, xerror, yerror = item.getData(copy=True)
@@ -229,7 +228,7 @@ class ScatterContext(StatsContext):
         self.values = valueData
 
 
-class ImageContext(StatsContext):
+class _ImageContext(_StatsContext):
     """
     StatsContext for :class:`ImageBase`
 
@@ -239,8 +238,8 @@ class ImageContext(StatsContext):
                           visible data.
     """
     def __init__(self, item, plot, onlimits):
-        StatsContext.__init__(self, kind='image', item=item,
-                              plot=plot, onlimits=onlimits)
+        _StatsContext.__init__(self, kind='image', item=item,
+                               plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
         minX, maxX = plot.getXAxis().getLimits()
@@ -308,8 +307,7 @@ class Stat(StatBase):
                         image...)
     """
     def __init__(self, name, fct, kinds=BASIC_COMPATIBLE_KINDS):
-        self.name = name
-        self.compatibleKinds = kinds
+        StatBase.__init__(self, name, kinds)
         self._fct = fct
 
     def calculate(self, context):

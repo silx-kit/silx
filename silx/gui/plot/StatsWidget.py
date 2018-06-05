@@ -509,17 +509,3 @@ class StatsTable(TableWidget):
         if self._statsOnVisibleData is True:
             if 'event' in event and event['event'] == 'limitsChanged':
                 self._updateCurrentStats()
-
-
-class StatsDockWidget(qt.QDockWidget):
-    """
-    """
-    def __init__(self, parent=None, plot=None):
-        qt.QDockWidget.__init__(self, parent)
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        self._statsWidget = BasicStatsWidget(parent=self, plot=plot)
-        self.setWidget(self._statsWidget)
-
-        self.setStats = self._statsWidget.setStats
-        self.setDisplayOnlyActiveItem = self._statsWidget.setDisplayOnlyActiveItem
-        self.setStatsOnVisibleData = self._statsWidget.setStatsOnVisibleData
