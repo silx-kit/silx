@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,19 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""
+Duplicated from scipy.spatial for silx internal use only.
+
+See `SciPy <https://www.scipy.org/>`_
+"""
+
+from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "07/11/2017"
 
-import os.path
-import glob
 
-from numpy.distutils.misc_util import Configuration, get_numpy_include_dirs
+from .qhull import Delaunay
 
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('scipy_spatial', parent_package, top_path)
-
-    qhull_src = list(glob.glob(os.path.join(os.path.dirname(__file__), 'qhull',
-                                    'src', '*.c')))
-    config.add_extension('qhull',
-                         sources=['qhull.pyx'] + qhull_src,
-                         include_dirs=[get_numpy_include_dirs()])
-    config.add_data_files('qhull/COPYING.txt')
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-    setup(configuration=configuration)
+__all__ = ['Delaunay']

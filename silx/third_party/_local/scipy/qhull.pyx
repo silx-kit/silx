@@ -16,8 +16,8 @@ import threading
 import numpy as np
 cimport numpy as np
 cimport cython
-from silx.third_party._local.scipy_spatial cimport qhull
-from silx.third_party._local.scipy_spatial cimport setlist
+from silx.third_party._local.scipy cimport qhull
+from silx.third_party._local.scipy cimport setlist
 from libc cimport stdlib
 
 from numpy.compat import asbytes
