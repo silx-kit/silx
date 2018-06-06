@@ -47,7 +47,7 @@ from .roi import RegionOfInterestManager
 _logger = logging.getLogger(__name__)
 
 
-# TODO log scale?
+# TODO support log scale
 # TODO move profile window creation outside and add a sigProfileChanged(title, x, y)
 
 class _BaseProfileToolBar(qt.QToolBar):
@@ -418,6 +418,10 @@ class _BaseProfileToolBar(qt.QToolBar):
         roiManager = self._getRoiManager()
         if roiManager is not None:
             roiManager.clearRegionOfInterests()
+
+        self.__profile = None
+        self.__profileTitle = ''
+        self.sigProfileChanged.emit()
 
 
 class _InterpolatorInitThread(qt.QThread):
