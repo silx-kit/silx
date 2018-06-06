@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "06/06/2018"
 
 
 import unittest
@@ -40,8 +40,8 @@ if not test_options.WITH_QT_TEST:
     TestCaseQt = unittest.TestCase
 else:
     from silx.gui.test.utils import TestCaseQt
-    from .. import view
-    from ..view import Viewer
+    from ... import view
+    from ...view import Viewer
 
 
 class QApplicationMock(object):

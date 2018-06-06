@@ -28,12 +28,10 @@ __date__ = "06/06/2018"
 
 import unittest
 
-from ..view import test as test_view
-from . import test_convert
+from . import test_view
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_view.suite())
-    test_suite.addTest(test_convert.suite())
     return test_suite
