@@ -30,100 +30,14 @@ __date__ = "06/06/2018"
 
 
 import unittest
-import sys
 from silx.test.utils import test_options
+from silx.app.view.Viewer import Viewer
 
 
 if not test_options.WITH_QT_TEST:
-    view = None
-    Viewer = None
     TestCaseQt = unittest.TestCase
 else:
     from silx.gui.test.utils import TestCaseQt
-    from ... import view
-    from ...view import Viewer
-
-
-class QApplicationMock(object):
-
-    def __init__(self, args):
-        pass
-
-    def exec_(self):
-        return 0
-
-    def deleteLater(self):
-        pass
-
-
-class ViewerMock(object):
-
-    def __init__(self, parent=None, settings=None):
-        super(ViewerMock, self).__init__()
-        self.__class__._instance = self
-        self.appendFileCalls = []
-
-    def appendFile(self, filename):
-        self.appendFileCalls.append(filename)
-
-    def setAttribute(self, attr, value):
-        pass
-
-    def resize(self, size):
-        pass
-
-    def show(self):
-        pass
-
-
-@unittest.skipUnless(test_options.WITH_QT_TEST, test_options.WITH_QT_TEST_REASON)
-class TestLauncher(unittest.TestCase):
-    """Test command line parsing"""
-
-    @classmethod
-    def setUpClass(cls):
-        super(TestLauncher, cls).setUpClass()
-        cls._Viewer = view.Viewer
-        Viewer.Viewer = ViewerMock
-        cls._QApplication = view.qt.QApplication
-        view.qt.QApplication = QApplicationMock
-
-    @classmethod
-    def tearDownClass(cls):
-        Viewer.Viewer = cls._Viewer
-        view.qt.QApplication = cls._QApplication
-        cls._Viewer = None
-        super(TestLauncher, cls).tearDownClass()
-
-    def testHelp(self):
-        # option -h must cause a raise SystemExit or a return 0
-        try:
-            result = view.main(["view", "--help"])
-        except SystemExit as e:
-            result = e.args[0]
-        self.assertEqual(result, 0)
-
-    def testWrongOption(self):
-        try:
-            result = view.main(["view", "--foo"])
-        except SystemExit as e:
-            result = e.args[0]
-        self.assertNotEqual(result, 0)
-
-    def testWrongFile(self):
-        try:
-            result = view.main(["view", "__file.not.found__"])
-        except SystemExit as e:
-            result = e.args[0]
-        self.assertEqual(result, 0)
-
-    def testFile(self):
-        # sys.executable is an existing readable file
-        result = view.main(["view", sys.executable])
-        self.assertEqual(result, 0)
-        viewer = ViewerMock._instance
-        self.assertEqual(viewer.appendFileCalls, [sys.executable])
-        ViewerMock._instance = None
 
 
 class TestViewer(TestCaseQt):
@@ -131,8 +45,7 @@ class TestViewer(TestCaseQt):
 
     @unittest.skipUnless(test_options.WITH_QT_TEST, test_options.WITH_QT_TEST_REASON)
     def testConstruct(self):
-        if view is not None:
-            widget = Viewer.Viewer()
+        widget = Viewer()
         self.qWaitForWindowExposed(widget)
 
 
@@ -140,7 +53,6 @@ def suite():
     test_suite = unittest.TestSuite()
     loader = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loader(TestViewer))
-    test_suite.addTest(loader(TestLauncher))
     return test_suite
 
 

@@ -28,10 +28,12 @@ __date__ = "06/06/2018"
 
 import unittest
 
+from . import test_launcher
 from . import test_view
 
 
 def suite():
     test_suite = unittest.TestSuite()
+    test_suite.addTest(test_launcher.suite())
     test_suite.addTest(test_view.suite())
     return test_suite
