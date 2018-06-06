@@ -112,7 +112,10 @@ class DataPanel(qt.QWidget):
 
     def setCustomDataItem(self, item):
         self.__customNxdataItem = item
-        data = item.getVirtualGroup()
+        if item is not None:
+            data = item.getVirtualGroup()
+        else:
+            data = None
         self.__dataViewer.setData(data)
         self.__dataTitle.setVisible(item is not None)
         if item is not None:
