@@ -30,20 +30,14 @@ __date__ = "06/06/2018"
 
 
 import unittest
-from silx.test.utils import test_options
 from silx.app.view.Viewer import Viewer
-
-
-if not test_options.WITH_QT_TEST:
-    TestCaseQt = unittest.TestCase
-else:
-    from silx.gui.test.utils import TestCaseQt
+from silx.app.view.About import About
+from silx.gui.test.utils import TestCaseQt
 
 
 class TestViewer(TestCaseQt):
     """Test for Viewer class"""
 
-    @unittest.skipUnless(test_options.WITH_QT_TEST, test_options.WITH_QT_TEST_REASON)
     def testConstruct(self):
         widget = Viewer()
         self.qWaitForWindowExposed(widget)
