@@ -26,8 +26,8 @@ from libc.math cimport fabs, sqrt
 
 import numpy as np
 
-import scipy.spatial.qhull as qhull
-cimport scipy.spatial.qhull as qhull
+import silx.third_party._local.scipy.qhull as qhull
+cimport silx.third_party._local.scipy.qhull as qhull
 
 import warnings
 

@@ -43,6 +43,8 @@ def configuration(parent_package='', top_path=None):
                          include_dirs=[get_numpy_include_dirs()])
     config.add_data_files('qhull/COPYING.txt')
 
+    config.add_extension('interpnd', sources=['interpnd.pyx'])
+
     return config
 
 

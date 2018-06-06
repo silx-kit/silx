@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """
-Duplicated from scipy.spatial for silx internal use only.
+Duplicate features from scipy for silx internal use only.
 
 See `SciPy <https://www.scipy.org/>`_
 """
@@ -35,6 +35,7 @@ __license__ = "MIT"
 __date__ = "07/11/2017"
 
 
-from .qhull import Delaunay
+from .qhull import Delaunay  # noqa
+from .interpnd import LinearNDInterpolator  # noqa
 
-__all__ = ['Delaunay']
+__all__ = ['Delaunay', 'LinearNDInterpolator']
