@@ -30,6 +30,8 @@ __date__ = "06/06/2018"
 
 
 import unittest
+import weakref
+
 from silx.app.view.Viewer import Viewer
 from silx.app.view.About import About
 from silx.gui.test.utils import TestCaseQt
@@ -41,6 +43,12 @@ class TestViewer(TestCaseQt):
     def testConstruct(self):
         widget = Viewer()
         self.qWaitForWindowExposed(widget)
+
+    def testDestroy(self):
+        widget = Viewer()
+        ref = weakref.ref(widget)
+        widget = None
+        self.qWaitForDestroy(ref)
 
 
 def suite():
