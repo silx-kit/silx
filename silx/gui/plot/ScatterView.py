@@ -234,6 +234,13 @@ class ScatterView(qt.QMainWindow):
         """
         return self._scatterToolBar
 
+    def getScatterProfileToolBar(self):
+        """Returns QToolBar providing scatter profile tools.
+
+        :rtype: silx.gui.plot.tool.ScatterProfile.ScatterProfileToolBar
+        """
+        return self._profileToolBar
+
     def getOutputToolBar(self):
         """Returns QToolBar containing save, copy and print actions
 
