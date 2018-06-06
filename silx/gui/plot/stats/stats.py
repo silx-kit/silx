@@ -27,7 +27,7 @@
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "09/04/2018"
+__date__ = "06/06/2018"
 
 
 import numpy
@@ -86,7 +86,7 @@ class Stats(OrderedDict):
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
                 logger.debug('kind %s not managed by statistic %s'
-                               '' % (context.kind, stat.name))
+                             % (context.kind, stat.name))
                 res[statName] = None
             else:
                 res[statName] = stat.calculate(context)
@@ -281,9 +281,10 @@ class StatBase(object):
                             the statistic apply.
     :rtype: tuple or list
     """
-    def __init__(self, name, compatibleKinds=BASIC_COMPATIBLE_KINDS):
+    def __init__(self, name, compatibleKinds=BASIC_COMPATIBLE_KINDS, description=None):
         self.name = name
         self.compatibleKinds = compatibleKinds
+        self.description = description
 
     def calculate(self, context):
         """
@@ -298,7 +299,7 @@ class StatBase(object):
 class Stat(StatBase):
     """
     Create a StatBase class based on a function pointer.
-    
+
     :param str name: name of the statistic. Used as id
     :param fct: function which should have as unique mandatory parameter the
                 data. Should be able to adapt to all `kinds` defined as
@@ -420,7 +421,7 @@ class StatCOM(StatBase):
     Compute data center of mass
     """
     def __init__(self):
-        StatBase.__init__(self, name='COM')
+        StatBase.__init__(self, name='COM', description='Center of mass')
 
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):

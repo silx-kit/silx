@@ -500,8 +500,8 @@ class Viewer(qt.QMainWindow):
         optionMenu.addAction(self._plotBackendSelection)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
 
-        windowMenu = self.menuBar().addMenu("&Windows")
-        windowMenu.addAction(self._displayCustomNxdataWindow)
+        viewMenu = self.menuBar().addMenu("&Views")
+        viewMenu.addAction(self._displayCustomNxdataWindow)
 
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)

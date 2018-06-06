@@ -23,19 +23,22 @@
 #
 # ###########################################################################*/
 """
+Module containing widgets displaying stats from items of a plot.
 """
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "07/03/2018"
+__date__ = "06/06/2018"
 
 
 import functools
 import logging
+import numpy
 from collections import OrderedDict
-from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
-import silx
+
+import silx.utils.weakref
 from silx.gui import qt
+from silx.gui import icons
 from silx.gui.plot.items.curve import Curve as CurveItem
 from silx.gui.plot.items.histogram import Histogram as HistogramItem
 from silx.gui.plot.items.image import ImageBase as ImageItem
@@ -43,9 +46,6 @@ from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from silx.gui.plot import stats as statsmdl
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
-from collections import OrderedDict
-import numpy
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -65,38 +65,68 @@ class StatsWidget(qt.QWidget):
 
     NUMBER_FORMAT = '{0:.3f}'
 
-    class OptionsWidget(qt.QWidget):
-
-        ITEM_SEL_OPTS = ('All items', 'Active item only')
-
-        ITEM_DATA_RANGE_OPTS = ('full data range', 'visible data range')
+    class OptionsWidget(qt.QToolBar):
 
         def __init__(self, parent=None):
-            qt.QWidget.__init__(self, parent)
-            self.setLayout(qt.QHBoxLayout())
-            spacer = qt.QWidget(parent=self)
-            spacer.setSizePolicy(qt.QSizePolicy.Expanding,
-                                 qt.QSizePolicy.Minimum)
-            self.layout().setContentsMargins(0, 0, 0, 0)
-            self.layout().addWidget(qt.QLabel('Stats opts:', parent=self))
-            self.layout().addWidget(spacer)
-            self.layout().addWidget(qt.QLabel('display', parent=self))
-            self.itemSelection = qt.QComboBox(parent=self)
-            for opt in self.ITEM_SEL_OPTS:
-                self.itemSelection.addItem(opt)
-            self.layout().addWidget(self.itemSelection)
-            self.layout().addWidget(qt.QLabel('compute stats on', parent=self))
-            self.dataRangeSelection = qt.QComboBox(parent=self)
-            for opt in self.ITEM_DATA_RANGE_OPTS:
-                self.dataRangeSelection.addItem(opt)
-            self.layout().addWidget(self.dataRangeSelection)
+            qt.QToolBar.__init__(self, parent)
+            self.setIconSize(qt.QSize(16, 16))
 
-            self.dataRangeSelection.setToolTip(
-                "When visible data is activated we will process to a simple "
-                "filtering of visible data by the user.\nThe filtering is a "
-                "simple data sub-sampling.\nNo interpolation is made to fit "
-                "data to boundaries."
-            )
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon("stats-active-items"))
+            action.setText("Active items only")
+            action.setToolTip("Display stats for active items only.")
+            action.setCheckable(True)
+            action.setChecked(True)
+            self.__displayActiveItems = action
+
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon("stats-whole-items"))
+            action.setText("All items")
+            action.setToolTip("Display stats for whole available items.")
+            action.setCheckable(True)
+            self.__displayWholeItems = action
+
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon("stats-visible-data"))
+            action.setText("Use the visible data range")
+            action.setToolTip("Use the visible data range.<br/>"
+                              "If activated the data is filtered to only use"
+                              "visible data of the plot."
+                              "The filtering is a data sub-sampling."
+                              "No interpolation is made to fit data to"
+                              "boundaries.")
+            action.setCheckable(True)
+            self.__useVisibleData = action
+
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon("stats-whole-data"))
+            action.setText("Use the full data range")
+            action.setToolTip("Use the full data range.")
+            action.setCheckable(True)
+            action.setChecked(True)
+            self.__useWholeData = action
+
+            self.addAction(self.__displayWholeItems)
+            self.addAction(self.__displayActiveItems)
+            self.addSeparator()
+            self.addAction(self.__useVisibleData)
+            self.addAction(self.__useWholeData)
+
+            self.itemSelection = qt.QActionGroup(self)
+            self.itemSelection.setExclusive(True)
+            self.itemSelection.addAction(self.__displayActiveItems)
+            self.itemSelection.addAction(self.__displayWholeItems)
+
+            self.dataRangeSelection = qt.QActionGroup(self)
+            self.dataRangeSelection.setExclusive(True)
+            self.dataRangeSelection.addAction(self.__useWholeData)
+            self.dataRangeSelection.addAction(self.__useVisibleData)
+
+        def isActiveItemMode(self):
+            return self.itemSelection.checkedAction() is self.__displayActiveItems
+
+        def isVisibleDataRangeMode(self):
+            return self.dataRangeSelection.checkedAction() is self.__useVisibleData
 
     def __init__(self, parent=None, plot=None, stats=None):
         qt.QWidget.__init__(self, parent)
@@ -111,21 +141,21 @@ class StatsWidget(qt.QWidget):
         self.layout().addWidget(self._statsTable)
         self.setPlot = self._statsTable.setPlot
 
-        self._options.itemSelection.currentIndexChanged[str].connect(
+        self._options.itemSelection.triggered.connect(
             self._optSelectionChanged)
-        self._options.dataRangeSelection.currentIndexChanged[str].connect(
+        self._options.dataRangeSelection.triggered.connect(
             self._optDataRangeChanged)
+        self._optSelectionChanged()
+        self._optDataRangeChanged()
 
         self.setDisplayOnlyActiveItem = self._statsTable.setDisplayOnlyActiveItem
         self.setStatsOnVisibleData = self._statsTable.setStatsOnVisibleData
 
-    def _optSelectionChanged(self, opt):
-        assert opt in self.OptionsWidget.ITEM_SEL_OPTS
-        self._statsTable.setDisplayOnlyActiveItem(opt == 'Active item only')
+    def _optSelectionChanged(self, action=None):
+        self._statsTable.setDisplayOnlyActiveItem(self._options.isActiveItemMode())
 
-    def _optDataRangeChanged(self, opt):
-        assert opt in self.OptionsWidget.ITEM_DATA_RANGE_OPTS
-        self._statsTable.setStatsOnVisibleData(opt == 'visible data range')
+    def _optDataRangeChanged(self, action=None):
+        self._statsTable.setStatsOnVisibleData(self._options.isVisibleDataRangeMode())
 
 
 class BasicStatsWidget(StatsWidget):
@@ -175,7 +205,7 @@ class StatsTable(TableWidget):
     COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
 
     def __init__(self, parent=None, plot=None):
-        qt.QTableWidget.__init__(self, parent)
+        TableWidget.__init__(self, parent)
         """Next freeID for the curve"""
         self.plot = None
         self._displayOnlyActItem = False
@@ -292,7 +322,7 @@ class StatsTable(TableWidget):
                 histograms = self.plot._getItems(kind='histogram',
                                                  just_legend=False,
                                                  withhidden=True)
-                [self._addItem(histogram) for scatter in histograms]
+                [self._addItem(histogram) for histogram in histograms]
                 self.plot.sigContentChanged.connect(self._plotContentChanged)
             self._dealWithPlotConnection(create=True)
 
@@ -328,7 +358,26 @@ class StatsTable(TableWidget):
         self._lgdAndKindToItems = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
+
+        # It have to called befor3e accessing to the header items
         self.setHorizontalHeaderLabels(self._columns)
+
+        if self._statsHandler is not None:
+            for columnId, name in enumerate(self._columns):
+                item = self.horizontalHeaderItem(columnId)
+                if name in self._statsHandler.stats:
+                    stat = self._statsHandler.stats[name]
+                    text = stat.name[0].upper() + stat.name[1:]
+                    if stat.description is not None:
+                        tooltip = stat.description
+                    else:
+                        tooltip = ""
+                else:
+                    text = name[0].upper() + name[1:]
+                    tooltip = ""
+                item.setToolTip(tooltip)
+                item.setText(text)
+
         if hasattr(self.horizontalHeader(), 'setSectionResizeMode'):  # Qt5
             self.horizontalHeader().setSectionResizeMode(qt.QHeaderView.ResizeToContents)
         else:  # Qt4
