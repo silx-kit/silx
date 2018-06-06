@@ -51,10 +51,30 @@ class TestViewer(TestCaseQt):
         self.qWaitForDestroy(ref)
 
 
+class TestAbout(TestCaseQt):
+    """Test for About box class"""
+
+    def testConstruct(self):
+        widget = About()
+        self.qWaitForWindowExposed(widget)
+
+    def testLicense(self):
+        widget = About()
+        widget.getHtmlLicense()
+        self.qWaitForWindowExposed(widget)
+
+    def testDestroy(self):
+        widget = About()
+        ref = weakref.ref(widget)
+        widget = None
+        self.qWaitForDestroy(ref)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loader = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loader(TestViewer))
+    test_suite.addTest(loader(TestAbout))
     return test_suite
 
 
