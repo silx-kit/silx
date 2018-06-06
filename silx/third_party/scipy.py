@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,17 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Wrapper module for `scipy.spatial.Delaunay` class.
+"""Wrapper module for scipy features used in silx.
 
-Uses a local copy of `scipy.spatial.Delaunay` if available,
+Uses a local copy of `scipy.spatial.Delaunay` and
+`scipy.interpolate.LinearNDInterpolator` if available,
 else it loads it from `scipy`.
 
 It should be used like that:
 
 .. code-block::
 
-    from silx.third_party.scipy_spatial import Delaunay
+    from silx.third_party.scipy import Delaunay, LinearNDInterpolator
 
 """
 
@@ -42,10 +43,17 @@ __license__ = "MIT"
 __date__ = "07/11/2017"
 
 try:
+    # try to import silx local copy of LinearNDInterpolator
+    from ._local.scipy import LinearNDInterpolator  # noqa
+except ImportError:
+    # else import it from the python path
+    from scipy.interpolate import LinearNDInterpolator  # noqa
+
+try:
     # try to import silx local copy of Delaunay
-    from ._local.scipy_spatial import Delaunay  # noqa
+    from ._local.scipy import Delaunay  # noqa
 except ImportError:
     # else import it from the python path
     from scipy.spatial import Delaunay  # noqa
 
-__all__ = ['Delaunay']
+__all__ = ['Delaunay', 'LinearNDInterpolator']

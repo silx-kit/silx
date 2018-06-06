@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -405,7 +405,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
                     # Enough points to try a Delaunay tesselation
 
                     # Lazy loading of Delaunay
-                    from silx.third_party.scipy_spatial import Delaunay as _Delaunay
+                    from silx.third_party.scipy import Delaunay as _Delaunay
 
                     try:
                         tri = _Delaunay(coordinates)
