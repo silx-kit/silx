@@ -205,7 +205,7 @@ class StatsTable(TableWidget):
     COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
 
     def __init__(self, parent=None, plot=None):
-        qt.QTableWidget.__init__(self, parent)
+        TableWidget.__init__(self, parent)
         """Next freeID for the curve"""
         self.plot = None
         self._displayOnlyActItem = False
