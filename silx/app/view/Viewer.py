@@ -175,6 +175,8 @@ class Viewer(qt.QMainWindow):
 
         The depth is fixed to avoid infinite loop with recurssive links.
         """
+        qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+
         selection = self.__treeview.selectionModel()
         indexes = selection.selectedIndexes()
         model = self.__treeview.model()
@@ -194,6 +196,7 @@ class Viewer(qt.QMainWindow):
                 for row in range(model.rowCount(index)):
                     childIndex = model.index(row, 0, index)
                     indexes.append((childIndex, depth + 1))
+        qt.QApplication.restoreOverrideCursor()
 
     def __collapseAllSelected(self):
         """Collapse all selected items of the tree.
