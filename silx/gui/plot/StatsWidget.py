@@ -28,7 +28,7 @@ Module containing widgets displaying stats from items of a plot.
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "05/06/2018"
+__date__ = "06/06/2018"
 
 
 import functools
@@ -38,6 +38,7 @@ from collections import OrderedDict
 
 import silx.utils.weakref
 from silx.gui import qt
+from silx.gui import icons
 from silx.gui.plot.items.curve import Curve as CurveItem
 from silx.gui.plot.items.histogram import Histogram as HistogramItem
 from silx.gui.plot.items.image import ImageBase as ImageItem
@@ -66,41 +67,66 @@ class StatsWidget(qt.QWidget):
 
     class OptionsWidget(qt.QToolBar):
 
-        ITEM_SEL_OPTS = ('All items', 'Active item only')
-
-        ITEM_DATA_RANGE_OPTS = ('Use the full data range', 'Use the visible data range')
-
         def __init__(self, parent=None):
             qt.QToolBar.__init__(self, parent)
+            self.setIconSize(qt.QSize(16, 16))
 
-            self.itemSelection = qt.QComboBox(parent=self)
-            for opt in self.ITEM_SEL_OPTS:
-                self.itemSelection.addItem(opt)
-            action = qt.QWidgetAction(self)
-            action.setDefaultWidget(self.itemSelection)
-            self.addAction(action)
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon("stats-active-items"))
+            action.setText("Active items only")
+            action.setToolTip("Display stats for active items only.")
+            action.setCheckable(True)
+            action.setChecked(True)
+            self.__displayActiveItems = action
 
-            self.dataRangeSelection = qt.QComboBox(parent=self)
-            for opt in self.ITEM_DATA_RANGE_OPTS:
-                self.dataRangeSelection.addItem(opt)
-            action = qt.QWidgetAction(self)
-            action.setDefaultWidget(self.dataRangeSelection)
-            self.addAction(action)
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon("stats-whole-items"))
+            action.setText("All items")
+            action.setToolTip("Display stats for whole available items.")
+            action.setCheckable(True)
+            self.__displayWholeItems = action
 
-            self.dataRangeSelection.setToolTip(
-                "When visible data is activated we will process to a simple "
-                "filtering of visible data by the user.\nThe filtering is a "
-                "simple data sub-sampling.\nNo interpolation is made to fit "
-                "data to boundaries."
-            )
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon("stats-visible-data"))
+            action.setText("Use the visible data range")
+            action.setToolTip("Use the visible data range.<br/>"
+                              "If activated the data is filtered to only use"
+                              "visible data of the plot."
+                              "The filtering is a data sub-sampling."
+                              "No interpolation is made to fit data to"
+                              "boundaries.")
+            action.setCheckable(True)
+            self.__useVisibleData = action
+
+            action = qt.QAction(self)
+            action.setIcon(icons.getQIcon("stats-whole-data"))
+            action.setText("Use the full data range")
+            action.setToolTip("Use the full data range.")
+            action.setCheckable(True)
+            action.setChecked(True)
+            self.__useWholeData = action
+
+            self.addAction(self.__displayWholeItems)
+            self.addAction(self.__displayActiveItems)
+            self.addSeparator()
+            self.addAction(self.__useVisibleData)
+            self.addAction(self.__useWholeData)
+
+            self.itemSelection = qt.QActionGroup(self)
+            self.itemSelection.setExclusive(True)
+            self.itemSelection.addAction(self.__displayActiveItems)
+            self.itemSelection.addAction(self.__displayWholeItems)
+
+            self.dataRangeSelection = qt.QActionGroup(self)
+            self.dataRangeSelection.setExclusive(True)
+            self.dataRangeSelection.addAction(self.__useWholeData)
+            self.dataRangeSelection.addAction(self.__useVisibleData)
 
         def isActiveItemMode(self):
-            opt = self.itemSelection.currentText()
-            return opt == self.ITEM_SEL_OPTS[-1]
+            return self.itemSelection.checkedAction() is self.__displayActiveItems
 
         def isVisibleDataRangeMode(self):
-            opt = self.dataRangeSelection.currentText()
-            return opt == self.ITEM_DATA_RANGE_OPTS[-1]
+            return self.dataRangeSelection.checkedAction() is self.__useVisibleData
 
     def __init__(self, parent=None, plot=None, stats=None):
         qt.QWidget.__init__(self, parent)
@@ -115,19 +141,20 @@ class StatsWidget(qt.QWidget):
         self.layout().addWidget(self._statsTable)
         self.setPlot = self._statsTable.setPlot
 
-        self._options.itemSelection.currentIndexChanged[str].connect(
+        self._options.itemSelection.triggered.connect(
             self._optSelectionChanged)
-        self._options.dataRangeSelection.currentIndexChanged[str].connect(
+        self._options.dataRangeSelection.triggered.connect(
             self._optDataRangeChanged)
+        self._optSelectionChanged()
+        self._optDataRangeChanged()
 
         self.setDisplayOnlyActiveItem = self._statsTable.setDisplayOnlyActiveItem
         self.setStatsOnVisibleData = self._statsTable.setStatsOnVisibleData
 
-    def _optSelectionChanged(self, opt):
+    def _optSelectionChanged(self, action=None):
         self._statsTable.setDisplayOnlyActiveItem(self._options.isActiveItemMode())
 
-    def _optDataRangeChanged(self, opt):
-        assert opt in self.OptionsWidget.ITEM_DATA_RANGE_OPTS
+    def _optDataRangeChanged(self, action=None):
         self._statsTable.setStatsOnVisibleData(self._options.isVisibleDataRangeMode())
 
 
