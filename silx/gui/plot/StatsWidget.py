@@ -358,7 +358,26 @@ class StatsTable(TableWidget):
         self._lgdAndKindToItems = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
+
+        # It have to called befor3e accessing to the header items
         self.setHorizontalHeaderLabels(self._columns)
+
+        if self._statsHandler is not None:
+            for columnId, name in enumerate(self._columns):
+                item = self.horizontalHeaderItem(columnId)
+                if name in self._statsHandler.stats:
+                    stat = self._statsHandler.stats[name]
+                    text = stat.name[0].upper() + stat.name[1:]
+                    if stat.description is not None:
+                        tooltip = stat.description
+                    else:
+                        tooltip = ""
+                else:
+                    text = name[0].upper() + name[1:]
+                    tooltip = ""
+                item.setToolTip(tooltip)
+                item.setText(text)
+
         if hasattr(self.horizontalHeader(), 'setSectionResizeMode'):  # Qt5
             self.horizontalHeader().setSectionResizeMode(qt.QHeaderView.ResizeToContents)
         else:  # Qt4
