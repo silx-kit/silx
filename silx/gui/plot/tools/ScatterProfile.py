@@ -31,6 +31,7 @@ __date__ = "30/05/2018"
 
 
 import logging
+import threading
 import time
 import weakref
 
@@ -441,6 +442,7 @@ class _InterpolatorInitThread(qt.QThread):
 
     def __init__(self, parent=None):
         super(_InterpolatorInitThread, self).__init__(parent)
+        self._lock = threading.RLock()
         self._pendingData = None
         self._cancelled = False
 
@@ -450,22 +452,30 @@ class _InterpolatorInitThread(qt.QThread):
         :param numpy.ndarray points: Point coordinates (N, D)
         :param numpy.ndarray values: Values the N points (1D array)
         """
-        # Possibly replace already pending data
-        self._pendingData = points, values
-        self._cancelled = False
+        with self._lock:
+            # Possibly replace already pending data
+            self._pendingData = points, values
+            self._cancelled = False
 
         if not self.isRunning():
             self.start()
 
     def cancel(self):
         """Cancel any running/pending requests"""
-        self._pendingData = 'cancelled'
+        with self._lock:
+            self._pendingData = 'cancelled'
 
     def run(self):
         """Run the init of the scatter interpolator"""
-        while self._pendingData not in (None, 'cancelled'):
-            points, values = self._pendingData
-            self._pendingData = None
+        while True:
+            with self._lock:
+                data = self._pendingData
+                self._pendingData = None
+
+            if data in (None, 'cancelled'):
+                return
+
+            points, values = data
 
             startTime = time.time()
             try:
@@ -474,14 +484,20 @@ class _InterpolatorInitThread(qt.QThread):
                 _logger.warning(
                     "Cannot initialise scatter profile interpolator")
             else:
-                if self._pendingData is not None:  # Break point
+                with self._lock:
+                    data = self._pendingData
+
+                if data is not None:  # Break point
                     _logger.info('Interpolator discarded after %f s',
                                  time.time() - startTime)
                 else:
                     # First call takes a while, do it here
                     interpolator([(0., 0.)])
 
-                    if self._pendingData is not None:
+                    with self._lock:
+                        data = self._pendingData
+
+                    if data is not None:
                         _logger.info('Interpolator discarded after %f s',
                                      time.time() - startTime)
                     else:
