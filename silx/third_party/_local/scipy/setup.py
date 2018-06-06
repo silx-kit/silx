@@ -30,6 +30,7 @@ __date__ = "07/11/2017"
 import os.path
 import glob
 
+import numpy
 from numpy.distutils.misc_util import Configuration, get_numpy_include_dirs
 
 
@@ -43,7 +44,9 @@ def configuration(parent_package='', top_path=None):
                          include_dirs=[get_numpy_include_dirs()])
     config.add_data_files('qhull/COPYING.txt')
 
-    config.add_extension('interpnd', sources=['interpnd.pyx'])
+    config.add_extension('interpnd',
+                         sources=['interpnd.pyx'],
+                         include_dirs=[numpy.get_include()])
 
     return config
 
