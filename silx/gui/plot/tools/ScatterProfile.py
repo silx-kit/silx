@@ -49,7 +49,6 @@ _logger = logging.getLogger(__name__)
 
 
 # TODO support log scale
-# TODO move profile window creation outside and add a sigProfileChanged(title, x, y)
 
 class _BaseProfileToolBar(qt.QToolBar):
     """Base class for QToolBar plot profiling tools
@@ -73,8 +72,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         self._plotRef = weakref.ref(
             plot, WeakMethodProxy(self.__plotDestroyed))
 
-        self._profilePlotRef = None
-        self._profileMainWindow = None
+        self._profileWindow = None
 
         # Set-up interaction manager
         roiManager = RegionOfInterestManager(plot)
@@ -113,6 +111,8 @@ class _BaseProfileToolBar(qt.QToolBar):
         # Listen to plot scale
         plot.getXAxis().sigScaleChanged.connect(self.__plotAxisScaleChanged)
         plot.getYAxis().sigScaleChanged.connect(self.__plotAxisScaleChanged)
+
+        self.setDefaultProfileWindowEnabled(True)
 
     def getProfileData(self, copy=True):
         """Returns the profile data as (x, y) or None
@@ -160,38 +160,72 @@ class _BaseProfileToolBar(qt.QToolBar):
 
     # Profile Plot
 
-    def getProfilePlot(self):
-        """Returns the plot displaying profiles.
+    def isDefaultProfileWindowEnabled(self):
+        """Returns True if the default floating profile window is used
 
-        :rtype: PlotWidget
+        :rtype
         """
-        if self._profilePlotRef is None:
-            if self._profileMainWindow is None:
-                self._profileMainWindow = ProfileMainWindow(self)
-                self._profileMainWindow.sigClose.connect(self.clearProfile)
+        return self.getDefaultProfileWindow() is not None
 
-            self._profilePlotRef = weakref.ref(
-                self._profileMainWindow.getPlot())
+    def setDefaultProfileWindowEnabled(self, enabled):
+        """Set whether to use or not the default floating profile window.
 
-        return self._profilePlotRef()
-
-    def setProfilePlot(self, plot):
-        """Set the plot to use to display profiles.
-
-        :param PlotWidget plot
+        :param bool enabled: True to use, False to disable
         """
-        self._profilePlotRef = None if plot is None else weakref.ref(plot)
-        self.updateProfile()
+        if self.isDefaultProfileWindowEnabled() != enabled:
+            if enabled:
+                self._profileWindow = ProfileMainWindow(self)
+                self._profileWindow.sigClose.connect(self.clearProfile)
+                self.sigProfileChanged.connect(self.__updateDefaultProfilePlot)
 
-    def _showProfileMainWindow(self):
+            else:
+                self.sigProfileChanged.disconnect(self.__updateDefaultProfilePlot)
+                self._profileWindow.sigClose.disconnect(self.clearProfile)
+                self._profileWindow.close()
+                self._profileWindow = None
+
+    def getDefaultProfileWindow(self):
+        """Returns the default floating profile window if in use else None.
+
+        See :meth:`isDefaultProfileWindowEnabled`
+
+        :rtype: Union[ProfileMainWindow,None]
+        """
+        return self._profileWindow
+
+    def __updateDefaultProfilePlot(self):
+        """Update the plot of the default profile window"""
+        profileWindow = self.getDefaultProfileWindow()
+        if profileWindow is None:
+            return
+
+        profilePlot = profileWindow.getPlot()
+        if profilePlot is None:
+            return
+
+        profilePlot.clear()
+        profilePlot.setGraphTitle(self.getProfileTitle())
+
+        profile = self.getProfileData(copy=False)
+        if profile is not None:
+            x, y = profile
+            profilePlot.addCurve(
+                x, y, legend='Profile', color=self._color)
+
+        self._showDefaultProfileWindow()
+
+    def _showDefaultProfileWindow(self):
         """If profile window was created by this toolbar,
         try to avoid overlapping with the toolbar's parent window.
         """
-        self.getProfilePlot()  # This creates _profileMainWindow if needed
-        if (self._profileMainWindow is not None and
-                not self._profileMainWindow.isVisible()):
-            self._profileMainWindow.show()
-            self._profileMainWindow.raise_()
+        profileWindow = self.getDefaultProfileWindow()
+        roiManager = self._getRoiManager()
+        if profileWindow is None or roiManager is None:
+            return
+
+        if (roiManager.isStarted() and not profileWindow.isVisible()):
+            profileWindow.show()
+            profileWindow.raise_()
 
             window = self.window()
             winGeom = window.frameGeometry()
@@ -201,14 +235,14 @@ class _BaseProfileToolBar(qt.QToolBar):
             spaceOnLeftSide = winGeom.left()
             spaceOnRightSide = screenGeom.width() - winGeom.right()
 
-            frameGeometry = self._profileMainWindow.frameGeometry()
+            frameGeometry = profileWindow.frameGeometry()
             profileWindowWidth = frameGeometry.width()
             if (profileWindowWidth < spaceOnRightSide):
                 # Place profile on the right
-                self._profileMainWindow.move(winGeom.right(), winGeom.top())
+                profileWindow.move(winGeom.right(), winGeom.top())
             elif(profileWindowWidth < spaceOnLeftSide):
                 # Place profile on the left
-                self._profileMainWindow.move(
+                profileWindow.move(
                     max(0, winGeom.left() - profileWindowWidth), winGeom.top())
 
     # Handle plot in log scale
@@ -283,8 +317,9 @@ class _BaseProfileToolBar(qt.QToolBar):
         """Handle end of interactive mode"""
         self.clearProfile()
 
-        if self._profileMainWindow is not None:
-            self._profileMainWindow.hide()
+        profileWindow = self.getDefaultProfileWindow()
+        if profileWindow is not None:
+            profileWindow.hide()
 
     def __roiAdded(self, roi):
         """Handle new ROI"""
@@ -340,21 +375,11 @@ class _BaseProfileToolBar(qt.QToolBar):
             rois = roiManager.getRegionOfInterests()
             roi = None if len(rois) == 0 else rois[0]
 
-        profilePlot = self.getProfilePlot()
-        if profilePlot is None:
-            return
-
-        # Reset profile plot
-        profilePlot.clear()
-        profilePlot.setGraphTitle('')
-
         if roi is None:
+            self._setProfile(profile=None, title='')
             return
 
         kind = roi.getKind()
-        if kind not in ('hline', 'vline', 'line'):  # Never event
-            _logger.warning('Unhandled ROI added')
-            return
 
         # Get end points
         if kind == 'line':
@@ -365,6 +390,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         elif kind in ('hline', 'vline'):
             plot = self.getPlotWidget()
             if plot is None:
+                self._setProfile(profile=None, title='')
                 return
 
             if kind == 'hline':
@@ -376,17 +402,13 @@ class _BaseProfileToolBar(qt.QToolBar):
                 y0, y1 = plot.getYAxis().getLimits()
 
         else:
-            _logger.error('Unsupported kind: {}'.format(kind))
-            return
+            raise RuntimeError('Unsupported kind: {}'.format(kind))
 
         if x1 < x0 or (x1 == x0 and y1 < y0):
             # Invert points
             x0, y0, x1, y1 = x1, y1, x0, y0
 
-        # Update plot
-        self.__profileTitle = self.computeProfileTitle(x0, y0, x1, y1)
-        profilePlot.setGraphTitle(self.__profileTitle)
-
+        # Update profile
         nPoints = self.getNPoints()
 
         profilePoints = numpy.transpose((
@@ -394,25 +416,27 @@ class _BaseProfileToolBar(qt.QToolBar):
             numpy.linspace(y0, y1, nPoints, endpoint=True)))
 
         if numpy.abs(x1 - x0) > numpy.abs(y1 - y0):
-            profilePlot.setGraphXLabel('X')
             xProfile = profilePoints[:, 0]
         else:
-            profilePlot.setGraphXLabel('Y')
             xProfile = profilePoints[:, 1]
 
         yProfile = self.computeProfile(profilePoints)
+        profile = None if yProfile is None else (xProfile, yProfile)
 
-        if yProfile is None:
-            self.__profile = None
+        title = self.computeProfileTitle(x0, y0, x1, y1)
 
-        else:
-            self.__profile = xProfile, yProfile
-            profilePlot.addCurve(
-                xProfile, yProfile, legend='Profile', color=self._color)
+        self._setProfile(profile=profile, title=title)
+
+    def _setProfile(self, profile=None, title=''):
+        """Set profile data and emit signal.
+
+        :param profile:
+        :param str title:
+        """
+        self.__profile = profile
+        self.__profileTitle = title
 
         self.sigProfileChanged.emit()
-
-        self._showProfileMainWindow()
 
     def clearProfile(self):
         """Clear the current line ROI and associated profile"""
@@ -420,9 +444,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         if roiManager is not None:
             roiManager.clearRegionOfInterests()
 
-        self.__profile = None
-        self.__profileTitle = ''
-        self.sigProfileChanged.emit()
+        self._setProfile(profile=None, title='')
 
 
 class _InterpolatorInitThread(qt.QThread):
