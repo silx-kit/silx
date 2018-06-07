@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """
-Duplicate features from scipy for silx internal use only.
+Duplicated from scipy.spatial for silx internal use only.
 
 See `SciPy <https://www.scipy.org/>`_
 """
@@ -35,7 +35,6 @@ __license__ = "MIT"
 __date__ = "07/11/2017"
 
 
-from .qhull import Delaunay  # noqa
-from .interpnd import LinearNDInterpolator  # noqa
+from .qhull import Delaunay
 
-__all__ = ['Delaunay', 'LinearNDInterpolator']
+__all__ = ['Delaunay']

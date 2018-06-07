@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +30,11 @@ __date__ = "07/11/2017"
 import os.path
 import glob
 
-import numpy
 from numpy.distutils.misc_util import Configuration, get_numpy_include_dirs
 
 
 def configuration(parent_package='', top_path=None):
-    config = Configuration('scipy', parent_package, top_path)
+    config = Configuration('scipy_spatial', parent_package, top_path)
 
     qhull_src = list(glob.glob(os.path.join(os.path.dirname(__file__), 'qhull',
                                     'src', '*.c')))
@@ -43,10 +42,6 @@ def configuration(parent_package='', top_path=None):
                          sources=['qhull.pyx'] + qhull_src,
                          include_dirs=[get_numpy_include_dirs()])
     config.add_data_files('qhull/COPYING.txt')
-
-    config.add_extension('interpnd',
-                         sources=['interpnd.pyx'],
-                         include_dirs=[numpy.get_include()])
 
     return config
 
