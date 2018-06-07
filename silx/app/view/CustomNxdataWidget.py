@@ -26,10 +26,11 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/06/2018"
+__date__ = "07/06/2018"
 
 import logging
 import numpy
+import weakref
 
 from silx.gui import qt
 from silx.io import commonh5
@@ -824,15 +825,17 @@ class CustomNxdataWidget(qt.QTreeView):
 
         menu = qt.QMenu()
 
+        weakself = weakref.proxy(self)
+
         if isinstance(item, _NxDataItem):
             action = qt.QAction("Add a new axis", menu)
-            action.triggered.connect(lambda: self.model().appendAxisToNxdataItem(item))
+            action.triggered.connect(lambda: weakself.model().appendAxisToNxdataItem(item))
             action.setIcon(icons.getQIcon("nxdata-axis-add"))
             action.setIconVisibleInMenu(True)
             menu.addAction(action)
             menu.addSeparator()
             action = qt.QAction("Remove this NXdata", menu)
-            action.triggered.connect(lambda: self.model().removeNxdataItem(item))
+            action.triggered.connect(lambda: weakself.model().removeNxdataItem(item))
             action.setIcon(icons.getQIcon("remove"))
             action.setIconVisibleInMenu(True)
             menu.addAction(action)
@@ -846,7 +849,7 @@ class CustomNxdataWidget(qt.QTreeView):
             if isinstance(item, _DatasetAxisItemRow):
                 menu.addSeparator()
                 action = qt.QAction("Remove this axis", menu)
-                action.triggered.connect(lambda: self.model().removeAxisItem(item))
+                action.triggered.connect(lambda: weakself.model().removeAxisItem(item))
                 action.setIcon(icons.getQIcon("remove"))
                 action.setIconVisibleInMenu(True)
                 menu.addAction(action)
