@@ -817,11 +817,13 @@ class CustomNxdataWidget(qt.QTreeView):
         item = model.itemFromIndex(index)
         self.sigNxdataItemUpdated.emit(item)
 
-    def createDefaultContextMenu(self, point):
-        """Create a default context menu at this position."""
-        qindex = self.indexAt(point)
-        qindex = self.__model.index(qindex.row(), 0, parent=qindex.parent())
-        item = self.__model.itemFromIndex(qindex)
+    def createDefaultContextMenu(self, index):
+        """Create a default context menu at this position.
+
+        :param qt.QModelIndex index: Index of the item
+        """
+        index = self.__model.index(index.row(), 0, parent=index.parent())
+        item = self.__model.itemFromIndex(index)
 
         menu = qt.QMenu()
 
@@ -858,7 +860,8 @@ class CustomNxdataWidget(qt.QTreeView):
 
     def __executeContextMenu(self, point):
         """Execute the context menu at this position."""
-        menu = self.createDefaultContextMenu(point)
+        index = self.indexAt(point)
+        menu = self.createDefaultContextMenu(index)
         if menu is None or menu.isEmpty():
             return
         menu.exec_(qt.QCursor.pos())
