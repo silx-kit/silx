@@ -41,7 +41,7 @@ import numpy
 from . import items
 from . import PlotWidget
 from . import tools
-from .tools.ScatterProfile import ScatterProfileToolBar
+from .tools.profile import ScatterProfileToolBar
 from .ColorBar import ColorBarWidget
 from .ScatterMaskToolsWidget import ScatterMaskToolsWidget
 
