@@ -36,7 +36,8 @@ import logging
 import subprocess
 
 from silx.test.utils import test_options
-from ... import view
+from .. import main
+from silx import __main__ as silx_main
 
 _logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ class TestLauncher(unittest.TestCase):
     def testHelp(self):
         # option -h must cause a raise SystemExit or a return 0
         try:
-            parser = view.createParser()
+            parser = main.createParser()
             parser.parse_args(["view", "--help"])
             result = 0
         except SystemExit as e:
@@ -57,7 +58,7 @@ class TestLauncher(unittest.TestCase):
 
     def testWrongOption(self):
         try:
-            parser = view.createParser()
+            parser = main.createParser()
             parser.parse_args(["view", "--foo"])
             self.fail()
         except SystemExit as e:
@@ -66,7 +67,7 @@ class TestLauncher(unittest.TestCase):
 
     def testWrongFile(self):
         try:
-            parser = view.createParser()
+            parser = main.createParser()
             result = parser.parse_args(["view", "__file.not.found__"])
             result = 0
         except SystemExit as e:
@@ -114,13 +115,22 @@ class TestLauncher(unittest.TestCase):
         env["PYTHONPATH"] = os.pathsep.join(sys.path)
         return env
 
-    def testExecuteHelp(self):
+    def testExecuteViewHelp(self):
         """Test if the main module is well connected.
 
-        Uses subprocess to avoid to change the current environment.
+        Uses subprocess to avoid to parasite the current environment.
         """
         env = self.createTestEnv()
-        commandLine = [sys.executable, view.__file__, "--help"]
+        commandLine = [sys.executable, main.__file__, "--help"]
+        self.executeCommandLine(commandLine, env)
+
+    def testExecuteSilxViewHelp(self):
+        """Test if the main module is well connected.
+
+        Uses subprocess to avoid to parasite the current environment.
+        """
+        env = self.createTestEnv()
+        commandLine = [sys.executable, silx_main.__file__, "view", "--help"]
         self.executeCommandLine(commandLine, env)
 
 
