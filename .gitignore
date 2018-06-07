@@ -12,8 +12,7 @@ silx/math/fit/functions.c
 silx/math/fit/peaks.c
 silx/math/marchingcubes.cpp
 silx/math/medianfilter/medianfilter.cpp
-silx/third_party/_local/scipy/qhull.c
-silx/third_party/_local/scipy/interpnd.c
+silx/third_party/_local/scipy_spatial/qhull.c
 
 # Hidden files
 .*

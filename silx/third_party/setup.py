@@ -40,7 +40,7 @@ def configuration(parent_package='', top_path=None):
     local_path = os.path.join(top_path, "silx", "third_party", "_local")
     if os.path.exists(local_path):
         config.add_subpackage('_local')
-        config.add_subpackage('_local.scipy')
+        config.add_subpackage('_local.scipy_spatial')
         config.add_subpackage('_local.concurrent_futures')
     return config
 
