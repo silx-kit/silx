@@ -26,102 +26,102 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/06/2018"
+__date__ = "07/06/2018"
 
 
-import unittest
+import os
 import sys
+import unittest
+import logging
+import subprocess
+
 from silx.test.utils import test_options
+from ... import view
 
-
-if not test_options.WITH_QT_TEST:
-    view = None
-    Viewer = None
-else:
-    from ... import view
-    from ...view import Viewer
-
-
-class QApplicationMock(object):
-
-    def __init__(self, args):
-        pass
-
-    def exec_(self):
-        return 0
-
-    def deleteLater(self):
-        pass
-
-
-class ViewerMock(object):
-
-    def __init__(self, parent=None, settings=None):
-        super(ViewerMock, self).__init__()
-        self.__class__._instance = self
-        self.appendFileCalls = []
-
-    def appendFile(self, filename):
-        self.appendFileCalls.append(filename)
-
-    def setAttribute(self, attr, value):
-        pass
-
-    def resize(self, size):
-        pass
-
-    def show(self):
-        pass
+_logger = logging.getLogger(__name__)
 
 
 @unittest.skipUnless(test_options.WITH_QT_TEST, test_options.WITH_QT_TEST_REASON)
 class TestLauncher(unittest.TestCase):
     """Test command line parsing"""
 
-    @classmethod
-    def setUpClass(cls):
-        super(TestLauncher, cls).setUpClass()
-        cls._Viewer = view.Viewer
-        Viewer.Viewer = ViewerMock
-        cls._QApplication = view.qt.QApplication
-        view.qt.QApplication = QApplicationMock
-
-    @classmethod
-    def tearDownClass(cls):
-        Viewer.Viewer = cls._Viewer
-        view.qt.QApplication = cls._QApplication
-        cls._Viewer = None
-        super(TestLauncher, cls).tearDownClass()
-
     def testHelp(self):
         # option -h must cause a raise SystemExit or a return 0
         try:
-            result = view.main(["view", "--help"])
+            parser = view.createParser()
+            parser.parse_args(["view", "--help"])
+            result = 0
         except SystemExit as e:
             result = e.args[0]
         self.assertEqual(result, 0)
 
     def testWrongOption(self):
         try:
-            result = view.main(["view", "--foo"])
+            parser = view.createParser()
+            parser.parse_args(["view", "--foo"])
+            self.fail()
         except SystemExit as e:
             result = e.args[0]
         self.assertNotEqual(result, 0)
 
     def testWrongFile(self):
         try:
-            result = view.main(["view", "__file.not.found__"])
+            parser = view.createParser()
+            result = parser.parse_args(["view", "__file.not.found__"])
+            result = 0
         except SystemExit as e:
             result = e.args[0]
         self.assertEqual(result, 0)
 
-    def testFile(self):
-        # sys.executable is an existing readable file
-        result = view.main(["view", sys.executable])
-        self.assertEqual(result, 0)
-        viewer = ViewerMock._instance
-        self.assertEqual(viewer.appendFileCalls, [sys.executable])
-        ViewerMock._instance = None
+    def executeCommandLine(self, command_line, env):
+        """Execute a command line.
+
+        Log output as debug in case of bad return code.
+        """
+        _logger.info("Execute: %s", " ".join(command_line))
+        p = subprocess.Popen(command_line,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             env=env)
+        out, err = p.communicate()
+        _logger.info("Return code: %d", p.returncode)
+        try:
+            out = out.decode('utf-8')
+        except UnicodeError:
+            pass
+        try:
+            err = err.decode('utf-8')
+        except UnicodeError:
+            pass
+
+        if p.returncode != 0:
+            _logger.info("stdout:")
+            _logger.info("%s", out)
+            _logger.info("stderr:")
+            _logger.info("%s", err)
+        else:
+            _logger.debug("stdout:")
+            _logger.debug("%s", out)
+            _logger.debug("stderr:")
+            _logger.debug("%s", err)
+        self.assertEqual(p.returncode, 0)
+
+    def createTestEnv(self):
+        """
+        Returns an associated environment with a working project.
+        """
+        env = dict((str(k), str(v)) for k, v in os.environ.items())
+        env["PYTHONPATH"] = os.pathsep.join(sys.path)
+        return env
+
+    def testExecuteHelp(self):
+        """Test if the main module is well connected.
+
+        Uses subprocess to avoid to change the current environment.
+        """
+        env = self.createTestEnv()
+        commandLine = [sys.executable, view.__file__, "--help"]
+        self.executeCommandLine(commandLine, env)
 
 
 def suite():

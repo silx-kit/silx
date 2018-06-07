@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/06/2018"
+__date__ = "07/06/2018"
 
 import sys
 import argparse
@@ -56,13 +56,7 @@ def sigintHandler(*args):
     qt.QApplication.quit()
 
 
-def main(argv):
-    """
-    Main function to launch the viewer as an application
-
-    :param argv: Command line arguments
-    :returns: exit status
-    """
+def createParser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'files',
@@ -86,7 +80,17 @@ def main(argv):
         action="store_true",
         default=False,
         help='Start the application using new fresh user preferences')
+    return parser
 
+
+def main(argv):
+    """
+    Main function to launch the viewer as an application
+
+    :param argv: Command line arguments
+    :returns: exit status
+    """
+    parser = createParser()
     options = parser.parse_args(argv[1:])
 
     if options.debug:
@@ -158,3 +162,7 @@ def main(argv):
     # remove ending warnings relative to QTimer
     app.deleteLater()
     return result
+
+
+if __name__ == '__main__':
+    main(sys.argv)
