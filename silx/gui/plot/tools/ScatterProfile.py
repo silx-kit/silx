@@ -64,7 +64,6 @@ class _BaseProfileToolBar(qt.QToolBar):
     def __init__(self, parent=None, plot=None, title=''):
         super(_BaseProfileToolBar, self).__init__(title, parent)
 
-        self.__nPoints = 1024
         self.__profile = None
         self.__profileTitle = ''
 
@@ -291,26 +290,6 @@ class _BaseProfileToolBar(qt.QToolBar):
                 roi.setColor(self._color)
         self.updateProfile()
 
-    # Number of points
-
-    def getNPoints(self):
-        """Returns the number of points of the profiles
-
-        :rtype: int
-        """
-        return self.__nPoints
-
-    def setNPoints(self, npoints):
-        """Set the number of points of the profiles
-
-        :param int npoints:
-        """
-        npoints = int(npoints)
-        if npoints < 1:
-            raise ValueError("Unsupported number of points: %d" % npoints)
-        else:
-            self.__nPoints = npoints
-
     # Handle ROI manager
 
     def __interactionFinished(self, rois):
@@ -333,13 +312,16 @@ class _BaseProfileToolBar(qt.QToolBar):
                 if regionOfInterest is not roi:
                     roiManager.removeRegionOfInterest(regionOfInterest)
 
-    def computeProfile(self, points):
+    def computeProfile(self, x0, y0, x1, y1):
         """Compute corresponding profile
 
         Override in subclass to compute profile
 
-        :param numpy.ndarray points: (N, 2) points coordinates
-        :return: y profile data or None
+        :param float x0: Profile start point X coord
+        :param float y0: Profile start point Y coord
+        :param float x1: Profile end point X coord
+        :param float y1: Profile end point Y coord
+        :return: (x, y) profile data or None
         """
         return None
 
@@ -351,7 +333,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         :param float x0: Profile start point X coord
         :param float y0: Profile start point Y coord
         :param float x1: Profile end point X coord
-        :param float y1: Profile end point X coord
+        :param float y1: Profile end point Y coord
         :return: Title to use
         :rtype: str
         """
@@ -408,23 +390,8 @@ class _BaseProfileToolBar(qt.QToolBar):
             # Invert points
             x0, y0, x1, y1 = x1, y1, x0, y0
 
-        # Update profile
-        nPoints = self.getNPoints()
-
-        profilePoints = numpy.transpose((
-            numpy.linspace(x0, x1, nPoints, endpoint=True),
-            numpy.linspace(y0, y1, nPoints, endpoint=True)))
-
-        if numpy.abs(x1 - x0) > numpy.abs(y1 - y0):
-            xProfile = profilePoints[:, 0]
-        else:
-            xProfile = profilePoints[:, 1]
-
-        yProfile = self.computeProfile(profilePoints)
-        profile = None if yProfile is None else (xProfile, yProfile)
-
+        profile = self.computeProfile(x0, y0, x1, y1)
         title = self.computeProfileTitle(x0, y0, x1, y1)
-
         self._setProfile(profile=profile, title=title)
 
     def _setProfile(self, profile=None, title=''):
@@ -540,8 +507,11 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
 
     def __init__(self, parent=None, plot=None, title='Scatter Profile'):
         super(ScatterProfileToolBar, self).__init__(parent, plot, title)
+
+        self.__nPoints = 1024
         self.__interpolator = None
         self.__interpolatorCache = None  # points, values, interpolator
+
         self.__initThread = _InterpolatorInitThread(self)
         self.__initThread.sigInterpolatorReady.connect(
             self.__interpolatorReady)
@@ -668,14 +638,35 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         self.__interpolatorCache = None if interpolator is None else data
         self.updateProfile()
 
+    # Number of points
+
+    def getNPoints(self):
+        """Returns the number of points of the profiles
+
+        :rtype: int
+        """
+        return self.__nPoints
+
+    def setNPoints(self, npoints):
+        """Set the number of points of the profiles
+
+        :param int npoints:
+        """
+        npoints = int(npoints)
+        if npoints < 1:
+            raise ValueError("Unsupported number of points: %d" % npoints)
+        else:
+            self.__nPoints = npoints
+
     # Overridden methods
+
     def computeProfileTitle(self, x0, y0, x1, y1):
         """Compute corresponding plot title
 
         :param float x0: Profile start point X coord
         :param float y0: Profile start point Y coord
         :param float x1: Profile end point X coord
-        :param float y1: Profile end point X coord
+        :param float y1: Profile end point Y coord
         :return: Title to use
         :rtype: str
         """
@@ -686,19 +677,32 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
             return super(ScatterProfileToolBar, self).computeProfileTitle(
                 x0, y0, x1, y1)
 
-    def computeProfile(self, points):
+    def computeProfile(self, x0, y0, x1, y1):
         """Compute corresponding profile
 
-        :param numpy.ndarray points: (N, 2) points coordinates
-        :return: y profile data
+        :param float x0: Profile start point X coord
+        :param float y0: Profile start point Y coord
+        :param float x1: Profile end point X coord
+        :param float y1: Profile end point Y coord
+        :return: (x, y) profile data or None
         """
         if self.__interpolator is None:
             return None
 
+        nPoints = self.getNPoints()
+
+        points = numpy.transpose((
+            numpy.linspace(x0, x1, nPoints, endpoint=True),
+            numpy.linspace(y0, y1, nPoints, endpoint=True)))
+
+        if numpy.abs(x1 - x0) > numpy.abs(y1 - y0):
+            xProfile = points[:, 0]
+        else:
+            xProfile = points[:, 1]
+
         yProfile = self.__interpolator(points)
 
         if not numpy.any(numpy.isfinite(yProfile)):
-            # Profile is outside convex hull
-            return None
+            return None  # Profile outside convex hull
 
-        return yProfile
+        return xProfile, yProfile
