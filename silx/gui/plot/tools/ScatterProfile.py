@@ -77,7 +77,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         roiManager = RegionOfInterestManager(plot)
         self._roiManagerRef = weakref.ref(roiManager)
 
-        roiManager.sigInteractionModeFinished.connect(
+        roiManager.sigInteractiveModeFinished.connect(
             self.__interactionFinished)
         roiManager.sigRegionOfInterestChanged.connect(self.updateProfile)
         roiManager.sigRegionOfInterestAdded.connect(self.__roiAdded)
@@ -520,9 +520,9 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
             _logger.error(
                 "Error during scatter profile toolbar initialisation")
         else:
-            roiManager.sigInteractionModeStarted.connect(
+            roiManager.sigInteractiveModeStarted.connect(
                 self.__interactionStarted)
-            roiManager.sigInteractionModeFinished.connect(
+            roiManager.sigInteractiveModeFinished.connect(
                 self.__interactionFinished)
             if roiManager.isStarted():
                 self.__interactionStarted(roiManager.getRegionOfInterestKind())

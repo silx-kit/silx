@@ -448,13 +448,13 @@ class RegionOfInterestManager(qt.QObject):
     It provides the list of ROIs.
     """
 
-    sigInteractionModeStarted = qt.Signal(str)
+    sigInteractiveModeStarted = qt.Signal(str)
     """Signal emitted when switching to ROI drawing interactive mode.
 
     It provides the kind of shape of the active interactive mode.
     """
 
-    sigInteractionModeFinished = qt.Signal(tuple)
+    sigInteractiveModeFinished = qt.Signal(tuple)
     """Signal emitted when leaving and interactive ROI drawing.
 
     It provides the list of ROIs.
@@ -768,7 +768,7 @@ class RegionOfInterestManager(qt.QObject):
 
         plot.sigPlotSignal.connect(self._handleInteraction)
 
-        self.sigInteractionModeStarted.emit(kind)
+        self.sigInteractiveModeStarted.emit(kind)
 
         return True
 
@@ -788,7 +788,7 @@ class RegionOfInterestManager(qt.QObject):
 
             self._updateModeActions()
 
-            self.sigInteractionModeFinished.emit(self.getRegionOfInterestPoints())
+            self.sigInteractiveModeFinished.emit(self.getRegionOfInterestPoints())
 
     def stop(self):
         """Stop interactive ROI drawing mode.
@@ -867,8 +867,8 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
         self.sigRegionOfInterestAdded.connect(self.__added)
         self.sigRegionOfInterestAboutToBeRemoved.connect(self.__aboutToBeRemoved)
-        self.sigInteractionModeStarted.connect(self.__started)
-        self.sigInteractionModeFinished.connect(self.__finished)
+        self.sigInteractiveModeStarted.connect(self.__started)
+        self.sigInteractiveModeFinished.connect(self.__finished)
 
     # Max ROI
 
