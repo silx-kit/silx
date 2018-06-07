@@ -116,6 +116,8 @@ class _BaseProfileToolBar(qt.QToolBar):
     def getProfileData(self, copy=True):
         """Returns the profile data as (x, y) or None
 
+        :param bool copy: True to get a copy,
+                          False to get internal arrays (do not modify)
         :rtype: Union[List[numpy.ndarray],None]
         """
         if self.__profile is None:
@@ -222,7 +224,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         if profileWindow is None or roiManager is None:
             return
 
-        if (roiManager.isStarted() and not profileWindow.isVisible()):
+        if roiManager.isStarted() and not profileWindow.isVisible():
             profileWindow.show()
             profileWindow.raise_()
 
@@ -257,15 +259,14 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         if xScale == items.Axis.LINEAR and yScale == items.Axis.LINEAR:
             self.setEnabled(True)
-            self.updateProfile()
 
         else:
-            self.setEnabled(False)
-            self.clearProfile()
-
             roiManager = self._getRoiManager()
             if roiManager is not None:
                 roiManager.stop()  # Stop interactive mode
+
+            self.clearProfile()
+            self.setEnabled(False)
 
     # Profile color
 
@@ -349,7 +350,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         return title
 
     def updateProfile(self, *args):
-        """Update profile according to ROI"""
+        """Update profile according to current ROI"""
         roiManager = self._getRoiManager()
         if roiManager is None:
             roi = None
@@ -433,7 +434,6 @@ class _InterpolatorInitThread(qt.QThread):
         super(_InterpolatorInitThread, self).__init__(parent)
         self._lock = threading.RLock()
         self._pendingData = None
-        self._cancelled = False
 
     def request(self, points, values):
         """Request new initialisation of interpolator
@@ -444,7 +444,6 @@ class _InterpolatorInitThread(qt.QThread):
         with self._lock:
             # Possibly replace already pending data
             self._pendingData = points, values
-            self._cancelled = False
 
         if not self.isRunning():
             self.start()
