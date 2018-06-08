@@ -35,7 +35,15 @@ import threading
 import time
 
 import numpy
-from scipy.interpolate import LinearNDInterpolator
+
+try:
+    from scipy.interpolate import LinearNDInterpolator
+except ImportError:
+    LinearNDInterpolator = None
+
+    # Fallback using local Delaunay and matplotlib interpolator
+    from silx.third_party.scipy_spatial import Delaunay
+    import matplotlib.tri
 
 from ._BaseProfileToolBar import _BaseProfileToolBar
 from .... import qt
@@ -67,6 +75,7 @@ class _InterpolatorInitThread(qt.QThread):
         super(_InterpolatorInitThread, self).__init__(parent)
         self._lock = threading.RLock()
         self._pendingData = None
+        self._firstFallbackRun = True
 
     def request(self, points, values):
         """Request new initialisation of interpolator
@@ -87,6 +96,66 @@ class _InterpolatorInitThread(qt.QThread):
             self._pendingData = 'cancelled'
 
     def run(self):
+        """Run the init of the scatter interpolator"""
+        if LinearNDInterpolator is None:
+            self.run_matplotlib()
+        else:
+            self.run_scipy()
+
+    def run_matplotlib(self):
+        """Run the init of the scatter interpolator"""
+        if self._firstFallbackRun:
+            self._firstFallbackRun = False
+            _logger.warning(
+                "scipy.spatial.LinearNDInterpolator not available: "
+                "Scatter plot interpolator initialisation can freeze the GUI.")
+
+        while True:
+            with self._lock:
+                data = self._pendingData
+                self._pendingData = None
+
+            if data in (None, 'cancelled'):
+                return
+
+            points, values = data
+
+            startTime = time.time()
+            try:
+                delaunay = Delaunay(points)
+            except:
+                _logger.warning(
+                    "Cannot triangulate scatter data")
+            else:
+                with self._lock:
+                    data = self._pendingData
+
+                if data is not None:  # Break point
+                    _logger.info('Interpolator discarded after %f s',
+                                 time.time() - startTime)
+                else:
+
+                    x, y = points.T
+                    triangulation = matplotlib.tri.Triangulation(
+                        x, y, triangles=delaunay.simplices)
+
+                    interpolator = matplotlib.tri.LinearTriInterpolator(
+                        triangulation, values)
+
+                    with self._lock:
+                        data = self._pendingData
+
+                    if data is not None:
+                        _logger.info('Interpolator discarded after %f s',
+                                     time.time() - startTime)
+                    else:
+                        # No other processing requested: emit the signal
+                        _logger.info("Interpolator initialised in %f s",
+                                     time.time() - startTime)
+                        self.sigInterpolatorReady.emit(
+                            (points, values, interpolator))
+
+    def run_scipy(self):
         """Run the init of the scatter interpolator"""
         while True:
             with self._lock:
