@@ -140,9 +140,9 @@ class _BaseProfileToolBar(qt.QToolBar):
             self.removeAction(action)
 
     def getPlotWidget(self):
-        """The :class:`.PlotWidget` associated to the toolbar.
+        """The :class:`~silx.gui.plot.PlotWidget` associated to the toolbar.
 
-        :rtype: Union[PlotWidget,None]
+        :rtype: Union[~silx.gui.plot.PlotWidget,None]
         """
         return None if self._plotRef is None else self._plotRef()
 

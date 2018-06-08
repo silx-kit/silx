@@ -54,36 +54,49 @@
    :show-inheritance:
    :members:
 
-:mod:`~silx.gui.plot.tools.roi` Region of interest
---------------------------------------------------
+:mod:`~silx.gui.plot.tools.roi`: Region of interest
+---------------------------------------------------
 
 .. automodule:: silx.gui.plot.tools.roi
 
 .. currentmodule:: silx.gui.plot.tools.roi
 
 :class:`RegionOfInterestManager` class
---------------------------------------
+++++++++++++++++++++++++++++++++++++++
 
 .. autoclass:: RegionOfInterestManager
    :members:
 
 :class:`RegionOfInterest` class
--------------------------------
++++++++++++++++++++++++++++++++
 
 .. autoclass:: RegionOfInterest
    :members:
 
 :class:`InteractiveRegionOfInterestManager` class
--------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. autoclass:: InteractiveRegionOfInterestManager
    :members:
 
 :class:`RegionOfInterestTableWidget` class
-------------------------------------------
+++++++++++++++++++++++++++++++++++++++++++
 
 .. autoclass:: RegionOfInterestTableWidget
    :members:
+
+:mod:`~silx.gui.plot.tools.profile`: Profile Tools
+--------------------------------------------------
+
+.. automodule:: silx.gui.plot.tools.profile
+
+.. currentmodule:: silx.gui.plot.tools.profile
+
+:class:`ScatterProfileToolBar`
+++++++++++++++++++++++++++++++
+
+.. autoclass:: ScatterProfileToolBar
+   :members: sigProfileChanged, getProfileData, getProfileTitle, getPlotWidget, isDefaultProfileWindowEnabled, setDefaultProfileWindowEnabled, getDefaultProfileWindow, getColor, setColor, clearProfile, getNPoints, setNPoints
 
 .. currentmodule:: silx.gui.plot
 

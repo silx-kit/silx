@@ -26,7 +26,7 @@
 
 It provides:
 
-- :class:`ScatterProfileToolBar`, a QToolBar to handle profile on scatter data
+- :class:`ScatterProfileToolBar`: a QToolBar to handle profile on scatter data
 
 """
 
