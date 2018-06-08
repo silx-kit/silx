@@ -360,8 +360,6 @@ cdef class _Qhull:
                     "qhull: did not free %d bytes (%d pieces)" %
                     (totlong, curlong))
 
-        self._messages.close()
-
     @cython.final
     def close(self):
         """
