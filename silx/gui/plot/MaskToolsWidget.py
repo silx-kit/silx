@@ -242,6 +242,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             _logger.error('Not an image, shape: %d', len(mask.shape))
             return None
 
+        # if mask has not changed, do nothing
+        if numpy.array_equal(mask, self.getSelectionMask()):
+            return mask.shape
+
         # ensure all mask attributes are synchronized with the active image
         # and connect listener
         activeImage = self.plot.getActiveImage()
