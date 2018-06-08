@@ -77,18 +77,22 @@ class _BaseProfileToolBar(qt.QToolBar):
         roiManager.sigRegionOfInterestAdded.connect(self.__roiAdded)
 
         # Add interactive mode actions
-        for kind, icon in (
-                ('hline', 'shape-horizontal'),
-                ('vline', 'shape-vertical'),
-                ('line', 'shape-diagonal')):
+        for kind, icon, tooltip in (
+                ('hline', 'shape-horizontal',
+                 'Enables horizontal line profile selection mode'),
+                ('vline', 'shape-vertical',
+                 'Enables vertical line profile selection mode'),
+                ('line', 'shape-diagonal',
+                 'Enables line profile selection mode')):
             action = roiManager.getInteractionModeAction(kind)
             action.setIcon(icons.getQIcon(icon))
+            action.setToolTip(tooltip)
             self.addAction(action)
 
         # Add clear action
         action = qt.QAction(icons.getQIcon('profile-clear'),
                             'Clear Profile', self)
-        action.setToolTip('Clear the profile Region of interest')
+        action.setToolTip('Clear the profile')
         action.setCheckable(False)
         action.triggered.connect(self.clearProfile)
         self.addAction(action)
