@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -715,9 +715,9 @@ class _HashDropZones(qt.QStyledItemDelegate):
     """Delegate item displaying a drop zone when the item do not contains
     dataset."""
 
-    def __init__(self):
+    def __init__(self, parent=None):
         """Constructor"""
-        super(_HashDropZones, self).__init__()
+        super(_HashDropZones, self).__init__(parent)
         pen = qt.QPen()
         pen.setColor(qt.QColor("#D0D0D0"))
         pen.setStyle(qt.Qt.DotLine)
@@ -778,7 +778,7 @@ class CustomNxdataWidget(qt.QTreeView):
         self.__model.setHorizontalHeaderLabels(["Name", "Dataset", "Type", "Shape"])
         self.setModel(self.__model)
 
-        self.setItemDelegateForColumn(1, _HashDropZones())
+        self.setItemDelegateForColumn(1, _HashDropZones(self))
 
         self.__model.sigNxdataUpdated.connect(self.__nxdataUpdate)
         self.__model.rowsAboutToBeRemoved.connect(self.__rowsAboutToBeRemoved)
