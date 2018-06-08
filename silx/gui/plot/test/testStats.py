@@ -339,8 +339,12 @@ class TestStatsWidgetWithCurves(TestCaseQt):
         self.widget.setStats(mystats)
 
     def tearDown(self):
-        del self.widget
-        del self.plot
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        self.widget = None
+        self.plot = None
         TestCaseQt.tearDown(self)
 
     def testInit(self):
@@ -386,6 +390,10 @@ class TestStatsWidgetWithCurves(TestCaseQt):
         plot2.addCurve(x=range(26), y=range(26), legend='new curve')
         self.widget.setPlot(plot2)
         self.assertTrue(self.widget.rowCount() is 1)
+        self.qapp.processEvents()
+        plot2.setAttribute(qt.Qt.WA_DeleteOnClose)
+        plot2.close()
+        plot2 = None
 
 
 class TestStatsWidgetWithImages(TestCaseQt):
@@ -413,8 +421,12 @@ class TestStatsWidgetWithImages(TestCaseQt):
         self.widget.setStats(mystats)
 
     def tearDown(self):
-        del self.widget
-        del self.plot
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        self.widget = None
+        self.plot = None
         TestCaseQt.tearDown(self)
 
     def test(self):
@@ -459,8 +471,12 @@ class TestStatsWidgetWithScatters(TestCaseQt):
         self.widget.setStats(mystats)
 
     def tearDown(self):
-        del self.widget
-        del self.scatterPlot
+        self.scatterPlot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.scatterPlot.close()
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        self.widget = None
+        self.scatterPlot = None
         TestCaseQt.tearDown(self)
 
     def testStats(self):
