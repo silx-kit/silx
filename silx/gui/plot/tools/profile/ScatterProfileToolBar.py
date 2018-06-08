@@ -202,7 +202,7 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
     """QToolBar providing scatter plot profiling tools
 
     :param parent: See :class:`QToolBar`.
-    :param plot: :class:`PlotWindow` instance on which to operate.
+    :param plot: :class:`~silx.gui.plot.PlotWidget` on which to operate.
     :param str title: See :class:`QToolBar`.
     """
 
@@ -385,7 +385,7 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         :param float y0: Profile start point Y coord
         :param float x1: Profile end point X coord
         :param float y1: Profile end point Y coord
-        :return: (x, y) profile data or None
+        :return: (points, values) profile data or None
         """
         if self.__interpolator is None:
             return None
@@ -396,14 +396,9 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
             numpy.linspace(x0, x1, nPoints, endpoint=True),
             numpy.linspace(y0, y1, nPoints, endpoint=True)))
 
-        if numpy.abs(x1 - x0) > numpy.abs(y1 - y0):
-            xProfile = points[:, 0]
-        else:
-            xProfile = points[:, 1]
+        values = self.__interpolator(points)
 
-        yProfile = self.__interpolator(points)
-
-        if not numpy.any(numpy.isfinite(yProfile)):
+        if not numpy.any(numpy.isfinite(values)):
             return None  # Profile outside convex hull
 
-        return xProfile, yProfile
+        return points, values

@@ -48,7 +48,7 @@ class _BaseProfileToolBar(qt.QToolBar):
     """Base class for QToolBar plot profiling tools
 
     :param parent: See :class:`QToolBar`.
-    :param plot: :class:`PlotWindow` instance on which to operate.
+    :param plot: :class:`~silx.gui.plot.PlotWidget` on which to operate.
     :param str title: See :class:`QToolBar`.
     """
 
@@ -107,18 +107,29 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         self.setDefaultProfileWindowEnabled(True)
 
-    def getProfileData(self, copy=True):
-        """Returns the profile data as (x, y) or None
+    def getProfilePoints(self, copy=True):
+        """Returns the profile sampling points as (x, y) or None
 
         :param bool copy: True to get a copy,
                           False to get internal arrays (do not modify)
-        :rtype: Union[List[numpy.ndarray],None]
+        :rtype: Union[numpy.ndarray,None]
         """
         if self.__profile is None:
             return None
         else:
-            return (numpy.array(self.__profile[0], copy=copy),
-                    numpy.array(self.__profile[1], copy=copy))
+            return numpy.array(self.__profile[0], copy=copy)
+
+    def getProfileValues(self, copy=True):
+        """Returns the values of the profile or None
+
+        :param bool copy: True to get a copy,
+                          False to get internal arrays (do not modify)
+        :rtype: Union[numpy.ndarray,None]
+        """
+        if self.__profile is None:
+            return None
+        else:
+            return numpy.array(self.__profile[1], copy=copy)
 
     def getProfileTitle(self):
         """Returns the profile title
@@ -158,7 +169,7 @@ class _BaseProfileToolBar(qt.QToolBar):
     def isDefaultProfileWindowEnabled(self):
         """Returns True if the default floating profile window is used
 
-        :rtype
+        :rtype: bool
         """
         return self.getDefaultProfileWindow() is not None
 
@@ -201,11 +212,20 @@ class _BaseProfileToolBar(qt.QToolBar):
         profilePlot.clear()
         profilePlot.setGraphTitle(self.getProfileTitle())
 
-        profile = self.getProfileData(copy=False)
-        if profile is not None:
-            x, y = profile
+        points = self.getProfilePoints(copy=False)
+        values = self.getProfileValues(copy=False)
+
+        if points is not None and values is not None:
+            if (numpy.abs(points[-1, 0] - points[0, 0]) >
+                    numpy.abs(points[-1, 1] - points[0, 1])):
+                xProfile = points[:, 0]
+                profilePlot.getXAxis().setLabel('X')
+            else:
+                xProfile = points[:, 1]
+                profilePlot.getXAxis().setLabel('Y')
+
             profilePlot.addCurve(
-                x, y, legend='Profile', color=self._color)
+                xProfile, values, legend='Profile', color=self._color)
 
         self._showDefaultProfileWindow()
 
@@ -316,7 +336,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         :param float y0: Profile start point Y coord
         :param float x1: Profile end point X coord
         :param float y1: Profile end point Y coord
-        :return: (x, y) profile data or None
+        :return: (points, values) profile data or None
         """
         return None
 
@@ -392,7 +412,7 @@ class _BaseProfileToolBar(qt.QToolBar):
     def _setProfile(self, profile=None, title=''):
         """Set profile data and emit signal.
 
-        :param profile:
+        :param profile: points and profile values
         :param str title:
         """
         self.__profile = profile

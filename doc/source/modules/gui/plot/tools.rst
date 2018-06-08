@@ -96,7 +96,7 @@
 ++++++++++++++++++++++++++++++
 
 .. autoclass:: ScatterProfileToolBar
-   :members: sigProfileChanged, getProfileData, getProfileTitle, getPlotWidget, isDefaultProfileWindowEnabled, setDefaultProfileWindowEnabled, getDefaultProfileWindow, getColor, setColor, clearProfile, getNPoints, setNPoints
+   :members: sigProfileChanged, getProfilPoints, getProfileValues, getProfileTitle, getPlotWidget, isDefaultProfileWindowEnabled, setDefaultProfileWindowEnabled, getDefaultProfileWindow, getColor, setColor, clearProfile, getNPoints, setNPoints
 
 .. currentmodule:: silx.gui.plot
 
