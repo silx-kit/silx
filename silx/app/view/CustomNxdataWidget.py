@@ -26,10 +26,11 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/06/2018"
+__date__ = "07/06/2018"
 
 import logging
 import numpy
+import weakref
 
 from silx.gui import qt
 from silx.io import commonh5
@@ -816,23 +817,27 @@ class CustomNxdataWidget(qt.QTreeView):
         item = model.itemFromIndex(index)
         self.sigNxdataItemUpdated.emit(item)
 
-    def createDefaultContextMenu(self, point):
-        """Create a default context menu at this position."""
-        qindex = self.indexAt(point)
-        qindex = self.__model.index(qindex.row(), 0, parent=qindex.parent())
-        item = self.__model.itemFromIndex(qindex)
+    def createDefaultContextMenu(self, index):
+        """Create a default context menu at this position.
+
+        :param qt.QModelIndex index: Index of the item
+        """
+        index = self.__model.index(index.row(), 0, parent=index.parent())
+        item = self.__model.itemFromIndex(index)
 
         menu = qt.QMenu()
 
+        weakself = weakref.proxy(self)
+
         if isinstance(item, _NxDataItem):
             action = qt.QAction("Add a new axis", menu)
-            action.triggered.connect(lambda: self.model().appendAxisToNxdataItem(item))
+            action.triggered.connect(lambda: weakself.model().appendAxisToNxdataItem(item))
             action.setIcon(icons.getQIcon("nxdata-axis-add"))
             action.setIconVisibleInMenu(True)
             menu.addAction(action)
             menu.addSeparator()
             action = qt.QAction("Remove this NXdata", menu)
-            action.triggered.connect(lambda: self.model().removeNxdataItem(item))
+            action.triggered.connect(lambda: weakself.model().removeNxdataItem(item))
             action.setIcon(icons.getQIcon("remove"))
             action.setIconVisibleInMenu(True)
             menu.addAction(action)
@@ -846,7 +851,7 @@ class CustomNxdataWidget(qt.QTreeView):
             if isinstance(item, _DatasetAxisItemRow):
                 menu.addSeparator()
                 action = qt.QAction("Remove this axis", menu)
-                action.triggered.connect(lambda: self.model().removeAxisItem(item))
+                action.triggered.connect(lambda: weakself.model().removeAxisItem(item))
                 action.setIcon(icons.getQIcon("remove"))
                 action.setIconVisibleInMenu(True)
                 menu.addAction(action)
@@ -855,7 +860,8 @@ class CustomNxdataWidget(qt.QTreeView):
 
     def __executeContextMenu(self, point):
         """Execute the context menu at this position."""
-        menu = self.createDefaultContextMenu(point)
+        index = self.indexAt(point)
+        menu = self.createDefaultContextMenu(index)
         if menu is None or menu.isEmpty():
             return
         menu.exec_(qt.QCursor.pos())

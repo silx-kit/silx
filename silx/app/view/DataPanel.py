@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/05/2018"
+__date__ = "06/06/2018"
 
 import logging
 
@@ -112,7 +112,10 @@ class DataPanel(qt.QWidget):
 
     def setCustomDataItem(self, item):
         self.__customNxdataItem = item
-        data = item.getVirtualGroup()
+        if item is not None:
+            data = item.getVirtualGroup()
+        else:
+            data = None
         self.__dataViewer.setData(data)
         self.__dataTitle.setVisible(item is not None)
         if item is not None:
@@ -120,6 +123,15 @@ class DataPanel(qt.QWidget):
             self.__dataTitle.setText(text)
 
     def removeDatasetsFrom(self, root):
+        """
+        Remove all datasets provided by this root
+
+        .. note:: This function do not update data stored inside
+            customNxdataItem cause in the silx-view context this item is
+            already updated on his own.
+
+        :param root: The root file of datasets to remove
+        """
         data = self.__dataViewer.data()
         if data is not None:
             if data.file is not None:
@@ -129,6 +141,22 @@ class DataPanel(qt.QWidget):
                     self.__dataViewer.setData(None)
 
     def replaceDatasetsFrom(self, removedH5, loadedH5):
+        """
+        Replace any dataset from any NXdata items using the same dataset name
+        from another root.
+
+        Usually used when a file was synchronized.
+
+        .. note:: This function do not update data stored inside
+            customNxdataItem cause in the silx-view context this item is
+            already updated on his own.
+
+        :param removedRoot: The h5py root file which is replaced
+            (which have to be removed)
+        :param loadedRoot: The new h5py root file which have to be used
+            instread.
+        """
+
         data = self.__dataViewer.data()
         if data is not None:
             if data.file is not None:

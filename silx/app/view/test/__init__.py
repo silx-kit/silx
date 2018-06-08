@@ -1,6 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+#
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +21,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
-"""Package containing source code of the `silx view` application"""
-
+# ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "07/06/2018"
+
+import unittest
+
+from silx.test.utils import test_options
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    if test_options.WITH_QT_TEST:
+        from . import test_launcher
+        from . import test_view
+        test_suite.addTest(test_view.suite())
+        test_suite.addTest(test_launcher.suite())
+    return test_suite

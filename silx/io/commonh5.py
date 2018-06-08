@@ -38,7 +38,7 @@ from .utils import is_dataset
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/05/2018"
+__date__ = "07/06/2018"
 
 
 class _MappingProxyType(collections.MutableMapping):
@@ -469,6 +469,8 @@ class DatasetProxy(Dataset):
 
     def __init__(self, name, target, parent=None):
         Dataset.__init__(self, name, data=None, parent=parent)
+        if not is_dataset(target):
+            raise TypeError("A Dataset is expected but %s found", target.__class__)
         self.__target = target
 
     @property

@@ -24,11 +24,11 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/03/2017"
+__date__ = "06/06/2018"
 
 import unittest
 
-from . import test_view
+from ..view import test as test_view
 from . import test_convert
 
 

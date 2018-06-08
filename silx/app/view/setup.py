@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,20 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""Package containing source code of the `silx view` application"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/06/2018"
+__date__ = "06/06/2018"
+
+from numpy.distutils.misc_util import Configuration
+
+
+def configuration(parent_package='', top_path=None):
+    config = Configuration('view', parent_package, top_path)
+    config.add_subpackage('test')
+    return config
+
+
+if __name__ == "__main__":
+    from numpy.distutils.core import setup
+    setup(configuration=configuration)
