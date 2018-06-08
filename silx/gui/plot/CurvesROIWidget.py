@@ -165,7 +165,7 @@ class CurvesROIWidget(qt.QWidget):
     def getPlotWidget(self):
         """Returns the associated PlotWidget or None
 
-        :rtype: Union[PlotWidget,None]
+        :rtype: Union[~silx.gui.plot.PlotWidget,None]
         """
         return None if self._plotRef is None else self._plotRef()
 
