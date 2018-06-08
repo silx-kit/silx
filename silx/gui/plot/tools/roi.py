@@ -1273,7 +1273,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
             # Delete
             delBtn = _DeleteRegionOfInterestToolButton(None, roi)
-            widget = qt.QWidget()
+            widget = qt.QWidget(self)
             layout = qt.QHBoxLayout()
             layout.setContentsMargins(2, 2, 2, 2)
             layout.setSpacing(0)

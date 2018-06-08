@@ -1024,13 +1024,13 @@ class IsoSurfaceAddRemoveWidget(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        addBtn = qt.QToolButton()
+        addBtn = qt.QToolButton(self)
         addBtn.setText('+')
         addBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
         layout.addWidget(addBtn)
         addBtn.clicked.connect(self.__addClicked)
 
-        removeBtn = qt.QToolButton()
+        removeBtn = qt.QToolButton(self)
         removeBtn.setText('-')
         removeBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
         layout.addWidget(removeBtn)

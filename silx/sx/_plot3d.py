@@ -148,7 +148,7 @@ def contour3d(scalars,
     treeView.setSfView(scalarField)  # Attach the parameter tree to the view
 
     # Add the parameter tree to the main window in a dock widget
-    dock = qt.QDockWidget()
+    dock = qt.QDockWidget(scalarField)
     dock.setWindowTitle('Parameters')
     dock.setWidget(treeView)
     scalarField.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
