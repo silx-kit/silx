@@ -31,6 +31,7 @@ import unittest
 
 from . import testROI
 from . import testTools
+from . import testScatterProfileToolBar
 
 
 def suite():
@@ -38,6 +39,7 @@ def suite():
     test_suite.addTests(
         [testROI.suite(),
          testTools.suite(),
+         testScatterProfileToolBar.suite(),
          ])
     return test_suite
 
