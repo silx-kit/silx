@@ -36,37 +36,9 @@ cdef int _get_delaunay_info(DelaunayInfo_t *, obj,
                             int compute_vertex_neighbors) except -1
 
 #
-# N-D geometry
-#
-
-cdef int _barycentric_inside(int ndim, double *transform,
-                             double *x, double *c, double eps) nogil
-
-cdef void _barycentric_coordinate_single(int ndim, double *transform,
-                                         double *x, double *c, int i) nogil
-
-cdef void _barycentric_coordinates(int ndim, double *transform,
-                                   double *x, double *c) nogil
-
-#
 # N+1-D geometry
 #
 
 cdef void _lift_point(DelaunayInfo_t *d, double *x, double *z) nogil
 
 cdef double _distplane(DelaunayInfo_t *d, int isimplex, double *point) nogil
-
-#
-# Finding simplices
-#
-
-cdef int _is_point_fully_outside(DelaunayInfo_t *d, double *x, double eps) nogil
-
-cdef int _find_simplex_bruteforce(DelaunayInfo_t *d, double *c, double *x,
-                                  double eps, double eps_broad) nogil
-
-cdef int _find_simplex_directed(DelaunayInfo_t *d, double *c, double *x,
-                                int *start, double eps, double eps_broad) nogil
-
-cdef int _find_simplex(DelaunayInfo_t *d, double *c, double *x, int *start,
-                       double eps, double eps_broad) nogil
