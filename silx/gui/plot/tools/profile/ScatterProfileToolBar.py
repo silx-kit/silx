@@ -152,8 +152,13 @@ class _InterpolatorInitThread(qt.QThread):
                         # No other processing requested: emit the signal
                         _logger.info("Interpolator initialised in %f s",
                                      time.time() - startTime)
+
+                        # Wrapinterpolator to have same API as scipy's one
+                        def wrapper(points):
+                            return interpolator(*points.T)
+
                         self.sigInterpolatorReady.emit(
-                            (points, values, interpolator))
+                            (points, values, wrapper))
 
     def run_scipy(self):
         """Run the init of the scatter interpolator"""
