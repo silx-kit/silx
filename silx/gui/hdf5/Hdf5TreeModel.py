@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/05/2018"
+__date__ = "11/06/2018"
 
 
 import os
@@ -689,6 +689,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
             raise
+
+    def clear(self):
+        """Remove all the content of the model"""
+        for _ in range(self.rowCount()):
+            qindex = self.index(0, 0, qt.QModelIndex())
+            self.removeIndex(qindex)
 
     def appendFile(self, filename):
         self.insertFile(filename, -1)

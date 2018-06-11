@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/06/2018"
+__date__ = "11/06/2018"
 
 
 import os
@@ -252,6 +252,12 @@ class Viewer(qt.QMainWindow):
 
     def closeEvent(self, event):
         self.__context.saveSettings()
+
+        # Clean up as much as possible Python objects
+        model = self.__customNxdata.model()
+        model.clear()
+        model = self.__treeview.findHdf5TreeModel()
+        model.clear()
 
     def saveSettings(self, settings):
         """Save the window settings to this settings object
