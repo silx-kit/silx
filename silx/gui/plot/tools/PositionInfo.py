@@ -155,6 +155,22 @@ class PositionInfo(qt.QWidget):
             xPixel, yPixel = event['xpixel'], event['ypixel']
             self._updateStatusBar(x, y, xPixel, yPixel)
 
+    def updateInfo(self):
+        """Update displayed information"""
+        plot = self.plot
+        if plot is None:
+            _logger.error("Trying to update PositionInfo "
+                          "while PlotWidget no longer exists")
+            return
+
+        widget = plot.getWidgetHandle()
+        position = widget.mapFromGlobal(qt.QCursor.pos())
+        xPixel, yPixel = position.x(), position.y()
+        dataPos = plot.pixelToData(xPixel, yPixel, check=True)
+        if dataPos is not None:  # Inside plot area
+            x, y = dataPos
+            self._updateStatusBar(x, y, xPixel, yPixel)
+
     def _updateStatusBar(self, x, y, xPixel, yPixel):
         """Update information from the status bar using the definitions.
 
