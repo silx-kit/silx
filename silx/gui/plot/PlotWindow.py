@@ -233,6 +233,8 @@ class PlotWindow(PlotWidget):
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
 
+        self._positionWidget = None
+
         if control or position:
             hbox = qt.QHBoxLayout()
             hbox.setContentsMargins(0, 0, 0, 0)
@@ -255,11 +257,11 @@ class PlotWindow(PlotWidget):
                     converters = position
                 else:
                     converters = None
-                self.positionWidget = tools.PositionInfo(
+                self._positionWidget = tools.PositionInfo(
                     plot=self, converters=converters)
-                self.positionWidget.autoSnapToActiveCurve = True
+                self._positionWidget.autoSnapToActiveCurve = True
 
-                hbox.addWidget(self.positionWidget)
+                hbox.addWidget(self._positionWidget)
 
             hbox.addStretch(1)
             bottomBar = qt.QWidget()
@@ -299,6 +301,18 @@ class PlotWindow(PlotWidget):
         :rtype: QToolBar
         """
         return self._outputToolBar
+
+    @property
+    @deprecated(replacement="getPositionInfoWidget()", since_version="0.8.0")
+    def positionWidget(self):
+        return self.getPositionInfoWidget()
+
+    def getPositionInfoWidget(self):
+        """Returns the widget displaying current cursor position information
+
+        :rtype: ~silx.gui.plot.tools.PositionInfo
+        """
+        return self._positionWidget
 
     def getSelectionMask(self):
         """Return the current mask handled by :attr:`maskToolsDockWidget`.
@@ -804,13 +818,19 @@ class Plot2D(PlotWindow):
     """
 
     def __init__(self, parent=None, backend=None):
+        # List of information to display at the bottom of the plot
+        posInfo = [
+            ('X', lambda x, y: x),
+            ('Y', lambda x, y: y),
+            ('Data', WeakMethodProxy(self._getImageValue))]
+
         super(Plot2D, self).__init__(parent=parent, backend=backend,
                                      resetzoom=True, autoScale=False,
                                      logScale=False, grid=False,
                                      curveStyle=False, colormap=True,
                                      aspectRatio=True, yInverted=True,
                                      copy=True, save=True, print_=True,
-                                     control=False, position=False,
+                                     control=False, position=posInfo,
                                      roi=False, mask=True)
         if parent is None:
             self.setWindowTitle('Plot2D')
@@ -826,18 +846,6 @@ class Plot2D(PlotWindow):
         self.colorbarAction.setVisible(True)
         self.getColorBarWidget().setVisible(True)
 
-        # List of information to display at the bottom of the plot
-        posInfo = [
-            ('X', lambda x, y: x),
-            ('Y', lambda x, y: y),
-            ('Data', WeakMethodProxy(self._getImageValue))]
-
-        self.__positionInfo = tools.PositionInfo(
-            parent=self, plot=self, converters=posInfo)
-        centralWidget = self.centralWidget()
-        layout = centralWidget.layout()
-        layout.addWidget(self.__positionInfo, 1, 0, 1, -1)
-
         # Put colorbar action after colormap action
         actions = self.toolBar().actions()
         for action in actions:
@@ -845,13 +853,6 @@ class Plot2D(PlotWindow):
                 break
 
         self.sigActiveImageChanged.connect(self.__activeImageChanged)
-
-    def getPositionInfoWidget(self):
-        """Returns the widget displaying current cursor position information
-
-        :rtype: ~silx.gui.plot.tools.PositionInfo
-        """
-        return self.__positionInfo
 
     def __activeImageChanged(self, previous, legend):
         """Handle change of active image
@@ -868,7 +869,9 @@ class Plot2D(PlotWindow):
             item = self.getImage(legend)
             item.sigItemChanged.connect(self.__imageChanged)
 
-        self.__positionInfo.updateInfo()
+        positionInfo = self.getPositionInfoWidget()
+        if positionInfo is not None:
+            positionInfo.updateInfo()
 
     def __imageChanged(self, event):
         """Handle update of active image item
@@ -876,7 +879,9 @@ class Plot2D(PlotWindow):
         :param event: Type of changed event
         """
         if event == items.ItemChangedType.DATA:
-            self.__positionInfo.updateInfo()
+            positionInfo = self.getPositionInfoWidget()
+            if positionInfo is not None:
+                positionInfo.updateInfo()
 
     def _getImageValue(self, x, y):
         """Get status bar value of top most image at position (x, y)
