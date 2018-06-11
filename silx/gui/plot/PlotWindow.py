@@ -804,19 +804,13 @@ class Plot2D(PlotWindow):
     """
 
     def __init__(self, parent=None, backend=None):
-        # List of information to display at the bottom of the plot
-        posInfo = [
-            ('X', lambda x, y: x),
-            ('Y', lambda x, y: y),
-            ('Data', WeakMethodProxy(self._getImageValue))]
-
         super(Plot2D, self).__init__(parent=parent, backend=backend,
                                      resetzoom=True, autoScale=False,
                                      logScale=False, grid=False,
                                      curveStyle=False, colormap=True,
                                      aspectRatio=True, yInverted=True,
                                      copy=True, save=True, print_=True,
-                                     control=False, position=posInfo,
+                                     control=False, position=False,
                                      roi=False, mask=True)
         if parent is None:
             self.setWindowTitle('Plot2D')
@@ -832,11 +826,57 @@ class Plot2D(PlotWindow):
         self.colorbarAction.setVisible(True)
         self.getColorBarWidget().setVisible(True)
 
+        # List of information to display at the bottom of the plot
+        posInfo = [
+            ('X', lambda x, y: x),
+            ('Y', lambda x, y: y),
+            ('Data', WeakMethodProxy(self._getImageValue))]
+
+        self.__positionInfo = tools.PositionInfo(
+            parent=self, plot=self, converters=posInfo)
+        centralWidget = self.centralWidget()
+        layout = centralWidget.layout()
+        layout.addWidget(self.__positionInfo, 1, 0, 1, -1)
+
         # Put colorbar action after colormap action
         actions = self.toolBar().actions()
         for action in actions:
             if action is self.getColormapAction():
                 break
+
+        self.sigActiveImageChanged.connect(self.__activeImageChanged)
+
+    def getPositionInfoWidget(self):
+        """Returns the widget displaying current cursor position information
+
+        :rtype: ~silx.gui.plot.tools.PositionInfo
+        """
+        return self.__positionInfo
+
+    def __activeImageChanged(self, previous, legend):
+        """Handle change of active image
+
+        :param Union[str,None] previous: Legend of previous active image
+        :param Union[str,None] legend: Legend of current active image
+        """
+        if previous is not None:
+            item = self.getImage(previous)
+            if item is not None:
+                item.sigItemChanged.disconnect(self.__imageChanged)
+
+        if legend is not None:
+            item = self.getImage(legend)
+            item.sigItemChanged.connect(self.__imageChanged)
+
+        self.__positionInfo.updateInfo()
+
+    def __imageChanged(self, event):
+        """Handle update of active image item
+
+        :param event: Type of changed event
+        """
+        if event == items.ItemChangedType.DATA:
+            self.__positionInfo.updateInfo()
 
     def _getImageValue(self, x, y):
         """Get status bar value of top most image at position (x, y)
