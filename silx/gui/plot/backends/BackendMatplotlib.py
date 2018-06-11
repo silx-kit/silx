@@ -833,15 +833,30 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Data <-> Pixel coordinates conversion
 
+    def _mplQtYAxisCoordConversion(self, y):
+        """Qt origin (top) to/from matplotlib origin (bottom) conversion.
+
+        :rtype: float
+        """
+        height = self.fig.get_window_extent().height
+        return height - y
+
     def dataToPixel(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
 
         pixels = ax.transData.transform_point((x, y))
         xPixel, yPixel = pixels.T
+
+        # Convert from matplotlib origin (bottom) to Qt origin (top)
+        yPixel = self._mplQtYAxisCoordConversion(yPixel)
+
         return xPixel, yPixel
 
     def pixelToData(self, x, y, axis, check):
         ax = self.ax2 if axis == "right" else self.ax
+
+        # Convert from Qt origin (top) to matplotlib origin (bottom)
+        y = self._mplQtYAxisCoordConversion(y)
 
         inv = ax.transData.inverted()
         x, y = inv.transform_point((x, y))
@@ -856,12 +871,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return x, y
 
     def getPlotBoundsInPixels(self):
-        bbox = self.ax.get_window_extent().transformed(
-            self.fig.dpi_scale_trans.inverted())
-        dpi = self.fig.dpi
+        bbox = self.ax.get_window_extent()
         # Warning this is not returning int...
-        return (bbox.bounds[0] * dpi, bbox.bounds[1] * dpi,
-                bbox.bounds[2] * dpi, bbox.bounds[3] * dpi)
+        return (bbox.xmin,
+                self._mplQtYAxisCoordConversion(bbox.ymax),
+                bbox.width,
+                bbox.height)
 
     def setAxesDisplayed(self, displayed):
         """Display or not the axes.
@@ -933,7 +948,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def _onMousePress(self, event):
         self._plot.onMousePress(
-            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
+            event.x, self._mplQtYAxisCoordConversion(event.y),
+            self._MPL_TO_PLOT_BUTTONS[event.button])
 
     def _onMouseMove(self, event):
         if self._graphCursor:
@@ -950,14 +966,17 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                 self._plot._setDirtyPlot(overlayOnly=True)
             # onMouseMove must trigger replot if dirty flag is raised
 
-        self._plot.onMouseMove(event.x, event.y)
+        self._plot.onMouseMove(
+            event.x, self._mplQtYAxisCoordConversion(event.y))
 
     def _onMouseRelease(self, event):
         self._plot.onMouseRelease(
-            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
+            event.x, self._mplQtYAxisCoordConversion(event.y),
+            self._MPL_TO_PLOT_BUTTONS[event.button])
 
     def _onMouseWheel(self, event):
-        self._plot.onMouseWheel(event.x, event.y, event.step)
+        self._plot.onMouseWheel(
+            event.x, self._mplQtYAxisCoordConversion(event.y), event.step)
 
     def leaveEvent(self, event):
         """QWidget event handler"""
@@ -991,7 +1010,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self._picked = []
 
         # Weird way to do an explicit picking: Simulate a button press event
-        mouseEvent = MouseEvent('button_press_event', self, x, y)
+        mouseEvent = MouseEvent('button_press_event',
+                                self, x, self._mplQtYAxisCoordConversion(y))
         cid = self.mpl_connect('pick_event', self._onPick)
         self.fig.pick(mouseEvent)
         self.mpl_disconnect(cid)
