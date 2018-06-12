@@ -233,6 +233,8 @@ class PlotWindow(PlotWidget):
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
 
+        self._positionWidget = None
+
         if control or position:
             hbox = qt.QHBoxLayout()
             hbox.setContentsMargins(0, 0, 0, 0)
@@ -255,11 +257,11 @@ class PlotWindow(PlotWidget):
                     converters = position
                 else:
                     converters = None
-                self.positionWidget = tools.PositionInfo(
+                self._positionWidget = tools.PositionInfo(
                     plot=self, converters=converters)
-                self.positionWidget.autoSnapToActiveCurve = True
+                self._positionWidget.autoSnapToActiveCurve = True
 
-                hbox.addWidget(self.positionWidget)
+                hbox.addWidget(self._positionWidget)
 
             hbox.addStretch(1)
             bottomBar = qt.QWidget()
@@ -299,6 +301,18 @@ class PlotWindow(PlotWidget):
         :rtype: QToolBar
         """
         return self._outputToolBar
+
+    @property
+    @deprecated(replacement="getPositionInfoWidget()", since_version="0.8.0")
+    def positionWidget(self):
+        return self.getPositionInfoWidget()
+
+    def getPositionInfoWidget(self):
+        """Returns the widget displaying current cursor position information
+
+        :rtype: ~silx.gui.plot.tools.PositionInfo
+        """
+        return self._positionWidget
 
     def getSelectionMask(self):
         """Return the current mask handled by :attr:`maskToolsDockWidget`.
@@ -837,6 +851,37 @@ class Plot2D(PlotWindow):
         for action in actions:
             if action is self.getColormapAction():
                 break
+
+        self.sigActiveImageChanged.connect(self.__activeImageChanged)
+
+    def __activeImageChanged(self, previous, legend):
+        """Handle change of active image
+
+        :param Union[str,None] previous: Legend of previous active image
+        :param Union[str,None] legend: Legend of current active image
+        """
+        if previous is not None:
+            item = self.getImage(previous)
+            if item is not None:
+                item.sigItemChanged.disconnect(self.__imageChanged)
+
+        if legend is not None:
+            item = self.getImage(legend)
+            item.sigItemChanged.connect(self.__imageChanged)
+
+        positionInfo = self.getPositionInfoWidget()
+        if positionInfo is not None:
+            positionInfo.updateInfo()
+
+    def __imageChanged(self, event):
+        """Handle update of active image item
+
+        :param event: Type of changed event
+        """
+        if event == items.ItemChangedType.DATA:
+            positionInfo = self.getPositionInfoWidget()
+            if positionInfo is not None:
+                positionInfo.updateInfo()
 
     def _getImageValue(self, x, y):
         """Get status bar value of top most image at position (x, y)

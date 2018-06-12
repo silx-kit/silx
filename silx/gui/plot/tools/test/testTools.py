@@ -29,8 +29,9 @@ __license__ = "MIT"
 __date__ = "02/03/2018"
 
 
-import numpy
+import functools
 import unittest
+import numpy
 
 from silx.utils.testutils import TestLogging
 from silx.gui.test.utils import qWaitForWindowExposedAndActivate
@@ -131,6 +132,21 @@ class TestPositionInfo(PlotWidgetTestCase):
             plot=self.plot,
             converters=[('Exception', raiseException)])
         self._test(positionWidget, ['Exception'], error=2)
+
+    def testUpdate(self):
+        """Test :meth:`PositionInfo.updateInfo`"""
+        calls = []
+
+        def update(calls, x, y):  # Get number of calls
+            calls.append((x, y))
+            return len(calls)
+
+        positionWidget = tools.PositionInfo(
+            plot=self.plot,
+            converters=[('Call count', functools.partial(update, calls))])
+
+        positionWidget.updateInfo()
+        self.assertEqual(len(calls), 1)
 
 
 class TestPlotToolsToolbars(PlotWidgetTestCase):
