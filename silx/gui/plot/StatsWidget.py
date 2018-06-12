@@ -28,7 +28,7 @@ Module containing widgets displaying stats from items of a plot.
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "06/06/2018"
+__date__ = "12/06/2018"
 
 
 import functools
@@ -549,8 +549,21 @@ class StatsTable(TableWidget):
         """Callback used when plotting all the plot items"""
         if kind not in ('curve', 'image', 'scatter', 'histogram'):
             return
+        if kind == 'curve':
+            item = self.plot.getCurve(legend)
+        elif kind == 'image':
+            item = self.plot.getImage(legend)
+        elif kind == 'scatter':
+            item = self.plot.getScatter(legend)
+        elif kind == 'histogram':
+            item = self.plot.getHistogram(legend)
+        else:
+            raise ValueError('kind not managed')
+
         if action == 'add':
-            self._addItem(self.plot.getCurve(legend))
+            if item is None:
+                raise ValueError('Item from legend "%s" do not exists' % legend)
+            self._addItem(item)
         elif action == 'remove':
             self._removeItem(legend, kind)
 
