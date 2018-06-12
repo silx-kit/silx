@@ -503,7 +503,8 @@ class StatsTable(TableWidget):
             elif kind == 'scatter':
                 self.plot._setActiveItem('scatter', legendItem.text())
             elif kind == 'histogram':
-                self.plot.setActiveHistogram(legendItem.text())
+                # active histogram not managed by the plot actually
+                pass
             else:
                 raise ValueError('kind not managed')
         qt.QTableWidget.currentChanged(self, current, previous)
@@ -511,7 +512,8 @@ class StatsTable(TableWidget):
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
         """
 
-        :param bool b: True if we want to only show active item
+        :param bool displayOnlyActItem: True if we want to only show active
+                                        item
         """
         if self._displayOnlyActItem == displayOnlyActItem:
             return
