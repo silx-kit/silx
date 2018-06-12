@@ -944,6 +944,21 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # Add methods
 
+    @staticmethod
+    def _castArrayTo(v):
+        """Returns best floating type to cast the array to.
+
+        :param numpy.ndarray v: Array to cast
+        :rtype: numpy.dtype
+        :raise ValueError: If dtype is not supported
+        """
+        if numpy.issubdtype(v.dtype, numpy.floating):
+            return numpy.float32 if v.itemsize <= 4 else numpy.float64
+        elif numpy.issubdtype(v.dtype, numpy.integer):
+            return numpy.float32 if v.itemsize <= 2 else numpy.float64
+        else:
+            raise ValueError('Unsupported data type')
+
     def addCurve(self, x, y, legend,
                  color, symbol, linewidth, linestyle,
                  yaxis,
@@ -954,14 +969,66 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
-        x = numpy.array(x, dtype=numpy.float64, copy=False, order='C')
-        y = numpy.array(y, dtype=numpy.float64, copy=False, order='C')
+        # Convert input data
+        x = numpy.array(x, copy=False)
+        y = numpy.array(y, copy=False)
+
+        # Check if float32 is enough
+        if (self._castArrayTo(x) is numpy.float32 and
+                self._castArrayTo(y) is numpy.float32):
+            dtype = numpy.float32
+        else:
+            dtype = numpy.float64
+
+        x = numpy.array(x, dtype=dtype, copy=False, order='C')
+        y = numpy.array(y, dtype=dtype, copy=False, order='C')
+
+        # Convert errors to float32
         if xerror is not None:
             xerror = numpy.array(
                 xerror, dtype=numpy.float32, copy=False, order='C')
         if yerror is not None:
             yerror = numpy.array(
                 yerror, dtype=numpy.float32, copy=False, order='C')
+
+        # Handle axes log scale: convert data
+
+        if self._plotFrame.xAxis.isLog:
+            logX = numpy.log10(x)
+
+            if xerror is not None:
+                # Transform xerror so that
+                # log10(x) +/- xerror' = log10(x +/- xerror)
+                if hasattr(xerror, 'shape') and len(xerror.shape) == 2:
+                    xErrorMinus, xErrorPlus = xerror[0], xerror[1]
+                else:
+                    xErrorMinus, xErrorPlus = xerror, xerror
+                xErrorMinus = logX - numpy.log10(x - xErrorMinus)
+                xErrorPlus = numpy.log10(x + xErrorPlus) - logX
+                xerror = numpy.array((xErrorMinus, xErrorPlus),
+                                     dtype=numpy.float32)
+
+            x = logX
+
+        if (yaxis == 'left' and self._plotFrame.yAxis.isLog) or (
+                yaxis == 'right' and self._plotFrame.y2Axis.isLog):
+            logY = numpy.log10(y)
+
+            if yerror is not None:
+                # Transform yerror so that
+                # log10(y) +/- yerror' = log10(y +/- yerror)
+                if hasattr(yerror, 'shape') and len(yerror.shape) == 2:
+                    yErrorMinus, yErrorPlus = yerror[0], yerror[1]
+                else:
+                    yErrorMinus, yErrorPlus = yerror, yerror
+                yErrorMinus = logY - numpy.log10(y - yErrorMinus)
+                yErrorPlus = numpy.log10(y + yErrorPlus) - logY
+                yerror = numpy.array((yErrorMinus, yErrorPlus),
+                                     dtype=numpy.float32)
+
+            y = logY
+
+        # TODO check if need more filtering of error (e.g., clip to positive)
 
         # TODO check and improve this
         if (len(color) == 4 and
