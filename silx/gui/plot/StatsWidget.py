@@ -254,7 +254,7 @@ class StatsTable(TableWidget):
         self._columns = self._columns_index.keys()
         self.setColumnCount(len(self._columns))
 
-        self._updateItemObserve(init=True)
+        self._updateItemObserve()
         self._updateAllStats()
 
     def getStatsHandler(self):
@@ -286,21 +286,16 @@ class StatsTable(TableWidget):
         :rtype: :class:`.PlotWidget`
         """
         if self.plot:
-            self.plot.sigContentChanged.disconnect(self._plotContentChanged)
-            self.plot.sigPlotSignal.disconnect(self._zoomPlotChanged)
+            self._dealWithPlotConnection(create=False)
         self.plot = plot
         self.clear()
         if self.plot:
-            self.plot.sigPlotSignal.connect(self._zoomPlotChanged)
-            self._updateItemObserve(init=True)
+            self._dealWithPlotConnection(create=True)
+            self._updateItemObserve()
 
-    def _updateItemObserve(self, switchItemsDisplayedType=False, init=False):
+    def _updateItemObserve(self):
         if self.plot:
-            if init is False:
-                self._dealWithPlotConnection(create=False)
             self.clear()
-            if switchItemsDisplayedType:
-                self._displayOnlyActItem = not self._displayOnlyActItem
             if self._displayOnlyActItem is True:
                 activeCurve = self.plot.getActiveCurve(just_legend=False)
                 activeScatter = self.plot._getActiveItem(kind='scatter',
@@ -323,30 +318,41 @@ class StatsTable(TableWidget):
                                                  just_legend=False,
                                                  withhidden=True)
                 [self._addItem(histogram) for histogram in histograms]
-                self.plot.sigContentChanged.connect(self._plotContentChanged)
-            self._dealWithPlotConnection(create=True)
 
     def _dealWithPlotConnection(self, create=True):
+        """
+        Manage connection to plot signals
+
+        Note: connection on Item are managed by the _removeItem function
+        """
+        if self.plot is None:
+            return
         if self._displayOnlyActItem:
-            if self.callbackImage is None:
-                self.callbackImage = functools.partial(self._activeItemChanged, 'image')
-                self.callbackScatter = functools.partial(self._activeItemChanged,
-                                                         'scatter')
-                self.callbackCurve = functools.partial(self._activeItemChanged, 'curve')
             if create is True:
+                if self.callbackImage is None:
+                    self.callbackImage = functools.partial(self._activeItemChanged, 'image')
+                    self.callbackScatter = functools.partial(self._activeItemChanged, 'scatter')
+                    self.callbackCurve = functools.partial(self._activeItemChanged, 'curve')
                 self.plot.sigActiveImageChanged.connect(self.callbackImage)
                 self.plot.sigActiveScatterChanged.connect(self.callbackScatter)
                 self.plot.sigActiveCurveChanged.connect(self.callbackCurve)
             else:
-                self.plot.sigActiveImageChanged.disconnect(self.callbackImage)
-                self.plot.sigActiveScatterChanged.disconnect(self.callbackScatter)
-                self.plot.sigActiveCurveChanged.disconnect(self.callbackCurve)
+                if self.callbackImage is not None:
+                    self.plot.sigActiveImageChanged.disconnect(self.callbackImage)
+                    self.plot.sigActiveScatterChanged.disconnect(self.callbackScatter)
+                    self.plot.sigActiveCurveChanged.disconnect(self.callbackCurve)
+                self.callbackImage = None
+                self.callbackScatter = None
+                self.callbackCurve = None
         else:
             if create is True:
                 self.plot.sigContentChanged.connect(self._plotContentChanged)
             else:
                 self.plot.sigContentChanged.disconnect(self._plotContentChanged)
-                # Note: connection on Item arre managed by the _removeItem function
+        if create is True:
+            self.plot.sigPlotSignal.connect(self._zoomPlotChanged)
+        else:
+            self.plot.sigPlotSignal.disconnect(self._zoomPlotChanged)
 
     def clear(self):
         """
@@ -502,13 +508,17 @@ class StatsTable(TableWidget):
                 raise ValueError('kind not managed')
         qt.QTableWidget.currentChanged(self, current, previous)
 
-    def setDisplayOnlyActiveItem(self, b):
+    def setDisplayOnlyActiveItem(self, displayOnlyActItem):
         """
 
         :param bool b: True if we want to only show active item
         """
-        if self._displayOnlyActItem != b:
-            self._updateItemObserve(switchItemsDisplayedType=True)
+        if self._displayOnlyActItem == displayOnlyActItem:
+            return
+        self._displayOnlyActItem = displayOnlyActItem
+        self._dealWithPlotConnection(create=False)
+        self._updateItemObserve()
+        self._dealWithPlotConnection(create=True)
 
     def setStatsOnVisibleData(self, b):
         """
@@ -526,23 +536,7 @@ class StatsTable(TableWidget):
     def _activeItemChanged(self, kind):
         """Callback used when plotting only the active item"""
         assert kind in ('curve', 'image', 'scatter', 'histogram')
-
-        if kind == 'curve':
-            item = self.plot.getActiveCurve(just_legend=False)
-        elif kind == 'image':
-            item = self.plot.getActiveImage(just_legend=False)
-        elif kind == 'scatter':
-            item = self.plot._getActiveItem(kind='scatter', just_legend=False)
-        elif kind == 'histogram':
-            item = self.plot.getActiveHistogram(just_legend=False)
-        else:
-            raise ValueError('kind not managed')
-        if item is not None:
-            if (item.getLegend(), kind) not in self._lgdAndKindToItems:
-                self.clear()
-                self._addItem(item)
-            else:
-                self._updateCurrentStats()
+        self._updateItemObserve()
 
     def _plotContentChanged(self, action, kind, legend):
         """Callback used when plotting all the plot items"""
