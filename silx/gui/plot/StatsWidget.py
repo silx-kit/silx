@@ -511,7 +511,8 @@ class StatsTable(TableWidget):
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
         """
 
-        :param bool b: True if we want to only show active item
+        :param bool displayOnlyActItem: True if we want to only show active
+                                        item
         """
         if self._displayOnlyActItem == displayOnlyActItem:
             return
