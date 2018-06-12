@@ -387,7 +387,7 @@ class StatsTable(TableWidget):
     def _addItem(self, item):
         assert isinstance(item, self.COMPATIBLE_ITEMS)
         if (item.getLegend(), self._getKind(item)) in self._lgdAndKindToItems:
-            self._updateStats(item, self._getKind(item))
+            self._updateStats(item.getLegend(), self._getKind(item))
             return
 
         self.setRowCount(self.rowCount() + 1)
@@ -450,7 +450,7 @@ class StatsTable(TableWidget):
         for lgdAndKind in self._lgdAndKindToItems:
             self._updateStats(lgdAndKind[0], lgdAndKind[1])
 
-    def _updateStats(self, legend, kind, *args, **kwargs):
+    def _updateStats(self, legend, kind, event=None):
         if self._statsHandler is None:
             return
 
@@ -469,7 +469,6 @@ class StatsTable(TableWidget):
         if not item or (item.getLegend(), kind) not in self._lgdAndKindToItems:
             return
 
-        assert (item.getLegend(), kind) in self._lgdAndKindToItems
         assert isinstance(item, self.COMPATIBLE_ITEMS)
 
         statsValDict = self._statsHandler.calculate(item, self.plot,
