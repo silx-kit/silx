@@ -36,11 +36,20 @@ import numpy
 from ...._glutils import gl
 
 
-def buildFillMaskIndices(nIndices):
-    if nIndices <= numpy.iinfo(numpy.uint16).max + 1:
-        dtype = numpy.uint16
-    else:
-        dtype = numpy.uint32
+def buildFillMaskIndices(nIndices, dtype=None):
+    """Returns triangle strip indices for rendering a filled polygon mask
+
+    :param int nIndices: Number of points
+    :param Union[numpy.dtype,None] dtype:
+       If specified the dtype of the returned indices array
+    :return: 1D array of indices constructing a triangle strip
+    :rtype: numpy.ndarray
+    """
+    if dtype is None:
+        if nIndices <= numpy.iinfo(numpy.uint16).max + 1:
+            dtype = numpy.uint16
+        else:
+            dtype = numpy.uint32
 
     lastIndex = nIndices - 1
     splitIndex = lastIndex // 2 + 1
