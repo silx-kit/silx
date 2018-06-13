@@ -969,10 +969,6 @@ class GLPlotCurve2D(object):
     def prepare(self):
         """Rendering preparation: build indices and bounding box vertices"""
         if self.xVboData is None:
-            #minF32 = numpy.finfo(numpy.float32).min
-            #self.xData[numpy.isnan(self.xData)] = minF32
-            #self.yData[numpy.isnan(self.yData)] = minF32
-
             xAttrib, yAttrib, cAttrib, dAttrib = None, None, None, None
             if self.lineStyle in (DASHED, DASHDOT, DOTTED):
                 dists = _distancesFromArrays(self.xData, self.yData)

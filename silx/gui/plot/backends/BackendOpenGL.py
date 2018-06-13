@@ -721,8 +721,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                                 (xCoord, yMax)),
                                                dtype=numpy.float32)
 
-                self._progBase.use()
-
                 gl.glUniform4f(self._progBase.uniforms['color'],
                                *marker['color'])
 
