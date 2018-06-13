@@ -354,7 +354,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._markers = OrderedDict()
         self._items = OrderedDict()
         self._plotContent = PlotDataContent()  # For images and curves
-        self._selectionAreas = OrderedDict()
         self._glGarbageCollector = []
 
         self._plotFrame = GLPlotFrame2D(
@@ -398,7 +397,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         previousMousePosInPixels = self._mousePosInPixels
         self._mousePosInPixels = (xPixel, yPixel) if isCursorInPlot else None
         if (self._crosshairCursor is not None and
-                previousMousePosInPixels != self._crosshairCursor):
+                previousMousePosInPixels != self._mousePosInPixels):
             # Avoid replot when cursor remains outside plot area
             self._plot._setDirtyPlot(overlayOnly=True)
 
@@ -430,14 +429,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # OpenGLWidget API
 
-    @staticmethod
-    def _setBlendFuncGL():
-        # gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-        gl.glBlendFuncSeparate(gl.GL_SRC_ALPHA,
-                               gl.GL_ONE_MINUS_SRC_ALPHA,
-                               gl.GL_ONE,
-                               gl.GL_ONE)
-
     def initializeGL(self):
         gl.testGL()
 
@@ -445,7 +436,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glClearStencil(0)
 
         gl.glEnable(gl.GL_BLEND)
-        self._setBlendFuncGL()
+        # gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+        gl.glBlendFuncSeparate(gl.GL_SRC_ALPHA,
+                               gl.GL_ONE_MINUS_SRC_ALPHA,
+                               gl.GL_ONE,
+                               gl.GL_ONE)
 
         # For lines
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
@@ -777,8 +772,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
     def _renderOverlayGL(self):
-        # Render selection area and crosshair cursor
-        if self._selectionAreas or self._crosshairCursor is not None:
+        # Render crosshair cursor
+        if self._crosshairCursor is not None:
             plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
 
             # Scissor to plot area
@@ -788,35 +783,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             gl.glEnable(gl.GL_SCISSOR_TEST)
 
             self._progBase.use()
-            gl.glUniform2i(self._progBase.uniforms['isLog'],
-                           self._plotFrame.xAxis.isLog,
-                           self._plotFrame.yAxis.isLog)
+            gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
             gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
             posAttrib = self._progBase.attributes['position']
             matrixUnif = self._progBase.uniforms['matrix']
             colorUnif = self._progBase.uniforms['color']
             hatchStepUnif = self._progBase.uniforms['hatchStep']
 
-            # Render selection area in plot area
-            if self._selectionAreas:
-                gl.glViewport(self._plotFrame.margins.left,
-                              self._plotFrame.margins.bottom,
-                              plotWidth, plotHeight)
-
-                gl.glUniformMatrix4fv(
-                    matrixUnif, 1, gl.GL_TRUE,
-                    self._plotFrame.transformedDataProjMat.astype(numpy.float32))
-
-                for shape in self._selectionAreas.values():
-                    if shape.isVideoInverted:
-                        gl.glBlendFunc(gl.GL_ONE_MINUS_DST_COLOR, gl.GL_ZERO)
-
-                    shape.render(posAttrib, colorUnif, hatchStepUnif)
-
-                    if shape.isVideoInverted:
-                        self._setBlendFuncGL()
-
-            # Render crosshair cursor is screen frame but with scissor
+            # Render crosshair cursor in screen frame but with scissor
             if (self._crosshairCursor is not None and
                     self._mousePosInPixels is not None):
                 gl.glViewport(
