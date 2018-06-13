@@ -410,12 +410,21 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         :param bool copy: True (default) to get a copy of the mask.
                           If False, the returned array MUST not be modified.
-        :return: The array of the mask with dimension of the 'active' plot item.
-                 If there is no active image or scatter, an empty array is
-                 returned.
-        :rtype: numpy.ndarray of uint8
+        :return: The mask (as an array of uint8) with dimension of
+                 the 'active' plot item.
+                 If there is no active image or scatter, it returns None.
+        :rtype: Union[numpy.ndarray,None]
         """
-        return self._mask.getMask(copy=copy)
+        mask = self._mask.getMask(copy=copy)
+        return None if mask.size == 0 else mask
+
+    def setSelectionMask(self, mask):
+        """Set the mask: Must be implemented in subclass"""
+        raise NotImplementedError()
+
+    def resetSelectionMask(self):
+        """Reset the mask: Must be implemented in subclass"""
+        raise NotImplementedError()
 
     def multipleMasks(self):
         """Return the current mode of multiple masks support.

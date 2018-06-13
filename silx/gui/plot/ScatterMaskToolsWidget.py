@@ -192,7 +192,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
 
-        :param numpy.ndarray mask: The array to use for the mask.
+        :param numpy.ndarray mask:
+            The array to use for the mask or None to reset the mask.
         :type mask: numpy.ndarray of uint8, C-contiguous.
                     Array of other types are converted.
         :param bool copy: True (the default) to copy the array,
@@ -201,6 +202,10 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                  The mask can be cropped or padded to fit active scatter,
                  the returned shape is that of the scatter data.
         """
+        if mask is None:
+            self.resetSelectionMask()
+            return self._data_scatter.getXData(copy=False).shape
+
         mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
 
         if self._data_scatter.getXData(copy=False).shape == (0,) \
@@ -216,7 +221,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
     def _updatePlotMask(self):
         """Update mask image in plot"""
         mask = self.getSelectionMask(copy=False)
-        if len(mask):
+        if mask is not None:
             self.plot.addScatter(self._data_scatter.getXData(),
                                  self._data_scatter.getYData(),
                                  mask,
@@ -248,7 +253,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         if not self.browseAction.isChecked():
             self.browseAction.trigger()  # Disable drawing tool
 
-        if len(self.getSelectionMask(copy=False)):
+        if self.getSelectionMask(copy=False) is not None:
             self.plot.sigActiveScatterChanged.connect(
                 self._activeScatterChangedAfterCare)
 
@@ -274,7 +279,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
             self._z = activeScatter.getZValue() + 1
             self._data_scatter = activeScatter
-            if self._data_scatter.getXData(copy=False).shape != self.getSelectionMask(copy=False).shape:
+            if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
                 # scatter has not the same size, remove mask and stop listening
                 if self.plot._getItem(kind="scatter", legend=self._maskName):
                     self.plot.remove(self._maskName, kind='scatter')
@@ -310,7 +315,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self._z = activeScatter.getZValue() + 1
             self._data_scatter = activeScatter
             self._mask.setDataItem(self._data_scatter)
-            if self._data_scatter.getXData(copy=False).shape != self.getSelectionMask(copy=False).shape:
+            if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
                 self._mask.reset(self._data_scatter.getXData(copy=False).shape)
                 self._mask.commit()
             else:
