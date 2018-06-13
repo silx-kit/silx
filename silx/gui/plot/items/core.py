@@ -767,7 +767,10 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
                 error = numpy.ravel(error)
 
             # Supports error being scalar, N or 2xN array
-            errorClipped = (value - numpy.atleast_2d(error)[0]) <= 0
+            valueMinusError = value - numpy.atleast_2d(error)[0]
+            errorClipped = numpy.isnan(valueMinusError)
+            mask = numpy.logical_not(errorClipped)
+            errorClipped[mask] = valueMinusError[mask] <= 0
 
             if numpy.any(errorClipped):  # Need filtering
 
