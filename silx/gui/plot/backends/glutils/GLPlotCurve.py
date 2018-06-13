@@ -52,13 +52,36 @@ _MPL_NONES = None, 'None', '', ' '
 """Possible values for None"""
 
 
+def _notNaNSlices(array, length=1):
+    """Returns slices of none NaN values in the array.
+
+    :param numpy.ndarray array: 1D array from which to get slices
+    :param int length: Slices shorter than length gets discarded
+    :return: Array of (start, end) slice indices
+    :rtype: numpy.ndarray
+    """
+    isnan = numpy.isnan(numpy.array(array, copy=False).reshape(-1))
+    notnan = numpy.logical_not(isnan)
+    start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
+    if notnan[0]:
+        start = numpy.append(0, start)
+    end = numpy.where(numpy.logical_and(notnan[:-1], isnan[1:]))[0] + 1
+    if notnan[-1]:
+        end = numpy.append(end, len(array))
+    slices = numpy.transpose((start, end))
+    if length > 1:
+        # discard slices with less than length values
+        slices = slices[numpy.diff(slices, axis=1).ravel() >= length]
+    return slices
+
+
 # fill ########################################################################
 
 class _Fill2D(object):
-    """Object rendering curve filling as a polygon
+    """Object rendering curve filling as polygons
 
-    :param xFillVboData: X coordinates VBO
-    :param yFillVboData: Y coordinates VBO
+    :param numpy.ndarray xData: X coordinates of points
+    :param numpy.ndarray yData: Y coordinates of points
     :param float xMin: The min X value already computed by GLPlotCurve2D.
     :param float yMin: The min Y value already computed by GLPlotCurve2D.
     :param float xMax: The max X value already computed by GLPlotCurve2D.
@@ -68,7 +91,8 @@ class _Fill2D(object):
     :param List[float] offset: Translation of coordinates (ox, oy)
     """
 
-    _VERTEX_SHADER = """
+    _PROGRAM = Program(
+        vertexShader="""
         #version 120
 
         uniform mat4 matrix;
@@ -78,9 +102,8 @@ class _Fill2D(object):
         void main(void) {
             gl_Position = matrix * vec4(xPos, yPos, 0.0, 1.0);
         }
-        """
-
-    _FRAGMENT_SHADER = """
+        """,
+        fragmentShader="""
         #version 120
 
         uniform vec4 color;
@@ -88,38 +111,77 @@ class _Fill2D(object):
         void main(void) {
             gl_FragColor = color;
         }
-        """
+        """,
+        attrib0='xPos')
 
-    _PROGRAM = Program(_VERTEX_SHADER, _FRAGMENT_SHADER, attrib0='xPos')
-
-    def __init__(self, xFillVboData=None, yFillVboData=None,
+    def __init__(self, xData=None, yData=None,
                  xMin=None, yMin=None, xMax=None, yMax=None,
                  color=(0., 0., 0., 1.),
                  scale=(1., 1.), offset=(0., 0.)):
-        self.xFillVboData = xFillVboData
-        self.yFillVboData = yFillVboData
-        self.xMin, self.yMin = xMin, yMin
-        self.xMax, self.yMax = xMax, yMax
+        self.baseline = 1e-32
+        self.xData = xData
+        self.yData = yData
+        self._xFillVboData = None
+        self._yFillVboData = None
         self.color = color
         self.scale = scale
         self.offset = offset
 
-        self._bboxVertices = None
-        self._indices = None
-        self._indicesType = None
+        # Init bounding box vertices
+        yMin, yMax = min(yMin, self.baseline), max(yMax, self.baseline)
+        self._bboxVertices = numpy.array(((xMin, xMin,
+                                           xMax, xMax),
+                                          (yMin, yMax, yMin, yMax)),
+                                         dtype=numpy.float32)
 
     def prepare(self):
         """Rendering preparation: build indices and bounding box vertices"""
-        if self._indices is None:
-            self._indices = buildFillMaskIndices(self.xFillVboData.size)
-            self._indicesType = numpyToGLType(self._indices.dtype)
+        if (self._xFillVboData is None and
+                self.xData is not None and self.yData is not None):
 
-        if self._bboxVertices is None:
-            yMin, yMax = min(self.yMin, 1e-32), max(self.yMax, 1e-32)
-            self._bboxVertices = numpy.array(((self.xMin, self.xMin,
-                                               self.xMax, self.xMax),
-                                              (yMin, yMax, yMin, yMax)),
-                                             dtype=numpy.float32)
+            # Get slices of not NaN values longer than 1 element
+            isnan = numpy.logical_or(numpy.isnan(self.xData),
+                                     numpy.isnan(self.yData))
+            notnan = numpy.logical_not(isnan)
+            start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
+            if notnan[0]:
+                start = numpy.append(0, start)
+            end = numpy.where(numpy.logical_and(notnan[:-1], isnan[1:]))[0] + 1
+            if notnan[-1]:
+                end = numpy.append(end, len(isnan))
+            slices = numpy.transpose((start, end))
+            # discard slices with less than length values
+            slices = slices[numpy.diff(slices, axis=1).reshape(-1) >= 2]
+
+            # Number of points: slice + 2 * leading and trailing points
+            # Twice leading and trailing points to produce degenerated triangles
+            nbPoints = numpy.sum(numpy.diff(slices, axis=1)) + 4 * len(slices)
+            x = numpy.empty((nbPoints,), dtype=numpy.float32)
+            y = numpy.empty((nbPoints,), dtype=numpy.float32)
+
+            offset = 0
+            for start, end in slices:
+                # Duplicate first point for connecting degenerated triangle
+                x[offset:offset+2] = self.xData[start]
+                y[offset:offset+2] = self.baseline
+
+                # 2nd point of the polygon is last point
+                x[offset+2] = self.xData[end-1]
+                y[offset+2] = self.baseline
+
+                # Add all points from the data
+                indices = start + buildFillMaskIndices(end - start)
+
+                x[offset+3:offset+3+len(indices)] = self.xData[indices]
+                y[offset+3:offset+3+len(indices)] = self.yData[indices]
+
+                # Duplicate last point for connecting degenerated triangle
+                x[offset+3+len(indices)] = x[offset+3+len(indices)-1]
+                y[offset+3+len(indices)] = y[offset+3+len(indices)-1]
+
+                offset += len(indices) + 4
+
+            self._xFillVboData, self._yFillVboData = vertexBuffer((x, y))
 
     def render(self, matrix):
         """Perform rendering
@@ -127,6 +189,10 @@ class _Fill2D(object):
         :param numpy.ndarray matrix: 4x4 transform matrix to use
         """
         self.prepare()
+
+        if self._xFillVboData is None:
+            return  # Nothing to display
+
         self._PROGRAM.use()
 
         normalizationMatrix = numpy.array((
@@ -143,10 +209,10 @@ class _Fill2D(object):
         yPosAttrib = self._PROGRAM.attributes['yPos']
 
         gl.glEnableVertexAttribArray(xPosAttrib)
-        self.xFillVboData.setVertexAttrib(xPosAttrib)
+        self._xFillVboData.setVertexAttrib(xPosAttrib)
 
         gl.glEnableVertexAttribArray(yPosAttrib)
-        self.yFillVboData.setVertexAttrib(yPosAttrib)
+        self._yFillVboData.setVertexAttrib(yPosAttrib)
 
         # Prepare fill mask
         gl.glEnable(gl.GL_STENCIL_TEST)
@@ -156,8 +222,7 @@ class _Fill2D(object):
         gl.glColorMask(gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE)
         gl.glDepthMask(gl.GL_FALSE)
 
-        gl.glDrawElements(gl.GL_TRIANGLE_STRIP, self._indices.size,
-                          self._indicesType, self._indices)
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, self._xFillVboData.size)
 
         gl.glStencilFunc(gl.GL_EQUAL, 1, 1)
         # Reset stencil while drawing
@@ -172,6 +237,14 @@ class _Fill2D(object):
         gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, self._bboxVertices[0].size)
 
         gl.glDisable(gl.GL_STENCIL_TEST)
+
+    def discard(self):
+        """Release VBOs"""
+        if self._xFillVboData is not None:
+            self._xFillVboData.vbo.discard()
+
+        self._xFillVboData = None
+        self._yFillVboData = None
 
 
 # line ########################################################################
@@ -905,9 +978,10 @@ class GLPlotCurve2D(object):
             self.yData = yData
 
         if fillColor is not None:
-            self.fill = _Fill2D(color=fillColor,
+            self.fill = _Fill2D(self.xData, self.yData,
                                 xMin=self.xMin, yMin=self.yMin,
                                 xMax=self.xMax, yMax=self.yMax,
+                                color=fillColor,
                                 scale=self.scale,
                                 offset=self.offset)
         else:
@@ -974,56 +1048,24 @@ class GLPlotCurve2D(object):
                 dists = _distancesFromArrays(self.xData, self.yData)
                 if self.colorData is None:
                     xAttrib, yAttrib, dAttrib = vertexBuffer(
-                        (self.xData, self.yData, dists),
-                        prefix=(1, 1, 0), suffix=(1, 1, 0))
+                        (self.xData, self.yData, dists))
                 else:
                     xAttrib, yAttrib, cAttrib, dAttrib = vertexBuffer(
-                        (self.xData, self.yData, self.colorData, dists),
-                        prefix=(1, 1, 0, 0), suffix=(1, 1, 0, 0))
+                        (self.xData, self.yData, self.colorData, dists))
             elif self.colorData is None:
-                xAttrib, yAttrib = vertexBuffer(
-                    (self.xData, self.yData), prefix=(1, 1), suffix=(1, 1))
+                xAttrib, yAttrib = vertexBuffer((self.xData, self.yData))
             else:
                 xAttrib, yAttrib, cAttrib = vertexBuffer(
-                    (self.xData, self.yData, self.colorData),
-                    prefix=(1, 1, 0), suffix=(1, 1, 0))
+                    (self.xData, self.yData, self.colorData))
 
-            # Shrink VBO
-            self.xVboData = xAttrib.copy()
-            self.xVboData.size -= 2
-            self.xVboData.offset += xAttrib.itemsize
-
-            self.yVboData = yAttrib.copy()
-            self.yVboData.size -= 2
-            self.yVboData.offset += yAttrib.itemsize
+            self.xVboData = xAttrib
+            self.yVboData = yAttrib
+            self.distVboData = dAttrib
 
             if cAttrib is not None and self.colorData.dtype.kind == 'u':
                 cAttrib.normalization = True  # Normalize uint to [0, 1]
             self.colorVboData = cAttrib
             self.useColorVboData = cAttrib is not None
-            self.distVboData = dAttrib
-
-            if self.fill is not None:
-                xData = self.xData.reshape(self.xData.size, 1)
-                zero = numpy.array((1e-32,), dtype=self.yData.dtype)
-
-                # Add one point before data: (x0, 0.)
-                xAttrib.vbo.update(xData[0], xAttrib.offset,
-                                   xData[0].itemsize)
-                yAttrib.vbo.update(zero, yAttrib.offset, zero.itemsize)
-
-                # Add one point after data: (xN, 0.)
-                xAttrib.vbo.update(xData[-1],
-                                   xAttrib.offset +
-                                   (xAttrib.size - 1) * xAttrib.itemsize,
-                                   xData[-1].itemsize)
-                yAttrib.vbo.update(zero,
-                                   yAttrib.offset +
-                                   (yAttrib.size - 1) * yAttrib.itemsize,
-                                   zero.itemsize)
-
-                self.fill.xFillVboData = xAttrib
-                self.fill.yFillVboData = yAttrib
 
     def render(self, matrix, isXLog, isYLog):
         """Perform rendering
@@ -1050,6 +1092,8 @@ class GLPlotCurve2D(object):
         self.distVboData = None
 
         self._errorBars.discard()
+        if self.fill is not None:
+            self.fill.discard()
 
     def pick(self, xPickMin, yPickMin, xPickMax, yPickMax):
         """Perform picking on the curve according to its rendering.
