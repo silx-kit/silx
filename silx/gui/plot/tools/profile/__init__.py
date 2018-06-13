@@ -22,27 +22,17 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""This module provides tools to get profiles on plot data.
+
+It provides:
+
+- :class:`ScatterProfileToolBar`: a QToolBar to handle profile on scatter data
+
+"""
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/03/2018"
+__date__ = "07/06/2018"
 
 
-import unittest
-
-from . import testROI
-from . import testTools
-from . import testScatterProfileToolBar
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [testROI.suite(),
-         testTools.suite(),
-         testScatterProfileToolBar.suite(),
-         ])
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+from .ScatterProfileToolBar import ScatterProfileToolBar  # noqa

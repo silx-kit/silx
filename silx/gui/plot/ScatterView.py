@@ -41,6 +41,7 @@ import numpy
 from . import items
 from . import PlotWidget
 from . import tools
+from .tools.profile import ScatterProfileToolBar
 from .ColorBar import ColorBarWidget
 from .ScatterMaskToolsWidget import ScatterMaskToolsWidget
 
@@ -57,7 +58,7 @@ class ScatterView(qt.QMainWindow):
     :param parent: The parent of this widget
     :param backend: The backend to use for the plot (default: matplotlib).
                     See :class:`~silx.gui.plot.PlotWidget` for the list of supported backend.
-    :type backend: Union[str, silx.gui.plot.backends.BackendBase.BackendBase]
+    :type backend: Union[str,~silx.gui.plot.backends.BackendBase.BackendBase]
     """
 
     _SCATTER_LEGEND = ' '
@@ -128,11 +129,14 @@ class ScatterView(qt.QMainWindow):
             parent=self, plot=plot)
         self._scatterToolBar.addAction(self._maskAction)
 
+        self._profileToolBar = ScatterProfileToolBar(parent=self, plot=plot)
+
         self._outputToolBar = tools.OutputToolBar(parent=self, plot=plot)
 
         # Activate shortcuts in PlotWindow widget:
         for toolbar in (self._interactiveModeToolBar,
                         self._scatterToolBar,
+                        self._profileToolBar,
                         self._outputToolBar):
             self.addToolBar(toolbar)
             for action in toolbar.actions():
@@ -205,35 +209,42 @@ class ScatterView(qt.QMainWindow):
     def getPlotWidget(self):
         """Returns the :class:`~silx.gui.plot.PlotWidget` this window is based on.
 
-        :rtype: silx.gui.plot.PlotWidget
+        :rtype: ~silx.gui.plot.PlotWidget
         """
         return self._plot()
 
     def getMaskToolsWidget(self):
         """Returns the widget controlling mask drawing
 
-        :rtype: silx.gui.plot.ScatterMaskToolsWidget
+        :rtype: ~silx.gui.plot.ScatterMaskToolsWidget
         """
         return self._maskToolsWidget
 
     def getInteractiveModeToolBar(self):
         """Returns QToolBar controlling interactive mode.
 
-        :rtype: silx.gui.plot.tools.InteractiveModeToolBar
+        :rtype: ~silx.gui.plot.tools.InteractiveModeToolBar
         """
         return self._interactiveModeToolBar
 
     def getScatterToolBar(self):
         """Returns QToolBar providing scatter plot tools.
 
-        :rtype: silx.gui.plot.tools.ScatterToolBar
+        :rtype: ~silx.gui.plot.tools.ScatterToolBar
         """
         return self._scatterToolBar
+
+    def getScatterProfileToolBar(self):
+        """Returns QToolBar providing scatter profile tools.
+
+        :rtype: ~silx.gui.plot.tools.profile.ScatterProfileToolBar
+        """
+        return self._profileToolBar
 
     def getOutputToolBar(self):
         """Returns QToolBar containing save, copy and print actions
 
-        :rtype: silx.gui.plot.tools.OutputToolBar
+        :rtype: ~silx.gui.plot.tools.OutputToolBar
         """
         return self._outputToolBar
 
@@ -241,7 +252,7 @@ class ScatterView(qt.QMainWindow):
         """Set the colormap for the displayed scatter and the
         default plot colormap.
 
-        :param silx.gui.plot.Colormap.Colormap colormap:
+        :param ~silx.gui.colors.Colormap colormap:
             The description of the colormap.
         """
         self.getScatterItem().setColormap(colormap)
@@ -252,7 +263,7 @@ class ScatterView(qt.QMainWindow):
         """Return the :class:`.Colormap` in use.
 
         :return: Colormap currently in use
-        :rtype: silx.gui.plot.Colormap.Colormap
+        :rtype: ~silx.gui.plot.Colormap.Colormap
         """
         self.getScatterItem().getColormap()
 

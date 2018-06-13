@@ -86,7 +86,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.assertEqual(manager.getRegionOfInterests(), ())
 
                 finishListener = SignalListener()
-                manager.sigInteractionModeFinished.connect(finishListener)
+                manager.sigInteractiveModeFinished.connect(finishListener)
 
                 changedListener = SignalListener()
                 manager.sigRegionOfInterestChanged.connect(changedListener)
