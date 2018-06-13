@@ -39,10 +39,11 @@ Main plot widgets:
 
 Classes describing plot content:
 
+- :class:`~silx.gui.colors.Colormap`
+
 .. toctree::
    :maxdepth: 2
 
-   colormap.rst
    items.rst
 
 Additionnal plot tool widgets:

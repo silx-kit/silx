@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,7 @@ class Stats(OrderedDict):
     be apply.
     Min and max are also stored because they can be used several time.
 
-    :param list: statlist list of the :class:`Stat` object to be computed.
+    :param List statslist: List of the :class:`Stat` object to be computed.
     """
     def __init__(self, statslist=None):
         OrderedDict.__init__(self)
@@ -279,7 +279,7 @@ class StatBase(object):
     :param str name: the name of the statistic. Must be unique.
     :param compatibleKinds: the kind of items (curve, scatter...) for which
                             the statistic apply.
-    :rtype: tuple or list
+    :rtype: List or tuple
     """
     def __init__(self, name, compatibleKinds=BASIC_COMPATIBLE_KINDS, description=None):
         self.name = name
