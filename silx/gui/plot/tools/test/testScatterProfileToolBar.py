@@ -59,15 +59,9 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         del self.plot
         super(TestScatterProfileToolBar, self).tearDown()
 
-    def test(self):
-        """Test ScatterProfileToolBar"""
+    def testNoProfile(self):
+        """Test ScatterProfileToolBar without profile"""
         self.assertEqual(self.profile.getPlotWidget(), self.plot)
-
-        roiManager = weakref.proxy(self.profile._getRoiManager())
-
-        nPoints = 128
-        self.profile.setNPoints(nPoints)
-        self.assertEqual(self.profile.getNPoints(), nPoints)
 
         # Add a scatter plot
         self.plot.addScatter(
@@ -79,15 +73,31 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.assertIsNone(self.profile.getProfileValues())
         self.assertIsNone(self.profile.getProfilePoints())
 
+    def testHorizontalProfile(self):
+        """Test ScatterProfileToolBar horizontal profile"""
+        nPoints = 8
+        self.profile.setNPoints(nPoints)
+        self.assertEqual(self.profile.getNPoints(), nPoints)
+
+        # Add a scatter plot
+        self.plot.addScatter(
+            x=(0., 1., 1., 0.), y=(0., 0., 1., 1.), value=(0., 1., 2., 3.))
+        self.plot.resetZoom(dataMargins=(.1, .1, .1, .1))
+        self.qapp.processEvents()
+
         # Activate Horizontal profile
         hlineAction = self.profile.actions()[0]
         hlineAction.trigger()
         self.qapp.processEvents()
 
         # Set a ROI profile
-        roiManager.createRegionOfInterest(kind='hline',
-                                          points=((0., 0.5), (0., 0.5)))
-        self.qWait(200)  # Wait for async interpolator init
+        self.profile._getRoiManager().createRegionOfInterest(
+            kind='hline', points=((0., 0.5), (0., 0.5)))
+        # Wait for async interpolator init
+        for i in range(10):
+            self.qWait(200)
+            if not self.profile.hasPendingOperations():
+                break
 
         self.assertIsNotNone(self.profile.getProfileValues())
         points = self.profile.getProfilePoints()
@@ -107,15 +117,32 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.assertIsNone(self.profile.getProfilePoints())
         self.assertEqual(self.profile.getProfileTitle(), '')
 
+    def testVerticalProfile(self):
+        """Test ScatterProfileToolBar vertical profile"""
+        nPoints = 8
+        self.profile.setNPoints(nPoints)
+        self.assertEqual(self.profile.getNPoints(), nPoints)
+
+        # Add a scatter plot
+        self.plot.addScatter(
+            x=(0., 1., 1., 0.), y=(0., 0., 1., 1.), value=(0., 1., 2., 3.))
+        self.plot.resetZoom(dataMargins=(.1, .1, .1, .1))
+        self.qapp.processEvents()
+
         # Activate vertical profile
         vlineAction = self.profile.actions()[1]
         vlineAction.trigger()
         self.qapp.processEvents()
 
         # Set a ROI profile
-        roiManager.createRegionOfInterest(kind='vline',
-                                          points=((0.5, 0.), (0.5, 1.)))
-        self.qWait(200)  # Wait for async init of interpolator
+        self.profile._getRoiManager().createRegionOfInterest(
+            kind='vline', points=((0.5, 0.), (0.5, 1.)))
+
+        # Wait for async interpolator init
+        for i in range(10):
+            self.qWait(200)
+            if not self.profile.hasPendingOperations():
+                break
 
         self.assertIsNotNone(self.profile.getProfileValues())
         points = self.profile.getProfilePoints()
@@ -136,8 +163,15 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
 
         # Clear the plot
         self.plot.clear()
+        self.qapp.processEvents()
         self.assertIsNone(self.profile.getProfileValues())
         self.assertIsNone(self.profile.getProfilePoints())
+
+    def testLineProfile(self):
+        """Test ScatterProfileToolBar line profile"""
+        nPoints = 8
+        self.profile.setNPoints(nPoints)
+        self.assertEqual(self.profile.getNPoints(), nPoints)
 
         # Activate line profile
         lineAction = self.profile.actions()[2]
@@ -151,9 +185,14 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Set a ROI profile
-        roiManager.createRegionOfInterest(kind='line',
-                                          points=((0., 0.), (1., 1.)))
-        self.qWait(200)  # Wait for async interpolator init
+        self.profile._getRoiManager().createRegionOfInterest(
+            kind='line', points=((0., 0.), (1., 1.)))
+
+        # Wait for async interpolator init
+        for i in range(10):
+            self.qWait(200)
+            if not self.profile.hasPendingOperations():
+                break
 
         self.assertIsNotNone(self.profile.getProfileValues())
         points = self.profile.getProfilePoints()
