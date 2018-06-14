@@ -344,6 +344,9 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         self.__interpolatorCache = None if interpolator is None else data
         self.updateProfile()
 
+    def hasPendingOperations(self):
+        return self.__initThread.isRunning()
+
     # Number of points
 
     def getNPoints(self):
@@ -376,7 +379,7 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         :return: Title to use
         :rtype: str
         """
-        if self.__initThread.isRunning():
+        if self.hasPendingOperations():
             return 'Pre-processing data...'
 
         else:

@@ -96,7 +96,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         # Wait for async interpolator init
         for i in range(10):
             self.qWait(200)
-            if self.profile.getProfileValues(copy=False) is not None:
+            if not self.profile.hasPendingOperations():
                 break
 
         self.assertIsNotNone(self.profile.getProfileValues())
@@ -141,7 +141,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         # Wait for async interpolator init
         for i in range(10):
             self.qWait(200)
-            if self.profile.getProfileValues(copy=False) is not None:
+            if not self.profile.hasPendingOperations():
                 break
 
         self.assertIsNotNone(self.profile.getProfileValues())
@@ -191,7 +191,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         # Wait for async interpolator init
         for i in range(10):
             self.qWait(200)
-            if self.profile.getProfileValues(copy=False) is not None:
+            if not self.profile.hasPendingOperations():
                 break
 
         self.assertIsNotNone(self.profile.getProfileValues())
