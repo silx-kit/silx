@@ -1346,6 +1346,16 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         else:
                             yPickMin, yPickMax = yPick1, yPick0
 
+                        # Apply log scale if axis is log
+                        if self._plotFrame.xAxis.isLog:
+                            xPickMin = numpy.log10(xPickMin)
+                            xPickMax = numpy.log10(xPickMax)
+
+                        if (yAxis == 'left' and self._plotFrame.yAxis.isLog) or (
+                                yAxis == 'right' and self._plotFrame.y2Axis.isLog):
+                            yPickMin = numpy.log10(yPickMin)
+                            yPickMax = numpy.log10(yPickMax)
+
                         pickedIndices = item.pick(xPickMin, yPickMin,
                                                   xPickMax, yPickMax)
                         if pickedIndices:
