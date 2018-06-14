@@ -153,7 +153,7 @@ class _InterpolatorInitThread(qt.QThread):
                         _logger.info("Interpolator initialised in %f s",
                                      time.time() - startTime)
 
-                        # Wrapinterpolator to have same API as scipy's one
+                        # Wrap interpolator to have same API as scipy's one
                         def wrapper(points):
                             return interpolator(*points.T)
 
