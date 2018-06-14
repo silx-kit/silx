@@ -61,8 +61,6 @@ class _InterpolatorInitThread(qt.QThread):
 
     This works in greedy mode in that the signal is only emitted
     when no other request is pending
-
-    :param QObject parent: See QObject
     """
 
     sigInterpolatorReady = qt.Signal(object)
@@ -71,11 +69,31 @@ class _InterpolatorInitThread(qt.QThread):
     It provides a 3-tuple (points, values, interpolator)
     """
 
-    def __init__(self, parent=None):
-        super(_InterpolatorInitThread, self).__init__(parent)
+    _RUNNING_THREADS_TO_DELETE = []
+    """Store reference of no more used threads but still running"""
+
+    def __init__(self):
+        super(_InterpolatorInitThread, self).__init__()
         self._lock = threading.RLock()
         self._pendingData = None
         self._firstFallbackRun = True
+
+    def discard(self, obj=None):
+        """Wait for pending thread to complete and delete then
+
+        Connect this to the destroyed signal of widget using this thread
+        """
+        if self.isRunning():
+            self.cancel()
+            self._RUNNING_THREADS_TO_DELETE.append(self)  # Keep a reference
+            self.finished.connect(self.__finished)
+
+    def __finished(self):
+        """Handle finished signal of threads to delete"""
+        try:
+            self._RUNNING_THREADS_TO_DELETE.remove(self)
+        except ValueError:
+            _logger.warning('Finished thread no longer in reference list')
 
     def request(self, points, values):
         """Request new initialisation of interpolator
@@ -218,7 +236,8 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         self.__interpolator = None
         self.__interpolatorCache = None  # points, values, interpolator
 
-        self.__initThread = _InterpolatorInitThread(self)
+        self.__initThread = _InterpolatorInitThread()
+        self.destroyed.connect(self.__initThread.discard)
         self.__initThread.sigInterpolatorReady.connect(
             self.__interpolatorReady)
 
