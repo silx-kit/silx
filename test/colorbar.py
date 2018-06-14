@@ -219,7 +219,7 @@ class _ColormapEditor(qt.QWidget):
         self._buildNorm()
         self.layout().addWidget(self._qgbNorm)
 
-        spacer = qt.QWidget()
+        spacer = qt.QWidget(self)
         spacer.setSizePolicy(qt.QSizePolicy.Minimum,
                              qt.QSizePolicy.Expanding)
         self.layout().addWidget(spacer)

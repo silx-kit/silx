@@ -162,7 +162,7 @@ class Viewer(qt.QMainWindow):
         treeView.addAction(action)
         self.__collapseAllAction = action
 
-        widget = qt.QWidget()
+        widget = qt.QWidget(self)
         layout = qt.QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -229,7 +229,7 @@ class Viewer(qt.QMainWindow):
         toolbar.setIconSize(qt.QSize(16, 16))
         toolbar.setStyleSheet("QToolBar { border: 0px }")
 
-        widget = qt.QWidget()
+        widget = qt.QWidget(self)
         layout = qt.QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)

@@ -229,7 +229,7 @@ class PlotWindow(PlotWidget):
         gridLayout.addWidget(self._colorbar, 0, 1)
         gridLayout.setRowStretch(0, 1)
         gridLayout.setColumnStretch(0, 1)
-        centralWidget = qt.QWidget()
+        centralWidget = qt.QWidget(self)
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
 
@@ -264,7 +264,7 @@ class PlotWindow(PlotWidget):
                 hbox.addWidget(self._positionWidget)
 
             hbox.addStretch(1)
-            bottomBar = qt.QWidget()
+            bottomBar = qt.QWidget(centralWidget)
             bottomBar.setLayout(hbox)
 
             gridLayout.addWidget(bottomBar, 1, 0, 1, -1)

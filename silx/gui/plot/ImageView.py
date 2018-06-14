@@ -360,7 +360,7 @@ class ImageView(PlotWindow):
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        centralWidget = qt.QWidget()
+        centralWidget = qt.QWidget(self)
         centralWidget.setLayout(layout)
         self.setCentralWidget(centralWidget)
 

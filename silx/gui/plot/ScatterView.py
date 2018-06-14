@@ -106,7 +106,7 @@ class ScatterView(qt.QMainWindow):
         gridLayout.addWidget(self._positionInfo, 1, 0, 1, -1)
         gridLayout.setRowStretch(0, 1)
         gridLayout.setColumnStretch(0, 1)
-        centralWidget = qt.QWidget()
+        centralWidget = qt.QWidget(self)
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
 
