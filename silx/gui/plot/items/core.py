@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "14/06/2018"
 
 import collections
 from copy import deepcopy
@@ -409,7 +409,7 @@ class ColormapMixIn(ItemMixInBase):
     def setColormap(self, colormap):
         """Set the colormap of this image
 
-        :param silx.gui.plot.Colormap.Colormap colormap: colormap description
+        :param silx.gui.colors.Colormap colormap: colormap description
         """
         if isinstance(colormap, dict):
             colormap = Colormap._fromDict(colormap)
