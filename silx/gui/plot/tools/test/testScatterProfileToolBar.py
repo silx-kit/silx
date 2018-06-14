@@ -65,7 +65,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
 
         roiManager = weakref.proxy(self.profile._getRoiManager())
 
-        nPoints = 128
+        nPoints = 8
         self.profile.setNPoints(nPoints)
         self.assertEqual(self.profile.getNPoints(), nPoints)
 
@@ -87,7 +87,11 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         # Set a ROI profile
         roiManager.createRegionOfInterest(kind='hline',
                                           points=((0., 0.5), (0., 0.5)))
-        self.qWait(200)  # Wait for async interpolator init
+        # Wait for async interpolator init
+        for i in range(10):
+            self.qWait(200)
+            if self.profile.getProfileValues(copy=False) is not None:
+                break
 
         self.assertIsNotNone(self.profile.getProfileValues())
         points = self.profile.getProfilePoints()
@@ -115,7 +119,11 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         # Set a ROI profile
         roiManager.createRegionOfInterest(kind='vline',
                                           points=((0.5, 0.), (0.5, 1.)))
-        self.qWait(200)  # Wait for async init of interpolator
+        # Wait for async interpolator init
+        for i in range(10):
+            self.qWait(200)
+            if self.profile.getProfileValues(copy=False) is not None:
+                break
 
         self.assertIsNotNone(self.profile.getProfileValues())
         points = self.profile.getProfilePoints()
@@ -153,7 +161,11 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         # Set a ROI profile
         roiManager.createRegionOfInterest(kind='line',
                                           points=((0., 0.), (1., 1.)))
-        self.qWait(200)  # Wait for async interpolator init
+        # Wait for async interpolator init
+        for i in range(10):
+            self.qWait(200)
+            if self.profile.getProfileValues(copy=False) is not None:
+                break
 
         self.assertIsNotNone(self.profile.getProfileValues())
         points = self.profile.getProfilePoints()
