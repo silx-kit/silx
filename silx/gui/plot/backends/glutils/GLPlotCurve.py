@@ -1112,8 +1112,6 @@ class GLPlotCurve2D(object):
         if (self.marker is None and self.lineStyle is None) or \
                 self.xMin > xPickMax or xPickMin > self.xMax or \
                 self.yMin > yPickMax or yPickMin > self.yMax:
-            # Note: With log scale the bounding box is too large if
-            # some data <= 0.
             return None
 
         # Normalize picking bounds
@@ -1130,12 +1128,16 @@ class GLPlotCurve2D(object):
             with warnings.catch_warnings():  # Ignore NaN comparison warnings
                 warnings.simplefilter('ignore', category=RuntimeWarning)
                 codes = ((self.yData > yPickMax) << 3) | \
-                        ((self.yData < yPickMin) << 2) | \
-                        ((self.xData > xPickMax) << 1) | \
-                        (self.xData < xPickMin)
+                    ((self.yData < yPickMin) << 2) | \
+                    ((self.xData > xPickMax) << 1) | \
+                    (self.xData < xPickMin)
+
+            notNaN = numpy.logical_not(numpy.logical_or(
+                numpy.isnan(self.xData), numpy.isnan(self.yData)))
 
             # Add all points that are inside the picking area
-            indices = numpy.nonzero(codes == 0)[0].tolist()
+            indices = numpy.nonzero(
+                numpy.logical_and(codes == 0, notNaN))[0].tolist()
 
             # Segment that might cross the area with no end point inside it
             segToTestIdx = numpy.nonzero((codes[:-1] != 0) &
