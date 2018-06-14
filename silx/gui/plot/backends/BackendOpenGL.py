@@ -982,8 +982,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             x = logX
 
-        if (yaxis == 'left' and self._plotFrame.yAxis.isLog) or (
-                yaxis == 'right' and self._plotFrame.y2Axis.isLog):
+        isYLog = (yaxis == 'left' and self._plotFrame.yAxis.isLog) or (
+            yaxis == 'right' and self._plotFrame.y2Axis.isLog)
+
+        if isYLog:
             logY = numpy.log10(y)
 
             if yerror is not None:
@@ -1034,7 +1036,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               marker=symbol,
                               markerColor=color,
                               markerSize=symbolsize,
-                              fillColor=color if fill else None)
+                              fillColor=color if fill else None,
+                              isYLog=isYLog)
         curve.info = {
             'legend': legend,
             'zOrder': z,

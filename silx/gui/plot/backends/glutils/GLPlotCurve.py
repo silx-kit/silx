@@ -42,7 +42,7 @@ from silx.math.combo import min_max
 
 from ...._glutils import gl
 from ...._glutils import numpyToGLType, Program, vertexBuffer
-from .GLSupport import buildFillMaskIndices
+from .GLSupport import buildFillMaskIndices, mat4Identity
 
 
 _logger = logging.getLogger(__name__)
@@ -82,10 +82,8 @@ class _Fill2D(object):
 
     :param numpy.ndarray xData: X coordinates of points
     :param numpy.ndarray yData: Y coordinates of points
-    :param float xMin: The min X value already computed by GLPlotCurve2D.
-    :param float yMin: The min Y value already computed by GLPlotCurve2D.
-    :param float xMax: The max X value already computed by GLPlotCurve2D.
-    :param float yMax: The max Y value already computed by GLPlotCurve2D.
+    :param float baseline: Y value of the 'bottom' of the fill.
+        0 for linear Y scale, -38 for log Y scale
     :param List[float] color: RGBA color as 4 float in [0, 1]
     :param List[float] scale: Scaling of coordinates (sx, sy)
     :param List[float] offset: Translation of coordinates (ox, oy)
@@ -116,9 +114,9 @@ class _Fill2D(object):
 
     def __init__(self, xData=None, yData=None,
                  xMin=None, yMin=None, xMax=None, yMax=None,
+                 baseline=0,
                  color=(0., 0., 0., 1.),
                  scale=(1., 1.), offset=(0., 0.)):
-        self.baseline = 1e-32
         self.xData = xData
         self.yData = yData
         self._xFillVboData = None
@@ -127,12 +125,8 @@ class _Fill2D(object):
         self.scale = scale
         self.offset = offset
 
-        # Init bounding box vertices
-        yMin, yMax = min(yMin, self.baseline), max(yMax, self.baseline)
-        self._bboxVertices = numpy.array(((xMin, xMin,
-                                           xMax, xMax),
-                                          (yMin, yMax, yMin, yMax)),
-                                         dtype=numpy.float32)
+        # Normalize baseline
+        self.baseline = (baseline - self.offset[1]) / self.scale[1]
 
     def prepare(self):
         """Rendering preparation: build indices and bounding box vertices"""
@@ -156,32 +150,28 @@ class _Fill2D(object):
             # Number of points: slice + 2 * leading and trailing points
             # Twice leading and trailing points to produce degenerated triangles
             nbPoints = numpy.sum(numpy.diff(slices, axis=1)) + 4 * len(slices)
-            x = numpy.empty((nbPoints,), dtype=numpy.float32)
-            y = numpy.empty((nbPoints,), dtype=numpy.float32)
+            points = numpy.empty((nbPoints, 2), dtype=numpy.float32)
 
             offset = 0
             for start, end in slices:
                 # Duplicate first point for connecting degenerated triangle
-                x[offset:offset+2] = self.xData[start]
-                y[offset:offset+2] = self.baseline
+                points[offset:offset+2] = self.xData[start], self.baseline
 
                 # 2nd point of the polygon is last point
-                x[offset+2] = self.xData[end-1]
-                y[offset+2] = self.baseline
+                points[offset+2] = self.xData[end-1], self.baseline
 
                 # Add all points from the data
                 indices = start + buildFillMaskIndices(end - start)
 
-                x[offset+3:offset+3+len(indices)] = self.xData[indices]
-                y[offset+3:offset+3+len(indices)] = self.yData[indices]
+                points[offset+3:offset+3+len(indices), 0] = self.xData[indices]
+                points[offset+3:offset+3+len(indices), 1] = self.yData[indices]
 
                 # Duplicate last point for connecting degenerated triangle
-                x[offset+3+len(indices)] = x[offset+3+len(indices)-1]
-                y[offset+3+len(indices)] = y[offset+3+len(indices)-1]
+                points[offset+3+len(indices)] = points[offset+3+len(indices)-1]
 
                 offset += len(indices) + 4
 
-            self._xFillVboData, self._yFillVboData = vertexBuffer((x, y))
+            self._xFillVboData, self._yFillVboData = vertexBuffer(points.T)
 
     def render(self, matrix):
         """Perform rendering
@@ -200,8 +190,9 @@ class _Fill2D(object):
             (0., self.scale[1], 0., self.offset[1]),
             (0., 0., 1., 0.),
             (0., 0., 0., 1.)), dtype=numpy.float64)
-        matrix = numpy.dot(matrix, normalizationMatrix).astype(numpy.float32)
-        gl.glUniformMatrix4fv(self._PROGRAM.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
+        gl.glUniformMatrix4fv(
+            self._PROGRAM.uniforms['matrix'], 1, gl.GL_TRUE,
+            numpy.dot(matrix, normalizationMatrix).astype(numpy.float32))
 
         gl.glUniform4f(self._PROGRAM.uniforms['color'], *self.color)
 
@@ -230,11 +221,19 @@ class _Fill2D(object):
         gl.glColorMask(gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
         gl.glDepthMask(gl.GL_TRUE)
 
-        gl.glVertexAttribPointer(xPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
-                                 self._bboxVertices[0])
-        gl.glVertexAttribPointer(yPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
-                                 self._bboxVertices[1])
-        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, self._bboxVertices[0].size)
+        # Draw directly in NDC
+        gl.glUniformMatrix4fv(self._PROGRAM.uniforms['matrix'], 1, gl.GL_TRUE,
+                              mat4Identity().astype(numpy.float32))
+
+        # NDC vertices
+        gl.glVertexAttribPointer(
+            xPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
+            numpy.array((-1., -1., 1., 1.), dtype=numpy.float32))
+        gl.glVertexAttribPointer(
+            yPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
+            numpy.array((-1., 1., -1., 1.), dtype=numpy.float32))
+
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4)
 
         gl.glDisable(gl.GL_STENCIL_TEST)
 
@@ -923,7 +922,8 @@ class GLPlotCurve2D(object):
                  marker=SQUARE,
                  markerColor=(0., 0., 0., 1.),
                  markerSize=7,
-                 fillColor=None):
+                 fillColor=None,
+                 isYLog=False):
 
         self.colorData = colorData
 
@@ -978,9 +978,9 @@ class GLPlotCurve2D(object):
             self.yData = yData
 
         if fillColor is not None:
+            # Use different baseline depending of Y log scale
             self.fill = _Fill2D(self.xData, self.yData,
-                                xMin=self.xMin, yMin=self.yMin,
-                                xMax=self.xMax, yMax=self.yMax,
+                                baseline=-38 if isYLog else 0,
                                 color=fillColor,
                                 scale=self.scale,
                                 offset=self.offset)
