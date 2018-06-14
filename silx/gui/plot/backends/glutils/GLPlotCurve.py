@@ -35,13 +35,14 @@ __date__ = "03/04/2017"
 
 import math
 import logging
+import warnings
 
 import numpy
 
 from silx.math.combo import min_max
 
 from ...._glutils import gl
-from ...._glutils import numpyToGLType, Program, vertexBuffer
+from ...._glutils import Program, vertexBuffer
 from .GLSupport import buildFillMaskIndices, mat4Identity
 
 
@@ -1126,10 +1127,12 @@ class GLPlotCurve2D(object):
 
         if self.lineStyle is not None:
             # Using Cohen-Sutherland algorithm for line clipping
-            codes = ((self.yData > yPickMax) << 3) | \
-                    ((self.yData < yPickMin) << 2) | \
-                    ((self.xData > xPickMax) << 1) | \
-                    (self.xData < xPickMin)
+            with warnings.catch_warnings():  # Ignore NaN comparison warnings
+                warnings.simplefilter('ignore', category=RuntimeWarning)
+                codes = ((self.yData > yPickMax) << 3) | \
+                        ((self.yData < yPickMin) << 2) | \
+                        ((self.xData > xPickMax) << 1) | \
+                        (self.xData < xPickMin)
 
             # Add all points that are inside the picking area
             indices = numpy.nonzero(codes == 0)[0].tolist()
@@ -1178,9 +1181,11 @@ class GLPlotCurve2D(object):
             indices.sort()
 
         else:
-            indices = numpy.nonzero((self.xData >= xPickMin) &
-                                    (self.xData <= xPickMax) &
-                                    (self.yData >= yPickMin) &
-                                    (self.yData <= yPickMax))[0].tolist()
+            with warnings.catch_warnings():  # Ignore NaN comparison warnings
+                warnings.simplefilter('ignore', category=RuntimeWarning)
+                indices = numpy.nonzero((self.xData >= xPickMin) &
+                                        (self.xData <= xPickMax) &
+                                        (self.yData >= yPickMin) &
+                                        (self.yData <= yPickMax))[0].tolist()
 
         return indices
