@@ -643,9 +643,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
 
-        isXLog = self._plotFrame.xAxis.isLog
-        isYLog = self._plotFrame.yAxis.isLog
-
         # Render in plot area
         gl.glScissor(self._plotFrame.margins.left,
                      self._plotFrame.margins.bottom,
@@ -659,7 +656,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glUniformMatrix4fv(
             self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
             self.matScreenProj.astype(numpy.float32))
-        gl.glUniform2i(self._progBase.uniforms['isLog'], isXLog, isYLog)
+        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
         gl.glUniform1i(self._progBase.uniforms['hatchStep'], 0)
         gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
         posAttrib = self._progBase.attributes['position']
@@ -670,10 +667,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         for marker in self._markers.values():
             xCoord, yCoord = marker['x'], marker['y']
 
-            if ((isXLog and xCoord is not None and
-                    xCoord < FLOAT32_MINPOS) or
-                    (isYLog and yCoord is not None and
-                     yCoord < FLOAT32_MINPOS)):
+            if ((self._plotFrame.xAxis.isLog and
+                    xCoord is not None and
+                    xCoord <= 0) or
+                    (self._plotFrame.yAxis.isLog and
+                    yCoord is not None and
+                    yCoord <= 0)):
                 # Do not render markers with negative coords on log axis
                 continue
 
@@ -756,7 +755,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     marker=marker['symbol'],
                     markerColor=marker['color'],
                     markerSize=11)
-                markerCurve.render(self.matScreenProj, isXLog, isYLog)
+                markerCurve.render(self.matScreenProj, False, False)
                 markerCurve.discard()
 
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
