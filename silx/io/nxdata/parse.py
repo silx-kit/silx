@@ -102,6 +102,9 @@ class NXdata(object):
         """Signal long name, as specified in the @long_name attribute of the
         signal dataset. If not specified, the dataset name is used."""
 
+        self.signal_size = None
+        """Number of data values in the signal array."""
+
         self.signal_ndim = None
         self.signal_is_0d = None
         self.signal_is_1d = None
@@ -128,6 +131,13 @@ class NXdata(object):
             # ndim will be available in very recent h5py versions only
             self.signal_ndim = getattr(self.signal, "ndim",
                                        len(self.signal.shape))
+            # old h5py (< 2011) does not provide size
+            if hasattr(self.signal, "size"):
+                self.signal_size = self.signal.size
+            elif hasattr(self.signal, "shape"):
+                self.signal_size = numpy.prod(self.signal.shape)
+            else:
+                self.signal_size = len(self.signal)
 
             self.signal_is_0d = self.signal_ndim == 0
             self.signal_is_1d = self.signal_ndim == 1

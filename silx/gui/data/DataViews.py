@@ -1242,7 +1242,12 @@ class _NXdataXYVScatterView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_default(data, validate=False)
+
         x_axis, y_axis = nxd.axes[-2:]
+        if x_axis is None:
+            x_axis = numpy.arange(nxd.signal_size)
+        if y_axis is None:
+            y_axis = numpy.arange(nxd.signal_size)
 
         x_label, y_label = nxd.axes_names[-2:]
         if x_label is not None:
