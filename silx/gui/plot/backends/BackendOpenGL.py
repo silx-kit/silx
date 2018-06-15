@@ -1172,13 +1172,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if isConstraint:
             x, y = constraint(x, y)
 
-        if x is not None and self._plotFrame.xAxis.isLog and x <= 0.:
-            raise RuntimeError(
-                'Cannot add marker with X <= 0 with X axis log scale')
-        if y is not None and self._plotFrame.yAxis.isLog and y <= 0.:
-            raise RuntimeError(
-                'Cannot add marker with Y <= 0 with Y axis log scale')
-
         self._markers[legend] = {
             'x': x,
             'y': y,
