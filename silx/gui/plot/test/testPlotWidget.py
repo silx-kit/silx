@@ -662,9 +662,13 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
     xData = numpy.arange(1, 10)
     yData = xData ** 2
 
+    def __init__(self, methodName='runTest', backend=None):
+        unittest.TestCase.__init__(self, methodName)
+        self.__backend = backend
+
     def setUp(self):
         super(TestPlotAxes, self).setUp()
-        self.plot = PlotWidget()
+        self.plot = PlotWidget(backend=self.__backend)
         # It is not needed to display the plot
         # It saves a lot of time
         # self.plot.show()
@@ -723,7 +727,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
                 if getter is not None:
                     self.assertEqual(getter(), expected)
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Logarithmic(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -762,7 +766,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisLogarithmic(), False)
         self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_AutoScale(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -801,7 +805,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisAutoScale(), True)
         self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Inverted(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
