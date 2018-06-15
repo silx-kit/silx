@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/06/2018"
+__date__ = "15/06/2018"
 
 import logging
 import numpy
@@ -48,6 +48,9 @@ _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 
 class _RowItems(qt.QStandardItem):
     """Define the list of items used for a specific row."""
+
+    def type(self):
+        return qt.QStandardItem.UserType + 1
 
     def getRowItems(self):
         """Returns the list of items used for a specific row.
