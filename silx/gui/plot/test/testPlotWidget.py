@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,13 @@ import unittest
 import logging
 import numpy
 
-from silx.utils.testutils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase, parameterize
 from silx.gui.test.utils import SignalListener
 from silx.gui.test.utils import TestCaseQt
 from silx.utils import testutils
 from silx.utils import deprecation
+
+from silx.test.utils import test_options
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
@@ -1355,19 +1357,22 @@ class TestPlotItemLog(PlotWidgetTestCase):
 
 
 def suite():
+    testClasses = (TestPlotWidget, TestPlotImage, TestPlotCurve,
+                   TestPlotMarker, TestPlotItem, TestPlotAxes,
+                   TestPlotEmptyLog, TestPlotCurveLog, TestPlotImageLog,
+                   TestPlotMarkerLog, TestPlotItemLog)
+
     test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestPlotWidget))
-    test_suite.addTest(loadTests(TestPlotImage))
-    test_suite.addTest(loadTests(TestPlotCurve))
-    test_suite.addTest(loadTests(TestPlotMarker))
-    test_suite.addTest(loadTests(TestPlotItem))
-    test_suite.addTest(loadTests(TestPlotAxes))
-    test_suite.addTest(loadTests(TestPlotEmptyLog))
-    test_suite.addTest(loadTests(TestPlotCurveLog))
-    test_suite.addTest(loadTests(TestPlotImageLog))
-    test_suite.addTest(loadTests(TestPlotMarkerLog))
-    test_suite.addTest(loadTests(TestPlotItemLog))
+
+    # Tests with matplotlib
+    for testClass in testClasses:
+        test_suite.addTest(parameterize(testClass, backend=None))
+
+    if test_options.WITH_GL_TEST:
+        # Tests with OpenGL backend
+        for testClass in testClasses:
+            test_suite.addTest(parameterize(testClass, backend='gl'))
+
     return test_suite
 
 
