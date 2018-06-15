@@ -1093,7 +1093,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         elif len(data.shape) == 3:
             # For RGB, RGBA data
             assert data.shape[2] in (3, 4)
-            assert data.dtype in (numpy.float32, numpy.uint8)
+
+            if numpy.issubdtype(data.dtype, numpy.floating):
+                data = numpy.array(data, dtype=numpy.float32, copy=False)
+            elif numpy.issubdtype(data.dtype, numpy.integer):
+                data = numpy.array(data, dtype=numpy.uint8, copy=False)
+            else:
+                raise ValueError('Unsupported data type')
 
             image = GLPlotRGBAImage(data, origin, scale, alpha)
 
