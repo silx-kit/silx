@@ -654,7 +654,13 @@ class Viewer(qt.QMainWindow):
         for obj in selectedObjects:
             h5 = obj.h5py_object
 
-            action = qt.QAction("Show %s" % obj.name, event.source())
+            name = obj.name
+            if name.startswith("/"):
+                name = name[1:]
+            if name == "":
+                name = "the root"
+
+            action = qt.QAction("Show %s" % name, event.source())
             action.triggered.connect(lambda: self.displayData(h5))
             menu.addAction(action)
 
