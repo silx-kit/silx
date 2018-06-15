@@ -32,6 +32,7 @@ __date__ = "14/06/2018"
 import collections
 from copy import deepcopy
 import logging
+import warnings
 import weakref
 import numpy
 from silx.third_party import six, enum
@@ -767,7 +768,10 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
                 error = numpy.ravel(error)
 
             # Supports error being scalar, N or 2xN array
-            errorClipped = (value - numpy.atleast_2d(error)[0]) <= 0
+            valueMinusError = value - numpy.atleast_2d(error)[0]
+            errorClipped = numpy.isnan(valueMinusError)
+            mask = numpy.logical_not(errorClipped)
+            errorClipped[mask] = valueMinusError[mask] <= 0
 
             if numpy.any(errorClipped):  # Need filtering
 
@@ -805,10 +809,20 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         """
         assert xPositive or yPositive
         if (xPositive, yPositive) not in self._clippedCache:
-            x = self.getXData(copy=False)
-            y = self.getYData(copy=False)
-            xclipped = (x <= 0) if xPositive else False
-            yclipped = (y <= 0) if yPositive else False
+            xclipped, yclipped = False, False
+
+            if xPositive:
+                x = self.getXData(copy=False)
+                with warnings.catch_warnings():  # Ignore NaN warnings
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    xclipped = x <= 0
+
+            if yPositive:
+                y = self.getYData(copy=False)
+                with warnings.catch_warnings():  # Ignore NaN warnings
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    yclipped = y <= 0
+
             self._clippedCache[(xPositive, yPositive)] = \
                 numpy.logical_or(xclipped, yclipped)
         return self._clippedCache[(xPositive, yPositive)]

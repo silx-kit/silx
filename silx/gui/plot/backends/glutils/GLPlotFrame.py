@@ -337,7 +337,6 @@ class PlotAxis(object):
                             yield ((xPixel, yPixel), dataPos, text)
 
 
-
 # GLPlotFrame #################################################################
 
 class GLPlotFrame(object):
@@ -555,7 +554,8 @@ class GLPlotFrame(object):
 
         gl.glLineWidth(self._LINE_WIDTH)
 
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              matProj.astype(numpy.float32))
         gl.glUniform4f(prog.uniforms['color'], 0., 0., 0., 1.)
         gl.glUniform1f(prog.uniforms['tickFactor'], 0.)
 
@@ -588,7 +588,8 @@ class GLPlotFrame(object):
         prog.use()
 
         gl.glLineWidth(self._LINE_WIDTH)
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              matProj.astype(numpy.float32))
         gl.glUniform4f(prog.uniforms['color'], 0.7, 0.7, 0.7, 1.)
         gl.glUniform1f(prog.uniforms['tickFactor'], 0.)  # 1/2.)  # 1/tickLen
 
@@ -864,11 +865,11 @@ class GLPlotFrame2D(GLPlotFrame):
             # Non-orthogonal axes
             if self.baseVectors != self.DEFAULT_BASE_VECTORS:
                 (xx, xy), (yx, yy) = self.baseVectors
-                mat = mat * numpy.matrix((
+                mat = numpy.dot(mat, numpy.array((
                     (xx, yx, 0., 0.),
                     (xy, yy, 0., 0.),
                     (0., 0., 1., 0.),
-                    (0., 0., 0., 1.)), dtype=numpy.float32)
+                    (0., 0., 0., 1.)), dtype=numpy.float64))
 
             self._transformedDataProjMat = mat
 
@@ -893,11 +894,11 @@ class GLPlotFrame2D(GLPlotFrame):
             # Non-orthogonal axes
             if self.baseVectors != self.DEFAULT_BASE_VECTORS:
                 (xx, xy), (yx, yy) = self.baseVectors
-                mat = mat * numpy.matrix((
+                mat = numpy.dot(mat, numpy.matrix((
                     (xx, yx, 0., 0.),
                     (xy, yy, 0., 0.),
                     (0., 0., 1., 0.),
-                    (0., 0., 0., 1.)), dtype=numpy.float32)
+                    (0., 0., 0., 1.)), dtype=numpy.float64))
 
             self._transformedDataY2ProjMat = mat
 
