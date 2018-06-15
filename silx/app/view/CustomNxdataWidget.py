@@ -795,6 +795,9 @@ class CustomNxdataWidget(qt.QTreeView):
         else:
             setResizeMode = header.setSectionResizeMode
         setResizeMode(0, qt.QHeaderView.ResizeToContents)
+        setResizeMode(1, qt.QHeaderView.Stretch)
+        setResizeMode(2, qt.QHeaderView.ResizeToContents)
+        setResizeMode(3, qt.QHeaderView.ResizeToContents)
 
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self.setDropIndicatorShown(True)
