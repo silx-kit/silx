@@ -132,12 +132,8 @@ class NXdata(object):
             self.signal_ndim = getattr(self.signal, "ndim",
                                        len(self.signal.shape))
             # old h5py (< 2011) does not provide size
-            if hasattr(self.signal, "size"):
-                self.signal_size = self.signal.size
-            elif hasattr(self.signal, "shape"):
-                self.signal_size = numpy.prod(self.signal.shape)
-            else:
-                self.signal_size = len(self.signal)
+            self.signal_size = getattr(self.signal, "size",
+                                       numpy.prod(self.signal.shape))
 
             self.signal_is_0d = self.signal_ndim == 0
             self.signal_is_1d = self.signal_ndim == 1
