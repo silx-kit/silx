@@ -780,7 +780,7 @@ class CustomNxdataWidget(qt.QTreeView):
         """Constructor"""
         qt.QTreeView.__init__(self, parent=None)
         self.__model = _Model(self)
-        self.__model.setColumnCount(2)
+        self.__model.setColumnCount(4)
         self.__model.setHorizontalHeaderLabels(["Name", "Dataset", "Type", "Shape"])
         self.setModel(self.__model)
 
