@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,13 @@ import unittest
 import logging
 import numpy
 
-from silx.utils.testutils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase, parameterize
 from silx.gui.test.utils import SignalListener
 from silx.gui.test.utils import TestCaseQt
 from silx.utils import testutils
 from silx.utils import deprecation
+
+from silx.test.utils import test_options
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
@@ -660,9 +662,13 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
     xData = numpy.arange(1, 10)
     yData = xData ** 2
 
+    def __init__(self, methodName='runTest', backend=None):
+        unittest.TestCase.__init__(self, methodName)
+        self.__backend = backend
+
     def setUp(self):
         super(TestPlotAxes, self).setUp()
-        self.plot = PlotWidget()
+        self.plot = PlotWidget(backend=self.__backend)
         # It is not needed to display the plot
         # It saves a lot of time
         # self.plot.show()
@@ -721,7 +727,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
                 if getter is not None:
                     self.assertEqual(getter(), expected)
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Logarithmic(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -760,7 +766,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisLogarithmic(), False)
         self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_AutoScale(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -799,7 +805,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisAutoScale(), True)
         self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Inverted(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -1355,19 +1361,22 @@ class TestPlotItemLog(PlotWidgetTestCase):
 
 
 def suite():
+    testClasses = (TestPlotWidget, TestPlotImage, TestPlotCurve,
+                   TestPlotMarker, TestPlotItem, TestPlotAxes,
+                   TestPlotEmptyLog, TestPlotCurveLog, TestPlotImageLog,
+                   TestPlotMarkerLog, TestPlotItemLog)
+
     test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestPlotWidget))
-    test_suite.addTest(loadTests(TestPlotImage))
-    test_suite.addTest(loadTests(TestPlotCurve))
-    test_suite.addTest(loadTests(TestPlotMarker))
-    test_suite.addTest(loadTests(TestPlotItem))
-    test_suite.addTest(loadTests(TestPlotAxes))
-    test_suite.addTest(loadTests(TestPlotEmptyLog))
-    test_suite.addTest(loadTests(TestPlotCurveLog))
-    test_suite.addTest(loadTests(TestPlotImageLog))
-    test_suite.addTest(loadTests(TestPlotMarkerLog))
-    test_suite.addTest(loadTests(TestPlotItemLog))
+
+    # Tests with matplotlib
+    for testClass in testClasses:
+        test_suite.addTest(parameterize(testClass, backend=None))
+
+    if test_options.WITH_GL_TEST:
+        # Tests with OpenGL backend
+        for testClass in testClasses:
+            test_suite.addTest(parameterize(testClass, backend='gl'))
+
     return test_suite
 
 

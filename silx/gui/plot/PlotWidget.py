@@ -2543,9 +2543,8 @@ class PlotWidget(qt.QMainWindow):
 
             # Compute bbox wth figure aspect ratio
             plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-            plotRatio = plotHeight / plotWidth
-
-            if plotRatio > 0.:
+            if plotWidth > 0 and plotHeight > 0:
+                plotRatio = plotHeight / plotWidth
                 dataRatio = (ymax - ymin) / (xmax - xmin)
                 if dataRatio < plotRatio:
                     # Increase y range
