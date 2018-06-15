@@ -43,7 +43,7 @@ from silx.math.combo import min_max
 
 from ...._glutils import gl
 from ...._glutils import Program, vertexBuffer
-from .GLSupport import buildFillMaskIndices, mat4Identity
+from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
 
 
 _logger = logging.getLogger(__name__)
@@ -86,7 +86,6 @@ class _Fill2D(object):
     :param float baseline: Y value of the 'bottom' of the fill.
         0 for linear Y scale, -38 for log Y scale
     :param List[float] color: RGBA color as 4 float in [0, 1]
-    :param List[float] scale: Scaling of coordinates (sx, sy)
     :param List[float] offset: Translation of coordinates (ox, oy)
     """
 
@@ -116,17 +115,16 @@ class _Fill2D(object):
     def __init__(self, xData=None, yData=None,
                  baseline=0,
                  color=(0., 0., 0., 1.),
-                 scale=(1., 1.), offset=(0., 0.)):
+                 offset=(0., 0.)):
         self.xData = xData
         self.yData = yData
         self._xFillVboData = None
         self._yFillVboData = None
         self.color = color
-        self.scale = scale
         self.offset = offset
 
-        # Normalize baseline
-        self.baseline = (baseline - self.offset[1]) / self.scale[1]
+        # Offset baseline
+        self.baseline = baseline - self.offset[1]
 
     def prepare(self):
         """Rendering preparation: build indices and bounding box vertices"""
@@ -185,14 +183,10 @@ class _Fill2D(object):
 
         self._PROGRAM.use()
 
-        normalizationMatrix = numpy.array((
-            (self.scale[0], 0., 0., self.offset[0]),
-            (0., self.scale[1], 0., self.offset[1]),
-            (0., 0., 1., 0.),
-            (0., 0., 0., 1.)), dtype=numpy.float64)
         gl.glUniformMatrix4fv(
             self._PROGRAM.uniforms['matrix'], 1, gl.GL_TRUE,
-            numpy.dot(matrix, normalizationMatrix).astype(numpy.float32))
+            numpy.dot(matrix,
+                      mat4Translate(*self.offset)).astype(numpy.float32))
 
         gl.glUniform4f(self._PROGRAM.uniforms['color'], *self.color)
 
@@ -263,7 +257,6 @@ class _Lines2D(object):
     :param float width: Line width
     :param float dashPeriod: Period of dashes
     :param drawMode: OpenGL drawing mode
-    :param List[float] scale: Scaling of coordinates (sx, sy)
     :param List[float] offset: Translation of coordinates (ox, oy)
     """
 
@@ -348,7 +341,7 @@ class _Lines2D(object):
                  colorVboData=None, distVboData=None,
                  style=SOLID, color=(0., 0., 0., 1.),
                  width=1, dashPeriod=20, drawMode=None,
-                 scale=(1., 1.), offset=(0., 0.)):
+                 offset=(0., 0.)):
         self.xVboData = xVboData
         self.yVboData = yVboData
         self.distVboData = distVboData
@@ -360,7 +353,6 @@ class _Lines2D(object):
         self._style = None
         self.style = style
         self.dashPeriod = dashPeriod
-        self.scale = scale
         self.offset = offset
 
         self._drawMode = drawMode if drawMode is not None else gl.GL_LINE_STRIP
@@ -428,12 +420,8 @@ class _Lines2D(object):
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        normalizationMatrix = numpy.array((
-            (self.scale[0], 0., 0., self.offset[0]),
-            (0., self.scale[1], 0., self.offset[1]),
-            (0., 0., 1., 0.),
-            (0., 0., 0., 1.)), dtype=numpy.float64)
-        matrix = numpy.dot(matrix, normalizationMatrix).astype(numpy.float32)
+        matrix = numpy.dot(matrix,
+                           mat4Translate(*self.offset)).astype(numpy.float32)
         gl.glUniformMatrix4fv(program.uniforms['matrix'],
                               1, gl.GL_TRUE, matrix)
 
@@ -489,7 +477,6 @@ class _Points2D(object):
     :param str marker: Kind of symbol to use, see :attr:`MARKERS`.
     :param List[float] color: RGBA color as 4 float in [0, 1]
     :param float size: Marker size
-    :param List[float] scale: Scaling of coordinates (sx, sy)
     :param List[float] offset: Translation of coordinates (ox, oy)
     """
 
@@ -618,12 +605,11 @@ class _Points2D(object):
 
     def __init__(self, xVboData=None, yVboData=None, colorVboData=None,
                  marker=SQUARE, color=(0., 0., 0., 1.), size=7,
-                 scale=(1., 1.), offset=(0., 0.)):
+                 offset=(0., 0.)):
         self.color = color
         self._marker = None
         self.marker = marker
         self.size = size
-        self.scale = scale
         self.offset = offset
 
         self.xVboData = xVboData
@@ -683,12 +669,8 @@ class _Points2D(object):
         program = self._getProgram(self.marker)
         program.use()
 
-        normalizationMatrix = numpy.array((
-            (self.scale[0], 0., 0., self.offset[0]),
-            (0., self.scale[1], 0., self.offset[1]),
-            (0., 0., 1., 0.),
-            (0., 0., 0., 1.)), dtype=numpy.float64)
-        matrix = numpy.dot(matrix, normalizationMatrix).astype(numpy.float32)
+        matrix = numpy.dot(matrix,
+                           mat4Translate(*self.offset)).astype(numpy.float32)
         gl.glUniformMatrix4fv(program.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
 
         if self.marker == PIXEL:
@@ -745,17 +727,15 @@ class _ErrorBars(object):
     :param float xMin: The min X value already computed by GLPlotCurve2D.
     :param float yMin: The min Y value already computed by GLPlotCurve2D.
     :param List[float] color: RGBA color as 4 float in [0, 1]
-    :param List[float] scale: Scaling of coordinates (sx, sy)
     :param List[float] offset: Translation of coordinates (ox, oy)
     """
 
     def __init__(self, xData, yData, xError, yError,
                  xMin, yMin,
                  color=(0., 0., 0., 1.),
-                 scale=(1., 1.), offset=(0., 0.)):
+                 offset=(0., 0.)):
         self._attribs = None
         self._xMin, self._yMin = xMin, yMin
-        self.scale = scale
         self.offset = offset
 
         if xError is not None or yError is not None:
@@ -773,12 +753,12 @@ class _ErrorBars(object):
             self._xData, self._yData = None, None
             self._xError, self._yError = None, None
 
-        self._lines = _Lines2D(None, None, color=color, drawMode=gl.GL_LINES,
-                               scale=scale, offset=offset)
-        self._xErrPoints = _Points2D(None, None, color=color, marker=V_LINE,
-                                     scale=scale, offset=offset)
-        self._yErrPoints = _Points2D(None, None, color=color, marker=H_LINE,
-                                     scale=scale, offset=offset)
+        self._lines = _Lines2D(
+            None, None, color=color, drawMode=gl.GL_LINES, offset=offset)
+        self._xErrPoints = _Points2D(
+            None, None, color=color, marker=V_LINE, offset=offset)
+        self._yErrPoints = _Points2D(
+            None, None, color=color, marker=H_LINE, offset=offset)
 
     def _buildVertices(self):
         """Generates error bars vertices"""
@@ -951,28 +931,14 @@ class GLPlotCurve2D(object):
             self.yMin = numpy.nanmin(yData - yErrorMinus)
             self.yMax = numpy.nanmax(yData + yErrorPlus)
 
-        # Handle data normalization
+        # Handle data offset
         if xData.itemsize > 4 or yData.itemsize > 4:  # Use normalization
-            # Normalize data
-            self.scale = 1., 1.  # TODO useful? self.xMax - self.xMin, self.yMax - self.yMin
+            # offset data, do not offset error as it is relative
             self.offset = self.xMin, self.yMin
-
-            # Normalize data
-            self.xData = ((xData - self.offset[0]) /
-                          self.scale[0]).astype(numpy.float32)
-            self.yData = ((yData - self.offset[1]) /
-                          self.scale[1]).astype(numpy.float32)
-
-            # Apply scale to error but not offset as it is relative:
-            # pos = v +/- e = s*(v' +/- e') + offset =
-            #  (s*v' + offset) +/- s*error'
-            if xError is not None and self.scale[0] != 1.:
-                xError /= self.scale[0]
-            if yError is not None and self.scale[1] != 1.:
-                yError /= self.scale[1]
+            self.xData = (xData - self.offset[0]).astype(numpy.float32)
+            self.yData = (yData - self.offset[1]).astype(numpy.float32)
 
         else:  # float32
-            self.scale = 1., 1.
             self.offset = 0., 0.
             self.xData = xData
             self.yData = yData
@@ -982,7 +948,6 @@ class GLPlotCurve2D(object):
             self.fill = _Fill2D(self.xData, self.yData,
                                 baseline=-38 if isYLog else 0,
                                 color=fillColor,
-                                scale=self.scale,
                                 offset=self.offset)
         else:
             self.fill = None
@@ -990,7 +955,6 @@ class GLPlotCurve2D(object):
         self._errorBars = _ErrorBars(self.xData, self.yData,
                                      xError, yError,
                                      self.xMin, self.yMin,
-                                     scale=self.scale,
                                      offset=self.offset)
 
         self.lines = _Lines2D()
@@ -998,14 +962,12 @@ class GLPlotCurve2D(object):
         self.lines.color = lineColor
         self.lines.width = lineWidth
         self.lines.dashPeriod = lineDashPeriod
-        self.lines.scale = self.scale
         self.lines.offset = self.offset
 
         self.points = _Points2D()
         self.points.marker = marker
         self.points.color = markerColor
         self.points.size = markerSize
-        self.points.scale = self.scale
         self.points.offset = self.offset
 
     xVboData = _proxyProperty(('lines', 'xVboData'), ('points', 'xVboData'))
@@ -1113,14 +1075,11 @@ class GLPlotCurve2D(object):
                 self.yMin > yPickMax or yPickMin > self.yMax:
             return None
 
-        # Normalize picking bounds
-        sx, sy = self.scale
-        ox, oy = self.offset
-
-        xPickMin = (xPickMin - ox) / sx
-        xPickMax = (xPickMax - ox) / sx
-        yPickMin = (yPickMin - oy) / sy
-        yPickMax = (yPickMax - oy) / sy
+        # offset picking bounds
+        xPickMin = xPickMin - self.offset[0]
+        xPickMax = xPickMax - self.offset[0]
+        yPickMin = yPickMin - self.offset[1]
+        yPickMax = yPickMax - self.offset[1]
 
         if self.lineStyle is not None:
             # Using Cohen-Sutherland algorithm for line clipping
