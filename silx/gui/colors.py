@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "14/06/2018"
 
 from silx.gui import qt
 import copy as copy_mdl
@@ -557,7 +557,7 @@ class Colormap(qt.QObject):
     def copy(self):
         """Return a copy of the Colormap.
 
-        :rtype: silx.gui.plot.Colormap.Colormap
+        :rtype: silx.gui.colors.Colormap
         """
         return Colormap(name=self._name,
                         colors=copy_mdl.copy(self._colors),

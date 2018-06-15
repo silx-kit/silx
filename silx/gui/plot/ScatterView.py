@@ -30,7 +30,7 @@ for scatter plots.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/03/2018"
+__date__ = "14/06/2018"
 
 
 import logging
@@ -263,7 +263,7 @@ class ScatterView(qt.QMainWindow):
         """Return the :class:`.Colormap` in use.
 
         :return: Colormap currently in use
-        :rtype: ~silx.gui.plot.Colormap.Colormap
+        :rtype: ~silx.gui.colors.Colormap
         """
         self.getScatterItem().getColormap()
 

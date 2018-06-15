@@ -28,7 +28,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "14/06/2018"
 
 import silx.utils.deprecation
 
@@ -43,7 +43,7 @@ silx.utils.deprecation.deprecated_warning("Module",
 from ..colors import *  # noqa
 
 
-@silx.utils.deprecation.deprecated(replacement='silx.gui.plot.Colormap.applyColormap')
+@silx.utils.deprecation.deprecated(replacement='silx.gui.colors.Colormap.applyColormap')
 def applyColormapToData(data,
                         name='gray',
                         normalization='linear',
@@ -80,7 +80,7 @@ def applyColormapToData(data,
     return colormap.applyToData(data)
 
 
-@silx.utils.deprecation.deprecated(replacement='silx.gui.plot.Colormap.getSupportedColormaps')
+@silx.utils.deprecation.deprecated(replacement='silx.gui.colors.Colormap.getSupportedColormaps')
 def getSupportedColormaps():
     """Get the supported colormap names as a tuple of str.
 

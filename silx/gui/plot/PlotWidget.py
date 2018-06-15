@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/04/2018"
+__date__ = "14/06/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -843,7 +843,7 @@ class PlotWidget(qt.QMainWindow):
         :param colormap: Description of the :class:`.Colormap` to use
                                   (or None).
                                   This is ignored if data is a RGB(A) image.
-        :type colormap: Union[silx.gui.plot.Colormap.Colormap, dict]
+        :type colormap: Union[silx.gui.colors.Colormap, dict]
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
         :param str xlabel: X axis label to show when this curve is active,
@@ -986,7 +986,7 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param numpy.ndarray value: The data value associated with each point
         :param str legend: The legend to be associated to the scatter (or None)
-        :param silx.gui.plot.Colormap.Colormap colormap:
+        :param silx.gui.colors.Colormap colormap:
             The :class:`.Colormap`. to be used for the scatter (or None)
         :param info: User-defined information associated to the curve
         :param str symbol: Symbol to be drawn at each (x, y) position::
@@ -2286,7 +2286,7 @@ class PlotWidget(qt.QMainWindow):
         It only affects future calls to :meth:`addImage` without the colormap
         parameter.
 
-        :param silx.gui.plot.Colormap.Colormap colormap:
+        :param silx.gui.colors.Colormap colormap:
             The description of the default colormap, or
             None to set the :class:`.Colormap` to a linear
             autoscale gray colormap.

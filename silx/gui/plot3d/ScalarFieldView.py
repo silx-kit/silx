@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "14/06/2018"
 
 import re
 import logging
@@ -643,7 +643,7 @@ class CutPlane(qt.QObject):
         """Returns the colormap set by :meth:`setColormap`.
 
         :return: The colormap
-        :rtype: ~silx.gui.plot.Colormap.Colormap
+        :rtype: ~silx.gui.colors.Colormap
         """
         return self._colormap
 
@@ -660,7 +660,7 @@ class CutPlane(qt.QObject):
         :param name: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
             Or Colormap object.
-        :type name: str or ~silx.gui.plot.Colormap.Colormap
+        :type name: str or ~silx.gui.colors.Colormap
         :param str norm: Colormap mapping: 'linear' or 'log'.
         :param float vmin: The minimum value of the range or None for autoscale
         :param float vmax: The maximum value of the range or None for autoscale

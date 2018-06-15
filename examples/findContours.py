@@ -39,7 +39,7 @@ _logger = logging.getLogger("find_contours")
 
 from silx.gui import qt
 import silx.gui.plot
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 import silx.image.bilinear
 
 

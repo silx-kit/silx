@@ -299,7 +299,7 @@ A ``colormap`` is described with a :class:`.Colormap` class as follows:
 
 .. code-block:: python
 
-   from silx.gui.plot.Colormap import Colormap
+   from silx.gui.colors import Colormap
 
    colormap = Colormap(name='gray',             # Name of the colormap
                        normalization='linear',  # Either 'linear' or 'log'
@@ -327,7 +327,7 @@ It is possible to change the default colormap of the plot widget by :meth:`.Plot
 
 .. code-block:: python
 
-   from silx.gui.plot.Colormap import Colormap
+   from silx.gui.colors import Colormap
 
    colormap = Colormap(name='viridis',
                        normalization='linear',
