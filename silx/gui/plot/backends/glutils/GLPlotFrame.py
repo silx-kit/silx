@@ -337,7 +337,6 @@ class PlotAxis(object):
                             yield ((xPixel, yPixel), dataPos, text)
 
 
-
 # GLPlotFrame #################################################################
 
 class GLPlotFrame(object):

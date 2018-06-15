@@ -114,7 +114,6 @@ class _Fill2D(object):
         attrib0='xPos')
 
     def __init__(self, xData=None, yData=None,
-                 xMin=None, yMin=None, xMax=None, yMax=None,
                  baseline=0,
                  color=(0., 0., 0., 1.),
                  scale=(1., 1.), offset=(0., 0.)):
@@ -656,8 +655,8 @@ class _Points2D(object):
         if marker not in cls._PROGRAMS:
             cls._PROGRAMS[marker] = Program(
                 vertexShader=cls._VERTEX_SHADER,
-                fragmentShader=cls._FRAGMENT_SHADER_TEMPLATE % \
-                    cls._FRAGMENT_SHADER_SYMBOLS[marker],
+                fragmentShader=(cls._FRAGMENT_SHADER_TEMPLATE %
+                                cls._FRAGMENT_SHADER_SYMBOLS[marker]),
                 attrib0='xPos')
 
         return cls._PROGRAMS[marker]
