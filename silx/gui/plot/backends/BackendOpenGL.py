@@ -652,15 +652,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                      plotWidth, plotHeight)
         gl.glEnable(gl.GL_SCISSOR_TEST)
 
-        gl.glViewport(self._plotFrame.margins.left,
-                      self._plotFrame.margins.bottom,
-                      plotWidth, plotHeight)
+        gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
         # Prepare vertical and horizontal markers rendering
         self._progBase.use()
         gl.glUniformMatrix4fv(
             self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-            self._plotFrame.transformedDataProjMat.astype(numpy.float32))
+            self.matScreenProj.astype(numpy.float32))
         gl.glUniform2i(self._progBase.uniforms['isLog'], isXLog, isYLog)
         gl.glUniform1i(self._progBase.uniforms['hatchStep'], 0)
         gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
@@ -701,9 +699,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                            align=RIGHT, valign=BOTTOM)
                             labels.append(label)
 
-                        xMin, xMax = self._plotFrame.dataRanges.x
-                        vertices = numpy.array(((xMin, yCoord),
-                                                (xMax, yCoord)),
+                        width = self._plotFrame.size[0]
+                        vertices = numpy.array(((0, pixelPos[1]),
+                                                (width, pixelPos[1])),
                                                dtype=numpy.float32)
 
                     else:  # yCoord is None: vertical line in data space
@@ -716,11 +714,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                            align=LEFT, valign=TOP)
                             labels.append(label)
 
-                        yMin, yMax = self._plotFrame.dataRanges.y
-                        vertices = numpy.array(((xCoord, yMin),
-                                                (xCoord, yMax)),
+                        height = self._plotFrame.size[1]
+                        vertices = numpy.array(((pixelPos[0], 0),
+                                                (pixelPos[0], height)),
                                                dtype=numpy.float32)
 
+                self._progBase.use()
                 gl.glUniform4f(self._progBase.uniforms['color'],
                                *marker['color'])
 
@@ -752,13 +751,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 # For now simple implementation: using a curve for each marker
                 # Should pack all markers to a single set of points
                 markerCurve = GLPlotCurve2D(
-                    numpy.array((xCoord,), dtype=numpy.float32),
-                    numpy.array((yCoord,), dtype=numpy.float32),
+                    numpy.array((pixelPos[0],), dtype=numpy.float64),
+                    numpy.array((pixelPos[1],), dtype=numpy.float64),
                     marker=marker['symbol'],
                     markerColor=marker['color'],
                     markerSize=11)
-                markerCurve.render(self._plotFrame.transformedDataProjMat,
-                                   isXLog, isYLog)
+                markerCurve.render(self.matScreenProj, isXLog, isYLog)
                 markerCurve.discard()
 
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
