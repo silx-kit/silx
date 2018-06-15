@@ -365,13 +365,16 @@ class _NxDataItem(qt.QStandardItem):
         """
         for i, dataset in enumerate(datasets):
             if i < len(self.__axes):
+                mustAppend = False
                 item = self.__axes[i]
             else:
+                mustAppend = True
                 item = _DatasetAxisItemRow()
-                self.__axes.append(item)
-                self.appendRow(item.getRowItems())
             item.setAxisId(i)
             item.setDataset(dataset)
+            if mustAppend:
+                self.__axes.append(item)
+                self.appendRow(item.getRowItems())
 
         # Clean up extra axis
         for i in range(len(datasets), len(self.__axes)):
