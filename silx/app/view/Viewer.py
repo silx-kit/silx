@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/06/2018"
+__date__ = "15/06/2018"
 
 
 import os
@@ -631,11 +631,13 @@ class Viewer(qt.QMainWindow):
 
     def useAsNewCustomSignal(self, h5dataset):
         self.__makeSureCustomNxDataWindowIsVisible()
-        self.__customNxdata.createFromSignal(h5dataset)
+        model = self.__customNxdata.model()
+        model.createFromSignal(h5dataset)
 
     def useAsNewCustomNxdata(self, h5nxdata):
         self.__makeSureCustomNxDataWindowIsVisible()
-        self.__customNxdata.createFromNxdata(h5nxdata)
+        model = self.__customNxdata.model()
+        model.createFromNxdata(h5nxdata)
 
     def customContextMenu(self, event):
         """Called to populate the context menu
@@ -652,7 +654,13 @@ class Viewer(qt.QMainWindow):
         for obj in selectedObjects:
             h5 = obj.h5py_object
 
-            action = qt.QAction("Show %s" % obj.name, event.source())
+            name = obj.name
+            if name.startswith("/"):
+                name = name[1:]
+            if name == "":
+                name = "the root"
+
+            action = qt.QAction("Show %s" % name, event.source())
             action.triggered.connect(lambda: self.displayData(h5))
             menu.addAction(action)
 

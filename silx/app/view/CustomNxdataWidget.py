@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/06/2018"
+__date__ = "15/06/2018"
 
 import logging
 import numpy
@@ -48,6 +48,9 @@ _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 
 class _RowItems(qt.QStandardItem):
     """Define the list of items used for a specific row."""
+
+    def type(self):
+        return qt.QStandardItem.UserType + 1
 
     def getRowItems(self):
         """Returns the list of items used for a specific row.
@@ -362,13 +365,16 @@ class _NxDataItem(qt.QStandardItem):
         """
         for i, dataset in enumerate(datasets):
             if i < len(self.__axes):
+                mustAppend = False
                 item = self.__axes[i]
             else:
+                mustAppend = True
                 item = _DatasetAxisItemRow()
-                self.__axes.append(item)
-                self.appendRow(item.getRowItems())
             item.setAxisId(i)
             item.setDataset(dataset)
+            if mustAppend:
+                self.__axes.append(item)
+                self.appendRow(item.getRowItems())
 
         # Clean up extra axis
         for i in range(len(datasets), len(self.__axes)):
@@ -774,7 +780,7 @@ class CustomNxdataWidget(qt.QTreeView):
         """Constructor"""
         qt.QTreeView.__init__(self, parent=None)
         self.__model = _Model(self)
-        self.__model.setColumnCount(2)
+        self.__model.setColumnCount(4)
         self.__model.setHorizontalHeaderLabels(["Name", "Dataset", "Type", "Shape"])
         self.setModel(self.__model)
 
@@ -782,6 +788,7 @@ class CustomNxdataWidget(qt.QTreeView):
 
         self.__model.sigNxdataUpdated.connect(self.__nxdataUpdate)
         self.__model.rowsAboutToBeRemoved.connect(self.__rowsAboutToBeRemoved)
+        self.__model.rowsAboutToBeInserted.connect(self.__rowsAboutToBeInserted)
 
         header = self.header()
         if qt.qVersion() < "5.0":
@@ -789,6 +796,9 @@ class CustomNxdataWidget(qt.QTreeView):
         else:
             setResizeMode = header.setSectionResizeMode
         setResizeMode(0, qt.QHeaderView.ResizeToContents)
+        setResizeMode(1, qt.QHeaderView.Stretch)
+        setResizeMode(2, qt.QHeaderView.ResizeToContents)
+        setResizeMode(3, qt.QHeaderView.ResizeToContents)
 
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self.setDropIndicatorShown(True)
@@ -798,6 +808,13 @@ class CustomNxdataWidget(qt.QTreeView):
 
         self.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         self.customContextMenuRequested[qt.QPoint].connect(self.__executeContextMenu)
+
+    def __rowsAboutToBeInserted(self, parentIndex, start, end):
+        if qt.qVersion()[0:2] == "5.":
+            # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
+            # Uses of ResizeToContents looks to break nice update of cells with Qt5
+            # This patch make the view blinking
+            self.repaint()
 
     def __rowsAboutToBeRemoved(self, parentIndex, start, end):
         """Called when an item was removed from the model."""
@@ -810,6 +827,12 @@ class CustomNxdataWidget(qt.QTreeView):
                 items.append(item)
         for item in items:
             self.sigNxdataItemRemoved.emit(item)
+
+        if qt.qVersion()[0:2] == "5.":
+            # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
+            # Uses of ResizeToContents looks to break nice update of cells with Qt5
+            # This patch make the view blinking
+            self.repaint()
 
     def __nxdataUpdate(self, index):
         """Called when a virtual NXdata was updated from the model."""
