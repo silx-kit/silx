@@ -214,6 +214,10 @@ Additional widgets:
           :align: center
      - :class:`.ColorBar.ColorBarWidget` display colormap gradient and can be linked with a plot
        to display the colormap
+   * - .. image:: plot/img/statsWidget.png
+          :height: 150px
+          :align: center
+     - :class:`.statsWidget.StatsWidget` display statistics on plot's items (curve, images...)
 
 .. _plot3d-gallery:
 
