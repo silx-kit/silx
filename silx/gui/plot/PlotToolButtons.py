@@ -240,6 +240,53 @@ class YAxisOriginToolButton(PlotToolButton):
         self.setToolTip(toolTip)
 
 
+class ProfileOptionToolButton(PlotToolButton):
+    """Button to define option on the profile"""
+    sigMethodChanged = qt.Signal(str)
+    
+    def __init__(self, parent=None, plot=None):
+        PlotToolButton.__init__(self, parent=parent, plot=plot)
+
+        self.STATE = {}
+        # is down
+        self.STATE[False, "icon"] = icons.getQIcon('math-mean')
+        self.STATE[False, "state"] = "compute profile mean"
+        self.STATE[False, "action"] = "compute profile sum"
+        # keep ration
+        self.STATE[True, "icon"] = icons.getQIcon('math-sigma')
+        self.STATE[True, "state"] = "compute profile sum"
+        self.STATE[True, "action"] = "compute profile mean"
+
+        self._method = 'mean'
+
+        sumAction = self._createAction(True)
+        sumAction.triggered.connect(self.setSum)
+        sumAction.setIconVisibleInMenu(True)
+
+        meanAction = self._createAction(False)
+        meanAction.triggered.connect(self.setMean)
+        meanAction.setIconVisibleInMenu(True)
+
+        menu = qt.QMenu(self)
+        menu.addAction(sumAction)
+        menu.addAction(meanAction)
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+
+    def _createAction(self, isUpward):
+        icon = self.STATE[isUpward, "icon"]
+        text = self.STATE[isUpward, "action"]
+        return qt.QAction(icon, text, self)
+
+    def setSum(self):
+        """Configure the plot to use y-axis upward"""
+        self.sigMethodChanged.emit('sum')
+
+    def setMean(self):
+        """Configure the plot to use y-axis downward"""
+        self.sigMethodChanged.emit('mean')
+
+
 class ProfileToolButton(PlotToolButton):
     """Button used in Profile3DToolbar to switch between 2D profile
     and 1D profile."""

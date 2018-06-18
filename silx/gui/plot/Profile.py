@@ -42,7 +42,7 @@ from .. import qt
 from . import items
 from ..colors import cursorColorForColormap
 from . import actions
-from .PlotToolButtons import ProfileToolButton
+from .PlotToolButtons import ProfileToolButton, ProfileOptionToolButton
 from .ProfileMainWindow import ProfileMainWindow
 
 from silx.utils.deprecation import deprecated
@@ -458,6 +458,14 @@ class ProfileToolBar(qt.QToolBar):
         self.lineWidthSpinBox.valueChanged[int].connect(
             self._lineWidthSpinBoxValueChangedSlot)
         self.addWidget(self.lineWidthSpinBox)
+
+        #self.optionAction = qt.QAction(icons.getQIcon('item-object'), None)
+
+        #self.addAction(self.optionAction)
+        self.optionsButton = ProfileOptionToolButton(parent=self, plot=self)
+        self.addWidget(self.optionsButton)
+        # TODO: add connection with the signal
+        self.optionsButton.sigMethodChanged.connect(self._profileWindow.setProfileType)
 
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
