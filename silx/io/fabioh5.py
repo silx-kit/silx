@@ -125,6 +125,22 @@ class FrameData(commonh5.LazyLoadableDataset):
                 self._shape = commonh5.LazyLoadableDataset.shape(self)
         return self._shape
 
+    def __iter__(self):
+        for frame in self.__fabio_reader.iter_frames():
+            yield frame.data
+
+    def __getitem__(self, item):
+        # optimization for fetching a single frame if data not already loaded
+        if not self._is_initialized:
+            if isinstance(item, six.integer_types) and \
+                    isinstance(self.__fabio_reader.fabio_file(),
+                               fabio.file_series.file_series):
+                if item < 0:
+                    # negative indexing
+                    item += len(self)
+                return self.__fabio_reader.fabio_file().jump_image(item).data
+        return super(FrameData, self).__getitem__(item)
+
 
 class RawHeaderData(commonh5.LazyLoadableDataset):
     """Lazy loadable raw header"""
