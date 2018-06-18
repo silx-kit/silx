@@ -107,9 +107,23 @@ class FrameData(commonh5.LazyLoadableDataset):
             attrs = {"interpretation": "image"}
         commonh5.LazyLoadableDataset.__init__(self, name, parent, attrs=attrs)
         self.__fabio_reader = fabio_reader
+        self._shape = None
 
     def _create_data(self):
         return self.__fabio_reader.get_data()
+
+    @property
+    def shape(self):
+        if self._shape is None:
+            if isinstance(self.__fabio_reader.fabio_file(),
+                          fabio.file_series.file_series):
+                shape0 = len(self.__fabio_reader.fabio_file())
+                shape1, shape2 = self.__fabio_reader.fabio_file().first_image().data.shape
+                self._shape = shape0, shape1, shape2
+            else:
+                # no need to optimize single file, just call superclass
+                self._shape = commonh5.LazyLoadableDataset.shape(self)
+        return self._shape
 
 
 class RawHeaderData(commonh5.LazyLoadableDataset):
