@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`StatsWidget`: Plot a stack of images
-==========================================
+:mod:`StatsWidget`: Display a set of statictics for plot items
+==============================================================
 
 .. automodule:: silx.gui.plot.StatsWidget
 
