@@ -39,7 +39,7 @@ _logger = logging.getLogger("find_contours")
 
 from silx.gui import qt
 import silx.gui.plot
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 import silx.image.bilinear
 
 
@@ -465,9 +465,6 @@ class FindContours(qt.QMainWindow):
         if mask is None:
             if self.__useMaskButton.isChecked():
                 mask = self.__plot.getMaskToolsDockWidget().getSelectionMask()
-                if len(mask.shape) != 2:
-                    # Well, mask size can be bad
-                    mask = None
 
         self.__image = image
         self.__mask = mask

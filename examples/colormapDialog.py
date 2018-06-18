@@ -22,12 +22,12 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script shows the features of a :mod:`~silx.gui.plot.ColormapDialog`.
+"""This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
 """
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/01/2018"
+__date__ = "14/06/2018"
 
 import functools
 import numpy
@@ -38,8 +38,8 @@ except ImportError:
     scipy = None
 
 from silx.gui import qt
-from silx.gui.plot.ColormapDialog import ColormapDialog
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.dialog.ColormapDialog import ColormapDialog
+from silx.gui.colors import Colormap
 from silx.gui.plot.ColorBar import ColorBarWidget
 
 

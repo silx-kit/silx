@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -227,12 +227,7 @@ def trianglesNormal(positions):
                           positions[:, 2] - positions[:, 0])
 
     # Normalize normals
-    if numpy.version.version < '1.8.0':
-        # Debian 7 support: numpy.linalg.norm has no axis argument
-        norms = numpy.array(tuple(numpy.linalg.norm(vec) for vec in normals),
-                            dtype=normals.dtype)
-    else:
-        norms = numpy.linalg.norm(normals, axis=1)
+    norms = numpy.linalg.norm(normals, axis=1)
     norms[norms == 0] = 1
 
     return normals / norms.reshape(-1, 1)

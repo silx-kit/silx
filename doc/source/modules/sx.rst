@@ -13,6 +13,7 @@ The following functions plot curves and images with silx widgets:
 
 - :func:`plot` for curves
 - :func:`imshow` for images
+- :func:`scatter` for scatter plot
 
 The :func:`ginput` function handles user selection on those widgets.
 
@@ -28,6 +29,11 @@ The :func:`ginput` function handles user selection on those widgets.
 ++++++++++++++
 
 .. autofunction:: imshow
+
+:func:`scatter`
++++++++++++++++
+
+.. autofunction:: scatter
 
 
 :func:`ginput`

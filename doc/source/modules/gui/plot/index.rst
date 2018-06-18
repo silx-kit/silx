@@ -35,13 +35,15 @@ Main plot widgets:
    compleximageview.rst
    imageview.rst
    stackview.rst
+   scatterview.rst
 
 Classes describing plot content:
+
+- :class:`~silx.gui.colors.Colormap`
 
 .. toctree::
    :maxdepth: 2
 
-   colormap.rst
    items.rst
 
 Additionnal plot tool widgets:
@@ -55,6 +57,8 @@ Additionnal plot tool widgets:
    profile.rst
    roi.rst
    printpreviewtoolbutton.rst
+   statswidget.rst
+   stats/index.rst
 
 Internals
 ---------

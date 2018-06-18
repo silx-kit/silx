@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Full silx test suite.
+"""This package provides access to the full silx test suite.
 
 It is possible to disable tests depending on Qt by setting
 `silx.test.utils.test_options.WITH_QT_TEST = False`

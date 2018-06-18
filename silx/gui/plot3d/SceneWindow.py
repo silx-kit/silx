@@ -163,6 +163,13 @@ class SceneWindow(qt.QMainWindow):
         """
         return self._sceneWidget
 
+    def getGroupResetWidget(self):
+        """Returns the :class:`GroupPropertiesWidget` of this window.
+
+        :rtype: GroupPropertiesWidget
+        """
+        return self._sceneGroupResetWidget
+
     def getParamTreeView(self):
         """Returns the :class:`ParamTreeView` of this window.
 

@@ -1,7 +1,7 @@
 #  coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1204,6 +1204,48 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.plot.setGraphCursorShape()
 
 
+class ItemsInteractionForCombo(ItemsInteraction):
+    """Interaction with items to combine through :class:`FocusManager`.
+    """
+
+    class Idle(ItemsInteraction.Idle):
+        def onPress(self, x, y, btn):
+            if btn == LEFT_BTN:
+                def test(item):
+                    return (item.isSelectable() or
+                            (isinstance(item, items.DraggableMixIn) and
+                             item.isDraggable()))
+
+                picked = self.machine.plot._pickMarker(x, y, test)
+                if picked is not None:
+                    itemInteraction = True
+
+                else:
+                    picked = self.machine.plot._pickImageOrCurve(x, y, test)
+                    itemInteraction = picked is not None
+
+                if itemInteraction:  # Request focus and handle interaction
+                    self.goto('clickOrDrag', x, y)
+                    return True
+                else:  # Do not request focus
+                    return False
+
+            elif btn == RIGHT_BTN:
+                self.goto('rightClick', x, y)
+                return True
+
+    def __init__(self, plot):
+        _PlotInteraction.__init__(self, plot)
+
+        states = {
+            'idle': ItemsInteractionForCombo.Idle,
+            'rightClick': ClickOrDrag.RightClick,
+            'clickOrDrag': ClickOrDrag.ClickOrDrag,
+            'drag': ClickOrDrag.Drag
+        }
+        StateMachine.__init__(self, states, 'idle')
+
+
 # FocusManager ################################################################
 
 class FocusManager(StateMachine):
@@ -1344,6 +1386,74 @@ class ZoomAndSelect(ItemsInteraction):
             return super(ZoomAndSelect, self).endDrag(startPos, endPos)
 
 
+class PanAndSelect(ItemsInteraction):
+    """Combine Pan and ItemInteraction state machine.
+
+    :param plot: The Plot to which this interaction is attached
+    """
+
+    def __init__(self, plot):
+        super(PanAndSelect, self).__init__(plot)
+        self._pan = Pan(plot)
+        self._doPan = False
+
+    def click(self, x, y, btn):
+        """Handle mouse click
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: True if click is catched by an item, False otherwise
+        """
+        eventDict = self._handleClick(x, y, btn)
+
+        if eventDict is not None:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            clickedEventDict = prepareMouseSignal('mouseClicked', btn,
+                                                  dataPos[0], dataPos[1],
+                                                  x, y)
+            self.plot.notify(**clickedEventDict)
+
+            self.plot.notify(**eventDict)
+
+        else:
+            self._pan.click(x, y, btn)
+
+    def beginDrag(self, x, y):
+        """Handle start drag and switching between zoom and item drag.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        self._doPan = not super(PanAndSelect, self).beginDrag(x, y)
+        if self._doPan:
+            self._pan.beginDrag(x, y)
+
+    def drag(self, x, y):
+        """Handle drag, eventually forwarding to zoom.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        if self._doPan:
+            return self._pan.drag(x, y)
+        else:
+            return super(PanAndSelect, self).drag(x, y)
+
+    def endDrag(self, startPos, endPos):
+        """Handle end of drag, eventually forwarding to zoom.
+
+        :param startPos: (x, y) position at the beginning of the drag
+        :param endPos: (x, y) position at the end of the drag
+        """
+        if self._doPan:
+            return self._pan.endDrag(startPos, endPos)
+        else:
+            return super(PanAndSelect, self).endDrag(startPos, endPos)
+
+
 # Interaction mode control ####################################################
 
 class PlotInteraction(object):
@@ -1384,12 +1494,21 @@ class PlotInteraction(object):
         if isinstance(self._eventHandler, ZoomAndSelect):
             return {'mode': 'zoom', 'color': self._eventHandler.color}
 
+        elif isinstance(self._eventHandler, FocusManager):
+            drawHandler = self._eventHandler.eventHandlers[1]
+            if not isinstance(drawHandler, Select):
+                raise RuntimeError('Unknown interactive mode')
+
+            result = drawHandler.parameters.copy()
+            result['mode'] = 'draw'
+            return result
+
         elif isinstance(self._eventHandler, Select):
             result = self._eventHandler.parameters.copy()
             result['mode'] = 'draw'
             return result
 
-        elif isinstance(self._eventHandler, Pan):
+        elif isinstance(self._eventHandler, PanAndSelect):
             return {'mode': 'pan'}
 
         else:
@@ -1400,7 +1519,7 @@ class PlotInteraction(object):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
-                         In 'draw', 'pan', 'select', 'zoom'.
+                         In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
                       If None, selection area is not drawn.
@@ -1413,7 +1532,7 @@ class PlotInteraction(object):
         :param str label: Only for 'draw' mode.
         :param float width: Width of the pencil. Only for draw pencil mode.
         """
-        assert mode in ('draw', 'pan', 'select', 'zoom')
+        assert mode in ('draw', 'pan', 'select', 'select-draw', 'zoom')
 
         plot = self._plot()
         assert plot is not None
@@ -1421,7 +1540,7 @@ class PlotInteraction(object):
         if color not in (None, 'video inverted'):
             color = colors.rgba(color)
 
-        if mode == 'draw':
+        if mode in ('draw', 'select-draw'):
             assert shape in self._DRAW_MODES
             eventHandlerClass = self._DRAW_MODES[shape]
             parameters = {
@@ -1430,14 +1549,21 @@ class PlotInteraction(object):
                 'color': color,
                 'width': width,
             }
+            eventHandler = eventHandlerClass(plot, parameters)
 
             self._eventHandler.cancel()
-            self._eventHandler = eventHandlerClass(plot, parameters)
+
+            if mode == 'draw':
+                self._eventHandler = eventHandler
+
+            else:  # mode == 'select-draw'
+                self._eventHandler = FocusManager(
+                    (ItemsInteractionForCombo(plot), eventHandler))
 
         elif mode == 'pan':
             # Ignores color, shape and label
             self._eventHandler.cancel()
-            self._eventHandler = Pan(plot)
+            self._eventHandler = PanAndSelect(plot)
 
         elif mode == 'zoom':
             # Ignores shape and label

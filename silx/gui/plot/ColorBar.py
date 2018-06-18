@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,9 @@ __date__ = "24/04/2018"
 
 
 import logging
+import weakref
 import numpy
+
 from ._utils import ticklayout
 from .. import qt
 from silx.gui import colors
@@ -70,7 +72,7 @@ class ColorBarWidget(qt.QWidget):
 
     def __init__(self, parent=None, plot=None, legend=None):
         self._isConnected = False
-        self._plot = None
+        self._plotRef = None
         self._colormap = None
         self._data = None
 
@@ -96,7 +98,7 @@ class ColorBarWidget(qt.QWidget):
 
     def getPlot(self):
         """Returns the :class:`Plot` associated to this widget or None"""
-        return self._plot
+        return None if self._plotRef is None else self._plotRef()
 
     def setPlot(self, plot):
         """Associate a plot to the ColorBar
@@ -105,27 +107,38 @@ class ColorBarWidget(qt.QWidget):
                      If None will remove any connection with a previous plot.
         """
         self._disconnectPlot()
-        self._plot = plot
+        self._plotRef = None if plot is None else weakref.ref(plot)
         self._connectPlot()
 
     def _disconnectPlot(self):
         """Disconnect from Plot signals"""
-        if self._plot is not None and self._isConnected:
+        plot = self.getPlot()
+        if plot is not None and self._isConnected:
             self._isConnected = False
-            self._plot.sigActiveImageChanged.disconnect(
+            plot.sigActiveImageChanged.disconnect(
                 self._activeImageChanged)
-            self._plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
+            plot.sigActiveScatterChanged.disconnect(
+                self._activeScatterChanged)
+            plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
 
     def _connectPlot(self):
         """Connect to Plot signals"""
-        if self._plot is not None and not self._isConnected:
-            activeImageLegend = self._plot.getActiveImage(just_legend=True)
-            if activeImageLegend is None:  # Show plot default colormap
+        plot = self.getPlot()
+        if plot is not None and not self._isConnected:
+            activeImageLegend = plot.getActiveImage(just_legend=True)
+            activeScatterLegend = plot._getActiveItem(
+                kind='scatter', just_legend=True)
+            if activeImageLegend is None and activeScatterLegend is None:
+                # Show plot default colormap
                 self._syncWithDefaultColormap()
-            else:  # Show active image colormap
+            elif activeImageLegend is not None:  # Show active image colormap
                 self._activeImageChanged(None, activeImageLegend)
-            self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
-            self._plot.sigPlotSignal.connect(self._defaultColormapChanged)
+            elif activeScatterLegend is not None:  # Show active scatter colormap
+                self._activeScatterChanged(None, activeScatterLegend)
+
+            plot.sigActiveImageChanged.connect(self._activeImageChanged)
+            plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
+            plot.sigPlotSignal.connect(self._defaultColormapChanged)
             self._isConnected = True
 
     def setVisible(self, isVisible):
@@ -196,36 +209,58 @@ class ColorBarWidget(qt.QWidget):
         """
         return self.legend.getText()
 
+    def _activeScatterChanged(self, previous, legend):
+        """Handle plot active scatter changed"""
+        plot = self.getPlot()
+
+        # Do not handle active scatter while there is an image
+        if plot.getActiveImage() is not None:
+            return
+
+        if legend is None:  # No active scatter, display no colormap
+            self.setColormap(colormap=None)
+            return
+
+        # Sync with active scatter
+        activeScatter = plot._getActiveItem(kind='scatter')
+
+        self.setColormap(colormap=activeScatter.getColormap(),
+                         data=activeScatter.getValueData(copy=False))
+
     def _activeImageChanged(self, previous, legend):
-        """Handle plot active curve changed"""
-        if legend is None:  # No active image, display no colormap
-            self.setColormap(colormap=None)
-            return
+        """Handle plot active image changed"""
+        plot = self.getPlot()
 
-        # Sync with active image
-        image = self._plot.getActiveImage().getData(copy=False)
+        if legend is None:  # No active image, try with active scatter
+            activeScatterLegend = plot._getActiveItem(
+                kind='scatter', just_legend=True)
+            # No more active image, use active scatter if any
+            self._activeScatterChanged(None, activeScatterLegend)
+        else:
+            # Sync with active image
+            image = plot.getActiveImage().getData(copy=False)
 
-        # RGB(A) image, display default colormap
-        if image.ndim != 2:
-            self.setColormap(colormap=None)
-            return
+            # RGB(A) image, display default colormap
+            if image.ndim != 2:
+                self.setColormap(colormap=None)
+                return
 
-        # data image, sync with image colormap
-        # do we need the copy here : used in the case we are changing
-        # vmin and vmax but should have already be done by the plot
-        self.setColormap(colormap=self._plot.getActiveImage().getColormap(),
-                         data=image)
+            # data image, sync with image colormap
+            # do we need the copy here : used in the case we are changing
+            # vmin and vmax but should have already be done by the plot
+            self.setColormap(colormap=plot.getActiveImage().getColormap(),
+                             data=image)
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
         if (event['event'] == 'defaultColormapChanged' and
-                self._plot.getActiveImage() is None):
+                self.getPlot().getActiveImage() is None):
             # No active image, take default colormap update into account
             self._syncWithDefaultColormap()
 
     def _syncWithDefaultColormap(self, data=None):
         """Update colorbar according to plot default colormap"""
-        self.setColormap(self._plot.getDefaultColormap(), data)
+        self.setColormap(self.getPlot().getDefaultColormap(), data)
 
     def getColorScaleBar(self):
         """

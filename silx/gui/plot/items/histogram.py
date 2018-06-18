@@ -29,14 +29,12 @@ __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "27/06/2017"
 
-
 import logging
 
 import numpy
 
 from .core import (Item, AlphaMixIn, ColorMixIn, FillMixIn,
                    LineMixIn, YAxisMixIn, ItemChangedType)
-
 
 _logger = logging.getLogger(__name__)
 
@@ -290,5 +288,40 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
             self._histogram = histogram
             self._edges = edges
+            self._alignement = align
 
         self._updated(ItemChangedType.DATA)
+
+    def getAlignment(self):
+        """
+
+        :return: histogram alignement. Value in ('center', 'left', 'right').
+        """
+        return self._alignement
+
+    def _revertComputeEdges(self, x, histogramType):
+        """Compute the edges from a set of xs and a rule to generate the edges
+
+        :param x: the x value of the curve to transform into an histogram
+        :param histogramType: the type of histogram we wan't to generate.
+             This define the way to center the histogram values compared to the
+             curve value. Possible values can be::
+
+             - 'left'
+             - 'right'
+             - 'center'
+
+        :return: the edges for the given x and the histogramType
+        """
+        # for now we consider that the spaces between xs are constant
+        edges = x.copy()
+        if histogramType is 'left':
+            return edges[1:]
+        if histogramType is 'center':
+            edges = (edges[1:] + edges[:-1]) / 2.0
+        if histogramType is 'right':
+            width = 1
+            if len(x) > 1:
+                width = x[-1] + x[-2]
+            edges = edges[:-1]
+        return edges

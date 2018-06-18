@@ -29,11 +29,14 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "05/06/2018"
 
 import collections
 import logging
+import weakref
 
+import silx
+from silx.utils.weakref import WeakMethodProxy
 from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
@@ -49,6 +52,7 @@ from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
+from .StatsWidget import BasicStatsWidget
 from .ColorBar import ColorBarWidget
 try:
     from ..console import IPythonDockWidget
@@ -114,6 +118,7 @@ class PlotWindow(PlotWidget):
         self._curvesROIDockWidget = None
         self._maskToolsDockWidget = None
         self._consoleDockWidget = None
+        self._statsWidget = None
 
         # Create color bar, hidden by default for backward compatibility
         self._colorbar = ColorBarWidget(parent=self, plot=self)
@@ -206,6 +211,7 @@ class PlotWindow(PlotWidget):
 
         # lazy loaded actions needed by the controlButton menu
         self._consoleAction = None
+        self._statsAction = None
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
 
@@ -223,9 +229,11 @@ class PlotWindow(PlotWidget):
         gridLayout.addWidget(self._colorbar, 0, 1)
         gridLayout.setRowStretch(0, 1)
         gridLayout.setColumnStretch(0, 1)
-        centralWidget = qt.QWidget()
+        centralWidget = qt.QWidget(self)
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
+
+        self._positionWidget = None
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -249,14 +257,14 @@ class PlotWindow(PlotWidget):
                     converters = position
                 else:
                     converters = None
-                self.positionWidget = tools.PositionInfo(
+                self._positionWidget = tools.PositionInfo(
                     plot=self, converters=converters)
-                self.positionWidget.autoSnapToActiveCurve = True
+                self._positionWidget.autoSnapToActiveCurve = True
 
-                hbox.addWidget(self.positionWidget)
+                hbox.addWidget(self._positionWidget)
 
             hbox.addStretch(1)
-            bottomBar = qt.QWidget()
+            bottomBar = qt.QWidget(centralWidget)
             bottomBar.setLayout(hbox)
 
             gridLayout.addWidget(bottomBar, 1, 0, 1, -1)
@@ -294,6 +302,18 @@ class PlotWindow(PlotWidget):
         """
         return self._outputToolBar
 
+    @property
+    @deprecated(replacement="getPositionInfoWidget()", since_version="0.8.0")
+    def positionWidget(self):
+        return self.getPositionInfoWidget()
+
+    def getPositionInfoWidget(self):
+        """Returns the widget displaying current cursor position information
+
+        :rtype: ~silx.gui.plot.tools.PositionInfo
+        """
+        return self._positionWidget
+
     def getSelectionMask(self):
         """Return the current mask handled by :attr:`maskToolsDockWidget`.
 
@@ -321,7 +341,7 @@ class PlotWindow(PlotWidget):
         show it or hide it."""
         # create widget if needed (first call)
         if self._consoleDockWidget is None:
-            available_vars = {"plt": self}
+            available_vars = {"plt": weakref.proxy(self)}
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
             self._consoleDockWidget = IPythonDockWidget(
@@ -334,6 +354,9 @@ class PlotWindow(PlotWidget):
                 self.getConsoleAction().setChecked)
 
         self._consoleDockWidget.setVisible(isChecked)
+
+    def _toggleStatsVisibility(self, isChecked=False):
+        self.getStatsWidget().parent().setVisible(isChecked)
 
     def _createToolBar(self, title, parent):
         """Create a QToolBar from the QAction of the PlotWindow.
@@ -387,6 +410,7 @@ class PlotWindow(PlotWidget):
         controlMenu.clear()
         controlMenu.addAction(self.getLegendsDockWidget().toggleViewAction())
         controlMenu.addAction(self.getRoiAction())
+        controlMenu.addAction(self.getStatsAction())
         controlMenu.addAction(self.getMaskAction())
         controlMenu.addAction(self.getConsoleAction())
 
@@ -480,7 +504,34 @@ class PlotWindow(PlotWidget):
             self.addTabbedDockWidget(self._maskToolsDockWidget)
         return self._maskToolsDockWidget
 
+    def getStatsWidget(self):
+        """Returns a BasicStatsWidget connected to this plot
+
+        :rtype: BasicStatsWidget
+        """
+        if self._statsWidget is None:
+            dockWidget = qt.QDockWidget(parent=self)
+            dockWidget.setWindowTitle("Curves stats")
+            dockWidget.layout().setContentsMargins(0, 0, 0, 0)
+            self._statsWidget = BasicStatsWidget(parent=self, plot=self)
+            dockWidget.setWidget(self._statsWidget)
+            dockWidget.hide()
+            self.addTabbedDockWidget(dockWidget)
+        return self._statsWidget
+
     # getters for actions
+    @property
+    @deprecated(replacement="getInteractiveModeToolBar().getZoomModeAction()",
+                since_version="0.8.0")
+    def zoomModeAction(self):
+        return self.getInteractiveModeToolBar().getZoomModeAction()
+
+    @property
+    @deprecated(replacement="getInteractiveModeToolBar().getPanModeAction()",
+                since_version="0.8.0")
+    def panModeAction(self):
+        return self.getInteractiveModeToolBar().getPanModeAction()
+
     @property
     @deprecated(replacement="getConsoleAction()", since_version="0.4.0")
     def consoleAction(self):
@@ -550,6 +601,14 @@ class PlotWindow(PlotWidget):
     @deprecated(replacement="getRoiAction()", since_version="0.4.0")
     def roiAction(self):
         return self.getRoiAction()
+
+    def getStatsAction(self):
+        if self._statsAction is None:
+            self._statsAction = qt.QAction('Curves stats', self)
+            self._statsAction.setCheckable(True)
+            self._statsAction.setChecked(self.getStatsWidget().parent().isVisible())
+            self._statsAction.toggled.connect(self._toggleStatsVisibility)
+        return self._statsAction
 
     def getRoiAction(self):
         """QAction toggling curve ROI dock widget
@@ -763,7 +822,7 @@ class Plot2D(PlotWindow):
         posInfo = [
             ('X', lambda x, y: x),
             ('Y', lambda x, y: y),
-            ('Data', self._getImageValue)]
+            ('Data', WeakMethodProxy(self._getImageValue))]
 
         super(Plot2D, self).__init__(parent=parent, backend=backend,
                                      resetzoom=True, autoScale=False,
@@ -778,6 +837,9 @@ class Plot2D(PlotWindow):
         self.getXAxis().setLabel('Columns')
         self.getYAxis().setLabel('Rows')
 
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+            self.getYAxis().setInverted(True)
+
         self.profile = ProfileToolBar(plot=self)
         self.addToolBar(self.profile)
 
@@ -786,9 +848,40 @@ class Plot2D(PlotWindow):
 
         # Put colorbar action after colormap action
         actions = self.toolBar().actions()
-        for index, action in enumerate(actions):
+        for action in actions:
             if action is self.getColormapAction():
                 break
+
+        self.sigActiveImageChanged.connect(self.__activeImageChanged)
+
+    def __activeImageChanged(self, previous, legend):
+        """Handle change of active image
+
+        :param Union[str,None] previous: Legend of previous active image
+        :param Union[str,None] legend: Legend of current active image
+        """
+        if previous is not None:
+            item = self.getImage(previous)
+            if item is not None:
+                item.sigItemChanged.disconnect(self.__imageChanged)
+
+        if legend is not None:
+            item = self.getImage(legend)
+            item.sigItemChanged.connect(self.__imageChanged)
+
+        positionInfo = self.getPositionInfoWidget()
+        if positionInfo is not None:
+            positionInfo.updateInfo()
+
+    def __imageChanged(self, event):
+        """Handle update of active image item
+
+        :param event: Type of changed event
+        """
+        if event == items.ItemChangedType.DATA:
+            positionInfo = self.getPositionInfoWidget()
+            if positionInfo is not None:
+                positionInfo.updateInfo()
 
     def _getImageValue(self, x, y):
         """Get status bar value of top most image at position (x, y)

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ __date__ = "03/04/2017"
 # keep aspect ratio managed here?
 # smarter dirty flag handling?
 
+import datetime as dt
 import math
 import weakref
 import logging
@@ -47,7 +48,8 @@ from ..._utils import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
-
+from ..._utils.dtime_ticklayout import calcTicksAdaptive, bestFormatString
+from ..._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
 
@@ -68,6 +70,8 @@ class PlotAxis(object):
 
         self._plot = weakref.ref(plot)
 
+        self._isDateTime = False
+        self._timeZone = None
         self._isLog = False
         self._dataRange = 1., 100.
         self._displayCoords = (0., 0.), (1., 0.)
@@ -107,6 +111,29 @@ class PlotAxis(object):
         isLog = bool(isLog)
         if isLog != self._isLog:
             self._isLog = isLog
+            self._dirtyTicks()
+
+    @property
+    def timeZone(self):
+        """Returnss datetime.tzinfo that is used if this axis plots date times."""
+        return self._timeZone
+
+    @timeZone.setter
+    def timeZone(self, tz):
+        """Sets dateetime.tzinfo that is used if this axis plots date times."""
+        self._timeZone = tz
+        self._dirtyTicks()
+
+    @property
+    def isTimeSeries(self):
+        """Whether the axis is showing floats as datetime objects"""
+        return self._isDateTime
+
+    @isTimeSeries.setter
+    def isTimeSeries(self, isTimeSeries):
+        isTimeSeries = bool(isTimeSeries)
+        if isTimeSeries != self._isDateTime:
+            self._isDateTime = isTimeSeries
             self._dirtyTicks()
 
     @property
@@ -235,6 +262,10 @@ class PlotAxis(object):
             (x0, y0), (x1, y1) = self.displayCoords
 
             if self.isLog:
+
+                if self.isTimeSeries:
+                    _logger.warning("Time series not implemented for log-scale")
+
                 logMin, logMax = math.log10(dataMin), math.log10(dataMax)
                 tickMin, tickMax, step, _ = niceNumbersForLog10(logMin, logMax)
 
@@ -269,19 +300,41 @@ class PlotAxis(object):
 
                 # Density of 1.3 label per 92 pixels
                 # i.e., 1.3 label per inch on a 92 dpi screen
-                tickMin, tickMax, step, nbFrac = niceNumbersAdaptative(
-                    dataMin, dataMax, nbPixels, 1.3 / 92)
+                tickDensity = 1.3 / 92
 
-                for dataPos in self._frange(tickMin, tickMax, step):
-                    if dataMin <= dataPos <= dataMax:
-                        xPixel = x0 + (dataPos - dataMin) * xScale
-                        yPixel = y0 + (dataPos - dataMin) * yScale
+                if not self.isTimeSeries:
+                    tickMin, tickMax, step, nbFrac = niceNumbersAdaptative(
+                        dataMin, dataMax, nbPixels, tickDensity)
 
-                        if nbFrac == 0:
-                            text = '%g' % dataPos
-                        else:
-                            text = ('%.' + str(nbFrac) + 'f') % dataPos
-                        yield ((xPixel, yPixel), dataPos, text)
+                    for dataPos in self._frange(tickMin, tickMax, step):
+                        if dataMin <= dataPos <= dataMax:
+                            xPixel = x0 + (dataPos - dataMin) * xScale
+                            yPixel = y0 + (dataPos - dataMin) * yScale
+
+                            if nbFrac == 0:
+                                text = '%g' % dataPos
+                            else:
+                                text = ('%.' + str(nbFrac) + 'f') % dataPos
+                            yield ((xPixel, yPixel), dataPos, text)
+                else:
+                    # Time series
+                    dtMin = dt.datetime.fromtimestamp(dataMin, tz=self.timeZone)
+                    dtMax = dt.datetime.fromtimestamp(dataMax, tz=self.timeZone)
+
+                    tickDateTimes, spacing, unit = calcTicksAdaptive(
+                        dtMin, dtMax, nbPixels, tickDensity)
+
+                    for tickDateTime in tickDateTimes:
+                        if dtMin <= tickDateTime <= dtMax:
+
+                            dataPos = timestamp(tickDateTime)
+                            xPixel = x0 + (dataPos - dataMin) * xScale
+                            yPixel = y0 + (dataPos - dataMin) * yScale
+
+                            fmtStr = bestFormatString(spacing, unit)
+                            text = tickDateTime.strftime(fmtStr)
+
+                            yield ((xPixel, yPixel), dataPos, text)
 
 
 # GLPlotFrame #################################################################
@@ -501,7 +554,8 @@ class GLPlotFrame(object):
 
         gl.glLineWidth(self._LINE_WIDTH)
 
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              matProj.astype(numpy.float32))
         gl.glUniform4f(prog.uniforms['color'], 0., 0., 0., 1.)
         gl.glUniform1f(prog.uniforms['tickFactor'], 0.)
 
@@ -534,7 +588,8 @@ class GLPlotFrame(object):
         prog.use()
 
         gl.glLineWidth(self._LINE_WIDTH)
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matProj)
+        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
+                              matProj.astype(numpy.float32))
         gl.glUniform4f(prog.uniforms['color'], 0.7, 0.7, 0.7, 1.)
         gl.glUniform1f(prog.uniforms['tickFactor'], 0.)  # 1/2.)  # 1/tickLen
 
@@ -810,11 +865,11 @@ class GLPlotFrame2D(GLPlotFrame):
             # Non-orthogonal axes
             if self.baseVectors != self.DEFAULT_BASE_VECTORS:
                 (xx, xy), (yx, yy) = self.baseVectors
-                mat = mat * numpy.matrix((
+                mat = numpy.dot(mat, numpy.array((
                     (xx, yx, 0., 0.),
                     (xy, yy, 0., 0.),
                     (0., 0., 1., 0.),
-                    (0., 0., 0., 1.)), dtype=numpy.float32)
+                    (0., 0., 0., 1.)), dtype=numpy.float64))
 
             self._transformedDataProjMat = mat
 
@@ -839,11 +894,11 @@ class GLPlotFrame2D(GLPlotFrame):
             # Non-orthogonal axes
             if self.baseVectors != self.DEFAULT_BASE_VECTORS:
                 (xx, xy), (yx, yy) = self.baseVectors
-                mat = mat * numpy.matrix((
+                mat = numpy.dot(mat, numpy.matrix((
                     (xx, yx, 0., 0.),
                     (xy, yy, 0., 0.),
                     (0., 0., 1., 0.),
-                    (0., 0., 0., 1.)), dtype=numpy.float32)
+                    (0., 0., 0., 1.)), dtype=numpy.float64))
 
             self._transformedDataY2ProjMat = mat
 

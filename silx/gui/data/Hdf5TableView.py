@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/04/2018"
+__date__ = "23/05/2018"
 
 import collections
 import functools
@@ -94,6 +94,12 @@ class _CellData(object):
         :rtype: tuple
         """
         return self.__tooltip
+
+    def invalidateValue(self):
+        self.__value = None
+
+    def invalidateToolTip(self):
+        self.__tooltip = None
 
 
 class _TableData(object):
@@ -224,12 +230,20 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         elif role == qt.Qt.DisplayRole:
             value = cell.value()
             if callable(value):
-                value = value(self.__obj)
+                try:
+                    value = value(self.__obj)
+                except Exception:
+                    cell.invalidateValue()
+                    raise
             return value
         elif role == qt.Qt.ToolTipRole:
             value = cell.tooltip()
             if callable(value):
-                value = value(self.__obj)
+                try:
+                    value = value(self.__obj)
+                except Exception:
+                    cell.invalidateToolTip()
+                    raise
             return value
         return None
 
@@ -333,7 +347,8 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             # it's a real H5py object
             self.__data.addHeaderValueRow("Basename", lambda x: os.path.basename(x.name))
             self.__data.addHeaderValueRow("Name", lambda x: x.name)
-            self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
+            if obj.file is not None:
+                self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
 
             if hasattr(obj, "path"):
                 # That's a link
@@ -345,8 +360,11 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             else:
                 if silx.io.is_file(obj):
                     physical = lambda x: x.filename + SEPARATOR + x.name
+                elif obj.file is not None:
+                        physical = lambda x: x.file.filename + SEPARATOR + x.name
                 else:
-                    physical = lambda x: x.file.filename + SEPARATOR + x.name
+                    # Guess it is a virtual node
+                    physical = "No physical location"
                 self.__data.addHeaderValueRow("Physical", physical)
 
         if hasattr(obj, "dtype"):
@@ -473,7 +491,7 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
     def setData(self, data):
         """Set the h5py-like object exposed by the model
 
-        :param h5pyObject: A h5py-like object. It can be a `h5py.Dataset`,
+        :param data: A h5py-like object. It can be a `h5py.Dataset`,
             a `h5py.File`, a `h5py.Group`. It also can be a,
             `silx.gui.hdf5.H5Node` which is needed to display some local path
             information.

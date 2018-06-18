@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "14/06/2018"
 
 
 import logging
@@ -229,7 +229,7 @@ class ImageComplexData(ImageBase, ColormapMixIn):
     def setColormap(self, colormap, mode=None):
         """Set the colormap for this specific mode.
 
-        :param ~silx.gui.plot.Colormap.Colormap colormap: The colormap
+        :param ~silx.gui.colors.Colormap colormap: The colormap
         :param Mode mode:
             If specified, set the colormap of this specific mode.
             Default: current mode.
@@ -249,7 +249,7 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         :param Mode mode:
             If specified, get the colormap of this specific mode.
             Default: current mode.
-        :rtype: ~silx.gui.plot.Colormap.Colormap
+        :rtype: ~silx.gui.colors.Colormap
         """
         if mode is None:
             mode = self.getVisualizationMode()

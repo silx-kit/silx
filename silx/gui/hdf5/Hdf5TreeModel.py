@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2017"
+__date__ = "11/06/2018"
 
 
 import os
@@ -205,7 +205,23 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     ]
     """List of logical columns available"""
 
-    def __init__(self, parent=None):
+    sigH5pyObjectLoaded = qt.Signal(object)
+    """Emitted when a new root item was loaded and inserted to the model."""
+
+    sigH5pyObjectRemoved = qt.Signal(object)
+    """Emitted when a root item is removed from the model."""
+
+    sigH5pyObjectSynchronized = qt.Signal(object, object)
+    """Emitted when an item was synchronized."""
+
+    def __init__(self, parent=None, ownFiles=True):
+        """
+        Constructor
+
+        :param qt.QWidget parent: Parent widget
+        :param bool ownFiles: If true (default) the model will manage the files
+            life cycle when they was added using path (like DnD).
+        """
         super(Hdf5TreeModel, self).__init__(parent)
 
         self.header_labels = [None] * len(self.COLUMN_IDS)
@@ -221,6 +237,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root = Hdf5Node()
         self.__fileDropEnabled = True
         self.__fileMoveEnabled = True
+        self.__datasetDragEnabled = False
 
         self.__animatedIcon = icons.getWaitIcon()
         self.__animatedIcon.iconChanged.connect(self.__updateLoadingItems)
@@ -235,6 +252,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__icons.append(icons.getQIcon("item-3dim"))
         self.__icons.append(icons.getQIcon("item-ndim"))
 
+        self.__ownFiles = ownFiles
         self.__openedFiles = []
         """Store the list of files opened by the model itself."""
         # FIXME: It should be managed one by one by Hdf5Item itself
@@ -285,16 +303,25 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         newItem = _unwrapNone(newItem)
         error = _unwrapNone(error)
         row = self.__root.indexOfChild(oldItem)
+
         rootIndex = qt.QModelIndex()
         self.beginRemoveRows(rootIndex, row, row)
         self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
+
         if newItem is not None:
             rootIndex = qt.QModelIndex()
-            self.__openedFiles.append(newItem.obj)
+            if self.__ownFiles:
+                self.__openedFiles.append(newItem.obj)
             self.beginInsertRows(rootIndex, row, row)
             self.__root.insertChild(row, newItem)
             self.endInsertRows()
+
+            if isinstance(oldItem, Hdf5LoadingItem):
+                self.sigH5pyObjectLoaded.emit(newItem.obj)
+            else:
+                self.sigH5pyObjectSynchronized.emit(oldItem.obj, newItem.obj)
+
         # FIXME the error must be displayed
 
     def isFileDropEnabled(self):
@@ -305,6 +332,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     fileDropEnabled = qt.Property(bool, isFileDropEnabled, setFileDropEnabled)
     """Property to enable/disable file dropping in the model."""
+
+    def isDatasetDragEnabled(self):
+        return self.__datasetDragEnabled
+
+    def setDatasetDragEnabled(self, enabled):
+        self.__datasetDragEnabled = enabled
+
+    datasetDragEnabled = qt.Property(bool, isDatasetDragEnabled, setDatasetDragEnabled)
+    """Property to enable/disable drag of datasets."""
 
     def isFileMoveEnabled(self):
         return self.__fileMoveEnabled
@@ -323,10 +359,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             return 0
 
     def mimeTypes(self):
+        types = []
         if self.__fileMoveEnabled:
-            return [_utils.Hdf5NodeMimeData.MIME_TYPE]
-        else:
-            return []
+            types.append(_utils.Hdf5NodeMimeData.MIME_TYPE)
+        if self.__datasetDragEnabled:
+            types.append(_utils.Hdf5DatasetMimeData.MIME_TYPE)
+        return types
 
     def mimeData(self, indexes):
         """
@@ -336,7 +374,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param List[qt.QModelIndex] indexes: List of indexes
         :rtype: qt.QMimeData
         """
-        if not self.__fileMoveEnabled or len(indexes) == 0:
+        if len(indexes) == 0:
             return None
 
         indexes = [i for i in indexes if i.column() == 0]
@@ -346,7 +384,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             raise NotImplementedError("Drag of cell is not implemented")
 
         node = self.nodeFromIndex(indexes[0])
-        mimeData = _utils.Hdf5NodeMimeData(node)
+
+        if self.__fileMoveEnabled and node.parent is self.__root:
+            mimeData = _utils.Hdf5NodeMimeData(node=node)
+        elif self.__datasetDragEnabled:
+            mimeData = _utils.Hdf5DatasetMimeData(node=node)
+        else:
+            mimeData = None
         return mimeData
 
     def flags(self, index):
@@ -356,6 +400,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             node = self.nodeFromIndex(index)
             if self.__fileMoveEnabled and node.parent is self.__root:
                 # that's a root
+                return qt.Qt.ItemIsDragEnabled | defaultFlags
+            elif self.__datasetDragEnabled:
                 return qt.Qt.ItemIsDragEnabled | defaultFlags
             return defaultFlags
         elif self.__fileDropEnabled or self.__fileMoveEnabled:
@@ -543,8 +589,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             return
 
         filename = node.obj.filename
-        self.removeIndex(index)
-        self.insertFileAsync(filename, index.row())
+        self.insertFileAsync(filename, index.row(), synchronizingNode=node)
 
     def synchronizeH5pyObject(self, h5pyObject):
         """
@@ -560,8 +605,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             if item.obj is h5pyObject:
                 qindex = self.index(index, 0, qt.QModelIndex())
                 self.synchronizeIndex(qindex)
-            else:
-                index += 1
+            index += 1
 
     def removeIndex(self, index):
         """
@@ -576,6 +620,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.beginRemoveRows(qt.QModelIndex(), index.row(), index.row())
         self.__root.removeChildAtIndex(index.row())
         self.endRemoveRows()
+        self.sigH5pyObjectRemoved.emit(node.obj)
 
     def removeH5pyObject(self, h5pyObject):
         """
@@ -608,14 +653,17 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def hasPendingOperations(self):
         return len(self.__runnerSet) > 0
 
-    def insertFileAsync(self, filename, row=-1):
+    def insertFileAsync(self, filename, row=-1, synchronizingNode=None):
         if not os.path.isfile(filename):
             raise IOError("Filename '%s' must be a file path" % filename)
 
         # create temporary item
-        text = os.path.basename(filename)
-        item = Hdf5LoadingItem(text=text, parent=self.__root, animatedIcon=self.__animatedIcon)
-        self.insertNode(row, item)
+        if synchronizingNode is None:
+            text = os.path.basename(filename)
+            item = Hdf5LoadingItem(text=text, parent=self.__root, animatedIcon=self.__animatedIcon)
+            self.insertNode(row, item)
+        else:
+            item = synchronizingNode
 
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)
@@ -634,11 +682,19 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """
         try:
             h5file = silx_io.open(filename)
-            self.__openedFiles.append(h5file)
+            if self.__ownFiles:
+                self.__openedFiles.append(h5file)
+            self.sigH5pyObjectLoaded.emit(h5file)
             self.insertH5pyObject(h5file, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
             raise
+
+    def clear(self):
+        """Remove all the content of the model"""
+        for _ in range(self.rowCount()):
+            qindex = self.index(0, 0, qt.QModelIndex())
+            self.removeIndex(qindex)
 
     def appendFile(self, filename):
         self.insertFile(filename, -1)

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,31 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""The silx package contains the following main sub-packages:
+
+- silx.gui: Qt widgets for data visualization and data file browsing
+- silx.image: Some processing functions for 2D images
+- silx.io: Reading and writing data files (HDF5/NeXus, SPEC, ...)
+- silx.math: Some processing functions for 1D, 2D, 3D, nD arrays
+- silx.opencl: OpenCL-based data processing
+- silx.sx: High-level silx functions suited for (I)Python console.
+- silx.utils: Miscellaneous convenient functions
+
+See silx documentation: http://www.silx.org/doc/silx/latest/
+"""
 
 from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "23/05/2016"
+__date__ = "26/04/2018"
 
 import os as _os
 import logging as _logging
+from ._config import Config as _Config
 
+config = _Config()
+"""Global configuration shared with the whole library"""
 
 # Attach a do nothing logging handler for silx
 _logging.getLogger(__name__).addHandler(_logging.NullHandler())

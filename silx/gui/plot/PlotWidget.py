@@ -31,16 +31,21 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "14/06/2018"
 
 
 from collections import OrderedDict, namedtuple
 from contextlib import contextmanager
+import datetime as dt
 import itertools
 import logging
 
 import numpy
 
+import silx
+from silx.utils.weakref import WeakMethodProxy
+from silx.utils import deprecation
+from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated
 # Import matplotlib backend here to init matplotlib our way
 from .backends.BackendMatplotlib import BackendMatplotlibQt
@@ -53,10 +58,11 @@ from .LimitsHistory import LimitsHistory
 from . import _utils
 
 from . import items
+from .items.axis import TickMode
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
-
+from ...gui.plot._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
 
@@ -110,8 +116,12 @@ class PlotWidget(qt.QMainWindow):
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 
-    DEFAULT_BACKEND = 'matplotlib'
-    """Class attribute setting the default backend for all instances."""
+    # TODO: Can be removed for silx 0.10
+    @classproperty
+    @deprecation.deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
+    def DEFAULT_BACKEND(self):
+        """Class attribute setting the default backend for all instances."""
+        return silx.config.DEFAULT_PLOT_BACKEND
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
@@ -209,7 +219,7 @@ class PlotWidget(qt.QMainWindow):
             self.setWindowTitle('PlotWidget')
 
         if backend is None:
-            backend = self.DEFAULT_BACKEND
+            backend = silx.config.DEFAULT_PLOT_BACKEND
 
         if hasattr(backend, "__call__"):
             self._backend = backend(self, parent)
@@ -296,7 +306,9 @@ class PlotWidget(qt.QMainWindow):
         self.setGraphYLimits(0., 100., axis='right')
         self.setGraphYLimits(0., 100., axis='left')
 
+    # TODO: Can be removed for silx 0.10
     @staticmethod
+    @deprecation.deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
     def setDefaultBackend(backend):
         """Set system wide default plot backend.
 
@@ -306,7 +318,7 @@ class PlotWidget(qt.QMainWindow):
                         'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
                         or a :class:`BackendBase.BackendBase` class
         """
-        PlotWidget.DEFAULT_BACKEND = backend
+        silx.config.DEFAULT_PLOT_BACKEND = backend
 
     def _getDirtyPlot(self):
         """Return the plot dirty flag.
@@ -525,7 +537,9 @@ class PlotWidget(qt.QMainWindow):
 
         :param numpy.ndarray x: The data corresponding to the x coordinates.
           If you attempt to plot an histogram you can set edges values in x.
-          In this case len(x) = len(y) + 1
+          In this case len(x) = len(y) + 1.
+          If x contains datetime objects the XAxis tickMode is set to
+          TickMode.TIME_SERIES.
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param str legend: The legend to be associated to the curve (or None)
         :param info: User-defined information associated to the curve
@@ -686,6 +700,13 @@ class PlotWidget(qt.QMainWindow):
             if yerror is None:
                 yerror = curve.getYErrorData(copy=False)
 
+            # Convert x to timestamps so that the internal representation
+            # remains floating points. The user is expected to set the axis'
+            # tickMode to TickMode.TIME_SERIES and, if necessary, set the axis
+            # to the correct time zone.
+            if len(x) > 0 and isinstance(x[0], dt.datetime):
+                x = [timestamp(d) for d in x]
+
             curve.setData(x, y, xerror, yerror, copy=copy)
 
         if replace:  # Then remove all other curves
@@ -822,7 +843,7 @@ class PlotWidget(qt.QMainWindow):
         :param colormap: Description of the :class:`.Colormap` to use
                                   (or None).
                                   This is ignored if data is a RGB(A) image.
-        :type colormap: Union[silx.gui.plot.Colormap.Colormap, dict]
+        :type colormap: Union[silx.gui.colors.Colormap, dict]
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
         :param str xlabel: X axis label to show when this curve is active,
@@ -965,7 +986,7 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param numpy.ndarray value: The data value associated with each point
         :param str legend: The legend to be associated to the scatter (or None)
-        :param silx.gui.plot.Colormap.Colormap colormap:
+        :param silx.gui.colors.Colormap colormap:
             The :class:`.Colormap`. to be used for the scatter (or None)
         :param info: User-defined information associated to the curve
         :param str symbol: Symbol to be drawn at each (x, y) position::
@@ -2265,13 +2286,13 @@ class PlotWidget(qt.QMainWindow):
         It only affects future calls to :meth:`addImage` without the colormap
         parameter.
 
-        :param silx.gui.plot.Colormap.Colormap colormap:
+        :param silx.gui.colors.Colormap colormap:
             The description of the default colormap, or
             None to set the :class:`.Colormap` to a linear
             autoscale gray colormap.
         """
         if colormap is None:
-            colormap = Colormap(name='gray',
+            colormap = Colormap(name=silx.config.DEFAULT_COLORMAP_NAME,
                                 normalization='linear',
                                 vmin=None,
                                 vmax=None)
@@ -2371,10 +2392,10 @@ class PlotWidget(qt.QMainWindow):
                                  to handle the graph events
                                  If None (default), use a default listener.
         """
-        # TODO allow multiple listeners, keep a weakref on it
+        # TODO allow multiple listeners
         # allow register listener by event type
         if callbackFunction is None:
-            callbackFunction = self.graphCallback
+            callbackFunction = WeakMethodProxy(self.graphCallback)
         self._callback = callbackFunction
 
     def graphCallback(self, ddict=None):
@@ -2522,9 +2543,8 @@ class PlotWidget(qt.QMainWindow):
 
             # Compute bbox wth figure aspect ratio
             plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-            plotRatio = plotHeight / plotWidth
-
-            if plotRatio > 0.:
+            if plotWidth > 0 and plotHeight > 0:
+                plotRatio = plotHeight / plotWidth
                 dataRatio = (ymax - ymin) / (xmax - xmin)
                 if dataRatio < plotRatio:
                     # Increase y range
@@ -2744,6 +2764,39 @@ class PlotWidget(qt.QMainWindow):
 
         return None
 
+    def _pick(self, x, y):
+        """Pick items in the plot at given position.
+
+        :param float x: X position in pixels
+        :param float y: Y position in pixels
+        :return: Iterable of (plot item, indices) at picked position.
+            Items are ordered from back to front.
+        """
+        items = []
+
+        # Convert backend result to plot items
+        for itemInfo in self._backend.pickItems(
+                x, y, kinds=('marker', 'curve', 'image')):
+            kind, legend = itemInfo['kind'], itemInfo['legend']
+
+            if kind in ('marker', 'image'):
+                item = self._getItem(kind=kind, legend=legend)
+                indices = None  # TODO compute indices for images
+
+            else:  # backend kind == 'curve'
+                for kind in ('curve', 'histogram', 'scatter'):
+                    item = self._getItem(kind=kind, legend=legend)
+                    if item is not None:
+                        indices = itemInfo['indices']
+                        break
+                else:
+                    _logger.error(
+                        'Cannot find corresponding picked item')
+                    continue
+            items.append((item, indices))
+
+        return tuple(items)
+
     # User event handling #
 
     def _isPositionInPlotArea(self, x, y):
@@ -2849,7 +2902,7 @@ class PlotWidget(qt.QMainWindow):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
-                         In 'draw', 'pan', 'select', 'zoom'.
+                         In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
         :type color: Color description: The name as a str or

@@ -69,10 +69,12 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "26/04/2018"
 
 import numpy
+import logging
 
+import silx
 from silx.gui import qt
 from .. import icons
 from . import items, PlotWindow, actions
@@ -95,6 +97,8 @@ except ImportError:
     h5py = None
 else:
     from silx.io.utils import is_dataset
+
+_logger = logging.getLogger(__name__)
 
 
 class StackView(qt.QMainWindow):
@@ -212,6 +216,9 @@ class StackView(qt.QMainWindow):
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal
 
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+            self._plot.getYAxis().setInverted(True)
+
         self._addColorBarAction()
 
         self._plot.profile = Profile3DToolBar(parent=self._plot,
@@ -320,7 +327,7 @@ class StackView(qt.QMainWindow):
         assert self._stack is not None
         assert 0 <= self._perspective < 3
 
-        # ensure we have the stack encapsulated in an array like object
+        # ensure we have the stack encapsulated in an array-like object
         # having a transpose() method
         if isinstance(self._stack, numpy.ndarray):
             self.__transposed_view = self._stack
@@ -331,7 +338,7 @@ class StackView(qt.QMainWindow):
         elif isinstance(self._stack, ListOfImages):
             self.__transposed_view = ListOfImages(self._stack)
 
-        # transpose the array like object if necessary
+        # transpose the array-like object if necessary
         if self._perspective == 1:
             self.__transposed_view = self.__transposed_view.transpose((1, 0, 2))
         elif self._perspective == 2:
@@ -345,7 +352,9 @@ class StackView(qt.QMainWindow):
 
         :param index: index of the frame to be displayed
         """
-        assert self.__transposed_view is not None
+        if self.__transposed_view is None:
+            # no data set
+            return
         self._plot.addImage(self.__transposed_view[index, :, :],
                             origin=self._getImageOrigin(),
                             scale=self._getImageScale(),
@@ -366,7 +375,7 @@ class StackView(qt.QMainWindow):
                                    calibration.NoCalibration())
         else:
             self.calibrations3D = []
-            for calib in calibrations:
+            for i, calib in enumerate(calibrations):
                 if hasattr(calib, "__len__") and len(calib) == 2:
                     calib = calibration.LinearCalibration(calib[0], calib[1])
                 elif calib is None:
@@ -375,15 +384,31 @@ class StackView(qt.QMainWindow):
                     raise TypeError("calibration must be a 2-tuple, None or" +
                                     " an instance of an AbstractCalibration " +
                                     "subclass")
+                elif not calib.is_affine():
+                    _logger.warning(
+                            "Calibration for dimension %d is not linear, "
+                            "it will be ignored for scaling the graph axes.",
+                            i)
                 self.calibrations3D.append(calib)
 
     def _getXYZCalibs(self):
+        """Return calibrations sorted in the XYZ graph order.
+
+        If the X or Y calibration is not linear, it will be replaced
+        with a :class:`calibration.NoCalibration` object
+        and as a result the corresponding axis will not be scaled."""
         xy_dims = [0, 1, 2]
         xy_dims.remove(self._perspective)
 
         xcalib = self.calibrations3D[max(xy_dims)]
         ycalib = self.calibrations3D[min(xy_dims)]
         zcalib = self.calibrations3D[self._perspective]
+
+        # filter out non-linear calibration for graph axes
+        if not xcalib.is_affine():
+            xcalib = calibration.NoCalibration()
+        if not ycalib.is_affine():
+            ycalib = calibration.NoCalibration()
 
         return xcalib, ycalib, zcalib
 
@@ -658,6 +683,7 @@ class StackView(qt.QMainWindow):
         self.__transposed_view = None
         self._perspective = 0
         self._browser.setEnabled(False)
+        # reset browser range
         self._browser.setRange(0, 0)
         self._plot.clear()
 

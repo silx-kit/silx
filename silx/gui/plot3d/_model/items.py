@@ -34,6 +34,7 @@ __date__ = "24/04/2018"
 
 
 import functools
+import logging
 import weakref
 
 import numpy
@@ -48,6 +49,9 @@ from ..items.volume import Isosurface, CutPlane
 
 
 from .core import AngleDegreeRow, BaseRow, ColorProxyRow, ProxyRow, StaticRow
+
+
+_logger = logging.getLogger(__name__)
 
 
 class _DirectionalLightProxy(qt.QObject):
@@ -472,7 +476,11 @@ class DataItem3DTransformRow(StaticRow):
         """
         item = self.item()
         if item is not None:
-            item.setScale(scale.x(), scale.y(), scale.z())
+            sx, sy, sz = scale.x(), scale.y(), scale.z()
+            if sx == 0. or sy == 0. or sz == 0.:
+                _logger.warning('Cannot set scale to 0: ignored')
+            else:
+                item.setScale(scale.x(), scale.y(), scale.z())
 
 
 class GroupItemRow(Item3DRow):

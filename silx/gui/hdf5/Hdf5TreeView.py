@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/02/2018"
+__date__ = "30/04/2018"
 
 
 import logging
@@ -66,10 +66,8 @@ class Hdf5TreeView(qt.QTreeView):
         """
         qt.QTreeView.__init__(self, parent)
 
-        model = Hdf5TreeModel(self)
-        proxy_model = NexusSortFilterProxyModel(self)
-        proxy_model.setSourceModel(model)
-        self.setModel(proxy_model)
+        model = self.createDefaultModel()
+        self.setModel(model)
 
         self.setHeader(Hdf5HeaderView(qt.Qt.Horizontal, self))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -86,6 +84,15 @@ class Hdf5TreeView(qt.QTreeView):
         self.__context_menu_callbacks = silxweakref.WeakList()
         self.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._createContextMenu)
+
+    def createDefaultModel(self):
+        """Creates and returns the default model.
+
+        Inherite to custom the default model"""
+        model = Hdf5TreeModel(self)
+        proxy_model = NexusSortFilterProxyModel(self)
+        proxy_model.setSourceModel(model)
+        return proxy_model
 
     def __removeContextMenuProxies(self, ref):
         """Callback to remove dead proxy from the list"""

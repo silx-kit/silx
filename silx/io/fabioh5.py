@@ -44,6 +44,7 @@ import numpy
 from . import commonh5
 from silx.third_party import six
 from silx import version as silx_version
+import silx.utils.number
 
 try:
     import h5py
@@ -106,7 +107,6 @@ class FrameData(commonh5.LazyLoadableDataset):
             attrs = {"interpretation": "image"}
         commonh5.LazyLoadableDataset.__init__(self, name, parent, attrs=attrs)
         self.__fabio_reader = fabio_reader
-
 
     def _create_data(self):
         return self.__fabio_reader.get_data()
@@ -638,30 +638,11 @@ class FabioReader(object):
         If it is not possible it returns a numpy string.
         """
         try:
-            value = int(value)
-            dtype = numpy.min_scalar_type(value)
-            assert dtype.kind != "O"
-            return dtype.type(value)
+            numpy_type = silx.utils.number.min_numerical_convertible_type(value)
+            converted = numpy_type(value)
         except ValueError:
-            try:
-                # numpy.min_scalar_type is not able to do very well the job
-                # when there is a lot of digit after the dot
-                # https://github.com/numpy/numpy/issues/8207
-                # Let's count the digit of the string
-                digits = len(value) - 1  # minus the dot
-                if digits <= 7:
-                    # A float32 is accurate with about 7 digits
-                    return numpy.float32(value)
-                elif digits <= 16:
-                    # A float64 is accurate with about 16 digits
-                    return numpy.float64(value)
-                else:
-                    if hasattr(numpy, "float128"):
-                        return numpy.float128(value)
-                    else:
-                        return numpy.float64(value)
-            except ValueError:
-                return numpy.string_(value)
+            converted = numpy.string_(value)
+        return converted
 
     def _convert_list(self, value):
         """Convert a string into a typed numpy array.
@@ -951,7 +932,13 @@ class File(commonh5.File):
         if first_file_name is not None:
             _, ext = os.path.splitext(first_file_name)
             ext = ext[1:]
-            use_edf_reader = ext in fabio.edfimage.EdfImage.DEFAULT_EXTENSIONS
+            edfimage = fabio.edfimage.EdfImage
+            if hasattr(edfimage, "DEFAULT_EXTENTIONS"):
+                # Typo on fabio 0.5
+                edf_extensions = edfimage.DEFAULT_EXTENTIONS
+            else:
+                edf_extensions = edfimage.DEFAULT_EXTENSIONS
+            use_edf_reader = ext in edf_extensions
         elif first_image is not None:
             use_edf_reader = isinstance(first_image, fabio.edfimage.EdfImage)
         else:

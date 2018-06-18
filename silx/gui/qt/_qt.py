@@ -40,7 +40,7 @@ provides the namespace of PyQt5 over PyQt4, PySide and PySide2.
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "11/10/2017"
+__date__ = "23/05/2018"
 
 
 import logging
@@ -255,10 +255,10 @@ def exceptionHandler(type_, value, trace):
     The script/application willing to use it should implement code similar to:
 
     .. code-block:: python
-    
+
         if __name__ == "__main__":
             sys.excepthook = qt.exceptionHandler
-    
+
     """
     _logger.error("%s %s %s", type_, value, ''.join(traceback.format_tb(trace)))
     msg = QMessageBox()
@@ -268,4 +268,3 @@ def exceptionHandler(type_, value, trace):
     msg.setDetailedText(("%s " % value) + ''.join(traceback.format_tb(trace)))
     msg.raise_()
     msg.exec_()
-

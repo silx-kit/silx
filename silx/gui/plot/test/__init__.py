@@ -32,13 +32,13 @@ import unittest
 from .._utils import test
 from . import testColorBar
 from . import testCurvesROIWidget
+from . import testStats
 from . import testAlphaSlider
 from . import testInteraction
 from . import testLegendSelector
 from . import testMaskToolsWidget
 from . import testScatterMaskToolsWidget
 from . import testPlotInteraction
-from . import testTools
 from . import testPlotWidgetNoBackend
 from . import testPlotWidget
 from . import testPlotWindow
@@ -50,14 +50,21 @@ from . import testLimitConstraints
 from . import testComplexImageView
 from . import testImageView
 from . import testSaveAction
+from . import testScatterView
+from . import testPixelIntensityHistoAction
 
 
 def suite():
+    # Lazy-loading to avoid cyclic reference
+    from ..tools import test as testTools
+
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         [test.suite(),
+         testTools.suite(),
          testColorBar.suite(),
          testCurvesROIWidget.suite(),
+         testStats.suite(),
          testAlphaSlider.suite(),
          testInteraction.suite(),
          testLegendSelector.suite(),
@@ -65,7 +72,6 @@ def suite():
          testScatterMaskToolsWidget.suite(),
          testPlotInteraction.suite(),
          testPlotWidgetNoBackend.suite(),
-         testTools.suite(),
          testPlotWidget.suite(),
          testPlotWindow.suite(),
          testProfile.suite(),
@@ -75,5 +81,8 @@ def suite():
          testLimitConstraints.suite(),
          testComplexImageView.suite(),
          testImageView.suite(),
-         testSaveAction.suite()])
+         testSaveAction.suite(),
+         testScatterView.suite(),
+         testPixelIntensityHistoAction.suite()
+        ])
     return test_suite

@@ -5,9 +5,9 @@ Converting various data files to HDF5
 This document explains how to convert SPEC files, EDF files and various other data
 formats into HDF5 files.
 
-An understanding of the way these data formats are exposed by the :meth:`silx.io.open`
+Understanding the way these data formats are exposed by the :meth:`silx.io.open`
 function is a prerequisite for this tutorial. You can learn more about this subject by
-reading :doc:`io`.
+reading ":doc:`io`".
 
 Using the convert module
 ++++++++++++++++++++++++
@@ -25,23 +25,23 @@ HDF5 file with the same structure as the one exposed by the :mod:`spech5` or :mo
 You can then read the file with any HDF5 reader.
 
 
-The function :func:`silx.io.convert.convert` is a simplified version of a
+The function :func:`silx.io.convert.convert` is a simplified version of the
 more flexible function :func:`silx.io.convert.write_to_h5`.
 
-The latter allows you to write scans into a specific HDF5 group in the output directory.
-You can also decide whether you want to overwrite an existing file, or append data to it.
+The latter allows you writing scans into a specific HDF5 group in the output directory.
+You can also decide whether you want to overwrite an existing file or append data to it.
 You can specify whether existing data with the same name as input data should be overwritten
 or ignored.
 
-This allows you to repeatedly transfer new content of a SPEC file to an existing
-HDF5 file, in between two scans.
+This allows you to repeatedly transfer the new content of a SPEC file to an existing
+HDF5 file between two scans.
 
 The following script is an example of a command line interface to :func:`write_to_h5`.
 
 .. literalinclude:: ../../../examples/writetoh5.py
    :lines: 44-
 
-But the functionality implemented in this script (and much more) is already implemented
+Notice that the functionality and muche more implemented in this script is already implemented
 in the *silx convert* application.
 
 
@@ -51,7 +51,7 @@ Using the convert application
 .. versionadded:: 0.6
 
 
-*silx* also provides a ``silx convert`` command line application, which allows you to
+*silx* also provides a ``silx convert`` command line application, by means of which you can
 perform standard conversions without having to write your own program.
 
 Type ``silx convert --help`` in a terminal to see all available options.
@@ -70,10 +70,10 @@ The simplest command to convert a single SPEC file to an HDF5 file would be:
 
     silx convert myspecfile.dat
 
-As no output name is supplied, the output file name will be a time-stamp with a
+As no output name is supplied, the output file name will be a timestamp with a
 *.h5* suffix (e.g. *20180110-114930.h5*).
 
-The following example allows you to append the content of a SPEC file to an
+In the following example it is shown how to append the content of a SPEC file to an
 existing HDF5 file::
 
     silx convert myspecfile.dat -m a -o myhdf5file.h5
@@ -81,7 +81,7 @@ existing HDF5 file::
 The ``-m a`` argument stands for *append mode*. The ``-o myhdf5file.h5``
 argument is used to specify the output file name.
 
-You could write the file into a specific group of the HDF5 file by providing
+You could write the file into a specific group of the HDF5 file by writing
 the complete URL in the format ``file_path::group_path``. For instance::
 
     silx convert myspecfile.dat -m a -o archive.h5::/2017-09-20/SPEC
@@ -91,7 +91,7 @@ Merging a stack of images
 *************************
 
 *silx convert* can merge a stack of image files.
-It support series of single frame files, and is based on
+It supports series of single frame files, and is based on
 `fabio.file_series <http://www.silx.org/doc/fabio/dev/api/modules.html?highlight=series#fabio.file_series.file_series>`_.
 All frames must have the same shape.
 
@@ -101,7 +101,7 @@ The following command merges all files matching a pattern::
 
 The data in the output file is presented as a 3D array.
 
-It is possible to provide multiple indices in the file name pattern, and specify a
+It is possible to provide multiple indices in the file name pattern and specify a
 range for each index::
 
     silx convert --file-pattern ch09__mca_0005_%04d_%04d.edf --begin 0,1 --end 0,54

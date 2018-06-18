@@ -33,17 +33,7 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 cimport cython
-
-# Windows compatibility: Cross-platform INFINITY
-from libc.float cimport DBL_MAX
-cdef double INFINITY = DBL_MAX + DBL_MAX
-# from libc.math cimport INFINITY
-
-# Replacement from libc.math cimport isnan
-# which is not available on Windows for Python2.7
-cdef extern from "isnan.h":
-    bint isnan(double x) nogil
-    bint isfinite(double x) nogil
+from math_compatibility cimport isnan, isfinite, INFINITY
 
 
 import numpy

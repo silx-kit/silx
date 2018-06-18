@@ -1,3 +1,4 @@
+# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017 European Synchrotron Radiation Facility
@@ -21,21 +22,12 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-/* This header provides isnan and isfinite functions across platforms.
+"""
+"""
 
-   VisualStudio 2008 (i.e., Python2.7) provides _isnan and _finite functions.
-*/
+__authors__ = ["H. Payno"]
+__license__ = "MIT"
+__date__ = "07/03/2018"
 
-#ifndef __ISNAN_H__
-#define __ISNAN_H__
 
-#include <math.h>
-
-#if (defined (_MSC_VER) && _MSC_VER < 1800)
-#include <float.h>
-
-#define isnan(v) _isnan(v)
-#define isfinite(v) _finite(v)
-#endif
-
-#endif /*__ISNAN_H__*/
+from .stats import *

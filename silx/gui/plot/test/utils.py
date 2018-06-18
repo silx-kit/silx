@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,11 +48,12 @@ class PlotWidgetTestCase(TestCaseQt):
 
     __screenshot_already_taken = False
 
-    def __init__(self, methodName='runTest'):
+    def __init__(self, methodName='runTest', backend=None):
         TestCaseQt.__init__(self, methodName=methodName)
+        self.__backend = backend
 
     def _createPlot(self):
-        return PlotWidget()
+        return PlotWidget(backend=self.__backend)
 
     def setUp(self):
         super(PlotWidgetTestCase, self).setUp()

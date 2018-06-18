@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/02/2018"
+__date__ = "24/05/2018"
 
 import os
 import logging
@@ -226,7 +226,7 @@ class TestFabioH5(unittest.TestCase):
         # There is no equality between items
         self.assertEqual(len(data), len(set(data)))
         # At worst a float32
-        self.assertIn(data.dtype.char, ['d', 'f'])
+        self.assertIn(data.dtype.kind, ['d', 'f'])
         self.assertLessEqual(data.dtype.itemsize, 32 / 8)
 
     def test_float_64(self):
@@ -248,7 +248,7 @@ class TestFabioH5(unittest.TestCase):
         # There is no equality between items
         self.assertEqual(len(data), len(set(data)))
         # At least a float64
-        self.assertIn(data.dtype.char, ['d', 'f'])
+        self.assertIn(data.dtype.kind, ['d', 'f'])
         self.assertGreaterEqual(data.dtype.itemsize, 64 / 8)
 
     def test_ub_matrix(self):
@@ -269,14 +269,14 @@ class TestFabioH5(unittest.TestCase):
         expected = numpy.array([4.08, 4.08, 4.08])
         self.assertIsNotNone(d)
         self.assertEquals(d.shape, (3, ))
-        self.assertIn(d.dtype.char, ['d', 'f'])
+        self.assertIn(d.dtype.kind, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
         d = sample['unit_cell_alphabetagamma']
         expected = numpy.array([90.0, 90.0, 90.0])
         self.assertIsNotNone(d)
         self.assertEquals(d.shape, (3, ))
-        self.assertIn(d.dtype.char, ['d', 'f'])
+        self.assertIn(d.dtype.kind, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
         d = sample['ub_matrix']
@@ -285,7 +285,7 @@ class TestFabioH5(unittest.TestCase):
                                  [1.08894, 1.08894, 9.28619e-17]]])
         self.assertIsNotNone(d)
         self.assertEquals(d.shape, (1, 3, 3))
-        self.assertIn(d.dtype.char, ['d', 'f'])
+        self.assertIn(d.dtype.kind, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
     def test_interpretation_mca_edf(self):

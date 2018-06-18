@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,8 @@
 This module provides classes to render 2D lines and scatter plots
 """
 
+from __future__ import division
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"
@@ -33,73 +35,73 @@ __date__ = "03/04/2017"
 
 import math
 import logging
+import warnings
 
 import numpy
 
 from silx.math.combo import min_max
 
 from ...._glutils import gl
-from ...._glutils import numpyToGLType, Program, vertexBuffer
-from ..._utils import FLOAT32_MINPOS
-from .GLSupport import buildFillMaskIndices
+from ...._glutils import Program, vertexBuffer
+from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
 
 
 _logger = logging.getLogger(__name__)
 
 
 _MPL_NONES = None, 'None', '', ' '
+"""Possible values for None"""
+
+
+def _notNaNSlices(array, length=1):
+    """Returns slices of none NaN values in the array.
+
+    :param numpy.ndarray array: 1D array from which to get slices
+    :param int length: Slices shorter than length gets discarded
+    :return: Array of (start, end) slice indices
+    :rtype: numpy.ndarray
+    """
+    isnan = numpy.isnan(numpy.array(array, copy=False).reshape(-1))
+    notnan = numpy.logical_not(isnan)
+    start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
+    if notnan[0]:
+        start = numpy.append(0, start)
+    end = numpy.where(numpy.logical_and(notnan[:-1], isnan[1:]))[0] + 1
+    if notnan[-1]:
+        end = numpy.append(end, len(array))
+    slices = numpy.transpose((start, end))
+    if length > 1:
+        # discard slices with less than length values
+        slices = slices[numpy.diff(slices, axis=1).ravel() >= length]
+    return slices
 
 
 # fill ########################################################################
 
 class _Fill2D(object):
-    _LINEAR, _LOG10_X, _LOG10_Y, _LOG10_X_Y = 0, 1, 2, 3
+    """Object rendering curve filling as polygons
 
-    _SHADERS = {
-        'vertexTransforms': {
-            _LINEAR: """
-        vec4 transformXY(float x, float y) {
-            return vec4(x, y, 0.0, 1.0);
-        }
-        """,
-            _LOG10_X: """
-        const float oneOverLog10 = 0.43429448190325176;
+    :param numpy.ndarray xData: X coordinates of points
+    :param numpy.ndarray yData: Y coordinates of points
+    :param float baseline: Y value of the 'bottom' of the fill.
+        0 for linear Y scale, -38 for log Y scale
+    :param List[float] color: RGBA color as 4 float in [0, 1]
+    :param List[float] offset: Translation of coordinates (ox, oy)
+    """
 
-        vec4 transformXY(float x, float y) {
-            return vec4(oneOverLog10 * log(x), y, 0.0, 1.0);
-        }
-        """,
-            _LOG10_Y: """
-        const float oneOverLog10 = 0.43429448190325176;
-
-        vec4 transformXY(float x, float y) {
-            return vec4(x, oneOverLog10 * log(y), 0.0, 1.0);
-        }
-        """,
-            _LOG10_X_Y: """
-        const float oneOverLog10 = 0.43429448190325176;
-
-        vec4 transformXY(float x, float y) {
-            return vec4(oneOverLog10 * log(x),
-                        oneOverLog10 * log(y),
-                        0.0, 1.0);
-        }
-        """
-        },
-        'vertex': """
+    _PROGRAM = Program(
+        vertexShader="""
         #version 120
 
         uniform mat4 matrix;
         attribute float xPos;
         attribute float yPos;
 
-        %s
-
         void main(void) {
-            gl_Position = matrix * transformXY(xPos, yPos);
+            gl_Position = matrix * vec4(xPos, yPos, 0.0, 1.0);
         }
         """,
-        'fragment': """
+        fragmentShader="""
         #version 120
 
         uniform vec4 color;
@@ -107,72 +109,95 @@ class _Fill2D(object):
         void main(void) {
             gl_FragColor = color;
         }
-        """
-    }
+        """,
+        attrib0='xPos')
 
-    _programs = {
-        _LINEAR: Program(
-            _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LINEAR],
-            _SHADERS['fragment'], attrib0='xPos'),
-        _LOG10_X: Program(
-            _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_X],
-            _SHADERS['fragment'], attrib0='xPos'),
-        _LOG10_Y: Program(
-            _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_Y],
-            _SHADERS['fragment'], attrib0='xPos'),
-        _LOG10_X_Y: Program(
-            _SHADERS['vertex'] % _SHADERS['vertexTransforms'][_LOG10_X_Y],
-            _SHADERS['fragment'], attrib0='xPos'),
-    }
-
-    def __init__(self, xFillVboData=None, yFillVboData=None,
-                 xMin=None, yMin=None, xMax=None, yMax=None,
-                 color=(0., 0., 0., 1.)):
-        self.xFillVboData = xFillVboData
-        self.yFillVboData = yFillVboData
-        self.xMin, self.yMin = xMin, yMin
-        self.xMax, self.yMax = xMax, yMax
+    def __init__(self, xData=None, yData=None,
+                 baseline=0,
+                 color=(0., 0., 0., 1.),
+                 offset=(0., 0.)):
+        self.xData = xData
+        self.yData = yData
+        self._xFillVboData = None
+        self._yFillVboData = None
         self.color = color
+        self.offset = offset
 
-        self._bboxVertices = None
-        self._indices = None
-        self._indicesType = None
+        # Offset baseline
+        self.baseline = baseline - self.offset[1]
 
     def prepare(self):
-        if self._indices is None:
-            self._indices = buildFillMaskIndices(self.xFillVboData.size)
-            self._indicesType = numpyToGLType(self._indices.dtype)
+        """Rendering preparation: build indices and bounding box vertices"""
+        if (self._xFillVboData is None and
+                self.xData is not None and self.yData is not None):
 
-        if self._bboxVertices is None:
-            yMin, yMax = min(self.yMin, 1e-32), max(self.yMax, 1e-32)
-            self._bboxVertices = numpy.array(((self.xMin, self.xMin,
-                                               self.xMax, self.xMax),
-                                              (yMin, yMax, yMin, yMax)),
-                                             dtype=numpy.float32)
+            # Get slices of not NaN values longer than 1 element
+            isnan = numpy.logical_or(numpy.isnan(self.xData),
+                                     numpy.isnan(self.yData))
+            notnan = numpy.logical_not(isnan)
+            start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
+            if notnan[0]:
+                start = numpy.append(0, start)
+            end = numpy.where(numpy.logical_and(notnan[:-1], isnan[1:]))[0] + 1
+            if notnan[-1]:
+                end = numpy.append(end, len(isnan))
+            slices = numpy.transpose((start, end))
+            # discard slices with less than length values
+            slices = slices[numpy.diff(slices, axis=1).reshape(-1) >= 2]
 
-    def render(self, matrix, isXLog, isYLog):
+            # Number of points: slice + 2 * leading and trailing points
+            # Twice leading and trailing points to produce degenerated triangles
+            nbPoints = numpy.sum(numpy.diff(slices, axis=1)) + 4 * len(slices)
+            points = numpy.empty((nbPoints, 2), dtype=numpy.float32)
+
+            offset = 0
+            for start, end in slices:
+                # Duplicate first point for connecting degenerated triangle
+                points[offset:offset+2] = self.xData[start], self.baseline
+
+                # 2nd point of the polygon is last point
+                points[offset+2] = self.xData[end-1], self.baseline
+
+                # Add all points from the data
+                indices = start + buildFillMaskIndices(end - start)
+
+                points[offset+3:offset+3+len(indices), 0] = self.xData[indices]
+                points[offset+3:offset+3+len(indices), 1] = self.yData[indices]
+
+                # Duplicate last point for connecting degenerated triangle
+                points[offset+3+len(indices)] = points[offset+3+len(indices)-1]
+
+                offset += len(indices) + 4
+
+            self._xFillVboData, self._yFillVboData = vertexBuffer(points.T)
+
+    def render(self, matrix):
+        """Perform rendering
+
+        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        """
         self.prepare()
 
-        if isXLog:
-            transform = self._LOG10_X_Y if isYLog else self._LOG10_X
-        else:
-            transform = self._LOG10_Y if isYLog else self._LINEAR
+        if self._xFillVboData is None:
+            return  # Nothing to display
 
-        prog = self._programs[transform]
-        prog.use()
+        self._PROGRAM.use()
 
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
+        gl.glUniformMatrix4fv(
+            self._PROGRAM.uniforms['matrix'], 1, gl.GL_TRUE,
+            numpy.dot(matrix,
+                      mat4Translate(*self.offset)).astype(numpy.float32))
 
-        gl.glUniform4f(prog.uniforms['color'], *self.color)
+        gl.glUniform4f(self._PROGRAM.uniforms['color'], *self.color)
 
-        xPosAttrib = prog.attributes['xPos']
-        yPosAttrib = prog.attributes['yPos']
+        xPosAttrib = self._PROGRAM.attributes['xPos']
+        yPosAttrib = self._PROGRAM.attributes['yPos']
 
         gl.glEnableVertexAttribArray(xPosAttrib)
-        self.xFillVboData.setVertexAttrib(xPosAttrib)
+        self._xFillVboData.setVertexAttrib(xPosAttrib)
 
         gl.glEnableVertexAttribArray(yPosAttrib)
-        self.yFillVboData.setVertexAttrib(yPosAttrib)
+        self._yFillVboData.setVertexAttrib(yPosAttrib)
 
         # Prepare fill mask
         gl.glEnable(gl.GL_STENCIL_TEST)
@@ -182,8 +207,7 @@ class _Fill2D(object):
         gl.glColorMask(gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE)
         gl.glDepthMask(gl.GL_FALSE)
 
-        gl.glDrawElements(gl.GL_TRIANGLE_STRIP, self._indices.size,
-                          self._indicesType, self._indices)
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, self._xFillVboData.size)
 
         gl.glStencilFunc(gl.GL_EQUAL, 1, 1)
         # Reset stencil while drawing
@@ -191,13 +215,29 @@ class _Fill2D(object):
         gl.glColorMask(gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
         gl.glDepthMask(gl.GL_TRUE)
 
-        gl.glVertexAttribPointer(xPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
-                                 self._bboxVertices[0])
-        gl.glVertexAttribPointer(yPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
-                                 self._bboxVertices[1])
-        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, self._bboxVertices[0].size)
+        # Draw directly in NDC
+        gl.glUniformMatrix4fv(self._PROGRAM.uniforms['matrix'], 1, gl.GL_TRUE,
+                              mat4Identity().astype(numpy.float32))
+
+        # NDC vertices
+        gl.glVertexAttribPointer(
+            xPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
+            numpy.array((-1., -1., 1., 1.), dtype=numpy.float32))
+        gl.glVertexAttribPointer(
+            yPosAttrib, 1, gl.GL_FLOAT, gl.GL_FALSE, 0,
+            numpy.array((-1., 1., -1., 1.), dtype=numpy.float32))
+
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4)
 
         gl.glDisable(gl.GL_STENCIL_TEST)
+
+    def discard(self):
+        """Release VBOs"""
+        if self._xFillVboData is not None:
+            self._xFillVboData.vbo.discard()
+
+        self._xFillVboData = None
+        self._yFillVboData = None
 
 
 # line ########################################################################
@@ -206,44 +246,25 @@ SOLID, DASHED, DASHDOT, DOTTED = '-', '--', '-.', ':'
 
 
 class _Lines2D(object):
+    """Object rendering curve as a polyline
+
+    :param xVboData: X coordinates VBO
+    :param yVboData: Y coordinates VBO
+    :param colorVboData: VBO of colors
+    :param distVboData: VBO of distance along the polyline
+    :param str style: Line style in: '-', '--', '-.', ':'
+    :param List[float] color: RGBA color as 4 float in [0, 1]
+    :param float width: Line width
+    :param float dashPeriod: Period of dashes
+    :param drawMode: OpenGL drawing mode
+    :param List[float] offset: Translation of coordinates (ox, oy)
+    """
+
     STYLES = SOLID, DASHED, DASHDOT, DOTTED
     """Supported line styles"""
 
-    _LINEAR, _LOG10_X, _LOG10_Y, _LOG10_X_Y = 0, 1, 2, 3
-
-    _SHADERS = {
-        'vertexTransforms': {
-            _LINEAR: """
-        vec4 transformXY(float x, float y) {
-            return vec4(x, y, 0.0, 1.0);
-        }
-        """,
-            _LOG10_X: """
-        const float oneOverLog10 = 0.43429448190325176;
-
-        vec4 transformXY(float x, float y) {
-            return vec4(oneOverLog10 * log(x), y, 0.0, 1.0);
-        }
-        """,
-            _LOG10_Y: """
-        const float oneOverLog10 = 0.43429448190325176;
-
-        vec4 transformXY(float x, float y) {
-            return vec4(x, oneOverLog10 * log(y), 0.0, 1.0);
-        }
-        """,
-            _LOG10_X_Y: """
-        const float oneOverLog10 = 0.43429448190325176;
-
-        vec4 transformXY(float x, float y) {
-            return vec4(oneOverLog10 * log(x),
-                        oneOverLog10 * log(y),
-                        0.0, 1.0);
-        }
-        """
-        },
-        'solid': {
-            'vertex': """
+    _SOLID_PROGRAM = Program(
+        vertexShader="""
         #version 120
 
         uniform mat4 matrix;
@@ -253,14 +274,12 @@ class _Lines2D(object):
 
         varying vec4 vColor;
 
-        %s
-
         void main(void) {
-            gl_Position = matrix * transformXY(xPos, yPos);
+            gl_Position = matrix * vec4(xPos, yPos, 0., 1.) ;
             vColor = color;
         }
         """,
-            'fragment': """
+        fragmentShader="""
         #version 120
 
         varying vec4 vColor;
@@ -268,15 +287,14 @@ class _Lines2D(object):
         void main(void) {
             gl_FragColor = vColor;
         }
-        """
-        },
+        """,
+        attrib0='xPos')
 
-
-        # Limitation: Dash using an estimate of distance in screen coord
-        # to avoid computing distance when viewport is resized
-        # results in inequal dashes when viewport aspect ratio is far from 1
-        'dashed': {
-            'vertex': """
+    # Limitation: Dash using an estimate of distance in screen coord
+    # to avoid computing distance when viewport is resized
+    # results in inequal dashes when viewport aspect ratio is far from 1
+    _DASH_PROGRAM = Program(
+        vertexShader="""
         #version 120
 
         uniform mat4 matrix;
@@ -289,10 +307,8 @@ class _Lines2D(object):
         varying float vDist;
         varying vec4 vColor;
 
-        %s
-
         void main(void) {
-            gl_Position = matrix * transformXY(xPos, yPos);
+            gl_Position = matrix * vec4(xPos, yPos, 0., 1.);
             //Estimate distance in pixels
             vec2 probe = vec2(matrix * vec4(1., 1., 0., 0.)) *
                          halfViewportSize;
@@ -301,7 +317,7 @@ class _Lines2D(object):
             vColor = color;
         }
         """,
-            'fragment': """
+        fragmentShader="""
         #version 120
 
         /* Dashes: [0, x], [y, z]
@@ -318,16 +334,14 @@ class _Lines2D(object):
             }
             gl_FragColor = vColor;
         }
-        """
-        }
-    }
-
-    _programs = {}
+        """,
+        attrib0='xPos')
 
     def __init__(self, xVboData=None, yVboData=None,
                  colorVboData=None, distVboData=None,
                  style=SOLID, color=(0., 0., 0., 1.),
-                 width=1, dashPeriod=20, drawMode=None):
+                 width=1, dashPeriod=20, drawMode=None,
+                 offset=(0., 0.)):
         self.xVboData = xVboData
         self.yVboData = yVboData
         self.distVboData = distVboData
@@ -335,81 +349,83 @@ class _Lines2D(object):
         self.useColorVboData = colorVboData is not None
 
         self.color = color
-        self._width = 1
         self.width = width
         self._style = None
         self.style = style
         self.dashPeriod = dashPeriod
+        self.offset = offset
 
         self._drawMode = drawMode if drawMode is not None else gl.GL_LINE_STRIP
 
     @property
     def style(self):
+        """Line style (Union[str,None])"""
         return self._style
 
     @style.setter
     def style(self, style):
         if style in _MPL_NONES:
             self._style = None
-            self.render = self._renderNone
         else:
             assert style in self.STYLES
             self._style = style
-            if style == SOLID:
-                self.render = self._renderSolid
-            else:  # DASHED, DASHDOT, DOTTED
-                self.render = self._renderDash
-
-    @property
-    def width(self):
-        return self._width
-
-    @width.setter
-    def width(self, width):
-        # try:
-        #    widthRange = self._widthRange
-        # except AttributeError:
-        #    widthRange = gl.glGetFloatv(gl.GL_ALIASED_LINE_WIDTH_RANGE)
-        #    # Shared among contexts, this should be enough..
-        #    _Lines2D._widthRange = widthRange
-        # assert width >= widthRange[0] and width <= widthRange[1]
-        self._width = width
-
-    @classmethod
-    def _getProgram(cls, transform, style):
-        try:
-            prgm = cls._programs[(transform, style)]
-        except KeyError:
-            sources = cls._SHADERS[style]
-            vertexShdr = sources['vertex'] % \
-                cls._SHADERS['vertexTransforms'][transform]
-            prgm = Program(vertexShdr, sources['fragment'], attrib0='xPos')
-            cls._programs[(transform, style)] = prgm
-        return prgm
 
     @classmethod
     def init(cls):
+        """OpenGL context initialization"""
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
 
-    def _renderNone(self, matrix, isXLog, isYLog):
-        pass
+    def render(self, matrix):
+        """Perform rendering
 
-    render = _renderNone  # Overridden in style setter
+        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        """
+        style = self.style
+        if style is None:
+            return
 
-    def _renderSolid(self, matrix, isXLog, isYLog):
-        if isXLog:
-            transform = self._LOG10_X_Y if isYLog else self._LOG10_X
-        else:
-            transform = self._LOG10_Y if isYLog else self._LINEAR
+        elif style == SOLID:
+            program = self._SOLID_PROGRAM
+            program.use()
 
-        prog = self._getProgram(transform, 'solid')
-        prog.use()
+        else:  # DASHED, DASHDOT, DOTTED
+            program = self._DASH_PROGRAM
+            program.use()
+
+            x, y, viewWidth, viewHeight = gl.glGetFloatv(gl.GL_VIEWPORT)
+            gl.glUniform2f(program.uniforms['halfViewportSize'],
+                           0.5 * viewWidth, 0.5 * viewHeight)
+
+            if self.style == DOTTED:
+                dash = (0.1 * self.dashPeriod,
+                        0.6 * self.dashPeriod,
+                        0.7 * self.dashPeriod,
+                        self.dashPeriod)
+            elif self.style == DASHDOT:
+                dash = (0.3 * self.dashPeriod,
+                        0.5 * self.dashPeriod,
+                        0.6 * self.dashPeriod,
+                        self.dashPeriod)
+            else:
+                dash = (0.5 * self.dashPeriod,
+                        self.dashPeriod,
+                        self.dashPeriod,
+                        self.dashPeriod)
+
+            gl.glUniform4f(program.uniforms['dash'], *dash)
+
+            distAttrib = program.attributes['distance']
+            gl.glEnableVertexAttribArray(distAttrib)
+            self.distVboData.setVertexAttrib(distAttrib)
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
+        matrix = numpy.dot(matrix,
+                           mat4Translate(*self.offset)).astype(numpy.float32)
+        gl.glUniformMatrix4fv(program.uniforms['matrix'],
+                              1, gl.GL_TRUE, matrix)
 
-        colorAttrib = prog.attributes['color']
+        colorAttrib = program.attributes['color']
         if self.useColorVboData and self.colorVboData is not None:
             gl.glEnableVertexAttribArray(colorAttrib)
             self.colorVboData.setVertexAttrib(colorAttrib)
@@ -417,70 +433,11 @@ class _Lines2D(object):
             gl.glDisableVertexAttribArray(colorAttrib)
             gl.glVertexAttrib4f(colorAttrib, *self.color)
 
-        xPosAttrib = prog.attributes['xPos']
+        xPosAttrib = program.attributes['xPos']
         gl.glEnableVertexAttribArray(xPosAttrib)
         self.xVboData.setVertexAttrib(xPosAttrib)
 
-        yPosAttrib = prog.attributes['yPos']
-        gl.glEnableVertexAttribArray(yPosAttrib)
-        self.yVboData.setVertexAttrib(yPosAttrib)
-
-        gl.glLineWidth(self.width)
-        gl.glDrawArrays(self._drawMode, 0, self.xVboData.size)
-
-        gl.glDisable(gl.GL_LINE_SMOOTH)
-
-    def _renderDash(self, matrix, isXLog, isYLog):
-        if isXLog:
-            transform = self._LOG10_X_Y if isYLog else self._LOG10_X
-        else:
-            transform = self._LOG10_Y if isYLog else self._LINEAR
-
-        prog = self._getProgram(transform, 'dashed')
-        prog.use()
-
-        gl.glEnable(gl.GL_LINE_SMOOTH)
-
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
-        x, y, viewWidth, viewHeight = gl.glGetFloatv(gl.GL_VIEWPORT)
-        gl.glUniform2f(prog.uniforms['halfViewportSize'],
-                       0.5 * viewWidth, 0.5 * viewHeight)
-
-        if self.style == DOTTED:
-            dash = (0.1 * self.dashPeriod,
-                    0.6 * self.dashPeriod,
-                    0.7 * self.dashPeriod,
-                    self.dashPeriod)
-        elif self.style == DASHDOT:
-            dash = (0.3 * self.dashPeriod,
-                    0.5 * self.dashPeriod,
-                    0.6 * self.dashPeriod,
-                    self.dashPeriod)
-        else:
-            dash = (0.5 * self.dashPeriod,
-                    self.dashPeriod,
-                    self.dashPeriod,
-                    self.dashPeriod)
-
-        gl.glUniform4f(prog.uniforms['dash'], *dash)
-
-        colorAttrib = prog.attributes['color']
-        if self.useColorVboData and self.colorVboData is not None:
-            gl.glEnableVertexAttribArray(colorAttrib)
-            self.colorVboData.setVertexAttrib(colorAttrib)
-        else:
-            gl.glDisableVertexAttribArray(colorAttrib)
-            gl.glVertexAttrib4f(colorAttrib, *self.color)
-
-        distAttrib = prog.attributes['distance']
-        gl.glEnableVertexAttribArray(distAttrib)
-        self.distVboData.setVertexAttrib(distAttrib)
-
-        xPosAttrib = prog.attributes['xPos']
-        gl.glEnableVertexAttribArray(xPosAttrib)
-        self.xVboData.setVertexAttrib(xPosAttrib)
-
-        yPosAttrib = prog.attributes['yPos']
+        yPosAttrib = program.attributes['yPos']
         gl.glEnableVertexAttribArray(yPosAttrib)
         self.yVboData.setVertexAttrib(yPosAttrib)
 
@@ -491,6 +448,12 @@ class _Lines2D(object):
 
 
 def _distancesFromArrays(xData, yData):
+    """Returns distances between each points
+
+    :param numpy.ndarray xData: X coordinate of points
+    :param numpy.ndarray yData: Y coordinate of points
+    :rtype: numpy.ndarray
+    """
     deltas = numpy.dstack((
         numpy.ediff1d(xData, to_begin=numpy.float32(0.)),
         numpy.ediff1d(yData, to_begin=numpy.float32(0.))))[0]
@@ -506,43 +469,22 @@ H_LINE, V_LINE = '_', '|'
 
 
 class _Points2D(object):
+    """Object rendering curve markers
+
+    :param xVboData: X coordinates VBO
+    :param yVboData: Y coordinates VBO
+    :param colorVboData: VBO of colors
+    :param str marker: Kind of symbol to use, see :attr:`MARKERS`.
+    :param List[float] color: RGBA color as 4 float in [0, 1]
+    :param float size: Marker size
+    :param List[float] offset: Translation of coordinates (ox, oy)
+    """
+
     MARKERS = (DIAMOND, CIRCLE, SQUARE, PLUS, X_MARKER, POINT, PIXEL, ASTERISK,
                H_LINE, V_LINE)
+    """List of supported markers"""
 
-    _LINEAR, _LOG10_X, _LOG10_Y, _LOG10_X_Y = 0, 1, 2, 3
-
-    _SHADERS = {
-        'vertexTransforms': {
-            _LINEAR: """
-        vec4 transformXY(float x, float y) {
-            return vec4(x, y, 0.0, 1.0);
-        }
-        """,
-            _LOG10_X: """
-        const float oneOverLog10 = 0.43429448190325176;
-
-        vec4 transformXY(float x, float y) {
-            return vec4(oneOverLog10 * log(x), y, 0.0, 1.0);
-        }
-        """,
-            _LOG10_Y: """
-        const float oneOverLog10 = 0.43429448190325176;
-
-        vec4 transformXY(float x, float y) {
-            return vec4(x, oneOverLog10 * log(y), 0.0, 1.0);
-        }
-        """,
-            _LOG10_X_Y: """
-        const float oneOverLog10 = 0.43429448190325176;
-
-        vec4 transformXY(float x, float y) {
-            return vec4(oneOverLog10 * log(x),
-                        oneOverLog10 * log(y),
-                        0.0, 1.0);
-        }
-        """
-        },
-        'vertex': """
+    _VERTEX_SHADER = """
     #version 120
 
     uniform mat4 matrix;
@@ -554,16 +496,14 @@ class _Points2D(object):
 
     varying vec4 vColor;
 
-    %s
-
     void main(void) {
-        gl_Position = matrix * transformXY(xPos, yPos);
+        gl_Position = matrix * vec4(xPos, yPos, 0., 1.);
         vColor = color;
         gl_PointSize = size;
     }
-    """,
+    """
 
-        'fragmentSymbols': {
+    _FRAGMENT_SHADER_SYMBOLS = {
             DIAMOND: """
         float alphaSymbol(vec2 coord, float size) {
             vec2 centerCoord = abs(coord - vec2(0.5, 0.5));
@@ -640,9 +580,9 @@ class _Points2D(object):
             }
         }
         """
-        },
+    }
 
-        'fragment': """
+    _FRAGMENT_SHADER_TEMPLATE = """
     #version 120
 
     uniform float size;
@@ -660,17 +600,17 @@ class _Points2D(object):
         }
     }
     """
-    }
 
-    _programs = {}
+    _PROGRAMS = {}
 
     def __init__(self, xVboData=None, yVboData=None, colorVboData=None,
-                 marker=SQUARE, color=(0., 0., 0., 1.), size=7):
+                 marker=SQUARE, color=(0., 0., 0., 1.), size=7,
+                 offset=(0., 0.)):
         self.color = color
         self._marker = None
         self.marker = marker
-        self._size = 1
         self.size = size
+        self.offset = offset
 
         self.xVboData = xVboData
         self.yVboData = yVboData
@@ -679,54 +619,37 @@ class _Points2D(object):
 
     @property
     def marker(self):
+        """Symbol used to display markers (str)"""
         return self._marker
 
     @marker.setter
     def marker(self, marker):
         if marker in _MPL_NONES:
             self._marker = None
-            self.render = self._renderNone
         else:
             assert marker in self.MARKERS
             self._marker = marker
-            self.render = self._renderMarkers
-
-    @property
-    def size(self):
-        return self._size
-
-    @size.setter
-    def size(self, size):
-        # try:
-        #    sizeRange = self._sizeRange
-        # except AttributeError:
-        #    sizeRange = gl.glGetFloatv(gl.GL_POINT_SIZE_RANGE)
-        #    # Shared among contexts, this should be enough..
-        #    _Points2D._sizeRange = sizeRange
-        # assert size >= sizeRange[0] and size <= sizeRange[1]
-        self._size = size
 
     @classmethod
-    def _getProgram(cls, transform, marker):
+    def _getProgram(cls, marker):
         """On-demand shader program creation."""
         if marker == PIXEL:
             marker = SQUARE
         elif marker == POINT:
             marker = CIRCLE
-        try:
-            prgm = cls._programs[(transform, marker)]
-        except KeyError:
-            vertShdr = cls._SHADERS['vertex'] % \
-                cls._SHADERS['vertexTransforms'][transform]
-            fragShdr = cls._SHADERS['fragment'] % \
-                cls._SHADERS['fragmentSymbols'][marker]
-            prgm = Program(vertShdr, fragShdr, attrib0='xPos')
 
-            cls._programs[(transform, marker)] = prgm
-        return prgm
+        if marker not in cls._PROGRAMS:
+            cls._PROGRAMS[marker] = Program(
+                vertexShader=cls._VERTEX_SHADER,
+                fragmentShader=(cls._FRAGMENT_SHADER_TEMPLATE %
+                                cls._FRAGMENT_SHADER_SYMBOLS[marker]),
+                attrib0='xPos')
+
+        return cls._PROGRAMS[marker]
 
     @classmethod
     def init(cls):
+        """OpenGL context initialization"""
         version = gl.glGetString(gl.GL_VERSION)
         majorVersion = int(version[0])
         assert majorVersion >= 2
@@ -735,30 +658,31 @@ class _Points2D(object):
         if majorVersion >= 3:  # OpenGL 3
             gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
-    def _renderNone(self, matrix, isXLog, isYLog):
-        pass
+    def render(self, matrix):
+        """Perform rendering
 
-    render = _renderNone
+        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        """
+        if self.marker is None:
+            return
 
-    def _renderMarkers(self, matrix, isXLog, isYLog):
-        if isXLog:
-            transform = self._LOG10_X_Y if isYLog else self._LOG10_X
-        else:
-            transform = self._LOG10_Y if isYLog else self._LINEAR
+        program = self._getProgram(self.marker)
+        program.use()
 
-        prog = self._getProgram(transform, self.marker)
-        prog.use()
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
+        matrix = numpy.dot(matrix,
+                           mat4Translate(*self.offset)).astype(numpy.float32)
+        gl.glUniformMatrix4fv(program.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
+
         if self.marker == PIXEL:
             size = 1
         elif self.marker == POINT:
             size = math.ceil(0.5 * self.size) + 1  # Mimic Matplotlib point
         else:
             size = self.size
-        gl.glUniform1f(prog.uniforms['size'], size)
+        gl.glUniform1f(program.uniforms['size'], size)
         # gl.glPointSize(self.size)
 
-        cAttrib = prog.attributes['color']
+        cAttrib = program.attributes['color']
         if self.useColorVboData and self.colorVboData is not None:
             gl.glEnableVertexAttribArray(cAttrib)
             self.colorVboData.setVertexAttrib(cAttrib)
@@ -766,11 +690,11 @@ class _Points2D(object):
             gl.glDisableVertexAttribArray(cAttrib)
             gl.glVertexAttrib4f(cAttrib, *self.color)
 
-        xAttrib = prog.attributes['xPos']
+        xAttrib = program.attributes['xPos']
         gl.glEnableVertexAttribArray(xAttrib)
         self.xVboData.setVertexAttrib(xAttrib)
 
-        yAttrib = prog.attributes['yPos']
+        yAttrib = program.attributes['yPos']
         gl.glEnableVertexAttribArray(yAttrib)
         self.yVboData.setVertexAttrib(yAttrib)
 
@@ -786,40 +710,35 @@ class _ErrorBars(object):
 
     This is using its own VBO as opposed to fill/points/lines.
     There is no picking on error bars.
-    As is, there is no way to update data and errors, but it handles
-    log scales by removing data <= 0 and clipping error bars to positive
-    range.
 
     It uses 2 vertices per error bars and uses :class:`_Lines2D` to
     render error bars and :class:`_Points2D` to render the ends.
+
+    :param numpy.ndarray xData: X coordinates of the data.
+    :param numpy.ndarray yData: Y coordinates of the data.
+    :param xError: The absolute error on the X axis.
+    :type xError: A float, or a numpy.ndarray of float32.
+                  If it is an array, it can either be a 1D array of
+                  same length as the data or a 2D array with 2 rows
+                  of same length as the data: row 0 for negative errors,
+                  row 1 for positive errors.
+    :param yError: The absolute error on the Y axis.
+    :type yError: A float, or a numpy.ndarray of float32. See xError.
+    :param float xMin: The min X value already computed by GLPlotCurve2D.
+    :param float yMin: The min Y value already computed by GLPlotCurve2D.
+    :param List[float] color: RGBA color as 4 float in [0, 1]
+    :param List[float] offset: Translation of coordinates (ox, oy)
     """
 
     def __init__(self, xData, yData, xError, yError,
                  xMin, yMin,
-                 color=(0., 0., 0., 1.)):
-        """Initialization.
-
-        :param numpy.ndarray xData: X coordinates of the data.
-        :param numpy.ndarray yData: Y coordinates of the data.
-        :param xError: The absolute error on the X axis.
-        :type xError: A float, or a numpy.ndarray of float32.
-                      If it is an array, it can either be a 1D array of
-                      same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for negative errors,
-                      row 1 for positive errors.
-        :param yError: The absolute error on the Y axis.
-        :type yError: A float, or a numpy.ndarray of float32. See xError.
-        :param float xMin: The min X value already computed by GLPlotCurve2D.
-        :param float yMin: The min Y value already computed by GLPlotCurve2D.
-        :param color: The color to use for both lines and ending points.
-        :type color: tuple of 4 floats
-        """
+                 color=(0., 0., 0., 1.),
+                 offset=(0., 0.)):
         self._attribs = None
-        self._isXLog, self._isYLog = False, False
         self._xMin, self._yMin = xMin, yMin
+        self.offset = offset
 
         if xError is not None or yError is not None:
-            assert len(xData) == len(yData)
             self._xData = numpy.array(
                 xData, order='C', dtype=numpy.float32, copy=False)
             self._yData = numpy.array(
@@ -834,61 +753,19 @@ class _ErrorBars(object):
             self._xData, self._yData = None, None
             self._xError, self._yError = None, None
 
-        self._lines = _Lines2D(None, None, color=color, drawMode=gl.GL_LINES)
-        self._xErrPoints = _Points2D(None, None, color=color, marker=V_LINE)
-        self._yErrPoints = _Points2D(None, None, color=color, marker=H_LINE)
+        self._lines = _Lines2D(
+            None, None, color=color, drawMode=gl.GL_LINES, offset=offset)
+        self._xErrPoints = _Points2D(
+            None, None, color=color, marker=V_LINE, offset=offset)
+        self._yErrPoints = _Points2D(
+            None, None, color=color, marker=H_LINE, offset=offset)
 
-    def _positiveValueFilter(self, onlyXPos, onlyYPos):
-        """Filter data (x, y) and errors (xError, yError) to remove
-        negative and null data values on required axis (onlyXPos, onlyYPos).
+    def _buildVertices(self):
+        """Generates error bars vertices"""
+        nbLinesPerDataPts = (0 if self._xError is None else 2) + \
+                            (0 if self._yError is None else 2)
 
-        Returned arrays might be NOT contiguous.
-
-        :return: Filtered xData, yData, xError and yError arrays.
-        """
-        if ((not onlyXPos or self._xMin > 0.) and
-                (not onlyYPos or self._yMin > 0.)):
-            # No need to filter, all values are > 0 on log axes
-            return self._xData, self._yData, self._xError, self._yError
-
-        _logger.warning(
-            'Removing values <= 0 of curve with error bars on a log axis.')
-
-        x, y = self._xData, self._yData
-        xError, yError = self._xError, self._yError
-
-        # First remove negative data
-        if onlyXPos and onlyYPos:
-            mask = (x > 0.) & (y > 0.)
-        elif onlyXPos:
-            mask = x > 0.
-        else:  # onlyYPos
-            mask = y > 0.
-        x, y = x[mask], y[mask]
-
-        # Remove corresponding values from error arrays
-        if xError is not None and xError.size != 1:
-            if len(xError.shape) == 1:
-                xError = xError[mask]
-            else:  # 2 rows
-                xError = xError[:, mask]
-        if yError is not None and yError.size != 1:
-            if len(yError.shape) == 1:
-                yError = yError[mask]
-            else:  # 2 rows
-                yError = yError[:, mask]
-
-        return x, y, xError, yError
-
-    def _buildVertices(self, isXLog, isYLog):
-        """Generates error bars vertices according to log scales."""
-        xData, yData, xError, yError = self._positiveValueFilter(
-            isXLog, isYLog)
-
-        nbLinesPerDataPts = 1 if xError is not None else 0
-        nbLinesPerDataPts += 1 if yError is not None else 0
-
-        nbDataPts = len(xData)
+        nbDataPts = len(self._xData)
 
         # interleave coord+error, coord-error.
         # xError vertices first if any, then yError vertices if any.
@@ -897,64 +774,61 @@ class _ErrorBars(object):
         yCoords = numpy.empty(nbDataPts * nbLinesPerDataPts * 2,
                               dtype=numpy.float32)
 
-        if xError is not None:  # errors on the X axis
-            if len(xError.shape) == 2:
-                xErrorMinus, xErrorPlus = xError[0], xError[1]
+        if self._xError is not None:  # errors on the X axis
+            if len(self._xError.shape) == 2:
+                xErrorMinus, xErrorPlus = self._xError[0], self._xError[1]
             else:
                 # numpy arrays of len 1 or len(xData)
-                xErrorMinus, xErrorPlus = xError, xError
+                xErrorMinus, xErrorPlus = self._xError, self._xError
 
             # Interleave vertices for xError
-            endXError = 2 * nbDataPts
-            xCoords[0:endXError-1:2] = xData + xErrorPlus
+            endXError = 4 * nbDataPts
+            xCoords[0:endXError-3:4] = self._xData + xErrorPlus
+            xCoords[1:endXError-2:4] = self._xData
+            xCoords[2:endXError-1:4] = self._xData
+            xCoords[3:endXError:4] = self._xData - xErrorMinus
 
-            minValues = xData - xErrorMinus
-            if isXLog:
-                # Clip min bounds to positive value
-                minValues[minValues <= 0] = FLOAT32_MINPOS
-            xCoords[1:endXError:2] = minValues
+            yCoords[0:endXError-3:4] = self._yData
+            yCoords[1:endXError-2:4] = self._yData
+            yCoords[2:endXError-1:4] = self._yData
+            yCoords[3:endXError:4] = self._yData
 
-            yCoords[0:endXError-1:2] = yData
-            yCoords[1:endXError:2] = yData
         else:
             endXError = 0
 
-        if yError is not None:  # errors on the Y axis
-            if len(yError.shape) == 2:
-                yErrorMinus, yErrorPlus = yError[0], yError[1]
+        if self._yError is not None:  # errors on the Y axis
+            if len(self._yError.shape) == 2:
+                yErrorMinus, yErrorPlus = self._yError[0], self._yError[1]
             else:
                 # numpy arrays of len 1 or len(yData)
-                yErrorMinus, yErrorPlus = yError, yError
+                yErrorMinus, yErrorPlus = self._yError, self._yError
 
             # Interleave vertices for yError
-            xCoords[endXError::2] = xData
-            xCoords[endXError+1::2] = xData
-            yCoords[endXError::2] = yData + yErrorPlus
-            minValues = yData - yErrorMinus
-            if isYLog:
-                # Clip min bounds to positive value
-                minValues[minValues <= 0] = FLOAT32_MINPOS
-            yCoords[endXError+1::2] = minValues
+            xCoords[endXError::4] = self._xData
+            xCoords[endXError+1::4] = self._xData
+            xCoords[endXError+2::4] = self._xData
+            xCoords[endXError+3::4] = self._xData
+
+            yCoords[endXError::4] = self._yData + yErrorPlus
+            yCoords[endXError+1::4] = self._yData
+            yCoords[endXError+2::4] = self._yData
+            yCoords[endXError+3::4] = self._yData - yErrorMinus
 
         return xCoords, yCoords
 
-    def prepare(self, isXLog, isYLog):
+    def prepare(self):
+        """Rendering preparation: build indices and bounding box vertices"""
         if self._xData is None:
             return
 
-        if self._isXLog != isXLog or self._isYLog != isYLog:
-            # Log state has changed
-            self._isXLog, self._isYLog = isXLog, isYLog
-
-            self.discard()  # discard existing VBOs
-
         if self._attribs is None:
-            xCoords, yCoords = self._buildVertices(isXLog, isYLog)
+            xCoords, yCoords = self._buildVertices()
 
             xAttrib, yAttrib = vertexBuffer((xCoords, yCoords))
             self._attribs = xAttrib, yAttrib
 
-            self._lines.xVboData, self._lines.yVboData = xAttrib, yAttrib
+            self._lines.xVboData = xAttrib
+            self._lines.yVboData = yAttrib
 
             # Set xError points using the same VBO as lines
             self._xErrPoints.xVboData = xAttrib.copy()
@@ -972,13 +846,20 @@ class _ErrorBars(object):
             self._yErrPoints.yVboData.offset += (yAttrib.itemsize *
                                                  yAttrib.size // 2)
 
-    def render(self, matrix, isXLog, isYLog):
+    def render(self, matrix):
+        """Perform rendering
+
+        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        """
+        self.prepare()
+
         if self._attribs is not None:
-            self._lines.render(matrix, isXLog, isYLog)
-            self._xErrPoints.render(matrix, isXLog, isYLog)
-            self._yErrPoints.render(matrix, isXLog, isYLog)
+            self._lines.render(matrix)
+            self._xErrPoints.render(matrix)
+            self._yErrPoints.render(matrix)
 
     def discard(self):
+        """Release VBOs"""
         if self._attribs is not None:
             self._lines.xVboData, self._lines.yVboData = None, None
             self._xErrPoints.xVboData, self._xErrPoints.yVboData = None, None
@@ -1014,71 +895,80 @@ def _proxyProperty(*componentsAttributes):
 class GLPlotCurve2D(object):
     def __init__(self, xData, yData, colorData=None,
                  xError=None, yError=None,
-                 lineStyle=None, lineColor=None,
-                 lineWidth=None, lineDashPeriod=None,
-                 marker=None, markerColor=None, markerSize=None,
-                 fillColor=None):
-        self._isXLog = False
-        self._isYLog = False
-        self.xData, self.yData, self.colorData = xData, yData, colorData
+                 lineStyle=SOLID,
+                 lineColor=(0., 0., 0., 1.),
+                 lineWidth=1,
+                 lineDashPeriod=20,
+                 marker=SQUARE,
+                 markerColor=(0., 0., 0., 1.),
+                 markerSize=7,
+                 fillColor=None,
+                 isYLog=False):
 
-        if fillColor is not None:
-            self.fill = _Fill2D(color=fillColor)
-        else:
-            self.fill = None
+        self.colorData = colorData
 
         # Compute x bounds
         if xError is None:
-            result = min_max(xData, min_positive=True)
-            self.xMin = result.minimum
-            self.xMinPos = result.min_positive
-            self.xMax = result.maximum
+            self.xMin, self.xMax = min_max(xData, min_positive=False)
         else:
             # Takes the error into account
             if hasattr(xError, 'shape') and len(xError.shape) == 2:
-                xErrorPlus, xErrorMinus = xError[0], xError[1]
+                xErrorMinus, xErrorPlus = xError[0], xError[1]
             else:
-                xErrorPlus, xErrorMinus = xError, xError
-            result = min_max(xData - xErrorMinus, min_positive=True)
-            self.xMin = result.minimum
-            self.xMinPos = result.min_positive
-            self.xMax = (xData + xErrorPlus).max()
+                xErrorMinus, xErrorPlus = xError, xError
+            self.xMin = numpy.nanmin(xData - xErrorMinus)
+            self.xMax = numpy.nanmax(xData + xErrorPlus)
 
         # Compute y bounds
         if yError is None:
-            result = min_max(yData, min_positive=True)
-            self.yMin = result.minimum
-            self.yMinPos = result.min_positive
-            self.yMax = result.maximum
+            self.yMin, self.yMax = min_max(yData, min_positive=False)
         else:
             # Takes the error into account
             if hasattr(yError, 'shape') and len(yError.shape) == 2:
-                yErrorPlus, yErrorMinus = yError[0], yError[1]
+                yErrorMinus, yErrorPlus = yError[0], yError[1]
             else:
-                yErrorPlus, yErrorMinus = yError, yError
-            result = min_max(yData - yErrorMinus, min_positive=True)
-            self.yMin = result.minimum
-            self.yMinPos = result.min_positive
-            self.yMax = (yData + yErrorPlus).max()
+                yErrorMinus, yErrorPlus = yError, yError
+            self.yMin = numpy.nanmin(yData - yErrorMinus)
+            self.yMax = numpy.nanmax(yData + yErrorPlus)
 
-        self._errorBars = _ErrorBars(xData, yData, xError, yError,
-                                     self.xMin, self.yMin)
+        # Handle data offset
+        if xData.itemsize > 4 or yData.itemsize > 4:  # Use normalization
+            # offset data, do not offset error as it is relative
+            self.offset = self.xMin, self.yMin
+            self.xData = (xData - self.offset[0]).astype(numpy.float32)
+            self.yData = (yData - self.offset[1]).astype(numpy.float32)
 
-        kwargs = {'style': lineStyle}
-        if lineColor is not None:
-            kwargs['color'] = lineColor
-        if lineWidth is not None:
-            kwargs['width'] = lineWidth
-        if lineDashPeriod is not None:
-            kwargs['dashPeriod'] = lineDashPeriod
-        self.lines = _Lines2D(**kwargs)
+        else:  # float32
+            self.offset = 0., 0.
+            self.xData = xData
+            self.yData = yData
 
-        kwargs = {'marker': marker}
-        if markerColor is not None:
-            kwargs['color'] = markerColor
-        if markerSize is not None:
-            kwargs['size'] = markerSize
-        self.points = _Points2D(**kwargs)
+        if fillColor is not None:
+            # Use different baseline depending of Y log scale
+            self.fill = _Fill2D(self.xData, self.yData,
+                                baseline=-38 if isYLog else 0,
+                                color=fillColor,
+                                offset=self.offset)
+        else:
+            self.fill = None
+
+        self._errorBars = _ErrorBars(self.xData, self.yData,
+                                     xError, yError,
+                                     self.xMin, self.yMin,
+                                     offset=self.offset)
+
+        self.lines = _Lines2D()
+        self.lines.style = lineStyle
+        self.lines.color = lineColor
+        self.lines.width = lineWidth
+        self.lines.dashPeriod = lineDashPeriod
+        self.lines.offset = self.offset
+
+        self.points = _Points2D()
+        self.points.marker = marker
+        self.points.color = markerColor
+        self.points.size = markerSize
+        self.points.offset = self.offset
 
     xVboData = _proxyProperty(('lines', 'xVboData'), ('points', 'xVboData'))
 
@@ -1108,123 +998,53 @@ class GLPlotCurve2D(object):
 
     @classmethod
     def init(cls):
+        """OpenGL context initialization"""
         _Lines2D.init()
         _Points2D.init()
 
-    @staticmethod
-    def _logFilterData(x, y, color=None, xLog=False, yLog=False):
-        # Copied from Plot.py
-        if xLog and yLog:
-            idx = numpy.nonzero((x > 0) & (y > 0))[0]
-            x = numpy.take(x, idx)
-            y = numpy.take(y, idx)
-        elif yLog:
-            idx = numpy.nonzero(y > 0)[0]
-            x = numpy.take(x, idx)
-            y = numpy.take(y, idx)
-        elif xLog:
-            idx = numpy.nonzero(x > 0)[0]
-            x = numpy.take(x, idx)
-            y = numpy.take(y, idx)
-        else:
-            idx = None
-
-        if idx is not None and isinstance(color, numpy.ndarray):
-            colors = numpy.zeros((x.size, 4), color.dtype)
-            colors[:, 0] = color[idx, 0]
-            colors[:, 1] = color[idx, 1]
-            colors[:, 2] = color[idx, 2]
-            colors[:, 3] = color[idx, 3]
-        else:
-            colors = color
-        return x, y, colors
-
-    def prepare(self, isXLog, isYLog):
-        # init only supports updating isXLog, isYLog
-        xData, yData, colorData = self.xData, self.yData, self.colorData
-
-        if self._isXLog != isXLog or self._isYLog != isYLog:
-            # Log state has changed
-            self._isXLog, self._isYLog = isXLog, isYLog
-
-            # Check if data <= 0. with log scale
-            if (isXLog and self.xMin <= 0.) or (isYLog and self.yMin <= 0.):
-                # Filtering data is needed
-                xData, yData, colorData = self._logFilterData(
-                    self.xData, self.yData, self.colorData,
-                    self._isXLog, self._isYLog)
-
-                self.discard()  # discard existing VBOs
-
+    def prepare(self):
+        """Rendering preparation: build indices and bounding box vertices"""
         if self.xVboData is None:
             xAttrib, yAttrib, cAttrib, dAttrib = None, None, None, None
             if self.lineStyle in (DASHED, DASHDOT, DOTTED):
-                dists = _distancesFromArrays(xData, yData)
+                dists = _distancesFromArrays(self.xData, self.yData)
                 if self.colorData is None:
                     xAttrib, yAttrib, dAttrib = vertexBuffer(
-                        (xData, yData, dists),
-                        prefix=(1, 1, 0), suffix=(1, 1, 0))
+                        (self.xData, self.yData, dists))
                 else:
                     xAttrib, yAttrib, cAttrib, dAttrib = vertexBuffer(
-                        (xData, yData, colorData, dists),
-                        prefix=(1, 1, 0, 0), suffix=(1, 1, 0, 0))
+                        (self.xData, self.yData, self.colorData, dists))
             elif self.colorData is None:
-                xAttrib, yAttrib = vertexBuffer(
-                    (xData, yData), prefix=(1, 1), suffix=(1, 1))
+                xAttrib, yAttrib = vertexBuffer((self.xData, self.yData))
             else:
                 xAttrib, yAttrib, cAttrib = vertexBuffer(
-                    (xData, yData, colorData), prefix=(1, 1, 0))
+                    (self.xData, self.yData, self.colorData))
 
-            # Shrink VBO
-            self.xVboData = xAttrib.copy()
-            self.xVboData.size -= 2
-            self.xVboData.offset += xAttrib.itemsize
+            self.xVboData = xAttrib
+            self.yVboData = yAttrib
+            self.distVboData = dAttrib
 
-            self.yVboData = yAttrib.copy()
-            self.yVboData.size -= 2
-            self.yVboData.offset += yAttrib.itemsize
-
-            if cAttrib is not None and colorData.dtype.kind == 'u':
+            if cAttrib is not None and self.colorData.dtype.kind == 'u':
                 cAttrib.normalization = True  # Normalize uint to [0, 1]
             self.colorVboData = cAttrib
             self.useColorVboData = cAttrib is not None
-            self.distVboData = dAttrib
-
-            if self.fill is not None:
-                xData = xData.reshape(xData.size, 1)
-                zero = numpy.array((1e-32,), dtype=self.yData.dtype)
-
-                # Add one point before data: (x0, 0.)
-                xAttrib.vbo.update(xData[0], xAttrib.offset,
-                                   xData[0].itemsize)
-                yAttrib.vbo.update(zero, yAttrib.offset, zero.itemsize)
-
-                # Add one point after data: (xN, 0.)
-                xAttrib.vbo.update(xData[-1],
-                                   xAttrib.offset +
-                                   (xAttrib.size - 1) * xAttrib.itemsize,
-                                   xData[-1].itemsize)
-                yAttrib.vbo.update(zero,
-                                   yAttrib.offset +
-                                   (yAttrib.size - 1) * yAttrib.itemsize,
-                                   zero.itemsize)
-
-                self.fill.xFillVboData = xAttrib
-                self.fill.yFillVboData = yAttrib
-                self.fill.xMin, self.fill.yMin = self.xMin, self.yMin
-                self.fill.xMax, self.fill.yMax = self.xMax, self.yMax
-
-        self._errorBars.prepare(isXLog, isYLog)
 
     def render(self, matrix, isXLog, isYLog):
-        self.prepare(isXLog, isYLog)
+        """Perform rendering
+
+        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        :param bool isXLog:
+        :param bool isYLog:
+        """
+        self.prepare()
         if self.fill is not None:
-            self.fill.render(matrix, isXLog, isYLog)
-        self._errorBars.render(matrix, isXLog, isYLog)
-        self.lines.render(matrix, isXLog, isYLog)
-        self.points.render(matrix, isXLog, isYLog)
+            self.fill.render(matrix)
+        self._errorBars.render(matrix)
+        self.lines.render(matrix)
+        self.points.render(matrix)
 
     def discard(self):
+        """Release VBOs"""
         if self.xVboData is not None:
             self.xVboData.vbo.discard()
 
@@ -1234,6 +1054,8 @@ class GLPlotCurve2D(object):
         self.distVboData = None
 
         self._errorBars.discard()
+        if self.fill is not None:
+            self.fill.discard()
 
     def pick(self, xPickMin, yPickMin, xPickMax, yPickMax):
         """Perform picking on the curve according to its rendering.
@@ -1251,19 +1073,29 @@ class GLPlotCurve2D(object):
         if (self.marker is None and self.lineStyle is None) or \
                 self.xMin > xPickMax or xPickMin > self.xMax or \
                 self.yMin > yPickMax or yPickMin > self.yMax:
-            # Note: With log scale the bounding box is too large if
-            # some data <= 0.
             return None
 
-        elif self.lineStyle is not None:
+        # offset picking bounds
+        xPickMin = xPickMin - self.offset[0]
+        xPickMax = xPickMax - self.offset[0]
+        yPickMin = yPickMin - self.offset[1]
+        yPickMax = yPickMax - self.offset[1]
+
+        if self.lineStyle is not None:
             # Using Cohen-Sutherland algorithm for line clipping
-            codes = ((self.yData > yPickMax) << 3) | \
+            with warnings.catch_warnings():  # Ignore NaN comparison warnings
+                warnings.simplefilter('ignore', category=RuntimeWarning)
+                codes = ((self.yData > yPickMax) << 3) | \
                     ((self.yData < yPickMin) << 2) | \
                     ((self.xData > xPickMax) << 1) | \
                     (self.xData < xPickMin)
 
+            notNaN = numpy.logical_not(numpy.logical_or(
+                numpy.isnan(self.xData), numpy.isnan(self.yData)))
+
             # Add all points that are inside the picking area
-            indices = numpy.nonzero(codes == 0)[0].tolist()
+            indices = numpy.nonzero(
+                numpy.logical_and(codes == 0, notNaN))[0].tolist()
 
             # Segment that might cross the area with no end point inside it
             segToTestIdx = numpy.nonzero((codes[:-1] != 0) &
@@ -1309,9 +1141,11 @@ class GLPlotCurve2D(object):
             indices.sort()
 
         else:
-            indices = numpy.nonzero((self.xData >= xPickMin) &
-                                    (self.xData <= xPickMax) &
-                                    (self.yData >= yPickMin) &
-                                    (self.yData <= yPickMax))[0].tolist()
+            with warnings.catch_warnings():  # Ignore NaN comparison warnings
+                warnings.simplefilter('ignore', category=RuntimeWarning)
+                indices = numpy.nonzero((self.xData >= xPickMin) &
+                                        (self.xData <= xPickMax) &
+                                        (self.yData >= yPickMin) &
+                                        (self.yData <= yPickMax))[0].tolist()
 
         return indices

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,12 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""I/O modules"""
+"""This package provides functionalities to read and write data files.
+
+It is geared towards support of and conversion to HDF5/NeXus.
+
+See silx documentation: http://www.silx.org/doc/silx/latest/
+"""
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"

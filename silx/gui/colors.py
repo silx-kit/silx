@@ -29,13 +29,14 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "14/06/2018"
 
 from silx.gui import qt
 import copy as copy_mdl
 import numpy
 import logging
 from silx.math.combo import min_max
+from silx.math.colormap import cmap as _cmap
 from silx.utils.exceptions import NotEditableError
 
 _logger = logging.getLogger(__file__)
@@ -216,11 +217,31 @@ class Colormap(qt.QObject):
         """
         return self._name
 
+    @staticmethod
+    def _convertColorsFromFloatToUint8(colors):
+        """Convert colors from float in [0, 1] to uint8
+
+        :param numpy.ndarray colors: Array of float colors to convert
+        :return: colors as uint8
+        :rtype: numpy.ndarray
+        """
+        # Each bin is [N, N+1[ except the last one: [255, 256]
+        return numpy.clip(
+            colors.astype(numpy.float64) * 256, 0., 255.).astype(numpy.uint8)
+
     def _setColors(self, colors):
         if colors is None:
             self._colors = None
         else:
-            self._colors = numpy.array(colors, copy=True)
+            colors = numpy.array(colors, copy=False)
+            colors.shape = -1, colors.shape[-1]
+            if colors.dtype.kind == 'f':
+                colors = self._convertColorsFromFloatToUint8(colors)
+
+            # Makes sure it is RGBA8888
+            self._colors = numpy.zeros((len(colors), 4), dtype=numpy.uint8)
+            self._colors[:, 3] = 255  # Alpha channel
+            self._colors[:, :colors.shape[1]] = colors  # Copy colors
 
     def getNColors(self, nbColors=None):
         """Returns N colors computed by sampling the colormap regularly.
@@ -279,7 +300,9 @@ class Colormap(qt.QObject):
     def setColormapLUT(self, colors):
         """Set the colors of the colormap.
 
-        :param numpy.ndarray colors: the colors of the LUT
+        :param numpy.ndarray colors: the colors of the LUT.
+           If float, it is converted from [0, 1] to uint8 range.
+           Otherwise it is casted to uint8.
 
         .. warning: this will set the value of name to None
         """
@@ -534,7 +557,7 @@ class Colormap(qt.QObject):
     def copy(self):
         """Return a copy of the Colormap.
 
-        :rtype: silx.gui.plot.Colormap.Colormap
+        :rtype: silx.gui.colors.Colormap
         """
         return Colormap(name=self._name,
                         colors=copy_mdl.copy(self._colors),
@@ -547,10 +570,21 @@ class Colormap(qt.QObject):
 
         :param numpy.ndarray data: The data to convert.
         """
-        # FIXME: If possible remove dependancy to the plot
-        from .plot.matplotlib import Colormap as MPLColormap
-        rgbaImage = MPLColormap.applyColormapToData(colormap=self, data=data)
-        return rgbaImage
+        name = self.getName()
+        if name is not None:  # Get colormap definition from matplotlib
+            # FIXME: If possible remove dependency to the plot
+            from .plot.matplotlib import Colormap as MPLColormap
+            mplColormap = MPLColormap.getColormap(name)
+            colors = mplColormap(numpy.linspace(0, 1, 256, endpoint=True))
+            colors = self._convertColorsFromFloatToUint8(colors)
+
+        else:  # Use user defined LUT
+            colors = self.getColormapLUT()
+
+        vmin, vmax = self.getColormapRange(data)
+        normalization = self.getNormalization()
+
+        return _cmap(data, colors, vmin, vmax, normalization)
 
     @staticmethod
     def getSupportedColormaps():
@@ -560,7 +594,7 @@ class Colormap(qt.QObject):
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
         :rtype: tuple
         """
-        # FIXME: If possible remove dependancy to the plot
+        # FIXME: If possible remove dependency to the plot
         from .plot.matplotlib import Colormap as MPLColormap
         maps = MPLColormap.getSupportedColormaps()
         return DEFAULT_COLORMAPS + maps

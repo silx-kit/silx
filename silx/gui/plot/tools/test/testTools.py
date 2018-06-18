@@ -29,14 +29,14 @@ __license__ = "MIT"
 __date__ = "02/03/2018"
 
 
-import numpy
+import functools
 import unittest
+import numpy
 
-from silx.utils.testutils import ParametricTestCase, TestLogging
-from silx.gui.test.utils import (
-    qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
+from silx.utils.testutils import TestLogging
+from silx.gui.test.utils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
-from silx.gui.plot import Plot2D, PlotWindow
+from silx.gui.plot import PlotWindow
 from silx.gui.plot import tools
 from silx.gui.plot.test.utils import PlotWidgetTestCase
 
@@ -133,6 +133,21 @@ class TestPositionInfo(PlotWidgetTestCase):
             converters=[('Exception', raiseException)])
         self._test(positionWidget, ['Exception'], error=2)
 
+    def testUpdate(self):
+        """Test :meth:`PositionInfo.updateInfo`"""
+        calls = []
+
+        def update(calls, x, y):  # Get number of calls
+            calls.append((x, y))
+            return len(calls)
+
+        positionWidget = tools.PositionInfo(
+            plot=self.plot,
+            converters=[('Call count', functools.partial(update, calls))])
+
+        positionWidget.updateInfo()
+        self.assertEqual(len(calls), 1)
+
 
 class TestPlotToolsToolbars(PlotWidgetTestCase):
     """Tests toolbars from silx.gui.plot.tools"""
@@ -147,66 +162,10 @@ class TestPlotToolsToolbars(PlotWidgetTestCase):
         self.plot.addToolBar(tb)
 
 
-class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
-    """Tests for ProfileToolBar widget."""
-
-    def setUp(self):
-        super(TestPixelIntensitiesHisto, self).setUp()
-        self.image = numpy.random.rand(100, 100)
-        self.plotImage = Plot2D()
-        self.plotImage.getIntensityHistogramAction().setVisible(True)
-
-    def tearDown(self):
-        del self.plotImage
-        super(TestPixelIntensitiesHisto, self).tearDown()
-
-    def testShowAndHide(self):
-        """Simple test that the plot is showing and hiding when activating the
-        action"""
-        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
-        self.plotImage.show()
-
-        histoAction = self.plotImage.getIntensityHistogramAction()
-
-        # test the pixel intensity diagram is showing
-        button = getQToolButtonFromAction(histoAction)
-        self.assertIsNot(button, None)
-        self.mouseMove(button)
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.qapp.processEvents()
-        self.assertTrue(histoAction.getHistogramPlotWidget().isVisible())
-
-        # test the pixel intensity diagram is hiding
-        self.qapp.setActiveWindow(self.plotImage)
-        self.qapp.processEvents()
-        self.mouseMove(button)
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.qapp.processEvents()
-        self.assertFalse(histoAction.getHistogramPlotWidget().isVisible())
-
-    def testImageFormatInput(self):
-        """Test multiple type as image input"""
-        typesToTest = [numpy.uint8, numpy.int8, numpy.int16, numpy.int32,
-                       numpy.float32, numpy.float64]
-        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
-        self.plotImage.show()
-        button = getQToolButtonFromAction(
-            self.plotImage.getIntensityHistogramAction())
-        self.mouseMove(button)
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.qapp.processEvents()
-        for typeToTest in typesToTest:
-            with self.subTest(typeToTest=typeToTest):
-                self.plotImage.addImage(self.image.astype(typeToTest),
-                                        origin=(0, 0), legend='sino')
-
-
 def suite():
     test_suite = unittest.TestSuite()
     # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestPositionInfo,
-                      TestPlotToolsToolbars,
-                      TestPixelIntensitiesHisto):
+    for testClass in (TestPositionInfo, TestPlotToolsToolbars):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
