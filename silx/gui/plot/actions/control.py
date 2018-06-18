@@ -327,6 +327,7 @@ class ColormapAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.plot.sigActiveImageChanged.connect(self._updateColormap)
+        self.plot.sigActiveScatterChanged.connect(self._updateColormap)
 
     def setColorDialog(self, colorDialog):
         """Set a specific color dialog instead of using the default dialog."""
@@ -393,10 +394,19 @@ class ColormapAction(PlotAction):
 
         else:
             # No active image or active image is RGBA,
-            # set dialog from default info
-            colormap = self.plot.getDefaultColormap()
-            # Reset histogram and range if any
-            self._dialog.setData(None)
+            # Check for active scatter plot
+            scatter = self.plot._getActiveItem(kind='scatter')
+            if scatter is not None:
+                colormap = scatter.getColormap()
+                data = scatter.getValueData(copy=False)
+                self._dialog.setData(data)
+
+            else:
+                # No active data image nor scatter,
+                # set dialog from default info
+                colormap = self.plot.getDefaultColormap()
+                # Reset histogram and range if any
+                self._dialog.setData(None)
 
         self._dialog.setColormap(colormap)
 
