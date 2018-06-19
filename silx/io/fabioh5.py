@@ -117,12 +117,12 @@ class FrameData(commonh5.LazyLoadableDataset):
         if self._shape is None:
             if isinstance(self.__fabio_reader.fabio_file(),
                           fabio.file_series.file_series):
-                shape0 = len(self.__fabio_reader.fabio_file())
+                shape0 = self.__fabio_reader.frame_count()
                 shape1, shape2 = self.__fabio_reader.fabio_file().first_image().data.shape
                 self._shape = shape0, shape1, shape2
             else:
                 # no need to optimize single file, just call superclass
-                self._shape = commonh5.LazyLoadableDataset.shape(self)
+                self._shape = super(commonh5.LazyLoadableDataset, self).shape
         return self._shape
 
     def __iter__(self):
