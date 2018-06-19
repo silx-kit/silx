@@ -226,9 +226,6 @@ class Hdf5Writer(object):
                                                   **self.create_dataset_args)
                     for i, frame in enumerate(obj):
                         ds[i] = frame
-                    # # alternative using FrameData.__getitem__ (TODO)
-                    # for i in range(obj.shape[0]):
-                    #     ds[i] = obj[i]
                 else:
                     # fancy arguments don't apply to small dataset
                     if obj.size < self.min_size:
