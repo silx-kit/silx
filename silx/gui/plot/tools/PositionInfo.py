@@ -91,6 +91,8 @@ class PositionInfo(qt.QWidget):
     :param parent: Parent widget
     """
 
+    SNAP_THRESHOLD_DIST = 5
+
     def __init__(self, parent=None, plot=None, converters=None):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
@@ -200,8 +202,16 @@ class PositionInfo(qt.QWidget):
                     closestInPixels = self.plot.dataToPixel(
                         xClosest, yClosest, axis=activeCurve.getYAxis())
                     if closestInPixels is not None:
-                        if (abs(closestInPixels[0] - xPixel) < 5 and
-                                abs(closestInPixels[1] - yPixel) < 5):
+                        # Compute threshold
+                        threshold = self.SNAP_THRESHOLD_DIST
+                        if qt.BINDING in ('PyQt5', 'PySide2'):
+                            window = self.plot.window()
+                            windowHandle = window.windowHandle()
+                            ratio = windowHandle.devicePixelRatio()
+                            threshold *= ratio
+
+                        if (abs(closestInPixels[0] - xPixel) < threshold and
+                                abs(closestInPixels[1] - yPixel) < threshold):
                             # Update label style sheet
                             styleSheet = "color: rgb(0, 0, 0);"
 
