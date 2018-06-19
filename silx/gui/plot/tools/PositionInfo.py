@@ -41,6 +41,7 @@ import weakref
 
 import numpy
 
+from ....utils.deprecation import deprecated
 from ... import qt
 
 _logger = logging.getLogger(__name__)
@@ -96,22 +97,12 @@ class PositionInfo(qt.QWidget):
     def __init__(self, parent=None, plot=None, converters=None):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
+        self._snappingMode = self.SNAPPING_DISABLED
 
         super(PositionInfo, self).__init__(parent)
 
         if converters is None:
             converters = (('X', lambda x, y: x), ('Y', lambda x, y: y))
-
-        self.autoSnapToActiveCurve = False
-        """Toggle snapping use position to active curve.
-
-        - True to snap used coordinates to the active curve if the active curve
-          is displayed with symbols and mouse is close enough.
-          If the mouse is not close to a point of the curve, values are
-          displayed in red.
-        - False (the default) to always use mouse coordinates.
-
-        """
 
         self._fields = []  # To store (QLineEdit, name, function (x, y)->v)
 
@@ -182,54 +173,76 @@ class PositionInfo(qt.QWidget):
         :param float yPixel: Position-y in pixels
         """
         styleSheet = "color: rgb(0, 0, 0);"  # Default style
+        xData, yData = x, y
 
-        if self.autoSnapToActiveCurve and self.plot.getGraphCursor():
+        snappingMode = self.getSnappingMode()
+
+        # Snapping for curves and crosshair either not requested or active
+        if (snappingMode & self.SNAPPING_CURVE) and (
+                not (snappingMode & self.SNAPPING_CROSSHAIR) or
+                self.plot.getGraphCursor()):
             # Check if near active curve with symbols.
 
             styleSheet = "color: rgb(255, 0, 0);"  # Style far from curve
 
-            activeCurve = self.plot.getActiveCurve()
-            if activeCurve:
-                xData = activeCurve.getXData(copy=False)
-                yData = activeCurve.getYData(copy=False)
-                if activeCurve.getSymbol():  # Only handled if symbols on curve
-                    closestIndex = numpy.argmin(
-                        pow(xData - x, 2) + pow(yData - y, 2))
+            if snappingMode & self.SNAPPING_ACTIVE_ONLY:
+                activeCurve = self.plot.getActiveCurve()
+                curves = [activeCurve] if activeCurve else []
+            else:
+                curves = self.plot.getAllCurves()
 
-                    xClosest = xData[closestIndex]
-                    yClosest = yData[closestIndex]
+            # Compute distance threshold
+            if qt.BINDING in ('PyQt5', 'PySide2'):
+                window = self.plot.window()
+                windowHandle = window.windowHandle()
+                ratio = windowHandle.devicePixelRatio()
+            else:
+                ratio = 1.
 
-                    closestInPixels = self.plot.dataToPixel(
-                        xClosest, yClosest, axis=activeCurve.getYAxis())
-                    if closestInPixels is not None:
-                        # Compute threshold
-                        threshold = self.SNAP_THRESHOLD_DIST
-                        if qt.BINDING in ('PyQt5', 'PySide2'):
-                            window = self.plot.window()
-                            windowHandle = window.windowHandle()
-                            ratio = windowHandle.devicePixelRatio()
-                            threshold *= ratio
+            # Baseline squared distance threshold
+            distInPixels = (self.SNAP_THRESHOLD_DIST * ratio)**2
 
-                        if (abs(closestInPixels[0] - xPixel) < threshold and
-                                abs(closestInPixels[1] - yPixel) < threshold):
-                            # Update label style sheet
-                            styleSheet = "color: rgb(0, 0, 0);"
+            for curve in curves:
+                if (snappingMode & self.SNAPPING_SYMBOLS_ONLY and
+                        not curve.getSymbol()):
+                    # Only handled if symbols on curve
+                    continue
 
-                            # if close enough, wrap to data point coords
-                            x, y = xClosest, yClosest
+                xArray = curve.getXData(copy=False)
+                yArray = curve.getYData(copy=False)
+                closestIndex = numpy.argmin(
+                    pow(xArray - x, 2) + pow(yArray - y, 2))
+
+                xClosest = xArray[closestIndex]
+                yClosest = yArray[closestIndex]
+
+                closestInPixels = self.plot.dataToPixel(
+                    xClosest, yClosest, axis=curve.getYAxis())
+                if closestInPixels is not None:
+                    curveDistInPixels = (
+                        (closestInPixels[0] - xPixel)**2 +
+                        (closestInPixels[1] - yPixel)**2)
+
+                    if curveDistInPixels <= distInPixels:
+                        # Update label style sheet
+                        styleSheet = "color: rgb(0, 0, 0);"
+
+                        # if close enough, snap to data point coord
+                        xData, yData = xClosest, yClosest
+                        distInPixels = curveDistInPixels
 
         for label, name, func in self._fields:
             label.setStyleSheet(styleSheet)
 
             try:
-                value = func(x, y)
+                value = func(xData, yData)
                 text = self.valueToString(value)
                 label.setText(text)
             except:
                 label.setText('Error')
                 _logger.error(
                     "Error while converting coordinates (%f, %f)"
-                    "with converter '%s'" % (x, y, name))
+                    "with converter '%s'" % (xPixel, yPixel, name))
                 _logger.error(traceback.format_exc())
 
     def valueToString(self, value):
@@ -242,3 +255,55 @@ class PositionInfo(qt.QWidget):
         else:
             # Fallback for other types
             return str(value)
+
+    # Snapping mode
+
+    SNAPPING_DISABLED = 0
+    """No snapping occurs"""
+
+    SNAPPING_CROSSHAIR = 1 << 0
+    """Snapping only enabled when crosshair cursor is enabled"""
+
+    SNAPPING_ACTIVE_ONLY = 1 << 1
+    """Snapping only enabled for active item"""
+
+    SNAPPING_SYMBOLS_ONLY = 1 << 2
+    """Snapping only when symbols are visible"""
+
+    SNAPPING_CURVE = 1 << 3
+    """Snapping for curves"""
+
+    SNAPPING_DEFAULT = (SNAPPING_CROSSHAIR |
+                        SNAPPING_ACTIVE_ONLY |
+                        SNAPPING_SYMBOLS_ONLY |
+                        SNAPPING_CURVE)
+    """Default snapping mode"""
+
+    def setSnappingMode(self, mode):
+        """Set the snapping mode.
+
+        The mode is a mask.
+
+        :param int mode: The mode to use
+        """
+        if mode != self._snappingMode:
+            self._snappingMode = mode
+            self.updateInfo()
+
+    def getSnappingMode(self):
+        """Returns the snapping mode as a mask
+
+        :rtype: int
+        """
+        return self._snappingMode
+
+    @property
+    @deprecated(replacement="getSnappingMode", since_version="0.8")
+    def autoSnapToActiveCurve(self):
+        return self.getSnappingMode() == self.SNAPPING_DEFAULT
+
+    @autoSnapToActiveCurve.setter
+    @deprecated(replacement="setSnappingMode", since_version="0.8")
+    def autoSnapToActiveCurve(self, flag):
+        self.setSnappingMode(
+            self.SNAPPING_DEFAULT if flag else self.SNAPPING_DISABLED)
