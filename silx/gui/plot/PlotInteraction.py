@@ -115,10 +115,51 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
 
     Base class for :class:`Pan` and :class:`Zoom`
     """
+
+    _DOUBLE_CLICK_TIMEOUT = 0.4
+
     class ZoomIdle(ClickOrDrag.Idle):
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
+
+    def click(self, x, y, btn):
+        """Handle clicks by sending events
+
+        :param int x: Mouse X position in pixels
+        :param int y: Mouse Y position in pixels
+        :param btn: Clicked mouse button
+        """
+        if btn == LEFT_BTN:
+            lastClickTime, lastClickPos = self._lastClick
+
+            # Signal mouse double clicked event first
+            if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
+                # Use position of first click
+                eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
+                                               *lastClickPos)
+                self.plot.notify(**eventDict)
+
+                self._lastClick = 0., None
+            else:
+                # Signal mouse clicked event
+                dataPos = self.plot.pixelToData(x, y)
+                assert dataPos is not None
+                eventDict = prepareMouseSignal('mouseClicked', 'left',
+                                               dataPos[0], dataPos[1],
+                                               x, y)
+                self.plot.notify(**eventDict)
+
+                self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
+
+        elif btn == RIGHT_BTN:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            eventDict = prepareMouseSignal('mouseClicked', 'right',
+                                           dataPos[0], dataPos[1],
+                                           x, y)
+            self.plot.notify(**eventDict)
 
     def __init__(self, plot):
         """Init.
@@ -134,6 +175,8 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
             'drag': ClickOrDrag.Drag
         }
         StateMachine.__init__(self, states, 'idle')
+
+        self._lastClick = 0., None
 
 
 # Pan #########################################################################
@@ -229,11 +272,9 @@ class Zoom(_ZoomOnWheel):
     Zoom-in on selected area, zoom-out on right click,
     and zoom on mouse wheel.
     """
-    _DOUBLE_CLICK_TIMEOUT = 0.4
 
     def __init__(self, plot, color):
         self.color = color
-        self._lastClick = 0., None
 
         super(Zoom, self).__init__(plot)
         self.plot.getLimitsHistory().clear()
@@ -262,38 +303,6 @@ class Zoom(_ZoomOnWheel):
                     areaX1 = center + numpy.sign(x1 - x0) * 0.5 * areaWidth
 
         return areaX0, areaY0, areaX1, areaY1
-
-    def click(self, x, y, btn):
-        if btn == LEFT_BTN:
-            lastClickTime, lastClickPos = self._lastClick
-
-            # Signal mouse double clicked event first
-            if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
-                # Use position of first click
-                eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
-                                               *lastClickPos)
-                self.plot.notify(**eventDict)
-
-                self._lastClick = 0., None
-            else:
-                # Signal mouse clicked event
-                dataPos = self.plot.pixelToData(x, y)
-                assert dataPos is not None
-                eventDict = prepareMouseSignal('mouseClicked', 'left',
-                                               dataPos[0], dataPos[1],
-                                               x, y)
-                self.plot.notify(**eventDict)
-
-                self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
-
-        elif btn == RIGHT_BTN:
-            # Signal mouse clicked event
-            dataPos = self.plot.pixelToData(x, y)
-            assert dataPos is not None
-            eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                           dataPos[0], dataPos[1],
-                                           x, y)
-            self.plot.notify(**eventDict)
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
