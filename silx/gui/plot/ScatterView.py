@@ -113,6 +113,7 @@ class ScatterView(qt.QMainWindow):
         # Create mask tool dock widget
         self._maskToolsWidget = ScatterMaskToolsWidget(parent=self, plot=plot)
         self._maskDock = BoxLayoutDockWidget()
+        self._maskDock.setWindowTitle('Scatter Mask')
         self._maskDock.setWidget(self._maskToolsWidget)
         self._maskDock.setVisible(False)
         self.addDockWidget(qt.Qt.BottomDockWidgetArea, self._maskDock)
