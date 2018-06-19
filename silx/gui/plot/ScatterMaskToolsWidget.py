@@ -231,8 +231,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self._mask_scatter = self.plot._getItem(kind="scatter",
                                                     legend=self._maskName)
             self._mask_scatter.setSymbolSize(
-                self._data_scatter.getSymbolSize() * 4.0
-            )
+                self._data_scatter.getSymbolSize() + 2.0)
         elif self.plot._getItem(kind="scatter",
                                 legend=self._maskName) is not None:
             self.plot.remove(self._maskName, kind='scatter')
