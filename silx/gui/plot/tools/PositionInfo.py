@@ -43,6 +43,8 @@ import numpy
 
 from ....utils.deprecation import deprecated
 from ... import qt
+from .. import items
+
 
 _logger = logging.getLogger(__name__)
 
@@ -188,19 +190,32 @@ class PositionInfo(qt.QWidget):
 
         snappingMode = self.getSnappingMode()
 
-        # Snapping for curves and crosshair either not requested or active
-        if (snappingMode & self.SNAPPING_CURVE) and (
-                not (snappingMode & self.SNAPPING_CROSSHAIR) or
-                plot.getGraphCursor()):
-            # Check if near active curve with symbols.
-
-            styleSheet = "color: rgb(255, 0, 0);"  # Style far from curve
+        # Snapping when crosshair either not requested or active
+        if (snappingMode & (self.SNAPPING_CURVE | self.SNAPPING_SCATTER) and
+                (not (snappingMode & self.SNAPPING_CROSSHAIR) or
+                 plot.getGraphCursor())):
+            styleSheet = "color: rgb(255, 0, 0);"  # Style far from item
 
             if snappingMode & self.SNAPPING_ACTIVE_ONLY:
-                activeCurve = plot.getActiveCurve()
-                curves = [activeCurve] if activeCurve else []
+                selectedItems = []
+
+                if snappingMode & self.SNAPPING_CURVE:
+                    activeCurve = plot.getActiveCurve()
+                    if activeCurve:
+                        selectedItems.append(activeCurve)
+
+                if snappingMode & self.SNAPPING_SCATTER:
+                    activeScatter = plot._getActiveItem(kind='scatter')
+                    if activeScatter:
+                        selectedItems.append(activeScatter)
+
             else:
-                curves = plot.getAllCurves()
+                kinds = []
+                if snappingMode & self.SNAPPING_CURVE:
+                    kinds.append('curve')
+                if snappingMode & self.SNAPPING_SCATTER:
+                    kinds.append('scatter')
+                selectedItems = plot._getItems(kind=kinds)
 
             # Compute distance threshold
             if qt.BINDING in ('PyQt5', 'PySide2'):
@@ -213,22 +228,27 @@ class PositionInfo(qt.QWidget):
             # Baseline squared distance threshold
             distInPixels = (self.SNAP_THRESHOLD_DIST * ratio)**2
 
-            for curve in curves:
+            for item in selectedItems:
                 if (snappingMode & self.SNAPPING_SYMBOLS_ONLY and
-                        not curve.getSymbol()):
-                    # Only handled if symbols on curve
+                        not item.getSymbol()):
+                    # Only handled if item symbols are visible
                     continue
 
-                xArray = curve.getXData(copy=False)
-                yArray = curve.getYData(copy=False)
+                xArray = item.getXData(copy=False)
+                yArray = item.getYData(copy=False)
                 closestIndex = numpy.argmin(
                     pow(xArray - x, 2) + pow(yArray - y, 2))
 
                 xClosest = xArray[closestIndex]
                 yClosest = yArray[closestIndex]
 
+                if isinstance(item, items.YAxisMixIn):
+                    axis = item.getYAxis()
+                else:
+                    axis = 'left'
+
                 closestInPixels = plot.dataToPixel(
-                    xClosest, yClosest, axis=curve.getYAxis())
+                    xClosest, yClosest, axis=axis)
                 if closestInPixels is not None:
                     curveDistInPixels = (
                         (closestInPixels[0] - xPixel)**2 +
@@ -282,12 +302,16 @@ class PositionInfo(qt.QWidget):
     """Snapping only when symbols are visible"""
 
     SNAPPING_CURVE = 1 << 3
-    """Snapping for curves"""
+    """Snapping on curves"""
+
+    SNAPPING_SCATTER = 1 << 4
+    """Snapping on scatter"""
 
     SNAPPING_DEFAULT = (SNAPPING_CROSSHAIR |
                         SNAPPING_ACTIVE_ONLY |
                         SNAPPING_SYMBOLS_ONLY |
-                        SNAPPING_CURVE)
+                        SNAPPING_CURVE |
+                        SNAPPING_SCATTER)
     """Default snapping mode"""
 
     def setSnappingMode(self, mode):
