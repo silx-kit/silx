@@ -35,6 +35,7 @@ import time
 import weakref
 
 from .. import colors
+from .. import qt
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
@@ -424,7 +425,7 @@ class SelectPolygon(Select):
             """Update drawing first point, using self._firstPos"""
             x, y = self.machine.plot.dataToPixel(*self._firstPos, check=False)
 
-            offset = self.machine.DRAG_THRESHOLD_DIST
+            offset = self.machine.getDragThreshold()
             points = [(x - offset, y - offset),
                       (x - offset, y + offset),
                       (x + offset, y + offset),
@@ -458,10 +459,10 @@ class SelectPolygon(Select):
                                                          check=False)
                 dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
 
+                threshold = self.machine.getDragThreshold()
+
                 # Only allow to close polygon after first point
-                if (len(self.points) > 2 and
-                        dx < self.machine.DRAG_THRESHOLD_DIST and
-                        dy < self.machine.DRAG_THRESHOLD_DIST):
+                if len(self.points) > 2 and dx <= threshold and dy <= threshold:
                     self.machine.resetSelectionArea()
 
                     self.points[-1] = self.points[0]
@@ -489,8 +490,7 @@ class SelectPolygon(Select):
                 previousPos = self.machine.plot.dataToPixel(*self.points[-2],
                                                             check=False)
                 dx, dy = abs(previousPos[0] - x), abs(previousPos[1] - y)
-                if(dx >= self.machine.DRAG_THRESHOLD_DIST or
-                   dy >= self.machine.DRAG_THRESHOLD_DIST):
+                if dx >= threshold or dy >= threshold:
                     self.points.append(dataPos)
                 else:
                     self.points[-1] = dataPos
@@ -502,8 +502,9 @@ class SelectPolygon(Select):
             firstPos = self.machine.plot.dataToPixel(*self._firstPos,
                                                      check=False)
             dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-            if (dx < self.machine.DRAG_THRESHOLD_DIST and
-                    dy < self.machine.DRAG_THRESHOLD_DIST):
+            threshold = self.machine.getDragThreshold()
+
+            if dx <= threshold and dy <= threshold:
                 x, y = firstPos  # Snap to first point
 
             dataPos = self.machine.plot.pixelToData(x, y)
@@ -522,6 +523,17 @@ class SelectPolygon(Select):
     def cancel(self):
         if isinstance(self.state, self.states['select']):
             self.resetSelectionArea()
+
+    def getDragThreshold(self):
+        """Return dragging ratio with device to pixel ratio applied.
+
+        :rtype: float
+        """
+        ratio = 1.
+        if qt.BINDING in ('PyQt5', 'PySide2'):
+            ratio = self.plot.window().windowHandle().devicePixelRatio()
+        return self.DRAG_THRESHOLD_DIST * ratio
+
 
 
 class Select2Points(Select):
