@@ -29,7 +29,7 @@ Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/09/2017"
+__date__ = "19/06/2018"
 
 
 import os
@@ -328,8 +328,7 @@ def getQIcon(name):
     """
     if name not in _cached_icons:
         qfile = getQFile(name)
-        pixmap = qt.QPixmap(qfile.fileName())
-        icon = qt.QIcon(pixmap)
+        icon = qt.QIcon(qfile.fileName())
         _cached_icons[name] = icon
     else:
         icon = _cached_icons[name]
