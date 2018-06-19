@@ -259,7 +259,13 @@ class PlotWindow(PlotWidget):
                     converters = None
                 self._positionWidget = tools.PositionInfo(
                     plot=self, converters=converters)
-                self._positionWidget.autoSnapToActiveCurve = True
+                # Set a snapping mode that is consistent with legacy one
+                self._positionWidget.setSnappingMode(
+                    tools.PositionInfo.SNAPPING_CROSSHAIR |
+                    tools.PositionInfo.SNAPPING_ACTIVE_ONLY |
+                    tools.PositionInfo.SNAPPING_SYMBOLS_ONLY |
+                    tools.PositionInfo.SNAPPING_CURVE |
+                    tools.PositionInfo.SNAPPING_SCATTER)
 
                 hbox.addWidget(self._positionWidget)
 

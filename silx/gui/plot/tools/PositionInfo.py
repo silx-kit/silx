@@ -307,13 +307,6 @@ class PositionInfo(qt.QWidget):
     SNAPPING_SCATTER = 1 << 4
     """Snapping on scatter"""
 
-    SNAPPING_DEFAULT = (SNAPPING_CROSSHAIR |
-                        SNAPPING_ACTIVE_ONLY |
-                        SNAPPING_SYMBOLS_ONLY |
-                        SNAPPING_CURVE |
-                        SNAPPING_SCATTER)
-    """Default snapping mode"""
-
     def setSnappingMode(self, mode):
         """Set the snapping mode.
 
@@ -332,13 +325,20 @@ class PositionInfo(qt.QWidget):
         """
         return self._snappingMode
 
+    _SNAPPING_LEGACY = (SNAPPING_CROSSHAIR |
+                        SNAPPING_ACTIVE_ONLY |
+                        SNAPPING_SYMBOLS_ONLY |
+                        SNAPPING_CURVE |
+                        SNAPPING_SCATTER)
+    """Legacy snapping mode"""
+
     @property
     @deprecated(replacement="getSnappingMode", since_version="0.8")
     def autoSnapToActiveCurve(self):
-        return self.getSnappingMode() == self.SNAPPING_DEFAULT
+        return self.getSnappingMode() == self._SNAPPING_LEGACY
 
     @autoSnapToActiveCurve.setter
     @deprecated(replacement="setSnappingMode", since_version="0.8")
     def autoSnapToActiveCurve(self, flag):
         self.setSnappingMode(
-            self.SNAPPING_DEFAULT if flag else self.SNAPPING_DISABLED)
+            self._SNAPPING_LEGACY if flag else self.SNAPPING_DISABLED)
