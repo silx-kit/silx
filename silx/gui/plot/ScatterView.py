@@ -214,6 +214,13 @@ class ScatterView(qt.QMainWindow):
         """
         return self._plot()
 
+    def getPositionInfoWidget(self):
+        """Returns the widget display mouse coordinates information.
+
+        :rtype: ~silx.gui.plot.tools.PositionInfo
+        """
+        return self._positionInfo
+
     def getMaskToolsWidget(self):
         """Returns the widget controlling mask drawing
 
