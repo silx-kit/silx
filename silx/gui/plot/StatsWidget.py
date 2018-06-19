@@ -82,7 +82,7 @@ class StatsWidget(qt.QWidget):
             action = qt.QAction(self)
             action.setIcon(icons.getQIcon("stats-whole-items"))
             action.setText("All items")
-            action.setToolTip("Display stats for whole available items.")
+            action.setToolTip("Display stats for all available items.")
             action.setCheckable(True)
             self.__displayWholeItems = action
 
