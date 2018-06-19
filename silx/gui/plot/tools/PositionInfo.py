@@ -129,10 +129,17 @@ class PositionInfo(qt.QWidget):
         # Connect to Plot events
         plot.sigPlotSignal.connect(self._plotEvent)
 
-    @property
-    def plot(self):
-        """The :class:`.PlotWindow` this widget is attached to."""
+    def getPlotWidget(self):
+        """Returns the PlotWidget this widget is attached to or None.
+
+        :rtype: Union[~silx.gui.plot.PlotWidget,None]
+        """
         return self._plotRef()
+
+    @property
+    @deprecated(replacement='getPlotWidget', since_version='0.8.0')
+    def plot(self):
+        return self.getPlotWidget()
 
     def getConverters(self):
         """Return the list of converters as 2-tuple (name, function)."""
@@ -150,7 +157,7 @@ class PositionInfo(qt.QWidget):
 
     def updateInfo(self):
         """Update displayed information"""
-        plot = self.plot
+        plot = self.getPlotWidget()
         if plot is None:
             _logger.error("Trying to update PositionInfo "
                           "while PlotWidget no longer exists")
@@ -172,6 +179,10 @@ class PositionInfo(qt.QWidget):
         :param float xPixel: Position-x in pixels
         :param float yPixel: Position-y in pixels
         """
+        plot = self.getPlotWidget()
+        if plot is None:
+            return
+
         styleSheet = "color: rgb(0, 0, 0);"  # Default style
         xData, yData = x, y
 
@@ -180,20 +191,20 @@ class PositionInfo(qt.QWidget):
         # Snapping for curves and crosshair either not requested or active
         if (snappingMode & self.SNAPPING_CURVE) and (
                 not (snappingMode & self.SNAPPING_CROSSHAIR) or
-                self.plot.getGraphCursor()):
+                plot.getGraphCursor()):
             # Check if near active curve with symbols.
 
             styleSheet = "color: rgb(255, 0, 0);"  # Style far from curve
 
             if snappingMode & self.SNAPPING_ACTIVE_ONLY:
-                activeCurve = self.plot.getActiveCurve()
+                activeCurve = plot.getActiveCurve()
                 curves = [activeCurve] if activeCurve else []
             else:
-                curves = self.plot.getAllCurves()
+                curves = plot.getAllCurves()
 
             # Compute distance threshold
             if qt.BINDING in ('PyQt5', 'PySide2'):
-                window = self.plot.window()
+                window = plot.window()
                 windowHandle = window.windowHandle()
                 ratio = windowHandle.devicePixelRatio()
             else:
@@ -216,7 +227,7 @@ class PositionInfo(qt.QWidget):
                 xClosest = xArray[closestIndex]
                 yClosest = yArray[closestIndex]
 
-                closestInPixels = self.plot.dataToPixel(
+                closestInPixels = plot.dataToPixel(
                     xClosest, yClosest, axis=curve.getYAxis())
                 if closestInPixels is not None:
                     curveDistInPixels = (
