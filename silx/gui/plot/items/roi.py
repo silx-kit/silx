@@ -390,7 +390,8 @@ class PointROI(RegionOfInterest):
 class LineROI(RegionOfInterest):
     """A ROI identifying a line in a 2D plot.
 
-    This ROI provides 1 anchor for each boundary points.
+    This ROI provides 1 anchor for each boundary of the line, plus an center
+    in the center to translate the full ROI.
     """
 
     _kind = "Line"
@@ -399,16 +400,26 @@ class LineROI(RegionOfInterest):
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
 
+    def _createControlPointsFromFirstShape(self, points):
+        center = numpy.mean(points, axis=0)
+        controlPoints = numpy.array([points[0], points[1], center])
+        return controlPoints
+
     def _getLabelPosition(self):
         points = self.getControlPoints()
-        return points[numpy.argmin(points[:, 0])]
+        return points[-1]
 
     def _updateShape(self):
         if len(self._items) == 0:
             return
         shape = self._items[0]
-        points = self._getShapePoints()
+        points = self.getControlPoints()
+        points = self._getShapeFromControlPoints(points)
         shape.setPoints(points)
+
+    def _getShapeFromControlPoints(self, points):
+        # Remove the center from the control points
+        return points[0:2]
 
     def _createShapeItems(self, points):
         # Add label marker
@@ -420,8 +431,9 @@ class LineROI(RegionOfInterest):
         marker.setSymbol('')
         marker._setDraggable(False)
 
+        shapePoints = self._getShapeFromControlPoints(points)
         item = items.Shape("polylines")
-        item.setPoints(points)
+        item.setPoints(shapePoints)
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
@@ -429,7 +441,7 @@ class LineROI(RegionOfInterest):
 
     def _createAnchorItems(self, points):
         anchors = []
-        for point in points:
+        for point in points[0:-1]:
             anchor = items.Marker()
             anchor.setPosition(*point)
             anchor.setText('')
@@ -437,11 +449,35 @@ class LineROI(RegionOfInterest):
             anchor._setDraggable(True)
             anchors.append(anchor)
 
+        # Add an anchor to the center of the rectangle
+        center = numpy.mean(points, axis=0)
+        anchor = items.Marker()
+        anchor.setPosition(*center)
+        anchor.setText('')
+        anchor.setSymbol('o')
+        anchor._setDraggable(True)
+        anchors.append(anchor)
+
         return anchors
+
+    def _controlPointAnchorPositionChanged(self, index, current, previous):
+        if index == len(self._editAnchors) - 1:
+            # It is the center anchor
+            points = self.getControlPoints()
+            center = numpy.mean(points, axis=0)
+            offset = current - center
+            points = points + offset
+            self.setControlPoints(points)
+        else:
+            # Update the center
+            points = self.getControlPoints()
+            center = numpy.mean(points[0:-1], axis=0)
+            points[-1] = center
+            self.setControlPoints(points)
 
     def paramsToString(self):
         points = self.getControlPoints()
-        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
+        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points[0:2])
 
 
 class HorizontalLineROI(RegionOfInterest):
