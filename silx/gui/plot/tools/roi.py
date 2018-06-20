@@ -97,12 +97,12 @@ class RegionOfInterestManager(qt.QObject):
 
     _MODE_ACTIONS_PARAMS = collections.OrderedDict()
     # Interactive mode: (icon name, text)
-    _MODE_ACTIONS_PARAMS['point'] = 'add-shape-point', 'Add point markers'
-    _MODE_ACTIONS_PARAMS['rectangle'] = 'add-shape-rectangle', 'Add rectangle ROI'
-    _MODE_ACTIONS_PARAMS['polygon'] = 'add-shape-polygon', 'Add polygon ROI'
-    _MODE_ACTIONS_PARAMS['line'] = 'add-shape-diagonal', 'Add line ROI'
-    _MODE_ACTIONS_PARAMS['hline'] = 'add-shape-horizontal', 'Add horizontal line ROI'
-    _MODE_ACTIONS_PARAMS['vline'] = 'add-shape-vertical', 'Add vertical line ROI'
+    _MODE_ACTIONS_PARAMS['point'] = roi_items.PointROI, 'add-shape-point', 'Add point markers'
+    _MODE_ACTIONS_PARAMS['rectangle'] = roi_items.RectangleROI, 'add-shape-rectangle', 'Add rectangle ROI'
+    _MODE_ACTIONS_PARAMS['polygon'] = roi_items.PolygonROI, 'add-shape-polygon', 'Add polygon ROI'
+    _MODE_ACTIONS_PARAMS['line'] = roi_items.LineROI, 'add-shape-diagonal', 'Add line ROI'
+    _MODE_ACTIONS_PARAMS['hline'] = roi_items.HorizontalLineROI, 'add-shape-horizontal', 'Add horizontal line ROI'
+    _MODE_ACTIONS_PARAMS['vline'] = roi_items.VerticalLineROI, 'add-shape-vertical', 'Add vertical line ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
@@ -147,7 +147,7 @@ class RegionOfInterestManager(qt.QObject):
 
         action = self._modeActions.get(kind, None)
         if action is None:  # Lazy-loading
-            iconName, text = self._MODE_ACTIONS_PARAMS[kind]
+            _roiClass, iconName, text = self._MODE_ACTIONS_PARAMS[kind]
             action = qt.QAction(self)
             action.setIcon(icons.getQIcon(iconName))
             action.setText(text)
@@ -273,7 +273,8 @@ class RegionOfInterestManager(qt.QObject):
         :raise RuntimeError: When ROI cannot be added because the maximum
            number of ROIs has been reached.
         """
-        roi = roi_items.RegionOfInterest(parent=None, kind=kind)
+        roiClass = self._MODE_ACTIONS_PARAMS[kind][0]
+        roi = roiClass(parent=None)
         roi.setColor(self.getColor())
         roi.setLabel(str(label))
         roi.setFirstShapePoints(points)
@@ -384,7 +385,8 @@ class RegionOfInterestManager(qt.QObject):
             raise ValueError('Unsupported kind %s' % kind)
         self._shapeKind = kind
         # TODO: The ROI should be created here
-        firstInteractionShapeKind = roi_items.RegionOfInterest.getFirstInteractionShape(kind)
+        roiClass = self._MODE_ACTIONS_PARAMS[kind][0]
+        firstInteractionShapeKind = roiClass.getFirstInteractionShape()
 
         if self._shapeKind == 'point':
             plot.setInteractiveMode(mode='select', source=self)

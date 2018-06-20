@@ -58,7 +58,7 @@ class RegionOfInterest(qt.QObject):
     sigControlPointsChanged = qt.Signal()
     """Signal emitted when this control points has changed"""
 
-    def __init__(self, parent, kind):
+    def __init__(self, parent):
         # FIXME: Not very elegant: It checks class name to avoid recursive loop
         assert parent is None or "RegionOfInterestManager" in parent.__class__.__name__
         super(RegionOfInterest, self).__init__(parent)
@@ -67,7 +67,6 @@ class RegionOfInterest(qt.QObject):
         self._editAnchors = WeakList()
         self._points = None
         self._label = ''
-        self._kind = str(kind)
         self._editable = False
 
     def __del__(self):
@@ -174,8 +173,8 @@ class RegionOfInterest(qt.QObject):
         """
         return None if self._points is None else numpy.array(self._points)
 
-    @staticmethod
-    def getFirstInteractionShape(roiKind):
+    @classmethod
+    def getFirstInteractionShape(cls):
         """Returns the shape kind which will be used by the very first
         interaction with the plot.
 
@@ -184,7 +183,7 @@ class RegionOfInterest(qt.QObject):
         :param str roiKind:
         :rtype: str
         """
-        return roiKind
+        return cls._plotShape
 
     def setFirstShapePoints(self, points):
         """"Initialize the ROI using the points from the first interaction.
@@ -196,21 +195,12 @@ class RegionOfInterest(qt.QObject):
         self.setControlPoints(points)
 
     def _createControlPointsFromFirstShape(self, points):
-        """"""
-        kind = self._kind
+        """Returns the list of control points from the very first shape
+        provided.
 
-        if kind == 'hline':
-            points = numpy.array([(float('nan'), points[0, 1])],
-                                 dtype=numpy.float64)
-        elif kind == 'vline':
-            points = numpy.array([(points[0, 0], float('nan'))],
-                                 dtype=numpy.float64)
-        elif kind == "rectangle":
-            if len(points) == 2:
-                # Add an extra for the central control point
-                center = numpy.mean(points, axis=0)
-                points = numpy.append(points, center)
-                points.shape = -1, 2
+        This shape is provided by the plot interaction and constained by the
+        class of the ROI itself.
+        """
         return points
 
     def setControlPoints(self, points):
@@ -248,40 +238,18 @@ class RegionOfInterest(qt.QObject):
             self.sigControlPointsChanged.emit()
 
     def _updateShape(self):
-        if len(self._items) == 0:
-            return
-        kind = self._kind
+        """Called when shape must be updated.
 
-        if kind in ['line', 'rectangle', 'polygon']:
-            shape = self._items[0]
-            points = self._getShapePoints()
-            shape.setPoints(points)
+        Must be reimplemented if a shape item have to be updated.
+        """
+        return
 
     def _getLabelPosition(self):
         """Compute position of the label
 
         :return: (x, y) position of the marker
         """
-        kind = self._kind
-        points = self.getControlPoints()
-
-        if kind in ('point', 'hline', 'vline'):
-            assert len(points) == 1
-            return points[0]
-
-        elif kind == 'rectangle':
-            assert len(points) in [2, 3]
-            return points.min(axis=0)
-
-        elif kind == 'line':
-            assert len(points) == 2
-            return points[numpy.argmin(points[:, 0])]
-
-        elif kind == 'polygon':
-            return points[numpy.argmin(points[:, 1])]
-
-        else:
-            raise RuntimeError('Unsupported ROI kind: %s' % kind)
+        return None
 
     def _createPlotItems(self):
         """Create items displaying the ROI in the plot.
@@ -320,141 +288,19 @@ class RegionOfInterest(qt.QObject):
                 self._editAnchors.append(item)
                 itemIndex += 1
 
-    def _getShapePoints(self):
-        points = self.getControlPoints()
-        kind = self._kind
-        if kind == 'rectangle':
-            points = points[0:-1]
-        return points
-
     def _createShapeItems(self, points):
         """Create shape items from the current control points.
 
         :rtype: List[PlotItem]
         """
-        kind = self._kind
-
-        if kind == 'point':
-            if self.isEditable():
-                return []
-            marker = items.Marker()
-            marker.setPosition(points[0][0], points[0][1])
-            marker.setText(self.getLabel())
-            marker.setColor(rgba(self.getColor()))
-            marker._setDraggable(False)
-            return [marker]
-
-        elif kind == 'hline':
-            if self.isEditable():
-                return []
-            marker = items.YMarker()
-            marker.setPosition(points[0][0], points[0][1])
-            marker.setText(self.getLabel())
-            marker.setColor(rgba(self.getColor()))
-            marker._setDraggable(False)
-            return [marker]
-
-        elif kind == 'vline':
-            if self.isEditable():
-                return []
-            marker = items.XMarker()
-            marker.setPosition(points[0][0], points[0][1])
-            marker.setText(self.getLabel())
-            marker.setColor(rgba(self.getColor()))
-            marker._setDraggable(False)
-            return [marker]
-
-        # Add label marker
-        markerPos = self._getLabelPosition()
-        marker = items.Marker()
-        marker.setPosition(*markerPos)
-        marker.setText(self.getLabel())
-        marker.setColor(rgba(self.getColor()))
-        marker.setSymbol('')
-        marker._setDraggable(False)
-
-        if kind == 'line':
-            item = items.Shape("polylines")
-            item.setPoints(points)
-            item.setColor(rgba(self.getColor()))
-            item.setFill(False)
-            item.setOverlay(True)
-            return [item, marker]
-
-        elif kind == 'rectangle':
-            item = items.Shape("rectangle")
-            item.setPoints(points[0:2])
-            item.setColor(rgba(self.getColor()))
-            item.setFill(False)
-            item.setOverlay(True)
-            return [item, marker]
-
-        elif kind == 'polygon':
-            item = items.Shape("polygon")
-            item.setPoints(points)
-            item.setColor(rgba(self.getColor()))
-            item.setFill(False)
-            item.setOverlay(True)
-            return [item, marker]
-        else:
-            return []
+        return []
 
     def _createAnchorItems(self, points):
         """Create anchor items from the current control points.
 
         :rtype: List[Marker]
         """
-        kind = self._kind
-
-        if kind == 'point':
-            marker = items.Marker()
-            marker.setPosition(points[0][0], points[0][1])
-            marker.setText(self.getLabel())
-            marker._setDraggable(self.isEditable())
-            return [marker]
-
-        elif kind == 'hline':
-            marker = items.YMarker()
-            marker.setPosition(points[0][0], points[0][1])
-            marker.setText(self.getLabel())
-            marker._setDraggable(self.isEditable())
-            return [marker]
-
-        elif kind == 'vline':
-            marker = items.XMarker()
-            marker.setPosition(points[0][0], points[0][1])
-            marker.setText(self.getLabel())
-            marker._setDraggable(self.isEditable())
-            return [marker]
-
-        else:  # rectangle, line, polygon
-            color = rgba(self.getColor())
-            color = color[:3] + (0.5,)
-
-            if kind == 'rectangle':
-                # Remove the center control point
-                points = points[0:2]
-
-            anchors = []
-            for point in points:
-                anchor = items.Marker()
-                anchor.setPosition(*point)
-                anchor.setText('')
-                anchor.setSymbol('s')
-                anchor._setDraggable(True)
-                anchors.append(anchor)
-
-            # Add an anchor to the center of the rectangle
-            if kind == 'rectangle':
-                center = numpy.mean(points, axis=0)
-                anchor = items.Marker()
-                anchor.setPosition(*center)
-                anchor.setText('')
-                anchor.setSymbol('o')
-                anchor._setDraggable(True)
-                anchors.append(anchor)
-
-            return anchors
+        return []
 
     def _controlPointAnchorChanged(self, index, event):
         """Handle update of position of an edition anchor
@@ -476,32 +322,14 @@ class RegionOfInterest(qt.QObject):
             self.setControlPoints(points)
 
     def _controlPointAnchorPositionChanged(self, index, current, previous):
-        kind = self._kind
-        if kind == 'point':
-            points = [current]
-            self.setControlPoints(points)
-        elif kind == 'hline':
-            points = self.getControlPoints()
-            points[:, 1] = current[1]
-            self.setControlPoints(points)
-        elif kind == 'vline':
-            points = self.getControlPoints()
-            points[:, 0] = current[0]
-            self.setControlPoints(points)
-        elif kind == "rectangle":
-            if index == len(self._editAnchors) - 1:
-                # It is the center anchor
-                points = self.getControlPoints()
-                center = numpy.mean(points, axis=0)
-                offset = current - center
-                points = points + offset
-                self.setControlPoints(points)
-            else:
-                # Update the center
-                points = self.getControlPoints()
-                center = numpy.mean(points[0:2], axis=0)
-                points[2] = center
-                self.setControlPoints(points)
+        """Called when an anchor is manually edited.
+
+        The value of this control point is already up-to-date in
+        :meth:`getControlPoints`. This method can be reimplemented to update
+        the changes on other control points using :meth:`getControlPoints` and
+        :meth:`setControlPoints`
+        """
+        pass
 
     def _removePlotItems(self):
         """Remove items from their plot."""
@@ -515,23 +343,350 @@ class RegionOfInterest(qt.QObject):
         self._editAnchors = WeakList()
 
     def paramsToString(self):
-        kind = self._kind
+        """Returns parameters of the ROI as a string."""
         points = self.getControlPoints()
+        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
 
-        if kind == 'rectangle':
-            origin = numpy.min(points, axis=0)
-            w, h = numpy.max(points, axis=0) - origin
-            return ('Origin: (%f; %f); Width: %f; Height: %f' %
-                    (origin[0], origin[1], w, h))
 
-        elif kind == 'point':
-            return '(%f; %f)' % (points[0, 0], points[0, 1])
+class PointROI(RegionOfInterest):
+    """A ROI identifying a point in a 2D plot."""
 
-        elif kind == 'hline':
-            return 'Y: %f' % points[0, 1]
+    _kind = "Point"
+    """Label for this kind of ROI"""
 
-        elif kind == 'vline':
-            return 'X: %f' % points[0, 0]
+    _plotShape = "point"
+    """Plot shape which is used for the first interaction"""
 
-        else:  # default (polygon, line)
-            return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
+    def _getLabelPosition(self):
+        points = self.getControlPoints()
+        return points[0]
+
+    def _createShapeItems(self, points):
+        if self.isEditable():
+            return []
+        marker = items.Marker()
+        marker.setPosition(points[0][0], points[0][1])
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker._setDraggable(False)
+        return [marker]
+
+    def _createAnchorItems(self, points):
+        marker = items.Marker()
+        marker.setPosition(points[0][0], points[0][1])
+        marker.setText(self.getLabel())
+        marker._setDraggable(self.isEditable())
+        return [marker]
+
+    def _controlPointAnchorPositionChanged(self, index, current, previous):
+        points = [current]
+        self.setControlPoints(points)
+
+    def paramsToString(self):
+        points = self.getControlPoints()
+        return '(%f; %f)' % (points[0, 0], points[0, 1])
+
+
+class LineROI(RegionOfInterest):
+    """A ROI identifying a line in a 2D plot.
+
+    This ROI provides 1 anchor for each boundary points.
+    """
+
+    _kind = "Line"
+    """Label for this kind of ROI"""
+
+    _plotShape = "line"
+    """Plot shape which is used for the first interaction"""
+
+    def _getLabelPosition(self):
+        points = self.getControlPoints()
+        return points[numpy.argmin(points[:, 0])]
+
+    def _updateShape(self):
+        if len(self._items) == 0:
+            return
+        shape = self._items[0]
+        points = self._getShapePoints()
+        shape.setPoints(points)
+
+    def _createShapeItems(self, points):
+        # Add label marker
+        markerPos = self._getLabelPosition()
+        marker = items.Marker()
+        marker.setPosition(*markerPos)
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker.setSymbol('')
+        marker._setDraggable(False)
+
+        item = items.Shape("polylines")
+        item.setPoints(points)
+        item.setColor(rgba(self.getColor()))
+        item.setFill(False)
+        item.setOverlay(True)
+        return [item, marker]
+
+    def _createAnchorItems(self, points):
+        anchors = []
+        for point in points:
+            anchor = items.Marker()
+            anchor.setPosition(*point)
+            anchor.setText('')
+            anchor.setSymbol('s')
+            anchor._setDraggable(True)
+            anchors.append(anchor)
+
+        return anchors
+
+    def paramsToString(self):
+        points = self.getControlPoints()
+        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
+
+
+class HorizontalLineROI(RegionOfInterest):
+    """A ROI identifying an horizontal line in a 2D plot."""
+
+    _kind = "HLine"
+    """Label for this kind of ROI"""
+
+    _plotShape = "hline"
+    """Plot shape which is used for the first interaction"""
+
+    def _createControlPointsFromFirstShape(self, points):
+        points = numpy.array([(float('nan'), points[0, 1])],
+                             dtype=numpy.float64)
+        return points
+
+    def _getLabelPosition(self):
+        points = self.getControlPoints()
+        return points[0]
+
+    def _createShapeItems(self, points):
+        if self.isEditable():
+            return []
+        marker = items.YMarker()
+        marker.setPosition(points[0][0], points[0][1])
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker._setDraggable(False)
+        return [marker]
+
+    def _createAnchorItems(self, points):
+        marker = items.YMarker()
+        marker.setPosition(points[0][0], points[0][1])
+        marker.setText(self.getLabel())
+        marker._setDraggable(self.isEditable())
+        return [marker]
+
+    def _controlPointAnchorPositionChanged(self, index, current, previous):
+        points = self.getControlPoints()
+        points[:, 1] = current[1]
+        self.setControlPoints(points)
+
+    def paramsToString(self):
+        points = self.getControlPoints()
+        return 'Y: %f' % points[0, 1]
+
+
+class VerticalLineROI(RegionOfInterest):
+    """A ROI identifying a vertical line in a 2D plot."""
+
+    _kind = "VLine"
+    """Label for this kind of ROI"""
+
+    _plotShape = "vline"
+    """Plot shape which is used for the first interaction"""
+
+    def _createControlPointsFromFirstShape(self, points):
+        points = numpy.array([(points[0, 0], float('nan'))],
+                             dtype=numpy.float64)
+        return points
+
+    def _getLabelPosition(self):
+        points = self.getControlPoints()
+        return points[0]
+
+    def _createShapeItems(self, points):
+        if self.isEditable():
+            return []
+        marker = items.XMarker()
+        marker.setPosition(points[0][0], points[0][1])
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker._setDraggable(False)
+        return [marker]
+
+    def _createAnchorItems(self, points):
+        marker = items.XMarker()
+        marker.setPosition(points[0][0], points[0][1])
+        marker.setText(self.getLabel())
+        marker._setDraggable(self.isEditable())
+        return [marker]
+
+    def _controlPointAnchorPositionChanged(self, index, current, previous):
+        points = self.getControlPoints()
+        points[:, 0] = current[0]
+        self.setControlPoints(points)
+
+    def paramsToString(self):
+        points = self.getControlPoints()
+        return 'X: %f' % points[0, 0]
+
+
+class RectangleROI(RegionOfInterest):
+    """A ROI identifying a rectangle in a 2D plot.
+
+    This ROI provides 2 anchors for 2 oposite corners, plus an anchor in the
+    center to translate the full ROI.
+    """
+
+    _kind = "Rectangle"
+    """Label for this kind of ROI"""
+
+    _plotShape = "rectangle"
+    """Plot shape which is used for the first interaction"""
+
+    def _createControlPointsFromFirstShape(self, points):
+        if len(points) == 2:
+            # Add an extra for the central control point
+            center = numpy.mean(points, axis=0)
+            points = numpy.append(points, center)
+            points.shape = -1, 2
+        return points
+
+    def _getLabelPosition(self):
+        points = self.getControlPoints()
+        return points.min(axis=0)
+
+    def _updateShape(self):
+        if len(self._items) == 0:
+            return
+        shape = self._items[0]
+        points = self._getShapePoints()
+        shape.setPoints(points)
+
+    def _getShapePoints(self):
+        points = self.getControlPoints()
+        # Remove the central control point
+        points = points[0:2]
+        return points
+
+    def _createShapeItems(self, points):
+        # Add label marker
+        markerPos = self._getLabelPosition()
+        marker = items.Marker()
+        marker.setPosition(*markerPos)
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker.setSymbol('')
+        marker._setDraggable(False)
+
+        item = items.Shape("rectangle")
+        item.setPoints(points[0:2])
+        item.setColor(rgba(self.getColor()))
+        item.setFill(False)
+        item.setOverlay(True)
+        return [item, marker]
+
+    def _createAnchorItems(self, points):
+        # Remove the center control point
+        points = points[0:2]
+
+        anchors = []
+        for point in points:
+            anchor = items.Marker()
+            anchor.setPosition(*point)
+            anchor.setText('')
+            anchor.setSymbol('s')
+            anchor._setDraggable(True)
+            anchors.append(anchor)
+
+        # Add an anchor to the center of the rectangle
+        center = numpy.mean(points, axis=0)
+        anchor = items.Marker()
+        anchor.setPosition(*center)
+        anchor.setText('')
+        anchor.setSymbol('o')
+        anchor._setDraggable(True)
+        anchors.append(anchor)
+
+        return anchors
+
+    def _controlPointAnchorPositionChanged(self, index, current, previous):
+        if index == len(self._editAnchors) - 1:
+            # It is the center anchor
+            points = self.getControlPoints()
+            center = numpy.mean(points, axis=0)
+            offset = current - center
+            points = points + offset
+            self.setControlPoints(points)
+        else:
+            # Update the center
+            points = self.getControlPoints()
+            center = numpy.mean(points[0:2], axis=0)
+            points[2] = center
+            self.setControlPoints(points)
+
+    def paramsToString(self):
+        points = self.getControlPoints()
+        origin = numpy.min(points, axis=0)
+        w, h = numpy.max(points, axis=0) - origin
+        return ('Origin: (%f; %f); Width: %f; Height: %f' %
+                (origin[0], origin[1], w, h))
+
+
+class PolygonROI(RegionOfInterest):
+    """A ROI identifying a closed polygon in a 2D plot.
+
+    This ROI provides 1 anchor for each point of the polygon.
+    """
+
+    _kind = "Polygon"
+    """Label for this kind of ROI"""
+
+    _plotShape = "polygon"
+    """Plot shape which is used for the first interaction"""
+
+    def _getLabelPosition(self):
+        points = self.getControlPoints()
+        return points[numpy.argmin(points[:, 1])]
+
+    def _updateShape(self):
+        if len(self._items) == 0:
+            return
+        shape = self._items[0]
+        points = self.getControlPoints()
+        shape.setPoints(points)
+
+    def _createShapeItems(self, points):
+        # Add label marker
+        markerPos = self._getLabelPosition()
+        marker = items.Marker()
+        marker.setPosition(*markerPos)
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker.setSymbol('')
+        marker._setDraggable(False)
+
+        item = items.Shape("polygon")
+        item.setPoints(points)
+        item.setColor(rgba(self.getColor()))
+        item.setFill(False)
+        item.setOverlay(True)
+        return [item, marker]
+
+    def _createAnchorItems(self, points):
+        anchors = []
+        for point in points:
+            anchor = items.Marker()
+            anchor.setPosition(*point)
+            anchor.setText('')
+            anchor.setSymbol('s')
+            anchor._setDraggable(True)
+            anchors.append(anchor)
+        return anchors
+
+    def paramsToString(self):
+        points = self.getControlPoints()
+        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
