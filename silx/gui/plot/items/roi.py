@@ -537,7 +537,7 @@ class VerticalLineROI(RegionOfInterest):
 class RectangleROI(RegionOfInterest):
     """A ROI identifying a rectangle in a 2D plot.
 
-    This ROI provides 2 anchors for 2 oposite corners, plus an anchor in the
+    This ROI provides 1 anchor for each corner, plus an anchor in the
     center to translate the full ROI.
     """
 
@@ -548,12 +548,21 @@ class RectangleROI(RegionOfInterest):
     """Plot shape which is used for the first interaction"""
 
     def _createControlPointsFromFirstShape(self, points):
-        if len(points) == 2:
-            # Add an extra for the central control point
-            center = numpy.mean(points, axis=0)
-            points = numpy.append(points, center)
-            points.shape = -1, 2
-        return points
+        point0 = points[0]
+        point1 = points[1]
+
+        # 4 corners
+        controlPoints = numpy.array([
+            point0[0], point0[1],
+            point0[0], point1[1],
+            point1[0], point1[1],
+            point1[0], point0[1],
+        ])
+        # Central
+        center = numpy.mean(points, axis=0)
+        controlPoints = numpy.append(controlPoints, center)
+        controlPoints.shape = -1, 2
+        return controlPoints
 
     def _getLabelPosition(self):
         points = self.getControlPoints()
@@ -563,14 +572,14 @@ class RectangleROI(RegionOfInterest):
         if len(self._items) == 0:
             return
         shape = self._items[0]
-        points = self._getShapePoints()
+        points = self.getControlPoints()
+        points = self._getShapeFromControlPoints(points)
         shape.setPoints(points)
 
-    def _getShapePoints(self):
-        points = self.getControlPoints()
-        # Remove the central control point
-        points = points[0:2]
-        return points
+    def _getShapeFromControlPoints(self, points):
+        minPoint = points.min(axis=0)
+        maxPoint = points.max(axis=0)
+        return numpy.array([minPoint, maxPoint])
 
     def _createShapeItems(self, points):
         # Add label marker
@@ -582,8 +591,9 @@ class RectangleROI(RegionOfInterest):
         marker.setSymbol('')
         marker._setDraggable(False)
 
+        shapePoints = self._getShapeFromControlPoints(points)
         item = items.Shape("rectangle")
-        item.setPoints(points[0:2])
+        item.setPoints(shapePoints)
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
@@ -591,7 +601,7 @@ class RectangleROI(RegionOfInterest):
 
     def _createAnchorItems(self, points):
         # Remove the center control point
-        points = points[0:2]
+        points = points[0:-1]
 
         anchors = []
         for point in points:
@@ -622,16 +632,38 @@ class RectangleROI(RegionOfInterest):
             points = points + offset
             self.setControlPoints(points)
         else:
-            # Update the center
+            # Fix other corners
+            constrains = [(1, 3), (0, 2), (3, 1), (2, 0)]
+            constrains = constrains[index]
             points = self.getControlPoints()
-            center = numpy.mean(points[0:2], axis=0)
-            points[2] = center
+            points[constrains[0]][0] = current[0]
+            points[constrains[1]][1] = current[1]
+            # Update the center
+            center = numpy.mean(points[0:-1], axis=0)
+            points[-1] = center
             self.setControlPoints(points)
 
-    def paramsToString(self):
+    def getOrigin(self):
+        """Returns the origin of the rectangle (min corner).
+
+        :rtype: float, float
+        """
         points = self.getControlPoints()
-        origin = numpy.min(points, axis=0)
-        w, h = numpy.max(points, axis=0) - origin
+        shapePoints = self._getShapeFromControlPoints(points)
+        return shapePoints[0]
+
+    def getSize(self):
+        """Returns the width of the rectangle.
+
+        :rtype: float, float
+        """
+        points = self.getControlPoints()
+        shapePoints = self._getShapeFromControlPoints(points)
+        return shapePoints[1] - shapePoints[0]
+
+    def paramsToString(self):
+        origin = self.getOrigin()
+        w, h = self.getSize()
         return ('Origin: (%f; %f); Width: %f; Height: %f' %
                 (origin[0], origin[1], w, h))
 
