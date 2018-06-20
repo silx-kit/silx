@@ -207,13 +207,6 @@ class RegionOfInterestManager(qt.QObject):
                 points = numpy.array((event['xdata'], event['ydata']),
                                      dtype=numpy.float64).T
 
-                if kind == 'hline':
-                    points = numpy.array([(float('nan'), points[0, 1])],
-                                         dtype=numpy.float64)
-                elif kind == 'vline':
-                    points = numpy.array([(points[0, 0], float('nan'))],
-                                         dtype=numpy.float64)
-
                 if self._drawnROI is None:  # Create new ROI
                     self._drawnROI = self.createRegionOfInterest(
                         kind=kind, points=points)

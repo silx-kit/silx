@@ -198,7 +198,14 @@ class RegionOfInterest(qt.QObject):
     def _createControlPointsFromFirstShape(self, points):
         """"""
         kind = self._kind
-        if kind == "rectangle":
+
+        if kind == 'hline':
+            points = numpy.array([(float('nan'), points[0, 1])],
+                                 dtype=numpy.float64)
+        elif kind == 'vline':
+            points = numpy.array([(points[0, 0], float('nan'))],
+                                 dtype=numpy.float64)
+        elif kind == "rectangle":
             if len(points) == 2:
                 # Add an extra for the central control point
                 center = numpy.mean(points, axis=0)
