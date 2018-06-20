@@ -464,9 +464,9 @@ class LineROI(RegionOfInterest):
         if index == len(self._editAnchors) - 1:
             # It is the center anchor
             points = self.getControlPoints()
-            center = numpy.mean(points, axis=0)
+            center = numpy.mean(points[0:-1], axis=0)
             offset = current - center
-            points = points + offset
+            points[0:-1] = points[0:-1] + offset
             self.setControlPoints(points)
         else:
             # Update the center
@@ -663,9 +663,9 @@ class RectangleROI(RegionOfInterest):
         if index == len(self._editAnchors) - 1:
             # It is the center anchor
             points = self.getControlPoints()
-            center = numpy.mean(points, axis=0)
+            center = numpy.mean(points[0:-1], axis=0)
             offset = current - center
-            points = points + offset
+            points[0:-1] = points[0:-1] + offset
             self.setControlPoints(points)
         else:
             # Fix other corners
