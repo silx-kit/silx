@@ -178,13 +178,29 @@ class RegionOfInterest(qt.QObject):
         """
         return None if self._points is None else numpy.array(self._points)
 
-    def setControlPoints(self, points):
-        """Set this ROI control points.
+    @staticmethod
+    def getFirstInteractionShape(roiKind):
+        """Returns the shape kind which will be used by the very first
+        interaction with the plot.
 
-        :param points: Iterable of (x, y) control points
+        This interactions are hardcoded inside the plot
+
+        :param str roiKind:
+        :rtype: str
         """
-        points = numpy.array(points)
+        return roiKind
 
+    def setFirstShapePoints(self, points):
+        """"Initialize the ROI using the points from the first interaction.
+
+        This interaction is constains by the plot API and only supports few
+        shapes.
+        """
+        points = self._createControlPointsFromFirstShape(points)
+        self.setControlPoints(points)
+
+    def _createControlPointsFromFirstShape(self, points):
+        """"""
         kind = self._kind
         if kind == "rectangle":
             if len(points) == 2:
@@ -192,6 +208,14 @@ class RegionOfInterest(qt.QObject):
                 center = numpy.mean(points, axis=0)
                 points = numpy.append(points, center)
                 points.shape = -1, 2
+        return points
+
+    def setControlPoints(self, points):
+        """Set this ROI control points.
+
+        :param points: Iterable of (x, y) control points
+        """
+        points = numpy.array(points)
 
         nbPointsChanged = (self._points is None or
                            points.shape != self._points.shape)
@@ -272,9 +296,9 @@ class RegionOfInterest(qt.QObject):
         itemIndex = 0
 
         self._items = WeakList()
-        shapePoints = self._getShapePoints()
+        controlPoints = self.getControlPoints()
 
-        plotItems = self._createShapeItems(shapePoints)
+        plotItems = self._createShapeItems(controlPoints)
         for item in plotItems:
             item._setLegend(legendPrefix + str(itemIndex))
             plot._add(item)
@@ -283,7 +307,7 @@ class RegionOfInterest(qt.QObject):
 
         self._editAnchors = WeakList()
         if self.isEditable():
-            plotItems = self._createAnchorItems(shapePoints)
+            plotItems = self._createAnchorItems(controlPoints)
             for index, item in enumerate(plotItems):
                 item._setLegend(legendPrefix + str(itemIndex))
                 item.setColor(rgba(self.getColor()))
@@ -301,7 +325,10 @@ class RegionOfInterest(qt.QObject):
         return points
 
     def _createShapeItems(self, points):
-        """Create item shape from the current shape points."""
+        """Create shape items from the current control points.
+
+        :rtype: List[PlotItem]
+        """
         kind = self._kind
 
         if kind == 'point':
@@ -353,7 +380,7 @@ class RegionOfInterest(qt.QObject):
 
         elif kind == 'rectangle':
             item = items.Shape("rectangle")
-            item.setPoints(points)
+            item.setPoints(points[0:2])
             item.setColor(rgba(self.getColor()))
             item.setFill(False)
             item.setOverlay(True)
@@ -370,6 +397,10 @@ class RegionOfInterest(qt.QObject):
             return []
 
     def _createAnchorItems(self, points):
+        """Create anchor items from the current control points.
+
+        :rtype: List[Marker]
+        """
         kind = self._kind
 
         if kind == 'point':
@@ -397,6 +428,10 @@ class RegionOfInterest(qt.QObject):
             color = rgba(self.getColor())
             color = color[:3] + (0.5,)
 
+            if kind == 'rectangle':
+                # Remove the center control point
+                points = points[0:2]
+
             anchors = []
             for point in points:
                 anchor = items.Marker()
@@ -408,7 +443,7 @@ class RegionOfInterest(qt.QObject):
 
             # Add an anchor to the center of the rectangle
             if kind == 'rectangle':
-                center = numpy.mean(self._points, axis=0)
+                center = numpy.mean(points, axis=0)
                 anchor = items.Marker()
                 anchor.setPosition(*center)
                 anchor.setText('')
@@ -642,11 +677,11 @@ class RegionOfInterestManager(qt.QObject):
                     self._drawnROI = self.createRegionOfInterest(
                         kind=kind, points=points)
                 else:
-                    self._drawnROI.setControlPoints(points)
+                    self._drawnROI.setFirstShapePoints(points)
 
                 if event['event'] == 'drawingFinished':
                     if kind == 'polygon' and len(points) > 1:
-                        self._drawnROI.setControlPoints(points[:-1])
+                        self._drawnROI.setFirstShapePoints(points[:-1])
                     self._drawnROI = None  # Stop drawing
 
     # RegionOfInterest API
@@ -707,7 +742,7 @@ class RegionOfInterestManager(qt.QObject):
         roi = RegionOfInterest(parent=None, kind=kind)
         roi.setColor(self.getColor())
         roi.setLabel(str(label))
-        roi.setControlPoints(points)
+        roi.setFirstShapePoints(points)
 
         self.addRegionOfInterest(roi, index)
         return roi
@@ -814,13 +849,15 @@ class RegionOfInterestManager(qt.QObject):
         if kind not in self.getSupportedRegionOfInterestKinds():
             raise ValueError('Unsupported kind %s' % kind)
         self._shapeKind = kind
+        # TODO: The ROI should be created here
+        firstInteractionShapeKind = RegionOfInterest.getFirstInteractionShape(kind)
 
         if self._shapeKind == 'point':
             plot.setInteractiveMode(mode='select', source=self)
         else:
             plot.setInteractiveMode(mode='select-draw',
                                     source=self,
-                                    shape=self._shapeKind,
+                                    shape=firstInteractionShapeKind,
                                     color=rgba(self.getColor()),
                                     label=self._label)
 
