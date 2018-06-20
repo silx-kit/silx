@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "04/06/2018"
+__date__ = "20/06/2018"
 
 
 import collections
@@ -184,35 +184,35 @@ class RegionOfInterest(qt.QObject):
         :param points: Iterable of (x, y) control points
         """
         points = numpy.array(points)
-        assert points.ndim == 2
-        assert points.shape[1] == 2
+
+        kind = self._kind
+        if kind == "rectangle":
+            if len(points) == 2:
+                # Add an extra for the central control point
+                center = numpy.mean(points, axis=0)
+                points = numpy.append(points, center)
+                points.shape = -1, 2
 
         nbPointsChanged = (self._points is None or
                            points.shape != self._points.shape)
 
         if nbPointsChanged or not numpy.all(numpy.equal(points, self._points)):
-            kind = self.getKind()
-
             self._points = points
 
+            self._updateShape()
             if self._items and not nbPointsChanged:  # Update plot items
                 for item in self._items:
-                    if isinstance(item, items.Shape):
-                        item.setPoints(points)
-                    elif isinstance(item, (items.Marker,
-                                           items.XMarker,
-                                           items.YMarker)):
-                        markerPos = self._getMarkerPosition(points, kind)
+                    if isinstance(item, (items.Marker,
+                                         items.XMarker,
+                                         items.YMarker)):
+                        markerPos = self._getLabelPosition()
                         item.setPosition(*markerPos)
 
                 if self._editAnchors:  # Update anchors
-                    if len(self._editAnchors) == len(points) + 1:
-                        # Also update center anchor
-                        points = numpy.append(points,
-                                              [numpy.mean(points, axis=0)], axis=0)
-
                     for anchor, point in zip(self._editAnchors, points):
+                        old = anchor.blockSignals(True)
                         anchor.setPosition(*point)
+                        anchor.blockSignals(old)
 
             else:  # No items or new point added
                 # re-create plot items
@@ -220,20 +220,30 @@ class RegionOfInterest(qt.QObject):
 
             self.sigControlPointsChanged.emit()
 
-    @staticmethod
-    def _getMarkerPosition(points, kind):
-        """Compute marker position.
+    def _updateShape(self):
+        if len(self._items) == 0:
+            return
+        kind = self._kind
 
-        :param numpy.ndarray points: Array of (x, y) control points
-        :param str kind: The kind of ROI shape to use
+        if kind in ['line', 'rectangle', 'polygon']:
+            shape = self._items[0]
+            points = self._getShapePoints()
+            shape.setPoints(points)
+
+    def _getLabelPosition(self):
+        """Compute position of the label
+
         :return: (x, y) position of the marker
         """
+        kind = self._kind
+        points = self.getControlPoints()
+
         if kind in ('point', 'hline', 'vline'):
             assert len(points) == 1
             return points[0]
 
         elif kind == 'rectangle':
-            assert len(points) == 2
+            assert len(points) in [2, 3]
             return points.min(axis=0)
 
         elif kind == 'line':
@@ -258,128 +268,155 @@ class RegionOfInterest(qt.QObject):
 
         self._removePlotItems()
 
-        x, y = self._points.T
-        kind = self.getKind()
-        legend = "__RegionOfInterest-%d__" % id(self)
+        legendPrefix = "__RegionOfInterest-%d__" % id(self)
+        itemIndex = 0
 
         self._items = WeakList()
+        shapePoints = self._getShapePoints()
+
+        plotItems = self._createShapeItems(shapePoints)
+        for item in plotItems:
+            item._setLegend(legendPrefix + str(itemIndex))
+            plot._add(item)
+            self._items.append(item)
+            itemIndex += 1
+
+        self._editAnchors = WeakList()
+        if self.isEditable():
+            plotItems = self._createAnchorItems(shapePoints)
+            for index, item in enumerate(plotItems):
+                item._setLegend(legendPrefix + str(itemIndex))
+                item.setColor(rgba(self.getColor()))
+                plot._add(item)
+                item.sigItemChanged.connect(functools.partial(
+                    self._controlPointAnchorChanged, index))
+                self._editAnchors.append(item)
+                itemIndex += 1
+
+    def _getShapePoints(self):
+        points = self.getControlPoints()
+        kind = self._kind
+        if kind == 'rectangle':
+            points = points[0:-1]
+        return points
+
+    def _createShapeItems(self, points):
+        """Create item shape from the current shape points."""
+        kind = self._kind
 
         if kind == 'point':
-            plot.addMarker(
-                x[0], y[0],
-                legend=legend,
-                text=self.getLabel(),
-                color=rgba(self.getColor()),
-                draggable=self.isEditable())
-            item = plot._getItem(kind='marker', legend=legend)
-            self._items.append(item)
-
             if self.isEditable():
-                item.sigItemChanged.connect(self._markerChanged)
+                return []
+            marker = items.Marker()
+            marker.setPosition(points[0][0], points[0][1])
+            marker.setText(self.getLabel())
+            marker.setColor(rgba(self.getColor()))
+            marker._setDraggable(False)
+            return [marker]
 
         elif kind == 'hline':
-            plot.addYMarker(
-                y[0],
-                legend=legend,
-                text=self.getLabel(),
-                color=rgba(self.getColor()),
-                draggable=self.isEditable())
-            item = plot._getItem(kind='marker', legend=legend)
-            self._items.append(item)
-
             if self.isEditable():
-                item.sigItemChanged.connect(self._markerChanged)
+                return []
+            marker = items.YMarker()
+            marker.setPosition(points[0][0], points[0][1])
+            marker.setText(self.getLabel())
+            marker.setColor(rgba(self.getColor()))
+            marker._setDraggable(False)
+            return [marker]
 
         elif kind == 'vline':
-            plot.addXMarker(
-                x[0],
-                legend=legend,
-                text=self.getLabel(),
-                color=rgba(self.getColor()),
-                draggable=self.isEditable())
-            item = plot._getItem(kind='marker', legend=legend)
-            self._items.append(item)
-
             if self.isEditable():
-                item.sigItemChanged.connect(self._markerChanged)
+                return []
+            marker = items.XMarker()
+            marker.setPosition(points[0][0], points[0][1])
+            marker.setText(self.getLabel())
+            marker.setColor(rgba(self.getColor()))
+            marker._setDraggable(False)
+            return [marker]
+
+        # Add label marker
+        markerPos = self._getLabelPosition()
+        marker = items.Marker()
+        marker.setPosition(*markerPos)
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker.setSymbol('')
+        marker._setDraggable(False)
+
+        if kind == 'line':
+            item = items.Shape("polylines")
+            item.setPoints(points)
+            item.setColor(rgba(self.getColor()))
+            item.setFill(False)
+            item.setOverlay(True)
+            return [item, marker]
+
+        elif kind == 'rectangle':
+            item = items.Shape("rectangle")
+            item.setPoints(points)
+            item.setColor(rgba(self.getColor()))
+            item.setFill(False)
+            item.setOverlay(True)
+            return [item, marker]
+
+        elif kind == 'polygon':
+            item = items.Shape("polygon")
+            item.setPoints(points)
+            item.setColor(rgba(self.getColor()))
+            item.setFill(False)
+            item.setOverlay(True)
+            return [item, marker]
+        else:
+            return []
+
+    def _createAnchorItems(self, points):
+        kind = self._kind
+
+        if kind == 'point':
+            marker = items.Marker()
+            marker.setPosition(points[0][0], points[0][1])
+            marker.setText(self.getLabel())
+            marker._setDraggable(self.isEditable())
+            return [marker]
+
+        elif kind == 'hline':
+            marker = items.YMarker()
+            marker.setPosition(points[0][0], points[0][1])
+            marker.setText(self.getLabel())
+            marker._setDraggable(self.isEditable())
+            return [marker]
+
+        elif kind == 'vline':
+            marker = items.XMarker()
+            marker.setPosition(points[0][0], points[0][1])
+            marker.setText(self.getLabel())
+            marker._setDraggable(self.isEditable())
+            return [marker]
 
         else:  # rectangle, line, polygon
-            plot.addItem(x, y,
-                         legend=legend,
-                         shape='polylines' if kind == 'line' else kind,
-                         color=rgba(self.getColor()),
-                         fill=False)
-            self._items.append(plot._getItem(kind='item', legend=legend))
+            color = rgba(self.getColor())
+            color = color[:3] + (0.5,)
 
-            # Add label marker
-            markerPos = self._getMarkerPosition(self._points, kind)
-            plot.addMarker(*markerPos,
-                           legend=legend + '-name',
-                           text=self.getLabel(),
-                           color=rgba(self.getColor()),
-                           symbol='',
-                           draggable=False)
-            self._items.append(
-                plot._getItem(kind='marker', legend=legend + '-name'))
+            anchors = []
+            for point in points:
+                anchor = items.Marker()
+                anchor.setPosition(*point)
+                anchor.setText('')
+                anchor.setSymbol('s')
+                anchor._setDraggable(True)
+                anchors.append(anchor)
 
-            if self.isEditable():  # Add draggable anchors
-                self._editAnchors = WeakList()
+            # Add an anchor to the center of the rectangle
+            if kind == 'rectangle':
+                center = numpy.mean(self._points, axis=0)
+                anchor = items.Marker()
+                anchor.setPosition(*center)
+                anchor.setText('')
+                anchor.setSymbol('o')
+                anchor._setDraggable(True)
+                anchors.append(anchor)
 
-                color = rgba(self.getColor())
-                color = color[:3] + (0.5,)
-
-                for index, point in enumerate(self._points):
-                    anchorLegend = legend + '-anchor-%d' % index
-                    plot.addMarker(*point,
-                                   legend=anchorLegend,
-                                   text='',
-                                   color=color,
-                                   symbol='s',
-                                   draggable=True)
-                    item = plot._getItem(kind='marker', legend=anchorLegend)
-                    item.sigItemChanged.connect(functools.partial(
-                        self._controlPointAnchorChanged, index))
-                    self._editAnchors.append(item)
-
-                # Add an anchor to the center of the rectangle
-                if kind == 'rectangle':
-                    center = numpy.mean(self._points, axis=0)
-                    anchorLegend = legend + '-anchor-center'
-                    plot.addMarker(*center,
-                                   legend=anchorLegend,
-                                   text='',
-                                   color=color,
-                                   symbol='o',
-                                   draggable=True)
-                    item = plot._getItem(kind='marker', legend=anchorLegend)
-                    item.sigItemChanged.connect(self._centerAnchorChanged)
-                    self._editAnchors.append(item)
-
-    def _markerChanged(self, event):
-        """Handle draggable marker changed.
-
-        Used for 'point', 'hline', 'vline'.
-
-        :param ItemChangeType event:
-        """
-        if event == items.ItemChangedType.POSITION:
-            kind = self.getKind()
-
-            marker = self.sender()
-            position = marker.getPosition()
-
-            if kind == 'point':
-                points = [position]
-            elif kind == 'hline':
-                points = self.getControlPoints()
-                points[:, 1] = position[1]
-            elif kind == 'vline':
-                points = self.getControlPoints()
-                points[:, 0] = position[0]
-            else:
-                raise RuntimeError('Unhandled kind %s' % kind)
-
-            self.setControlPoints(points)
+            return anchors
 
     def _controlPointAnchorChanged(self, index, event):
         """Handle update of position of an edition anchor
@@ -390,21 +427,43 @@ class RegionOfInterest(qt.QObject):
         if event == items.ItemChangedType.POSITION:
             anchor = self._editAnchors[index]
             points = self.getControlPoints()
-            points[index] = anchor.getPosition()
+            previous = points[index]
+            current = anchor.getPosition()
+            points[index] = current
             self.setControlPoints(points)
-
-    def _centerAnchorChanged(self, event):
-        """Handle update of position of the center anchor
-
-        :param ItemChangedType event: Event type
-        """
-        if event == items.ItemChangedType.POSITION:
-            anchor = self._editAnchors[-1]
+            # Custom special behaviours
+            self._controlPointAnchorPositionChanged(index, current, previous)
+            # Reach again the points in case some was edited
             points = self.getControlPoints()
-            center = numpy.mean(points, axis=0)
-            offset = anchor.getPosition() - center
-            points = points + offset
             self.setControlPoints(points)
+
+    def _controlPointAnchorPositionChanged(self, index, current, previous):
+        kind = self._kind
+        if kind == 'point':
+            points = [current]
+            self.setControlPoints(points)
+        elif kind == 'hline':
+            points = self.getControlPoints()
+            points[:, 1] = current[1]
+            self.setControlPoints(points)
+        elif kind == 'vline':
+            points = self.getControlPoints()
+            points[:, 0] = current[0]
+            self.setControlPoints(points)
+        elif kind == "rectangle":
+            if index == len(self._editAnchors) - 1:
+                # It is the center anchor
+                points = self.getControlPoints()
+                center = numpy.mean(points, axis=0)
+                offset = current - center
+                points = points + offset
+                self.setControlPoints(points)
+            else:
+                # Update the center
+                points = self.getControlPoints()
+                center = numpy.mean(points[0:2], axis=0)
+                points[2] = center
+                self.setControlPoints(points)
 
     def _removePlotItems(self):
         """Remove items from their plot."""
@@ -589,7 +648,6 @@ class RegionOfInterestManager(qt.QObject):
                     if kind == 'polygon' and len(points) > 1:
                         self._drawnROI.setControlPoints(points[:-1])
                     self._drawnROI = None  # Stop drawing
-
 
     # RegionOfInterest API
 
