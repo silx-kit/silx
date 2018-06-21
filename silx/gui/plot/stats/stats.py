@@ -431,10 +431,13 @@ class StatCOM(StatBase):
             return com
         elif context.kind == 'scatter':
             xData = context.data[0]
+            yData = context.data[1]
             values = context.values
-            com = numpy.sum(xData * values).astype(numpy.float32) / numpy.sum(
+            xcom = numpy.sum(xData * values).astype(numpy.float32) / numpy.sum(
                 values).astype(numpy.float32)
-            return com
+            ycom = numpy.sum(yData * values).astype(numpy.float32) / numpy.sum(
+                values).astype(numpy.float32)
+            return (xcom, ycom)
         elif context.kind == 'image':
             yData = numpy.sum(context.data, axis=1)
             xData = numpy.sum(context.data, axis=0)

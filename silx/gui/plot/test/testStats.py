@@ -151,9 +151,14 @@ class TestStats(TestCaseQt):
         self.assertTrue(_stats['std'].calculate(self.scatterContext) == numpy.std(self.valuesScatterData))
         self.assertTrue(_stats['mean'].calculate(self.scatterContext) == numpy.mean(self.valuesScatterData))
 
-        com = numpy.sum(self.xScatterData * self.valuesScatterData).astype(numpy.float32) / numpy.sum(
+        comx = numpy.sum(self.xScatterData * self.valuesScatterData).astype(numpy.float32) / numpy.sum(
             self.valuesScatterData).astype(numpy.float32)
-        self.assertTrue(numpy.all(numpy.equal(_stats['com'].calculate(self.scatterContext), com)))
+        comy = numpy.sum(self.yScatterData * self.valuesScatterData).astype(numpy.float32) / numpy.sum(
+            self.valuesScatterData).astype(numpy.float32)
+        self.assertTrue(numpy.all(
+            numpy.equal(_stats['com'].calculate(self.scatterContext),
+                        (comx, comy)))
+        )
 
     def testKindNotManagedByStat(self):
         """Make sure an exception is raised if we try to execute calculate
