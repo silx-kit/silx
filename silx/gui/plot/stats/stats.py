@@ -244,12 +244,15 @@ class _ImageContext(_StatsContext):
     def createContext(self, item, plot, onlimits):
         minX, maxX = plot.getXAxis().getLimits()
         minY, maxY = plot.getYAxis().getLimits()
-        originX, originY = item.getOrigin()
+        self.origin = item.getOrigin()
+        self.scale = item.getScale()
 
-        XMinBound = int(minX - originX)
-        XMaxBound = int(maxX - originX)
-        YMinBound = int(minY - originY)
-        YMaxBound = int(maxY - originY)
+        XMinBound = int(minX - self.origin[0])
+        YMinBound = int(minY - self.origin[1])
+        widthX = maxX - minX
+        widthY = maxY - minY
+        XMaxBound = int(XMinBound + widthX / self.scale[0])
+        YMaxBound = int(YMinBound + widthY / self.scale[1])
 
         if XMaxBound < 0 or YMaxBound < 0:
             return self.noDataSelected()
@@ -352,15 +355,18 @@ class StatDelta(StatBase):
         return context.max - context.min
 
 
-def _getImgCoordsFor(data, searchValue):
+def _getImgCoordsFor(data, searchValue, scale, origin):
     coordsY, coordsX = numpy.where(data == searchValue)
+    scaleX, scaleY = scale
+    originX, originY = origin
     if len(coordsX) is 0:
         return []
     if len(coordsX) is 1:
-        return (coordsX[0], coordsY[0])
+        return (coordsX[0] * scaleX + originX,
+                coordsY[0] * scaleY + originY)
     coords = []
     for xCoord, yCoord in zip(coordsX, coordsY):
-        coord = (xCoord, yCoord)
+        coord = (xCoord * scaleX + originX, yCoord * scaleY + originY)
         coords.append(coord)
     return coords
 
@@ -392,7 +398,10 @@ class StatCoordMin(StatBase):
         elif context.kind == 'scatter':
             return _getScatterCoordsFor(context.data, context.min)
         elif context.kind == 'image':
-            return _getImgCoordsFor(context.data, context.min)
+            return _getImgCoordsFor(context.data,
+                                    context.min,
+                                    scale=context.scale,
+                                    origin=context.origin)
         else:
             raise ValueError('kind not managed')
 
@@ -411,7 +420,10 @@ class StatCoordMax(StatBase):
         elif context.kind == 'scatter':
             return _getScatterCoordsFor(context.data, context.max)
         elif context.kind == 'image':
-            return _getImgCoordsFor(context.data, context.max)
+            return _getImgCoordsFor(context.data,
+                                    context.max,
+                                    scale=context.scale,
+                                    origin=context.origin)
         else:
             raise ValueError('kind not managed')
 
@@ -443,9 +455,15 @@ class StatCOM(StatBase):
             xData = numpy.sum(context.data, axis=0)
             dataXRange = range(context.data.shape[1])
             dataYRange = range(context.data.shape[0])
+            xScale, yScale = context.scale
+            xOrigin, yOrigin = context.origin
 
             ycom = numpy.sum(yData * dataYRange) / numpy.sum(yData)
+            # deal with scale
+            ycom = (ycom - yOrigin) * yScale + yOrigin
+            # deal with scale
             xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
+            xcom = (xcom - xOrigin) * xScale + xOrigin
             return (xcom, ycom)
         else:
             raise ValueError('kind not managed')

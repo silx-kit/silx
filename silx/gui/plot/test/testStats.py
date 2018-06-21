@@ -87,12 +87,12 @@ class TestStats(TestCaseQt):
 
     def createImageContext(self):
         self.plot2d = Plot2D()
-        lgd = 'test image'
+        self._imgLgd = 'test image'
         self.imageData = numpy.arange(32*128).reshape(32, 128)
         self.plot2d.addImage(data=self.imageData,
-                             legend=lgd, replace=False)
+                             legend=self._imgLgd, replace=False)
         self.imageContext = stats._ImageContext(
-            item=self.plot2d.getImage(lgd),
+            item=self.plot2d.getImage(self._imgLgd),
             plot=self.plot2d,
             onlimits=False
         )
@@ -140,6 +140,45 @@ class TestStats(TestCaseQt):
         xcom = numpy.sum(xData*dataXRange) / numpy.sum(xData)
 
         self.assertTrue(_stats['com'].calculate(self.imageContext) == (xcom, ycom))
+
+    def testStatsImageAdv(self):
+        """Test that scale and origin are taking into account for images"""
+
+        image2Data = numpy.arange(32 * 128).reshape(32, 128)
+        self.plot2d.addImage(data=image2Data, legend=self._imgLgd,
+                             replace=True, origin=(100, 10), scale=(2, 0.5))
+        image2Context = stats._ImageContext(
+            item=self.plot2d.getImage(self._imgLgd),
+            plot=self.plot2d,
+            onlimits=False
+        )
+        _stats = self.getBasicStats()
+        self.assertTrue(_stats['min'].calculate(image2Context) == 0)
+        self.assertTrue(
+            _stats['max'].calculate(image2Context) == 128 * 32 - 1)
+        self.assertTrue(
+            _stats['minCoords'].calculate(image2Context) == (100, 10))
+        self.assertTrue(
+            _stats['maxCoords'].calculate(image2Context) == (127*2. + 100, 31 * 0.5 + 10))
+        self.assertTrue(
+            _stats['std'].calculate(image2Context) == numpy.std(
+                self.imageData))
+        self.assertTrue(
+            _stats['mean'].calculate(image2Context) == numpy.mean(
+                self.imageData))
+
+        yData = numpy.sum(self.imageData, axis=1)
+        xData = numpy.sum(self.imageData, axis=0)
+        dataXRange = range(self.imageData.shape[1])
+        dataYRange = range(self.imageData.shape[0])
+
+        ycom = numpy.sum(yData * dataYRange) / numpy.sum(yData)
+        ycom = ((ycom - 10) * 0.5) + 10
+        xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
+        xcom = ((xcom - 100) * 2.) + 100
+        asser(False)
+        self.assertTrue(
+            _stats['com'].calculate(image2Context) == (xcom, ycom))
 
     def testBasicStatsScatter(self):
         """Test result for simple stats on a scatter"""
