@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "04/06/2018"
+__date__ = "21/06/2018"
 
 
 import collections
@@ -50,6 +50,15 @@ from ...colors import rgba
 
 
 logger = logging.getLogger(__name__)
+
+
+def circleEquation(pt1, pt2, pt3):
+    """Circle equation from 3 (x, y) points"""
+    x, y, z = complex(*pt1), complex(*pt2), complex(*pt3)
+    w = z - x
+    w /= y - x
+    c = (x - y) * (w - abs(w) ** 2) / 2j / w.imag - x
+    return ((-c.real, -c.imag), abs(c + x))
 
 
 class RegionOfInterest(qt.QObject):
@@ -194,7 +203,9 @@ class RegionOfInterest(qt.QObject):
             kind = self.getKind()
 
             self._points = points
-
+            if kind == 'arc':  # TODO improve
+                self._createPlotItems()
+                return
             if self._items and not nbPointsChanged:  # Update plot items
                 for item in self._items:
                     if isinstance(item, items.Shape):
@@ -241,6 +252,10 @@ class RegionOfInterest(qt.QObject):
             return points[numpy.argmin(points[:, 0])]
 
         elif kind == 'polygon':
+            return points[numpy.argmin(points[:, 1])]
+
+        elif kind == 'arc':
+            assert len(points) == 3
             return points[numpy.argmin(points[:, 1])]
 
         else:
@@ -303,10 +318,73 @@ class RegionOfInterest(qt.QObject):
             if self.isEditable():
                 item.sigItemChanged.connect(self._markerChanged)
 
-        else:  # rectangle, line, polygon
+        elif kind == 'arc':
+            # TODO compute arc
+            if numpy.linalg.norm(
+                numpy.cross(self._points[1] - self._points[0],
+                            self._points[2] - self._points[0])) < 1e-5:
+                print('colinear')
+                # Colinear
+                normal = (self._points[2] - self._points[0])
+                normal = numpy.array((normal[1], -normal[0]))
+                normal /= numpy.linalg.norm(normal)
+                points = numpy.append(self._points, (self._points - 10 * normal)[-1::-1], axis=0)
+            else:
+                outerCirc = circleEquation(*self._points[:3])
+                innerCirc = outerCirc[0], outerCirc[1] - 10
+                points = (self._points - outerCirc[0]) * 0.9 + outerCirc[0]
+                points = numpy.append(self._points, points[-1::-1], axis=0)
+            x, y = points.T
             plot.addItem(x, y,
                          legend=legend,
-                         shape='polylines' if kind == 'line' else kind,
+                         shape='polygon',
+                         color=rgba(self.getColor()),
+                         fill=False)
+            self._items.append(plot._getItem(kind='item', legend=legend))
+
+            # Add label marker
+            markerPos = self._getMarkerPosition(self._points, kind)
+            plot.addMarker(*markerPos,
+                           legend=legend + '-name',
+                           text=self.getLabel(),
+                           color=rgba(self.getColor()),
+                           symbol='',
+                           draggable=False)
+            self._items.append(
+                plot._getItem(kind='marker', legend=legend + '-name'))
+
+            if self.isEditable():  # Add draggable anchors
+                self._editAnchors = WeakList()
+
+                color = rgba(self.getColor())
+                color = color[:3] + (0.5,)
+
+                # TODO constaints
+                for index, point in enumerate(self._points):
+                    anchorLegend = legend + '-anchor-%d' % index
+                    if index == 1:
+                        constraint = self._arcCurvatureMarkerConstraint
+                    else:
+                        constraint = self._arcEndPointsMarkerConstraint
+                    plot.addMarker(*point,
+                                   legend=anchorLegend,
+                                   text='',
+                                   color=color,
+                                   symbol='o' if index == 1 else 's',
+                                   draggable=True,
+                                   constraint=constraint)
+                    item = plot._getItem(kind='marker', legend=anchorLegend)
+                    item.sigItemChanged.connect(functools.partial(
+                        self._controlPointAnchorChanged, index))
+                    self._editAnchors.append(item)
+        else:  # rectangle, line, polygon
+            if kind == 'line':
+                shape = 'polylines'
+            else:
+                shape = kind
+            plot.addItem(x, y,
+                         legend=legend,
+                         shape=shape,
                          color=rgba(self.getColor()),
                          fill=False)
             self._items.append(plot._getItem(kind='item', legend=legend))
@@ -354,6 +432,22 @@ class RegionOfInterest(qt.QObject):
                     item = plot._getItem(kind='marker', legend=anchorLegend)
                     item.sigItemChanged.connect(self._centerAnchorChanged)
                     self._editAnchors.append(item)
+
+    def _arcCurvatureMarkerConstraint(self, x, y):
+        """Curvature marker remains on "mediatrice" """
+        start = self._points[0]
+        end = self._points[-1]
+        midPoint = (start + end) / 2.
+        normal = (end - start)
+        normal = numpy.array((normal[1], -normal[0]))
+        normal /= numpy.linalg.norm(normal)
+        v = numpy.dot(normal, (numpy.array((x, y)) - midPoint))
+        x, y = midPoint + v * normal
+        return x, y
+
+    def _arcEndPointsMarkerConstraint(self, x, y):
+        """End-points remains on the circle"""
+        return x, y
 
     def _markerChanged(self, event):
         """Handle draggable marker changed.
@@ -468,6 +562,7 @@ class RegionOfInterestManager(qt.QObject):
     _MODE_ACTIONS_PARAMS['line'] = 'add-shape-diagonal', 'Add Line ROI'
     _MODE_ACTIONS_PARAMS['hline'] = 'add-shape-horizontal', 'Add Horizontal Line ROI'
     _MODE_ACTIONS_PARAMS['vline'] = 'add-shape-vertical', 'Add Vertical Line ROI'
+    _MODE_ACTIONS_PARAMS['arc'] = 'add-shape-polygon', 'Add Arc ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
@@ -578,7 +673,10 @@ class RegionOfInterestManager(qt.QObject):
                 elif kind == 'vline':
                     points = numpy.array([(points[0, 0], float('nan'))],
                                          dtype=numpy.float64)
-
+                elif kind == 'arc':
+                    midPoint = (points[0] + points[1]) / 2
+                    points = numpy.array([points[0], midPoint, points[1]],
+                                         dtype=numpy.float64)
                 if self._drawnROI is None:  # Create new ROI
                     self._drawnROI = self.createRegionOfInterest(
                         kind=kind, points=points)
@@ -589,7 +687,6 @@ class RegionOfInterestManager(qt.QObject):
                     if kind == 'polygon' and len(points) > 1:
                         self._drawnROI.setControlPoints(points[:-1])
                     self._drawnROI = None  # Stop drawing
-
 
     # RegionOfInterest API
 
@@ -742,7 +839,7 @@ class RegionOfInterestManager(qt.QObject):
         """Start an interactive ROI drawing mode.
 
         :param str kind: The kind of ROI shape in:
-           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline', 'arc'
         :return: True if interactive ROI drawing was started, False otherwise
         :rtype: bool
         :raise ValueError: If kind is not supported
@@ -757,13 +854,19 @@ class RegionOfInterestManager(qt.QObject):
             raise ValueError('Unsupported kind %s' % kind)
         self._shapeKind = kind
 
+        if kind == 'arc':
+            shape = 'line'
+        else:
+            shape = kind
+
         if self._shapeKind == 'point':
             plot.setInteractiveMode(mode='select', source=self)
         else:
+            color = rgba(self.getColor()) if kind != 'arc' else None
             plot.setInteractiveMode(mode='select-draw',
                                     source=self,
-                                    shape=self._shapeKind,
-                                    color=rgba(self.getColor()),
+                                    shape=shape,
+                                    color=color,
                                     label=self._label)
 
         plot.sigPlotSignal.connect(self._handleInteraction)
@@ -866,6 +969,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         self.__execKind = None
 
         self.sigRegionOfInterestAdded.connect(self.__added)
+
         self.sigRegionOfInterestAboutToBeRemoved.connect(self.__aboutToBeRemoved)
         self.sigInteractiveModeStarted.connect(self.__started)
         self.sigInteractiveModeFinished.connect(self.__finished)
@@ -1267,7 +1371,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             elif kind == 'vline':
                 item.setText('X: %f' % points[0, 0])
 
-            else:  # default (polygon, line)
+            else:  # default (polygon, line, arc)
                 item.setText('; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points))
             self.setItem(index, 3, item)
 
