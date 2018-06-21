@@ -311,7 +311,7 @@ class RegionOfInterest(qt.QObject):
         if event == items.ItemChangedType.POSITION:
             anchor = self._editAnchors[index]
             points = self.getControlPoints()
-            previous = points[index]
+            previous = points[index].copy()
             current = anchor.getPosition()
             points[index] = current
             self.setControlPoints(points)
