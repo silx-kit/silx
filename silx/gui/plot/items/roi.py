@@ -35,7 +35,7 @@ __date__ = "21/06/2018"
 import functools
 import itertools
 import logging
-
+import collections
 import numpy
 
 from ....utils.weakref import WeakList
@@ -773,6 +773,11 @@ class ArcROI(RegionOfInterest):
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
 
+    _ArcGeometry = collections.namedtuple('ArcGeometry', ['center',
+                                                          'startPoint', 'endPoint',
+                                                          'radius', 'weight',
+                                                          'startAngle', 'endAngle'])
+
     def _getLabelPosition(self):
         points = self.getControlPoints()
         return points.min(axis=0)
@@ -785,22 +790,132 @@ class ArcROI(RegionOfInterest):
         points = self._getShapeFromControlPoints(points)
         shape.setPoints(points)
 
-    def _getShapeFromControlPoints(self, controlPoints):
-        # TODO compute arc
+    def _controlPointAnchorPositionChanged(self, index, current, previous):
+        controlPoints = self.getControlPoints()
+        controlPoints[index] = previous
+        currentWeigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
+
+        if index in [0, 2]:
+            # Moving start or end will maintain the same curvature
+            # Then we have to custom the curvature control point
+            startPoint = controlPoints[0]
+            endPoint = controlPoints[2]
+            center = (startPoint + endPoint) * 0.5
+            normal = (endPoint - startPoint)
+            normal = numpy.array((normal[1], -normal[0]))
+            distance = numpy.linalg.norm(normal)
+            # FIXME: take care of division by 0
+            normal /= distance
+            midVector = controlPoints[1] - center
+            # Coeficient which have to be constrained
+            constainedCoef = numpy.dot(midVector, normal) / distance
+
+            # Compute the location of the curvature point
+            controlPoints[index] = current
+            startPoint = controlPoints[0]
+            endPoint = controlPoints[2]
+            center = (startPoint + endPoint) * 0.5
+            normal = (endPoint - startPoint)
+            normal = numpy.array((normal[1], -normal[0]))
+            distance = numpy.linalg.norm(normal)
+            # FIXME: take care of division by 0
+            normal /= distance
+            midPoint = center + normal * constainedCoef * distance
+            controlPoints[1] = midPoint
+
+            # The weight have to be fixed
+            self._updateWeightControlPoint(controlPoints, currentWeigth)
+            self.setControlPoints(controlPoints)
+
+        elif index == 1:
+            # The weight have to be fixed
+            controlPoints[index] = current
+            self._updateWeightControlPoint(controlPoints, currentWeigth)
+            self.setControlPoints(controlPoints)
+
+    def _updateWeightControlPoint(self, controlPoints, weigth):
+        startPoint = controlPoints[0]
+        midPoint = controlPoints[1]
+        endPoint = controlPoints[2]
+        normal = (endPoint - startPoint)
+        normal = numpy.array((normal[1], -normal[0]))
+        distance = numpy.linalg.norm(normal)
+        # FIXME: take care of division by 0
+        normal /= distance
+        controlPoints[3] = midPoint + normal * weigth * 0.5
+
+    def _getGeometryFromControlPoint(self, controlPoints):
+        """Returns the geometry of the object"""
+        weigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
         if numpy.linalg.norm(
+            # Colinear
             numpy.cross(controlPoints[1] - controlPoints[0],
                         controlPoints[2] - controlPoints[0])) < 1e-5:
-            print('colinear')
-            # Colinear
-            normal = (controlPoints[2] - controlPoints[0])
+            return self._ArcGeometry(None, controlPoints[0], controlPoints[2],
+                                     None, weigth, None, None)
+        else:
+            center, radius = self._circleEquation(*controlPoints[:3])
+            v = controlPoints[0] - center
+            startAngle = numpy.angle(complex(v[0], v[1]))
+            v = controlPoints[1] - center
+            midAngle = numpy.angle(complex(v[0], v[1]))
+            v = controlPoints[2] - center
+            endAngle = numpy.angle(complex(v[0], v[1]))
+            # Is it clockwise or anticlockwise
+            if (midAngle - startAngle + 2 * numpy.pi) % (2 * numpy.pi) <= numpy.pi:
+                if endAngle < startAngle:
+                    endAngle += 2 * numpy.pi
+            else:
+                if endAngle > startAngle:
+                    endAngle -= 2 * numpy.pi
+
+            return self._ArcGeometry(center, controlPoints[0], controlPoints[2],
+                                     radius, weigth, startAngle, endAngle)
+
+    def _getShapeFromControlPoints(self, controlPoints):
+        geometry = self._getGeometryFromControlPoint(controlPoints)
+        if geometry.center is None:
+            # It is not an arc
+            # but we can display it as an the intermediat shape
+            normal = (geometry.endPoint - geometry.startPoint)
             normal = numpy.array((normal[1], -normal[0]))
             normal /= numpy.linalg.norm(normal)
-            points = numpy.append(controlPoints, (controlPoints - 10 * normal)[-1::-1], axis=0)
+            points = numpy.array([
+                geometry.startPoint + normal * geometry.weight * 0.5,
+                geometry.endPoint + normal * geometry.weight * 0.5,
+                geometry.endPoint - normal * geometry.weight * 0.5,
+                geometry.startPoint - normal * geometry.weight * 0.5])
         else:
-            outerCirc = self._circleEquation(*controlPoints[:3])
-            innerCirc = outerCirc[0], outerCirc[1] - 10
-            points = (self._points - outerCirc[0]) * 0.9 + outerCirc[0]
-            points = numpy.append(controlPoints, points[-1::-1], axis=0)
+            innerRadius = geometry.radius - geometry.weight * 0.5
+            outerRadius = geometry.radius + geometry.weight * 0.5
+
+            delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
+            angles = numpy.arange(geometry.startAngle, geometry.endAngle, delta)
+            if angles[-1] != geometry.endAngle:
+                angles = numpy.append(angles, geometry.endAngle)
+
+            if innerRadius <= 0:
+                # Remove the inner radius
+                points = []
+                points.append(geometry.center)
+                points.append(geometry.startPoint)
+                delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
+                for angle in angles:
+                    direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                    points.append(geometry.center + direction * outerRadius)
+                points.append(geometry.endPoint)
+                points.append(geometry.center)
+            else:
+                points = []
+                points.append(geometry.startPoint)
+                for angle in angles:
+                    direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                    points.insert(0, geometry.center + direction * innerRadius)
+                    points.append(geometry.center + direction * outerRadius)
+                points.insert(0, geometry.endPoint)
+                points.append(geometry.endPoint)
+            points = numpy.array(points)
+
         return points
 
     def _createControlPointsFromFirstShape(self, points):
@@ -812,13 +927,17 @@ class ArcROI(RegionOfInterest):
         center = (point1 + point0) * 0.5
         normal = point1 - center
         normal = numpy.array((normal[1], -normal[0]))
-        curvaturePoint = center + normal * (numpy.pi / 6)
+        defaultCurvature = numpy.pi / 5.0
+        defaultWeight = 0.20  # percentage
+        curvaturePoint = center + normal * defaultCurvature
+        weightPoint = center + normal * defaultCurvature * (1.0 + defaultWeight)
 
         # 3 corners
         controlPoints = numpy.array([
             point0,
             curvaturePoint,
             point1,
+            weightPoint
         ])
         return controlPoints
 
@@ -832,8 +951,9 @@ class ArcROI(RegionOfInterest):
         marker.setSymbol('')
         marker._setDraggable(False)
 
+        shapePoints = self._getShapeFromControlPoints(points)
         item = items.Shape("polygon")
-        item.setPoints(points)
+        item.setPoints(shapePoints)
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
@@ -843,16 +963,17 @@ class ArcROI(RegionOfInterest):
         anchors = []
 
         for index, point in enumerate(points):
-            if index == 1:
+            if index in [1, 3]:
                 constraint = self._arcCurvatureMarkerConstraint
             else:
-                constraint = self._arcEndPointsMarkerConstraint
+                constraint = None
             anchor = items.Marker()
             anchor.setPosition(*point)
             anchor.setText('')
             anchor.setSymbol('s')
             anchor._setDraggable(True)
-            anchor._setConstraint(constraint)
+            if constraint is not None:
+                anchor._setConstraint(constraint)
             anchors.append(anchor)
 
         return anchors
@@ -867,10 +988,6 @@ class ArcROI(RegionOfInterest):
         normal /= numpy.linalg.norm(normal)
         v = numpy.dot(normal, (numpy.array((x, y)) - midPoint))
         x, y = midPoint + v * normal
-        return x, y
-
-    def _arcEndPointsMarkerConstraint(self, x, y):
-        """End-points remains on the circle"""
         return x, y
 
     @staticmethod
