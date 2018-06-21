@@ -178,7 +178,6 @@ class TestStats(TestCaseQt):
         ycom = ((ycom - 10) * 0.5) + 10
         xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
         xcom = ((xcom - 100) * 2.) + 100
-        asser(False)
         self.assertTrue(
             _stats['com'].calculate(image2Context) == (xcom, ycom))
 

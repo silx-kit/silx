@@ -439,18 +439,20 @@ class StatCOM(StatBase):
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
             xData, yData = context.data
-            com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(
-                yData).astype(numpy.float32)
-            return com
+            deno = numpy.sum(yData).astype(numpy.float32)
+            if deno == 0.:
+                return 0.
+            else:
+                return numpy.sum(xData * yData).astype(numpy.float32) / deno
         elif context.kind == 'scatter':
-            xData = context.data[0]
-            yData = context.data[1]
-            values = context.values
-            xcom = numpy.sum(xData * values).astype(numpy.float32) / numpy.sum(
-                values).astype(numpy.float32)
-            ycom = numpy.sum(yData * values).astype(numpy.float32) / numpy.sum(
-                values).astype(numpy.float32)
-            return (xcom, ycom)
+            xData, yData, values = context.data
+            deno = numpy.sum(values).astype(numpy.float32)
+            if deno == 0.:
+                return 0., 0.
+            else:
+                xcom = numpy.sum(xData * values).astype(numpy.float32) / deno
+                ycom = numpy.sum(yData * values).astype(numpy.float32) / deno
+                return (xcom, ycom)
         elif context.kind == 'image':
             yData = numpy.sum(context.data, axis=1)
             xData = numpy.sum(context.data, axis=0)
@@ -459,12 +461,19 @@ class StatCOM(StatBase):
             xScale, yScale = context.scale
             xOrigin, yOrigin = context.origin
 
-            ycom = numpy.sum(yData * dataYRange) / numpy.sum(yData)
-            # deal with scale
-            ycom = (ycom - yOrigin) * yScale + yOrigin
-            # deal with scale
-            xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
-            xcom = (xcom - xOrigin) * xScale + xOrigin
+            denoY = numpy.sum(yData)
+            if denoY == 0.:
+                ycom = 0.
+            else:
+                ycom = numpy.sum(yData * dataYRange) / denoY
+                ycom = (ycom - yOrigin) * yScale + yOrigin
+
+            denoX = numpy.sum(xData)
+            if denoX == 0.:
+                xcom = 0.
+            else:
+                xcom = numpy.sum(xData * dataXRange) / denoX
+                xcom = (xcom - xOrigin) * xScale + xOrigin
             return (xcom, ycom)
         else:
             raise ValueError('kind not managed')
