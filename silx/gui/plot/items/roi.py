@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/06/2018"
+__date__ = "21/06/2018"
 
 
 import functools
@@ -754,6 +754,137 @@ class PolygonROI(RegionOfInterest):
             anchor._setDraggable(True)
             anchors.append(anchor)
         return anchors
+
+    def paramsToString(self):
+        points = self.getControlPoints()
+        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
+
+
+class ArcROI(RegionOfInterest):
+    """A ROI identifying an arc of a circle with a width.
+
+    This ROI provides 3 anchors to control the curvature, 1 anchor to control
+    the weigth, and 1 anchor to translate the shape.
+    """
+
+    _kind = "Arc"
+    """Label for this kind of ROI"""
+
+    _plotShape = "line"
+    """Plot shape which is used for the first interaction"""
+
+    def _getLabelPosition(self):
+        points = self.getControlPoints()
+        return points.min(axis=0)
+
+    def _updateShape(self):
+        if len(self._items) == 0:
+            return
+        shape = self._items[0]
+        points = self.getControlPoints()
+        points = self._getShapeFromControlPoints(points)
+        shape.setPoints(points)
+
+    def _getShapeFromControlPoints(self, controlPoints):
+        # TODO compute arc
+        if numpy.linalg.norm(
+            numpy.cross(controlPoints[1] - controlPoints[0],
+                        controlPoints[2] - controlPoints[0])) < 1e-5:
+            print('colinear')
+            # Colinear
+            normal = (controlPoints[2] - controlPoints[0])
+            normal = numpy.array((normal[1], -normal[0]))
+            normal /= numpy.linalg.norm(normal)
+            points = numpy.append(controlPoints, (controlPoints - 10 * normal)[-1::-1], axis=0)
+        else:
+            outerCirc = self._circleEquation(*controlPoints[:3])
+            innerCirc = outerCirc[0], outerCirc[1] - 10
+            points = (self._points - outerCirc[0]) * 0.9 + outerCirc[0]
+            points = numpy.append(controlPoints, points[-1::-1], axis=0)
+        return points
+
+    def _createControlPointsFromFirstShape(self, points):
+        # The first shape is a line
+        point0 = points[0]
+        point1 = points[1]
+
+        # Compute a non colineate point for the curvature
+        center = (point1 + point0) * 0.5
+        normal = point1 - center
+        normal = numpy.array((normal[1], -normal[0]))
+        curvaturePoint = center + normal * (numpy.pi / 6)
+
+        # 3 corners
+        controlPoints = numpy.array([
+            point0,
+            curvaturePoint,
+            point1,
+        ])
+        return controlPoints
+
+    def _createShapeItems(self, points):
+        # Add label marker
+        markerPos = self._getLabelPosition()
+        marker = items.Marker()
+        marker.setPosition(*markerPos)
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker.setSymbol('')
+        marker._setDraggable(False)
+
+        item = items.Shape("polygon")
+        item.setPoints(points)
+        item.setColor(rgba(self.getColor()))
+        item.setFill(False)
+        item.setOverlay(True)
+        return [item, marker]
+
+    def _createAnchorItems(self, points):
+        anchors = []
+
+        for index, point in enumerate(points):
+            if index == 1:
+                constraint = self._arcCurvatureMarkerConstraint
+            else:
+                constraint = self._arcEndPointsMarkerConstraint
+            anchor = items.Marker()
+            anchor.setPosition(*point)
+            anchor.setText('')
+            anchor.setSymbol('s')
+            anchor._setDraggable(True)
+            anchor._setConstraint(constraint)
+            anchors.append(anchor)
+
+        return anchors
+
+    def _arcCurvatureMarkerConstraint(self, x, y):
+        """Curvature marker remains on "mediatrice" """
+        start = self._points[0]
+        end = self._points[2]
+        midPoint = (start + end) / 2.
+        normal = (end - start)
+        normal = numpy.array((normal[1], -normal[0]))
+        normal /= numpy.linalg.norm(normal)
+        v = numpy.dot(normal, (numpy.array((x, y)) - midPoint))
+        x, y = midPoint + v * normal
+        return x, y
+
+    def _arcEndPointsMarkerConstraint(self, x, y):
+        """End-points remains on the circle"""
+        return x, y
+
+    @staticmethod
+    def _circleEquation(pt1, pt2, pt3):
+        """Circle equation from 3 (x, y) points
+
+        :return: Position of the center of the circle and the radius
+        :rtype: Tuple[Tuple[float,float],float]
+        """
+        x, y, z = complex(*pt1), complex(*pt2), complex(*pt3)
+        w = z - x
+        w /= y - x
+        c = (x - y) * (w - abs(w) ** 2) / 2j / w.imag - x
+        return ((-c.real, -c.imag), abs(c + x))
 
     def paramsToString(self):
         points = self.getControlPoints()

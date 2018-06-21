@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/06/2018"
+__date__ = "21/06/2018"
 
 
 import collections
@@ -103,6 +103,7 @@ class RegionOfInterestManager(qt.QObject):
     _MODE_ACTIONS_PARAMS['line'] = roi_items.LineROI, 'add-shape-diagonal', 'Add line ROI'
     _MODE_ACTIONS_PARAMS['hline'] = roi_items.HorizontalLineROI, 'add-shape-horizontal', 'Add horizontal line ROI'
     _MODE_ACTIONS_PARAMS['vline'] = roi_items.VerticalLineROI, 'add-shape-vertical', 'Add vertical line ROI'
+    _MODE_ACTIONS_PARAMS['arc'] = roi_items.ArcROI, 'add-shape-diagonal', 'Add arc ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
