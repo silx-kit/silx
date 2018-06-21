@@ -362,11 +362,12 @@ def _getImgCoordsFor(data, searchValue, scale, origin):
     if len(coordsX) is 0:
         return []
     if len(coordsX) is 1:
-        return (coordsX[0] * scaleX + originX,
-                coordsY[0] * scaleY + originY)
+        return (int(coordsX[0] * scaleX + originX),
+                int(coordsY[0] * scaleY + originY))
     coords = []
     for xCoord, yCoord in zip(coordsX, coordsY):
-        coord = (xCoord * scaleX + originX, yCoord * scaleY + originY)
+        coord = (int(xCoord * scaleX + originX),
+                 int(yCoord * scaleY + originY))
         coords.append(coord)
     return coords
 

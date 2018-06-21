@@ -159,7 +159,9 @@ class TestStats(TestCaseQt):
         self.assertTrue(
             _stats['minCoords'].calculate(image2Context) == (100, 10))
         self.assertTrue(
-            _stats['maxCoords'].calculate(image2Context) == (127*2. + 100, 31 * 0.5 + 10))
+            _stats['maxCoords'].calculate(image2Context) == (int(127*2. + 100),
+                                                             int(31 * 0.5 + 10))
+        )
         self.assertTrue(
             _stats['std'].calculate(image2Context) == numpy.std(
                 self.imageData))
@@ -487,8 +489,8 @@ class TestStatsWidgetWithImages(TestCaseQt):
         self.assertTrue(itemMin.text() == '0.000')
         self.assertTrue(itemMax.text() == '{0:.3f}'.format(max))
         self.assertTrue(itemDelta.text() == '{0:.3f}'.format(max))
-        self.assertTrue(itemCoordsMin.text() == '(0, 0)')
-        self.assertTrue(itemCoordsMax.text() == '(127, 127)')
+        self.assertTrue(itemCoordsMin.text() == '0, 0')
+        self.assertTrue(itemCoordsMax.text() == '127, 127')
 
 
 class TestStatsWidgetWithScatters(TestCaseQt):
@@ -536,8 +538,8 @@ class TestStatsWidgetWithScatters(TestCaseQt):
         self.assertTrue(itemMin.text() == '5')
         self.assertTrue(itemMax.text() == '90')
         self.assertTrue(itemDelta.text() == '85')
-        self.assertTrue(itemCoordsMin.text() == '(2, 0)')
-        self.assertTrue(itemCoordsMax.text() == '(69, 50)')
+        self.assertTrue(itemCoordsMin.text() == '2, 0')
+        self.assertTrue(itemCoordsMax.text() == '69, 50')
 
 
 class TestEmptyStatsWidget(TestCaseQt):
