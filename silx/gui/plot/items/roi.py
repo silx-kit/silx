@@ -1266,5 +1266,9 @@ class ArcROI(RegionOfInterest):
         return ((-c.real, -c.imag), abs(c + x))
 
     def paramsToString(self):
-        points = self.getControlPoints()
-        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
+        try:
+            center, innerRadius, outerRadius, startAngle, endAngle = self.getGeometry()
+            params = center[0], center[1], innerRadius, outerRadius, startAngle, endAngle
+            return 'Center: %f %f; Radius: %f %f; Angles: %f %f' % params
+        except ValueError:
+            return "Not an arc"
