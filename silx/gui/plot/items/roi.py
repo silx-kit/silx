@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/06/2018"
+__date__ = "22/06/2018"
 
 
 import functools
@@ -310,26 +310,22 @@ class RegionOfInterest(qt.QObject):
         """
         if event == items.ItemChangedType.POSITION:
             anchor = self._editAnchors[index]
-            points = self.getControlPoints()
-            previous = points[index].copy()
+            previous = self._points[index].copy()
             current = anchor.getPosition()
-            points[index] = current
-            self.setControlPoints(points)
-            # Custom special behaviours
             self._controlPointAnchorPositionChanged(index, current, previous)
-            # Reach again the points in case some was edited
-            points = self.getControlPoints()
-            self.setControlPoints(points)
 
     def _controlPointAnchorPositionChanged(self, index, current, previous):
         """Called when an anchor is manually edited.
 
-        The value of this control point is already up-to-date in
-        :meth:`getControlPoints`. This method can be reimplemented to update
-        the changes on other control points using :meth:`getControlPoints` and
-        :meth:`setControlPoints`
+        This function have to be inherited to change the behaviours of the
+        control points. This function have to call :meth:`getControlPoints` to
+        reach the previous state of the control points. Updated the positions
+        of the changed control points. Then call :meth:`setControlPoints` to
+        update the anchors and send signals.
         """
-        pass
+        points = self.getControlPoints()
+        points[index] = current
+        self.setControlPoints(points)
 
     def _removePlotItems(self):
         """Remove items from their plot."""
@@ -377,10 +373,6 @@ class PointROI(RegionOfInterest):
         marker.setText(self.getLabel())
         marker._setDraggable(self.isEditable())
         return [marker]
-
-    def _controlPointAnchorPositionChanged(self, index, current, previous):
-        points = [current]
-        self.setControlPoints(points)
 
     def paramsToString(self):
         points = self.getControlPoints()
@@ -465,12 +457,14 @@ class LineROI(RegionOfInterest):
             # It is the center anchor
             points = self.getControlPoints()
             center = numpy.mean(points[0:-1], axis=0)
-            offset = current - center
+            offset = current - previous
+            points[-1] = current
             points[0:-1] = points[0:-1] + offset
             self.setControlPoints(points)
         else:
             # Update the center
             points = self.getControlPoints()
+            points[index] = current
             center = numpy.mean(points[0:-1], axis=0)
             points[-1] = center
             self.setControlPoints(points)
@@ -515,11 +509,6 @@ class HorizontalLineROI(RegionOfInterest):
         marker._setDraggable(self.isEditable())
         return [marker]
 
-    def _controlPointAnchorPositionChanged(self, index, current, previous):
-        points = self.getControlPoints()
-        points[:, 1] = current[1]
-        self.setControlPoints(points)
-
     def paramsToString(self):
         points = self.getControlPoints()
         return 'Y: %f' % points[0, 1]
@@ -559,11 +548,6 @@ class VerticalLineROI(RegionOfInterest):
         marker.setText(self.getLabel())
         marker._setDraggable(self.isEditable())
         return [marker]
-
-    def _controlPointAnchorPositionChanged(self, index, current, previous):
-        points = self.getControlPoints()
-        points[:, 0] = current[0]
-        self.setControlPoints(points)
 
     def paramsToString(self):
         points = self.getControlPoints()
@@ -664,7 +648,8 @@ class RectangleROI(RegionOfInterest):
             # It is the center anchor
             points = self.getControlPoints()
             center = numpy.mean(points[0:-1], axis=0)
-            offset = current - center
+            offset = current - previous
+            points[-1] = current
             points[0:-1] = points[0:-1] + offset
             self.setControlPoints(points)
         else:
@@ -672,6 +657,7 @@ class RectangleROI(RegionOfInterest):
             constrains = [(1, 3), (0, 2), (3, 1), (2, 0)]
             constrains = constrains[index]
             points = self.getControlPoints()
+            points[index] = current
             points[constrains[0]][0] = current[0]
             points[constrains[1]][1] = current[1]
             # Update the center
@@ -792,7 +778,6 @@ class ArcROI(RegionOfInterest):
 
     def _controlPointAnchorPositionChanged(self, index, current, previous):
         controlPoints = self.getControlPoints()
-        controlPoints[index] = previous
         currentWeigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
 
         if index in [0, 2]:
@@ -832,6 +817,8 @@ class ArcROI(RegionOfInterest):
             controlPoints[index] = current
             self._updateWeightControlPoint(controlPoints, currentWeigth)
             self.setControlPoints(controlPoints)
+        else:
+            super(ArcROI, self)._controlPointAnchorPositionChanged(index, current, previous)
 
     def _updateWeightControlPoint(self, controlPoints, weigth):
         startPoint = controlPoints[0]
