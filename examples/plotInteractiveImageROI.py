@@ -37,6 +37,7 @@ from silx.gui import qt
 from silx.gui.plot import Plot2D
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
+from silx.gui.plot.items.roi import RectangleROI
 
 
 def dummy_image():
@@ -72,10 +73,10 @@ def updateAddedRegionOfInterest(roi):
 roiManager.sigRegionOfInterestAdded.connect(updateAddedRegionOfInterest)
 
 # Add a rectangular region of interest
-roiManager.createRegionOfInterest('rectangle',
-                                  points=((50, 50), (200, 200)),
-                                  label='Initial ROI')
-
+roi = RectangleROI()
+roi.setGeometry(origin=(50, 50), size=(200, 200))
+roi.setLabel('Initial ROI')
+roiManager.addRegionOfInterest(roi)
 
 # Create the table widget displaying
 roiTable = RegionOfInterestTableWidget()
