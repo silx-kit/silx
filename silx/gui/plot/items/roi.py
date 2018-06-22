@@ -174,13 +174,21 @@ class RegionOfInterest(qt.QObject):
         return None if self._points is None else numpy.array(self._points)
 
     @classmethod
+    def showFirstInteractionShape(cls):
+        """Returns True if the shape created by the first interaction and
+        managed by the plot have to be visible.
+
+        :rtype: bool
+        """
+        return True
+
+    @classmethod
     def getFirstInteractionShape(cls):
         """Returns the shape kind which will be used by the very first
         interaction with the plot.
 
         This interactions are hardcoded inside the plot
 
-        :param str roiKind:
         :rtype: str
         """
         return cls._plotShape
@@ -892,6 +900,10 @@ class ArcROI(RegionOfInterest):
                                                           'startPoint', 'endPoint',
                                                           'radius', 'weight',
                                                           'startAngle', 'endAngle'])
+
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
 
     def _getLabelPosition(self):
         points = self.getControlPoints()

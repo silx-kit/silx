@@ -395,10 +395,14 @@ class RegionOfInterestManager(qt.QObject):
         if self._shapeKind == 'point':
             plot.setInteractiveMode(mode='select', source=self)
         else:
+            if roiClass.showFirstInteractionShape():
+                color = rgba(self.getColor())
+            else:
+                color = None
             plot.setInteractiveMode(mode='select-draw',
                                     source=self,
                                     shape=firstInteractionShapeKind,
-                                    color=rgba(self.getColor()),
+                                    color=color,
                                     label=self._label)
 
         plot.sigPlotSignal.connect(self._handleInteraction)
