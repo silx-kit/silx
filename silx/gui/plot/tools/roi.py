@@ -103,7 +103,7 @@ class RegionOfInterestManager(qt.QObject):
     _MODE_ACTIONS_PARAMS['line'] = roi_items.LineROI, 'add-shape-diagonal', 'Add line ROI'
     _MODE_ACTIONS_PARAMS['hline'] = roi_items.HorizontalLineROI, 'add-shape-horizontal', 'Add horizontal line ROI'
     _MODE_ACTIONS_PARAMS['vline'] = roi_items.VerticalLineROI, 'add-shape-vertical', 'Add vertical line ROI'
-    _MODE_ACTIONS_PARAMS['arc'] = roi_items.ArcROI, 'add-shape-diagonal', 'Add arc ROI'
+    _MODE_ACTIONS_PARAMS['arc'] = roi_items.ArcROI, 'add-shape-arc', 'Add arc ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
