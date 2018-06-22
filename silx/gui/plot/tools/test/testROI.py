@@ -24,18 +24,101 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/03/2018"
+__date__ = "22/06/2018"
 
 
 import unittest
-
-import numpy
+import numpy.testing
 
 from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow
+import silx.gui.plot.items.roi as roi_items
 from silx.gui.plot.tools import roi
+
+
+class TestRoiItems(TestCaseQt):
+
+    def testLine_geometry(self):
+        item = roi_items.LineROI()
+        startPoint = numpy.array([1, 2])
+        endPoint = numpy.array([3, 4])
+        item.setEndPoints(startPoint, endPoint)
+        numpy.testing.assert_allclose(item.getEndPoints()[0], startPoint)
+        numpy.testing.assert_allclose(item.getEndPoints()[1], endPoint)
+
+    def testHLine_geometry(self):
+        item = roi_items.HorizontalLineROI()
+        item.setPosition(15)
+        self.assertEqual(item.getPosition(), 15)
+
+    def testVLine_geometry(self):
+        item = roi_items.VerticalLineROI()
+        item.setPosition(15)
+        self.assertEqual(item.getPosition(), 15)
+
+    def testPoint_geometry(self):
+        point = numpy.array([1, 2])
+        item = roi_items.VerticalLineROI()
+        item.setPosition(point)
+        numpy.testing.assert_allclose(item.getPosition(), point)
+
+    def testRectangle_originGeometry(self):
+        origin = numpy.array([0, 0])
+        size = numpy.array([10, 20])
+        center = numpy.array([5, 10])
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin, size=size)
+        numpy.testing.assert_allclose(item.getOrigin(), origin)
+        numpy.testing.assert_allclose(item.getSize(), size)
+        numpy.testing.assert_allclose(item.getCenter(), center)
+
+    def testRectangle_centerGeometry(self):
+        origin = numpy.array([0, 0])
+        size = numpy.array([10, 20])
+        center = numpy.array([5, 10])
+        item = roi_items.RectangleROI()
+        item.setGeometry(center=center, size=size)
+        numpy.testing.assert_allclose(item.getOrigin(), origin)
+        numpy.testing.assert_allclose(item.getSize(), size)
+        numpy.testing.assert_allclose(item.getCenter(), center)
+
+    def testRectangle_setCenterGeometry(self):
+        origin = numpy.array([0, 0])
+        size = numpy.array([10, 20])
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin, size=size)
+        newCenter = numpy.array([0, 0])
+        item.setCenter(newCenter)
+        expectedOrigin = numpy.array([-5, -10])
+        numpy.testing.assert_allclose(item.getOrigin(), expectedOrigin)
+        numpy.testing.assert_allclose(item.getCenter(), newCenter)
+        numpy.testing.assert_allclose(item.getSize(), size)
+
+    def testRectangle_setOriginGeometry(self):
+        origin = numpy.array([0, 0])
+        size = numpy.array([10, 20])
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin, size=size)
+        newOrigin = numpy.array([10, 10])
+        item.setOrigin(newOrigin)
+        expectedCenter = numpy.array([15, 20])
+        numpy.testing.assert_allclose(item.getOrigin(), newOrigin)
+        numpy.testing.assert_allclose(item.getCenter(), expectedCenter)
+        numpy.testing.assert_allclose(item.getSize(), size)
+
+    def testPolygon_emptyGeometry(self):
+        points = numpy.empty((0, 2))
+        item = roi_items.PolygonROI()
+        item.setPoints(points)
+        numpy.testing.assert_allclose(item.getPoints(), points)
+
+    def testPolygon_geometry(self):
+        points = numpy.array([[10, 10], [12, 10], [50, 1]])
+        item = roi_items.PolygonROI()
+        item.setPoints(points)
+        numpy.testing.assert_allclose(item.getPoints(), points)
 
 
 class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
@@ -145,9 +228,10 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
 
     def testMaxROI(self):
         """Test Max ROI"""
-        kind = 'rectangle'
-        points = numpy.array((((1., 10.), (11., 20.)),
-                              ((2., 3.), (12., 13.))))
+        origin1 = numpy.array([1., 10.])
+        size1 = numpy.array([10., 10.])
+        origin2 = numpy.array([2., 3.])
+        size2 = numpy.array([10., 10.])
 
         manager = roi.InteractiveRegionOfInterestManager(self.plot)
         self.roiTableWidget.setRegionOfInterestManager(manager)
@@ -157,38 +241,41 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         manager.sigRegionOfInterestChanged.connect(changedListener)
 
         # Add two point
-        manager.createRegionOfInterest(kind, points[0])
-        manager.createRegionOfInterest(kind, points[1])
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin1, size=size1)
+        manager.addRegionOfInterest(item)
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin2, size=size2)
+        manager.addRegionOfInterest(item)
         self.qapp.processEvents()
-        self.assertTrue(numpy.all(numpy.equal(
-            manager.getRegionOfInterestPoints(),
-            (points[0], points[1]))))
         self.assertEqual(changedListener.callCount(), 2)
+        self.assertEqual(len(manager.getRegionOfInterests()), 2)
 
         # Try to set max ROI to 1 while there is 2 ROIs
         with self.assertRaises(ValueError):
             manager.setMaxRegionOfInterests(1)
 
         manager.clearRegionOfInterests()
-        self.assertEqual(manager.getRegionOfInterests(), ())
+        self.assertEqual(len(manager.getRegionOfInterests()), 0)
         self.assertEqual(changedListener.callCount(), 3)
 
         # Set max limit to 1
         manager.setMaxRegionOfInterests(1)
 
         # Add a point
-        manager.createRegionOfInterest(kind, points[0])
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin1, size=size1)
+        manager.addRegionOfInterest(item)
         self.qapp.processEvents()
-        self.assertTrue(numpy.all(numpy.equal(
-            manager.getRegionOfInterestPoints(), (points[0],))))
         self.assertEqual(changedListener.callCount(), 4)
 
         # Add a 2nd point while max ROI is 1
-        manager.createRegionOfInterest(kind, points[1])
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin1, size=size1)
+        manager.addRegionOfInterest(item)
         self.qapp.processEvents()
-        self.assertTrue(numpy.all(numpy.equal(
-            manager.getRegionOfInterestPoints(), (points[1],))))
         self.assertEqual(changedListener.callCount(), 6)
+        self.assertEqual(len(manager.getRegionOfInterests()), 1)
 
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
@@ -215,9 +302,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestRegionOfInterestManager))
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestRoiItems))
+    test_suite.addTest(loadTests(TestRegionOfInterestManager))
     return test_suite
 
 

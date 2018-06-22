@@ -58,7 +58,7 @@ class RegionOfInterest(qt.QObject):
     sigControlPointsChanged = qt.Signal()
     """Signal emitted when this control points has changed"""
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         # FIXME: Not very elegant: It checks class name to avoid recursive loop
         assert parent is None or "RegionOfInterestManager" in parent.__class__.__name__
         super(RegionOfInterest, self).__init__(parent)
@@ -353,6 +353,21 @@ class PointROI(RegionOfInterest):
     _plotShape = "point"
     """Plot shape which is used for the first interaction"""
 
+    def getPosition(self):
+        """Returns the position of this ROI
+
+        :rtype: numpy.ndarray
+        """
+        return self._points[0].copy()
+
+    def setPosition(self, pos):
+        """Set the position of this ROI
+
+        :param numpy.ndarray pos: 2d-coordinate of this point
+        """
+        controlPoints = numpy.array([pos])
+        self.setControlPoints(controlPoints)
+
     def _getLabelPosition(self):
         points = self.getControlPoints()
         return points[0]
@@ -396,6 +411,25 @@ class LineROI(RegionOfInterest):
         center = numpy.mean(points, axis=0)
         controlPoints = numpy.array([points[0], points[1], center])
         return controlPoints
+
+    def setEndPoints(self, startPoint, endPoint):
+        """Set this line location using the endding points
+
+        :param numpy.ndarray startPoint: Staring bounding point of the line
+        :param numpy.ndarray endPoint: Endding bounding point of the line
+        """
+        shapePoints = numpy.array([startPoint, endPoint])
+        controlPoints = self._createControlPointsFromFirstShape(shapePoints)
+        self.setControlPoints(controlPoints)
+
+    def getEndPoints(self):
+        """Returns bounding points of this ROI.
+
+        :rtype: Tuple(numpy.ndarray,numpy.ndarray)
+        """
+        startPoint = self._points[0].copy()
+        endPoint = self._points[1].copy()
+        return (startPoint, endPoint)
 
     def _getLabelPosition(self):
         points = self.getControlPoints()
@@ -488,6 +522,22 @@ class HorizontalLineROI(RegionOfInterest):
                              dtype=numpy.float64)
         return points
 
+    def getPosition(self):
+        """Returns the position of this line if the horizontal axis
+
+        :rtype: float
+        """
+        print self._points
+        return self._points[0, 1]
+
+    def setPosition(self, pos):
+        """Set the position of this ROI
+
+        :param float pos: Horizontal position of this line
+        """
+        controlPoints = numpy.array([[float('nan'), pos]])
+        self.setControlPoints(controlPoints)
+
     def _getLabelPosition(self):
         points = self.getControlPoints()
         return points[0]
@@ -527,6 +577,21 @@ class VerticalLineROI(RegionOfInterest):
         points = numpy.array([(points[0, 0], float('nan'))],
                              dtype=numpy.float64)
         return points
+
+    def getPosition(self):
+        """Returns the position of this line if the horizontal axis
+
+        :rtype: float
+        """
+        return self._points[0, 0]
+
+    def setPosition(self, pos):
+        """Set the position of this ROI
+
+        :param float pos: Horizontal position of this line
+        """
+        controlPoints = numpy.array([[pos, float('nan')]])
+        self.setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
         points = self.getControlPoints()
@@ -583,6 +648,70 @@ class RectangleROI(RegionOfInterest):
         controlPoints = numpy.append(controlPoints, center)
         controlPoints.shape = -1, 2
         return controlPoints
+
+    def getCenter(self):
+        """Returns the central point of this rectangle
+
+        :rtype: numpy.ndarray([float,float])
+        """
+        return numpy.mean(self._points, axis=0)
+
+    def getOrigin(self):
+        """Returns the corner point with the smaller coordinates
+
+        :rtype: numpy.ndarray([float,float])
+        """
+        return numpy.min(self._points, axis=0)
+
+    def getSize(self):
+        """Returns the size of this rectangle
+
+        :rtype: numpy.ndarray([float,float])
+        """
+        minPoint = numpy.min(self._points, axis=0)
+        maxPoint = numpy.max(self._points, axis=0)
+        return maxPoint - minPoint
+
+    def setOrigin(self, position):
+        """Set the origin position of this ROI
+
+        :param numpy.ndarray position: Location of the smaller corner of the ROI
+        """
+        size = self.getSize()
+        self.setGeometry(origin=position, size=size)
+
+    def setSize(self, size):
+        """Set the size of this ROI
+
+        :param numpy.ndarray size: Size of the center of the ROI
+        """
+        origin = self.getOrigin()
+        self.setGeometry(origin=origin, size=size)
+
+    def setCenter(self, position):
+        """Set the size of this ROI
+
+        :param numpy.ndarray position: Location of the center of the ROI
+        """
+        size = self.getSize()
+        self.setGeometry(center=position, size=size)
+
+    def setGeometry(self, origin=None, size=None, center=None):
+        """Set the geometry of the ROI
+        """
+        if origin is not None:
+            origin = numpy.array(origin)
+            size = numpy.array(size)
+            points = numpy.array([origin, origin + size])
+            controlPoints = self._createControlPointsFromFirstShape(points)
+        elif center is not None:
+            center = numpy.array(center)
+            size = numpy.array(size)
+            points = numpy.array([center - size * 0.5, center + size * 0.5])
+            controlPoints = self._createControlPointsFromFirstShape(points)
+        else:
+            raise ValueError("Origin or cengter expected")
+        self.setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
         points = self.getControlPoints()
@@ -665,24 +794,6 @@ class RectangleROI(RegionOfInterest):
             points[-1] = center
             self.setControlPoints(points)
 
-    def getOrigin(self):
-        """Returns the origin of the rectangle (min corner).
-
-        :rtype: float, float
-        """
-        points = self.getControlPoints()
-        shapePoints = self._getShapeFromControlPoints(points)
-        return shapePoints[0]
-
-    def getSize(self):
-        """Returns the width of the rectangle.
-
-        :rtype: float, float
-        """
-        points = self.getControlPoints()
-        shapePoints = self._getShapeFromControlPoints(points)
-        return shapePoints[1] - shapePoints[0]
-
     def paramsToString(self):
         origin = self.getOrigin()
         w, h = self.getSize()
@@ -701,6 +812,24 @@ class PolygonROI(RegionOfInterest):
 
     _plotShape = "polygon"
     """Plot shape which is used for the first interaction"""
+
+    def getPoints(self):
+        """Returns the list of the points of this polygon.
+
+        :rtype: numpy.ndarray
+        """
+        return self._points.copy()
+
+    def setPoints(self, points):
+        """Set the position of this ROI
+
+        :param numpy.ndarray pos: 2d-coordinate of this point
+        """
+        if len(points) > 0:
+            controlPoints = numpy.array(points)
+        else:
+            controlPoints = numpy.empty((0, 2))
+        self.setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
         points = self.getControlPoints()
