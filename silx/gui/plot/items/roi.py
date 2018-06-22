@@ -480,7 +480,7 @@ class LineROI(RegionOfInterest):
         anchor = items.Marker()
         anchor.setPosition(*center)
         anchor.setText('')
-        anchor.setSymbol('o')
+        anchor.setSymbol('+')
         anchor._setDraggable(True)
         anchors.append(anchor)
 
@@ -766,7 +766,7 @@ class RectangleROI(RegionOfInterest):
         anchor = items.Marker()
         anchor.setPosition(*center)
         anchor.setText('')
-        anchor.setSymbol('o')
+        anchor.setSymbol('+')
         anchor._setDraggable(True)
         anchors.append(anchor)
 
@@ -1077,6 +1077,7 @@ class ArcROI(RegionOfInterest):
 
     def _createAnchorItems(self, points):
         anchors = []
+        symbols = ['o', 'o', 'o', 's']
 
         for index, point in enumerate(points):
             if index in [1, 3]:
@@ -1086,7 +1087,7 @@ class ArcROI(RegionOfInterest):
             anchor = items.Marker()
             anchor.setPosition(*point)
             anchor.setText('')
-            anchor.setSymbol('s')
+            anchor.setSymbol(symbols[index])
             anchor._setDraggable(True)
             if constraint is not None:
                 anchor._setConstraint(constraint)
