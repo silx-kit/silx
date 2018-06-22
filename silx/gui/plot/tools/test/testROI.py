@@ -120,6 +120,38 @@ class TestRoiItems(TestCaseQt):
         item.setPoints(points)
         numpy.testing.assert_allclose(item.getPoints(), points)
 
+    def testArc_getToSetGeometry(self):
+        """Test that we can use getGeometry as input to setGeometry"""
+        item = roi_items.ArcROI()
+        item.setFirstShapePoints(numpy.array([[5, 10], [50, 100]]))
+        item.setGeometry(*item.getGeometry())
+
+    def testArc_clockwiseGeometry(self):
+        """Test that we can use getGeometry as input to setGeometry"""
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, numpy.pi
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        print(item.getGeometry())
+        numpy.testing.assert_allclose(item.getCenter(), center)
+        self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
+        self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
+        self.assertAlmostEqual(item.getStartAngle(), startAngle)
+        self.assertAlmostEqual(item.getEndAngle(), endAngle)
+
+    def testArc_anticlockwiseGeometry(self):
+        """Test that we can use getGeometry as input to setGeometry"""
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, -numpy.pi * 0.5
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        print(item.getGeometry())
+        numpy.testing.assert_allclose(item.getCenter(), center)
+        self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
+        self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
+        self.assertAlmostEqual(item.getStartAngle(), startAngle)
+        self.assertAlmostEqual(item.getEndAngle(), endAngle)
+
 
 class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
     """Tests for RegionOfInterestManager class"""

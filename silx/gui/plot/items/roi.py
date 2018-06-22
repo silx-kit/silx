@@ -901,6 +901,21 @@ class ArcROI(RegionOfInterest):
                                                           'radius', 'weight',
                                                           'startAngle', 'endAngle'])
 
+    def __init__(self, parent=None):
+        RegionOfInterest.__init__(self, parent=parent)
+        self._geometry = None
+
+    def _getInternalGeometry(self):
+        """Returns the object storing the internal geometry of this ROI.
+
+        This geometry is derived from the control points and cached for
+        efficiency. Calling :meth:`setControlPoints` invalidate the cache.
+        """
+        if self._geometry is None:
+            controlPoints = self.getControlPoints()
+            self._geometry = self._createGeometryFromControlPoint(controlPoints)
+        return self._geometry
+
     @classmethod
     def showFirstInteractionShape(cls):
         return False
@@ -972,7 +987,7 @@ class ArcROI(RegionOfInterest):
         normal /= distance
         controlPoints[3] = midPoint + normal * weigth * 0.5
 
-    def _getGeometryFromControlPoint(self, controlPoints):
+    def _createGeometryFromControlPoint(self, controlPoints):
         """Returns the geometry of the object"""
         weigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
         if numpy.linalg.norm(
@@ -1001,7 +1016,7 @@ class ArcROI(RegionOfInterest):
                                      radius, weigth, startAngle, endAngle)
 
     def _getShapeFromControlPoints(self, controlPoints):
-        geometry = self._getGeometryFromControlPoint(controlPoints)
+        geometry = self._createGeometryFromControlPoint(controlPoints)
         if geometry.center is None:
             # It is not an arc
             # but we can display it as an the intermediat shape
@@ -1045,6 +1060,124 @@ class ArcROI(RegionOfInterest):
             points = numpy.array(points)
 
         return points
+
+    def setControlPoints(self, points):
+        # Invalidate the geometry
+        self._geometry = None
+        RegionOfInterest.setControlPoints(self, points)
+
+    def getGeometry(self):
+        """Returns a tuple containing the geometry of this ROI
+
+        It is a symetric fonction of :meth:`setGeometry`.
+
+        If `startAngle` is smaller than `endAngle` the rotation is clockwise,
+        else the rotation is anticlockwise.
+
+        :rtype: Tuple[numpy.ndarray,float,float,float,float]
+        :raise ValueError: In case the ROI can't be representaed as section of
+            a circle
+        """
+        geometry = self._getInternalGeometry()
+        if geometry.center is None:
+            raise ValueError("This ROI can't be represented as a section of circle")
+        return geometry.center, self.getInnerRadius(), self.getOuterRadius(), geometry.startAngle, geometry.endAngle
+
+    def getCenter(self):
+        """Returns the center of the circle used to draw arcs of this ROI.
+
+        This center is usually outside the the shape itself.
+
+        :rtype: numpy.ndarray
+        """
+        geometry = self._getInternalGeometry()
+        return geometry.center
+
+    def getStartAngle(self):
+        """Returns the angle of the start of the section of this ROI (in radian).
+
+        If `startAngle` is smaller than `endAngle` the rotation is clockwise,
+        else the rotation is anticlockwise.
+
+        :rtype: float
+        """
+        geometry = self._getInternalGeometry()
+        return geometry.startAngle
+
+    def getEndAngle(self):
+        """Returns the angle of the end of the section of this ROI (in radian).
+
+        If `startAngle` is smaller than `endAngle` the rotation is clockwise,
+        else the rotation is anticlockwise.
+
+        :rtype: float
+        """
+        geometry = self._getInternalGeometry()
+        return geometry.endAngle
+
+    def getInnerRadius(self):
+        """Returns the radius of the smaller arc used to draw this ROI.
+
+        :rtype: float
+        """
+        geometry = self._getInternalGeometry()
+        radius = geometry.radius - geometry.weight * 0.5
+        if radius < 0:
+            radius = 0
+        return radius
+
+    def getOuterRadius(self):
+        """Returns the radius of the bigger arc used to draw this ROI.
+
+        :rtype: float
+        """
+        geometry = self._getInternalGeometry()
+        radius = geometry.radius + geometry.weight * 0.5
+        return radius
+
+    def setGeometry(self, center, innerRadius, outerRadius, startAngle, endAngle):
+        """
+        Set the geometry of this arc.
+
+        :param numpy.ndarray center: Center of the circle.
+        :param float innerRadius: Radius of the smaller arc of the section.
+        :param float outerRadius: Weight of the bigger arc of the section.
+            It have to be bigger than `innerRadius`
+        :param float startAngle: Location of the start of the section (in radian)
+        :param float endAngle: Location of the end of the section (in radian).
+            If `startAngle` is smaller than `endAngle` the rotation is clockwise,
+            else the rotation is anticlockwise.
+        """
+        assert(innerRadius <= outerRadius)
+        assert(numpy.abs(startAngle - endAngle) <= 2 * numpy.pi)
+        center = numpy.array(center)
+        radius = (innerRadius + outerRadius) * 0.5
+        weight = outerRadius - innerRadius
+        geometry = self._ArcGeometry(center, None, None, radius, weight, startAngle, endAngle)
+        controlPoints = self._createControlPointsFromGeometry(geometry)
+        self.setControlPoints(controlPoints)
+
+    def _createControlPointsFromGeometry(self, geometry):
+        print("------------------------")
+        if geometry.startPoint or geometry.endPoint:
+            # Duplication with the angles
+            raise NotImplementedError("This general case is not implemented")
+
+        angle = geometry.startAngle
+        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+        startPoint = geometry.center + direction * geometry.radius
+
+        angle = geometry.endAngle
+        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+        endPoint = geometry.center + direction * geometry.radius
+
+        angle = (geometry.startAngle + geometry.endAngle) * 0.5
+        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+        curvaturePoint = geometry.center + direction * geometry.radius
+        weightPoint = curvaturePoint + direction * geometry.weight * 0.5
+
+        print(startPoint, curvaturePoint, endPoint, weightPoint)
+        return numpy.array([startPoint, curvaturePoint, endPoint, weightPoint])
 
     def _createControlPointsFromFirstShape(self, points):
         # The first shape is a line
