@@ -1057,8 +1057,8 @@ class ArcROI(RegionOfInterest):
         normal = numpy.array((normal[1], -normal[0]))
         defaultCurvature = numpy.pi / 5.0
         defaultWeight = 0.20  # percentage
-        curvaturePoint = center + normal * defaultCurvature
-        weightPoint = center + normal * defaultCurvature * (1.0 + defaultWeight)
+        curvaturePoint = center - normal * defaultCurvature
+        weightPoint = center - normal * defaultCurvature * (1.0 + defaultWeight)
 
         # 3 corners
         controlPoints = numpy.array([
