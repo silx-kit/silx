@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/06/2018"
+__date__ = "22/06/2018"
 
 
 import collections
@@ -265,7 +265,7 @@ class RegionOfInterestManager(qt.QObject):
         """Create a new ROI and add it to list of ROIs.
 
         :param str kind: The kind of ROI to add
-        :param numpy.ndarray points: The control points of the ROI shape
+        :param numpy.ndarray points: The first shape used to create the ROI
         :param str label: The label to display along with the ROI.
         :param int index: The position where to insert the ROI.
             By default it is appended to the end of the list.
@@ -276,14 +276,13 @@ class RegionOfInterestManager(qt.QObject):
         """
         roiClass = self._MODE_ACTIONS_PARAMS[kind][0]
         roi = roiClass(parent=None)
-        roi.setColor(self.getColor())
         roi.setLabel(str(label))
         roi.setFirstShapePoints(points)
 
         self.addRegionOfInterest(roi, index)
         return roi
 
-    def addRegionOfInterest(self, roi, index=None):
+    def addRegionOfInterest(self, roi, index=None, useManagerColor=True):
         """Add the ROI to the list of ROIs.
 
         :param roi_items.RegionOfInterest roi: The ROI to add
@@ -298,6 +297,10 @@ class RegionOfInterestManager(qt.QObject):
                 'Cannot add ROI: PlotWidget no more available')
 
         roi.setParent(self)
+
+        if useManagerColor:
+            roi.setColor(self.getColor())
+
         roi.sigControlPointsChanged.connect(
             self._regionOfInterestPointsChanged)
 
