@@ -27,7 +27,7 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "25/06/2018"
 
 import numpy
 import numbers
@@ -266,6 +266,8 @@ class TextFormatter(qt.QObject):
             elif vlen == six.binary_type:
                 # HDF5 ASCII
                 return self.__formatCharString(data)
+            elif isinstance(vlen, numpy.dtype):
+                return self.toString(data, vlen)
         return None
 
     def toString(self, data, dtype=None):
