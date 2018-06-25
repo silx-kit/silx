@@ -278,10 +278,6 @@ class TextFormatter(qt.QObject):
              special h5py dtypes are not propagated from array to items)
         :rtype: str
         """
-        if dtype is not None and dtype.kind == 'O':
-            text = self.__formatH5pyObject(data, dtype)
-            if text is not None:
-                return text
         if isinstance(data, tuple):
             text = [self.toString(d) for d in data]
             return "(" + " ".join(text) + ")"
@@ -297,6 +293,10 @@ class TextFormatter(qt.QObject):
             else:
                 text = [self.toString(d, dtype) for d in data]
                 return "[" + " ".join(text) + "]"
+        if dtype is not None and dtype.kind == 'O':
+            text = self.__formatH5pyObject(data, dtype)
+            if text is not None:
+                return text
         elif isinstance(data, numpy.void):
             if dtype is None:
                 dtype = data.dtype
