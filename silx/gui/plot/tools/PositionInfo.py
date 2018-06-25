@@ -41,7 +41,10 @@ import weakref
 
 import numpy
 
+from ....utils.deprecation import deprecated
 from ... import qt
+from .. import items
+
 
 _logger = logging.getLogger(__name__)
 
@@ -96,22 +99,12 @@ class PositionInfo(qt.QWidget):
     def __init__(self, parent=None, plot=None, converters=None):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
+        self._snappingMode = self.SNAPPING_DISABLED
 
         super(PositionInfo, self).__init__(parent)
 
         if converters is None:
             converters = (('X', lambda x, y: x), ('Y', lambda x, y: y))
-
-        self.autoSnapToActiveCurve = False
-        """Toggle snapping use position to active curve.
-
-        - True to snap used coordinates to the active curve if the active curve
-          is displayed with symbols and mouse is close enough.
-          If the mouse is not close to a point of the curve, values are
-          displayed in red.
-        - False (the default) to always use mouse coordinates.
-
-        """
 
         self._fields = []  # To store (QLineEdit, name, function (x, y)->v)
 
@@ -138,10 +131,17 @@ class PositionInfo(qt.QWidget):
         # Connect to Plot events
         plot.sigPlotSignal.connect(self._plotEvent)
 
-    @property
-    def plot(self):
-        """The :class:`.PlotWindow` this widget is attached to."""
+    def getPlotWidget(self):
+        """Returns the PlotWidget this widget is attached to or None.
+
+        :rtype: Union[~silx.gui.plot.PlotWidget,None]
+        """
         return self._plotRef()
+
+    @property
+    @deprecated(replacement='getPlotWidget', since_version='0.8.0')
+    def plot(self):
+        return self.getPlotWidget()
 
     def getConverters(self):
         """Return the list of converters as 2-tuple (name, function)."""
@@ -159,7 +159,7 @@ class PositionInfo(qt.QWidget):
 
     def updateInfo(self):
         """Update displayed information"""
-        plot = self.plot
+        plot = self.getPlotWidget()
         if plot is None:
             _logger.error("Trying to update PositionInfo "
                           "while PlotWidget no longer exists")
@@ -181,55 +181,102 @@ class PositionInfo(qt.QWidget):
         :param float xPixel: Position-x in pixels
         :param float yPixel: Position-y in pixels
         """
+        plot = self.getPlotWidget()
+        if plot is None:
+            return
+
         styleSheet = "color: rgb(0, 0, 0);"  # Default style
+        xData, yData = x, y
 
-        if self.autoSnapToActiveCurve and self.plot.getGraphCursor():
-            # Check if near active curve with symbols.
+        snappingMode = self.getSnappingMode()
 
-            styleSheet = "color: rgb(255, 0, 0);"  # Style far from curve
+        # Snapping when crosshair either not requested or active
+        if (snappingMode & (self.SNAPPING_CURVE | self.SNAPPING_SCATTER) and
+                (not (snappingMode & self.SNAPPING_CROSSHAIR) or
+                 plot.getGraphCursor())):
+            styleSheet = "color: rgb(255, 0, 0);"  # Style far from item
 
-            activeCurve = self.plot.getActiveCurve()
-            if activeCurve:
-                xData = activeCurve.getXData(copy=False)
-                yData = activeCurve.getYData(copy=False)
-                if activeCurve.getSymbol():  # Only handled if symbols on curve
-                    closestIndex = numpy.argmin(
-                        pow(xData - x, 2) + pow(yData - y, 2))
+            if snappingMode & self.SNAPPING_ACTIVE_ONLY:
+                selectedItems = []
 
-                    xClosest = xData[closestIndex]
-                    yClosest = yData[closestIndex]
+                if snappingMode & self.SNAPPING_CURVE:
+                    activeCurve = plot.getActiveCurve()
+                    if activeCurve:
+                        selectedItems.append(activeCurve)
 
-                    closestInPixels = self.plot.dataToPixel(
-                        xClosest, yClosest, axis=activeCurve.getYAxis())
-                    if closestInPixels is not None:
-                        # Compute threshold
-                        threshold = self.SNAP_THRESHOLD_DIST
-                        if qt.BINDING in ('PyQt5', 'PySide2'):
-                            window = self.plot.window()
-                            windowHandle = window.windowHandle()
-                            ratio = windowHandle.devicePixelRatio()
-                            threshold *= ratio
+                if snappingMode & self.SNAPPING_SCATTER:
+                    activeScatter = plot._getActiveItem(kind='scatter')
+                    if activeScatter:
+                        selectedItems.append(activeScatter)
 
-                        if (abs(closestInPixels[0] - xPixel) < threshold and
-                                abs(closestInPixels[1] - yPixel) < threshold):
-                            # Update label style sheet
-                            styleSheet = "color: rgb(0, 0, 0);"
+            else:
+                kinds = []
+                if snappingMode & self.SNAPPING_CURVE:
+                    kinds.append('curve')
+                if snappingMode & self.SNAPPING_SCATTER:
+                    kinds.append('scatter')
+                selectedItems = plot._getItems(kind=kinds)
 
-                            # if close enough, wrap to data point coords
-                            x, y = xClosest, yClosest
+            # Compute distance threshold
+            if qt.BINDING in ('PyQt5', 'PySide2'):
+                window = plot.window()
+                windowHandle = window.windowHandle()
+                if windowHandle is not None:
+                    ratio = windowHandle.devicePixelRatio()
+                else:
+                    ratio = qt.QGuiApplication.primaryScreen().devicePixelRatio()
+            else:
+                ratio = 1.
+
+            # Baseline squared distance threshold
+            distInPixels = (self.SNAP_THRESHOLD_DIST * ratio)**2
+
+            for item in selectedItems:
+                if (snappingMode & self.SNAPPING_SYMBOLS_ONLY and
+                        not item.getSymbol()):
+                    # Only handled if item symbols are visible
+                    continue
+
+                xArray = item.getXData(copy=False)
+                yArray = item.getYData(copy=False)
+                closestIndex = numpy.argmin(
+                    pow(xArray - x, 2) + pow(yArray - y, 2))
+
+                xClosest = xArray[closestIndex]
+                yClosest = yArray[closestIndex]
+
+                if isinstance(item, items.YAxisMixIn):
+                    axis = item.getYAxis()
+                else:
+                    axis = 'left'
+
+                closestInPixels = plot.dataToPixel(
+                    xClosest, yClosest, axis=axis)
+                if closestInPixels is not None:
+                    curveDistInPixels = (
+                        (closestInPixels[0] - xPixel)**2 +
+                        (closestInPixels[1] - yPixel)**2)
+
+                    if curveDistInPixels <= distInPixels:
+                        # Update label style sheet
+                        styleSheet = "color: rgb(0, 0, 0);"
+
+                        # if close enough, snap to data point coord
+                        xData, yData = xClosest, yClosest
+                        distInPixels = curveDistInPixels
 
         for label, name, func in self._fields:
             label.setStyleSheet(styleSheet)
 
             try:
-                value = func(x, y)
+                value = func(xData, yData)
                 text = self.valueToString(value)
                 label.setText(text)
             except:
                 label.setText('Error')
                 _logger.error(
                     "Error while converting coordinates (%f, %f)"
-                    "with converter '%s'" % (x, y, name))
+                    "with converter '%s'" % (xPixel, yPixel, name))
                 _logger.error(traceback.format_exc())
 
     def valueToString(self, value):
@@ -242,3 +289,59 @@ class PositionInfo(qt.QWidget):
         else:
             # Fallback for other types
             return str(value)
+
+    # Snapping mode
+
+    SNAPPING_DISABLED = 0
+    """No snapping occurs"""
+
+    SNAPPING_CROSSHAIR = 1 << 0
+    """Snapping only enabled when crosshair cursor is enabled"""
+
+    SNAPPING_ACTIVE_ONLY = 1 << 1
+    """Snapping only enabled for active item"""
+
+    SNAPPING_SYMBOLS_ONLY = 1 << 2
+    """Snapping only when symbols are visible"""
+
+    SNAPPING_CURVE = 1 << 3
+    """Snapping on curves"""
+
+    SNAPPING_SCATTER = 1 << 4
+    """Snapping on scatter"""
+
+    def setSnappingMode(self, mode):
+        """Set the snapping mode.
+
+        The mode is a mask.
+
+        :param int mode: The mode to use
+        """
+        if mode != self._snappingMode:
+            self._snappingMode = mode
+            self.updateInfo()
+
+    def getSnappingMode(self):
+        """Returns the snapping mode as a mask
+
+        :rtype: int
+        """
+        return self._snappingMode
+
+    _SNAPPING_LEGACY = (SNAPPING_CROSSHAIR |
+                        SNAPPING_ACTIVE_ONLY |
+                        SNAPPING_SYMBOLS_ONLY |
+                        SNAPPING_CURVE |
+                        SNAPPING_SCATTER)
+    """Legacy snapping mode"""
+
+    @property
+    @deprecated(replacement="getSnappingMode", since_version="0.8")
+    def autoSnapToActiveCurve(self):
+        return self.getSnappingMode() == self._SNAPPING_LEGACY
+
+    @autoSnapToActiveCurve.setter
+    @deprecated(replacement="setSnappingMode", since_version="0.8")
+    def autoSnapToActiveCurve(self, flag):
+        self.setSnappingMode(
+            self._SNAPPING_LEGACY if flag else self.SNAPPING_DISABLED)
