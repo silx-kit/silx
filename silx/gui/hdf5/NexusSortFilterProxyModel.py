@@ -159,7 +159,7 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
     def __createCompoundIcon(self, backgroundIcon, foregroundIcon):
         icon = qt.QIcon()
 
-        sizes = foregroundIcon.availableSizes()
+        sizes = backgroundIcon.availableSizes()
         sizes = sorted(sizes, key=lambda s: s.height())
         sizes = filter(lambda s: s.height() < 100, sizes)
         sizes = list(sizes)
