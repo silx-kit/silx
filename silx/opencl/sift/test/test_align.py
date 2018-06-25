@@ -37,23 +37,20 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/01/2018"
+__date__ = "25/06/2018"
 
 import unittest
 import logging
 import numpy
 try:
-    import scipy
-except ImportError:
-    scipy = None
-else:
     import scipy.misc
     import scipy.ndimage
+except ImportError:
+    scipy = None
 
 from ...common import ocl
 if ocl:
     import pyopencl
-    import pyopencl.array
 
 from ..alignment import LinearAlign
 logger = logging.getLogger(__name__)
@@ -109,9 +106,8 @@ class TestLinalign(unittest.TestCase):
         out = out["result"]
 
         if self.PROFILE and (out is not None):
-
             delta = (out - self.lena)[100:400, 100:400]
-            logger.info({"min":delta.min(), "max:":delta.max(), "mean":delta.mean(), "std:":delta.std()})
+            logger.info({"min": delta.min(), "max:": delta.max(), "mean": delta.mean(), "std:": delta.std()})
 
 
 def suite():

@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/01/2018"
+__date__ = "25/06/2018"
 
 import os
 import unittest
@@ -44,34 +44,28 @@ import time
 import logging
 import numpy
 try:
-    import scipy
+    import scipy.misc
 except ImportError:
     scipy = None
-else:
-    import scipy.misc
 
 
 # for Python implementation of tested functions
 # from test_image_functions import
 # from test_image_setup import
-from ..utils import calc_size, get_opencl_code
+from ..utils import get_opencl_code
 from ..plan import SiftPlan
 from ..match import match_py
 from silx.opencl import ocl
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl.array
 
 logger = logging.getLogger(__name__)
 
 try:
     import feature
-except:
+except ImportError:
     logger.warning("feature module is not available to compare results with C++ implementation. Matching cannot be tested.")
     feature = None
-
-
-'''
-'''
 
 
 @unittest.skipUnless(scipy and ocl, "no scipy or ocl")
