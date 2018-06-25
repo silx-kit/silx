@@ -106,11 +106,14 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         :param str name: A name
         :rtype: List
         """
+        nonSensitive = self.sortCaseSensitivity() == qt.Qt.CaseInsensitive
         words = self.__split.findall(name)
         result = []
         for i in words:
             if i[0].isdigit():
                 i = int(i)
+            elif nonSensitive:
+                i = i.lower()
             result.append(i)
         return result
 
