@@ -28,11 +28,14 @@ It loads the main features of silx and provides high-level functions.
 >>> from silx import sx
 
 When used in an interpreter is sets-up Qt and loads some silx widgets.
-When used in a `jupyter <https://jupyter.org/>`_  /
-`IPython <https://ipython.org/>`_ notebook, neither Qt nor silx widgets are loaded.
+In a `jupyter <https://jupyter.org/>`_  / `IPython <https://ipython.org/>`_
+notebook, to set-up Qt and loads silx widgets, you must then call:
+
+>>> sx.enable_gui()
 
 When used in `IPython <https://ipython.org/>`_, it also runs ``%pylab``,
-thus importing `numpy <http://www.numpy.org/>`_ and `matplotlib <https://matplotlib.org/>`_.
+thus importing `numpy <http://www.numpy.org/>`_ and
+`matplotlib <https://matplotlib.org/>`_.
 """
 
 
@@ -72,54 +75,61 @@ else:
     _IS_NOTEBOOK = False
 
 
-# Load Qt and widgets only if running from console and display available
-if _IS_NOTEBOOK:
-    _logger.warning(
-        'Not loading silx.gui features: Running from the notebook')
+def enable_gui():
+    """Populate silx.sx module with silx.gui features and initialise Qt"""
+    if _NO_DISPLAY:  # Missing DISPLAY under linux
+        _logger.warning(
+            'Not loading silx.gui features: No DISPLAY available')
+        return
 
-elif _NO_DISPLAY:  # Missing DISPLAY under linux
-    _logger.warning(
-        'Not loading silx.gui features: No DISPLAY available')
+    global qt, qapp
 
-else:
+    if _IS_NOTEBOOK:
+        _get_ipython().enable_pylab(gui='qt', import_all=False)
+
     from silx.gui import qt
-
     qapp = qt.QApplication.instance() or qt.QApplication([])
 
-    if hasattr(_sys, 'ps1'):  # If from console, make sure QApplication runs
+    if hasattr(_sys, 'ps1'):  # If from console, change windows icon
         # Change windows default icon
-        from silx.gui import icons as _icons
-        qapp.setWindowIcon(_icons.getQIcon('silx'))
-        del _icons  # clean-up namespace
+        from silx.gui import icons
+        qapp.setWindowIcon(icons.getQIcon('silx'))
 
-    from silx.gui.plot import *  # noqa
+    global ImageView, PlotWidget, PlotWindow, Plot1D
+    global Plot2D, StackView, ScatterView, TickMode
+    from silx.gui.plot import (ImageView, PlotWidget, PlotWindow, Plot1D,
+                               Plot2D, StackView, ScatterView, TickMode)  # noqa
+
+    global plot, imshow, scatter, ginput
     from ._plot import plot, imshow, scatter, ginput  # noqa
 
     try:
-        import OpenGL as _OpenGL
+        import OpenGL
     except ImportError:
         _logger.warning(
             'Not loading silx.gui.plot3d features: PyOpenGL is not installed')
     else:
-        del _OpenGL  # clean-up namespace
+        global contour3d, points3d
         from ._plot3d import contour3d, points3d  # noqa
+
+
+# Load Qt and widgets only if running from console and display available
+if _IS_NOTEBOOK:
+    _logger.warning(
+        'Not loading silx.gui features: Running from the notebook')
+else:
+    enable_gui()
 
 
 # %pylab
 if _get_ipython is not None and _get_ipython() is not None:
-    if _IS_NOTEBOOK:
-        _get_ipython().enable_pylab(gui='inline', import_all=False)
-    elif not _NO_DISPLAY:  # Not loading pylab without display
+    if not _NO_DISPLAY:  # Not loading pylab without display
         from IPython.core.pylabtools import import_pylab as _import_pylab
         _import_pylab(_get_ipython().user_ns, import_all=False)
 
 
 # Clean-up
 del _os
-del _sys
-del _get_ipython
-del _IS_NOTEBOOK
-del _NO_DISPLAY
 
 # Load some silx stuff in namespace
 from silx import version  # noqa
