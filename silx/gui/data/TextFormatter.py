@@ -300,8 +300,10 @@ class TextFormatter(qt.QObject):
         elif isinstance(data, numpy.void):
             if dtype is None:
                 dtype = data.dtype
-            if data.dtype.fields is not None:
-                text = [self.toString(data[f], dtype) for f in dtype.fields]
+            if dtype.fields is not None:
+                text = []
+                for index, field in enumerate(dtype.fields.items()):
+                    text.append(field[0] + ":" + self.toString(data[index], field[1][0]))
                 return "(" + " ".join(text) + ")"
             return self.__formatBinary(data)
         elif isinstance(data, (numpy.unicode_, six.text_type)):
