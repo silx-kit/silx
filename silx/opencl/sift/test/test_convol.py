@@ -51,9 +51,9 @@ except ImportError:
     scipy = None
 
 import unittest
-from silx.opencl import ocl, kernel_workgroup_size
+from silx.opencl import ocl
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl.array
 from ..utils import calc_size, get_opencl_code
 logger = logging.getLogger(__name__)
 
@@ -121,7 +121,7 @@ class TestConvol(unittest.TestCase):
 
     def tearDown(self):
         self.input = None
-#        self.gpudata.release()
+        # self.gpudata.release()
         self.program = None
         self.gpu_in = self.gpu_tmp = self.gpu_out = None
 
@@ -143,7 +143,7 @@ class TestConvol(unittest.TestCase):
             ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis=-1, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
-            if ksize % 2 == 0:  #we have a problem with even kernels !!!
+            if ksize % 2 == 0:  # we have a problem with even kernels !!!
                 self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
                 self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
@@ -175,7 +175,7 @@ class TestConvol(unittest.TestCase):
             ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis=0, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
-            if ksize % 2 == 0:  #we have a problem with even kernels !!!
+            if ksize % 2 == 0:  # we have a problem with even kernels !!!
                 self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
                 self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
@@ -203,10 +203,10 @@ class TestConvol(unittest.TestCase):
             k2.wait()
             t1 = time.time()
             ref = my_blur(self.input, gaussian)
-#            ref = scipy.ndimage.filters.gaussian_filter(self.input, sigma, mode="reflect")
+            # ref = scipy.ndimage.filters.gaussian_filter(self.input, sigma, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
-            if ksize % 2 == 0:  #we have a problem with even kernels !!!
+            if ksize % 2 == 0:  # we have a problem with even kernels !!!
                 self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
                 self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))

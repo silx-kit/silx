@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "25/06/2018"
 
 import numpy
 try:
@@ -83,8 +83,7 @@ def local_maxmin_setup():
     else:
         l2 = scipy.misc.lena().astype(numpy.float32)
 
-
-    l2 = numpy.ascontiguousarray(l2[0:507, 0:209]);
+    l2 = numpy.ascontiguousarray(l2[0:507, 0:209])
     # l2 = scipy.misc.imread("../aerial.tiff").astype(numpy.float32)
     l = normalize_image(l2)  # do not forget to normalize the image if you want to compare with sift.cpp
     for octave_cnt in range(1, int(numpy.log2(octsize)) + 1 + 1):
@@ -191,9 +190,3 @@ def matching_setup():
     kp1 = desc
     kp2 = numpy.ascontiguousarray(desc[::-1])
     return kp1, kp2, nb_keypoints, actual_nb_keypoints
-
-
-
-
-
-

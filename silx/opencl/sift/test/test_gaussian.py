@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2018"
+__date__ = "25/06/2018"
 
 import os
 import time
@@ -60,7 +60,7 @@ from ..utils import get_opencl_code
 logger = logging.getLogger(__name__)
 
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl.array
 
 
 def gaussian_cpu(sigma, size=None, PROFILE=False):
@@ -136,9 +136,9 @@ class TestGaussian(unittest.TestCase):
         g_gpu = pyopencl.array.empty(cls.queue, size, dtype=numpy.float32, order="C")
         t0 = time.time()
         evt1 = cls.kernels["gaussian"].gaussian_nosync(cls.queue, (size,), (1,),
-                                                       g_gpu.data, # __global     float     *data,
-                                                       numpy.float32(sigma), # const        float     sigma,
-                                                       numpy.int32(size)) # const        int     SIZE
+                                                       g_gpu.data,  # __global     float     *data,
+                                                       numpy.float32(sigma),  # const        float     sigma,
+                                                       numpy.int32(size))  # const        int     SIZE
         sum_data = pyopencl.array.sum(g_gpu, dtype=numpy.dtype(numpy.float32), queue=cls.queue)
         evt2 = cls.kernels["preprocess"].divide_cst(cls.queue, (size,), (1,),
                                                     g_gpu.data,  # __global     float     *data,
@@ -167,7 +167,7 @@ class TestGaussian(unittest.TestCase):
         evt = cls.kernels["gaussian"].gaussian(cls.queue, (64,), (64,),
                                                g_gpu.data,  # __global     float     *data,
                                                numpy.float32(sigma),  # const        float     sigma,
-                                               numpy.int32(size), # const        int     SIZE
+                                               numpy.int32(size),  # const        int     SIZE
                                                pyopencl.LocalMemory(64 * 4),
                                                pyopencl.LocalMemory(64 * 4),)
         g = g_gpu.get()

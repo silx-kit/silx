@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "25/06/2018"
 
 import numpy
 
@@ -551,4 +551,3 @@ def norm_L1(dset1, dset2):
 
 
 '''
-
