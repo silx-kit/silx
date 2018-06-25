@@ -348,7 +348,7 @@ class TextFormatter(qt.QObject):
         elif isinstance(data, (numbers.Real, numpy.floating)):
             # It have to be done before complex checking
             return self.__floatFormat % data
-        elif isinstance(data, (numpy.complex_, numbers.Complex)):
+        elif isinstance(data, (numpy.complexfloating, numbers.Complex)):
             text = ""
             if data.real != 0:
                 text += self.__floatFormat % data.real
