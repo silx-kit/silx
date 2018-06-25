@@ -41,12 +41,11 @@ __date__ = "12/01/2017"
 
 import numpy
 try:
-    import scipy
-except ImportError:
-    scipy = None
-else:
     import scipy.ndimage
     import scipy.misc
+except ImportError:
+    scipy = None
+
 from .test_image_functions import my_gradient, normalize_image, shrink, my_local_maxmin, \
     my_interp_keypoint, my_descriptor, my_orientation
 from .test_algebra import my_compact

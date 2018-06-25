@@ -43,12 +43,10 @@ import unittest
 import logging
 import numpy
 try:
-    import scipy
-except ImportError:
-    scipy = None
-else:
     import scipy.misc
     import scipy.ndimage
+except ImportError:
+    scipy = None
 
 from ...common import ocl
 if ocl:

@@ -44,11 +44,9 @@ import time
 import logging
 import numpy
 try:
-    import scipy
-except:
-    scipy = None
-else:
     import scipy.misc
+except ImportError:
+    scipy = None
 
 import math
 from silx.opencl import ocl, kernel_workgroup_size

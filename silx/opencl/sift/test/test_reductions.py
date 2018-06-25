@@ -49,8 +49,7 @@ try:
     import scipy
 except ImportError:
     scipy = None
-else:
-    import scipy.misc
+
 from silx.opencl import ocl
 if ocl:
     import pyopencl, pyopencl.array

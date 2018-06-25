@@ -47,12 +47,11 @@ import logging
 import numpy
 from silx.third_party import six
 try:
-    import scipy
-except ImportError:
-    scipy = None
-else:
     import scipy.misc
     import scipy.ndimage
+except ImportError:
+    scipy = None
+
 from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl, pyopencl.array

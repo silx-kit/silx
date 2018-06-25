@@ -48,12 +48,9 @@ import time
 import logging
 import numpy
 try:
-    import scipy
+    import scipy.misc
 except ImportError:
     scipy = None
-else:
-    import scipy.misc
-    import scipy.ndimage
 
 from silx.utils.testutils import parameterize
 # for Python implementation of tested functions

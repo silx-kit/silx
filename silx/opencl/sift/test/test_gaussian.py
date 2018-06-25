@@ -49,8 +49,7 @@ try:
     import scipy
 except ImportError:
     scipy = None
-else:
-    import scipy.misc, scipy.ndimage
+
 try:
     import mako
 except ImportError:

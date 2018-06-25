@@ -44,11 +44,9 @@ import time
 import logging
 import numpy
 try:
-    import scipy
+    import scipy.misc
 except ImportError:
     scipy = None
-else:
-    import scipy.misc
 
 
 # for Python implementation of tested functions

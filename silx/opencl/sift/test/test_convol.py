@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "25/06/2018"
 
 import os
 import time
@@ -45,11 +45,10 @@ import logging
 import numpy
 
 try:
-    import scipy
-except:
+    import scipy.misc
+    import scipy.ndimage
+except ImportError:
     scipy = None
-else:
-    import scipy.misc, scipy.ndimage
 
 import unittest
 from silx.opencl import ocl, kernel_workgroup_size
