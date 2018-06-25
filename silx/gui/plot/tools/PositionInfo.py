@@ -221,7 +221,10 @@ class PositionInfo(qt.QWidget):
             if qt.BINDING in ('PyQt5', 'PySide2'):
                 window = plot.window()
                 windowHandle = window.windowHandle()
-                ratio = windowHandle.devicePixelRatio()
+                if windowHandle is not None:
+                    ratio = windowHandle.devicePixelRatio()
+                else:
+                    ratio = qt.QGuiApplication.primaryScreen().devicePixelRatio()
             else:
                 ratio = 1.
 
