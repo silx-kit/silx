@@ -252,13 +252,14 @@ class _ImageContext(_StatsContext):
         XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
         YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
 
-        if XMaxBound < 0 or YMaxBound < 0:
-            return self.noDataSelected()
         XMinBound = max(XMinBound, 0)
         YMinBound = max(YMinBound, 0)
+
+        if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
+            return self.noDataSelected()
         data = item.getData()
         self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
-        if len(data) > 0:
+        if self.data.size > 0:
             self.min, self.max = min_max(self.data)
         else:
             self.min, self.max = None, None
