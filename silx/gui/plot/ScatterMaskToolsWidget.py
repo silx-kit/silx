@@ -443,6 +443,21 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                 shape=self._data_scatter.getXData(copy=False).shape)
         self._mask.commit()
 
+    def _getPencilWidth(self):
+        """Returns the width of the pencil to use in data coordinates`
+
+        :rtype: float
+        """
+        width = super(ScatterMaskToolsWidget, self)._getPencilWidth()
+
+        if self._data_scatter is not None:
+            # Adjust brush size to data range
+            from ...math.combo import min_max
+            xMin, xMax = min_max(self._data_scatter.getXData(copy=False))
+            yMin, yMax = min_max(self._data_scatter.getYData(copy=False))
+            width *= 0.01 * max(xMax - xMin, yMax - yMin)
+        return width
+
     def _plotDrawEvent(self, event):
         """Handle draw events from the plot"""
         if (self._drawingMode is None or
@@ -479,7 +494,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             doMask = self._isMasking()
             # convert from plot to array coords
             x, y = event['points'][-1]
-            brushSize = self.pencilSpinBox.value()
+
+            brushSize = self._getPencilWidth()
 
             if self._lastPencilPos != (y, x):
                 if self._lastPencilPos is not None:

@@ -976,13 +976,20 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.plot.setInteractiveMode('draw', shape='polygon', source=self, color=color)
         self._updateDrawingModeWidgets()
 
+    def _getPencilWidth(self):
+        """Returns the width of the pencil to use in data coordinates`
+
+        :rtype: float
+        """
+        return self.pencilSpinBox.value()
+
     def _activePencilMode(self):
         """Handle pencil action mode triggering"""
         self._releaseDrawingMode()
         self._drawingMode = 'pencil'
         self.plot.sigPlotSignal.connect(self._plotDrawEvent)
         color = self.getCurrentMaskColor()
-        width = self.pencilSpinBox.value()
+        width = self._getPencilWidth()
         self.plot.setInteractiveMode(
             'draw', shape='pencil', source=self, color=color, width=width)
         self._updateDrawingModeWidgets()
