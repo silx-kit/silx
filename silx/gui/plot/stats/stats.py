@@ -247,12 +247,10 @@ class _ImageContext(_StatsContext):
         self.origin = item.getOrigin()
         self.scale = item.getScale()
 
-        XMinBound = int(minX - self.origin[0])
-        YMinBound = int(minY - self.origin[1])
-        widthX = maxX - minX
-        widthY = maxY - minY
-        XMaxBound = int(XMinBound + widthX / self.scale[0])
-        YMaxBound = int(YMinBound + widthY / self.scale[1])
+        XMinBound = int((minX - self.origin[0]) / self.scale[0])
+        YMinBound = int((minY - self.origin[1]) / self.scale[1])
+        XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
+        YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
 
         if XMaxBound < 0 or YMaxBound < 0:
             return self.noDataSelected()
