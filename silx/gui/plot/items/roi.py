@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/06/2018"
+__date__ = "26/06/2018"
 
 
 import functools
@@ -55,8 +55,8 @@ class RegionOfInterest(qt.QObject):
     :param str kind: The kind of ROI represented by this object
     """
 
-    sigControlPointsChanged = qt.Signal()
-    """Signal emitted when this control points has changed"""
+    sigRegionChanged = qt.Signal()
+    """Signal emitted everytime the shape or position of the ROI changes"""
 
     def __init__(self, parent=None):
         # FIXME: Not very elegant: It checks class name to avoid recursive loop
@@ -243,7 +243,7 @@ class RegionOfInterest(qt.QObject):
                 # re-create plot items
                 self._createPlotItems()
 
-            self.sigControlPointsChanged.emit()
+            self.sigRegionChanged.emit()
 
     def _updateShape(self):
         """Called when shape must be updated.
