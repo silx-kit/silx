@@ -45,6 +45,7 @@ import numpy
 import sys
 
 from .. import qt
+from ...math.combo import min_max
 from ...image import shapes
 
 from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
@@ -186,6 +187,10 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         self._z = 2  # Mask layer in plot
         self._data_scatter = None
         """plot Scatter item for data"""
+
+        self._data_extent = None
+        """Maximum extent of the data i.e., max(xMax-xMin, yMax-yMin)"""
+
         self._mask_scatter = None
         """plot Scatter item for representing the mask"""
 
@@ -269,6 +274,9 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             # No active scatter or active scatter is the mask...
             self.plot.sigActiveScatterChanged.disconnect(
                 self._activeScatterChangedAfterCare)
+            self._data_extent = None
+            self._data_scatter = None
+
         else:
             colormap = activeScatter.getColormap()
             self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
@@ -278,6 +286,12 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
             self._z = activeScatter.getZValue() + 1
             self._data_scatter = activeScatter
+
+            # Adjust brush size to data range
+            xMin, xMax = min_max(self._data_scatter.getXData(copy=False))
+            yMin, yMax = min_max(self._data_scatter.getYData(copy=False))
+            self._data_extent = max(xMax - xMin, yMax - yMin)
+
             if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
                 # scatter has not the same size, remove mask and stop listening
                 if self.plot._getItem(kind="scatter", legend=self._maskName):
@@ -285,6 +299,9 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
                 self.plot.sigActiveScatterChanged.disconnect(
                     self._activeScatterChangedAfterCare)
+                self._data_extent = None
+                self._data_scatter = None
+
             else:
                 # Refresh in case z changed
                 self._mask.setDataItem(self._data_scatter)
@@ -299,6 +316,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self.setEnabled(False)
 
             self._data_scatter = None
+            self._data_extent = None
             self._mask.reset()
             self._mask.commit()
 
@@ -313,6 +331,12 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
             self._z = activeScatter.getZValue() + 1
             self._data_scatter = activeScatter
+
+            # Adjust brush size to data range
+            xMin, xMax = min_max(self._data_scatter.getXData(copy=False))
+            yMin, yMax = min_max(self._data_scatter.getYData(copy=False))
+            self._data_extent = max(xMax - xMin, yMax - yMin)
+
             self._mask.setDataItem(self._data_scatter)
             if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
                 self._mask.reset(self._data_scatter.getXData(copy=False).shape)
@@ -449,13 +473,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         :rtype: float
         """
         width = super(ScatterMaskToolsWidget, self)._getPencilWidth()
-
-        if self._data_scatter is not None:
-            # Adjust brush size to data range
-            from ...math.combo import min_max
-            xMin, xMax = min_max(self._data_scatter.getXData(copy=False))
-            yMin, yMax = min_max(self._data_scatter.getYData(copy=False))
-            width *= 0.01 * max(xMax - xMin, yMax - yMin)
+        if self._data_extent is not None:
+            width *= 0.01 * self._data_extent
         return width
 
     def _plotDrawEvent(self, event):
