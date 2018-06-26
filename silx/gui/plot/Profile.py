@@ -465,7 +465,11 @@ class ProfileToolBar(qt.QToolBar):
         self.optionsButton = ProfileOptionToolButton(parent=self, plot=self)
         self.addWidget(self.optionsButton)
         # TODO: add connection with the signal
-        self.optionsButton.sigMethodChanged.connect(self._profileWindow.setProfileType)
+        if self._profileWindow is None:
+            _proWindow = self._profileMainWindow
+        else:
+            _proWindow = self._profileWindow
+        self.optionsButton.sigMethodChanged.connect(_proWindow.setProfileType)
 
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)

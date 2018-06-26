@@ -75,7 +75,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         """Test horizontal and vertical profile, without and with image"""
         # Use Plot backend widget to submit mouse events
         widget = self.plot.getWidgetHandle()
-        for method in Profile.ProfileToolBar.METHODS:
+        for method in ('sum', 'mean'):
             with self.subTest(method=method):
                 # 2 positions to use for mouse events
                 pos1 = widget.width() * 0.4, widget.height() * 0.4
@@ -108,7 +108,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         # Use Plot backend widget to submit mouse events
         widget = self.plot.getWidgetHandle()
 
-        for method in Profile.ProfileToolBar.METHODS:
+        for method in ('sum', 'mean'):
             with self.subTest(method=method):
                 # 2 positions to use for mouse events
                 pos1 = widget.width() * 0.4, widget.height() * 0.4

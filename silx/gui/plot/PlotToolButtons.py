@@ -249,15 +249,14 @@ class ProfileOptionToolButton(PlotToolButton):
 
         self.STATE = {}
         # is down
-        self.STATE[False, "icon"] = icons.getQIcon('math-mean')
-        self.STATE[False, "state"] = "compute profile mean"
-        self.STATE[False, "action"] = "compute profile sum"
+        self.STATE[True, "icon"] = icons.getQIcon('math-mean')
+        self.STATE[True, "state"] = "compute profile mean"
+        self.STATE[True, "action"] = "compute profile sum"
         # keep ration
-        self.STATE[True, "icon"] = icons.getQIcon('math-sigma')
-        self.STATE[True, "state"] = "compute profile sum"
-        self.STATE[True, "action"] = "compute profile mean"
+        self.STATE[False, "icon"] = icons.getQIcon('math-sigma')
+        self.STATE[False, "state"] = "compute profile sum"
+        self.STATE[False, "action"] = "compute profile mean"
 
-        self._method = 'mean'
 
         sumAction = self._createAction(True)
         sumAction.triggered.connect(self.setSum)
@@ -272,6 +271,7 @@ class ProfileOptionToolButton(PlotToolButton):
         menu.addAction(meanAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
+        self.setMean()
 
     def _createAction(self, isUpward):
         icon = self.STATE[isUpward, "icon"]
@@ -280,11 +280,21 @@ class ProfileOptionToolButton(PlotToolButton):
 
     def setSum(self):
         """Configure the plot to use y-axis upward"""
-        self.sigMethodChanged.emit('sum')
+        self._method = 'sum'
+        self.sigMethodChanged.emit(self._method)
+        self._update()
+
+    def _update(self):
+        icon = self.STATE[self._method == 'sum', "icon"]
+        toolTip = self.STATE[self._method == 'sum', "state"]
+        self.setIcon(icon)
+        self.setToolTip(toolTip)
 
     def setMean(self):
         """Configure the plot to use y-axis downward"""
-        self.sigMethodChanged.emit('mean')
+        self._method = 'mean'
+        self.sigMethodChanged.emit(self._method)
+        self._update()
 
 
 class ProfileToolButton(PlotToolButton):
