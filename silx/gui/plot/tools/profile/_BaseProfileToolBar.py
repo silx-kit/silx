@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/06/2018"
+__date__ = "26/06/2018"
 
 
 import logging
@@ -71,8 +71,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         roiManager = RegionOfInterestManager(plot)
         self._roiManagerRef = weakref.ref(roiManager)
 
-        roiManager.sigInteractiveModeFinished.connect(
-            self.__interactionFinished)
+        roiManager.sigInteractiveModeFinished.connect(self.__interactionFinished)
         roiManager.sigRegionOfInterestChanged.connect(self.updateProfile)
         roiManager.sigRegionOfInterestAdded.connect(self.__roiAdded)
 
@@ -311,7 +310,7 @@ class _BaseProfileToolBar(qt.QToolBar):
 
     # Handle ROI manager
 
-    def __interactionFinished(self, rois):
+    def __interactionFinished(self):
         """Handle end of interactive mode"""
         self.clearProfile()
 
@@ -367,7 +366,7 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         return title
 
-    def updateProfile(self, *args):
+    def updateProfile(self):
         """Update profile according to current ROI"""
         roiManager = self._getRoiManager()
         if roiManager is None:

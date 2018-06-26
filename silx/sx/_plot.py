@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "26/06/2018"
 
 
 import collections
@@ -536,16 +536,14 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         if roi.getKind() == 'point':  # Only handle points
             roi.setLabel('%d' % len(self.__selections))
             self.__updateSelection(roi)
-            roi.sigControlPointsChanged.connect(
-                self.__controlPointsChanged)
+            roi.sigRegionChanged.connect(self.__regionChanged)
 
     def __removed(self, roi):
         """Handle ROI removed"""
         if self.__selections.pop(roi, None) is not None:
-            roi.sigControlPointsChanged.disconnect(
-                self.__controlPointsChanged)
+            roi.sigRegionChanged.disconnect(self.__regionChanged)
 
-    def __controlPointsChanged(self):
+    def __regionChanged(self):
         """Handle update of a ROI"""
         roi = self.sender()
         self.__updateSelection(roi)

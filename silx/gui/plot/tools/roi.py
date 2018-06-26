@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/06/2018"
+__date__ = "26/06/2018"
 
 
 import collections
@@ -77,7 +77,7 @@ class RegionOfInterestManager(qt.QObject):
     It provides the :class:`RegionOfInterest` object that is about to be removed.
     """
 
-    sigRegionOfInterestChanged = qt.Signal(tuple)
+    sigRegionOfInterestChanged = qt.Signal()
     """Signal emitted whenever the ROIs have changed.
 
     It provides the list of ROIs.
@@ -89,7 +89,7 @@ class RegionOfInterestManager(qt.QObject):
     It provides the kind of shape of the active interactive mode.
     """
 
-    sigInteractiveModeFinished = qt.Signal(tuple)
+    sigInteractiveModeFinished = qt.Signal()
     """Signal emitted when leaving and interactive ROI drawing.
 
     It provides the list of ROIs.
@@ -247,7 +247,7 @@ class RegionOfInterestManager(qt.QObject):
         """
         if self.getRegionOfInterests():  # Something to reset
             for roi in self._rois:
-                roi.sigControlPointsChanged.disconnect(
+                roi.sigRegionChanged.disconnect(
                     self._regionOfInterestPointsChanged)
                 roi.setParent(None)
             self._rois = []
@@ -259,7 +259,7 @@ class RegionOfInterestManager(qt.QObject):
 
     def _regionOfInterestPointsChanged(self):
         """Handle ROI object points changed"""
-        self.sigRegionOfInterestChanged.emit(self.getRegionOfInterests())
+        self.sigRegionOfInterestChanged.emit()
 
     def createRegionOfInterest(self, kind, points, label='', index=None):
         """Create a new ROI and add it to list of ROIs.
@@ -301,8 +301,7 @@ class RegionOfInterestManager(qt.QObject):
         if useManagerColor:
             roi.setColor(self.getColor())
 
-        roi.sigControlPointsChanged.connect(
-            self._regionOfInterestPointsChanged)
+        roi.sigRegionChanged.connect(self._regionOfInterestPointsChanged)
 
         if index is None:
             self._rois.append(roi)
@@ -326,14 +325,13 @@ class RegionOfInterestManager(qt.QObject):
         self.sigRegionOfInterestAboutToBeRemoved.emit(roi)
 
         self._rois.remove(roi)
-        roi.sigControlPointsChanged.disconnect(
-            self._regionOfInterestPointsChanged)
+        roi.sigRegionChanged.disconnect(self._regionOfInterestPointsChanged)
         roi.setParent(None)
         self._roisUpdated()
 
     def _roisUpdated(self):
         """Handle update of the ROI list"""
-        self.sigRegionOfInterestChanged.emit(self.getRegionOfInterests())
+        self.sigRegionOfInterestChanged.emit()
 
     # RegionOfInterest parameters
 
@@ -427,7 +425,7 @@ class RegionOfInterestManager(qt.QObject):
 
             self._updateModeActions()
 
-            self.sigInteractiveModeFinished.emit(self.getRegionOfInterestPoints())
+            self.sigInteractiveModeFinished.emit()
 
     def stop(self):
         """Stop interactive ROI drawing mode.
@@ -656,11 +654,11 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         # RegionOfInterest not removed yet
         self.__updateMessage(nbrois=len(self.getRegionOfInterests()) - 1)
 
-    def __started(self, *args, **kwargs):
+    def __started(self, roiKind):
         """Handle interactive mode started"""
         self.__updateMessage()
 
-    def __finished(self, *args, **kwargs):
+    def __finished(self):
         """Handle interactive mode finished"""
         self.__updateMessage()
 
@@ -849,7 +847,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         if manager is not None:
             manager.sigRegionOfInterestChanged.connect(self._sync)
 
-    def _sync(self, *args):
+    def _sync(self):
         """Update widget content according to ROI manger"""
         manager = self.getRegionOfInterestManager()
 
