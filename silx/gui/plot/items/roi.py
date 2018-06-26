@@ -86,12 +86,13 @@ class RegionOfInterest(qt.QObject):
         super(RegionOfInterest, self).setParent(parent)
         self._createPlotItems()
 
-    def getKind(self):
-        """Return kind of ROI
+    @classmethod
+    def _getKind(cls):
+        """Return an human readable kind of ROI
 
         :rtype: str
         """
-        return self._kind
+        return cls._kind
 
     def getColor(self):
         """Returns the color of this ROI

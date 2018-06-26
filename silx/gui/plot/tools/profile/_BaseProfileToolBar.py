@@ -39,6 +39,7 @@ from silx.gui import qt, icons, colors
 from silx.gui.plot import PlotWidget, items
 from silx.gui.plot.ProfileMainWindow import ProfileMainWindow
 from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.gui.plot.items import roi as roi_items
 
 
 _logger = logging.getLogger(__name__)
@@ -379,30 +380,27 @@ class _BaseProfileToolBar(qt.QToolBar):
             self._setProfile(profile=None, title='')
             return
 
-        kind = roi.getKind()
-
         # Get end points
-        if kind == 'line':
-            points = roi.getControlPoints()
+        if isinstance(roi, roi_items.LineROI):
+            points = roi.getEndPoints()
             x0, y0 = points[0]
             x1, y1 = points[1]
-
-        elif kind in ('hline', 'vline'):
+        elif isinstance(roi, (roi_items.VerticalLineROI, roi_items.HorizontalLineROI)):
             plot = self.getPlotWidget()
             if plot is None:
                 self._setProfile(profile=None, title='')
                 return
 
-            if kind == 'hline':
+            elif isinstance(roi, roi_items.HorizontalLineROI):
                 x0, x1 = plot.getXAxis().getLimits()
-                y0 = y1 = roi.getControlPoints()[0, 1]
+                y0 = y1 = roi.getPosition()
 
-            elif kind == 'vline':
-                x0 = x1 = roi.getControlPoints()[0, 0]
+            elif isinstance(roi, roi_items.VerticalLineROI):
+                x0 = x1 = roi.getPosition()
                 y0, y1 = plot.getYAxis().getLimits()
 
         else:
-            raise RuntimeError('Unsupported kind: {}'.format(kind))
+            raise RuntimeError('Unsupported ROI for profile: {}'.format(roi.__class__))
 
         if x1 < x0 or (x1 == x0 and y1 < y0):
             # Invert points

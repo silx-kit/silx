@@ -879,7 +879,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setText(None)
 
             # Kind
-            kind = roi.getKind()
+            kind = roi._getKind()
             item = qt.QTableWidgetItem(kind.capitalize())
             item.setFlags(baseFlags)
             self.setItem(index, 2, item)
