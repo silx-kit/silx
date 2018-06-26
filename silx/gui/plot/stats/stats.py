@@ -466,14 +466,14 @@ class StatCOM(StatBase):
                 ycom = 0.
             else:
                 ycom = numpy.sum(yData * dataYRange) / denoY
-                ycom = (ycom - yOrigin) * yScale + yOrigin
+                ycom = ycom * yScale + yOrigin
 
             denoX = numpy.sum(xData)
             if denoX == 0.:
                 xcom = 0.
             else:
                 xcom = numpy.sum(xData * dataXRange) / denoX
-                xcom = (xcom - xOrigin) * xScale + xOrigin
+                xcom = xcom * xScale + xOrigin
             return (xcom, ycom)
         else:
             raise ValueError('kind not managed')
