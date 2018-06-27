@@ -28,6 +28,7 @@ __date__ = "27/06/2018"
 
 
 import unittest
+import numpy
 
 from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
@@ -91,7 +92,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
 
         # Set a ROI profile
         self.profile._getRoiManager().createRegionOfInterest(
-            kind='hline', points=((0., 0.5), (0., 0.5)))
+            kind='hline', points=numpy.array([(0., 0.5)]))
         # Wait for async interpolator init
         for _ in range(10):
             self.qWait(200)
@@ -135,7 +136,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
 
         # Set a ROI profile
         self.profile._getRoiManager().createRegionOfInterest(
-            kind='vline', points=((0.5, 0.), (0.5, 1.)))
+            kind='vline', points=numpy.array([(0.5, 0.)]))
 
         # Wait for async interpolator init
         for _ in range(10):
@@ -185,7 +186,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
 
         # Set a ROI profile
         self.profile._getRoiManager().createRegionOfInterest(
-            kind='line', points=((0., 0.), (1., 1.)))
+            kind='line', points=numpy.array([(0., 0.), (1., 1.)]))
 
         # Wait for async interpolator init
         for _ in range(10):
