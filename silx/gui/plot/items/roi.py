@@ -870,6 +870,8 @@ class PolygonROI(RegionOfInterest):
         shape.setPoints(points)
 
     def _createShapeItems(self, points):
+        shapes = []
+
         # Add label marker
         markerPos = self._getLabelPosition()
         marker = items.Marker()
@@ -879,12 +881,15 @@ class PolygonROI(RegionOfInterest):
         marker.setSymbol('')
         marker._setDraggable(False)
 
-        item = items.Shape("polygon")
-        item.setPoints(points)
-        item.setColor(rgba(self.getColor()))
-        item.setFill(False)
-        item.setOverlay(True)
-        return [item, marker]
+        if len(points) > 0:
+            item = items.Shape("polygon")
+            item.setPoints(points)
+            item.setColor(rgba(self.getColor()))
+            item.setFill(False)
+            item.setOverlay(True)
+            shapes.append(item)
+
+        return shapes
 
     def _createAnchorItems(self, points):
         anchors = []
