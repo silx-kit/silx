@@ -126,18 +126,52 @@ class TestRoiItems(TestCaseQt):
         item.setFirstShapePoints(numpy.array([[5, 10], [50, 100]]))
         item.setGeometry(*item.getGeometry())
 
+    def testArc_degenerated_point(self):
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 0, 0, 0, 0
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+
+    def testArc_degenerated_line(self):
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 0, 100, numpy.pi, numpy.pi
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+
+    def testArc_special_circle(self):
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 0, 100, numpy.pi, 3 * numpy.pi
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        numpy.testing.assert_allclose(item.getCenter(), center)
+        self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
+        self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
+        self.assertAlmostEqual(item.getStartAngle(), item.getEndAngle() - numpy.pi * 2.0)
+        self.assertAlmostEqual(item.isClosed(), True)
+
+    def testArc_special_donut(self):
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi, 3 * numpy.pi
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        numpy.testing.assert_allclose(item.getCenter(), center)
+        self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
+        self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
+        self.assertAlmostEqual(item.getStartAngle(), item.getEndAngle() - numpy.pi * 2.0)
+        self.assertAlmostEqual(item.isClosed(), True)
+
     def testArc_clockwiseGeometry(self):
         """Test that we can use getGeometry as input to setGeometry"""
         item = roi_items.ArcROI()
         center = numpy.array([10, 20])
         innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, numpy.pi
         item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
-        print(item.getGeometry())
         numpy.testing.assert_allclose(item.getCenter(), center)
         self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
         self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
         self.assertAlmostEqual(item.getStartAngle(), startAngle)
         self.assertAlmostEqual(item.getEndAngle(), endAngle)
+        self.assertAlmostEqual(item.isClosed(), False)
 
     def testArc_anticlockwiseGeometry(self):
         """Test that we can use getGeometry as input to setGeometry"""
@@ -145,12 +179,12 @@ class TestRoiItems(TestCaseQt):
         center = numpy.array([10, 20])
         innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, -numpy.pi * 0.5
         item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
-        print(item.getGeometry())
         numpy.testing.assert_allclose(item.getCenter(), center)
         self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
         self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
         self.assertAlmostEqual(item.getStartAngle(), startAngle)
         self.assertAlmostEqual(item.getEndAngle(), endAngle)
+        self.assertAlmostEqual(item.isClosed(), False)
 
 
 class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):

@@ -1023,7 +1023,6 @@ class ArcROI(RegionOfInterest):
             # Special arc: It's a closed circle
             center = (controlPoints[0] + controlPoints[1]) * 0.5
             radius = numpy.linalg.norm(controlPoints[0] - center)
-            center, radius = self._circleEquation(*controlPoints[:3])
             v = controlPoints[0] - center
             startAngle = numpy.angle(complex(v[0], v[1]))
             endAngle = startAngle + numpy.pi * 2.0
@@ -1166,6 +1165,14 @@ class ArcROI(RegionOfInterest):
         if geometry.center is None:
             raise ValueError("This ROI can't be represented as a section of circle")
         return geometry.center, self.getInnerRadius(), self.getOuterRadius(), geometry.startAngle, geometry.endAngle
+
+    def isClosed(self):
+        """Returns true if the arc is a closed shape, like a circle or a donut.
+
+        :rtype: bool
+        """
+        geometry = self._getInternalGeometry()
+        return self._isCircle(geometry)
 
     def getCenter(self):
         """Returns the center of the circle used to draw arcs of this ROI.
