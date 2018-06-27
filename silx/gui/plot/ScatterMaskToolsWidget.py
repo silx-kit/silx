@@ -333,9 +333,14 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self._data_scatter = activeScatter
 
             # Adjust brush size to data range
-            xMin, xMax = min_max(self._data_scatter.getXData(copy=False))
-            yMin, yMax = min_max(self._data_scatter.getYData(copy=False))
-            self._data_extent = max(xMax - xMin, yMax - yMin)
+            xData = self._data_scatter.getXData(copy=False)
+            yData = self._data_scatter.getYData(copy=False)
+            if xData.size > 0 and yData.size > 0:
+                xMin, xMax = min_max(xData)
+                yMin, yMax = min_max(yData)
+                self._data_extent = max(xMax - xMin, yMax - yMin)
+            else:
+                self._data_extent = None
 
             self._mask.setDataItem(self._data_scatter)
             if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
