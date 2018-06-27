@@ -172,7 +172,7 @@ class RegionOfInterest(qt.QObject):
             # This can be avoided once marker.setDraggable is public
             self._createPlotItems()
 
-    def getControlPoints(self):
+    def _getControlPoints(self):
         """Returns the current ROI control points.
 
         It returns an empty tuple if there is currently no ROI.
@@ -209,7 +209,7 @@ class RegionOfInterest(qt.QObject):
         shapes.
         """
         points = self._createControlPointsFromFirstShape(points)
-        self.setControlPoints(points)
+        self._setControlPoints(points)
 
     def _createControlPointsFromFirstShape(self, points):
         """Returns the list of control points from the very first shape
@@ -220,7 +220,7 @@ class RegionOfInterest(qt.QObject):
         """
         return points
 
-    def setControlPoints(self, points):
+    def _setControlPoints(self, points):
         """Set this ROI control points.
 
         :param points: Iterable of (x, y) control points
@@ -284,7 +284,7 @@ class RegionOfInterest(qt.QObject):
         itemIndex = 0
 
         self._items = WeakList()
-        controlPoints = self.getControlPoints()
+        controlPoints = self._getControlPoints()
 
         plotItems = self._createShapeItems(controlPoints)
         for item in plotItems:
@@ -335,14 +335,14 @@ class RegionOfInterest(qt.QObject):
         """Called when an anchor is manually edited.
 
         This function have to be inherited to change the behaviours of the
-        control points. This function have to call :meth:`getControlPoints` to
+        control points. This function have to call :meth:`_getControlPoints` to
         reach the previous state of the control points. Updated the positions
-        of the changed control points. Then call :meth:`setControlPoints` to
+        of the changed control points. Then call :meth:`_setControlPoints` to
         update the anchors and send signals.
         """
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         points[index] = current
-        self.setControlPoints(points)
+        self._setControlPoints(points)
 
     def _removePlotItems(self):
         """Remove items from their plot."""
@@ -357,7 +357,7 @@ class RegionOfInterest(qt.QObject):
 
     def __str__(self):
         """Returns parameters of the ROI as a string."""
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         params = '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
@@ -384,10 +384,10 @@ class PointROI(RegionOfInterest):
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
         controlPoints = numpy.array([pos])
-        self.setControlPoints(controlPoints)
+        self._setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         return points[0]
 
     def _createShapeItems(self, points):
@@ -408,7 +408,7 @@ class PointROI(RegionOfInterest):
         return [marker]
 
     def __str__(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         params = '%f %f' % (points[0, 0], points[0, 1])
         return "%s(%s)" % (self.__class__.__name__, params)
 
@@ -439,7 +439,7 @@ class LineROI(RegionOfInterest):
         """
         shapePoints = numpy.array([startPoint, endPoint])
         controlPoints = self._createControlPointsFromFirstShape(shapePoints)
-        self.setControlPoints(controlPoints)
+        self._setControlPoints(controlPoints)
 
     def getEndPoints(self):
         """Returns bounding points of this ROI.
@@ -451,14 +451,14 @@ class LineROI(RegionOfInterest):
         return (startPoint, endPoint)
 
     def _getLabelPosition(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         return points[-1]
 
     def _updateShape(self):
         if len(self._items) == 0:
             return
         shape = self._items[0]
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         points = self._getShapeFromControlPoints(points)
         shape.setPoints(points)
 
@@ -508,22 +508,22 @@ class LineROI(RegionOfInterest):
     def _controlPointAnchorPositionChanged(self, index, current, previous):
         if index == len(self._editAnchors) - 1:
             # It is the center anchor
-            points = self.getControlPoints()
+            points = self._getControlPoints()
             center = numpy.mean(points[0:-1], axis=0)
             offset = current - previous
             points[-1] = current
             points[0:-1] = points[0:-1] + offset
-            self.setControlPoints(points)
+            self._setControlPoints(points)
         else:
             # Update the center
-            points = self.getControlPoints()
+            points = self._getControlPoints()
             points[index] = current
             center = numpy.mean(points[0:-1], axis=0)
             points[-1] = center
-            self.setControlPoints(points)
+            self._setControlPoints(points)
 
     def __str__(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         params = points[0][0], points[0][1], points[1][0], points[1][1]
         params = 'start: %f %f; end: %f %f' % params
         return "%s(%s)" % (self.__class__.__name__, params)
@@ -556,10 +556,10 @@ class HorizontalLineROI(RegionOfInterest):
         :param float pos: Horizontal position of this line
         """
         controlPoints = numpy.array([[float('nan'), pos]])
-        self.setControlPoints(controlPoints)
+        self._setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         return points[0]
 
     def _createShapeItems(self, points):
@@ -580,7 +580,7 @@ class HorizontalLineROI(RegionOfInterest):
         return [marker]
 
     def __str__(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         params = 'y: %f' % points[0, 1]
         return "%s(%s)" % (self.__class__.__name__, params)
 
@@ -612,10 +612,10 @@ class VerticalLineROI(RegionOfInterest):
         :param float pos: Horizontal position of this line
         """
         controlPoints = numpy.array([[pos, float('nan')]])
-        self.setControlPoints(controlPoints)
+        self._setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         return points[0]
 
     def _createShapeItems(self, points):
@@ -636,7 +636,7 @@ class VerticalLineROI(RegionOfInterest):
         return [marker]
 
     def __str__(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         params = 'x: %f' % points[0, 0]
         return "%s(%s)" % (self.__class__.__name__, params)
 
@@ -733,17 +733,17 @@ class RectangleROI(RegionOfInterest):
             controlPoints = self._createControlPointsFromFirstShape(points)
         else:
             raise ValueError("Origin or cengter expected")
-        self.setControlPoints(controlPoints)
+        self._setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         return points.min(axis=0)
 
     def _updateShape(self):
         if len(self._items) == 0:
             return
         shape = self._items[0]
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         points = self._getShapeFromControlPoints(points)
         shape.setPoints(points)
 
@@ -797,24 +797,24 @@ class RectangleROI(RegionOfInterest):
     def _controlPointAnchorPositionChanged(self, index, current, previous):
         if index == len(self._editAnchors) - 1:
             # It is the center anchor
-            points = self.getControlPoints()
+            points = self._getControlPoints()
             center = numpy.mean(points[0:-1], axis=0)
             offset = current - previous
             points[-1] = current
             points[0:-1] = points[0:-1] + offset
-            self.setControlPoints(points)
+            self._setControlPoints(points)
         else:
             # Fix other corners
             constrains = [(1, 3), (0, 2), (3, 1), (2, 0)]
             constrains = constrains[index]
-            points = self.getControlPoints()
+            points = self._getControlPoints()
             points[index] = current
             points[constrains[0]][0] = current[0]
             points[constrains[1]][1] = current[1]
             # Update the center
             center = numpy.mean(points[0:-1], axis=0)
             points[-1] = center
-            self.setControlPoints(points)
+            self._setControlPoints(points)
 
     def __str__(self):
         origin = self.getOrigin()
@@ -852,17 +852,17 @@ class PolygonROI(RegionOfInterest):
             controlPoints = numpy.array(points)
         else:
             controlPoints = numpy.empty((0, 2))
-        self.setControlPoints(controlPoints)
+        self._setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         return points[numpy.argmin(points[:, 1])]
 
     def _updateShape(self):
         if len(self._items) == 0:
             return
         shape = self._items[0]
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         shape.setPoints(points)
 
     def _createShapeItems(self, points):
@@ -894,7 +894,7 @@ class PolygonROI(RegionOfInterest):
         return anchors
 
     def __str__(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
@@ -925,10 +925,10 @@ class ArcROI(RegionOfInterest):
         """Returns the object storing the internal geometry of this ROI.
 
         This geometry is derived from the control points and cached for
-        efficiency. Calling :meth:`setControlPoints` invalidate the cache.
+        efficiency. Calling :meth:`_setControlPoints` invalidate the cache.
         """
         if self._geometry is None:
-            controlPoints = self.getControlPoints()
+            controlPoints = self._getControlPoints()
             self._geometry = self._createGeometryFromControlPoint(controlPoints)
         return self._geometry
 
@@ -937,19 +937,19 @@ class ArcROI(RegionOfInterest):
         return False
 
     def _getLabelPosition(self):
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         return points.min(axis=0)
 
     def _updateShape(self):
         if len(self._items) == 0:
             return
         shape = self._items[0]
-        points = self.getControlPoints()
+        points = self._getControlPoints()
         points = self._getShapeFromControlPoints(points)
         shape.setPoints(points)
 
     def _controlPointAnchorPositionChanged(self, index, current, previous):
-        controlPoints = self.getControlPoints()
+        controlPoints = self._getControlPoints()
         currentWeigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
 
         if index in [0, 2]:
@@ -982,13 +982,13 @@ class ArcROI(RegionOfInterest):
 
             # The weight have to be fixed
             self._updateWeightControlPoint(controlPoints, currentWeigth)
-            self.setControlPoints(controlPoints)
+            self._setControlPoints(controlPoints)
 
         elif index == 1:
             # The weight have to be fixed
             controlPoints[index] = current
             self._updateWeightControlPoint(controlPoints, currentWeigth)
-            self.setControlPoints(controlPoints)
+            self._setControlPoints(controlPoints)
         else:
             super(ArcROI, self)._controlPointAnchorPositionChanged(index, current, previous)
 
@@ -1077,10 +1077,10 @@ class ArcROI(RegionOfInterest):
 
         return points
 
-    def setControlPoints(self, points):
+    def _setControlPoints(self, points):
         # Invalidate the geometry
         self._geometry = None
-        RegionOfInterest.setControlPoints(self, points)
+        RegionOfInterest._setControlPoints(self, points)
 
     def getGeometry(self):
         """Returns a tuple containing the geometry of this ROI
@@ -1171,7 +1171,7 @@ class ArcROI(RegionOfInterest):
         weight = outerRadius - innerRadius
         geometry = self._ArcGeometry(center, None, None, radius, weight, startAngle, endAngle)
         controlPoints = self._createControlPointsFromGeometry(geometry)
-        self.setControlPoints(controlPoints)
+        self._setControlPoints(controlPoints)
 
     def _createControlPointsFromGeometry(self, geometry):
         if geometry.startPoint or geometry.endPoint:
