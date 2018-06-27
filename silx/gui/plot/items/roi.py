@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/06/2018"
+__date__ = "27/06/2018"
 
 
 import functools
@@ -536,7 +536,6 @@ class HorizontalLineROI(RegionOfInterest):
 
         :rtype: float
         """
-        print self._points
         return self._points[0, 1]
 
     def setPosition(self, pos):
@@ -1159,7 +1158,6 @@ class ArcROI(RegionOfInterest):
         self.setControlPoints(controlPoints)
 
     def _createControlPointsFromGeometry(self, geometry):
-        print("------------------------")
         if geometry.startPoint or geometry.endPoint:
             # Duplication with the angles
             raise NotImplementedError("This general case is not implemented")
@@ -1177,7 +1175,6 @@ class ArcROI(RegionOfInterest):
         curvaturePoint = geometry.center + direction * geometry.radius
         weightPoint = curvaturePoint + direction * geometry.weight * 0.5
 
-        print(startPoint, curvaturePoint, endPoint, weightPoint)
         return numpy.array([startPoint, curvaturePoint, endPoint, weightPoint])
 
     def _createControlPointsFromFirstShape(self, points):
