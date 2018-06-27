@@ -24,11 +24,10 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "08/06/2018"
+__date__ = "27/06/2018"
 
 
 import unittest
-import weakref
 
 from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
@@ -94,7 +93,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.profile._getRoiManager().createRegionOfInterest(
             kind='hline', points=((0., 0.5), (0., 0.5)))
         # Wait for async interpolator init
-        for i in range(10):
+        for _ in range(10):
             self.qWait(200)
             if not self.profile.hasPendingOperations():
                 break
@@ -139,7 +138,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
             kind='vline', points=((0.5, 0.), (0.5, 1.)))
 
         # Wait for async interpolator init
-        for i in range(10):
+        for _ in range(10):
             self.qWait(200)
             if not self.profile.hasPendingOperations():
                 break
@@ -189,7 +188,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
             kind='line', points=((0., 0.), (1., 1.)))
 
         # Wait for async interpolator init
-        for i in range(10):
+        for _ in range(10):
             self.qWait(200)
             if not self.profile.hasPendingOperations():
                 break
