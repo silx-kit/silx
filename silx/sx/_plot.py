@@ -38,7 +38,7 @@ import numpy
 
 from ..utils.weakref import WeakList
 from ..gui import qt
-from ..gui.plot import Plot1D, Plot2D, ScatterView, PlotWidget
+from ..gui.plot import Plot1D, Plot2D, ScatterView
 from ..gui.colors import COLORDICT
 from ..gui.colors import Colormap
 from ..gui.plot.tools import roi
