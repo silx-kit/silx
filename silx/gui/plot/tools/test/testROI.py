@@ -284,6 +284,88 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
 
                 manager.clearRegionOfInterests()
 
+    def testRoiDisplay(self):
+        rois = []
+
+        # Line
+        item = roi_items.LineROI()
+        startPoint = numpy.array([1, 2])
+        endPoint = numpy.array([3, 4])
+        item.setEndPoints(startPoint, endPoint)
+        rois.append(item)
+        # Horizontal line
+        item = roi_items.HorizontalLineROI()
+        item.setPosition(15)
+        rois.append(item)
+        # Vertical line
+        item = roi_items.VerticalLineROI()
+        item.setPosition(15)
+        rois.append(item)
+        # Point
+        item = roi_items.PointROI()
+        point = numpy.array([1, 2])
+        item.setPosition(point)
+        rois.append(item)
+        # Rectangle
+        item = roi_items.RectangleROI()
+        origin = numpy.array([0, 0])
+        size = numpy.array([10, 20])
+        item.setGeometry(origin=origin, size=size)
+        rois.append(item)
+        # Polygon
+        item = roi_items.PolygonROI()
+        points = numpy.array([[10, 10], [12, 10], [50, 1]])
+        item.setPoints(points)
+        rois.append(item)
+        # Degenerated polygon: No points
+        item = roi_items.PolygonROI()
+        points = numpy.empty((0, 2))
+        item.setPoints(points)
+        rois.append(item)
+        # Degenerated polygon: A single point
+        item = roi_items.PolygonROI()
+        points = numpy.array([[5, 10]])
+        item.setPoints(points)
+        rois.append(item)
+        # Degenerated arc: it's a point
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 0, 0, 0, 0
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        rois.append(item)
+        # Degenerated arc: it's a line
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 0, 100, numpy.pi, numpy.pi
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        rois.append(item)
+        # Special arc: it's a donut
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi, 3 * numpy.pi
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        rois.append(item)
+        # Arc
+        item = roi_items.ArcROI()
+        center = numpy.array([10, 20])
+        innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, numpy.pi
+        item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        rois.append(item)
+
+        manager = roi.RegionOfInterestManager(self.plot)
+        self.roiTableWidget.setRegionOfInterestManager(manager)
+        for item in rois:
+            print(item)
+            with self.subTest(roi=str(item)):
+                manager.addRegionOfInterest(item)
+                self.qapp.processEvents()
+                item.setEditable(True)
+                self.qapp.processEvents()
+                item.setEditable(False)
+                self.qapp.processEvents()
+                manager.removeRegionOfInterest(item)
+                self.qapp.processEvents()
+
     def testMaxROI(self):
         """Test Max ROI"""
         origin1 = numpy.array([1., 10.])
