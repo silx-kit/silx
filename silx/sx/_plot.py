@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/06/2018"
+__date__ = "27/06/2018"
 
 
 import collections
@@ -42,6 +42,7 @@ from ..gui.plot import Plot1D, Plot2D, ScatterView, PlotWidget
 from ..gui.colors import COLORDICT
 from ..gui.colors import Colormap
 from ..gui.plot.tools import roi
+from ..gui.plot.items import roi as roi_items
 from ..gui.plot.tools.toolbars import InteractiveModeToolBar
 from silx.third_party import six
 
@@ -491,7 +492,11 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         if plot is None:
             return  # No plot, abort
 
-        x, y = roi.getControlPoints()[0]
+        if not isinstance(roi, roi_items.PointROI):
+            # Only handle points
+            raise RuntimeError("Unexpected item")
+
+        x, y = roi.getPosition()
         xPixel, yPixel = plot.dataToPixel(x, y, axis='left', check=False)
 
         # Pick item at selected position
@@ -533,7 +538,8 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
 
         :param RegionOfInterest roi:
         """
-        if roi.getKind() == 'point':  # Only handle points
+        if isinstance(roi, roi_items.PointROI):
+            # Only handle points
             roi.setLabel('%d' % len(self.__selections))
             self.__updateSelection(roi)
             roi.sigRegionChanged.connect(self.__regionChanged)

@@ -65,8 +65,9 @@ class RegionOfInterest(qt.QObject):
     """Signal emitted everytime the shape or position of the ROI changes"""
 
     def __init__(self, parent=None):
-        # FIXME: Not very elegant: It checks class name to avoid recursive loop
-        assert parent is None or "RegionOfInterestManager" in parent.__class__.__name__
+        # Avoid circular dependancy
+        from ..tools import roi as roi_tools
+        assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         super(RegionOfInterest, self).__init__(parent)
         self._color = rgba('red')
         self._items = WeakList()
@@ -84,8 +85,9 @@ class RegionOfInterest(qt.QObject):
 
         :param Union[None,RegionOfInterestManager] parent:
         """
-        # FIXME: Not very elegant: It checks class name to avoid recursive loop
-        if (parent is not None and "RegionOfInterestManager" not in parent.__class__.__name__):
+        # Avoid circular dependancy
+        from ..tools import roi as roi_tools
+        if (parent is not None and not isinstance(parent, roi_tools.RegionOfInterestManager)):
             raise ValueError('Unsupported parent')
 
         self._removePlotItems()
