@@ -856,6 +856,9 @@ class PolygonROI(RegionOfInterest):
 
     def _getLabelPosition(self):
         points = self._getControlPoints()
+        if len(points) == 0:
+            # FIXME: we should return none, this polygon have no location
+            return numpy.array([0, 0])
         return points[numpy.argmin(points[:, 1])]
 
     def _updateShape(self):
