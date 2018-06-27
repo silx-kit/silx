@@ -970,11 +970,13 @@ class ArcROI(RegionOfInterest):
             normal = (endPoint - startPoint)
             normal = numpy.array((normal[1], -normal[0]))
             distance = numpy.linalg.norm(normal)
-            # FIXME: take care of division by 0
-            normal /= distance
-            midVector = controlPoints[1] - center
-            # Coeficient which have to be constrained
-            constainedCoef = numpy.dot(midVector, normal) / distance
+            # Compute the coeficient which have to be constrained
+            if distance != 0:
+                normal /= distance
+                midVector = controlPoints[1] - center
+                constainedCoef = numpy.dot(midVector, normal) / distance
+            else:
+                constainedCoef = 1.0
 
             # Compute the location of the curvature point
             controlPoints[index] = current
@@ -984,8 +986,10 @@ class ArcROI(RegionOfInterest):
             normal = (endPoint - startPoint)
             normal = numpy.array((normal[1], -normal[0]))
             distance = numpy.linalg.norm(normal)
-            # FIXME: take care of division by 0
-            normal /= distance
+            if distance != 0:
+                # BTW we dont need to divide by the distance here
+                # Cause we compute normal * distance after all
+                normal /= distance
             midPoint = center + normal * constainedCoef * distance
             controlPoints[1] = midPoint
 
@@ -1008,17 +1012,28 @@ class ArcROI(RegionOfInterest):
         normal = (endPoint - startPoint)
         normal = numpy.array((normal[1], -normal[0]))
         distance = numpy.linalg.norm(normal)
-        # FIXME: take care of division by 0
-        normal /= distance
+        if distance != 0:
+            normal /= distance
         controlPoints[3] = midPoint + normal * weigth * 0.5
 
     def _createGeometryFromControlPoint(self, controlPoints):
         """Returns the geometry of the object"""
         weigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
-        if numpy.linalg.norm(
-            # Colinear
+        if numpy.allclose(controlPoints[0], controlPoints[2]):
+            # Special arc: It's a closed circle
+            center = (controlPoints[0] + controlPoints[1]) * 0.5
+            radius = numpy.linalg.norm(controlPoints[0] - center)
+            center, radius = self._circleEquation(*controlPoints[:3])
+            v = controlPoints[0] - center
+            startAngle = numpy.angle(complex(v[0], v[1]))
+            endAngle = startAngle + numpy.pi * 2.0
+            return self._ArcGeometry(center, controlPoints[0], controlPoints[2],
+                                     radius, weigth, startAngle, endAngle)
+
+        elif numpy.linalg.norm(
             numpy.cross(controlPoints[1] - controlPoints[0],
                         controlPoints[2] - controlPoints[0])) < 1e-5:
+            # Degenerated arc, it's a rectangle
             return self._ArcGeometry(None, controlPoints[0], controlPoints[2],
                                      None, weigth, None, None)
         else:
@@ -1040,6 +1055,11 @@ class ArcROI(RegionOfInterest):
             return self._ArcGeometry(center, controlPoints[0], controlPoints[2],
                                      radius, weigth, startAngle, endAngle)
 
+    def _isCircle(self, geometry):
+        """Returns True if the geometry is a closed circle"""
+        delta = numpy.abs(geometry.endAngle - geometry.startAngle)
+        return numpy.isclose(delta, numpy.pi * 2)
+
     def _getShapeFromControlPoints(self, controlPoints):
         geometry = self._createGeometryFromControlPoint(controlPoints)
         if geometry.center is None:
@@ -1047,7 +1067,9 @@ class ArcROI(RegionOfInterest):
             # but we can display it as an the intermediat shape
             normal = (geometry.endPoint - geometry.startPoint)
             normal = numpy.array((normal[1], -normal[0]))
-            normal /= numpy.linalg.norm(normal)
+            distance = numpy.linalg.norm(normal)
+            if distance != 0:
+                normal /= distance
             points = numpy.array([
                 geometry.startPoint + normal * geometry.weight * 0.5,
                 geometry.endPoint + normal * geometry.weight * 0.5,
@@ -1057,31 +1079,68 @@ class ArcROI(RegionOfInterest):
             innerRadius = geometry.radius - geometry.weight * 0.5
             outerRadius = geometry.radius + geometry.weight * 0.5
 
+            if numpy.isnan(geometry.startAngle):
+                # Degenerated, it's a point
+                # At least 2 points are expected
+                return numpy.array([geometry.startPoint, geometry.startPoint])
+
             delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
+            if geometry.startAngle == geometry.endAngle:
+                # Degenerated, it's a line (single radius)
+                angle = geometry.startAngle
+                direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                points = []
+                points.append(geometry.center + direction * innerRadius)
+                points.append(geometry.center + direction * outerRadius)
+                return numpy.array(points)
+
             angles = numpy.arange(geometry.startAngle, geometry.endAngle, delta)
             if angles[-1] != geometry.endAngle:
                 angles = numpy.append(angles, geometry.endAngle)
 
-            if innerRadius <= 0:
-                # Remove the inner radius
-                points = []
-                points.append(geometry.center)
-                points.append(geometry.startPoint)
-                delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
-                for angle in angles:
-                    direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-                    points.append(geometry.center + direction * outerRadius)
-                points.append(geometry.endPoint)
-                points.append(geometry.center)
+            isCircle = self._isCircle(geometry)
+
+            if isCircle:
+                if innerRadius <= 0:
+                    # It's a circle
+                    points = []
+                    numpy.append(angles, angles[-1])
+                    for angle in angles:
+                        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                        points.append(geometry.center + direction * outerRadius)
+                else:
+                    # It's a donut
+                    points = []
+                    # NOTE: NaN value allow to create 2 separated circle shapes
+                    # using a single plot item. It's a kind of cheat
+                    points.append(numpy.array([float("nan"), float("nan")]))
+                    for angle in angles:
+                        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                        points.insert(0, geometry.center + direction * innerRadius)
+                        points.append(geometry.center + direction * outerRadius)
+                    points.append(numpy.array([float("nan"), float("nan")]))
             else:
-                points = []
-                points.append(geometry.startPoint)
-                for angle in angles:
-                    direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-                    points.insert(0, geometry.center + direction * innerRadius)
-                    points.append(geometry.center + direction * outerRadius)
-                points.insert(0, geometry.endPoint)
-                points.append(geometry.endPoint)
+                if innerRadius <= 0:
+                    # It's a part of camembert
+                    points = []
+                    points.append(geometry.center)
+                    points.append(geometry.startPoint)
+                    delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
+                    for angle in angles:
+                        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                        points.append(geometry.center + direction * outerRadius)
+                    points.append(geometry.endPoint)
+                    points.append(geometry.center)
+                else:
+                    # It's a part of donut
+                    points = []
+                    points.append(geometry.startPoint)
+                    for angle in angles:
+                        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                        points.insert(0, geometry.center + direction * innerRadius)
+                        points.append(geometry.center + direction * outerRadius)
+                    points.insert(0, geometry.endPoint)
+                    points.append(geometry.endPoint)
             points = numpy.array(points)
 
         return points
@@ -1270,7 +1329,9 @@ class ArcROI(RegionOfInterest):
         midPoint = (start + end) / 2.
         normal = (end - start)
         normal = numpy.array((normal[1], -normal[0]))
-        normal /= numpy.linalg.norm(normal)
+        distance = numpy.linalg.norm(normal)
+        if distance != 0:
+            normal /= distance
         v = numpy.dot(normal, (numpy.array((x, y)) - midPoint))
         x, y = midPoint + v * normal
         return x, y
