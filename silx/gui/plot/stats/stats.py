@@ -242,25 +242,29 @@ class _ImageContext(_StatsContext):
                                plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        minX, maxX = plot.getXAxis().getLimits()
-        minY, maxY = plot.getYAxis().getLimits()
         self.origin = item.getOrigin()
         self.scale = item.getScale()
+        self.data = item.getData()
 
-        XMinBound = int(minX - self.origin[0])
-        YMinBound = int(minY - self.origin[1])
-        widthX = maxX - minX
-        widthY = maxY - minY
-        XMaxBound = int(XMinBound + widthX / self.scale[0])
-        YMaxBound = int(YMinBound + widthY / self.scale[1])
+        if onlimits:
+            minX, maxX = plot.getXAxis().getLimits()
+            minY, maxY = plot.getYAxis().getLimits()
 
-        if XMaxBound < 0 or YMaxBound < 0:
-            return self.noDataSelected()
-        XMinBound = max(XMinBound, 0)
-        YMinBound = max(YMinBound, 0)
-        data = item.getData()
-        self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
-        if len(data) > 0:
+            XMinBound = int(minX - self.origin[0])
+            YMinBound = int(minY - self.origin[1])
+            widthX = maxX - minX
+            widthY = maxY - minY
+            XMaxBound = int(XMinBound + widthX / self.scale[0])
+            YMaxBound = int(YMinBound + widthY / self.scale[1])
+
+            if XMaxBound < 0 or YMaxBound < 0:
+                return self.noDataSelected()
+            XMinBound = max(XMinBound, 0)
+            YMinBound = max(YMinBound, 0)
+            data = item.getData()
+            self.data = self.data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
+
+        if len(self.data) > 0:
             self.min, self.max = min_max(self.data)
         else:
             self.min, self.max = None, None
