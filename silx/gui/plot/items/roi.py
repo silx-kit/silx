@@ -848,6 +848,7 @@ class PolygonROI(RegionOfInterest):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
+        assert(len(points.shape) == 2 and points.shape[1] == 2)
         if len(points) > 0:
             controlPoints = numpy.array(points)
         else:
