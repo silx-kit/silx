@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/06/2018"
+__date__ = "27/06/2018"
 
 
 import unittest
@@ -209,8 +209,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 # Add a point
                 manager.createRegionOfInterest(kind, points[0])
                 self.qapp.processEvents()
-                self.assertTrue(numpy.all(numpy.equal(
-                    manager.getRegionOfInterestPoints(), (points[0],))))
+                self.assertTrue(len(manager.getRegionOfInterests()), 1)
                 self.assertEqual(changedListener.callCount(), 1)
 
                 # Remove it
@@ -223,9 +222,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.qapp.processEvents()
                 manager.createRegionOfInterest(kind, points[1])
                 self.qapp.processEvents()
-                self.assertTrue(numpy.all(numpy.equal(
-                    manager.getRegionOfInterestPoints(),
-                    (points[0], points[1]))))
+                self.assertTrue(len(manager.getRegionOfInterests()), 2)
                 self.assertEqual(changedListener.callCount(), 4)
 
                 # Reset it
@@ -241,18 +238,13 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.qapp.processEvents()
                 manager.createRegionOfInterest(kind, points[1])
                 self.qapp.processEvents()
-                self.assertTrue(numpy.all(numpy.equal(
-                    manager.getRegionOfInterestPoints(),
-                    (points[0], points[1]))))
+                self.assertTrue(len(manager.getRegionOfInterests()), 2)
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # stop
                 result = manager.stop()
                 self.assertTrue(result)
-                self.assertTrue(numpy.all(numpy.equal(
-                    manager.getRegionOfInterestPoints(),
-                    (points[0], points[1]))))
-
+                self.assertTrue(len(manager.getRegionOfInterests()), 1)
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 1)
 

@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/06/2018"
+__date__ = "27/06/2018"
 
 
 import collections
@@ -220,14 +220,6 @@ class RegionOfInterestManager(qt.QObject):
                     self._drawnROI = None  # Stop drawing
 
     # RegionOfInterest API
-
-    def getRegionOfInterestPoints(self):
-        """Returns the current ROIs control points
-
-        :return: Tuple of arrays of (x, y) points in plot coordinates
-        :rtype: tuple of Nx2 numpy.ndarray
-        """
-        return tuple(s.getControlPoints() for s in self.getRegionOfInterests())
 
     def getRegionOfInterests(self):
         """Returns the list of ROIs.
@@ -466,7 +458,7 @@ class RegionOfInterestManager(qt.QObject):
 
         self.stop()
 
-        rois = self.getRegionOfInterestPoints()
+        rois = self.getRegionOfInterests()
         self.clearRegionOfInterests()
         return rois
 
