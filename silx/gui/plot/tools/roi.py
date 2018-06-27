@@ -839,6 +839,29 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         if manager is not None:
             manager.sigRegionOfInterestChanged.connect(self._sync)
 
+    def _getReadableRoiDescription(self, roi):
+        """Returns modelisation of a ROI as a readable sequence of values.
+
+        :rtype: str
+        """
+        text = str(roi)
+        try:
+            # Extract the params from syntax "CLASSNAME(PARAMS)"
+            elements = text.split("(", 1)
+            if len(elements) != 2:
+                return text
+            result = elements[1]
+            result = result.strip()
+            if not result.endswith(")"):
+                return text
+            result = result[0:-1]
+            # Capitalize each words
+            result = result.title()
+            return result
+        except Exception:
+            logger.debug("Backtrace", exc_info=True)
+        return text
+
     def _sync(self):
         """Update widget content according to ROI manger"""
         manager = self.getRegionOfInterestManager()
@@ -871,8 +894,11 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setText(None)
 
             # Kind
-            kind = roi._getKind()
-            item = qt.QTableWidgetItem(kind.capitalize())
+            label = roi._getKind()
+            if label is None:
+                # Default value if kind is not overrided
+                label = roi.__class__.__name__
+            item = qt.QTableWidgetItem(label.capitalize())
             item.setFlags(baseFlags)
             self.setItem(index, 2, item)
 
@@ -880,7 +906,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setFlags(baseFlags)
 
             # Coordinates
-            text = roi.paramsToString()
+            text = self._getReadableRoiDescription(roi)
             item.setText(text)
             self.setItem(index, 3, item)
 

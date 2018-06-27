@@ -55,6 +55,12 @@ class RegionOfInterest(qt.QObject):
     :param str kind: The kind of ROI represented by this object
     """
 
+    _kind = None
+    """Label for this kind of ROI.
+
+    Should be setted by inherited classes to custom the ROI manager widget.
+    """
+
     sigRegionChanged = qt.Signal()
     """Signal emitted everytime the shape or position of the ROI changes"""
 
@@ -347,10 +353,11 @@ class RegionOfInterest(qt.QObject):
         self._items = WeakList()
         self._editAnchors = WeakList()
 
-    def paramsToString(self):
+    def __str__(self):
         """Returns parameters of the ROI as a string."""
         points = self.getControlPoints()
-        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
+        params = '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
+        return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class PointROI(RegionOfInterest):
@@ -398,9 +405,10 @@ class PointROI(RegionOfInterest):
         marker._setDraggable(self.isEditable())
         return [marker]
 
-    def paramsToString(self):
+    def __str__(self):
         points = self.getControlPoints()
-        return '(%f; %f)' % (points[0, 0], points[0, 1])
+        params = '%f %f' % (points[0, 0], points[0, 1])
+        return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class LineROI(RegionOfInterest):
@@ -512,9 +520,11 @@ class LineROI(RegionOfInterest):
             points[-1] = center
             self.setControlPoints(points)
 
-    def paramsToString(self):
+    def __str__(self):
         points = self.getControlPoints()
-        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points[0:2])
+        params = points[0][0], points[0][1], points[1][0], points[1][1]
+        params = 'start: %f %f; end: %f %f' % params
+        return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class HorizontalLineROI(RegionOfInterest):
@@ -567,9 +577,10 @@ class HorizontalLineROI(RegionOfInterest):
         marker._setDraggable(self.isEditable())
         return [marker]
 
-    def paramsToString(self):
+    def __str__(self):
         points = self.getControlPoints()
-        return 'Y: %f' % points[0, 1]
+        params = 'y: %f' % points[0, 1]
+        return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class VerticalLineROI(RegionOfInterest):
@@ -622,9 +633,10 @@ class VerticalLineROI(RegionOfInterest):
         marker._setDraggable(self.isEditable())
         return [marker]
 
-    def paramsToString(self):
+    def __str__(self):
         points = self.getControlPoints()
-        return 'X: %f' % points[0, 0]
+        params = 'x: %f' % points[0, 0]
+        return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class RectangleROI(RegionOfInterest):
@@ -802,11 +814,12 @@ class RectangleROI(RegionOfInterest):
             points[-1] = center
             self.setControlPoints(points)
 
-    def paramsToString(self):
+    def __str__(self):
         origin = self.getOrigin()
         w, h = self.getSize()
-        return ('Origin: (%f; %f); Width: %f; Height: %f' %
-                (origin[0], origin[1], w, h))
+        params = origin[0], origin[1], w, h
+        params = 'origin: %f %f; width: %f; height: %f' % params
+        return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class PolygonROI(RegionOfInterest):
@@ -878,9 +891,10 @@ class PolygonROI(RegionOfInterest):
             anchors.append(anchor)
         return anchors
 
-    def paramsToString(self):
+    def __str__(self):
         points = self.getControlPoints()
-        return '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
+        params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
+        return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class ArcROI(RegionOfInterest):
@@ -1263,10 +1277,11 @@ class ArcROI(RegionOfInterest):
         c = (x - y) * (w - abs(w) ** 2) / 2j / w.imag - x
         return ((-c.real, -c.imag), abs(c + x))
 
-    def paramsToString(self):
+    def __str__(self):
         try:
             center, innerRadius, outerRadius, startAngle, endAngle = self.getGeometry()
             params = center[0], center[1], innerRadius, outerRadius, startAngle, endAngle
-            return 'Center: %f %f; Radius: %f %f; Angles: %f %f' % params
+            params = 'center: %f %f; radius: %f %f; angles: %f %f' % params
         except ValueError:
-            return "Not an arc"
+            params = "invalid"
+        return "%s(%s)" % (self.__class__.__name__, params)
