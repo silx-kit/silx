@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -637,6 +637,12 @@ class ProfileToolBar(qt.QToolBar):
                                            colormap=colormap)
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+            # Scale horizontal and vertical profile coordinates
+            if self._roiInfo[2] == 'X':
+                coords = coords * scale[0] + origin[0]
+            elif self._roiInfo[2] == 'Y':
+                coords = coords * scale[1] + origin[1]
+
             self.getProfilePlot().addCurve(coords,
                                            profile[0],
                                            legend=profileName,
