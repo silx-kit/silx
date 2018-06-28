@@ -303,6 +303,15 @@ class StatBase(object):
         """
         raise NotImplementedError('Base class')
 
+    def getToolTip(self, kind):
+        """
+        If necessary add a tooltip for a stat kind
+
+        :param str kinf: the kind of item the statistic is compute for.
+        :return: tooltip or None if no tooltip
+        """
+        return None
+
 
 class Stat(StatBase):
     """
@@ -387,6 +396,11 @@ class StatCoordMin(StatBase):
         else:
             raise ValueError('kind not managed')
 
+    def getToolTip(self, kind):
+        if kind in ('scatter', 'image'):
+            return '(x, y)'
+        else:
+            return None
 
 class StatCoordMax(StatBase):
     """
@@ -415,6 +429,11 @@ class StatCoordMax(StatBase):
         else:
             raise ValueError('kind not managed')
 
+    def getToolTip(self, kind):
+        if kind in ('scatter', 'image'):
+            return '(x, y)'
+        else:
+            return None
 
 class StatCOM(StatBase):
     """
@@ -464,3 +483,9 @@ class StatCOM(StatBase):
             return (xcom, ycom)
         else:
             raise ValueError('kind not managed')
+
+    def getToolTip(self, kind):
+        if kind in ('scatter', 'image'):
+            return '(x, y)'
+        else:
+            return None
