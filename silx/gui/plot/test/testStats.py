@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,12 +87,12 @@ class TestStats(TestCaseQt):
 
     def createImageContext(self):
         self.plot2d = Plot2D()
-        lgd = 'test image'
+        self._imgLgd = 'test image'
         self.imageData = numpy.arange(32*128).reshape(32, 128)
         self.plot2d.addImage(data=self.imageData,
-                             legend=lgd, replace=False)
+                             legend=self._imgLgd, replace=False)
         self.imageContext = stats._ImageContext(
-            item=self.plot2d.getImage(lgd),
+            item=self.plot2d.getImage(self._imgLgd),
             plot=self.plot2d,
             onlimits=False
         )
@@ -141,19 +141,64 @@ class TestStats(TestCaseQt):
 
         self.assertTrue(_stats['com'].calculate(self.imageContext) == (xcom, ycom))
 
+    def testStatsImageAdv(self):
+        """Test that scale and origin are taking into account for images"""
+
+        image2Data = numpy.arange(32 * 128).reshape(32, 128)
+        self.plot2d.addImage(data=image2Data, legend=self._imgLgd,
+                             replace=True, origin=(100, 10), scale=(2, 0.5))
+        image2Context = stats._ImageContext(
+            item=self.plot2d.getImage(self._imgLgd),
+            plot=self.plot2d,
+            onlimits=False
+        )
+        _stats = self.getBasicStats()
+        self.assertTrue(_stats['min'].calculate(image2Context) == 0)
+        self.assertTrue(
+            _stats['max'].calculate(image2Context) == 128 * 32 - 1)
+        self.assertTrue(
+            _stats['minCoords'].calculate(image2Context) == (100, 10))
+        self.assertTrue(
+            _stats['maxCoords'].calculate(image2Context) == (127*2. + 100,
+                                                             31 * 0.5 + 10)
+        )
+        self.assertTrue(
+            _stats['std'].calculate(image2Context) == numpy.std(
+                self.imageData))
+        self.assertTrue(
+            _stats['mean'].calculate(image2Context) == numpy.mean(
+                self.imageData))
+
+        yData = numpy.sum(self.imageData, axis=1)
+        xData = numpy.sum(self.imageData, axis=0)
+        dataXRange = range(self.imageData.shape[1])
+        dataYRange = range(self.imageData.shape[0])
+
+        ycom = numpy.sum(yData * dataYRange) / numpy.sum(yData)
+        ycom = (ycom * 0.5) + 10
+        xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
+        xcom = (xcom * 2.) + 100
+        self.assertTrue(
+            _stats['com'].calculate(image2Context) == (xcom, ycom))
+
     def testBasicStatsScatter(self):
         """Test result for simple stats on a scatter"""
         _stats = self.getBasicStats()
         self.assertTrue(_stats['min'].calculate(self.scatterContext) == 5)
         self.assertTrue(_stats['max'].calculate(self.scatterContext) == 90)
-        self.assertTrue(_stats['minCoords'].calculate(self.scatterContext) == [(2, 0), (18, 36)])
-        self.assertTrue(_stats['maxCoords'].calculate(self.scatterContext) == (69, 50))
+        self.assertTrue(_stats['minCoords'].calculate(self.scatterContext) == (0, 2))
+        self.assertTrue(_stats['maxCoords'].calculate(self.scatterContext) == (50, 69))
         self.assertTrue(_stats['std'].calculate(self.scatterContext) == numpy.std(self.valuesScatterData))
         self.assertTrue(_stats['mean'].calculate(self.scatterContext) == numpy.mean(self.valuesScatterData))
 
-        com = numpy.sum(self.xScatterData * self.valuesScatterData).astype(numpy.float32) / numpy.sum(
+        comx = numpy.sum(self.xScatterData * self.valuesScatterData).astype(numpy.float32) / numpy.sum(
             self.valuesScatterData).astype(numpy.float32)
-        self.assertTrue(numpy.all(numpy.equal(_stats['com'].calculate(self.scatterContext), com)))
+        comy = numpy.sum(self.yScatterData * self.valuesScatterData).astype(numpy.float32) / numpy.sum(
+            self.valuesScatterData).astype(numpy.float32)
+        self.assertTrue(numpy.all(
+            numpy.equal(_stats['com'].calculate(self.scatterContext),
+                        (comx, comy)))
+        )
 
     def testKindNotManagedByStat(self):
         """Make sure an exception is raised if we try to execute calculate
@@ -443,8 +488,8 @@ class TestStatsWidgetWithImages(TestCaseQt):
         self.assertTrue(itemMin.text() == '0.000')
         self.assertTrue(itemMax.text() == '{0:.3f}'.format(max))
         self.assertTrue(itemDelta.text() == '{0:.3f}'.format(max))
-        self.assertTrue(itemCoordsMin.text() == '(0, 0)')
-        self.assertTrue(itemCoordsMax.text() == '(127, 127)')
+        self.assertTrue(itemCoordsMin.text() == '0.0, 0.0')
+        self.assertTrue(itemCoordsMax.text() == '127.0, 127.0')
 
 
 class TestStatsWidgetWithScatters(TestCaseQt):
@@ -492,8 +537,8 @@ class TestStatsWidgetWithScatters(TestCaseQt):
         self.assertTrue(itemMin.text() == '5')
         self.assertTrue(itemMax.text() == '90')
         self.assertTrue(itemDelta.text() == '85')
-        self.assertTrue(itemCoordsMin.text() == '(2, 0)')
-        self.assertTrue(itemCoordsMax.text() == '(69, 50)')
+        self.assertTrue(itemCoordsMin.text() == '0, 2')
+        self.assertTrue(itemCoordsMax.text() == '50, 69')
 
 
 class TestEmptyStatsWidget(TestCaseQt):
