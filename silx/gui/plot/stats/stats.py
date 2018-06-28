@@ -250,21 +250,22 @@ class _ImageContext(_StatsContext):
             minX, maxX = plot.getXAxis().getLimits()
             minY, maxY = plot.getYAxis().getLimits()
 
-            XMinBound = int(minX - self.origin[0])
-            YMinBound = int(minY - self.origin[1])
-            widthX = maxX - minX
-            widthY = maxY - minY
-            XMaxBound = int(XMinBound + widthX / self.scale[0])
-            YMaxBound = int(YMinBound + widthY / self.scale[1])
+            XMinBound = int((minX - self.origin[0]) / self.scale[0])
+            YMinBound = int((minY - self.origin[1]) / self.scale[1])
+            XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
+            YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
 
-            if XMaxBound < 0 or YMaxBound < 0:
-                return self.noDataSelected()
             XMinBound = max(XMinBound, 0)
             YMinBound = max(YMinBound, 0)
-            data = item.getData()
-            self.data = self.data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
 
-        if len(self.data) > 0:
+            if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
+                return self.noDataSelected()
+            data = item.getData()
+            self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
+        else:
+            self.data = item.getData()
+
+        if self.data.size > 0:
             self.min, self.max = min_max(self.data)
         else:
             self.min, self.max = None, None
@@ -470,14 +471,14 @@ class StatCOM(StatBase):
                 ycom = 0.
             else:
                 ycom = numpy.sum(yData * dataYRange) / denoY
-                ycom = (ycom - yOrigin) * yScale + yOrigin
+                ycom = ycom * yScale + yOrigin
 
             denoX = numpy.sum(xData)
             if denoX == 0.:
                 xcom = 0.
             else:
                 xcom = numpy.sum(xData * dataXRange) / denoX
-                xcom = (xcom - xOrigin) * xScale + xOrigin
+                xcom = xcom * xScale + xOrigin
             return (xcom, ycom)
         else:
             raise ValueError('kind not managed')

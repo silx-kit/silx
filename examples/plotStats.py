@@ -77,15 +77,14 @@ class COM(StatBase):
                 return numpy.sum(xData * yData).astype(numpy.float32) / deno
         elif context.kind == 'scatter':
             xData, yData, values = context.data
+            values = values.astype(numpy.float64)
             deno = numpy.sum(values)
             if deno == 0.0:
-                return 0.0, 0.0
+                return float('inf'), float('inf')
             else:
-                comX = numpy.sum(xData * values).astype(numpy.float32) / \
-                       numpy.sum(values).astype(numpy.float32)
-                comY = numpy.sum(yData * values).astype(numpy.float32) / \
-                       numpy.sum(values).astype(numpy.float32)
-                return (comX, comY)
+                comX = numpy.sum(xData * values) / deno
+                comY = numpy.sum(yData * values) / deno
+                return comX, comY
 
 
 def main():

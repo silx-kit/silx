@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -175,9 +175,9 @@ class TestStats(TestCaseQt):
         dataYRange = range(self.imageData.shape[0])
 
         ycom = numpy.sum(yData * dataYRange) / numpy.sum(yData)
-        ycom = ((ycom - 10) * 0.5) + 10
+        ycom = (ycom * 0.5) + 10
         xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
-        xcom = ((xcom - 100) * 2.) + 100
+        xcom = (xcom * 2.) + 100
         self.assertTrue(
             _stats['com'].calculate(image2Context) == (xcom, ycom))
 
