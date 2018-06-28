@@ -360,76 +360,58 @@ class StatDelta(StatBase):
         return context.max - context.min
 
 
-def _getImgCoordsFor(data, searchValue, scale, origin):
-    coordsY, coordsX = numpy.where(data == searchValue)
-    scaleX, scaleY = scale
-    originX, originY = origin
-    if len(coordsX) is 0:
-        return []
-    if len(coordsX) is 1:
-        return (int(coordsX[0] * scaleX + originX),
-                int(coordsY[0] * scaleY + originY))
-    coords = []
-    for xCoord, yCoord in zip(coordsX, coordsY):
-        coord = (int(xCoord * scaleX + originX),
-                 int(yCoord * scaleY + originY))
-        coords.append(coord)
-    return coords
-
-
-def _getScatterCoordsFor(scatterData, searchValue):
-    xData, yData, values = scatterData
-    indexes = numpy.where(values == searchValue)[0]
-    if len(indexes) is 0:
-        return []
-    if len(indexes) is 1:
-        return (yData[indexes[0]], xData[indexes[0]])
-    coords = []
-    for index in indexes:
-        coords.append((yData[index], xData[index]))
-    return coords
-
-
 class StatCoordMin(StatBase):
     """
-    Compute the coordinates of the data minimal value
+    Compute the first coordinates of the data minimal value
     """
     def __init__(self):
         StatBase.__init__(self, name='coords min')
 
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
-            xData, yData = context.data
-            return xData[numpy.where(yData == context.min)]
+            return context.xData[numpy.argmin(context.yData)]
         elif context.kind == 'scatter':
-            return _getScatterCoordsFor(context.data, context.min)
+            xData, yData, valueData = context.data
+            return (xData[numpy.argmin(valueData)],
+                    yData[numpy.argmin(valueData)])
         elif context.kind == 'image':
-            return _getImgCoordsFor(context.data,
-                                    context.min,
-                                    scale=context.scale,
-                                    origin=context.origin)
+            scaleX, scaleY = context.scale
+            originX, originY = context.origin
+            index1D = numpy.argmin(context.data)
+            ySize = (context.data.shape[1])
+            x = index1D % context.data.shape[1]
+            y = (index1D - x) / ySize
+            x = x * scaleX + originX
+            y = y * scaleY + originY
+            return (x, y)
         else:
             raise ValueError('kind not managed')
 
 
 class StatCoordMax(StatBase):
     """
-    Compute the coordinates of the data minimal value
+    Compute the first coordinates of the data minimal value
     """
     def __init__(self):
         StatBase.__init__(self, name='coords max')
 
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
-            xData, yData = context.data
-            return xData[numpy.where(yData == context.max)]
+            return context.xData[numpy.argmax(context.yData)]
         elif context.kind == 'scatter':
-            return _getScatterCoordsFor(context.data, context.max)
+            xData, yData, valueData = context.data
+            return (xData[numpy.argmax(valueData)],
+                    yData[numpy.argmax(valueData)])
         elif context.kind == 'image':
-            return _getImgCoordsFor(context.data,
-                                    context.max,
-                                    scale=context.scale,
-                                    origin=context.origin)
+            scaleX, scaleY = context.scale
+            originX, originY = context.origin
+            index1D = numpy.argmax(context.data)
+            ySize = (context.data.shape[1])
+            x = index1D % context.data.shape[1]
+            y = (index1D - x) / ySize
+            x = x * scaleX + originX
+            y = y * scaleY + originY
+            return (x, y)
         else:
             raise ValueError('kind not managed')
 
