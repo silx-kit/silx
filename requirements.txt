@@ -7,7 +7,7 @@
 
 numpy >= 1.8
 scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
-fabio >= 0.6              # For silx.io
+fabio >= 0.7              # For silx.io
 h5py                      # For silx.io
 pyopencl                  # For silx.opencl
 Mako                      # For pyopencl reduction
