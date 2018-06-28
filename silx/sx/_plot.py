@@ -471,12 +471,12 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         else:  # Add a toolbar
             toolbar = qt.QToolBar()
             window.addToolBar(toolbar)
-        toolbar.addAction(self.getInteractionModeAction('point'))
+        toolbar.addAction(self.getInteractionModeAction(roi_items.PointROI))
 
-        super(_GInputHandler, self).exec_(kind='point', timeout=self._timeout)
+        super(_GInputHandler, self).exec_(roiClass=roi_items.PointROI, timeout=self._timeout)
 
         if isinstance(toolbar, InteractiveModeToolBar):
-            toolbar.removeAction(self.getInteractionModeAction('point'))
+            toolbar.removeAction(self.getInteractionModeAction(roi_items.PointROI))
         else:
             toolbar.setParent(None)
 

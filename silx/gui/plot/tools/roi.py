@@ -671,7 +671,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             if nbrois is None:
                 nbrois = len(self.getRois())
 
-            kind = self.__execClass
+            kind = self.__execClass._getKind()
             max_ = self.getMaxRois()
 
             if max_ is None:
