@@ -67,16 +67,16 @@ roiManager.setColor('pink')  # Set the color of ROI
 def updateAddedRegionOfInterest(roi):
     """Called for each added region of interest: set the name"""
     if roi.getLabel() == '':
-        roi.setLabel('ROI %d' % len(roiManager.getRegionOfInterests()))
+        roi.setLabel('ROI %d' % len(roiManager.getRois()))
 
 
-roiManager.sigRegionOfInterestAdded.connect(updateAddedRegionOfInterest)
+roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)
 
 # Add a rectangular region of interest
 roi = RectangleROI()
 roi.setGeometry(origin=(50, 50), size=(200, 200))
 roi.setLabel('Initial ROI')
-roiManager.addRegionOfInterest(roi)
+roiManager.addRoi(roi)
 
 # Create the table widget displaying
 roiTable = RegionOfInterestTableWidget()

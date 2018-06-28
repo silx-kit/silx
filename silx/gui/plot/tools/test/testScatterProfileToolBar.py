@@ -91,7 +91,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Set a ROI profile
-        self.profile._getRoiManager().createRegionOfInterest(
+        self.profile._getRoiManager().createRoi(
             kind='hline', points=numpy.array([(0., 0.5)]))
         # Wait for async interpolator init
         for _ in range(10):
@@ -135,7 +135,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Set a ROI profile
-        self.profile._getRoiManager().createRegionOfInterest(
+        self.profile._getRoiManager().createRoi(
             kind='vline', points=numpy.array([(0.5, 0.)]))
 
         # Wait for async interpolator init
@@ -185,7 +185,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Set a ROI profile
-        self.profile._getRoiManager().createRegionOfInterest(
+        self.profile._getRoiManager().createRoi(
             kind='line', points=numpy.array([(0., 0.), (1., 1.)]))
 
         # Wait for async interpolator init

@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2018"
+__date__ = "28/06/2018"
 
 
 import collections
@@ -448,10 +448,10 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         window = plot.window()  # Retrieve window containing PlotWidget
         statusBar = window.statusBar()
         self.sigMessageChanged.connect(statusBar.showMessage)
-        self.setMaxRegionOfInterests(n)
+        self.setMaxRois(n)
         self.setValidationMode(self.ValidationMode.AUTO_ENTER)
-        self.sigRegionOfInterestAdded.connect(self.__added)
-        self.sigRegionOfInterestAboutToBeRemoved.connect(self.__removed)
+        self.sigRoiAdded.connect(self.__added)
+        self.sigRoiAboutToBeRemoved.connect(self.__removed)
 
     def exec_(self):
         """Request user inputs

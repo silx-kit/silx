@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/06/2018"
+__date__ = "28/06/2018"
 
 
 import logging
@@ -73,8 +73,8 @@ class _BaseProfileToolBar(qt.QToolBar):
         self._roiManagerRef = weakref.ref(roiManager)
 
         roiManager.sigInteractiveModeFinished.connect(self.__interactionFinished)
-        roiManager.sigRegionOfInterestChanged.connect(self.updateProfile)
-        roiManager.sigRegionOfInterestAdded.connect(self.__roiAdded)
+        roiManager.sigRoiChanged.connect(self.updateProfile)
+        roiManager.sigRoiAdded.connect(self.__roiAdded)
 
         # Add interactive mode actions
         for kind, icon, tooltip in (
@@ -305,7 +305,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         roiManager = self._getRoiManager()
         if roiManager is not None:
             roiManager.setColor(self._color)
-            for roi in roiManager.getRegionOfInterests():
+            for roi in roiManager.getRois():
                 roi.setColor(self._color)
         self.updateProfile()
 
@@ -327,9 +327,9 @@ class _BaseProfileToolBar(qt.QToolBar):
         # Remove any other ROI
         roiManager = self._getRoiManager()
         if roiManager is not None:
-            for regionOfInterest in list(roiManager.getRegionOfInterests()):
+            for regionOfInterest in list(roiManager.getRois()):
                 if regionOfInterest is not roi:
-                    roiManager.removeRegionOfInterest(regionOfInterest)
+                    roiManager.removeRoi(regionOfInterest)
 
     def computeProfile(self, x0, y0, x1, y1):
         """Compute corresponding profile
@@ -373,7 +373,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         if roiManager is None:
             roi = None
         else:
-            rois = roiManager.getRegionOfInterests()
+            rois = roiManager.getRois()
             roi = None if len(rois) == 0 else rois[0]
 
         if roi is None:
@@ -425,6 +425,6 @@ class _BaseProfileToolBar(qt.QToolBar):
         """Clear the current line ROI and associated profile"""
         roiManager = self._getRoiManager()
         if roiManager is not None:
-            roiManager.clearRegionOfInterests()
+            roiManager.clear()
 
         self._setProfile(profile=None, title='')

@@ -232,57 +232,57 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.roiTableWidget.setRegionOfInterestManager(manager)
                 manager.start(kind)
 
-                self.assertEqual(manager.getRegionOfInterests(), ())
+                self.assertEqual(manager.getRois(), ())
 
                 finishListener = SignalListener()
                 manager.sigInteractiveModeFinished.connect(finishListener)
 
                 changedListener = SignalListener()
-                manager.sigRegionOfInterestChanged.connect(changedListener)
+                manager.sigRoiChanged.connect(changedListener)
 
                 # Add a point
-                manager.createRegionOfInterest(kind, points[0])
+                manager.createRoi(kind, points[0])
                 self.qapp.processEvents()
-                self.assertTrue(len(manager.getRegionOfInterests()), 1)
+                self.assertTrue(len(manager.getRois()), 1)
                 self.assertEqual(changedListener.callCount(), 1)
 
                 # Remove it
-                manager.removeRegionOfInterest(manager.getRegionOfInterests()[0])
-                self.assertEqual(manager.getRegionOfInterests(), ())
+                manager.removeRoi(manager.getRois()[0])
+                self.assertEqual(manager.getRois(), ())
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Add two point
-                manager.createRegionOfInterest(kind, points[0])
+                manager.createRoi(kind, points[0])
                 self.qapp.processEvents()
-                manager.createRegionOfInterest(kind, points[1])
+                manager.createRoi(kind, points[1])
                 self.qapp.processEvents()
-                self.assertTrue(len(manager.getRegionOfInterests()), 2)
+                self.assertTrue(len(manager.getRois()), 2)
                 self.assertEqual(changedListener.callCount(), 4)
 
                 # Reset it
-                result = manager.clearRegionOfInterests()
+                result = manager.clear()
                 self.assertTrue(result)
-                self.assertEqual(manager.getRegionOfInterests(), ())
+                self.assertEqual(manager.getRois(), ())
                 self.assertEqual(changedListener.callCount(), 5)
 
                 changedListener.clear()
 
                 # Add two point
-                manager.createRegionOfInterest(kind, points[0])
+                manager.createRoi(kind, points[0])
                 self.qapp.processEvents()
-                manager.createRegionOfInterest(kind, points[1])
+                manager.createRoi(kind, points[1])
                 self.qapp.processEvents()
-                self.assertTrue(len(manager.getRegionOfInterests()), 2)
+                self.assertTrue(len(manager.getRois()), 2)
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # stop
                 result = manager.stop()
                 self.assertTrue(result)
-                self.assertTrue(len(manager.getRegionOfInterests()), 1)
+                self.assertTrue(len(manager.getRois()), 1)
                 self.qapp.processEvents()
                 self.assertEqual(finishListener.callCount(), 1)
 
-                manager.clearRegionOfInterests()
+                manager.clear()
 
     def testRoiDisplay(self):
         rois = []
@@ -356,13 +356,13 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         self.roiTableWidget.setRegionOfInterestManager(manager)
         for item in rois:
             with self.subTest(roi=str(item)):
-                manager.addRegionOfInterest(item)
+                manager.addRoi(item)
                 self.qapp.processEvents()
                 item.setEditable(True)
                 self.qapp.processEvents()
                 item.setEditable(False)
                 self.qapp.processEvents()
-                manager.removeRegionOfInterest(item)
+                manager.removeRoi(item)
                 self.qapp.processEvents()
 
     def testMaxROI(self):
@@ -374,47 +374,47 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
 
         manager = roi.InteractiveRegionOfInterestManager(self.plot)
         self.roiTableWidget.setRegionOfInterestManager(manager)
-        self.assertEqual(manager.getRegionOfInterests(), ())
+        self.assertEqual(manager.getRois(), ())
 
         changedListener = SignalListener()
-        manager.sigRegionOfInterestChanged.connect(changedListener)
+        manager.sigRoiChanged.connect(changedListener)
 
         # Add two point
         item = roi_items.RectangleROI()
         item.setGeometry(origin=origin1, size=size1)
-        manager.addRegionOfInterest(item)
+        manager.addRoi(item)
         item = roi_items.RectangleROI()
         item.setGeometry(origin=origin2, size=size2)
-        manager.addRegionOfInterest(item)
+        manager.addRoi(item)
         self.qapp.processEvents()
         self.assertEqual(changedListener.callCount(), 2)
-        self.assertEqual(len(manager.getRegionOfInterests()), 2)
+        self.assertEqual(len(manager.getRois()), 2)
 
         # Try to set max ROI to 1 while there is 2 ROIs
         with self.assertRaises(ValueError):
-            manager.setMaxRegionOfInterests(1)
+            manager.setMaxRois(1)
 
-        manager.clearRegionOfInterests()
-        self.assertEqual(len(manager.getRegionOfInterests()), 0)
+        manager.clear()
+        self.assertEqual(len(manager.getRois()), 0)
         self.assertEqual(changedListener.callCount(), 3)
 
         # Set max limit to 1
-        manager.setMaxRegionOfInterests(1)
+        manager.setMaxRois(1)
 
         # Add a point
         item = roi_items.RectangleROI()
         item.setGeometry(origin=origin1, size=size1)
-        manager.addRegionOfInterest(item)
+        manager.addRoi(item)
         self.qapp.processEvents()
         self.assertEqual(changedListener.callCount(), 4)
 
         # Add a 2nd point while max ROI is 1
         item = roi_items.RectangleROI()
         item.setGeometry(origin=origin1, size=size1)
-        manager.addRegionOfInterest(item)
+        manager.addRoi(item)
         self.qapp.processEvents()
         self.assertEqual(changedListener.callCount(), 6)
-        self.assertEqual(len(manager.getRegionOfInterests()), 1)
+        self.assertEqual(len(manager.getRois()), 1)
 
     def testChangeInteractionMode(self):
         """Test change of interaction mode"""
@@ -436,7 +436,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
 
                 self.assertEqual(kind, manager.getRegionOfInterestKind())
 
-        manager.clearRegionOfInterests()
+        manager.clear()
 
 
 def suite():
