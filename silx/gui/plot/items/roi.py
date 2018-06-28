@@ -500,6 +500,7 @@ class LineROI(RegionOfInterest):
         :param numpy.ndarray startPoint: Staring bounding point of the line
         :param numpy.ndarray endPoint: Endding bounding point of the line
         """
+        assert(startPoint.shape == (2,) and endPoint.shape == (2,))
         shapePoints = numpy.array([startPoint, endPoint])
         controlPoints = self._createControlPointsFromFirstShape(shapePoints)
         self._setControlPoints(controlPoints)
