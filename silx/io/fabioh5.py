@@ -108,21 +108,35 @@ class FrameData(commonh5.LazyLoadableDataset):
         commonh5.LazyLoadableDataset.__init__(self, name, parent, attrs=attrs)
         self.__fabio_reader = fabio_reader
         self._shape = None
+        self._dtype = None
 
     def _create_data(self):
         return self.__fabio_reader.get_data()
 
+    def _update_cache(self):
+        if isinstance(self.__fabio_reader.fabio_file(),
+                      fabio.file_series.file_series):
+            # Reading all the files is taking too much time
+            # Reach the information from the only first frame
+            first_image = self.__fabio_reader._fabio_file().first_image()
+            self._dtype = first_image.data.dtype
+            shape0 = self.__fabio_reader.frame_count()
+            shape1, shape2 = first_image.data.shape
+            self._shape = shape0, shape1, shape2
+        else:
+            self._dtype = super(commonh5.LazyLoadableDataset, self).dtype
+            self._shape = super(commonh5.LazyLoadableDataset, self).shape
+
+    @property
+    def dtype(self):
+        if self._dtype is None:
+            self._update_cache()
+        return self._dtype
+
     @property
     def shape(self):
         if self._shape is None:
-            if isinstance(self.__fabio_reader.fabio_file(),
-                          fabio.file_series.file_series):
-                shape0 = self.__fabio_reader.frame_count()
-                shape1, shape2 = self.__fabio_reader.fabio_file().first_image().data.shape
-                self._shape = shape0, shape1, shape2
-            else:
-                # no need to optimize single file, just call superclass
-                self._shape = super(commonh5.LazyLoadableDataset, self).shape
+            self._update_cache()
         return self._shape
 
     def __iter__(self):
