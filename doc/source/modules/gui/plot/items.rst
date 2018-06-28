@@ -108,3 +108,10 @@ Axis
 
 .. autoclass:: Axis
    :members:
+
+
+:mod:`~silx.gui.plot.items.roi`: Regions of Interest
+----------------------------------------------------
+
+.. automodule:: silx.gui.plot.items.roi
+   :members:

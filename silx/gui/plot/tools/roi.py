@@ -23,8 +23,6 @@
 #
 # ###########################################################################*/
 """This module provides ROI interaction for :class:`~silx.gui.plot.PlotWidget`.
-
-This API is not mature and will probably change in the future.
 """
 
 __authors__ = ["T. Vincent"]
@@ -44,8 +42,7 @@ from ....third_party import enum
 from ....utils.weakref import WeakMethodProxy
 from ... import qt, icons
 from .. import PlotWidget
-from ..items import roi
-roi_items = roi  # Allow to use variable named 'roi' in the code
+from ..items import roi as roi_items
 
 from ...colors import rgba
 
@@ -78,10 +75,7 @@ class RegionOfInterestManager(qt.QObject):
     """
 
     sigRoiChanged = qt.Signal()
-    """Signal emitted whenever the ROIs have changed.
-
-    It provides the list of ROIs.
-    """
+    """Signal emitted whenever the ROIs have changed."""
 
     sigInteractiveModeStarted = qt.Signal(object)
     """Signal emitted when switching to ROI drawing interactive mode.
