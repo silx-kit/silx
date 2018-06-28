@@ -31,7 +31,7 @@ __date__ = "05/06/2018"
 
 
 import logging
-import numpy
+
 from silx.gui import qt
 from silx.gui.plot import stats as statsmdl
 
@@ -67,51 +67,7 @@ class StatFormatter(object):
         if self.formatter is None or val is None:
             return str(val)
         else:
-            try:
-                return self.formatter.format(val)
-            except ValueError:
-                return str(val)
-
-    def formatTooltip(self, val):
-        return None
-
-
-class _CoordsStatFormatter(StatFormatter):
-    """
-
-    """
-    DEFAULT_FORMATTER = '{0:.3f}'
-
-    def __init__(self):
-        StatFormatter.__init__(self, formatter=StatFormatter.DEFAULT_FORMATTER,
-                               qItemClass=_FloatItem)
-
-    def format(self, val):
-        if isinstance(val, (tuple, list, numpy.ndarray)):
-            if len(val) > 1:
-                return StatFormatter.format(self, val[0]) + ' ...'
-            else:
-                return StatFormatter.format(self, val[0])
-        else:
-            return StatFormatter.format(self, val)
-
-    def formatTooltip(self, val):
-        if isinstance(val, (tuple, list)):
-            if self.formatter is None or val is None:
-                return str(val)
-            else:
-                res = ''
-                for subVal in val:
-                    if len(res) % 5 == 0:
-                        res = res + '\n'
-                    else:
-                        res = res + '; '
-                    res = res + StatFormatter.format(self, subVal)
-
-
-                return res
-        else:
-            return None
+            return self.formatter.format(val)
 
 
 class StatsHandler(object):
@@ -153,17 +109,21 @@ class StatsHandler(object):
         """
         if name not in self.formatters:
             logger.warning("statistic %s haven't been registred" % name)
-            return val, None
+            return val
         else:
             if self.formatters[name] is None:
-                return str(val), None
+                return str(val)
             else:
-                return (self.formatters[name].format(val),
-                        self.formatters[name].formatTooltip(val))
+                if isinstance(val, (tuple, list)):
+                    res = []
+                    [res.append(self.formatters[name].format(_val)) for _val in val]
+                    return ', '.join(res)
+                else:
+                    return self.formatters[name].format(val)
 
     def calculate(self, item, plot, onlimits):
         """
-        compute all statistic registered and return the list of formatted
+        compute all statistic registred and return the list of formatted
         statistics result.
 
         :param item: item for which we want to compute statistics

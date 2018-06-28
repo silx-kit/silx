@@ -44,8 +44,7 @@ __date__ = "06/06/2018"
 
 from silx.gui import qt
 from silx.gui.plot import Plot1D
-from silx.gui.plot.stats.stats import StatBase, StatCoordMin
-from silx.gui.plot.stats.statshandler import _CoordsStatFormatter
+from silx.gui.plot.stats.stats import StatBase
 import numpy
 
 

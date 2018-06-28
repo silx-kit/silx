@@ -45,7 +45,7 @@ from silx.gui.plot.items.image import ImageBase as ImageItem
 from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from silx.gui.plot import stats as statsmdl
 from silx.gui.widgets.TableWidget import TableWidget
-from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter, _CoordsStatFormatter
+from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -169,9 +169,9 @@ class BasicStatsWidget(StatsWidget):
 
     STATS = StatsHandler((
         (statsmdl.StatMin(), StatFormatter()),
-        # (statsmdl.StatCoordMin(), _CoordsStatFormatter()),
+        statsmdl.StatCoordMin(),
         (statsmdl.StatMax(), StatFormatter()),
-        # (statsmdl.StatCoordMax(), _CoordsStatFormatter()),
+        statsmdl.StatCoordMax(),
         (('std', numpy.std), StatFormatter()),
         (('mean', numpy.mean), StatFormatter()),
         statsmdl.StatCOM()
@@ -484,14 +484,11 @@ class StatsTable(TableWidget):
         assert lgdItem
         rowStat = lgdItem.row()
 
-        for statName, statInfo in list(statsValDict.items()):
-            statVal, statTooltip = statInfo
+        for statName, statVal in list(statsValDict.items()):
             assert statName in self._lgdAndKindToItems[(item.getLegend(), kind)]
             tableItem = self._getItem(name=statName, legend=item.getLegend(),
                                       kind=kind, indexTable=rowStat)
             tableItem.setText(str(statVal))
-            if statTooltip is not None:
-                tableItem.setToolTip(str(statTooltip))
 
     def currentChanged(self, current, previous):
         if current.row() >= 0:
