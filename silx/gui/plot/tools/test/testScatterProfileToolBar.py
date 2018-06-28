@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2018"
+__date__ = "28/06/2018"
 
 
 import unittest
@@ -35,6 +35,7 @@ from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot import PlotWindow
 from silx.gui.plot.tools import profile
+import silx.gui.plot.items.roi as roi_items
 
 
 class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
@@ -91,8 +92,10 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Set a ROI profile
-        self.profile._getRoiManager().createRoi(
-            kind='hline', points=numpy.array([(0., 0.5)]))
+        roi = roi_items.HorizontalLineROI()
+        roi.setPosition(0.5)
+        self.profile._getRoiManager().addRoi(roi)
+
         # Wait for async interpolator init
         for _ in range(10):
             self.qWait(200)
@@ -135,8 +138,9 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Set a ROI profile
-        self.profile._getRoiManager().createRoi(
-            kind='vline', points=numpy.array([(0.5, 0.)]))
+        roi = roi_items.VerticalLineROI()
+        roi.setPosition(0.5)
+        self.profile._getRoiManager().addRoi(roi)
 
         # Wait for async interpolator init
         for _ in range(10):
@@ -185,8 +189,9 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Set a ROI profile
-        self.profile._getRoiManager().createRoi(
-            kind='line', points=numpy.array([(0., 0.), (1., 1.)]))
+        roi = roi_items.LineROI()
+        roi.setEndPoints(numpy.array([0., 0.]), numpy.array([1., 1.]))
+        self.profile._getRoiManager().addRoi(roi)
 
         # Wait for async interpolator init
         for _ in range(10):

@@ -87,9 +87,9 @@ roiTable.setRegionOfInterestManager(roiManager)
 roiToolbar = qt.QToolBar()  # The layout to store the buttons
 roiToolbar.setIconSize(qt.QSize(16, 16))
 
-for kind in roiManager.getSupportedRegionOfInterestKinds():
+for roiClass in roiManager.getSupportedRoiClasses():
     # Create a tool button and associate it with the QAction of each mode
-    action = roiManager.getInteractionModeAction(kind)
+    action = roiManager.getInteractionModeAction(roiClass)
     roiToolbar.addAction(action)
 
 # Add the region of interest table and the buttons to a dock widget

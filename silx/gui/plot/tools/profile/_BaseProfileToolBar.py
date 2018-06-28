@@ -78,11 +78,11 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         # Add interactive mode actions
         for kind, icon, tooltip in (
-                ('hline', 'shape-horizontal',
+                (roi_items.HorizontalLineROI, 'shape-horizontal',
                  'Enables horizontal line profile selection mode'),
-                ('vline', 'shape-vertical',
+                (roi_items.VerticalLineROI, 'shape-vertical',
                  'Enables vertical line profile selection mode'),
-                ('line', 'shape-diagonal',
+                (roi_items.LineROI, 'shape-diagonal',
                  'Enables line profile selection mode')):
             action = roiManager.getInteractionModeAction(kind)
             action.setIcon(icons.getQIcon(icon))

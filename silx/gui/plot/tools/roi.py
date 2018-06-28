@@ -83,10 +83,11 @@ class RegionOfInterestManager(qt.QObject):
     It provides the list of ROIs.
     """
 
-    sigInteractiveModeStarted = qt.Signal(str)
+    sigInteractiveModeStarted = qt.Signal(object)
     """Signal emitted when switching to ROI drawing interactive mode.
 
-    It provides the kind of shape of the active interactive mode.
+    It provides the class of the ROI which will be created by the interactive
+    mode.
     """
 
     sigInteractiveModeFinished = qt.Signal()
@@ -97,13 +98,13 @@ class RegionOfInterestManager(qt.QObject):
 
     _MODE_ACTIONS_PARAMS = collections.OrderedDict()
     # Interactive mode: (icon name, text)
-    _MODE_ACTIONS_PARAMS['point'] = roi_items.PointROI, 'add-shape-point', 'Add point markers'
-    _MODE_ACTIONS_PARAMS['rectangle'] = roi_items.RectangleROI, 'add-shape-rectangle', 'Add rectangle ROI'
-    _MODE_ACTIONS_PARAMS['polygon'] = roi_items.PolygonROI, 'add-shape-polygon', 'Add polygon ROI'
-    _MODE_ACTIONS_PARAMS['line'] = roi_items.LineROI, 'add-shape-diagonal', 'Add line ROI'
-    _MODE_ACTIONS_PARAMS['hline'] = roi_items.HorizontalLineROI, 'add-shape-horizontal', 'Add horizontal line ROI'
-    _MODE_ACTIONS_PARAMS['vline'] = roi_items.VerticalLineROI, 'add-shape-vertical', 'Add vertical line ROI'
-    _MODE_ACTIONS_PARAMS['arc'] = roi_items.ArcROI, 'add-shape-arc', 'Add arc ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.PointROI] = 'add-shape-point', 'Add point markers'
+    _MODE_ACTIONS_PARAMS[roi_items.RectangleROI] = 'add-shape-rectangle', 'Add rectangle ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.PolygonROI] = 'add-shape-polygon', 'Add polygon ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.LineROI] = 'add-shape-diagonal', 'Add line ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.HorizontalLineROI] = 'add-shape-horizontal', 'Add horizontal line ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.VerticalLineROI] = 'add-shape-vertical', 'Add vertical line ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.ArcROI] = 'add-shape-arc', 'Add arc ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
@@ -111,7 +112,7 @@ class RegionOfInterestManager(qt.QObject):
         self._rois = []  # List of ROIs
         self._drawnROI = None  # New ROI being currently drawn
 
-        self._shapeKind = None
+        self._roiClass = None
         self._color = rgba('red')
 
         self._label = "__RegionOfInterestManager__%d" % id(self)
@@ -124,59 +125,63 @@ class RegionOfInterestManager(qt.QObject):
             self._plotInteractiveModeChanged)
 
     @classmethod
-    def getSupportedRegionOfInterestKinds(cls):
-        """Returns available ROI kinds
+    def getSupportedRoiClasses(cls):
+        """Returns the default available ROI classes
 
-        :rtype: List[str]
+        :rtype: List[class]
         """
         return tuple(cls._MODE_ACTIONS_PARAMS.keys())
 
     # Associated QActions
 
-    def getInteractionModeAction(self, kind):
+    def getInteractionModeAction(self, roiClass):
         """Returns the QAction corresponding to a kind of ROI
 
         The QAction allows to enable the corresponding drawing
         interactive mode.
 
-        :param str kind: Kind of ROI
+        :param str roiClass: The ROI class which will be crated by this action.
         :rtype: QAction
         :raise ValueError: If kind is not supported
         """
-        if kind not in self.getSupportedRegionOfInterestKinds():
-            raise ValueError('Unsupported kind %s' % kind)
+        if not issubclass(roiClass, roi_items.RegionOfInterest):
+            raise ValueError('Unsupported ROI class %s' % roiClass)
 
-        action = self._modeActions.get(kind, None)
+        action = self._modeActions.get(roiClass, None)
         if action is None:  # Lazy-loading
-            _roiClass, iconName, text = self._MODE_ACTIONS_PARAMS[kind]
+            if roiClass in self._MODE_ACTIONS_PARAMS:
+                iconName, text = self._MODE_ACTIONS_PARAMS[roiClass]
+            else:
+                iconName = qt.QIcon()
+                text = 'Add %s' % roiClass
             action = qt.QAction(self)
             action.setIcon(icons.getQIcon(iconName))
             action.setText(text)
             action.setCheckable(True)
-            action.setChecked(self.getRegionOfInterestKind() == kind)
+            action.setChecked(self.getCurrentInteractionModeRoiClass() is roiClass)
             action.setToolTip(text)
 
             action.triggered[bool].connect(functools.partial(
-                WeakMethodProxy(self._modeActionTriggered), kind=kind))
-            self._modeActions[kind] = action
+                WeakMethodProxy(self._modeActionTriggered), roiClass=roiClass))
+            self._modeActions[roiClass] = action
         return action
 
-    def _modeActionTriggered(self, checked, kind):
+    def _modeActionTriggered(self, checked, roiClass):
         """Handle mode actions being checked by the user
 
         :param bool checked:
         :param str kind: Corresponding shape kind
         """
         if checked:
-            self.start(kind)
+            self.start(roiClass)
         else:  # Keep action checked
             action = self.sender()
             action.setChecked(True)
 
     def _updateModeActions(self):
         """Check/Uncheck action corresponding to current mode"""
-        for kind, action in self._modeActions.items():
-            action.setChecked(kind == self.getRegionOfInterestKind())
+        for roiClass, action in self._modeActions.items():
+            action.setChecked(roiClass == self.getCurrentInteractionModeRoiClass())
 
     # PlotWidget eventFilter and listeners
 
@@ -192,15 +197,16 @@ class RegionOfInterestManager(qt.QObject):
 
     def _handleInteraction(self, event):
         """Handle mouse interaction for ROI addition"""
-        kind = self.getRegionOfInterestKind()
-        if kind is None:
+        roiClass = self.getCurrentInteractionModeRoiClass()
+        if roiClass is None:
             return  # Should not happen
 
+        kind = roiClass.getFirstInteractionShape()
         if kind == 'point':
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
-                self.createRoi(kind=kind, points=points)
+                self.createRoi(roiClass, points=points)
 
         else:  # other shapes
             if (event['event'] in ('drawingProgress', 'drawingFinished') and
@@ -209,8 +215,7 @@ class RegionOfInterestManager(qt.QObject):
                                      dtype=numpy.float64).T
 
                 if self._drawnROI is None:  # Create new ROI
-                    self._drawnROI = self.createRoi(
-                        kind=kind, points=points)
+                    self._drawnROI = self.createRoi(roiClass, points=points)
                 else:
                     self._drawnROI.setFirstShapePoints(points)
 
@@ -253,10 +258,10 @@ class RegionOfInterestManager(qt.QObject):
         """Handle ROI object changed"""
         self.sigRoiChanged.emit()
 
-    def createRoi(self, kind, points, label='', index=None):
+    def createRoi(self, roiClass, points, label='', index=None):
         """Create a new ROI and add it to list of ROIs.
 
-        :param str kind: The kind of ROI to add
+        :param class roiClass: The class of the ROI to create
         :param numpy.ndarray points: The first shape used to create the ROI
         :param str label: The label to display along with the ROI.
         :param int index: The position where to insert the ROI.
@@ -266,7 +271,6 @@ class RegionOfInterestManager(qt.QObject):
         :raise RuntimeError: When ROI cannot be added because the maximum
            number of ROIs has been reached.
         """
-        roiClass = self._MODE_ACTIONS_PARAMS[kind][0]
         roi = roiClass(parent=None)
         roi.setLabel(str(label))
         roi.setFirstShapePoints(points)
@@ -346,43 +350,44 @@ class RegionOfInterestManager(qt.QObject):
 
     # Control ROI
 
-    def getRegionOfInterestKind(self):
-        """Returns the current interactive ROI drawing mode or None.
+    def getCurrentInteractionModeRoiClass(self):
+        """Returns the current ROI class used by the interactive drawing mode.
 
-        :rtype: Union[str,None]
+        Returns None if the ROI manager is not in an interactive mode.
+
+        :rtype: Union[class,None]
         """
-        return self._shapeKind
+        return self._roiClass
 
     def isStarted(self):
-        """Returns True  if an interactive ROI drawing mode is active.
+        """Returns True if an interactive ROI drawing mode is active.
 
         :rtype: bool
         """
-        return self._shapeKind is not None
+        return self._roiClass is not None
 
-    def start(self, kind):
+    def start(self, roiClass):
         """Start an interactive ROI drawing mode.
 
-        :param str kind: The kind of ROI shape in:
-           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param class roiClass: The ROI class to create. It have to inherite from
+            `roi_items.RegionOfInterest`.
         :return: True if interactive ROI drawing was started, False otherwise
         :rtype: bool
-        :raise ValueError: If kind is not supported
+        :raise ValueError: If roiClass is not supported
         """
         self.stop()
+
+        if not issubclass(roiClass, roi_items.RegionOfInterest):
+            raise ValueError('Unsupported ROI class %s' % roiClass)
 
         plot = self.parent()
         if plot is None:
             return False
 
-        if kind not in self.getSupportedRegionOfInterestKinds():
-            raise ValueError('Unsupported kind %s' % kind)
-        self._shapeKind = kind
-        # TODO: The ROI should be created here
-        roiClass = self._MODE_ACTIONS_PARAMS[kind][0]
+        self._roiClass = roiClass
         firstInteractionShapeKind = roiClass.getFirstInteractionShape()
 
-        if self._shapeKind == 'point':
+        if firstInteractionShapeKind == 'point':
             plot.setInteractiveMode(mode='select', source=self)
         else:
             if roiClass.showFirstInteractionShape():
@@ -397,14 +402,14 @@ class RegionOfInterestManager(qt.QObject):
 
         plot.sigPlotSignal.connect(self._handleInteraction)
 
-        self.sigInteractiveModeStarted.emit(kind)
+        self.sigInteractiveModeStarted.emit(roiClass)
 
         return True
 
     def __roiInteractiveModeEnded(self):
         """Handle end of ROI draw interactive mode"""
         if self.isStarted():
-            self._shapeKind = None
+            self._roiClass = None
 
             if self._drawnROI is not None:
                 # Cancel ROI create
@@ -438,15 +443,15 @@ class RegionOfInterestManager(qt.QObject):
 
         return True
 
-    def exec_(self, kind):
+    def exec_(self, roiClass):
         """Block until :meth:`quit` is called.
 
-        :param str kind: The kind of ROI shape in:
-           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param class kind: The class of the ROI which have to be created.
+            See `silx.gui.plot.items.roi`.
         :return: The list of ROIs
         :rtype: tuple
         """
-        self.start(kind=kind)
+        self.start(roiClass)
 
         plot = self.parent()
         plot.show()
@@ -492,7 +497,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         self.__timeoutEndTime = None
         self.__message = ''
         self.__validationMode = self.ValidationMode.ENTER
-        self.__execKind = None
+        self.__execClass = None
 
         self.sigRoiAdded.connect(self.__added)
         self.sigRoiAboutToBeRemoved.connect(self.__aboutToBeRemoved)
@@ -660,13 +665,13 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             message = 'Done'
 
         elif not self.isStarted():
-            message = 'Use %s ROI edition mode' % self.__execKind
+            message = 'Use %s ROI edition mode' % self.__execClass
 
         else:
             if nbrois is None:
                 nbrois = len(self.getRois())
 
-            kind = self.__execKind
+            kind = self.__execClass
             max_ = self.getMaxRois()
 
             if max_ is None:
@@ -704,15 +709,15 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         """Returns True if :meth:`exec_` is currently running.
 
         :rtype: bool"""
-        return self.__execKind is not None
+        return self.__execClass is not None
 
-    def exec_(self, kind, timeout=0):
+    def exec_(self, roiClass, timeout=0):
         """Block until ROI selection is done or timeout is elapsed.
 
         :meth:`quit` also ends this blocking call.
 
-        :param str kind: The kind of ROI shape in:
-           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param class roiClass: The class of the ROI which have to be created.
+            See `silx.gui.plot.items.roi`.
         :param int timeout: Maximum duration in seconds to block.
             Default: No timeout
         :return: The list of ROIs
@@ -722,7 +727,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         if plot is None:
             return
 
-        self.__execKind = kind
+        self.__execClass = roiClass
 
         plot.installEventFilter(self)
 
@@ -732,17 +737,17 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             timer.timeout.connect(self.__timeoutUpdate)
             timer.start(1000)
 
-            rois = super(InteractiveRegionOfInterestManager, self).exec_(kind)
+            rois = super(InteractiveRegionOfInterestManager, self).exec_(roiClass)
 
             timer.stop()
             self.__timeoutEndTime = None
 
         else:
-            rois = super(InteractiveRegionOfInterestManager, self).exec_(kind)
+            rois = super(InteractiveRegionOfInterestManager, self).exec_(roiClass)
 
         plot.removeEventFilter(self)
 
-        self.__execKind = None
+        self.__execClass = None
         self.__updateMessage()
 
         return rois

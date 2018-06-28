@@ -213,24 +213,29 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
     def test(self):
         """Test ROI of different shapes"""
         tests = (  # shape, points=[list of (x, y), list of (x, y)]
-            ('point', numpy.array(([(10., 15.)], [(20., 25.)]))),
-            ('rectangle', numpy.array((((1., 10.), (11., 20.)),
-                                       ((2., 3.), (12., 13.))))),
-            ('polygon', numpy.array((((0., 1.), (0., 10.), (10., 0.)),
-                                     ((5., 6.), (5., 16.), (15., 6.))))),
-            ('line', numpy.array((((10., 20.), (10., 30.)),
-                                  ((30., 40.), (30., 50.))))),
-            ('hline', numpy.array((((10., 20.), (10., 30.)),
-                                   ((30., 40.), (30., 50.))))),
-            ('vline', numpy.array((((10., 20.), (10., 30.)),
-                                   ((30., 40.), (30., 50.))))),
+            (roi_items.PointROI, numpy.array(([(10., 15.)], [(20., 25.)]))),
+            (roi_items.RectangleROI,
+                numpy.array((((1., 10.), (11., 20.)),
+                            ((2., 3.), (12., 13.))))),
+            (roi_items.PolygonROI,
+                numpy.array((((0., 1.), (0., 10.), (10., 0.)),
+                            ((5., 6.), (5., 16.), (15., 6.))))),
+            (roi_items.LineROI,
+                numpy.array((((10., 20.), (10., 30.)),
+                            ((30., 40.), (30., 50.))))),
+            (roi_items.HorizontalLineROI,
+                numpy.array((((10., 20.), (10., 30.)),
+                            ((30., 40.), (30., 50.))))),
+            (roi_items.VerticalLineROI,
+                numpy.array((((10., 20.), (10., 30.)),
+                            ((30., 40.), (30., 50.))))),
         )
 
-        for kind, points in tests:
-            with self.subTest(kind=kind):
+        for roiClass, points in tests:
+            with self.subTest(roiClass=roiClass):
                 manager = roi.RegionOfInterestManager(self.plot)
                 self.roiTableWidget.setRegionOfInterestManager(manager)
-                manager.start(kind)
+                manager.start(roiClass)
 
                 self.assertEqual(manager.getRois(), ())
 
@@ -241,7 +246,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 manager.sigRoiChanged.connect(changedListener)
 
                 # Add a point
-                manager.createRoi(kind, points[0])
+                manager.createRoi(roiClass, points[0])
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 1)
                 self.assertEqual(changedListener.callCount(), 1)
@@ -252,9 +257,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Add two point
-                manager.createRoi(kind, points[0])
+                manager.createRoi(roiClass, points[0])
                 self.qapp.processEvents()
-                manager.createRoi(kind, points[1])
+                manager.createRoi(roiClass, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 2)
                 self.assertEqual(changedListener.callCount(), 4)
@@ -268,9 +273,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 changedListener.clear()
 
                 # Add two point
-                manager.createRoi(kind, points[0])
+                manager.createRoi(roiClass, points[0])
                 self.qapp.processEvents()
-                manager.createRoi(kind, points[1])
+                manager.createRoi(roiClass, points[1])
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 2)
                 self.assertEqual(changedListener.callCount(), 2)
@@ -420,21 +425,21 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         """Test change of interaction mode"""
         manager = roi.RegionOfInterestManager(self.plot)
         self.roiTableWidget.setRegionOfInterestManager(manager)
-        manager.start('point')
+        manager.start(roi_items.PointROI)
 
         interactiveModeToolBar = self.plot.getInteractiveModeToolBar()
         panAction = interactiveModeToolBar.getPanModeAction()
 
-        for kind in manager.getSupportedRegionOfInterestKinds():
-            with self.subTest(kind=kind):
+        for roiClass in manager.getSupportedRoiClasses():
+            with self.subTest(roiClass=roiClass):
                 # Change to pan mode
                 panAction.trigger()
 
                 # Change to interactive ROI mode
-                action = manager.getInteractionModeAction(kind)
+                action = manager.getInteractionModeAction(roiClass)
                 action.trigger()
 
-                self.assertEqual(kind, manager.getRegionOfInterestKind())
+                self.assertEqual(roiClass, manager.getCurrentInteractionModeRoiClass())
 
         manager.clear()
 
