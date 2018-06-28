@@ -109,6 +109,14 @@ class RegionOfInterest(qt.QObject):
         """
         return qt.QColor.fromRgbF(*self._color)
 
+    def _getAnchorColor(self, color):
+        """Returns the anchor color from the base ROI  color
+
+        :param Union[numpy.array,Tuple,List]: color
+        :rtype: Union[numpy.array,Tuple,List]
+        """
+        return color[:3] + (0.5,)
+
     def setColor(self, color):
         """Set the color used for this ROI.
 
@@ -128,9 +136,7 @@ class RegionOfInterest(qt.QObject):
             if isinstance(item, items.ColorMixIn):
                 item.setColor(rgbaColor)
 
-            # Use transparency for anchors
-            rgbaColor = rgbaColor[:3] + (0.5,)
-
+            rgbaColor = self._getAnchorColor(rgbaColor)
             for item in list(self._editAnchors):
                 if isinstance(item, items.ColorMixIn):
                     item.setColor(rgbaColor)
@@ -300,9 +306,11 @@ class RegionOfInterest(qt.QObject):
         self._editAnchors = WeakList()
         if self.isEditable():
             plotItems = self._createAnchorItems(controlPoints)
+            color = rgba(self.getColor())
+            color = self._getAnchorColor(color)
             for index, item in enumerate(plotItems):
                 item._setLegend(legendPrefix + str(itemIndex))
-                item.setColor(rgba(self.getColor()))
+                item.setColor(color)
                 plot._add(item)
                 item.sigItemChanged.connect(functools.partial(
                     self._controlPointAnchorChanged, index))
