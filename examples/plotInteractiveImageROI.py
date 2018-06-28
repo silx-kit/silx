@@ -31,6 +31,7 @@ It uses :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager` and
 interactive ROI selection and to display the list of ROIs.
 """
 
+import sys
 import numpy
 
 from silx.gui import qt
@@ -104,4 +105,6 @@ plot.addTabbedDockWidget(dock)
 
 # Show the widget and start the application
 plot.show()
-app.exec_()
+result = app.exec_()
+app.deleteLater()
+sys.exit(result)
