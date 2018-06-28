@@ -67,12 +67,6 @@
 .. autoclass:: RegionOfInterestManager
    :members:
 
-:class:`RegionOfInterest` class
-+++++++++++++++++++++++++++++++
-
-.. autoclass:: RegionOfInterest
-   :members:
-
 :class:`InteractiveRegionOfInterestManager` class
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -96,7 +90,7 @@
 ++++++++++++++++++++++++++++++
 
 .. autoclass:: ScatterProfileToolBar
-   :members: sigProfileChanged, getProfilPoints, getProfileValues, getProfileTitle, getPlotWidget, isDefaultProfileWindowEnabled, setDefaultProfileWindowEnabled, getDefaultProfileWindow, getColor, setColor, clearProfile, getNPoints, setNPoints
+   :members: sigProfileChanged, getProfilePoints, getProfileValues, getProfileTitle, getPlotWidget, isDefaultProfileWindowEnabled, setDefaultProfileWindowEnabled, getDefaultProfileWindow, getColor, setColor, clearProfile, getNPoints, setNPoints
 
 .. currentmodule:: silx.gui.plot
 

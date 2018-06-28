@@ -23,8 +23,6 @@
 #
 # ###########################################################################*/
 """This module provides ROI item for the :class:`~silx.gui.plot.PlotWidget`.
-
-This API is not mature and will probably change in the future.
 """
 
 __authors__ = ["T. Vincent"]
