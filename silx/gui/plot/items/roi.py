@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2018"
+__date__ = "28/06/2018"
 
 
 import functools
@@ -73,6 +73,7 @@ class RegionOfInterest(qt.QObject):
         self._editAnchors = WeakList()
         self._points = None
         self._label = ''
+        self._labelItem = None
         self._editable = False
 
     def __del__(self):
@@ -123,6 +124,9 @@ class RegionOfInterest(qt.QObject):
             for item in list(self._items):
                 if isinstance(item, items.ColorMixIn):
                     item.setColor(rgbaColor)
+            item = self._getLabelItem()
+            if isinstance(item, items.ColorMixIn):
+                item.setColor(rgbaColor)
 
             # Use transparency for anchors
             rgbaColor = rgbaColor[:3] + (0.5,)
@@ -146,10 +150,7 @@ class RegionOfInterest(qt.QObject):
         label = str(label)
         if label != self._label:
             self._label = label
-            for item in self._items:
-                if isinstance(
-                        item, (items.Marker, items.XMarker, items.YMarker)):
-                    item.setText(self._label)
+            self._updateLabelItem(label)
 
     def isEditable(self):
         """Returns whether the ROI is editable by the user or not.
@@ -234,12 +235,10 @@ class RegionOfInterest(qt.QObject):
 
             self._updateShape()
             if self._items and not nbPointsChanged:  # Update plot items
-                for item in self._items:
-                    if isinstance(item, (items.Marker,
-                                         items.XMarker,
-                                         items.YMarker)):
-                        markerPos = self._getLabelPosition()
-                        item.setPosition(*markerPos)
+                item = self._getLabelItem()
+                if item is not None:
+                    markerPos = self._getLabelPosition()
+                    item.setPosition(*markerPos)
 
                 if self._editAnchors:  # Update anchors
                     for anchor, point in zip(self._editAnchors, points):
@@ -282,9 +281,15 @@ class RegionOfInterest(qt.QObject):
         legendPrefix = "__RegionOfInterest-%d__" % id(self)
         itemIndex = 0
 
-        self._items = WeakList()
         controlPoints = self._getControlPoints()
 
+        if self._labelItem is None:
+            self._labelItem = self._createLabelItem()
+            if self._labelItem is not None:
+                self._labelItem._setLegend(legendPrefix + "label")
+                plot._add(self._labelItem)
+
+        self._items = WeakList()
         plotItems = self._createShapeItems(controlPoints)
         for item in plotItems:
             item._setLegend(legendPrefix + str(itemIndex))
@@ -303,6 +308,44 @@ class RegionOfInterest(qt.QObject):
                     self._controlPointAnchorChanged, index))
                 self._editAnchors.append(item)
                 itemIndex += 1
+
+    def _updateLabelItem(self, label):
+        """Update the marker displaying the label.
+
+        Inherite this method to custom the way the ROI display the label.
+
+        :param str label: The new label to use
+        """
+        item = self._getLabelItem()
+        if item is not None:
+            item.setText(label)
+
+    def _createLabelItem(self):
+        """Returns a created marker which will be used to dipslay the label of
+        this ROI.
+
+        Inherite this method to return nothing if no new items have to be
+        created, or your own marker.
+
+        :rtype: Union[None,Marker]
+        """
+        # Add label marker
+        markerPos = self._getLabelPosition()
+        marker = items.Marker()
+        marker.setPosition(*markerPos)
+        marker.setText(self.getLabel())
+        marker.setColor(rgba(self.getColor()))
+        marker.setSymbol('')
+        marker._setDraggable(False)
+        return marker
+
+    def _getLabelItem(self):
+        """Returns the marker displaying the label of this ROI.
+
+        Inherite this method to choose your own item. In case this item is also
+        a control point.
+        """
+        return self._labelItem
 
     def _createShapeItems(self, points):
         """Create shape items from the current control points.
@@ -354,6 +397,13 @@ class RegionOfInterest(qt.QObject):
         self._items = WeakList()
         self._editAnchors = WeakList()
 
+        if self._labelItem is not None:
+            item = self._labelItem
+            plot = item.getPlot()
+            if plot is not None:
+                plot._remove(item)
+        self._labelItem = None
+
     def __str__(self):
         """Returns parameters of the ROI as a string."""
         points = self._getControlPoints()
@@ -385,9 +435,15 @@ class PointROI(RegionOfInterest):
         controlPoints = numpy.array([pos])
         self._setControlPoints(controlPoints)
 
-    def _getLabelPosition(self):
-        points = self._getControlPoints()
-        return points[0]
+    def _createLabelItem(self):
+        return None
+
+    def _updateLabelItem(self, label):
+        if self.isEditable():
+            item = self._editAnchors[0]
+        else:
+            item = self._items[0]
+        item.setText(label)
 
     def _createShapeItems(self, points):
         if self.isEditable():
@@ -466,22 +522,13 @@ class LineROI(RegionOfInterest):
         return points[0:2]
 
     def _createShapeItems(self, points):
-        # Add label marker
-        markerPos = self._getLabelPosition()
-        marker = items.Marker()
-        marker.setPosition(*markerPos)
-        marker.setText(self.getLabel())
-        marker.setColor(rgba(self.getColor()))
-        marker.setSymbol('')
-        marker._setDraggable(False)
-
         shapePoints = self._getShapeFromControlPoints(points)
         item = items.Shape("polylines")
         item.setPoints(shapePoints)
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
-        return [item, marker]
+        return [item]
 
     def _createAnchorItems(self, points):
         anchors = []
@@ -557,9 +604,22 @@ class HorizontalLineROI(RegionOfInterest):
         controlPoints = numpy.array([[float('nan'), pos]])
         self._setControlPoints(controlPoints)
 
-    def _getLabelPosition(self):
-        points = self._getControlPoints()
-        return points[0]
+    def _createLabelItem(self):
+        return None
+
+    def _updateLabelItem(self, label):
+        if self.isEditable():
+            item = self._editAnchors[0]
+        else:
+            item = self._items[0]
+        item.setText(label)
+
+    def _updateShape(self):
+        if not self.isEditable():
+            if len(self._items) > 0:
+                controlPoints = self._getControlPoints()
+                item = self._items[0]
+                item.setPosition(*controlPoints[0])
 
     def _createShapeItems(self, points):
         if self.isEditable():
@@ -613,9 +673,22 @@ class VerticalLineROI(RegionOfInterest):
         controlPoints = numpy.array([[pos, float('nan')]])
         self._setControlPoints(controlPoints)
 
-    def _getLabelPosition(self):
-        points = self._getControlPoints()
-        return points[0]
+    def _createLabelItem(self):
+        return None
+
+    def _updateLabelItem(self, label):
+        if self.isEditable():
+            item = self._editAnchors[0]
+        else:
+            item = self._items[0]
+        item.setText(label)
+
+    def _updateShape(self):
+        if not self.isEditable():
+            if len(self._items) > 0:
+                controlPoints = self._getControlPoints()
+                item = self._items[0]
+                item.setPosition(*controlPoints[0])
 
     def _createShapeItems(self, points):
         if self.isEditable():
@@ -752,22 +825,13 @@ class RectangleROI(RegionOfInterest):
         return numpy.array([minPoint, maxPoint])
 
     def _createShapeItems(self, points):
-        # Add label marker
-        markerPos = self._getLabelPosition()
-        marker = items.Marker()
-        marker.setPosition(*markerPos)
-        marker.setText(self.getLabel())
-        marker.setColor(rgba(self.getColor()))
-        marker.setSymbol('')
-        marker._setDraggable(False)
-
         shapePoints = self._getShapeFromControlPoints(points)
         item = items.Shape("rectangle")
         item.setPoints(shapePoints)
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
-        return [item, marker]
+        return [item]
 
     def _createAnchorItems(self, points):
         # Remove the center control point
@@ -869,26 +933,15 @@ class PolygonROI(RegionOfInterest):
         shape.setPoints(points)
 
     def _createShapeItems(self, points):
-        shapes = []
-
-        # Add label marker
-        markerPos = self._getLabelPosition()
-        marker = items.Marker()
-        marker.setPosition(*markerPos)
-        marker.setText(self.getLabel())
-        marker.setColor(rgba(self.getColor()))
-        marker.setSymbol('')
-        marker._setDraggable(False)
-
-        if len(points) > 0:
+        if len(points) == 0:
+            return []
+        else:
             item = items.Shape("polygon")
             item.setPoints(points)
             item.setColor(rgba(self.getColor()))
             item.setFill(False)
             item.setOverlay(True)
-            shapes.append(item)
-
-        return shapes
+            return [item]
 
     def _createAnchorItems(self, points):
         anchors = []
@@ -1291,22 +1344,13 @@ class ArcROI(RegionOfInterest):
         return controlPoints
 
     def _createShapeItems(self, points):
-        # Add label marker
-        markerPos = self._getLabelPosition()
-        marker = items.Marker()
-        marker.setPosition(*markerPos)
-        marker.setText(self.getLabel())
-        marker.setColor(rgba(self.getColor()))
-        marker.setSymbol('')
-        marker._setDraggable(False)
-
         shapePoints = self._getShapeFromControlPoints(points)
         item = items.Shape("polygon")
         item.setPoints(shapePoints)
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
-        return [item, marker]
+        return [item]
 
     def _createAnchorItems(self, points):
         anchors = []
