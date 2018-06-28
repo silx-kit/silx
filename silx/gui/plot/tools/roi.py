@@ -29,7 +29,7 @@ This API is not mature and will probably change in the future.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2018"
+__date__ = "28/06/2018"
 
 
 import collections
@@ -240,7 +240,7 @@ class RegionOfInterestManager(qt.QObject):
         if self.getRegionOfInterests():  # Something to reset
             for roi in self._rois:
                 roi.sigRegionChanged.disconnect(
-                    self._regionOfInterestPointsChanged)
+                    self._regionOfInterestChanged)
                 roi.setParent(None)
             self._rois = []
             self._roisUpdated()
@@ -249,8 +249,8 @@ class RegionOfInterestManager(qt.QObject):
         else:
             return False
 
-    def _regionOfInterestPointsChanged(self):
-        """Handle ROI object points changed"""
+    def _regionOfInterestChanged(self):
+        """Handle ROI object changed"""
         self.sigRegionOfInterestChanged.emit()
 
     def createRegionOfInterest(self, kind, points, label='', index=None):
@@ -293,7 +293,7 @@ class RegionOfInterestManager(qt.QObject):
         if useManagerColor:
             roi.setColor(self.getColor())
 
-        roi.sigRegionChanged.connect(self._regionOfInterestPointsChanged)
+        roi.sigRegionChanged.connect(self._regionOfInterestChanged)
 
         if index is None:
             self._rois.append(roi)
@@ -317,7 +317,7 @@ class RegionOfInterestManager(qt.QObject):
         self.sigRegionOfInterestAboutToBeRemoved.emit(roi)
 
         self._rois.remove(roi)
-        roi.sigRegionChanged.disconnect(self._regionOfInterestPointsChanged)
+        roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
         roi.setParent(None)
         self._roisUpdated()
 
