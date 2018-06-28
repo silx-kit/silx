@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2018"
+__date__ = "28/06/2018"
 
 
 import unittest
@@ -355,7 +355,6 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         manager = roi.RegionOfInterestManager(self.plot)
         self.roiTableWidget.setRegionOfInterestManager(manager)
         for item in rois:
-            print(item)
             with self.subTest(roi=str(item)):
                 manager.addRegionOfInterest(item)
                 self.qapp.processEvents()
