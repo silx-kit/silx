@@ -223,6 +223,7 @@ class Hdf5Writer(object):
                     # write frame by frame to save memory usage low
                     ds = self._h5f.create_dataset(h5_name,
                                                   shape=obj.shape,
+                                                  dtype=obj.dtype,
                                                   **self.create_dataset_args)
                     for i, frame in enumerate(obj):
                         ds[i] = frame
