@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/05/2018"
+__date__ = "28/06/2018"
 
 
 import logging
@@ -251,9 +251,9 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
             roiManager.sigInteractiveModeFinished.connect(
                 self.__interactionFinished)
             if roiManager.isStarted():
-                self.__interactionStarted(roiManager.getRegionOfInterestKind())
+                self.__interactionStarted(roiManager.getCurrentInteractionModeRoiClass())
 
-    def __interactionStarted(self, kind):
+    def __interactionStarted(self, roiClass):
         """Handle start of ROI interaction"""
         plot = self.getPlotWidget()
         if plot is None:
@@ -265,7 +265,7 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         legend = None if scatter is None else scatter.getLegend()
         self.__activeScatterChanged(None, legend)
 
-    def __interactionFinished(self, rois):
+    def __interactionFinished(self):
         """Handle end of ROI interaction"""
         plot = self.getPlotWidget()
         if plot is None:
