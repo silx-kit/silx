@@ -146,8 +146,11 @@ class RegionOfInterestManager(qt.QObject):
             if roiClass in self._MODE_ACTIONS_PARAMS:
                 iconName, text = self._MODE_ACTIONS_PARAMS[roiClass]
             else:
-                iconName = qt.QIcon()
-                text = 'Add %s' % roiClass
+                iconName = "add-shape-unknown"
+                name = roiClass._getKind()
+                if name is None:
+                    name = roiClass.__name__
+                text = 'Add %s' % name
             action = qt.QAction(self)
             action.setIcon(icons.getQIcon(iconName))
             action.setText(text)
