@@ -159,8 +159,8 @@ class TestStats(TestCaseQt):
         self.assertTrue(
             _stats['minCoords'].calculate(image2Context) == (100, 10))
         self.assertTrue(
-            _stats['maxCoords'].calculate(image2Context) == (int(127*2. + 100),
-                                                             int(31 * 0.5 + 10))
+            _stats['maxCoords'].calculate(image2Context) == (127*2. + 100,
+                                                             31 * 0.5 + 10)
         )
         self.assertTrue(
             _stats['std'].calculate(image2Context) == numpy.std(
@@ -186,8 +186,8 @@ class TestStats(TestCaseQt):
         _stats = self.getBasicStats()
         self.assertTrue(_stats['min'].calculate(self.scatterContext) == 5)
         self.assertTrue(_stats['max'].calculate(self.scatterContext) == 90)
-        self.assertTrue(_stats['minCoords'].calculate(self.scatterContext) == [(2, 0), (18, 36)])
-        self.assertTrue(_stats['maxCoords'].calculate(self.scatterContext) == (69, 50))
+        self.assertTrue(_stats['minCoords'].calculate(self.scatterContext) == (0, 2))
+        self.assertTrue(_stats['maxCoords'].calculate(self.scatterContext) == (50, 69))
         self.assertTrue(_stats['std'].calculate(self.scatterContext) == numpy.std(self.valuesScatterData))
         self.assertTrue(_stats['mean'].calculate(self.scatterContext) == numpy.mean(self.valuesScatterData))
 
@@ -488,8 +488,8 @@ class TestStatsWidgetWithImages(TestCaseQt):
         self.assertTrue(itemMin.text() == '0.000')
         self.assertTrue(itemMax.text() == '{0:.3f}'.format(max))
         self.assertTrue(itemDelta.text() == '{0:.3f}'.format(max))
-        self.assertTrue(itemCoordsMin.text() == '0, 0')
-        self.assertTrue(itemCoordsMax.text() == '127, 127')
+        self.assertTrue(itemCoordsMin.text() == '0.0, 0.0')
+        self.assertTrue(itemCoordsMax.text() == '127.0, 127.0')
 
 
 class TestStatsWidgetWithScatters(TestCaseQt):
@@ -537,8 +537,8 @@ class TestStatsWidgetWithScatters(TestCaseQt):
         self.assertTrue(itemMin.text() == '5')
         self.assertTrue(itemMax.text() == '90')
         self.assertTrue(itemDelta.text() == '85')
-        self.assertTrue(itemCoordsMin.text() == '2, 0')
-        self.assertTrue(itemCoordsMax.text() == '69, 50')
+        self.assertTrue(itemCoordsMin.text() == '0, 2')
+        self.assertTrue(itemCoordsMax.text() == '50, 69')
 
 
 class TestEmptyStatsWidget(TestCaseQt):
