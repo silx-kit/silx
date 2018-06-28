@@ -447,14 +447,14 @@ class StatCOM(StatBase):
             xData, yData = context.data
             deno = numpy.sum(yData).astype(numpy.float32)
             if deno == 0.:
-                return 0.
+                return numpy.nan
             else:
                 return numpy.sum(xData * yData).astype(numpy.float32) / deno
         elif context.kind == 'scatter':
             xData, yData, values = context.data
             deno = numpy.sum(values).astype(numpy.float32)
             if deno == 0.:
-                return 0., 0.
+                return numpy.nan, numpy.nan
             else:
                 xcom = numpy.sum(xData * values).astype(numpy.float32) / deno
                 ycom = numpy.sum(yData * values).astype(numpy.float32) / deno
@@ -469,14 +469,14 @@ class StatCOM(StatBase):
 
             denoY = numpy.sum(yData)
             if denoY == 0.:
-                ycom = 0.
+                ycom = numpy.nan
             else:
                 ycom = numpy.sum(yData * dataYRange) / denoY
                 ycom = ycom * yScale + yOrigin
 
             denoX = numpy.sum(xData)
             if denoX == 0.:
-                xcom = 0.
+                xcom = numpy.nan
             else:
                 xcom = numpy.sum(xData * dataXRange) / denoX
                 xcom = xcom * xScale + xOrigin
