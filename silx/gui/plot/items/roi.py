@@ -52,7 +52,6 @@ class RegionOfInterest(qt.QObject):
 
     :param QObject parent:
         The RegionOfInterestManager that created this object
-    :param str kind: The kind of ROI represented by this object
     """
 
     _kind = None
