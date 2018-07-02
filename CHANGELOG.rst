@@ -6,35 +6,27 @@ Change Log
 
  * Graphical user interface:
 
-   * Plot main features:
+   * Plot:
    
      * Adds support of x-axis date/time ticks for time series display (see `silx.gui.plot.items.XAxis.setTickMode`)
      * Adds support of interactive authoring of regions of interest (see `silx.gui.plot.items.roi` and `silx.gui.plot.tools.roi`)
      * Adds `StatsWidget` widget for displaying statistics on data displayed in a `PlotWidget`
      * Adds `ScatterView` widget for displaying scatter plot with tools such as line profile and mask
+     * Overcomes the limitation to float32 precision with the OpenGL backend
+     * Splits plot toolbar is several reusable thematic toolbars
 
    * Plot3D: Adds `SceneWidget` items to display many cubes, cylinders or hexagonal prisms at once
    * Adds `silx.gui.utils` package with `submitToQtMainThread` for asynchronous execution of Qt-related functions
    * Adds Qt signals to `Hdf5TreeView` to manage HDF5 file life-cycle
    * Adds `GroupDialog` dialog to select a group in a HDF5 file
-   
+   * Improves colormap computation with a Cython/OpenMP implementation
+
    * Main API changes:
 
      * `Colormap` is now part of `silx.gui.colors`
      * `ColormapDialog` is now part of `silx.gui.dialogs`
      * `MaskToolsWidget.getSelectionMask` method now returns `None` if no image is selected
      * Clean-up `FrameBrowser` API
-
-   * Miscellaneous plot updates:
-
-     * Improves colormap computation with a Cython/OpenMP implementation
-     * Overcomes the limitation to float32 precision with the OpenGL backend
-     * Splits plot toolbar is several reusable thematic toolbars
-     * Improves high DPI screen support
-     * Refactors `PositionInfo` widget snapping mode
-     * Adds API to get `StackView` current frame (see `sigFrameChanged` and `getFrameNumber`)
-     * Removes "save RGB image as TIFF" from `SaveAction`
-     * Adds API to add/update `SaveAction` supported file formats
 
  * Image
 
