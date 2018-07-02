@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/05/2018"
+__date__ = "02/07/2018"
 
 import os
 import logging
@@ -510,6 +510,13 @@ class TestFabioH5WithEdf(unittest.TestCase):
         self.assertNotIn("/scan_0/instrument/detector_0/others/HeaderID", self.h5_image)
 
 
+class _TestableFrameData(fabioh5.FrameData):
+    """Allow to test if the full data is reached."""
+
+    def _create_data(self):
+        raise RuntimeError("Not supposed to be called")
+
+
 class TestFabioH5WithFileSeries(unittest.TestCase):
 
     @classmethod
@@ -565,6 +572,13 @@ class TestFabioH5WithFileSeries(unittest.TestCase):
         file_series = fabioh5._FileSeries(self.edf_filenames)
         h5_image = fabioh5.File(file_series=file_series)
         self._testH5Image(h5_image)
+
+    def testFrameDataCache(self):
+        file_series = fabioh5._FileSeries(self.edf_filenames)
+        reader = fabioh5.FabioReader(file_series=file_series)
+        frameData = _TestableFrameData("foo", reader)
+        self.assertEqual(frameData.dtype.kind, "i")
+        self.assertEqual(frameData.shape, (10, 3, 2))
 
 
 def suite():
