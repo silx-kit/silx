@@ -118,7 +118,7 @@ class FrameData(commonh5.LazyLoadableDataset):
                       fabio.file_series.file_series):
             # Reading all the files is taking too much time
             # Reach the information from the only first frame
-            first_image = self.__fabio_reader._fabio_file().first_image()
+            first_image = self.__fabio_reader.fabio_file().first_image()
             self._dtype = first_image.data.dtype
             shape0 = self.__fabio_reader.frame_count()
             shape1, shape2 = first_image.data.shape
