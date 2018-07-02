@@ -1,6 +1,74 @@
 Change Log
 ==========
 
+0.8.0:
+------
+
+ * Graphic user interface:
+
+   * Plot
+
+     * Allow to show date/time stamps on the x-axis (`setTimeSeries`)
+     * Add class to handle interactive selection i.e. ROIs (see `silx.gui.plot.items.roi` and `silx.gui.plot.tools.roi`)
+     * Plot stats widget
+     * Add `ScatterView` widget with scatter profile (and mask)
+
+   * Plot3D: Provides new items to display many cubes, cylinders or hexagonal prisms at once
+   * `silx.gui.utils` package expose `submitToQtMainThread`
+   * `Hdf5TreeView` provides now signals to manage HDF5 file life-cycle
+   * Provide a dialog to select a group of HDF5
+   * API changes:
+
+     * `Colormap` is now part of `silx.gui.colors`
+     * `ColormapDialog` is now part of `silx.gui.dialogs`
+     * `MaskToolsWidget` methods `getSelectionMask` now returns `None` if no image is selected
+     * `StackView`/`FrameBrowser`: Provide `sigFrameChanged` and `getFrameNumber`
+
+   * Colormap computation is speed up with Cython/OpenMP
+   * Plot
+
+     * Split plot toolbar is several reusable thematic toolbars
+     * Remove save RGB image as TIFF from `SaveAction`
+     * Add possibility to add/update file format to `SaveAction`
+     * Fix position info update when active image changes
+     * Overcome float32 precision on OpenGL backend
+     * Improve high DPI screen support
+     * Refactor `PositionInfo` widget snapping mode
+
+   * Image
+
+     * Add a marching squares algorithm optimized to compute many iso contours from the same image
+
+ * Input/output:
+
+   * Improve handling of empty Spec scans
+   * `NXdata` parser provides an API to reach messages on malformed input data
+
+ * `silx.sx`
+
+   * Allow to use sx in script
+   * `sx.imshow` supports custom y-axis orientation using `origin=upper|lower`
+   * `sx.enable_gui()` allow access to use silx widgets from the notebook
+
+ * `silx convert`
+
+   * Improve conversion from EDF file series to HDF5
+
+ * `silx view`
+
+   * Add user preferences to restitute colormap, plot backend, y-axis of plot image and few other things
+   * Use `--fresh` to clean up user preferences at startup
+   * Add a view to create custom viewable `NXdata`
+   * Shortcut `CTRL+C` in the terminal will now close the application
+   * Add icons on the tree to collapse/expand items in the whole depth
+   * NXdata view uses now `ScatterView` widget for scatters
+
+ * Miscellaneous
+
+   * Drop official support of Debian 7
+   * Drop old IPython console: Only the `qtconsole` module is supported
+   * Fix EDF file size written by `EdfFile` module with Python 3
+
 0.7.0: 2018/02/27
 -----------------
 
