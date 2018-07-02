@@ -248,7 +248,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_autoscaley_on(True)
         self.ax.set_zorder(1)
         # this works but the figure color is left
-        if matplotlib.__version__[0] < '2':
+        if self._matplotlibVersion < _parse_version('2'):
             self.ax.set_axis_bgcolor('none')
         else:
             self.ax.set_facecolor('none')
@@ -381,7 +381,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # No transparent colormap with matplotlib < 1.2.0
         # Add support for transparent colormap for uint8 data with
         # colormap with 256 colors, linear norm, [0, 255] range
-        if matplotlib.__version__ < '1.2.0':
+        if self._matplotlibVersion < _parse_version('1.2.0'):
             if (len(data.shape) == 2 and colormap.getName() is None and
                     colormap.getColormapLUT() is not None):
                 colors = colormap.getColormapLUT()
@@ -439,7 +439,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             ystep = 1 if scale[1] >= 0. else -1
             data = data[::ystep, ::xstep]
 
-        if matplotlib.__version__ < "2.1":
+        if self._matplotlibVersion < _parse_version('2.1'):
             # matplotlib 1.4.2 do not support float128
             dtype = data.dtype
             if dtype.kind == "f" and dtype.itemsize >= 16:
@@ -786,7 +786,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
         # to log scale with both limits <= 0
         # In this case a draw with positive limits is needed first
-        if flag and matplotlib.__version__ >= '2.1.0':
+        if flag and self._matplotlibVersion >= _parse_version('2.1.0'):
             xlim = self.ax.get_xlim()
             if xlim[0] <= 0 and xlim[1] <= 0:
                 self.ax.set_xlim(1, 10)
@@ -798,7 +798,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setYAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.0 issue with negative bounds
         # before switching to log scale
-        if flag and matplotlib.__version__ >= '2.0.0':
+        if flag and self._matplotlibVersion >= _parse_version('2.0.0'):
             redraw = False
             for axis, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
                 ylim = axis.get_ylim()
@@ -1057,7 +1057,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         """
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
-        if matplotlib.__version__ >= "2.0.0":
+        if self._matplotlibVersion >= _parse_version("2.0.0"):
             try:
                 FigureCanvasQTAgg.draw(self)
             except ValueError as err:
