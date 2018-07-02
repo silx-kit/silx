@@ -35,6 +35,8 @@ import logging
 import datetime as dt
 import numpy
 
+from pkg_resources import parse_version as _parse_version
+
 
 _logger = logging.getLogger(__name__)
 
@@ -222,6 +224,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
         self._axesDisplayed = True
+        self._matplotlibVersion = _parse_version(matplotlib.__version__)
 
         self.fig = Figure()
         self.fig.set_facecolor("w")
@@ -257,7 +260,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._colormaps = {}
 
         self._graphCursor = tuple()
-        self.matplotlibVersion = matplotlib.__version__
 
         self._enableAxis('right', False)
         self._isXAxisTimeSeries = False
@@ -1087,7 +1089,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             if yRightLimits != self.ax2.get_ybound():
                 self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
-
         self._drawOverlays()
 
     def replot(self):
@@ -1106,6 +1107,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         elif dirtyFlag:  # Need full redraw
             self.draw()
 
+        # Workaround issue of rendering overlays with some matplotlib versions
+        if (_parse_version('1.5') <= self._matplotlibVersion < _parse_version('2.1') and
+                not hasattr(self, '_firstReplot')):
+            self._firstReplot = False
+            if self._overlays or self._graphCursor:
+                qt.QTimer.singleShot(0, self.draw)  # Request async draw
 
     # cursor
 
