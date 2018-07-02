@@ -4,70 +4,71 @@ Change Log
 0.8.0:
 ------
 
- * Graphic user interface:
+ * Graphical user interface:
 
-   * Plot
+   * Plot main features:
+   
+     * Adds support of x-axis date/time ticks for time series display (see `silx.gui.plot.items.XAxis.setTickMode`)
+     * Adds support of interactive authoring of regions of interest (see `silx.gui.plot.items.roi` and `silx.gui.plot.tools.roi`)
+     * Adds `StatsWidget` widget for displaying statistics on data displayed in a `PlotWidget`
+     * Adds `ScatterView` widget for displaying scatter plot with tools such as line profile and mask
 
-     * Allow to show date/time stamps on the x-axis (`setTimeSeries`)
-     * Add class to handle interactive selection i.e. ROIs (see `silx.gui.plot.items.roi` and `silx.gui.plot.tools.roi`)
-     * Plot stats widget
-     * Add `ScatterView` widget with scatter profile (and mask)
-
-   * Plot3D: Provides new items to display many cubes, cylinders or hexagonal prisms at once
-   * `silx.gui.utils` package expose `submitToQtMainThread`
-   * `Hdf5TreeView` provides now signals to manage HDF5 file life-cycle
-   * Provide a dialog to select a group of HDF5
-   * API changes:
+   * Plot3D: Adds `SceneWidget` items to display many cubes, cylinders or hexagonal prisms at once
+   * Adds `silx.gui.utils` package with `submitToQtMainThread` for asynchronous execution of Qt-related functions
+   * Adds Qt signals to `Hdf5TreeView` to manage HDF5 file life-cycle
+   * Adds `GroupDialog` dialog to select a group in a HDF5 file
+   
+   * Main API changes:
 
      * `Colormap` is now part of `silx.gui.colors`
      * `ColormapDialog` is now part of `silx.gui.dialogs`
-     * `MaskToolsWidget` methods `getSelectionMask` now returns `None` if no image is selected
-     * `StackView`/`FrameBrowser`: Provide `sigFrameChanged` and `getFrameNumber`
+     * `MaskToolsWidget.getSelectionMask` method now returns `None` if no image is selected
+     * Clean-up `FrameBrowser` API
 
-   * Colormap computation is speed up with Cython/OpenMP
-   * Plot
+   * Miscellaneous plot updates:
 
-     * Split plot toolbar is several reusable thematic toolbars
-     * Remove save RGB image as TIFF from `SaveAction`
-     * Add possibility to add/update file format to `SaveAction`
-     * Fix position info update when active image changes
-     * Overcome float32 precision on OpenGL backend
-     * Improve high DPI screen support
-     * Refactor `PositionInfo` widget snapping mode
+     * Improves colormap computation with a Cython/OpenMP implementation
+     * Overcomes the limitation to float32 precision with the OpenGL backend
+     * Splits plot toolbar is several reusable thematic toolbars
+     * Improves high DPI screen support
+     * Refactors `PositionInfo` widget snapping mode
+     * Adds API to get `StackView` current frame (see `sigFrameChanged` and `getFrameNumber`)
+     * Removes "save RGB image as TIFF" from `SaveAction`
+     * Adds API to add/update `SaveAction` supported file formats
 
-   * Image
+ * Image
 
-     * Add a marching squares algorithm optimized to compute many iso contours from the same image
+   * Adds an optimized marching squares algorithm to compute many iso contours from the same image
 
  * Input/output:
 
-   * Improve handling of empty Spec scans
-   * `NXdata` parser provides an API to reach messages on malformed input data
+   * Improves handling of empty Spec scans
+   * Add an API to `NXdata` parser to get messages about malformed input data
 
  * `silx.sx`
 
-   * Allow to use sx in script
-   * `sx.imshow` supports custom y-axis orientation using `origin=upper|lower`
-   * `sx.enable_gui()` allow access to use silx widgets from the notebook
+   * Allows to use `silx.sx` in script as in Python interpreter
+   * `sx.imshow` supports custom y-axis orientation using argument `origin=upper|lower`
+   * Adds `sx.enable_gui()` to enable silx widgets in IPython notebooks
 
  * `silx convert`
 
-   * Improve conversion from EDF file series to HDF5
+   * Improves conversion from EDF file series to HDF5
 
  * `silx view`
 
-   * Add user preferences to restitute colormap, plot backend, y-axis of plot image and few other things
-   * Use `--fresh` to clean up user preferences at startup
-   * Add a view to create custom viewable `NXdata`
-   * Shortcut `CTRL+C` in the terminal will now close the application
-   * Add icons on the tree to collapse/expand items in the whole depth
-   * NXdata view uses now `ScatterView` widget for scatters
+   * Adds user preferences to restore colormap, plot backend, y-axis of plot image,...
+   * Adds `--fresh` option to clean up user preferences at startup
+   * Adds a widget to create custom viewable `NXdata` by combining different datasets
+   * Supports `CTRL+C` shortcut in the terminal to close the application
+   * Adds buttons to collapse/expand tree items
+   * NXdata view now uses the `ScatterView` widget for scatters
 
  * Miscellaneous
 
-   * Drop official support of Debian 7
-   * Drop old IPython console: Only the `qtconsole` module is supported
-   * Fix EDF file size written by `EdfFile` module with Python 3
+   * Drops official support of Debian 7
+   * Drops versions of IPython console widget before the `qtconsole` package
+   * Fixes EDF file size written by `EdfFile` module with Python 3
 
 0.7.0: 2018/02/27
 -----------------
