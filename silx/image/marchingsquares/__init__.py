@@ -38,7 +38,7 @@ points of the iso contours.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/04/2018"
+__date__ = "02/07/2018"
 
 
 from ._mergeimpl import MarchingSquaresMergeImpl
@@ -56,7 +56,7 @@ def _factory(engine, image, mask):
         raise ValueError("Engine '%s' is not supported ('merge' or 'skimage' expected).")
 
 
-def find_pixels(image, level, mask=None, engine="merge"):
+def find_pixels(image, level, mask=None):
     """
     Find the pixels following the iso contours at the given `level`.
 
@@ -77,26 +77,18 @@ def find_pixels(image, level, mask=None, engine="merge"):
     :param float level: Level of the requested iso contours.
     :param numpy.ndarray mask: An optional mask (a non-zero value invalidate
         the pixels of the image)
-    :param str engine: Engine to use. Currently 2 implementations are available.
-
-        - `merge`: An implementation using Cython and supporting OpenMP based on
-          :class:`MarchingSquaresMergeImpl`.
-        - `skimage`: Provide an implementation based on the `skimage` library. If
-          it is used with a mask, the computation will not be accurate nor
-          efficient. Provided to compare implementation. The `skimage` library
-          have to be installed.
-
     :returns: An array of coordinates in y/x
     :rtype: numpy.ndarray
     """
     assert(image is not None)
     if mask is not None:
         assert(image.shape == mask.shape)
+    engine = "merge"
     impl = _factory(engine, image, mask)
     return impl.find_pixels(level)
 
 
-def find_contours(image, level, mask=None, engine="merge"):
+def find_contours(image, level, mask=None):
     """
     Find the iso contours at the given `level`.
 
@@ -114,20 +106,12 @@ def find_contours(image, level, mask=None, engine="merge"):
     :param float level: Level of the requested iso contours.
     :param numpy.ndarray mask: An optional mask (a non-zero value invalidate
         the pixels of the image)
-    :param str engine: Engine to use. Currently 2 implementations are available.
-
-        - `merge`: An implementation using Cython and supporting OpenMP based on
-          :class:`MarchingSquaresMergeImpl`.
-        - `skimage`: Provide an implementation based on the `skimage` library. If
-          it is used with a mask, the computation will not be accurate nor
-          efficient. Provided to compare implementation. The `skimage` library
-          have to be installed.
-
     :returns: A list of array containing y-x coordinates of points
     :rtype: List[numpy.ndarray]
     """
     assert(image is not None)
     if mask is not None:
         assert(image.shape == mask.shape)
+    engine = "merge"
     impl = _factory(engine, image, mask)
     return impl.find_contours(level)
