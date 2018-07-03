@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/02/2018"
+__date__ = "03/07/2018"
 
 
 import unittest
@@ -69,6 +69,20 @@ def setUpModule():
 
     if h5py is not None:
         filename = _tmpDirectory + "/data.h5"
+        f = h5py.File(filename, "w")
+        f["scalar"] = 10
+        f["image"] = data
+        f["cube"] = [data, data + 1, data + 2]
+        f["complex_image"] = data * 1j
+        f["group/image"] = data
+        f["nxdata/foo"] = 10
+        f["nxdata"].attrs["NX_class"] = u"NXdata"
+        f.close()
+
+    if h5py is not None:
+        directory = os.path.join(_tmpDirectory, "data")
+        os.mkdir(directory)
+        filename = os.path.join(directory, "data.h5")
         f = h5py.File(filename, "w")
         f["scalar"] = 10
         f["image"] = data
@@ -270,7 +284,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = utils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
         toParentButton = utils.getQToolButtonFromAction(action)
-        filename = _tmpDirectory + "/data.h5"
+        filename = _tmpDirectory + "/data/data.h5"
 
         # init state
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
@@ -286,11 +300,11 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory)
+        self.assertSamePath(url.text(), _tmpDirectory + "/data")
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), os.path.dirname(_tmpDirectory))
+        self.assertSamePath(url.text(), _tmpDirectory)
 
     def testClickOnBackToRootTool(self):
         if h5py is None:
@@ -529,7 +543,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 3)
+        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 4)
 
 
 class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
