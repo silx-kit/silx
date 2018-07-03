@@ -29,6 +29,20 @@ Available icons
      - 3d-plane-pan
    * - |3d-plane|
      - 3d-plane
+   * - |add-shape-arc|
+     - add-shape-arc
+   * - |add-shape-diagonal|
+     - add-shape-diagonal
+   * - |add-shape-horizontal|
+     - add-shape-horizontal
+   * - |add-shape-point|
+     - add-shape-point
+   * - |add-shape-polygon|
+     - add-shape-polygon
+   * - |add-shape-rectangle|
+     - add-shape-rectangle
+   * - |add-shape-vertical|
+     - add-shape-vertical
    * - |arrow-keys|
      - arrow-keys
    * - |axis|
@@ -117,6 +131,8 @@ Available icons
      - item-object
    * - |last|
      - last
+   * - |layer-nx|
+     - layer-nx
    * - |math-amplitude|
      - math-amplitude
    * - |math-average|
@@ -163,6 +179,14 @@ Available icons
      - next
    * - |normal|
      - normal
+   * - |nxdata-axis-add|
+     - nxdata-axis-add
+   * - |nxdata-axis-remove|
+     - nxdata-axis-remove
+   * - |nxdata-create|
+     - nxdata-create
+   * - |nxdata-remove|
+     - nxdata-remove
    * - |pan|
      - pan
    * - |pixel-intensities|
@@ -245,6 +269,18 @@ Available icons
      - sliders-on
    * - |spec|
      - spec
+   * - |stats-active-items|
+     - stats-active-items
+   * - |stats-visible-data|
+     - stats-visible-data
+   * - |stats-whole-data|
+     - stats-whole-data
+   * - |stats-whole-items|
+     - stats-whole-items
+   * - |tree-collapse-all|
+     - tree-collapse-all
+   * - |tree-expand-all|
+     - tree-expand-all
    * - |view-1d|
      - view-1d
    * - |view-2d-stack|
@@ -285,6 +321,13 @@ Available icons
 .. |3d-plane-normal-z| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-z.png
 .. |3d-plane-pan| image:: ../../../../silx/resources/gui/icons/3d-plane-pan.png
 .. |3d-plane| image:: ../../../../silx/resources/gui/icons/3d-plane.png
+.. |add-shape-arc| image:: ../../../../silx/resources/gui/icons/add-shape-arc.png
+.. |add-shape-diagonal| image:: ../../../../silx/resources/gui/icons/add-shape-diagonal.png
+.. |add-shape-horizontal| image:: ../../../../silx/resources/gui/icons/add-shape-horizontal.png
+.. |add-shape-point| image:: ../../../../silx/resources/gui/icons/add-shape-point.png
+.. |add-shape-polygon| image:: ../../../../silx/resources/gui/icons/add-shape-polygon.png
+.. |add-shape-rectangle| image:: ../../../../silx/resources/gui/icons/add-shape-rectangle.png
+.. |add-shape-vertical| image:: ../../../../silx/resources/gui/icons/add-shape-vertical.png
 .. |arrow-keys| image:: ../../../../silx/resources/gui/icons/arrow-keys.png
 .. |axis| image:: ../../../../silx/resources/gui/icons/axis.png
 .. |camera| image:: ../../../../silx/resources/gui/icons/camera.png
@@ -329,6 +372,7 @@ Available icons
 .. |item-none| image:: ../../../../silx/resources/gui/icons/item-none.png
 .. |item-object| image:: ../../../../silx/resources/gui/icons/item-object.png
 .. |last| image:: ../../../../silx/resources/gui/icons/last.png
+.. |layer-nx| image:: ../../../../silx/resources/gui/icons/layer-nx.png
 .. |math-amplitude| image:: ../../../../silx/resources/gui/icons/math-amplitude.png
 .. |math-average| image:: ../../../../silx/resources/gui/icons/math-average.png
 .. |math-derive| image:: ../../../../silx/resources/gui/icons/math-derive.png
@@ -352,6 +396,10 @@ Available icons
 .. |median-filter| image:: ../../../../silx/resources/gui/icons/median-filter.png
 .. |next| image:: ../../../../silx/resources/gui/icons/next.png
 .. |normal| image:: ../../../../silx/resources/gui/icons/normal.png
+.. |nxdata-axis-add| image:: ../../../../silx/resources/gui/icons/nxdata-axis-add.png
+.. |nxdata-axis-remove| image:: ../../../../silx/resources/gui/icons/nxdata-axis-remove.png
+.. |nxdata-create| image:: ../../../../silx/resources/gui/icons/nxdata-create.png
+.. |nxdata-remove| image:: ../../../../silx/resources/gui/icons/nxdata-remove.png
 .. |pan| image:: ../../../../silx/resources/gui/icons/pan.png
 .. |pixel-intensities| image:: ../../../../silx/resources/gui/icons/pixel-intensities.png
 .. |plot-grid| image:: ../../../../silx/resources/gui/icons/plot-grid.png
@@ -393,6 +441,12 @@ Available icons
 .. |sliders-off| image:: ../../../../silx/resources/gui/icons/sliders-off.png
 .. |sliders-on| image:: ../../../../silx/resources/gui/icons/sliders-on.png
 .. |spec| image:: ../../../../silx/resources/gui/icons/spec.png
+.. |stats-active-items| image:: ../../../../silx/resources/gui/icons/stats-active-items.png
+.. |stats-visible-data| image:: ../../../../silx/resources/gui/icons/stats-visible-data.png
+.. |stats-whole-data| image:: ../../../../silx/resources/gui/icons/stats-whole-data.png
+.. |stats-whole-items| image:: ../../../../silx/resources/gui/icons/stats-whole-items.png
+.. |tree-collapse-all| image:: ../../../../silx/resources/gui/icons/tree-collapse-all.png
+.. |tree-expand-all| image:: ../../../../silx/resources/gui/icons/tree-expand-all.png
 .. |view-1d| image:: ../../../../silx/resources/gui/icons/view-1d.png
 .. |view-2d-stack| image:: ../../../../silx/resources/gui/icons/view-2d-stack.png
 .. |view-2d| image:: ../../../../silx/resources/gui/icons/view-2d.png
