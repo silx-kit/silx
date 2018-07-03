@@ -34,11 +34,11 @@ import numpy
 from silx.third_party import six
 import weakref
 
-from .utils import is_dataset
+from . import utils
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "07/06/2018"
+__date__ = "02/07/2018"
 
 
 class _MappingProxyType(collections.MutableMapping):
@@ -101,12 +101,31 @@ class Node(object):
         self.__basename = name
 
     @property
+    def h5_class(self):
+        """Returns the HDF5 class which is mimicked by this class.
+
+        :rtype: H5Type
+        """
+        raise NotImplementedError()
+
+    @property
     def h5py_class(self):
         """Returns the h5py classes which is mimicked by this class. It can be
         one of `h5py.File, h5py.Group` or `h5py.Dataset`
 
+        This should not be used anymore. Prefer using `h5_class`
+
         :rtype: Class
         """
+        h5_class = self.h5_class
+        if h5_class == utils.H5Type.FILE:
+            return h5py.File
+        elif h5_class == utils.H5Type.GROUP:
+            return h5py.Group
+        elif h5_class == utils.H5Type.DATASET:
+            return h5py.Dataset
+        elif h5_class == utils.H5Type.SOFT_LINK:
+            return h5py.SoftLink
         raise NotImplementedError()
 
     @property
@@ -244,13 +263,12 @@ class Dataset(Node):
         return self.__data
 
     @property
-    def h5py_class(self):
-        """Returns the h5py classes which is mimicked by this class. It can be
-        one of `h5py.File, h5py.Group` or `h5py.Dataset`
+    def h5_class(self):
+        """Returns the HDF5 class which is mimicked by this class.
 
-        :rtype: Class
+        :rtype: H5Type
         """
-        return h5py.Dataset
+        return utils.H5Type.DATASET
 
     @property
     def dtype(self):
@@ -369,7 +387,7 @@ class Dataset(Node):
     # make comparisons and operations on the data
     def __eq__(self, other):
         """When comparing datasets, compare the actual data."""
-        if is_dataset(other):
+        if utils.is_dataset(other):
             return self[()] == other[()]
         return self[()] == other
 
@@ -425,31 +443,31 @@ class Dataset(Node):
         return self.__bool__()
 
     def __ne__(self, other):
-        if is_dataset(other):
+        if utils.is_dataset(other):
             return self[()] != other[()]
         else:
             return self[()] != other
 
     def __lt__(self, other):
-        if is_dataset(other):
+        if utils.is_dataset(other):
             return self[()] < other[()]
         else:
             return self[()] < other
 
     def __le__(self, other):
-        if is_dataset(other):
+        if utils.is_dataset(other):
             return self[()] <= other[()]
         else:
             return self[()] <= other
 
     def __gt__(self, other):
-        if is_dataset(other):
+        if utils.is_dataset(other):
             return self[()] > other[()]
         else:
             return self[()] > other
 
     def __ge__(self, other):
-        if is_dataset(other):
+        if utils.is_dataset(other):
             return self[()] >= other[()]
         else:
             return self[()] >= other
@@ -469,7 +487,7 @@ class DatasetProxy(Dataset):
 
     def __init__(self, name, target, parent=None):
         Dataset.__init__(self, name, data=None, parent=parent)
-        if not is_dataset(target):
+        if not utils.is_dataset(target):
             raise TypeError("A Dataset is expected but %s found", target.__class__)
         self.__target = target
 
@@ -561,13 +579,12 @@ class SoftLink(Node):
         self.target = str(path)
 
     @property
-    def h5py_class(self):
-        """Returns the h5py class which is mimicked by this class
-        (:class:`h5py.SoftLink`).
+    def h5_class(self):
+        """Returns the HDF5 class which is mimicked by this class.
 
-        :rtype: Class
+        :rtype: H5Type
         """
-        return h5py.SoftLink
+        return utils.H5Type.SOFT_LINK
 
     @property
     def path(self):
@@ -598,14 +615,12 @@ class Group(Node):
         node._set_parent(self)
 
     @property
-    def h5py_class(self):
-        """Returns the h5py classes which is mimicked by this class.
+    def h5_class(self):
+        """Returns the HDF5 class which is mimicked by this class.
 
-        It returns `h5py.Group`
-
-        :rtype: Class
+        :rtype: H5Type
         """
-        return h5py.Group
+        return utils.H5Type.GROUP
 
     def _get(self, name, getlink):
         """If getlink is True and name points to an existing SoftLink, this
@@ -683,9 +698,8 @@ class Group(Node):
             node = h5py.HardLink()
 
         if getclass:
-            if hasattr(node, "h5py_class"):
-                obj = node.h5py_class
-            else:
+            obj = utils.get_h5py_class(node)
+            if obj is None:
                 obj = node.__class__
         else:
             obj = node
@@ -783,7 +797,7 @@ class Group(Node):
                     if node is None:
                         # broken link
                         return False
-                if node.h5py_class == h5py.Dataset:
+                if utils.is_dataset(node):
                     return False
                 continue
             if basename not in node._get_items():
@@ -1029,9 +1043,9 @@ class File(Group):
         return self._mode
 
     @property
-    def h5py_class(self):
+    def h5_class(self):
         """Returns the :class:`h5py.File` class"""
-        return h5py.File
+        return utils.H5Type.FILE
 
     def __enter__(self):
         return self
