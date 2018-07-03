@@ -584,7 +584,7 @@ class SoftLink(Node):
 
         :rtype: H5Type
         """
-        raise utils.H5Type.SOFT_LINK
+        return utils.H5Type.SOFT_LINK
 
     @property
     def path(self):
