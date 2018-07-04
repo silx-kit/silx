@@ -41,8 +41,6 @@ _logger = logging.getLogger(__name__)
 
 
 class CompareImages(qt.QMainWindow):
-    # TODO: Check intensity images (no RGB)
-    # TODO: Check image1=RGB image2=intensity
 
     def __init__(self):
         qt.QMainWindow.__init__(self)
@@ -163,8 +161,11 @@ class CompareImages(qt.QMainWindow):
             data1, data2 = self.normalizeImageShape(raw1, raw2, mode="margin")
             self.__matching_keypoints = [0.0], [0.0], [1.0]
             try:
-                data1, data2 = self.createSiftTestData(data1, data2)
+                data1, data2 = self.__createSiftData(data1, data2)
+                if data2 is None:
+                    raise ValueError("Unexpected None value")
             except Exception as e:
+                # TODO: Display it on the GUI
                 print(e)
                 self.__autoAlignAction.setChecked(False)
                 self.__invalidateData()
@@ -188,15 +189,43 @@ class CompareImages(qt.QMainWindow):
 
         # Avoid to change the colormap range when the separator is moving
         # TODO: The colormap histogram will still be wrong
-        if len(data1.shape) == 2:
+        mode1 = self.__getImageMode(data1)
+        mode2 = self.__getImageMode(data2)
+        if mode1 == "intensity" and mode1 == mode2:
             vmin = min(self.__data1.min(), self.__data2.min())
             vmax = max(self.__data1.max(), self.__data2.max())
             colormap = Colormap(vmin=vmin, vmax=vmax)
             self.__image1.setColormap(colormap)
             self.__image2.setColormap(colormap)
+
+    def __getImageMode(self, image):
+        if len(image.shape) == 2:
+            return "intensity"
+        elif len(image.shape) == 3:
+            if image.shape[2] == 3:
+                return "rgb"
+            elif image.shape[2] == 4:
+                return "rgba"
+        raise TypeError("'image' argument is not an image.")
+
+    def __createMarginImage(self, image, size, transparent=False):
+        """Returns a new image with margin to respect the requested size.
+        """
+        mode = self.__getImageMode(image)
+        if mode == "intensity":
+            data = numpy.zeros(size, dtype=image.dtype)
+            data[0:image.shape[0], 0:image.shape[1]] = image
+            # TODO: It is maybe possible to put NaN on the margin
         else:
-            # RGB(A) images
-            pass
+            if transparent:
+                data = numpy.zeros((size[0], size[1], 4), dtype=numpy.uint8)
+            else:
+                data = numpy.zeros((size[0], size[1], 3), dtype=numpy.uint8)
+            depth = min(data.shape[2], image.shape[2])
+            data[0:image.shape[0], 0:image.shape[1], 0:depth] = image[:, :, 0:depth]
+            if transparent:
+                data[0:image.shape[0], 0:image.shape[1], 3] = 255
+        return data
 
     def normalizeImageShape(self, image, image2, mode="crop"):
         """
@@ -211,27 +240,19 @@ class CompareImages(qt.QMainWindow):
         elif mode == "margin":
             yy = max(image.shape[0], image2.shape[0])
             xx = max(image.shape[1], image2.shape[1])
-            data = numpy.zeros((yy, xx, 3), dtype=numpy.uint8)
-            data[0:image.shape[0], 0:image.shape[1], 0:image.shape[2]] = image
-            image = data
-            data = numpy.zeros((yy, xx, 3), dtype=numpy.uint8)
-            data[0:image2.shape[0], 0:image2.shape[1], 0:image2.shape[2]] = image2
-            image2 = data
+            size = yy, xx
+            image = self.__createMarginImage(image, size)
+            image2 = self.__createMarginImage(image2, size)
             return image, image2
         elif mode == "transparent_margin":
             yy = max(image.shape[0], image2.shape[0])
             xx = max(image.shape[1], image2.shape[1])
-            data = numpy.zeros((yy, xx, 4), dtype=numpy.uint8)
-            data[0:image.shape[0], 0:image.shape[1], 0:image.shape[2]] = image
-            data[0:image.shape[0], 0:image.shape[1], 3] = 255
-            image = data
-            data = numpy.zeros((yy, xx, 4), dtype=numpy.uint8)
-            data[0:image2.shape[0], 0:image2.shape[1], 0:image2.shape[2]] = image2
-            data[0:image2.shape[0], 0:image2.shape[1], 3] = 255
-            image2 = data
+            size = yy, xx
+            image = self.__createMarginImage(image, size, transparent=True)
+            image2 = self.__createMarginImage(image2, size, transparent=True)
             return image, image2
 
-    def createSiftTestData(self, image, second_image):
+    def __createSiftData(self, image, second_image):
         devicetype = "GPU"
 
         # Compute base image
@@ -254,8 +275,14 @@ class CompareImages(qt.QMainWindow):
         if matching_keypoints == 0:
             return image, second_image
 
+        # TODO: Problem here is we have to compute 2 time sift
+        # The first time to extract matching keypoints, second time
+        # to extract the aligned image.
+
         # Normalize the second image
         sa = sift.LinearAlign(image, devicetype=devicetype)
         data1 = image
+        # TODO: Create a sift issue: if data1 is RGB and data2 intensity
+        # it returns None, while extracting manually keypoints (above) works
         data2 = sa.align(second_image)
         return data1, data2
