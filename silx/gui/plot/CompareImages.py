@@ -97,20 +97,14 @@ class CompareImages(qt.QMainWindow):
             return
 
         if pos <= 0:
-            empty = numpy.empty((0, 0))
-            self.__image1.setData(empty, copy=False)
-            self.__image2.setData(self.__data2, copy=False)
-            self.__image2.setOrigin((0, 0))
+            pos = 0
         elif pos >= self.__data1.shape[1]:
-            empty = numpy.empty((0, 0))
-            self.__image1.setData(self.__data1, copy=False)
-            self.__image2.setData(empty, copy=False)
-        else:
-            data1 = self.__data1[:, 0:pos]
-            data2 = self.__data2[:, pos:]
-            self.__image1.setData(data1, copy=False)
-            self.__image2.setData(data2, copy=False)
-            self.__image2.setOrigin((pos, 0))
+            pos = self.__data1.shape[1]
+        data1 = self.__data1[:, 0:pos]
+        data2 = self.__data2[:, pos:]
+        self.__image1.setData(data1, copy=False)
+        self.__image2.setData(data2, copy=False)
+        self.__image2.setOrigin((pos, 0))
 
     def setData(self, image1, image2):
         self.__data1 = image1
