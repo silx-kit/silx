@@ -343,7 +343,7 @@ class CompareImages(qt.QMainWindow):
                     raise ValueError("Unexpected None value")
             except Exception as e:
                 # TODO: Display it on the GUI
-                print(e)
+                _logger.error(e)
                 self.__setDefaultAlignmentMode()
                 return
         else:
@@ -475,14 +475,14 @@ class CompareImages(qt.QMainWindow):
         second_keypoints = sift_ocl(second_image)
         mp = sift.MatchPlan()
         match = mp(keypoints, second_keypoints)
-        print("Number of Keypoints within image 1: %i" % keypoints.size)
-        print("                    within image 2: %i" % second_keypoints.size)
+        _logger.info("Number of Keypoints within image 1: %i" % keypoints.size)
+        _logger.info("                    within image 2: %i" % second_keypoints.size)
 
         matching_keypoints = match.shape[0]
         self.__matching_keypoints = (match[:].x[:, 0],
                                      match[:].y[:, 0],
                                      match[:].scale[:, 0])
-        print("Matching keypoints: %i" % matching_keypoints)
+        _logger.info("Matching keypoints: %i" % matching_keypoints)
         if matching_keypoints == 0:
             return image, second_image
 
