@@ -39,8 +39,14 @@ from silx.gui import plot
 from silx.gui import icons
 from silx.gui.colors import Colormap
 
-
 _logger = logging.getLogger(__name__)
+
+try:
+    from silx.image import sift
+except ImportError as e:
+    _logger.warning("Error while importing sift: %s", str(e))
+    _logger.debug("Backtrace", exc_info=True)
+    sift = None
 
 
 class CompareImages(qt.QMainWindow):
@@ -168,6 +174,9 @@ class CompareImages(qt.QMainWindow):
         action.setCheckable(True)
         self.__autoAlignAction = action
         menu.addAction(action)
+        if sift is None:
+            action.setEnabled(False)
+            action.setToolTip("Sift module is not available")
         self.__alignmentGroup.addAction(action)
 
         icon = icons.getQIcon("compare-keypoints")
@@ -474,7 +483,6 @@ class CompareImages(qt.QMainWindow):
         devicetype = "GPU"
 
         # Compute base image
-        from silx.image import sift
         sift_ocl = sift.SiftPlan(template=image, devicetype=devicetype)
         keypoints = sift_ocl(image)
 
