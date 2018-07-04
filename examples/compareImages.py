@@ -26,6 +26,7 @@
 """Example demonstrating the use of the widget CompareImages
 """
 
+import sys
 from silx.gui import qt
 import numpy
 import silx.test.utils
@@ -44,9 +45,15 @@ def createTestData():
 
 
 if __name__ == "__main__":
+    if len(sys.argv) == 3:
+        from PIL import Image
+        data1 = numpy.asarray(Image.open(sys.argv[1]))
+        data2 = numpy.asarray(Image.open(sys.argv[2]))
+    else:
+        data1, data2 = createTestData()
+
     app = qt.QApplication([])
     window = CompareImages()
-    data1, data2 = createTestData()
     window.setData(data1, data2)
     window.setVisible(True)
     app.exec_()
