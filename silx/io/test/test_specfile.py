@@ -1,6 +1,6 @@
 # coding: utf-8
-#/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# /*##########################################################################
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """Tests for specfile wrapper"""
 
 __authors__ = ["P. Knobel", "V.A. Sole"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "17/01/2018"
 
-import gc
+
 import locale
 import logging
 import numpy
@@ -36,10 +36,13 @@ import sys
 import tempfile
 import unittest
 
-logging.basicConfig()
-logger1 = logging.getLogger(__name__)
+from silx.utils import testutils
 
 from ..specfile import SpecFile, Scan
+from .. import specfile
+
+
+logger1 = logging.getLogger(__name__)
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -89,6 +92,14 @@ sftext = """#F /tmp/sf.dat
 2.0 2.1 2.2 2.3
 3.0 3.1 3.2 3.3
 
+#S 26  yyyyyy
+#D Thu Feb 11 09:55:20 2016
+#P0 80.005 -1.66875 1.87125
+#P1 4.74255 6.197579 2.238283
+#N 4
+#L first column  second column  3rd_col
+#C Sat Oct 31 15:51:47 1998.  Scan aborted after 0 points.
+
 #F /tmp/sf.dat
 #E 1455180876
 #D Thu Feb 11 09:54:36 2016
@@ -110,6 +121,7 @@ sftext = """#F /tmp/sf.dat
 @A 6 7.7 8
 """
 
+
 loc = locale.getlocale(locale.LC_NUMERIC)
 try:
     locale.setlocale(locale.LC_NUMERIC, 'de_DE.utf8')
@@ -124,22 +136,22 @@ class TestSpecFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname1 = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
 
         fd2, cls.fname2 = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
-            os.write(fd2, sftext[370:-97])
+        if sys.version_info < (3, ):
+            os.write(fd2, sftext[370:923])
         else:
-            os.write(fd2, bytes(sftext[370:-97], 'ascii'))
+            os.write(fd2, bytes(sftext[370:923], 'ascii'))
         os.close(fd2)
 
         fd3, cls.fname3 = tempfile.mkstemp(text=False)
         txt = sftext[371:923]
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd3, txt)
         else:
             os.write(fd3, bytes(txt, 'ascii'))
@@ -151,12 +163,12 @@ class TestSpecFile(unittest.TestCase):
         os.unlink(cls.fname2)
         os.unlink(cls.fname3)
 
-
     def setUp(self):
         self.sf = SpecFile(self.fname1)
         self.scan1 = self.sf[0]
         self.scan1_2 = self.sf["1.2"]
         self.scan25 = self.sf["25.1"]
+        self.empty_scan = self.sf["26.1"]
 
         self.sf_no_fhdr = SpecFile(self.fname2)
         self.scan1_no_fhdr = self.sf_no_fhdr[0]
@@ -165,19 +177,13 @@ class TestSpecFile(unittest.TestCase):
         self.scan1_no_fhdr_crash = self.sf_no_fhdr_crash[0]
 
     def tearDown(self):
-        del self.sf
-        del self.sf_no_fhdr
-        del self.scan1
-        del self.scan1_2
-        del self.scan25
-        del self.scan1_no_fhdr
-        del self.sf_no_fhdr_crash
-        del self.scan1_no_fhdr_crash
-        gc.collect()
+        self.sf.close()
+        self.sf_no_fhdr.close()
+        self.sf_no_fhdr_crash.close()
 
     def test_open(self):
         self.assertIsInstance(self.sf, SpecFile)
-        with self.assertRaises(IOError):
+        with self.assertRaises(specfile.SfErrFileOpen):
             sf2 = SpecFile("doesnt_exist.dat")
 
         # test filename types unicode and bytes
@@ -200,23 +206,22 @@ class TestSpecFile(unittest.TestCase):
             except TypeError:
                 self.fail("failed to handle filename as python3 bytes")
 
-        
     def test_number_of_scans(self):
-        self.assertEqual(3, len(self.sf))
+        self.assertEqual(4, len(self.sf))
         
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sf.list(),
-                         [1, 25, 1])
+                         [1, 25, 26, 1])
         self.assertEqual(self.sf.keys(),
-                         ["1.1", "25.1", "1.2"])
+                         ["1.1", "25.1", "26.1", "1.2"])
 
     def test_index_number_order(self):
-        self.assertEqual(self.sf.index(1, 2), 2)  #sf["1.2"]==sf[2]
+        self.assertEqual(self.sf.index(1, 2), 3)  #sf["1.2"]==sf[3]
         self.assertEqual(self.sf.number(1), 25)   #sf[1]==sf["25"]
-        self.assertEqual(self.sf.order(2), 2)     #sf[2]==sf["1.2"]
-        with self.assertRaises(IndexError):
+        self.assertEqual(self.sf.order(3), 2)     #sf[3]==sf["1.2"]
+        with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(3, 2)
-        with self.assertRaises(IndexError):
+        with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(99)
         
     def test_getitem(self):
@@ -244,7 +249,7 @@ class TestSpecFile(unittest.TestCase):
 
     def test_scan_index(self):
         self.assertEqual(self.scan1.index, 0)
-        self.assertEqual(self.scan1_2.index, 2)
+        self.assertEqual(self.scan1_2.index, 3)
         self.assertEqual(self.scan25.index, 1)
 
     def test_scan_headers(self):
@@ -293,7 +298,7 @@ class TestSpecFile(unittest.TestCase):
         # Scan.data is transposed after readinq, so column is the first index
         self.assertAlmostEqual(numpy.sum(self.scan25.data_column_by_name("col2")),
                                numpy.sum(self.scan25.data[2, :]))
-        with self.assertRaises(KeyError):
+        with self.assertRaises(specfile.SfErrColNotFound):
             self.scan25.data_column_by_name("ygfxgfyxg")
 
     def test_motors(self):
@@ -354,22 +359,30 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(len(self.scan1_2.mca_header_dict), 4)
         self.assertEqual(self.scan1_2.mca_header_dict["CALIB"], "1 2 3")
         self.assertEqual(self.scan1_2.mca.calibration,
-                         [1., 2., 3.])
+                         [[1., 2., 3.]])
         # default calib in the absence of #@CALIB
         self.assertEqual(self.scan25.mca.calibration,
-                         [0., 1., 0.])
+                         [[0., 1., 0.]])
         self.assertEqual(self.scan1_2.mca.channels,
-                         [0, 1, 2])
+                         [[0, 1, 2]])
         # absence of #@CHANN and spectra
-        self.assertIs(self.scan25.mca.channels,
-                      None)
+        self.assertEqual(self.scan25.mca.channels,
+                         [])
+
+    @testutils.test_logging(specfile._logger.name, warning=1)
+    def test_empty_scan(self):
+        """Test reading a scan with no data points"""
+        self.assertEqual(len(self.empty_scan.labels),
+                         3)
+        col1 = self.empty_scan.data_column_by_name("second column")
+        self.assertEqual(col1.shape, (0, ))
 
 
 class TestSFLocale(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
@@ -379,13 +392,12 @@ class TestSFLocale(unittest.TestCase):
     def tearDownClass(cls):
         os.unlink(cls.fname)
         locale.setlocale(locale.LC_NUMERIC, loc)  # restore saved locale
-        gc.collect()
 
     def crunch_data(self):
         self.sf3 = SpecFile(self.fname)
         self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
                                1.56)
-        del self.sf3
+        self.sf3.close()
 
     @unittest.skipIf(not try_DE, "de_DE.utf8 locale not installed")
     def test_locale_de_DE(self):

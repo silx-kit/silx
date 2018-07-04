@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,19 +37,35 @@ List of Qt widgets:
 - :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
 - :class:`.Plot1D`: A widget with tools for curves.
 - :class:`.Plot2D`: A widget with tools for images.
+- :class:`.ScatterView`: A widget with tools for scatter plot.
+- :class:`.ImageView`: A widget with tools for images and a side histogram.
+- :class:`.StackView`: A widget with tools for a stack of images.
 
-List of functions:
+By default, those widget are using matplotlib_.
+They can optionally use a faster OpenGL-based rendering (beta feature),
+which is enabled by setting the ``backend`` argument to ``'gl'``
+when creating the widgets (See :class:`.PlotWidget`).
 
-- :func:`.plot1D`: A function to plot curves from the (i)Python console.
-- :func:`.plot2D`: A function to plot an image from the (i)Python console.
+.. note::
+
+    This package depends on matplotlib_.
+    The OpenGL backend further depends on
+    `PyOpenGL <http://pyopengl.sourceforge.net/>`_ and OpenGL >= 2.1.
+
+.. _matplotlib: http://matplotlib.org/
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/02/2016"
+__date__ = "03/05/2017"
 
 
 from .PlotWidget import PlotWidget  # noqa
-from .PlotWindow import PlotWindow, Plot1D, Plot2D, plot1D, plot2D  # noqa
+from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
+from .items.axis import TickMode
+from .ImageView import ImageView  # noqa
+from .StackView import StackView  # noqa
+from .ScatterView import ScatterView  # noqa
 
-__all__ = ['PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D', 'plot1D', 'plot2D']
+__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D',
+           'StackView', 'ScatterView', 'TickMode']

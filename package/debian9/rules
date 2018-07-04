@@ -1,0 +1,52 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=silx
+export SPECFILE_USE_GNU_SOURCE=1
+
+# Make does not offer a recursive wildcard function, so here's one:
+rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+
+# How to recursively find all files with the same name in a given folder
+ALL_PYX := $(call rwildcard,silx/,*.pyx)
+#NOTA: No space before *
+
+%:
+	dh $@ --with python2,python3 --buildsystem=pybuild
+
+override_dh_clean:
+	dh_clean
+	# remove the cython generated file to force rebuild
+	rm -f $(patsubst %.pyx,%.cpp,${ALL_PYX})
+	rm -f $(patsubst %.pyx,%.c,${ALL_PYX})
+	rm -f $(patsubst %.pyx,%.html,${ALL_PYX})
+	rm -rf build/html
+	rm -rf *.egg-info
+
+override_dh_auto_build:
+	dh_auto_build
+	python setup.py build build_man build_doc
+
+override_dh_install:
+	dh_numpy
+	dh_numpy3
+
+	# move the scripts to right package
+	dh_install -p silx debian/python3-silx/usr/bin/* usr/bin
+	dh_install -p silx package/desktop/*.desktop usr/share/applications
+	dh_install -p silx package/desktop/silx.png usr/share/icons/hicolor/48x48/apps
+	dh_install -p silx package/desktop/silx.svg usr/share/icons/hicolor/scalable/apps
+	dh_install -p silx package/desktop/silx.xml usr/share/mime/packages
+	rm -rf debian/python-silx/usr/bin
+	rm -rf debian/python3-silx/usr/bin
+
+	dh_install
+
+override_dh_auto_test:
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} WITH_QT_TEST=False {interpreter} run_tests.py -v"
+
+override_dh_installman:
+	dh_installman -p silx build/man/*.1
+
+override_dh_installdocs:
+	dh_installdocs "build/sphinx/html" -p python-silx-doc
+	dh_installdocs

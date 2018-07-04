@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,32 +24,65 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "24/04/2018"
 
 
 import unittest
 
-from .testColormapDialog import suite as testColormapDialogSuite
-from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
-from .testInteraction import suite as testInteractionSuite
-from .testLegendSelector import suite as testLegendSelectorSuite
-from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
-from .testPlotTools import suite as testPlotToolsSuite
-from .testPlotWidget import suite as testPlotWidgetSuite
-from .testPlotWindow import suite as testPlotWindowSuite
-from .testPlot import suite as testPlotSuite
+from .._utils import test
+from . import testColorBar
+from . import testCurvesROIWidget
+from . import testStats
+from . import testAlphaSlider
+from . import testInteraction
+from . import testLegendSelector
+from . import testMaskToolsWidget
+from . import testScatterMaskToolsWidget
+from . import testPlotInteraction
+from . import testPlotWidgetNoBackend
+from . import testPlotWidget
+from . import testPlotWindow
+from . import testProfile
+from . import testStackView
+from . import testItem
+from . import testUtilsAxis
+from . import testLimitConstraints
+from . import testComplexImageView
+from . import testImageView
+from . import testSaveAction
+from . import testScatterView
+from . import testPixelIntensityHistoAction
 
 
 def suite():
+    # Lazy-loading to avoid cyclic reference
+    from ..tools import test as testTools
+
     test_suite = unittest.TestSuite()
     test_suite.addTests(
-        [testColormapDialogSuite(),
-         testCurvesROIWidgetSuite(),
-         testInteractionSuite(),
-         testLegendSelectorSuite(),
-         testMaskToolsWidgetSuite(),
-         testPlotSuite(),
-         testPlotToolsSuite(),
-         testPlotWidgetSuite(),
-         testPlotWindowSuite()])
+        [test.suite(),
+         testTools.suite(),
+         testColorBar.suite(),
+         testCurvesROIWidget.suite(),
+         testStats.suite(),
+         testAlphaSlider.suite(),
+         testInteraction.suite(),
+         testLegendSelector.suite(),
+         testMaskToolsWidget.suite(),
+         testScatterMaskToolsWidget.suite(),
+         testPlotInteraction.suite(),
+         testPlotWidgetNoBackend.suite(),
+         testPlotWidget.suite(),
+         testPlotWindow.suite(),
+         testProfile.suite(),
+         testStackView.suite(),
+         testItem.suite(),
+         testUtilsAxis.suite(),
+         testLimitConstraints.suite(),
+         testComplexImageView.suite(),
+         testImageView.suite(),
+         testSaveAction.suite(),
+         testScatterView.suite(),
+         testPixelIntensityHistoAction.suite()
+        ])
     return test_suite

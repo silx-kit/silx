@@ -1,6 +1,6 @@
 # coding: utf-8
-#/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# /*##########################################################################
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """Tests for dicttoh5 module"""
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2016"
+__date__ = "17/01/2018"
 
 from collections import OrderedDict
 import numpy
@@ -41,8 +41,12 @@ except ImportError:
 
 from collections import defaultdict
 
+from silx.utils.testutils import TestLogging
+
 from ..configdict import ConfigDict
-from ..dictdump import dicttoh5, dicttojson, dicttoini, dump, load
+from ..dictdump import dicttoh5, dicttojson, dump
+from ..dictdump import h5todict, load
+from ..dictdump import logger as dictdump_logger
 
 
 def tree():
@@ -91,6 +95,46 @@ class TestDictToH5(unittest.TestCase):
         self.assertAlmostEqual(
                 min(ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]),
                 5.7196)
+
+    def testH5Overwrite(self):
+        dd = ConfigDict({'t': True})
+
+        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a')
+        dd = ConfigDict({'t': False})
+        with TestLogging(dictdump_logger, warning=1):
+            dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
+                     overwrite_data=False)
+
+        res = h5todict(self.h5_fname)
+        assert(res['t'] == True)
+
+        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
+                 overwrite_data=True)
+
+        res = h5todict(self.h5_fname)
+        assert(res['t'] == False)
+
+
+@unittest.skipIf(h5py_missing, "Could not import h5py")
+class TestH5ToDict(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
+        dicttoh5(city_attrs, self.h5_fname)
+
+    def tearDown(self):
+        os.unlink(self.h5_fname)
+        os.rmdir(self.tempdir)
+
+    def testExcludeNames(self):
+        ddict = h5todict(self.h5_fname, path="/Europe/France",
+                         exclude_names=["ourcoing", "inhab", "toto"])
+        self.assertNotIn("Tourcoing", ddict)
+        self.assertIn("Grenoble", ddict)
+
+        self.assertNotIn("inhabitants", ddict["Grenoble"])
+        self.assertIn("coordinates", ddict["Grenoble"])
+        self.assertIn("area", ddict["Grenoble"])
 
 
 class TestDictToJson(unittest.TestCase):
@@ -217,6 +261,8 @@ def suite():
         unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToH5))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToJson))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5ToDict))
     return test_suite
 
 

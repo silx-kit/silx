@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=silx data viewer
+Comment=HDF5 EDF SPEC Data Viewer
+Exec=silx view %F
+TryExec=silx
+Icon=silx
+Terminal=false
+Categories=Education;Science;DataVisualization;Qt;
+MimeType=image/tiff;application/x-hdf;application/x-silx-hdf5;application/x-silx-nexus;application/x-silx-specfile;image/x-silx-marccd;image/x-silx-cbf;image/x-silx-edf;image/x-silx-numpy;

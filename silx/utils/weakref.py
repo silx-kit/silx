@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/08/2016"
+__date__ = "15/09/2016"
 
 
 import weakref
@@ -88,10 +88,10 @@ class WeakMethod(object):
     Provids the same interface as a normal weak reference.
     """
 
-    def __init__(self, callable, callback=None):
+    def __init__(self, function, callback=None):
         """
         Constructor
-        :param callable: Function/method to be called
+        :param function: Function/method to be called
         :param callback: If callback is provided and not None,
             and the returned weakref object is still alive, the
             callback will be called when the object is about to
@@ -101,13 +101,13 @@ class WeakMethod(object):
         """
         self.__callback = callback
 
-        if inspect.ismethod(callable):
+        if inspect.ismethod(function):
             # it is a bound method
-            self.__obj = weakref.ref(callable.__self__, self.__call_callback)
-            self.__method = weakref.ref(callable.__func__, self.__call_callback)
+            self.__obj = weakref.ref(function.__self__, self.__call_callback)
+            self.__method = weakref.ref(function.__func__, self.__call_callback)
         else:
             self.__obj = None
-            self.__method = weakref.ref(callable, self.__call_callback)
+            self.__method = weakref.ref(function, self.__call_callback)
 
     def __call_callback(self, ref):
         """Called when the object is about to be finalized"""
@@ -328,7 +328,7 @@ class WeakList(list):
         ref = self.__create_ref(obj)
         self.__list.insert(index, ref)
 
-    def pop(self, index):
+    def pop(self, index=-1):
         """Remove and return an object at the requested index"""
         self.__clean()
         obj = self.__list.pop(index)()

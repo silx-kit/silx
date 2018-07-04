@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -53,21 +53,21 @@ from __future__ import absolute_import, print_function, division
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/07/2016"
+__date__ = "28/02/2018"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
-__all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion", "calc_hexversion"]
-
+__all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion",
+           "calc_hexversion"]
 
 RELEASE_LEVEL_VALUE = {"dev": 0,
                        "alpha": 10,
                        "beta": 11,
-                       "gamma": 11,
-                       "rc": 12,
+                       "gamma": 12,
+                       "rc": 13,
                        "final": 15}
 
 MAJOR = 0
-MINOR = 3
+MINOR = 8
 MICRO = 0
 RELEV = "dev"  # <16
 SERIAL = 0  # <16
@@ -91,13 +91,13 @@ if version_info.releaselevel != "final":
 
 def calc_hexversion(major=0, minor=0, micro=0, releaselevel="dev", serial=0):
     """Calculate the hexadecimal version number from the tuple version_info:
-    
+
     :param major: integer
     :param minor: integer
     :param micro: integer
     :param relev: integer or string
     :param serial: integer
-    :return: integerm always increasing with revision numbers  
+    :return: integer always increasing with revision numbers
     """
     try:
         releaselevel = int(releaselevel)
@@ -113,6 +113,7 @@ def calc_hexversion(major=0, minor=0, micro=0, releaselevel="dev", serial=0):
 
 
 hexversion = calc_hexversion(*version_info)
+
 
 if __name__ == "__main__":
     print(version)

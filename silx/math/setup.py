@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "27/03/2017"
 
 import os.path
 
@@ -37,39 +37,50 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('math', parent_package, top_path)
     config.add_subpackage('test')
     config.add_subpackage('fit')
+    config.add_subpackage('medianfilter')
 
     # =====================================
     # histogramnd
     # =====================================
-    histo_dir = 'histogramnd'
-    histo_src = [os.path.join(histo_dir, srcf)
-                 for srcf in ['chistogramnd.pyx',
-                              'src/histogramnd_c.c']]
-    histo_inc = [os.path.join(histo_dir, 'include'),
+    histo_src = [os.path.join('histogramnd', 'src', 'histogramnd_c.c'),
+                 'chistogramnd.pyx']
+    histo_inc = [os.path.join('histogramnd', 'include'),
                  numpy.get_include()]
 
     config.add_extension('chistogramnd',
                          sources=histo_src,
                          include_dirs=histo_inc,
                          language='c')
-    # =====================================
-    # =====================================
 
     # =====================================
     # histogramnd_lut
     # =====================================
-    histo_dir = 'histogramnd'
-    histo_src = [os.path.join(histo_dir, srcf)
-                 for srcf in ['chistogramnd_lut.pyx']]
-    histo_inc = [os.path.join(histo_dir, 'include'),
-                 numpy.get_include()]
-
     config.add_extension('chistogramnd_lut',
-                         sources=histo_src,
+                         sources=['chistogramnd_lut.pyx'],
                          include_dirs=histo_inc,
                          language='c')
     # =====================================
+    # marching cubes
     # =====================================
+    mc_src = [os.path.join('marchingcubes', 'mc_lut.cpp'),
+              'marchingcubes.pyx']
+    config.add_extension('marchingcubes',
+                         sources=mc_src,
+                         include_dirs=['marchingcubes', numpy.get_include()],
+                         language='c++')
+
+    # min/max
+    config.add_extension('combo',
+                         sources=['combo.pyx'],
+                         include_dirs=['include'],
+                         language='c')
+
+    config.add_extension('colormap',
+                         sources=["colormap.pyx"],
+                         language='c',
+                         include_dirs=['include', numpy.get_include()],
+                         extra_link_args=['-fopenmp'],
+                         extra_compile_args=['-fopenmp'])
 
     return config
 

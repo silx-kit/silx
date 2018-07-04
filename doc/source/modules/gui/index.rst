@@ -6,24 +6,27 @@
 
 The ``silx.gui`` package provides a set of PyQt widgets.
 
-Currently, its main feature is the :doc:`plot/index`.
-
-Available modules:
 
 .. toctree::
    :maxdepth: 1
 
-   plot/index.rst
-   qt.rst
-   icons.rst
    console.rst
-   testutils.rst
+   data/index.rst
+   fit/index.rst
+   dialog/index.rst
+   hdf5/index.rst
+   icons.rst
+   colors.rst
+   plot/index.rst
+   plot3d/index.rst
+   qt.rst
+   utils.rst
+   widgets/index.rst
 
-
-How-to:
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
 
-   plot/getting_started.rst
-   designer.rst
+   gallery.rst
+
+See the :doc:`gallery` page for an overview of all available widgets.

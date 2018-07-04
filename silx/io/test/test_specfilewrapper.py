@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,14 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """Tests for old specfile wrapper"""
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/07/2016"
+__date__ = "15/05/2017"
 
-import gc
 import locale
 import logging
 import numpy
@@ -36,7 +35,6 @@ import sys
 import tempfile
 import unittest
 
-logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
 from ..specfilewrapper import Specfile
@@ -115,23 +113,15 @@ class TestSpecfilewrapper(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname1 = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
 
-        fd2, cls.fname2 = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
-            os.write(fd2, sftext[370:-97])
-        else:
-            os.write(fd2, bytes(sftext[370:-97], 'ascii'))
-        os.close(fd2)
-
     @classmethod
     def tearDownClass(cls):
         os.unlink(cls.fname1)
-        os.unlink(cls.fname2)
 
     def setUp(self):
         self.sf = Specfile(self.fname1)
@@ -140,11 +130,7 @@ class TestSpecfilewrapper(unittest.TestCase):
         self.scan25 = self.sf.select("25.1")
 
     def tearDown(self):
-        del self.sf
-        del self.scan1
-        del self.scan1_2
-        del self.scan25
-        gc.collect()
+        self.sf.close()
 
     def test_number_of_scans(self):
         self.assertEqual(3, len(self.sf))

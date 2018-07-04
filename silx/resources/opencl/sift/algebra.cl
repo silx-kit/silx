@@ -1,5 +1,32 @@
-
-typedef float4 keypoint;
+/*
+ *   Project: SIFT: An algorithm for image alignement
+ *
+ *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *                           Grenoble, France
+ *
+ *   Principal authors: J. Kieffer (kieffer@esrf.fr)
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 /**
  * \brief Linear combination of two matrices
@@ -40,9 +67,7 @@ __kernel void combine(
 
 /**
  * \brief Deletes the (-1,-1,-1,-1) in order to get a more "compact" keypoints vector
- 		Also arranges the keypoints coordinates in the SIFT order : (x:col,y:row,sigma,angle)
- *		(initially we had (peak,r,c,sigma), but at this stage peak is not useful anymore)
- *
+ *  This is based on atomic add
  *
  * :param keypoints: Pointer to global memory with the keypoints
  * :param output: Pointer to global memory with the output
@@ -52,33 +77,30 @@ __kernel void combine(
  *
  */
 
-
-
-__kernel void compact(
-	__global keypoint* keypoints,
-	__global keypoint* output,
-	__global int* counter,
+kernel void compact(
+	global actual_keypoint* keypoints,
+	global actual_keypoint* output,
+	global int* counter,
 	int start_keypoint,
 	int end_keypoint)
 {
 
 	int gid0 = (int) get_global_id(0);
-	if (gid0 < start_keypoint){
+	if (gid0 < start_keypoint)
+	{
 		output[gid0] = keypoints[gid0];
 	}
-	else if (gid0 < end_keypoint) {
+	else if (gid0 < end_keypoint)
+	{
+	    actual_keypoint k = keypoints[gid0];
 
-		keypoint k = keypoints[gid0];
-
-		if (k.s1 != -1) { //Coordinates are never negative
-
-			/*k.s0 = (float) k.s2; //col
-			k.s2 = k.s3; //sigma
-			k.s3 = 0.0; //angle
-			*/
+		if (k.row >= 0.0f)
+		{ //Coordinates are never negative
 			int old = atomic_inc(counter);
-			if (old < end_keypoint) output[old] = k;
-
+			if (old < end_keypoint)
+			{
+			    output[old] = k;
+			}
 		}
 	}
 }

@@ -6,6 +6,9 @@
 
 .. toctree::
    :maxdepth: 1
-   
-   fit/leastsq.rst
+
+   fit/index.rst
    histogram.rst
+   medianfilter.rst
+   combo.rst
+   colormap.rst

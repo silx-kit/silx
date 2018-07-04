@@ -1,14 +1,12 @@
 /*
  *   Project: SIFT: An algorithm for image alignement
- *            Kernel for image pre-processing: Normalization, ...
+ *            preproces.cl: Kernels for image pre-processing, Normalization, ...
  *
  *
- *   Copyright (C) 2013 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2018 European Synchrotron Radiation Facility
  *                           Grenoble, France
- *   All rights reserved.
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
- *   Last revision: 30/05/2013
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -89,7 +87,7 @@ u16_to_float(__global unsigned short  *array_int,
 /**
  * \brief cast values of an array of uint32 into a float output array.
  *
- * :param array_int:    Pointer to global memory with the input data as unsigned16 array
+ * :param array_int:    Pointer to global memory with the input data as unsigned32 array
  * :param array_float:  Pointer to global memory with the output data as float array
  * :param IMAGE_W:        Width of the image
  * :param IMAGE_H:         Height of the image
@@ -105,6 +103,28 @@ u32_to_float(__global unsigned int  *array_int,
     if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
     	int i = get_global_id(0) + IMAGE_W * get_global_id(1);
     	array_float[i]=(float)array_int[i];
+    }
+}//end kernel
+
+/**
+ * \brief cast values of an array of uint64 into a float output array.
+ *
+ * :param array_int:    Pointer to global memory with the input data as unsigned64 array
+ * :param array_float:  Pointer to global memory with the output data as float array
+ * :param IMAGE_W:        Width of the image
+ * :param IMAGE_H:         Height of the image
+ */
+__kernel void
+u64_to_float(__global unsigned long  *array_int,
+             __global float *array_float,
+             const int IMAGE_W,
+             const int IMAGE_H
+)
+{
+    //Global memory guard for padding
+    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
+        int i = get_global_id(0) + IMAGE_W * get_global_id(1);
+        array_float[i]=(float)array_int[i];
     }
 }//end kernel
 
@@ -315,29 +335,6 @@ bin(        const    __global     float     *image_in,
     };//end if in IMAGE
 };//end kernel
 
-/**
- * \brief gaussian: Initialize a vector with a gaussian function.
- *
- *
- * :param data:        Float pointer to global memory storing the vector.
- * :param sigma:    width of the gaussian
- * :param size:     size of the function
- *
-**/
-
-__kernel void
-gaussian(            __global     float     *data,
-            const                 float     sigma,
-            const                 int     SIZE
-)
-{
-    int gid=get_global_id(0);
-    if(gid < SIZE){
-        float x = ((float)gid - ((float)SIZE - 1.0f)/2.0f) / sigma;
-        float y = exp(-x * x / 2.0f);
-        data[gid] = y / sigma / sqrt(2.0f * M_PI_F);
-    }
-}
 
 /**
  * \brief divide_cst: divide a vector by a constant.
@@ -360,6 +357,4 @@ divide_cst(    __global     float     *data,
         data[gid] = data[gid] / value[0];
     }
 }
-
-
 

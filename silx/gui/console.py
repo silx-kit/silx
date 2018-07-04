@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,18 +24,19 @@
 # ###########################################################################*/
 """This module provides an IPython console widget.
 
-This widget provide ways to push a variable - any python object - to the
+You can push variables - any python object - to the
 console's interactive namespace. This provides users with an advanced way
 of interacting with your program. For instance, if your program has a
 :class:`PlotWidget` or a :class:`PlotWindow`, you can push a reference to
 these widgets to allow your users to add curves, save data to files… by using
 the widgets' methods from the console.
 
-This module has a dependency on
-`IPython <https://pypi.python.org/pypi/ipython>`_ and
-`qtconsole <https://pypi.python.org/pypi/qtconsole>`_ (or *ipython.qt* for
-older versions of *IPython*). An ``ImportError`` will be raised if it is
-imported while the dependencies are not satisfied.
+.. note::
+
+    This module has a dependency on
+    `qtconsole <https://pypi.org/project/qtconsole/>`_.
+    An ``ImportError`` will be raised if it is
+    imported while the dependencies are not satisfied.
 
 Basic usage example::
 
@@ -74,11 +75,6 @@ from . import qt
 
 _logger = logging.getLogger(__name__)
 
-try:
-    import IPython
-except ImportError as e:
-    _logger.error("Module " + __name__ + " requires IPython")
-    raise e
 
 # This widget cannot be used inside an interactive IPython shell.
 # It would raise MultipleInstanceError("Multiple incompatible subclass
@@ -91,52 +87,28 @@ else:
     msg = "Module " + __name__ + " cannot be used within an IPython shell"
     raise ImportError(msg)
 
-# qtconsole is a separate module in recent versions of IPython/Jupyter
-# http://blog.jupyter.org/2015/04/15/the-big-split/
-if IPython.__version__.startswith("2"):
-    qtconsole = None
-else:
-    try:
-        import qtconsole
-    except ImportError:
-        qtconsole = None
 
-if qtconsole is not None:
-    try:
-        from qtconsole.rich_ipython_widget import RichJupyterWidget as \
-            RichIPythonWidget
-    except ImportError:
-        try:
-            from qtconsole.rich_ipython_widget import RichIPythonWidget
-        except ImportError as e:
-            _logger.error("Cannot find RichIPythonWidget")
-            raise e
+try:
+    from qtconsole.rich_ipython_widget import RichJupyterWidget as \
+        RichIPythonWidget
+except ImportError:
+    from qtconsole.rich_ipython_widget import RichIPythonWidget
 
-    from qtconsole.inprocess import QtInProcessKernelManager
-else:
-    # Import the console machinery from ipython
-
-    # The `has_binding` test of IPython does not find the Qt bindings
-    # in case silx is used in a frozen binary
-    import IPython.external.qt_loaders
-
-    def has_binding(*var, **kw):
-        return True
-
-    IPython.external.qt_loaders.has_binding = has_binding
-
-    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-    from IPython.qt.inprocess import QtInProcessKernelManager
+from qtconsole.inprocess import QtInProcessKernelManager
 
 
 class IPythonWidget(RichIPythonWidget):
     """Live IPython console widget.
 
+    .. image:: img/IPythonWidget.png
+
     :param custom_banner: Custom welcome message to be printed at the top of
        the console.
     """
 
-    def __init__(self, custom_banner=None, *args, **kwargs):
+    def __init__(self, parent=None, custom_banner=None, *args, **kwargs):
+        if parent is not None:
+            kwargs["parent"] = parent
         super(IPythonWidget, self).__init__(*args, **kwargs)
         if custom_banner is not None:
             self.banner = custom_banner
@@ -169,6 +141,8 @@ class IPythonDockWidget(qt.QDockWidget):
     """Dock Widget including a :class:`IPythonWidget` inside
     a vertical layout.
 
+    .. image:: img/IPythonDockWidget.png
+
     :param available_vars: Dictionary of variables to be pushed to the
         console's interactive namespace: ``{"variable_name": object, …}``
     :param custom_banner: Custom welcome message to be printed at the top of
@@ -177,8 +151,8 @@ class IPythonDockWidget(qt.QDockWidget):
     :param parent: Parent :class:`qt.QMainWindow` containing this
         :class:`qt.QDockWidget`
     """
-    def __init__(self, available_vars=None, custom_banner=None,
-                 title="Console", parent=None):
+    def __init__(self, parent=None, available_vars=None, custom_banner=None,
+                 title="Console"):
         super(IPythonDockWidget, self).__init__(title, parent)
 
         self.ipyconsole = IPythonWidget(custom_banner=custom_banner)
@@ -188,6 +162,13 @@ class IPythonDockWidget(qt.QDockWidget):
 
         if available_vars is not None:
             self.ipyconsole.pushVariables(available_vars)
+
+    def showEvent(self, event):
+        """Make sure this widget is raised when it is shown
+        (when it is first created as a tab in PlotWindow or when it is shown
+        again after hiding).
+        """
+        self.raise_()
 
 
 def main():

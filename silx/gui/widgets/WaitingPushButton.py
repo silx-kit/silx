@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/09/2016"
+__date__ = "26/04/2017"
 
 from .. import qt
 from .. import icons
@@ -41,10 +41,10 @@ class WaitingPushButton(qt.QPushButton):
     overwrite the enabled method to dissociate the 2 concepts:
     graphically enabled/disabled, and enabled/disabled
 
-    .. image:: /images/widget/qt/WaitingPushButton.png
+    .. image:: img/WaitingPushButton.png
     """
 
-    def __init__(self, text=None, icon=None, parent=None):
+    def __init__(self, parent=None, text=None, icon=None):
         """Constructor
 
         :param str text: Text displayed on the button
@@ -62,6 +62,57 @@ class WaitingPushButton(qt.QPushButton):
         self.__enabled = True
         self.__icon = icon
         self.__disabled_when_waiting = True
+        self.__waitingIcon = icons.getWaitIcon()
+
+    def sizeHint(self):
+        """Returns the recommended size for the widget.
+
+        This implementation of the recommended size always consider there is an
+        icon. In this way it avoid to update the layout when the waiting icon
+        is displayed.
+        """
+        self.ensurePolished()
+
+        w = 0
+        h = 0
+
+        opt = qt.QStyleOptionButton()
+        self.initStyleOption(opt)
+
+        # Content with icon
+        # no condition, assume that there is an icon to avoid blinking
+        # when the widget switch to waiting state
+        ih = opt.iconSize.height()
+        iw = opt.iconSize.width() + 4
+        w += iw
+        h = max(h, ih)
+
+        # Content with text
+        text = self.text()
+        isEmpty = text == ""
+        if isEmpty:
+            text = "XXXX"
+        fm = self.fontMetrics()
+        textSize = fm.size(qt.Qt.TextShowMnemonic, text)
+        if not isEmpty or w == 0:
+            w += textSize.width()
+        if not isEmpty or h == 0:
+            h = max(h, textSize.height())
+
+        # Content with menu indicator
+        opt.rect.setSize(qt.QSize(w, h))  # PM_MenuButtonIndicator depends on the height
+        if self.menu() is not None:
+            w += self.style().pixelMetric(qt.QStyle.PM_MenuButtonIndicator, opt, self)
+
+        contentSize = qt.QSize(w, h)
+        if qt.qVersion().startswith("4.8."):
+            # On PyQt4/PySide the method QCommonStyle sizeFromContents returns
+            # different size when the widget provides an icon or not.
+            # In Qt5 there is not this problem.
+            opt.icon = qt.QIcon()
+        sizeHint = self.style().sizeFromContents(qt.QStyle.CT_PushButton, opt, contentSize, self)
+        sizeHint = sizeHint.expandedTo(qt.QApplication.globalStrut())
+        return sizeHint
 
     def setDisabledWhenWaiting(self, isDisabled):
         """Enable or disable the auto disable behaviour when the button is waiting.
@@ -107,7 +158,7 @@ class WaitingPushButton(qt.QPushButton):
         the application (the one displayed when the widget is not in
         waiting state).
 
-        :rtpye: qt.QIcon
+        :rtype: qt.QIcon
         """
         return self.__icon
 
@@ -119,8 +170,7 @@ class WaitingPushButton(qt.QPushButton):
         if not self.isWaiting():
             icon = self.__icon
         else:
-            animated_icon = icons.getWaitIcon()
-            icon = animated_icon.currentIcon()
+            icon = self.__waitingIcon.currentIcon()
         if icon is None:
             icon = qt.QIcon()
         qt.QPushButton.setIcon(self, icon)
@@ -138,7 +188,7 @@ class WaitingPushButton(qt.QPushButton):
     def isEnabled(self):
         """Returns the enabled state of the widget.
 
-        :rtpye: bool
+        :rtype: bool
         """
         return self.__enabled
 
@@ -162,13 +212,13 @@ class WaitingPushButton(qt.QPushButton):
             return
         self.__waiting = waiting
 
-        animated_icon = icons.getWaitIcon()
         if self.__waiting:
-            animated_icon.register(self)
-            animated_icon.iconChanged.connect(self.__setWaitingIcon)
+            self.__waitingIcon.register(self)
+            self.__waitingIcon.iconChanged.connect(self.__setWaitingIcon)
         else:
-            animated_icon.unregister(self)
-            animated_icon.iconChanged.disconnect(self.__setWaitingIcon)
+            # unregister only if the object is registred
+            self.__waitingIcon.unregister(self)
+            self.__waitingIcon.iconChanged.disconnect(self.__setWaitingIcon)
 
         self.__updateVisibleEnabled()
         self.__updateVisibleIcon()
@@ -176,7 +226,7 @@ class WaitingPushButton(qt.QPushButton):
     def isWaiting(self):
         """Returns true if the widget is in waiting state.
 
-        :rtpye: bool"""
+        :rtype: bool"""
         return self.__waiting
 
     @qt.Slot()

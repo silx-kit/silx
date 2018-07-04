@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "31/08/2016"
+__date__ = "30/03/2017"
 
 from numpy.distutils.misc_util import Configuration
 
@@ -38,9 +38,12 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('image')
     config.add_subpackage('opencl')
     config.add_subpackage('resources')
+    config.add_subpackage('sx')
+    config.add_subpackage('sx.test')
     config.add_subpackage('test')
     config.add_subpackage('third_party')
     config.add_subpackage('utils')
+    config.add_subpackage('app')
 
     return config
 

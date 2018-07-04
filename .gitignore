@@ -1,3 +1,22 @@
+# Cythonized files
+silx/image/bilinear.c
+silx/image/marchingsquares/_mergeimpl.cpp
+silx/image/shapes.c
+silx/io/specfile.c
+silx/math/chistogramnd.c
+silx/math/chistogramnd_lut.c
+silx/math/colormap.c
+silx/math/combo.c
+silx/math/fit/filters.c
+silx/math/fit/functions.c
+silx/math/fit/peaks.c
+silx/math/marchingcubes.cpp
+silx/math/medianfilter/medianfilter.cpp
+silx/third_party/_local/scipy_spatial/qhull.c
+
+# Hidden files
+.*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -10,6 +29,10 @@ __pycache__/
 env/
 build/
 develop-eggs/
+/package/silx*
+/package/python-silx*
+/package/python3-silx*
+/doc/build
 dist/
 downloads/
 eggs/
@@ -54,6 +77,9 @@ coverage.rst
 # Sphinx documentation
 docs/_build/
 
+# gedit
+*~
+
 # PyBuilder
 target/
 
@@ -62,3 +88,9 @@ target/
 
 # PyCharm
 .idea/
+
+# MacOS
+.DS_Store
+
+#Notebook checkpoints
+.ipynb_checkpoints

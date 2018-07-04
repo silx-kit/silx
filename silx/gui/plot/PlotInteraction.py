@@ -1,7 +1,7 @@
 #  coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "24/04/2018"
 
 
 import math
@@ -34,15 +34,16 @@ import numpy
 import time
 import weakref
 
-from . import Colors
+from .. import colors
+from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
                          prepareHoverSignal, prepareImageSignal,
                          prepareMarkerSignal, prepareMouseSignal)
 
-from .BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
-                          CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
+from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
+                                   CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
 
 from ._utils import (FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX,
                      applyZoomToPlot)
@@ -76,7 +77,7 @@ class _PlotInteraction(object):
 
         :param points: The 2D coordinates of the points of the polygon
         :type points: An iterable of (x, y) coordinates
-        :param str fill: The fill mode: 'hatch', 'solid' or None
+        :param str fill: The fill mode: 'hatch', 'solid' or 'none'
         :param color: RGBA color to use or None to disable display
         :type color: list or tuple of 4 float in the range [0, 1]
         :param name: The key associated with this selection area
@@ -92,7 +93,7 @@ class _PlotInteraction(object):
         # TODO Not very nice, but as is for now
         legend = '__SELECTION_AREA__' + name
 
-        fill = bool(fill)  # TODO not very nice either
+        fill = fill != 'none'  # TODO not very nice either
 
         self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
                           replace=False,
@@ -116,7 +117,7 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
     """
     class ZoomIdle(ClickOrDrag.Idle):
         def onWheel(self, x, y, angle):
-            scaleF = 1.1 if angle > 0 else 1./1.1
+            scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
     def __init__(self, plot):
@@ -152,11 +153,11 @@ class Pan(_ZoomOnWheel):
         xData, yData, y2Data = self._pixelToData(x, y)
         lastX, lastY, lastY2 = self._previousDataPos
 
-        xMin, xMax = self.plot.getGraphXLimits()
-        yMin, yMax = self.plot.getGraphYLimits(axis='left')
-        y2Min, y2Max = self.plot.getGraphYLimits(axis='right')
+        xMin, xMax = self.plot.getXAxis().getLimits()
+        yMin, yMax = self.plot.getYAxis().getLimits()
+        y2Min, y2Max = self.plot.getYAxis(axis='right').getLimits()
 
-        if self.plot.isXAxisLogarithmic():
+        if self.plot.getXAxis()._isLogarithmic():
             try:
                 dx = math.log10(xData) - math.log10(lastX)
                 newXMin = pow(10., (math.log10(xMin) - dx))
@@ -175,7 +176,7 @@ class Pan(_ZoomOnWheel):
             if newXMin < FLOAT32_SAFE_MIN or newXMax > FLOAT32_SAFE_MAX:
                 newXMin, newXMax = xMin, xMax
 
-        if self.plot.isYAxisLogarithmic():
+        if self.plot.getYAxis()._isLogarithmic():
             try:
                 dy = math.log10(yData) - math.log10(lastY)
                 newYMin = pow(10., math.log10(yMin) - dy)
@@ -232,13 +233,13 @@ class Zoom(_ZoomOnWheel):
 
     def __init__(self, plot, color):
         self.color = color
-        self.zoomStack = []
         self._lastClick = 0., None
 
         super(Zoom, self).__init__(plot)
+        self.plot.getLimitsHistory().clear()
 
     def _areaWithAspectRatio(self, x0, y0, x1, y1):
-        plotLeft, plotTop, plotW, plotH = self.plot.getPlotBoundsInPixels()
+        _plotLeft, _plotTop, plotW, plotH = self.plot.getPlotBoundsInPixels()
 
         areaX0, areaY0, areaX1, areaY1 = x0, y0, x1, y1
 
@@ -285,25 +286,14 @@ class Zoom(_ZoomOnWheel):
 
                 self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
 
-            # Zoom-in centered on mouse cursor
-            # xMin, xMax = self.plot.getGraphXLimits()
-            # yMin, yMax = self.plot.getGraphYLimits()
-            # y2Min, y2Max = self.plot.getGraphYLimits(axis="right")
-            # self.zoomStack.append((xMin, xMax, yMin, yMax, y2Min, y2Max))
-            # self._zoom(x, y, 2)
         elif btn == RIGHT_BTN:
-            try:
-                xMin, xMax, yMin, yMax, y2Min, y2Max = self.zoomStack.pop()
-            except IndexError:
-                # Signal mouse clicked event
-                dataPos = self.plot.pixelToData(x, y)
-                assert dataPos is not None
-                eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                               dataPos[0], dataPos[1],
-                                               x, y)
-                self.plot.notify(**eventDict)
-            else:
-                self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            eventDict = prepareMouseSignal('mouseClicked', 'right',
+                                           dataPos[0], dataPos[1],
+                                           x, y)
+            self.plot.notify(**eventDict)
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -334,7 +324,7 @@ class Zoom(_ZoomOnWheel):
                 areaColor = [1., 1., 1., 1.]
 
             self.setSelectionArea(areaPoints,
-                                  fill=None,
+                                  fill='none',
                                   color=areaColor,
                                   name="zoomedArea")
 
@@ -345,7 +335,7 @@ class Zoom(_ZoomOnWheel):
         corners = numpy.array([self.plot.pixelToData(x, y, check=False)
                                for (x, y) in corners])
 
-        self.setSelectionArea(corners, fill=None, color=self.color)
+        self.setSelectionArea(corners, fill='none', color=self.color)
 
     def endDrag(self, startPos, endPos):
         x0, y0 = startPos
@@ -353,10 +343,7 @@ class Zoom(_ZoomOnWheel):
 
         if x0 != x1 or y0 != y1:  # Avoid empty zoom area
             # Store current zoom state in stack
-            xMin, xMax = self.plot.getGraphXLimits()
-            yMin, yMax = self.plot.getGraphYLimits()
-            y2Min, y2Max = self.plot.getGraphYLimits(axis="right")
-            self.zoomStack.append((xMin, xMax, yMin, yMax, y2Min, y2Max))
+            self.plot.getLimitsHistory().push()
 
             if self.plot.isKeepDataAspectRatio():
                 x0, y0, x1, y1 = self._areaWithAspectRatio(x0, y0, x1, y1)
@@ -405,7 +392,7 @@ class Select(StateMachine, _PlotInteraction):
         StateMachine.__init__(self, states, state)
 
     def onWheel(self, x, y, angle):
-        scaleF = 1.1 if angle > 0 else 1./1.1
+        scaleF = 1.1 if angle > 0 else 1. / 1.1
         applyZoomToPlot(self.plot, scaleF, (x, y))
 
     @property
@@ -425,7 +412,7 @@ class SelectPolygon(Select):
                 return True
 
     class Select(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             dataPos = self.machine.plot.pixelToData(x, y)
             assert dataPos is not None
             self._firstPos = dataPos
@@ -465,14 +452,51 @@ class SelectPolygon(Select):
 
         def onRelease(self, x, y, btn):
             if btn == LEFT_BTN:
+                # checking if the position is close to the first point
+                # if yes : closing the "loop"
+                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                         check=False)
+                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+
+                # Only allow to close polygon after first point
+                if (len(self.points) > 2 and
+                        dx < self.machine.DRAG_THRESHOLD_DIST and
+                        dy < self.machine.DRAG_THRESHOLD_DIST):
+                    self.machine.resetSelectionArea()
+
+                    self.points[-1] = self.points[0]
+
+                    eventDict = prepareDrawingSignal('drawingFinished',
+                                                     'polygon',
+                                                     self.points,
+                                                     self.machine.parameters)
+                    self.machine.plot.notify(**eventDict)
+                    self.goto('idle')
+                    return False
+
+                # Update polygon last point not too close to previous one
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
-                self.points[-1] = dataPos
                 self.updateSelectionArea()
-                if self.points[-2] != self.points[-1]:
+
+                # checking that the new points isnt the same (within range)
+                # of the previous one
+                # This has to be done because sometimes the mouse release event
+                # is caught right after entering the Select state (i.e : press
+                # in Idle state, but with a slightly different position that
+                # the mouse press. So we had the two first vertices that were
+                # almost identical.
+                previousPos = self.machine.plot.dataToPixel(*self.points[-2],
+                                                            check=False)
+                dx, dy = abs(previousPos[0] - x), abs(previousPos[1] - y)
+                if(dx >= self.machine.DRAG_THRESHOLD_DIST or
+                   dy >= self.machine.DRAG_THRESHOLD_DIST):
                     self.points.append(dataPos)
+                else:
+                    self.points[-1] = dataPos
 
                 return True
+            return False
 
         def onMove(self, x, y):
             firstPos = self.machine.plot.dataToPixel(*self._firstPos,
@@ -486,47 +510,6 @@ class SelectPolygon(Select):
             assert dataPos is not None
             self.points[-1] = dataPos
             self.updateSelectionArea()
-
-        def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
-                                                         check=False)
-                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-                if (dx < self.machine.DRAG_THRESHOLD_DIST and
-                        dy < self.machine.DRAG_THRESHOLD_DIST):
-                    self.machine.resetSelectionArea()
-
-                    dataPos = self.machine.plot.pixelToData(x, y)
-                    assert dataPos is not None
-                    self.points[-1] = dataPos
-                    if self.points[-2] == self.points[-1]:
-                        self.points.pop()
-
-                    self.points.append(self.points[0])
-
-                    eventDict = prepareDrawingSignal('drawingFinished',
-                                                     'polygon',
-                                                     self.points,
-                                                     self.machine.parameters)
-                    self.machine.plot.notify(**eventDict)
-                    self.goto('idle')
-
-            elif btn == RIGHT_BTN:
-                self.machine.resetSelectionArea()
-
-                dataPos = self.machine.plot.pixelToData(x, y)
-                assert dataPos is not None
-                self.points[-1] = dataPos
-                if self.points[-2] == self.points[-1]:
-                    self.points.pop()
-                self.points.append(self.points[0])
-
-                eventDict = prepareDrawingSignal('drawingFinished',
-                                                 'polygon',
-                                                 self.points,
-                                                 self.machine.parameters)
-                self.machine.plot.notify(**eventDict)
-                self.goto('idle')
 
     def __init__(self, plot, parameters):
         states = {
@@ -550,7 +533,7 @@ class Select2Points(Select):
                 return True
 
     class Start(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             self.machine.beginSelect(x, y)
 
         def onMove(self, x, y):
@@ -562,7 +545,7 @@ class Select2Points(Select):
                 return True
 
     class Select(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             self.onMove(x, y)
 
         def onMove(self, x, y):
@@ -683,7 +666,7 @@ class Select1Point(Select):
                 return True
 
     class Select(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             self.onMove(x, y)
 
         def onMove(self, x, y):
@@ -726,7 +709,7 @@ class SelectHLine(Select1Point):
 
         Supports non-orthogonal axes.
         """
-        left, top, width, height = self.plot.getPlotBoundsInPixels()
+        left, _top, width, _height = self.plot.getPlotBoundsInPixels()
 
         dataPos1 = self.plot.pixelToData(left, y, check=False)
         dataPos2 = self.plot.pixelToData(left + width, y, check=False)
@@ -762,7 +745,7 @@ class SelectVLine(Select1Point):
 
         Supports non-orthogonal axes.
         """
-        left, top, width, height = self.plot.getPlotBoundsInPixels()
+        _left, top, _width, height = self.plot.getPlotBoundsInPixels()
 
         dataPos1 = self.plot.pixelToData(x, top, check=False)
         dataPos2 = self.plot.pixelToData(x, top + height, check=False)
@@ -791,6 +774,108 @@ class SelectVLine(Select1Point):
         self.resetSelectionArea()
 
 
+class DrawFreeHand(Select):
+    """Interaction for drawing pencil. It display the preview of the pencil
+    before pressing the mouse.
+    """
+
+    class Idle(State):
+        def onPress(self, x, y, btn):
+            if btn == LEFT_BTN:
+                self.goto('select', x, y)
+                return True
+
+        def onMove(self, x, y):
+            self.machine.updatePencilShape(x, y)
+
+        def onLeave(self):
+            self.machine.cancel()
+
+    class Select(State):
+        def enterState(self, x, y):
+            self.__isOut = False
+            self.machine.setFirstPoint(x, y)
+
+        def onMove(self, x, y):
+            self.machine.updatePencilShape(x, y)
+            self.machine.select(x, y)
+
+        def onRelease(self, x, y, btn):
+            if btn == LEFT_BTN:
+                if self.__isOut:
+                    self.machine.resetSelectionArea()
+                self.machine.endSelect(x, y)
+                self.goto('idle')
+
+        def onEnter(self):
+            self.__isOut = False
+
+        def onLeave(self):
+            self.__isOut = True
+
+    def __init__(self, plot, parameters):
+        # Circle used for pencil preview
+        angle = numpy.arange(13.) * numpy.pi * 2.0 / 13.
+        size = parameters.get('width', 1.) * 0.5
+        self._circle = size * numpy.array((numpy.cos(angle),
+                                           numpy.sin(angle))).T
+
+        states = {
+            'idle': DrawFreeHand.Idle,
+            'select': DrawFreeHand.Select
+        }
+        super(DrawFreeHand, self).__init__(plot, parameters, states, 'idle')
+
+    @property
+    def width(self):
+        return self.parameters.get('width', None)
+
+    def setFirstPoint(self, x, y):
+        self._points = []
+        self.select(x, y)
+
+    def updatePencilShape(self, x, y):
+        center = self.plot.pixelToData(x, y, check=False)
+        assert center is not None
+
+        polygon = center + self._circle
+
+        self.setSelectionArea(polygon, fill='none', color=self.color)
+
+    def select(self, x, y):
+        pos = self.plot.pixelToData(x, y, check=False)
+        if len(self._points) > 0:
+            if self._points[-1] == pos:
+                # Skip same points
+                return
+        self._points.append(pos)
+        eventDict = prepareDrawingSignal('drawingProgress',
+                                         'polylines',
+                                         self._points,
+                                         self.parameters)
+        self.plot.notify(**eventDict)
+
+    def endSelect(self, x, y):
+        pos = self.plot.pixelToData(x, y, check=False)
+        if len(self._points) > 0:
+            if self._points[-1] != pos:
+                # Append if different
+                self._points.append(pos)
+
+        eventDict = prepareDrawingSignal('drawingFinished',
+                                         'polylines',
+                                         self._points,
+                                         self.parameters)
+        self.plot.notify(**eventDict)
+        self._points = None
+
+    def cancelSelect(self):
+        self.resetSelectionArea()
+
+    def cancel(self):
+        self.resetSelectionArea()
+
+
 class SelectFreeLine(ClickOrDrag, _PlotInteraction):
     """Base class for drawing free lines with tools such as pencil."""
 
@@ -807,7 +892,7 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
         self.parameters = parameters
 
     def onWheel(self, x, y, angle):
-        scaleF = 1.1 if angle > 0 else 1./1.1
+        scaleF = 1.1 if angle > 0 else 1. / 1.1
         applyZoomToPlot(self.plot, scaleF, (x, y))
 
     @property
@@ -848,7 +933,7 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
             self.plot.notify(**eventDict)
 
         if not isLast:
-            self.setSelectionArea(self._points, fill=None, color=self.color,
+            self.setSelectionArea(self._points, fill='none', color=self.color,
                                   shape='polylines')
         else:
             self.cancel()
@@ -857,35 +942,21 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
 # ItemInteraction #############################################################
 
 class ItemsInteraction(ClickOrDrag, _PlotInteraction):
+    """Interaction with items (markers, curves and images).
+
+    This class provides selection and dragging of plot primitives
+    that support those interaction.
+    It is also meant to be combined with the zoom interaction.
+    """
+
     class Idle(ClickOrDrag.Idle):
         def __init__(self, *args, **kw):
             super(ItemsInteraction.Idle, self).__init__(*args, **kw)
             self._hoverMarker = None
 
         def onWheel(self, x, y, angle):
-            scaleF = 1.1 if angle > 0 else 1./1.1
+            scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
-
-        def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                marker = self.machine.plot._pickMarker(
-                    x, y,
-                    lambda marker: marker['selectable'] or marker['draggable'])
-                if marker is not None:
-                    self.goto('clickOrDrag', x, y)
-                    return True
-
-                else:
-                    picked = self.machine.plot._pickImageOrCurve(
-                        x,
-                        y,
-                        lambda item: (item['selectable'] or
-                                      item.get('draggable', False)))
-                    if picked is not None:
-                        self.goto('clickOrDrag', x, y)
-                        return True
-
-            return False
 
         def onMove(self, x, y):
             marker = self.machine.plot._pickMarker(x, y)
@@ -893,10 +964,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
                 eventDict = prepareHoverSignal(
-                    marker['legend'], 'marker',
+                    marker.getLegend(), 'marker',
                     dataPos, (x, y),
-                    marker['draggable'],
-                    marker['selectable'])
+                    marker.isDraggable(),
+                    marker.isSelectable())
                 self.machine.plot.notify(**eventDict)
 
             if marker != self._hoverMarker:
@@ -905,15 +976,15 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 if marker is None:
                     self.machine.plot.setGraphCursorShape()
 
-                elif marker['draggable']:
-                    if marker['x'] is None:
+                elif marker.isDraggable():
+                    if isinstance(marker, items.YMarker):
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_VER)
-                    elif marker['y'] is None:
+                    elif isinstance(marker, items.XMarker):
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_HOR)
                     else:
                         self.machine.plot.setGraphCursorShape(CURSOR_SIZE_ALL)
 
-                elif marker['selectable']:
+                elif marker.isSelectable():
                     self.machine.plot.setGraphCursorShape(CURSOR_POINTING)
 
             return True
@@ -923,12 +994,20 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         states = {
             'idle': ItemsInteraction.Idle,
+            'rightClick': ClickOrDrag.RightClick,
             'clickOrDrag': ClickOrDrag.ClickOrDrag,
             'drag': ClickOrDrag.Drag
         }
         StateMachine.__init__(self, states, 'idle')
 
     def click(self, x, y, btn):
+        """Handle mouse click
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: True if click is catched by an item, False otherwise
+        """
         # Signal mouse clicked event
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
@@ -937,11 +1016,25 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                        x, y)
         self.plot.notify(**eventDict)
 
+        eventDict = self._handleClick(x, y, btn)
+        if eventDict is not None:
+            self.plot.notify(**eventDict)
+
+    def _handleClick(self, x, y, btn):
+        """Perform picking and prepare event if click is handled here
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: event description to send of None if not handling event.
+        :rtype: dict or None
+        """
+
         if btn == LEFT_BTN:
             marker = self.plot._pickMarker(
-                x, y, lambda marker: marker['selectable'])
+                x, y, lambda m: m.isSelectable())
             if marker is not None:
-                xData, yData = marker['x'], marker['y']
+                xData, yData = marker.getPosition()
                 if xData is None:
                     xData = [0, 1]
                 if yData is None:
@@ -949,33 +1042,39 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
                 eventDict = prepareMarkerSignal('markerClicked',
                                                 'left',
-                                                marker['legend'],
+                                                marker.getLegend(),
                                                 'marker',
-                                                marker['draggable'],
-                                                marker['selectable'],
+                                                marker.isDraggable(),
+                                                marker.isSelectable(),
                                                 (xData, yData),
                                                 (x, y), None)
-                self.plot.notify(**eventDict)
+                return eventDict
 
             else:
                 picked = self.plot._pickImageOrCurve(
-                    x, y, lambda item: item['selectable'])
+                    x, y, lambda item: item.isSelectable())
 
                 if picked is None:
                     pass
+
                 elif picked[0] == 'curve':
                     curve = picked[1]
+                    indices = picked[2]
 
                     dataPos = self.plot.pixelToData(x, y)
                     assert dataPos is not None
 
+                    xData = curve.getXData(copy=False)
+                    yData = curve.getYData(copy=False)
+
                     eventDict = prepareCurveSignal('left',
-                                                   curve['legend'],
+                                                   curve.getLegend(),
                                                    'curve',
-                                                   picked[2], picked[3],
+                                                   xData[indices],
+                                                   yData[indices],
                                                    dataPos[0], dataPos[1],
                                                    x, y)
-                    self.plot.notify(**eventDict)
+                    return eventDict
 
                 elif picked[0] == 'image':
                     image = picked[1]
@@ -984,23 +1083,24 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     assert dataPos is not None
 
                     # Get corresponding coordinate in image
-                    column = int((dataPos[0] - image['origin'][0]) /
-                                 float(image['scale'][0]))
-                    row = int((dataPos[1] - image['origin'][1]) /
-                              float(image['scale'][1]))
-
+                    origin = image.getOrigin()
+                    scale = image.getScale()
+                    column = int((dataPos[0] - origin[0]) / float(scale[0]))
+                    row = int((dataPos[1] - origin[1]) / float(scale[1]))
                     eventDict = prepareImageSignal('left',
-                                                   image['legend'],
+                                                   image.getLegend(),
                                                    'image',
                                                    column, row,
                                                    dataPos[0], dataPos[1],
                                                    x, y)
-                    self.plot.notify(**eventDict)
+                    return eventDict
+
+        return None
 
     def _signalMarkerMovingEvent(self, eventType, marker, x, y):
         assert marker is not None
 
-        xData, yData = marker['x'], marker['y']
+        xData, yData = marker.getPosition()
         if xData is None:
             xData = [0, 1]
         if yData is None:
@@ -1011,38 +1111,47 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         eventDict = prepareMarkerSignal(eventType,
                                         'left',
-                                        marker['legend'],
+                                        marker.getLegend(),
                                         'marker',
-                                        marker['draggable'],
-                                        marker['selectable'],
+                                        marker.isDraggable(),
+                                        marker.isSelectable(),
                                         (xData, yData),
                                         (x, y),
                                         posDataCursor)
         self.plot.notify(**eventDict)
 
     def beginDrag(self, x, y):
+        """Handle begining of drag interaction
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :return: True if drag is catched by an item, False otherwise
+        """
         self._lastPos = self.plot.pixelToData(x, y)
         assert self._lastPos is not None
 
         self.imageLegend = None
         self.markerLegend = None
         marker = self.plot._pickMarker(
-            x, y, lambda marker: marker['draggable'])
+            x, y, lambda m: m.isDraggable())
 
         if marker is not None:
-            self.markerLegend = marker['legend']
+            self.markerLegend = marker.getLegend()
             self._signalMarkerMovingEvent('markerMoving', marker, x, y)
         else:
             picked = self.plot._pickImageOrCurve(
                 x,
                 y,
-                lambda item: item.get('draggable', False))
+                lambda item:
+                    hasattr(item, 'isDraggable') and item.isDraggable())
             if picked is None:
                 self.imageLegend = None
                 self.plot.setGraphCursorShape()
+                return False
             else:
                 assert picked[0] == 'image'  # For now only drag images
-                self.imageLegend = picked[1]['legend']
+                self.imageLegend = picked[1].getLegend()
+        return True
 
     def drag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -1051,24 +1160,25 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         if self.markerLegend is not None:
             marker = self.plot._getMarker(self.markerLegend)
-            if marker['constraint'] is not None:
-                xData, yData = marker['constraint'](xData, yData)
+            if marker is not None:
+                marker.setPosition(xData, yData)
 
-            self.plot._moveMarker(self.markerLegend, xData, yData)
-
-            self._signalMarkerMovingEvent(
-                'markerMoving', self.plot._getMarker(self.markerLegend), x, y)
+                self._signalMarkerMovingEvent(
+                    'markerMoving', marker, x, y)
 
         if self.imageLegend is not None:
-            dx, dy = xData - self._lastPos[0], yData - self._lastPos[1]
-            self.plot._moveImage(self.imageLegend, dx, dy)
+            image = self.plot.getImage(self.imageLegend)
+            origin = image.getOrigin()
+            xImage = origin[0] + xData - self._lastPos[0]
+            yImage = origin[1] + yData - self._lastPos[1]
+            image.setOrigin((xImage, yImage))
 
         self._lastPos = xData, yData
 
     def endDrag(self, startPos, endPos):
         if self.markerLegend is not None:
             marker = self.plot._getMarker(self.markerLegend)
-            posData = [marker['x'], marker['y']]
+            posData = list(marker.getPosition())
             if posData[0] is None:
                 posData[0] = [0, 1]
             if posData[1] is None:
@@ -1077,10 +1187,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             eventDict = prepareMarkerSignal(
                 'markerMoved',
                 'left',
-                marker['legend'],
+                marker.getLegend(),
                 'marker',
-                marker['draggable'],
-                marker['selectable'],
+                marker.isDraggable(),
+                marker.isSelectable(),
                 posData)
             self.plot.notify(**eventDict)
 
@@ -1092,6 +1202,48 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
     def cancel(self):
         self.plot.setGraphCursorShape()
+
+
+class ItemsInteractionForCombo(ItemsInteraction):
+    """Interaction with items to combine through :class:`FocusManager`.
+    """
+
+    class Idle(ItemsInteraction.Idle):
+        def onPress(self, x, y, btn):
+            if btn == LEFT_BTN:
+                def test(item):
+                    return (item.isSelectable() or
+                            (isinstance(item, items.DraggableMixIn) and
+                             item.isDraggable()))
+
+                picked = self.machine.plot._pickMarker(x, y, test)
+                if picked is not None:
+                    itemInteraction = True
+
+                else:
+                    picked = self.machine.plot._pickImageOrCurve(x, y, test)
+                    itemInteraction = picked is not None
+
+                if itemInteraction:  # Request focus and handle interaction
+                    self.goto('clickOrDrag', x, y)
+                    return True
+                else:  # Do not request focus
+                    return False
+
+            elif btn == RIGHT_BTN:
+                self.goto('rightClick', x, y)
+                return True
+
+    def __init__(self, plot):
+        _PlotInteraction.__init__(self, plot)
+
+        states = {
+            'idle': ItemsInteractionForCombo.Idle,
+            'rightClick': ClickOrDrag.RightClick,
+            'clickOrDrag': ClickOrDrag.ClickOrDrag,
+            'drag': ClickOrDrag.Drag
+        }
+        StateMachine.__init__(self, states, 'idle')
 
 
 # FocusManager ################################################################
@@ -1126,9 +1278,9 @@ class FocusManager(StateMachine):
             self._processEvent('wheel', x, y, angle)
 
     class Focus(State):
-        def enter(self, eventHandler, btn):
+        def enterState(self, eventHandler, btn):
             self.eventHandler = eventHandler
-            self.focusBtns = set((btn,))
+            self.focusBtns = {btn}
 
         def onPress(self, x, y, btn):
             self.focusBtns.add(btn)
@@ -1160,15 +1312,146 @@ class FocusManager(StateMachine):
             handler.cancel()
 
 
-class ZoomAndSelect(FocusManager):
-    """Combine Zoom and ItemInteraction state machine."""
+class ZoomAndSelect(ItemsInteraction):
+    """Combine Zoom and ItemInteraction state machine.
+
+    :param plot: The Plot to which this interaction is attached
+    :param color: The color to use for the zoom area bounding box
+    """
+
     def __init__(self, plot, color):
-        eventHandlers = ItemsInteraction(plot), Zoom(plot, color)
-        super(ZoomAndSelect, self).__init__(eventHandlers)
+        super(ZoomAndSelect, self).__init__(plot)
+        self._zoom = Zoom(plot, color)
+        self._doZoom = False
 
     @property
     def color(self):
-        return self.eventHandlers[1].color
+        """Color of the zoom area"""
+        return self._zoom.color
+
+    def click(self, x, y, btn):
+        """Handle mouse click
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: True if click is catched by an item, False otherwise
+        """
+        eventDict = self._handleClick(x, y, btn)
+
+        if eventDict is not None:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            clickedEventDict = prepareMouseSignal('mouseClicked', btn,
+                                                  dataPos[0], dataPos[1],
+                                                  x, y)
+            self.plot.notify(**clickedEventDict)
+
+            self.plot.notify(**eventDict)
+
+        else:
+            self._zoom.click(x, y, btn)
+
+    def beginDrag(self, x, y):
+        """Handle start drag and switching between zoom and item drag.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        self._doZoom = not super(ZoomAndSelect, self).beginDrag(x, y)
+        if self._doZoom:
+            self._zoom.beginDrag(x, y)
+
+    def drag(self, x, y):
+        """Handle drag, eventually forwarding to zoom.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        if self._doZoom:
+            return self._zoom.drag(x, y)
+        else:
+            return super(ZoomAndSelect, self).drag(x, y)
+
+    def endDrag(self, startPos, endPos):
+        """Handle end of drag, eventually forwarding to zoom.
+
+        :param startPos: (x, y) position at the beginning of the drag
+        :param endPos: (x, y) position at the end of the drag
+        """
+        if self._doZoom:
+            return self._zoom.endDrag(startPos, endPos)
+        else:
+            return super(ZoomAndSelect, self).endDrag(startPos, endPos)
+
+
+class PanAndSelect(ItemsInteraction):
+    """Combine Pan and ItemInteraction state machine.
+
+    :param plot: The Plot to which this interaction is attached
+    """
+
+    def __init__(self, plot):
+        super(PanAndSelect, self).__init__(plot)
+        self._pan = Pan(plot)
+        self._doPan = False
+
+    def click(self, x, y, btn):
+        """Handle mouse click
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: True if click is catched by an item, False otherwise
+        """
+        eventDict = self._handleClick(x, y, btn)
+
+        if eventDict is not None:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            clickedEventDict = prepareMouseSignal('mouseClicked', btn,
+                                                  dataPos[0], dataPos[1],
+                                                  x, y)
+            self.plot.notify(**clickedEventDict)
+
+            self.plot.notify(**eventDict)
+
+        else:
+            self._pan.click(x, y, btn)
+
+    def beginDrag(self, x, y):
+        """Handle start drag and switching between zoom and item drag.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        self._doPan = not super(PanAndSelect, self).beginDrag(x, y)
+        if self._doPan:
+            self._pan.beginDrag(x, y)
+
+    def drag(self, x, y):
+        """Handle drag, eventually forwarding to zoom.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        if self._doPan:
+            return self._pan.drag(x, y)
+        else:
+            return super(PanAndSelect, self).drag(x, y)
+
+    def endDrag(self, startPos, endPos):
+        """Handle end of drag, eventually forwarding to zoom.
+
+        :param startPos: (x, y) position at the beginning of the drag
+        :param endPos: (x, y) position at the end of the drag
+        """
+        if self._doPan:
+            return self._pan.endDrag(startPos, endPos)
+        else:
+            return super(PanAndSelect, self).endDrag(startPos, endPos)
 
 
 # Interaction mode control ####################################################
@@ -1188,6 +1471,7 @@ class PlotInteraction(object):
         'vline': SelectVLine,
         'hline': SelectHLine,
         'polylines': SelectFreeLine,
+        'pencil': DrawFreeHand,
     }
 
     def __init__(self, plot):
@@ -1210,23 +1494,32 @@ class PlotInteraction(object):
         if isinstance(self._eventHandler, ZoomAndSelect):
             return {'mode': 'zoom', 'color': self._eventHandler.color}
 
+        elif isinstance(self._eventHandler, FocusManager):
+            drawHandler = self._eventHandler.eventHandlers[1]
+            if not isinstance(drawHandler, Select):
+                raise RuntimeError('Unknown interactive mode')
+
+            result = drawHandler.parameters.copy()
+            result['mode'] = 'draw'
+            return result
+
         elif isinstance(self._eventHandler, Select):
             result = self._eventHandler.parameters.copy()
             result['mode'] = 'draw'
             return result
 
-        elif isinstance(self._eventHandler, Pan):
+        elif isinstance(self._eventHandler, PanAndSelect):
             return {'mode': 'pan'}
 
         else:
             return {'mode': 'select'}
 
     def setInteractiveMode(self, mode, color='black',
-                           shape='polygon', label=None):
+                           shape='polygon', label=None, width=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
-                         In 'draw', 'pan', 'select', 'zoom'.
+                         In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
                       If None, selection area is not drawn.
@@ -1237,31 +1530,40 @@ class PlotInteraction(object):
                           'polylines'.
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode.
+        :param float width: Width of the pencil. Only for draw pencil mode.
         """
-        assert mode in ('draw', 'pan', 'select', 'zoom')
+        assert mode in ('draw', 'pan', 'select', 'select-draw', 'zoom')
 
         plot = self._plot()
         assert plot is not None
 
         if color not in (None, 'video inverted'):
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
 
-        if mode == 'draw':
+        if mode in ('draw', 'select-draw'):
             assert shape in self._DRAW_MODES
             eventHandlerClass = self._DRAW_MODES[shape]
             parameters = {
                 'shape': shape,
                 'label': label,
-                'color': color
+                'color': color,
+                'width': width,
             }
+            eventHandler = eventHandlerClass(plot, parameters)
 
             self._eventHandler.cancel()
-            self._eventHandler = eventHandlerClass(plot, parameters)
+
+            if mode == 'draw':
+                self._eventHandler = eventHandler
+
+            else:  # mode == 'select-draw'
+                self._eventHandler = FocusManager(
+                    (ItemsInteractionForCombo(plot), eventHandler))
 
         elif mode == 'pan':
             # Ignores color, shape and label
             self._eventHandler.cancel()
-            self._eventHandler = Pan(plot)
+            self._eventHandler = PanAndSelect(plot)
 
         elif mode == 'zoom':
             # Ignores shape and label

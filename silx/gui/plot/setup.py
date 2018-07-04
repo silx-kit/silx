@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "29/06/2017"
 
 
 from numpy.distutils.misc_util import Configuration
@@ -32,7 +32,18 @@ from numpy.distutils.misc_util import Configuration
 
 def configuration(parent_package='', top_path=None):
     config = Configuration('plot', parent_package, top_path)
+    config.add_subpackage('_utils')
+    config.add_subpackage('utils')
+    config.add_subpackage('matplotlib')
+    config.add_subpackage('stats')
+    config.add_subpackage('backends')
+    config.add_subpackage('backends.glutils')
+    config.add_subpackage('items')
     config.add_subpackage('test')
+    config.add_subpackage('tools')
+    config.add_subpackage('tools.profile')
+    config.add_subpackage('tools.test')
+    config.add_subpackage('actions')
 
     return config
 

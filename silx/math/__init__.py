@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,19 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
+"""This package provides some processing functions for 1D, 2D, 3D or nD arrays.
 
-__authors__ = ["D. Naudet", "V.A. Sole"]
+For additional processing functions dedicated to 2D images,
+see the silx.image package.
+For OpenCL-based processing functions see the silx.opencl package.
+
+See silx documentation: http://www.silx.org/doc/silx/latest/
+"""
+
+__authors__ = ["D. Naudet", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/05/2016"
+__date__ = "11/05/2017"
 
 from .histogram import Histogramnd  # noqa
 from .histogram import HistogramndLut  # noqa
-from .fit import leastsq  # noqa
+from .medianfilter import medfilt, medfilt1d, medfilt2d

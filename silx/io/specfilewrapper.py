@@ -1,6 +1,6 @@
 # coding: utf-8
-#/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# /*#########################################################################
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """This module provides a backward compatibility layer with the legacy
 specfile wrapper.
 
@@ -50,7 +50,7 @@ from silx.io.specfile import SpecFile, Scan
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/07/2016"
+__date__ = "15/09/2016"
 
 
 def _format_number_list(number_list):
@@ -240,7 +240,7 @@ class scandata(Scan):  # noqa
         - :meth:`data` becomes a method returning an array, instead of just
           an array
         - :meth:`mca`: becomes a method returning an array, instead of
-          a :class:`silx.io.specfile.Scan` object
+          a :class:`silx.io.specfile.MCA` object
         - :meth:`header`: becomes a method returning a list of **scan**
           header lines (or a list of a single header line, if a key is
           specified), instead of just a list of all header lines
@@ -332,7 +332,7 @@ class scandata(Scan):  # noqa
             lines.
             If ``key`` does not match any header line, return empty list.
         :return: List of scan header lines
-        :rtype: list[str]
+        :rtype: List[str]
         """
         if key.strip() == "":
             return self.scan_header
@@ -361,7 +361,8 @@ class scandata(Scan):  # noqa
     def mca(self, number):
         """Return one MCA spectrum
 
-        :param number: MCA number (1-based index)"""
+        :param number: MCA number (1-based index)
+        :rtype: 1D numpy array"""
         # in the base class, mca is an object that can be indexed (but 0-based)
         return super(scandata, self).mca[number - 1]
 

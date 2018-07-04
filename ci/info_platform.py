@@ -3,7 +3,7 @@
 """Print information about python."""
 
 __authors__ = ["Jérôme Kieffer"]
-__date__ = "02/09/2016"
+__date__ = "09/09/2016"
 __license__ = "MIT"
 
 
@@ -39,4 +39,47 @@ else:
     for p in pyopencl.get_platforms():
         print("  %s" % p)
         for d in p.get_devices():
-            print("    %s" % d)
+            print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
+try:
+    from silx.opencl import ocl
+except Exception:
+    print("Unable to import silx")
+else:
+    print("PyOpenCL platform as seen by silx:")
+    if ocl:
+        for p in ocl.platforms:
+            print("  %s:" % p)
+            for d in p.devices:
+                print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
+
+have_qt_binding = False
+
+try:
+    import PySide.QtCore
+    have_qt_binding = True
+    print("Qt (from PySide): %s" % PySide.QtCore.qVersion())
+except ImportError:
+    pass
+
+try:
+    import PyQt4.QtCore
+    have_qt_binding = True
+    print("Qt (from PyQt4): %s" % PyQt4.QtCore.qVersion())
+except ImportError:
+    pass
+
+try:
+    import PyQt5.QtCore
+    have_qt_binding = True
+    print("Qt (from PyQt5): %s" % PyQt5.QtCore.qVersion())
+except ImportError:
+    pass
+
+if not have_qt_binding:
+    print("No Qt binding")
+
+try:
+    import sip
+    print("SIP: %s" % sip.SIP_VERSION_STR)
+except ImportError:
+    pass

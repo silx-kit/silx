@@ -1,3 +1,33 @@
+/*
+ *   Project: SIFT: An algorithm for image alignement
+ *
+ *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *                           Grenoble, France
+ *
+ *   Principal authors: J. Kieffer (kieffer@esrf.fr)
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 /**
  *
  * Kernels for images processing
@@ -18,8 +48,6 @@
 
 */
 typedef float4 keypoint;
-//#define MIN(i,j) ( (i)<(j) ? (i):(j) )
-//#define MAX(i,j) ( (i)<(j) ? (j):(i) )
 
 #ifndef WORKGROUP_SIZE
 	#define WORKGROUP_SIZE 128
@@ -28,7 +56,9 @@ typedef float4 keypoint;
 /*
  Do not use __constant memory for large (usual) images
 */
-#define MAX_CONST_SIZE 16384
+#ifndef MAX_CONST_SIZE
+    #define MAX_CONST_SIZE 16384
+#endif
 
 /**
  * \brief Gradient of a grayscale image
@@ -44,10 +74,10 @@ typedef float4 keypoint;
 
 
 
-__kernel void compute_gradient_orientation(
-	__global float* igray, // __attribute__((max_constant_size(MAX_CONST_SIZE))),
-	__global float *grad,
-	__global float *ori,
+kernel void compute_gradient_orientation(
+	global float* igray, // __attribute__((max_constant_size(MAX_CONST_SIZE))),
+	global float *grad,
+	global float *ori,
 	int width,
 	int height)
 {
@@ -74,7 +104,8 @@ __kernel void compute_gradient_orientation(
 			ygrad = igray[pos - width] - igray[pos + width];
 
         grad[pos] = sqrt((xgrad * xgrad + ygrad * ygrad));
-        ori[pos] = atan2 (-ygrad,xgrad);
+//TODO use atan2pi and remove the division by pi later on
+        ori[pos] = atan2 (-ygrad, xgrad);
 
       }
 }
@@ -104,27 +135,23 @@ __kernel void compute_gradient_orientation(
  * :param width: integer number of columns of a DOG.
  * :param height: integer number of lines of a DOG
 
-*/
-
-
-/*
 TODO:
 -check fabs(val) outside this kernel ? It would avoid the "if"
 -confirm usage of fabs instead of fabsf
 -confirm the need to return -atan2() rather than atan2 ; to be coherent with python
-
+-use OriHistThresh instead of the harcoded value = 0.8
 */
 
 
-__kernel void local_maxmin(
-	__global float* DOGS,
-	__global keypoint* output,
+kernel void local_maxmin(
+	global float* DOGS,
+	global guess_keypoint* output,
 	int border_dist,
 	float peak_thresh,
 	int octsize,
 	float EdgeThresh0,
 	float EdgeThresh,
-	__global int* counter,
+	global int* counter,
 	int nb_keypoints,
 	int scale,
 	int width,
@@ -149,7 +176,7 @@ __kernel void local_maxmin(
 		The following condition is part of the keypoints refinement: we eliminate the low-contrast points
 		NOTE: "fabsf" instead of "fabs" should be used, for "fabs" if for doubles. Used "fabs" to be coherent with python
 		*/
-		if (fabs(val) > (0.8 * peak_thresh)) {
+		if (fabs(val) > (0.8f * peak_thresh)) {
 
 			int c,r,pos;
 			int ismax = 0, ismin = 0;
@@ -177,13 +204,14 @@ __kernel void local_maxmin(
 
 			pos = gid1*width+gid0;
 
-			float H00 = DOGS[index_dog+(gid1-1)*width+gid0] - 2.0 * DOGS[index_dog+pos] + DOGS[index_dog+(gid1+1)*width+gid0],
-			H11 = DOGS[index_dog+pos-1] - 2.0 * DOGS[index_dog+pos] + DOGS[index_dog+pos+1],
+			float H00 = DOGS[index_dog+(gid1-1)*width+gid0] - 2.0f * DOGS[index_dog+pos] + DOGS[index_dog+(gid1+1)*width+gid0],
+			H11 = DOGS[index_dog+pos-1] - 2.0f * DOGS[index_dog+pos] + DOGS[index_dog+pos+1],
 			H01 = ( (DOGS[index_dog+(gid1+1)*width+gid0+1]
 					- DOGS[index_dog+(gid1+1)*width+gid0-1])
-					- (DOGS[index_dog+(gid1-1)*width+gid0+1] - DOGS[index_dog+(gid1-1)*width+gid0-1])) / 4.0;
+					- (DOGS[index_dog+(gid1-1)*width+gid0+1] - DOGS[index_dog+(gid1-1)*width+gid0-1])) / 4.0f;
 
-			float det = H00 * H11 - H01 * H01, trace = H00 + H11;
+			float det = H00 * H11 - H01 * H01, 
+				trace = H00 + H11;
 
 			/*
 			   If (trace^2)/det < thresh, the Keypoint is OK.
@@ -198,15 +226,23 @@ __kernel void local_maxmin(
 			/*
 			 At this stage, res != 0.0f iff the current pixel is a good keypoint
 			*/
-			if (res != 0.0f) {
+			if (res != 0.0f)
+			{
 				int old = atomic_inc(counter);
-				keypoint k = 0.0; //no malloc, for this is a float4
-				k.s0 = val;
-				k.s1 = (float) gid1;
-				k.s2 = (float) gid0;
-				k.s3 = (float) scale;
-				if (old < nb_keypoints) output[old]=k;
-			}
+//				keypoint k = 0.0; //no malloc, for this is a float4
+//				k.s0 = val;
+//				k.s1 = (float) gid1;
+//				k.s2 = (float) gid0;
+//				k.s3 = (float) scale;
+//				guess_keypoint:  value, row, col, scale
+				guess_keypoint kp;
+				kp.value = val;
+				kp.row = (float) gid1;
+				kp.col = (float) gid0;
+				kp.scale = (float) scale;
+				if (old < nb_keypoints)
+				    output[old]=kp;
+			}//end if res
 
 		}//end "value >thresh"
 	}//end "in the inner image"
@@ -219,8 +255,13 @@ __kernel void local_maxmin(
 /**
  * \brief From the (temporary) keypoints, create a vector of interpolated keypoints
  * 			(this is the last step of keypoints refinement)
- *  	 Note that we take the value (-1,-1,-1) for invalid keypoints. This creates "holes" in the vector.
-    NOTE: the keypoints vector is not compacted yet
+ *
+ * 	We use the unified_keypoint type which contains:
+ * 	    unified_keypoint.raw which is a guess_keypoint: value, row, column, scale
+ *      unified_keypoint.ref which is an actual_keypoint: col, row, scale, angle
+ *
+ *  	 (-1,-1,-1) is used to flag invalid keypoints.
+ *  	 This creates "holes" in the vector. which may be copacted afterwards
  *
  * :param DOGS: Pointer to global memory with ALL the coutiguously pre-allocated Differences of Gaussians
  * :param keypoints: Pointer to global memory with current keypoints vector. It will be modified with the interpolated points
@@ -229,12 +270,15 @@ __kernel void local_maxmin(
  * :param InitSigma: float "par.InitSigma" in SIFT (1.6 by default)
  * :param width: integer number of columns of the DoG
  * :param height: integer number of lines of the DoG
+
+TODO: replace hard-coded 3.0f with par.Scales
+
  */
 
 
-__kernel void interp_keypoint(
-	__global float* DOGS,
-	__global keypoint* keypoints,
+kernel void interp_keypoint(
+	global float* DOGS,
+	global guess_keypoint* keypoints,
 	int start_keypoints,
 	int end_keypoints,
 	float peak_thresh,
@@ -247,11 +291,12 @@ __kernel void interp_keypoint(
 	int gid0 = (int) get_global_id(0);
 
 	if ((gid0 >= start_keypoints) && (gid0 < end_keypoints)) {
-		keypoint k = keypoints[gid0];
-		int r = (int) k.s1;
-		int c = (int) k.s2;
-		int scale = (int) k.s3;
-		if (r != -1) {
+	    guess_keypoint raw_kp = keypoints[gid0];
+		int r = (int) raw_kp.row;
+		int c = (int) raw_kp.col;
+		int scale = (int) raw_kp.scale;
+		if (r != -1)
+		{ //the keypoint is valid
 			int index_dog_prev = (scale-1)*(width*height);
 			int index_dog =scale*(width*height);
 			int index_dog_next =(scale+1)*(width*height);
@@ -261,9 +306,11 @@ __kernel void interp_keypoint(
 				H00, H11, H22, H01, H02, H12, H10, H20, H21,
 				K00, K11, K22, K01, K02, K12, K10, K20, K21,
 				solution0, solution1, solution2, det, peakval;
-			int pos = r*width+c;
-			int loop = 1, movesRemain = 5;
-			int newr = r, newc = c;
+			int pos = r*width+c,
+			    loop = 1, 
+				movesRemain = 5,
+			    newr = r, 
+			    newc = c;
 
 			//this loop replaces the recursive "InterpKeyPoint"
 			while (loop == 1) {
@@ -346,19 +393,26 @@ __kernel void interp_keypoint(
 
 			/* Do not create a keypoint if interpolation still remains far outside expected limits,
 				or if magnitude of peak value is below threshold (i.e., contrast is too low).
-			*/
-			keypoint ki = 0.0f; //float4
-			if (fabs(solution0) <= 1.5f && fabs(solution1) <= 1.5f && fabs(solution2) <= 1.5f && fabs(peakval) >= peak_thresh) {
-				ki.s0 = peakval;
-				ki.s1 = /*k.s1*/ r + solution1;
-				ki.s2 = /*k.s2*/ c + solution2;
-				ki.s3 = InitSigma * pow(2.0f, (((float) scale) + solution0) / 3.0f); //3.0 is "par.Scales"
-			}
-			else { //the keypoint was not correctly interpolated : we reject it
-				ki.s0 = -1.0f; ki.s1 = -1.0f; ki.s2 = -1.0f; ki.s3 = -1.0f;
-			}
 
-			keypoints[gid0]=ki;
+				guess_keypoint:  value, row, col, scale
+			*/
+			guess_keypoint ref_kp;
+			if (fabs(solution0) <= 1.5f && fabs(solution1) <= 1.5f && fabs(solution2) <= 1.5f && fabs(peakval) >= peak_thresh)
+			{ // keypoint properly interpolated
+			    ref_kp.value = peakval;
+			    ref_kp.row = r + solution1;
+			    ref_kp.col = c + solution2;
+			    ref_kp.scale = InitSigma * pow(2.0f, (((float) scale) + solution0) / 3.0f); //3.0 is "par.Scales"
+			}// endif keypoint properly interpolated
+			else
+			{ //the keypoint was not correctly interpolated : marked as bad
+			    ref_kp.value = -1.0f;
+			    ref_kp.row = -1.0f;
+			    ref_kp.col = -1.0f;
+			    ref_kp.scale = -1.0f;
+			} //end bad kp
+
+			keypoints[gid0] = ref_kp;
 
 		/*
 			Better return here and compute histogram in another kernel

@@ -1,15 +1,12 @@
 /*
  *   Project: SIFT: An algorithm for image alignement
- *            Kernel for gaussian signal generation.
+ *            gaussian.cl: Kernel for gaussian signal generation.
  *
  *
- *   Copyright (C) 2013 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-8 European Synchrotron Radiation Facility
  *                           Grenoble, France
- *   All rights reserved.
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
- *   Last revision: 26/06/2013
- *
  * 
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,13 +28,7 @@
  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE. 
- * 
  **/
-
-#ifndef WORKGROUP_SIZE
-	#define WORKGROUP_SIZE 1024
-#endif
-
 
 /**
  * \brief gaussian: Initialize a vector with a gaussian function.
@@ -53,88 +44,73 @@
  *
 **/
 
-__kernel void
-gaussian(            __global     float     *data,
-            const                 float     sigma,
-            const                 int     SIZE
-)
+kernel void gaussian(global     float    *data,
+                     const      float     sigma,
+                     const        int     SIZE,
+                     local      float    *shm1,
+                     local      float    *shm2)
 {
     int lid = get_local_id(0);
-//    int wd = get_work_dim(0); DEFINE WG are compile time
-    //allocate a shared memory of size floats
-    __local float gaus[WORKGROUP_SIZE];
-    __local float sum[WORKGROUP_SIZE];    
-
-    if(lid < SIZE){
+    int group_size = get_local_size(0);
+    if(lid < SIZE)
+    {
         float x = ((float)lid - ((float)SIZE - 1.0f)/2.0f) / sigma;
         float y = exp(-x * x / 2.0f);
-        gaus[lid] = y / sigma / sqrt(2.0f * M_PI_F);
-        sum[lid] = gaus[lid];
+        shm1[lid] = y / sigma / sqrt(2.0f * M_PI_F);
+        shm2[lid] = shm1[lid];
     }
-    else sum[lid] = 0.0f;
+    else
+    {
+        shm2[lid] = 0.0f;
+    }
     
 //    Now we sum all in shared memory
     
     barrier(CLK_LOCAL_MEM_FENCE);
-    if (SIZE > 512){
-        if (lid < 512) {
-            sum[lid] +=  sum[lid + 512];
+    for (int bs=group_size/2; bs>=1; bs/=2)
+    {
+        if ((lid<group_size) && (lid < bs) && ((lid + bs)<group_size))
+        {
+            shm2[lid] = shm2[lid] + shm2[lid + bs];
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
-    if (SIZE > 256){
-        if (lid < 256){
-            sum[lid] +=  sum[lid + 256];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);	
-    }
-    if (SIZE > 128){
-        if (lid < 128)    {
-            sum[lid] +=  sum[lid + 128];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    if (SIZE > 64){
-        if (lid <  64) {
-            sum[lid] +=  sum[lid + 64];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    if (SIZE > 32){
-        if (lid <  32) {
-        sum[lid] +=  sum[lid + 32];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    if (SIZE > 16){
-        if (lid <  16){
-            sum[lid] +=  sum[lid + 16];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    if  (SIZE > 8){          
-        if (lid <  8 ){
-            sum[lid] +=  sum[lid + 8 ];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    if (SIZE > 4 ){    
-        if (lid <  4 ){
-            sum[lid] +=  sum[lid + 4 ];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    if (SIZE > 2 ){
-    	if (lid <  2 ){
-    		sum[lid] +=  sum[lid + 2 ];
-    	}
-    	barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    if (lid == 0)
-        sum[0] += sum[1];
-    barrier(CLK_LOCAL_MEM_FENCE);
-//    Now we normalize the gaussian curve
-    if(lid < SIZE){
-        data[lid] = gaus[lid] / sum[0];
+
+    //    Now we normalize the gaussian curve
+
+    if(lid < SIZE)
+    {
+        data[lid] = shm1[lid] / shm2[0];
     }
 }
+/**
+ * \brief gaussian: Initialize a vector with a gaussian function.
+ *
+ * Same as previous except that there is no synchronization: use the sum of the integral 
+ *
+ * :param data:        Float pointer to global memory storing the vector.
+ * :param sigma:    width of the gaussian
+ * :param size:     size of the function
+ *
+ * Nota:  shm1 & shm2 are unused.
+**/
+
+kernel void
+gaussian_nosync(global     float   *data,
+                const      float   sigma,
+                const      int     SIZE)
+//                local      float*    shm1,
+//                local      float*    shm2)
+{
+    int gid=get_global_id(0);
+    if(gid < SIZE)
+    {
+        float x = ((float)gid - ((float)SIZE - 1.0f)/2.0f) / sigma;
+        float y = exp(-x * x / 2.0f);
+        data[gid] = y / sigma / sqrt(2.0f * M_PI_F);
+    }
+}
+
+
+
+

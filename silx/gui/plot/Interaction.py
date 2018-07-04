@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,10 +39,10 @@ with transitions on left button press/release:
                    self.goto('active')
 
        class Active(State):
-           def enter(self):
+           def enterState(self):
                print('Enabled')  # Handle enter active state here
 
-           def leave(self):
+           def leaveState(self):
                print('Disabled')  # Handle leave active state here
 
            def onRelease(self, x, y, btn):
@@ -116,14 +116,14 @@ class State(object):
     def goto(self, state, *args, **kwargs):
         """Performs a transition to a new state.
 
-        Extra arguments are passed to the :meth:`enter` method of the
+        Extra arguments are passed to the :meth:`enterState` method of the
         new state.
 
         :param str state: The name of the state to go to.
         """
         self.machine._goto(state, *args, **kwargs)
 
-    def enter(self, *args, **kwargs):
+    def enterState(self, *args, **kwargs):
         """Called when the state machine enters this state.
 
         Arguments are those provided to the :meth:`goto` method that
@@ -131,7 +131,7 @@ class State(object):
         """
         pass
 
-    def leave(self):
+    def leaveState(self):
         """Called when the state machine leaves this state
         (i.e., when :meth:`goto` is called).
         """
@@ -149,7 +149,8 @@ class StateMachine(object):
     def __init__(self, states, initState, *args, **kwargs):
         """Create a state machine controller with an initial state.
 
-        Extra arguments are passed to the enter method of the initState.
+        Extra arguments are passed to the :meth:`enterState` method
+        of the initState.
 
         :param states: All states of the state machine
         :type states: dict of: {str name: State subclass}
@@ -158,12 +159,12 @@ class StateMachine(object):
         self.states = states
 
         self.state = self.states[initState](self)
-        self.state.enter(*args, **kwargs)
+        self.state.enterState(*args, **kwargs)
 
     def _goto(self, state, *args, **kwargs):
-        self.state.leave()
+        self.state.leaveState()
         self.state = self.states[state](self)
-        self.state.enter(*args, **kwargs)
+        self.state.enterState(*args, **kwargs)
 
     def handleEvent(self, eventName, *args, **kwargs):
         """Process an event with the state machine.
@@ -231,7 +232,7 @@ class ClickOrDrag(StateMachine):
                 self.goto('idle')
 
     class ClickOrDrag(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             self.initPos = x, y
 
         def onMove(self, x, y):
@@ -246,7 +247,7 @@ class ClickOrDrag(StateMachine):
                 self.goto('idle')
 
     class Drag(State):
-        def enter(self, initPos, curPos):
+        def enterState(self, initPos, curPos):
             self.initPos = initPos
             self.machine.beginDrag(*initPos)
             self.machine.drag(*curPos)

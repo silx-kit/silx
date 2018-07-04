@@ -1,6 +1,6 @@
 # coding: utf-8
-#/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# /*##########################################################################
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """This module offers a set of functions to dump a python dictionary indexed
 by text strings to following file formats: `HDF5, INI, JSON`
 """
@@ -41,14 +41,17 @@ else:
     h5py_missing = False
 
 from .configdict import ConfigDict
+from .utils import is_group
+from .utils import is_file as is_h5_file_like
+from .utils import open as h5open
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/05/2016"
+__date__ = "16/06/2017"
 
 logger = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)    # noqa
 
 
 def _prepare_hdf5_dataset(array_like):
@@ -79,8 +82,78 @@ def _prepare_hdf5_dataset(array_like):
     return array
 
 
+class _SafeH5FileWrite(object):
+    """Context manager returning a :class:`h5py.File` object.
+
+    If this object is initialized with a file path, we open the file
+    and then we close it on exiting.
+
+    If a :class:`h5py.File` instance is provided to :meth:`__init__` rather
+    than a path, we assume that the user is responsible for closing the
+    file.
+
+    This behavior is well suited for handling h5py file in a recursive
+    function. The object is created in the initial call if a path is provided,
+    and it is closed only at the end when all the processing is finished.
+    """
+    def __init__(self, h5file, mode="w"):
+        """
+
+        :param h5file:  HDF5 file path or :class:`h5py.File` instance
+        :param str mode:  Can be ``"r+"`` (read/write, file must exist),
+            ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
+            exists) or ``"a"`` (read/write if exists, create otherwise).
+            This parameter is ignored if ``h5file`` is a file handle.
+        """
+        self.raw_h5file = h5file
+        self.mode = mode
+
+    def __enter__(self):
+        if not isinstance(self.raw_h5file, h5py.File):
+            self.h5file = h5py.File(self.raw_h5file, self.mode)
+            self.close_when_finished = True
+        else:
+            self.h5file = self.raw_h5file
+            self.close_when_finished = False
+        return self.h5file
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.close_when_finished:
+            self.h5file.close()
+
+
+class _SafeH5FileRead(object):
+    """Context manager returning a :class:`h5py.File` or a
+    :class:`silx.io.spech5.SpecH5` or a :class:`silx.io.fabioh5.File` object.
+
+    The general behavior is the same as :class:`_SafeH5FileWrite` except
+    that SPEC files and all formats supported by fabio can also be opened,
+    but in read-only mode.
+    """
+    def __init__(self, h5file):
+        """
+
+        :param h5file:  HDF5 file path or h5py.File-like object
+        """
+        self.raw_h5file = h5file
+
+    def __enter__(self):
+        if not is_h5_file_like(self.raw_h5file):
+            self.h5file = h5open(self.raw_h5file)
+            self.close_when_finished = True
+        else:
+            self.h5file = self.raw_h5file
+            self.close_when_finished = False
+
+        return self.h5file
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.close_when_finished:
+            self.h5file.close()
+
+
 def dicttoh5(treedict, h5file, h5path='/',
-             mode="a", overwrite_data=False,
+             mode="w", overwrite_data=False,
              create_dataset_args=None):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
 
@@ -114,7 +187,7 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     Example::
 
-        from silx.io.dicttoh5 import dictdump
+        from silx.io.dictdump import dicttoh5
 
         city_area = {
             "Europe": {
@@ -139,82 +212,127 @@ def dicttoh5(treedict, h5file, h5path='/',
     if h5py_missing:
         raise h5py_import_error
 
-    if not isinstance(h5file, h5py.File):
-        h5f = h5py.File(h5file, mode)
-    else:
-        h5f = h5file
-
     if not h5path.endswith("/"):
         h5path += "/"
 
-    for key in treedict:
+    with _SafeH5FileWrite(h5file, mode=mode) as h5f:
+        for key in treedict:
+            if isinstance(treedict[key], dict) and len(treedict[key]):
+                # non-empty group: recurse
+                dicttoh5(treedict[key], h5f, h5path + key,
+                         overwrite_data=overwrite_data,
+                         create_dataset_args=create_dataset_args)
 
-        if isinstance(treedict[key], dict) and len(treedict[key]):
-            # non-empty group: recurse
-            dicttoh5(treedict[key], h5f, h5path + key,
-                     overwrite_data=overwrite_data,
-                     create_dataset_args=create_dataset_args)
+            elif treedict[key] is None or (isinstance(treedict[key], dict) and
+                                           not len(treedict[key])):
+                if (h5path + key) in h5f:
+                    if overwrite_data is True:
+                        del h5f[h5path + key]
+                    else:
+                        logger.warning('key (%s) already exists. '
+                                       'Not overwriting.' % (h5path + key))
+                        continue
+                # Create empty group
+                h5f.create_group(h5path + key)
 
-        elif treedict[key] is None or (isinstance(treedict[key], dict)
-             and not len(treedict[key])):
-            # Create empty group
-            h5f.create_group(h5path + key)
-
-        else:
-            ds = _prepare_hdf5_dataset(treedict[key])
-            # can't apply filters on scalars (datasets with shape == () )
-            if ds.shape == () or create_dataset_args is None:
-                h5f.create_dataset(h5path + key,
-                                   data=ds)
             else:
-                h5f.create_dataset(h5path + key,
-                                   data=ds,
-                                   **create_dataset_args)
+                ds = _prepare_hdf5_dataset(treedict[key])
+                # can't apply filters on scalars (datasets with shape == () )
+                if ds.shape == () or create_dataset_args is None:
+                    if h5path + key in h5f:
+                        if overwrite_data is True:
+                            del h5f[h5path + key]
+                        else:
+                            logger.warning('key (%s) already exists. '
+                                           'Not overwriting.' % (h5path + key))
+                            continue
 
-    if isinstance(h5file, string_types):
-        h5f.close()
+                    h5f.create_dataset(h5path + key,
+                                       data=ds)
+                else:
+                    if h5path + key in h5f:
+                        if overwrite_data is True:
+                            del h5f[h5path + key]
+                        else:
+                            logger.warning('key (%s) already exists. '
+                                           'Not overwriting.' % (h5path + key))
+                            continue
+
+                    h5f.create_dataset(h5path + key,
+                                       data=ds,
+                                       **create_dataset_args)
 
 
-def h5todict(h5file, path="/"):
-    """Read HDF5 file and return a nested dictionary with the complete file
+def _name_contains_string_in_list(name, strlist):
+    if strlist is None:
+        return False
+    for filter_str in strlist:
+        if filter_str in name:
+            return True
+    return False
+
+
+def h5todict(h5file, path="/", exclude_names=None):
+    """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
+
+    Example of usage::
+
+        from silx.io.dictdump import h5todict
+
+        # initialize dict with file header and scan header
+        header94 = h5todict("oleg.dat",
+                            "/94.1/instrument/specfile")
+        # add positioners subdict
+        header94["positioners"] = h5todict("oleg.dat",
+                                           "/94.1/instrument/positioners")
+        # add scan data without mca data
+        header94["detector data"] = h5todict("oleg.dat",
+                                             "/94.1/measurement",
+                                             exclude_names="mca_")
+
 
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
 
-    .. note:: If you write a dictionary to a HDF5 file with 
+    .. note:: If you write a dictionary to a HDF5 file with
         :func:`dicttoh5` and then read it back with :func:`h5todict`, data
         types are not preserved. All values are cast to numpy arrays before
         being written to file, and they are read back as numpy arrays (or
         scalars). In some cases, you may find that a list of heterogeneous
         data types is converted to a numpy array of strings.
 
-    :param h5file: File name or :class:`h5py.File` object
-    :return: dict
+    :param h5file: File name or :class:`h5py.File` object or spech5 file or
+        fabioh5 file.
+    :param str path: Name of HDF5 group to use as dictionary root level,
+        to read only a sub-group in the file
+    :param List[str] exclude_names: Groups and datasets whose name contains
+        a string in this list will be ignored. Default is None (ignore nothing)
+    :return: Nested dictionary
     """
     if h5py_missing:
         raise h5py_import_error
 
-    if not isinstance(h5file, h5py.File):
-        h5f = h5py.File(h5file, "r")
-    else:
-        h5f = h5file
+    with _SafeH5FileRead(h5file) as h5f:
+        ddict = {}
+        for key in h5f[path]:
+            if _name_contains_string_in_list(key, exclude_names):
+                continue
+            if is_group(h5f[path + "/" + key]):
+                ddict[key] = h5todict(h5f,
+                                      path + "/" + key,
+                                      exclude_names=exclude_names)
+            else:
+                # Convert HDF5 dataset to numpy array
+                ddict[key] = h5f[path + "/" + key][...]
 
-    ddict = {}
-    for key in h5f[path]:
-
-        if isinstance(h5f[path + "/" + key], h5py.Group):
-            ddict[key] = h5todict(h5f, path + "/" + key)
-        else:
-            # Convert HDF5 dataset to numpy array
-            ddict[key] = h5f[path + "/" + key][...]
     return ddict
 
 
-def dicttojson(dict, jsonfile, indent=None, mode="w"):
-    """Serialize ``dict`` as a JSON formatted stream to ``jsonfile``.
+def dicttojson(ddict, jsonfile, indent=None, mode="w"):
+    """Serialize ``ddict`` as a JSON formatted stream to ``jsonfile``.
 
-    :param dict: Dictionary (or any object compatible with ``json.dump``).
+    :param ddict: Dictionary (or any object compatible with ``json.dump``).
     :param jsonfile: JSON file name or file-like object.
         If a file name is provided, the function opens the file in the
         specified mode and closes it again.
@@ -229,13 +347,13 @@ def dicttojson(dict, jsonfile, indent=None, mode="w"):
     else:
         jsonf = jsonfile
 
-    json.dump(dict, jsonf, indent=indent)
+    json.dump(ddict, jsonf, indent=indent)
 
     if not hasattr(jsonfile, "write"):
         jsonf.close()
 
 
-def dicttoini(ddict, inifile, mode="a"):
+def dicttoini(ddict, inifile, mode="w"):
     """Output dict as configuration file (similar to Microsoft Windows INI).
 
     :param dict: Dictionary of configuration parameters
@@ -255,15 +373,17 @@ def dicttoini(ddict, inifile, mode="a"):
         inif.close()
 
 
-def dump(ddict, ffile, fmat=None):
+def dump(ddict, ffile, mode="w", fmat=None):
     """Dump dictionary to a file
 
     :param ddict: Dictionary with string keys
     :param ffile: File name or file-like object with a ``write`` method
-    :param fmat: Output format: ``"json"``, ``"hdf5"`` or ``"ini"``.
+    :param str fmat: Output format: ``"json"``, ``"hdf5"`` or ``"ini"``.
         When None (the default), it uses the filename extension as the format.
         Dumping to a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
         installed.
+    :param str mode: File opening mode (``w``, ``a``, ``w+``…)
+        Default is *"w"*, write mode, overwrite if exists.
     :raises IOError: if file format is not supported
     """
     if fmat is None:
@@ -273,14 +393,14 @@ def dump(ddict, ffile, fmat=None):
     fmat = fmat.lower()
 
     if fmat == "json":
-        dicttojson(ddict, ffile, indent=2)
+        dicttojson(ddict, ffile, indent=2, mode=mode)
     elif fmat in ["hdf5", "h5"]:
         if h5py_missing:
             logger.error("Cannot dump to HDF5 format, missing h5py library")
             raise h5py_import_error
-        dicttoh5(ddict, ffile)
+        dicttoh5(ddict, ffile, mode=mode)
     elif fmat in ["ini", "cfg"]:
-        dicttoini(ddict, ffile)
+        dicttoini(ddict, ffile, mode=mode)
     else:
         raise IOError("Unknown format " + fmat)
 
@@ -321,4 +441,3 @@ def load(ffile, fmat=None):
         return ConfigDict(filelist=[fname])
     else:
         raise IOError("Unknown format " + fmat)
-

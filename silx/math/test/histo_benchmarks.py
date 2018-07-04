@@ -108,23 +108,23 @@ def benchmark(n_loops,
     int_max = 100000
 
     sample = np.random.randint(int_min,
-                                       high=int_max,
-                                       size=sample_shape).astype(np.double)
+                               high=int_max,
+                               size=sample_shape).astype(np.double)
     sample = (sample_rng[0] +
-              (sample-int_min) *
-              (sample_rng[1]-sample_rng[0]) /
-              (int_max-int_min))
+              (sample - int_min) *
+              (sample_rng[1] - sample_rng[0]) /
+              (int_max - int_min))
     sample = sample.astype(dtype)
 
     if do_weights:
         weights = np.random.randint(int_min,
-                                            high=int_max,
-                                            size=(sample_shape[0],))
+                                    high=int_max,
+                                    size=(ssetup.pyample_shape[0],))
         weights = weights.astype(np.double)
         weights = (weights_rng[0] +
                    (weights - int_min) *
                    (weights_rng[1] - weights_rng[0]) /
-                   (int_max-int_min))
+                   (int_max - int_min))
     else:
         weights = None
 
@@ -160,7 +160,7 @@ def benchmark(n_loops,
             t3s.append(0)
 
         commpare_results('Run {0}'.format(i),
-                         [t1s[-1]-t0s[-1], t2s[-1]-t1s[-1], t3s[-1]-t2s[-1]],
+                         [t1s[-1] - t0s[-1], t2s[-1] - t1s[-1], t3s[-1] - t2s[-1]],
                          result_c,
                          result_np,
                          result_np_w,

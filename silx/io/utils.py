@@ -1,6 +1,6 @@
 # coding: utf-8
-#/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# /*##########################################################################
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,33 +20,89 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """ I/O utility functions"""
+
+__authors__ = ["P. Knobel", "V. Valls"]
+__license__ = "MIT"
+__date__ = "18/04/2018"
 
 import numpy
 import os.path
 import sys
 import time
-
 import logging
+import collections
+
+from silx.utils.proxy import Proxy
+from silx.third_party import six
+from silx.third_party import enum
+import silx.io.url
 
 try:
     import h5py
 except ImportError as e:
-    h5py_missing = True
+    h5py = None
     h5py_import_error = e
-else:
-    h5py_missing = False
 
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "06/09/2016"
+try:
+    import h5pyd
+except ImportError as e:
+    h5pyd = None
+    h5py_import_error = e
 
 
 logger = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+
+class H5Type(enum.Enum):
+    """Identify a set of HDF5 concepts"""
+    DATASET = 1
+    GROUP = 2
+    FILE = 3
+    SOFT_LINK = 4
+    EXTERNAL_LINK = 5
+    HARD_LINK = 6
+
+
+_CLASSES_TYPE = None
+"""Store mapping between classes and types"""
+
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
+
+builtin_open = open
+
+
+def supported_extensions(flat_formats=True):
+    """Returns the list file extensions supported by `silx.open`.
+
+    The result filter out formats when the expected module is not available.
+
+    :param bool flat_formats: If true, also include flat formats like npy or
+        edf (while the expected module is available)
+    :returns: A dictionary indexed by file description and containing a set of
+        extensions (an extension is a string like "\*.ext").
+    :rtype: Dict[str, Set[str]]
+    """
+    formats = {}
+    if h5py is not None:
+        formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
+        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
+    formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
+    if flat_formats:
+        try:
+            from silx.io import fabioh5
+        except ImportError:
+            fabioh5 = None
+        if fabioh5 is not None:
+            formats["NeXus layout from fabio files"] = set(fabioh5.supported_extensions())
+
+    extensions = ["*.npz"]
+    if flat_formats:
+        extensions.append("*.npy")
+
+    formats["Numpy binary files"] = set(extensions)
+    return formats
 
 
 def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
@@ -159,7 +215,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         # Other curves
         for i in range(1, y_array.shape[0]):
             specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
-                             fmt=fmt, scan_number=i+1, mode="w",
+                             fmt=fmt, scan_number=i + 1, mode="w",
                              write_file_header=False, close_file=False)
         # close file if we created it
         if not hasattr(fname, "write"):
@@ -215,7 +271,7 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
     http://docs.scipy.org/doc/numpy-1.10.0/reference/generated/numpy.savetxt.html
     """
     if not hasattr(fname, "name"):
-        ffile = open(fname, 'wb')
+        ffile = builtin_open(fname, 'wb')
     else:
         ffile = fname
 
@@ -267,6 +323,13 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     :return: ``None`` if ``close_file`` is ``True``, else return the file
         handle.
     """
+    # Make sure we use binary mode for write
+    # (issue with windows: write() replaces \n with os.linesep in text mode)
+    if "b" not in mode:
+        first_letter = mode[0]
+        assert first_letter in "rwa"
+        mode = mode.replace(first_letter, first_letter + "b")
+
     x_array = numpy.asarray(x)
     y_array = numpy.asarray(y)
 
@@ -282,24 +345,28 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
                          "two format strings")
 
     if not hasattr(specfile, "write"):
-        f = open(specfile, mode)
+        f = builtin_open(specfile, mode)
     else:
         f = specfile
+
+    output = ""
 
     current_date = "#D %s\n" % (time.ctime(time.time()))
 
     if write_file_header:
-        f.write("#F %s\n" % f.name)
-        f.write(current_date)
-        f.write("\n")
+        output += "#F %s\n" % f.name
+        output += current_date
+        output += "\n"
 
-    f.write("#S %d %s\n" % (scan_number, ylabel))
-    f.write(current_date)
-    f.write("#N 2\n")
-    f.write("#L %s  %s\n" % (xlabel, ylabel))
+    output += "#S %d %s\n" % (scan_number, ylabel)
+    output += current_date
+    output += "#N 2\n"
+    output += "#L %s  %s\n" % (xlabel, ylabel)
     for i in range(y_array.shape[0]):
-        f.write(full_fmt_string % (x_array[i], y_array[i]))
-    f.write("\n")
+        output += full_fmt_string % (x_array[i], y_array[i])
+    output += "\n"
+
+    f.write(output.encode())
 
     if close_file:
         f.close()
@@ -334,29 +401,434 @@ def h5ls(h5group, lvl=0):
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
     """
-    if h5py_missing:
+    if h5py is None:
         logger.error("h5ls requires h5py")
         raise h5py_import_error
 
-    repr = ''
-    if isinstance(h5group, (h5py.File, h5py.Group)):
+    h5repr = ''
+    if is_group(h5group):
         h5f = h5group
     elif isinstance(h5group, string_types):
-        h5f = h5py.File(h5group, "r")
+        h5f = open(h5group)      # silx.io.open
     else:
-        raise TypeError("h5group must be a h5py.group object or a file name.")
+        raise TypeError("h5group must be a hdf5-like group object or a file name.")
 
     for key in h5f.keys():
+        # group
         if hasattr(h5f[key], 'keys'):
-            repr += '\t' * lvl + '+' + key
-            repr += '\n'
-            repr += h5ls(h5f[key], lvl + 1)
+            h5repr += '\t' * lvl + '+' + key
+            h5repr += '\n'
+            h5repr += h5ls(h5f[key], lvl + 1)
+        # dataset
         else:
-            repr += '\t' * lvl
-            repr += str(h5f[key])
-            repr += '\n'
+            h5repr += '\t' * lvl
+            h5repr += str(h5f[key])
+            h5repr += '\n'
 
     if isinstance(h5group, string_types):
         h5f.close()
 
-    return repr
+    return h5repr
+
+
+def _open_local_file(filename):
+    """
+    Load a file as an `h5py.File`-like object.
+
+    Format supported:
+    - h5 files, if `h5py` module is installed
+    - SPEC files exposed as a NeXus layout
+    - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - Numpy files ('npy' and 'npz' files)
+
+    The file is opened in read-only mode.
+
+    :param str filename: A filename
+    :raises: IOError if the file can't be loaded as an h5py.File like object
+    :rtype: h5py.File
+    """
+    if not os.path.isfile(filename):
+        raise IOError("Filename '%s' must be a file path" % filename)
+
+    debugging_info = []
+    try:
+        _, extension = os.path.splitext(filename)
+
+        if extension in [".npz", ".npy"]:
+            try:
+                from . import rawh5
+                return rawh5.NumpyFile(filename)
+            except (IOError, ValueError) as e:
+                debugging_info.append((sys.exc_info(),
+                                      "File '%s' can't be read as a numpy file." % filename))
+
+        if h5py is not None:
+            if h5py.is_hdf5(filename):
+                return h5py.File(filename, "r")
+
+        try:
+            from . import fabioh5
+            return fabioh5.File(filename)
+        except ImportError:
+            debugging_info.append((sys.exc_info(), "fabioh5 can't be loaded."))
+        except Exception:
+            debugging_info.append((sys.exc_info(),
+                                   "File '%s' can't be read as fabio file." % filename))
+
+        try:
+            from . import spech5
+            return spech5.SpecH5(filename)
+        except ImportError:
+            debugging_info.append((sys.exc_info(),
+                                   "spech5 can't be loaded."))
+        except IOError:
+            debugging_info.append((sys.exc_info(),
+                                   "File '%s' can't be read as spec file." % filename))
+    finally:
+        for exc_info, message in debugging_info:
+            logger.debug(message, exc_info=exc_info)
+
+    raise IOError("File '%s' can't be read as HDF5" % filename)
+
+
+class _MainNode(Proxy):
+    """A main node is a sub node of the HDF5 tree which is responsible of the
+    closure of the file.
+
+    It is a proxy to the sub node, plus support context manager and `close`
+    method usually provided by `h5py.File`.
+
+    :param h5_node: Target to the proxy.
+    :param h5_file: Main file. This object became the owner of this file.
+    """
+
+    def __init__(self, h5_node, h5_file):
+        super(_MainNode, self).__init__(h5_node)
+        self.__file = h5_file
+        self.__class = get_h5_class(h5_node)
+
+    @property
+    def h5_class(self):
+        """Returns the HDF5 class which is mimicked by this class.
+
+        :rtype: H5Type
+        """
+        return self.__class
+
+    @property
+    def h5py_class(self):
+        """Returns the h5py classes which is mimicked by this class. It can be
+        one of `h5py.File, h5py.Group` or `h5py.Dataset`.
+
+        :rtype: h5py class
+        """
+        return h5type_to_h5py_class(self.__class)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        """Close the file"""
+        self.__file.close()
+        self.__file = None
+
+
+def open(filename):  # pylint:disable=redefined-builtin
+    """
+    Open a file as an `h5py`-like object.
+
+    Format supported:
+    - h5 files, if `h5py` module is installed
+    - SPEC files exposed as a NeXus layout
+    - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - Numpy files ('npy' and 'npz' files)
+
+    The filename can be trailled an HDF5 path using the separator `::`. In this
+    case the object returned is a proxy to the target node, implementing the
+    `close` function and supporting `with` context.
+
+    The file is opened in read-only mode.
+
+    :param str filename: A filename which can containt an HDF5 path by using
+        `::` separator.
+    :raises: IOError if the file can't be loaded or path can't be found
+    :rtype: h5py-like node
+    """
+    url = silx.io.url.DataUrl(filename)
+
+    if url.scheme() in [None, "file", "silx"]:
+        # That's a local file
+        if not url.is_valid():
+            raise IOError("URL '%s' is not valid" % filename)
+        h5_file = _open_local_file(url.file_path())
+    elif url.scheme() in ["fabio"]:
+        raise IOError("URL '%s' containing fabio scheme is not supported" % filename)
+    else:
+        # That's maybe an URL supported by h5pyd
+        uri = six.moves.urllib.parse.urlparse(filename)
+        if h5pyd is None:
+            raise IOError("URL '%s' unsupported. Try to install h5pyd." % filename)
+        path = uri.path
+        endpoint = "%s://%s" % (uri.scheme, uri.netloc)
+        if path.startswith("/"):
+            path = path[1:]
+        return h5pyd.File(path, 'r', endpoint=endpoint)
+
+    if url.data_slice():
+        raise IOError("URL '%s' containing slicing is not supported" % filename)
+
+    if url.data_path() in [None, "/", ""]:
+        # The full file is requested
+        return h5_file
+    else:
+        # Only a children is requested
+        if url.data_path() not in h5_file:
+            msg = "File '%s' does not contain path '%s'." % (filename, url.data_path())
+            raise IOError(msg)
+        node = h5_file[url.data_path()]
+        proxy = _MainNode(node, h5_file)
+        return proxy
+
+
+def _get_classes_type():
+    """Returns a mapping between Python classes and HDF5 concepts.
+
+    This function allow an lazy initialization to avoid recurssive import
+    of modules.
+    """
+    global _CLASSES_TYPE
+    from . import commonh5
+
+    if _CLASSES_TYPE is not None:
+        return _CLASSES_TYPE
+
+    _CLASSES_TYPE = collections.OrderedDict()
+
+    _CLASSES_TYPE[commonh5.Dataset] = H5Type.DATASET
+    _CLASSES_TYPE[commonh5.File] = H5Type.FILE
+    _CLASSES_TYPE[commonh5.Group] = H5Type.GROUP
+    _CLASSES_TYPE[commonh5.SoftLink] = H5Type.SOFT_LINK
+
+    if h5py is not None:
+        _CLASSES_TYPE[h5py.Dataset] = H5Type.DATASET
+        _CLASSES_TYPE[h5py.File] = H5Type.FILE
+        _CLASSES_TYPE[h5py.Group] = H5Type.GROUP
+        _CLASSES_TYPE[h5py.SoftLink] = H5Type.SOFT_LINK
+        _CLASSES_TYPE[h5py.HardLink] = H5Type.HARD_LINK
+        _CLASSES_TYPE[h5py.ExternalLink] = H5Type.EXTERNAL_LINK
+
+    if h5pyd is not None:
+        _CLASSES_TYPE[h5pyd.Dataset] = H5Type.DATASET
+        _CLASSES_TYPE[h5pyd.File] = H5Type.FILE
+        _CLASSES_TYPE[h5pyd.Group] = H5Type.GROUP
+        _CLASSES_TYPE[h5pyd.SoftLink] = H5Type.SOFT_LINK
+        _CLASSES_TYPE[h5pyd.HardLink] = H5Type.HARD_LINK
+        _CLASSES_TYPE[h5pyd.ExternalLink] = H5Type.EXTERNAL_LINK
+
+    return _CLASSES_TYPE
+
+
+def get_h5_class(obj=None, class_=None):
+    """
+    Returns the HDF5 type relative to the object or to the class.
+
+    :param obj: Instance of an object
+    :param class_: A class
+    :rtype: H5Type
+    """
+    if class_ is None:
+        class_ = obj.__class__
+
+    classes = _get_classes_type()
+    t = classes.get(class_, None)
+    if t is not None:
+        return t
+
+    if obj is not None:
+        if hasattr(obj, "h5_class"):
+            return obj.h5_class
+
+    for referencedClass_, type_ in classes.items():
+        if issubclass(class_, referencedClass_):
+            classes[class_] = type_
+            return type_
+
+    classes[class_] = None
+    return None
+
+
+def h5type_to_h5py_class(type_):
+    """
+    Returns an h5py class from an H5Type. None if nothing found.
+
+    :param H5Type type_:
+    :rtype: H5py class
+    """
+    if type_ == H5Type.FILE:
+        return h5py.File
+    if type_ == H5Type.GROUP:
+        return h5py.Group
+    if type_ == H5Type.DATASET:
+        return h5py.Dataset
+    if type_ == H5Type.SOFT_LINK:
+        return h5py.SoftLink
+    if type_ == H5Type.HARD_LINK:
+        return h5py.HardLink
+    if type_ == H5Type.EXTERNAL_LINK:
+        return h5py.ExternalLink
+    return None
+
+
+def get_h5py_class(obj):
+    """Returns the h5py class from an object.
+
+    If it is an h5py object or an h5py-like object, an h5py class is returned.
+    If the object is not an h5py-like object, None is returned.
+
+    :param obj: An object
+    :return: An h5py object
+    """
+    if h5py is None:
+        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
+        raise h5py_import_error
+    if hasattr(obj, "h5py_class"):
+        return obj.h5py_class
+    type_ = get_h5_class(obj)
+    return h5type_to_h5py_class(type_)
+
+
+def is_file(obj):
+    """
+    True is the object is an h5py.File-like object.
+
+    :param obj: An object
+    """
+    t = get_h5_class(obj)
+    return t == H5Type.FILE
+
+
+def is_group(obj):
+    """
+    True if the object is a h5py.Group-like object. A file is a group.
+
+    :param obj: An object
+    """
+    t = get_h5_class(obj)
+    return t in [H5Type.GROUP, H5Type.FILE]
+
+
+def is_dataset(obj):
+    """
+    True if the object is a h5py.Dataset-like object.
+
+    :param obj: An object
+    """
+    t = get_h5_class(obj)
+    return t == H5Type.DATASET
+
+
+def is_softlink(obj):
+    """
+    True if the object is a h5py.SoftLink-like object.
+
+    :param obj: An object
+    """
+    t = get_h5_class(obj)
+    return t == H5Type.SOFT_LINK
+
+
+def get_data(url):
+    """Returns a numpy data from an URL.
+
+    Examples:
+
+    >>> # 1st frame from an EDF using silx.io.open
+    >>> data = silx.io.get_data("silx:/users/foo/image.edf::/scan_0/instrument/detector_0/data[0]")
+
+    >>> # 1st frame from an EDF using fabio
+    >>> data = silx.io.get_data("fabio:/users/foo/image.edf::[0]")
+
+    Yet 2 schemes are supported by the function.
+
+    - If `silx` scheme is used, the file is opened using
+        :meth:`silx.io.open`
+        and the data is reach using usually NeXus paths.
+    - If `fabio` scheme is used, the file is opened using :meth:`fabio.open`
+        from the FabIO library.
+        No data path have to be specified, but each frames can be accessed
+        using the data slicing.
+        This shortcut of :meth:`silx.io.open` allow to have a faster access to
+        the data.
+
+    .. seealso:: :class:`silx.io.url.DataUrl`
+
+    :param Union[str,silx.io.url.DataUrl]: A data URL
+    :rtype: Union[numpy.ndarray, numpy.generic]
+    :raises ImportError: If the mandatory library to read the file is not
+        available.
+    :raises ValueError: If the URL is not valid or do not match the data
+    :raises IOError: If the file is not found or in case of internal error of
+        :meth:`fabio.open` or :meth:`silx.io.open`. In this last case more
+        informations are displayed in debug mode.
+    """
+    if not isinstance(url, silx.io.url.DataUrl):
+        url = silx.io.url.DataUrl(url)
+
+    if not url.is_valid():
+        raise ValueError("URL '%s' is not valid" % url.path())
+
+    if not os.path.exists(url.file_path()):
+        raise IOError("File '%s' not found" % url.file_path())
+
+    if url.scheme() == "silx":
+        data_path = url.data_path()
+        data_slice = url.data_slice()
+
+        with open(url.file_path()) as h5:
+            if data_path not in h5:
+                raise ValueError("Data path from URL '%s' not found" % url.path())
+            data = h5[data_path]
+
+            if not silx.io.is_dataset(data):
+                raise ValueError("Data path from URL '%s' is not a dataset" % url.path())
+
+            if data_slice is not None:
+                data = data[data_slice]
+            else:
+                # works for scalar and array
+                data = data[()]
+
+    elif url.scheme() == "fabio":
+        import fabio
+        data_slice = url.data_slice()
+        if data_slice is None:
+            data_slice = (0, )
+        if data_slice is None or len(data_slice) != 1:
+            raise ValueError("Fabio slice expect a single frame, but %s found" % data_slice)
+        index = data_slice[0]
+        if not isinstance(index, int):
+            raise ValueError("Fabio slice expect a single integer, but %s found" % data_slice)
+
+        try:
+            fabio_file = fabio.open(url.file_path())
+        except Exception:
+            logger.debug("Error while opening %s with fabio", url.file_path(), exc_info=True)
+            raise IOError("Error while opening %s with fabio (use debug for more information)" % url.path())
+
+        if fabio_file.nframes == 1:
+            if index != 0:
+                raise ValueError("Only a single frame availalbe. Slice %s out of range" % index)
+            data = fabio_file.data
+        else:
+            data = fabio_file.getframe(index).data
+
+        # There is no explicit close
+        fabio_file = None
+
+    else:
+        raise ValueError("Scheme '%s' not supported" % url.scheme())
+
+    return data

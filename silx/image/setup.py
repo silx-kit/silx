@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "18/07/2016"
+__date__ = "05/04/2018"
 
 from numpy.distutils.misc_util import Configuration
 
@@ -38,7 +38,7 @@ def configuration(parent_package='', top_path=None):
     config.add_extension('shapes',
                          sources=["shapes.pyx"],
                          language='c')
-    config.add_subpackage('sift')
+    config.add_subpackage('marchingsquares')
     return config
 
 

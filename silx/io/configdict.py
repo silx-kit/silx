@@ -1,5 +1,5 @@
-#/*##########################################################################
-# Copyright (C) 2004-2016 European Synchrotron Radiation Facility
+# /*##########################################################################
+# Copyright (C) 2004-2018 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """
 This module handles read and write operations to INI files, with data type
 preservation and support for nesting subsections to any depth.
@@ -86,19 +86,19 @@ Classes:
 
 __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2016"
+__date__ = "15/09/2016"
 
 from collections import OrderedDict
 import numpy
 import re
 import sys
-if sys.version < '3.0':
+if sys.version_info < (3, ):
     import ConfigParser as configparser
 else:
     import configparser
 
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 
 def _boolean(sstr):
@@ -267,7 +267,7 @@ class OptionStr(str):
         """Return a list or a numpy array.
 
         Any string containing a comma (``,``) character will be interpreted
-        as a list: for instance ``-1, Hello World, 3.0``, or ``"2.0,``
+        as a list: for instance ``-1, Hello World, 3.0``, or ``2.0,``
 
         The format for numpy arrays is a blank space delimited list of values
         between square brackets: ``[ 1.3 2.2 3.1 ]``, or
@@ -382,7 +382,7 @@ class ConfigDict(OrderedDict):
             dictionary
         :param sections: If not ``None``, add only the content of the
             specified sections
-        :type sections: list
+        :type sections: List
         """
         filelist = self.__tolist(filelist)
         sections = self.__tolist(sections)
@@ -475,7 +475,7 @@ class ConfigDict(OrderedDict):
         # Escape commas
         sstr = sstr.replace(",", "\,")
 
-        if sys.version > '3.0':
+        if sys.version_info >= (3, ):
             # Escape % characters except in "%%" and "%("
             sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
 

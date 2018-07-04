@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ This widget is meant to work with :class:`PlotWindow`.
 
 __authors__ = ["V.A. Sole", "T. Rueter", "T. Vincent"]
 __license__ = "MIT"
-__data__ = "28/04/2016"
+__data__ = "16/10/2017"
 
 
 import logging
@@ -182,9 +182,9 @@ class LegendIcon(qt.QWidget):
         ratio = float(self.width()) / scale
         painter.scale(scale,
                       scale)
-        symbolOffset = qt.QPointF(.5*(ratio-1.), 0.)
+        symbolOffset = qt.QPointF(.5 * (ratio - 1.), 0.)
         # Determine and scale offset
-        offset = qt.QPointF(float(rect.left())/scale, float(rect.top())/scale)
+        offset = qt.QPointF(float(rect.left()) / scale, float(rect.top()) / scale)
         # Draw BG rectangle (for debugging)
         # bottomRight = qt.QPointF(
         #    float(rect.right())/scale,
@@ -219,7 +219,7 @@ class LegendIcon(qt.QWidget):
             )
             symbolPen = qt.QPen(
                 self.symbolOutlineBrush,  # Brush
-                1./self.height(),         # Width
+                1. / self.height(),       # Width
                 qt.Qt.SolidLine           # Style
             )
             llist.append((symbolPath,
@@ -259,6 +259,7 @@ class LegendModel(qt.QAbstractListModel):
             legendList = []
         self.legendList = []
         self.insertLegendList(0, legendList)
+        self._palette = qt.QPalette()
 
     def __getitem__(self, idx):
         if idx >= len(self.legendList):
@@ -282,6 +283,7 @@ class LegendModel(qt.QAbstractListModel):
             raise IndexError('list index out of range')
 
         item = self.legendList[idx]
+        isActive = item[1].get("active", False)
         if role == qt.Qt.DisplayRole:
             # Data to be rendered in the form of text
             legend = str(item[0])
@@ -295,14 +297,19 @@ class LegendModel(qt.QAbstractListModel):
             return alignment
         elif role == qt.Qt.BackgroundRole:
             # Background color, must be QBrush
-            if idx % 2:
+            if isActive:
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.Highlight)
+            elif idx % 2:
                 brush = qt.QBrush(qt.QColor(240, 240, 240))
             else:
                 brush = qt.QBrush(qt.Qt.white)
             return brush
         elif role == qt.Qt.ForegroundRole:
             # ForegroundRole color, must be QBrush
-            brush = qt.QBrush(qt.Qt.blue)
+            if isActive:
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.HighlightedText)
+            else:
+                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.WindowText)
             return brush
         elif role == qt.Qt.CheckStateRole:
             return bool(item[2])  # item[2] == True
@@ -371,7 +378,7 @@ class LegendModel(qt.QAbstractListModel):
         count = len(llist)
         super(LegendModel, self).beginInsertRows(modelIndex,
                                                  row,
-                                                 row+count)
+                                                 row + count)
         head = self.legendList[0:row]
         tail = self.legendList[row:]
         new = []
@@ -423,8 +430,8 @@ class LegendModel(qt.QAbstractListModel):
             return False
         super(LegendModel, self).beginRemoveRows(modelIndex,
                                                  row,
-                                                 row+count)
-        del(self.legendList[row:row+count])
+                                                 row + count)
+        del(self.legendList[row:row + count])
         super(LegendModel, self).endRemoveRows()
         return True
 
@@ -471,13 +478,6 @@ class LegendListItemWidget(qt.QItemDelegate):
         :param QModelIndex modelIndex:
         """
         painter.save()
-        # Rect geometry
-        width = option.rect.width()
-        height = option.rect.height()
-        left = option.rect.left()
-        top = option.rect.top()
-        rect = qt.QRect(qt.QPoint(left, top),
-                        qt.QSize(width, height))
         rect = option.rect
 
         # Calculate the icon rectangle
@@ -520,6 +520,7 @@ class LegendListItemWidget(qt.QItemDelegate):
         textAlign = modelIndex.data(qt.Qt.TextAlignmentRole)
         painter.setBrush(textBrush)
         painter.setFont(self.legend.font())
+        painter.setPen(textBrush.color())
         painter.drawText(labelRect, textAlign, legendText)
 
         # Draw icon
@@ -621,7 +622,7 @@ class LegendListView(qt.QListView):
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
         if model is None:
-            model = LegendModel()
+            model = LegendModel(parent=self)
         self.setModel(model)
         self.setContextMenu(contextMenu)
 
@@ -941,11 +942,11 @@ class LegendsDockWidget(qt.QDockWidget):
 
     It makes the link between the LegendListView widget and the PlotWindow.
 
-    :param plot: :class:`.PlotWindow` instance on which to operate
     :param parent: See :class:`QDockWidget`
+    :param plot: :class:`.PlotWindow` instance on which to operate
     """
 
-    def __init__(self, plot, parent=None):
+    def __init__(self, parent=None, plot=None):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
         self._isConnected = False  # True if widget connected to plot signals
@@ -970,12 +971,30 @@ class LegendsDockWidget(qt.QDockWidget):
     def renameCurve(self, oldLegend, newLegend):
         """Change the name of a curve using remove and addCurve
 
-        :param str oldLegend: The legend of the curve to be change
+        :param str oldLegend: The legend of the curve to be changed
         :param str newLegend: The new legend of the curve
         """
-        x, y, legend, info, params = self.plot.getCurve(oldLegend)[0:5]
+        is_active = self.plot.getActiveCurve(just_legend=True) == oldLegend
+        curve = self.plot.getCurve(oldLegend)
         self.plot.remove(oldLegend, kind='curve')
-        self.plot.addCurve(x, y, legend=newLegend, resetzoom=False, **params)
+        self.plot.addCurve(curve.getXData(copy=False),
+                           curve.getYData(copy=False),
+                           legend=newLegend,
+                           info=curve.getInfo(),
+                           color=curve.getColor(),
+                           symbol=curve.getSymbol(),
+                           linewidth=curve.getLineWidth(),
+                           linestyle=curve.getLineStyle(),
+                           xlabel=curve.getXLabel(),
+                           ylabel=curve.getYLabel(),
+                           xerror=curve.getXErrorData(copy=False),
+                           yerror=curve.getYErrorData(copy=False),
+                           z=curve.getZValue(),
+                           selectable=curve.isSelectable(),
+                           fill=curve.isFill(),
+                           resetzoom=False)
+        if is_active:
+            self.plot.setActiveCurve(newLegend)
 
     def _legendSignalHandler(self, ddict):
         """Handles events from the LegendListView signal"""
@@ -1005,27 +1024,33 @@ class LegendsDockWidget(qt.QDockWidget):
 
         elif ddict['event'] in ["mapToRight", "mapToLeft"]:
             legend = ddict['legend']
-            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
-            params = params.copy()
-            if ddict['event'] == "mapToRight":
-                params['yaxis'] = "right"
-            else:
-                params['yaxis'] = "left"
-            self.plot.addCurve(x, y, legend=legend, **params)
+            curve = self.plot.getCurve(legend)
+            yaxis = 'right' if ddict['event'] == 'mapToRight' else 'left'
+            self.plot.addCurve(x=curve.getXData(copy=False),
+                               y=curve.getYData(copy=False),
+                               legend=curve.getLegend(),
+                               info=curve.getInfo(),
+                               yaxis=yaxis)
 
         elif ddict['event'] == "togglePoints":
             legend = ddict['legend']
-            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
-            params = params.copy()
-            params['symbol'] = ddict['symbol'] if ddict['points'] else ''
-            self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
+            curve = self.plot.getCurve(legend)
+            symbol = ddict['symbol'] if ddict['points'] else ''
+            self.plot.addCurve(x=curve.getXData(copy=False),
+                               y=curve.getYData(copy=False),
+                               legend=curve.getLegend(),
+                               info=curve.getInfo(),
+                               symbol=symbol)
 
         elif ddict['event'] == "toggleLine":
             legend = ddict['legend']
-            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
-            params = params.copy()
-            params['linestyle'] = ddict['linestyle'] if ddict['line'] else ''
-            self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
+            curve = self.plot.getCurve(legend)
+            linestyle = ddict['linestyle'] if ddict['line'] else ''
+            self.plot.addCurve(x=curve.getXData(copy=False),
+                               y=curve.getYData(copy=False),
+                               legend=curve.getLegend(),
+                               info=curve.getInfo(),
+                               linestyle=linestyle)
 
         else:
             _logger.debug("unhandled event %s", str(ddict['event']))
@@ -1034,20 +1059,23 @@ class LegendsDockWidget(qt.QDockWidget):
         """Sync the LegendSelector widget displayed info with the plot.
         """
         legendList = []
-        curves = self.plot.getAllCurves(withhidden=True)
-        for x, y, legend, info, params in curves:
+        for curve in self.plot.getAllCurves(withhidden=True):
+            legend = curve.getLegend()
             # Use active color if curve is active
             if legend == self.plot.getActiveCurve(just_legend=True):
-                color = self.plot.getActiveCurveColor()
+                color = qt.QColor(self.plot.getActiveCurveColor())
+                isActive = True
             else:
-                color = params['color']
+                color = qt.QColor.fromRgbF(*curve.getColor())
+                isActive = False
 
             curveInfo = {
-                'color': qt.QColor(color),
-                'linewidth': params['linewidth'],
-                'linestyle': params['linestyle'],
-                'symbol': params['symbol'],
-                'selected': not self.plot.isCurveHidden(legend)}
+                'color': color,
+                'linewidth': curve.getLineWidth(),
+                'linestyle': curve.getLineStyle(),
+                'symbol': curve.getSymbol(),
+                'selected': not self.plot.isCurveHidden(legend),
+                'active': isActive}
             legendList.append((legend, curveInfo))
 
         self._legendWidget.setLegendList(legendList)
@@ -1064,3 +1092,10 @@ class LegendsDockWidget(qt.QDockWidget):
                 self.plot.sigContentChanged.disconnect(self.updateLegends)
                 self.plot.sigActiveCurveChanged.disconnect(self.updateLegends)
                 self._isConnected = False
+
+    def showEvent(self, event):
+        """Make sure this widget is raised when it is shown
+        (when it is first created as a tab in PlotWindow or when it is shown
+        again after hiding).
+        """
+        self.raise_()

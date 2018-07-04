@@ -1,7 +1,7 @@
 Package structure
 =================
 
-The :mod:`silx.gui.plot` package provides a 1D, 2D plot widget that supports multiple backends.
+The :mod:`silx.gui.plot` package provides plot widgets.
 This package is structured as follows.
 
 .. currentmodule:: silx.gui.plot
@@ -10,7 +10,7 @@ This package is structured as follows.
 :class:`PlotWidget` is a Qt widget (actually a :class:`QMainWindow`) displaying a 1D, 2D plot area.
 It provides different interaction modes.
 :class:`PlotWindow` is a Qt widget (actually a :class:`QMainWindow`) which adds a set of toolbar buttons and associated functionalities to :class:`PlotWidget`.
-The toolbar QActions are implemented in :class:`PlotActions`.
+The toolbar QActions are implemented in :mod:`.actions`.
 
 :mod:`.Plot`, :mod:`.PlotEvents` and :mod:`.PlotInteraction` implement the plotting API regardless of the rendering backend and regardless of its integration in Qt.
 The plotting API in defined in :mod:`.Plot`.
@@ -20,33 +20,46 @@ The different events emitted by :class:`Plot` and by the interaction modes are c
 
 The :class:`PlotWindow` uses additional widgets:
 
-- :mod:`.ColormapDialog` to change colormap settings.
 - :mod:`.CurvesROIWidget` to create regions of interest for curves
 - :mod:`.LegendSelector` to display a list of curves legends which provides some control on the curves (e.g., select, delete).
 - :mod:`.MaskToolsWidget` to provide tools to draw a mask on an image.
+- :mod:`.ScatterMaskToolsWidget` to provide tools to draw a mask on a scatter.
 - The :mod:`.PlotTools` module provides a set of additional widgets:
 
-  - :class:`.PlotTools.PositionInfo` to display information related to mouse coordinates in the plot and related information.
-  - :class:`.PlotTools.LimitsToolBar` to display and set the limits of the plot area.
-  - :class:`.PlotTools.ProfileToolBar` to provide tools to extract a profile along a line on an image.
+  - :class:`.PlotTools.PositionInfo`
+  - :class:`.PlotTools.LimitsToolBar`
+
+- The :mod:`.Profile` module provides toolbar for extracting profiles from image and image stack:
+
+  - :class:`.Profile.ProfileToolBar`
+  - :class:`.Profile.Profile3DToolBar`
 
 - :mod:`silx.gui.console` to provide an IPython console which can control the plot area content.
 
 The widgets also use the following miscellaneous modules:
 
-- :mod:`.Colors` to convert colors from name to RGB(A)
-- :mod:`.ModestImage` to provide a faster matplotlib AxesImage class using nearest values.
-- :mod:`.MPLColormap` to embed recent matplotlib colormaps: 'magma', 'inferno', 'plasma' and 'viridis'.
 - :mod:`._utils`: utility functions
 
-:mod:`.BackendBase` defines the API any plot backend should provide in :class:`BackendBase`.
-:mod:`.BackendMatplotlib` implements a `matplotlib <http://matplotlib.org/>`_ backend.
-It is splitted in two classes:
+The :mod:`backends` package provide the implementation of the rendering used by the :class:`Plot`.
+It contains:
+:mod:`.backends.BackendBase` defines the API any plot backend should provide in :class:`BackendBase`.
+:mod:`.backends.BackendMatplotlib` implements a `matplotlib <http://matplotlib.org/>`_ backend.
+It uses :mod:`.backends.ModestImage` to provide a faster matplotlib AxesImage class using nearest values.
+The :mod:`.backends.BackendMatplotlib` the provides two classes:
 
-.. currentmodule:: silx.gui.plot.BackendMatplotlib
+.. currentmodule:: silx.gui.plot.backends.BackendMatplotlib
 
 - :class:`BackendMatplotlib` that provides a matplotlib backend without a specific canvas.
 - :class:`BackendMatplotlibQt` which inherits from :class:`BackendMatplotlib` and adds a Qt canvas, and Qt specific functionalities.
+
+The OpenGL-based backend is implemented in the :mod:`.backends.BackendOpenGL` module and
+the :mod:`.backends.glutils` package which provides the different primitives used for rendering and interaction.
+It is based on :mod:`silx.gui._glutils`, `PyOpenGL <http://pyopengl.sourceforge.net/>`_ and OpenGL >= 2.1.
+
+.. |Plot and backend| image:: img/plot_and_backend.png
+   :align: middle
+
+|Plot and backend|
 
 Modules
 =======
@@ -57,37 +70,21 @@ For :mod:`.PlotWidget` and :mod:`.Plot` modules, see their respective documentat
 
 The following modules are the modules used internally by the plot package.
 
-:mod:`BackendBase`
-++++++++++++++++++
+:mod:`backends.BackendBase`
++++++++++++++++++++++++++++
 
-.. currentmodule:: silx.gui.plot.BackendBase
+.. currentmodule:: silx.gui.plot.backends.BackendBase
 
-.. automodule:: silx.gui.plot.BackendBase
+.. automodule:: silx.gui.plot.backends.BackendBase
    :members:
 
-:mod:`BackendMatplotlib`
-++++++++++++++++++++++++
+:mod:`backends.BackendMatplotlib`
++++++++++++++++++++++++++++++++++
 
-.. currentmodule:: silx.gui.plot.BackendMatplotlib
+.. currentmodule:: silx.gui.plot.backends.BackendMatplotlib
 
-.. automodule:: silx.gui.plot.BackendMatplotlib
+.. automodule:: silx.gui.plot.backends.BackendMatplotlib
    :members:
-
-:mod:`ColormapDialog`
-+++++++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.ColormapDialog
-
-.. automodule:: silx.gui.plot.ColormapDialog
-   :members:
-
-:mod:`Colors`
-+++++++++++++
-
-.. currentmodule:: silx.gui.plot.Colors
-
-.. automodule:: silx.gui.plot.Colors
-   :members: rgba
 
 :mod:`CurvesROIWidget`
 ++++++++++++++++++++++
@@ -113,6 +110,14 @@ The following modules are the modules used internally by the plot package.
 .. automodule:: silx.gui.plot.LegendSelector
    :members:
 
+:mod:`_BaseMaskToolsWidget`
++++++++++++++++++++++++++++
+
+.. currentmodule:: silx.gui.plot._BaseMaskToolsWidget
+
+.. automodule:: silx.gui.plot._BaseMaskToolsWidget
+   :members:
+
 :mod:`MaskToolsWidget`
 ++++++++++++++++++++++
 
@@ -120,31 +125,16 @@ The following modules are the modules used internally by the plot package.
 
 .. automodule:: silx.gui.plot.MaskToolsWidget
    :members:
+   :show-inheritance:
 
-:mod:`ModestImage`
-++++++++++++++++++
+:mod:`ScatterMaskToolsWidget`
++++++++++++++++++++++++++++++
 
-.. currentmodule:: silx.gui.plot.ModestImage
+.. currentmodule:: silx.gui.plot.ScatterMaskToolsWidget
 
-.. automodule:: silx.gui.plot.ModestImage
+.. automodule:: silx.gui.plot.ScatterMaskToolsWidget
    :members:
-   :undoc-members:
-
-:mod:`MPLColormap`
-++++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.MPLColormap
-
-.. automodule:: silx.gui.plot.MPLColormap
-   :members:
-
-:mod:`PlotActions`
-++++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.PlotActions
-
-.. automodule:: silx.gui.plot.PlotActions
-   :members:
+   :show-inheritance:
 
 :mod:`PlotEvents`
 +++++++++++++++++
@@ -163,18 +153,16 @@ The following modules are the modules used internally by the plot package.
 .. automodule:: silx.gui.plot.PlotInteraction
    :members:
 
-:mod:`PlotTools`
-++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.PlotTools
-
-.. automodule:: silx.gui.plot.PlotTools
-   :members:
-
 :mod:`_utils`
 +++++++++++++
 
 .. currentmodule:: silx.gui.plot._utils
 
 .. automodule:: silx.gui.plot._utils
+   :members:
+
+:mod:`ticklayout`
+-----------------
+
+.. automodule:: silx.gui.plot._utils.ticklayout
    :members:

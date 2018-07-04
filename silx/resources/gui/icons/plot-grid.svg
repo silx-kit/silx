@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>
+<svg enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+<line x1="8.15" x2="8.15" y1="4.79" y2="28.24" fill="none" stroke="#00A14B" stroke-miterlimit="10" stroke-width="1.5"/>
+	<path d="m15.651 26.156" fill="none" stroke="#00A651" stroke-miterlimit="10" stroke-width="1.5"/>
+<line x1="16" x2="16" y1="4.79" y2="28.24" fill="none" stroke="#00A14B" stroke-miterlimit="10" stroke-width="1.5"/>
+<line x1="23.511" x2="23.511" y1="4.79" y2="28.24" fill="none" stroke="#00A14B" stroke-miterlimit="10" stroke-width="1.5"/>
+<g fill="none" stroke="#00A14B" stroke-miterlimit="10" stroke-width="1.5">
+	<line x1="27.556" x2="4.105" y1="8.835" y2="8.835"/>
+	<line x1="27.556" x2="4.105" y1="16.685" y2="16.686"/>
+	<line x1="27.556" x2="4.105" y1="24.195" y2="24.195"/>
+</g>
+</svg>

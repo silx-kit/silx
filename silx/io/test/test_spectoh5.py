@@ -1,6 +1,6 @@
 # coding: utf-8
-#/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# /*##########################################################################
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """Tests for SpecFile to HDF5 converter"""
 
-import gc
-from numpy import array_equal, string_
+from numpy import array_equal
 import os
 import sys
 import tempfile
@@ -36,12 +35,12 @@ except ImportError:
     h5py_missing = True
 else:
     h5py_missing = False
-    from ..spech5 import SpecH5
-    from ..spectoh5 import convert, write_spec_to_h5
+    from ..spech5 import SpecH5, SpecH5Group
+    from ..convert import convert, write_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/05/2016"
+__date__ = "12/02/2018"
 
 
 sftext = """#F /tmp/sf.dat
@@ -93,7 +92,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.spec_fname = tempfile.mkstemp(text=False)
-        if sys.version < '3.0':
+        if sys.version_info < (3, ):
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
@@ -112,36 +111,49 @@ class TestConvertSpecHDF5(unittest.TestCase):
         convert(self.spec_fname, self.h5_fname)
 
         self.sfh5 = SpecH5(self.spec_fname)
-        self.h5f = h5py.File(self.h5_fname)
+        self.h5f = h5py.File(self.h5_fname, "a")
 
     def tearDown(self):
-        del self.sfh5
         self.h5f.close()
-        del self.h5f
+        self.sfh5.close()
         os.unlink(self.h5_fname)
-        gc.collect()
 
     def testAppendToHDF5(self):
-        write_spec_to_h5(self.sfh5, self.h5f,
-                         h5path="/foo/bar/spam")
+        write_to_h5(self.sfh5, self.h5f, h5path="/foo/bar/spam")
         self.assertTrue(
             array_equal(self.h5f["/1.2/measurement/mca_1/data"],
                         self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"])
         )
 
+    def testWriteSpecH5Group(self):
+        """Test passing a SpecH5Group as parameter, instead of a Spec filename
+        or a SpecH5."""
+        g = self.sfh5["1.1/instrument"]
+        self.assertIsInstance(g, SpecH5Group)        # let's be paranoid
+        write_to_h5(g, self.h5f, h5path="my instruments")
+
+        self.assertAlmostEqual(self.h5f["my instruments/positioners/Sslit1 HOff"][tuple()],
+                               16.197579, places=4)
+
+    def testTitle(self):
+        """Test the value of a dataset"""
+        title12 = self.h5f["/1.2/title"].value
+        self.assertEqual(title12,
+                         u"aaaaaa")
+
     def testAttrs(self):
         # Test root group (file) attributes
         self.assertEqual(self.h5f.attrs["NX_class"],
-                         string_("NXroot"))
+                         u"NXroot")
         # Test dataset attributes
         ds = self.h5f["/1.2/instrument/mca_1/data"]
         self.assertTrue("interpretation" in ds.attrs)
         self.assertEqual(list(ds.attrs.values()),
-                         [string_("spectrum")])
+                         [u"spectrum"])
         # Test group attributes
         grp = self.h5f["1.1"]
         self.assertEqual(grp.attrs["NX_class"],
-                         string_("NXentry"))
+                         u"NXentry")
         self.assertEqual(len(list(grp.attrs.keys())),
                          1)
 

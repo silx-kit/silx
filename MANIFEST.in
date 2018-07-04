@@ -1,11 +1,18 @@
 include README.rst
 include CHANGELOG.rst
 include copyright
+include LICENSE
 include MANIFEST.in
 include run_tests.py
 include version.py
+include stdeb.cfg
+include build-deb.sh
+include requirements.txt
+include requirements-dev.txt
 recursive-include silx *.pyx *.pxd *.pxi
-recursive-include silx *.h *.c *.cpp
+recursive-include silx *.h *.c *.hpp *.cpp
 recursive-include doc/source *.py *.rst *.png *.ico
 recursive-include qtdesigner_plugins *.py *.rst
 recursive-include silx/resources *
+recursive-include examples *
+recursive-include package *

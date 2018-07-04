@@ -1,119 +1,135 @@
 /*
+ *   Project: SIFT: An algorithm for image alignement
+ *
+ *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *                           Grenoble, France
+ *
+ *   Principal authors: J. Kieffer (kieffer@esrf.fr)
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/*
     Separate convolution with global memory access
-    The borders are handled directly in the kernel (by symetrization), 
+    The borders are handled directly in the kernel (by symmetrization),
     so the input image does not need to be pre-processed
 
 */
+#ifndef MAX_CONST_SIZE
+    #define MAX_CONST_SIZE 16384
+#endif
 
-#define MAX_CONST_SIZE 16384
 
+///
+/// Horizontal convolution (along fast dim)
+///
 
-
-__kernel void horizontal_convolution(
-    const __global float * input,
-    __global float * output,
-    __constant float * filter __attribute__((max_constant_size(MAX_CONST_SIZE))),
-    int FILTER_SIZE,
+kernel void horizontal_convolution(
+    const global float * input,  // input array
+    global float * output, // output array
+    global float * filter __attribute__((max_constant_size(MAX_CONST_SIZE))), // filter coefficients
+    int hlen,       // filter size
     int IMAGE_W,
-    int IMAGE_H
-)
+    int IMAGE_H)
 {
-    int gid1 = (int) get_global_id(1);
-    int gid0 = (int) get_global_id(0);
+    int gidy = (int) get_global_id(1);
+    int gidx = (int) get_global_id(0); // fast dim
 
-    int HALF_FILTER_SIZE = (FILTER_SIZE % 2 == 1 ? (FILTER_SIZE)/2 : (FILTER_SIZE+1)/2);
+    if (gidy < IMAGE_H && gidx < IMAGE_W)
+    {
 
-    if (gid1 < IMAGE_H && gid0 < IMAGE_W) {
-
-//        int pos = gid0* IMAGE_W + gid1;
-        int pos = gid1*IMAGE_W + gid0;
-        int fIndex = 0;
-        float sum = 0.0f;
-        int c = 0;
-        int newpos = 0;
-        int debug=0;
-
-
-        for (c = -HALF_FILTER_SIZE ; c < FILTER_SIZE-HALF_FILTER_SIZE ; c++) {
-
-            newpos = pos + c;
-            if (gid0 + c < 0) {
-                //debug=1;
-                newpos= pos - 2*gid0 - c - 1;
-            }
-
-            else if (gid0 + c > IMAGE_W -1 ) {
-                newpos= (gid1+2)*IMAGE_W - gid0 -c -1;
-                //newpos= pos - c+1; //newpos - 2*c;
-                //debug = 1;
-            }
-            sum += input[ newpos ] * filter[ fIndex  ];
-
-            fIndex += 1;
-
+        int c, hL, hR;
+        if (hlen & 1)
+        { // odd kernel size
+            c = hlen/2;
+            hL = c;
+            hR = c;
         }
+        else
+        { // even kernel size : center is shifted to the left
+            c = hlen/2 - 1;
+            hL = c;
+            hR = c+1;
+        }
+        int jx1 = c - gidx;
+        int jx2 = IMAGE_W - 1 - gidx + c;
+        float sum = 0.0f;
 
-        output[pos]=sum;
+        // Convolution with boundaries extension
+        for (int jx = 0; jx <= hR+hL; jx++)
+        {
+            int idx_x = gidx - c + jx;
+            if (jx < jx1) idx_x = jx1-jx-1;
+            if (jx > jx2) idx_x = IMAGE_W - (jx-jx2);
+
+            sum += input[gidy*IMAGE_W + idx_x] * filter[hlen-1 - jx];
+        }
+        output[gidy*IMAGE_W + gidx] =  sum;
     }
 }
 
 
+///
+/// Vertical convolution
+///
 
-
-
-
-
-
-
-__kernel void vertical_convolution(
-    const __global float * input,
-    __global float * output,
-    __constant float * filter __attribute__((max_constant_size(MAX_CONST_SIZE))),
-    int FILTER_SIZE,
+kernel void vertical_convolution(
+    const global float * input,  // input array
+    global float * output, // output array
+    global float * filter __attribute__((max_constant_size(MAX_CONST_SIZE))), // filter coefficients
+    int hlen,       // filter size
     int IMAGE_W,
-    int IMAGE_H
-)
+    int IMAGE_H)
 {
+    int gidy = (int) get_global_id(1);
+    int gidx = (int) get_global_id(0); // fast dim
 
-    int gid1 = (int) get_global_id(1);
-    int gid0 = (int) get_global_id(0);
+    if (gidy < IMAGE_H && gidx < IMAGE_W) {
 
-
-    if (gid1 < IMAGE_H && gid0 < IMAGE_W) {
-
-        int HALF_FILTER_SIZE = (FILTER_SIZE % 2 == 1 ? (FILTER_SIZE)/2 : (FILTER_SIZE+1)/2);
-
-//        int pos = gid0 * IMAGE_W + gid1;
-        int pos = gid1 * IMAGE_W + gid0;
-        int fIndex = 0;
-        float sum = 0.0f;
-        int r = 0,newpos=0;
-        int debug=0;
-
-        for (r = -HALF_FILTER_SIZE ; r < FILTER_SIZE-HALF_FILTER_SIZE ; r++) {
-            newpos = pos + r * (IMAGE_W);
-
-            if (gid1+r < 0) {
-                newpos = gid0 -(r+1)*IMAGE_W - gid1*IMAGE_W;
-                //debug=1;
-            }
-            else if (gid1+r > IMAGE_H -1) {
-                newpos= (IMAGE_H-1)*IMAGE_W + gid0 + (IMAGE_H - r)*IMAGE_W - gid1*IMAGE_W;
-            }
-            sum += input[ newpos ] * filter[ fIndex   ];
-            fIndex += 1;
-
+        int c, hL, hR;
+        if (hlen & 1) { // odd kernel size
+            c = hlen/2;
+            hL = c;
+            hR = c;
         }
-        output[pos]=sum;
-        if (debug == 1) output[pos]=0;
+        else
+        { // even kernel size : center is shifted to the left
+            c = hlen/2 - 1;
+            hL = c;
+            hR = c+1;
+        }
+        int jy1 = c - gidy;
+        int jy2 = IMAGE_H - 1 - gidy + c;
+        float sum = 0.0f;
+
+        // Convolution with boundaries extension
+        for (int jy = 0; jy <= hR+hL; jy++)
+        {
+            int idx_y = gidy - c + jy;
+            if (jy < jy1) idx_y = jy1-jy-1;
+            if (jy > jy2) idx_y = IMAGE_H - (jy-jy2);
+
+            sum += input[idx_y*IMAGE_W + gidx] * filter[hlen-1 - jy];
+        }
+        output[gidy*IMAGE_W + gidx] =  sum;
     }
 }
-
-
-
-/*
-*/
-
-
-
-

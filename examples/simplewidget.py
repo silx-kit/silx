@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +27,13 @@
 
 It shows the following widgets:
 
-- :class:WaitingPushButton: A button with a progress-like waiting animated icon
+- :class:`~silx.gui.widgets.WaitingPushButton`:
+  A button with a progress-like waiting animated icon.
 """
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/09/2016"
+__date__ = "12/01/2017"
 
 import sys
 from silx.gui import qt
@@ -60,12 +62,12 @@ class SimpleWidgetExample(qt.QMainWindow):
         self.setCentralWidget(main_panel)
 
     def createWaitingPushButton(self):
-        widget = WaitingPushButton("Push me and wait for ever")
+        widget = WaitingPushButton(text="Push me and wait for ever")
         widget.clicked.connect(widget.swapWaiting)
         return widget
 
     def createWaitingPushButton2(self):
-        widget = WaitingPushButton("Push me")
+        widget = WaitingPushButton(text="Push me")
         widget.setDisabledWhenWaiting(False)
         widget.clicked.connect(widget.swapWaiting)
         return widget
@@ -82,7 +84,7 @@ class SimpleWidgetExample(qt.QMainWindow):
         return a ** b
 
     def createThreadPoolPushButton(self):
-        widget = ThreadPoolPushButton("Compute 2^16")
+        widget = ThreadPoolPushButton(text="Compute 2^16")
         widget.setCallable(self.takesTimeToComputePow, 2, 16)
         widget.succeeded.connect(self.printResult)
         widget.failed.connect(self.printError)
@@ -94,11 +96,13 @@ def main():
     Main function
     """
     app = qt.QApplication([])
+    sys.excepthook = qt.exceptionHandler
     window = SimpleWidgetExample()
     window.show()
     result = app.exec_()
     # remove ending warnings relative to QTimer
     app.deleteLater()
+    sys.excepthook = sys.__excepthook__
     sys.exit(result)
 
 

@@ -1,0 +1,2 @@
+
+.. automodule:: silx.io.nxdata

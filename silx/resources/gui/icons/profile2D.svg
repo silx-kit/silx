@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(-35.201 -492.37)">
+<path d="m36.808 505.45v17.66h17.686v-0.0531h0.58775l10.366-10.692-0.05335-0.0265-0.05335-17.633h-0.26716l0.05335-0.0531h-17.739l8.7e-5 -1.7e-4 -10.633 10.692z" fill="#fff"/>
+<rect transform="matrix(1 0 -.69678 .71728 0 0)" x="545.71" y="714.56" width="17.72" height="14.863" fill="#fff" stroke="#000" stroke-linecap="square" stroke-miterlimit="0" stroke-width="1.1598"/>
+<rect x="47.726" y="494.85" width="17.72" height="17.64" ry="0" fill="#fff" stroke="#000" stroke-miterlimit="2" stroke-width=".98223"/>
+<rect transform="matrix(1 0 -.70784 .70637 0 0)" x="543.37" y="700.5" width="17.72" height="15.092" fill="none" stroke="#000" stroke-linecap="square" stroke-miterlimit="0" stroke-width="1.1687"/>
+<rect transform="matrix(1 0 -.69678 .71728 0 0)" x="540.83" y="707.56" width="17.72" height="14.863" fill="#f7941e" fill-opacity=".81569" stroke="#000" stroke-linecap="square" stroke-miterlimit="0" stroke-width="1.1598"/>
+<rect x="36.897" y="505.63" width="17.72" height="17.64" ry="0" fill="none" stroke="#000" stroke-miterlimit="2" stroke-width=".98223"/>
+<flowRoot fill="#000000" font-family="Sans" font-size="40px" letter-spacing="0px" word-spacing="0px" style="line-height:125%" xml:space="preserve"><flowRegion><rect x="299.51" y="378.09" width="73.741" height="62.629"/></flowRegion><flowPara/></flowRoot>
+</g>
+</svg>

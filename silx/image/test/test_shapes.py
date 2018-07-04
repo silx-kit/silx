@@ -27,19 +27,17 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "31/05/2016"
+__date__ = "17/01/2018"
 
 
 import logging
 import unittest
 import numpy
 
-from silx.testutils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase
 from silx.image import shapes
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.WARNING)
 
 
 class TestPolygonFill(ParametricTestCase):

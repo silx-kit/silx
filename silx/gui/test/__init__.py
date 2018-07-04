@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/08/2016"
+__date__ = "24/04/2018"
 
 
 import logging
@@ -32,51 +32,81 @@ import os
 import sys
 import unittest
 
+from silx.test.utils import test_options
 
 _logger = logging.getLogger(__name__)
 
 
-if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
-    # On linux and no DISPLAY available (e.g., ssh without -X)
-    _logger.warning('silx.gui tests disabled (DISPLAY env. variable not set)')
+def suite():
 
-    class SkipGUITest(unittest.TestCase):
-        def runTest(self):
-            self.skipTest(
-                'silx.gui tests disabled (DISPLAY env. variable not set)')
+    test_suite = unittest.TestSuite()
 
-    def suite():
-        suite = unittest.TestSuite()
-        suite.addTest(SkipGUITest())
-        return suite
+    if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+        # On Linux and no DISPLAY available (e.g., ssh without -X)
+        _logger.warning('silx.gui tests disabled (DISPLAY env. variable not set)')
 
-elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
-    # Explicitly disabled tests
-    _logger.warning(
-        "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+        class SkipGUITest(unittest.TestCase):
+            def runTest(self):
+                self.skipTest(
+                    'silx.gui tests disabled (DISPLAY env. variable not set)')
 
-    class SkipGUITest(unittest.TestCase):
-        def runTest(self):
-            self.skipTest(
-                "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+        test_suite.addTest(SkipGUITest())
+        return test_suite
 
-    def suite():
-        suite = unittest.TestSuite()
-        suite.addTest(SkipGUITest())
-        return suite
+    elif not test_options.WITH_QT_TEST:
+        # Explicitly disabled tests
+        msg = "silx.gui tests disabled: %s" % test_options.WITH_QT_TEST_REASON
+        _logger.warning(msg)
 
-else:
+        class SkipGUITest(unittest.TestCase):
+            def runTest(self):
+                self.skipTest(test_options.WITH_QT_TEST_REASON)
+
+        test_suite.addTest(SkipGUITest())
+        return test_suite
+
     # Import here to avoid loading QT if tests are disabled
 
-    from ..plot.test import suite as test_plot_suite
-    from .test_qt import suite as test_qt_suite
-    from .test_console import suite as test_console_suite
-    from .test_icons import suite as test_icons_suite
+    from ..plot import test as test_plot
+    from ..fit import test as test_fit
+    from ..hdf5 import test as test_hdf5
+    from ..widgets import test as test_widgets
+    from ..data import test as test_data
+    from ..dialog import test as test_dialog
+    from ..utils import test as test_utils
 
-    def suite():
-        test_suite = unittest.TestSuite()
-        test_suite.addTest(test_qt_suite())
-        test_suite.addTest(test_plot_suite())
-        test_suite.addTest(test_console_suite())
-        test_suite.addTest(test_icons_suite())
-        return test_suite
+    from . import test_qt
+    # Console tests disabled due to corruption of python environment
+    # (see issue #538 on github)
+    # from . import test_console
+    from . import test_icons
+    from . import test_colors
+
+    try:
+        from ..plot3d.test import suite as test_plot3d_suite
+
+    except ImportError:
+        _logger.warning(
+            'silx.gui.plot3d tests disabled '
+            '(PyOpenGL or QtOpenGL not installed)')
+
+        class SkipPlot3DTest(unittest.TestCase):
+            def runTest(self):
+                self.skipTest('silx.gui.plot3d tests disabled '
+                              '(PyOpenGL or QtOpenGL not installed)')
+
+        test_plot3d_suite = SkipPlot3DTest
+
+    test_suite.addTest(test_qt.suite())
+    test_suite.addTest(test_plot.suite())
+    test_suite.addTest(test_fit.suite())
+    test_suite.addTest(test_hdf5.suite())
+    test_suite.addTest(test_widgets.suite())
+    # test_suite.addTest(test_console.suite())   # see issue #538 on github
+    test_suite.addTest(test_icons.suite())
+    test_suite.addTest(test_colors.suite())
+    test_suite.addTest(test_data.suite())
+    test_suite.addTest(test_utils.suite())
+    test_suite.addTest(test_plot3d_suite())
+    test_suite.addTest(test_dialog.suite())
+    return test_suite

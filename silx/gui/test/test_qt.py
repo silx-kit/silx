@@ -26,10 +26,14 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "05/12/2016"
 
 
+import os.path
 import unittest
+
+from silx.test.utils import temp_dir
+from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
 
@@ -43,10 +47,96 @@ class TestQtWrapper(unittest.TestCase):
         self.assertTrue(obj is not None)
 
 
+class TestLoadUi(TestCaseQt):
+    """Test loadUi function"""
+
+    TEST_UI = """<?xml version="1.0" encoding="UTF-8"?>
+    <ui version="4.0">
+     <class>MainWindow</class>
+     <widget class="QMainWindow" name="MainWindow">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>293</width>
+        <height>296</height>
+       </rect>
+      </property>
+      <property name="windowTitle">
+       <string>Test loadUi</string>
+      </property>
+      <widget class="QWidget" name="centralwidget">
+       <widget class="QPushButton" name="pushButton">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>89</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Button 1</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>50</y>
+          <width>89</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Button 2</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QMenuBar" name="menubar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>293</width>
+         <height>25</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QStatusBar" name="statusbar"/>
+     </widget>
+     <resources/>
+     <connections/>
+    </ui>
+    """
+
+    def testLoadUi(self):
+        """Create a QMainWindow from an ui file"""
+        with temp_dir() as tmp:
+            uifile = os.path.join(tmp, "test.ui")
+
+            # write file
+            with open(uifile, mode='w') as f:
+                f.write(self.TEST_UI)
+
+            class TestMainWindow(qt.QMainWindow):
+                def __init__(self, parent=None):
+                    super(TestMainWindow, self).__init__(parent)
+                    qt.loadUi(uifile, self)
+
+            testMainWindow = TestMainWindow()
+            testMainWindow.show()
+            self.qWaitForWindowExposed(testMainWindow)
+
+            testMainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
+            testMainWindow.close()
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestQtWrapper))
+    for TestCaseCls in (TestQtWrapper, TestLoadUi):
+        test_suite.addTest(
+            unittest.defaultTestLoader.loadTestsFromTestCase(TestCaseCls))
     return test_suite
 
 

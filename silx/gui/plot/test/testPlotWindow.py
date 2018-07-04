@@ -26,14 +26,13 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/05/2016"
+__date__ = "27/06/2017"
 
 
 import doctest
 import unittest
 
-from silx.gui.testutils import TestCaseQt, getQToolButtonFromAction
-# from silx.gui.testutils import qWaitForWindowExposedAndActivate
+from silx.gui.test.utils import TestCaseQt, getQToolButtonFromAction
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
@@ -85,14 +84,11 @@ class TestPlotWindow(TestCaseQt):
         self.plot.setLimits(1, 100, 1, 100)
 
         checkList = [  # QAction, Plot state getter
-            (self.plot.xAxisAutoScaleAction, self.plot.isXAxisAutoScale),
-            (self.plot.yAxisAutoScaleAction, self.plot.isYAxisAutoScale),
-            (self.plot.xAxisLogarithmicAction, self.plot.isXAxisLogarithmic),
-            (self.plot.yAxisLogarithmicAction, self.plot.isYAxisLogarithmic),
+            (self.plot.xAxisAutoScaleAction, self.plot.getXAxis().isAutoScale),
+            (self.plot.yAxisAutoScaleAction, self.plot.getYAxis().isAutoScale),
+            (self.plot.xAxisLogarithmicAction, self.plot.getXAxis()._isLogarithmic),
+            (self.plot.yAxisLogarithmicAction, self.plot.getYAxis()._isLogarithmic),
             (self.plot.gridAction, self.plot.getGraphGrid),
-            (self.plot.keepDataAspectRatioAction,
-             self.plot.isKeepDataAspectRatio),
-            (self.plot.yAxisInvertedAction, self.plot.isYAxisInverted),
         ]
 
         for action, getter in checkList:
@@ -114,6 +110,20 @@ class TestPlotWindow(TestCaseQt):
         toolButton = getQToolButtonFromAction(resetZoomAction)
         self.assertIsNot(toolButton, None)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
+
+    def testToolAspectRatio(self):
+        self.plot.toolBar()
+        self.plot.keepDataAspectRatioButton.keepDataAspectRatio()
+        self.assertTrue(self.plot.isKeepDataAspectRatio())
+        self.plot.keepDataAspectRatioButton.dontKeepDataAspectRatio()
+        self.assertFalse(self.plot.isKeepDataAspectRatio())
+
+    def testToolYAxisOrigin(self):
+        self.plot.toolBar()
+        self.plot.yAxisInvertedButton.setYAxisUpward()
+        self.assertFalse(self.plot.getYAxis().isInverted())
+        self.plot.yAxisInvertedButton.setYAxisDownward()
+        self.assertTrue(self.plot.getYAxis().isInverted())
 
 
 def suite():

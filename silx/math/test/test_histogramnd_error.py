@@ -426,6 +426,28 @@ class Test_chistogramnd_1D_errors(_Test_chistogramnd_errors):
                                      (np.uint16, np.double),
                                      (np.uint16, np.uint16))
 
+class Test_chistogramnd_ND_range(unittest.TestCase):
+    """
+
+    """
+
+    def test_invalid_histo_range(self):
+        data = np.random.random((60, 60))
+        nbins = 10
+
+        with self.assertRaises(ValueError):
+            histo_range = data.min(), np.inf
+
+            Histogramnd(sample=data.ravel(),
+                        histo_range=histo_range,
+                        n_bins=nbins)
+
+            histo_range = data.min(), np.nan
+
+            Histogramnd(sample=data.ravel(),
+                        histo_range=histo_range,
+                        n_bins=nbins)
+
 
 class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
     """
@@ -497,7 +519,8 @@ class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
 
 
 test_cases = (Test_chistogramnd_1D_errors,
-              Test_chistogramnd_ND_errors,)
+              Test_chistogramnd_ND_errors,
+              Test_chistogramnd_ND_range)
 
 
 def suite():

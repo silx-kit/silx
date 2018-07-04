@@ -2,86 +2,100 @@
 silx toolkit
 ============
 
-The silx project aims at providing a collection of Python packages to support the development of data assessment, reduction and analysis applications at synchrotron radiation facilities.
-It aims at providing reading/writing different file formats, data reduction routines and a set of Qt widgets to browse and visualize data.
+The purpose of the *silx* project is to provide a collection of Python packages to support the
+development of data assessment, reduction and analysis applications at synchrotron
+radiation facilities.
+It aims at providing reading/writing different file formats, data reduction routines
+and a set of Qt widgets to browse and visualise data.
 
-The current version provides reading `SPEC <https://certif.com/spec.html>`_ file format, histogramming, curves and image plot widget with a set of associated tools
-(See `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
+The current version features:
+
+* Support of `HDF5 <https://www.hdfgroup.org/HDF5/>`_,
+  `SPEC <https://certif.com/spec.html>`_ and
+  `FabIO <http://www.silx.org/doc/fabio/dev/getting_started.html#list-of-file-formats-that-fabio-can-read-and-write>`_
+  images file formats.
+* OpenCL-based data processing: image alignment (SIFT),
+  image processing (median filter, histogram),
+  filtered backprojection for tomography
+* Data reduction: histogramming, fitting, median filter
+* A set of Qt widgets, including:
+
+  * 1D and 2D visualization widgets with a set of associated tools using multiple backends (matplotlib or OpenGL)
+  * OpenGL-based widgets to visualize data in 3D (scalar field with isosurface and cut plane, scatter plot)
+  * a unified browser for HDF5, SPEC and image file formats supporting inspection and
+    visualization of n-dimensional datasets.
+
+* a set of applications:
+
+  * a unified viewer (*silx view filename*) for HDF5, SPEC and image file formats
+  * a unified converter to HDF5 format (*silx convert filename*)
 
 Installation
 ------------
 
-To install silx, run::
+To install silx, run:
+
+.. code-block:: bash 
  
     pip install silx
+    
+Or using Anaconda on Linux and MacOS:
 
-To install silx locally, run::
- 
-    pip install silx --user
+.. code-block:: bash 
+    
+    conda install silx -c conda-forge
 
-On Linux, to install silx with pip, you must install numpy first.
-Unofficial Debian8 packages are available at http://www.silx.org/pub/debian/
+Unofficial packages for different distributions are available:
 
-On Windows, pre-compiled binaries (aka Python wheels) are available for Python 2.7 and 3.5.
+- Unofficial Debian8 packages are available at http://www.silx.org/pub/debian/
+- CentOS 7 rpm packages are provided by Max IV at: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
+- Fedora 23 rpm packages are provided by Max IV at http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/
+- Arch Linux (AUR) packages are also available: https://aur.archlinux.org/packages/python-silx
 
-On Mac OS X, pre-compiled binaries (aka Python wheels) are available for Python 2.7.
-
-
-The latest development version can be obtained from the git repository::
-
-    git clone https://github.com/silx-kit/silx.git
-    cd silx
-    pip install . [--user]
-
-Dependencies
-------------
-
-* `Python <https://www.python.org/>`_ 2.7, 3.4 and 3.5.
-* `numpy <http://www.numpy.org>`_
-
-The GUI widgets of the silx package depend on the following extra packages:
-
-* A Qt binding: `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ (using API version 2) or `PySide <https://pypi.python.org/pypi/PySide/>`_
-* `matplotlib <http://matplotlib.org/>`_
-
-Most modules and functions dealing with `HDF5 <https://www.hdfgroup.org/HDF5/>`_ input/output depend on the following extra package:
-* `h5py <http://www.h5py.org/>`_
-
-Supported platforms: Linux, Windows, Mac OS X.
+`Detailed installation instructions <http://www.silx.org/doc/silx/dev/install.html>`_
+are available in the documentation.
 
 Documentation
 -------------
 
-Documentation of releases is available at https://pythonhosted.org/silx/
-
-Latest documentation (nightly build) is available at http://www.silx.org/doc/silx/
-
-To build the documentation from the source (requires `Sphinx <http://www.sphinx-doc.org>`_), run::
-
-    python setup.py build build_doc
+The documentation of `latest release <http://www.silx.org/doc/silx/latest/>`_ and
+the documentation of `the nightly build <http://www.silx.org/doc/silx/dev>`_ are
+available at http://www.silx.org/doc/silx/
 
 Testing
 -------
 
+*silx* features a comprehensive test-suite used in continuous integration for
+all major operating systems:
+
 - Travis CI status: |Travis Status|
 - Appveyor CI status: |Appveyor Status|
 
-To run the tests from the python interpreter, run:
+Please refer to the `documentation on testing <http://www.silx.org/doc/silx/dev/install.html#testing>`_
+for details.
 
->>> import silx.test
->>> silx.test.run_tests()
+Examples
+--------
 
-To run the tests, from the source directory, run::
+Some examples of sample code using silx are provided with the
+`silx documentation <http://www.silx.org/doc/silx/dev/sample_code/index.html>`_.
 
-    python run_tests.py
 
 License
 -------
 
-The source code of silx is licensed under the MIT and LGPL licenses.
-See the `copyright file <https://github.com/silx-kit/silx/blob/master/copyright>`_ for details.
+The source code of *silx* is licensed under the MIT license.
+See the `LICENSE <https://github.com/silx-kit/silx/blob/master/LICENSE>`_ and
+`copyright <https://github.com/silx-kit/silx/blob/master/copyright>`_ files for details.
+
+Citation
+--------
+
+*silx* releases can be cited via their DOI on Zenodo: |zenodo DOI|
 
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
    :target: https://travis-ci.org/silx-kit/silx
 .. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
    :target: https://ci.appveyor.com/project/ESRF/silx
+.. |zenodo DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591709.svg
+   :target: https://doi.org/10.5281/zenodo.591709

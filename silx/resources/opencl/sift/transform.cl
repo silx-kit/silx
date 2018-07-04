@@ -1,4 +1,39 @@
 /*
+ *   Project: SIFT: An algorithm for image alignement
+ *            kernel for maximum and minimum calculation
+ *
+ *
+ *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *                           Grenoble, France
+ *
+ *   Principal authors: J. Kieffer (kieffer@esrf.fr)
+ *
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *
+ */
+
+/*
  *
  *        Computes the transformation to correct the image given a set of parameters
  *                [[a b c]
@@ -19,11 +54,11 @@
  *
  */
 
-__kernel void transform(
-        __global float* image,
-        __global float* output,
-        __global float4* matrix,
-        __global float2* offset,
+kernel void transform(
+        global float* image,
+        global float* output,
+        global float4* matrix,
+        global float2* offset,
         int image_width,
         int image_height,
         int output_width,
@@ -93,8 +128,8 @@ __kernel void transform(
 
 
         //to be coherent with scipy.ndimage.interpolation.affine_transform
-        float u = -0.5; //-0.95
-        float v = -0.5;
+        float u = -1.0; //-0.5; //-0.95
+        float v = -1.0; //-0.5;
         if (tx >= image_width+u) {
                 interp = fill;
         }
@@ -113,11 +148,11 @@ __kernel void transform(
  *                                dim2 [0..height[
  *
  */
-__kernel void transform_RGB(
-        __global unsigned char* image,
-        __global unsigned char* output,
-        __global float4* matrix,
-        __global float2* offset,
+kernel void transform_RGB(
+        global unsigned char* image,
+        global unsigned char* output,
+        global float4* matrix,
+        global float2* offset,
         int image_width,
         int image_height,
         int output_width,

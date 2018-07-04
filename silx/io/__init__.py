@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,30 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""I/O modules"""
+"""This package provides functionalities to read and write data files.
+
+It is geared towards support of and conversion to HDF5/NeXus.
+
+See silx documentation: http://www.silx.org/doc/silx/latest/
+"""
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "11/12/2017"
 
 
-import logging
+from .utils import open  # pylint:disable=redefined-builtin
+from .utils import save1D
 
+from .utils import is_dataset
+from .utils import is_file
+from .utils import is_group
+from .utils import is_softlink
+from .utils import supported_extensions
+from .utils import get_data
 
-# Init logging once for the whole module
-logging.basicConfig()
+# avoid to import open with "import *"
+__all = locals().keys()
+__all = filter(lambda x: not x.startswith("_"), __all)
+__all = filter(lambda x: x != "open", __all)
+__all__ = list(__all)

@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/08/2016"
+__date__ = "15/09/2016"
 
 
 import unittest
@@ -39,7 +39,7 @@ class Dummy(object):
         return a + 1
 
     def __lt__(self, other):
-         return True
+        return True
 
 
 def dummy_inc(a):
@@ -52,70 +52,73 @@ class TestWeakMethod(unittest.TestCase):
 
     def testMethod(self):
         dummy = Dummy()
-        callable = weakref.WeakMethod(dummy.inc)
-        self.assertEquals(callable()(10), 11)
+        callable_ = weakref.WeakMethod(dummy.inc)
+        self.assertEquals(callable_()(10), 11)
 
     def testMethodWithDeadObject(self):
         dummy = Dummy()
-        callable = weakref.WeakMethod(dummy.inc)
+        callable_ = weakref.WeakMethod(dummy.inc)
         dummy = None
-        self.assertIsNone(callable())
+        self.assertIsNone(callable_())
 
     def testMethodWithDeadFunction(self):
         dummy = Dummy()
         dummy.inc2 = lambda self, a: a + 1
-        callable = weakref.WeakMethod(dummy.inc2)
+        callable_ = weakref.WeakMethod(dummy.inc2)
         dummy.inc2 = None
-        self.assertIsNone(callable())
+        self.assertIsNone(callable_())
 
     def testFunction(self):
-        callable = weakref.WeakMethod(dummy_inc)
-        self.assertEquals(callable()(10), 11)
+        callable_ = weakref.WeakMethod(dummy_inc)
+        self.assertEquals(callable_()(10), 11)
 
     def testDeadFunction(self):
         def inc(a):
             return a + 1
-        callable = weakref.WeakMethod(inc)
+        callable_ = weakref.WeakMethod(inc)
         inc = None
-        self.assertIsNone(callable())
+        self.assertIsNone(callable_())
 
     def testLambda(self):
-        store = lambda a: a + 1
-        callable = weakref.WeakMethod(store)
-        self.assertEquals(callable()(10), 11)
+        store = lambda a: a + 1  # noqa: E731
+        callable_ = weakref.WeakMethod(store)
+        self.assertEquals(callable_()(10), 11)
 
     def testDeadLambda(self):
-        callable = weakref.WeakMethod(lambda a: a + 1)
-        self.assertIsNone(callable())
+        callable_ = weakref.WeakMethod(lambda a: a + 1)
+        self.assertIsNone(callable_())
 
     def testCallbackOnDeadObject(self):
         self.__count = 0
+
         def callback(ref):
             self.__count += 1
-            self.assertIs(callable, ref)
+            self.assertIs(callable_, ref)
         dummy = Dummy()
-        callable = weakref.WeakMethod(dummy.inc, callback)
+        callable_ = weakref.WeakMethod(dummy.inc, callback)
         dummy = None
         self.assertEquals(self.__count, 1)
 
     def testCallbackOnDeadMethod(self):
         self.__count = 0
+
         def callback(ref):
             self.__count += 1
-            self.assertIs(callable, ref)
+            self.assertIs(callable_, ref)
         dummy = Dummy()
         dummy.inc2 = lambda self, a: a + 1
-        callable = weakref.WeakMethod(dummy.inc2, callback)
+        callable_ = weakref.WeakMethod(dummy.inc2, callback)
         dummy.inc2 = None
         self.assertEquals(self.__count, 1)
 
     def testCallbackOnDeadFunction(self):
         self.__count = 0
+
         def callback(ref):
             self.__count += 1
-            self.assertIs(callable, ref)
-        store = lambda a: a + 1
-        callable = weakref.WeakMethod(store, callback)
+            self.assertIs(callable_, ref)
+        store = lambda a: a + 1  # noqa: E731
+        callable_ = weakref.WeakMethod(store, callback)
         store = None
         self.assertEquals(self.__count, 1)
 
@@ -129,23 +132,23 @@ class TestWeakMethod(unittest.TestCase):
         callable_set = set([])
         dummy = Dummy()
         callable_set.add(weakref.WeakMethod(dummy.inc))
-        callable = weakref.WeakMethod(dummy.inc)
-        self.assertIn(callable, callable_set)
+        callable_ = weakref.WeakMethod(dummy.inc)
+        self.assertIn(callable_, callable_set)
 
     def testInDict(self):
         callable_dict = {}
         dummy = Dummy()
         callable_dict[weakref.WeakMethod(dummy.inc)] = 10
-        callable = weakref.WeakMethod(dummy.inc)
-        self.assertEquals(callable_dict.get(callable), 10)
+        callable_ = weakref.WeakMethod(dummy.inc)
+        self.assertEquals(callable_dict.get(callable_), 10)
 
 
 class TestWeakMethodProxy(unittest.TestCase):
 
     def testMethod(self):
         dummy = Dummy()
-        callable = weakref.WeakMethodProxy(dummy.inc)
-        self.assertEquals(callable(10), 11)
+        callable_ = weakref.WeakMethodProxy(dummy.inc)
+        self.assertEquals(callable_(10), 11)
 
     def testMethodWithDeadObject(self):
         dummy = Dummy()
@@ -268,7 +271,6 @@ class TestWeakList(unittest.TestCase):
         self.assertIs(self.list[1], self.object2)
 
     def testCount(self):
-        """Returns the number of occurencies of an object"""
         self.list.append(self.object2)
         self.assertEquals(self.list.count(self.object1), 1)
         self.assertEquals(self.list.count(self.object2), 2)
@@ -278,7 +280,6 @@ class TestWeakList(unittest.TestCase):
         self.assertEquals(self.list.index(self.object2), 1)
 
     def testInsert(self):
-        """Insert an object at the requested index"""
         obj = Dummy()
         self.list.insert(1, obj)
         self.assertEquals(len(self.list), 3)
@@ -308,7 +309,7 @@ class TestWeakList(unittest.TestCase):
     def testRepr(self):
         self.assertNotEquals(self.list.__repr__(), "[]")
 
-    def testSort(self, cmp=None, key=None, reverse=False):
+    def testSort(self):
         # only a coverage
         self.list.sort()
         self.assertEquals(len(self.list), 2)

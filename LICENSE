@@ -1,0 +1,29 @@
+The silx toolkit is a software library and one of its goals is not to impose any license to the end user.
+
+Silx follows the permissive MIT license although it may include contributions following other licenses not interfering with the previous goal. Detailed information can be found in the copyright file.
+
+Silx uses the Qt library for its graphical user interfaces.
+A word of caution is to be provided.
+If users develop and distribute software using modules accessing Qt by means of Riverbank Computing Qt bindings PyQt4 or PyQt5, those users will be conditioned by the license of their PyQt4/5 software (GPL or commercial).
+If the end user does not own a commercial license of PyQt4 or PyQt5 and wishes to be free of any distribution condition, (s)he should be able to use PySide because it uses the LGPL license.
+
+The MIT license follows:
+
+Copyright (c) European Synchrotron Radiation Facility (ESRF)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

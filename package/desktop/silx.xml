@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+
+   <!-- HDF5 -->
+
+   <mime-type type="application/x-silx-hdf5">
+     <comment>Hierarchical Data Format</comment>
+     <sub-class-of type="application/x-hdf"/>
+     <glob pattern="*.h5"/>
+     <glob pattern="*.hdf"/>
+     <glob pattern="*.hdf5"/>
+   </mime-type>
+
+   <mime-type type="application/x-silx-nexus">
+     <comment>NeXus file</comment>
+     <sub-class-of type="application/x-silx-hdf5"/>
+     <glob pattern="*.nx"/>
+     <glob pattern="*.nxs"/>
+     <glob pattern="*.h5"/>
+     <glob pattern="*.hdf"/>
+     <glob pattern="*.hdf5"/>
+   </mime-type>
+
+   <!-- Spec formats -->
+
+   <mime-type type="application/x-silx-specfile">
+     <comment>Spec file</comment>
+     <glob pattern="*.spec"/>
+     <glob pattern="*.mca"/>
+     <glob pattern="*.dat"/>
+   </mime-type>
+
+   <!-- Image formats -->
+
+   <mime-type type="image/x-silx-marccd">
+     <comment>MarCCD image file</comment>
+     <sub-class-of type="image/tiff"/>
+     <glob pattern="*.mccd"/>
+   </mime-type>
+
+   <mime-type type="image/x-silx-cbf">
+     <comment>CBF image file</comment>
+     <acronym>CBF</acronym>
+     <expanded-acronym>Crystallographic Information File</expanded-acronym>
+     <glob pattern="*.cbf"/>
+   </mime-type>
+
+   <mime-type type="image/x-silx-edf">
+     <comment>EDF image file</comment>
+     <acronym>EDF</acronym>
+     <expanded-acronym>ESRF data format</expanded-acronym>
+     <glob pattern="*.edf"/>
+   </mime-type>
+
+   <mime-type type="image/x-silx-numpy">
+     <comment>Numpy data file</comment>
+     <glob pattern="*.npz"/>
+     <glob pattern="*.npy"/>
+   </mime-type>
+
+</mime-info>
