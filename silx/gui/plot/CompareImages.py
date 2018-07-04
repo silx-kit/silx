@@ -71,22 +71,53 @@ class CompareImages(qt.QMainWindow):
 
         self.__plot2d.addXMarker(
             0,
-            legend='separator',
+            legend='vline',
             text='separator',
             draggable=True,
             color='blue',
             constraint=self.__separatorConstraint)
-        self.__separator = self.__plot2d._getMarker('separator')
+        self.__vline = self.__plot2d._getMarker('vline')
+
+        self.__plot2d.addYMarker(
+            0,
+            legend='hline',
+            text='separator',
+            draggable=True,
+            color='blue',
+            constraint=self.__separatorConstraint)
+        self.__hline = self.__plot2d._getMarker('hline')
 
         self.__toolBar = self._createToolBar()
         layout.addWidget(self.__toolBar)
 
+        # default values
+        self.__vlineModeAction.trigger()
+        self.__originAlignAction.trigger()
+        self.__displayKeypoints.setChecked(True)
+        self.__previousSeparatorPosition = None
+
     def _createToolBar(self):
         toolbar = qt.QToolBar(self)
 
+        self.__interactionGroup = qt.QActionGroup(self)
+        self.__interactionGroup.setExclusive(True)
+        self.__interactionGroup.triggered.connect(self.__interactionChanged)
+
         icon = qt.QIcon("compare-mode-vline.svg")
         action = qt.QAction(icon, "Vertical compare mode", self)
+        action.setCheckable(True)
         toolbar.addAction(action)
+        self.__vlineModeAction = action
+        self.__interactionGroup.addAction(action)
+
+        icon = qt.QIcon("compare-mode-hline.svg")
+        action = qt.QAction(icon, "Horizontal compare mode", self)
+        action.setCheckable(True)
+        toolbar.addAction(action)
+        self.__hlineModeAction = action
+        self.__interactionGroup.addAction(action)
+
+        toolbar.addSeparator()
 
         menu = qt.QMenu(self)
         self.__alignmentAction = qt.QAction(self)
@@ -99,7 +130,6 @@ class CompareImages(qt.QMainWindow):
         icon = qt.QIcon("compare-align-origin.svg")
         action = qt.QAction(icon, "Align images on there upper-left pixel", self)
         action.setCheckable(True)
-        action.setChecked(True)
         self.__originAlignAction = action
         menu.addAction(action)
         self.__alignmentGroup.addAction(action)
@@ -125,17 +155,28 @@ class CompareImages(qt.QMainWindow):
         menu.addAction(action)
         self.__alignmentGroup.addAction(action)
 
-        self.__alignmentChanged(self.__originAlignAction)
-
         icon = qt.QIcon("compare-keypoints.svg")
         action = qt.QAction(icon, "Display/hide alignment keypoints", self)
         action.setCheckable(True)
-        action.setChecked(True)
         action.triggered.connect(self.__invalidateScatter)
         toolbar.addAction(action)
         self.__displayKeypoints = action
 
         return toolbar
+
+    def __interactionChanged(self, selectedAction):
+        mode = self.__getInteractionMode()
+        self.__vline.setVisible(mode == "vline")
+        self.__hline.setVisible(mode == "hline")
+        self.__invalidateSeparator()
+
+    def __getInteractionMode(self):
+        if self.__vlineModeAction.isChecked():
+            return "vline"
+        elif self.__hlineModeAction.isChecked():
+            return "hline"
+        else:
+            raise ValueError("Unknown interaction mode")
 
     def __alignmentChanged(self, selectedAction):
         self.__alignmentAction.setText(selectedAction.text())
@@ -161,8 +202,14 @@ class CompareImages(qt.QMainWindow):
     def __plotSlot(self, event):
         """Handle events from the plot"""
         if event['event'] in ('markerMoving', 'markerMoved'):
-            if event['label'] == 'separator':
-                value = int(float(str(event['xdata'])))
+            mode = self.__getInteractionMode()
+            if event['label'] == mode:
+                if mode == "vline":
+                    value = int(float(str(event['xdata'])))
+                elif mode == "hline":
+                    value = int(float(str(event['ydata'])))
+                else:
+                    assert(False)
                 if self.__previousSeparatorPosition != value:
                     self.__separatorMoved(value)
                     self.__previousSeparatorPosition = value
@@ -175,21 +222,53 @@ class CompareImages(qt.QMainWindow):
             x = 0
         elif x > self.__data1.shape[1]:
             x = self.__data1.shape[1]
+        y = int(y)
+        if y < 0:
+            y = 0
+        elif y > self.__data1.shape[0]:
+            y = self.__data1.shape[0]
         return x, y
+
+    def __invalidateSeparator(self):
+        mode = self.__getInteractionMode()
+        if mode == "vline":
+            pos = self.__vline.getXPosition()
+        elif mode == "hline":
+            pos = self.__hline.getYPosition()
+        else:
+            assert(False)
+        self.__separatorMoved(pos)
+        self.__previousSeparatorPosition = pos
 
     def __separatorMoved(self, pos):
         if self.__data1 is None:
             return
 
-        if pos <= 0:
-            pos = 0
-        elif pos >= self.__data1.shape[1]:
-            pos = self.__data1.shape[1]
-        data1 = self.__data1[:, 0:pos]
-        data2 = self.__data2[:, pos:]
-        self.__image1.setData(data1, copy=False)
-        self.__image2.setData(data2, copy=False)
-        self.__image2.setOrigin((pos, 0))
+        mode = self.__getInteractionMode()
+        if mode == "vline":
+            pos = int(pos)
+            if pos <= 0:
+                pos = 0
+            elif pos >= self.__data1.shape[1]:
+                pos = self.__data1.shape[1]
+            data1 = self.__data1[:, 0:pos]
+            data2 = self.__data2[:, pos:]
+            self.__image1.setData(data1, copy=False)
+            self.__image2.setData(data2, copy=False)
+            self.__image2.setOrigin((pos, 0))
+        elif mode == "hline":
+            pos = int(pos)
+            if pos <= 0:
+                pos = 0
+            elif pos >= self.__data1.shape[0]:
+                pos = self.__data1.shape[0]
+            data1 = self.__data1[0:pos, :]
+            data2 = self.__data2[pos:, :]
+            self.__image1.setData(data1, copy=False)
+            self.__image2.setData(data2, copy=False)
+            self.__image2.setOrigin((0, pos))
+        else:
+            assert(False)
 
     def setData(self, image1, image2):
         self.__raw1 = image1
@@ -268,11 +347,10 @@ class CompareImages(qt.QMainWindow):
         # Set the separator into the middle
         if self.__previousSeparatorPosition is None:
             value = self.__data1.shape[1] // 2
-            self.__separator.setPosition(value, 0)
-        else:
-            value = self.__previousSeparatorPosition
-        self.__separatorMoved(value)
-        self.__previousSeparatorPosition = value
+            self.__vline.setPosition(value, 0)
+            value = self.__data1.shape[0] // 2
+            self.__hline.setPosition(0, value)
+        self.__invalidateSeparator()
 
         # Avoid to change the colormap range when the separator is moving
         # TODO: The colormap histogram will still be wrong
