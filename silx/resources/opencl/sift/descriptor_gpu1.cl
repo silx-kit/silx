@@ -91,22 +91,22 @@ This kernel has to be run with as (8,4,4) workgroup size
 
 
 kernel void descriptor_gpu1(
-    global actual_keypoint* keypoints,
-    global unsigned char *descriptors,
-    global float* grad,
-    global float* orim,
-    int octsize,
-    int keypoints_start,
-//    int keypoints_end,
-    global int* keypoints_end, //passing counter value to avoid to read it each time
-    int grad_width,
-    int grad_height)
+                            global actual_keypoint* keypoints,
+                            global unsigned char *descriptors,
+                            global float* grad,
+                            global float* orim,
+                            int octsize,
+                            int keypoints_start,
+                            //    int keypoints_end,
+                            global int* keypoints_end, //passing counter value to avoid to read it each time
+                            int grad_width,
+                            int grad_height)
 {
 
-    int lid0 = get_local_id(0); //[0,8[
-    int lid1 = get_local_id(1); //[0,4[
-    int lid2 = get_local_id(2); //[0,4[
-    int lid = (lid2*get_local_size(1)+lid1)*get_local_size(0)+lid0; //[0,128[
+    int lid0 = (int) get_local_id(0); //[0,8[
+    int lid1 = (int) get_local_id(1); //[0,4[
+    int lid2 = (int) get_local_id(2); //[0,4[
+    int lid = (lid2*get_local_size(1)+lid1)*((int)get_local_size(0))+lid0; //[0,128[
     int groupid = get_group_id(0);
 
     if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
@@ -205,7 +205,6 @@ kernel void descriptor_gpu1(
                         if ((rindex >=0) && (rindex < 4))
                         {
                             rweight = mag * ((r == 0) ? 1.0f - rfrac : rfrac);
-
                             for (int c = 0; c < 2; c++)
                             {
                                 cindex = ci + c;
@@ -350,9 +349,3 @@ kernel void descriptor_gpu1(
     descriptors[128*groupid+lid] = (uchar) min(255, intval);
 
 }//end kernel
-
-
-
-
-
-

@@ -32,7 +32,7 @@ kernel void addition(global float* a,
                      global float* res, 
                      int N)
 {
-    int i = get_global_id(0);
+    int i = (int) get_global_id(0);
     if (i<N)
     {
         res[i] = a[i] + b[i];

@@ -1,7 +1,7 @@
 /*
  *   Project: SIFT: An algorithm for image alignement
  *
- *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2018 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -72,7 +72,7 @@ kernel void matching(
         int size1,
         int size2)
 {
-    int gid0 = get_global_id(0);
+    int gid0 = (int) get_global_id(0);
     if (!(0 <= gid0 && gid0 < size1))
     {
         return;
@@ -168,7 +168,7 @@ kernel void matching_valid(
     int size1,
     int size2)
 {
-    int gid0 = get_global_id(0);
+    int gid0 = (int) get_global_id(0);
     if (!(0 <= gid0 && gid0 < size1))
         return;
 
