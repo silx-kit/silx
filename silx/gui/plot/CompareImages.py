@@ -122,8 +122,12 @@ class CompareImages(qt.QMainWindow):
 
         # Avoid to change the colormap range when the separator is moving
         # TODO: The colormap histogram will still be wrong
-        vmin = min(self.__data1.min(), self.__data2.min())
-        vmax = max(self.__data1.max(), self.__data2.max())
-        colormap = Colormap(vmin=vmin, vmax=vmax)
-        self.__image1.setColormap(colormap)
-        self.__image2.setColormap(colormap)
+        if len(image1.shape) == 2:
+            vmin = min(self.__data1.min(), self.__data2.min())
+            vmax = max(self.__data1.max(), self.__data2.max())
+            colormap = Colormap(vmin=vmin, vmax=vmax)
+            self.__image1.setColormap(colormap)
+            self.__image2.setColormap(colormap)
+        else:
+            # RGBA images
+            pass
