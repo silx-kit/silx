@@ -30,10 +30,12 @@ __license__ = "MIT"
 __date__ = "04/07/2018"
 
 
-from silx.gui import qt
-from silx.gui import plot
 import logging
 import numpy
+
+import silx.image.bilinear
+from silx.gui import qt
+from silx.gui import plot
 from silx.gui.colors import Colormap
 
 
@@ -52,7 +54,10 @@ class CompareImages(qt.QMainWindow):
         widget.setLayout(layout)
 
         backend = "matplotlib"
+        # backend = "opengl"
 
+        self.__raw1 = None
+        self.__raw2 = None
         self.__data1 = None
         self.__data2 = None
         self.__previousSeparatorPosition = None
@@ -79,16 +84,48 @@ class CompareImages(qt.QMainWindow):
     def _createToolBar(self):
         toolbar = qt.QToolBar(self)
 
-        icon = qt.QIcon("compare-ab-vline.svg")
+        icon = qt.QIcon("compare-mode-vline.svg")
         action = qt.QAction(icon, "Vertical compare mode", self)
         toolbar.addAction(action)
 
-        icon = qt.QIcon("compare-b-align.svg")
+        menu = qt.QMenu(self)
+        self.__alignmentAction = qt.QAction(self)
+        self.__alignmentAction.setMenu(menu)
+        toolbar.addAction(self.__alignmentAction)
+        self.__alignmentGroup = qt.QActionGroup(self)
+        self.__alignmentGroup.setExclusive(True)
+        self.__alignmentGroup.triggered.connect(self.__alignmentChanged)
+
+        icon = qt.QIcon("compare-align-origin.svg")
+        action = qt.QAction(icon, "Align images on there upper-left pixel", self)
+        action.setCheckable(True)
+        action.setChecked(True)
+        self.__originAlignAction = action
+        menu.addAction(action)
+        self.__alignmentGroup.addAction(action)
+
+        icon = qt.QIcon("compare-align-center.svg")
+        action = qt.QAction(icon, "Center images", self)
+        action.setCheckable(True)
+        self.__centerAlignAction = action
+        menu.addAction(action)
+        self.__alignmentGroup.addAction(action)
+
+        icon = qt.QIcon("compare-align-stretch.svg")
+        action = qt.QAction(icon, "Stretch the second image on the first one", self)
+        action.setCheckable(True)
+        self.__stretchAlignAction = action
+        menu.addAction(action)
+        self.__alignmentGroup.addAction(action)
+
+        icon = qt.QIcon("compare-align-auto.svg")
         action = qt.QAction(icon, "Auto-alignment of the second image", self)
         action.setCheckable(True)
-        action.triggered.connect(self.__invalidateData)
-        toolbar.addAction(action)
         self.__autoAlignAction = action
+        menu.addAction(action)
+        self.__alignmentGroup.addAction(action)
+
+        self.__alignmentChanged(self.__originAlignAction)
 
         icon = qt.QIcon("compare-keypoints.svg")
         action = qt.QAction(icon, "Display/hide alignment keypoints", self)
@@ -99,6 +136,27 @@ class CompareImages(qt.QMainWindow):
         self.__displayKeypoints = action
 
         return toolbar
+
+    def __alignmentChanged(self, selectedAction):
+        self.__alignmentAction.setText(selectedAction.text())
+        self.__alignmentAction.setIcon(selectedAction.icon())
+        self.__alignmentAction.setToolTip(selectedAction.toolTip())
+        self.__invalidateData()
+
+    def __getAlignmentMode(self):
+        action = self.__alignmentGroup.checkedAction()
+        if action is self.__originAlignAction:
+            return "origin"
+        if action is self.__centerAlignAction:
+            return "center"
+        if action is self.__stretchAlignAction:
+            return "stretch"
+        if action is self.__autoAlignAction:
+            return "auto"
+        raise ValueError("Unknown alignment mode")
+
+    def __setDefaultAlignmentMode(self):
+        self.__originAlignAction.trigger()
 
     def __plotSlot(self, event):
         """Handle events from the plot"""
@@ -153,12 +211,40 @@ class CompareImages(qt.QMainWindow):
 
     def __invalidateData(self):
         raw1, raw2 = self.__raw1, self.__raw2
-        if not self.__autoAlignAction.isChecked():
-            data1, data2 = self.normalizeImageShape(raw1, raw2, mode="transparent_margin")
+        if raw1 is None or raw2 is None:
+            return
+
+        alignmentMode = self.__getAlignmentMode()
+
+        if alignmentMode == "origin":
+            yy = max(raw1.shape[0], raw2.shape[0])
+            xx = max(raw1.shape[1], raw2.shape[1])
+            size = yy, xx
+            data1 = self.__createMarginImage(raw1, size, transparent=True)
+            data2 = self.__createMarginImage(raw2, size, transparent=True)
             self.__matching_keypoints = [0.0], [0.0], [1.0]
-        else:
+        elif alignmentMode == "center":
+            yy = max(raw1.shape[0], raw2.shape[0])
+            xx = max(raw1.shape[1], raw2.shape[1])
+            size = yy, xx
+            data1 = self.__createMarginImage(raw1, size, transparent=True, center=True)
+            data2 = self.__createMarginImage(raw2, size, transparent=True, center=True)
+            self.__matching_keypoints = ([data1.shape[1] // 2],
+                                         [data1.shape[0] // 2],
+                                         [1.0])
+        elif alignmentMode == "stretch":
+            data1 = raw1
+            data2 = self.__rescaleImage(raw2, data1.shape)
+            self.__matching_keypoints = ([0, data1.shape[1], data1.shape[1], 0],
+                                         [0, 0, data1.shape[0], data1.shape[0]],
+                                         [1.0, 1.0, 1.0, 1.0])
+        elif alignmentMode == "auto":
             # TODO: sift implementation do not support RGBA images
-            data1, data2 = self.normalizeImageShape(raw1, raw2, mode="margin")
+            yy = max(raw1.shape[0], raw2.shape[0])
+            xx = max(raw1.shape[1], raw2.shape[1])
+            size = yy, xx
+            data1 = self.__createMarginImage(raw1, size)
+            data2 = self.__createMarginImage(raw2, size)
             self.__matching_keypoints = [0.0], [0.0], [1.0]
             try:
                 data1, data2 = self.__createSiftData(data1, data2)
@@ -167,9 +253,10 @@ class CompareImages(qt.QMainWindow):
             except Exception as e:
                 # TODO: Display it on the GUI
                 print(e)
-                self.__autoAlignAction.setChecked(False)
-                self.__invalidateData()
+                self.__setDefaultAlignmentMode()
                 return
+        else:
+            assert(False)
 
         self.__data1, self.__data2 = data1, data2
         self.__plot2d.addImage(data1, z=0, legend="image1", resetzoom=False)
@@ -208,13 +295,48 @@ class CompareImages(qt.QMainWindow):
                 return "rgba"
         raise TypeError("'image' argument is not an image.")
 
-    def __createMarginImage(self, image, size, transparent=False):
-        """Returns a new image with margin to respect the requested size.
-        """
+    def __rescaleImage(self, image, shape):
         mode = self.__getImageMode(image)
         if mode == "intensity":
+            data = self.__rescaleChannel(image, shape)
+        elif mode == "rgb":
+            data = numpy.empty((shape[0], shape[1], 3), dtype=image.dtype)
+            for c in range(3):
+                data[:, :, c] = self.__rescaleChannel(image[:, :, c], shape)
+        elif mode == "rgba":
+            data = numpy.empty((shape[0], shape[1], 4), dtype=image.dtype)
+            for c in range(4):
+                data[:, :, c] = self.__rescaleChannel(image[:, :, c], shape)
+        return data
+
+    def __rescaleChannel(self, image, shape):
+        y, x = numpy.ogrid[:shape[0], :shape[1]]
+        y, x = y * 1.0 * (image.shape[0] - 1) / (shape[0] - 1), x * 1.0 * (image.shape[1] - 1) / (shape[1] - 1)
+        b = silx.image.bilinear.BilinearImage(image)
+        # TODO: could be optimized using strides
+        x2d = numpy.zeros_like(y) + x
+        y2d = numpy.zeros_like(x) + y
+        result = b.map_coordinates((y2d, x2d))
+        return result
+
+    def __createMarginImage(self, image, size, transparent=False, center=False):
+        """Returns a new image with margin to respect the requested size.
+        """
+        assert(image.shape[0] <= size[0])
+        assert(image.shape[1] <= size[1])
+        if image.shape == size:
+            return image
+        mode = self.__getImageMode(image)
+
+        if center:
+            pos0 = size[0] // 2 - image.shape[0] // 2
+            pos1 = size[1] // 2 - image.shape[1] // 2
+        else:
+            pos0, pos1 = 0, 0
+
+        if mode == "intensity":
             data = numpy.zeros(size, dtype=image.dtype)
-            data[0:image.shape[0], 0:image.shape[1]] = image
+            data[pos0:pos0 + image.shape[0], pos1:pos1 + image.shape[1]] = image
             # TODO: It is maybe possible to put NaN on the margin
         else:
             if transparent:
@@ -222,35 +344,10 @@ class CompareImages(qt.QMainWindow):
             else:
                 data = numpy.zeros((size[0], size[1], 3), dtype=numpy.uint8)
             depth = min(data.shape[2], image.shape[2])
-            data[0:image.shape[0], 0:image.shape[1], 0:depth] = image[:, :, 0:depth]
-            if transparent:
-                data[0:image.shape[0], 0:image.shape[1], 3] = 255
+            data[pos0:pos0 + image.shape[0], pos1:pos1 + image.shape[1], 0:depth] = image[:, :, 0:depth]
+            if transparent and depth == 3:
+                data[pos0:pos0 + image.shape[0], pos1:pos1 + image.shape[1], 3] = 255
         return data
-
-    def normalizeImageShape(self, image, image2, mode="crop"):
-        """
-        Returns 2 images with the same shape.
-        """
-        if image.shape == image2.shape:
-            return image, image2
-        if mode == "crop":
-            yy = min(image.shape[0], image2.shape[0])
-            xx = min(image.shape[1], image2.shape[1])
-            return image[0:yy, 0:xx], image2[0:yy, 0:xx]
-        elif mode == "margin":
-            yy = max(image.shape[0], image2.shape[0])
-            xx = max(image.shape[1], image2.shape[1])
-            size = yy, xx
-            image = self.__createMarginImage(image, size)
-            image2 = self.__createMarginImage(image2, size)
-            return image, image2
-        elif mode == "transparent_margin":
-            yy = max(image.shape[0], image2.shape[0])
-            xx = max(image.shape[1], image2.shape[1])
-            size = yy, xx
-            image = self.__createMarginImage(image, size, transparent=True)
-            image2 = self.__createMarginImage(image2, size, transparent=True)
-            return image, image2
 
     def __createSiftData(self, image, second_image):
         devicetype = "GPU"
