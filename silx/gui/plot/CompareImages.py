@@ -36,6 +36,7 @@ import numpy
 import silx.image.bilinear
 from silx.gui import qt
 from silx.gui import plot
+from silx.gui import icons
 from silx.gui.colors import Colormap
 
 
@@ -103,14 +104,14 @@ class CompareImages(qt.QMainWindow):
         self.__interactionGroup.setExclusive(True)
         self.__interactionGroup.triggered.connect(self.__interactionChanged)
 
-        icon = qt.QIcon("compare-mode-vline.svg")
+        icon = icons.getQIcon("compare-mode-vline")
         action = qt.QAction(icon, "Vertical compare mode", self)
         action.setCheckable(True)
         toolbar.addAction(action)
         self.__vlineModeAction = action
         self.__interactionGroup.addAction(action)
 
-        icon = qt.QIcon("compare-mode-hline.svg")
+        icon = icons.getQIcon("compare-mode-hline")
         action = qt.QAction(icon, "Horizontal compare mode", self)
         action.setCheckable(True)
         toolbar.addAction(action)
@@ -127,35 +128,35 @@ class CompareImages(qt.QMainWindow):
         self.__alignmentGroup.setExclusive(True)
         self.__alignmentGroup.triggered.connect(self.__alignmentChanged)
 
-        icon = qt.QIcon("compare-align-origin.svg")
+        icon = icons.getQIcon("compare-align-origin")
         action = qt.QAction(icon, "Align images on there upper-left pixel", self)
         action.setCheckable(True)
         self.__originAlignAction = action
         menu.addAction(action)
         self.__alignmentGroup.addAction(action)
 
-        icon = qt.QIcon("compare-align-center.svg")
+        icon = icons.getQIcon("compare-align-center")
         action = qt.QAction(icon, "Center images", self)
         action.setCheckable(True)
         self.__centerAlignAction = action
         menu.addAction(action)
         self.__alignmentGroup.addAction(action)
 
-        icon = qt.QIcon("compare-align-stretch.svg")
+        icon = icons.getQIcon("compare-align-stretch")
         action = qt.QAction(icon, "Stretch the second image on the first one", self)
         action.setCheckable(True)
         self.__stretchAlignAction = action
         menu.addAction(action)
         self.__alignmentGroup.addAction(action)
 
-        icon = qt.QIcon("compare-align-auto.svg")
+        icon = icons.getQIcon("compare-align-auto")
         action = qt.QAction(icon, "Auto-alignment of the second image", self)
         action.setCheckable(True)
         self.__autoAlignAction = action
         menu.addAction(action)
         self.__alignmentGroup.addAction(action)
 
-        icon = qt.QIcon("compare-keypoints.svg")
+        icon = icons.getQIcon("compare-keypoints")
         action = qt.QAction(icon, "Display/hide alignment keypoints", self)
         action.setCheckable(True)
         action.triggered.connect(self.__invalidateScatter)
