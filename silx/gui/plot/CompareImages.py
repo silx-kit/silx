@@ -41,6 +41,8 @@ _logger = logging.getLogger(__name__)
 
 
 class CompareImages(qt.QMainWindow):
+    # TODO: Check intensity images (no RGB)
+    # TODO: Check image1=RGB image2=intensity
 
     def __init__(self):
         qt.QMainWindow.__init__(self)
@@ -48,7 +50,7 @@ class CompareImages(qt.QMainWindow):
         widget = qt.QWidget(self)
         self.setCentralWidget(widget)
 
-        layout = qt.QGridLayout()
+        layout = qt.QVBoxLayout()
         widget.setLayout(layout)
 
         backend = "gl"
@@ -72,6 +74,25 @@ class CompareImages(qt.QMainWindow):
             color='blue',
             constraint=self.__separatorConstraint)
         self.__separator = self.__plot2d._getMarker('separator')
+
+        self.__toolBar = self._createToolBar()
+        layout.addWidget(self.__toolBar)
+
+    def _createToolBar(self):
+        toolbar = qt.QToolBar(self)
+
+        icon = qt.QIcon("compare-ab-vline.svg")
+        action = qt.QAction(icon, "Vertical compare mode", self)
+        toolbar.addAction(action)
+
+        icon = qt.QIcon("compare-b-align.svg")
+        action = qt.QAction(icon, "Auto-alignment of the second image", self)
+        action.setCheckable(True)
+        action.triggered.connect(self.__invalidateData)
+        toolbar.addAction(action)
+        self.__autoAlignAction = action
+
+        return toolbar
 
     def __plotSlot(self, event):
         """Handle events from the plot"""
@@ -107,10 +128,28 @@ class CompareImages(qt.QMainWindow):
         self.__image2.setOrigin((pos, 0))
 
     def setData(self, image1, image2):
-        self.__data1 = image1
-        self.__data2 = image2
-        self.__plot2d.addImage(self.__data1, legend="image1")
-        self.__plot2d.addImage(self.__data2, legend="image2")
+        self.__raw1 = image1
+        self.__raw2 = image2
+        self.__invalidateData()
+
+    def __invalidateData(self):
+        raw1, raw2 = self.__raw1, self.__raw2
+        if not self.__autoAlignAction.isChecked():
+            data1, data2 = self.normalizeImageShape(raw1, raw2, mode="transparent_margin")
+        else:
+            # TODO: sift implementation do not support RGBA images
+            data1, data2 = self.normalizeImageShape(raw1, raw2, mode="margin")
+            try:
+                data1, data2 = self.createSiftTestData(data1, data2)
+            except Exception as e:
+                print(e)
+                self.__autoAlignAction.setChecked(False)
+                self.__invalidateData()
+                return
+
+        self.__data1, self.__data2 = data1, data2
+        self.__plot2d.addImage(data1, legend="image1")
+        self.__plot2d.addImage(data2, legend="image2")
         self.__image1 = self.__plot2d.getImage("image1")
         self.__image2 = self.__plot2d.getImage("image2")
 
@@ -122,12 +161,71 @@ class CompareImages(qt.QMainWindow):
 
         # Avoid to change the colormap range when the separator is moving
         # TODO: The colormap histogram will still be wrong
-        if len(image1.shape) == 2:
+        if len(data1.shape) == 2:
             vmin = min(self.__data1.min(), self.__data2.min())
             vmax = max(self.__data1.max(), self.__data2.max())
             colormap = Colormap(vmin=vmin, vmax=vmax)
             self.__image1.setColormap(colormap)
             self.__image2.setColormap(colormap)
         else:
-            # RGBA images
+            # RGB(A) images
             pass
+
+    def normalizeImageShape(self, image, image2, mode="crop"):
+        """
+        Returns 2 images with the same shape.
+        """
+        if image.shape == image2.shape:
+            return image, image2
+        if mode == "crop":
+            yy = min(image.shape[0], image2.shape[0])
+            xx = min(image.shape[1], image2.shape[1])
+            return image[0:yy, 0:xx], image2[0:yy, 0:xx]
+        elif mode == "margin":
+            yy = max(image.shape[0], image2.shape[0])
+            xx = max(image.shape[1], image2.shape[1])
+            data = numpy.zeros((yy, xx, 3), dtype=numpy.uint8)
+            data[0:image.shape[0], 0:image.shape[1], 0:image.shape[2]] = image
+            image = data
+            data = numpy.zeros((yy, xx, 3), dtype=numpy.uint8)
+            data[0:image2.shape[0], 0:image2.shape[1], 0:image2.shape[2]] = image2
+            image2 = data
+            return image, image2
+        elif mode == "transparent_margin":
+            yy = max(image.shape[0], image2.shape[0])
+            xx = max(image.shape[1], image2.shape[1])
+            data = numpy.zeros((yy, xx, 4), dtype=numpy.uint8)
+            data[0:image.shape[0], 0:image.shape[1], 0:image.shape[2]] = image
+            data[0:image.shape[0], 0:image.shape[1], 3] = 255
+            image = data
+            data = numpy.zeros((yy, xx, 4), dtype=numpy.uint8)
+            data[0:image2.shape[0], 0:image2.shape[1], 0:image2.shape[2]] = image2
+            data[0:image2.shape[0], 0:image2.shape[1], 3] = 255
+            image2 = data
+            return image, image2
+
+    def createSiftTestData(self, image, second_image):
+        devicetype = "GPU"
+
+        # Compute base image
+        from silx.image import sift
+        sift_ocl = sift.SiftPlan(template=image, devicetype=devicetype)
+        keypoints = sift_ocl(image)
+
+        # Check image compatibility
+        second_keypoints = sift_ocl(second_image)
+        mp = sift.MatchPlan()
+        match = mp(keypoints, second_keypoints)
+        print("Number of Keypoints within image 1: %i" % keypoints.size)
+        print("                    within image 2: %i" % second_keypoints.size)
+
+        matching_keypoints = match.shape[0]
+        print("Matching keypoints: %i" % matching_keypoints)
+        if matching_keypoints == 0:
+            return image, second_image
+
+        # Normalize the second image
+        sa = sift.LinearAlign(image, devicetype=devicetype)
+        data1 = image
+        data2 = sa.align(second_image)
+        return data1, data2
