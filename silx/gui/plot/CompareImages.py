@@ -53,7 +53,7 @@ class CompareImages(qt.QMainWindow):
         layout = qt.QVBoxLayout()
         widget.setLayout(layout)
 
-        backend = "gl"
+        backend = "matplotlib"
 
         self.__data1 = None
         self.__data2 = None
@@ -91,6 +91,14 @@ class CompareImages(qt.QMainWindow):
         action.triggered.connect(self.__invalidateData)
         toolbar.addAction(action)
         self.__autoAlignAction = action
+
+        icon = qt.QIcon("compare-keypoints.svg")
+        action = qt.QAction(icon, "Display/hide alignment keypoints", self)
+        action.setCheckable(True)
+        action.setChecked(True)
+        action.triggered.connect(self.__invalidateScatter)
+        toolbar.addAction(action)
+        self.__displayKeypoints = action
 
         return toolbar
 
@@ -131,14 +139,29 @@ class CompareImages(qt.QMainWindow):
         self.__raw1 = image1
         self.__raw2 = image2
         self.__invalidateData()
+        self.__plot2d.resetZoom()
+
+    def __invalidateScatter(self):
+        if self.__displayKeypoints.isChecked():
+            data = self.__matching_keypoints
+        else:
+            data = [], [], []
+        self.__plot2d.addScatter(x=data[0],
+                                 y=data[1],
+                                 z=1,
+                                 value=data[2],
+                                 legend="keypoints",
+                                 colormap=Colormap("spring"))
 
     def __invalidateData(self):
         raw1, raw2 = self.__raw1, self.__raw2
         if not self.__autoAlignAction.isChecked():
             data1, data2 = self.normalizeImageShape(raw1, raw2, mode="transparent_margin")
+            self.__matching_keypoints = [0.0], [0.0], [1.0]
         else:
             # TODO: sift implementation do not support RGBA images
             data1, data2 = self.normalizeImageShape(raw1, raw2, mode="margin")
+            self.__matching_keypoints = [0.0], [0.0], [1.0]
             try:
                 data1, data2 = self.createSiftTestData(data1, data2)
             except Exception as e:
@@ -148,16 +171,20 @@ class CompareImages(qt.QMainWindow):
                 return
 
         self.__data1, self.__data2 = data1, data2
-        self.__plot2d.addImage(data1, legend="image1")
-        self.__plot2d.addImage(data2, legend="image2")
+        self.__plot2d.addImage(data1, z=0, legend="image1", resetzoom=False)
+        self.__plot2d.addImage(data2, z=0, legend="image2", resetzoom=False)
         self.__image1 = self.__plot2d.getImage("image1")
         self.__image2 = self.__plot2d.getImage("image2")
+        self.__invalidateScatter()
 
         # Set the separator into the middle
-        middle = self.__data1.shape[1] // 2
-        self.__separator.setPosition(middle, 0)
-        self.__separatorMoved(middle)
-        self.__previousSeparatorPosition = middle
+        if self.__previousSeparatorPosition is None:
+            value = self.__data1.shape[1] // 2
+            self.__separator.setPosition(value, 0)
+        else:
+            value = self.__previousSeparatorPosition
+        self.__separatorMoved(value)
+        self.__previousSeparatorPosition = value
 
         # Avoid to change the colormap range when the separator is moving
         # TODO: The colormap histogram will still be wrong
@@ -220,6 +247,9 @@ class CompareImages(qt.QMainWindow):
         print("                    within image 2: %i" % second_keypoints.size)
 
         matching_keypoints = match.shape[0]
+        self.__matching_keypoints = (match[:].x[:, 0],
+                                     match[:].y[:, 0],
+                                     match[:].scale[:, 0])
         print("Matching keypoints: %i" % matching_keypoints)
         if matching_keypoints == 0:
             return image, second_image
