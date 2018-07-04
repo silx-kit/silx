@@ -59,18 +59,20 @@
 
 
 kernel void matching(
-                    global featured_keypoint* keypoints1,
-                    global featured_keypoint* keypoints2,
-                    global int2* matchings,
-                    global int* counter,
-                    int max_nb_match,
-                    float ratio_th,
-                    int size1,
-                    int size2)
+                     global featured_keypoint* keypoints1,
+                     global featured_keypoint* keypoints2,
+                     global int2* matchings,
+                     global int* counter,
+                     int max_nb_match,
+                     float ratio_th,
+                     int size1,
+                     int size2)
 {
      int gid0 = get_global_id(0);
     if (!(0 <= gid0 && gid0 < size1))
+    {
         return;
+    }
 
     float dist1 = MAXFLOAT, dist2 = MAXFLOAT; 
     int current_min = 0;
@@ -79,31 +81,37 @@ kernel void matching(
     //pre-fetch
     unsigned char desc1[128];
     for (int i = 0; i<128; i++)
+    {
         desc1[i] = ((keypoints1[gid0]).desc)[i];
+    }
 
     //each thread gid0 makes a loop on the second list
-    for (int i = 0; i<size2; i++) {
-
+    for (int i = 0; i<size2; i++) 
+    {
         //L1 distance between desc1[gid0] and desc2[i]
         int dist = 0;
-        for (int j=0; j<128; j++) { //1 thread handles 4 values (uint4) = 
+        for (int j=0; j<128; j++) //1 thread handles 4 values (uint4) = 
+        {
+            
             unsigned char dval1 = desc1[j], dval2 = ((keypoints2[i]).desc)[j];
             dist += ((dval1 > dval2) ? (dval1 - dval2) : (-dval1 + dval2));
-
         }
         
-        if (dist < dist1) { //candidate better than the first
+        if (dist < dist1) //candidate better than the first
+        {
             dist2 = dist1;
             dist1 = dist;
             current_min = i;
         }
-        else if (dist < dist2) { //candidate better than the second (but not the first)
+        else if (dist < dist2) 
+        { //candidate better than the second (but not the first)
             dist2 = dist;
         }
         
     }//end "i loop"
 
-    if (dist2 != 0 && dist1/dist2 < ratio_th) {
+    if (dist2 != 0 && dist1/dist2 < ratio_th) 
+    {
         int2 pair = 0;
         pair.s0 = gid0;
         pair.s1 = current_min;
@@ -161,17 +169,21 @@ kernel void matching_valid(
     actual_keypoint kp = keypoints1[gid0].keypoint;
     int c = kp.col, r = kp.row;
     //processing only valid keypoints
-    if (r < roi_height && c < roi_width && valid[r*roi_width+c] == 0) return;
+    if (r < roi_height && c < roi_width && valid[r*roi_width+c] == 0) 
+    {
+        return;
+    }
 
     //pre-fetch
     unsigned char desc1[128];
     for (int i = 0; i<128; i++)
+    {
         desc1[i] = ((keypoints1[gid0]).desc)[i];
-
+    }
+        
     //each thread gid0 makes a loop on the second list
     for (int i = 0; i<size2; i++)
     {
-
         //L1 distance between desc1[gid0] and desc2[i]
         int dist = 0;
         for (int j=0; j<128; j++) 
@@ -184,7 +196,6 @@ kernel void matching_valid(
                 dist += ((dval1 > dval2) ? (dval1 - dval2) : (-dval1 + dval2));
             }
         }
-        
         if (dist < dist1) 
         { //candidate better than the first
             dist2 = dist1;
