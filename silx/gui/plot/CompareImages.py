@@ -118,6 +118,13 @@ class CompareImages(qt.QMainWindow):
         self.__hlineModeAction = action
         self.__interactionGroup.addAction(action)
 
+        icon = icons.getQIcon("compare-mode-channel")
+        action = qt.QAction(icon, "Blue/red compare mode", self)
+        action.setCheckable(True)
+        toolbar.addAction(action)
+        self.__channelModeAction = action
+        self.__interactionGroup.addAction(action)
+
         toolbar.addSeparator()
 
         menu = qt.QMenu(self)
@@ -169,13 +176,15 @@ class CompareImages(qt.QMainWindow):
         mode = self.__getInteractionMode()
         self.__vline.setVisible(mode == "vline")
         self.__hline.setVisible(mode == "hline")
-        self.__invalidateSeparator()
+        self.__invalidateData()
 
     def __getInteractionMode(self):
         if self.__vlineModeAction.isChecked():
             return "vline"
         elif self.__hlineModeAction.isChecked():
             return "hline"
+        elif self.__channelModeAction.isChecked():
+            return "channel"
         else:
             raise ValueError("Unknown interaction mode")
 
@@ -236,6 +245,8 @@ class CompareImages(qt.QMainWindow):
             pos = self.__vline.getXPosition()
         elif mode == "hline":
             pos = self.__hline.getYPosition()
+        elif mode == "channel":
+            return
         else:
             assert(False)
         self.__separatorMoved(pos)
@@ -338,6 +349,17 @@ class CompareImages(qt.QMainWindow):
         else:
             assert(False)
 
+        mode = self.__getInteractionMode()
+        if mode == "channel":
+            intensity1 = self.__intensityImage(data1)
+            intensity2 = self.__intensityImage(data2)
+            shape = data1.shape
+            data1 = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
+            data1[:, :, 0] = intensity2 * 255
+            data1[:, :, 1] = 0
+            data1[:, :, 2] = intensity1 * 255
+            data2 = numpy.empty((0, 0))
+
         self.__data1, self.__data2 = data1, data2
         self.__plot2d.addImage(data1, z=0, legend="image1", resetzoom=False)
         self.__plot2d.addImage(data2, z=0, legend="image2", resetzoom=False)
@@ -387,6 +409,19 @@ class CompareImages(qt.QMainWindow):
             for c in range(4):
                 data[:, :, c] = self.__rescaleChannel(image[:, :, c], shape)
         return data
+
+    def __intensityImage(self, image):
+        mode = self.__getImageMode(image)
+        if mode == "intensity":
+            return image
+        elif mode in ["rgb", "rgba"]:
+            is_uint8 = image.dtype.type == numpy.uint8
+            # luminosity
+            image = 0.21 * image[..., 0] + 0.72 * image[..., 1] + 0.07 * image[..., 2]
+            if is_uint8:
+                image = image / 256.0
+            return image
+        return image
 
     def __rescaleChannel(self, image, shape):
         y, x = numpy.ogrid[:shape[0], :shape[1]]
