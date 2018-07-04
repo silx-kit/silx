@@ -97,6 +97,13 @@ class CompareImages(qt.QMainWindow):
         self.__displayKeypoints.setChecked(True)
         self.__previousSeparatorPosition = None
 
+    def getPlot(self):
+        """Returns the plot which is used to display the images.
+
+        :rtype: silx.gui.plot.Plot2D
+        """
+        return self.__plot2d
+
     def _createToolBar(self):
         toolbar = qt.QToolBar(self)
 
