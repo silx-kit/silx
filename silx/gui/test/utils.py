@@ -510,7 +510,7 @@ def getQToolButtonFromAction(action):
 
 
 def findChildren(parent, kind, name=None):
-    if qt.BINDING == "PySide" and name is not None:
+    if qt.BINDING in ("PySide", "PySide2") and name is not None:
         result = []
         for obj in parent.findChildren(kind):
             if obj.objectName() == name:
