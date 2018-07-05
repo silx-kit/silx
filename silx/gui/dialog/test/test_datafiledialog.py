@@ -120,7 +120,7 @@ class _UtilsMixin(object):
         path2_ = os.path.normcase(path2)
         if path1_ != path2_:
             # Use the unittest API to log and display error
-            self.assertEquals(path1, path2)
+            self.assertEqual(path1, path2)
 
     def assertNotSamePath(self, path1, path2):
         path1_ = os.path.normcase(path1)
@@ -144,7 +144,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         self.keyClick(dialog, qt.Qt.Key_Escape)
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickCancel(self):
         dialog = self.createDialog()
@@ -156,7 +156,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.mouseClick(button, qt.Qt.LeftButton)
         self.assertFalse(dialog.isVisible())
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickLockedOpen(self):
         dialog = self.createDialog()
@@ -168,7 +168,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.mouseClick(button, qt.Qt.LeftButton)
         # open button locked, dialog is not closed
         self.assertTrue(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testSelectRoot_Activate(self):
         if fabio is None:
@@ -194,7 +194,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertTrue(url.data_path() is not None)
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testSelectGroup_Activate(self):
         if fabio is None:
@@ -226,7 +226,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertEqual(url.data_path(), "/group")
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testSelectDataset_Activate(self):
         if fabio is None:
@@ -258,7 +258,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertEqual(url.data_path(), "/scalar")
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testClickOnBackToParentTool(self):
         if h5py is None:
@@ -600,7 +600,7 @@ class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertEqual(url.data_path(), "/scalar")
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
         data = dialog.selectedData()
         self.assertEqual(data, 10)
@@ -647,7 +647,7 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertEqual(url.data_path(), "/group")
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
         self.assertRaises(Exception, dialog.selectedData)
 
@@ -755,7 +755,7 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
         url = silx.io.url.DataUrl(dialog.selectedUrl())
         self.assertEqual(url.data_path(), "/nxdata")
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
 
 class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):

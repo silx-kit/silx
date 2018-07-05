@@ -119,16 +119,16 @@ class TestLauncher(ParametricTestCase):
         command = launcher.LauncherCommand("foo", function=callback)
         runner.add_command(command=command)
         status = runner.execute(["prog", "foo", "param1", "param2"])
-        self.assertEquals(status, 42)
-        self.assertEquals(callback._execute_argv, ["prog foo", "param1", "param2"])
-        self.assertEquals(callback._execute_count, 1)
+        self.assertEqual(status, 42)
+        self.assertEqual(callback._execute_argv, ["prog foo", "param1", "param2"])
+        self.assertEqual(callback._execute_count, 1)
 
     def testAddCommand(self):
         runner = launcher.Launcher(prog="prog")
         module_name = "silx.utils.test.test_launcher_command"
         runner.add_command("foo", module_name=module_name)
         status = runner.execute(["prog", "foo"])
-        self.assertEquals(status, 0)
+        self.assertEqual(status, 0)
 
     def testCallHelpOnCommand(self):
         callback = CallbackMock(result=42)
@@ -136,9 +136,9 @@ class TestLauncher(ParametricTestCase):
         command = launcher.LauncherCommand("foo", function=callback)
         runner.add_command(command=command)
         status = runner.execute(["prog", "--help", "foo"])
-        self.assertEquals(status, 42)
-        self.assertEquals(callback._execute_argv, ["prog foo", "--help"])
-        self.assertEquals(callback._execute_count, 1)
+        self.assertEqual(status, 42)
+        self.assertEqual(callback._execute_argv, ["prog foo", "--help"])
+        self.assertEqual(callback._execute_count, 1)
 
     def testCallHelpOnCommand2(self):
         callback = CallbackMock(result=42)
@@ -146,9 +146,9 @@ class TestLauncher(ParametricTestCase):
         command = launcher.LauncherCommand("foo", function=callback)
         runner.add_command(command=command)
         status = runner.execute(["prog", "help", "foo"])
-        self.assertEquals(status, 42)
-        self.assertEquals(callback._execute_argv, ["prog foo", "--help"])
-        self.assertEquals(callback._execute_count, 1)
+        self.assertEqual(status, 42)
+        self.assertEqual(callback._execute_argv, ["prog foo", "--help"])
+        self.assertEqual(callback._execute_count, 1)
 
     def testCallHelpOnUnknownCommand(self):
         callback = CallbackMock(result=42)
@@ -156,7 +156,7 @@ class TestLauncher(ParametricTestCase):
         command = launcher.LauncherCommand("foo", function=callback)
         runner.add_command(command=command)
         status = runner.execute(["prog", "help", "foo2"])
-        self.assertEquals(status, -1)
+        self.assertEqual(status, -1)
 
     def testNotAvailableCommand(self):
         callback = CallbackMock(result=42)
@@ -164,8 +164,8 @@ class TestLauncher(ParametricTestCase):
         command = launcher.LauncherCommand("foo", function=callback)
         runner.add_command(command=command)
         status = runner.execute(["prog", "foo2", "param1", "param2"])
-        self.assertEquals(status, -1)
-        self.assertEquals(callback._execute_count, 0)
+        self.assertEqual(status, -1)
+        self.assertEqual(callback._execute_count, 0)
 
     def testCallHelp(self):
         callback = CallbackMock(result=42)
@@ -173,8 +173,8 @@ class TestLauncher(ParametricTestCase):
         command = launcher.LauncherCommand("foo", function=callback)
         runner.add_command(command=command)
         status = runner.execute(["prog", "help"])
-        self.assertEquals(status, 0)
-        self.assertEquals(callback._execute_count, 0)
+        self.assertEqual(status, 0)
+        self.assertEqual(callback._execute_count, 0)
 
     def testCommonCommands(self):
         runner = launcher.Launcher()
@@ -188,7 +188,7 @@ class TestLauncher(ParametricTestCase):
         for arguments in tests:
             with self.subTest(args=tests):
                 status = runner.execute(arguments)
-                self.assertEquals(status, 0)
+                self.assertEqual(status, 0)
 
 
 def suite():

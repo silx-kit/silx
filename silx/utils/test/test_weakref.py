@@ -53,7 +53,7 @@ class TestWeakMethod(unittest.TestCase):
     def testMethod(self):
         dummy = Dummy()
         callable_ = weakref.WeakMethod(dummy.inc)
-        self.assertEquals(callable_()(10), 11)
+        self.assertEqual(callable_()(10), 11)
 
     def testMethodWithDeadObject(self):
         dummy = Dummy()
@@ -70,7 +70,7 @@ class TestWeakMethod(unittest.TestCase):
 
     def testFunction(self):
         callable_ = weakref.WeakMethod(dummy_inc)
-        self.assertEquals(callable_()(10), 11)
+        self.assertEqual(callable_()(10), 11)
 
     def testDeadFunction(self):
         def inc(a):
@@ -82,7 +82,7 @@ class TestWeakMethod(unittest.TestCase):
     def testLambda(self):
         store = lambda a: a + 1  # noqa: E731
         callable_ = weakref.WeakMethod(store)
-        self.assertEquals(callable_()(10), 11)
+        self.assertEqual(callable_()(10), 11)
 
     def testDeadLambda(self):
         callable_ = weakref.WeakMethod(lambda a: a + 1)
@@ -97,7 +97,7 @@ class TestWeakMethod(unittest.TestCase):
         dummy = Dummy()
         callable_ = weakref.WeakMethod(dummy.inc, callback)
         dummy = None
-        self.assertEquals(self.__count, 1)
+        self.assertEqual(self.__count, 1)
 
     def testCallbackOnDeadMethod(self):
         self.__count = 0
@@ -109,7 +109,7 @@ class TestWeakMethod(unittest.TestCase):
         dummy.inc2 = lambda self, a: a + 1
         callable_ = weakref.WeakMethod(dummy.inc2, callback)
         dummy.inc2 = None
-        self.assertEquals(self.__count, 1)
+        self.assertEqual(self.__count, 1)
 
     def testCallbackOnDeadFunction(self):
         self.__count = 0
@@ -120,13 +120,13 @@ class TestWeakMethod(unittest.TestCase):
         store = lambda a: a + 1  # noqa: E731
         callable_ = weakref.WeakMethod(store, callback)
         store = None
-        self.assertEquals(self.__count, 1)
+        self.assertEqual(self.__count, 1)
 
     def testEquals(self):
         dummy = Dummy()
         callable1 = weakref.WeakMethod(dummy.inc)
         callable2 = weakref.WeakMethod(dummy.inc)
-        self.assertEquals(callable1, callable2)
+        self.assertEqual(callable1, callable2)
 
     def testInSet(self):
         callable_set = set([])
@@ -140,7 +140,7 @@ class TestWeakMethod(unittest.TestCase):
         dummy = Dummy()
         callable_dict[weakref.WeakMethod(dummy.inc)] = 10
         callable_ = weakref.WeakMethod(dummy.inc)
-        self.assertEquals(callable_dict.get(callable_), 10)
+        self.assertEqual(callable_dict.get(callable_), 10)
 
 
 class TestWeakMethodProxy(unittest.TestCase):
@@ -148,7 +148,7 @@ class TestWeakMethodProxy(unittest.TestCase):
     def testMethod(self):
         dummy = Dummy()
         callable_ = weakref.WeakMethodProxy(dummy.inc)
-        self.assertEquals(callable_(10), 11)
+        self.assertEqual(callable_(10), 11)
 
     def testMethodWithDeadObject(self):
         dummy = Dummy()
@@ -170,60 +170,60 @@ class TestWeakList(unittest.TestCase):
     def testAppend(self):
         obj = Dummy()
         self.list.append(obj)
-        self.assertEquals(len(self.list), 3)
+        self.assertEqual(len(self.list), 3)
         obj = None
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
 
     def testRemove(self):
         self.list.remove(self.object1)
-        self.assertEquals(len(self.list), 1)
+        self.assertEqual(len(self.list), 1)
 
     def testPop(self):
         obj = self.list.pop(0)
         self.assertIs(obj, self.object1)
-        self.assertEquals(len(self.list), 1)
+        self.assertEqual(len(self.list), 1)
 
     def testGetItem(self):
         self.assertIs(self.object1, self.list[0])
 
     def testGetItemSlice(self):
         objects = self.list[:]
-        self.assertEquals(len(objects), 2)
+        self.assertEqual(len(objects), 2)
         self.assertIs(self.object1, objects[0])
         self.assertIs(self.object2, objects[1])
 
     def testIter(self):
         obj_list = list(self.list)
-        self.assertEquals(len(obj_list), 2)
+        self.assertEqual(len(obj_list), 2)
         self.assertIs(self.object1, obj_list[0])
 
     def testLen(self):
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
 
     def testSetItem(self):
         obj = Dummy()
         self.list[0] = obj
         self.assertIsNot(self.object1, self.list[0])
         obj = None
-        self.assertEquals(len(self.list), 1)
+        self.assertEqual(len(self.list), 1)
 
     def testSetItemSlice(self):
         obj = Dummy()
         self.list[:] = [obj, obj]
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
         self.assertIs(obj, self.list[0])
         self.assertIs(obj, self.list[1])
         obj = None
-        self.assertEquals(len(self.list), 0)
+        self.assertEqual(len(self.list), 0)
 
     def testDelItem(self):
         del self.list[0]
-        self.assertEquals(len(self.list), 1)
+        self.assertEqual(len(self.list), 1)
         self.assertIs(self.object2, self.list[0])
 
     def testDelItemSlice(self):
         del self.list[:]
-        self.assertEquals(len(self.list), 0)
+        self.assertEqual(len(self.list), 0)
 
     def testContains(self):
         self.assertIn(self.object1, self.list)
@@ -232,76 +232,76 @@ class TestWeakList(unittest.TestCase):
         others = [Dummy()]
         l = self.list + others
         self.assertIs(l[0], self.object1)
-        self.assertEquals(len(l), 3)
+        self.assertEqual(len(l), 3)
         others = None
-        self.assertEquals(len(l), 2)
+        self.assertEqual(len(l), 2)
 
     def testExtend(self):
         others = [Dummy()]
         self.list.extend(others)
         self.assertIs(self.list[0], self.object1)
-        self.assertEquals(len(self.list), 3)
+        self.assertEqual(len(self.list), 3)
         others = None
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
 
     def testIadd(self):
         others = [Dummy()]
         self.list += others
         self.assertIs(self.list[0], self.object1)
-        self.assertEquals(len(self.list), 3)
+        self.assertEqual(len(self.list), 3)
         others = None
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
 
     def testMul(self):
         l = self.list * 2
         self.assertIs(l[0], self.object1)
-        self.assertEquals(len(l), 4)
+        self.assertEqual(len(l), 4)
         self.object1 = None
-        self.assertEquals(len(l), 2)
+        self.assertEqual(len(l), 2)
         self.assertIs(l[0], self.object2)
         self.assertIs(l[1], self.object2)
 
     def testImul(self):
         self.list *= 2
         self.assertIs(self.list[0], self.object1)
-        self.assertEquals(len(self.list), 4)
+        self.assertEqual(len(self.list), 4)
         self.object1 = None
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
         self.assertIs(self.list[0], self.object2)
         self.assertIs(self.list[1], self.object2)
 
     def testCount(self):
         self.list.append(self.object2)
-        self.assertEquals(self.list.count(self.object1), 1)
-        self.assertEquals(self.list.count(self.object2), 2)
+        self.assertEqual(self.list.count(self.object1), 1)
+        self.assertEqual(self.list.count(self.object2), 2)
 
     def testIndex(self):
-        self.assertEquals(self.list.index(self.object1), 0)
-        self.assertEquals(self.list.index(self.object2), 1)
+        self.assertEqual(self.list.index(self.object1), 0)
+        self.assertEqual(self.list.index(self.object2), 1)
 
     def testInsert(self):
         obj = Dummy()
         self.list.insert(1, obj)
-        self.assertEquals(len(self.list), 3)
+        self.assertEqual(len(self.list), 3)
         self.assertIs(self.list[1], obj)
         obj = None
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
 
     def testReverse(self):
         self.list.reverse()
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
         self.assertIs(self.list[0], self.object2)
         self.assertIs(self.list[1], self.object1)
 
     def testReverted(self):
         new_list = reversed(self.list)
-        self.assertEquals(len(new_list), 2)
+        self.assertEqual(len(new_list), 2)
         self.assertIs(self.list[1], self.object2)
         self.assertIs(self.list[0], self.object1)
         self.assertIs(new_list[0], self.object2)
         self.assertIs(new_list[1], self.object1)
         self.object1 = None
-        self.assertEquals(len(new_list), 1)
+        self.assertEqual(len(new_list), 1)
 
     def testStr(self):
         self.assertNotEquals(self.list.__str__(), "[]")
@@ -312,7 +312,7 @@ class TestWeakList(unittest.TestCase):
     def testSort(self):
         # only a coverage
         self.list.sort()
-        self.assertEquals(len(self.list), 2)
+        self.assertEqual(len(self.list), 2)
 
 
 def suite():

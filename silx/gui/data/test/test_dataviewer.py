@@ -183,7 +183,7 @@ class AbstractDataViewerTests(TestCaseQt):
         widget.dataChanged.connect(listener)
         widget.setData(10)
         widget.setData(None)
-        self.assertEquals(listener.callCount(), 2)
+        self.assertEqual(listener.callCount(), 2)
 
     def test_display_mode_event(self):
         listener = SignalListener()
@@ -192,7 +192,7 @@ class AbstractDataViewerTests(TestCaseQt):
         widget.setData(10)
         widget.setData(None)
         modes = [v.modeId() for v in listener.arguments(argumentIndex=0)]
-        self.assertEquals(modes, [DataViews.RAW_MODE, DataViews.EMPTY_MODE])
+        self.assertEqual(modes, [DataViews.RAW_MODE, DataViews.EMPTY_MODE])
         listener.clear()
 
     def test_change_display_mode(self):
@@ -201,13 +201,13 @@ class AbstractDataViewerTests(TestCaseQt):
         widget = self.create_widget()
         widget.setData(data)
         widget.setDisplayMode(DataViews.PLOT1D_MODE)
-        self.assertEquals(widget.displayedView().modeId(), DataViews.PLOT1D_MODE)
+        self.assertEqual(widget.displayedView().modeId(), DataViews.PLOT1D_MODE)
         widget.setDisplayMode(DataViews.IMAGE_MODE)
-        self.assertEquals(widget.displayedView().modeId(), DataViews.IMAGE_MODE)
+        self.assertEqual(widget.displayedView().modeId(), DataViews.IMAGE_MODE)
         widget.setDisplayMode(DataViews.RAW_MODE)
-        self.assertEquals(widget.displayedView().modeId(), DataViews.RAW_MODE)
+        self.assertEqual(widget.displayedView().modeId(), DataViews.RAW_MODE)
         widget.setDisplayMode(DataViews.EMPTY_MODE)
-        self.assertEquals(widget.displayedView().modeId(), DataViews.EMPTY_MODE)
+        self.assertEqual(widget.displayedView().modeId(), DataViews.EMPTY_MODE)
 
     def test_create_default_views(self):
         widget = self.create_widget()

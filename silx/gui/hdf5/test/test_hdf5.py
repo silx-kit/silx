@@ -123,9 +123,9 @@ class TestHdf5TreeModel(TestCaseQt):
     def testAppendFilename(self):
         filename = _tmpDirectory + "/data.h5"
         model = hdf5.Hdf5TreeModel()
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
         model.appendFile(filename)
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         # clean up
         index = model.index(0, 0, qt.QModelIndex())
         h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
@@ -141,9 +141,9 @@ class TestHdf5TreeModel(TestCaseQt):
         filename = _tmpDirectory + "/data.h5"
         try:
             model = hdf5.Hdf5TreeModel()
-            self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+            self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
             model.insertFile(filename)
-            self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
             # clean up
             index = model.index(0, 0, qt.QModelIndex())
             h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
@@ -157,7 +157,7 @@ class TestHdf5TreeModel(TestCaseQt):
         filename = _tmpDirectory + "/data.h5"
         try:
             model = hdf5.Hdf5TreeModel()
-            self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+            self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
             model.insertFileAsync(filename)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem)
@@ -172,25 +172,25 @@ class TestHdf5TreeModel(TestCaseQt):
     def testInsertObject(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
         model = hdf5.Hdf5TreeModel()
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
         model.insertH5pyObject(h5)
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
 
     def testRemoveObject(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
         model = hdf5.Hdf5TreeModel()
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
         model.insertH5pyObject(h5)
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         model.removeH5pyObject(h5)
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
 
     def testSynchronizeObject(self):
         filename = _tmpDirectory + "/data.h5"
         h5 = h5py.File(filename)
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(h5)
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         index = model.index(0, 0, qt.QModelIndex())
         node1 = model.nodeFromIndex(index)
         model.synchronizeH5pyObject(h5)
@@ -220,15 +220,15 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testFileMoveState(self):
         model = hdf5.Hdf5TreeModel()
-        self.assertEquals(model.isFileMoveEnabled(), True)
+        self.assertEqual(model.isFileMoveEnabled(), True)
         model.setFileMoveEnabled(False)
-        self.assertEquals(model.isFileMoveEnabled(), False)
+        self.assertEqual(model.isFileMoveEnabled(), False)
 
     def testFileDropState(self):
         model = hdf5.Hdf5TreeModel()
-        self.assertEquals(model.isFileDropEnabled(), True)
+        self.assertEqual(model.isFileDropEnabled(), True)
         model.setFileDropEnabled(False)
-        self.assertEquals(model.isFileDropEnabled(), False)
+        self.assertEqual(model.isFileDropEnabled(), False)
 
     def testSupportedDrop(self):
         model = hdf5.Hdf5TreeModel()
@@ -236,7 +236,7 @@ class TestHdf5TreeModel(TestCaseQt):
 
         model.setFileMoveEnabled(False)
         model.setFileDropEnabled(False)
-        self.assertEquals(model.supportedDropActions(), 0)
+        self.assertEqual(model.supportedDropActions(), 0)
 
         model.setFileMoveEnabled(False)
         model.setFileDropEnabled(True)
@@ -252,7 +252,7 @@ class TestHdf5TreeModel(TestCaseQt):
         mimeData = qt.QMimeData()
         mimeData.setUrls([qt.QUrl.fromLocalFile(filename)])
         model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
-        self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         # after sync
         self.waitForPendingOperations(model)
         index = model.index(0, 0, qt.QModelIndex())
@@ -285,13 +285,13 @@ class TestHdf5TreeModel(TestCaseQt):
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(h5)
         displayed = self.getRowDataAsDict(model, row=0)
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock")
         self.assertIsInstance(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon)
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "File")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], "")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "File")
 
     def testGroupData(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
@@ -301,13 +301,13 @@ class TestHdf5TreeModel(TestCaseQt):
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(d)
         displayed = self.getRowDataAsDict(model, row=0)
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock::foo")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock::foo")
         self.assertIsInstance(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon)
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "fooo")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Group")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], "")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "fooo")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Group")
 
     def testDatasetData(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
@@ -317,13 +317,13 @@ class TestHdf5TreeModel(TestCaseQt):
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(d)
         displayed = self.getRowDataAsDict(model, row=0)
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock::foo")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock::foo")
         self.assertIsInstance(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon)
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], value.dtype.name)
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "3")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "[1 2 3]")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEquals(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Dataset")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], value.dtype.name)
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "3")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "[1 2 3]")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "")
+        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Dataset")
 
     def testDropLastAsFirst(self):
         model = hdf5.Hdf5TreeModel()
@@ -331,13 +331,13 @@ class TestHdf5TreeModel(TestCaseQt):
         h5_2 = commonh5.File("/foo/bar/2.mock", "w")
         model.insertH5pyObject(h5_1)
         model.insertH5pyObject(h5_2)
-        self.assertEquals(self.getItemName(model, 0), "1.mock")
-        self.assertEquals(self.getItemName(model, 1), "2.mock")
+        self.assertEqual(self.getItemName(model, 0), "1.mock")
+        self.assertEqual(self.getItemName(model, 1), "2.mock")
         index = model.index(1, 0, qt.QModelIndex())
         mimeData = model.mimeData([index])
         model.dropMimeData(mimeData, qt.Qt.MoveAction, 0, 0, qt.QModelIndex())
-        self.assertEquals(self.getItemName(model, 0), "2.mock")
-        self.assertEquals(self.getItemName(model, 1), "1.mock")
+        self.assertEqual(self.getItemName(model, 0), "2.mock")
+        self.assertEqual(self.getItemName(model, 1), "1.mock")
 
     def testDropFirstAsLast(self):
         model = hdf5.Hdf5TreeModel()
@@ -345,13 +345,13 @@ class TestHdf5TreeModel(TestCaseQt):
         h5_2 = commonh5.File("/foo/bar/2.mock", "w")
         model.insertH5pyObject(h5_1)
         model.insertH5pyObject(h5_2)
-        self.assertEquals(self.getItemName(model, 0), "1.mock")
-        self.assertEquals(self.getItemName(model, 1), "2.mock")
+        self.assertEqual(self.getItemName(model, 0), "1.mock")
+        self.assertEqual(self.getItemName(model, 1), "2.mock")
         index = model.index(0, 0, qt.QModelIndex())
         mimeData = model.mimeData([index])
         model.dropMimeData(mimeData, qt.Qt.MoveAction, 2, 0, qt.QModelIndex())
-        self.assertEquals(self.getItemName(model, 0), "2.mock")
-        self.assertEquals(self.getItemName(model, 1), "1.mock")
+        self.assertEqual(self.getItemName(model, 0), "2.mock")
+        self.assertEqual(self.getItemName(model, 1), "1.mock")
 
     def testRootParent(self):
         model = hdf5.Hdf5TreeModel()
@@ -359,7 +359,7 @@ class TestHdf5TreeModel(TestCaseQt):
         model.insertH5pyObject(h5_1)
         index = model.index(0, 0, qt.QModelIndex())
         index = model.parent(index)
-        self.assertEquals(index, qt.QModelIndex())
+        self.assertEqual(index, qt.QModelIndex())
 
 
 class TestHdf5TreeModelSignals(TestCaseQt):
@@ -397,27 +397,27 @@ class TestHdf5TreeModelSignals(TestCaseQt):
         filename = _tmpDirectory + "/data.h5"
         h5 = h5py.File(filename)
         self.model.insertH5pyObject(h5)
-        self.assertEquals(self.listener.callCount(), 0)
+        self.assertEqual(self.listener.callCount(), 0)
 
     def testLoaded(self):
         filename = _tmpDirectory + "/data.h5"
         self.model.insertFile(filename)
-        self.assertEquals(self.listener.callCount(), 1)
-        self.assertEquals(self.listener.karguments(argumentName="signal")[0], "loaded")
+        self.assertEqual(self.listener.callCount(), 1)
+        self.assertEqual(self.listener.karguments(argumentName="signal")[0], "loaded")
         self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
-        self.assertEquals(self.listener.arguments(callIndex=0)[0].filename, filename)
+        self.assertEqual(self.listener.arguments(callIndex=0)[0].filename, filename)
 
     def testRemoved(self):
         self.model.removeH5pyObject(self.h5)
-        self.assertEquals(self.listener.callCount(), 1)
-        self.assertEquals(self.listener.karguments(argumentName="signal")[0], "removed")
+        self.assertEqual(self.listener.callCount(), 1)
+        self.assertEqual(self.listener.karguments(argumentName="signal")[0], "removed")
         self.assertIs(self.listener.arguments(callIndex=0)[0], self.h5)
 
     def testSynchonized(self):
         self.model.synchronizeH5pyObject(self.h5)
         self.waitForPendingOperations(self.model)
-        self.assertEquals(self.listener.callCount(), 1)
-        self.assertEquals(self.listener.karguments(argumentName="signal")[0], "synchronized")
+        self.assertEqual(self.listener.callCount(), 1)
+        self.assertEqual(self.listener.karguments(argumentName="signal")[0], "synchronized")
         self.assertIs(self.listener.arguments(callIndex=0)[0], self.h5)
         self.assertIsNot(self.listener.arguments(callIndex=0)[1], self.h5)
 
@@ -895,7 +895,7 @@ class TestHdf5TreeView(TestCaseQt):
         view.setSelectedH5Node(tree)
 
         selection = list(view.selectedH5Nodes())
-        self.assertEquals(len(selection), 0)
+        self.assertEqual(len(selection), 0)
 
     def testSelection_Tree(self):
         tree1 = commonh5.File("/foo/bar/1.mock", "w")
