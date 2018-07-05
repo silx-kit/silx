@@ -295,7 +295,7 @@ kernel void matching_v2(
 
     local unsigned char desc1[64]; //store the descriptor of keypoint we are looking (in list 1)
     local int3 candidates[64];
-    local int3 parallel[64]; //for the parallel reduction
+    //local int3 parallel[64]; //for the parallel reduction
 
 
     for (int i = 0; i < 2; i++)
@@ -331,7 +331,7 @@ kernel void matching_v2(
     //Find the global minimum and the "second minimum" : (min1,min2)
 
 
-    unsigned int d1_0, d2_0, d1_1, d2_1, cmin_0, cmin_1;
+    int d1_0, d2_0, d1_1, d2_1, cmin_0, cmin_1;
     int2 sol;
 
     //parallel reduction
@@ -388,7 +388,7 @@ kernel void matching_v2(
         d1_1 = candidates[lid0+1].s0; d2_1 = candidates[lid0+1].s1; cmin_1 = candidates[lid0+1].s2;
         sol = (int2) DOUBLEMIN(d1_0,d2_0,d1_1,d2_1);
         float dist10 = (float) sol.s0, dist20 = (float) sol.s1;
-        unsigned int index_abs_min = (sol.s0 == d1_0 ? cmin_0 : cmin_1);
+        int index_abs_min = (sol.s0 == d1_0 ? cmin_0 : cmin_1);
         if (dist20 != 0 && dist10/dist20 < ratio_th && gid <= index_abs_min) {
             int2 pair = 0;
             pair.s0 = gid;

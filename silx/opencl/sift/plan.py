@@ -54,7 +54,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/01/2018"
+__date__ = "05/07/2018"
 __status__ = "production"
 
 import os
@@ -465,10 +465,10 @@ class SiftPlan(OpenclProcessing):
                 # common bug on OSX when running on CPU
                 logger.info("Unable to use MinMax Reduction: stage1 wg: %s; stage2 wg: %s < max_work_group_size: %s, expected: %s",
                             wg1, wg2, self.block_size, self.red_size)
-                kernel = self.kernels.get_kernel("max_min_serial")
+                kernel = self.kernels.get_kernel("max_min_vec16")
                 k = kernel(self.queue, (1,), (1,),
                                self.cl_mem["scale_0"].data,
-                               numpy.uint32(self.shape[0] * self.shape[1]),
+                               numpy.int32(self.shape[0] * self.shape[1]),
                                self.cl_mem["max"].data,
                                self.cl_mem["min"].data)
                 if self.profile:
@@ -485,7 +485,7 @@ class SiftPlan(OpenclProcessing):
                 k1 = kernel1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
                              self.cl_mem["scale_0"].data,
                              self.cl_mem["max_min"].data,
-                             numpy.uint32(self.shape[0] * self.shape[1]),
+                             numpy.int32(self.shape[0] * self.shape[1]),
                              shm)
                 k2 = kernel2(self.queue, (self.red_size,), (self.red_size,),
                              self.cl_mem["max_min"].data,

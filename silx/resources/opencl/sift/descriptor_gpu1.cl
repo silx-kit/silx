@@ -134,7 +134,7 @@ kernel void descriptor_gpu1(
     float cosine = cos((float) angle);
     int irow = (int) (row + 0.5f);
     int icol = (int) (col + 0.5f);
-    int radius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
+    //int radius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
     int imin = -64 +32 * lid1;
     int jmin = -64 +32 * lid2;
     int imax = imin + 32;

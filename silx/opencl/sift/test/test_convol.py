@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/06/2018"
+__date__ = "05/07/2018"
 
 import os
 import time
@@ -144,9 +144,9 @@ class TestConvol(unittest.TestCase):
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
-                self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
-                self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
@@ -176,9 +176,9 @@ class TestConvol(unittest.TestCase):
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
-                self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
-                self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
@@ -207,9 +207,9 @@ class TestConvol(unittest.TestCase):
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
-                self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
-                self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))

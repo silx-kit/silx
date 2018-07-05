@@ -55,15 +55,15 @@
 kernel void max_min_global_stage1(
         global const   float  *data,
         global         float2 *out,
-        unsigned       int     SIZE,
+               const   int     SIZE,
         local volatile float2 *ldata)
 {
 
-    unsigned int group_size =  get_local_size(0);
-    unsigned int lid = get_local_id(0);
+    int group_size = (int) get_local_size(0);
+    int lid = (int) get_local_id(0);
     float2 acc;
-    unsigned int big_block = group_size * get_num_groups(0);
-    unsigned int i =  lid + group_size * get_group_id(0);
+    int big_block = group_size * get_num_groups(0);
+    int i =  lid + group_size * get_group_id(0);
 
     if (lid<SIZE)
         acc = READ_AND_MAP(lid);
@@ -109,8 +109,8 @@ kernel void max_min_global_stage2(
         global         float  *minimum,
         local volatile float2 *ldata)
 {
-    unsigned int lid = get_local_id(0);
-    unsigned int group_size =  get_local_size(0);
+    int lid = (int) get_local_id(0);
+    int group_size = (int) get_local_size(0);
     float2 acc = (float2)(-1.0f, -1.0f);
     if (lid<=group_size)
     {
@@ -156,7 +156,7 @@ kernel void max_min_global_stage2(
  */
 kernel void max_min_serial(
         global const float *data,
-        unsigned int SIZE,
+               const int SIZE,
         global float *maximum,
         global float *minimum)
 {
@@ -188,11 +188,11 @@ kernel void max_min_serial(
  */
 kernel void max_min_vec16(
         global const float *data,
-        unsigned int SIZE,
+               const int SIZE,
         global float *maximum,
         global float *minimum)
 {
-    unsigned int i, j;
+    int i, j;
     union
     {
         float  ary[16];

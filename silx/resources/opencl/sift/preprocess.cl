@@ -55,10 +55,13 @@ u8_to_float( global unsigned char  *array_int,
              const int IMAGE_H
 )
 {
+	int gid0 = (int) get_global_id(0);
+	int gid1 = (int) get_global_id(1);
     //Global memory guard for padding
-    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
-        int i = get_global_id(0) + IMAGE_W * get_global_id(1);
-    	array_float[i]=(float)array_int[i];
+    if ((gid0 < IMAGE_W) && (gid1 < IMAGE_H))
+    {
+        int i = gid0 + IMAGE_W * gid1;
+    	array_float[i] = (float)array_int[i];
     } //end test in image
 }//end kernel
 
@@ -67,8 +70,8 @@ u8_to_float( global unsigned char  *array_int,
  *
  * :param array_int:    Pointer to global memory with the input data as unsigned16 array
  * :param array_float:  Pointer to global memory with the output data as float array
- * :param IMAGE_W:        Width of the image
- * :param IMAGE_H:         Height of the image
+ * :param IMAGE_W:      Width of the image
+ * :param IMAGE_H:      Height of the image
  */
 kernel void
 u16_to_float(global unsigned short  *array_int,
@@ -77,10 +80,13 @@ u16_to_float(global unsigned short  *array_int,
              const int IMAGE_H
 )
 {
+	int gid0 = (int) get_global_id(0);
+	int gid1 = (int) get_global_id(1);
     //Global memory guard for padding
-    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
-    	int i = get_global_id(0) + IMAGE_W * get_global_id(1);
-    	array_float[i]=(float)array_int[i];
+    if ((gid0 < IMAGE_W) && (gid1 < IMAGE_H))
+    {
+    	int i = gid0 + IMAGE_W * gid1;
+    	array_float[i] = (float)array_int[i];
     }
 }//end kernel
 
@@ -96,13 +102,15 @@ kernel void
 u32_to_float(global unsigned int  *array_int,
              global float *array_float,
              const int IMAGE_W,
-             const int IMAGE_H
-)
+             const int IMAGE_H)
 {
+	int gid0 = (int) get_global_id(0);
+	int gid1 = (int) get_global_id(1);
     //Global memory guard for padding
-    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
-    	int i = get_global_id(0) + IMAGE_W * get_global_id(1);
-    	array_float[i]=(float)array_int[i];
+    if ((gid0 < IMAGE_W) && (gid1 < IMAGE_H))
+    {
+    	int i = gid0 + IMAGE_W * gid1;
+    	array_float[i] = (float)array_int[i];
     }
 }//end kernel
 
@@ -118,13 +126,15 @@ kernel void
 u64_to_float(global unsigned long  *array_int,
              global float *array_float,
              const int IMAGE_W,
-             const int IMAGE_H
-)
+             const int IMAGE_H)
 {
+	int gid0 = (int) get_global_id(0);
+	int gid1 = (int) get_global_id(1);
     //Global memory guard for padding
-    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
-        int i = get_global_id(0) + IMAGE_W * get_global_id(1);
-        array_float[i]=(float)array_int[i];
+    if ((gid0<IMAGE_W) && (gid1 < IMAGE_H))
+    {
+        int i = gid0 + IMAGE_W * gid1;
+        array_float[i] = (float)array_int[i];
     }
 }//end kernel
 
@@ -138,14 +148,16 @@ u64_to_float(global unsigned long  *array_int,
  */
 kernel void
 s32_to_float(    global int  *array_int,
-                global float  *array_float,
+                 global float  *array_float,
                  const int IMAGE_W,
-                 const int IMAGE_H
-)
+                 const int IMAGE_H)
 {
+	int gid0 = (int) get_global_id(0);
+	int gid1 = (int) get_global_id(1);
     //Global memory guard for padding
-    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
-    	int i = get_global_id(0) + IMAGE_W * get_global_id(1);
+    if ((gid0 < IMAGE_W) && (gid1 < IMAGE_H))
+    {
+    	int i = gid0 + IMAGE_W * gid1;
         array_float[i] = (float)(array_int[i]);
     }//end test in image
 }//end kernel
@@ -162,12 +174,14 @@ kernel void
 s64_to_float(    global long *array_int,
                 global float  *array_float,
                  const int IMAGE_W,
-                 const int IMAGE_H
-)
+                 const int IMAGE_H)
 {
+	int gid0 = (int) get_global_id(0);
+	int gid1 = (int) get_global_id(1);
     //Global memory guard for padding
-    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
-    	int i = get_global_id(0) + IMAGE_W * get_global_id(1);
+    if ((gid0 < IMAGE_W) && (gid1 < IMAGE_H))
+    {
+    	int i = gid0 + IMAGE_W * gid1;
         array_float[i] = (float)(array_int[i]);
     }//end test in image
 }//end kernel
@@ -210,12 +224,14 @@ kernel void
 rgb_to_float(    global unsigned char *array_int,
                 global float  *array_float,
                  const int IMAGE_W,
-                 const int IMAGE_H
-)
+                 const int IMAGE_H)
 {
+	int gid0 = (int) get_global_id(0);
+	int gid1 = (int) get_global_id(1);
     //Global memory guard for padding
-    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
-    	int i = get_global_id(0) + IMAGE_W * get_global_id(1);
+    if ((gid0 < IMAGE_W) && (gid1 < IMAGE_H))
+    {
+    	int i = gid0 + IMAGE_W * gid1;
         array_float[i] = 0.299f*array_int[3*i] + 0.587f*array_int[3*i+1] + 0.114f*array_int[3*i+2];
     }  //end test in image
 }//end kernel
@@ -246,7 +262,7 @@ normalizes(    global       float     *image,
     int gid0 = (int) get_global_id(0);
     int gid1 = (int) get_global_id(1);
 
-    if((gid0 < IMAGE_W) && (gid1<IMAGE_H))
+    if((gid0 < IMAGE_W) && (gid1 < IMAGE_H))
     {
         int i = gid0 + IMAGE_W * gid1;
         image[i] = max_out[0]*(image[i]-min_in[0])/(max_in[0]-min_in[0]);
@@ -360,7 +376,7 @@ divide_cst( global     float     *data,
             const        int     SIZE)
 {
     int gid = (int) get_global_id(0);
-    if(gid < SIZE)
+    if (gid < SIZE)
     {
         data[gid] = data[gid] / value[0];
     }

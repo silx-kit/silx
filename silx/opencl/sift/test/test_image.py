@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/09/2017"
+__date__ = "05/07/2018"
 
 import time
 import logging
@@ -124,8 +124,8 @@ class TestImage(unittest.TestCase):
 
         logger.info("delta_norm=%s" % delta_norm)
         logger.info("delta_ori=%s" % delta_ori)
-        self.assert_(delta_norm < 1e-4, "delta_norm=%s" % (delta_norm))
-        self.assert_(delta_ori < 1e-4, "delta_ori=%s" % (delta_ori))
+        self.assertLess(delta_norm, 1e-4, "delta_norm=%s" % (delta_norm))
+        self.assertLess(delta_ori, 1e-4, "delta_ori=%s" % (delta_ori))
 
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
@@ -180,9 +180,9 @@ class TestImage(unittest.TestCase):
             logger.info(res[0:self.actual_nb_keypoints])  # [0:74]
             # logger.info(ref[0:32]
 
-        self.assert_(delta_peaks < 1e-4, "delta_peaks=%s" % (delta_peaks))
-        self.assert_(delta_r < 1e-4, "delta_r=%s" % (delta_r))
-        self.assert_(delta_c < 1e-4, "delta_c=%s" % (delta_c))
+        self.assertLess(delta_peaks, 1e-4, "delta_peaks=%s" % (delta_peaks))
+        self.assertLess(delta_r, 1e-4, "delta_r=%s" % (delta_r))
+        self.assertLess(delta_c, 1e-4, "delta_c=%s" % (delta_c))
         logger.info("delta_peaks=%s" % delta_peaks)
         logger.info("delta_r=%s" % delta_r)
         logger.info("delta_c=%s" % delta_c)
@@ -246,7 +246,7 @@ class TestImage(unittest.TestCase):
 #         print(res2)
 
         delta = norm_L1(ref2, res2)
-        self.assert_(delta < 0.43, "delta=%s" % (delta))
+        self.assertLess(delta, 0.43, "delta=%s" % (delta))
         logger.info("delta=%s" % delta)
 
         if self.PROFILE:

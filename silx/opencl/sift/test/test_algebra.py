@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/06/2018"
+__date__ = "05/07/2018"
 
 import os
 import time
@@ -135,7 +135,7 @@ class TestAlgebra(unittest.TestCase):
         t2 = time.time()
         delta = abs(ref - res).max()
         logger.debug("delta=%s" % delta)
-        self.assert_(delta < 1e-4, "delta=%s" % (delta))
+        self.assertLess(delta, 1e-4, "delta=%s" % (delta))
         if self.PROFILE:
             logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.debug("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
@@ -183,7 +183,7 @@ class TestAlgebra(unittest.TestCase):
         ref_sort_arg = ref[:, 2].argsort(axis=0)
         ref_sort = ref[ref_sort_arg]
         delta = abs((res_sort - ref_sort)).max()
-        self.assert_(delta < 1e-5, "delta=%s" % (delta))
+        self.assertLess(delta, 1e-5, "delta=%s" % (delta))
         self.assertEqual(count, count_ref, "counters are the same")
         logger.debug("delta=%s", delta)
         if self.PROFILE:

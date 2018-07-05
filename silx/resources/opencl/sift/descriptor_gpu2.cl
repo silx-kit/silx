@@ -110,9 +110,9 @@ kernel void descriptor_gpu2(
     int grad_width,
     int grad_height)
 {
-    int lid0 = get_local_id(0); //[0,8[
-    int lid1 = get_local_id(1); //[0,8[
-    int lid2 = get_local_id(2); //[0,8[
+    int lid0 = (int) get_local_id(0); //[0,8[
+    int lid1 = (int) get_local_id(1); //[0,8[
+    int lid2 = (int) get_local_id(2); //[0,8[
     int lid = (lid2*get_local_size(1)+lid1)*get_local_size(0)+lid0; //[0,512[ but we will use only up to 128
     int groupid = get_group_id(0);
     if ((groupid < keypoints_start) || (groupid >= *keypoints_end))
@@ -132,20 +132,20 @@ kernel void descriptor_gpu2(
     local volatile unsigned int hist3[128*8];   //for the atomic_add
     local int changed[1];                       //keep track of changes
     
-    float rx, cx,
-          one_octsize = 1.0f/octsize,
-          row = kp.row*one_octsize,
-          col = kp.col*one_octsize,
-          sine = sin(kp.angle),
-          cosine = cos(kp.angle),
-          spacing = kp.scale*one_octsize * 3.0f;
-    int    irow = (int) (row + 0.5f),
-        icol = (int) (col + 0.5f),
-        radius = (int) ((1.414f * spacing * 2.5f) + 0.5f),
-        imin = -64 + 16*lid1,
-        jmin = -64 + 16*lid2,
-        imax = imin+16,
-        jmax = jmin+16;
+    float rx, cx;
+	float one_octsize = 1.0f/octsize;
+	float row = kp.row*one_octsize;
+	float col = kp.col*one_octsize;
+	float sine = sin(kp.angle);
+	float cosine = cos(kp.angle);
+	float spacing = kp.scale*one_octsize * 3.0f;
+    int   irow = (int) (row + 0.5f);
+    int   icol = (int) (col + 0.5f);
+    //int   radius = (int) ((1.414f * spacing * 2.5f) + 0.5f);
+    int   imin = -64 + 16*lid1;
+    int   jmin = -64 + 16*lid2;
+    int   imax = imin+16;
+    int   jmax = jmin+16;
         
     //memset
     for (i=0; i < 2; i++)
