@@ -120,6 +120,7 @@ class CompareImages(qt.QMainWindow):
         icon = icons.getQIcon("compare-mode-a")
         action = qt.QAction(icon, "Display the first image only", self)
         action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_A))
         toolbar.addAction(action)
         self.__aModeAction = action
         self.__interactionGroup.addAction(action)
@@ -127,6 +128,7 @@ class CompareImages(qt.QMainWindow):
         icon = icons.getQIcon("compare-mode-b")
         action = qt.QAction(icon, "Display the second image only", self)
         action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
         toolbar.addAction(action)
         self.__bModeAction = action
         self.__interactionGroup.addAction(action)
@@ -134,6 +136,7 @@ class CompareImages(qt.QMainWindow):
         icon = icons.getQIcon("compare-mode-vline")
         action = qt.QAction(icon, "Vertical compare mode", self)
         action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_V))
         toolbar.addAction(action)
         self.__vlineModeAction = action
         self.__interactionGroup.addAction(action)
@@ -141,6 +144,7 @@ class CompareImages(qt.QMainWindow):
         icon = icons.getQIcon("compare-mode-hline")
         action = qt.QAction(icon, "Horizontal compare mode", self)
         action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_H))
         toolbar.addAction(action)
         self.__hlineModeAction = action
         self.__interactionGroup.addAction(action)
@@ -148,6 +152,7 @@ class CompareImages(qt.QMainWindow):
         icon = icons.getQIcon("compare-mode-channel")
         action = qt.QAction(icon, "Blue/red compare mode", self)
         action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_C))
         toolbar.addAction(action)
         self.__channelModeAction = action
         self.__interactionGroup.addAction(action)
