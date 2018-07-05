@@ -33,7 +33,7 @@ Dependencies
 The GUI widgets depend on the following extra packages:
 
 * A Qt binding: either `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_,
-  `PySide <https://pypi.python.org/pypi/PySide/>`_, or `PySide2 <https://wiki.qt.io/PySide2>`_
+  or `PySide2 <https://wiki.qt.io/Qt_for_Python>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 * `qt_console <https://pypi.python.org/pypi/qtconsole>`_

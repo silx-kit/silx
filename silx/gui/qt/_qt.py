@@ -22,21 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Common wrapper over Python Qt bindings:
-
-- `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_,
-- `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_ or
-- `PySide <http://www.pyside.org>`_.
-
-If a Qt binding is already loaded, it will use it, otherwise the different
-Qt bindings are tried in this order: PySide2, PyQt4, PySide, PyQt5.
-
-The name of the loaded Qt binding is stored in the BINDING variable.
-
-For an alternative solution providing a structured namespace,
-see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
-provides the namespace of PyQt5 over PyQt4, PySide and PySide2.
-"""
+"""Load Qt binding"""
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
@@ -47,15 +33,17 @@ import logging
 import sys
 import traceback
 
+from ...utils.deprecation import deprecated_warning
+
 
 _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The name of the Qt binding in use: PyQt5, 'PyQt4, PySide2 or PySide."""
+"""The name of the Qt binding in use: PyQt5, PyQt4 or PySide2."""
 
 QtBinding = None  # noqa
-"""The Qt binding module in use: PyQt5, PyQt4, PySide2 or PySide."""
+"""The Qt binding module in use: PyQt5, PyQt4 or PySide2."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -84,17 +72,17 @@ else:  # Then try Qt bindings
             import PyQt4  # noqa
         except ImportError:
             try:
-                import PySide  # noqa
+                import PySide2  # noqa
             except ImportError:
                 try:
-                    import PySide2  # noqa
+                    import PySide  # noqa
                 except ImportError:
                     raise ImportError(
                         'No Qt wrapper found. Install PyQt5, PyQt4 or PySide2.')
                 else:
-                    BINDING = 'PySide2'
+                    BINDING = 'PySide'
             else:
-                BINDING = 'PySide'
+                BINDING = 'PySide2'
         else:
             BINDING = 'PyQt4'
     else:
@@ -144,6 +132,9 @@ if BINDING == 'PyQt4':
 
 elif BINDING == 'PySide':
     _logger.debug('Using PySide bindings')
+    deprecated_warning("Qt Binding", "PySide",
+                       replacement='PySide2',
+                       since_version='0.9.0')
 
     import PySide as QtBinding  # noqa
 

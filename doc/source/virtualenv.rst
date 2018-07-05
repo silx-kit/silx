@@ -178,7 +178,7 @@ Install silx
     pip install silx
 
 
-To test *silx*, open an interactive python console. If you managed to install PyQt or PySide
+To test *silx*, open an interactive python console. If you managed to install PyQt5, PySide2 or PyQt4
 in your virtualenv, type:
 
 .. code-block:: bash

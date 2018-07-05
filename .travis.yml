@@ -69,13 +69,13 @@ before_install:
 
 install:
     # Upgrade distribution modules
-    - python -m pip install --upgrade pip
-    - pip install --upgrade setuptools
+    - python -m pip install -q --upgrade pip
+    - pip install -q --upgrade setuptools
 
     # Install build dependencies
-    - pip install --upgrade wheel
-    - pip install --upgrade numpy
-    - pip install --upgrade cython
+    - pip install -q --upgrade wheel
+    - pip install -q --upgrade numpy
+    - pip install -q --upgrade cython
 
     # Print Python info
     - python ./ci/info_platform.py
@@ -103,17 +103,17 @@ before_script:
     # First install any temporary pinned/additional requirements
     - if [ -s "ci/requirements-pinned.txt" ];
       then
-          pip install -r ci/requirements-pinned.txt;
+          pip install -q -r ci/requirements-pinned.txt;
       fi
 
     # Install optional dependencies for running test
-    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==$PYOPENCL_VERSION
+    - pip install -q --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==$PYOPENCL_VERSION
     # This installs PyQt and scipy if wheels are available
-    - pip install --pre -r requirements.txt
+    - pip install -q --pre -r requirements.txt
     # Install PySide2 if needed
     - if [ "$QT_BINDING" == "PySide2" ];
       then
-          pip install --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io;
+          pip install -q --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io;
       fi
 
     # Install built package
@@ -132,7 +132,7 @@ before_script:
 
     - if [ "$TRAVIS_OS_NAME" == "osx" ];
       then
-          pip install --upgrade pynput;
+          pip install -q --upgrade pynput;
           python ci/close_popup.py;
       fi
 
