@@ -191,7 +191,8 @@ class _CellFilterAvailableData(_CellData):
 
     _states = {
         True: ("Available", qt.QColor(0x000000), None, None),
-        False: ("Not available", qt.QColor(0xFFFFFF), qt.QColor(0xFF0000), None),
+        False: ("Not available", qt.QColor(0xFFFFFF), qt.QColor(0xFF0000),
+                "You have to install this filter on your system to be able to read this dataset"),
         "na": ("n.a.", qt.QColor(0x000000), None,
                "This version of h5py/hdf5 is not able to display the information"),
     }
