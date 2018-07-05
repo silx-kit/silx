@@ -37,11 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-<<<<<<< HEAD
-__date__ = "04/07/2018"
-=======
-__date__ = "25/06/2018"
->>>>>>> upstream/master
+__date__ = "05/07/2018"
 
 import os
 import unittest
@@ -227,10 +223,6 @@ def suite():
         testSuite.addTest(TestReduction("test_max_min_rnd"))
         testSuite.addTest(TestReduction("test_max_min"))
         testSuite.addTest(TestReduction("test_max_min_rnd_big"))
-<<<<<<< HEAD
         testSuite.addTest(TestReduction("test_max_min_serial"))
         testSuite.addTest(TestReduction("test_max_min_vectorial"))
-=======
-
->>>>>>> upstream/master
     return testSuite
