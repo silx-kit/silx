@@ -113,7 +113,7 @@ before_script:
     # Install PySide2 if needed
     - if [ "$QT_BINDING" == "PySide2" ];
       then
-          pip install --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io
+          pip install --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io;
       fi
 
     # Install built package
@@ -143,9 +143,9 @@ script:
       fi
     - echo "QT_BINDING="$QT_BINDING
     - if [ -n "$QT_BINDING" ];
-          python run_tests.py --installed -v --qt-binding=$QT_BINDING
+          python run_tests.py --installed -v --qt-binding=$QT_BINDING;
       else
-          python run_tests.py --installed -v --no-gui
+          python run_tests.py --installed -v --no-gui;
       fi
 
 after_failure:
