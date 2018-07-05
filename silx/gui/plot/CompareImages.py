@@ -50,9 +50,13 @@ except ImportError as e:
 
 
 class CompareImages(qt.QMainWindow):
+    """Widget providing tools to compare 2 images.
 
-    def __init__(self):
-        qt.QMainWindow.__init__(self)
+    :param Union[qt.QWidget,None]: Parent of this widget.
+    """
+
+    def __init__(self, parent=None):
+        qt.QMainWindow.__init__(self, parent)
         self.setWindowTitle("Plot with synchronized axes")
         widget = qt.QWidget(self)
         self.setCentralWidget(widget)
@@ -111,6 +115,7 @@ class CompareImages(qt.QMainWindow):
         return self.__plot2d
 
     def _createToolBar(self):
+        """Create default toolbars and actions."""
         toolbar = qt.QToolBar(self)
 
         self.__interactionGroup = qt.QActionGroup(self)
@@ -208,12 +213,17 @@ class CompareImages(qt.QMainWindow):
         return toolbar
 
     def __interactionChanged(self, selectedAction):
+        """Called when interaction mode changes.
+
+        Update dispalyed widgets and displayed images.
+        """
         mode = self.__getInteractionMode()
         self.__vline.setVisible(mode == "vline")
         self.__hline.setVisible(mode == "hline")
         self.__invalidateData()
 
     def __getInteractionMode(self):
+        """Returns the current interaction mode."""
         if self.__aModeAction.isChecked():
             return "a"
         elif self.__bModeAction.isChecked():
@@ -228,12 +238,16 @@ class CompareImages(qt.QMainWindow):
             raise ValueError("Unknown interaction mode")
 
     def __alignmentChanged(self, selectedAction):
+        """Called when alignement mode changes.
+
+        Update the global alignement widget when alignemnt mode changes."""
         self.__alignmentAction.setText(selectedAction.text())
         self.__alignmentAction.setIcon(selectedAction.icon())
         self.__alignmentAction.setToolTip(selectedAction.toolTip())
         self.__invalidateData()
 
     def __getAlignmentMode(self):
+        """Returns the current selected alignemnt mode."""
         action = self.__alignmentGroup.checkedAction()
         if action is self.__originAlignAction:
             return "origin"
@@ -246,6 +260,7 @@ class CompareImages(qt.QMainWindow):
         raise ValueError("Unknown alignment mode")
 
     def __setDefaultAlignmentMode(self):
+        """Reset the alignemnt mode to the default value"""
         self.__originAlignAction.trigger()
 
     def __plotSlot(self, event):
@@ -264,6 +279,7 @@ class CompareImages(qt.QMainWindow):
                     self.__previousSeparatorPosition = value
 
     def __separatorConstraint(self, x, y):
+        """Manage contains on the separators to clamp them inside the images."""
         if self.__data1 is None:
             return 0, 0
         x = int(x)
@@ -279,6 +295,8 @@ class CompareImages(qt.QMainWindow):
         return x, y
 
     def __invalidateSeparator(self):
+        """Redraw images according to the current state of the separators.
+        """
         mode = self.__getInteractionMode()
         if mode == "vline":
             pos = self.__vline.getXPosition()
@@ -292,6 +310,10 @@ class CompareImages(qt.QMainWindow):
         self.__previousSeparatorPosition = pos
 
     def __separatorMoved(self, pos):
+        """Called when vertical or horizontal separators have moved.
+
+        Update the displayed images.
+        """
         if self.__data1 is None:
             return
 
@@ -322,12 +344,25 @@ class CompareImages(qt.QMainWindow):
             assert(False)
 
     def setData(self, image1, image2):
+        """Set images to compare.
+
+        Images can contains floating-point or integer values, or RGB and RGBA
+        values, but should have comparable intensities.
+
+        RGB and RGBA images are provided as an array as `[width,height,channels]`
+        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+
+        :param numpy.ndarray image1: The first image
+        :param numpy.ndarray image2: The second image
+        """
         self.__raw1 = image1
         self.__raw2 = image2
         self.__invalidateData()
         self.__plot2d.resetZoom()
 
     def __invalidateScatter(self):
+        """Update the displayed keypoints using cached keypoints.
+        """
         if self.__displayKeypoints.isChecked():
             data = self.__matching_keypoints
         else:
@@ -340,6 +375,11 @@ class CompareImages(qt.QMainWindow):
                                  colormap=Colormap("spring"))
 
     def __invalidateData(self):
+        """Compute aligned image when the alignement mode changes.
+
+        This function cache input images which are used when
+        vertical/horizontal separators moves.
+        """
         raw1, raw2 = self.__raw1, self.__raw2
         if raw1 is None or raw2 is None:
             return
@@ -441,22 +481,29 @@ class CompareImages(qt.QMainWindow):
         raise TypeError("'image' argument is not an image.")
 
     def __rescaleImage(self, image, shape):
+        """Rescale an image to the requested shape.
+
+        :rtype: numpy.ndarray
+        """
         mode = self.__getImageMode(image)
         if mode == "intensity":
-            data = self.__rescaleChannel(image, shape)
+            data = self.__rescaleArray(image, shape)
         elif mode == "rgb":
             data = numpy.empty((shape[0], shape[1], 3), dtype=image.dtype)
             for c in range(3):
-                data[:, :, c] = self.__rescaleChannel(image[:, :, c], shape)
+                data[:, :, c] = self.__rescaleArray(image[:, :, c], shape)
         elif mode == "rgba":
             data = numpy.empty((shape[0], shape[1], 4), dtype=image.dtype)
             for c in range(4):
-                data[:, :, c] = self.__rescaleChannel(image[:, :, c], shape)
+                data[:, :, c] = self.__rescaleArray(image[:, :, c], shape)
         return data
 
     def __composeImage(self, data1, data2):
         """Returns an RBG image containing composition of data1 and data2 in 2
-        different channels"""
+        different channels
+
+        :rtype: numpy.ndarray
+        """
         assert(data1.shape[0:2] == data2.shape[0:2])
         mode1 = self.__getImageMode(data1)
         if mode1 in ["rgb", "rgba"]:
@@ -482,7 +529,12 @@ class CompareImages(qt.QMainWindow):
         result[:, :, 2] = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
         return result
 
-    def __intensityImage(self, image):
+    def __luminosityImage(self, image):
+        """Returns the lominosity channel from an RBG(A) image.
+        The alpha channel is ignored.
+
+        :rtype: numpy.ndarray
+        """
         mode = self.__getImageMode(image)
         assert(mode in ["rgb", "rgba"])
         is_uint8 = image.dtype.type == numpy.uint8
@@ -492,7 +544,11 @@ class CompareImages(qt.QMainWindow):
             image = image / 255.0
         return image
 
-    def __rescaleChannel(self, image, shape):
+    def __rescaleArray(self, image, shape):
+        """Rescale a 2D array to the requested shape.
+
+        :rtype: numpy.ndarray
+        """
         y, x = numpy.ogrid[:shape[0], :shape[1]]
         y, x = y * 1.0 * (image.shape[0] - 1) / (shape[0] - 1), x * 1.0 * (image.shape[1] - 1) / (shape[1] - 1)
         b = silx.image.bilinear.BilinearImage(image)
@@ -504,6 +560,8 @@ class CompareImages(qt.QMainWindow):
 
     def __createMarginImage(self, image, size, transparent=False, center=False):
         """Returns a new image with margin to respect the requested size.
+
+        :rtype: numpy.ndarray
         """
         assert(image.shape[0] <= size[0])
         assert(image.shape[1] <= size[1])
@@ -533,6 +591,12 @@ class CompareImages(qt.QMainWindow):
         return data
 
     def __createSiftData(self, image, second_image):
+        """Generate key points and aligned images from 2 images.
+
+        If no keypoints matches, unaligned data are anyway returns.
+
+        :rtype: Tuple(numpy.ndarray,numpy.ndarray)
+        """
         devicetype = "GPU"
 
         # Compute base image
@@ -546,10 +610,10 @@ class CompareImages(qt.QMainWindow):
         _logger.info("Number of Keypoints within image 1: %i" % keypoints.size)
         _logger.info("                    within image 2: %i" % second_keypoints.size)
 
-        matching_keypoints = match.shape[0]
         self.__matching_keypoints = (match[:].x[:, 0],
                                      match[:].y[:, 0],
                                      match[:].scale[:, 0])
+        matching_keypoints = match.shape[0]
         _logger.info("Matching keypoints: %i" % matching_keypoints)
         if matching_keypoints == 0:
             return image, second_image
