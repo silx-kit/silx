@@ -27,10 +27,26 @@
 """
 
 import sys
-from silx.gui import qt
+import logging
 import numpy
+
+from silx.gui import qt
 import silx.test.utils
 from silx.gui.plot.CompareImages import CompareImages
+
+_logger = logging.getLogger(__name__)
+
+try:
+    import fabio
+except ImportError:
+    _logger.debug("Backtrace", exc_info=True)
+    fabio = None
+
+try:
+    import PIL
+except ImportError:
+    _logger.debug("Backtrace", exc_info=True)
+    PIL = None
 
 
 def createTestData():
@@ -44,12 +60,32 @@ def createTestData():
     return data1, data2
 
 
+def loadImage(filename):
+    if fabio is None and PIL is None:
+        raise ImportError("fabio nor PIL are not available")
+
+    if fabio is not None:
+        try:
+            return fabio.open(filename).data
+        except Exception:
+            _logger.debug("Error while loading image with fabio", exc_info=True)
+
+    if PIL is not None:
+        try:
+            return numpy.asarray(PIL.Image.open(filename))
+        except Exception:
+            _logger.debug("Error while loading image with PIL", exc_info=True)
+
+    raise Exception("Impossible to load '%s' with the available image libraries" % filename)
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 3:
-        from PIL import Image
-        data1 = numpy.asarray(Image.open(sys.argv[1]))
-        data2 = numpy.asarray(Image.open(sys.argv[2]))
+        _logger.info("Load images from files")
+        data1 = loadImage(sys.argv[1])
+        data2 = loadImage(sys.argv[2])
     else:
+        _logger.info("Generate test data")
         data1, data2 = createTestData()
 
     app = qt.QApplication([])
