@@ -64,7 +64,7 @@ __kernel void medfilt2d(__global float *image,  // input image
                                  int width)     // Image size along dim2 (nb columns)
 {
     int threadid = get_local_id(0);
-    int wg = get_local_size(0);
+    //int wg = get_local_size(0);
     int x = get_global_id(1);
 
     if (x < width)
