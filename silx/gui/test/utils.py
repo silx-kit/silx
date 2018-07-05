@@ -328,7 +328,7 @@ class TestCaseQt(unittest.TestCase):
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
 
-        if qt.BINDING == 'PySide':
+        if qt.BINDING in ('PySide', 'PySide2'):
             # PySide has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
