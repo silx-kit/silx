@@ -13,7 +13,7 @@ matrix:
           os: linux
           env:
               - BUILD_COMMAND=sdist
-              - WITH_QT_TEST=False
+              - QT_BINDING=
               - PYOPENCL_VERSION=2015.1
               - SILX_OPENCL=1
 
@@ -21,7 +21,7 @@ matrix:
           os: linux
           env:
               - BUILD_COMMAND=sdist
-              - WITH_QT_TEST=False
+              - QT_BINDING=
               - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
               - PYOPENCL_VERSION=2015.1
               - SILX_OPENCL=1
@@ -30,7 +30,7 @@ matrix:
           os: linux
           env:
               - BUILD_COMMAND=sdist
-              - WITH_QT_TEST=True
+              - QT_BINDING=PyQt5
               - PYOPENCL_VERSION=2015.1
               - SILX_OPENCL=1
 
@@ -38,7 +38,7 @@ matrix:
           os: linux
           env:
               - BUILD_COMMAND=sdist
-              - WITH_QT_TEST=True
+              - QT_BINDING=PySide2
               - PYOPENCL_VERSION=2018.1
               - SILX_OPENCL=1
 
@@ -46,7 +46,7 @@ matrix:
           os: osx
           env:
               - BUILD_COMMAND=bdist_wheel
-              - WITH_QT_TEST=True
+              - QT_BINDING=PyQt5
               - PYOPENCL_VERSION=2017.2
 
 cache:
@@ -110,6 +110,11 @@ before_script:
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==$PYOPENCL_VERSION
     # This installs PyQt and scipy if wheels are available
     - pip install --pre -r requirements.txt
+    # Install PySide2 if needed
+    - if [ "$QT_BINDING" == "PySide2" ];
+      then
+          pip install --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io
+      fi
 
     # Install built package
     # Make sure silx does not come from cache or pypi
@@ -132,12 +137,16 @@ before_script:
       fi
 
 script:
-    - echo "WITH_QT_TEST="$WITH_QT_TEST
     - if [ "$TRAVIS_OS_NAME" == "osx" ];
       then
           export SILX_TEST_LOW_MEM=True;
       fi
-    - python run_tests.py --installed -v
+    - echo "QT_BINDING="$QT_BINDING
+    - if [ -n "$QT_BINDING" ];
+          python run_tests.py --installed -v --qt-binding=$QT_BINDING
+      else
+          python run_tests.py --installed -v --no-gui
+      fi
 
 after_failure:
     # Display result as base64, while it is not possible to expose files
