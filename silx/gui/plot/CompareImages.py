@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/07/2018"
+__date__ = "05/07/2018"
 
 
 import logging
@@ -117,6 +117,20 @@ class CompareImages(qt.QMainWindow):
         self.__interactionGroup.setExclusive(True)
         self.__interactionGroup.triggered.connect(self.__interactionChanged)
 
+        icon = icons.getQIcon("compare-mode-a")
+        action = qt.QAction(icon, "Display the first image only", self)
+        action.setCheckable(True)
+        toolbar.addAction(action)
+        self.__aModeAction = action
+        self.__interactionGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-b")
+        action = qt.QAction(icon, "Display the second image only", self)
+        action.setCheckable(True)
+        toolbar.addAction(action)
+        self.__bModeAction = action
+        self.__interactionGroup.addAction(action)
+
         icon = icons.getQIcon("compare-mode-vline")
         action = qt.QAction(icon, "Vertical compare mode", self)
         action.setCheckable(True)
@@ -195,7 +209,11 @@ class CompareImages(qt.QMainWindow):
         self.__invalidateData()
 
     def __getInteractionMode(self):
-        if self.__vlineModeAction.isChecked():
+        if self.__aModeAction.isChecked():
+            return "a"
+        elif self.__bModeAction.isChecked():
+            return "b"
+        elif self.__vlineModeAction.isChecked():
             return "vline"
         elif self.__hlineModeAction.isChecked():
             return "hline"
@@ -261,10 +279,10 @@ class CompareImages(qt.QMainWindow):
             pos = self.__vline.getXPosition()
         elif mode == "hline":
             pos = self.__hline.getYPosition()
-        elif mode == "channel":
-            return
         else:
-            assert(False)
+            self.__image1.setOrigin((0, 0))
+            self.__image2.setOrigin((0, 0))
+            return
         self.__separatorMoved(pos)
         self.__previousSeparatorPosition = pos
 
@@ -375,6 +393,10 @@ class CompareImages(qt.QMainWindow):
             data1[:, :, 1] = 0
             data1[:, :, 2] = intensity1 * 255
             data2 = numpy.empty((0, 0))
+        elif mode == "a":
+            data2 = numpy.empty((0, 0))
+        elif mode == "b":
+            data1 = numpy.empty((0, 0))
 
         self.__data1, self.__data2 = data1, data2
         self.__plot2d.addImage(data1, z=0, legend="image1", resetzoom=False)
