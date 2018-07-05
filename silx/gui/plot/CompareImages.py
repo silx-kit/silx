@@ -83,7 +83,7 @@ class CompareImages(qt.QMainWindow):
         self.__plot2d.addXMarker(
             0,
             legend='vline',
-            text='separator',
+            text='',
             draggable=True,
             color='blue',
             constraint=self.__separatorConstraint)
@@ -92,7 +92,7 @@ class CompareImages(qt.QMainWindow):
         self.__plot2d.addYMarker(
             0,
             legend='hline',
-            text='separator',
+            text='',
             draggable=True,
             color='blue',
             constraint=self.__separatorConstraint)
