@@ -39,11 +39,14 @@ from __future__ import (print_function, division, unicode_literals,
                         absolute_import)
 
 import logging
+import sys
 
-from PySide.QtCore import QMetaObject
-from PySide.QtUiTools import QUiLoader
-from PySide.QtGui import QMainWindow
-
+if "PySide.QtCore" in sys.modules:
+    from PySide.QtCore import QMetaObject
+    from PySide.QtUiTools import QUiLoader
+else:  # PySide2
+    from PySide2.QtCore import QMetaObject
+    from PySide2.QtUiTools import QUiLoader
 
 _logger = logging.getLogger(__name__)
 

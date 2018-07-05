@@ -238,7 +238,7 @@ elif BINDING == 'PySide2':
         HAS_SVG = True
 
     # Import loadUi wrapper for PySide2
-    # TODO from ._pyside_dynamic import loadUi  # noqa
+    from ._pyside_dynamic import loadUi  # noqa
 
     pyqtSignal = Signal
 
