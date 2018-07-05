@@ -40,10 +40,10 @@ _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The name of the Qt binding in use: PyQt5, 'PyQt4, PySide2 or PySide."""
+"""The name of the Qt binding in use: PyQt5, PyQt4 or PySide2."""
 
 QtBinding = None  # noqa
-"""The Qt binding module in use: PyQt5, PyQt4, PySide2 or PySide."""
+"""The Qt binding module in use: PyQt5, PyQt4 or PySide2."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
