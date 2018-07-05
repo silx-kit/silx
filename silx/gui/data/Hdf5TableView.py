@@ -200,6 +200,8 @@ class _CellFilterAvailableData(_CellData):
     def __init__(self, filterId):
         import h5py.version
         if h5py.version.hdf5_version_tuple >= (1, 10, 2):
+            # Previous versions only returns True if the filter was first used
+            # to decode a dataset
             import h5py.h5z
             self.__availability = h5py.h5z.filter_avail(filterId)
         else:
