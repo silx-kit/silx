@@ -73,11 +73,11 @@ class TestFabioH5(unittest.TestCase):
         self.h5_image = fabioh5.File(fabio_image=self.fabio_image)
 
     def test_main_groups(self):
-        self.assertEquals(self.h5_image.h5py_class, h5py.File)
-        self.assertEquals(self.h5_image["/"].h5py_class, h5py.File)
-        self.assertEquals(self.h5_image["/scan_0"].h5py_class, h5py.Group)
-        self.assertEquals(self.h5_image["/scan_0/instrument"].h5py_class, h5py.Group)
-        self.assertEquals(self.h5_image["/scan_0/measurement"].h5py_class, h5py.Group)
+        self.assertEqual(self.h5_image.h5py_class, h5py.File)
+        self.assertEqual(self.h5_image["/"].h5py_class, h5py.File)
+        self.assertEqual(self.h5_image["/scan_0"].h5py_class, h5py.Group)
+        self.assertEqual(self.h5_image["/scan_0/instrument"].h5py_class, h5py.Group)
+        self.assertEqual(self.h5_image["/scan_0/measurement"].h5py_class, h5py.Group)
 
     def test_wrong_path_syntax(self):
         # result tested with a default h5py file
@@ -106,12 +106,12 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
 
         dataset = h5_image["/scan_0/instrument/detector_0/data"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
-        self.assertEquals(dataset.dtype.kind, "i")
-        self.assertEquals(dataset.shape, (2, 3))
-        self.assertEquals(dataset[...][0, 0], 0)
-        self.assertEquals(dataset.attrs["interpretation"], "image")
+        self.assertEqual(dataset.dtype.kind, "i")
+        self.assertEqual(dataset.shape, (2, 3))
+        self.assertEqual(dataset[...][0, 0], 0)
+        self.assertEqual(dataset.attrs["interpretation"], "image")
 
     def test_multi_frames(self):
         data = numpy.arange(2 * 3)
@@ -121,12 +121,12 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
 
         dataset = h5_image["/scan_0/instrument/detector_0/data"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
-        self.assertEquals(dataset.dtype.kind, "i")
-        self.assertEquals(dataset.shape, (2, 2, 3))
-        self.assertEquals(dataset[...][0, 0, 0], 0)
-        self.assertEquals(dataset.attrs["interpretation"], "image")
+        self.assertEqual(dataset.dtype.kind, "i")
+        self.assertEqual(dataset.shape, (2, 2, 3))
+        self.assertEqual(dataset[...][0, 0, 0], 0)
+        self.assertEqual(dataset.attrs["interpretation"], "image")
 
     def test_heterogeneous_frames(self):
         """Frames containing 2 images with different sizes and a cube"""
@@ -142,12 +142,12 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
 
         dataset = h5_image["/scan_0/instrument/detector_0/data"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
-        self.assertEquals(dataset.dtype.kind, "i")
-        self.assertEquals(dataset.shape, (3, 2, 5, 1))
-        self.assertEquals(dataset[...][0, 0, 0], 0)
-        self.assertEquals(dataset.attrs["interpretation"], "image")
+        self.assertEqual(dataset.dtype.kind, "i")
+        self.assertEqual(dataset.shape, (3, 2, 5, 1))
+        self.assertEqual(dataset[...][0, 0, 0], 0)
+        self.assertEqual(dataset.attrs["interpretation"], "image")
 
     def test_single_3d_frame(self):
         """Image source contains a cube"""
@@ -160,56 +160,56 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
 
         dataset = h5_image["/scan_0/instrument/detector_0/data"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
-        self.assertEquals(dataset.dtype.kind, "i")
-        self.assertEquals(dataset.shape, (2, 3, 4))
-        self.assertEquals(dataset[...][0, 0, 0], 0)
-        self.assertEquals(dataset.attrs["interpretation"], "image")
+        self.assertEqual(dataset.dtype.kind, "i")
+        self.assertEqual(dataset.shape, (2, 3, 4))
+        self.assertEqual(dataset[...][0, 0, 0], 0)
+        self.assertEqual(dataset.attrs["interpretation"], "image")
 
     def test_metadata_int(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/integer"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset[()], -100)
-        self.assertEquals(dataset.dtype.kind, "i")
-        self.assertEquals(dataset.shape, (1,))
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset[()], -100)
+        self.assertEqual(dataset.dtype.kind, "i")
+        self.assertEqual(dataset.shape, (1,))
 
     def test_metadata_float(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/float"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset[()], 1.0)
-        self.assertEquals(dataset.dtype.kind, "f")
-        self.assertEquals(dataset.shape, (1,))
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset[()], 1.0)
+        self.assertEqual(dataset.dtype.kind, "f")
+        self.assertEqual(dataset.shape, (1,))
 
     def test_metadata_string(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/string"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset[()], numpy.string_("hi!"))
-        self.assertEquals(dataset.dtype.type, numpy.string_)
-        self.assertEquals(dataset.shape, (1,))
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset[()], numpy.string_("hi!"))
+        self.assertEqual(dataset.dtype.type, numpy.string_)
+        self.assertEqual(dataset.shape, (1,))
 
     def test_metadata_list_integer(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/list_integer"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset.dtype.kind, "u")
-        self.assertEquals(dataset.shape, (1, 3))
-        self.assertEquals(dataset[0, 0], 100)
-        self.assertEquals(dataset[0, 1], 50)
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset.dtype.kind, "u")
+        self.assertEqual(dataset.shape, (1, 3))
+        self.assertEqual(dataset[0, 0], 100)
+        self.assertEqual(dataset[0, 1], 50)
 
     def test_metadata_list_float(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/list_float"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset.dtype.kind, "f")
-        self.assertEquals(dataset.shape, (1, 3))
-        self.assertEquals(dataset[0, 0], 1.0)
-        self.assertEquals(dataset[0, 1], 2.0)
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset.dtype.kind, "f")
+        self.assertEqual(dataset.shape, (1, 3))
+        self.assertEqual(dataset[0, 0], 1.0)
+        self.assertEqual(dataset[0, 1], 2.0)
 
     def test_metadata_list_looks_like_list(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/string_looks_like_list"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset[()], numpy.string_("2000 hi!"))
-        self.assertEquals(dataset.dtype.type, numpy.string_)
-        self.assertEquals(dataset.shape, (1,))
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset[()], numpy.string_("2000 hi!"))
+        self.assertEqual(dataset.dtype.type, numpy.string_)
+        self.assertEqual(dataset.shape, (1,))
 
     def test_float_32(self):
         float_list = [u'1.2', u'1.3', u'1.4']
@@ -263,19 +263,19 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
         sample = h5_image["/scan_0/sample"]
         self.assertIsNotNone(sample)
-        self.assertEquals(sample.attrs["NXclass"], "NXsample")
+        self.assertEqual(sample.attrs["NXclass"], "NXsample")
 
         d = sample['unit_cell_abc']
         expected = numpy.array([4.08, 4.08, 4.08])
         self.assertIsNotNone(d)
-        self.assertEquals(d.shape, (3, ))
+        self.assertEqual(d.shape, (3, ))
         self.assertIn(d.dtype.kind, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
         d = sample['unit_cell_alphabetagamma']
         expected = numpy.array([90.0, 90.0, 90.0])
         self.assertIsNotNone(d)
-        self.assertEquals(d.shape, (3, ))
+        self.assertEqual(d.shape, (3, ))
         self.assertIn(d.dtype.kind, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
@@ -284,7 +284,7 @@ class TestFabioH5(unittest.TestCase):
                                  [-1.08894, 1.08894, 1.6083e-16],
                                  [1.08894, 1.08894, 9.28619e-17]]])
         self.assertIsNotNone(d)
-        self.assertEquals(d.shape, (1, 3, 3))
+        self.assertEqual(d.shape, (1, 3, 3))
         self.assertIn(d.dtype.kind, ['d', 'f'])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
@@ -302,13 +302,13 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
 
         data_dataset = h5_image["/scan_0/measurement/image_0/data"]
-        self.assertEquals(data_dataset.attrs["interpretation"], "spectrum")
+        self.assertEqual(data_dataset.attrs["interpretation"], "spectrum")
 
         data_dataset = h5_image["/scan_0/instrument/detector_0/data"]
-        self.assertEquals(data_dataset.attrs["interpretation"], "spectrum")
+        self.assertEqual(data_dataset.attrs["interpretation"], "spectrum")
 
         data_dataset = h5_image["/scan_0/measurement/image_0/info/data"]
-        self.assertEquals(data_dataset.attrs["interpretation"], "spectrum")
+        self.assertEqual(data_dataset.attrs["interpretation"], "spectrum")
 
     def test_get_api(self):
         result = self.h5_image.get("scan_0", getclass=True, getlink=True)
@@ -554,15 +554,15 @@ class TestFabioH5WithFileSeries(unittest.TestCase):
     def _testH5Image(self, h5_image):
         # test data
         dataset = h5_image["/scan_0/instrument/detector_0/data"]
-        self.assertEquals(dataset.h5py_class, h5py.Dataset)
+        self.assertEqual(dataset.h5py_class, h5py.Dataset)
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
-        self.assertEquals(dataset.dtype.kind, "i")
-        self.assertEquals(dataset.shape, (10, 3, 2))
-        self.assertEquals(list(dataset[:, 0, 0]), list(range(10)))
-        self.assertEquals(dataset.attrs["interpretation"], "image")
+        self.assertEqual(dataset.dtype.kind, "i")
+        self.assertEqual(dataset.shape, (10, 3, 2))
+        self.assertEqual(list(dataset[:, 0, 0]), list(range(10)))
+        self.assertEqual(dataset.attrs["interpretation"], "image")
         # test metatdata
         dataset = h5_image["/scan_0/instrument/detector_0/others/image_id"]
-        self.assertEquals(list(dataset[...]), list(range(10)))
+        self.assertEqual(list(dataset[...]), list(range(10)))
 
     def testFileList(self):
         h5_image = fabioh5.File(file_series=self.edf_filenames)

@@ -49,10 +49,10 @@ class TestTextFormatter(TestCaseQt):
         copy = TextFormatter(formatter=formatter)
         self.assertIsNot(formatter, copy)
         copy.setFloatFormat("%.3f")
-        self.assertEquals(formatter.integerFormat(), copy.integerFormat())
+        self.assertEqual(formatter.integerFormat(), copy.integerFormat())
         self.assertNotEquals(formatter.floatFormat(), copy.floatFormat())
-        self.assertEquals(formatter.useQuoteForText(), copy.useQuoteForText())
-        self.assertEquals(formatter.imaginaryUnit(), copy.imaginaryUnit())
+        self.assertEqual(formatter.useQuoteForText(), copy.useQuoteForText())
+        self.assertEqual(formatter.imaginaryUnit(), copy.imaginaryUnit())
 
     def test_event(self):
         listener = SignalListener()
@@ -62,19 +62,19 @@ class TestTextFormatter(TestCaseQt):
         formatter.setIntegerFormat("%03i")
         formatter.setUseQuoteForText(False)
         formatter.setImaginaryUnit("z")
-        self.assertEquals(listener.callCount(), 4)
+        self.assertEqual(listener.callCount(), 4)
 
     def test_int(self):
         formatter = TextFormatter()
         formatter.setIntegerFormat("%05i")
         result = formatter.toString(512)
-        self.assertEquals(result, "00512")
+        self.assertEqual(result, "00512")
 
     def test_float(self):
         formatter = TextFormatter()
         formatter.setFloatFormat("%.3f")
         result = formatter.toString(1.3)
-        self.assertEquals(result, "1.300")
+        self.assertEqual(result, "1.300")
 
     def test_complex(self):
         formatter = TextFormatter()
@@ -82,25 +82,25 @@ class TestTextFormatter(TestCaseQt):
         formatter.setImaginaryUnit("i")
         result = formatter.toString(1.0 + 5j)
         result = result.replace(" ", "")
-        self.assertEquals(result, "1.0+5.0i")
+        self.assertEqual(result, "1.0+5.0i")
 
     def test_string(self):
         formatter = TextFormatter()
         formatter.setIntegerFormat("%.1f")
         formatter.setImaginaryUnit("z")
         result = formatter.toString("toto")
-        self.assertEquals(result, '"toto"')
+        self.assertEqual(result, '"toto"')
 
     def test_numpy_void(self):
         formatter = TextFormatter()
         result = formatter.toString(numpy.void(b"\xFF"))
-        self.assertEquals(result, 'b"\\xFF"')
+        self.assertEqual(result, 'b"\\xFF"')
 
     def test_char_cp1252(self):
         # degree character in cp1252
         formatter = TextFormatter()
         result = formatter.toString(numpy.bytes_(b"\xB0"))
-        self.assertEquals(result, u'"\u00B0"')
+        self.assertEqual(result, u'"\u00B0"')
 
 
 class TestTextFormatterWithH5py(TestCaseQt):
@@ -130,74 +130,74 @@ class TestTextFormatterWithH5py(TestCaseQt):
     def testAscii(self):
         d = self.create_dataset(data=b"abc")
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '"abc"')
+        self.assertEqual(result, '"abc"')
 
     def testUnicode(self):
         d = self.create_dataset(data=u"i\u2661cookies")
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(len(result), 11)
-        self.assertEquals(result, u'"i\u2661cookies"')
+        self.assertEqual(len(result), 11)
+        self.assertEqual(result, u'"i\u2661cookies"')
 
     def testBadAscii(self):
         d = self.create_dataset(data=b"\xF0\x9F\x92\x94")
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, 'b"\\xF0\\x9F\\x92\\x94"')
+        self.assertEqual(result, 'b"\\xF0\\x9F\\x92\\x94"')
 
     def testVoid(self):
         d = self.create_dataset(data=numpy.void(b"abc\xF0"))
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, 'b"\\x61\\x62\\x63\\xF0"')
+        self.assertEqual(result, 'b"\\x61\\x62\\x63\\xF0"')
 
     def testEnum(self):
         dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
         d = numpy.array(42, dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, 'BLUE(42)')
+        self.assertEqual(result, 'BLUE(42)')
 
     def testRef(self):
         dtype = h5py.special_dtype(ref=h5py.Reference)
         d = numpy.array(self.h5File.ref, dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, 'REF')
+        self.assertEqual(result, 'REF')
 
     def testArrayAscii(self):
         d = self.create_dataset(data=[b"abc"])
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '["abc"]')
+        self.assertEqual(result, '["abc"]')
 
     def testArrayUnicode(self):
         dtype = h5py.special_dtype(vlen=six.text_type)
         d = numpy.array([u"i\u2661cookies"], dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(len(result), 13)
-        self.assertEquals(result, u'["i\u2661cookies"]')
+        self.assertEqual(len(result), 13)
+        self.assertEqual(result, u'["i\u2661cookies"]')
 
     def testArrayBadAscii(self):
         d = self.create_dataset(data=[b"\xF0\x9F\x92\x94"])
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '[b"\\xF0\\x9F\\x92\\x94"]')
+        self.assertEqual(result, '[b"\\xF0\\x9F\\x92\\x94"]')
 
     def testArrayVoid(self):
         d = self.create_dataset(data=numpy.void([b"abc\xF0"]))
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '[b"\\x61\\x62\\x63\\xF0"]')
+        self.assertEqual(result, '[b"\\x61\\x62\\x63\\xF0"]')
 
     def testArrayEnum(self):
         dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
         d = numpy.array([42, 1, 100], dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '[BLUE(42) GREEN(1) 100]')
+        self.assertEqual(result, '[BLUE(42) GREEN(1) 100]')
 
     def testArrayRef(self):
         dtype = h5py.special_dtype(ref=h5py.Reference)
         d = numpy.array([self.h5File.ref, None], dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.formatter.toString(d[()], dtype=d.dtype)
-        self.assertEquals(result, '[REF NULL_REF]')
+        self.assertEqual(result, '[REF NULL_REF]')
 
 
 def suite():
