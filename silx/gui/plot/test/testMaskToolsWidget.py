@@ -87,10 +87,10 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
 
         self.mouseMove(plot, pos=(0, 0))
         self.mouseMove(plot, pos=pos0)
-        self.mousePress(plot, qt.Qt.LeftButton, pos=pos0)
+        self.mouseClick(plot, qt.Qt.LeftButton, pos=pos0)
         self.mouseMove(plot, pos=(0, 0))
         self.mouseMove(plot, pos=pos1)
-        self.mouseRelease(plot, qt.Qt.LeftButton, pos=pos1)
+        self.mouseClick(plot, qt.Qt.LeftButton, pos=pos1)
 
     def _drawPolygon(self):
         """Draw a star polygon in the plot"""

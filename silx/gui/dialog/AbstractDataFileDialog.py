@@ -1170,7 +1170,7 @@ class AbstractDataFileDialog(qt.QDialog):
 
     def __filterSelected(self, index):
         filters = self.__fileTypeCombo.itemExtensions(index)
-        self.__fileModel.setNameFilters(filters)
+        self.__fileModel.setNameFilters(list(filters))
 
     def __setData(self, data):
         self.__data = data

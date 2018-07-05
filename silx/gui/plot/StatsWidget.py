@@ -366,7 +366,7 @@ class StatsTable(TableWidget):
         self.setRowCount(0)
 
         # It have to called befor3e accessing to the header items
-        self.setHorizontalHeaderLabels(self._columns)
+        self.setHorizontalHeaderLabels(list(self._columns))
 
         if self._statsHandler is not None:
             for columnId, name in enumerate(self._columns):
