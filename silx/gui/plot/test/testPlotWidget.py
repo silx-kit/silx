@@ -270,10 +270,10 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
                 self.plot.setKeepDataAspectRatio(True)
                 xmin, xmax = self.plot.getXAxis().getLimits()
                 ymin, ymax = self.plot.getYAxis().getLimits()
-                self.assertTrue(xmin <= min(xbounds))
-                self.assertTrue(xmax >= max(xbounds))
-                self.assertTrue(ymin <= min(ybounds))
-                self.assertTrue(ymax >= max(ybounds))
+                self.assertTrue(round(xmin, 7) <= min(xbounds))
+                self.assertTrue(round(xmax, 7) >= max(xbounds))
+                self.assertTrue(round(ymin, 7) <= min(ybounds))
+                self.assertTrue(round(ymax, 7) >= max(ybounds))
 
                 self.plot.setKeepDataAspectRatio(False)  # Reset aspect ratio
                 self.plot.clear()
