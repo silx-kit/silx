@@ -275,23 +275,19 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
-        print(url.text())
         self.assertSamePath(url.text(), path)
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
-        print(url.text())
         self.assertSamePath(url.text(), path)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        print(url.text())
         self.assertSamePath(url.text(), _tmpDirectory + "/data")
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        print(url.text())
         self.assertSamePath(url.text(), _tmpDirectory)
 
     def testClickOnBackToRootTool(self):
