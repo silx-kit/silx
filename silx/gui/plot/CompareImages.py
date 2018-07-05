@@ -390,13 +390,7 @@ class CompareImages(qt.QMainWindow):
 
         mode = self.__getInteractionMode()
         if mode == "channel":
-            intensity1 = self.__intensityImage(data1)
-            intensity2 = self.__intensityImage(data2)
-            shape = data1.shape
-            data1 = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
-            data1[:, :, 0] = intensity2 * 255
-            data1[:, :, 1] = 0
-            data1[:, :, 2] = intensity1 * 255
+            data1 = self.__composeImage(data1, data2)
             data2 = numpy.empty((0, 0))
         elif mode == "a":
             data2 = numpy.empty((0, 0))
@@ -460,17 +454,42 @@ class CompareImages(qt.QMainWindow):
                 data[:, :, c] = self.__rescaleChannel(image[:, :, c], shape)
         return data
 
+    def __composeImage(self, data1, data2):
+        """Returns an RBG image containing composition of data1 and data2 in 2
+        different channels"""
+        assert(data1.shape[0:2] == data2.shape[0:2])
+        mode1 = self.__getImageMode(data1)
+        if mode1 in ["rgb", "rgba"]:
+            intensity1 = self.__intensityImage(data1)
+            vmin1, vmax1 = 0.0, 1.0
+        else:
+            intensity1 = data1
+            vmin1, vmax1 = data1.min(), data1.max()
+
+        mode2 = self.__getImageMode(data2)
+        if mode2 in ["rgb", "rgba"]:
+            intensity2 = self.__intensityImage(data2)
+            vmin2, vmax2 = 0.0, 1.0
+        else:
+            intensity2 = data2
+            vmin2, vmax2 = data2.min(), data2.max()
+
+        vmin, vmax = min(vmin1, vmin2) * 1.0, max(vmax1, vmax2) * 1.0
+        shape = data1.shape
+        result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
+        result[:, :, 0] = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        result[:, :, 1] = 0
+        result[:, :, 2] = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        return result
+
     def __intensityImage(self, image):
         mode = self.__getImageMode(image)
-        if mode == "intensity":
-            return image
-        elif mode in ["rgb", "rgba"]:
-            is_uint8 = image.dtype.type == numpy.uint8
-            # luminosity
-            image = 0.21 * image[..., 0] + 0.72 * image[..., 1] + 0.07 * image[..., 2]
-            if is_uint8:
-                image = image / 256.0
-            return image
+        assert(mode in ["rgb", "rgba"])
+        is_uint8 = image.dtype.type == numpy.uint8
+        # luminosity
+        image = 0.21 * image[..., 0] + 0.72 * image[..., 1] + 0.07 * image[..., 2]
+        if is_uint8:
+            image = image / 255.0
         return image
 
     def __rescaleChannel(self, image, shape):
