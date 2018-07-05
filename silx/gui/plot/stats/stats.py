@@ -242,22 +242,30 @@ class _ImageContext(_StatsContext):
                                plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        minX, maxX = plot.getXAxis().getLimits()
-        minY, maxY = plot.getYAxis().getLimits()
-        originX, originY = item.getOrigin()
+        self.origin = item.getOrigin()
+        self.scale = item.getScale()
+        self.data = item.getData()
 
-        XMinBound = int(minX - originX)
-        XMaxBound = int(maxX - originX)
-        YMinBound = int(minY - originY)
-        YMaxBound = int(maxY - originY)
+        if onlimits:
+            minX, maxX = plot.getXAxis().getLimits()
+            minY, maxY = plot.getYAxis().getLimits()
 
-        if XMaxBound < 0 or YMaxBound < 0:
-            return self.noDataSelected()
-        XMinBound = max(XMinBound, 0)
-        YMinBound = max(YMinBound, 0)
-        data = item.getData()
-        self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
-        if len(data) > 0:
+            XMinBound = int((minX - self.origin[0]) / self.scale[0])
+            YMinBound = int((minY - self.origin[1]) / self.scale[1])
+            XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
+            YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
+
+            XMinBound = max(XMinBound, 0)
+            YMinBound = max(YMinBound, 0)
+
+            if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
+                return self.noDataSelected()
+            data = item.getData()
+            self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
+        else:
+            self.data = item.getData()
+
+        if self.data.size > 0:
             self.min, self.max = min_max(self.data)
         else:
             self.min, self.max = None, None
@@ -294,6 +302,15 @@ class StatBase(object):
         :return dict: key is stat name, statistic computed is the dict value
         """
         raise NotImplementedError('Base class')
+
+    def getToolTip(self, kind):
+        """
+        If necessary add a tooltip for a stat kind
+
+        :param str kinf: the kind of item the statistic is compute for.
+        :return: tooltip or None if no tooltip
+        """
+        return None
 
 
 class Stat(StatBase):
@@ -352,69 +369,71 @@ class StatDelta(StatBase):
         return context.max - context.min
 
 
-def _getImgCoordsFor(data, searchValue):
-    coordsY, coordsX = numpy.where(data == searchValue)
-    if len(coordsX) is 0:
-        return []
-    if len(coordsX) is 1:
-        return (coordsX[0], coordsY[0])
-    coords = []
-    for xCoord, yCoord in zip(coordsX, coordsY):
-        coord = (xCoord, yCoord)
-        coords.append(coord)
-    return coords
-
-
-def _getScatterCoordsFor(scatterData, searchValue):
-    xData, yData, values = scatterData
-    indexes = numpy.where(values == searchValue)[0]
-    if len(indexes) is 0:
-        return []
-    if len(indexes) is 1:
-        return (yData[indexes[0]], xData[indexes[0]])
-    coords = []
-    for index in indexes:
-        coords.append((yData[index], xData[index]))
-    return coords
-
-
 class StatCoordMin(StatBase):
     """
-    Compute the coordinates of the data minimal value
+    Compute the first coordinates of the data minimal value
     """
     def __init__(self):
         StatBase.__init__(self, name='coords min')
 
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
-            xData, yData = context.data
-            return xData[numpy.where(yData == context.min)]
+            return context.xData[numpy.argmin(context.yData)]
         elif context.kind == 'scatter':
-            return _getScatterCoordsFor(context.data, context.min)
+            xData, yData, valueData = context.data
+            return (xData[numpy.argmin(valueData)],
+                    yData[numpy.argmin(valueData)])
         elif context.kind == 'image':
-            return _getImgCoordsFor(context.data, context.min)
+            scaleX, scaleY = context.scale
+            originX, originY = context.origin
+            index1D = numpy.argmin(context.data)
+            ySize = (context.data.shape[1])
+            x = index1D % context.data.shape[1]
+            y = (index1D - x) / ySize
+            x = x * scaleX + originX
+            y = y * scaleY + originY
+            return (x, y)
         else:
             raise ValueError('kind not managed')
 
+    def getToolTip(self, kind):
+        if kind in ('scatter', 'image'):
+            return '(x, y)'
+        else:
+            return None
 
 class StatCoordMax(StatBase):
     """
-    Compute the coordinates of the data minimal value
+    Compute the first coordinates of the data minimal value
     """
     def __init__(self):
         StatBase.__init__(self, name='coords max')
 
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
-            xData, yData = context.data
-            return xData[numpy.where(yData == context.max)]
+            return context.xData[numpy.argmax(context.yData)]
         elif context.kind == 'scatter':
-            return _getScatterCoordsFor(context.data, context.max)
+            xData, yData, valueData = context.data
+            return (xData[numpy.argmax(valueData)],
+                    yData[numpy.argmax(valueData)])
         elif context.kind == 'image':
-            return _getImgCoordsFor(context.data, context.max)
+            scaleX, scaleY = context.scale
+            originX, originY = context.origin
+            index1D = numpy.argmax(context.data)
+            ySize = (context.data.shape[1])
+            x = index1D % context.data.shape[1]
+            y = (index1D - x) / ySize
+            x = x * scaleX + originX
+            y = y * scaleY + originY
+            return (x, y)
         else:
             raise ValueError('kind not managed')
 
+    def getToolTip(self, kind):
+        if kind in ('scatter', 'image'):
+            return '(x, y)'
+        else:
+            return None
 
 class StatCOM(StatBase):
     """
@@ -426,23 +445,47 @@ class StatCOM(StatBase):
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
             xData, yData = context.data
-            com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(
-                yData).astype(numpy.float32)
-            return com
+            deno = numpy.sum(yData).astype(numpy.float32)
+            if deno == 0.:
+                return numpy.nan
+            else:
+                return numpy.sum(xData * yData).astype(numpy.float32) / deno
         elif context.kind == 'scatter':
-            xData = context.data[0]
-            values = context.values
-            com = numpy.sum(xData * values).astype(numpy.float32) / numpy.sum(
-                values).astype(numpy.float32)
-            return com
+            xData, yData, values = context.data
+            deno = numpy.sum(values).astype(numpy.float32)
+            if deno == 0.:
+                return numpy.nan, numpy.nan
+            else:
+                xcom = numpy.sum(xData * values).astype(numpy.float32) / deno
+                ycom = numpy.sum(yData * values).astype(numpy.float32) / deno
+                return (xcom, ycom)
         elif context.kind == 'image':
             yData = numpy.sum(context.data, axis=1)
             xData = numpy.sum(context.data, axis=0)
             dataXRange = range(context.data.shape[1])
             dataYRange = range(context.data.shape[0])
+            xScale, yScale = context.scale
+            xOrigin, yOrigin = context.origin
 
-            ycom = numpy.sum(yData * dataYRange) / numpy.sum(yData)
-            xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
+            denoY = numpy.sum(yData)
+            if denoY == 0.:
+                ycom = numpy.nan
+            else:
+                ycom = numpy.sum(yData * dataYRange) / denoY
+                ycom = ycom * yScale + yOrigin
+
+            denoX = numpy.sum(xData)
+            if denoX == 0.:
+                xcom = numpy.nan
+            else:
+                xcom = numpy.sum(xData * dataXRange) / denoX
+                xcom = xcom * xScale + xOrigin
             return (xcom, ycom)
         else:
             raise ValueError('kind not managed')
+
+    def getToolTip(self, kind):
+        if kind in ('scatter', 'image'):
+            return '(x, y)'
+        else:
+            return None

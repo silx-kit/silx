@@ -40,7 +40,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/01/2018"
+__date__ = "25/06/2018"
 
 import os
 import unittest
@@ -48,12 +48,9 @@ import time
 import logging
 import numpy
 try:
-    import scipy
+    import scipy.misc
 except ImportError:
     scipy = None
-else:
-    import scipy.misc
-    import scipy.ndimage
 
 from silx.utils.testutils import parameterize
 # for Python implementation of tested functions
@@ -316,6 +313,7 @@ class TestKeypoints(unittest.TestCase):
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
             logger.info("Descriptors computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+
 
 @unittest.skipUnless(ocl, "opencl missing")
 class TestFeature(unittest.TestCase):

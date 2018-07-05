@@ -23,18 +23,15 @@
 #
 # ###########################################################################*/
 """This module provides ROI interaction for :class:`~silx.gui.plot.PlotWidget`.
-
-This API is not mature and will probably change in the future.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "04/06/2018"
+__date__ = "28/06/2018"
 
 
 import collections
 import functools
-import itertools
 import logging
 import time
 import weakref
@@ -42,380 +39,15 @@ import weakref
 import numpy
 
 from ....third_party import enum
-from ....utils.weakref import WeakList, WeakMethodProxy
+from ....utils.weakref import WeakMethodProxy
 from ... import qt, icons
 from .. import PlotWidget
-from .. import items
+from ..items import roi as roi_items
+
 from ...colors import rgba
 
 
 logger = logging.getLogger(__name__)
-
-
-class RegionOfInterest(qt.QObject):
-    """Object describing a region of interest in a plot.
-
-    :param QObject parent:
-        The RegionOfInterestManager that created this object
-    :param str kind: The kind of ROI represented by this object
-    """
-
-    sigControlPointsChanged = qt.Signal()
-    """Signal emitted when this control points has changed"""
-
-    def __init__(self, parent, kind):
-        assert parent is None or isinstance(parent, RegionOfInterestManager)
-        super(RegionOfInterest, self).__init__(parent)
-        self._color = rgba('red')
-        self._items = WeakList()
-        self._editAnchors = WeakList()
-        self._points = None
-        self._label = ''
-        self._kind = str(kind)
-        self._editable = False
-
-    def __del__(self):
-        # Clean-up plot items
-        self._removePlotItems()
-
-    def setParent(self, parent):
-        """Set the parent of the RegionOfInterest
-
-        :param Union[None,RegionOfInterestManager] parent:
-        """
-        if (parent is not None and
-                not isinstance(parent, RegionOfInterestManager)):
-            raise ValueError('Unsupported parent')
-
-        self._removePlotItems()
-        super(RegionOfInterest, self).setParent(parent)
-        self._createPlotItems()
-
-    def getKind(self):
-        """Return kind of ROI
-
-        :rtype: str
-        """
-        return self._kind
-
-    def getColor(self):
-        """Returns the color of this ROI
-
-        :rtype: QColor
-        """
-        return qt.QColor.fromRgbF(*self._color)
-
-    def setColor(self, color):
-        """Set the color used for this ROI.
-
-        :param color: The color to use for ROI shape as
-           either a color name, a QColor, a list of uint8 or float in [0, 1].
-        """
-        color = rgba(color)
-        if color != self._color:
-            self._color = color
-
-            # Update color of shape items in the plot
-            rgbaColor = rgba(color)
-            for item in list(self._items):
-                if isinstance(item, items.ColorMixIn):
-                    item.setColor(rgbaColor)
-
-            # Use transparency for anchors
-            rgbaColor = rgbaColor[:3] + (0.5,)
-
-            for item in list(self._editAnchors):
-                if isinstance(item, items.ColorMixIn):
-                    item.setColor(rgbaColor)
-
-    def getLabel(self):
-        """Returns the label displayed for this ROI.
-
-        :rtype: str
-        """
-        return self._label
-
-    def setLabel(self, label):
-        """Set the label displayed with this ROI.
-
-        :param str label: The text label to display
-        """
-        label = str(label)
-        if label != self._label:
-            self._label = label
-            for item in self._items:
-                if isinstance(
-                        item, (items.Marker, items.XMarker, items.YMarker)):
-                    item.setText(self._label)
-
-    def isEditable(self):
-        """Returns whether the ROI is editable by the user or not.
-
-        :rtype: bool
-        """
-        return self._editable
-
-    def setEditable(self, editable):
-        """Set whether the ROI can be changed interactively.
-
-        :param bool editable: True to allow edition by the user,
-           False to disable.
-        """
-        editable = bool(editable)
-        if self._editable != editable:
-            self._editable = editable
-            # Recreate plot items
-            # This can be avoided once marker.setDraggable is public
-            self._createPlotItems()
-
-    def getControlPoints(self):
-        """Returns the current ROI control points.
-
-        It returns an empty tuple if there is currently no ROI.
-
-        :return: Array of (x, y) position in plot coordinates
-        :rtype: numpy.ndarray
-        """
-        return None if self._points is None else numpy.array(self._points)
-
-    def setControlPoints(self, points):
-        """Set this ROI control points.
-
-        :param points: Iterable of (x, y) control points
-        """
-        points = numpy.array(points)
-        assert points.ndim == 2
-        assert points.shape[1] == 2
-
-        nbPointsChanged = (self._points is None or
-                           points.shape != self._points.shape)
-
-        if nbPointsChanged or not numpy.all(numpy.equal(points, self._points)):
-            kind = self.getKind()
-
-            self._points = points
-
-            if self._items and not nbPointsChanged:  # Update plot items
-                for item in self._items:
-                    if isinstance(item, items.Shape):
-                        item.setPoints(points)
-                    elif isinstance(item, (items.Marker,
-                                           items.XMarker,
-                                           items.YMarker)):
-                        markerPos = self._getMarkerPosition(points, kind)
-                        item.setPosition(*markerPos)
-
-                if self._editAnchors:  # Update anchors
-                    if len(self._editAnchors) == len(points) + 1:
-                        # Also update center anchor
-                        points = numpy.append(points,
-                                              [numpy.mean(points, axis=0)], axis=0)
-
-                    for anchor, point in zip(self._editAnchors, points):
-                        anchor.setPosition(*point)
-
-            else:  # No items or new point added
-                # re-create plot items
-                self._createPlotItems()
-
-            self.sigControlPointsChanged.emit()
-
-    @staticmethod
-    def _getMarkerPosition(points, kind):
-        """Compute marker position.
-
-        :param numpy.ndarray points: Array of (x, y) control points
-        :param str kind: The kind of ROI shape to use
-        :return: (x, y) position of the marker
-        """
-        if kind in ('point', 'hline', 'vline'):
-            assert len(points) == 1
-            return points[0]
-
-        elif kind == 'rectangle':
-            assert len(points) == 2
-            return points.min(axis=0)
-
-        elif kind == 'line':
-            assert len(points) == 2
-            return points[numpy.argmin(points[:, 0])]
-
-        elif kind == 'polygon':
-            return points[numpy.argmin(points[:, 1])]
-
-        else:
-            raise RuntimeError('Unsupported ROI kind: %s' % kind)
-
-    def _createPlotItems(self):
-        """Create items displaying the ROI in the plot.
-
-        It first removes any existing plot items.
-        """
-        roiManager = self.parent()
-        if roiManager is None:
-            return
-        plot = roiManager.parent()
-
-        self._removePlotItems()
-
-        x, y = self._points.T
-        kind = self.getKind()
-        legend = "__RegionOfInterest-%d__" % id(self)
-
-        self._items = WeakList()
-
-        if kind == 'point':
-            plot.addMarker(
-                x[0], y[0],
-                legend=legend,
-                text=self.getLabel(),
-                color=rgba(self.getColor()),
-                draggable=self.isEditable())
-            item = plot._getItem(kind='marker', legend=legend)
-            self._items.append(item)
-
-            if self.isEditable():
-                item.sigItemChanged.connect(self._markerChanged)
-
-        elif kind == 'hline':
-            plot.addYMarker(
-                y[0],
-                legend=legend,
-                text=self.getLabel(),
-                color=rgba(self.getColor()),
-                draggable=self.isEditable())
-            item = plot._getItem(kind='marker', legend=legend)
-            self._items.append(item)
-
-            if self.isEditable():
-                item.sigItemChanged.connect(self._markerChanged)
-
-        elif kind == 'vline':
-            plot.addXMarker(
-                x[0],
-                legend=legend,
-                text=self.getLabel(),
-                color=rgba(self.getColor()),
-                draggable=self.isEditable())
-            item = plot._getItem(kind='marker', legend=legend)
-            self._items.append(item)
-
-            if self.isEditable():
-                item.sigItemChanged.connect(self._markerChanged)
-
-        else:  # rectangle, line, polygon
-            plot.addItem(x, y,
-                         legend=legend,
-                         shape='polylines' if kind == 'line' else kind,
-                         color=rgba(self.getColor()),
-                         fill=False)
-            self._items.append(plot._getItem(kind='item', legend=legend))
-
-            # Add label marker
-            markerPos = self._getMarkerPosition(self._points, kind)
-            plot.addMarker(*markerPos,
-                           legend=legend + '-name',
-                           text=self.getLabel(),
-                           color=rgba(self.getColor()),
-                           symbol='',
-                           draggable=False)
-            self._items.append(
-                plot._getItem(kind='marker', legend=legend + '-name'))
-
-            if self.isEditable():  # Add draggable anchors
-                self._editAnchors = WeakList()
-
-                color = rgba(self.getColor())
-                color = color[:3] + (0.5,)
-
-                for index, point in enumerate(self._points):
-                    anchorLegend = legend + '-anchor-%d' % index
-                    plot.addMarker(*point,
-                                   legend=anchorLegend,
-                                   text='',
-                                   color=color,
-                                   symbol='s',
-                                   draggable=True)
-                    item = plot._getItem(kind='marker', legend=anchorLegend)
-                    item.sigItemChanged.connect(functools.partial(
-                        self._controlPointAnchorChanged, index))
-                    self._editAnchors.append(item)
-
-                # Add an anchor to the center of the rectangle
-                if kind == 'rectangle':
-                    center = numpy.mean(self._points, axis=0)
-                    anchorLegend = legend + '-anchor-center'
-                    plot.addMarker(*center,
-                                   legend=anchorLegend,
-                                   text='',
-                                   color=color,
-                                   symbol='o',
-                                   draggable=True)
-                    item = plot._getItem(kind='marker', legend=anchorLegend)
-                    item.sigItemChanged.connect(self._centerAnchorChanged)
-                    self._editAnchors.append(item)
-
-    def _markerChanged(self, event):
-        """Handle draggable marker changed.
-
-        Used for 'point', 'hline', 'vline'.
-
-        :param ItemChangeType event:
-        """
-        if event == items.ItemChangedType.POSITION:
-            kind = self.getKind()
-
-            marker = self.sender()
-            position = marker.getPosition()
-
-            if kind == 'point':
-                points = [position]
-            elif kind == 'hline':
-                points = self.getControlPoints()
-                points[:, 1] = position[1]
-            elif kind == 'vline':
-                points = self.getControlPoints()
-                points[:, 0] = position[0]
-            else:
-                raise RuntimeError('Unhandled kind %s' % kind)
-
-            self.setControlPoints(points)
-
-    def _controlPointAnchorChanged(self, index, event):
-        """Handle update of position of an edition anchor
-
-        :param int index: Index of the anchor
-        :param ItemChangedType event: Event type
-        """
-        if event == items.ItemChangedType.POSITION:
-            anchor = self._editAnchors[index]
-            points = self.getControlPoints()
-            points[index] = anchor.getPosition()
-            self.setControlPoints(points)
-
-    def _centerAnchorChanged(self, event):
-        """Handle update of position of the center anchor
-
-        :param ItemChangedType event: Event type
-        """
-        if event == items.ItemChangedType.POSITION:
-            anchor = self._editAnchors[-1]
-            points = self.getControlPoints()
-            center = numpy.mean(points, axis=0)
-            offset = anchor.getPosition() - center
-            points = points + offset
-            self.setControlPoints(points)
-
-    def _removePlotItems(self):
-        """Remove items from their plot."""
-        for item in itertools.chain(list(self._items),
-                                    list(self._editAnchors)):
-
-            plot = item.getPlot()
-            if plot is not None:
-                plot._remove(item)
-        self._items = WeakList()
-        self._editAnchors = WeakList()
 
 
 class RegionOfInterestManager(qt.QObject):
@@ -430,31 +62,29 @@ class RegionOfInterestManager(qt.QObject):
         The plot widget in which to control the ROIs.
     """
 
-    sigRegionOfInterestAdded = qt.Signal(RegionOfInterest)
+    sigRoiAdded = qt.Signal(roi_items.RegionOfInterest)
     """Signal emitted when a new ROI has been added.
 
     It provides the newly add :class:`RegionOfInterest` object.
     """
 
-    sigRegionOfInterestAboutToBeRemoved = qt.Signal(RegionOfInterest)
+    sigRoiAboutToBeRemoved = qt.Signal(roi_items.RegionOfInterest)
     """Signal emitted just before a ROI is removed.
 
     It provides the :class:`RegionOfInterest` object that is about to be removed.
     """
 
-    sigRegionOfInterestChanged = qt.Signal(tuple)
-    """Signal emitted whenever the ROIs have changed.
+    sigRoiChanged = qt.Signal()
+    """Signal emitted whenever the ROIs have changed."""
 
-    It provides the list of ROIs.
-    """
-
-    sigInteractiveModeStarted = qt.Signal(str)
+    sigInteractiveModeStarted = qt.Signal(object)
     """Signal emitted when switching to ROI drawing interactive mode.
 
-    It provides the kind of shape of the active interactive mode.
+    It provides the class of the ROI which will be created by the interactive
+    mode.
     """
 
-    sigInteractiveModeFinished = qt.Signal(tuple)
+    sigInteractiveModeFinished = qt.Signal()
     """Signal emitted when leaving and interactive ROI drawing.
 
     It provides the list of ROIs.
@@ -462,12 +92,13 @@ class RegionOfInterestManager(qt.QObject):
 
     _MODE_ACTIONS_PARAMS = collections.OrderedDict()
     # Interactive mode: (icon name, text)
-    _MODE_ACTIONS_PARAMS['point'] = 'add-shape-point', 'Add point markers'
-    _MODE_ACTIONS_PARAMS['rectangle'] = 'add-shape-rectangle', 'Add Rectangle ROI'
-    _MODE_ACTIONS_PARAMS['polygon'] = 'add-shape-polygon', 'Add Polygon ROI'
-    _MODE_ACTIONS_PARAMS['line'] = 'add-shape-diagonal', 'Add Line ROI'
-    _MODE_ACTIONS_PARAMS['hline'] = 'add-shape-horizontal', 'Add Horizontal Line ROI'
-    _MODE_ACTIONS_PARAMS['vline'] = 'add-shape-vertical', 'Add Vertical Line ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.PointROI] = 'add-shape-point', 'Add point markers'
+    _MODE_ACTIONS_PARAMS[roi_items.RectangleROI] = 'add-shape-rectangle', 'Add rectangle ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.PolygonROI] = 'add-shape-polygon', 'Add polygon ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.LineROI] = 'add-shape-diagonal', 'Add line ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.HorizontalLineROI] = 'add-shape-horizontal', 'Add horizontal line ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.VerticalLineROI] = 'add-shape-vertical', 'Add vertical line ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.ArcROI] = 'add-shape-arc', 'Add arc ROI'
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
@@ -475,7 +106,7 @@ class RegionOfInterestManager(qt.QObject):
         self._rois = []  # List of ROIs
         self._drawnROI = None  # New ROI being currently drawn
 
-        self._shapeKind = None
+        self._roiClass = None
         self._color = rgba('red')
 
         self._label = "__RegionOfInterestManager__%d" % id(self)
@@ -488,59 +119,66 @@ class RegionOfInterestManager(qt.QObject):
             self._plotInteractiveModeChanged)
 
     @classmethod
-    def getSupportedRegionOfInterestKinds(cls):
-        """Returns available ROI kinds
+    def getSupportedRoiClasses(cls):
+        """Returns the default available ROI classes
 
-        :rtype: List[str]
+        :rtype: List[class]
         """
         return tuple(cls._MODE_ACTIONS_PARAMS.keys())
 
     # Associated QActions
 
-    def getInteractionModeAction(self, kind):
+    def getInteractionModeAction(self, roiClass):
         """Returns the QAction corresponding to a kind of ROI
 
         The QAction allows to enable the corresponding drawing
         interactive mode.
 
-        :param str kind: Kind of ROI
+        :param str roiClass: The ROI class which will be crated by this action.
         :rtype: QAction
         :raise ValueError: If kind is not supported
         """
-        if kind not in self.getSupportedRegionOfInterestKinds():
-            raise ValueError('Unsupported kind %s' % kind)
+        if not issubclass(roiClass, roi_items.RegionOfInterest):
+            raise ValueError('Unsupported ROI class %s' % roiClass)
 
-        action = self._modeActions.get(kind, None)
+        action = self._modeActions.get(roiClass, None)
         if action is None:  # Lazy-loading
-            iconName, text = self._MODE_ACTIONS_PARAMS[kind]
+            if roiClass in self._MODE_ACTIONS_PARAMS:
+                iconName, text = self._MODE_ACTIONS_PARAMS[roiClass]
+            else:
+                iconName = "add-shape-unknown"
+                name = roiClass._getKind()
+                if name is None:
+                    name = roiClass.__name__
+                text = 'Add %s' % name
             action = qt.QAction(self)
             action.setIcon(icons.getQIcon(iconName))
             action.setText(text)
             action.setCheckable(True)
-            action.setChecked(self.getRegionOfInterestKind() == kind)
+            action.setChecked(self.getCurrentInteractionModeRoiClass() is roiClass)
             action.setToolTip(text)
 
             action.triggered[bool].connect(functools.partial(
-                WeakMethodProxy(self._modeActionTriggered), kind=kind))
-            self._modeActions[kind] = action
+                WeakMethodProxy(self._modeActionTriggered), roiClass=roiClass))
+            self._modeActions[roiClass] = action
         return action
 
-    def _modeActionTriggered(self, checked, kind):
+    def _modeActionTriggered(self, checked, roiClass):
         """Handle mode actions being checked by the user
 
         :param bool checked:
         :param str kind: Corresponding shape kind
         """
         if checked:
-            self.start(kind)
+            self.start(roiClass)
         else:  # Keep action checked
             action = self.sender()
             action.setChecked(True)
 
     def _updateModeActions(self):
         """Check/Uncheck action corresponding to current mode"""
-        for kind, action in self._modeActions.items():
-            action.setChecked(kind == self.getRegionOfInterestKind())
+        for roiClass, action in self._modeActions.items():
+            action.setChecked(roiClass == self.getCurrentInteractionModeRoiClass())
 
     # PlotWidget eventFilter and listeners
 
@@ -556,15 +194,16 @@ class RegionOfInterestManager(qt.QObject):
 
     def _handleInteraction(self, event):
         """Handle mouse interaction for ROI addition"""
-        kind = self.getRegionOfInterestKind()
-        if kind is None:
+        roiClass = self.getCurrentInteractionModeRoiClass()
+        if roiClass is None:
             return  # Should not happen
 
+        kind = roiClass.getFirstInteractionShape()
         if kind == 'point':
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
-                self.createRegionOfInterest(kind=kind, points=points)
+                self.createRoi(roiClass, points=points)
 
         else:  # other shapes
             if (event['event'] in ('drawingProgress', 'drawingFinished') and
@@ -572,36 +211,19 @@ class RegionOfInterestManager(qt.QObject):
                 points = numpy.array((event['xdata'], event['ydata']),
                                      dtype=numpy.float64).T
 
-                if kind == 'hline':
-                    points = numpy.array([(float('nan'), points[0, 1])],
-                                         dtype=numpy.float64)
-                elif kind == 'vline':
-                    points = numpy.array([(points[0, 0], float('nan'))],
-                                         dtype=numpy.float64)
-
                 if self._drawnROI is None:  # Create new ROI
-                    self._drawnROI = self.createRegionOfInterest(
-                        kind=kind, points=points)
+                    self._drawnROI = self.createRoi(roiClass, points=points)
                 else:
-                    self._drawnROI.setControlPoints(points)
+                    self._drawnROI.setFirstShapePoints(points)
 
                 if event['event'] == 'drawingFinished':
                     if kind == 'polygon' and len(points) > 1:
-                        self._drawnROI.setControlPoints(points[:-1])
+                        self._drawnROI.setFirstShapePoints(points[:-1])
                     self._drawnROI = None  # Stop drawing
-
 
     # RegionOfInterest API
 
-    def getRegionOfInterestPoints(self):
-        """Returns the current ROIs control points
-
-        :return: Tuple of arrays of (x, y) points in plot coordinates
-        :rtype: tuple of Nx2 numpy.ndarray
-        """
-        return tuple(s.getControlPoints() for s in self.getRegionOfInterests())
-
-    def getRegionOfInterests(self):
+    def getRois(self):
         """Returns the list of ROIs.
 
         It returns an empty tuple if there is currently no ROI.
@@ -611,16 +233,16 @@ class RegionOfInterestManager(qt.QObject):
         """
         return tuple(self._rois)
 
-    def clearRegionOfInterests(self):
+    def clear(self):
         """Reset current ROIs
 
         :return: True if ROIs were reset.
         :rtype: bool
         """
-        if self.getRegionOfInterests():  # Something to reset
+        if self.getRois():  # Something to reset
             for roi in self._rois:
-                roi.sigControlPointsChanged.disconnect(
-                    self._regionOfInterestPointsChanged)
+                roi.sigRegionChanged.disconnect(
+                    self._regionOfInterestChanged)
                 roi.setParent(None)
             self._rois = []
             self._roisUpdated()
@@ -629,35 +251,34 @@ class RegionOfInterestManager(qt.QObject):
         else:
             return False
 
-    def _regionOfInterestPointsChanged(self):
-        """Handle ROI object points changed"""
-        self.sigRegionOfInterestChanged.emit(self.getRegionOfInterests())
+    def _regionOfInterestChanged(self):
+        """Handle ROI object changed"""
+        self.sigRoiChanged.emit()
 
-    def createRegionOfInterest(self, kind, points, label='', index=None):
+    def createRoi(self, roiClass, points, label='', index=None):
         """Create a new ROI and add it to list of ROIs.
 
-        :param str kind: The kind of ROI to add
-        :param numpy.ndarray points: The control points of the ROI shape
+        :param class roiClass: The class of the ROI to create
+        :param numpy.ndarray points: The first shape used to create the ROI
         :param str label: The label to display along with the ROI.
         :param int index: The position where to insert the ROI.
             By default it is appended to the end of the list.
         :return: The created ROI object
-        :rtype: RegionOfInterest
+        :rtype: roi_items.RegionOfInterest
         :raise RuntimeError: When ROI cannot be added because the maximum
            number of ROIs has been reached.
         """
-        roi = RegionOfInterest(parent=None, kind=kind)
-        roi.setColor(self.getColor())
+        roi = roiClass(parent=None)
         roi.setLabel(str(label))
-        roi.setControlPoints(points)
+        roi.setFirstShapePoints(points)
 
-        self.addRegionOfInterest(roi, index)
+        self.addRoi(roi, index)
         return roi
 
-    def addRegionOfInterest(self, roi, index=None):
+    def addRoi(self, roi, index=None, useManagerColor=True):
         """Add the ROI to the list of ROIs.
 
-        :param RegionOfInterest roi: The ROI to add
+        :param roi_items.RegionOfInterest roi: The ROI to add
         :param int index: The position where to insert the ROI,
             By default it is appended to the end of the list of ROIs
         :raise RuntimeError: When ROI cannot be added because the maximum
@@ -669,39 +290,41 @@ class RegionOfInterestManager(qt.QObject):
                 'Cannot add ROI: PlotWidget no more available')
 
         roi.setParent(self)
-        roi.sigControlPointsChanged.connect(
-            self._regionOfInterestPointsChanged)
+
+        if useManagerColor:
+            roi.setColor(self.getColor())
+
+        roi.sigRegionChanged.connect(self._regionOfInterestChanged)
 
         if index is None:
             self._rois.append(roi)
         else:
             self._rois.insert(index, roi)
-        self.sigRegionOfInterestAdded.emit(roi)
+        self.sigRoiAdded.emit(roi)
         self._roisUpdated()
 
-    def removeRegionOfInterest(self, roi):
+    def removeRoi(self, roi):
         """Remove a ROI from the list of ROIs.
 
-        :param RegionOfInterest roi: The ROI to remove
+        :param roi_items.RegionOfInterest roi: The ROI to remove
         :raise ValueError: When ROI does not belong to this object
         """
-        if not (isinstance(roi, RegionOfInterest) and
+        if not (isinstance(roi, roi_items.RegionOfInterest) and
                 roi.parent() is self and
                 roi in self._rois):
             raise ValueError(
                 'RegionOfInterest does not belong to this instance')
 
-        self.sigRegionOfInterestAboutToBeRemoved.emit(roi)
+        self.sigRoiAboutToBeRemoved.emit(roi)
 
         self._rois.remove(roi)
-        roi.sigControlPointsChanged.disconnect(
-            self._regionOfInterestPointsChanged)
+        roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
         roi.setParent(None)
         self._roisUpdated()
 
     def _roisUpdated(self):
         """Handle update of the ROI list"""
-        self.sigRegionOfInterestChanged.emit(self.getRegionOfInterests())
+        self.sigRoiChanged.emit()
 
     # RegionOfInterest parameters
 
@@ -724,62 +347,70 @@ class RegionOfInterestManager(qt.QObject):
 
     # Control ROI
 
-    def getRegionOfInterestKind(self):
-        """Returns the current interactive ROI drawing mode or None.
+    def getCurrentInteractionModeRoiClass(self):
+        """Returns the current ROI class used by the interactive drawing mode.
 
-        :rtype: Union[str,None]
+        Returns None if the ROI manager is not in an interactive mode.
+
+        :rtype: Union[class,None]
         """
-        return self._shapeKind
+        return self._roiClass
 
     def isStarted(self):
-        """Returns True  if an interactive ROI drawing mode is active.
+        """Returns True if an interactive ROI drawing mode is active.
 
         :rtype: bool
         """
-        return self._shapeKind is not None
+        return self._roiClass is not None
 
-    def start(self, kind):
+    def start(self, roiClass):
         """Start an interactive ROI drawing mode.
 
-        :param str kind: The kind of ROI shape in:
-           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param class roiClass: The ROI class to create. It have to inherite from
+            `roi_items.RegionOfInterest`.
         :return: True if interactive ROI drawing was started, False otherwise
         :rtype: bool
-        :raise ValueError: If kind is not supported
+        :raise ValueError: If roiClass is not supported
         """
         self.stop()
+
+        if not issubclass(roiClass, roi_items.RegionOfInterest):
+            raise ValueError('Unsupported ROI class %s' % roiClass)
 
         plot = self.parent()
         if plot is None:
             return False
 
-        if kind not in self.getSupportedRegionOfInterestKinds():
-            raise ValueError('Unsupported kind %s' % kind)
-        self._shapeKind = kind
+        self._roiClass = roiClass
+        firstInteractionShapeKind = roiClass.getFirstInteractionShape()
 
-        if self._shapeKind == 'point':
+        if firstInteractionShapeKind == 'point':
             plot.setInteractiveMode(mode='select', source=self)
         else:
+            if roiClass.showFirstInteractionShape():
+                color = rgba(self.getColor())
+            else:
+                color = None
             plot.setInteractiveMode(mode='select-draw',
                                     source=self,
-                                    shape=self._shapeKind,
-                                    color=rgba(self.getColor()),
+                                    shape=firstInteractionShapeKind,
+                                    color=color,
                                     label=self._label)
 
         plot.sigPlotSignal.connect(self._handleInteraction)
 
-        self.sigInteractiveModeStarted.emit(kind)
+        self.sigInteractiveModeStarted.emit(roiClass)
 
         return True
 
     def __roiInteractiveModeEnded(self):
         """Handle end of ROI draw interactive mode"""
         if self.isStarted():
-            self._shapeKind = None
+            self._roiClass = None
 
             if self._drawnROI is not None:
                 # Cancel ROI create
-                self.removeRegionOfInterest(self._drawnROI)
+                self.removeRoi(self._drawnROI)
                 self._drawnROI = None
 
             plot = self.parent()
@@ -788,7 +419,7 @@ class RegionOfInterestManager(qt.QObject):
 
             self._updateModeActions()
 
-            self.sigInteractiveModeFinished.emit(self.getRegionOfInterestPoints())
+            self.sigInteractiveModeFinished.emit()
 
     def stop(self):
         """Stop interactive ROI drawing mode.
@@ -809,15 +440,15 @@ class RegionOfInterestManager(qt.QObject):
 
         return True
 
-    def exec_(self, kind):
+    def exec_(self, roiClass):
         """Block until :meth:`quit` is called.
 
-        :param str kind: The kind of ROI shape in:
-           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param class kind: The class of the ROI which have to be created.
+            See `silx.gui.plot.items.roi`.
         :return: The list of ROIs
         :rtype: tuple
         """
-        self.start(kind=kind)
+        self.start(roiClass)
 
         plot = self.parent()
         plot.show()
@@ -829,8 +460,8 @@ class RegionOfInterestManager(qt.QObject):
 
         self.stop()
 
-        rois = self.getRegionOfInterestPoints()
-        self.clearRegionOfInterests()
+        rois = self.getRois()
+        self.clear()
         return rois
 
     def quit(self):
@@ -863,23 +494,23 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         self.__timeoutEndTime = None
         self.__message = ''
         self.__validationMode = self.ValidationMode.ENTER
-        self.__execKind = None
+        self.__execClass = None
 
-        self.sigRegionOfInterestAdded.connect(self.__added)
-        self.sigRegionOfInterestAboutToBeRemoved.connect(self.__aboutToBeRemoved)
+        self.sigRoiAdded.connect(self.__added)
+        self.sigRoiAboutToBeRemoved.connect(self.__aboutToBeRemoved)
         self.sigInteractiveModeStarted.connect(self.__started)
         self.sigInteractiveModeFinished.connect(self.__finished)
 
     # Max ROI
 
-    def getMaxRegionOfInterests(self):
+    def getMaxRois(self):
         """Returns the maximum number of ROIs or None if no limit.
 
         :rtype: Union[int,None]
         """
         return self._maxROI
 
-    def setMaxRegionOfInterests(self, max_):
+    def setMaxRois(self, max_):
         """Set the maximum number of ROIs.
 
         :param Union[int,None] max_: The max limit or None for no limit.
@@ -890,19 +521,19 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             if max_ <= 0:
                 raise ValueError('Max limit must be strictly positive')
 
-            if len(self.getRegionOfInterests()) > max_:
+            if len(self.getRois()) > max_:
                 raise ValueError(
                     'Cannot set max limit: Already too many ROIs')
 
         self._maxROI = max_
 
-    def isMaxRegionOfInterests(self):
+    def isMaxRois(self):
         """Returns True if the maximum number of ROIs is reached.
 
         :rtype: bool
         """
-        max_ = self.getMaxRegionOfInterests()
-        return max_ is not None and len(self.getRegionOfInterests()) >= max_
+        max_ = self.getMaxRois()
+        return max_ is not None and len(self.getRois()) >= max_
 
     # Validation mode
 
@@ -948,7 +579,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             self.__validationMode = mode
 
         if self.isExec():
-            if (self.isMaxRegionOfInterests() and self.getValidationMode() in
+            if (self.isMaxRois() and self.getValidationMode() in
                     (self.ValidationMode.AUTO,
                      self.ValidationMode.AUTO_ENTER)):
                 self.quit()
@@ -972,9 +603,9 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             if (key in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
                     key == qt.Qt.Key_Z and
                     event.modifiers() & qt.Qt.ControlModifier)):
-                rois = self.getRegionOfInterests()
+                rois = self.getRois()
                 if rois:  # Something to undo
-                    self.removeRegionOfInterest(rois[-1])
+                    self.removeRoi(rois[-1])
                     # Stop further handling of keys if something was undone
                     return True
 
@@ -1000,14 +631,14 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
     def __added(self, *args, **kwargs):
         """Handle new ROI added"""
-        max_ = self.getMaxRegionOfInterests()
+        max_ = self.getMaxRois()
         if max_ is not None:
             # When reaching max number of ROIs, redo last one
-            while len(self.getRegionOfInterests()) > max_:
-                self.removeRegionOfInterest(self.getRegionOfInterests()[-2])
+            while len(self.getRois()) > max_:
+                self.removeRoi(self.getRois()[-2])
 
         self.__updateMessage()
-        if (self.isMaxRegionOfInterests() and
+        if (self.isMaxRois() and
                 self.getValidationMode() in (self.ValidationMode.AUTO,
                                              self.ValidationMode.AUTO_ENTER)):
             self.quit()
@@ -1015,13 +646,13 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
     def __aboutToBeRemoved(self, *args, **kwargs):
         """Handle removal of a ROI"""
         # RegionOfInterest not removed yet
-        self.__updateMessage(nbrois=len(self.getRegionOfInterests()) - 1)
+        self.__updateMessage(nbrois=len(self.getRois()) - 1)
 
-    def __started(self, *args, **kwargs):
+    def __started(self, roiKind):
         """Handle interactive mode started"""
         self.__updateMessage()
 
-    def __finished(self, *args, **kwargs):
+    def __finished(self):
         """Handle interactive mode finished"""
         self.__updateMessage()
 
@@ -1031,14 +662,14 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             message = 'Done'
 
         elif not self.isStarted():
-            message = 'Use %s ROI edition mode' % self.__execKind
+            message = 'Use %s ROI edition mode' % self.__execClass
 
         else:
             if nbrois is None:
-                nbrois = len(self.getRegionOfInterests())
+                nbrois = len(self.getRois())
 
-            kind = self.__execKind
-            max_ = self.getMaxRegionOfInterests()
+            kind = self.__execClass._getKind()
+            max_ = self.getMaxRois()
 
             if max_ is None:
                 message = 'Select %ss (%d selected)' % (kind, nbrois)
@@ -1049,7 +680,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
                 message = 'Select %d/%d %ss' % (nbrois, max_, kind)
 
             if (self.getValidationMode() == self.ValidationMode.ENTER and
-                    self.isMaxRegionOfInterests()):
+                    self.isMaxRois()):
                 message += ' - Press Enter to confirm'
 
         if message != self.__message:
@@ -1075,15 +706,15 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         """Returns True if :meth:`exec_` is currently running.
 
         :rtype: bool"""
-        return self.__execKind is not None
+        return self.__execClass is not None
 
-    def exec_(self, kind, timeout=0):
+    def exec_(self, roiClass, timeout=0):
         """Block until ROI selection is done or timeout is elapsed.
 
         :meth:`quit` also ends this blocking call.
 
-        :param str kind: The kind of ROI shape in:
-           'point', 'rectangle', 'line', 'polygon', 'hline', 'vline'
+        :param class roiClass: The class of the ROI which have to be created.
+            See `silx.gui.plot.items.roi`.
         :param int timeout: Maximum duration in seconds to block.
             Default: No timeout
         :return: The list of ROIs
@@ -1093,7 +724,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         if plot is None:
             return
 
-        self.__execKind = kind
+        self.__execClass = roiClass
 
         plot.installEventFilter(self)
 
@@ -1103,17 +734,17 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             timer.timeout.connect(self.__timeoutUpdate)
             timer.start(1000)
 
-            rois = super(InteractiveRegionOfInterestManager, self).exec_(kind)
+            rois = super(InteractiveRegionOfInterestManager, self).exec_(roiClass)
 
             timer.stop()
             self.__timeoutEndTime = None
 
         else:
-            rois = super(InteractiveRegionOfInterestManager, self).exec_(kind)
+            rois = super(InteractiveRegionOfInterestManager, self).exec_(roiClass)
 
         plot.removeEventFilter(self)
 
-        self.__execKind = None
+        self.__execClass = None
         self.__updateMessage()
 
         return rois
@@ -1139,7 +770,7 @@ class _DeleteRegionOfInterestToolButton(qt.QToolButton):
         if roi is not None:
             manager = roi.parent()
             if manager is not None:
-                manager.removeRegionOfInterest(roi)
+                manager.removeRoi(roi)
                 self.__roiRef = None
 
 
@@ -1200,7 +831,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         previousManager = self.getRegionOfInterestManager()
 
         if previousManager is not None:
-            previousManager.sigRegionOfInterestChanged.disconnect(self._sync)
+            previousManager.sigRoiChanged.disconnect(self._sync)
         self.setRowCount(0)
 
         self._roiManagerRef = weakref.ref(manager)
@@ -1208,9 +839,32 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         self._sync()
 
         if manager is not None:
-            manager.sigRegionOfInterestChanged.connect(self._sync)
+            manager.sigRoiChanged.connect(self._sync)
 
-    def _sync(self, *args):
+    def _getReadableRoiDescription(self, roi):
+        """Returns modelisation of a ROI as a readable sequence of values.
+
+        :rtype: str
+        """
+        text = str(roi)
+        try:
+            # Extract the params from syntax "CLASSNAME(PARAMS)"
+            elements = text.split("(", 1)
+            if len(elements) != 2:
+                return text
+            result = elements[1]
+            result = result.strip()
+            if not result.endswith(")"):
+                return text
+            result = result[0:-1]
+            # Capitalize each words
+            result = result.title()
+            return result
+        except Exception:
+            logger.debug("Backtrace", exc_info=True)
+        return text
+
+    def _sync(self):
         """Update widget content according to ROI manger"""
         manager = self.getRegionOfInterestManager()
 
@@ -1218,7 +872,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             self.setRowCount(0)
             return
 
-        rois = manager.getRegionOfInterests()
+        rois = manager.getRois()
 
         self.setRowCount(len(rois))
         for index, roi in enumerate(rois):
@@ -1242,8 +896,11 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setText(None)
 
             # Kind
-            kind = roi.getKind()
-            item = qt.QTableWidgetItem(kind.capitalize())
+            label = roi._getKind()
+            if label is None:
+                # Default value if kind is not overrided
+                label = roi.__class__.__name__
+            item = qt.QTableWidgetItem(label.capitalize())
             item.setFlags(baseFlags)
             self.setItem(index, 2, item)
 
@@ -1251,24 +908,8 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setFlags(baseFlags)
 
             # Coordinates
-            points = roi.getControlPoints()
-            if kind == 'rectangle':
-                origin = numpy.min(points, axis=0)
-                w, h = numpy.max(points, axis=0) - origin
-                item.setText('Origin: (%f; %f); Width: %f; Height: %f' %
-                             (origin[0], origin[1], w, h))
-
-            elif kind == 'point':
-                item.setText('(%f; %f)' % (points[0, 0], points[0, 1]))
-
-            elif kind == 'hline':
-                item.setText('Y: %f' % points[0, 1])
-
-            elif kind == 'vline':
-                item.setText('X: %f' % points[0, 0])
-
-            else:  # default (polygon, line)
-                item.setText('; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points))
+            text = self._getReadableRoiDescription(roi)
+            item.setText(text)
             self.setItem(index, 3, item)
 
             # Delete

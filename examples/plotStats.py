@@ -70,15 +70,21 @@ class COM(StatBase):
     def calculate(self, context):
         if context.kind in ('curve', 'histogram'):
             xData, yData = context.data
-            com = numpy.sum(xData * yData).astype(numpy.float32) / numpy.sum(
-                yData).astype(numpy.float32)
-            return com
+            deno = numpy.sum(yData).astype(numpy.float32)
+            if deno == 0.0:
+                return 0.0
+            else:
+                return numpy.sum(xData * yData).astype(numpy.float32) / deno
         elif context.kind == 'scatter':
-            xData = context.data[0]
-            values = context.values
-            com = numpy.sum(xData * values).astype(numpy.float32) / numpy.sum(
-                values).astype(numpy.float32)
-            return com
+            xData, yData, values = context.data
+            values = values.astype(numpy.float64)
+            deno = numpy.sum(values)
+            if deno == 0.0:
+                return float('inf'), float('inf')
+            else:
+                comX = numpy.sum(xData * values) / deno
+                comY = numpy.sum(yData * values) / deno
+                return comX, comY
 
 
 def main():

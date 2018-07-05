@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/06/2018"
+__date__ = "25/06/2018"
 
 
 import os
@@ -84,6 +84,9 @@ class Viewer(qt.QMainWindow):
         treeModel.setDatasetDragEnabled(True)
         treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
         treeModel2.setSourceModel(treeModel)
+        treeModel2.sort(0, qt.Qt.AscendingOrder)
+        treeModel2.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
+
         self.__treeview.setModel(treeModel2)
         rightPanel.addWidget(self.__treeWindow)
 

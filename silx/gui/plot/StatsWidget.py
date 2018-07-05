@@ -82,7 +82,7 @@ class StatsWidget(qt.QWidget):
             action = qt.QAction(self)
             action.setIcon(icons.getQIcon("stats-whole-items"))
             action.setText("All items")
-            action.setToolTip("Display stats for whole available items.")
+            action.setToolTip("Display stats for all available items.")
             action.setCheckable(True)
             self.__displayWholeItems = action
 
@@ -435,6 +435,10 @@ class StatsTable(TableWidget):
                     _item = self._statsHandler.formatters[name].tabWidgetItemClass()
                 else:
                     _item = qt.QTableWidgetItem()
+                tooltip = self._statsHandler.stats[name].getToolTip(kind=kind)
+                if tooltip is not None:
+                    _item.setToolTip(tooltip)
+
             _item.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
             self.setItem(indexTable, self._columns_index[name], _item)
             self._lgdAndKindToItems[(legend, kind)][name] = _item

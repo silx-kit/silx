@@ -614,7 +614,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             # convert from plot to array coords
             col, row = (event['points'][-1] - self._origin) / self._scale
             col, row = int(col), int(row)
-            brushSize = self.pencilSpinBox.value()
+            brushSize = self._getPencilWidth()
 
             if self._lastPencilPos != (row, col):
                 if self._lastPencilPos is not None:

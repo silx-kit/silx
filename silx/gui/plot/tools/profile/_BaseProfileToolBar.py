@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/06/2018"
+__date__ = "28/06/2018"
 
 
 import logging
@@ -39,6 +39,7 @@ from silx.gui import qt, icons, colors
 from silx.gui.plot import PlotWidget, items
 from silx.gui.plot.ProfileMainWindow import ProfileMainWindow
 from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.gui.plot.items import roi as roi_items
 
 
 _logger = logging.getLogger(__name__)
@@ -71,18 +72,17 @@ class _BaseProfileToolBar(qt.QToolBar):
         roiManager = RegionOfInterestManager(plot)
         self._roiManagerRef = weakref.ref(roiManager)
 
-        roiManager.sigInteractiveModeFinished.connect(
-            self.__interactionFinished)
-        roiManager.sigRegionOfInterestChanged.connect(self.updateProfile)
-        roiManager.sigRegionOfInterestAdded.connect(self.__roiAdded)
+        roiManager.sigInteractiveModeFinished.connect(self.__interactionFinished)
+        roiManager.sigRoiChanged.connect(self.updateProfile)
+        roiManager.sigRoiAdded.connect(self.__roiAdded)
 
         # Add interactive mode actions
         for kind, icon, tooltip in (
-                ('hline', 'shape-horizontal',
+                (roi_items.HorizontalLineROI, 'shape-horizontal',
                  'Enables horizontal line profile selection mode'),
-                ('vline', 'shape-vertical',
+                (roi_items.VerticalLineROI, 'shape-vertical',
                  'Enables vertical line profile selection mode'),
-                ('line', 'shape-diagonal',
+                (roi_items.LineROI, 'shape-diagonal',
                  'Enables line profile selection mode')):
             action = roiManager.getInteractionModeAction(kind)
             action.setIcon(icons.getQIcon(icon))
@@ -305,13 +305,13 @@ class _BaseProfileToolBar(qt.QToolBar):
         roiManager = self._getRoiManager()
         if roiManager is not None:
             roiManager.setColor(self._color)
-            for roi in roiManager.getRegionOfInterests():
+            for roi in roiManager.getRois():
                 roi.setColor(self._color)
         self.updateProfile()
 
     # Handle ROI manager
 
-    def __interactionFinished(self, rois):
+    def __interactionFinished(self):
         """Handle end of interactive mode"""
         self.clearProfile()
 
@@ -327,9 +327,9 @@ class _BaseProfileToolBar(qt.QToolBar):
         # Remove any other ROI
         roiManager = self._getRoiManager()
         if roiManager is not None:
-            for regionOfInterest in list(roiManager.getRegionOfInterests()):
+            for regionOfInterest in list(roiManager.getRois()):
                 if regionOfInterest is not roi:
-                    roiManager.removeRegionOfInterest(regionOfInterest)
+                    roiManager.removeRoi(regionOfInterest)
 
     def computeProfile(self, x0, y0, x1, y1):
         """Compute corresponding profile
@@ -367,43 +367,40 @@ class _BaseProfileToolBar(qt.QToolBar):
 
         return title
 
-    def updateProfile(self, *args):
+    def updateProfile(self):
         """Update profile according to current ROI"""
         roiManager = self._getRoiManager()
         if roiManager is None:
             roi = None
         else:
-            rois = roiManager.getRegionOfInterests()
+            rois = roiManager.getRois()
             roi = None if len(rois) == 0 else rois[0]
 
         if roi is None:
             self._setProfile(profile=None, title='')
             return
 
-        kind = roi.getKind()
-
         # Get end points
-        if kind == 'line':
-            points = roi.getControlPoints()
+        if isinstance(roi, roi_items.LineROI):
+            points = roi.getEndPoints()
             x0, y0 = points[0]
             x1, y1 = points[1]
-
-        elif kind in ('hline', 'vline'):
+        elif isinstance(roi, (roi_items.VerticalLineROI, roi_items.HorizontalLineROI)):
             plot = self.getPlotWidget()
             if plot is None:
                 self._setProfile(profile=None, title='')
                 return
 
-            if kind == 'hline':
+            elif isinstance(roi, roi_items.HorizontalLineROI):
                 x0, x1 = plot.getXAxis().getLimits()
-                y0 = y1 = roi.getControlPoints()[0, 1]
+                y0 = y1 = roi.getPosition()
 
-            elif kind == 'vline':
-                x0 = x1 = roi.getControlPoints()[0, 0]
+            elif isinstance(roi, roi_items.VerticalLineROI):
+                x0 = x1 = roi.getPosition()
                 y0, y1 = plot.getYAxis().getLimits()
 
         else:
-            raise RuntimeError('Unsupported kind: {}'.format(kind))
+            raise RuntimeError('Unsupported ROI for profile: {}'.format(roi.__class__))
 
         if x1 < x0 or (x1 == x0 and y1 < y0):
             # Invert points
@@ -428,6 +425,6 @@ class _BaseProfileToolBar(qt.QToolBar):
         """Clear the current line ROI and associated profile"""
         roiManager = self._getRoiManager()
         if roiManager is not None:
-            roiManager.clearRegionOfInterests()
+            roiManager.clear()
 
         self._setProfile(profile=None, title='')

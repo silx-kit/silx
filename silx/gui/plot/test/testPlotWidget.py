@@ -881,7 +881,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.getYAxis(axis="right").sigLimitsChanged.connect(listener.partial(axis="y2"))
         self.plot.setLimits(0, 1, 0, 1, 0, 1)
         # at least one event per axis
-        self.assertEquals(len(set(listener.karguments(argumentName="axis"))), 3)
+        self.assertEqual(len(set(listener.karguments(argumentName="axis"))), 3)
 
     def testLimitsChanged_resetZoom(self):
         self.plot.addCurve(self.xData, self.yData,
@@ -894,7 +894,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.getYAxis(axis="right").sigLimitsChanged.connect(listener.partial(axis="y2"))
         self.plot.resetZoom()
         # at least one event per axis
-        self.assertEquals(len(set(listener.karguments(argumentName="axis"))), 3)
+        self.assertEqual(len(set(listener.karguments(argumentName="axis"))), 3)
 
     def testLimitsChanged_setXLimit(self):
         self.plot.addCurve(self.xData, self.yData,
@@ -906,8 +906,8 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         axis.sigLimitsChanged.connect(listener)
         axis.setLimits(20, 30)
         # at least one event per axis
-        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
-        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+        self.assertEqual(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEqual(axis.getLimits(), (20.0, 30.0))
 
     def testLimitsChanged_setYLimit(self):
         self.plot.addCurve(self.xData, self.yData,
@@ -919,8 +919,8 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         axis.sigLimitsChanged.connect(listener)
         axis.setLimits(20, 30)
         # at least one event per axis
-        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
-        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+        self.assertEqual(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEqual(axis.getLimits(), (20.0, 30.0))
 
     def testLimitsChanged_setYRightLimit(self):
         self.plot.addCurve(self.xData, self.yData,
@@ -932,8 +932,8 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         axis.sigLimitsChanged.connect(listener)
         axis.setLimits(20, 30)
         # at least one event per axis
-        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
-        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+        self.assertEqual(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEqual(axis.getLimits(), (20.0, 30.0))
 
     def testScaleProxy(self):
         listener = SignalListener()
@@ -943,9 +943,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         yright.sigScaleChanged.connect(listener.partial("right"))
         yright.setScale(yright.LOGARITHMIC)
 
-        self.assertEquals(y.getScale(), y.LOGARITHMIC)
+        self.assertEqual(y.getScale(), y.LOGARITHMIC)
         events = listener.arguments()
-        self.assertEquals(len(events), 2)
+        self.assertEqual(len(events), 2)
         self.assertIn(("left", y.LOGARITHMIC), events)
         self.assertIn(("right", y.LOGARITHMIC), events)
 
@@ -957,9 +957,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         yright.sigAutoScaleChanged.connect(listener.partial("right"))
         yright.setAutoScale(False)
 
-        self.assertEquals(y.isAutoScale(), False)
+        self.assertEqual(y.isAutoScale(), False)
         events = listener.arguments()
-        self.assertEquals(len(events), 2)
+        self.assertEqual(len(events), 2)
         self.assertIn(("left", False), events)
         self.assertIn(("right", False), events)
 
@@ -971,9 +971,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         yright.sigInvertedChanged.connect(listener.partial("right"))
         yright.setInverted(True)
 
-        self.assertEquals(y.isInverted(), True)
+        self.assertEqual(y.isInverted(), True)
         events = listener.arguments()
-        self.assertEquals(len(events), 2)
+        self.assertEqual(len(events), 2)
         self.assertIn(("left", True), events)
         self.assertIn(("right", True), events)
 

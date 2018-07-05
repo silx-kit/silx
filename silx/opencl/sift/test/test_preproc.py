@@ -37,23 +37,21 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2018"
+__date__ = "25/06/2018"
 
 import os
 import time
 import logging
 import numpy
 try:
-    import scipy
-except:
-    scipy = None
-else:
     import scipy.misc
+except ImportError:
+    scipy = None
 
 import math
 from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl.array
 import unittest
 from ..utils import calc_size, get_opencl_code
 
@@ -77,7 +75,7 @@ def shrink(img, xs, ys):
 def shrink_cython(img, xs, ys):
     try:
         import feature
-    except:
+    except ImportError:
         return img[0::ys, 0::xs]
     else:
         return feature.shrink(img, xs)
@@ -92,7 +90,6 @@ def binning(input_img, binsize):
     TODO: Not used here
     """
     inputSize = input_img.shape
-    outputSize = []
     assert(len(inputSize) == 2)
     if isinstance(binsize, int):
         binsize = (binsize, binsize)

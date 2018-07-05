@@ -35,6 +35,7 @@ import time
 import weakref
 
 from .. import colors
+from .. import qt
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
@@ -115,10 +116,51 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
 
     Base class for :class:`Pan` and :class:`Zoom`
     """
+
+    _DOUBLE_CLICK_TIMEOUT = 0.4
+
     class ZoomIdle(ClickOrDrag.Idle):
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
+
+    def click(self, x, y, btn):
+        """Handle clicks by sending events
+
+        :param int x: Mouse X position in pixels
+        :param int y: Mouse Y position in pixels
+        :param btn: Clicked mouse button
+        """
+        if btn == LEFT_BTN:
+            lastClickTime, lastClickPos = self._lastClick
+
+            # Signal mouse double clicked event first
+            if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
+                # Use position of first click
+                eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
+                                               *lastClickPos)
+                self.plot.notify(**eventDict)
+
+                self._lastClick = 0., None
+            else:
+                # Signal mouse clicked event
+                dataPos = self.plot.pixelToData(x, y)
+                assert dataPos is not None
+                eventDict = prepareMouseSignal('mouseClicked', 'left',
+                                               dataPos[0], dataPos[1],
+                                               x, y)
+                self.plot.notify(**eventDict)
+
+                self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
+
+        elif btn == RIGHT_BTN:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            eventDict = prepareMouseSignal('mouseClicked', 'right',
+                                           dataPos[0], dataPos[1],
+                                           x, y)
+            self.plot.notify(**eventDict)
 
     def __init__(self, plot):
         """Init.
@@ -134,6 +176,8 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
             'drag': ClickOrDrag.Drag
         }
         StateMachine.__init__(self, states, 'idle')
+
+        self._lastClick = 0., None
 
 
 # Pan #########################################################################
@@ -229,11 +273,9 @@ class Zoom(_ZoomOnWheel):
     Zoom-in on selected area, zoom-out on right click,
     and zoom on mouse wheel.
     """
-    _DOUBLE_CLICK_TIMEOUT = 0.4
 
     def __init__(self, plot, color):
         self.color = color
-        self._lastClick = 0., None
 
         super(Zoom, self).__init__(plot)
         self.plot.getLimitsHistory().clear()
@@ -262,38 +304,6 @@ class Zoom(_ZoomOnWheel):
                     areaX1 = center + numpy.sign(x1 - x0) * 0.5 * areaWidth
 
         return areaX0, areaY0, areaX1, areaY1
-
-    def click(self, x, y, btn):
-        if btn == LEFT_BTN:
-            lastClickTime, lastClickPos = self._lastClick
-
-            # Signal mouse double clicked event first
-            if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
-                # Use position of first click
-                eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
-                                               *lastClickPos)
-                self.plot.notify(**eventDict)
-
-                self._lastClick = 0., None
-            else:
-                # Signal mouse clicked event
-                dataPos = self.plot.pixelToData(x, y)
-                assert dataPos is not None
-                eventDict = prepareMouseSignal('mouseClicked', 'left',
-                                               dataPos[0], dataPos[1],
-                                               x, y)
-                self.plot.notify(**eventDict)
-
-                self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
-
-        elif btn == RIGHT_BTN:
-            # Signal mouse clicked event
-            dataPos = self.plot.pixelToData(x, y)
-            assert dataPos is not None
-            eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                           dataPos[0], dataPos[1],
-                                           x, y)
-            self.plot.notify(**eventDict)
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -424,7 +434,7 @@ class SelectPolygon(Select):
             """Update drawing first point, using self._firstPos"""
             x, y = self.machine.plot.dataToPixel(*self._firstPos, check=False)
 
-            offset = self.machine.DRAG_THRESHOLD_DIST
+            offset = self.machine.getDragThreshold()
             points = [(x - offset, y - offset),
                       (x - offset, y + offset),
                       (x + offset, y + offset),
@@ -458,10 +468,10 @@ class SelectPolygon(Select):
                                                          check=False)
                 dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
 
+                threshold = self.machine.getDragThreshold()
+
                 # Only allow to close polygon after first point
-                if (len(self.points) > 2 and
-                        dx < self.machine.DRAG_THRESHOLD_DIST and
-                        dy < self.machine.DRAG_THRESHOLD_DIST):
+                if len(self.points) > 2 and dx <= threshold and dy <= threshold:
                     self.machine.resetSelectionArea()
 
                     self.points[-1] = self.points[0]
@@ -489,8 +499,7 @@ class SelectPolygon(Select):
                 previousPos = self.machine.plot.dataToPixel(*self.points[-2],
                                                             check=False)
                 dx, dy = abs(previousPos[0] - x), abs(previousPos[1] - y)
-                if(dx >= self.machine.DRAG_THRESHOLD_DIST or
-                   dy >= self.machine.DRAG_THRESHOLD_DIST):
+                if dx >= threshold or dy >= threshold:
                     self.points.append(dataPos)
                 else:
                     self.points[-1] = dataPos
@@ -502,8 +511,9 @@ class SelectPolygon(Select):
             firstPos = self.machine.plot.dataToPixel(*self._firstPos,
                                                      check=False)
             dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-            if (dx < self.machine.DRAG_THRESHOLD_DIST and
-                    dy < self.machine.DRAG_THRESHOLD_DIST):
+            threshold = self.machine.getDragThreshold()
+
+            if dx <= threshold and dy <= threshold:
                 x, y = firstPos  # Snap to first point
 
             dataPos = self.machine.plot.pixelToData(x, y)
@@ -522,6 +532,17 @@ class SelectPolygon(Select):
     def cancel(self):
         if isinstance(self.state, self.states['select']):
             self.resetSelectionArea()
+
+    def getDragThreshold(self):
+        """Return dragging ratio with device to pixel ratio applied.
+
+        :rtype: float
+        """
+        ratio = 1.
+        if qt.BINDING in ('PyQt5', 'PySide2'):
+            ratio = self.plot.window().windowHandle().devicePixelRatio()
+        return self.DRAG_THRESHOLD_DIST * ratio
+
 
 
 class Select2Points(Select):

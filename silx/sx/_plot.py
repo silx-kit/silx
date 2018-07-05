@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "28/06/2018"
 
 
 import collections
@@ -38,10 +38,11 @@ import numpy
 
 from ..utils.weakref import WeakList
 from ..gui import qt
-from ..gui.plot import Plot1D, Plot2D, ScatterView, PlotWidget
+from ..gui.plot import Plot1D, Plot2D, ScatterView
 from ..gui.colors import COLORDICT
 from ..gui.colors import Colormap
 from ..gui.plot.tools import roi
+from ..gui.plot.items import roi as roi_items
 from ..gui.plot.tools.toolbars import InteractiveModeToolBar
 from silx.third_party import six
 
@@ -447,10 +448,10 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         window = plot.window()  # Retrieve window containing PlotWidget
         statusBar = window.statusBar()
         self.sigMessageChanged.connect(statusBar.showMessage)
-        self.setMaxRegionOfInterests(n)
+        self.setMaxRois(n)
         self.setValidationMode(self.ValidationMode.AUTO_ENTER)
-        self.sigRegionOfInterestAdded.connect(self.__added)
-        self.sigRegionOfInterestAboutToBeRemoved.connect(self.__removed)
+        self.sigRoiAdded.connect(self.__added)
+        self.sigRoiAboutToBeRemoved.connect(self.__removed)
 
     def exec_(self):
         """Request user inputs
@@ -470,12 +471,12 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         else:  # Add a toolbar
             toolbar = qt.QToolBar()
             window.addToolBar(toolbar)
-        toolbar.addAction(self.getInteractionModeAction('point'))
+        toolbar.addAction(self.getInteractionModeAction(roi_items.PointROI))
 
-        super(_GInputHandler, self).exec_(kind='point', timeout=self._timeout)
+        super(_GInputHandler, self).exec_(roiClass=roi_items.PointROI, timeout=self._timeout)
 
         if isinstance(toolbar, InteractiveModeToolBar):
-            toolbar.removeAction(self.getInteractionModeAction('point'))
+            toolbar.removeAction(self.getInteractionModeAction(roi_items.PointROI))
         else:
             toolbar.setParent(None)
 
@@ -491,7 +492,11 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         if plot is None:
             return  # No plot, abort
 
-        x, y = roi.getControlPoints()[0]
+        if not isinstance(roi, roi_items.PointROI):
+            # Only handle points
+            raise RuntimeError("Unexpected item")
+
+        x, y = roi.getPosition()
         xPixel, yPixel = plot.dataToPixel(x, y, axis='left', check=False)
 
         # Pick item at selected position
@@ -533,19 +538,18 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
 
         :param RegionOfInterest roi:
         """
-        if roi.getKind() == 'point':  # Only handle points
+        if isinstance(roi, roi_items.PointROI):
+            # Only handle points
             roi.setLabel('%d' % len(self.__selections))
             self.__updateSelection(roi)
-            roi.sigControlPointsChanged.connect(
-                self.__controlPointsChanged)
+            roi.sigRegionChanged.connect(self.__regionChanged)
 
     def __removed(self, roi):
         """Handle ROI removed"""
         if self.__selections.pop(roi, None) is not None:
-            roi.sigControlPointsChanged.disconnect(
-                self.__controlPointsChanged)
+            roi.sigRegionChanged.disconnect(self.__regionChanged)
 
-    def __controlPointsChanged(self):
+    def __regionChanged(self):
         """Handle update of a ROI"""
         roi = self.sender()
         self.__updateSelection(roi)

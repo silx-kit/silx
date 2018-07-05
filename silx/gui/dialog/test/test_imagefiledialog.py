@@ -129,7 +129,7 @@ class _UtilsMixin(object):
         path2_ = os.path.normcase(path2)
         if path1_ != path2_:
             # Use the unittest API to log and display error
-            self.assertEquals(path1, path2)
+            self.assertEqual(path1, path2)
 
     def assertNotSamePath(self, path1, path2):
         path1_ = os.path.normcase(path1)
@@ -153,7 +153,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         self.keyClick(dialog, qt.Qt.Key_Escape)
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickCancel(self):
         dialog = self.createDialog()
@@ -165,7 +165,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.mouseClick(button, qt.Qt.LeftButton)
         self.assertFalse(dialog.isVisible())
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickLockedOpen(self):
         dialog = self.createDialog()
@@ -177,7 +177,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.mouseClick(button, qt.Qt.LeftButton)
         # open button locked, dialog is not closed
         self.assertTrue(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickOpen(self):
         if fabio is None:
@@ -194,7 +194,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testClickOnShortcut(self):
         dialog = self.createDialog()

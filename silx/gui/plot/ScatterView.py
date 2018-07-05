@@ -113,6 +113,7 @@ class ScatterView(qt.QMainWindow):
         # Create mask tool dock widget
         self._maskToolsWidget = ScatterMaskToolsWidget(parent=self, plot=plot)
         self._maskDock = BoxLayoutDockWidget()
+        self._maskDock.setWindowTitle('Scatter Mask')
         self._maskDock.setWidget(self._maskToolsWidget)
         self._maskDock.setVisible(False)
         self.addDockWidget(qt.Qt.BottomDockWidgetArea, self._maskDock)
@@ -212,6 +213,13 @@ class ScatterView(qt.QMainWindow):
         :rtype: ~silx.gui.plot.PlotWidget
         """
         return self._plot()
+
+    def getPositionInfoWidget(self):
+        """Returns the widget display mouse coordinates information.
+
+        :rtype: ~silx.gui.plot.tools.PositionInfo
+        """
+        return self._positionInfo
 
     def getMaskToolsWidget(self):
         """Returns the widget controlling mask drawing

@@ -114,7 +114,12 @@ class StatsHandler(object):
             if self.formatters[name] is None:
                 return str(val)
             else:
-                return self.formatters[name].format(val)
+                if isinstance(val, (tuple, list)):
+                    res = []
+                    [res.append(self.formatters[name].format(_val)) for _val in val]
+                    return ', '.join(res)
+                else:
+                    return self.formatters[name].format(val)
 
     def calculate(self, item, plot, onlimits):
         """

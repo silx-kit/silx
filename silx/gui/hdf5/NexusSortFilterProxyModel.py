@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/06/2018"
+__date__ = "25/06/2018"
 
 
 import logging
@@ -106,11 +106,14 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         :param str name: A name
         :rtype: List
         """
+        nonSensitive = self.sortCaseSensitivity() == qt.Qt.CaseInsensitive
         words = self.__split.findall(name)
         result = []
         for i in words:
             if i[0].isdigit():
                 i = int(i)
+            elif nonSensitive:
+                i = i.lower()
             result.append(i)
         return result
 
@@ -159,14 +162,14 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
     def __createCompoundIcon(self, backgroundIcon, foregroundIcon):
         icon = qt.QIcon()
 
-        sizes = foregroundIcon.availableSizes()
+        sizes = backgroundIcon.availableSizes()
         sizes = sorted(sizes, key=lambda s: s.height())
         sizes = filter(lambda s: s.height() < 100, sizes)
         sizes = list(sizes)
         if len(sizes) > 0:
             baseSize = sizes[-1]
         else:
-            baseSize = foregroundIcon.availableSizes()[0]
+            baseSize = qt.QSize(32, 32)
 
         modes = [qt.QIcon.Normal, qt.QIcon.Disabled]
         for mode in modes:

@@ -37,7 +37,11 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
+<<<<<<< HEAD
 __date__ = "04/07/2018"
+=======
+__date__ = "25/06/2018"
+>>>>>>> upstream/master
 
 import os
 import unittest
@@ -49,11 +53,10 @@ try:
     import scipy
 except ImportError:
     scipy = None
-else:
-    import scipy.misc
+
 from silx.opencl import ocl
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl.array
 
 from ..utils import get_opencl_code
 from silx.test.utils import test_options
@@ -224,6 +227,10 @@ def suite():
         testSuite.addTest(TestReduction("test_max_min_rnd"))
         testSuite.addTest(TestReduction("test_max_min"))
         testSuite.addTest(TestReduction("test_max_min_rnd_big"))
+<<<<<<< HEAD
         testSuite.addTest(TestReduction("test_max_min_serial"))
         testSuite.addTest(TestReduction("test_max_min_vectorial"))
+=======
+
+>>>>>>> upstream/master
     return testSuite

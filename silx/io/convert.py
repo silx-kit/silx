@@ -57,6 +57,10 @@ import numpy
 import silx.io
 from silx.io import is_dataset, is_group, is_softlink
 from silx.third_party import six
+try:
+    from silx.io import fabioh5
+except ImportError:
+    fabioh5 = None
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -197,7 +201,6 @@ class Hdf5Writer(object):
     def append_member_to_h5(self, h5like_name, obj):
         """Add one group or one dataset to :attr:`h5f`"""
         h5_name = self.h5path + h5like_name.lstrip("/")
-
         if is_softlink(obj):
             # links to be created after all groups and datasets
             h5_target = self.h5path + obj.path.lstrip("/")
@@ -213,12 +216,24 @@ class Hdf5Writer(object):
                 del self._h5f[h5_name]
 
             if self.overwrite_data or not member_initially_exists:
-                # fancy arguments don't apply to small dataset
-                if obj.size < self.min_size:
-                    ds = self._h5f.create_dataset(h5_name, data=obj.value)
-                else:
-                    ds = self._h5f.create_dataset(h5_name, data=obj.value,
+                if fabioh5 is not None and \
+                        isinstance(obj, fabioh5.FrameData) and \
+                        len(obj.shape) > 2:
+                    # special case of multiframe data
+                    # write frame by frame to save memory usage low
+                    ds = self._h5f.create_dataset(h5_name,
+                                                  shape=obj.shape,
+                                                  dtype=obj.dtype,
                                                   **self.create_dataset_args)
+                    for i, frame in enumerate(obj):
+                        ds[i] = frame
+                else:
+                    # fancy arguments don't apply to small dataset
+                    if obj.size < self.min_size:
+                        ds = self._h5f.create_dataset(h5_name, data=obj.value)
+                    else:
+                        ds = self._h5f.create_dataset(h5_name, data=obj.value,
+                                                      **self.create_dataset_args)
             else:
                 ds = self._h5f[h5_name]
 

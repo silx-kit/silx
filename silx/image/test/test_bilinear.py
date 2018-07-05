@@ -85,17 +85,17 @@ class TestBilinear(unittest.TestCase):
         x2d = numpy.zeros_like(y) + x
         y2d = numpy.zeros_like(x) + y
         res1 = b.map_coordinates((y2d, x2d))
-        self.assertEquals(abs(res1 - img).max(), 0, "images are the same (corners)")
+        self.assertEqual(abs(res1 - img).max(), 0, "images are the same (corners)")
 
         x2d = numpy.zeros_like(y) + (x[:, :-1] + 0.5)
         y2d = numpy.zeros_like(x[:, :-1]) + y
         res1 = b.map_coordinates((y2d, x2d))
-        self.assertEquals(abs(res1 - img[:, :-1] - 0.5).max(), 0, "images are the same (middle)")
+        self.assertEqual(abs(res1 - img[:, :-1] - 0.5).max(), 0, "images are the same (middle)")
 
         x2d = numpy.zeros_like(y[:-1, :]) + (x[:, :-1] + 0.5)
         y2d = numpy.zeros_like(x[:, :-1]) + (y[:-1, :] + 0.5)
         res1 = b.map_coordinates((y2d, x2d))
-        self.assertEquals(abs(res1 - img[:-1, 1:]).max(), 0, "images are the same (center)")
+        self.assertEqual(abs(res1 - img[:-1, 1:]).max(), 0, "images are the same (center)")
 
     def test_profile_grad(self):
         N = 100
@@ -103,7 +103,7 @@ class TestBilinear(unittest.TestCase):
         b = BilinearImage(img)
         res1 = b.profile_line((0, 0), (N - 1, N - 1))
         l = numpy.ceil(numpy.sqrt(2) * N)
-        self.assertEquals(len(res1), l, "Profile has correct length")
+        self.assertEqual(len(res1), l, "Profile has correct length")
         self.assertLess((res1[:-2] - res1[1:-1]).std(), 1e-3, "profile is linear (excluding last point)")
 
     def test_profile_gaus(self):
@@ -114,8 +114,8 @@ class TestBilinear(unittest.TestCase):
         b = BilinearImage(img)
         res_hor = b.profile_line((N // 2, 0), (N // 2, N - 1))
         res_ver = b.profile_line((0, N // 2), (N - 1, N // 2))
-        self.assertEquals(len(res_hor), N, "Profile has correct length")
-        self.assertEquals(len(res_ver), N, "Profile has correct length")
+        self.assertEqual(len(res_hor), N, "Profile has correct length")
+        self.assertEqual(len(res_ver), N, "Profile has correct length")
         self.assertLess(abs(res_hor - g).max(), 1e-5, "correct horizontal profile")
         self.assertLess(abs(res_ver - g).max(), 1e-5, "correct vertical profile")
 
@@ -124,8 +124,8 @@ class TestBilinear(unittest.TestCase):
         res_hor = b.profile_line((N // 2, 0), (N // 2, N - 1), linewidth=3)
         res_ver = b.profile_line((0, N // 2), (N - 1, N // 2), linewidth=3)
 
-        self.assertEquals(len(res_hor), N, "Profile has correct length")
-        self.assertEquals(len(res_ver), N, "Profile has correct length")
+        self.assertEqual(len(res_hor), N, "Profile has correct length")
+        self.assertEqual(len(res_ver), N, "Profile has correct length")
         self.assertLess(abs(res_hor - expected_profile).max(), 1e-5,
                         "correct horizontal profile")
         self.assertLess(abs(res_ver - expected_profile).max(), 1e-5,

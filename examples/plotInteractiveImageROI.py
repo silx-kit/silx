@@ -31,12 +31,14 @@ It uses :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager` and
 interactive ROI selection and to display the list of ROIs.
 """
 
+import sys
 import numpy
 
 from silx.gui import qt
 from silx.gui.plot import Plot2D
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
+from silx.gui.plot.items.roi import RectangleROI
 
 
 def dummy_image():
@@ -66,16 +68,16 @@ roiManager.setColor('pink')  # Set the color of ROI
 def updateAddedRegionOfInterest(roi):
     """Called for each added region of interest: set the name"""
     if roi.getLabel() == '':
-        roi.setLabel('ROI %d' % len(roiManager.getRegionOfInterests()))
+        roi.setLabel('ROI %d' % len(roiManager.getRois()))
 
 
-roiManager.sigRegionOfInterestAdded.connect(updateAddedRegionOfInterest)
+roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)
 
 # Add a rectangular region of interest
-roiManager.createRegionOfInterest('rectangle',
-                                  points=((50, 50), (200, 200)),
-                                  label='Initial ROI')
-
+roi = RectangleROI()
+roi.setGeometry(origin=(50, 50), size=(200, 200))
+roi.setLabel('Initial ROI')
+roiManager.addRoi(roi)
 
 # Create the table widget displaying
 roiTable = RegionOfInterestTableWidget()
@@ -85,9 +87,9 @@ roiTable.setRegionOfInterestManager(roiManager)
 roiToolbar = qt.QToolBar()  # The layout to store the buttons
 roiToolbar.setIconSize(qt.QSize(16, 16))
 
-for kind in roiManager.getSupportedRegionOfInterestKinds():
+for roiClass in roiManager.getSupportedRoiClasses():
     # Create a tool button and associate it with the QAction of each mode
-    action = roiManager.getInteractionModeAction(kind)
+    action = roiManager.getInteractionModeAction(roiClass)
     roiToolbar.addAction(action)
 
 # Add the region of interest table and the buttons to a dock widget
@@ -103,4 +105,6 @@ plot.addTabbedDockWidget(dock)
 
 # Show the widget and start the application
 plot.show()
-app.exec_()
+result = app.exec_()
+app.deleteLater()
+sys.exit(result)
