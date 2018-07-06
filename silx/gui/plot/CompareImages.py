@@ -100,6 +100,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_A))
+        action.setProperty("mode", VisualizationMode.ONLY_A)
         menu.addAction(action)
         self.__aModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -109,6 +110,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
+        action.setProperty("mode", VisualizationMode.ONLY_B)
         menu.addAction(action)
         self.__bModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -118,6 +120,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_V))
+        action.setProperty("mode", VisualizationMode.VERTICAL_LINE)
         menu.addAction(action)
         self.__vlineModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -127,6 +130,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_H))
+        action.setProperty("mode", VisualizationMode.HORIZONTAL_LINE)
         menu.addAction(action)
         self.__hlineModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -136,6 +140,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_C))
+        action.setProperty("mode", VisualizationMode.COMPOSITE_BLUE_RED)
         menu.addAction(action)
         self.__brChannelModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -145,6 +150,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        action.setProperty("mode", VisualizationMode.COMPOSITE_YELLOW_CYAN)
         menu.addAction(action)
         self.__ycChannelModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -160,6 +166,7 @@ class CompareImagesToolBar(qt.QToolBar):
 
         icon = icons.getQIcon("compare-align-origin")
         action = qt.QAction(icon, "Align images on there upper-left pixel", self)
+        action.setProperty("mode", AlignmentMode.ORIGIN)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         self.__originAlignAction = action
@@ -168,6 +175,7 @@ class CompareImagesToolBar(qt.QToolBar):
 
         icon = icons.getQIcon("compare-align-center")
         action = qt.QAction(icon, "Center images", self)
+        action.setProperty("mode", AlignmentMode.CENTER)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         self.__centerAlignAction = action
@@ -176,6 +184,7 @@ class CompareImagesToolBar(qt.QToolBar):
 
         icon = icons.getQIcon("compare-align-stretch")
         action = qt.QAction(icon, "Stretch the second image on the first one", self)
+        action.setProperty("mode", AlignmentMode.STRETCH)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         self.__stretchAlignAction = action
@@ -184,6 +193,7 @@ class CompareImagesToolBar(qt.QToolBar):
 
         icon = icons.getQIcon("compare-align-auto")
         action = qt.QAction(icon, "Auto-alignment of the second image", self)
+        action.setProperty("mode", AlignmentMode.AUTO)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         self.__autoAlignAction = action
@@ -238,20 +248,12 @@ class CompareImagesToolBar(qt.QToolBar):
             return
 
         mode = widget.getVisualizationMode()
-        if mode == VisualizationMode.ONLY_A:
-            action = self.__aModeAction
-        elif mode == VisualizationMode.ONLY_B:
-            action = self.__bModeAction
-        elif mode == VisualizationMode.VERTICAL_LINE:
-            action = self.__vlineModeAction
-        elif mode == VisualizationMode.HORIZONTAL_LINE:
-            action = self.__hlineModeAction
-        elif mode == VisualizationMode.COMPOSITE_BLUE_RED:
-            action = self.__brChannelModeAction
-        elif mode == VisualizationMode.COMPOSITE_YELLOW_CYAN:
-            action = self.__ycChannelModeAction
-        else:
-            action = None
+        action = None
+        for a in self.__visualizationGroup.actions():
+            actionMode = a.property("mode")
+            if mode == actionMode:
+                action = a
+                break
         old = self.__visualizationGroup.blockSignals(True)
         if action is not None:
             # Check this action
@@ -265,16 +267,12 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__visualizationGroup.blockSignals(old)
 
         mode = widget.getAlignmentMode()
-        if mode == AlignmentMode.ORIGIN:
-            action = self.__originAlignAction
-        elif mode == AlignmentMode.CENTER:
-            action = self.__centerAlignAction
-        elif mode == AlignmentMode.STRETCH:
-            action = self.__stretchAlignAction
-        elif mode == AlignmentMode.AUTO:
-            action = self.__autoAlignAction
-        else:
-            action = None
+        action = None
+        for a in self.__alignmentGroup.actions():
+            actionMode = a.property("mode")
+            if mode == actionMode:
+                action = a
+                break
         old = self.__alignmentGroup.blockSignals(True)
         if action is not None:
             # Check this action
@@ -293,7 +291,7 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__updateVisualizationMenu()
         widget = self.getCompareWidget()
         if widget is not None:
-            mode = self.__getVisualizationMode()
+            mode = selectedAction.property("mode")
             widget.setVisualizationMode(mode)
 
     def __updateVisualizationMenu(self):
@@ -309,30 +307,13 @@ class CompareImagesToolBar(qt.QToolBar):
             self.__visualizationAction.setIcon(qt.QIcon())
             self.__visualizationAction.setToolTip("")
 
-    def __getVisualizationMode(self):
-        """Returns the current visualization mode."""
-        if self.__aModeAction.isChecked():
-            return VisualizationMode.ONLY_A
-        elif self.__bModeAction.isChecked():
-            return VisualizationMode.ONLY_B
-        elif self.__vlineModeAction.isChecked():
-            return VisualizationMode.VERTICAL_LINE
-        elif self.__hlineModeAction.isChecked():
-            return VisualizationMode.HORIZONTAL_LINE
-        elif self.__ycChannelModeAction.isChecked():
-            return VisualizationMode.COMPOSITE_YELLOW_CYAN
-        elif self.__brChannelModeAction.isChecked():
-            return VisualizationMode.COMPOSITE_BLUE_RED
-        else:
-            raise ValueError("Unknown interaction mode")
-
     def __alignmentModeChanged(self, selectedAction):
         """Called when user requesting changes of the alignment mode.
         """
         self.__updateAlignmentMenu()
         widget = self.getCompareWidget()
         if widget is not None:
-            mode = self.__getAlignmentMode()
+            mode = selectedAction.property("mode")
             widget.setAlignmentMode(mode)
 
     def __updateAlignmentMenu(self):
@@ -347,19 +328,6 @@ class CompareImagesToolBar(qt.QToolBar):
             self.__alignmentAction.setText("")
             self.__alignmentAction.setIcon(qt.QIcon())
             self.__alignmentAction.setToolTip("")
-
-    def __getAlignmentMode(self):
-        """Returns the current selected alignemnt mode."""
-        action = self.__alignmentGroup.checkedAction()
-        if action is self.__originAlignAction:
-            return AlignmentMode.ORIGIN
-        if action is self.__centerAlignAction:
-            return AlignmentMode.CENTER
-        if action is self.__stretchAlignAction:
-            return AlignmentMode.STRETCH
-        if action is self.__autoAlignAction:
-            return AlignmentMode.AUTO
-        raise ValueError("Unknown alignment mode")
 
     def __keypointVisibilityChanged(self):
         """Called when action managing keypoints visibility changes"""
