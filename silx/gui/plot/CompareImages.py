@@ -39,6 +39,7 @@ from silx.gui import qt
 from silx.gui import plot
 from silx.gui import icons
 from silx.gui.colors import Colormap
+from silx.gui.plot import tools
 
 _logger = logging.getLogger(__name__)
 
@@ -395,8 +396,24 @@ class CompareImages(qt.QMainWindow):
         self.setVisualizationMode("vline")
         self.setKeypointsVisible(False)
 
-        self.__toolBar = self._createToolBar()
-        layout.addWidget(self.__toolBar)
+        # Toolbars
+
+        self._createToolBars(self.__plot2d)
+        if self._interactiveModeToolBar is not None:
+            self.__plot2d.addToolBar(self._interactiveModeToolBar)
+        if self._imageToolBar is not None:
+            self.__plot2d.addToolBar(self._imageToolBar)
+        if self._compareToolBar is not None:
+            self.__plot2d.addToolBar(self._compareToolBar)
+
+    def _createToolBars(self, plot):
+        toolBar = tools.InteractiveModeToolBar(parent=self, plot=plot)
+        self._interactiveModeToolBar = toolBar
+        toolBar = tools.ImageToolBar(parent=self, plot=plot)
+        self._imageToolBar = toolBar
+        toolBar = CompareImagesToolBar(self)
+        toolBar.setCompareWidget(self)
+        self._compareToolBar = toolBar
 
     def getPlot(self):
         """Returns the plot which is used to display the images.
@@ -404,12 +421,6 @@ class CompareImages(qt.QMainWindow):
         :rtype: silx.gui.plot.Plot2D
         """
         return self.__plot2d
-
-    def _createToolBar(self):
-        """Create default toolbars and actions."""
-        toolbar = CompareImagesToolBar(self)
-        toolbar.setCompareWidget(self)
-        return toolbar
 
     def setVisualizationMode(self, mode):
         """Set the visualization mode.
