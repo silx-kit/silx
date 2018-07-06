@@ -27,11 +27,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/07/2018"
+__date__ = "06/07/2018"
 
 
 import logging
 import numpy
+import weakref
 
 import silx.image.bilinear
 from silx.gui import qt
@@ -49,11 +50,251 @@ except ImportError as e:
     sift = None
 
 
+class CompareImagesToolBar(qt.QToolBar):
+
+    def __init__(self, parent=None):
+        qt.QToolBar.__init__(self, parent)
+
+        self.__compareWidget = None
+
+        self.__visualizationGroup = qt.QActionGroup(self)
+        self.__visualizationGroup.setExclusive(True)
+        self.__visualizationGroup.triggered.connect(self.__visualizationModeChanged)
+
+        icon = icons.getQIcon("compare-mode-a")
+        action = qt.QAction(icon, "Display the first image only", self)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_A))
+        self.addAction(action)
+        self.__aModeAction = action
+        self.__visualizationGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-b")
+        action = qt.QAction(icon, "Display the second image only", self)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
+        self.addAction(action)
+        self.__bModeAction = action
+        self.__visualizationGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-vline")
+        action = qt.QAction(icon, "Vertical compare mode", self)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_V))
+        self.addAction(action)
+        self.__vlineModeAction = action
+        self.__visualizationGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-hline")
+        action = qt.QAction(icon, "Horizontal compare mode", self)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_H))
+        self.addAction(action)
+        self.__hlineModeAction = action
+        self.__visualizationGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-channel")
+        action = qt.QAction(icon, "Blue/red compare mode", self)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_C))
+        self.addAction(action)
+        self.__channelModeAction = action
+        self.__visualizationGroup.addAction(action)
+
+        self.addSeparator()
+
+        menu = qt.QMenu(self)
+        self.__alignmentAction = qt.QAction(self)
+        self.__alignmentAction.setMenu(menu)
+        self.addAction(self.__alignmentAction)
+        self.__alignmentGroup = qt.QActionGroup(self)
+        self.__alignmentGroup.setExclusive(True)
+        self.__alignmentGroup.triggered.connect(self.__alignmentModeChanged)
+
+        icon = icons.getQIcon("compare-align-origin")
+        action = qt.QAction(icon, "Align images on there upper-left pixel", self)
+        action.setCheckable(True)
+        self.__originAlignAction = action
+        menu.addAction(action)
+        self.__alignmentGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-align-center")
+        action = qt.QAction(icon, "Center images", self)
+        action.setCheckable(True)
+        self.__centerAlignAction = action
+        menu.addAction(action)
+        self.__alignmentGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-align-stretch")
+        action = qt.QAction(icon, "Stretch the second image on the first one", self)
+        action.setCheckable(True)
+        self.__stretchAlignAction = action
+        menu.addAction(action)
+        self.__alignmentGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-align-auto")
+        action = qt.QAction(icon, "Auto-alignment of the second image", self)
+        action.setCheckable(True)
+        self.__autoAlignAction = action
+        menu.addAction(action)
+        if sift is None:
+            action.setEnabled(False)
+            action.setToolTip("Sift module is not available")
+        self.__alignmentGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-keypoints")
+        action = qt.QAction(icon, "Display/hide alignment keypoints", self)
+        action.setCheckable(True)
+        action.triggered.connect(self.__keypointVisibilityChanged)
+        self.addAction(action)
+        self.__displayKeypoints = action
+
+    def setCompareWidget(self, widget):
+        compareWidget = self.getCompareWidget()
+        if compareWidget is not None:
+            compareWidget.sigConfigurationChanged.disconnect(self.__updateSelectedActions)
+        compareWidget = widget
+        if compareWidget is None:
+            self.__compareWidget = None
+        else:
+            self.__compareWidget = weakref.ref(compareWidget)
+        if compareWidget is not None:
+            widget.sigConfigurationChanged.connect(self.__updateSelectedActions)
+        self.__updateSelectedActions()
+
+    def getCompareWidget(self):
+        if self.__compareWidget is None:
+            return None
+        else:
+            return self.__compareWidget()
+
+    def __updateSelectedActions(self):
+        widget = self.getCompareWidget()
+        if widget is None:
+            return
+
+        mode = widget.getVisualizationMode()
+        if mode == "a":
+            action = self.__aModeAction
+        elif mode == "b":
+            action = self.__bModeAction
+        elif mode == "vline":
+            action = self.__vlineModeAction
+        elif mode == "hline":
+            action = self.__hlineModeAction
+        elif mode == "channel":
+            action = self.__channelModeAction
+        else:
+            action = None
+        old = self.__visualizationGroup.blockSignals(True)
+        if action is not None:
+            # Check this action
+            action.setChecked(True)
+        else:
+            action = self.__visualizationGroup.checkedAction()
+            if action is not None:
+                # Uncheck this action
+                action.setChecked(False)
+        self.__visualizationGroup.blockSignals(old)
+
+        mode = widget.getAlignmentMode()
+        if mode == "origin":
+            action = self.__originAlignAction
+        elif mode == "center":
+            action = self.__centerAlignAction
+        elif mode == "stretch":
+            action = self.__stretchAlignAction
+        elif mode == "auto":
+            action = self.__autoAlignAction
+        else:
+            action = None
+        old = self.__alignmentGroup.blockSignals(True)
+        if action is not None:
+            # Check this action
+            action.setChecked(True)
+        else:
+            action = self.__alignmentGroup.checkedAction()
+            if action is not None:
+                # Uncheck this action
+                action.setChecked(False)
+        self.__updateAlignmentMenu()
+        self.__alignmentGroup.blockSignals(old)
+
+    def __visualizationModeChanged(self, selectedAction):
+        """Called when interaction mode changes.
+
+        Update dispalyed widgets and displayed images.
+        """
+        widget = self.getCompareWidget()
+        if widget is not None:
+            mode = self.__getVisualizationMode()
+            widget.setVisualizationMode(mode)
+
+    def __getVisualizationMode(self):
+        """Returns the current interaction mode."""
+        if self.__aModeAction.isChecked():
+            return "a"
+        elif self.__bModeAction.isChecked():
+            return "b"
+        elif self.__vlineModeAction.isChecked():
+            return "vline"
+        elif self.__hlineModeAction.isChecked():
+            return "hline"
+        elif self.__channelModeAction.isChecked():
+            return "channel"
+        else:
+            raise ValueError("Unknown interaction mode")
+
+    def __alignmentModeChanged(self, selectedAction):
+        """Called when alignement mode changes.
+
+        Update the global alignement widget when alignemnt mode changes."""
+        self.__updateAlignmentMenu()
+        widget = self.getCompareWidget()
+        if widget is not None:
+            mode = self.__getAlignmentMode()
+            widget.setAlignmentMode(mode)
+
+    def __updateAlignmentMenu(self):
+        selectedAction = self.__alignmentGroup.checkedAction()
+        if selectedAction is not None:
+            self.__alignmentAction.setText(selectedAction.text())
+            self.__alignmentAction.setIcon(selectedAction.icon())
+            self.__alignmentAction.setToolTip(selectedAction.toolTip())
+        else:
+            self.__alignmentAction.setText("")
+            self.__alignmentAction.setIcon(qt.QIcon())
+            self.__alignmentAction.setToolTip("")
+
+    def __getAlignmentMode(self):
+        """Returns the current selected alignemnt mode."""
+        action = self.__alignmentGroup.checkedAction()
+        if action is self.__originAlignAction:
+            return "origin"
+        if action is self.__centerAlignAction:
+            return "center"
+        if action is self.__stretchAlignAction:
+            return "stretch"
+        if action is self.__autoAlignAction:
+            return "auto"
+        raise ValueError("Unknown alignment mode")
+
+    def __keypointVisibilityChanged(self):
+        widget = self.getCompareWidget()
+        if widget is not None:
+            keypointsVisible = self.__displayKeypoints.isChecked()
+            widget.setKeypointsVisible(keypointsVisible)
+
+
 class CompareImages(qt.QMainWindow):
     """Widget providing tools to compare 2 images.
 
     :param Union[qt.QWidget,None]: Parent of this widget.
     """
+
+    sigConfigurationChanged = qt.Signal()
+    """Emitted when the configuration of the widget (visualization mode,
+    alignement mode...) have changed."""
 
     def __init__(self, parent=None):
         qt.QMainWindow.__init__(self, parent)
@@ -98,14 +339,17 @@ class CompareImages(qt.QMainWindow):
             constraint=self.__separatorConstraint)
         self.__hline = self.__plot2d._getMarker('hline')
 
+        # default values
+        self.__visualizationMode = ""
+        self.__alignmentMode = ""
+        self.__keypointsVisible = True
+
+        self.setAlignmentMode("origin")
+        self.setVisualizationMode("vline")
+        self.setKeypointsVisible(False)
+
         self.__toolBar = self._createToolBar()
         layout.addWidget(self.__toolBar)
-
-        # default values
-        self.__vlineModeAction.trigger()
-        self.__originAlignAction.trigger()
-        self.__displayKeypoints.setChecked(True)
-        self.__previousSeparatorPosition = None
 
     def getPlot(self):
         """Returns the plot which is used to display the images.
@@ -116,157 +360,58 @@ class CompareImages(qt.QMainWindow):
 
     def _createToolBar(self):
         """Create default toolbars and actions."""
-        toolbar = qt.QToolBar(self)
-
-        self.__interactionGroup = qt.QActionGroup(self)
-        self.__interactionGroup.setExclusive(True)
-        self.__interactionGroup.triggered.connect(self.__interactionChanged)
-
-        icon = icons.getQIcon("compare-mode-a")
-        action = qt.QAction(icon, "Display the first image only", self)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_A))
-        toolbar.addAction(action)
-        self.__aModeAction = action
-        self.__interactionGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-b")
-        action = qt.QAction(icon, "Display the second image only", self)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
-        toolbar.addAction(action)
-        self.__bModeAction = action
-        self.__interactionGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-vline")
-        action = qt.QAction(icon, "Vertical compare mode", self)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_V))
-        toolbar.addAction(action)
-        self.__vlineModeAction = action
-        self.__interactionGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-hline")
-        action = qt.QAction(icon, "Horizontal compare mode", self)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_H))
-        toolbar.addAction(action)
-        self.__hlineModeAction = action
-        self.__interactionGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-channel")
-        action = qt.QAction(icon, "Blue/red compare mode", self)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_C))
-        toolbar.addAction(action)
-        self.__channelModeAction = action
-        self.__interactionGroup.addAction(action)
-
-        toolbar.addSeparator()
-
-        menu = qt.QMenu(self)
-        self.__alignmentAction = qt.QAction(self)
-        self.__alignmentAction.setMenu(menu)
-        toolbar.addAction(self.__alignmentAction)
-        self.__alignmentGroup = qt.QActionGroup(self)
-        self.__alignmentGroup.setExclusive(True)
-        self.__alignmentGroup.triggered.connect(self.__alignmentChanged)
-
-        icon = icons.getQIcon("compare-align-origin")
-        action = qt.QAction(icon, "Align images on there upper-left pixel", self)
-        action.setCheckable(True)
-        self.__originAlignAction = action
-        menu.addAction(action)
-        self.__alignmentGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-align-center")
-        action = qt.QAction(icon, "Center images", self)
-        action.setCheckable(True)
-        self.__centerAlignAction = action
-        menu.addAction(action)
-        self.__alignmentGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-align-stretch")
-        action = qt.QAction(icon, "Stretch the second image on the first one", self)
-        action.setCheckable(True)
-        self.__stretchAlignAction = action
-        menu.addAction(action)
-        self.__alignmentGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-align-auto")
-        action = qt.QAction(icon, "Auto-alignment of the second image", self)
-        action.setCheckable(True)
-        self.__autoAlignAction = action
-        menu.addAction(action)
-        if sift is None:
-            action.setEnabled(False)
-            action.setToolTip("Sift module is not available")
-        self.__alignmentGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-keypoints")
-        action = qt.QAction(icon, "Display/hide alignment keypoints", self)
-        action.setCheckable(True)
-        action.triggered.connect(self.__invalidateScatter)
-        toolbar.addAction(action)
-        self.__displayKeypoints = action
-
+        toolbar = CompareImagesToolBar(self)
+        toolbar.setCompareWidget(self)
         return toolbar
 
-    def __interactionChanged(self, selectedAction):
-        """Called when interaction mode changes.
+    def setVisualizationMode(self, mode):
+        """Set the visualization mode.
 
-        Update dispalyed widgets and displayed images.
+        :param str mode: New visualization to display the image comparison
         """
-        mode = self.__getInteractionMode()
+        if self.__visualizationMode == mode:
+            return
+        self.__visualizationMode = mode
+        mode = self.getVisualizationMode()
         self.__vline.setVisible(mode == "vline")
         self.__hline.setVisible(mode == "hline")
         self.__invalidateData()
+        self.sigConfigurationChanged.emit()
 
-    def __getInteractionMode(self):
+    def getVisualizationMode(self):
         """Returns the current interaction mode."""
-        if self.__aModeAction.isChecked():
-            return "a"
-        elif self.__bModeAction.isChecked():
-            return "b"
-        elif self.__vlineModeAction.isChecked():
-            return "vline"
-        elif self.__hlineModeAction.isChecked():
-            return "hline"
-        elif self.__channelModeAction.isChecked():
-            return "channel"
-        else:
-            raise ValueError("Unknown interaction mode")
+        return self.__visualizationMode
 
-    def __alignmentChanged(self, selectedAction):
-        """Called when alignement mode changes.
+    def setAlignmentMode(self, mode):
+        """Set the alignment mode.
 
-        Update the global alignement widget when alignemnt mode changes."""
-        self.__alignmentAction.setText(selectedAction.text())
-        self.__alignmentAction.setIcon(selectedAction.icon())
-        self.__alignmentAction.setToolTip(selectedAction.toolTip())
+        :param str mode: New alignement to apply to images
+        """
+        if self.__alignmentMode == mode:
+            return
+        self.__alignmentMode = mode
         self.__invalidateData()
+        self.sigConfigurationChanged.emit()
 
-    def __getAlignmentMode(self):
+    def getAlignmentMode(self):
         """Returns the current selected alignemnt mode."""
-        action = self.__alignmentGroup.checkedAction()
-        if action is self.__originAlignAction:
-            return "origin"
-        if action is self.__centerAlignAction:
-            return "center"
-        if action is self.__stretchAlignAction:
-            return "stretch"
-        if action is self.__autoAlignAction:
-            return "auto"
-        raise ValueError("Unknown alignment mode")
+        return self.__alignmentMode
+
+    def setKeypointsVisible(self, isVisible):
+        if self.__keypointsVisible == isVisible:
+            return
+        self.__keypointsVisible = isVisible
+        self.__invalidateScatter()
+        self.sigConfigurationChanged.emit()
 
     def __setDefaultAlignmentMode(self):
         """Reset the alignemnt mode to the default value"""
-        self.__originAlignAction.trigger()
+        self.setAlignmentMode("origin")
 
     def __plotSlot(self, event):
         """Handle events from the plot"""
         if event['event'] in ('markerMoving', 'markerMoved'):
-            mode = self.__getInteractionMode()
+            mode = self.getVisualizationMode()
             if event['label'] == mode:
                 if mode == "vline":
                     value = int(float(str(event['xdata'])))
@@ -297,7 +442,7 @@ class CompareImages(qt.QMainWindow):
     def __invalidateSeparator(self):
         """Redraw images according to the current state of the separators.
         """
-        mode = self.__getInteractionMode()
+        mode = self.getVisualizationMode()
         if mode == "vline":
             pos = self.__vline.getXPosition()
         elif mode == "hline":
@@ -317,7 +462,7 @@ class CompareImages(qt.QMainWindow):
         if self.__data1 is None:
             return
 
-        mode = self.__getInteractionMode()
+        mode = self.getVisualizationMode()
         if mode == "vline":
             pos = int(pos)
             if pos <= 0:
@@ -363,7 +508,7 @@ class CompareImages(qt.QMainWindow):
     def __invalidateScatter(self):
         """Update the displayed keypoints using cached keypoints.
         """
-        if self.__displayKeypoints.isChecked():
+        if self.__keypointsVisible:
             data = self.__matching_keypoints
         else:
             data = [], [], []
@@ -384,7 +529,7 @@ class CompareImages(qt.QMainWindow):
         if raw1 is None or raw2 is None:
             return
 
-        alignmentMode = self.__getAlignmentMode()
+        alignmentMode = self.getAlignmentMode()
 
         if alignmentMode == "origin":
             yy = max(raw1.shape[0], raw2.shape[0])
@@ -428,7 +573,7 @@ class CompareImages(qt.QMainWindow):
         else:
             assert(False)
 
-        mode = self.__getInteractionMode()
+        mode = self.getVisualizationMode()
         if mode == "channel":
             data1 = self.__composeImage(data1, data2)
             data2 = numpy.empty((0, 0))
