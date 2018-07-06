@@ -328,24 +328,28 @@ class CompareImagesToolBar(qt.QToolBar):
 class CompareImages(qt.QMainWindow):
     """Widget providing tools to compare 2 images.
 
-    :param Union[qt.QWidget,None]: Parent of this widget.
+    :param Union[qt.QWidget,None] parent: Parent of this widget.
+    :param backend: The backend to use, in:
+                    'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
+                    or a :class:`BackendBase.BackendBase` class
+    :type backend: str or :class:`BackendBase.BackendBase`
     """
 
     sigConfigurationChanged = qt.Signal()
     """Emitted when the configuration of the widget (visualization mode,
     alignement mode...) have changed."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent)
         self.setWindowTitle("Plot with synchronized axes")
         widget = qt.QWidget(self)
         self.setCentralWidget(widget)
 
+        if parent is None:
+            self.setWindowTitle('Compare images')
+
         layout = qt.QVBoxLayout()
         widget.setLayout(layout)
-
-        backend = "matplotlib"
-        # backend = "opengl"
 
         self.__raw1 = None
         self.__raw2 = None
@@ -353,9 +357,13 @@ class CompareImages(qt.QMainWindow):
         self.__data2 = None
         self.__previousSeparatorPosition = None
 
-        self.__plot2d = plot.Plot2D(parent=widget, backend=backend)
+        self.__plot2d = plot.PlotWidget(parent=widget, backend=backend)
+        self.__plot2d.getXAxis().setLabel('Columns')
+        self.__plot2d.getYAxis().setLabel('Rows')
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+            self.__plot2d.getYAxis().setInverted(True)
+
         self.__plot2d.setKeepDataAspectRatio(True)
-        # self.__plot2d.setInteractiveMode('pan')
         self.__plot2d.sigPlotSignal.connect(self.__plotSlot)
 
         layout.addWidget(self.__plot2d)
