@@ -326,7 +326,7 @@ class CompareImagesToolBar(qt.QToolBar):
             widget.setKeypointsVisible(keypointsVisible)
 
 
-class CompareImages(qt.QMainWindow):
+class CompareImages(qt.QWidget):
     """Widget providing tools to compare 2 images.
 
     :param Union[qt.QWidget,None] parent: Parent of this widget.
@@ -343,14 +343,13 @@ class CompareImages(qt.QMainWindow):
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent)
         self.setWindowTitle("Plot with synchronized axes")
-        widget = qt.QWidget(self)
-        self.setCentralWidget(widget)
 
         if parent is None:
             self.setWindowTitle('Compare images')
 
         layout = qt.QVBoxLayout()
-        widget.setLayout(layout)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
 
         self.__raw1 = None
         self.__raw2 = None
@@ -358,7 +357,7 @@ class CompareImages(qt.QMainWindow):
         self.__data2 = None
         self.__previousSeparatorPosition = None
 
-        self.__plot2d = plot.PlotWidget(parent=widget, backend=backend)
+        self.__plot2d = plot.PlotWidget(parent=self, backend=backend)
         self.__plot2d.getXAxis().setLabel('Columns')
         self.__plot2d.getYAxis().setLabel('Rows')
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
