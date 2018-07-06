@@ -52,7 +52,14 @@ except ImportError as e:
 
 
 class CompareImagesToolBar(qt.QToolBar):
+    """ToolBar containing specific tools to custom the configuration of a
+    :class:`CompareImages` widget
 
+    Use :meth:`setCompareWidget` to connect this toolbar to a specific
+    :class:`CompareImages` widget.
+
+    :param Union[qt.QWidget,None] parent: Parent of this widget.
+    """
     def __init__(self, parent=None):
         qt.QToolBar.__init__(self, parent)
 
@@ -173,6 +180,11 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__displayKeypoints = action
 
     def setCompareWidget(self, widget):
+        """
+        Connect this tool bar to a specific :class:`CompareImages` widget.
+
+        :param Union[None,CompareImages] widget: The widget to connect with.
+        """
         compareWidget = self.getCompareWidget()
         if compareWidget is not None:
             compareWidget.sigConfigurationChanged.disconnect(self.__updateSelectedActions)
@@ -186,12 +198,20 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__updateSelectedActions()
 
     def getCompareWidget(self):
+        """Returns the connected widget.
+
+        :rtype: CompareImages
+        """
         if self.__compareWidget is None:
             return None
         else:
             return self.__compareWidget()
 
     def __updateSelectedActions(self):
+        """
+        Update the state of this tool bar according to the state of the
+        connected :class:`CompareImages` widget.
+        """
         widget = self.getCompareWidget()
         if widget is None:
             return
@@ -247,9 +267,7 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__alignmentGroup.blockSignals(old)
 
     def __visualizationModeChanged(self, selectedAction):
-        """Called when interaction mode changes.
-
-        Update dispalyed widgets and displayed images.
+        """Called when user requesting changes of the visualization mode.
         """
         self.__updateVisualizationMenu()
         widget = self.getCompareWidget()
@@ -258,6 +276,8 @@ class CompareImagesToolBar(qt.QToolBar):
             widget.setVisualizationMode(mode)
 
     def __updateVisualizationMenu(self):
+        """Update the state of the action containing visualization menu.
+        """
         selectedAction = self.__visualizationGroup.checkedAction()
         if selectedAction is not None:
             self.__visualizationAction.setText(selectedAction.text())
@@ -269,7 +289,7 @@ class CompareImagesToolBar(qt.QToolBar):
             self.__visualizationAction.setToolTip("")
 
     def __getVisualizationMode(self):
-        """Returns the current interaction mode."""
+        """Returns the current visualization mode."""
         if self.__aModeAction.isChecked():
             return "a"
         elif self.__bModeAction.isChecked():
@@ -286,9 +306,8 @@ class CompareImagesToolBar(qt.QToolBar):
             raise ValueError("Unknown interaction mode")
 
     def __alignmentModeChanged(self, selectedAction):
-        """Called when alignement mode changes.
-
-        Update the global alignement widget when alignemnt mode changes."""
+        """Called when user requesting changes of the alignment mode.
+        """
         self.__updateAlignmentMenu()
         widget = self.getCompareWidget()
         if widget is not None:
@@ -296,6 +315,8 @@ class CompareImagesToolBar(qt.QToolBar):
             widget.setAlignmentMode(mode)
 
     def __updateAlignmentMenu(self):
+        """Update the state of the action containing alignment menu.
+        """
         selectedAction = self.__alignmentGroup.checkedAction()
         if selectedAction is not None:
             self.__alignmentAction.setText(selectedAction.text())
@@ -320,6 +341,7 @@ class CompareImagesToolBar(qt.QToolBar):
         raise ValueError("Unknown alignment mode")
 
     def __keypointVisibilityChanged(self):
+        """Called when action managing keypoints visibility changes"""
         widget = self.getCompareWidget()
         if widget is not None:
             keypointsVisible = self.__displayKeypoints.isChecked()
@@ -406,6 +428,7 @@ class CompareImages(qt.QWidget):
             self.__plot.addToolBar(self._compareToolBar)
 
     def _createToolBars(self, plot):
+        """Create tool bars displayed by the widget"""
         toolBar = tools.InteractiveModeToolBar(parent=self, plot=plot)
         self._interactiveModeToolBar = toolBar
         toolBar = tools.ImageToolBar(parent=self, plot=plot)
@@ -455,6 +478,10 @@ class CompareImages(qt.QWidget):
         return self.__alignmentMode
 
     def setKeypointsVisible(self, isVisible):
+        """Set keyboard visibility.
+
+        :param bool isVisible: If True, keypoints are displayed (if some)
+        """
         if self.__keypointsVisible == isVisible:
             return
         self.__keypointsVisible = isVisible
@@ -676,6 +703,12 @@ class CompareImages(qt.QWidget):
             self.__image2.setColormap(colormap)
 
     def __getImageMode(self, image):
+        """Returns a value identifying the way the image is stored in the
+        array.
+
+        :param numpy.ndarray image: Image to check
+        :rtype: str
+        """
         if len(image.shape) == 2:
             return "intensity"
         elif len(image.shape) == 3:
