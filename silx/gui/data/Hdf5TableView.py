@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "05/07/2018"
 
 import collections
 import functools
@@ -100,6 +100,9 @@ class _CellData(object):
 
     def invalidateToolTip(self):
         self.__tooltip = None
+
+    def data(self, role):
+        return None
 
 
 class _TableData(object):
@@ -183,6 +186,46 @@ class _TableData(object):
         self.__data.append(row)
 
 
+class _CellFilterAvailableData(_CellData):
+    """Cell rendering for availability of a filter"""
+
+    _states = {
+        True: ("Available", qt.QColor(0x000000), None, None),
+        False: ("Not available", qt.QColor(0xFFFFFF), qt.QColor(0xFF0000),
+                "You have to install this filter on your system to be able to read this dataset"),
+        "na": ("n.a.", qt.QColor(0x000000), None,
+               "This version of h5py/hdf5 is not able to display the information"),
+    }
+
+    def __init__(self, filterId):
+        import h5py.version
+        if h5py.version.hdf5_version_tuple >= (1, 10, 2):
+            # Previous versions only returns True if the filter was first used
+            # to decode a dataset
+            import h5py.h5z
+            self.__availability = h5py.h5z.filter_avail(filterId)
+        else:
+            self.__availability = "na"
+        _CellData.__init__(self)
+
+    def value(self):
+        state = self._states[self.__availability]
+        return state[0]
+
+    def tooltip(self):
+        state = self._states[self.__availability]
+        return state[3]
+
+    def data(self, role=qt.Qt.DisplayRole):
+        state = self._states[self.__availability]
+        if role == qt.Qt.TextColorRole:
+            return state[1]
+        elif role == qt.Qt.BackgroundColorRole:
+            return state[2]
+        else:
+            return None
+
+
 class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
     """This data model provides access to HDF5 node content (File, Group,
     Dataset). Main info, like name, file, attributes... are displayed
@@ -198,7 +241,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         super(Hdf5TableModel, self).__init__(parent)
 
         self.__obj = None
-        self.__data = _TableData(columnCount=4)
+        self.__data = _TableData(columnCount=5)
         self.__formatter = None
         self.__hdf5Formatter = Hdf5Formatter(self)
         formatter = TextFormatter(self)
@@ -245,6 +288,8 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     cell.invalidateToolTip()
                     raise
             return value
+        else:
+            return cell.data(role)
         return None
 
     def flags(self, index):
@@ -394,14 +439,16 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     hdf5id = _CellData(value="HDF5 ID", isHeader=True)
                     name = _CellData(value="Name", isHeader=True)
                     options = _CellData(value="Options", isHeader=True)
-                    self.__data.addRow(pos, hdf5id, name, options)
+                    availability = _CellData(value="", isHeader=True)
+                    self.__data.addRow(pos, hdf5id, name, options, availability)
                 for index in range(dcpl.get_nfilters()):
-                    callback = lambda index, dataIndex, x: self.__get_filter_info(x, index)[dataIndex]
-                    pos = _CellData(value=functools.partial(callback, index, 0))
-                    hdf5id = _CellData(value=functools.partial(callback, index, 1))
-                    name = _CellData(value=functools.partial(callback, index, 2))
-                    options = _CellData(value=functools.partial(callback, index, 3))
-                    self.__data.addRow(pos, hdf5id, name, options)
+                    filterId, name, options = self.__getFilterInfo(obj, index)
+                    pos = _CellData(value=index)
+                    hdf5id = _CellData(value=filterId)
+                    name = _CellData(value=name)
+                    options = _CellData(value=options)
+                    availability = _CellFilterAvailableData(filterId=filterId)
+                    self.__data.addRow(pos, hdf5id, name, options, availability)
 
         if hasattr(obj, "attrs"):
             if len(obj.attrs) > 0:
@@ -413,7 +460,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                                                   value=functools.partial(callback, key),
                                                   tooltip=functools.partial(callbackTooltip, key))
 
-    def __get_filter_info(self, dataset, filterIndex):
+    def __getFilterInfo(self, dataset, filterIndex):
         """Get a tuple of readable info from dataset filters
 
         :param h5py.Dataset dataset: A h5py dataset
@@ -425,10 +472,10 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             filterId, _flags, cdValues, name = info
             name = self.__formatter.toString(name)
             options = " ".join([self.__formatter.toString(i) for i in cdValues])
-            return (filterIndex, filterId, name, options)
+            return (filterId, name, options)
         except Exception:
             _logger.debug("Backtrace", exc_info=True)
-        return [filterIndex, None, None, None]
+        return (None, None, None)
 
     def object(self):
         """Returns the internal object modelized.
@@ -503,5 +550,8 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         else:
             setResizeMode = header.setSectionResizeMode
         setResizeMode(0, qt.QHeaderView.Fixed)
-        setResizeMode(1, qt.QHeaderView.Stretch)
-        header.setStretchLastSection(True)
+        setResizeMode(1, qt.QHeaderView.ResizeToContents)
+        setResizeMode(2, qt.QHeaderView.Stretch)
+        setResizeMode(3, qt.QHeaderView.ResizeToContents)
+        setResizeMode(4, qt.QHeaderView.ResizeToContents)
+        header.setStretchLastSection(False)

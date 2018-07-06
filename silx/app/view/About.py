@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/06/2018"
+__date__ = "05/07/2018"
 
 import sys
 
@@ -147,6 +147,15 @@ class About(qt.QDialog):
             template = '<b>%s</b> is <font color="red">not loaded</font>'
         return template % name
 
+    @staticmethod
+    def __formatOptionalFilters(name, isAvailable):
+        """Utils to format availability of features"""
+        if isAvailable:
+            template = '<b>%s</b> is <font color="green">available</font>'
+        else:
+            template = '<b>%s</b> is <font color="red">not available</font>'
+        return template % name
+
     def __updateText(self):
         """Update the content of the dialog according to the settings."""
         import silx._version
@@ -174,14 +183,29 @@ class About(qt.QDialog):
         </p>
         """
 
-        hdf5pluginLoaded = "hdf5plugin" in sys.modules
-        fabioLoaded = "fabio" in sys.modules
-        h5pyLoaded = "h5py" in sys.modules
+        optionals = []
+        optionals.append(self.__formatOptionalLibraries("H5py", "h5py" in sys.modules))
+        optionals.append(self.__formatOptionalLibraries("FabIO", "fabio" in sys.modules))
 
-        optional_lib = []
-        optional_lib.append(self.__formatOptionalLibraries("FabIO", fabioLoaded))
-        optional_lib.append(self.__formatOptionalLibraries("H5py", h5pyLoaded))
-        optional_lib.append(self.__formatOptionalLibraries("hdf5plugin", hdf5pluginLoaded))
+        try:
+            import h5py.version
+            if h5py.version.hdf5_version_tuple >= (1, 10, 2):
+                # Previous versions only return True if the filter was first used
+                # to decode a dataset
+                import h5py.h5z
+                FILTER_LZ4 = 32004
+                FILTER_BITSHUFFLE = 32008
+                filters = [
+                    ("HDF5 LZ4 filter", FILTER_LZ4),
+                    ("HDF5 Bitshuffle filter", FILTER_BITSHUFFLE),
+                ]
+                for name, filterId in filters:
+                    isAvailable = h5py.h5z.filter_avail(filterId)
+                    optionals.append(self.__formatOptionalFilters(name, isAvailable))
+            else:
+                optionals.append(self.__formatOptionalLibraries("hdf5plugin", "hdf5plugin" in sys.modules))
+        except ImportError:
+            pass
 
         # Access to the logo in SVG or PNG
         logo = icons.getQFile("../logo/silx")
@@ -194,7 +218,7 @@ class About(qt.QDialog):
             qt_binding=qt.BINDING,
             qt_version=qt.qVersion(),
             python_version=sys.version.replace("\n", "<br />"),
-            optional_lib="<br />".join(optional_lib),
+            optional_lib="<br />".join(optionals),
             silx_image_path=logo.fileName()
         )
 
