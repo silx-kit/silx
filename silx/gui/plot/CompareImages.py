@@ -93,12 +93,20 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__hlineModeAction = action
         self.__visualizationGroup.addAction(action)
 
-        icon = icons.getQIcon("compare-mode-channel")
-        action = qt.QAction(icon, "Blue/red compare mode", self)
+        icon = icons.getQIcon("compare-mode-br-channel")
+        action = qt.QAction(icon, "Blue/red compare mode (additive mode)", self)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_C))
         self.addAction(action)
-        self.__channelModeAction = action
+        self.__brChannelModeAction = action
+        self.__visualizationGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-yc-channel")
+        action = qt.QAction(icon, "Yellow/cyan compare mode (substractive mode)", self)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        self.addAction(action)
+        self.__ycChannelModeAction = action
         self.__visualizationGroup.addAction(action)
 
         self.addSeparator()
@@ -182,8 +190,10 @@ class CompareImagesToolBar(qt.QToolBar):
             action = self.__vlineModeAction
         elif mode == "hline":
             action = self.__hlineModeAction
-        elif mode == "channel":
-            action = self.__channelModeAction
+        elif mode == "brchannel":
+            action = self.__brChannelModeAction
+        elif mode == "ycchannel":
+            action = self.__ycChannelModeAction
         else:
             action = None
         old = self.__visualizationGroup.blockSignals(True)
@@ -240,8 +250,10 @@ class CompareImagesToolBar(qt.QToolBar):
             return "vline"
         elif self.__hlineModeAction.isChecked():
             return "hline"
-        elif self.__channelModeAction.isChecked():
-            return "channel"
+        elif self.__ycChannelModeAction.isChecked():
+            return "ycchannel"
+        elif self.__brChannelModeAction.isChecked():
+            return "brchannel"
         else:
             raise ValueError("Unknown interaction mode")
 
@@ -574,8 +586,11 @@ class CompareImages(qt.QMainWindow):
             assert(False)
 
         mode = self.getVisualizationMode()
-        if mode == "channel":
-            data1 = self.__composeImage(data1, data2)
+        if mode == "ycchannel":
+            data1 = self.__composeImage(data1, data2, "yc")
+            data2 = numpy.empty((0, 0))
+        elif mode == "brchannel":
+            data1 = self.__composeImage(data1, data2, "br")
             data2 = numpy.empty((0, 0))
         elif mode == "a":
             data2 = numpy.empty((0, 0))
@@ -643,10 +658,14 @@ class CompareImages(qt.QMainWindow):
                 data[:, :, c] = self.__rescaleArray(image[:, :, c], shape)
         return data
 
-    def __composeImage(self, data1, data2):
+    def __composeImage(self, data1, data2, mode):
         """Returns an RBG image containing composition of data1 and data2 in 2
         different channels
 
+        :param numpy.ndarray data1: First image
+        :param numpy.ndarray data1: Second image
+        :param str mode: Composition mode. Supporting "yc" (yellow/cyan)
+            and "br" (blue/red).
         :rtype: numpy.ndarray
         """
         assert(data1.shape[0:2] == data2.shape[0:2])
@@ -669,9 +688,14 @@ class CompareImages(qt.QMainWindow):
         vmin, vmax = min(vmin1, vmin2) * 1.0, max(vmax1, vmax2) * 1.0
         shape = data1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
-        result[:, :, 0] = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        result[:, :, 1] = 0
-        result[:, :, 2] = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        if mode == "br":
+            result[:, :, 0] = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+            result[:, :, 1] = 0
+            result[:, :, 2] = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        elif mode == "yc":
+            result[:, :, 0] = 255 - (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+            result[:, :, 1] = 255
+            result[:, :, 2] = 255 - (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
         return result
 
     def __luminosityImage(self, image):
