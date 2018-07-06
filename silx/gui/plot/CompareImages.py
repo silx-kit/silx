@@ -507,7 +507,7 @@ class CompareImages(qt.QMainWindow):
         assert(data1.shape[0:2] == data2.shape[0:2])
         mode1 = self.__getImageMode(data1)
         if mode1 in ["rgb", "rgba"]:
-            intensity1 = self.__intensityImage(data1)
+            intensity1 = self.__luminosityImage(data1)
             vmin1, vmax1 = 0.0, 1.0
         else:
             intensity1 = data1
@@ -515,7 +515,7 @@ class CompareImages(qt.QMainWindow):
 
         mode2 = self.__getImageMode(data2)
         if mode2 in ["rgb", "rgba"]:
-            intensity2 = self.__intensityImage(data2)
+            intensity2 = self.__luminosityImage(data2)
             vmin2, vmax2 = 0.0, 1.0
         else:
             intensity2 = data2
