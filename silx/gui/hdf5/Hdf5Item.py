@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/10/2017"
+__date__ = "06/07/2018"
 
 
 import logging
@@ -152,7 +152,7 @@ class Hdf5Item(Hdf5Node):
         try:
             obj = parent_obj.get(self.__key)
         except Exception as e:
-            lib_name = self.obj.__class__.__module__.split(".")[0]
+            lib_name = obj.__class__.__module__.split(".")[0]
             _logger.debug("Internal %s error", lib_name, exc_info=True)
             _logger.debug("Backtrace", exc_info=True)
             try:
@@ -184,7 +184,7 @@ class Hdf5Item(Hdf5Node):
                 elif class_ == silx.io.utils.H5Type.SOFT_LINK:
                     message = "Soft link broken. Path %s does not exist" % (self.__obj.path)
                 else:
-                    name = self.obj.__class__.__name__.split(".")[-1].capitalize()
+                    name = self.__obj.__class__.__name__.split(".")[-1].capitalize()
                     message = "%s broken" % (name)
                 self.__error = message
                 self.__isBroken = True
