@@ -30,6 +30,7 @@ import sys
 import logging
 import numpy
 
+import silx.io
 from silx.gui import qt
 import silx.test.utils
 from silx.gui.plot.CompareImages import CompareImages
@@ -61,6 +62,11 @@ def createTestData():
 
 
 def loadImage(filename):
+    try:
+        return silx.io.get_data(filename)
+    except Exception:
+        _logger.error("Error while loading image with silx.io", exc_info=True)
+
     if fabio is None and PIL is None:
         raise ImportError("fabio nor PIL are not available")
 
