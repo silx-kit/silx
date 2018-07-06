@@ -29,6 +29,7 @@
 import sys
 import logging
 import numpy
+import argparse
 
 import silx.io
 from silx.gui import qt
@@ -65,10 +66,10 @@ def loadImage(filename):
     try:
         return silx.io.get_data(filename)
     except Exception:
-        _logger.error("Error while loading image with silx.io", exc_info=True)
+        _logger.debug("Error while loading image with silx.io", exc_info=True)
 
     if fabio is None and PIL is None:
-        raise ImportError("fabio nor PIL are not available")
+        raise ImportError("fabio nor PIL are available")
 
     if fabio is not None:
         try:
@@ -85,17 +86,64 @@ def loadImage(filename):
     raise Exception("Impossible to load '%s' with the available image libraries" % filename)
 
 
+file_description = """
+Image data to compare (HDF5 file with path, EDF files, JPEG/PNG image files).
+Data from HDF5 files can be accessed using dataset path and slicing as an URL: silx:../my_file.h5?path=/entry/data&slice=10
+EDF file frames also can can be accessed using URL: fabio:../my_file.edf?slice=10
+Using URL in command like usually have to be quoted: "URL".
+"""
+
+
+def createParser():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        'files',
+        nargs=argparse.ZERO_OR_MORE,
+        help=file_description)
+    parser.add_argument(
+        '--debug',
+        dest="debug",
+        action="store_true",
+        default=False,
+        help='Set logging system in debug mode')
+    parser.add_argument(
+        '--testdata',
+        dest="testdata",
+        action="store_true",
+        default=False,
+        help='Use synthetic images to test the application')
+    parser.add_argument(
+        '--use-opengl-plot',
+        dest="use_opengl_plot",
+        action="store_true",
+        default=False,
+        help='Use OpenGL for plots (instead of matplotlib)')
+    return parser
+
+
 if __name__ == "__main__":
-    if len(sys.argv) == 3:
-        _logger.info("Load images from files")
-        data1 = loadImage(sys.argv[1])
-        data2 = loadImage(sys.argv[2])
-    else:
+    parser = createParser()
+    options = parser.parse_args(sys.argv[1:])
+
+    if options.debug:
+        logging.root.setLevel(logging.DEBUG)
+
+    if options.testdata:
         _logger.info("Generate test data")
         data1, data2 = createTestData()
+    else:
+        if len(options.files) != 2:
+            raise Exception("Expected 2 images to compare them")
+        data1 = loadImage(options.files[0])
+        data2 = loadImage(options.files[1])
+
+    if options.use_opengl_plot:
+        backend = "gl"
+    else:
+        backend = "mpl"
 
     app = qt.QApplication([])
-    window = CompareImages()
+    window = CompareImages(backend=backend)
     window.setData(data1, data2)
     window.setVisible(True)
     app.exec_()
