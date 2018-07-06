@@ -1,2 +1,1 @@
-unittest2; python_version == '2.7'  # Needed for h5py 2.8.0rc1 on python2
 numpy  # Do not use pre-release as 1.15.0rc1 seems to break things on Windows
