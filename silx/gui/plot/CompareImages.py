@@ -357,34 +357,34 @@ class CompareImages(qt.QWidget):
         self.__data2 = None
         self.__previousSeparatorPosition = None
 
-        self.__plot2d = plot.PlotWidget(parent=self, backend=backend)
-        self.__plot2d.getXAxis().setLabel('Columns')
-        self.__plot2d.getYAxis().setLabel('Rows')
+        self.__plot = plot.PlotWidget(parent=self, backend=backend)
+        self.__plot.getXAxis().setLabel('Columns')
+        self.__plot.getYAxis().setLabel('Rows')
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
-            self.__plot2d.getYAxis().setInverted(True)
+            self.__plot.getYAxis().setInverted(True)
 
-        self.__plot2d.setKeepDataAspectRatio(True)
-        self.__plot2d.sigPlotSignal.connect(self.__plotSlot)
+        self.__plot.setKeepDataAspectRatio(True)
+        self.__plot.sigPlotSignal.connect(self.__plotSlot)
 
-        layout.addWidget(self.__plot2d)
+        layout.addWidget(self.__plot)
 
-        self.__plot2d.addXMarker(
+        self.__plot.addXMarker(
             0,
             legend='vline',
             text='',
             draggable=True,
             color='blue',
             constraint=self.__separatorConstraint)
-        self.__vline = self.__plot2d._getMarker('vline')
+        self.__vline = self.__plot._getMarker('vline')
 
-        self.__plot2d.addYMarker(
+        self.__plot.addYMarker(
             0,
             legend='hline',
             text='',
             draggable=True,
             color='blue',
             constraint=self.__separatorConstraint)
-        self.__hline = self.__plot2d._getMarker('hline')
+        self.__hline = self.__plot._getMarker('hline')
 
         # default values
         self.__visualizationMode = ""
@@ -397,13 +397,13 @@ class CompareImages(qt.QWidget):
 
         # Toolbars
 
-        self._createToolBars(self.__plot2d)
+        self._createToolBars(self.__plot)
         if self._interactiveModeToolBar is not None:
-            self.__plot2d.addToolBar(self._interactiveModeToolBar)
+            self.__plot.addToolBar(self._interactiveModeToolBar)
         if self._imageToolBar is not None:
-            self.__plot2d.addToolBar(self._imageToolBar)
+            self.__plot.addToolBar(self._imageToolBar)
         if self._compareToolBar is not None:
-            self.__plot2d.addToolBar(self._compareToolBar)
+            self.__plot.addToolBar(self._compareToolBar)
 
     def _createToolBars(self, plot):
         toolBar = tools.InteractiveModeToolBar(parent=self, plot=plot)
@@ -417,9 +417,9 @@ class CompareImages(qt.QWidget):
     def getPlot(self):
         """Returns the plot which is used to display the images.
 
-        :rtype: silx.gui.plot.Plot2D
+        :rtype: silx.gui.plot.PlotWidget
         """
-        return self.__plot2d
+        return self.__plot
 
     def setVisualizationMode(self, mode):
         """Set the visualization mode.
@@ -560,7 +560,7 @@ class CompareImages(qt.QWidget):
         self.__raw1 = image1
         self.__raw2 = image2
         self.__invalidateData()
-        self.__plot2d.resetZoom()
+        self.__plot.resetZoom()
 
     def __invalidateScatter(self):
         """Update the displayed keypoints using cached keypoints.
@@ -569,12 +569,12 @@ class CompareImages(qt.QWidget):
             data = self.__matching_keypoints
         else:
             data = [], [], []
-        self.__plot2d.addScatter(x=data[0],
-                                 y=data[1],
-                                 z=1,
-                                 value=data[2],
-                                 legend="keypoints",
-                                 colormap=Colormap("spring"))
+        self.__plot.addScatter(x=data[0],
+                               y=data[1],
+                               z=1,
+                               value=data[2],
+                               legend="keypoints",
+                               colormap=Colormap("spring"))
 
     def __invalidateData(self):
         """Compute aligned image when the alignement mode changes.
@@ -643,10 +643,10 @@ class CompareImages(qt.QWidget):
             data1 = numpy.empty((0, 0))
 
         self.__data1, self.__data2 = data1, data2
-        self.__plot2d.addImage(data1, z=0, legend="image1", resetzoom=False)
-        self.__plot2d.addImage(data2, z=0, legend="image2", resetzoom=False)
-        self.__image1 = self.__plot2d.getImage("image1")
-        self.__image2 = self.__plot2d.getImage("image2")
+        self.__plot.addImage(data1, z=0, legend="image1", resetzoom=False)
+        self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False)
+        self.__image1 = self.__plot.getImage("image1")
+        self.__image2 = self.__plot.getImage("image2")
         self.__invalidateScatter()
 
         # Set the separator into the middle
