@@ -152,8 +152,7 @@ class Hdf5Item(Hdf5Node):
         try:
             obj = parent_obj.get(self.__key)
         except Exception as e:
-            lib_name = obj.__class__.__module__.split(".")[0]
-            _logger.debug("Internal %s error", lib_name, exc_info=True)
+            _logger.error("Internal error while reaching HDF5 object: %s", str(e))
             _logger.debug("Backtrace", exc_info=True)
             try:
                 self.__obj = parent_obj.get(self.__key, getlink=True)
