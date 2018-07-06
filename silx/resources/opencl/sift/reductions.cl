@@ -3,7 +3,7 @@
  *            kernel for maximum and minimum calculation
  *
  *
- *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2018 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -55,14 +55,15 @@
 kernel void max_min_global_stage1(
         global const   float  *data,
         global         float2 *out,
-        unsigned       int     SIZE,
-        local volatile float2 *ldata){
+               const   int     SIZE,
+        local volatile float2 *ldata)
+{
 
-    unsigned int group_size =  get_local_size(0);
-    unsigned int lid = get_local_id(0);
+    int group_size = (int) get_local_size(0);
+    int lid = (int) get_local_id(0);
     float2 acc;
-    unsigned int big_block = group_size * get_num_groups(0);
-    unsigned int i =  lid + group_size * get_group_id(0);
+    int big_block = group_size * get_num_groups(0);
+    int i =  lid + group_size * get_group_id(0);
 
     if (lid<SIZE)
         acc = READ_AND_MAP(lid);
@@ -108,8 +109,8 @@ kernel void max_min_global_stage2(
         global         float  *minimum,
         local volatile float2 *ldata)
 {
-    unsigned int lid = get_local_id(0);
-    unsigned int group_size =  get_local_size(0);
+    int lid = (int) get_local_id(0);
+    int group_size = (int) get_local_size(0);
     float2 acc = (float2)(-1.0f, -1.0f);
     if (lid<=group_size)
     {
@@ -155,24 +156,74 @@ kernel void max_min_global_stage2(
  */
 kernel void max_min_serial(
         global const float *data,
-        unsigned int SIZE,
+               const int SIZE,
         global float *maximum,
         global float *minimum)
 {
-float value, maxi, mini;
-value = data[0];
-mini = value;
-maxi = value;
-for (int i=1; i<SIZE; i++)
-{
-    value = data[i];
-    if (value>maxi)
-        maxi = value;
-    if (value<mini)
-        mini = value;
+    float value, maxi, mini;
+    value = data[0];
+    mini = value;
+    maxi = value;
+    for (int i=1; i<SIZE; i++)
+    {
+        value = data[i];
+        maxi = fmax(maxi, value);
+        mini = fmin(mini, value);
+    }
+    
+    maximum[0] = maxi;
+    minimum[0] = mini;
+    
 }
-
-maximum[0] = maxi;
-minimum[0] = mini;
-
+/*This is the vectorial (16x) version of the min_max kernel.
+ *
+ * It has to be launched with WG=1 and only 1 WG has to be launched !
+ *
+ * :param data:       Float pointer to global memory storing the vector of data.
+ * :param SIZE:       size of the data array
+ * :param maximum:    Float pointer to global memory storing the maximum value
+ * :param minumum:    Float pointer to global memory storing the minimum value
+ *
+ *
+ */
+kernel void max_min_vec16(
+        global const float *data,
+               const int SIZE,
+        global float *maximum,
+        global float *minimum)
+{
+    int i, j;
+    union
+    {
+        float  ary[16];
+        float16 vec;
+    } value, maxi, mini;
+    
+    for (i=0; i<(SIZE+15); i+=16)
+    {
+        for (j=0; j<16; j++)
+        {
+            value.ary[j] = data[min(i+j, SIZE-1)];
+        }
+        if (i > 0)
+        {
+            maxi.vec = fmax(maxi.vec, value.vec);
+            mini.vec = fmin(mini.vec, value.vec);
+        }
+        else
+        {
+            maxi = value;
+            mini = value;
+        }
+    }
+    float the_max = maxi.ary[0];
+    float the_min = mini.ary[0];
+    for (i=1; i<16; i++)
+    {
+        the_max = fmax(maxi.ary[i], the_max);
+        the_min = fmin(mini.ary[i], the_min);
+    }
+    maximum[0] = the_max;
+    minimum[0] = the_min;
+    
 }

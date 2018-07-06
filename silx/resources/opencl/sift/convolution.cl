@@ -44,12 +44,12 @@
 ///
 
 kernel void horizontal_convolution(
-    const global float * input,  // input array
-    global float * output, // output array
-    global float * filter __attribute__((max_constant_size(MAX_CONST_SIZE))), // filter coefficients
-    int hlen,       // filter size
-    int IMAGE_W,
-    int IMAGE_H)
+                                    const global float * input,  // input array
+                                    global float * output, // output array
+                                    global float * filter __attribute__((max_constant_size(MAX_CONST_SIZE))), // filter coefficients
+                                    int hlen,       // filter size
+                                    int IMAGE_W,
+                                    int IMAGE_H)
 {
     int gidy = (int) get_global_id(1);
     int gidx = (int) get_global_id(0); // fast dim
@@ -93,12 +93,12 @@ kernel void horizontal_convolution(
 ///
 
 kernel void vertical_convolution(
-    const global float * input,  // input array
-    global float * output, // output array
-    global float * filter __attribute__((max_constant_size(MAX_CONST_SIZE))), // filter coefficients
-    int hlen,       // filter size
-    int IMAGE_W,
-    int IMAGE_H)
+                                const global float * input,  // input array
+                                global float * output, // output array
+                                global float * filter __attribute__((max_constant_size(MAX_CONST_SIZE))), // filter coefficients
+                                int hlen,       // filter size
+                                int IMAGE_W,
+                                int IMAGE_H)
 {
     int gidy = (int) get_global_id(1);
     int gidx = (int) get_global_id(0); // fast dim

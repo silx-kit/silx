@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/06/2018"
+__date__ = "05/07/2018"
 
 import os
 import time
@@ -228,7 +228,7 @@ class TestPreproc(unittest.TestCase):
             logger.info("Normalization                %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
             logger.info("--------------------------------------")
 
-        self.assert_(delta < 1e-4, "delta=%s" % delta)
+        self.assertLess(delta, 1e-4, "delta=%s" % delta)
 
     def test_uint16(self):
         """
@@ -272,7 +272,7 @@ class TestPreproc(unittest.TestCase):
             logger.info("Reduction stage2 took         %.3fms" % (1e-6 * (k3.profile.end - k3.profile.start)))
             logger.info("Normalization                 %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
             logger.info("--------------------------------------")
-        self.assert_(delta < 1e-4, "delta=%s" % delta)
+        self.assertLess(delta, 1e-4, "delta=%s" % delta)
 
     def test_uint32(self):
         """
@@ -316,7 +316,7 @@ class TestPreproc(unittest.TestCase):
             logger.info("Reduction stage2 took         %.3fms" % (1e-6 * (k3.profile.end - k3.profile.start)))
             logger.info("Normalization                 %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
             logger.info("--------------------------------------")
-        self.assert_(delta < 1e-4, "delta=%s" % delta)
+        self.assertLess(delta, 1e-4, "delta=%s" % delta)
 
     def test_uint64(self):
         """
@@ -360,7 +360,7 @@ class TestPreproc(unittest.TestCase):
             logger.info("Reduction stage2 took         %.3fms" % (1e-6 * (k3.profile.end - k3.profile.start)))
             logger.info("Normalization                 %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
             logger.info("--------------------------------------")
-        self.assert_(delta < 1e-4, "delta=%s" % delta)
+        self.assertLess(delta, 1e-4, "delta=%s" % delta)
 
     def test_int32(self):
         """
@@ -404,7 +404,7 @@ class TestPreproc(unittest.TestCase):
             logger.info("Reduction stage2 took        %.3fms" % (1e-6 * (k3.profile.end - k3.profile.start)))
             logger.info("Normalization                %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
             logger.info("--------------------------------------")
-        self.assert_(delta < 1e-4, "delta=%s" % delta)
+        self.assertLess(delta, 1e-4, "delta=%s" % delta)
 
     def test_int64(self):
         """
@@ -447,7 +447,7 @@ class TestPreproc(unittest.TestCase):
             logger.info("Reduction stage2 took        %.3fms" % (1e-6 * (k3.profile.end - k3.profile.start)))
             logger.info("Normalization                %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
             logger.info("--------------------------------------")
-        self.assert_(delta < 1e-4, "delta=%s" % delta)
+        self.assertLess(delta, 1e-4, "delta=%s" % delta)
 
     def test_rgb(self):
         """
@@ -493,7 +493,7 @@ class TestPreproc(unittest.TestCase):
             logger.info("Reduction stage2 took        %.3fms" % (1e-6 * (k3.profile.end - k3.profile.start)))
             logger.info("Normalization                %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
             logger.info("--------------------------------------")
-        self.assert_(delta < 1e-4, "delta=%s" % delta)
+        self.assertLess(delta, 1e-4, "delta=%s" % delta)
 
     def test_shrink(self):
         """
@@ -518,7 +518,7 @@ class TestPreproc(unittest.TestCase):
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Shrinking  took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-        self.assert_(delta < 1e-6, "delta=%s" % delta)
+        self.assertLess(delta, 1e-6, "delta=%s" % delta)
 
     def test_bin(self):
         """
@@ -543,7 +543,7 @@ class TestPreproc(unittest.TestCase):
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Binning took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-        self.assert_(delta < 1e-6, "delta=%s" % delta)
+        self.assertLess(delta, 1e-6, "delta=%s" % delta)
 
 
 def suite():

@@ -50,8 +50,8 @@ kernel void gaussian(global     float    *data,
                      local      float    *shm1,
                      local      float    *shm2)
 {
-    int lid = get_local_id(0);
-    int group_size = get_local_size(0);
+    int lid = (int) get_local_id(0);
+    int group_size = (int) get_local_size(0);
     if(lid < SIZE)
     {
         float x = ((float)lid - ((float)SIZE - 1.0f)/2.0f) / sigma;
@@ -102,7 +102,7 @@ gaussian_nosync(global     float   *data,
 //                local      float*    shm1,
 //                local      float*    shm2)
 {
-    int gid=get_global_id(0);
+    int gid = (int) get_global_id(0);
     if(gid < SIZE)
     {
         float x = ((float)gid - ((float)SIZE - 1.0f)/2.0f) / sigma;
@@ -110,7 +110,3 @@ gaussian_nosync(global     float   *data,
         data[gid] = y / sigma / sqrt(2.0f * M_PI_F);
     }
 }
-
-
-
-

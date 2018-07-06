@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/06/2018"
+__date__ = "05/07/2018"
 
 import os
 import time
@@ -184,7 +184,7 @@ class TestGaussian(unittest.TestCase):
         ref = gaussian_cpu(sigma, size)
         res = self.gaussian_gpu_v1(sigma, size)
         delta = ref - res
-        self.assert_(abs(delta).max() < 1e-6, "gaussian are the same ")
+        self.assertLess(abs(delta).max(), 1e-6, "gaussian are the same ")
 
     def test_v1_even(self):
         """
@@ -195,7 +195,7 @@ class TestGaussian(unittest.TestCase):
         ref = gaussian_cpu(sigma, size)
         res = self.gaussian_gpu_v1(sigma, size)
         delta = ref - res
-        self.assert_(abs(delta).max() < 1e-6, "gaussian are the same ")
+        self.assertLess(abs(delta).max(), 1e-6, "gaussian are the same ")
 
     def test_v2_odd(self):
         """
@@ -210,7 +210,7 @@ class TestGaussian(unittest.TestCase):
             return
         res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res
-        self.assert_(abs(delta).max() < 1e-6, "gaussian are the same ")
+        self.assertLess(abs(delta).max(), 1e-6, "gaussian are the same ")
 
     def test_v2_even(self):
         """
@@ -225,7 +225,7 @@ class TestGaussian(unittest.TestCase):
             return
         res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res
-        self.assert_(abs(delta).max() < 1e-6, "gaussian are the same ")
+        self.assertLess(abs(delta).max(), 1e-6, "gaussian are the same ")
 
 
 def suite():

@@ -62,30 +62,35 @@
 
 
 kernel void orientation_cpu(
-    global unified_keypoint* keypoints,
-    global float* grad,
-    global float* ori,
-    global int* counter,
-    int octsize,
-    float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
-    int nb_keypoints,
-    int keypoints_start,
-    int keypoints_end,
-    int grad_width,
-    int grad_height)
+                            global unified_keypoint* keypoints,
+                            global float* grad,
+                            global float* ori,
+                            global int* counter,
+                            int octsize,
+                            float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
+                            int nb_keypoints,
+                            int keypoints_start,
+                            int keypoints_end,
+                            int grad_width,
+                            int grad_height)
 {
-    int gid0 = get_global_id(0);
+    int gid0 = (int) get_global_id(0);
     guess_keypoint raw_kp = keypoints[gid0].raw;
     if (!(keypoints_start <= gid0 && gid0 < keypoints_end && raw_kp.row >=0.0f))
+    {
         return;
-    int    bin, prev=0, next=0;
+    }
+    int bin, prev=0, next=0;
     int i,j,r,c;
     int old;
     float distsq, gval, angle, interp=0.0;
     float hist_prev, hist_next;
     float hist[36];
     //memset
-    for (i=0; i<36; i++) hist[i] = 0.0f;
+    for (i=0; i<36; i++) 
+    {
+        hist[i] = 0.0f;
+    }
 
     int row = (int) (raw_kp.row + 0.5f),
         col = (int) (raw_kp.col + 0.5f);
