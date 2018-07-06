@@ -25,11 +25,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "06/07/2018"
 
 
 from .. import qt
 from .Hdf5Node import Hdf5Node
+import silx.io.utils
 
 
 class Hdf5LoadingItem(Hdf5Node):
@@ -48,6 +49,14 @@ class Hdf5LoadingItem(Hdf5Node):
     @property
     def obj(self):
         return None
+
+    @property
+    def h5Class(self):
+        """Returns the class of the stored object.
+
+        :rtype: silx.io.utils.H5Type
+        """
+        return silx.io.utils.H5Type.FILE
 
     def dataName(self, role):
         if role == qt.Qt.DecorationRole:
