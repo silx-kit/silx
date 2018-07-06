@@ -510,11 +510,11 @@ class TestFabioH5WithEdf(unittest.TestCase):
         self.assertNotIn("/scan_0/instrument/detector_0/others/HeaderID", self.h5_image)
 
 
-class _TestableFrameData(fabioh5.FrameData):
-    """Allow to test if the full data is reached."""
-
-    def _create_data(self):
-        raise RuntimeError("Not supposed to be called")
+if fabio is not None:
+    class _TestableFrameData(fabioh5.FrameData):
+        """Allow to test if the full data is reached."""
+        def _create_data(self):
+            raise RuntimeError("Not supposed to be called")
 
 
 class TestFabioH5WithFileSeries(unittest.TestCase):

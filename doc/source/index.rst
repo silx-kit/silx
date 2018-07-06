@@ -9,7 +9,7 @@ reduction routines and a set of Qt widgets to browse and visualise data.
 Silx can be cited by its DOIs referenced on
 `Zenodo <https://doi.org/10.5281/zenodo.591709>`_.
 
-The current version (v0.7) caters for:
+The current version (v\ |version|) caters for:
 
 * Supporting `HDF5 <https://www.hdfgroup.org/HDF5/>`_,
   `SPEC <https://certif.com/spec.html>`_ and

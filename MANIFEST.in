@@ -11,7 +11,7 @@ include requirements.txt
 include requirements-dev.txt
 recursive-include silx *.pyx *.pxd *.pxi
 recursive-include silx *.h *.c *.hpp *.cpp
-recursive-include doc/source *.py *.rst *.png *.ico
+recursive-include doc/source *.py *.rst *.png *.ico *.ipynb
 recursive-include qtdesigner_plugins *.py *.rst
 recursive-include silx/resources *
 recursive-include examples *

@@ -115,6 +115,10 @@ class SafeFileIconProvider(qt.QFileIconProvider):
         return driveInfo[0]
 
     def icon(self, info):
+        if isinstance(info, qt.QFileIconProvider.IconType):
+            # It's another C++ method signature:
+            # QIcon QFileIconProvider::icon(QFileIconProvider::IconType type)
+            return super(SafeFileIconProvider, self).icon(info)
         style = qt.QApplication.instance().style()
         path = info.filePath()
         if path in ["", "/"]:
