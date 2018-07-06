@@ -40,6 +40,7 @@ from silx.gui import plot
 from silx.gui import icons
 from silx.gui.colors import Colormap
 from silx.gui.plot import tools
+from silx.third_party import enum
 
 _logger = logging.getLogger(__name__)
 
@@ -49,6 +50,26 @@ except ImportError as e:
     _logger.warning("Error while importing sift: %s", str(e))
     _logger.debug("Backtrace", exc_info=True)
     sift = None
+
+
+@enum.unique
+class VisualizationMode(enum.Enum):
+    """Enum for each visualization mode available."""
+    ONLY_A = 'none'
+    ONLY_B = 'range'
+    VERTICAL_LINE = 'vline'
+    HORIZONTAL_LINE = 'hline'
+    COMPOSITE_BLUE_RED = "brchannel"
+    COMPOSITE_YELLOW_CYAN = "ycchannel"
+
+
+@enum.unique
+class AlignmentMode(enum.Enum):
+    """Enum for each alignment mode available."""
+    ORIGIN = 'origin'
+    CENTER = 'center'
+    STRETCH = 'stretch'
+    AUTO = 'auto'
 
 
 class CompareImagesToolBar(qt.QToolBar):
@@ -217,17 +238,17 @@ class CompareImagesToolBar(qt.QToolBar):
             return
 
         mode = widget.getVisualizationMode()
-        if mode == "a":
+        if mode == VisualizationMode.ONLY_A:
             action = self.__aModeAction
-        elif mode == "b":
+        elif mode == VisualizationMode.ONLY_B:
             action = self.__bModeAction
-        elif mode == "vline":
+        elif mode == VisualizationMode.VERTICAL_LINE:
             action = self.__vlineModeAction
-        elif mode == "hline":
+        elif mode == VisualizationMode.HORIZONTAL_LINE:
             action = self.__hlineModeAction
-        elif mode == "brchannel":
+        elif mode == VisualizationMode.COMPOSITE_BLUE_RED:
             action = self.__brChannelModeAction
-        elif mode == "ycchannel":
+        elif mode == VisualizationMode.COMPOSITE_YELLOW_CYAN:
             action = self.__ycChannelModeAction
         else:
             action = None
@@ -244,13 +265,13 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__visualizationGroup.blockSignals(old)
 
         mode = widget.getAlignmentMode()
-        if mode == "origin":
+        if mode == AlignmentMode.ORIGIN:
             action = self.__originAlignAction
-        elif mode == "center":
+        elif mode == AlignmentMode.CENTER:
             action = self.__centerAlignAction
-        elif mode == "stretch":
+        elif mode == AlignmentMode.STRETCH:
             action = self.__stretchAlignAction
-        elif mode == "auto":
+        elif mode == AlignmentMode.AUTO:
             action = self.__autoAlignAction
         else:
             action = None
@@ -291,17 +312,17 @@ class CompareImagesToolBar(qt.QToolBar):
     def __getVisualizationMode(self):
         """Returns the current visualization mode."""
         if self.__aModeAction.isChecked():
-            return "a"
+            return VisualizationMode.ONLY_A
         elif self.__bModeAction.isChecked():
-            return "b"
+            return VisualizationMode.ONLY_B
         elif self.__vlineModeAction.isChecked():
-            return "vline"
+            return VisualizationMode.VERTICAL_LINE
         elif self.__hlineModeAction.isChecked():
-            return "hline"
+            return VisualizationMode.HORIZONTAL_LINE
         elif self.__ycChannelModeAction.isChecked():
-            return "ycchannel"
+            return VisualizationMode.COMPOSITE_YELLOW_CYAN
         elif self.__brChannelModeAction.isChecked():
-            return "brchannel"
+            return VisualizationMode.COMPOSITE_BLUE_RED
         else:
             raise ValueError("Unknown interaction mode")
 
@@ -331,13 +352,13 @@ class CompareImagesToolBar(qt.QToolBar):
         """Returns the current selected alignemnt mode."""
         action = self.__alignmentGroup.checkedAction()
         if action is self.__originAlignAction:
-            return "origin"
+            return AlignmentMode.ORIGIN
         if action is self.__centerAlignAction:
-            return "center"
+            return AlignmentMode.CENTER
         if action is self.__stretchAlignAction:
-            return "stretch"
+            return AlignmentMode.STRETCH
         if action is self.__autoAlignAction:
-            return "auto"
+            return AlignmentMode.AUTO
         raise ValueError("Unknown alignment mode")
 
     def __keypointVisibilityChanged(self):
@@ -357,6 +378,9 @@ class CompareImages(qt.QWidget):
                     or a :class:`BackendBase.BackendBase` class
     :type backend: str or :class:`BackendBase.BackendBase`
     """
+
+    VisualizationMode = VisualizationMode
+    """Available visualization modes"""
 
     sigConfigurationChanged = qt.Signal()
     """Emitted when the configuration of the widget (visualization mode,
@@ -390,31 +414,33 @@ class CompareImages(qt.QWidget):
 
         layout.addWidget(self.__plot)
 
+        legend = VisualizationMode.VERTICAL_LINE.name
         self.__plot.addXMarker(
             0,
-            legend='vline',
+            legend=legend,
             text='',
             draggable=True,
             color='blue',
             constraint=self.__separatorConstraint)
-        self.__vline = self.__plot._getMarker('vline')
+        self.__vline = self.__plot._getMarker(legend)
 
+        legend = VisualizationMode.HORIZONTAL_LINE.name
         self.__plot.addYMarker(
             0,
-            legend='hline',
+            legend=legend,
             text='',
             draggable=True,
             color='blue',
             constraint=self.__separatorConstraint)
-        self.__hline = self.__plot._getMarker('hline')
+        self.__hline = self.__plot._getMarker(legend)
 
         # default values
         self.__visualizationMode = ""
         self.__alignmentMode = ""
         self.__keypointsVisible = True
 
-        self.setAlignmentMode("origin")
-        self.setVisualizationMode("vline")
+        self.setAlignmentMode(AlignmentMode.ORIGIN)
+        self.setVisualizationMode(VisualizationMode.VERTICAL_LINE)
         self.setKeypointsVisible(False)
 
         # Toolbars
@@ -453,8 +479,8 @@ class CompareImages(qt.QWidget):
             return
         self.__visualizationMode = mode
         mode = self.getVisualizationMode()
-        self.__vline.setVisible(mode == "vline")
-        self.__hline.setVisible(mode == "hline")
+        self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
+        self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
         self.__invalidateData()
         self.sigConfigurationChanged.emit()
 
@@ -490,16 +516,17 @@ class CompareImages(qt.QWidget):
 
     def __setDefaultAlignmentMode(self):
         """Reset the alignemnt mode to the default value"""
-        self.setAlignmentMode("origin")
+        self.setAlignmentMode(AlignmentMode.ORIGIN)
 
     def __plotSlot(self, event):
         """Handle events from the plot"""
         if event['event'] in ('markerMoving', 'markerMoved'):
             mode = self.getVisualizationMode()
-            if event['label'] == mode:
-                if mode == "vline":
+            legend = mode.name
+            if event['label'] == legend:
+                if mode == VisualizationMode.VERTICAL_LINE:
                     value = int(float(str(event['xdata'])))
-                elif mode == "hline":
+                elif mode == VisualizationMode.HORIZONTAL_LINE:
                     value = int(float(str(event['ydata'])))
                 else:
                     assert(False)
@@ -527,9 +554,9 @@ class CompareImages(qt.QWidget):
         """Redraw images according to the current state of the separators.
         """
         mode = self.getVisualizationMode()
-        if mode == "vline":
+        if mode == VisualizationMode.VERTICAL_LINE:
             pos = self.__vline.getXPosition()
-        elif mode == "hline":
+        elif mode == VisualizationMode.HORIZONTAL_LINE:
             pos = self.__hline.getYPosition()
         else:
             self.__image1.setOrigin((0, 0))
@@ -547,7 +574,7 @@ class CompareImages(qt.QWidget):
             return
 
         mode = self.getVisualizationMode()
-        if mode == "vline":
+        if mode == VisualizationMode.VERTICAL_LINE:
             pos = int(pos)
             if pos <= 0:
                 pos = 0
@@ -558,7 +585,7 @@ class CompareImages(qt.QWidget):
             self.__image1.setData(data1, copy=False)
             self.__image2.setData(data2, copy=False)
             self.__image2.setOrigin((pos, 0))
-        elif mode == "hline":
+        elif mode == VisualizationMode.HORIZONTAL_LINE:
             pos = int(pos)
             if pos <= 0:
                 pos = 0
@@ -615,14 +642,14 @@ class CompareImages(qt.QWidget):
 
         alignmentMode = self.getAlignmentMode()
 
-        if alignmentMode == "origin":
+        if alignmentMode == AlignmentMode.ORIGIN:
             yy = max(raw1.shape[0], raw2.shape[0])
             xx = max(raw1.shape[1], raw2.shape[1])
             size = yy, xx
             data1 = self.__createMarginImage(raw1, size, transparent=True)
             data2 = self.__createMarginImage(raw2, size, transparent=True)
             self.__matching_keypoints = [0.0], [0.0], [1.0]
-        elif alignmentMode == "center":
+        elif alignmentMode == AlignmentMode.CENTER:
             yy = max(raw1.shape[0], raw2.shape[0])
             xx = max(raw1.shape[1], raw2.shape[1])
             size = yy, xx
@@ -631,13 +658,13 @@ class CompareImages(qt.QWidget):
             self.__matching_keypoints = ([data1.shape[1] // 2],
                                          [data1.shape[0] // 2],
                                          [1.0])
-        elif alignmentMode == "stretch":
+        elif alignmentMode == AlignmentMode.STRETCH:
             data1 = raw1
             data2 = self.__rescaleImage(raw2, data1.shape)
             self.__matching_keypoints = ([0, data1.shape[1], data1.shape[1], 0],
                                          [0, 0, data1.shape[0], data1.shape[0]],
                                          [1.0, 1.0, 1.0, 1.0])
-        elif alignmentMode == "auto":
+        elif alignmentMode == AlignmentMode.AUTO:
             # TODO: sift implementation do not support RGBA images
             yy = max(raw1.shape[0], raw2.shape[0])
             xx = max(raw1.shape[1], raw2.shape[1])
@@ -658,15 +685,15 @@ class CompareImages(qt.QWidget):
             assert(False)
 
         mode = self.getVisualizationMode()
-        if mode == "ycchannel":
-            data1 = self.__composeImage(data1, data2, "yc")
+        if mode == VisualizationMode.COMPOSITE_YELLOW_CYAN:
+            data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
-        elif mode == "brchannel":
-            data1 = self.__composeImage(data1, data2, "br")
+        elif mode == VisualizationMode.COMPOSITE_BLUE_RED:
+            data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
-        elif mode == "a":
+        elif mode == VisualizationMode.ONLY_A:
             data2 = numpy.empty((0, 0))
-        elif mode == "b":
+        elif mode == VisualizationMode.ONLY_B:
             data1 = numpy.empty((0, 0))
 
         self.__data1, self.__data2 = data1, data2
@@ -742,8 +769,7 @@ class CompareImages(qt.QWidget):
 
         :param numpy.ndarray data1: First image
         :param numpy.ndarray data1: Second image
-        :param str mode: Composition mode. Supporting "yc" (yellow/cyan)
-            and "br" (blue/red).
+        :param VisualizationMode mode: Composition mode.
         :rtype: numpy.ndarray
         """
         assert(data1.shape[0:2] == data2.shape[0:2])
@@ -766,11 +792,11 @@ class CompareImages(qt.QWidget):
         vmin, vmax = min(vmin1, vmin2) * 1.0, max(vmax1, vmax2) * 1.0
         shape = data1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
-        if mode == "br":
+        if mode == VisualizationMode.COMPOSITE_BLUE_RED:
             result[:, :, 0] = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
             result[:, :, 1] = 0
             result[:, :, 2] = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        elif mode == "yc":
+        elif mode == VisualizationMode.COMPOSITE_YELLOW_CYAN:
             result[:, :, 0] = 255 - (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
             result[:, :, 1] = 255
             result[:, :, 2] = 255 - (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
