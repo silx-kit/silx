@@ -820,7 +820,7 @@ def get_data(url):
 
         if fabio_file.nframes == 1:
             if index != 0:
-                raise ValueError("Only a single frame availalbe. Slice %s out of range" % index)
+                raise ValueError("Only a single frame available. Slice %s out of range" % index)
             data = fabio_file.data
         else:
             data = fabio_file.getframe(index).data
