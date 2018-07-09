@@ -56,6 +56,8 @@ def medfilt1d(data, kernel_size=3, bool conditional=False, mode='nearest'):
     :type kernel_size: int
     :param bool conditional: True if we want to apply a conditional median
         filtering.
+    :param str mode: the algorithm used to determine how values at borders
+        are determined, in: 'nearest', 'reflect', 'mirror', 'shrink'
 
     :returns: the array with the median value for each pixel.
     """
@@ -74,6 +76,8 @@ def medfilt2d(image, kernel_size=3, bool conditional=False, mode='nearest'):
         a list of (kernel_height, kernel_width)
     :param bool conditional: True if we want to apply a conditional median
         filtering.
+    :param str mode: the algorithm used to determine how values at borders
+        are determined, in: 'nearest', 'reflect', 'mirror', 'shrink'
 
     :returns: the array with the median value for each pixel.
     """
@@ -93,12 +97,12 @@ def medfilt(data, kernel_size=3, bool conditional=False, mode='nearest'):
     :param bool conditional: True if we want to apply a conditional median
         filtering.
     :param str mode: the algorithm used to determine how values at borders
-        are determined.
+        are determined, in: 'nearest', 'reflect', 'mirror', 'shrink'
 
     :returns: the array with the median value for each pixel.
     """
     if mode not in MODES:
-        err = 'Requested mode %s is unknowed.' % mode
+        err = 'Requested mode %s is unknown.' % mode
         raise ValueError(err)
 
     reshaped = False
@@ -106,7 +110,7 @@ def medfilt(data, kernel_size=3, bool conditional=False, mode='nearest'):
         data = data.reshape(data.shape[0], 1)
         reshaped = True
     elif len(data.shape) > 2:
-        raise ValueError("Invalid data shape. Dimemsion of the arary should be 1 or 2")
+        raise ValueError("Invalid data shape. Dimension of the array should be 1 or 2")
 
     # simple median filter apply into a 2D buffer
     output_buffer = numpy.zeros_like(data)

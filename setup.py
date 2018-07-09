@@ -849,12 +849,12 @@ def get_project_configuration(dry_run):
         numpy_requested_version = ""
     else:
         from numpy.version import version as numpy_version
-        numpy_requested_version = " >= %s" % numpy_version
+        numpy_requested_version = ">=%s" % numpy_version
         logger.info("Install requires: numpy %s", numpy_requested_version)
 
     install_requires = [
         # for most of the computation
-        "numpy %s" % numpy_requested_version,
+        "numpy%s" % numpy_requested_version,
         # for the script launcher
         "setuptools"]
 
