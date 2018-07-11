@@ -96,7 +96,8 @@ def convertQImageToArray(image):
     elif sys.version_info[0] == 3:  # PySide with Python3
         ptr = ptr.tobytes()
 
-    array = numpy.fromstring(ptr, dtype=numpy.uint8)
+    array = numpy.array(numpy.frombuffer(ptr, dtype=numpy.uint8),
+                        copy=True)
 
     # Lines are 32 bits aligned: remove padding bytes
     array = array.reshape(image.height(), -1)[:, :image.width() * 3]
