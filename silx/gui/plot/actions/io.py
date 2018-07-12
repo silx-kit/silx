@@ -37,7 +37,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "02/02/2018"
+__date__ = "12/07/2018"
 
 from . import PlotAction
 from silx.io.utils import save1D, savespec
@@ -546,7 +546,7 @@ class SaveAction(PlotAction):
         if (self.plot.getActiveCurve() is not None or
                 len(self.plot.getAllCurves()) == 1):
             filters.update(self._filters['curve'].items())
-        if len(self.plot.getAllCurves()) > 1:
+        if len(self.plot.getAllCurves()) >= 1:
             filters.update(self._filters['curves'].items())
 
         # Add scatter filters if there is a scatter
