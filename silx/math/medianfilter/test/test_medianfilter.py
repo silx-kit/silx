@@ -495,12 +495,36 @@ class TestGeneralExecution(ParametricTestCase):
     def testAllNaNs(self):
         """Test median filter on image all NaNs"""
         for mode in silx_mf_modes:
+            for conditional in (True, False):
+                with self.subTest(mode=mode, conditional=conditional):
+                    all_nans = numpy.empty((10, 10), dtype=numpy.float32)
+                    all_nans[:] = numpy.nan
+                    output = medfilt2d(
+                        all_nans,
+                        kernel_size=3,
+                        conditional=conditional,
+                        mode=mode)
+                    self.assertTrue(numpy.all(numpy.isnan(output)))
+
+    def testConditionalWithNaNs(self):
+        """Test that NaNs are propagated through conditional median filter"""
+        for mode in silx_mf_modes:
             with self.subTest(mode=mode):
-                all_nans = numpy.empty((10, 10), dtype=numpy.float32)
-                all_nans[:] = numpy.nan
+                image = numpy.empty((10, 10), dtype=numpy.float32)
+                nan_mask = numpy.zeros_like(image, dtype=bool)
+                nan_mask[0, 0] = True
+                nan_mask[4, :] = True
+                nan_mask[6, 4] = True
+                image[nan_mask] = numpy.nan
                 output = medfilt2d(
-                    all_nans, kernel_size=3, conditional=False, mode='shrink')
-                self.assertTrue(numpy.all(numpy.isnan(output)))
+                    image,
+                    kernel_size=3,
+                    conditional=True,
+                    mode=mode)
+                out_isnan = numpy.isnan(output)
+                self.assertTrue(numpy.all(out_isnan[nan_mask]))
+                self.assertFalse(
+                    numpy.any(out_isnan[numpy.logical_not(nan_mask)]))
 
 
 def _getScipyAndSilxCommonModes():

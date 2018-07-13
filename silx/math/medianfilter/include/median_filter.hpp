@@ -220,6 +220,7 @@ void median_filter(
                 T min = 0;
                 T max = 0;
                 getMinMax(window_values, min, max, window_end);
+                // NaNs are propagated through unchanged
                 if ((*currentPixelValue == max) || (*currentPixelValue == min)){
                     output[image_dim[1]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
                 }else{
