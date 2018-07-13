@@ -204,7 +204,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
 
         # make sure y_array is a 2D array even for a single curve
         if len(y_array.shape) == 1:
-            y_array.shape = (1, y_array.shape[0])
+            y_array = y_array.reshape(1, y_array.shape[0])
         elif len(y_array.shape) > 2 or len(y_array.shape) < 1:
             raise IndexError("y must be a 1D or 2D array")
 
