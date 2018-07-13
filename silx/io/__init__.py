@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-#Don't change shape inplace, use an array view. Closes #2014
+#
 # Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
