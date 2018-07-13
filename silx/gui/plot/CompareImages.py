@@ -55,12 +55,12 @@ except ImportError as e:
 @enum.unique
 class VisualizationMode(enum.Enum):
     """Enum for each visualization mode available."""
-    ONLY_A = 'none'
-    ONLY_B = 'range'
+    ONLY_A = 'a'
+    ONLY_B = 'b'
     VERTICAL_LINE = 'vline'
     HORIZONTAL_LINE = 'hline'
-    COMPOSITE_BLUE_RED = "brchannel"
-    COMPOSITE_YELLOW_CYAN = "ycchannel"
+    COMPOSITE_RED_BLUE_GRAY = "rbgchannel"
+    COMPOSITE_RED_BLUE_GRAY_NEG = "rbgnegchannel"
 
 
 @enum.unique
@@ -140,7 +140,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_C))
-        action.setProperty("mode", VisualizationMode.COMPOSITE_BLUE_RED)
+        action.setProperty("mode", VisualizationMode.COMPOSITE_RED_BLUE_GRAY)
         menu.addAction(action)
         self.__brChannelModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -150,7 +150,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
-        action.setProperty("mode", VisualizationMode.COMPOSITE_YELLOW_CYAN)
+        action.setProperty("mode", VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG)
         menu.addAction(action)
         self.__ycChannelModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -653,10 +653,10 @@ class CompareImages(qt.QWidget):
             assert(False)
 
         mode = self.getVisualizationMode()
-        if mode == VisualizationMode.COMPOSITE_YELLOW_CYAN:
+        if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
             data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
-        elif mode == VisualizationMode.COMPOSITE_BLUE_RED:
+        elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_A:
@@ -762,11 +762,11 @@ class CompareImages(qt.QWidget):
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
         a = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
         b = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        if mode == VisualizationMode.COMPOSITE_BLUE_RED:
+        if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             result[:, :, 0] = a
             result[:, :, 1] = (a + b) / 2
             result[:, :, 2] = b
-        elif mode == VisualizationMode.COMPOSITE_YELLOW_CYAN:
+        elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
             result[:, :, 0] = 255 - b
             result[:, :, 1] = 255 - (a + b) / 2
             result[:, :, 2] = 255 - a
