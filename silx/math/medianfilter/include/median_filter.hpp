@@ -34,6 +34,16 @@
 #include <signal.h>
 #include <iostream>
 #include <cmath>
+#include <cfloat>
+
+/* Needed for pytohn2.7 on Windows... */
+#ifndef INFINITY
+#define INFINITY (DBL_MAX+DBL_MAX)
+#endif
+
+#ifndef NAN
+#define NAN (INFINITY-INFINITY)
+#endif
 
 // Modes for the median filter
 enum MODE{
