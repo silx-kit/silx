@@ -135,7 +135,7 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__hlineModeAction = action
         self.__visualizationGroup.addAction(action)
 
-        icon = icons.getQIcon("compare-mode-br-channel")
+        icon = icons.getQIcon("compare-mode-rb-channel")
         action = qt.QAction(icon, "Blue/red compare mode (additive mode)", self)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
@@ -145,7 +145,7 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__brChannelModeAction = action
         self.__visualizationGroup.addAction(action)
 
-        icon = icons.getQIcon("compare-mode-yc-channel")
+        icon = icons.getQIcon("compare-mode-rbneg-channel")
         action = qt.QAction(icon, "Yellow/cyan compare mode (substractive mode)", self)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
@@ -767,9 +767,9 @@ class CompareImages(qt.QWidget):
             result[:, :, 1] = (a + b) / 2
             result[:, :, 2] = b
         elif mode == VisualizationMode.COMPOSITE_YELLOW_CYAN:
-            result[:, :, 0] = 255 - a
+            result[:, :, 0] = 255 - b
             result[:, :, 1] = 255 - (a + b) / 2
-            result[:, :, 2] = 255 - b
+            result[:, :, 2] = 255 - a
         return result
 
     def __luminosityImage(self, image):
