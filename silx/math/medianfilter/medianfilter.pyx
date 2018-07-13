@@ -47,8 +47,16 @@ MODES = {'nearest':0, 'reflect':1, 'mirror':2, 'shrink':3}
 
 def medfilt1d(data, kernel_size=3, bool conditional=False, mode='nearest'):
     """Function computing the median filter of the given input.
+
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
+
+    Not-a-Number (NaN) float values are ignored.
+    If the window only contains NaNs, it evaluates to NaN.
+
+    In event of an even number of valid values in the window (either
+    because of NaN values or on image border in shrink mode),
+    the highest of the 2 central sorted values is taken.
 
     :param numpy.ndarray data: the array for which we want to apply
         the median filter. Should be 1d.
@@ -70,6 +78,13 @@ def medfilt2d(image, kernel_size=3, bool conditional=False, mode='nearest'):
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
 
+    Not-a-Number (NaN) float values are ignored.
+    If the window only contains NaNs, it evaluates to NaN.
+
+    In event of an even number of valid values in the window (either
+    because of NaN values or on image border in shrink mode),
+    the highest of the 2 central sorted values is taken.
+
     :param numpy.ndarray data: the array for which we want to apply
         the median filter. Should be 2d.
     :param kernel_size: the dimension of the kernel.
@@ -89,6 +104,13 @@ def medfilt(data, kernel_size=3, bool conditional=False, mode='nearest'):
     """Function computing the median filter of the given input.
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
+
+    Not-a-Number (NaN) float values are ignored.
+    If the window only contains NaNs, it evaluates to NaN.
+
+    In event of an even number of valid values in the window (either
+    because of NaN values or on image border in shrink mode),
+    the highest of the 2 central sorted values is taken.
 
     :param numpy.ndarray data: the array for which we want to apply
         the median filter. Should be 1d or 2d.

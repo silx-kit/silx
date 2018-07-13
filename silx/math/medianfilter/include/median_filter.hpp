@@ -1,6 +1,6 @@
 /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <signal.h>
 #include <iostream>
+#include <cmath>
 
 // Modes for the median filter
 enum MODE{
@@ -72,6 +73,9 @@ bool cmp(const T* a, const T* b){
 }
 
 // apply the median filter only on limited part of the vector
+// In case of even number of elements (either due to NaNs in the window
+// or for image borders in shrink mode):
+// the highest of the 2 central values is returned
 template<typename T>
 const T* median(std::vector<const T*>& v, int window_size) {
     std::nth_element(v.begin(), v.begin() + window_size/2, v.begin()+window_size, cmp<T>);
@@ -182,6 +186,7 @@ void median_filter(
                         index_x = mirror(win_x, image_dim[1]);
                         index_y = mirror(win_y, image_dim[0]);
                         break;
+
                     case SHRINK:
                         if((index_x < 0) || (index_x > image_dim[1] -1)){
                             continue;
@@ -191,37 +196,38 @@ void median_filter(
                         }
                         break;
                 }
-                *it = (&input[index_y*image_dim[1] + index_x]);
-                ++it;
+
+                T value = input[index_y*image_dim[1] + index_x];
+                if (value == value) {  // Ignore NaNs
+                    *it = (&input[index_y*image_dim[1] + index_x]);
+                    ++it;
+                }
             }
         }
 
-        // get end of the windows. This is needed since in shrink mode we are
-        // not sure to fill the entire window.
-        typename std::vector<const T*>::iterator window_end;
-        int window_size = kernel_dim[0]*kernel_dim[1];
-        if(mode == SHRINK){
-            int x_shrink_ker_dim = std::min(x_pixel+halfKernel_x, image_dim[1]-1) - std::max(0, x_pixel-halfKernel_x)+1;
-            int y_shrink_ker_dim = std::min(y_pixel+halfKernel_y, image_dim[0]-1) - std::max(0, y_pixel-halfKernel_y)+1;
-            window_size = x_shrink_ker_dim*y_shrink_ker_dim;
-            window_end = window_values.begin() + window_size;
-        }else{
-            window_end = window_values.end();
-        }
+        //window_size can be smaller than kernel size in shrink mode or if there is NaNs
+        int window_size = std::distance(window_values.begin(), it);
 
-        // apply the median value if needed for this pixel
-        const T* currentPixelValue = &input[image_dim[1]*y_pixel + x_pixel];
-        if (conditional == true){
-            T min = 0;
-            T max = 0;
-            getMinMax(window_values, min, max, window_end);
-            if ((*currentPixelValue == max) || (*currentPixelValue == min)){
-                output[image_dim[1]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
+        if (window_size == 0) {
+             // Window is empty, this is the case when all values are NaNs
+            output[image_dim[1]*y_pixel + x_pixel] = NAN;
+
+        } else {
+            // apply the median value if needed for this pixel
+            const T* currentPixelValue = &input[image_dim[1]*y_pixel + x_pixel];
+            if (conditional == true){
+                typename std::vector<const T*>::iterator window_end = window_values.begin() + window_size;
+                T min = 0;
+                T max = 0;
+                getMinMax(window_values, min, max, window_end);
+                if ((*currentPixelValue == max) || (*currentPixelValue == min)){
+                    output[image_dim[1]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
+                }else{
+                    output[image_dim[1]*y_pixel + x_pixel] = *currentPixelValue;
+                }
             }else{
-                output[image_dim[1]*y_pixel + x_pixel] = *currentPixelValue;
+                output[image_dim[1]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
             }
-        }else{
-            output[image_dim[1]*y_pixel + x_pixel] = *(median<T>(window_values, window_size));
         }
     }
 }
