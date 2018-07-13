@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/07/2018"
+__date__ = "13/07/2018"
 
 
 import logging
@@ -760,14 +760,16 @@ class CompareImages(qt.QWidget):
         vmin, vmax = min(vmin1, vmin2) * 1.0, max(vmax1, vmax2) * 1.0
         shape = data1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
+        a = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        b = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
         if mode == VisualizationMode.COMPOSITE_BLUE_RED:
-            result[:, :, 0] = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
-            result[:, :, 1] = 0
-            result[:, :, 2] = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+            result[:, :, 0] = a
+            result[:, :, 1] = (a + b) / 2
+            result[:, :, 2] = b
         elif mode == VisualizationMode.COMPOSITE_YELLOW_CYAN:
-            result[:, :, 0] = 255 - (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
-            result[:, :, 1] = 255
-            result[:, :, 2] = 255 - (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+            result[:, :, 0] = 255 - a
+            result[:, :, 1] = 255 - (a + b) / 2
+            result[:, :, 2] = 255 - b
         return result
 
     def __luminosityImage(self, image):
