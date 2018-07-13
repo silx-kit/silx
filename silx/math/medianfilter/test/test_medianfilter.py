@@ -510,7 +510,7 @@ class TestGeneralExecution(ParametricTestCase):
         """Test that NaNs are propagated through conditional median filter"""
         for mode in silx_mf_modes:
             with self.subTest(mode=mode):
-                image = numpy.empty((10, 10), dtype=numpy.float32)
+                image = numpy.ones((10, 10), dtype=numpy.float32)
                 nan_mask = numpy.zeros_like(image, dtype=bool)
                 nan_mask[0, 0] = True
                 nan_mask[4, :] = True
