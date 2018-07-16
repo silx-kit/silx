@@ -186,7 +186,7 @@ void median_filter(
             {
                 for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
                 {
-                    T value;
+                    T value = 0;
                     int index_x = win_x;
                     int index_y = win_y;
 
@@ -238,7 +238,7 @@ void median_filter(
         int window_size = std::distance(window_values.begin(), it);
 
         if (window_size == 0) {
-             // Window is empty, this is the case when all values are NaNs
+            // Window is empty, this is the case when all values are NaNs
             output[image_dim[1]*y_pixel + x_pixel] = NAN;
 
         } else {
