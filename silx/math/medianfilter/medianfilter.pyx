@@ -157,7 +157,7 @@ def medfilt(data,
     # Convert 1D arrays to 2D
     reshaped = False
     if len(data.shape) == 1:
-        data = data.reshape(data.shape[0], 1)
+        data = data.reshape(1, data.shape[0])
         kernel_size = [1, kernel_size[0]]
         reshaped = True
 
@@ -194,8 +194,7 @@ def medfilt(data,
                 cval=cval)
 
     if reshaped:
-        data = data.reshape(data.shape[0])
-        output_buffer = output_buffer.reshape(data.shape[0])
+        output_buffer.shape = -1  # Convert to 1D array
 
     return output_buffer
 
