@@ -37,6 +37,8 @@ import numpy
 cimport numpy as cnumpy
 from libcpp cimport bool
 
+import numbers
+
 ctypedef unsigned long uint64
 ctypedef unsigned int uint32
 ctypedef unsigned short uint16
@@ -142,24 +144,28 @@ def medfilt(data,
         err = 'Requested mode %s is unknown.' % mode
         raise ValueError(err)
 
+    if data.ndim > 2:
+        raise ValueError(
+            "Invalid data shape. Dimension of the array should be 1 or 2")
+
+    # Handle case of scalar kernel size
+    if isinstance(kernel_size, numbers.Integral):
+        kernel_size = [kernel_size] * data.ndim
+
+    assert len(kernel_size) == data.ndim
+
+    # Convert 1D arrays to 2D
     reshaped = False
     if len(data.shape) == 1:
         data = data.reshape(data.shape[0], 1)
+        kernel_size = [1, kernel_size[0]]
         reshaped = True
-    elif len(data.shape) > 2:
-        raise ValueError("Invalid data shape. Dimension of the array should be 1 or 2")
 
     # simple median filter apply into a 2D buffer
     output_buffer = numpy.zeros_like(data)
     check(data, output_buffer)
 
-    if type(kernel_size) in (tuple, list):
-        if(len(kernel_size) == 1):
-            ker_dim = numpy.array(1, [kernel_size[0]], dtype=numpy.int32)
-        else:
-            ker_dim = numpy.array(kernel_size, dtype=numpy.int32)
-    else:
-        ker_dim = numpy.array([kernel_size, kernel_size], dtype=numpy.int32)
+    ker_dim = numpy.array(kernel_size, dtype=numpy.int32)
 
     if data.dtype == numpy.float64:
         medfilterfc = _median_filter_float64
