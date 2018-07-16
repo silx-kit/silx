@@ -459,6 +459,87 @@ class TestMedianFilterShrink(ParametricTestCase):
         self.assertEqual(output[1, 1], 20)
 
 
+class TestMedianFilterConstant(ParametricTestCase):
+    """Unit test for the median filter in constant mode
+    """
+
+    def testRandom10(self):
+        """Test a (5, 3) window to a random array"""
+        kernel = (3, 5)
+
+        thRes = numpy.array([
+            [0., 0.02839148, 0.05564293, 0.02839148, 0.],
+            [0.05272484, 0.40555336, 0.4440632, 0.42161216, 0.28773158],
+            [0.05272484, 0.44406320, 0.46372299, 0.42161216, 0.28773158],
+            [0.20303021, 0.46372299, 0.56049024, 0.44406320, 0.33623165],
+            [0., 0.07813661, 0.33623165, 0.07813661, 0.]])
+
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
+                        kernel_size=kernel,
+                        conditional=False,
+                        mode='constant')
+
+        self.assertTrue(numpy.array_equal(thRes, res))
+
+    RANDOM_FLOAT_MAT = numpy.array([
+        [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
+        [0.76532598, 0.02839148, 0.05272484, 0.65166994, 0.42161216],
+        [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.28773158],
+        [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
+        [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
+
+    def testRandom10Conditionnal(self):
+        """Test the median filter in reflect mode and with the conditionnal
+        option"""
+        kernel = (1, 3)
+
+        print(RANDOM_FLOAT_MAT)
+
+        thRes = numpy.array([
+            [0.05564293, 0.62717157, 0.62717157, 0.70278975, 0.40555336],
+            [0.02839148, 0.05272484, 0.05272484, 0.42161216, 0.42161216],
+            [0.23067427, 0.56049024, 0.56049024, 0.44406320, 0.28773158],
+            [0.20303021, 0.68382382, 0.46372299, 0.68382382, 0.46372299],
+            [0.07813661, 0.81651256, 0.81651256, 0.81651256, 0.33623165]])
+
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
+                        kernel_size=kernel,
+                        conditional=True,
+                        mode='constant')
+
+        self.assertTrue(numpy.array_equal(thRes, res))
+
+    def testNaNs(self):
+        """Test median filter on image with NaNs in constant mode"""
+        # Data with a NaN in first corner
+        nan_corner = numpy.arange(100.).reshape(10, 10)
+        nan_corner[0, 0] = numpy.nan
+        output = medfilt2d(nan_corner,
+                           kernel_size=3,
+                           conditional=False,
+                           mode='constant',
+                           cval=0)
+        self.assertEqual(output[0, 0], 0)
+        self.assertEqual(output[0, 1], 2)
+        self.assertEqual(output[1, 0], 10)
+        self.assertEqual(output[1, 1], 12)
+
+        # Data with some NaNs
+        some_nans = numpy.arange(100.).reshape(10, 10)
+        some_nans[0, 1] = numpy.nan
+        some_nans[1, 1] = numpy.nan
+        some_nans[1, 0] = numpy.nan
+        output = medfilt2d(some_nans,
+                           kernel_size=3,
+                           conditional=False,
+                           mode='constant',
+                           cval=0)
+        self.assertEqual(output[0, 0], 0)
+        self.assertEqual(output[0, 1], 0)
+        self.assertEqual(output[1, 0], 0)
+        self.assertEqual(output[1, 1], 20)
+
+
 class TestGeneralExecution(ParametricTestCase):
     """Some general test on median filter application"""
 
@@ -494,17 +575,19 @@ class TestGeneralExecution(ParametricTestCase):
 
     def testAllNaNs(self):
         """Test median filter on image all NaNs"""
+        all_nans = numpy.empty((10, 10), dtype=numpy.float32)
+        all_nans[:] = numpy.nan
+
         for mode in silx_mf_modes:
-            for conditional in (True, False):
-                with self.subTest(mode=mode, conditional=conditional):
-                    all_nans = numpy.empty((10, 10), dtype=numpy.float32)
-                    all_nans[:] = numpy.nan
-                    output = medfilt2d(
-                        all_nans,
-                        kernel_size=3,
-                        conditional=conditional,
-                        mode=mode)
-                    self.assertTrue(numpy.all(numpy.isnan(output)))
+                for conditional in (True, False):
+                    with self.subTest(mode=mode, conditional=conditional):
+                        output = medfilt2d(
+                            all_nans,
+                            kernel_size=3,
+                            conditional=conditional,
+                            mode=mode,
+                            cval=numpy.nan)
+                        self.assertTrue(numpy.all(numpy.isnan(output)))
 
     def testConditionalWithNaNs(self):
         """Test that NaNs are propagated through conditional median filter"""
@@ -604,9 +687,13 @@ class TestVsScipy(ParametricTestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for test in [TestGeneralExecution, TestVsScipy,
-                 TestMedianFilterNearest, TestMedianFilterReflect,
-                 TestMedianFilterMirror, TestMedianFilterShrink]:
+    for test in [TestGeneralExecution,
+                 TestVsScipy,
+                 TestMedianFilterNearest,
+                 TestMedianFilterReflect,
+                 TestMedianFilterMirror,
+                 TestMedianFilterShrink,
+                 TestMedianFilterConstant]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite
