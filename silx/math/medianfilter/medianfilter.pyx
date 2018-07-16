@@ -42,10 +42,14 @@ ctypedef unsigned int uint32
 ctypedef unsigned short uint16
 
 
-MODES = {'nearest':0, 'reflect':1, 'mirror':2, 'shrink':3}
+MODES = {'nearest': 0, 'reflect': 1, 'mirror': 2, 'shrink': 3, 'constant': 4}
 
 
-def medfilt1d(data, kernel_size=3, bool conditional=False, mode='nearest'):
+def medfilt1d(data,
+              kernel_size=3,
+              bool conditional=False,
+              mode='nearest',
+              cval=0):
     """Function computing the median filter of the given input.
 
     Behavior at boundaries: the algorithm is reducing the size of the
@@ -65,15 +69,19 @@ def medfilt1d(data, kernel_size=3, bool conditional=False, mode='nearest'):
     :param bool conditional: True if we want to apply a conditional median
         filtering.
     :param str mode: the algorithm used to determine how values at borders
-        are determined, in: 'nearest', 'reflect', 'mirror', 'shrink'
+        are determined: 'nearest', 'reflect', 'mirror', 'shrink', 'constant'
+    :param cval: Value used outside borders in 'constant' mode
 
     :returns: the array with the median value for each pixel.
     """
-    return medfilt(data, kernel_size, conditional, mode)
+    return medfilt(data, kernel_size, conditional, mode, cval)
 
 
-
-def medfilt2d(image, kernel_size=3, bool conditional=False, mode='nearest'):
+def medfilt2d(image,
+              kernel_size=3,
+              bool conditional=False,
+              mode='nearest',
+              cval=0):
     """Function computing the median filter of the given input.
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
@@ -93,14 +101,19 @@ def medfilt2d(image, kernel_size=3, bool conditional=False, mode='nearest'):
     :param bool conditional: True if we want to apply a conditional median
         filtering.
     :param str mode: the algorithm used to determine how values at borders
-        are determined, in: 'nearest', 'reflect', 'mirror', 'shrink'
+        are determined: 'nearest', 'reflect', 'mirror', 'shrink', 'constant'
+    :param cval: Value used outside borders in 'constant' mode
 
     :returns: the array with the median value for each pixel.
     """
-    return medfilt(image, kernel_size, conditional, mode)
+    return medfilt(image, kernel_size, conditional, mode, cval)
 
 
-def medfilt(data, kernel_size=3, bool conditional=False, mode='nearest'):
+def medfilt(data,
+            kernel_size=3,
+            bool conditional=False,
+            mode='nearest',
+            cval=0):
     """Function computing the median filter of the given input.
     Behavior at boundaries: the algorithm is reducing the size of the
     window/kernel for pixels at boundaries (there is no mirroring).
@@ -120,7 +133,8 @@ def medfilt(data, kernel_size=3, bool conditional=False, mode='nearest'):
     :param bool conditional: True if we want to apply a conditional median
         filtering.
     :param str mode: the algorithm used to determine how values at borders
-        are determined, in: 'nearest', 'reflect', 'mirror', 'shrink'
+        are determined: 'nearest', 'reflect', 'mirror', 'shrink', 'constant'
+    :param cval: Value used outside borders in 'constant' mode
 
     :returns: the array with the median value for each pixel.
     """
@@ -170,7 +184,8 @@ def medfilt(data, kernel_size=3, bool conditional=False, mode='nearest'):
                 output_buffer=output_buffer,
                 kernel_size=ker_dim,
                 conditional=conditional,
-                mode=MODES[mode])
+                mode=MODES[mode],
+                cval=cval)
 
     if reshaped:
         data = data.reshape(data.shape[0])
@@ -236,7 +251,8 @@ def _median_filter_float32(float[:, ::1] input_buffer not None,
                            float[:, ::1] output_buffer not None,
                            cnumpy.int32_t[::1] kernel_size not None,
                            bool conditional,
-                           int mode):
+                           int mode,
+                           float cval):
 
     cdef:
         int y = 0
@@ -254,7 +270,8 @@ def _median_filter_float32(float[:, ::1] input_buffer not None,
                                                0,
                                                image_dim,
                                                conditional,
-                                               mode)
+                                               mode,
+                                               cval)
 
 
 @cython.cdivision(True)
@@ -265,7 +282,8 @@ def _median_filter_float64(double[:, ::1] input_buffer not None,
                            double[:, ::1] output_buffer not None,
                            cnumpy.int32_t[::1] kernel_size not None,
                            bool conditional,
-                           int mode):
+                           int mode,
+                           double cval):
 
     cdef:
         int y = 0
@@ -283,7 +301,8 @@ def _median_filter_float64(double[:, ::1] input_buffer not None,
                                                 0,
                                                 image_dim,
                                                 conditional,
-                                                mode)
+                                                mode,
+                                                cval)
 
 
 @cython.cdivision(True)
@@ -294,7 +313,8 @@ def _median_filter_int64(cnumpy.int64_t[:, ::1] input_buffer not None,
                          cnumpy.int64_t[:, ::1] output_buffer not None,
                          cnumpy.int32_t[::1] kernel_size not None,
                          bool conditional,
-                         int mode):
+                         int mode,
+                         cnumpy.int64_t cval):
 
     cdef:
         int y = 0
@@ -307,23 +327,24 @@ def _median_filter_int64(cnumpy.int64_t[:, ::1] input_buffer not None,
             median_filter.median_filter[long](<long*> & input_buffer[0,0], 
                                               <long*>  & output_buffer[0, 0], 
                                               <int*>&kernel_size[0],
-                                                <int*>buffer_shape,
-                                                y,
-                                                0,
-                                                image_dim,
-                                                conditional,
-                                                mode)
+                                              <int*>buffer_shape,
+                                              y,
+                                              0,
+                                              image_dim,
+                                              conditional,
+                                              mode,
+                                              cval)
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-def _median_filter_uint64(
-                          cnumpy.uint64_t[:, ::1] input_buffer not None,
+def _median_filter_uint64(cnumpy.uint64_t[:, ::1] input_buffer not None,
                           cnumpy.uint64_t[:, ::1] output_buffer not None,
                           cnumpy.int32_t[::1] kernel_size not None,
                           bool conditional,
-                          int mode):
+                          int mode,
+                          cnumpy.uint64_t cval):
 
     cdef: 
         int y = 0
@@ -341,7 +362,8 @@ def _median_filter_uint64(
                                                 0,
                                                 image_dim,
                                                 conditional,
-                                                mode)
+                                                mode,
+                                                cval)
 
 
 @cython.cdivision(True)
@@ -352,7 +374,8 @@ def _median_filter_int32(cnumpy.int32_t[:, ::1] input_buffer not None,
                          cnumpy.int32_t[:, ::1] output_buffer not None,
                          cnumpy.int32_t[::1] kernel_size not None,
                          bool conditional,
-                         int mode):
+                         int mode,
+                         cnumpy.int32_t cval):
 
     cdef:
         int y = 0
@@ -370,7 +393,8 @@ def _median_filter_int32(cnumpy.int32_t[:, ::1] input_buffer not None,
                                              0,
                                              image_dim,
                                              conditional,
-                                             mode)
+                                             mode,
+                                             cval)
 
 
 @cython.cdivision(True)
@@ -381,7 +405,8 @@ def _median_filter_uint32(cnumpy.uint32_t[:, ::1] input_buffer not None,
                           cnumpy.uint32_t[:, ::1] output_buffer not None,
                           cnumpy.int32_t[::1] kernel_size not None,
                           bool conditional,
-                          int mode):
+                          int mode,
+                          cnumpy.uint32_t cval):
 
     cdef:
         int y = 0
@@ -399,7 +424,8 @@ def _median_filter_uint32(cnumpy.uint32_t[:, ::1] input_buffer not None,
                                                 0,
                                                 image_dim,
                                                 conditional,
-                                                mode)
+                                                mode,
+                                                cval)
 
 
 @cython.cdivision(True)
@@ -410,7 +436,8 @@ def _median_filter_int16(cnumpy.int16_t[:, ::1] input_buffer not None,
                          cnumpy.int16_t[:, ::1] output_buffer not None,
                          cnumpy.int32_t[::1] kernel_size not None,
                          bool conditional,
-                         int mode):
+                         int mode,
+                         cnumpy.int16_t cval):
 
     cdef:
         int y = 0
@@ -428,7 +455,8 @@ def _median_filter_int16(cnumpy.int16_t[:, ::1] input_buffer not None,
                                                0,
                                                image_dim,
                                                conditional,
-                                               mode)
+                                               mode,
+                                               cval)
 
 
 @cython.cdivision(True)
@@ -440,7 +468,8 @@ def _median_filter_uint16(
       cnumpy.uint16_t[:, ::1] output_buffer not None,
       cnumpy.int32_t[::1] kernel_size not None,
       bool conditional,
-      int mode):
+      int mode,
+      cnumpy.uint16_t cval):
 
     cdef:
         int y = 0
@@ -458,4 +487,5 @@ def _median_filter_uint16(
                                                 0,
                                                 image_dim,
                                                 conditional,
-                                                mode)
+                                                mode,
+                                                cval)

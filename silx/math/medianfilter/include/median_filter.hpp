@@ -50,7 +50,8 @@ enum MODE{
     NEAREST=0,  
     REFLECT=1,
     MIRROR=2,
-    SHRINK=3
+    SHRINK=3,
+    CONSTANT=4,
 };
 
 // Simple function browsing a deque and registring the min and max values
@@ -136,7 +137,8 @@ void median_filter(
     int x_pixel_range_min,
     int x_pixel_range_max,
     bool conditional,
-    int pMode){
+    int pMode,
+    T cval) {
     
     assert(kernel_dim[0] > 0);
     assert(kernel_dim[1] > 0);
@@ -182,6 +184,7 @@ void median_filter(
             {
                 for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
                 {
+                    T value;
                     int index_x = win_x;
                     int index_y = win_y;
 
@@ -189,29 +192,38 @@ void median_filter(
                         case NEAREST:
                             index_x = std::min(std::max(win_x, 0), image_dim[1] - 1);
                             index_y = std::min(std::max(win_y, 0), image_dim[0] - 1);
+                            value = input[index_y*image_dim[1] + index_x];
                             break;
 
                         case REFLECT:
                             index_x = reflect(win_x, image_dim[1]);
                             index_y = reflect(win_y, image_dim[0]);
+                            value = input[index_y*image_dim[1] + index_x];
                             break;
 
                         case MIRROR:
                             index_x = mirror(win_x, image_dim[1]);
                             index_y = mirror(win_y, image_dim[0]);
+                            value = input[index_y*image_dim[1] + index_x];
                             break;
 
                         case SHRINK:
-                            if((index_x < 0) || (index_x > image_dim[1] -1)){
+                            if ((index_x < 0) || (index_x > image_dim[1] -1) ||
+                                (index_y < 0) || (index_y > image_dim[0] -1)) {
                                 continue;
                             }
-                            if((index_y < 0) || (index_y > image_dim[0] -1)){
-                                continue;
+                            value = input[index_y*image_dim[1] + index_x];
+                            break;
+                        case CONSTANT:
+                            if ((index_x < 0) || (index_x > image_dim[1] -1) ||
+                                (index_y < 0) || (index_y > image_dim[0] -1)) {
+                                value = cval;
+                            } else {
+                                value = input[index_y*image_dim[1] + index_x];
                             }
                             break;
                     }
 
-                    T value = input[index_y*image_dim[1] + index_x];
                     if (value == value) {  // Ignore NaNs
                         *it = value;
                         ++it;
