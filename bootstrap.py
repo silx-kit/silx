@@ -128,8 +128,9 @@ def run_entry_point(entry_point, argv):
     target_name = elements[0].strip()
     elements = elements[1].split(":")
     module_name = elements[0].strip()
-    function_name = elements[1].strip()
-
+    # Take care of entry_point optional "extra" requirements declaration
+    function_name = elements[1].split()[0].strip()
+    
     logger.info("Execute target %s (function %s from module %s) using importlib", target_name, function_name, module_name)
     full_args = [target_name]
     full_args.extend(argv)
