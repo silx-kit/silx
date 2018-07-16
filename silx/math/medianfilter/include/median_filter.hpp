@@ -162,12 +162,14 @@ void median_filter(
     // init buffer
     std::vector<T> window_values(kernel_dim[0]*kernel_dim[1]);
 
+    bool not_horizontal_border = (y_pixel >= halfKernel_y && y_pixel < image_dim[0] - halfKernel_y);
+
     for(int x_pixel=x_pixel_range_min; x_pixel <= x_pixel_range_max; x_pixel ++ ){
         typename std::vector<T>::iterator it = window_values.begin();
         // fill the vector
 
-        if (y_pixel >= halfKernel_y && x_pixel >= halfKernel_x &&
-            y_pixel < image_dim[0] - halfKernel_y && x_pixel < image_dim[1] - halfKernel_x) {
+        if (not_horizontal_border &&
+            x_pixel >= halfKernel_x && x_pixel < image_dim[1] - halfKernel_x) {
             //This is not a border, just fill it
             for(int win_y=y_pixel-halfKernel_y; win_y<= y_pixel+halfKernel_y; win_y++) {
                 for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++){
