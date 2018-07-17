@@ -579,15 +579,15 @@ class TestGeneralExecution(ParametricTestCase):
         all_nans[:] = numpy.nan
 
         for mode in silx_mf_modes:
-                for conditional in (True, False):
-                    with self.subTest(mode=mode, conditional=conditional):
-                        output = medfilt2d(
-                            all_nans,
-                            kernel_size=3,
-                            conditional=conditional,
-                            mode=mode,
-                            cval=numpy.nan)
-                        self.assertTrue(numpy.all(numpy.isnan(output)))
+            for conditional in (True, False):
+                with self.subTest(mode=mode, conditional=conditional):
+                    output = medfilt2d(
+                        all_nans,
+                        kernel_size=3,
+                        conditional=conditional,
+                        mode=mode,
+                        cval=numpy.nan)
+                    self.assertTrue(numpy.all(numpy.isnan(output)))
 
     def testConditionalWithNaNs(self):
         """Test that NaNs are propagated through conditional median filter"""
