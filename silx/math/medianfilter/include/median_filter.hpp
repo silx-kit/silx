@@ -50,7 +50,8 @@ enum MODE{
     NEAREST=0,  
     REFLECT=1,
     MIRROR=2,
-    SHRINK=3
+    SHRINK=3,
+    CONSTANT=4,
 };
 
 // Simple function browsing a deque and registring the min and max values
@@ -136,7 +137,8 @@ void median_filter(
     int x_pixel_range_min,
     int x_pixel_range_max,
     bool conditional,
-    int pMode){
+    int pMode,
+    T cval) {
     
     assert(kernel_dim[0] > 0);
     assert(kernel_dim[1] > 0);
@@ -160,12 +162,14 @@ void median_filter(
     // init buffer
     std::vector<T> window_values(kernel_dim[0]*kernel_dim[1]);
 
+    bool not_horizontal_border = (y_pixel >= halfKernel_y && y_pixel < image_dim[0] - halfKernel_y);
+
     for(int x_pixel=x_pixel_range_min; x_pixel <= x_pixel_range_max; x_pixel ++ ){
         typename std::vector<T>::iterator it = window_values.begin();
         // fill the vector
 
-        if (y_pixel >= halfKernel_y && x_pixel >= halfKernel_x &&
-            y_pixel < image_dim[0] - halfKernel_y && x_pixel < image_dim[1] - halfKernel_x) {
+        if (not_horizontal_border &&
+            x_pixel >= halfKernel_x && x_pixel < image_dim[1] - halfKernel_x) {
             //This is not a border, just fill it
             for(int win_y=y_pixel-halfKernel_y; win_y<= y_pixel+halfKernel_y; win_y++) {
                 for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++){
@@ -182,6 +186,7 @@ void median_filter(
             {
                 for(int win_x = x_pixel-halfKernel_x; win_x <= x_pixel+halfKernel_x; win_x++)
                 {
+                    T value = 0;
                     int index_x = win_x;
                     int index_y = win_y;
 
@@ -189,29 +194,38 @@ void median_filter(
                         case NEAREST:
                             index_x = std::min(std::max(win_x, 0), image_dim[1] - 1);
                             index_y = std::min(std::max(win_y, 0), image_dim[0] - 1);
+                            value = input[index_y*image_dim[1] + index_x];
                             break;
 
                         case REFLECT:
                             index_x = reflect(win_x, image_dim[1]);
                             index_y = reflect(win_y, image_dim[0]);
+                            value = input[index_y*image_dim[1] + index_x];
                             break;
 
                         case MIRROR:
                             index_x = mirror(win_x, image_dim[1]);
                             index_y = mirror(win_y, image_dim[0]);
+                            value = input[index_y*image_dim[1] + index_x];
                             break;
 
                         case SHRINK:
-                            if((index_x < 0) || (index_x > image_dim[1] -1)){
+                            if ((index_x < 0) || (index_x > image_dim[1] -1) ||
+                                (index_y < 0) || (index_y > image_dim[0] -1)) {
                                 continue;
                             }
-                            if((index_y < 0) || (index_y > image_dim[0] -1)){
-                                continue;
+                            value = input[index_y*image_dim[1] + index_x];
+                            break;
+                        case CONSTANT:
+                            if ((index_x < 0) || (index_x > image_dim[1] -1) ||
+                                (index_y < 0) || (index_y > image_dim[0] -1)) {
+                                value = cval;
+                            } else {
+                                value = input[index_y*image_dim[1] + index_x];
                             }
                             break;
                     }
 
-                    T value = input[index_y*image_dim[1] + index_x];
                     if (value == value) {  // Ignore NaNs
                         *it = value;
                         ++it;
@@ -224,7 +238,7 @@ void median_filter(
         int window_size = std::distance(window_values.begin(), it);
 
         if (window_size == 0) {
-             // Window is empty, this is the case when all values are NaNs
+            // Window is empty, this is the case when all values are NaNs
             output[image_dim[1]*y_pixel + x_pixel] = NAN;
 
         } else {
