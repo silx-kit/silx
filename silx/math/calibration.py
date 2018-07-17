@@ -52,7 +52,7 @@ class AbstractCalibration(object):
 
     def is_affine(self):
         """Returns True for an affine calibration of the form
-        :math:`x  \mapsto a + b * x`, or else False.
+        :math:`x  \\mapsto a + b * x`, or else False.
         """
         return False
 
@@ -62,7 +62,7 @@ class AbstractCalibration(object):
 
 
 class NoCalibration(AbstractCalibration):
-    """No calibration :math:`x \mapsto x`
+    """No calibration :math:`x \\mapsto x`
     """
     def __init__(self):
         super(NoCalibration, self).__init__()
@@ -78,7 +78,7 @@ class NoCalibration(AbstractCalibration):
 
 
 class LinearCalibration(AbstractCalibration):
-    """Linear calibration :math:`x \mapsto a + b x`,
+    """Linear calibration :math:`x \\mapsto a + b x`,
     where *a* is the y-intercept and *b* is the slope.
 
     :param y_intercept: y-intercept
@@ -101,7 +101,7 @@ class LinearCalibration(AbstractCalibration):
 
 class ArrayCalibration(AbstractCalibration):
     """One-to-one mapping calibration, defined by an array *x'*,
-    such as :math:`x \mapsto x'`*.
+    such as :math:`x \\mapsto x'`.
 
     This calibration can only be applied to x arrays of the same length as the
     calibration array *x'*.
@@ -151,7 +151,7 @@ class ArrayCalibration(AbstractCalibration):
 
 
 class FunctionCalibration(AbstractCalibration):
-    """Calibration defined by a function *f*, such as :math:`x \mapsto f(x)`*.
+    """Calibration defined by a function *f*, such as :math:`x \\mapsto f(x)`*.
 
     :param function: Calibration function"""
     def __init__(self, function, is_affine=False):

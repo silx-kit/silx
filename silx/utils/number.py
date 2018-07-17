@@ -53,7 +53,7 @@ if _biggest_float is None:
     _float_types = (numpy.float64, numpy.float32, numpy.float16)
 
 
-_parse_numeric_value = re.compile("^\s*[-+]?0*(\d+?)?(?:\.(\d+))?(?:[eE]([-+]?\d+))?\s*$")
+_parse_numeric_value = re.compile(r"^\s*[-+]?0*(\d+?)?(?:\.(\d+))?(?:[eE]([-+]?\d+))?\s*$")
 
 
 def is_longdouble_64bits():
