@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ expected_spec1 = r"""#F .*
 3  6\.00
 """
 
-expected_spec2 = expected_spec1 + """
+expected_spec2 = expected_spec1 + r"""
 #S 2 Ordinate2
 #D .*
 #N 2

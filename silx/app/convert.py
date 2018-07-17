@@ -57,22 +57,22 @@ def c_format_string_to_re(pattern_string):
     :param pattern_string: C style format string with integer patterns
         (e.g. "%d", "%04d").
         Not supported: fixed length padded with whitespaces (e.g "%4d", "%-4d")
-    :return: Equivalent regular expression (e.g. "\d+", "\d{4}")
+    :return: Equivalent regular expression (e.g. "\\d+", "\\d{4}")
     """
     # escape dots and backslashes
     pattern_string = pattern_string.replace("\\", "\\\\")
-    pattern_string = pattern_string.replace(".", "\.")
+    pattern_string = pattern_string.replace(".", r"\.")
 
     # %d
-    pattern_string = pattern_string.replace("%d", "([-+]?\d+)")
+    pattern_string = pattern_string.replace("%d", r"([-+]?\d+)")
 
     # %0nd
-    for sub_pattern in re.findall("%0\d+d", pattern_string):
-        n = int(re.search("%0(\d+)d", sub_pattern).group(1))
+    for sub_pattern in re.findall(r"%0\d+d", pattern_string):
+        n = int(re.search(r"%0(\d+)d", sub_pattern).group(1))
         if n == 1:
-            re_sub_pattern = "([+-]?\d)"
+            re_sub_pattern = r"([+-]?\d)"
         else:
-            re_sub_pattern = "([\d+-]\d{%d})" % (n - 1)
+            re_sub_pattern = r"([\d+-]\d{%d})" % (n - 1)
         pattern_string = pattern_string.replace(sub_pattern, re_sub_pattern, 1)
 
     return pattern_string

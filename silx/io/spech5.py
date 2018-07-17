@@ -312,7 +312,7 @@ def _parse_ctime(ctime_lines, analyser_index=0):
     """
     :param ctime_lines: e.g ``@CTIME %f %f %f``, first word ``@CTIME`` optional
         When multiple CTIME lines are present in a scan header, this argument
-        is a concatenation of them separated by a ``\n`` character.
+        is a concatenation of them separated by a ``\\n`` character.
     :param analyser_index: MCA device/analyser index, when multiple devices
         are in a scan.
     :return: (preset_time, live_time, elapsed_time)
@@ -362,13 +362,13 @@ def spec_date_to_iso8601(date, zone=None):
 
     days_rx = '(?P<day>' + '|'.join(days) + ')'
     months_rx = '(?P<month>' + '|'.join(months) + ')'
-    year_rx = '(?P<year>\d{4})'
-    day_nb_rx = '(?P<day_nb>[0-3 ]\d)'
-    month_nb_rx = '(?P<month_nb>[0-1]\d)'
-    hh_rx = '(?P<hh>[0-2]\d)'
-    mm_rx = '(?P<mm>[0-5]\d)'
-    ss_rx = '(?P<ss>[0-5]\d)'
-    tz_rx = '(?P<tz>[+-]\d\d:\d\d){0,1}'
+    year_rx = r'(?P<year>\d{4})'
+    day_nb_rx = r'(?P<day_nb>[0-3 ]\d)'
+    month_nb_rx = r'(?P<month_nb>[0-1]\d)'
+    hh_rx = r'(?P<hh>[0-2]\d)'
+    mm_rx = r'(?P<mm>[0-5]\d)'
+    ss_rx = r'(?P<ss>[0-5]\d)'
+    tz_rx = r'(?P<tz>[+-]\d\d:\d\d){0,1}'
 
     # date formats must have either month_nb (1..12) or month (Jan, Feb, ...)
     re_tpls = ['{days} {months} {day_nb} {hh}:{mm}:{ss}{tz} {year}',

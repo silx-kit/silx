@@ -147,7 +147,7 @@ def _parse_simple_types(sstr):
                 # un-escape string
                 sstr = sstr.lstrip("\\")
                 # un-escape commas
-                sstr = sstr.replace("\,", ",").replace("^@", ",")
+                sstr = sstr.replace(r"\,", ",").replace("^@", ",")
                 return sstr
 
 
@@ -191,7 +191,7 @@ def _parse_container(sstr):
         raise ValueError
     else:
         # if all commas are escaped, it is a strinq, not a list
-        if sstr.count(",") == sstr.count("\,"):
+        if sstr.count(",") == sstr.count(r"\,"):
             raise ValueError
 
         dataline = [line for line in sstr.splitlines()]
@@ -213,7 +213,7 @@ def _parse_list_line(sstr):
 
     # preserve escaped commas in strings before splitting list
     # (_parse_simple_types recognizes ^@ as a comma)
-    sstr.replace("\,", "^@")
+    sstr.replace(r"\,", "^@")
     # it is a list
     if sstr.endswith(','):
         if ',' in sstr[:-1]:
@@ -256,12 +256,12 @@ class OptionStr(str):
         return _boolean(self)
 
     def tostr(self):
-        """Return string after replacing escaped commas ``\,`` with regular
+        """Return string after replacing escaped commas ``\\,`` with regular
         commas ``,`` and removing leading backslash.
 
         :return: str(self)
         """
-        return str(self.replace("\,", ",").lstrip("\\"))
+        return str(self.replace(r"\,", ",").lstrip("\\"))
 
     def tocontainer(self):
         """Return a list or a numpy array.
@@ -306,8 +306,8 @@ class ConfigDict(OrderedDict):
         - sections can be nested to any depth
         - value types are guessed when the file is read back
         - to prevent strings from being interpreted as lists, commas are
-          escaped with a backslash (``\,``)
-        - strings may be prefixed with a leading backslash (``\``) to prevent
+          escaped with a backslash (``\\,``)
+        - strings may be prefixed with a leading backslash (``\\``) to prevent
           conversion to numeric or boolean values
 
     :param defaultdict: Default dictionary used to initialize the
@@ -456,7 +456,7 @@ class ConfigDict(OrderedDict):
             fp.close()
 
     def _escape_str(self, sstr):
-        """Escape strings and special characters in strings with a ``\``
+        """Escape strings and special characters in strings with a ``\\``
         character to ensure they are read back as strings and not parsed.
 
         :param sstr: String to be escaped
@@ -473,7 +473,7 @@ class ConfigDict(OrderedDict):
         if re.match(non_str, sstr.lower()):
             sstr = "\\" + sstr
         # Escape commas
-        sstr = sstr.replace(",", "\,")
+        sstr = sstr.replace(",", r"\,")
 
         if sys.version_info >= (3, ):
             # Escape % characters except in "%%" and "%("
