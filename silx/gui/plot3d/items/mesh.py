@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/11/2017"
+__date__ = "17/07/2018"
 
 import numpy
 
@@ -181,22 +181,20 @@ class _CylindricalVolume(DataItem3D):
                                  dtype=numpy.float32)
 
             for i in range(0, len(angles) - 1):
-                """
-                       c6
-                       /\
-                      /  \
-                     /    \
-                  c4|------|c5
-                    | \    |
-                    |  \   |
-                    |   \  |
-                    |    \ |
-                  c2|------|c3
-                     \    /
-                      \  /
-                       \/
-                       c1     
-                """
+                #       c6
+                #       /\
+                #      /  \
+                #     /    \
+                #  c4|------|c5
+                #    | \    |
+                #    |  \   |
+                #    |   \  |
+                #    |    \ |
+                #  c2|------|c3
+                #     \    /
+                #      \  /
+                #       \/
+                #       c1
                 c1 = numpy.array([0, 0, -height/2])
                 c1 = rotation.transformPoint(c1)
                 c2 = numpy.array([radius * numpy.cos(angles[i]),
