@@ -121,7 +121,7 @@ def run_entry_point(entry_point, argv):
     (http://setuptools.readthedocs.io/en/latest/setuptools.html#automatic-script-creation)
 
     :param str entry_point: A string identifying a function from a module
-        (NAME = PACKAGE.MODULE:FUNCTION)
+        (NAME = PACKAGE.MODULE:FUNCTION [EXTRA])
     """
     import importlib
     elements = entry_point.split("=")
