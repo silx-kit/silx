@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/07/2018"
+__date__ = "18/07/2018"
 
 
 import unittest
@@ -106,9 +106,12 @@ def tearDownModule():
 
 class _UtilsMixin(object):
 
-    def createDialog(self):
+    def createDialog(self, show=False):
         self._deleteDialog()
         self._dialog = self._createDialog()
+        if show:
+            self.addSubTestedWindow(self._dialog)
+            self._dialog.show()
         return self._dialog
 
     def _createDialog(self):
@@ -151,20 +154,20 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         utils.TestCaseQt.tearDown(self)
 
     def testDisplayAndKeyEscape(self):
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
+        self.qWaitForPendingActions(dialog)
 
         self.keyClick(dialog, qt.Qt.Key_Escape)
         self.assertFalse(dialog.isVisible())
         self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickCancel(self):
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
+        self.qWaitForPendingActions(dialog)
 
         button = utils.findChildren(dialog, qt.QPushButton, name="cancel")[0]
         self.mouseClick(button, qt.Qt.LeftButton)
@@ -173,8 +176,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickLockedOpen(self):
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
 
@@ -187,9 +189,8 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testSelectRoot_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
@@ -213,9 +214,8 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testSelectGroup_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
@@ -245,9 +245,8 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testSelectDataset_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
@@ -277,8 +276,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testClickOnBackToParentTool(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
@@ -309,8 +307,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testClickOnBackToRootTool(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
@@ -334,8 +331,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testClickOnBackToDirectoryTool(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
@@ -363,8 +359,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testClickOnHistoryTools(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
@@ -404,8 +399,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testSelectImageFromEdf(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         # init state
@@ -415,12 +409,12 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), url.path())
+        self.qWaitForPendingActions(dialog)
 
     def testSelectImage(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         # init state
@@ -431,12 +425,12 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
+        self.qWaitForPendingActions(dialog)
 
     def testSelectScalar(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         # init state
@@ -447,12 +441,12 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog._selectedData()[()], 10)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
+        self.qWaitForPendingActions(dialog)
 
     def testSelectGroup(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         # init state
@@ -469,8 +463,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testSelectRoot(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         # init state
@@ -487,8 +480,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
     def testSelectH5_Activate(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         # init state
@@ -507,8 +499,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedUrl(), path)
 
     def testSelectBadFileFormat_Activate(self):
-        dialog = self.createDialog()
-        dialog.show()
+        dialog = self.createDialog(True)
         self.qWaitForWindowExposed(dialog)
 
         # init state
@@ -537,9 +528,8 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
             self.skipTest("h5py is missing")
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
@@ -560,9 +550,8 @@ class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
     def testSelectGroup_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
@@ -587,9 +576,8 @@ class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
     def testSelectDataset_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
@@ -634,9 +622,8 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
     def testSelectGroup_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
@@ -668,9 +655,8 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
     def testSelectDataset_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
@@ -713,9 +699,8 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
     def testSelectGroupRefused_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
@@ -742,9 +727,8 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
     def testSelectNXdataAccepted_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
-        dialog = self.createDialog()
+        dialog = self.createDialog(True)
         browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"

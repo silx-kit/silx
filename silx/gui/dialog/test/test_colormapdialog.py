@@ -26,11 +26,12 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "18/07/2018"
 
 
 import doctest
 import unittest
+import weakref
 
 from silx.gui.test.utils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
@@ -76,7 +77,11 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.setAttribute(qt.Qt.WA_DeleteOnClose)
 
     def tearDown(self):
-        del self.colormapDiag
+        if self.colormapDiag is not None:
+            self.colormapDiag.close()
+            ref = weakref.ref(self.colormapDiag)
+            self.colormapDiag = None
+            self.qWaitForDestroy(ref)
         ParametricTestCase.tearDown(self)
         TestCaseQt.tearDown(self)
 
@@ -106,6 +111,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         """Make sure the colormap is modified if gone through accept"""
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(True)
+        self.addSubTestedWindow(self.colormapDiag)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
@@ -119,11 +125,13 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getVMin() is None)
         self.assertTrue(self.colormap.getVMax() is None)
         self.assertTrue(self.colormap.isAutoscale() is True)
+        self.colormapDiag = None
 
     def testGUIModalCancel(self):
         """Make sure the colormap is not modified if gone through reject"""
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(True)
+        self.addSubTestedWindow(self.colormapDiag)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
@@ -134,10 +142,12 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
             button=qt.Qt.LeftButton
         )
         self.assertTrue(self.colormap.getVMin() is not None)
+        self.colormapDiag = None
 
     def testGUIModalClose(self):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(False)
+        self.addSubTestedWindow(self.colormapDiag)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
@@ -148,10 +158,12 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
             button=qt.Qt.LeftButton
         )
         self.assertTrue(self.colormap.getVMin() is None)
+        self.colormapDiag = None
 
     def testGUIModalReset(self):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(False)
+        self.addSubTestedWindow(self.colormapDiag)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
@@ -162,17 +174,15 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
             button=qt.Qt.LeftButton
         )
         self.assertTrue(self.colormap.getVMin() is not None)
-        self.colormapDiag.close()
 
     def testGUIClose(self):
         """Make sure the colormap is modify if go through reject"""
         assert self.colormap.isAutoscale() is False
+        self.addSubTestedWindow(self.colormapDiag)
         self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
         self.colormapDiag._minValue.setValue(None)
-        self.assertTrue(self.colormap.getVMin() is None)
-        self.colormapDiag.close()
         self.assertTrue(self.colormap.getVMin() is None)
 
     def testSetColormapIsCorrect(self):
@@ -208,6 +218,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         """Check behavior if the colormap has been deleted outside. For now
         we make sure the colormap is still running and nothing more"""
         self.colormapDiag.setColormap(self.colormap)
+        self.addSubTestedWindow(self.colormapDiag)
         self.colormapDiag.show()
         del self.colormap
         self.assertTrue(self.colormapDiag.getColormap() is None)
@@ -217,6 +228,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         """Make sure the GUI is still up to date if the colormap is modified
         outside"""
         self.colormapDiag.setColormap(self.colormap)
+        self.addSubTestedWindow(self.colormapDiag)
         self.colormapDiag.show()
 
         self.colormap.setName('red')
@@ -246,6 +258,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                              normalization='log')
         colormap3 = Colormap(name='blue', vmin=None, vmax=None,
                              normalization='linear')
+        self.addSubTestedWindow(self.colormapDiag)
+        self.colormapDiag.show()
         self.colormapDiag.setColormap(self.colormap)
         self.colormapDiag.setColormap(colormap1)
         del colormap1
@@ -270,6 +284,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         assert colormapName is not None
         colormap = Colormap(name=colormapName)
         self.colormapDiag.setColormap(colormap)
+        self.addSubTestedWindow(self.colormapDiag)
         self.colormapDiag.show()
         cb = self.colormapDiag._comboBoxColormap
         self.assertTrue(cb.getCurrentName() == colormapName)
