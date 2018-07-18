@@ -381,7 +381,7 @@ parser.add_argument("-v", "--verbose", default=0,
                          "INFO messages. Use -vv for full verbosity, " +
                          "including debug messages and test help strings.")
 parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide2'")
 if test_options is not None:
     test_options.add_parser_argument(parser)
 
