@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/02/2018"
+__date__ = "18/07/2018"
 
 
 import gc
@@ -36,6 +36,7 @@ import time
 import functools
 import sys
 import os
+import weakref
 
 _logger = logging.getLogger(__name__)
 
@@ -87,6 +88,7 @@ def qWaitForWindowExposedAndActivate(window, timeout=None):
 
 # Placeholder for QApplication
 _qapp = None
+_mdiArea = None
 
 
 class TestCaseQt(unittest.TestCase):
@@ -135,6 +137,7 @@ class TestCaseQt(unittest.TestCase):
         sys.excepthook = cls.exceptionHandler
 
         global _qapp
+        global _mdiArea
         if _qapp is None:
             # Makes sure a QApplication exists and do it once for all
             _qapp = qt.QApplication.instance() or qt.QApplication([])
@@ -142,6 +145,12 @@ class TestCaseQt(unittest.TestCase):
             # Makes sure QDesktopWidget is init
             # Otherwise it happens randomly during the tests
             cls._desktopWidget = _qapp.desktop()
+
+            _mdiArea = qt.QMdiArea()
+            _mdiArea.setWindowTitle("%s unittests" % __name__.split(".")[0])
+            _mdiArea.resize(qt.QSize(640, 480))
+            _mdiArea.hide()
+
             _qapp.processEvents()
 
     @classmethod
@@ -150,6 +159,7 @@ class TestCaseQt(unittest.TestCase):
 
     def setUp(self):
         """Get the list of existing widgets."""
+        self._subWindow = None
         self.allowedLeakingWidgets = 0
         self.__previousWidgets = self.qapp.allWidgets()
         self.__class__._exceptions = []
@@ -192,6 +202,10 @@ class TestCaseQt(unittest.TestCase):
                 "Test ended with widgets alive: %s" % str(widgets))
 
     def tearDown(self):
+        if self._subWindow is not None:
+            self._subWindow.close()
+        self.qWait()
+
         if len(self.__class__._exceptions) > 0:
             messages = "\n".join(self.__class__._exceptions)
             raise AssertionError("Exception occured in Qt thread:\n" + messages)
@@ -356,6 +370,18 @@ class TestCaseQt(unittest.TestCase):
     @classmethod
     def _aboutToDestroy(cls):
         cls._qobject_destroyed = True
+
+    @classmethod
+    def getSharedMdiArea(cls):
+        return _mdiArea
+
+    def addSubTestedWindow(self, widget):
+        mdi = self.getSharedMdiArea()
+        mdi.show()
+        subWindow = mdi.addSubWindow(widget)
+        subWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self._subWindow = subWindow
+        return subWindow
 
     @classmethod
     def qWaitForDestroy(cls, ref):
