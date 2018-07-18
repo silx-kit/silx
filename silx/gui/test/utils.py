@@ -334,7 +334,7 @@ class TestCaseQt(unittest.TestCase):
             endTimeMS = int(time.time() * 1000) + timeout
             while timeout > 0:
                 _qapp.processEvents(qt.QEventLoop.AllEvents,
-                                        maxtime=timeout)
+                                    maxtime=timeout)
                 timeout = endTimeMS - int(time.time() * 1000)
         else:
             QTest.qWait(ms + cls.TIMEOUT_WAIT)
@@ -385,7 +385,6 @@ class TestCaseQt(unittest.TestCase):
             # (at least on Windows Python 2.7)
             # If it is not skipped on PySide, silx.gui.dialog tests will
             # segfault (at least on Windows Python 2.7)
-            import gc
             gc.collect()
         qobject = ref()
         if qobject is None:
