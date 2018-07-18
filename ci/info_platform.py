@@ -55,9 +55,9 @@ else:
 have_qt_binding = False
 
 try:
-    import PySide.QtCore
+    import PyQt5.QtCore
     have_qt_binding = True
-    print("Qt (from PySide): %s" % PySide.QtCore.qVersion())
+    print("Qt (from PyQt5): %s" % PyQt5.QtCore.qVersion())
 except ImportError:
     pass
 
@@ -69,9 +69,16 @@ except ImportError:
     pass
 
 try:
-    import PyQt5.QtCore
+    import PySide2.QtCore
     have_qt_binding = True
-    print("Qt (from PyQt5): %s" % PyQt5.QtCore.qVersion())
+    print("Qt (from PySide2): %s" % PySide2.QtCore.qVersion())
+except ImportError:
+    pass
+
+try:
+    import PySide.QtCore
+    have_qt_binding = True
+    print("Qt (from PySide): %s" % PySide.QtCore.qVersion())
 except ImportError:
     pass
 
