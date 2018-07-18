@@ -162,11 +162,11 @@ is not as simple.
 The simplest way, assuming that PyQt is installed on your system, is to use that
 system package directly. For this, you need to add a symbolic link to your virtualenv.
 
-If you want to use PyQt4 installed in ``/usr/lib/python2.7/dist-packages/``, type:
+If you want to use PyQt5 installed in ``/usr/lib/python2.7/dist-packages/``, type:
 
 .. code-block:: bash
 
-    ln -s /usr/lib/python2.7/dist-packages/PyQt4 silx_venv/lib/python2.7/site-packages/
+    ln -s /usr/lib/python2.7/dist-packages/PyQt5 silx_venv/lib/python2.7/site-packages/
     ln -s /usr/lib/python2.7/dist-packages/sip.so silx_venv/lib/python2.7/site-packages/
 
 
@@ -178,7 +178,7 @@ Install silx
     pip install silx
 
 
-To test *silx*, open an interactive python console. If you managed to install PyQt5, PySide2 or PyQt4
+To test *silx*, open an interactive python console. If you managed to install PyQt5 or PySide2
 in your virtualenv, type:
 
 .. code-block:: bash

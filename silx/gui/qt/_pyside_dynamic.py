@@ -60,7 +60,7 @@ class UiLoader(QUiLoader):
     create a new instance of the top-level widget, but creates the user
     interface in an existing instance of the top-level class.
 
-    This mimics the behaviour of :func:`PyQt4.uic.loadUi`.
+    This mimics the behaviour of :func:`PyQt*.uic.loadUi`.
     """
 
     def __init__(self, baseinstance, customWidgets=None):
@@ -116,7 +116,7 @@ class UiLoader(QUiLoader):
 
             if self.baseinstance:
                 # set an attribute for the new child widget on the base
-                # instance, just like PyQt4.uic.loadUi does.
+                # instance, just like PyQt*.uic.loadUi does.
                 setattr(self.baseinstance, name, widget)
 
                 # this outputs the various widget names, e.g.
