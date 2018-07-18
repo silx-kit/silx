@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -52,6 +52,13 @@ class TestScalarFieldView(TestCaseQt, ParametricTestCase):
         self.widget = ScalarFieldView()
         self.widget.show()
 
+        paramTreeWidget = TreeView()
+        paramTreeWidget.setSfView(self.widget)
+
+        dock = qt.QDockWidget()
+        dock.setWidget(paramTreeWidget)
+        self.widget.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
+
         # Commented as it slows down the tests
         # self.qWaitForWindowExposed(self.widget)
 
@@ -101,6 +108,24 @@ class TestScalarFieldView(TestCaseQt, ParametricTestCase):
                 data[:] = value
                 self.widget.setData(data, copy=True)
                 self.qapp.processEvents()
+
+    def testIsoSliderNormalization(self):
+        """Test set TreeView with a different isoslider normalization"""
+        data = self._buildData(size=32)
+
+        self.widget.setData(data)
+        self.widget.addIsosurface(0.5, (1., 0., 0., 0.5))
+        self.widget.addIsosurface(0.7, qt.QColor('green'))
+        self.qapp.processEvents()
+
+        # Add a second TreeView
+        paramTreeWidget = TreeView(self.widget)
+        paramTreeWidget.setIsoLevelSliderNormalization('arcsinh')
+        paramTreeWidget.setSfView(self.widget)
+
+        dock = qt.QDockWidget()
+        dock.setWidget(paramTreeWidget)
+        self.widget.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
 
 
 def suite():
