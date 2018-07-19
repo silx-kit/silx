@@ -2,15 +2,15 @@
 Installation steps
 ==================
 
-*silx* supports most operating systems, different version of the Python
+*silx* supports most operating systems and different versions of the Python
 programming language.
 While `numpy <http://www.numpy.org/>`_ is the only mandatory dependency,
-graphical widgets require Qt, management of data files requires
+graphical widgets require Qt. The management of data files requires
 `h5py <http://docs.h5py.org/en/latest/build.html>`_ and
-`fabio <https://github.com/silx-kit/fabio>`_, and high performance data-analysis
+`fabio <https://github.com/silx-kit/fabio>`_, while high performance data-analysis
 code on GPU requires `pyopencl <https://mathema.tician.de/software/pyopencl/>`_.
 
-This table summarized the the support matrix of silx:
+This table summarizes the support matrix of silx:
 
 +------------+--------------+---------------------+
 | System     | Python vers. | Qt and its bindings |
@@ -22,7 +22,7 @@ This table summarized the the support matrix of silx:
 | `Linux`_   | 2.7, 3.4-3.7 | PyQt5.3+, PySide2   |
 +------------+--------------+---------------------+
 
-For all platform, you can install *silx* from the source, see `Installing from source`_.
+For all platforms, you can install *silx* from the source, see `Installing from source`_.
 
 To install *silx* in a `Virtual Environment`_, there is short version here-after
 and  a `longer description :ref:`silx-venv`.
@@ -45,7 +45,7 @@ Tools for reading and writing files depend on the following packages:
 * `h5py <http://docs.h5py.org/en/latest/build.html>`_ for HDF5 files
 * `fabio <https://github.com/silx-kit/fabio>`_ for multiple image formats
 
-*silx.opencl* further depends on OpenCL and the following packages to :
+*silx.opencl* further depends on OpenCL and the following packages too :
 
 * `pyopencl <https://mathema.tician.de/software/pyopencl/>`_
 * `Mako <http://www.makotemplates.org/>`_
@@ -107,7 +107,7 @@ are provided by the Max IV institute at Lund, Sweden.
 An `Arch Linux (AUR) package <https://aur.archlinux.org/packages/python-silx>`_
 is provided by Leonid Bloch.
 
-You can also choose to compile and install *silx* from it's sources:
+You can also choose to compile and install *silx* from its sources:
 see `Installing from source`_.
 
 .. note::
@@ -120,7 +120,7 @@ Installing a Debian package
 +++++++++++++++++++++++++++
 
 Debian 8 (Jessie) packages are available on http://www.silx.org/pub/debian/ for amd64 computers.
-To install it, you need to download this file
+To install it, you need to download this file :
 
 .. code-block:: bash 
 
@@ -150,10 +150,10 @@ and start the update/install procedure again.
 Virtual Environment
 -------------------
 
-Virtual environments are self-contained directory tree that contains a Python
+Virtual environments are self-contained directory trees that contain a Python
 installation for a particular version of Python, plus a number of additional
 packages.
-They do require administrator privileges, nor *root* access.
+They do not require administrator privileges, nor *root* access.
 
 To create a virtual environment, decide upon a directory where you want to place
 it (for example *myenv*), and run the *venv* module as a script with the directory path:
@@ -214,21 +214,21 @@ Installing Python
 
 Download and install Python from `python.org <https://www.python.org/downloads/>`_.
 
-We recommend that you install the 64bits version of Python, which is not the
+We recommend that you install the 64bit version of Python, which is not the
 default version suggested on the Python website.
-The 32bits version is limited to 2 GB of memory, and also we don't provide a
+The 32bit version has limited memory, and also we don't provide a
 binary wheel for it.
 This means that you would have to install *silx* from its sources, which requires
 you to install a C compiler first.
 
-We also encourage you to use Python 3.5 or newer, former versions are no more
+We also encourage you to use Python 3.5 or newer as former versions are no longer
 officially supported.
 
 Configure Python as explained on
 `docs.python.org <https://docs.python.org/3/using/windows.html#configuring-python>`_
 to add the python installation directory to your PATH environment variable.
 
-Alternative Scientific Python stacks exists, such as
+Alternative Scientific Python stacks exists such as
 `WinPython <http://winpython.github.io/>`_ or `Anaconda <https://www.anaconda.com/download/#windows>`_.
 They all offer most of the scientific packages already installed which makes the
 installation of dependencies much easier.
@@ -241,7 +241,7 @@ directory, the same way as described for Python.
 
 The pip installation directory will likely be ``C:\Python35\Scripts\``.
 
-Then you will be able to use all pip commands listed in following in a command
+Then you will be able to use all the pip commands listed below in a command
 prompt.
 
 
@@ -326,8 +326,8 @@ There are specific issues related to MacOSX. If you get this error::
 
   UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 1335: ordinal not in range(128)
 
-This is related to the two environment variable LC_ALL and LANG not defined (or wrongly defined to UTF-8).
-To set the environment variable, type on the command line:
+This is related to the two environment variables LC_ALL and LANG not being defined (or wrongly defined to UTF-8).
+To set the environment variables, type on the command line:
 
 .. code-block:: bash 
 
@@ -345,7 +345,7 @@ In case you want more control over the build procedure, the build command is:
 
 There are few advanced options to ``setup.py build``:
 
-* ``--no-cython``: Prevent Cython (even if installed) to re-generate the C source code.
+* ``--no-cython``: Prevent Cython (even if installed) from re-generating the C source code.
   Use the one provided by the development team.
 * ``--no-openmp``: Recompiles the Cython code without OpenMP support (default for MacOSX).
 * ``--openmp``: Recompiles the Cython code with OpenMP support (default for Windows and Linux).
@@ -356,7 +356,7 @@ Run the test suite of silx (may take a couple of minutes):
 
     python run_tests.py
 
-Package the built into a wheel and install it:
+Package the build into a wheel and install it:
 
 .. code-block:: bash 
 
@@ -373,7 +373,7 @@ To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_:
 Testing
 +++++++
 
-To run the tests of an installed version of *silx*, from the python interpreter, run:
+To run the tests of an installed version of *silx*, run the following on the python interpreter:
 
 .. code-block:: python
     
