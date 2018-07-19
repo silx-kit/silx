@@ -495,8 +495,18 @@ class CompareImagesStatusBar(qt.QStatusBar):
                 self._label2.setText("Image2: NA")
             else:
                 data1, data2 = widget.getRawPixelData(self._pos[0], self._pos[1])
-                text1 = self._formatData(data1)
-                text2 = self._formatData(data2)
+                if isinstance(data1, str):
+                    self._label1.setToolTip(data1)
+                    text1 = "NA"
+                else:
+                    self._label1.setToolTip("")
+                    text1 = self._formatData(data1)
+                if isinstance(data2, str):
+                    self._label2.setToolTip(data2)
+                    text2 = "NA"
+                else:
+                    self._label2.setToolTip("")
+                    text2 = self._formatData(data2)
                 self._label1.setText("Image1: %s" % text1)
                 self._label2.setText("Image2: %s" % text2)
 
@@ -653,7 +663,7 @@ class CompareImages(qt.QWidget):
             x1 = x
             y1 = y
             # Not implemented
-            data2 = "Not implemented"
+            data2 = "Not implemented with sift"
         else:
             assert(False)
 
