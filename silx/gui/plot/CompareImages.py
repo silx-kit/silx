@@ -33,6 +33,8 @@ __date__ = "19/07/2018"
 import logging
 import numpy
 import weakref
+import collections
+import math
 
 import silx.image.bilinear
 from silx.gui import qt
@@ -341,12 +343,22 @@ class CompareImagesStatusBar(qt.QStatusBar):
 
     def __init__(self, parent=None):
         qt.QStatusBar.__init__(self, parent)
+        self.layout().setSpacing(0)
         self.__compareWidget = None
         self._label1 = qt.QLabel(self)
+        self._label1.setFrameShape(qt.QFrame.WinPanel)
+        self._label1.setFrameShadow(qt.QFrame.Sunken)
         self._label2 = qt.QLabel(self)
+        self._label2.setFrameShape(qt.QFrame.WinPanel)
+        self._label2.setFrameShadow(qt.QFrame.Sunken)
+        self._transform = qt.QLabel(self)
+        self._transform.setFrameShape(qt.QFrame.WinPanel)
+        self._transform.setFrameShadow(qt.QFrame.Sunken)
         self.addWidget(self._label1)
         self.addWidget(self._label2)
+        self.addWidget(self._transform)
         self._pos = None
+        self._updateStatusBar()
 
     def setCompareWidget(self, widget):
         """
@@ -410,15 +422,64 @@ class CompareImagesStatusBar(qt.QStatusBar):
         if widget is None:
             self._label1.setText("Image1: NA")
             self._label2.setText("Image2: NA")
-        elif self._pos is None:
-            self._label1.setText("Image1: NA")
-            self._label2.setText("Image2: NA")
+            self._transform.setVisible(False)
         else:
-            data1, data2 = widget.getRawPixelData(self._pos[0], self._pos[1])
-            text1 = self._formatData(data1)
-            text2 = self._formatData(data2)
-            self._label1.setText("Image1: %s" % text1)
-            self._label2.setText("Image2: %s" % text2)
+            transform = widget.getTransformation()
+            self._transform.setVisible(transform is not None)
+            if transform is not None:
+                has_notable_translation = not numpy.isclose(transform.tx, 0.0, atol=0.01) \
+                    or not numpy.isclose(transform.ty, 0.0, atol=0.01)
+                has_notable_scale = not numpy.isclose(transform.sx, 1.0, atol=0.01) \
+                    or not numpy.isclose(transform.sy, 1.0, atol=0.01)
+                has_notable_rotation = not numpy.isclose(transform.rot, 0.0, atol=0.01)
+
+                strings = []
+                if has_notable_translation:
+                    strings.append("Translation")
+                if has_notable_scale:
+                    strings.append("Scale")
+                if has_notable_rotation:
+                    strings.append("Rotation")
+                if strings == []:
+                    has_translation = not numpy.isclose(transform.tx, 0.0) \
+                        or not numpy.isclose(transform.ty, 0.0)
+                    has_scale = not numpy.isclose(transform.sx, 1.0) \
+                        or not numpy.isclose(transform.sy, 1.0)
+                    has_rotation = not numpy.isclose(transform.rot, 0.0)
+                    if has_translation or has_scale or has_rotation:
+                        text = "No big changes"
+                    else:
+                        text = "No changes"
+                else:
+                    text = "+".join(strings)
+                self._transform.setText("Align: " + text)
+
+                strings = []
+                if not numpy.isclose(transform.ty, 0.0):
+                    strings.append("Translation x: %0.3fpx" % transform.tx)
+                if not numpy.isclose(transform.ty, 0.0):
+                    strings.append("Translation y: %0.3fpx" % transform.ty)
+                if not numpy.isclose(transform.sx, 1.0):
+                    strings.append("Scale x: %0.3f" % transform.sx)
+                if not numpy.isclose(transform.sy, 1.0):
+                    strings.append("Scale y: %0.3f" % transform.sy)
+                if not numpy.isclose(transform.rot, 0.0):
+                    strings.append("Rotation: %0.3fdeg" % (transform.rot * 180 / numpy.pi))
+                if strings == []:
+                    text = "No transformation"
+                else:
+                    text = "\n".join(strings)
+                self._transform.setToolTip(text)
+
+            if self._pos is None:
+                self._label1.setText("Image1: NA")
+                self._label2.setText("Image2: NA")
+            else:
+                data1, data2 = widget.getRawPixelData(self._pos[0], self._pos[1])
+                text1 = self._formatData(data1)
+                text2 = self._formatData(data2)
+                self._label1.setText("Image1: %s" % text1)
+                self._label2.setText("Image2: %s" % text2)
 
 
 class CompareImages(qt.QWidget):
@@ -763,6 +824,7 @@ class CompareImages(qt.QWidget):
             return
 
         alignmentMode = self.getAlignmentMode()
+        self.__transformation = None
 
         if alignmentMode == AlignmentMode.ORIGIN:
             yy = max(raw1.shape[0], raw2.shape[0])
@@ -987,6 +1049,25 @@ class CompareImages(qt.QWidget):
                 data[pos0:pos0 + image.shape[0], pos1:pos1 + image.shape[1], 3] = 255
         return data
 
+    def __get_affine_transformation(self, sift_result):
+        AffineTransformation = collections.namedtuple("AffineTransformation", ["tx", "ty", "sx", "sy", "rot"])
+        offset = sift_result["offset"]
+        matrix = sift_result["matrix"]
+
+        tx = offset[0]
+        ty = offset[1]
+        a = matrix[0, 0]
+        b = matrix[0, 1]
+        c = matrix[1, 0]
+        d = matrix[1, 1]
+        rot = math.atan2(-b, a)
+        sx = (-1.0 if a < 0 else 1.0) * math.sqrt(a**2 + b**2)
+        sy = (-1.0 if d < 0 else 1.0) * math.sqrt(c**2 + d**2)
+        return AffineTransformation(tx, ty, sx, sy, rot)
+
+    def getTransformation(self):
+        return self.__transformation
+
     def __createSiftData(self, image, second_image):
         """Generate key points and aligned images from 2 images.
 
@@ -1024,5 +1105,7 @@ class CompareImages(qt.QWidget):
         data1 = image
         # TODO: Create a sift issue: if data1 is RGB and data2 intensity
         # it returns None, while extracting manually keypoints (above) works
-        data2 = sa.align(second_image)
+        result = sa.align(second_image, return_all=True)
+        data2 = result["result"]
+        self.__transformation = self.__get_affine_transformation(result)
         return data1, data2
