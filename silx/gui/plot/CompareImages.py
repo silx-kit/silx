@@ -343,6 +343,7 @@ class CompareImagesStatusBar(qt.QStatusBar):
 
     def __init__(self, parent=None):
         qt.QStatusBar.__init__(self, parent)
+        self.setSizeGripEnabled(False)
         self.layout().setSpacing(0)
         self.__compareWidget = None
         self._label1 = qt.QLabel(self)
