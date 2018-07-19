@@ -1,7 +1,7 @@
 silx |version|
 ==============
 
-The silx project aims at providing a collection of Python packages to support the
+The silx project aims to provide a collection of Python packages to support the
 development of data assessment, reduction and analysis at synchrotron radiation
 facilities.
 It intends to provide reading/writing tools for different file formats, data

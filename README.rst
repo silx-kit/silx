@@ -5,7 +5,7 @@ silx toolkit
 The purpose of the *silx* project is to provide a collection of Python packages to support the
 development of data assessment, reduction and analysis applications at synchrotron
 radiation facilities.
-It aims at providing reading/writing different file formats, data reduction routines
+*silx* aims to provide reading/writing tools for different file formats, data reduction routines
 and a set of Qt widgets to browse and visualise data.
 
 The current version features:
