@@ -10,16 +10,16 @@ graphical widgets require Qt, management of data files requires
 `fabio <https://github.com/silx-kit/fabio>`_, and high performance data-analysis
 code on GPU requires `pyopencl <https://mathema.tician.de/software/pyopencl/>`_.
 
-This table summarized the the support matrix of silx v0.7:
+This table summarized the the support matrix of silx:
 
 +------------+--------------+---------------------+
 | System     | Python vers. | Qt and its bindings |
 +------------+--------------+---------------------+
-| `Windows`_ | 3.5, 3.6     | PyQt5.6+            |
+| `Windows`_ | 3.5, 3.6-3.7 | PyQt5.6+, PySide2   |
 +------------+--------------+---------------------+
-| `MacOS`_   | 2.7, 3.5-3.6 | PyQt5.6+            |
+| `MacOS`_   | 2.7, 3.5-3.7 | PyQt5.6+, PySide2   |
 +------------+--------------+---------------------+
-| `Linux`_   | 2.7, 3.4-3.6 | PyQt4.8+, PyQt5.3+  |
+| `Linux`_   | 2.7, 3.4-3.7 | PyQt5.3+, PySide2   |
 +------------+--------------+---------------------+
 
 For all platform, you can install *silx* from the source, see `Installing from source`_.
@@ -32,7 +32,7 @@ Dependencies
 
 The GUI widgets depend on the following extra packages:
 
-* A Qt binding: either `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_,
+* A Qt binding: either `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_,
   or `PySide2 <https://wiki.qt.io/Qt_for_Python>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_

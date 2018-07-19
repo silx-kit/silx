@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -99,7 +99,7 @@ def main(argv):
                              "INFO messages. Use -vv for full verbosity, " +
                              "including debug messages and test help strings.")
     parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                        help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+                        help="Force using a Qt binding: 'PyQt5' or 'PySide2'")
     utils.test_options.add_parser_argument(parser)
 
     options = parser.parse_args(argv[1:])
@@ -128,6 +128,9 @@ def main(argv):
         elif binding == "pyside":
             _logger.info("Force using PySide")
             import PySide.QtCore  # noqa
+        elif binding == "pyside2":
+            _logger.info("Force using PySide2")
+            import PySide2.QtCore  # noqa
         else:
             raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
