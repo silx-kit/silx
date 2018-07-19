@@ -340,7 +340,14 @@ class CompareImagesToolBar(qt.QToolBar):
 
 
 class CompareImagesStatusBar(qt.QStatusBar):
+    """StatusBar containing specific information contained in a
+    :class:`CompareImages` widget
 
+    Use :meth:`setCompareWidget` to connect this toolbar to a specific
+    :class:`CompareImages` widget.
+
+    :param Union[qt.QWidget,None] parent: Parent of this widget.
+    """
     def __init__(self, parent=None):
         qt.QStatusBar.__init__(self, parent)
         self.setSizeGripEnabled(False)
@@ -391,18 +398,28 @@ class CompareImagesStatusBar(qt.QStatusBar):
             return self.__compareWidget()
 
     def __plotSignalReceived(self, event):
+        """Called when old style signals at emmited from the plot."""
         if event["event"] == "mouseMoved":
             x, y = event["x"], event["y"]
             self.__mouseMoved(x, y)
 
     def __mouseMoved(self, x, y):
+        """Called when mouse move over the plot."""
         self._pos = x, y
         self._updateStatusBar()
 
     def __dataChanged(self):
+        """Called when internal data from the connected widget changes."""
         self._updateStatusBar()
 
     def _formatData(self, data):
+        """Format pixel of an image.
+
+        It supports intensity, RGB, and RGBA.
+
+        :param Union[int,float,numpy.ndarray,str]: Value of a pixel
+        :rtype: str
+        """
         if data is None:
             return "No data"
         if isinstance(data, (int, numpy.integer)):
@@ -419,6 +436,7 @@ class CompareImagesStatusBar(qt.QStatusBar):
         return str(data)
 
     def _updateStatusBar(self):
+        """Update the content of the status bar"""
         widget = self.getCompareWidget()
         if widget is None:
             self._label1.setText("Image1: NA")
