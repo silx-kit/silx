@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/07/2018"
+__date__ = "19/07/2018"
 
 
 import logging
@@ -337,6 +337,90 @@ class CompareImagesToolBar(qt.QToolBar):
             widget.setKeypointsVisible(keypointsVisible)
 
 
+class CompareImagesStatusBar(qt.QStatusBar):
+
+    def __init__(self, parent=None):
+        qt.QStatusBar.__init__(self, parent)
+        self.__compareWidget = None
+        self._label1 = qt.QLabel(self)
+        self._label2 = qt.QLabel(self)
+        self.addWidget(self._label1)
+        self.addWidget(self._label2)
+        self._pos = None
+
+    def setCompareWidget(self, widget):
+        """
+        Connect this tool bar to a specific :class:`CompareImages` widget.
+
+        :param Union[None,CompareImages] widget: The widget to connect with.
+        """
+        compareWidget = self.getCompareWidget()
+        if compareWidget is not None:
+            compareWidget.getPlot().sigPlotSignal.disconnect(self.__plotSignalReceived)
+            compareWidget.sigConfigurationChanged.disconnect(self.__dataChanged)
+        compareWidget = widget
+        if compareWidget is None:
+            self.__compareWidget = None
+        else:
+            self.__compareWidget = weakref.ref(compareWidget)
+        if compareWidget is not None:
+            compareWidget.getPlot().sigPlotSignal.connect(self.__plotSignalReceived)
+            compareWidget.sigConfigurationChanged.connect(self.__dataChanged)
+
+    def getCompareWidget(self):
+        """Returns the connected widget.
+
+        :rtype: CompareImages
+        """
+        if self.__compareWidget is None:
+            return None
+        else:
+            return self.__compareWidget()
+
+    def __plotSignalReceived(self, event):
+        if event["event"] == "mouseMoved":
+            x, y = event["x"], event["y"]
+            self.__mouseMoved(x, y)
+
+    def __mouseMoved(self, x, y):
+        self._pos = x, y
+        self._updateStatusBar()
+
+    def __dataChanged(self):
+        self._updateStatusBar()
+
+    def _formatData(self, data):
+        if data is None:
+            return "No data"
+        if isinstance(data, (int, numpy.integer)):
+            return "%d" % data
+        if isinstance(data, (float, numpy.floating)):
+            return "%f" % data
+        if isinstance(data, numpy.ndarray):
+            # RGBA value
+            if data.shape == (3,):
+                return "R:%d G:%d B:%d" % (data[0], data[1], data[2])
+            elif data.shape == (4,):
+                return "R:%d G:%d B:%d A:%d" % (data[0], data[1], data[2], data[3])
+        _logger.debug("Unsupported data format %s. Cast it to string.", type(data))
+        return str(data)
+
+    def _updateStatusBar(self):
+        widget = self.getCompareWidget()
+        if widget is None:
+            self._label1.setText("Image1: NA")
+            self._label2.setText("Image2: NA")
+        elif self._pos is None:
+            self._label1.setText("Image1: NA")
+            self._label2.setText("Image2: NA")
+        else:
+            data1, data2 = widget.getRawPixelData(self._pos[0], self._pos[1])
+            text1 = self._formatData(data1)
+            text2 = self._formatData(data2)
+            self._label1.setText("Image1: %s" % text1)
+            self._label2.setText("Image2: %s" % text2)
+
+
 class CompareImages(qt.QWidget):
     """Widget providing tools to compare 2 images.
 
@@ -421,6 +505,16 @@ class CompareImages(qt.QWidget):
         if self._compareToolBar is not None:
             self.__plot.addToolBar(self._compareToolBar)
 
+        # Statusbar
+
+        self._createStatusBar(self.__plot)
+        if self._statusBar is not None:
+            self.__plot.setStatusBar(self._statusBar)
+
+    def _createStatusBar(self, plot):
+        self._statusBar = CompareImagesStatusBar(self)
+        self._statusBar.setCompareWidget(self)
+
     def _createToolBars(self, plot):
         """Create tool bars displayed by the widget"""
         toolBar = tools.InteractiveModeToolBar(parent=self, plot=plot)
@@ -437,6 +531,66 @@ class CompareImages(qt.QWidget):
         :rtype: silx.gui.plot.PlotWidget
         """
         return self.__plot
+
+    def getRawPixelData(self, x, y):
+        """Return the raw pixel of each image data from axes positions.
+
+        If the coordinate is outside of the image it returns None element in
+        the tuple.
+
+        The pixel is reach from the raw data image without filter or
+        transformation. But the coordinate x and y are in the reference of the
+        current displayed mode.
+
+        :param float x: X-coordinate of the pixel in the current displayed plot
+        :param float y: Y-coordinate of the pixel in the current displayed plot
+        :return: A tuple of for each images containing pixel information. It
+            could be a scalar value or an array in case of RGB/RGBA informations.
+            It also could be a string containing information is some cases.
+        :rtype: Tuple(Union[int,float,numpy.ndarray,str],Union[int,float,numpy.ndarray,str])
+        """
+        data2 = None
+        alignmentMode = self.__alignmentMode
+        raw1, raw2 = self.__raw1, self.__raw2
+        if alignmentMode == AlignmentMode.ORIGIN:
+            x1 = x
+            y1 = y
+            x2 = x
+            y2 = y
+        elif alignmentMode == AlignmentMode.CENTER:
+            yy = max(raw1.shape[0], raw2.shape[0])
+            xx = max(raw1.shape[1], raw2.shape[1])
+            x1 = x - (xx - raw1.shape[1]) * 0.5
+            x2 = x - (xx - raw2.shape[1]) * 0.5
+            y1 = y - (yy - raw1.shape[0]) * 0.5
+            y2 = y - (yy - raw2.shape[0]) * 0.5
+        elif alignmentMode == AlignmentMode.STRETCH:
+            x1 = x
+            y1 = y
+            x2 = x * raw2.shape[1] / raw1.shape[1]
+            y2 = x * raw2.shape[1] / raw1.shape[1]
+        elif alignmentMode == AlignmentMode.AUTO:
+            x1 = x
+            y1 = y
+            # Not implemented
+            data2 = "Not implemented"
+        else:
+            assert(False)
+
+        x1, y1 = int(x1), int(y1)
+        if y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
+            data1 = None
+        else:
+            data1 = raw1[y1, x1]
+
+        if data2 is None:
+            x2, y2 = int(x2), int(y2)
+            if y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
+                data2 = None
+            else:
+                data2 = raw2[y2, x2]
+
+        return data1, data2
 
     def setVisualizationMode(self, mode):
         """Set the visualization mode.
