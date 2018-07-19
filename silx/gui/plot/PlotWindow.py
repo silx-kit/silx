@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/06/2018"
+__date__ = "18/07/2018"
 
 import collections
 import logging
@@ -439,7 +439,7 @@ class PlotWindow(PlotWidget):
             # The first created dock widget must be added to a Widget area
             width = self.centralWidget().width()
             height = self.centralWidget().height()
-            if width > (2.0 * height) and width > 1000:
+            if width > (1.25 * height):
                 area = qt.Qt.RightDockWidgetArea
             else:
                 area = qt.Qt.BottomDockWidgetArea
