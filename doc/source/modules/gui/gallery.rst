@@ -189,7 +189,11 @@ Plotting widgets:
    * - .. image:: plot/img/ScatterView.png
           :height: 150px
           :align: center
-     - :class:`ScatterView` is a widget dedicated to visualize a scatter plot.
+     - :class:`CompareImages` is a widget dedicated to compare 2 images.
+   * - .. image:: plot/img/CompareImages.png
+          :height: 150px
+          :align: center
+     - :class:`CompareImages` is a widget dedicated to compare 2 images.
 
 Additional widgets:
 

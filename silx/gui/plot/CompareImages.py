@@ -514,6 +514,8 @@ class CompareImagesStatusBar(qt.QStatusBar):
 class CompareImages(qt.QWidget):
     """Widget providing tools to compare 2 images.
 
+    .. image:: img/CompareImages.png
+
     :param Union[qt.QWidget,None] parent: Parent of this widget.
     :param backend: The backend to use, in:
                     'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
