@@ -531,8 +531,7 @@ class CompareImages(qt.QWidget):
     alignement mode...) have changed."""
 
     def __init__(self, parent=None, backend=None):
-        qt.QMainWindow.__init__(self, parent)
-        self.setWindowTitle("Plot with synchronized axes")
+        qt.QWidget.__init__(self, parent)
 
         if parent is None:
             self.setWindowTitle('Compare images')
@@ -718,7 +717,7 @@ class CompareImages(qt.QWidget):
         return self.__alignmentMode
 
     def setKeypointsVisible(self, isVisible):
-        """Set keyboard visibility.
+        """Set keypoints visibility.
 
         :param bool isVisible: If True, keypoints are displayed (if some)
         """
