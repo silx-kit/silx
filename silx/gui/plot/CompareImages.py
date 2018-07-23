@@ -148,7 +148,7 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__visualizationGroup.addAction(action)
 
         icon = icons.getQIcon("compare-mode-rbneg-channel")
-        action = qt.QAction(icon, "Yellow/cyan compare mode (substractive mode)", self)
+        action = qt.QAction(icon, "Yellow/cyan compare mode (subtractive mode)", self)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
@@ -167,7 +167,7 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__alignmentGroup.triggered.connect(self.__alignmentModeChanged)
 
         icon = icons.getQIcon("compare-align-origin")
-        action = qt.QAction(icon, "Align images on there upper-left pixel", self)
+        action = qt.QAction(icon, "Align images on their upper-left pixel", self)
         action.setProperty("mode", AlignmentMode.ORIGIN)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
