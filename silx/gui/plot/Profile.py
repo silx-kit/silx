@@ -367,11 +367,6 @@ class ProfileToolBar(qt.QToolBar):
 
     _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
 
-    SUM_METH = 'sum'
-    MEAN_METH = 'mean'
-
-    METHODS = (SUM_METH, MEAN_METH)
-
     def __init__(self, parent=None, plot=None, profileWindow=None,
                  title='Profile Selection'):
         super(ProfileToolBar, self).__init__(title, parent)
@@ -380,7 +375,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self._overlayColor = None
         self._defaultOverlayColor = 'red'  # update when active image change
-        self.setMethod(self.SUM_METH)
+        self._method = 'sum'
 
         self._roiInfo = None  # Store start and end points and type of ROI
 
@@ -459,17 +454,10 @@ class ProfileToolBar(qt.QToolBar):
             self._lineWidthSpinBoxValueChangedSlot)
         self.addWidget(self.lineWidthSpinBox)
 
-        #self.optionAction = qt.QAction(icons.getQIcon('item-object'), None)
-
-        #self.addAction(self.optionAction)
-        self.optionsButton = ProfileOptionToolButton(parent=self, plot=self)
-        self.addWidget(self.optionsButton)
+        self.methodsButton = ProfileOptionToolButton(parent=self, plot=self)
+        self.addWidget(self.methodsButton)
         # TODO: add connection with the signal
-        if self._profileWindow is None:
-            _proWindow = self._profileMainWindow
-        else:
-            _proWindow = self._profileWindow
-        self.optionsButton.sigMethodChanged.connect(_proWindow.setProfileType)
+        self.methodsButton.sigMethodChanged.connect(self.setProfileMethod)
 
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
@@ -642,11 +630,7 @@ class ProfileToolBar(qt.QToolBar):
                             scale=image.getScale(),
                             colormap=None,  # Not used for 2D data
                             z=image.getZValue(),
-                            method=self._method)
-
-    def setMethod(self, method):
-        assert method in self.METHODS
-        self._method = method
+                            method=self.getProfileType())
 
     def _createProfile(self, currentData, origin, scale, colormap, z, method):
         """Create the profile line for the the given image.
@@ -737,6 +721,13 @@ class ProfileToolBar(qt.QToolBar):
         if self.getProfileMainWindow() is not None:
             self.getProfileMainWindow().hide()
 
+    def setProfileMethod(self, method):
+        assert method in ('sum', 'mean')
+        self._method = method
+        self.updateProfile()
+
+    def getProfileType(self):
+        return self._method
 
 class Profile3DToolBar(ProfileToolBar):
     def __init__(self, parent=None, stackview=None,
@@ -765,6 +756,7 @@ class Profile3DToolBar(ProfileToolBar):
         # create the 3D toolbar
         self._profileType = None
         self._setProfileType(2)
+        self._method3D = 'sum'
 
     def _setProfileType(self, dimensions):
         """Set the profile type: "1D" for a curve (profile on a single image)
@@ -795,13 +787,20 @@ class Profile3DToolBar(ProfileToolBar):
             self.getProfilePlot().setGraphTitle('')
             self.getProfilePlot().getXAxis().setLabel('X')
             self.getProfilePlot().getYAxis().setLabel('Y')
-
             self._createProfile(currentData=stackData[0],
                                 origin=stackData[1]['origin'],
                                 scale=stackData[1]['scale'],
                                 colormap=stackData[1]['colormap'],
                                 z=stackData[1]['z'],
-                                method=self._method)
+                                method=self.getProfileType())
         else:
             raise ValueError(
                     "Profile type must be 1D or 2D, not %s" % self._profileType)
+
+    def setProfileMethod(self, method):
+        assert method in ('sum', 'mean')
+        self._method3D = method
+        self.updateProfile()
+
+    def getProfileType(self):
+        return self._method3D
