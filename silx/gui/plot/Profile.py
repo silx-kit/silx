@@ -630,7 +630,7 @@ class ProfileToolBar(qt.QToolBar):
                             scale=image.getScale(),
                             colormap=None,  # Not used for 2D data
                             z=image.getZValue(),
-                            method=self.getProfileType())
+                            method=self.getProfileMethod())
 
     def _createProfile(self, currentData, origin, scale, colormap, z, method):
         """Create the profile line for the the given image.
@@ -726,8 +726,9 @@ class ProfileToolBar(qt.QToolBar):
         self._method = method
         self.updateProfile()
 
-    def getProfileType(self):
+    def getProfileMethod(self):
         return self._method
+
 
 class Profile3DToolBar(ProfileToolBar):
     def __init__(self, parent=None, stackview=None,
@@ -792,7 +793,7 @@ class Profile3DToolBar(ProfileToolBar):
                                 scale=stackData[1]['scale'],
                                 colormap=stackData[1]['colormap'],
                                 z=stackData[1]['z'],
-                                method=self.getProfileType())
+                                method=self.getProfileMethod())
         else:
             raise ValueError(
                     "Profile type must be 1D or 2D, not %s" % self._profileType)
@@ -802,5 +803,5 @@ class Profile3DToolBar(ProfileToolBar):
         self._method3D = method
         self.updateProfile()
 
-    def getProfileType(self):
+    def getProfileMethod(self):
         return self._method3D
