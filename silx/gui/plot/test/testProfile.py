@@ -149,6 +149,17 @@ class TestProfile3DToolBar(TestCaseQt):
             [[12, 13, 14], [15, 16, 17]]
         ]))
 
+    def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.plot = None
+
+        super(TestProfile3DToolBar, self).tearDown()
+
+    def testMethodProfile1DAnd2D(self):
+        """Test that the profile can have a different method if we want to
+        compute then in 1D or in 2D"""
+
         _3DProfileToolbar = self.plot.getProfileToolbar()
         _2DProfilePlot = _3DProfileToolbar.getProfilePlot()
         self.plot.getProfileToolbar().setProfileMethod('mean')
@@ -187,18 +198,6 @@ class TestProfile3DToolBar(TestCaseQt):
             _1DProfilePlot.getAllCurves()[0].getData()[1],
             numpy.array([5, 17, 29])
         ))
-
-    def tearDown(self):
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot.close()
-        self.plot = None
-
-        super(TestProfile3DToolBar, self).tearDown()
-
-    def testMethodProfile1DAnd2D(self):
-        """Test that the profile can have a different method if we want to
-        compute then in 1D or in 2D"""
-        pass
 
 
 class TestGetProfilePlot(TestCaseQt):
