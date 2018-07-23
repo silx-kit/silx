@@ -516,7 +516,7 @@ class CompareImagesStatusBar(qt.QStatusBar):
                 self._label2.setText("Image2: %s" % text2)
 
 
-class CompareImages(qt.QWidget):
+class CompareImages(qt.QMainWindow):
     """Widget providing tools to compare 2 images.
 
     .. image:: img/CompareImages.png
@@ -536,14 +536,12 @@ class CompareImages(qt.QWidget):
     alignement mode...) have changed."""
 
     def __init__(self, parent=None, backend=None):
-        qt.QWidget.__init__(self, parent)
+        qt.QMainWindow.__init__(self, parent)
 
         if parent is None:
             self.setWindowTitle('Compare images')
-
-        layout = qt.QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
+        else:
+            self.setWindowFlags(qt.Qt.Widget)
 
         self.__raw1 = None
         self.__raw2 = None
@@ -560,7 +558,7 @@ class CompareImages(qt.QWidget):
         self.__plot.setKeepDataAspectRatio(True)
         self.__plot.sigPlotSignal.connect(self.__plotSlot)
 
-        layout.addWidget(self.__plot)
+        self.setCentralWidget(self.__plot)
 
         legend = VisualizationMode.VERTICAL_LINE.name
         self.__plot.addXMarker(
@@ -595,17 +593,17 @@ class CompareImages(qt.QWidget):
 
         self._createToolBars(self.__plot)
         if self._interactiveModeToolBar is not None:
-            self.__plot.addToolBar(self._interactiveModeToolBar)
+            self.addToolBar(self._interactiveModeToolBar)
         if self._imageToolBar is not None:
-            self.__plot.addToolBar(self._imageToolBar)
+            self.addToolBar(self._imageToolBar)
         if self._compareToolBar is not None:
-            self.__plot.addToolBar(self._compareToolBar)
+            self.addToolBar(self._compareToolBar)
 
         # Statusbar
 
         self._createStatusBar(self.__plot)
         if self._statusBar is not None:
-            self.__plot.setStatusBar(self._statusBar)
+            self.setStatusBar(self._statusBar)
 
     def _createStatusBar(self, plot):
         self._statusBar = CompareImagesStatusBar(self)
