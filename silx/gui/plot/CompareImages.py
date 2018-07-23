@@ -698,7 +698,7 @@ class CompareImages(qt.QMainWindow):
         mode = self.getVisualizationMode()
         self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
         self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
-        self.__invalidateData()
+        self.__updateData()
         self.sigConfigurationChanged.emit()
 
     def getVisualizationMode(self):
@@ -713,7 +713,7 @@ class CompareImages(qt.QMainWindow):
         if self.__alignmentMode == mode:
             return
         self.__alignmentMode = mode
-        self.__invalidateData()
+        self.__updateData()
         self.sigConfigurationChanged.emit()
 
     def getAlignmentMode(self):
@@ -728,7 +728,7 @@ class CompareImages(qt.QMainWindow):
         if self.__keypointsVisible == isVisible:
             return
         self.__keypointsVisible = isVisible
-        self.__invalidateScatter()
+        self.__updateKeyPoints()
         self.sigConfigurationChanged.emit()
 
     def __setDefaultAlignmentMode(self):
@@ -767,20 +767,21 @@ class CompareImages(qt.QMainWindow):
             y = self.__data1.shape[0]
         return x, y
 
-    def __invalidateSeparator(self):
+    def __updateSeparators(self):
         """Redraw images according to the current state of the separators.
         """
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.VERTICAL_LINE:
             pos = self.__vline.getXPosition()
+            self.__separatorMoved(pos)
+            self.__previousSeparatorPosition = pos
         elif mode == VisualizationMode.HORIZONTAL_LINE:
             pos = self.__hline.getYPosition()
+            self.__separatorMoved(pos)
+            self.__previousSeparatorPosition = pos
         else:
             self.__image1.setOrigin((0, 0))
             self.__image2.setOrigin((0, 0))
-            return
-        self.__separatorMoved(pos)
-        self.__previousSeparatorPosition = pos
 
     def __separatorMoved(self, pos):
         """Called when vertical or horizontal separators have moved.
@@ -830,10 +831,10 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw1 = image1
         self.__raw2 = image2
-        self.__invalidateData()
+        self.__updateData()
         self.__plot.resetZoom()
 
-    def __invalidateScatter(self):
+    def __updateKeyPoints(self):
         """Update the displayed keypoints using cached keypoints.
         """
         if self.__keypointsVisible:
@@ -847,7 +848,7 @@ class CompareImages(qt.QMainWindow):
                                legend="keypoints",
                                colormap=Colormap("spring"))
 
-    def __invalidateData(self):
+    def __updateData(self):
         """Compute aligned image when the alignement mode changes.
 
         This function cache input images which are used when
@@ -919,7 +920,7 @@ class CompareImages(qt.QMainWindow):
         self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False)
         self.__image1 = self.__plot.getImage("image1")
         self.__image2 = self.__plot.getImage("image2")
-        self.__invalidateScatter()
+        self.__updateKeyPoints()
 
         # Set the separator into the middle
         if self.__previousSeparatorPosition is None:
@@ -927,7 +928,7 @@ class CompareImages(qt.QMainWindow):
             self.__vline.setPosition(value, 0)
             value = self.__data1.shape[0] // 2
             self.__hline.setPosition(0, value)
-        self.__invalidateSeparator()
+        self.__updateSeparators()
 
         # Avoid to change the colormap range when the separator is moving
         # TODO: The colormap histogram will still be wrong
@@ -1023,7 +1024,7 @@ class CompareImages(qt.QMainWindow):
         return result
 
     def __luminosityImage(self, image):
-        """Returns the lominosity channel from an RBG(A) image.
+        """Returns the luminosity channel from an RBG(A) image.
         The alpha channel is ignored.
 
         :rtype: numpy.ndarray
