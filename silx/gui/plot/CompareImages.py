@@ -531,6 +531,9 @@ class CompareImages(qt.QMainWindow):
     VisualizationMode = VisualizationMode
     """Available visualization modes"""
 
+    AlignmentMode = AlignmentMode
+    """Available alignment modes"""
+
     sigConfigurationChanged = qt.Signal()
     """Emitted when the configuration of the widget (visualization mode,
     alignement mode...) have changed."""
