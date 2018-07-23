@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/07/2018"
+__date__ = "23/07/2018"
 
 
 import logging
@@ -72,6 +72,11 @@ class AlignmentMode(enum.Enum):
     CENTER = 'center'
     STRETCH = 'stretch'
     AUTO = 'auto'
+
+
+AffineTransformation = collections.namedtuple("AffineTransformation",
+                                              ["tx", "ty", "sx", "sy", "rot"])
+"""Contains a 2D affine transformation: translation, scale and rotation"""
 
 
 class CompareImagesToolBar(qt.QToolBar):
@@ -1080,7 +1085,11 @@ class CompareImages(qt.QWidget):
         return data
 
     def __get_affine_transformation(self, sift_result):
-        AffineTransformation = collections.namedtuple("AffineTransformation", ["tx", "ty", "sx", "sy", "rot"])
+        """Returns an affine transformation from the sift result.
+
+        :param dict sift_result: Result of sift when using `all_result=True`
+        :rtype: AffineTransformation
+        """
         offset = sift_result["offset"]
         matrix = sift_result["matrix"]
 
@@ -1096,6 +1105,13 @@ class CompareImages(qt.QWidget):
         return AffineTransformation(tx, ty, sx, sy, rot)
 
     def getTransformation(self):
+        """Retuns the affine transformation applied to the second image to align
+        it to the first image.
+
+        This result is only valid for sift alignment.
+
+        :rtype: Union[None,AffineTransformation]
+        """
         return self.__transformation
 
     def __createSiftData(self, image, second_image):
