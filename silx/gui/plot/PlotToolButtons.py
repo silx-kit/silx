@@ -249,14 +249,13 @@ class ProfileOptionToolButton(PlotToolButton):
 
         self.STATE = {}
         # is down
-        self.STATE[True, "icon"] = icons.getQIcon('math-mean')
-        self.STATE[True, "state"] = "compute profile mean"
+        self.STATE[True, "icon"] = icons.getQIcon('math-sigma')
+        self.STATE[True, "state"] = "compute profile sum"
         self.STATE[True, "action"] = "compute profile sum"
         # keep ration
-        self.STATE[False, "icon"] = icons.getQIcon('math-sigma')
-        self.STATE[False, "state"] = "compute profile sum"
+        self.STATE[False, "icon"] = icons.getQIcon('math-mean')
+        self.STATE[False, "state"] = "compute profile mean"
         self.STATE[False, "action"] = "compute profile mean"
-
 
         sumAction = self._createAction(True)
         sumAction.triggered.connect(self.setSum)
