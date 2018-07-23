@@ -134,6 +134,73 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                         self.plot.clear()
 
 
+class TestProfile3DToolBar(TestCaseQt):
+    """Tests for Profile3DToolBar widget.
+    """
+    def setUp(self):
+        super(TestProfile3DToolBar, self).setUp()
+        self.plot = StackView()
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+
+        self.plot.setStack(numpy.array([
+            [[0, 1, 2], [3, 4, 5]],
+            [[6, 7, 8], [9, 10, 11]],
+            [[12, 13, 14], [15, 16, 17]]
+        ]))
+
+        _3DProfileToolbar = self.plot.getProfileToolbar()
+        _2DProfilePlot = _3DProfileToolbar.getProfilePlot()
+        self.plot.getProfileToolbar().setProfileMethod('mean')
+        self.plot.getProfileToolbar().lineWidthSpinBox.setValue(3)
+        self.assertTrue(_3DProfileToolbar.getProfileMethod() == 'mean')
+
+        # check 2D 'mean' profile
+        _3DProfileToolbar.profile3dAction.computeProfileIn2D()
+        toolButton = getQToolButtonFromAction(_3DProfileToolbar.vLineAction)
+        self.assertIsNot(toolButton, None)
+        self.mouseMove(toolButton)
+        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        plot2D = self.plot.getPlot().getWidgetHandle()
+        pos1 = plot2D.width() * 0.5, plot2D.height() * 0.5
+        self.mouseClick(plot2D, qt.Qt.LeftButton, pos=pos1)
+        self.assertTrue(numpy.array_equal(
+            _2DProfilePlot.getActiveImage().getData(),
+            numpy.array([[1, 4], [7, 10], [13, 16]])
+        ))
+
+        # check 1D 'sum' profile
+        _2DProfileToolbar = _2DProfilePlot.getProfileToolbar()
+        _2DProfileToolbar.setProfileMethod('sum')
+        self.assertTrue(_2DProfileToolbar.getProfileMethod() == 'sum')
+        _1DProfilePlot = _2DProfileToolbar.getProfilePlot()
+
+        _2DProfileToolbar.lineWidthSpinBox.setValue(3)
+        toolButton = getQToolButtonFromAction(_2DProfileToolbar.vLineAction)
+        self.assertIsNot(toolButton, None)
+        self.mouseMove(toolButton)
+        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        plot1D = _2DProfilePlot.getWidgetHandle()
+        pos1 = plot1D.width() * 0.5, plot1D.height() * 0.5
+        self.mouseClick(plot1D, qt.Qt.LeftButton, pos=pos1)
+        self.assertTrue(numpy.array_equal(
+            _1DProfilePlot.getAllCurves()[0].getData()[1],
+            numpy.array([5, 17, 29])
+        ))
+
+    def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.plot = None
+
+        super(TestProfile3DToolBar, self).tearDown()
+
+    def testMethodProfile1DAnd2D(self):
+        """Test that the profile can have a different method if we want to
+        compute then in 1D or in 2D"""
+        pass
+
+
 class TestGetProfilePlot(TestCaseQt):
 
     def testProfile1D(self):
@@ -175,8 +242,8 @@ class TestGetProfilePlot(TestCaseQt):
 
 def suite():
     test_suite = unittest.TestSuite()
-    # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestProfileToolBar, TestGetProfilePlot):
+    for testClass in (TestProfileToolBar, TestGetProfilePlot,
+                      TestProfile3DToolBar):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
