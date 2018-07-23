@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "23/07/2018"
 
 
 import unittest
@@ -52,6 +52,7 @@ from . import testImageView
 from . import testSaveAction
 from . import testScatterView
 from . import testPixelIntensityHistoAction
+from . import testCompareImages
 
 
 def suite():
@@ -83,6 +84,7 @@ def suite():
          testImageView.suite(),
          testSaveAction.suite(),
          testScatterView.suite(),
-         testPixelIntensityHistoAction.suite()
+         testPixelIntensityHistoAction.suite(),
+         testCompareImages.suite()
         ])
     return test_suite
