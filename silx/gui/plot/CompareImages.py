@@ -1087,7 +1087,7 @@ class CompareImages(qt.QMainWindow):
                 data[pos0:pos0 + image.shape[0], pos1:pos1 + image.shape[1], 3] = 255
         return data
 
-    def __get_affine_transformation(self, sift_result):
+    def __toAffineTransformation(self, sift_result):
         """Returns an affine transformation from the sift result.
 
         :param dict sift_result: Result of sift when using `all_result=True`
@@ -1156,5 +1156,5 @@ class CompareImages(qt.QMainWindow):
         # it returns None, while extracting manually keypoints (above) works
         result = sa.align(second_image, return_all=True)
         data2 = result["result"]
-        self.__transformation = self.__get_affine_transformation(result)
+        self.__transformation = self.__toAffineTransformation(result)
         return data1, data2
