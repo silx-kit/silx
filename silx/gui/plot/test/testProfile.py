@@ -199,6 +199,33 @@ class TestProfile3DToolBar(TestCaseQt):
             numpy.array([5, 17, 29])
         ))
 
+    def testMethodSumLine(self):
+
+        _3DProfileToolbar = self.plot.getProfileToolbar()
+        _2DProfilePlot = _3DProfileToolbar.getProfilePlot()
+        self.plot.getProfileToolbar().setProfileMethod('sum')
+        self.plot.getProfileToolbar().lineWidthSpinBox.setValue(3)
+        self.assertTrue(_3DProfileToolbar.getProfileMethod() == 'sum')
+
+        # check 2D 'mean' profile
+        _3DProfileToolbar.profile3dAction.computeProfileIn2D()
+        toolButton = getQToolButtonFromAction(_3DProfileToolbar.lineAction)
+        self.assertIsNot(toolButton, None)
+        self.mouseMove(toolButton)
+        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        plot2D = self.plot.getPlot().getWidgetHandle()
+        pos1 = plot2D.width() * 0.5, plot2D.height() * 0.2
+        pos2 = plot2D.width() * 0.5, plot2D.height() * 0.8
+
+        self.mouseMove(plot2D, pos=pos1)
+        self.mousePress(plot2D, qt.Qt.LeftButton, pos=pos1)
+        self.mouseMove(plot2D, pos=pos2)
+        self.mouseRelease(plot2D, qt.Qt.LeftButton, pos=pos2)
+        self.assertTrue(numpy.array_equal(
+            _2DProfilePlot.getActiveImage().getData(),
+            numpy.array([[3, 12], [21, 30], [39, 48]])
+        ))
+
 
 class TestGetProfilePlot(TestCaseQt):
 
