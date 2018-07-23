@@ -557,6 +557,7 @@ class CompareImages(qt.QMainWindow):
 
         self.__plot.setKeepDataAspectRatio(True)
         self.__plot.sigPlotSignal.connect(self.__plotSlot)
+        self.__plot.setAxesDisplayed(False)
 
         self.setCentralWidget(self.__plot)
 
