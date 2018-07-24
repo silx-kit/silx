@@ -110,15 +110,11 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
         for method in ('sum', 'mean'):
             with self.subTest(method=method):
+                self.toolBar.setProfileMethod(method)
+
                 # 2 positions to use for mouse events
                 pos1 = widget.width() * 0.4, widget.height() * 0.4
                 pos2 = widget.width() * 0.6, widget.height() * 0.6
-
-                # Trigger tool button for diagonal profile mode
-                toolButton = getQToolButtonFromAction(self.toolBar.lineAction)
-                self.assertIsNot(toolButton, None)
-                self.mouseMove(toolButton)
-                self.mouseClick(toolButton, qt.Qt.LeftButton)
 
                 for image in (False, True):
                     with self.subTest(image=image):
@@ -126,11 +122,26 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                             self.plot.addImage(
                                 numpy.arange(100 * 100).reshape(100, -1))
 
+                        # Trigger tool button for diagonal profile mode
+                        toolButton = getQToolButtonFromAction(
+                            self.toolBar.lineAction)
+                        self.assertIsNot(toolButton, None)
+                        self.mouseMove(toolButton)
+                        self.mouseClick(toolButton, qt.Qt.LeftButton)
+                        self.toolBar.lineWidthSpinBox.setValue(3)
+
+                        # draw profile line
                         self.mouseMove(widget, pos=pos1)
                         self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
                         self.mouseMove(widget, pos=pos2)
                         self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
 
+                        if image is True:
+                            profileCurve = self.toolBar.getProfilePlot().getAllCurves()[0]
+                            if method == 'sum':
+                                self.assertTrue(profileCurve.getData()[1].max() > 10000)
+                            elif method == 'mean':
+                                self.assertTrue(profileCurve.getData()[1].max() < 10000)
                         self.plot.clear()
 
 
