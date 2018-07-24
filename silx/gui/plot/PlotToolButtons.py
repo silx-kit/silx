@@ -240,6 +240,62 @@ class YAxisOriginToolButton(PlotToolButton):
         self.setToolTip(toolTip)
 
 
+class ProfileOptionToolButton(PlotToolButton):
+    """Button to define option on the profile"""
+    sigMethodChanged = qt.Signal(str)
+    
+    def __init__(self, parent=None, plot=None):
+        PlotToolButton.__init__(self, parent=parent, plot=plot)
+
+        self.STATE = {}
+        # is down
+        self.STATE['sum', "icon"] = icons.getQIcon('math-sigma')
+        self.STATE['sum', "state"] = "compute profile sum"
+        self.STATE['sum', "action"] = "compute profile sum"
+        # keep ration
+        self.STATE['mean', "icon"] = icons.getQIcon('math-mean')
+        self.STATE['mean', "state"] = "compute profile mean"
+        self.STATE['mean', "action"] = "compute profile mean"
+
+        sumAction = self._createAction('sum')
+        sumAction.triggered.connect(self.setSum)
+        sumAction.setIconVisibleInMenu(True)
+
+        meanAction = self._createAction('mean')
+        meanAction.triggered.connect(self.setMean)
+        meanAction.setIconVisibleInMenu(True)
+
+        menu = qt.QMenu(self)
+        menu.addAction(sumAction)
+        menu.addAction(meanAction)
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+        self.setMean()
+
+    def _createAction(self, method):
+        icon = self.STATE[method, "icon"]
+        text = self.STATE[method, "action"]
+        return qt.QAction(icon, text, self)
+
+    def setSum(self):
+        """Configure the plot to use y-axis upward"""
+        self._method = 'sum'
+        self.sigMethodChanged.emit(self._method)
+        self._update()
+
+    def _update(self):
+        icon = self.STATE[self._method, "icon"]
+        toolTip = self.STATE[self._method, "state"]
+        self.setIcon(icon)
+        self.setToolTip(toolTip)
+
+    def setMean(self):
+        """Configure the plot to use y-axis downward"""
+        self._method = 'mean'
+        self.sigMethodChanged.emit(self._method)
+        self._update()
+
+
 class ProfileToolButton(PlotToolButton):
     """Button used in Profile3DToolbar to switch between 2D profile
     and 1D profile."""
