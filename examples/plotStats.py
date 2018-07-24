@@ -39,7 +39,7 @@ On this example we will:
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "06/06/2018"
+__date__ = "24/07/2018"
 
 
 from silx.gui import qt
@@ -112,8 +112,6 @@ def main():
 
     plot.getStatsWidget().setStats(stats)
     plot.getStatsWidget().parent().setVisible(True)
-    # Update the checkedbox cause we arre playing with the visibility
-    plot.getStatsAction().setChecked(True)
 
     plot.show()
     app.exec_()
