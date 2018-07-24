@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "24/07/2018"
 
 import weakref
 
@@ -51,6 +51,13 @@ class Hdf5Node(object):
         if populateAll:
             self.__child = []
             self._populateChild(populateAll=True)
+
+    def _getCanonicalName(self):
+        parent = self.parent
+        if parent is None:
+            return "root"
+        else:
+            return "%s/?" % (parent._getCanonicalName())
 
     @property
     def parent(self):
