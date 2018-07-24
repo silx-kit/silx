@@ -249,19 +249,19 @@ class ProfileOptionToolButton(PlotToolButton):
 
         self.STATE = {}
         # is down
-        self.STATE[True, "icon"] = icons.getQIcon('math-sigma')
-        self.STATE[True, "state"] = "compute profile sum"
-        self.STATE[True, "action"] = "compute profile sum"
+        self.STATE['sum', "icon"] = icons.getQIcon('math-sigma')
+        self.STATE['sum', "state"] = "compute profile sum"
+        self.STATE['sum', "action"] = "compute profile sum"
         # keep ration
-        self.STATE[False, "icon"] = icons.getQIcon('math-mean')
-        self.STATE[False, "state"] = "compute profile mean"
-        self.STATE[False, "action"] = "compute profile mean"
+        self.STATE['mean', "icon"] = icons.getQIcon('math-mean')
+        self.STATE['mean', "state"] = "compute profile mean"
+        self.STATE['mean', "action"] = "compute profile mean"
 
-        sumAction = self._createAction(True)
+        sumAction = self._createAction('sum')
         sumAction.triggered.connect(self.setSum)
         sumAction.setIconVisibleInMenu(True)
 
-        meanAction = self._createAction(False)
+        meanAction = self._createAction('mean')
         meanAction.triggered.connect(self.setMean)
         meanAction.setIconVisibleInMenu(True)
 
@@ -272,9 +272,9 @@ class ProfileOptionToolButton(PlotToolButton):
         self.setPopupMode(qt.QToolButton.InstantPopup)
         self.setMean()
 
-    def _createAction(self, isUpward):
-        icon = self.STATE[isUpward, "icon"]
-        text = self.STATE[isUpward, "action"]
+    def _createAction(self, method):
+        icon = self.STATE[method, "icon"]
+        text = self.STATE[method, "action"]
         return qt.QAction(icon, text, self)
 
     def setSum(self):
@@ -284,8 +284,8 @@ class ProfileOptionToolButton(PlotToolButton):
         self._update()
 
     def _update(self):
-        icon = self.STATE[self._method == 'sum', "icon"]
-        toolTip = self.STATE[self._method == 'sum', "state"]
+        icon = self.STATE[self._method, "icon"]
+        toolTip = self.STATE[self._method, "state"]
         self.setIcon(icon)
         self.setToolTip(toolTip)
 
