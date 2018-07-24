@@ -200,7 +200,8 @@ class TestProfile3DToolBar(TestCaseQt):
         ))
 
     def testMethodSumLine(self):
-
+        """Simple interaction test to make sure the sum is correctly computed
+        """
         _3DProfileToolbar = self.plot.getProfileToolbar()
         _2DProfilePlot = _3DProfileToolbar.getProfilePlot()
         self.plot.getProfileToolbar().setProfileMethod('sum')
