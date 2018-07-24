@@ -28,7 +28,7 @@ Module containing widgets displaying stats from items of a plot.
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "12/06/2018"
+__date__ = "24/07/2018"
 
 
 import functools
@@ -62,6 +62,8 @@ class StatsWidget(qt.QWidget):
     :param parent: Qt parent
     :param plot: the plot containing items on which we want statistics.
     """
+
+    sigVisibilityChanged = qt.Signal(bool)
 
     NUMBER_FORMAT = '{0:.3f}'
 
@@ -150,6 +152,14 @@ class StatsWidget(qt.QWidget):
 
         self.setDisplayOnlyActiveItem = self._statsTable.setDisplayOnlyActiveItem
         self.setStatsOnVisibleData = self._statsTable.setStatsOnVisibleData
+
+    def showEvent(self, event):
+        self.sigVisibilityChanged.emit(True)
+        qt.QWidget.showEvent(self, event)
+
+    def hideEvent(self, event):
+        self.sigVisibilityChanged.emit(False)
+        qt.QWidget.hideEvent(self, event)
 
     def _optSelectionChanged(self, action=None):
         self._statsTable.setDisplayOnlyActiveItem(self._options.isActiveItemMode())
