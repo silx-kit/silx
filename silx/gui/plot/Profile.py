@@ -294,7 +294,8 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                 profile.append(bilinear.profile_line(
                     (startPt[0] - 0.5, startPt[1] - 0.5),
                     (endPt[0] - 0.5, endPt[1] - 0.5),
-                    roiWidth))
+                    roiWidth,
+                    method=method))
             profile = numpy.array(profile)
 
             # Extend ROI with half a pixel on each end, and
