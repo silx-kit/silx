@@ -368,6 +368,8 @@ class ProfileToolBar(qt.QToolBar):
 
     _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
 
+    DEFAULT_PROF_METHOD = 'mean'
+
     def __init__(self, parent=None, plot=None, profileWindow=None,
                  title='Profile Selection'):
         super(ProfileToolBar, self).__init__(title, parent)
@@ -376,7 +378,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self._overlayColor = None
         self._defaultOverlayColor = 'red'  # update when active image change
-        self._method = 'sum'
+        self._method = self.DEFAULT_PROF_METHOD
 
         self._roiInfo = None  # Store start and end points and type of ROI
 
