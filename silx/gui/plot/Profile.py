@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "24/07/2018"
 
 
 import weakref
@@ -451,7 +451,7 @@ class ProfileToolBar(qt.QToolBar):
         # Add width spin box to toolbar
         self.addWidget(qt.QLabel('W:'))
         self.lineWidthSpinBox = qt.QSpinBox(self)
-        self.lineWidthSpinBox.setRange(0, 1000)
+        self.lineWidthSpinBox.setRange(1, 1000)
         self.lineWidthSpinBox.setValue(1)
         self.lineWidthSpinBox.valueChanged[int].connect(
             self._lineWidthSpinBoxValueChangedSlot)
