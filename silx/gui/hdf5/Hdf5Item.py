@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/07/2018"
+__date__ = "24/07/2018"
 
 
 import logging
@@ -64,6 +64,13 @@ class Hdf5Item(Hdf5Node):
         self.__text = text
         self.__linkClass = linkClass
         Hdf5Node.__init__(self, parent, populateAll=populateAll)
+
+    def _getCanonicalName(self):
+        parent = self.parent
+        if parent is None:
+            return self.__text
+        else:
+            return "%s/%s" % (parent._getCanonicalName(), self.__text)
 
     @property
     def obj(self):

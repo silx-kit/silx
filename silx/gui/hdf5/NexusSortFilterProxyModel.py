@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/06/2018"
+__date__ = "24/07/2018"
 
 
 import logging
@@ -47,6 +47,24 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         qt.QSortFilterProxyModel.__init__(self, parent)
         self.__split = re.compile("(\\d+|\\D+)")
         self.__iconCache = {}
+
+    def hasChildren(self, parent):
+        """Returns true if parent has any children; otherwise returns false.
+
+        :param qt.QModelIndex parent: Index of the item to check
+        :rtype: bool
+        """
+        parent = self.mapToSource(parent)
+        return self.sourceModel().hasChildren(parent)
+
+    def rowCount(self, parent):
+        """Returns the number of rows under the given parent.
+
+        :param qt.QModelIndex parent: Index of the item to check
+        :rtype: int
+        """
+        parent = self.mapToSource(parent)
+        return self.sourceModel().rowCount(parent)
 
     def lessThan(self, sourceLeft, sourceRight):
         """Returns True if the value of the item referred to by the given
