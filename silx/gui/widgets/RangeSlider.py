@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,618 +23,545 @@
 #
 # ###########################################################################*/
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "25/07/2018"
 
 
-from collections import namedtuple, OrderedDict
+import numpy as numpy
 
-import numpy as np
-
-from silx.gui import qt as Qt
-
-from ...gui.icons import getQIcon as getKmapIcon
+from silx.gui import qt, icons, colors
+from silx.gui.utils._image import convertArrayToQImage
 
 
-RangeSliderState = namedtuple('RangeSliderState', ['left', 'right',
-                                                   'leftIndex', 'rightIndex'])
+class RangeSlider(qt.QWidget):
+    """Range slider with 2 thumbs and an optional colored groove.
 
+    :param QWidget parent: See QWidget
+    """
 
-class RangeSlider(Qt.QWidget):
-    _defaultMinimumHeight = 20
-    _defaultMinimumSize = (50, 20)
-    _defaultMaximumHeight = 20.
+    _SLIDER_WIDTH = 10
+    """Width of the slider rectangle"""
 
-    _defaultKeybordValueMove = 1
-    """ Number of steps moved when using the arrow keys """
+    _PIXMAP_VOFFSET = 7
+    """Vertical groove pixmap offset"""
 
-    _defaultNSteps = 1000
+    sigNumberOfStepsChanged = qt.Signal(int)
+    """This signal is emitted when the number of steps has changed.
 
-    _sliderWidth = 10
-    _pixmapVOffset = 7
+    It provides the new number of steps.
+    """
 
-    sigSliderMoved = Qt.Signal(object)
+    sigPositionChanged = qt.Signal(int, int)
+    """Signal emitted when the position of the sliders has changed.
 
-    # TODO : add center slider
+    It provides the slider positions (first, second).
+    """
 
-    def __init__(self, *args, **kwargs):
+    sigRangeChanged = qt.Signal(float, float)
+    """Signal emitted when the value range has changed.
+
+    It provides the new range (min, max).
+    """
+
+    sigValueChanged = qt.Signal(float, float)
+    """Signal emitted when the value of the sliders has changed.
+
+    It provides the slider values (first, second).
+    """
+
+    def __init__(self, parent=None):
         self.__pixmap = None
+        self.__steps = 100
+        self.__firstPosition = 0
+        self.__secondPosition = self.__steps - 1
+        self.__minValue = 0.
+        self.__maxValue = 1.
 
-        self.__moving = None
-        self.__hover = None
         self.__focus = None
-        self.__range = None
-        self.__nSteps = self._defaultNSteps
-        self.__snap = False
+        self.__moving = None
 
-        self.__sliderIcons = {'left': getKmapIcon('right_arrow'),
-                              'right': getKmapIcon('left_arrow')}
-
-        self.__sliders = OrderedDict([('left', Qt.QRect()),
-                                      ('right', Qt.QRect())])
-        self.__values = {'left': None, 'right': None}
-        self.__showRangeBackground = None
+        self.__icons = {
+            'first': icons.getQIcon('previous'),
+            'second': icons.getQIcon('next')
+        }
 
         # call the super constructor AFTER defining all members that
         # are used in the "paint" method
-        super(RangeSlider, self).__init__(*args, **kwargs)
+        super(RangeSlider, self).__init__(parent)
 
-        self.setFocusPolicy(Qt.Qt.ClickFocus)
+        self.setFocusPolicy(qt.Qt.ClickFocus)
 
-        self.__setupSliders()
+        self.setMinimumSize(qt.QSize(50, 20))
+        self.setMaximumHeight(20)
 
-        self.setMouseTracking(True)
-        self.setMinimumSize(Qt.QSize(*self._defaultMinimumSize))
-        self.setMaximumHeight(self._defaultMaximumHeight)
+        # Broadcast value changed signal
+        self.sigPositionChanged.connect(self.__emitValueChanged)
+        self.sigRangeChanged.connect(self.__emitValueChanged)
 
-        self.setSliderValues(None, None)
+    # Position <-> Value conversion
 
-    def setSliderResolution(self, nSteps):
+    def __positionToValue(self, position):
+        """Returns value corresponding to position
+
+        :param int position:
+        :rtype: float
         """
-        Sets the slider resolution. Set to None to reset it to its default
-         value (1000).
-        :param nSteps:
-        :return:
+        min_, max_ = self.getMinimum(), self.getMaximum()
+        maxPos = self.getNumberOfSteps() - 1
+        return min_ + (max_ - min_) * int(position) / maxPos
+
+    def __valueToPosition(self, value):
+        """Returns closest position corresponding to value
+
+        :param float value:
+        :rtype: int
         """
-        if nSteps is None:
-            if self.__pixmap is None:
-                nSteps = self._defaultNSteps
-            else:
-                nSteps = self.__pixmap.width()
-        self.__nSteps = nSteps
+        min_, max_ = self.getMinimum(), self.getMaximum()
+        maxPos = self.getNumberOfSteps() - 1
+        return int(0.5 + maxPos * (float(value) - min_) / (max_ - min_))
+
+    # Position (int) API
+
+    def getNumberOfSteps(self):
+        """Returns the number of steps.
+
+        :rtype: int"""
+        return self.__steps
+
+    def setNumberOfSteps(self, steps):
+        """Set the number of steps.
+
+        Slider positions are eventually adjusted.
+
+        :param int steps:
+        :raise ValueError: If steps is negative or null
+        """
+        steps = int(steps)
+        if steps != self.getNumberOfSteps():
+            if steps <= 0:
+                raise ValueError("Number of steps must be strictly positive")
+            previousPositions = self.getPositions()
+            self.__steps = steps
+            self.sigNumberOfStepsChanged.emit(steps)
+            self.__setPositions(*previousPositions)
+
+    def getFirstPosition(self):
+        """Returns first slider position
+
+        :rtype: int
+        """
+        return self.__firstPosition
+
+    def setFirstPosition(self, position):
+        """Set the position of the first slider
+
+        The position is adjusted to valid values
+
+        :param int position:
+        """
+        position = int(position)
+        if position != self.getFirstPosition():
+            self.__firstPosition = min(max(0, position),
+                                       self.getSecondPosition())
+            self.update()
+            self.sigPositionChanged.emit(*self.getPositions())
+
+    def getSecondPosition(self):
+        """Returns second slider position
+
+        :rtype: int
+        """
+        return self.__secondPosition
+
+    def setSecondPosition(self, position):
+        """Set the position of the second slider
+
+        The position is adjusted to valid values
+
+        :param int position:
+        """
+        position = int(position)
+        if position != self.getSecondPosition():
+            self.__secondPosition = min(max(self.getFirstPosition(), position),
+                                        self.getNumberOfSteps() - 1)
+            self.update()
+            self.sigPositionChanged.emit(*self.getPositions())
+
+    def getPositions(self):
+        """Returns slider positions (first, second)
+
+        :rtype: List[int]
+        """
+        return self.getFirstPosition(), self.getSecondPosition()
+
+    def __setPositions(self, first, second):
+        """Set slider positions.
+
+        This method does not check if slider positions are already set
+
+        :param int first:
+        :param int second:
+        """
+        maxPos = self.getNumberOfSteps() - 1
+        first, second = int(first), int(second)
+        self.__firstPosition = min(max(0, first), maxPos)
+        self.__secondPosition = min(max(first, second), maxPos)
         self.update()
+        self.sigPositionChanged.emit(*self.getPositions())
 
-    def getSliderResolution(self):
-        """
-        Returns the slider resolution.
-        :return:
-        """
-        return self.__nSteps
+    def setPositions(self, first, second):
+        """Set the position of both sliders at once
 
-    def setSnap(self, snap):
-        """
-        Tells the slider to snap to the grid.
-        See also : RangeSlider.setSliderResolution.
-        :param snap:
-        :return:
-        """
-        self.update()
-        self.__snap = snap
+        First is clipped to the slider range: [0, number of steps].
+        Second is clipped to valid values: [first, number of steps]
 
-    def isSnap(self):
+        :param int first:
+        :param int second:
         """
-        Returns True if the slider snaps to the grid.
-        :return:
+        if (first != self.getFirstPosition() or
+                second != self.getSecondPosition()):
+            self.__setPositions(first, second)
+
+    # Value (float) API
+
+    def __emitValueChanged(self, *args, **kwargs):
+        self.sigValueChanged.emit(*self.getValues())
+
+    def getMinimum(self):
+        """Returns the minimum value of the slider range
+
+        :rtype: float
         """
-        return self.__snap
+        return self.__minValue
+
+    def setMinimum(self, minimum):
+        """Set the minimum value of the slider range.
+
+        It eventually adjusts maximum.
+        Slider positions remains unchanged and slider values are modified.
+
+        :param float minimum:
+        """
+        minimum = float(minimum)
+        if minimum != self.getMinimum():
+            if minimum > self.getMaximum():
+                self.__maxValue = minimum
+            self.__minValue = minimum
+            self.sigRangeChanged.emit(*self.getRange())
+
+    def getMaximum(self):
+        """Returns the maximum value of the slider range
+
+        :rtype: float
+        """
+        return self.__maxValue
+
+    def setMaximum(self, maximum):
+        """Set the maximum value of the slider range
+
+        It eventually adjusts minimum.
+        Slider positions remains unchanged and slider values are modified.
+
+        :param float maximum:
+        """
+        maximum = float(maximum)
+        if maximum != self.getMaximum():
+            if maximum < self.getMinimum():
+                self.__minValue = maximum
+            self.__maxValue = maximum
+            self.sigRangeChanged.emit(*self.getRange())
 
     def getRange(self):
-        if self.__range is None:
-            if self.__pixmap is None:
-                sliderRange = [0., self.__nSteps]
-            else:
-                sliderRange = [0., self.__pixmap.width() - 1.]
-        else:
-            sliderRange = self.__range
-        return sliderRange
+        """Returns the range of values (min, max)
 
-    def setRange(self, sliderRng):
+        :rtype: List[float]
         """
-        Set to None to reset (range will be 0 -> _defaultNSteps) or
-            (0 -> profile length)
-        :param sliderRng:
-        :return:
+        return self.getMinimum(), self.getMaximum()
+
+    def setRange(self, minimum, maximum):
+        """Set the range of values.
+
+        If maximum is lower than minimum, minimum is the only valid value.
+        Slider positions remains unchanged and slider values are modified.
+
+        :param float minimum:
+        :param float maximum:
         """
-        if sliderRng is not None:
-            reset = self.__range is None
-            if len(sliderRng) != 2:
-                raise ValueError('The slider range must be a 2-elements '
-                                 'array, or None.')
-            if sliderRng[0] >= sliderRng[1]:
-                raise ValueError('Min range must be sctrictly lower than'
-                                 'max range.')
-            self.__range = np.array(sliderRng, dtype=np.float)
-        else:
-            reset = True
-            self.__range = None
+        minimum, maximum = float(minimum), float(maximum)
+        if minimum != self.getMinimum() or maximum != self.getMaximum():
+            self.__minValue = minimum
+            self.__maxValue = max(maximum, minimum)
+            self.sigRangeChanged.emit(*self.getRange())
 
-        if reset:
-            self.resetSliderValues()
+    def getFirstValue(self):
+        """Returns the value of the first slider
 
-    def resetSliderValues(self):
+        :rtype: float
         """
-        Sets the left and right slider values to the min and max of the range.
-        :return:
+        return self.__positionToValue(self.getFirstPosition())
+
+    def setFirstValue(self, value):
+        """Set the value of the first slider
+
+        Value is clipped to valid values.
+
+        :param float value:
         """
-        self.setSliderValues(None, None)
+        self.setFirstPosition(self.__valueToPosition(value))
 
-    def setShowRangeBackground(self, show):
+    def getSecondValue(self):
+        """Returns the value of the second slider
+
+        :rtype: float
         """
-        Set to True to color the area between the two slider.
-        Set to False to hide it.
-        Set to None to revert back to the default behaviour : shown when no
-            pixmap is set, and hidden otherwise
-        :param show:
-        :return:
+        return self.__positionToValue(self.getSecondPosition())
+
+    def setSecondValue(self, value):
+        """Set the value of the second slider
+
+        Value is clipped to valid values.
+
+        :param float value:
         """
-        self.__showRangeBackground = show
-        self.update()
+        self.setSecondPosition(self.__positionToValue(value))
 
-    def __drawArea(self):
-        return self.rect().adjusted(self._sliderWidth, 0,
-                                    -self._sliderWidth, 0)
+    def getValues(self):
+        """Returns value of both sliders at once
 
-    def __sliderRect(self):
-        return self.__drawArea().adjusted(self._sliderWidth / 2.,
-                                          0,
-                                          -self._sliderWidth / 2.,
-                                          0)
-
-    def __pixMapRect(self):
-        return self.__sliderRect().adjusted(0,
-                                            self._pixmapVOffset,
-                                            0,
-                                            -self._pixmapVOffset)
-
-    def __setupSliders(self):
-        area = self.__sliderRect()
-        height = area.height()
-        width = self._sliderWidth
-
-        template = Qt.QRect(area.left(),
-                            area.top(),
-                            width,
-                            height)
-
-        self.__sliders['left'] = template.translated(width/-2, 0)
-        self.__sliders['right'] = template.translated(width/2, 0)
-
-    def __valueToIndex(self, value):
-        if self.__pixmap:
-            sliderRange = self.getRange()
-            pixLength = self.__pixmap.width()
-            sliderWidth = sliderRange[1] - sliderRange[0]
-            ratio = (pixLength - 1) / sliderWidth
-            index = int(np.floor(0.5 + ratio * (value - sliderRange[0])))
-        else:
-            index = None
-        return index
-
-    def __setSliderValue(self, side, value):
-        slider = self.__sliders[side]
-        values = self.__values
-        sliderRange = self.getRange()
-
-        if side == 'left':
-            moveMeth = slider.moveRight
-            minValue = sliderRange[0]
-            maxValue = values['right']
-            if maxValue is None:
-                maxValue = sliderRange[1]
-            default = minValue
-        else:
-            moveMeth = slider.moveLeft
-            minValue = values['left']
-            if minValue is None:
-                minValue = sliderRange[0]
-            maxValue = sliderRange[1]
-            default = maxValue
-
-        if value is not None:
-            if value < minValue:
-                value = minValue
-            elif value > maxValue:
-                value = maxValue
-        else:
-            value = default
-
-        if self.__snap:
-            # snapping to the grid
-            sRange = sliderRange[1] - sliderRange[0]
-            step = np.floor(0.5 +
-                            (value - sliderRange[0]) *
-                            (self.__nSteps - 1) /
-                            sRange)
-            value = sliderRange[0] + step * (sRange / (self.__nSteps - 1))
-
-        x = self.__valueToPos(value)
-
-        moveMeth(x)
-
-        if values[side] != value:
-            notify = True
-            values[side] = value
-        else:
-            notify = False
-
-        self.update()
-
-        if notify:
-            left = values['left']
-            if left is None:
-                left = sliderRange[0]
-            right = values['right']
-            if right is None:
-                right = sliderRange[1]
-
-            leftIndex = self.__valueToIndex(left)
-            rightIndex = self.__valueToIndex(right)
-
-            event = RangeSliderState(left=left,
-                                     right=right,
-                                     leftIndex=leftIndex,
-                                     rightIndex=rightIndex)
-
-            self.sigSliderMoved.emit(event)
-
-        return value
-
-    def getSliderState(self):
+        :return: (first value, second value)
+        :rtype: List[float]
         """
-        Returns the state of the slider : values and indices.
-        :return:
+        return self.getFirstValue(), self.getSecondValue()
+
+    def setValues(self, first, second):
+        """Set values for both sliders at once
+
+        First is clipped to the slider range: [minimum, maximum].
+        Second is clipped to valid values: [first, maximum]
+
+        :param float first:
+        :param float second:
         """
-        indices = self.getSliderIndices()
-        values = self.getSliderValues()
-        state = RangeSliderState(left=values[0],
-                                 right=values[1],
-                                 leftIndex=indices[0],
-                                 rightIndex=indices[1])
-        return state
+        self.setPositions(self.__valueToPosition(first),
+                          self.__valueToPosition(second))
 
-    def __posToValue(self, x):
+    # Groove API
+
+    def getGroovePixmap(self):
+        """Returns the pixmap displayed in the slider groove if any.
+
+        :rtype: Union[QPixmap,None]
         """
-        Returns the value corresponding the the given slider position.
-        :param x:
-        :return:
+        return self.__pixmap
+
+    def setGroovePixmap(self, pixmap):
+        """Set the pixmap displayed in the slider groove.
+
+        :param Union[QPixmap,None] pixmap: The QPixmap to use or None to unset.
         """
-        sliderArea = self.__sliderRect()
-        sliderRange = self.getRange()
-
-        value = (sliderRange[0] +
-                 (x - sliderArea.left()) * (sliderRange[1] - sliderRange[0])
-                 / (sliderArea.width() - 1))
-
-        return value
-
-    def __valueToPos(self, value):
-        """
-        Returns the slider position corresponding to the given value.
-        :param value:
-        :return:
-        """
-        sliderArea = self.__sliderRect()
-        sliderRange = self.getRange()
-
-        x = (sliderArea.left() +
-             (sliderArea.width() - 1.) * (value - sliderRange[0])
-             / (sliderRange[1] - sliderRange[0]))
-
-        return x
-
-    def getSliderValue(self, side):
-        """
-        Returns the slider value.
-        :param side:
-        :return:
-        """
-        value = self.__values[side]
-        if value is None:
-            sliderRange = self.getRange()
-            if side == 'left':
-                value = sliderRange[0]
-            else:
-                value = sliderRange[1]
-        return value
-
-    def getSliderValues(self):
-        """
-        Returns the left and right slider values.
-        :return:
-        """
-        return (self.getSliderValue('left'),
-                self.getSliderValue('right'))
-
-    def getSliderIndex(self, side):
-        """
-        Returns the slider index
-            (i.e : the step the sliders is closest to,
-            between 0 and resolution - 1).
-            See also : RangeSlider.setResolution.
-        :param side:
-        :return:
-        """
-        return self.__valueToIndex(self.getSliderValue(side))
-
-    def getSliderIndices(self):
-        """
-        Returns the left and right slider index
-            (i.e : the step the slider is closest to,
-            between 0 and resolution - 1).
-            See also : RangeSlider.setResolution.
-        :return:
-        """
-        return (self.getSliderIndex('left'),
-                self.getSliderIndex('right'))
-
-    def setSliderValue(self, side, value):
-        """
-
-        :param side: 'left' or 'right'
-        :param value: float between range min and range max.
-            (leftmost to rightmost)
-        :return:
-        """
-        assert side in ('left', 'right')
-
-        self.__setSliderValue(side, value)
-
-    def setSliderValues(self, leftValue, rightValue):
-        self.setSliderValue('left', leftValue)
-        self.setSliderValue('right', rightValue)
-
-    def resizeEvent(self, event):
-        super(RangeSlider, self).resizeEvent(event)
-        self.__setupSliders()
-        for side, value in self.__values.items():
-            self.setSliderValue(side, value)
-
-    def showEvent(self, event):
-        super(RangeSlider, self).showEvent(event)
-
-    def __mouseOnItem(self, pos):
-        """
-        Returns True if the given pos intersects whith one of the shapes
-        :param pos:
-        :type pos: QPoint
-        :return:
-        """
-        for side, area in self.__sliders.items():
-            if area.contains(pos):
-                return side
-        return None
-
-    def mouseMoveEvent(self, event):
-        super(RangeSlider, self).mouseMoveEvent(event)
-
-        pos = event.pos()
-        update = False
-
-        if not self.__moving:
-            side = self.__mouseOnItem(pos)
-            if side != self.__hover:
-                update = True
-            self.__hover = side
-        else:
-            self.__values[self.__moving] =\
-                self.__setSliderValue(self.__moving,
-                                      self.__posToValue(pos.x()))
-            update = True
-        if update:
-            self.update()
-
-    def mousePressEvent(self, event):
-        super(RangeSlider, self).mousePressEvent(event)
-
-        if not self.__moving and event.buttons() == Qt.Qt.LeftButton:
-            self.__moving = self.__mouseOnItem(event.pos())
-            self.__focus = self.__moving
-            self.update()
-
-    def focusOutEvent(self, event):
-        self.__focus = None
-        self.__hover = None
-        super(RangeSlider, self).focusOutEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        super(RangeSlider, self).mouseReleaseEvent(event)
-        if event.button() == Qt.Qt.LeftButton:
-            if self.__moving:
-                self.__moving = None
-                self.update()
-
-    def keyPressEvent(self, event):
-        accepted = (Qt.Qt.Key_Left, Qt.Qt.Key_Right)
-        key = event.key()
-        sliderRange = self.getRange()
-        if (self.__focus and
-                    event.modifiers() == Qt.Qt.NoModifier and
-                    key in accepted):
-            disp = (self._defaultKeybordValueMove *
-                    (sliderRange[1] - sliderRange[0]) / (self.__nSteps - 1))
-            move = ((key == Qt.Qt.Key_Left and
-                     -1.0 * disp) or
-                    disp)
-            self.__setSliderValue(self.__focus,
-                                  self.__values[self.__focus] + move)
-
-        super(RangeSlider, self).keyPressEvent(event)
-
-    def setSliderPixmap(self, pixmap, resetSliders=None, snap=True):
-        """
-        Sets the pixmap displayed in the slider groove.
-        None to unset.
-        See also : RangeSlider.setSliderProfile
-        :param pixmap:
-        :param resetSliders: True to reset the slider positions to their
-            extremes. If None the values positions will be reset if there
-            was no previous pixmap.
-        :param snap: set to True to set the number of steps equal to the length
-            of the pixmap (equivalent to calling setNSteps).
-            If false, the number of steps will be unchanged, and snap will be
-            set to False.
-        :return:
-        """
-        if pixmap is not None and pixmap.width() <= 1:
-            raise ValueError('Pixmap must have a width > 1.')
+        assert pixmap is None or isinstance(pixmap, qt.QPixmap)
         self.__pixmap = pixmap
-        if resetSliders:
-            self.setSliderValues(None, None)
-        if snap and pixmap is not None:
-            self.setSliderResolution(pixmap.width())
-        self.setSnap(snap)
         self.update()
 
-    def setSliderProfile(self,
-                         profile,
-                         colormap=None,
-                         resetSliders=None,
-                         snap=True):
-        """
-        Use the profile array to create a pixmap displayed in the slider
-        groove.
-        See also : RangeSlider.setSliderPixmap
-        :param profile: 1D array
-        :param colormap: a list of QRgb values (see : QImage.setColorTable)
-        :param resetSliders: True to reset the slider positions to their
-            extremes. If None the values positions will be reset if there
-            was no previous profile.
-        :param snap: set to True to set the number of steps equal to the length
-            of the profile (equivalent to calling setNSteps and setSnap).
-            If false, the number of steps will be unchanged, and snap will be
-            set to False.
-        :return:
+    def setGroovePixmapFromProfile(self, profile, colormap=None):
+        """Set the pixmap displayed in the slider groove from histogram values.
+
+        :param Union[numpy.ndarray,None] profile:
+            1D array of values to display
+        :param Union[Colormap,str] colormap:
+            The colormap name or object to convert profile values to colors
         """
         if profile is None:
             self.setSliderPixmap(None)
             return
 
-        if profile.ndim != 1:
-            raise ValueError('Profile must be a 1D array.')
+        profile = numpy.array(profile, copy=False)
 
-        if profile.shape[0] <= 1:
-            raise ValueError('Profile must be have a length > 1.')
+        if profile.size == 0:
+            self.setSliderPixmap(None)
+            return
 
-        if colormap is not None:
-            nColors = len(colormap)
-            if nColors > 255:
-                raise ValueError('Max 256 indexed colors supported'
-                                 ' at the moment')
+        if colormap is None:
+            colormap = colors.Colormap()
+        elif isinstance(colormap, str):
+            colormap = colors.Colormap(name=colormap)
+        assert isinstance(colormap, colors.Colormap)
+
+        rgbImage = colormap.applyToData(profile.reshape(1, -1))[:, :, :3]
+        qimage = convertArrayToQImage(rgbImage)
+        qpixmap = qt.QPixmap.fromImage(qimage)
+        self.setGroovePixmap(qpixmap)
+
+    # Handle interaction
+
+    def mousePressEvent(self, event):
+        super(RangeSlider, self).mousePressEvent(event)
+
+        if event.buttons() == qt.Qt.LeftButton:
+            picked = None
+            for name in ('first', 'second'):
+                area = self.__sliderRect(name)
+                if area.contains(event.pos()):
+                    picked = name
+                    break
+
+            self.__moving = picked
+            self.__focus = picked
+            self.update()
+
+    def mouseMoveEvent(self, event):
+        super(RangeSlider, self).mouseMoveEvent(event)
+
+        if self.__moving is not None:
+            position = self.__xPixelToPosition(event.pos().x(), self.__moving)
+            if self.__moving == 'first':
+                self.setFirstPosition(position)
+            else:
+                self.setSecondPosition(position)
+
+    def mouseReleaseEvent(self, event):
+        super(RangeSlider, self).mouseReleaseEvent(event)
+
+        if event.button() == qt.Qt.LeftButton and self.__moving is not None:
+            self.__moving = None
+            self.update()
+
+    def focusOutEvent(self, event):
+        if self.__focus is not None:
+            self.__focus = None
+            self.update()
+        super(RangeSlider, self).focusOutEvent(event)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if event.modifiers() == qt.Qt.NoModifier and self.__focus is not None:
+            if key in (qt.Qt.Key_Left, qt.Qt.Key_Down):
+                if self.__focus == 'first':
+                    self.setFirstPosition(self.getFirstPosition() - 1)
+                else:
+                    self.setSecondPosition(self.getSecondPosition() - 1)
+                return  # accept event
+            elif key in (qt.Qt.Key_Right, qt.Qt.Key_Up):
+                if self.__focus == 'first':
+                    self.setFirstPosition(self.getFirstPosition() + 1)
+                else:
+                    self.setSecondPosition(self.getSecondPosition() + 1)
+                return  # accept event
+
+        super(RangeSlider, self).keyPressEvent(event)
+
+    # Handle repaint
+
+    def __xPixelToPosition(self, x, name):
+        """Convert position in pixel to slider position
+
+        :param int x: X in pixel coordinates
+        :rtype: int
+        """
+        sliderArea = self.__sliderAreaRect()
+        maxPos = self.getNumberOfSteps() - 1
+        position = maxPos * (x - sliderArea.left()) / (sliderArea.width() - 1)
+        if name == 'first':
+            return int(position + 0.5)
         else:
-            nColors = 255
+            return int(position)
 
-        _min = profile.min()
-        _max = profile.max()
-        indices = np.int8(nColors * (profile.astype(np.float64) - _min)
-                          / (_max - _min))
-        qimage = Qt.QImage(indices.data,
-                           indices.shape[0],
-                           1,
-                           Qt.QImage.Format_Indexed8)
+    def __sliderRect(self, name):
+        """Returns rectangle corresponding to slider in pixels
 
-        if colormap is not None:
-            qimage.setColorTable(colormap)
+        :param str name: 'first' or 'second'
+        :rtype: QRect
+        :raise ValueError: If wrong name
+        """
+        assert name in ('first', 'second')
+        if name == 'first':
+            offset = - self._SLIDER_WIDTH
+            position = self.getFirstPosition()
+        elif name == 'second':
+            offset = 0
+            position = self.getSecondPosition()
+        else:
+            raise ValueError('Unknown name')
 
-        qpixmap = Qt.QPixmap.fromImage(qimage)
-        self.setSliderPixmap(qpixmap,
-                             resetSliders=resetSliders,
-                             snap=snap)
+        sliderArea = self.__sliderAreaRect()
+
+        maxPos = self.getNumberOfSteps() - 1
+        xOffset = int((sliderArea.width() - 1) * position / maxPos)
+        xPos = sliderArea.left() + xOffset + offset
+
+        return qt.QRect(xPos,
+                        sliderArea.top(),
+                        self._SLIDER_WIDTH,
+                        sliderArea.height())
+
+    def __drawArea(self):
+        return self.rect().adjusted(self._SLIDER_WIDTH, 0,
+                                    -self._SLIDER_WIDTH, 0)
+
+    def __sliderAreaRect(self):
+        return self.__drawArea().adjusted(self._SLIDER_WIDTH / 2.,
+                                          0,
+                                          -self._SLIDER_WIDTH / 2.,
+                                          0)
+
+    def __pixMapRect(self):
+        return self.__sliderAreaRect().adjusted(0,
+                                                self._PIXMAP_VOFFSET,
+                                                0,
+                                                -self._PIXMAP_VOFFSET)
 
     def paintEvent(self, event):
-        painter = Qt.QPainter(self)
+        painter = qt.QPainter(self)
 
-        style = Qt.QApplication.style()
+        style = qt.QApplication.style()
 
         area = self.__drawArea()
         pixmapRect = self.__pixMapRect()
 
-        sliders = self.__sliders
-
-        option = Qt.QStyleOptionProgressBar()
+        option = qt.QStyleOptionProgressBar()
         option.initFrom(self)
         option.rect = area
-        option.state = ((self.isEnabled() and Qt.QStyle.State_Enabled)
-                        or Qt.QStyle.State_None)
-        style.drawControl(Qt.QStyle.CE_ProgressBarGroove,
+        option.state = ((self.isEnabled() and qt.QStyle.State_Enabled)
+                        or qt.QStyle.State_None)
+        style.drawControl(qt.QStyle.CE_ProgressBarGroove,
                           option,
                           painter,
                           self)
 
-        # showing interval rect only if show is forced or if there is not
-        # background and show is True or None
-        showRngBckgrnd = (self.__showRangeBackground
-                          or (self.__pixmap and self.__showRangeBackground)
-                          or (self.__pixmap is None
-                              and self.__showRangeBackground is None)
-                          or self.__showRangeBackground)
+        painter.save()
+        pen = painter.pen()
+        pen.setWidth(1)
+        pen.setColor(qt.Qt.black if self.isEnabled() else qt.Qt.gray)
+        painter.setPen(pen)
+        painter.drawRect(pixmapRect.adjusted(-1, -1, 1, 1))
+        painter.restore()
 
-        alpha = (self.isEnabled() and 255) or 100
-
-        if showRngBckgrnd:
-            painter.save()
-            rect = Qt.QRect(area)
-            rect.setLeft(sliders['left'].center().x())
-            rect.setRight(sliders['right'].center().x())
-            gradient = Qt.QLinearGradient(area.topLeft(), area.bottomLeft())
-            color = Qt.QColor(Qt.Qt.cyan)
-            color.setAlpha(alpha)
-            gradient.setColorAt(0., color)
-            color = Qt.QColor(Qt.Qt.blue)
-            color.setAlpha(alpha)
-            gradient.setColorAt(1., color)
-            brush = Qt.QBrush(gradient)
-            painter.setBrush(brush)
-            painter.drawRect(rect)
-            painter.restore()
-
-        if self.__pixmap and alpha == 255:
-            painter.save()
-            pen = painter.pen()
-            pen.setWidth(2)
-            pen.setColor(Qt.Qt.black)
-            painter.setPen(pen)
-            painter.drawRect(pixmapRect.adjusted(-1, -1, 1, 1))
-            painter.restore()
-
-            painter.drawPixmap(area.adjusted(self._sliderWidth/2,
-                                             self._pixmapVOffset,
-                                             -self._sliderWidth/2,
-                                             -self._pixmapVOffset),
+        if self.isEnabled() and self.__pixmap is not None:
+            painter.drawPixmap(area.adjusted(self._SLIDER_WIDTH / 2,
+                                             self._PIXMAP_VOFFSET,
+                                             -self._SLIDER_WIDTH / 2,
+                                             -self._PIXMAP_VOFFSET + 1),
                                self.__pixmap,
                                self.__pixmap.rect())
 
-        option = Qt.QStyleOptionButton()
-        option.initFrom(self)
-
-        for side, slider in sliders.items():
-            option.icon = self.__sliderIcons[side]
-            option.iconSize = slider.size() * 0.7
-            if self.__hover == side:
-                option.state |= Qt.QStyle.State_MouseOver
-            elif option.state & Qt.QStyle.State_MouseOver:
-                option.state ^= Qt.QStyle.State_MouseOver
-            if self.__focus == side:
-                option.state |= Qt.QStyle.State_HasFocus
-            elif option.state & Qt.QStyle.State_HasFocus:
-                option.state ^= Qt.QStyle.State_HasFocus
-            option.rect = slider
-            style.drawControl(Qt.QStyle.CE_PushButton,
-                              option,
-                              painter,
-                              self)
+        for name in ('first', 'second'):
+            rect = self.__sliderRect(name)
+            option = qt.QStyleOptionButton()
+            option.initFrom(self)
+            option.icon = self.__icons[name]
+            option.iconSize = rect.size() * 0.7
+            if option.state & qt.QStyle.State_MouseOver:
+               option.state ^= qt.QStyle.State_MouseOver
+            if self.__focus == name:
+                option.state |= qt.QStyle.State_HasFocus
+            elif option.state & qt.QStyle.State_HasFocus:
+                option.state ^= qt.QStyle.State_HasFocus
+            option.rect = rect
+            style.drawControl(
+                qt.QStyle.CE_PushButton, option, painter, self)
 
     def sizeHint(self):
-        return Qt.QSize(*self._defaultMinimumSize)
+        return qt.QSize(200, self.minimumHeight())
