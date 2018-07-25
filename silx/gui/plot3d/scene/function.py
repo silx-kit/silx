@@ -28,7 +28,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "08/11/2016"
+__date__ = "17/07/2018"
 
 
 import contextlib
@@ -428,7 +428,7 @@ class Colormap(event.Notifier, ProgramFunction):
         range_ = float(range_[0]), float(range_[1])
 
         if self.norm == 'log' and (range_[0] <= 0. or range_[1] <= 0.):
-            _logger.warn(
+            _logger.warning(
                 "Log normalization and negative range: updating range.")
             minPos = numpy.finfo(numpy.float32).tiny
             range_ = max(range_[0], minPos), max(range_[1], minPos)

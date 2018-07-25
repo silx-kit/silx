@@ -198,7 +198,7 @@ from silx.third_party import six
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/03/2018"
+__date__ = "17/07/2018"
 
 logger1 = logging.getLogger(__name__)
 
@@ -600,24 +600,24 @@ class ScanGroup(commonh5.Group, SpecH5Group):
             try:
                 start_time_str = spec_date_to_iso8601(scan.scan_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warn("Could not parse date format in scan %s header." +
-                             " Using original date not converted to ISO-8601",
-                             scan_key)
+                logger1.warning("Could not parse date format in scan %s header." +
+                                " Using original date not converted to ISO-8601",
+                                scan_key)
                 start_time_str = scan.scan_header_dict["D"]
         elif "D" in scan.file_header_dict:
-            logger1.warn("No #D line in scan %s header. " +
-                         "Using file header for start_time.",
-                         scan_key)
+            logger1.warning("No #D line in scan %s header. " +
+                            "Using file header for start_time.",
+                            scan_key)
             try:
                 start_time_str = spec_date_to_iso8601(scan.file_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warn("Could not parse date format in scan %s header. " +
-                             "Using original date not converted to ISO-8601",
-                             scan_key)
+                logger1.warning("Could not parse date format in scan %s header. " +
+                                "Using original date not converted to ISO-8601",
+                                scan_key)
                 start_time_str = scan.file_header_dict["D"]
         else:
-            logger1.warn("No #D line in %s header. Setting date to empty string.",
-                         scan_key)
+            logger1.warning("No #D line in %s header. Setting date to empty string.",
+                            scan_key)
             start_time_str = ""
         self.add_node(SpecH5NodeDataset(name="start_time",
                                         data=to_h5py_utf8(start_time_str),

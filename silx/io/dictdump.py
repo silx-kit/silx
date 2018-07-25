@@ -47,7 +47,7 @@ from .utils import open as h5open
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/06/2017"
+__date__ = "17/07/2018"
 
 logger = logging.getLogger(__name__)
 
@@ -419,25 +419,31 @@ def load(ffile, fmat=None):
     :return: Dictionary (ordered dictionary for JSON and INI)
     :raises IOError: if file format is not supported
     """
+    must_be_closed = False
     if not hasattr(ffile, "read"):
         f = open(ffile, "r")
         fname = ffile
+        must_be_closed = True
     else:
         f = ffile
         fname = ffile.name
 
-    if fmat is None:  # Use file extension as format
-        fmat = os.path.splitext(fname)[1][1:]  # Strip extension leading '.'
-    fmat = fmat.lower()
+    try:
+        if fmat is None:  # Use file extension as format
+            fmat = os.path.splitext(fname)[1][1:]  # Strip extension leading '.'
+        fmat = fmat.lower()
 
-    if fmat == "json":
-        return json.load(f, object_pairs_hook=OrderedDict)
-    if fmat in ["hdf5", "h5"]:
-        if h5py_missing:
-            logger.error("Cannot load from HDF5 format, missing h5py library")
-            raise h5py_import_error
-        return h5todict(fname)
-    elif fmat in ["ini", "cfg"]:
-        return ConfigDict(filelist=[fname])
-    else:
-        raise IOError("Unknown format " + fmat)
+        if fmat == "json":
+            return json.load(f, object_pairs_hook=OrderedDict)
+        if fmat in ["hdf5", "h5"]:
+            if h5py_missing:
+                logger.error("Cannot load from HDF5 format, missing h5py library")
+                raise h5py_import_error
+            return h5todict(fname)
+        elif fmat in ["ini", "cfg"]:
+            return ConfigDict(filelist=[fname])
+        else:
+            raise IOError("Unknown format " + fmat)
+    finally:
+        if must_be_closed:
+            f.close()

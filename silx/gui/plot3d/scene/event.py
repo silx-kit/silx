@@ -28,7 +28,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "17/07/2018"
 
 
 import logging
@@ -66,7 +66,7 @@ class Notifier(object):
         try:
             self._listeners.remove(listener)
         except ValueError:
-            _logger.warn('Trying to remove a listener that is not registered')
+            _logger.warning('Trying to remove a listener that is not registered')
 
     def notify(self, *args, **kwargs):
         """Notify all registered listeners with the given parameters.
