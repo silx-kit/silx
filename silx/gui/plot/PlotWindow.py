@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/07/2018"
+__date__ = "24/07/2018"
 
 import collections
 import logging
@@ -520,6 +520,7 @@ class PlotWindow(PlotWidget):
             dockWidget.setWindowTitle("Curves stats")
             dockWidget.layout().setContentsMargins(0, 0, 0, 0)
             self._statsWidget = BasicStatsWidget(parent=self, plot=self)
+            self._statsWidget.sigVisibilityChanged.connect(self.getStatsAction().setChecked)
             dockWidget.setWidget(self._statsWidget)
             dockWidget.hide()
             self.addTabbedDockWidget(dockWidget)
