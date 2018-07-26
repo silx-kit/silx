@@ -466,7 +466,7 @@ class StackView(qt.QMainWindow):
         return "Image z=%g" % self._getImageZ(index)
 
     # public API, stack specific methods
-    def setStack(self, stack, perspective=0, reset=True, calibrations=None):
+    def setStack(self, stack, perspective=None, reset=True, calibrations=None):
         """Set the 3D stack.
 
         The perspective parameter is used to define which dimension of the 3D
@@ -478,8 +478,7 @@ class StackView(qt.QMainWindow):
         :type stack: 3D numpy.ndarray, or 3D h5py.Dataset, or list/tuple of 2D
             numpy arrays, or None.
         :param int perspective: Dimension for the frame index: 0, 1 or 2.
-            By default, the dimension for the image index is the first
-            dimension of the 3D stack (``perspective=0``).
+            Use ``None`` to keep the current perspective (default).
         :param bool reset: Whether to reset zoom or not.
         :param calibrations: Sequence of 3 calibration objects for each axis.
             These objects can be a subclass of :class:`AbstractCalibration`,
@@ -513,7 +512,7 @@ class StackView(qt.QMainWindow):
         self.__createTransposedView()
 
         perspective_changed = False
-        if perspective != self._perspective:
+        if perspective not in [None, self._perspective]:
             perspective_changed = True
             self.setPerspective(perspective)
 
