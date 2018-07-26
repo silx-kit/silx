@@ -328,6 +328,9 @@ class StackView(qt.QMainWindow):
             self.sigPlaneSelectionChanged.emit(perspective)
             self.sigStackChanged.emit(self._stack.size if
                                       self._stack is not None else 0)
+            self.__planeSelection.sigPlaneSelectionChanged.disconnect(self.setPerspective)
+            self.__planeSelection.setPerspective(self._perspective)
+            self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
 
     def __updatePlotLabels(self):
         """Update plot axes labels depending on perspective"""
@@ -511,9 +514,7 @@ class StackView(qt.QMainWindow):
         self._stack = stack
         self.__createTransposedView()
 
-        perspective_changed = False
         if perspective not in [None, self._perspective]:
-            perspective_changed = True
             self.setPerspective(perspective)
 
         # This call to setColormap redefines the meaning of autoscale
@@ -539,12 +540,7 @@ class StackView(qt.QMainWindow):
         # enable and init browser
         self._browser.setEnabled(True)
 
-        if perspective_changed:
-            self.__planeSelection.setPerspective(perspective)
-            # this causes self.setPerspective to be called, which emits
-            # sigStackChanged and sigPlaneSelectionChanged
-        else:
-            self.sigStackChanged.emit(stack.size)
+        self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
         """Get the original stack, as a 3D array or dataset.
