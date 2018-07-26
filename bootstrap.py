@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "02/03/2018"
+__date__ = "26/07/2018"
 
 
 import sys
