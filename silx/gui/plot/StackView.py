@@ -514,7 +514,9 @@ class StackView(qt.QMainWindow):
         self._stack = stack
         self.__createTransposedView()
 
+        perspective_changed = False
         if perspective not in [None, self._perspective]:
+            perspective_changed = True
             self.setPerspective(perspective)
 
         # This call to setColormap redefines the meaning of autoscale
@@ -540,7 +542,8 @@ class StackView(qt.QMainWindow):
         # enable and init browser
         self._browser.setEnabled(True)
 
-        self.sigStackChanged.emit(stack.size)
+        if not perspective_changed:    # avoid double signal (see self.setPerspective)
+            self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
         """Get the original stack, as a 3D array or dataset.
