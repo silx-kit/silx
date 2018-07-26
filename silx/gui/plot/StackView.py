@@ -488,7 +488,9 @@ class StackView(qt.QMainWindow):
         self._stack = stack
         self.__createTransposedView()
 
+        perspective_changed = False
         if perspective != self._perspective:
+            perspective_changed = True
             self.__setPerspective(perspective)
 
         # This call to setColormap redefines the meaning of autoscale
@@ -513,11 +515,10 @@ class StackView(qt.QMainWindow):
         # enable and init browser
         self._browser.setEnabled(True)
 
-        if perspective != self._perspective:
+        if perspective_changed:
             self.__planeSelection.setPerspective(perspective)
             # this causes self.__setPerspective to be called, which emits
             # sigStackChanged and sigPlaneSelectionChanged
-
         else:
             self.sigStackChanged.emit(stack.size)
 
