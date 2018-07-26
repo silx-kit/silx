@@ -509,6 +509,7 @@ class StackView(qt.QMainWindow):
                             resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
         self.__updatePlotLabels()
+        self._updateTitle()
 
         if reset:
             self._plot.resetZoom()
