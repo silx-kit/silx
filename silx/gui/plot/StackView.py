@@ -306,6 +306,7 @@ class StackView(qt.QMainWindow):
             self.__updateFrameNumber(self._browser.value())
             self._plot.resetZoom()
             self.__updatePlotLabels()
+            self._updateTitle()
             self._browser_label.setText("Image index (Dim%d):" %
                                         (self._first_stack_dimension + perspective))
 
