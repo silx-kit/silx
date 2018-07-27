@@ -41,6 +41,8 @@ Available icons
      - add-shape-polygon
    * - |add-shape-rectangle|
      - add-shape-rectangle
+   * - |add-shape-unknown|
+     - add-shape-unknown
    * - |add-shape-vertical|
      - add-shape-vertical
    * - |arrow-keys|
@@ -63,6 +65,28 @@ Available icons
      - colormap-range
    * - |colormap|
      - colormap
+   * - |compare-align-auto|
+     - compare-align-auto
+   * - |compare-align-center|
+     - compare-align-center
+   * - |compare-align-origin|
+     - compare-align-origin
+   * - |compare-align-stretch|
+     - compare-align-stretch
+   * - |compare-keypoints|
+     - compare-keypoints
+   * - |compare-mode-a|
+     - compare-mode-a
+   * - |compare-mode-b|
+     - compare-mode-b
+   * - |compare-mode-hline|
+     - compare-mode-hline
+   * - |compare-mode-rb-channel|
+     - compare-mode-rb-channel
+   * - |compare-mode-rbneg-channel|
+     - compare-mode-rbneg-channel
+   * - |compare-mode-vline|
+     - compare-mode-vline
    * - |crop|
      - crop
    * - |crosshair|
@@ -145,6 +169,8 @@ Available icons
      - math-fit
    * - |math-imaginary|
      - math-imaginary
+   * - |math-mean|
+     - math-mean
    * - |math-normalize|
      - math-normalize
    * - |math-peak-reset|
@@ -327,6 +353,7 @@ Available icons
 .. |add-shape-point| image:: ../../../../silx/resources/gui/icons/add-shape-point.png
 .. |add-shape-polygon| image:: ../../../../silx/resources/gui/icons/add-shape-polygon.png
 .. |add-shape-rectangle| image:: ../../../../silx/resources/gui/icons/add-shape-rectangle.png
+.. |add-shape-unknown| image:: ../../../../silx/resources/gui/icons/add-shape-unknown.png
 .. |add-shape-vertical| image:: ../../../../silx/resources/gui/icons/add-shape-vertical.png
 .. |arrow-keys| image:: ../../../../silx/resources/gui/icons/arrow-keys.png
 .. |axis| image:: ../../../../silx/resources/gui/icons/axis.png
@@ -338,6 +365,17 @@ Available icons
 .. |colormap-none| image:: ../../../../silx/resources/gui/icons/colormap-none.png
 .. |colormap-range| image:: ../../../../silx/resources/gui/icons/colormap-range.png
 .. |colormap| image:: ../../../../silx/resources/gui/icons/colormap.png
+.. |compare-align-auto| image:: ../../../../silx/resources/gui/icons/compare-align-auto.png
+.. |compare-align-center| image:: ../../../../silx/resources/gui/icons/compare-align-center.png
+.. |compare-align-origin| image:: ../../../../silx/resources/gui/icons/compare-align-origin.png
+.. |compare-align-stretch| image:: ../../../../silx/resources/gui/icons/compare-align-stretch.png
+.. |compare-keypoints| image:: ../../../../silx/resources/gui/icons/compare-keypoints.png
+.. |compare-mode-a| image:: ../../../../silx/resources/gui/icons/compare-mode-a.png
+.. |compare-mode-b| image:: ../../../../silx/resources/gui/icons/compare-mode-b.png
+.. |compare-mode-hline| image:: ../../../../silx/resources/gui/icons/compare-mode-hline.png
+.. |compare-mode-rb-channel| image:: ../../../../silx/resources/gui/icons/compare-mode-rb-channel.png
+.. |compare-mode-rbneg-channel| image:: ../../../../silx/resources/gui/icons/compare-mode-rbneg-channel.png
+.. |compare-mode-vline| image:: ../../../../silx/resources/gui/icons/compare-mode-vline.png
 .. |crop| image:: ../../../../silx/resources/gui/icons/crop.png
 .. |crosshair| image:: ../../../../silx/resources/gui/icons/crosshair.png
 .. |cube-back| image:: ../../../../silx/resources/gui/icons/cube-back.png
@@ -379,6 +417,7 @@ Available icons
 .. |math-energy| image:: ../../../../silx/resources/gui/icons/math-energy.png
 .. |math-fit| image:: ../../../../silx/resources/gui/icons/math-fit.png
 .. |math-imaginary| image:: ../../../../silx/resources/gui/icons/math-imaginary.png
+.. |math-mean| image:: ../../../../silx/resources/gui/icons/math-mean.png
 .. |math-normalize| image:: ../../../../silx/resources/gui/icons/math-normalize.png
 .. |math-peak-reset| image:: ../../../../silx/resources/gui/icons/math-peak-reset.png
 .. |math-peak-search| image:: ../../../../silx/resources/gui/icons/math-peak-search.png
