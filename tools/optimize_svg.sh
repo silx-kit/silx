@@ -33,7 +33,7 @@ then
 fi
 
 
-scour_options=--enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none --remove-metadata --disable-embed-rasters
+scour_options=--enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --nindent=0 --indent=none --remove-metadata --disable-embed-rasters
 
 for filename in "$@"
 do
