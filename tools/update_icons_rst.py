@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # coding: utf-8
 # /*##########################################################################
 #
@@ -27,19 +28,20 @@
 
 __authors__ = ["Thomas Vincent"]
 __license__ = "MIT"
-__date__ = "30/06/2016"
+__date__ = "27/07/2018"
 
 
 import os
 import glob
 
 
-ICONS_RST_FILENAME = os.path.join(os.path.dirname(__file__), 'icons.rst')
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
+ICONS_RST_DIR = os.path.join(PROJECT_ROOT, 'doc', 'source', 'modules', 'gui')
 
-ICONS_DIR = os.path.join(
-    os.path.dirname(__file__),
-    '..', '..', '..', '..', 'silx', 'resources', 'gui', 'icons', '*.png')
+ICONS_RST_FILENAME = os.path.join(ICONS_RST_DIR, 'icons.rst')
+
+ICONS_DIR = os.path.join(PROJECT_ROOT, 'silx', 'resources', 'gui', 'icons', '*.png')
 
 
 ICONS_RST_HEADER = """
@@ -69,7 +71,7 @@ Available icons
 def main():
     """Write icons.rst file"""
     icons = glob.glob(ICONS_DIR)
-    icons = [os.path.relpath(f, os.path.dirname(__file__)) for f in icons]
+    icons = [os.path.relpath(f, ICONS_RST_DIR) for f in icons]
     icons = sorted(icons)
 
     icons_table = '\n'.join(
