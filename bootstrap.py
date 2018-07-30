@@ -130,7 +130,7 @@ def run_entry_point(entry_point, argv):
     module_name = elements[0].strip()
     # Take care of entry_point optional "extra" requirements declaration
     function_name = elements[1].split()[0].strip()
-    
+
     logger.info("Execute target %s (function %s from module %s) using importlib", target_name, function_name, module_name)
     full_args = [target_name]
     full_args.extend(argv)
@@ -187,25 +187,25 @@ def find_executable(target):
     return None, None
 
 
-home = os.path.dirname(os.path.abspath(__file__))
-LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
-cwd = os.getcwd()
-os.chdir(home)
-build = subprocess.Popen([sys.executable, "setup.py", "build"],
-                         shell=False, cwd=os.path.dirname(os.path.abspath(__file__)))
-build_rc = build.wait()
-if not os.path.exists(LIBPATH):
-    logger.warning("`lib` directory does not exist, trying common Python3 lib")
-    LIBPATH = os.path.join(os.path.split(LIBPATH)[0], "lib")
-os.chdir(cwd)
-
-if build_rc == 0:
-    logger.info("Build process ended.")
-else:
-    logger.error("Build process ended with rc=%s", build_rc)
-    sys.exit(-1)
-
 if __name__ == "__main__":
+    home = os.path.dirname(os.path.abspath(__file__))
+    LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
+    cwd = os.getcwd()
+    os.chdir(home)
+    build = subprocess.Popen([sys.executable, "setup.py", "build"],
+                             shell=False, cwd=os.path.dirname(os.path.abspath(__file__)))
+    build_rc = build.wait()
+    if not os.path.exists(LIBPATH):
+        logger.warning("`lib` directory does not exist, trying common Python3 lib")
+        LIBPATH = os.path.join(os.path.split(LIBPATH)[0], "lib")
+    os.chdir(cwd)
+
+    if build_rc == 0:
+        logger.info("Build process ended.")
+    else:
+        logger.error("Build process ended with rc=%s", build_rc)
+        sys.exit(-1)
+
     if len(sys.argv) < 2:
         logger.warning("usage: ./bootstrap.py <script>\n")
         script = None
