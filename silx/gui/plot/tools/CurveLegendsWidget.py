@@ -35,12 +35,11 @@ __date__ = "20/07/2018"
 import logging
 import weakref
 
-import numpy
 
-from ... import qt, colors
+from ... import qt
 from ...widgets.FlowLayout import FlowLayout as _FlowLayout
-from ..items import ItemChangedType
 from ..LegendSelector import LegendIcon as _LegendIcon
+from .. import items
 
 
 _logger = logging.getLogger(__name__)
@@ -50,18 +49,17 @@ class _LegendWidget(qt.QWidget):
     """Widget displaying curve style and its legend
 
     :param QWidget parent: See :class:`QWidget`
-    :param silx.gui.plot.items.Curve curve: Associated curve
+    :param ~silx.gui.plot.items.Curve curve: Associated curve
     """
 
     def __init__(self, parent, curve):
         super(_LegendWidget, self).__init__(parent)
-        self._curveRef = weakref.ref(curve)
-        curve.sigItemChanged.connect(self._curveChanged)
-
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(10, 0, 10, 0)
 
-        icon = _LegendIcon()
+        curve.sigItemChanged.connect(self._curveChanged)
+
+        icon = _LegendIcon(curve=curve)
         layout.addWidget(icon)
 
         label = qt.QLabel(curve.getLegend())
@@ -75,7 +73,8 @@ class _LegendWidget(qt.QWidget):
 
         :rtype: Union[~silx.gui.plot.items.Curve,None]
         """
-        return self._curveRef()
+        icon = self.findChild(_LegendIcon)
+        return icon.getCurve()
 
     def _update(self):
         """Update widget according to current curve state.
@@ -88,23 +87,6 @@ class _LegendWidget(qt.QWidget):
 
         self.setVisible(curve.isVisible())
 
-        icon = self.findChild(_LegendIcon)
-        icon.setSymbol(curve.getSymbol())
-        icon.setLineWidth(curve.getLineWidth())
-        icon.setLineStyle(curve.getLineStyle())
-
-        color = curve.getCurrentColor()
-        if numpy.array(color, copy=False).ndim != 1:
-            # array of colors, use transparent black
-            color = 0., 0., 0., 0.
-        color = colors.rgba(color)  # Make sure it is float in [0, 1]
-        alpha = curve.getAlpha()
-        color = qt.QColor.fromRgbF(
-            color[0], color[1], color[2], color[3] * alpha)
-        icon.setLineColor(color)
-        icon.setSymbolColor(color)
-        icon.update()  # TODO this should not be needed
-
         label = self.findChild(qt.QLabel)
         if curve.isHighlighted():
             label.setStyleSheet("border: 1px solid black")
@@ -116,15 +98,7 @@ class _LegendWidget(qt.QWidget):
 
         :param event: Kind of change
         """
-        if event in (ItemChangedType.VISIBLE,
-                     ItemChangedType.SYMBOL,
-                     ItemChangedType.SYMBOL_SIZE,
-                     ItemChangedType.LINE_WIDTH,
-                     ItemChangedType.LINE_STYLE,
-                     ItemChangedType.COLOR,
-                     ItemChangedType.ALPHA,
-                     ItemChangedType.HIGHLIGHTED,
-                     ItemChangedType.HIGHLIGHTED_COLOR):
+        if event == items.ItemChangedType.VISIBLE:
             self._update()
 
 
