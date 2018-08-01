@@ -22,7 +22,11 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""This module provides a :class:`RangeSlider` widget.
 
+.. image:: img/RangeSlider.png
+   :align: center
+"""
 from __future__ import absolute_import, division
 
 __authors__ = ["D. Naudet", "T. Vincent"]
@@ -38,6 +42,9 @@ from silx.gui.utils._image import convertArrayToQImage
 
 class RangeSlider(qt.QWidget):
     """Range slider with 2 thumbs and an optional colored groove.
+
+    The position of the slider thumbs can be retrieved either as values
+    in the slider range or as a number of steps or pixels.
 
     :param QWidget parent: See QWidget
     """

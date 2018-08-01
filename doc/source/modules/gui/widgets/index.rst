@@ -15,6 +15,7 @@ Public modules:
     framebrowser.rst
     periodictable.rst
     printpreview.rst
+    rangeslider.rst
     tablewidget.rst
     threadpoolpushbutton.rst
     waitingpushbutton.rst
