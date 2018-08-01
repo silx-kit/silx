@@ -125,7 +125,7 @@ class CurveLegendsWidget(qt.QWidget):
     def getPlotWidget(self):
         """Returns the associated :class:`PlotWidget`
 
-        :rtype: Union[silx.gui.plot.PlotWidget,None]
+        :rtype: Union[~silx.gui.plot.PlotWidget,None]
         """
         return None if self._plotRef is None else self._plotRef()
 

@@ -54,6 +54,18 @@
    :show-inheritance:
    :members:
 
+:mod:`~silx.gui.plot.tools.CurveLegendsWidget`
+----------------------------------------------
+
+.. automodule:: silx.gui.plot.tools.CurveLegendsWidget
+
+.. image:: img/CurveLegendsWidget.png
+   :align: center
+
+.. autoclass:: silx.gui.plot.tools.CurveLegendsWidget.CurveLegendsWidget
+   :show-inheritance:
+   :members:
+
 :mod:`~silx.gui.plot.tools.roi`: Region of interest
 ---------------------------------------------------
 
