@@ -67,10 +67,10 @@ class RangeSlider(qt.QWidget):
     It provides the slider values (first, second).
     """
 
-    sigStepCountChanged = qt.Signal(object)
+    sigPositionCountChanged = qt.Signal(object)
     """This signal is emitted when the number of steps has changed.
 
-    It provides the new number of steps.
+    It provides the new position count.
     """
 
     sigPositionChanged = qt.Signal(int, int)
@@ -81,7 +81,7 @@ class RangeSlider(qt.QWidget):
 
     def __init__(self, parent=None):
         self.__pixmap = None
-        self.__steps = None
+        self.__positionCount = None
         self.__firstValue = 0.
         self.__secondValue = 1.
         self.__minValue = 0.
@@ -116,7 +116,7 @@ class RangeSlider(qt.QWidget):
         :rtype: float
         """
         min_, max_ = self.getMinimum(), self.getMaximum()
-        maxPos = self.__getCurrentStepCount() - 1
+        maxPos = self.__getCurrentPositionCount() - 1
         return min_ + (max_ - min_) * int(position) / maxPos
 
     def __valueToPosition(self, value):
@@ -126,45 +126,45 @@ class RangeSlider(qt.QWidget):
         :rtype: int
         """
         min_, max_ = self.getMinimum(), self.getMaximum()
-        maxPos = self.__getCurrentStepCount() - 1
+        maxPos = self.__getCurrentPositionCount() - 1
         return int(0.5 + maxPos * (float(value) - min_) / (max_ - min_))
 
     # Position (int) API
 
-    def __getCurrentStepCount(self):
-        """Return current step count (either step cound or widget width
+    def __getCurrentPositionCount(self):
+        """Return current count (either position count or widget width
 
         :rtype: int
         """
-        steps = self.getStepCount()
-        if steps is not None:
-            return steps
+        count = self.getPositionCount()
+        if count is not None:
+            return count
         else:
-            return self.width() - self._SLIDER_WIDTH
+            return max(2, self.width() - self._SLIDER_WIDTH)
 
-    def getStepCount(self):
-        """Returns the number of steps.
+    def getPositionCount(self):
+        """Returns the number of positions.
 
         :rtype: Union[int,None]"""
-        return self.__steps
+        return self.__positionCount
 
-    def setStepCount(self, steps):
-        """Set the number of steps.
+    def setPositionCount(self, count):
+        """Set the number of positions.
 
-        Slider positions are eventually adjusted.
+        Slider values are eventually adjusted.
 
-        :param Union[int,None] steps:
-            Either the number of steps or None to use the width
-            of the slider as the number of steps.
-        :raise ValueError: If steps <= 0
+        :param Union[int,None] count:
+            Either the number of possible positions or
+            None to allow any values.
+        :raise ValueError: If count <= 1
         """
-        steps = None if steps is None else int(steps)
-        if steps != self.getStepCount():
-            if steps is not None and steps <= 0:
-                raise ValueError("Number of steps must be strictly positive")
-            self.__steps = steps
+        count = None if count is None else int(count)
+        if count != self.getPositionCount():
+            if count is not None and count <= 1:
+                raise ValueError("Position count must be higher than 1")
+            self.__positionCount = count
             emit = self.__setValues(*self.getValues())
-            self.sigStepCountChanged.emit(steps)
+            self.sigPositionCountChanged.emit(count)
             if emit:
                 self.sigValueChanged.emit(*self.getValues())
 
@@ -210,8 +210,8 @@ class RangeSlider(qt.QWidget):
     def setPositions(self, first, second):
         """Set the position of both sliders at once
 
-        First is clipped to the slider range: [0, number of steps].
-        Second is clipped to valid values: [first, number of steps]
+        First is clipped to the slider range: [0, max].
+        Second is clipped to valid values: [first, max]
 
         :param int first:
         :param int second:
@@ -313,7 +313,7 @@ class RangeSlider(qt.QWidget):
         if max_ is None:
             max_ = self.getSecondValue()
         value = min(max(self.getMinimum(), float(value)), max_)
-        if self.getStepCount() is not None:  # Clip to steps
+        if self.getPositionCount() is not None:  # Clip to steps
             value = self.__positionToValue(self.__valueToPosition(value))
         return value
 
@@ -343,7 +343,7 @@ class RangeSlider(qt.QWidget):
         :param float value:
         """
         value = min(max(self.getFirstValue(), float(value)), self.getMaximum())
-        if self.getStepCount() is not None:  # Clip to steps
+        if self.getPositionCount() is not None:  # Clip to steps
             value = self.__positionToValue(self.__valueToPosition(value))
         return value
 
@@ -379,22 +379,6 @@ class RangeSlider(qt.QWidget):
         """
         if self.__setValues(first, second):
             self.sigValueChanged.emit(*self.getValues())
-
-    def __clipValuesToRangeAndStep(self, first, second):
-        """Clip provided values to current range and step
-
-        :param float first:
-        :param float second:
-        :return: (first, second) clipped values
-        :rtype: List[float]
-        """
-        min_, max_ = self.getRange()
-        first = min(max(min_, float(first)), max_)
-        second = min(max(first, float(second)), max_)
-        if self.getStepCount() is not None:  # Clip to steps
-            first = self.__positionToValue(self.__valueToPosition(first))
-            second = self.__positionToValue(self.__valueToPosition(second))
-        return first, second
 
     def __setValues(self, first, second):
         """Set values for both sliders at once
@@ -528,7 +512,7 @@ class RangeSlider(qt.QWidget):
         super(RangeSlider, self).resizeEvent(event)
 
         # If no step, signal position update when width change
-        if (self.getStepCount() is None and
+        if (self.getPositionCount() is None and
                 event.size().width() != event.oldSize().width()):
             self.sigPositionChanged.emit(*self.getPositions())
 
@@ -541,7 +525,7 @@ class RangeSlider(qt.QWidget):
         :rtype: int
         """
         sliderArea = self.__sliderAreaRect()
-        maxPos = self.__getCurrentStepCount() - 1
+        maxPos = self.__getCurrentPositionCount() - 1
         position = maxPos * (x - sliderArea.left()) / (sliderArea.width() - 1)
         return int(position + 0.5)
 
@@ -564,7 +548,7 @@ class RangeSlider(qt.QWidget):
 
         sliderArea = self.__sliderAreaRect()
 
-        maxPos = self.__getCurrentStepCount() - 1
+        maxPos = self.__getCurrentPositionCount() - 1
         xOffset = int((sliderArea.width() - 1) * position / maxPos)
         xPos = sliderArea.left() + xOffset + offset
 
