@@ -31,6 +31,7 @@ from . import test_hierarchicaltableview
 from . import test_printpreview
 from . import test_framebrowser
 from . import test_boxlayoutdockwidget
+from . import test_rangeslider
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -47,5 +48,6 @@ def suite():
          test_hierarchicaltableview.suite(),
          test_framebrowser.suite(),
          test_boxlayoutdockwidget.suite(),
+         test_rangeslider.suite(),
          ])
     return test_suite
