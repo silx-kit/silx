@@ -31,7 +31,7 @@ from __future__ import absolute_import, division
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2018"
+__date__ = "02/08/2018"
 
 
 import numpy as numpy
@@ -602,7 +602,7 @@ class RangeSlider(qt.QWidget):
         if self.isEnabled() and self.__pixmap is not None:
             painter.drawPixmap(area.adjusted(self._SLIDER_WIDTH / 2,
                                              self._PIXMAP_VOFFSET,
-                                             -self._SLIDER_WIDTH / 2,
+                                             -self._SLIDER_WIDTH / 2 + 1,
                                              -self._PIXMAP_VOFFSET + 1),
                                self.__pixmap,
                                self.__pixmap.rect())
@@ -614,7 +614,7 @@ class RangeSlider(qt.QWidget):
             option.icon = self.__icons[name]
             option.iconSize = rect.size() * 0.7
             if option.state & qt.QStyle.State_MouseOver:
-               option.state ^= qt.QStyle.State_MouseOver
+                option.state ^= qt.QStyle.State_MouseOver
             if self.__focus == name:
                 option.state |= qt.QStyle.State_HasFocus
             elif option.state & qt.QStyle.State_HasFocus:
