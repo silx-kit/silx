@@ -268,7 +268,7 @@ class ScatterView(qt.QMainWindow):
         self.getPlotWidget().setDefaultColormap(colormap)
 
     def getColormap(self):
-        """Return the :class:`.Colormap` in use.
+        """Return the colormap object in use.
 
         :return: Colormap currently in use
         :rtype: ~silx.gui.colors.Colormap

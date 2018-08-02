@@ -840,10 +840,9 @@ class PlotWidget(qt.QMainWindow):
                                 (default: False)
         :param bool draggable: Indicate if the image can be moved.
                                (default: False)
-        :param colormap: Description of the :class:`.Colormap` to use
-                                  (or None).
-                                  This is ignored if data is a RGB(A) image.
-        :type colormap: Union[silx.gui.colors.Colormap, dict]
+        :param colormap: Colormap object to use (or None).
+                         This is ignored if data is a RGB(A) image.
+        :type colormap: Union[~silx.gui.colors.Colormap, dict]
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
         :param str xlabel: X axis label to show when this curve is active,
@@ -986,8 +985,8 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param numpy.ndarray value: The data value associated with each point
         :param str legend: The legend to be associated to the scatter (or None)
-        :param silx.gui.colors.Colormap colormap:
-            The :class:`.Colormap`. to be used for the scatter (or None)
+        :param ~silx.gui.colors.Colormap colormap:
+            Colormap object to be used for the scatter (or None)
         :param info: User-defined information associated to the curve
         :param str symbol: Symbol to be drawn at each (x, y) position::
 
@@ -2273,8 +2272,9 @@ class PlotWidget(qt.QMainWindow):
                 curve.setLineStyle(linestyle)
 
     def getDefaultColormap(self):
-        """Return the default :class:`.Colormap` used by :meth:`addImage`.
+        """Return the default colormap used by :meth:`addImage`.
 
+        :rtype: ~silx.gui.colors.Colormap
         """
         return self._defaultColormap
 
@@ -2286,9 +2286,9 @@ class PlotWidget(qt.QMainWindow):
         It only affects future calls to :meth:`addImage` without the colormap
         parameter.
 
-        :param silx.gui.colors.Colormap colormap:
+        :param ~silx.gui.colors.Colormap colormap:
             The description of the default colormap, or
-            None to set the :class:`.Colormap` to a linear
+            None to set the colormap to a linear
             autoscale gray colormap.
         """
         if colormap is None:

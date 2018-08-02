@@ -710,8 +710,9 @@ class ColormapDialog(qt.QDialog):
         self._updateMinMaxData()
 
     def getColormap(self):
-        """Return the colormap description as a :class:`.Colormap`.
+        """Return the colormap description.
 
+        :rtype: ~silx.gui.colors.Colormap
         """
         if self._colormap is None:
             return None
@@ -811,7 +812,7 @@ class ColormapDialog(qt.QDialog):
     def setColormap(self, colormap):
         """Set the colormap description
 
-        :param :class:`Colormap` colormap: the colormap to edit
+        :param ~silx.gui.colors.Colormap colormap: the colormap to edit
         """
         assert colormap is None or isinstance(colormap, Colormap)
         if self._ignoreColormapChange is True:
