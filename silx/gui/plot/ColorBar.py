@@ -155,19 +155,17 @@ class ColorBarWidget(qt.QWidget):
         self._disconnectPlot()
 
     def getColormap(self):
-        """
+        """Returns the colormap displayed in the colorbar.
 
-        :return: the :class:`.Colormap` colormap displayed in the colorbar.
-
+        :rtype: ~silx.gui.colors.Colormap
         """
         return self.getColorScaleBar().getColormap()
 
     def setColormap(self, colormap, data=None):
         """Set the colormap to be displayed.
 
-        :param colormap: The colormap to apply on the
-            ColorBarWidget
-        :type colormap: :class:`.Colormap`
+        :param ~silx.gui.colors.Colormap colormap:
+            The colormap to apply on the ColorBarWidget
         :param numpy.ndarray data: the data to display, needed if the colormap
             require an autoscale
         """
