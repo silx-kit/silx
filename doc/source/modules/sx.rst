@@ -9,6 +9,8 @@
 Plot functions
 --------------
 
+.. currentmodule:: silx.sx._plot
+
 The following functions plot curves and images with silx widgets:
 
 - :func:`plot` for curves
@@ -43,6 +45,8 @@ The :func:`ginput` function handles user selection on those widgets.
 
 3D plot functions
 -----------------
+
+.. currentmodule:: silx.sx._plot3d
 
 The following functions plot 3D data with silx widgets (it requires OpenGL):
 
