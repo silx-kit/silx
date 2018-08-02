@@ -875,6 +875,7 @@ def get_project_configuration(dry_run):
             'opencl/sift/*.cl',
             'opencl/codec/*.cl',
             'gui/colormaps/*.npy'],
+        'silx.examples': ['*.png'],
     }
 
     entry_points = {
