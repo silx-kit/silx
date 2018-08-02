@@ -32,12 +32,74 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "20/07/2018"
 
+import functools
+
 import numpy
 
 from silx.gui import qt
 from silx.gui.plot import Plot1D
 from silx.gui.plot.tools.CurveLegendsWidget import CurveLegendsWidget
 from silx.gui.widgets.BoxLayoutDockWidget import BoxLayoutDockWidget
+
+
+class MyCurveLegendsWidget(CurveLegendsWidget):
+    """Extension of CurveLegendWidget.
+
+    This widget adds:
+    - Set a curve as active with a left click its the legend
+    - Adds a context menu with content specific to the hovered legend
+
+    :param QWidget parent: See QWidget
+    """
+
+    def __init__(self, parent=None):
+        super(MyCurveLegendsWidget, self).__init__(parent)
+
+        # Activate curve with left click on the legend widget
+        self.sigCurveClicked.connect(self._activateCurve)
+
+        # Add a custom context menu
+        self.setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._contextMenu)
+
+    def _activateCurve(self, curve):
+        """Set a curve as active.
+
+        This is called from the context menu and when a legend is clicked.
+
+        :param silx.gui.plot.items.Curve curve:
+        """
+        plot = curve.getPlot()
+        plot.setActiveCurve(curve.getLegend())
+
+    def _switchCurveYAxis(self, curve):
+        """Change the Y axis a curve is attached to.
+
+        :param silx.gui.plot.items.Curve curve:
+        """
+        yaxis = curve.getYAxis()
+        curve.setYAxis('left' if yaxis is 'right' else 'right')
+
+    def _contextMenu(self, pos):
+        """Create a show the context menu.
+
+        :param QPoint pos: Position in this widget
+        """
+        curve = self.curveAt(pos)  # Retrieve curve from hovered legend
+        if curve is not None:
+            menu = qt.QMenu()  # Create the menu
+
+            # Add an action to activate the curve
+            menu.addAction('Select',
+                           functools.partial(self._activateCurve, curve))
+
+            # Add an action to switch the Y axis of a curve
+            yaxis = 'right' if curve.getYAxis() == 'left' else 'left'
+            menu.addAction('Map to %s' % yaxis,
+                           functools.partial(self._switchCurveYAxis, curve))
+
+            globalPosition = self.mapToGlobal(pos)
+            menu.exec_(globalPosition)
 
 
 # First create the QApplication
@@ -62,8 +124,8 @@ window.addCurve(x, numpy.cos(x),
                 color='blue')
 
 
-# Create a CurveLegendWidget associated to the plot
-curveLegendsWidget = CurveLegendsWidget()
+# Create a MyCurveLegendWidget associated to the plot
+curveLegendsWidget = MyCurveLegendsWidget()
 curveLegendsWidget.setPlotWidget(window)
 
 # Add the CurveLegendsWidget as a dock widget to the plot
