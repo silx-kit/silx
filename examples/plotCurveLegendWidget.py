@@ -55,14 +55,14 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
     def __init__(self, parent=None):
         super(MyCurveLegendsWidget, self).__init__(parent)
 
-        # Activate curve with left click on the legend widget
-        self.sigCurveClicked.connect(self._activateCurve)
+        # Activate/Deactivate curve with left click on the legend widget
+        self.sigCurveClicked.connect(self._switchCurveActive)
 
         # Add a custom context menu
         self.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._contextMenu)
 
-    def _activateCurve(self, curve):
+    def _switchCurveActive(self, curve):
         """Set a curve as active.
 
         This is called from the context menu and when a legend is clicked.
@@ -70,7 +70,15 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
         :param silx.gui.plot.items.Curve curve:
         """
         plot = curve.getPlot()
-        plot.setActiveCurve(curve.getLegend())
+        plot.setActiveCurve(
+            curve.getLegend() if curve != plot.getActiveCurve() else None)
+
+    def _switchCurveVisibility(self, curve):
+        """Toggle the visibility of a curve
+
+        :param silx.gui.plot.items.Curve curve:
+        """
+        curve.setVisible(not curve.isVisible())
 
     def _switchCurveYAxis(self, curve):
         """Change the Y axis a curve is attached to.
@@ -90,13 +98,18 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
             menu = qt.QMenu()  # Create the menu
 
             # Add an action to activate the curve
-            menu.addAction('Select',
-                           functools.partial(self._activateCurve, curve))
+            activeCurve = curve.getPlot().getActiveCurve()
+            menu.addAction('Unselect' if curve == activeCurve else 'Select',
+                           functools.partial(self._switchCurveActive, curve))
 
             # Add an action to switch the Y axis of a curve
             yaxis = 'right' if curve.getYAxis() == 'left' else 'left'
             menu.addAction('Map to %s' % yaxis,
                            functools.partial(self._switchCurveYAxis, curve))
+
+            # Add an action to show/hide the curve
+            menu.addAction('Hide' if curve.isVisible() else 'Show',
+                           functools.partial(self._switchCurveVisibility, curve))
 
             globalPosition = self.mapToGlobal(pos)
             menu.exec_(globalPosition)
