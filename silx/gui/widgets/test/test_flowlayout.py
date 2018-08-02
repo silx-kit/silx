@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,56 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Tests for FlowLayout"""
+
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "02/08/2018"
+
 import unittest
 
-from . import test_periodictable
-from . import test_tablewidget
-from . import test_threadpoolpushbutton
-from . import test_hierarchicaltableview
-from . import test_printpreview
-from . import test_framebrowser
-from . import test_boxlayoutdockwidget
-from . import test_rangeslider
-from . import test_flowlayout
+from silx.gui.widgets.FlowLayout import FlowLayout
+from silx.gui import qt
+from silx.gui.test.utils import TestCaseQt
 
-__authors__ = ["V. Valls", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "19/07/2017"
+
+class TestFlowLayout(TestCaseQt):
+    """Tests for FlowLayout"""
+
+    def setUp(self):
+        """Create and show a widget"""
+        self.widget = qt.QWidget()
+        self.widget.show()
+        self.qWaitForWindowExposed(self.widget)
+
+    def tearDown(self):
+        """Delete widget"""
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        del self.widget
+        self.qapp.processEvents()
+
+    def test(self):
+        """Basic tests"""
+        layout = FlowLayout()
+        self.widget.setLayout(layout)
+
+        layout.addWidget(qt.QLabel('first'))
+        layout.addWidget(qt.QLabel('second'))
+        self.assertEqual(layout.count(), 2)
+
+        layout.setHorizontalSpacing(10)
+        self.assertEqual(layout.horizontalSpacing(), 10)
+        layout.setVerticalSpacing(5)
+        self.assertEqual(layout.verticalSpacing(), 5)
 
 
 def suite():
+    loader = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_threadpoolpushbutton.suite(),
-         test_tablewidget.suite(),
-         test_periodictable.suite(),
-         test_printpreview.suite(),
-         test_hierarchicaltableview.suite(),
-         test_framebrowser.suite(),
-         test_boxlayoutdockwidget.suite(),
-         test_rangeslider.suite(),
-         test_flowlayout.suite(),
-         ])
+    test_suite.addTest(loader(TestFlowLayout))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
