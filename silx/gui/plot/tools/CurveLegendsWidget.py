@@ -85,7 +85,7 @@ class _LegendWidget(qt.QWidget):
             self.setVisible(False)
             return
 
-        self.setVisible(curve.isVisible())
+        self.setEnabled(curve.isVisible())
 
         label = self.findChild(qt.QLabel)
         if curve.isHighlighted():

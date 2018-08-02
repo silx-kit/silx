@@ -168,10 +168,10 @@ class LegendIcon(qt.QWidget):
         curve = self.getCurve()
         if curve is None:
             _logger.error('Curve no more exists')
-            self.setVisible(False)
+            self.setEnabled(False)
             return
 
-        self.setVisible(curve.isVisible())
+        self.setEnabled(curve.isVisible())
         self.setSymbol(curve.getSymbol())
         self.setLineWidth(curve.getLineWidth())
         self.setLineStyle(curve.getLineStyle())
@@ -268,6 +268,14 @@ class LegendIcon(qt.QWidget):
         symbolOffset = qt.QPointF(.5 * (ratio - 1.), 0.)
         # Determine and scale offset
         offset = qt.QPointF(float(rect.left()) / scale, float(rect.top()) / scale)
+
+        # Override color when disabled
+        if self.isEnabled():
+            overrideColor = None
+        else:
+            overrideColor = palette.color(qt.QPalette.Disabled,
+                                          qt.QPalette.WindowText)
+
         # Draw BG rectangle (for debugging)
         # bottomRight = qt.QPointF(
         #    float(rect.right())/scale,
@@ -280,15 +288,15 @@ class LegendIcon(qt.QWidget):
             linePath.moveTo(0., 0.5)
             linePath.lineTo(ratio, 0.5)
             # linePath.lineTo(2.5, 0.5)
+            lineBrush = qt.QBrush(
+                self.lineColor if overrideColor is None else overrideColor)
             linePen = qt.QPen(
-                qt.QBrush(self.lineColor),
+                lineBrush,
                 (self.lineWidth / self.height()),
                 self.lineStyle,
                 qt.Qt.FlatCap
             )
-            llist.append((linePath,
-                          linePen,
-                          qt.QBrush(self.lineColor)))
+            llist.append((linePath, linePen, lineBrush))
         if (self.showSymbol and len(self.symbol) and
                 self.symbol not in NoSymbols):
             # PITFALL ahead: Let this be a warning to others
@@ -297,9 +305,8 @@ class LegendIcon(qt.QWidget):
             symbolPath = qt.QPainterPath(Symbols[self.symbol])
             symbolPath.translate(symbolOffset)
             symbolBrush = qt.QBrush(
-                self.symbolColor,
-                self.symbolStyle
-            )
+                self.symbolColor if overrideColor is None else overrideColor,
+                self.symbolStyle)
             symbolPen = qt.QPen(
                 self.symbolOutlineBrush,  # Brush
                 1. / self.height(),       # Width
