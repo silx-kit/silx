@@ -98,7 +98,9 @@ class _LegendWidget(qt.QWidget):
 
         :param event: Kind of change
         """
-        if event == items.ItemChangedType.VISIBLE:
+        if event in (items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.HIGHLIGHTED,
+                     items.ItemChangedType.HIGHLIGHTED_COLOR):
             self._update()
 
 
@@ -108,8 +110,15 @@ class CurveLegendsWidget(qt.QWidget):
     :param QWidget parent: See :class:`QWidget`
     """
 
+    sigCurveClicked = qt.Signal(object)
+    """Signal emitted when the legend of a curve is clicked
+
+    It provides the corresponding curve.
+    """
+
     def __init__(self, parent=None):
         super(CurveLegendsWidget, self).__init__(parent)
+        self._clicked = None
         self._legends = {}
         self._plotRef = None
 
@@ -149,6 +158,28 @@ class CurveLegendsWidget(qt.QWidget):
 
             for legend in plot.getAllCurves(just_legend=True):
                 self._addLegend(legend)
+
+    def curveAt(self, *args):
+        """Returns the curve object represented at the given position
+
+        Either takes a QPoint or x and y as input in widget coordinates.
+
+        :rtype: Union[~silx.gui.plot.items.Curve,None]
+        """
+        if len(args) == 1:
+            point = args[0]
+        elif len(args) == 2:
+            point = qt.QPoint(*args)
+        else:
+            raise ValueError('Unsupported arguments')
+        assert isinstance(point, qt.QPoint)
+
+        widget = self.childAt(point)
+        while widget not in (self, None):
+            if isinstance(widget, _LegendWidget):
+                return widget.getCurve()
+            widget = widget.parent()
+        return None  # No widget or not in _LegendWidget
 
     def _plotContentChanged(self, action, kind, legend):
         """Handle change of plot content
@@ -201,5 +232,27 @@ class CurveLegendsWidget(qt.QWidget):
         if widget is None:
             _logger.warning('Unknown legend: %s' % legend)
         else:
-            self.layout().removeWidget(idget)
+            self.layout().removeWidget(widget)
             widget.setParent(None)
+
+    def mousePressEvent(self, event):
+        if event.button() == qt.Qt.LeftButton:
+            self._clicked = event.pos()
+
+    _CLICK_THRESHOLD = 5
+    """Threshold for clicks"""
+
+    def mouseMoveEvent(self, event):
+        if self._clicked is not None:
+            dx = abs(self._clicked.x() - event.pos().x())
+            dy = abs(self._clicked.y() - event.pos().y())
+            if dx > self._CLICK_THRESHOLD or dy > self._CLICK_THRESHOLD:
+                self._clicked = None  # Click is cancelled
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == qt.Qt.LeftButton and self._clicked is not None:
+            curve = self.curveAt(event.pos())
+            if curve is not None:
+                self.sigCurveClicked.emit(curve)
+
+            self._clicked = None
