@@ -602,7 +602,7 @@ class RangeSlider(qt.QWidget):
         if self.isEnabled() and self.__pixmap is not None:
             painter.drawPixmap(area.adjusted(self._SLIDER_WIDTH / 2,
                                              self._PIXMAP_VOFFSET,
-                                             -self._SLIDER_WIDTH / 2,
+                                             -self._SLIDER_WIDTH / 2 + 1,
                                              -self._PIXMAP_VOFFSET + 1),
                                self.__pixmap,
                                self.__pixmap.rect())
