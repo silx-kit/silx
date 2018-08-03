@@ -33,12 +33,17 @@ It shows the following widgets:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/01/2017"
+__date__ = "02/08/2018"
 
 import sys
+import functools
+import numpy
+
 from silx.gui import qt
+from silx.gui.colors import Colormap
 from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
+from silx.gui.widgets.RangeSlider import RangeSlider
 
 
 class SimpleWidgetExample(qt.QMainWindow):
@@ -52,12 +57,17 @@ class SimpleWidgetExample(qt.QMainWindow):
         main_panel = qt.QWidget(self)
         main_panel.setLayout(qt.QVBoxLayout())
 
-        main_panel.layout().addWidget(qt.QLabel("WaitingPushButton"))
-        main_panel.layout().addWidget(self.createWaitingPushButton())
-        main_panel.layout().addWidget(self.createWaitingPushButton2())
+        layout = main_panel.layout()
+        layout.addWidget(qt.QLabel("WaitingPushButton"))
+        layout.addWidget(self.createWaitingPushButton())
+        layout.addWidget(self.createWaitingPushButton2())
 
-        main_panel.layout().addWidget(qt.QLabel("ThreadPoolPushButton"))
-        main_panel.layout().addWidget(self.createThreadPoolPushButton())
+        layout.addWidget(qt.QLabel("ThreadPoolPushButton"))
+        layout.addWidget(self.createThreadPoolPushButton())
+
+        layout.addWidget(qt.QLabel("RangeSlider"))
+        layout.addWidget(self.createRangeSlider())
+        layout.addWidget(self.createRangeSliderWithBackground())
 
         self.setCentralWidget(main_panel)
 
@@ -79,6 +89,9 @@ class SimpleWidgetExample(qt.QMainWindow):
         print("Error")
         print(result)
 
+    def printEvent(self, eventName, *args):
+        print("Event %s: %s" % (eventName, args))
+
     def takesTimeToComputePow(self, a, b):
         qt.QThread.sleep(2)
         return a ** b
@@ -88,6 +101,25 @@ class SimpleWidgetExample(qt.QMainWindow):
         widget.setCallable(self.takesTimeToComputePow, 2, 16)
         widget.succeeded.connect(self.printResult)
         widget.failed.connect(self.printError)
+        return widget
+
+    def createRangeSlider(self):
+        widget = RangeSlider(self)
+        widget.setRange(0, 500)
+        widget.setValues(100, 400)
+        widget.sigValueChanged.connect(functools.partial(self.printEvent, "sigValueChanged"))
+        widget.sigPositionChanged.connect(functools.partial(self.printEvent, "sigPositionChanged"))
+        widget.sigPositionCountChanged.connect(functools.partial(self.printEvent, "sigPositionCountChanged"))
+        return widget
+
+    def createRangeSliderWithBackground(self):
+        widget = RangeSlider(self)
+        widget.setRange(0, 500)
+        widget.setValues(100, 400)
+        background = numpy.sin(numpy.arange(250) / 250.0)
+        background[0], background[-1] = background[-1], background[0]
+        colormap = Colormap("viridis")
+        widget.setGroovePixmapFromProfile(background, colormap)
         return widget
 
 

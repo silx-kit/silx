@@ -293,6 +293,11 @@ Additional widgets:
          :align: center
      - :class:`FrameBrowser.HorizontalSliderWithBrowser` is a :class:`FrameBrowser`
        with an additional slider.
+   * - .. image:: widgets/img/RangeSlider.png
+          :width: 150px
+          :align: center
+     - :class:`~silx.gui.widgets.RangeSlider.RangeSlider` is a slider with 2 thumbs dedicated
+       to the interactive selection of an interval.
    * - .. image:: widgets/img/PeriodicCombo.png
          :width: 150px
          :align: center
