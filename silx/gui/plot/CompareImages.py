@@ -546,6 +546,7 @@ class CompareImages(qt.QMainWindow):
         else:
             self.setWindowFlags(qt.Qt.Widget)
 
+        self.__transformation = None
         self.__raw1 = None
         self.__raw2 = None
         self.__data1 = None
@@ -676,14 +677,14 @@ class CompareImages(qt.QMainWindow):
             assert(False)
 
         x1, y1 = int(x1), int(y1)
-        if y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
+        if raw1 is None or y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
             data1 = None
         else:
             data1 = raw1[y1, x1]
 
         if data2 is None:
             x2, y2 = int(x2), int(y2)
-            if y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
+            if raw2 is None or y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
                 data2 = None
             else:
                 data2 = raw2[y2, x2]
