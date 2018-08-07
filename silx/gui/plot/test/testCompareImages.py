@@ -95,6 +95,16 @@ class TestCompareImages(TestCaseQt):
             self.assertEqual(data1, 111.111)
             self.assertEqual(data2, expectedValue[mode])
 
+    def testImageEmpty(self):
+        self.widget.setData(image1=None, image2=None)
+        self.assertTrue(self.widget.getRawPixelData(11 / 2.0, 11 / 2.0) == (None, None))
+
+    def testSetImageSeparately(self):
+        self.widget.setImage1(numpy.random.rand(10, 10))
+        self.widget.setImage2(numpy.random.rand(10, 10))
+        for mode in CompareImages.VisualizationMode:
+            self.widget.setVisualizationMode(mode)
+
 
 def suite():
     test_suite = unittest.TestSuite()
