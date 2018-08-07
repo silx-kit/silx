@@ -567,22 +567,22 @@ class CompareImages(qt.QMainWindow):
 
         legend = VisualizationMode.VERTICAL_LINE.name
         self.__plot.addXMarker(
-            0,
-            legend=legend,
-            text='',
-            draggable=True,
-            color='blue',
-            constraint=self.__separatorConstraint)
+                0,
+                legend=legend,
+                text='',
+                draggable=True,
+                color='blue',
+                constraint=self.__separatorConstraint)
         self.__vline = self.__plot._getMarker(legend)
 
         legend = VisualizationMode.HORIZONTAL_LINE.name
         self.__plot.addYMarker(
-            0,
-            legend=legend,
-            text='',
-            draggable=True,
-            color='blue',
-            constraint=self.__separatorConstraint)
+                0,
+                legend=legend,
+                text='',
+                draggable=True,
+                color='blue',
+                constraint=self.__separatorConstraint)
         self.__hline = self.__plot._getMarker(legend)
 
         # default values
@@ -834,6 +834,36 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image2: The second image
         """
         self.__raw1 = image1
+        self.__raw2 = image2
+        self.__updateData()
+        self.__plot.resetZoom()
+
+    def setImage1(self, image1):
+        """Set image1 to be compared.
+
+        Images can contains floating-point or integer values, or RGB and RGBA
+        values, but should have comparable intensities.
+
+        RGB and RGBA images are provided as an array as `[width,height,channels]`
+        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+
+        :param numpy.ndarray image1: The first image
+        """
+        self.__raw1 = image1
+        self.__updateData()
+        self.__plot.resetZoom()
+
+    def setImage2(self, image2):
+        """Set image2 to be compared.
+
+        Images can contains floating-point or integer values, or RGB and RGBA
+        values, but should have comparable intensities.
+
+        RGB and RGBA images are provided as an array as `[width,height,channels]`
+        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+
+        :param numpy.ndarray image2: The second image
+        """
         self.__raw2 = image2
         self.__updateData()
         self.__plot.resetZoom()
