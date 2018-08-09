@@ -546,6 +546,7 @@ class CompareImages(qt.QMainWindow):
         else:
             self.setWindowFlags(qt.Qt.Widget)
 
+        self.__transformation = None
         self.__raw1 = None
         self.__raw2 = None
         self.__data1 = None
@@ -566,22 +567,22 @@ class CompareImages(qt.QMainWindow):
 
         legend = VisualizationMode.VERTICAL_LINE.name
         self.__plot.addXMarker(
-            0,
-            legend=legend,
-            text='',
-            draggable=True,
-            color='blue',
-            constraint=self.__separatorConstraint)
+                0,
+                legend=legend,
+                text='',
+                draggable=True,
+                color='blue',
+                constraint=self.__separatorConstraint)
         self.__vline = self.__plot._getMarker(legend)
 
         legend = VisualizationMode.HORIZONTAL_LINE.name
         self.__plot.addYMarker(
-            0,
-            legend=legend,
-            text='',
-            draggable=True,
-            color='blue',
-            constraint=self.__separatorConstraint)
+                0,
+                legend=legend,
+                text='',
+                draggable=True,
+                color='blue',
+                constraint=self.__separatorConstraint)
         self.__hline = self.__plot._getMarker(legend)
 
         # default values
@@ -676,14 +677,14 @@ class CompareImages(qt.QMainWindow):
             assert(False)
 
         x1, y1 = int(x1), int(y1)
-        if y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
+        if raw1 is None or y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
             data1 = None
         else:
             data1 = raw1[y1, x1]
 
         if data2 is None:
             x2, y2 = int(x2), int(y2)
-            if y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
+            if raw2 is None or y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
                 data2 = None
             else:
                 data2 = raw2[y2, x2]
@@ -833,6 +834,36 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image2: The second image
         """
         self.__raw1 = image1
+        self.__raw2 = image2
+        self.__updateData()
+        self.__plot.resetZoom()
+
+    def setImage1(self, image1):
+        """Set image1 to be compared.
+
+        Images can contains floating-point or integer values, or RGB and RGBA
+        values, but should have comparable intensities.
+
+        RGB and RGBA images are provided as an array as `[width,height,channels]`
+        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+
+        :param numpy.ndarray image1: The first image
+        """
+        self.__raw1 = image1
+        self.__updateData()
+        self.__plot.resetZoom()
+
+    def setImage2(self, image2):
+        """Set image2 to be compared.
+
+        Images can contains floating-point or integer values, or RGB and RGBA
+        values, but should have comparable intensities.
+
+        RGB and RGBA images are provided as an array as `[width,height,channels]`
+        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+
+        :param numpy.ndarray image2: The second image
+        """
         self.__raw2 = image2
         self.__updateData()
         self.__plot.resetZoom()
