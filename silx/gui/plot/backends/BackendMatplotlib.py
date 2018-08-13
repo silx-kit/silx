@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "18/10/2017"
+__date__ = "01/08/2018"
 
 
 import logging
@@ -1117,7 +1117,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     # cursor
 
     _QT_CURSORS = {
-        None: qt.Qt.ArrowCursor,
         BackendBase.CURSOR_DEFAULT: qt.Qt.ArrowCursor,
         BackendBase.CURSOR_POINTING: qt.Qt.PointingHandCursor,
         BackendBase.CURSOR_SIZE_HOR: qt.Qt.SizeHorCursor,
@@ -1126,6 +1125,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     }
 
     def setGraphCursorShape(self, cursor):
-        cursor = self._QT_CURSORS[cursor]
-
-        FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))
+        if cursor is None:
+            FigureCanvasQTAgg.unsetCursor(self)
+        else:
+            cursor = self._QT_CURSORS[cursor]
+            FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))

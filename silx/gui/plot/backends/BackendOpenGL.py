@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "01/08/2018"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -1223,7 +1223,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # Interaction methods
 
     _QT_CURSORS = {
-        None: qt.Qt.ArrowCursor,
         BackendBase.CURSOR_DEFAULT: qt.Qt.ArrowCursor,
         BackendBase.CURSOR_POINTING: qt.Qt.PointingHandCursor,
         BackendBase.CURSOR_SIZE_HOR: qt.Qt.SizeHorCursor,
@@ -1232,9 +1231,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     }
 
     def setGraphCursorShape(self, cursor):
-        cursor = self._QT_CURSORS[cursor]
-
-        super(BackendOpenGL, self).setCursor(qt.QCursor(cursor))
+        if cursor is None:
+            super(BackendOpenGL, self).unsetCursor()
+        else:
+            cursor = self._QT_CURSORS[cursor]
+            super(BackendOpenGL, self).setCursor(qt.QCursor(cursor))
 
     def setGraphCursor(self, flag, color, linewidth, linestyle):
         if linestyle is not '-':
