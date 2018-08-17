@@ -205,7 +205,7 @@ class ColorBarWidget(qt.QWidget):
         :return: return the legend displayed along the colorbar
         :rtype: str
         """
-        return self.legend.getText()
+        return self.legend.text()
 
     def _activeScatterChanged(self, previous, legend):
         """Handle plot active scatter changed"""
