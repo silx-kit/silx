@@ -1,1 +1,1 @@
-numpy  # Do not use pre-release as 1.15.0rc1 seems to break things on Windows
+PyOpenGL     # PyOpenGL pre-release broken on Windows (#2074)
