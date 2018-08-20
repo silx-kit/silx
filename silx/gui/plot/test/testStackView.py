@@ -123,8 +123,9 @@ class TestStackView(TestCaseQt):
                          "Plane selection combobox not updating perspective")
 
         self.stackview.setStack(numpy.arange(6).reshape((1, 2, 3)))
-        self.assertEqual(self.stackview._perspective, 0,
-                         "Default perspective not restored in setStack.")
+        self.assertEqual(self.stackview._perspective, 1,
+                         "Perspective not preserved when calling setStack "
+                         "without specifying the perspective parameter.")
 
         self.stackview.setStack(numpy.arange(24).reshape((2, 3, 4)), perspective=2)
         self.assertEqual(self.stackview._perspective, 2,
