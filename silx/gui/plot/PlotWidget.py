@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "14/06/2018"
+__date__ = "29/08/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -346,8 +346,13 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._dirty = True
 
-        if self._autoreplot and not wasDirty:
+        if self._autoreplot and not wasDirty and self.isVisible():
             self._backend.postRedisplay()
+
+    def showEvent(self, event):
+        if self._autoreplot and self._dirty:
+            self._backend.postRedisplay()
+        super(PlotWidget, self).showEvent(event)
 
     def _invalidateDataRange(self):
         """
