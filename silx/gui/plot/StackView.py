@@ -202,6 +202,10 @@ class StackView(qt.QMainWindow):
         """Function returning the plot title based on the frame index.
         It can be set to a custom function using :meth:`setTitleCallback`"""
 
+        self.calibrations3D = (calibration.NoCalibration(),
+                               calibration.NoCalibration(),
+                               calibration.NoCalibration())
+
         central_widget = qt.QWidget(self)
 
         self._plot = PlotWindow(parent=central_widget, backend=backend,
@@ -229,7 +233,7 @@ class StackView(qt.QMainWindow):
         self._plot.sigPlotSignal.connect(self._plotCallback)
 
         self.__planeSelection = PlanesWidget(self._plot)
-        self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
+        self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
 
         self._browser_label = qt.QLabel("Image index (Dim0):")
 
@@ -287,12 +291,23 @@ class StackView(qt.QMainWindow):
                     self.valueChanged.emit(float(x), float(y),
                                            None)
 
-    def __setPerspective(self, perspective):
-        """Function called when the browsed/orthogonal dimension changes.
-        Updates :attr:`_perspective`, transposes data, updates the plot,
-        emits :attr:`sigPlaneSelectionChanged` and :attr:`sigStackChanged`.
+    def getPerspective(self):
+        """Returns the index of the dimension the stack is browsed with
 
-        :param int perspective: the new browsed dimension
+        Possible values are: 0, 1, or 2.
+
+        :rtype: int
+        """
+        return self._perspective
+
+    def setPerspective(self, perspective):
+        """Set the index of the dimension the stack is browsed with:
+
+        - slice plane Dim1-Dim2: perspective 0
+        - slice plane Dim0-Dim2: perspective 1
+        - slice plane Dim0-Dim1: perspective 2
+
+        :param int perspective: Orthogonal dimension number (0, 1, or 2)
         """
         if perspective == self._perspective:
             return
@@ -301,17 +316,21 @@ class StackView(qt.QMainWindow):
                 raise ValueError(
                     "Perspective must be 0, 1 or 2, not %s" % perspective)
 
-            self._perspective = perspective
+            self._perspective = int(perspective)
             self.__createTransposedView()
             self.__updateFrameNumber(self._browser.value())
             self._plot.resetZoom()
             self.__updatePlotLabels()
+            self._updateTitle()
             self._browser_label.setText("Image index (Dim%d):" %
                                         (self._first_stack_dimension + perspective))
 
             self.sigPlaneSelectionChanged.emit(perspective)
             self.sigStackChanged.emit(self._stack.size if
                                       self._stack is not None else 0)
+            self.__planeSelection.sigPlaneSelectionChanged.disconnect(self.setPerspective)
+            self.__planeSelection.setPerspective(self._perspective)
+            self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
 
     def __updatePlotLabels(self):
         """Update plot axes labels depending on perspective"""
@@ -391,39 +410,47 @@ class StackView(qt.QMainWindow):
                             i)
                 self.calibrations3D.append(calib)
 
-    def _getXYZCalibs(self):
-        """Return calibrations sorted in the XYZ graph order.
+    def getCalibrations(self, order='array'):
+        """Returns currently used calibrations for each axis
 
-        If the X or Y calibration is not linear, it will be replaced
-        with a :class:`calibration.NoCalibration` object
-        and as a result the corresponding axis will not be scaled."""
-        xy_dims = [0, 1, 2]
-        xy_dims.remove(self._perspective)
+        Returned calibrations might differ from the ones that were set as
+        non-linear calibrations used for image axes are temporarily ignored.
 
-        xcalib = self.calibrations3D[max(xy_dims)]
-        ycalib = self.calibrations3D[min(xy_dims)]
-        zcalib = self.calibrations3D[self._perspective]
+        :param str order:
+            'array' to sort calibrations as data array (dim0, dim1, dim2),
+            'axes' to sort calibrations as currently selected x, y and z axes.
+        :return: Calibrations ordered depending on order
+        :rtype: List[~silx.math.calibration.AbstractCalibration]
+        """
+        assert order in ('array', 'axes')
+        calibs = []
 
         # filter out non-linear calibration for graph axes
-        if not xcalib.is_affine():
-            xcalib = calibration.NoCalibration()
-        if not ycalib.is_affine():
-            ycalib = calibration.NoCalibration()
+        for index, calib in enumerate(self.calibrations3D):
+            if index != self._perspective and not calib.is_affine():
+                calib = calibration.NoCalibration()
+            calibs.append(calib)
 
-        return xcalib, ycalib, zcalib
+        if order == 'axes':  # Move 'z' axis to the end
+            xy_dims = [d for d in (0, 1, 2) if d != self._perspective]
+            calibs = [calibs[max(xy_dims)],
+                      calibs[min(xy_dims)],
+                      calibs[self._perspective]]
+
+        return tuple(calibs)
 
     def _getImageScale(self):
         """
         :return: 2-tuple (XScale, YScale) for current image view
         """
-        xcalib, ycalib, _zcalib = self._getXYZCalibs()
+        xcalib, ycalib, _zcalib = self.getCalibrations(order='axes')
         return xcalib.get_slope(), ycalib.get_slope()
 
     def _getImageOrigin(self):
         """
         :return: 2-tuple (XOrigin, YOrigin) for current image view
         """
-        xcalib, ycalib, _zcalib = self._getXYZCalibs()
+        xcalib, ycalib, _zcalib = self.getCalibrations(order='axes')
         return xcalib(0), ycalib(0)
 
     def _getImageZ(self, index):
@@ -431,7 +458,7 @@ class StackView(qt.QMainWindow):
         :param idx: 0-based image index in the stack
         :return: calibrated Z value corresponding to the image idx
         """
-        _xcalib, _ycalib, zcalib = self._getXYZCalibs()
+        _xcalib, _ycalib, zcalib = self.getCalibrations(order='axes')
         return zcalib(index)
 
     def _updateTitle(self):
@@ -442,7 +469,7 @@ class StackView(qt.QMainWindow):
         return "Image z=%g" % self._getImageZ(index)
 
     # public API, stack specific methods
-    def setStack(self, stack, perspective=0, reset=True, calibrations=None):
+    def setStack(self, stack, perspective=None, reset=True, calibrations=None):
         """Set the 3D stack.
 
         The perspective parameter is used to define which dimension of the 3D
@@ -454,8 +481,7 @@ class StackView(qt.QMainWindow):
         :type stack: 3D numpy.ndarray, or 3D h5py.Dataset, or list/tuple of 2D
             numpy arrays, or None.
         :param int perspective: Dimension for the frame index: 0, 1 or 2.
-            By default, the dimension for the image index is the first
-            dimension of the 3D stack (``perspective=0``).
+            Use ``None`` to keep the current perspective (default).
         :param bool reset: Whether to reset zoom or not.
         :param calibrations: Sequence of 3 calibration objects for each axis.
             These objects can be a subclass of :class:`AbstractCalibration`,
@@ -488,8 +514,10 @@ class StackView(qt.QMainWindow):
         self._stack = stack
         self.__createTransposedView()
 
-        if perspective != self._perspective:
-            self.__setPerspective(perspective)
+        perspective_changed = False
+        if perspective not in [None, self._perspective]:
+            perspective_changed = True
+            self.setPerspective(perspective)
 
         # This call to setColormap redefines the meaning of autoscale
         # for 3D volume: take global min/max rather than frame min/max
@@ -505,8 +533,8 @@ class StackView(qt.QMainWindow):
                             replace=True,
                             resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
-        self._plot.setGraphTitle("Image z=%g" % self._getImageZ(0))
         self.__updatePlotLabels()
+        self._updateTitle()
 
         if reset:
             self._plot.resetZoom()
@@ -514,12 +542,7 @@ class StackView(qt.QMainWindow):
         # enable and init browser
         self._browser.setEnabled(True)
 
-        if perspective != self._perspective:
-            self.__planeSelection.setPerspective(perspective)
-            # this causes self.__setPerspective to be called, which emits
-            # sigStackChanged and sigPlaneSelectionChanged
-
-        else:
+        if not perspective_changed:    # avoid double signal (see self.setPerspective)
             self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
