@@ -33,12 +33,18 @@ The current version features:
 Installation
 ------------
 
-To install silx, run:
+To install silx (and all its dependencies), run:
 
-.. code-block:: bash 
- 
+ .. code-block:: bash
+
+    pip install silx[full]
+
+To install silx with a minimal set of dependencies, run:
+
+.. code-block:: bash
+
     pip install silx
-    
+
 Or using Anaconda on Linux and MacOS:
 
 .. code-block:: bash 
