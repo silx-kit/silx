@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "29/08/2018"
 
 import os
 import weakref
@@ -595,6 +595,10 @@ class BaseMaskToolsWidget(qt.QWidget):
         maskGroup = qt.QGroupBox('Mask')
         maskGroup.setLayout(layout)
         return maskGroup
+
+    def isMaskInteractionActivated(self):
+        """Returns true if any mask interaction is activated"""
+        return self.drawActionGroup.checkedAction() is not None
 
     def _initDrawGroupBox(self):
         """Init drawing tools widgets"""
