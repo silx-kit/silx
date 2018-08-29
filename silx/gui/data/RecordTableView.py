@@ -382,7 +382,8 @@ class RecordTableView(qt.QTableView):
         qt.QTableView.__init__(self, parent)
 
         model = _ShowEditorProxyModel(self)
-        model.setSourceModel(RecordTableModel())
+        self._model = RecordTableModel()
+        model.setSourceModel(self._model)
         self.setModel(model)
 
         self.__multilineView = _MultiLineItem(self)
