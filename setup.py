@@ -860,28 +860,26 @@ def get_project_configuration(dry_run):
 
     setup_requires = ["setuptools", "numpy"]
 
-    # extras requirements: group dependencies by subpackage + an 'all' target
-    io_requires = [
+    # extras requirements: target 'full' to install all dependencies at once
+    full_requires = [
+        # io
         'h5py',
-        'fabio>=0.7']
-    opencl_requires = [
+        'fabio>=0.7',
+        # opencl
         'pyopencl',
-        'Mako']
-    gui_requires = io_requires + [
+        'Mako',
+        # gui
         'qtconsole',
         'matplotlib>=1.2.0',
         'PyOpenGL',
         'python-dateutil',
-        'PyQt5']
-    all_requires = opencl_requires + gui_requires + [
+        'PyQt5',
+        # extra
         'scipy',
         'Pillow']
 
     extras_require = {
-        'io': io_requires,
-        'opencl': opencl_requires,
-        'gui': gui_requires,
-        'all': all_requires,
+        'full': full_requires,
     }
 
     package_data = {
