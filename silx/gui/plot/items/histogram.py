@@ -290,9 +290,10 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             self._edges = edges
             self._alignement = align
 
-        plot = self.getPlot()
-        if plot is not None:
-            plot._invalidateDataRange()
+        if self.isVisible():
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
 
         self._updated(ItemChangedType.DATA)
 
