@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "29/08/2018"
 
 
 import os
@@ -310,8 +310,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 self._activeImageChanged)
         except (RuntimeError, TypeError):
             pass
-        if not self.browseAction.isChecked():
-            self.browseAction.trigger()  # Disable drawing tool
+        if self.isMaskInteractionActivated():
+            # Disable drawing tool
+            self.browseAction.trigger()
 
         if self.getSelectionMask(copy=False) is not None:
             self.plot.sigActiveImageChanged.connect(
