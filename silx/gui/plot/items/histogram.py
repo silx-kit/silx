@@ -27,7 +27,7 @@
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "28/08/2018"
 
 import logging
 
@@ -289,6 +289,11 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             self._histogram = histogram
             self._edges = edges
             self._alignement = align
+
+        if self.isVisible():
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
 
         self._updated(ItemChangedType.DATA)
 
