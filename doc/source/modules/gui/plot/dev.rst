@@ -44,7 +44,6 @@ The :mod:`backends` package provide the implementation of the rendering used by 
 It contains:
 :mod:`.backends.BackendBase` defines the API any plot backend should provide in :class:`BackendBase`.
 :mod:`.backends.BackendMatplotlib` implements a `matplotlib <http://matplotlib.org/>`_ backend.
-It uses :mod:`.backends.ModestImage` to provide a faster matplotlib AxesImage class using nearest values.
 The :mod:`.backends.BackendMatplotlib` the provides two classes:
 
 .. currentmodule:: silx.gui.plot.backends.BackendMatplotlib
