@@ -141,6 +141,21 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.qapp.processEvents()
         self.assertNotEqual(listener.callCount(), 0)
 
+    def testAddRemoveItemSignals(self):
+        """Test sigItemAdded and sigItemAboutToBeRemoved"""
+        listener = SignalListener()
+        self.plot.sigItemAdded.connect(listener.partial('add'))
+        self.plot.sigItemAboutToBeRemoved.connect(listener.partial('remove'))
+
+        self.plot.addCurve((1, 2, 3), (3, 2, 1), legend='curve')
+        self.assertEqual(listener.callCount(), 1)
+
+        curve = self.plot.getCurve('curve')
+        self.plot.remove('curve')
+        self.assertEqual(listener.callCount(), 2)
+        self.assertEqual(listener.arguments(callIndex=0), ('add', curve))
+        self.assertEqual(listener.arguments(callIndex=1), ('remove', curve))
+
 
 class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addImage"""
