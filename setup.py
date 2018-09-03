@@ -860,6 +860,28 @@ def get_project_configuration(dry_run):
 
     setup_requires = ["setuptools", "numpy"]
 
+    # extras requirements: target 'full' to install all dependencies at once
+    full_requires = [
+        # io
+        'h5py',
+        'fabio>=0.7',
+        # opencl
+        'pyopencl',
+        'Mako',
+        # gui
+        'qtconsole',
+        'matplotlib>=1.2.0',
+        'PyOpenGL',
+        'python-dateutil',
+        'PyQt5',
+        # extra
+        'scipy',
+        'Pillow']
+
+    extras_require = {
+        'full': full_requires,
+    }
+
     package_data = {
         # Resources files for silx
         'silx.resources': [
@@ -916,6 +938,7 @@ def get_project_configuration(dry_run):
                         long_description=get_readme(),
                         install_requires=install_requires,
                         setup_requires=setup_requires,
+                        extras_require=extras_require,
                         cmdclass=cmdclass,
                         package_data=package_data,
                         zip_safe=False,
