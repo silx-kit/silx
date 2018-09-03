@@ -145,16 +145,16 @@ class CurveLegendsWidget(qt.QWidget):
         """
         previousPlot = self.getPlotWidget()
         if previousPlot is not None:
-            previousPlot.sigContentChanged.disconnect(
-                self._plotContentChanged)
-
+            previousPlot.sigItemAdded.disconnect( self._itemAdded)
+            previousPlot.sigItemAboutToBeRemoved.disconnect(self._itemRemoved)
             for legend in list(self._legends.keys()):
                 self._removeLegend(legend)
 
         self._plotRef = None if plot is None else weakref.ref(plot)
 
         if plot is not None:
-            plot.sigContentChanged.connect(self._plotContentChanged)
+            plot.sigItemAdded.connect(self._itemAdded)
+            plot.sigItemAboutToBeRemoved.connect(self._itemRemoved)
 
             for legend in plot.getAllCurves(just_legend=True):
                 self._addLegend(legend)
@@ -181,26 +181,15 @@ class CurveLegendsWidget(qt.QWidget):
             widget = widget.parent()
         return None  # No widget or not in _LegendWidget
 
-    def _plotContentChanged(self, action, kind, legend):
-        """Handle change of plot content
+    def _itemAdded(self, item):
+        """Handle item added to the plot content"""
+        if isinstance(item, items.Curve):
+            self._addLegend(item.getLegend())
 
-        :param str action: 'add' or 'remove'
-        :param str kind: Kind of item
-        :param str legend: Legend of item
-        """
-        if kind != 'curve':
-            return
-
-        plot = self.getPlotWidget()
-        if plot is None:
-            _logger.error('No PlotWidget attached')
-            return
-
-        if action == 'add':
-            self._addLegend(legend)
-
-        else:  # action == 'remove'
-            self._removeLegend(legend)
+    def _itemRemoved(self, item):
+        """Handle item removed from the plot content"""
+        if isinstance(item, items.Curve):
+            self._removeLegend(item.getLegend())
 
     def _addLegend(self, legend):
         """Add a curve to the legends
@@ -208,7 +197,7 @@ class CurveLegendsWidget(qt.QWidget):
         :param str legend: Curve's legend
         """
         if legend in self._legends:
-            return  # Can happend when changing curve's y axis
+            return  # Can happen when changing curve's y axis
 
         plot = self.getPlotWidget()
         if plot is None:
