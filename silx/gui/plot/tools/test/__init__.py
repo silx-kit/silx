@@ -32,6 +32,7 @@ import unittest
 from . import testROI
 from . import testTools
 from . import testScatterProfileToolBar
+from . import testCurveLegendsWidget
 
 
 def suite():
@@ -40,6 +41,7 @@ def suite():
         [testROI.suite(),
          testTools.suite(),
          testScatterProfileToolBar.suite(),
+         testCurveLegendsWidget.suite(),
          ])
     return test_suite
 
