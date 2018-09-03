@@ -944,10 +944,10 @@ class CustomNxdataWidget(qt.QTreeView):
             if edited:
                 item.setAxesDatasets(datasets)
 
-        dataset = item.getSignalDataset()
-        newDataset = self.__replaceDatasetRoot(dataset, removedRoot, loadedRoot)
-        if dataset is not newDataset:
-            item.setSignalDataset(newDataset)
+            dataset = item.getSignalDataset()
+            newDataset = self.__replaceDatasetRoot(dataset, removedRoot, loadedRoot)
+            if dataset is not newDataset:
+                item.setSignalDataset(newDataset)
 
     def __replaceDatasetRoot(self, dataset, fromRoot, toRoot):
         """
