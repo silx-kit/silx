@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/07/2018"
+__date__ = "03/09/2018"
 
 
 import logging
@@ -37,9 +37,8 @@ from .Hdf5Node import Hdf5Node
 import silx.io.utils
 from silx.gui.data.TextFormatter import TextFormatter
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
-
+from ...third_party import six
 _logger = logging.getLogger(__name__)
-
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 # FIXME: The formatter should be an attribute of the Hdf5Model
@@ -63,6 +62,7 @@ class Hdf5Item(Hdf5Node):
         self.__error = None
         self.__text = text
         self.__linkClass = linkClass
+        self.__nx_class = None
         Hdf5Node.__init__(self, parent, populateAll=populateAll)
 
     def _getCanonicalName(self):
@@ -299,6 +299,8 @@ class Hdf5Item(Hdf5Node):
             attributeDict["Data type"] = self._getFormatter().humanReadableType(self.obj, full=True)
         elif self.h5Class == silx.io.utils.H5Type.GROUP:
             attributeDict["#Title"] = "HDF5 Group"
+            if self.nexusClassName:
+                attributeDict["NX_class"] = self.nexusClassName
             attributeDict["Name"] = self.basename
             attributeDict["Path"] = self.obj.name
         elif self.h5Class == silx.io.utils.H5Type.FILE:
@@ -338,6 +340,24 @@ class Hdf5Item(Hdf5Node):
 
         return tooltip
 
+    @property
+    def nexusClassName(self):
+        """Returns the Nexus class name"""
+        if self.__nx_class is None:
+            try:
+                self.__nx_class = self.obj.attrs.get("NX_class")
+            except Exception:
+                self.__nx_class = ""
+            else:
+                if self.__nx_class is None:
+                    self.__nx_class = ""
+                else:
+                    if six.PY2:
+                        self.__nx_class = self.__nx_class.decode()
+                    else:
+                        self.__nx_class = str(self.__nx_class, "UTF-8")
+        return self.__nx_class
+
     def dataName(self, role):
         """Data for the name column"""
         if role == qt.Qt.TextAlignmentRole:
@@ -360,12 +380,13 @@ class Hdf5Item(Hdf5Node):
             if self.__error is not None:
                 return ""
             class_ = self.h5Class
-            if class_ == silx.io.utils.H5Type.DATASET:
+            if self.isGroupObj():
+                text = self.nexusClassName
+            elif class_ == silx.io.utils.H5Type.DATASET:
                 text = self._getFormatter().humanReadableType(self.obj)
             else:
                 text = ""
             return text
-
         return None
 
     def dataShape(self, role):
