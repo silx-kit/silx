@@ -99,8 +99,17 @@ widget.setLayout(layout)
 layout.addWidget(roiToolbar)
 layout.addWidget(roiTable)
 
+def roiDockVisibilityChanged(visible):
+    """Handle change of visibility of the roi dock widget
+
+    If dock becomes hidden, ROI interaction is stopped.
+    """
+    if not visible:
+        roiManager.stop()
+
 dock = qt.QDockWidget('Image ROI')
 dock.setWidget(widget)
+dock.visibilityChanged.connect(roiDockVisibilityChanged)
 plot.addTabbedDockWidget(dock)
 
 # Show the widget and start the application
