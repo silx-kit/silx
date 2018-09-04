@@ -33,7 +33,7 @@ import unittest
 
 from silx.gui import qt
 from silx.gui.test.utils import TestCaseQt
-from silx.gui.utils import image
+from silx.gui.utils.image import convertArrayToQImage, convertQImageToArray
 
 
 class TestQImageConversion(TestCaseQt):
@@ -42,7 +42,7 @@ class TestQImageConversion(TestCaseQt):
     def testConvertArrayToQImage(self):
         """Test conversion of numpy array to QImage"""
         image = numpy.ones((3, 3, 3), dtype=numpy.uint8)
-        qimage = image.convertArrayToQImage(image)
+        qimage = convertArrayToQImage(image)
 
         self.assertEqual(qimage.height(), image.shape[0])
         self.assertEqual(qimage.width(), image.shape[1])
@@ -55,7 +55,7 @@ class TestQImageConversion(TestCaseQt):
         """Test conversion of QImage to numpy array"""
         qimage = qt.QImage(3, 3, qt.QImage.Format_RGB888)
         qimage.fill(0x010101)
-        image = image.convertQImageToArray(qimage)
+        image = convertQImageToArray(qimage)
 
         self.assertEqual(qimage.height(), image.shape[0])
         self.assertEqual(qimage.width(), image.shape[1])
