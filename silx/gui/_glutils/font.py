@@ -32,7 +32,7 @@ __date__ = "13/10/2016"
 import logging
 import numpy
 
-from ..utils._image import convertQImageToArray
+from ..utils.image import convertQImageToArray
 from .. import qt
 
 _logger = logging.getLogger(__name__)

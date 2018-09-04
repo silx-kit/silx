@@ -22,11 +22,10 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides convenient functions to use with Qt objects.
+"""This module provides conversions between numpy.ndarray and QImage
 
-It provides:
-- conversion between numpy and QImage:
-  :func:`convertArrayToQImage`, :func:`convertQImageToArray`
+- :func:`convertArrayToQImage`
+- :func:`convertQImageToArray`
 """
 
 from __future__ import division
@@ -34,7 +33,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "04/09/2018"
 
 
 import sys
