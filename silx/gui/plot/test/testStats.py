@@ -361,6 +361,7 @@ class TestStatsWidgetWithCurves(TestCaseQt):
     def setUp(self):
         TestCaseQt.setUp(self)
         self.plot = Plot1D()
+        self.plot.show()
         x = range(20)
         y = range(20)
         self.plot.addCurve(x, y, legend='curve0')
