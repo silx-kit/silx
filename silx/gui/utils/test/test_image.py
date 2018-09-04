@@ -32,35 +32,51 @@ import numpy
 import unittest
 
 from silx.gui import qt
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.test.utils import TestCaseQt
 from silx.gui.utils.image import convertArrayToQImage, convertQImageToArray
 
 
-class TestQImageConversion(TestCaseQt):
+class TestQImageConversion(TestCaseQt, ParametricTestCase):
     """Tests conversion of QImage to/from numpy array."""
 
     def testConvertArrayToQImage(self):
         """Test conversion of numpy array to QImage"""
-        image = numpy.ones((3, 3, 3), dtype=numpy.uint8)
-        qimage = convertArrayToQImage(image)
+        for format_, channels in [('Format_RGB888', 3),
+                                  ('Format_ARGB32', 4)]:
+            with self.subTest(format_):
+                image = numpy.arange(
+                    3*3*channels, dtype=numpy.uint8).reshape(3, 3, channels)
+                qimage = convertArrayToQImage(image)
 
-        self.assertEqual(qimage.height(), image.shape[0])
-        self.assertEqual(qimage.width(), image.shape[1])
-        self.assertEqual(qimage.format(), qt.QImage.Format_RGB888)
+                self.assertEqual(qimage.height(), image.shape[0])
+                self.assertEqual(qimage.width(), image.shape[1])
+                self.assertEqual(qimage.format(), getattr(qt.QImage, format_))
 
-        color = qt.QColor(1, 1, 1).rgb()
-        self.assertEqual(qimage.pixel(1, 1), color)
+                for row in range(3):
+                    for col in range(3):
+                        # Qrgb has no alpha channel, not compared
+                        # Qt uses x,y while array is row,col...
+                        self.assertEqual(qt.QColor(qimage.pixel(col, row)),
+                                         qt.QColor(*image[row, col, :3]))
+
 
     def testConvertQImageToArray(self):
         """Test conversion of QImage to numpy array"""
-        qimage = qt.QImage(3, 3, qt.QImage.Format_RGB888)
-        qimage.fill(0x010101)
-        image = convertQImageToArray(qimage)
+        for format_, channels in [
+                ('Format_RGB888', 3),  # Native support
+                ('Format_ARGB32', 4),  # Native support
+                ('Format_RGB32', 3)]:  # Conversion to RGB
+            with self.subTest(format_):
+                color = numpy.arange(channels)  # RGB(A) values
+                qimage = qt.QImage(3, 3, getattr(qt.QImage, format_))
+                qimage.fill(qt.QColor(*color))
+                image = convertQImageToArray(qimage)
 
-        self.assertEqual(qimage.height(), image.shape[0])
-        self.assertEqual(qimage.width(), image.shape[1])
-        self.assertEqual(image.shape[2], 3)
-        self.assertTrue(numpy.all(numpy.equal(image, 1)))
+                self.assertEqual(qimage.height(), image.shape[0])
+                self.assertEqual(qimage.width(), image.shape[1])
+                self.assertEqual(image.shape[2], len(color))
+                self.assertTrue(numpy.all(numpy.equal(image, color)))
 
 
 def suite():
