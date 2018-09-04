@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -205,10 +205,13 @@ class RecordTableModel(qt.QAbstractTableModel):
             if len(key) > 1:
                 data = data[key[1]]
 
+        # no dtype in case of 1D array of unicode objects (#2093)
+        dtype = getattr(data, "dtype", None)
+
         if role == qt.Qt.DisplayRole:
-            return self.__formatter.toString(data, dtype=data.dtype)
+            return self.__formatter.toString(data, dtype=dtype)
         elif role == qt.Qt.EditRole:
-            return self.__editFormatter.toString(data, dtype=data.dtype)
+            return self.__editFormatter.toString(data, dtype=dtype)
         return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
