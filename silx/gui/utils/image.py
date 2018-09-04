@@ -96,8 +96,9 @@ def convertQImageToArray(image):
     The created numpy array is using a copy of the QImage data.
 
     :param QImage image: The QImage to convert.
-    :return: The image array of RGB or RGBA channels
-    :rtype: numpy.ndarray of uint8 of shape (height, width, channels (3 or 4))
+    :return: The image array of RGB or RGBA channels of shape
+        (height, width, channels (3 or 4))
+    :rtype: numpy.ndarray of uint8
     """
     rgba8888 = getattr(qt.QImage, 'Format_RGBA8888', None)  # Only in Qt5
 

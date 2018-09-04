@@ -10,3 +10,9 @@
 
 .. automodule:: silx.gui.utils.concurrent
    :members:
+
+:mod:`~silx.gui.utils.image`
+----------------------------
+
+.. automodule:: silx.gui.utils.image
+   :members:
