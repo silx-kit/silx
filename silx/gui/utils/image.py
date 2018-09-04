@@ -38,6 +38,7 @@ __date__ = "04/09/2018"
 
 import sys
 import numpy
+from numpy.lib.stride_tricks import as_strided as _as_strided
 
 from .. import qt
 
@@ -72,20 +73,38 @@ def convertArrayToQImage(image):
 
 
 def convertQImageToArray(image):
-    """Convert a RGB888 QImage to a numpy array.
+    """Convert a QImage to a numpy array.
 
-    Limitation: Only supports RGB888 format.
-    If QImage is not RGB888 it gets converted to this format.
+    If QImage has not 8 bits per channel, it is converted to either
+    ARG8888 or RGB888 depending whether it has a alpha channel or not.
+    For format with padding bits (e.g. Format_RGB32), padding bits are preserved.
 
-    :param QImage: The QImage to convert.
+    The created numpy array is using a copy of the QImage data.
+
+    :param QImage image: The QImage to convert.
     :return: The image array
-    :rtype: numpy.ndarray of uint8 of shape HxWx3
+    :rtype: numpy.ndarray of uint8 of shape (height, width, channels (3 or 4))
     """
-    # Possible extension: avoid conversion to support more formats
 
-    if image.format() != qt.QImage.Format_RGB888:
-        # Convert to RGB888 if needed
-        image = image.convertToFormat(qt.QImage.Format_RGB888)
+    if image.format() == qt.QImage.Format_RGB888:
+        channels = 3
+    elif image.format() in (
+            qt.QImage.Format_RGB32,
+            qt.QImage.Format_ARGB32,
+            qt.QImage.Format_ARGB32_Premultiplied,
+            # Qt5 formats
+            getattr(qt.QImage, 'Format_RGBX8888', 'none'),
+            getattr(qt.QImage, 'Format_RGBA8888', 'none'),
+            getattr(qt.QImage, 'Format_RGBA8888_Premultiplied', 'none')):
+        channels = 4
+
+    else:  # For other format: Convert to RGB888 or ARGB8888
+        if image.hasAlphaChannel():
+            image = image.convertToFormat(qt.QImage.Format_ARGB32)
+            channels = 4
+        else:
+            image = image.convertToFormat(qt.QImage.Format_RGB888)
+            channels = 3
 
     ptr = image.bits()
     if qt.BINDING not in ('PySide', 'PySide2'):
@@ -95,10 +114,10 @@ def convertQImageToArray(image):
     elif sys.version_info[0] == 3:  # PySide with Python3
         ptr = ptr.tobytes()
 
-    array = numpy.array(numpy.frombuffer(ptr, dtype=numpy.uint8),
-                        copy=True)
+    # Create an array view on QImage internal data
+    view = _as_strided(
+        numpy.frombuffer(ptr, dtype=numpy.uint8),
+        shape=(image.height(), image.width(), channels),
+        strides=(image.bytesPerLine(), channels, 1))
 
-    # Lines are 32 bits aligned: remove padding bytes
-    array = array.reshape(image.height(), -1)[:, :image.width() * 3]
-    array.shape = image.height(), image.width(), 3
-    return array
+    return numpy.array(view, copy=True)
