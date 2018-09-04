@@ -43,44 +43,44 @@ from numpy.lib.stride_tricks import as_strided as _as_strided
 from .. import qt
 
 
-def convertArrayToQImage(image):
+def convertArrayToQImage(array):
     """Convert an array-like image to a QImage.
 
     The created QImage is using a copy of the array data.
 
     Limitation: Only RGB or RGBA images with 8 bits per channel are supported.
 
-    :param image: Array-like image data of shape (height, width, channels)
+    :param array: Array-like image data of shape (height, width, channels)
        Channels are expected to be either RGB or RGBA.
-    :type image: numpy.ndarray of uint8
+    :type array: numpy.ndarray of uint8
     :return: Corresponding Qt image with RGB888 or ARGB32 format.
     :rtype: QImage
     """
-    image = numpy.array(image, copy=False, order='C', dtype=numpy.uint8)
+    array = numpy.array(array, copy=False, order='C', dtype=numpy.uint8)
 
-    if image.ndim != 3 or image.shape[2] not in (3, 4):
+    if array.ndim != 3 or array.shape[2] not in (3, 4):
         raise ValueError(
             'Image must be a 3D array with 3 or 4 channels per pixel')
 
-    if image.shape[2] == 4:
+    if array.shape[2] == 4:
         format_ = qt.QImage.Format_ARGB32
         # RGBA -> ARGB + take care of endianness
         if sys.byteorder == 'little':  # RGBA -> BGRA
-            image = image[:, :, (2, 1, 0, 3)]
+            array = array[:, :, (2, 1, 0, 3)]
         else:  # big endian: RGBA -> ARGB
-            image = image[:, :, (3, 0, 1, 2)]
+            array = array[:, :, (3, 0, 1, 2)]
 
-        image = numpy.array(image, order='C')  # Make a contiguous array
+        array = numpy.array(array, order='C')  # Make a contiguous array
 
-    else:  # image.shape[2] == 3
+    else:  # array.shape[2] == 3
         format_ = qt.QImage.Format_RGB888
 
-    height, width, depth = image.shape
+    height, width, depth = array.shape
     qimage = qt.QImage(
-        image.data,
+        array.data,
         width,
         height,
-        image.strides[0],  # bytesPerLine
+        array.strides[0],  # bytesPerLine
         format_)
 
     return qimage.copy()  # Making a copy of the image and its data
