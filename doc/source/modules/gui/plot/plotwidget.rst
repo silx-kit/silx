@@ -159,6 +159,8 @@ The :class:`PlotWidget` provides the following Qt signals:
 .. autoattribute:: PlotWidget.sigSetGraphGrid
 .. autoattribute:: PlotWidget.sigSetGraphCursor
 .. autoattribute:: PlotWidget.sigSetPanWithArrowKeys
+.. autoattribute:: PlotWidget.sigItemAdded
+.. autoattribute:: PlotWidget.sigItemAboutToBeRemoved
 .. autoattribute:: PlotWidget.sigContentChanged
 .. autoattribute:: PlotWidget.sigActiveCurveChanged
 .. autoattribute:: PlotWidget.sigActiveImageChanged

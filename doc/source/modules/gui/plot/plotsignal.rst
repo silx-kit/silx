@@ -132,6 +132,7 @@ Plot state change events
     These events are deprecated.  
     Use :attr:`PlotWidget.sigSetKeepDataAspectRatio`,
     :attr:`PlotWidget.sigSetGraphGrid`, :attr:`PlotWidget.sigSetGraphCursor`,
+    :attr:`PlotWidget.sigItemAdded`,:attr:`PlotWidget.sigItemAboutToBeRemoved`,
     :attr:`PlotWidget.sigContentChanged`, :attr:`PlotWidget.sigActiveCurveChanged`,
     :attr:`PlotWidget.sigActiveImageChanged` and
     :attr:`PlotWidget.sigInteractiveModeChanged` instead.

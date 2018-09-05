@@ -193,6 +193,18 @@ class PlotWidget(qt.QMainWindow):
     It provides the source as passed to :meth:`setInteractiveMode`.
     """
 
+    sigItemAdded = qt.Signal(items.Item)
+    """Signal emitted when an item was just added to the plot
+
+    It provides the added item.
+    """
+
+    sigItemAboutToBeRemoved = qt.Signal(items.Item)
+    """Signal emitted right before an item is removed from the plot.
+
+    It provides the item that will be removed.
+    """
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, **kw):
         self._autoreplot = False
@@ -452,6 +464,7 @@ class PlotWidget(qt.QMainWindow):
             self._invalidateDataRange()  # TODO handle this automatically
 
         self._notifyContentChanged(item)
+        self.sigItemAdded.emit(item)
 
     def _notifyContentChanged(self, item):
         legend, kind = self._itemKey(item)
@@ -465,6 +478,8 @@ class PlotWidget(qt.QMainWindow):
         key = self._itemKey(item)
         if key not in self._content:
             raise RuntimeError('Item not in the plot')
+
+        self.sigItemAboutToBeRemoved.emit(item)
 
         legend, kind = key
 
