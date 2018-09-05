@@ -37,7 +37,7 @@ __date__ = "02/08/2018"
 import numpy as numpy
 
 from silx.gui import qt, icons, colors
-from silx.gui.utils._image import convertArrayToQImage
+from silx.gui.utils.image import convertArrayToQImage
 
 
 class RangeSlider(qt.QWidget):

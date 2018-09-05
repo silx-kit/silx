@@ -41,7 +41,7 @@ import numpy
 
 from silx.third_party import six
 
-from ...utils._image import convertArrayToQImage
+from ...utils.image import convertArrayToQImage
 from ...colors import preferredColormaps
 from ... import qt, icons
 from .. import items
