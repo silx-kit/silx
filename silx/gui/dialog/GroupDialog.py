@@ -26,8 +26,8 @@
 tree.
 
 .. autoclass:: GroupDialog
-   :show-inheritance:
    :members:
+   :inherited-members:
 
 
 """
