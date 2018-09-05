@@ -41,7 +41,111 @@ __license__ = "MIT"
 __date__ = "22/03/2018"
 
 
-class GroupDialog(qt.QDialog):
+class _Hdf5ItemSelectionDialog(qt.QDialog):
+    def __init__(self, parent=None):
+        qt.QDialog.__init__(self, parent)
+        self.setWindowTitle("HDF5 item selection")
+
+        self._tree = Hdf5TreeView(self)
+        self._tree.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        self._tree.activated.connect(self._onActivation)
+        self._tree.selectionModel().selectionChanged.connect(
+            self._onSelectionChange)
+
+        self._model = self._tree.findHdf5TreeModel()
+
+        self._header = self._tree.header()
+
+        self._labelNewItem = qt.QLabel(self)
+        self._labelNewItem.setText("Create new item in selected group (optional):")
+        self._lineEditNewItem = qt.QLineEdit(self)
+        self._lineEditNewItem.setToolTip(
+                "Specify the name of a new item "
+                "to be created in the selected group.")
+        self._lineEditNewItem.textChanged.connect(
+                self._onNewItemNameChange)
+
+        _labelSelectionTitle = qt.QLabel(self)
+        _labelSelectionTitle.setText("Current selection")
+        self._labelSelection = qt.QLabel(self)
+        self._labelSelection.setStyleSheet("color: gray")
+        self._labelSelection.setWordWrap(True)
+        self._labelSelection.setText("Select an item")
+
+        buttonBox = qt.QDialogButtonBox()
+        self._okButton = buttonBox.addButton(qt.QDialogButtonBox.Ok)
+        self._okButton.setEnabled(False)
+        buttonBox.addButton(qt.QDialogButtonBox.Cancel)
+
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        vlayout = qt.QVBoxLayout(self)
+        vlayout.addWidget(self._tree)
+        vlayout.addWidget(self._labelNewItem)
+        vlayout.addWidget(self._lineEditNewItem)
+        vlayout.addWidget(_labelSelectionTitle)
+        vlayout.addWidget(self._labelSelection)
+        vlayout.addWidget(buttonBox)
+        self.setLayout(vlayout)
+
+        self.setMinimumWidth(400)
+
+        self._selectedUrl = None
+
+    def _onSelectionChange(self, old, new):
+        self._updateUrl()
+
+    def _onNewItemNameChange(self, text):
+        self._updateUrl()
+
+    def _onActivation(self, idx):
+        # double-click or enter press
+        self.accept()
+
+    def addFile(self, path):
+        """Add a HDF5 file to the tree.
+        All groups it contains will be selectable in the dialog.
+
+        :param str path: File path
+        """
+        self._model.insertFile(path)
+
+    def addGroup(self, group):
+        """Add a HDF5 group to the tree. This group and all its subgroups
+        will be selectable in the dialog.
+
+        :param h5py.Group group: HDF5 group
+        """
+        self._model.insertH5pyObject(group)
+
+    def _updateUrl(self):
+        nodes = list(self._tree.selectedH5Nodes())
+        subgroupName = self._lineEditNewItem.text()
+        if nodes:
+            node = nodes[0]
+            data_path = node.local_name
+            if subgroupName.lstrip("/"):
+                if not data_path.endswith("/"):
+                    data_path += "/"
+                data_path += subgroupName.lstrip("/")
+            self._selectedUrl = DataUrl(file_path=node.local_filename,
+                                        data_path=data_path)
+            self._okButton.setEnabled(True)
+            self._labelSelection.setText(
+                    self._selectedUrl.path())
+
+    def getSelectedDataUrl(self):
+        """Return a :class:`DataUrl` with a file path and a data path.
+        Return None if the dialog was cancelled.
+
+        :return: :class:`silx.io.url.DataUrl` object pointing to the
+            selected HDF5 item.
+        """
+        return self._selectedUrl
+
+
+class GroupDialog(_Hdf5ItemSelectionDialog):
     """This :class:`QDialog` uses a :class:`silx.gui.hdf5.Hdf5TreeView` to
     provide a HDF5 group selection dialog.
 
@@ -64,91 +168,26 @@ class GroupDialog(qt.QDialog):
 
     """
     def __init__(self, parent=None):
-        qt.QDialog.__init__(self, parent)
+        _Hdf5ItemSelectionDialog.__init__(self, parent)
+
+        # customization for groups
         self.setWindowTitle("HDF5 group selection")
 
-        self._tree = Hdf5TreeView(self)
-        self._tree.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        self._tree.activated.connect(self._onActivation)
-        self._tree.selectionModel().selectionChanged.connect(
-            self._onSelectionChange)
-
-        self._model = self._tree.findHdf5TreeModel()
-
-        self._header = self._tree.header()
         self._header.setSections([self._model.NAME_COLUMN,
                                   self._model.NODE_COLUMN,
                                   self._model.LINK_COLUMN])
 
-        _labelSubgroup = qt.QLabel(self)
-        _labelSubgroup.setText("Subgroup name (optional)")
-        self._lineEditSubgroup = qt.QLineEdit(self)
-        self._lineEditSubgroup.setToolTip(
-                "Specify the name of a new subgroup "
-                "to be created in the selected group.")
-        self._lineEditSubgroup.textChanged.connect(
-                self._onSubgroupNameChange)
-
-        _labelSelectionTitle = qt.QLabel(self)
-        _labelSelectionTitle.setText("Current selection")
-        self._labelSelection = qt.QLabel(self)
-        self._labelSelection.setStyleSheet("color: gray")
-        self._labelSelection.setWordWrap(True)
-        self._labelSelection.setText("Select a group")
-
-        buttonBox = qt.QDialogButtonBox()
-        self._okButton = buttonBox.addButton(qt.QDialogButtonBox.Ok)
-        self._okButton.setEnabled(False)
-        buttonBox.addButton(qt.QDialogButtonBox.Cancel)
-
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-
-        vlayout = qt.QVBoxLayout(self)
-        vlayout.addWidget(self._tree)
-        vlayout.addWidget(_labelSubgroup)
-        vlayout.addWidget(self._lineEditSubgroup)
-        vlayout.addWidget(_labelSelectionTitle)
-        vlayout.addWidget(self._labelSelection)
-        vlayout.addWidget(buttonBox)
-        self.setLayout(vlayout)
-
-        self.setMinimumWidth(400)
-
-        self._selectedUrl = None
-
-    def addFile(self, path):
-        """Add a HDF5 file to the tree.
-        All groups it contains will be selectable in the dialog.
-
-        :param str path: File path
-        """
-        self._model.insertFile(path)
-
-    def addGroup(self, group):
-        """Add a HDF5 group to the tree. This group and all its subgroups
-        will be selectable in the dialog.
-
-        :param h5py.Group group: HDF5 group
-        """
-        self._model.insertH5pyObject(group)
-
     def _onActivation(self, idx):
-        # double-click or enter press
+        # double-click or enter press: filter for groups
         nodes = list(self._tree.selectedH5Nodes())
         node = nodes[0]
         if silx.io.is_group(node.h5py_object):
             self.accept()
 
-    def _onSelectionChange(self, old, new):
-        self._updateUrl()
-
-    def _onSubgroupNameChange(self, text):
-        self._updateUrl()
-
     def _updateUrl(self):
+        # overloaded to filter for groups
         nodes = list(self._tree.selectedH5Nodes())
-        subgroupName = self._lineEditSubgroup.text()
+        subgroupName = self._lineEditNewItem.text()
         if nodes:
             node = nodes[0]
             if silx.io.is_group(node.h5py_object):
@@ -166,12 +205,3 @@ class GroupDialog(qt.QDialog):
                 self._selectedUrl = None
                 self._okButton.setEnabled(False)
                 self._labelSelection.setText("Select a group")
-
-    def getSelectedDataUrl(self):
-        """Return a :class:`DataUrl` with a file path and a data path.
-        Return None if the dialog was cancelled.
-
-        :return: :class:`silx.io.url.DataUrl` object pointing to the
-            selected group.
-        """
-        return self._selectedUrl
