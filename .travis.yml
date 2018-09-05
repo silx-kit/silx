@@ -14,7 +14,6 @@ matrix:
           env:
               - BUILD_COMMAND=sdist
               - QT_BINDING=
-              - PYOPENCL_VERSION=2015.1
               - SILX_OPENCL=1
 
         - python: 3.4
@@ -23,7 +22,6 @@ matrix:
               - BUILD_COMMAND=sdist
               - QT_BINDING=
               - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
-              - PYOPENCL_VERSION=2015.1
               - SILX_OPENCL=1
 
         - python: 3.5
@@ -31,7 +29,6 @@ matrix:
           env:
               - BUILD_COMMAND=sdist
               - QT_BINDING=PyQt5
-              - PYOPENCL_VERSION=2015.1
               - SILX_OPENCL=1
 
         - python: 3.6
@@ -39,7 +36,6 @@ matrix:
           env:
               - BUILD_COMMAND=sdist
               - QT_BINDING=PySide2
-              - PYOPENCL_VERSION=2018.1
               - SILX_OPENCL=1
 
         - language: generic
@@ -47,7 +43,6 @@ matrix:
           env:
               - BUILD_COMMAND=bdist_wheel
               - QT_BINDING=PyQt5
-              - PYOPENCL_VERSION=2017.2
 
 cache:
     apt: true
@@ -106,8 +101,6 @@ before_script:
           pip install -q -r ci/requirements-pinned.txt;
       fi
 
-    # Install optional dependencies for running test
-    - pip install -q --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==$PYOPENCL_VERSION
     # This installs PyQt and scipy if wheels are available
     - pip install -q --pre -r requirements.txt
     # Install PySide2 if needed
