@@ -256,12 +256,14 @@ class DataItem3D(Item3D):
 
         self._rotationCenter = 0., 0., 0.
 
-        self._getScenePrimitive().transforms = [
+        self.__transforms = transform.TransformList([
             self._translate,
             self._rotateForwardTranslation,
             self._rotate,
             self._rotateBackwardTranslation,
-            self._transformObjectToRotate]
+            self._transformObjectToRotate])
+
+        self._getScenePrimitive().transforms = self.__transforms
 
     def _updated(self, event=None):
         """Handle MixIn class updates.
@@ -273,6 +275,13 @@ class DataItem3D(Item3D):
         super(DataItem3D, self)._updated(event)
 
     # Transformations
+
+    def _getSceneTransforms(self):
+        """Return TransformList corresponding to current transforms
+
+        :rtype: TransformList
+        """
+        return self.__transforms
 
     def setScale(self, sx=1., sy=1., sz=1.):
         """Set the scale of the item in the scene.
@@ -477,6 +486,13 @@ class _BaseGroupItem(DataItem3D):
         DataItem3D.__init__(self, parent=parent, group=group)
         self._items = []
 
+    def _getGroupPrimitive(self):
+        """Returns the group for which to handle children.
+
+        This allows this group to be different from the primitive.
+        """
+        return self._getScenePrimitive()
+
     def addItem(self, item, index=None):
         """Add an item to the group
 
@@ -493,11 +509,11 @@ class _BaseGroupItem(DataItem3D):
 
         item.setParent(self)
         if index is None:
-            self._getScenePrimitive().children.append(
+            self._getGroupPrimitive().children.append(
                 item._getScenePrimitive())
             self._items.append(item)
         else:
-            self._getScenePrimitive().children.insert(
+            self._getGroupPrimitive().children.insert(
                 index, item._getScenePrimitive())
             self._items.insert(index, item)
         self.sigItemAdded.emit(item)
@@ -518,7 +534,7 @@ class _BaseGroupItem(DataItem3D):
         if item not in self.getItems():
             raise ValueError("Item3D not in group: %s" % str(item))
 
-        self._getScenePrimitive().children.remove(item._getScenePrimitive())
+        self._getGroupPrimitive().children.remove(item._getScenePrimitive())
         self._items.remove(item)
         item.setParent(None)
         self.sigItemRemoved.emit(item)
@@ -620,3 +636,26 @@ class GroupWithAxesItem(_BaseGroupItem):
         return self._Labels((labelledAxes.xlabel,
                              labelledAxes.ylabel,
                              labelledAxes.zlabel))
+
+
+class RootGroupWithAxesItem(GroupWithAxesItem):
+    """Special group with axes item for root of the scene.
+
+    Uses 2 groups so that axes take transforms into account.
+    """
+
+    def __init__(self, parent=None):
+        super(RootGroupWithAxesItem, self).__init__(parent)
+        self.__group = scene.Group()
+        self.__group.transforms = self._getSceneTransforms()
+
+        groupWithAxes = self._getScenePrimitive()
+        groupWithAxes.transforms = []  # Do not apply transforms here
+        groupWithAxes.children.append(self.__group)
+
+    def _getGroupPrimitive(self):
+        """Returns the group for which to handle children.
+
+        This allows this group to be different from the primitive.
+        """
+        return self.__group

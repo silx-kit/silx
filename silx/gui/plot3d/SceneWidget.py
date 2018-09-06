@@ -39,6 +39,7 @@ from ..colors import rgba
 
 from .Plot3DWidget import Plot3DWidget
 from . import items
+from .items.core import RootGroupWithAxesItem
 from .scene import interaction
 from ._model import SceneModel, visitQAbstractItemModel
 from ._model.items import Item3DRow
@@ -363,7 +364,7 @@ class SceneWidget(Plot3DWidget):
         self._foregroundColor = 1., 1., 1., 1.
         self._highlightColor = 0.7, 0.7, 0., 1.
 
-        self._sceneGroup = items.GroupWithAxesItem(parent=self)
+        self._sceneGroup = RootGroupWithAxesItem(parent=self)
         self._sceneGroup.setLabel('Data')
 
         self.viewport.scene.children.append(self._sceneGroup._getScenePrimitive())
