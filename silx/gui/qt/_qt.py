@@ -92,7 +92,7 @@ else:  # Then try Qt bindings
 if BINDING == 'PyQt4':
     _logger.debug('Using PyQt4 bindings')
     deprecated_warning("Qt Binding", "PyQt4",
-                       replacement='PyQt4',
+                       replacement='PyQt5',
                        since_version='0.9.0')
 
     if sys.version_info < (3, ):
