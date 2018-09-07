@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ __date__ = "06/03/2017"
 
 import logging
 
-from .core import (Item, DraggableMixIn, ColorMixIn, SymbolMixIn,
+from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
                    ItemChangedType)
 
 
@@ -55,11 +55,9 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
         self._y = None
         self._constraint = self._defaultConstraint
 
-    def _addBackendRenderer(self, backend):
-        """Update backend renderer"""
-        # TODO not very nice way to do it, but simple
-        symbol = self.getSymbol() if isinstance(self, Marker) else None
-
+    def _addRendererCall(self, backend,
+                         symbol=None, linestyle='-', linewidth=1):
+        """Perform the update of the backend renderer"""
         return backend.addMarker(
             x=self.getXPosition(),
             y=self.getYPosition(),
@@ -69,7 +67,13 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
             selectable=self.isSelectable(),
             draggable=self.isDraggable(),
             symbol=symbol,
+            linestyle=linestyle,
+            linewidth=linewidth,
             constraint=self.getConstraint())
+
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        raise NotImplementedError()
 
     def isOverlay(self):
         """Return true if marker is drawn as an overlay.
@@ -175,6 +179,9 @@ class Marker(_BaseMarker, SymbolMixIn):
         self._x = 0.
         self._y = 0.
 
+    def _addBackendRenderer(self, backend):
+        return self._addRendererCall(backend, symbol=self.getSymbol())
+
     def _setConstraint(self, constraint):
         """Set the constraint function of the marker drag.
 
@@ -197,11 +204,24 @@ class Marker(_BaseMarker, SymbolMixIn):
         return x, self.getYPosition()
 
 
-class XMarker(_BaseMarker):
-    """Description of a marker"""
+class _LineMarker(_BaseMarker, LineMixIn):
+    """Base class for line markers"""
 
     def __init__(self):
         _BaseMarker.__init__(self)
+        LineMixIn.__init__(self)
+
+    def _addBackendRenderer(self, backend):
+        return self._addRendererCall(backend,
+                                     linestyle=self.getLineStyle(),
+                                     linewidth=self.getLineWidth())
+
+
+class XMarker(_LineMarker):
+    """Description of a marker"""
+
+    def __init__(self):
+        _LineMarker.__init__(self)
         self._x = 0.
 
     def setPosition(self, x, y):
@@ -219,11 +239,11 @@ class XMarker(_BaseMarker):
             self._updated(ItemChangedType.POSITION)
 
 
-class YMarker(_BaseMarker):
+class YMarker(_LineMarker):
     """Description of a marker"""
 
     def __init__(self):
-        _BaseMarker.__init__(self)
+        _LineMarker.__init__(self)
         self._y = 0.
 
     def setPosition(self, x, y):
