@@ -156,6 +156,28 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertEqual(listener.arguments(callIndex=0), ('add', curve))
         self.assertEqual(listener.arguments(callIndex=1), ('remove', curve))
 
+    def testGetItems(self):
+        """Test getItems method"""
+        curve_x = 1, 2
+        self.plot.addCurve(curve_x, (3, 4))
+        image = (0, 1), (2, 3)
+        self.plot.addImage(image)
+        scatter_x = 10, 11
+        self.plot.addScatter(scatter_x, (12, 13), (0, 1))
+        marker_pos = 5, 5
+        self.plot.addMarker(*marker_pos)
+        marker_x = 6
+        self.plot.addXMarker(marker_x)
+        self.plot.addItem((0, 5), (2, 10), shape='rectangle')
+
+        items = self.plot.getItems()
+        self.assertEqual(len(items), 6)
+        self.assertTrue(numpy.all(numpy.equal(items[0].getXData(), curve_x)))
+        self.assertTrue(numpy.all(numpy.equal(items[1].getData(), image)))
+        self.assertTrue(numpy.all(numpy.equal(items[2].getXData(), scatter_x)))
+        self.assertTrue(numpy.all(numpy.equal(items[3].getPosition(), marker_pos)))
+        self.assertTrue(numpy.all(numpy.equal(items[4].getPosition()[0], marker_x)))
+        self.assertEqual(items[5].getType(), 'rectangle')
 
 class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addImage"""
