@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 1995-2017 European Synchrotron Radiation Facility
+# Copyright (C) 1995-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -521,11 +521,12 @@ sfReadFile(SpecFile *sf,SfCursor *cursor,int *error) {
   free(buffer);
 
   sf->no_scans = cursor->scanno;
- /*
-  * Save last
-  */
-  sfSaveScan(sf,cursor,error);
-
+  if (sf->no_scans > 0) {
+     /*
+      * Save last
+      */
+      sfSaveScan(sf,cursor,error);
+  }
   return;
 
 }
