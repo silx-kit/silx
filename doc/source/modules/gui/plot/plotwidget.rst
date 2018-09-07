@@ -37,14 +37,12 @@ Get data
 
 Those methods return objects providing access to plotted data:
 
+.. automethod:: PlotWidget.getItems
+
 .. automethod:: PlotWidget.getCurve
 .. automethod:: PlotWidget.getImage
 .. automethod:: PlotWidget.getScatter
 .. automethod:: PlotWidget.getHistogram
-
-.. automethod:: PlotWidget.getAllCurves
-.. automethod:: PlotWidget.getAllImages
-
 
 Plot markers
 ............
