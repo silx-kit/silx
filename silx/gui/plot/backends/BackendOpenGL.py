@@ -1161,10 +1161,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint):
+                  symbol, linestyle, linewidth, constraint):
 
         if symbol is None:
             symbol = '+'
+
+        if linestyle != '-' or linewidth != 1:
+            _logger.warning(
+                'OpenGL backend does not support marker line style and width.')
 
         behaviors = set()
         if selectable:

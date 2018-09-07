@@ -188,7 +188,7 @@ class BackendBase(object):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint):
+                  symbol, linestyle, linewidth, constraint):
         """Add a point, vertical line or horizontal line marker to the plot.
 
         :param float x: Horizontal position of the marker in graph coordinates.
@@ -211,7 +211,17 @@ class BackendBase(object):
             - 'x' x-cross
             - 'd' diamond
             - 's' square
+        :param str linestyle: Style of the line.
+            Only relevant for line markers where X or Y is None.
+            Value in:
 
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+        :param float linewidth: Width of the line.
+            Only relevant for line markers where X or Y is None.
         :param constraint: A function filtering marker displacement by
                            dragging operations or None for no filter.
                            This function is called each time a marker is

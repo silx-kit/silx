@@ -519,7 +519,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint):
+                  symbol, linestyle, linewidth, constraint):
         legend = "__MARKER__" + legend
 
         textArtist = None
@@ -547,7 +547,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                           verticalalignment=valign)
 
         elif x is not None:
-            line = self.ax.axvline(x, label=legend, color=color)
+            line = self.ax.axvline(x,
+                                   label=legend,
+                                   color=color,
+                                   linewidth=linewidth,
+                                   linestyle=linestyle)
             if text is not None:
                 # Y position will be updated in updateMarkerText call
                 textArtist = self.ax.text(x, 1., " " + text,
@@ -556,7 +560,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                           verticalalignment='top')
 
         elif y is not None:
-            line = self.ax.axhline(y, label=legend, color=color)
+            line = self.ax.axhline(y,
+                                   label=legend,
+                                   color=color,
+                                   linewidth=linewidth,
+                                   linestyle=linestyle)
 
             if text is not None:
                 # X position will be updated in updateMarkerText call
