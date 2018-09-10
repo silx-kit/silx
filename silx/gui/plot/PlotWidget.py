@@ -1780,6 +1780,13 @@ class PlotWidget(qt.QMainWindow):
 
     # Getters
 
+    def getItems(self):
+        """Returns the list of items in the plot
+
+        :rtype: List[silx.gui.plot.items.Item]
+        """
+        return tuple(self._content.values())
+
     def getAllCurves(self, just_legend=False, withhidden=False):
         """Returns all curves legend or info and data.
 
