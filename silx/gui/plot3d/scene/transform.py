@@ -305,6 +305,44 @@ class Transform(event.Notifier):
 
     # Multiplication with vectors
 
+    def transformPoints(self, points, direct=True, perspectiveDivide=False):
+        """Apply the transform to an array of points.
+
+        :param points: 2D array of N vectors of 3 or 4 coordinates
+        :param bool direct: Whether to apply the direct (True, the default)
+                            or inverse (False) transform.
+        :param bool perspectiveDivide: Whether to apply the perspective divide
+                                       (True) or not (False, the default).
+        :return: The transformed points.
+        :rtype: numpy.ndarray of same shape as points.
+        """
+        if direct:
+            matrix = self.getMatrix(copy=False)
+        else:
+            matrix = self.getInverseMatrix(copy=False)
+
+        points = numpy.array(points, copy=False)
+        assert points.ndim == 2
+
+        points = numpy.transpose(points)
+
+        dimension = points.shape[0]
+        assert dimension in (3, 4)
+
+        if dimension == 3:  # Add 4th coordinate
+            points = numpy.append(
+                points,
+                numpy.ones((1, points.shape[1]), dtype=points.dtype),
+                axis=0)
+
+        result = numpy.transpose(numpy.dot(matrix, points))
+
+        if perspectiveDivide:
+            mask = result[:, 3] != 0.
+            result[mask] /= result[mask, 3][:, numpy.newaxis]
+
+        return result[:, 3] if dimension == 3 else result
+
     @staticmethod
     def _prepareVector(vector, w):
         """Add 4th coordinate (w) to vector if missing."""
@@ -316,8 +354,6 @@ class Transform(event.Notifier):
 
     def transformPoint(self, point, direct=True, perspectiveDivide=False):
         """Apply the transform to a point.
-
-        If len(point) == 3, apply perspective divide if possible.
 
         :param point: Array-like vector of 3 or 4 coordinates.
         :param bool direct: Whether to apply the direct (True, the default)
