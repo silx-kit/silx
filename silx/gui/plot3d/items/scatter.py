@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -116,7 +116,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: X coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute('x', copy=copy)
+        return self._scatter.getAttribute('x', copy=copy).reshape(-1)
 
     def getYData(self, copy=True):
         """Returns Y data coordinates.
@@ -126,7 +126,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: Y coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute('y', copy=copy)
+        return self._scatter.getAttribute('y', copy=copy).reshape(-1)
 
     def getZData(self, copy=True):
         """Returns Z data coordinates.
@@ -136,7 +136,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: Z coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute('z', copy=copy)
+        return self._scatter.getAttribute('z', copy=copy).reshape(-1)
 
     def getValues(self, copy=True):
         """Returns data values.
@@ -146,7 +146,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: data values
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute('value', copy=copy)
+        return self._scatter.getAttribute('value', copy=copy).reshape(-1)
 
 
 class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
