@@ -205,7 +205,12 @@ void median_filter(
 
                         case MIRROR:
                             index_x = mirror(win_x, image_dim[1]);
-                            index_y = mirror(win_y, image_dim[0]);
+                            // deal with 1d case
+                            if(win_y == 0 && image_dim[0] == 1){
+                                index_y = 0;
+                            }else{
+                                index_y = mirror(win_y, image_dim[0]);
+                            }
                             value = input[index_y*image_dim[1] + index_x];
                             break;
 
