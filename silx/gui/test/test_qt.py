@@ -136,6 +136,7 @@ class TestLoadUi(TestCaseQt):
     </ui>
     """
 
+    @unittest.skipIf(qt.BINDING == "PySide", "Not fully working with PySide")
     def testLoadUi(self):
         """Create a QMainWindow from an ui file"""
         with temp_dir() as tmp:
