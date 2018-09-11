@@ -54,7 +54,7 @@ enum MODE{
     CONSTANT=4,
 };
 
-// Simple function browsing a deque and registring the min and max values
+// Simple function browsing a deque and registering the min and max values
 // and if those values are unique or not
 template<typename T>
 void getMinMax(std::vector<T>& v, T& min, T&max,
@@ -95,12 +95,12 @@ inline T median(std::vector<T>& v, int window_size) {
 // return the index into 0, (length_max - 1) in reflect mode
 inline int reflect(int index, int length_max){
     int res = index;
-    // if the index is negative get the positive symetrical value
+    // if the index is negative get the positive symmetrical value
     if(res < 0){
         res += 1;
         res = -res;
     }
-    // then apply the reflect algorithm. Frequence is 2 max length
+    // then apply the reflect algorithm. Frequency is 2 max length
     res = res % (2*length_max);
     if(res >= length_max){
         res = 2*length_max - res -1;
@@ -112,7 +112,7 @@ inline int reflect(int index, int length_max){
 // return the index into 0, (length_max - 1) in mirror mode
 inline int mirror(int index, int length_max){
     int res = index;
-    // if the index is negative get the positive symetrical value
+    // if the index is negative get the positive symmetrical value
     if(res < 0){
         res = -res;
     }
