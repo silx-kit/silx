@@ -45,7 +45,8 @@ if "PySide.QtCore" in sys.modules:
     from PySide.QtCore import QMetaObject
     from PySide.QtUiTools import QUiLoader
 else:  # PySide2
-    from PySide2.QtCore import QMetaObject
+    from PySide2.QtCore import QMetaObject, Property, Qt
+    from PySide2.QtWidgets import QFrame
     from PySide2.QtUiTools import QUiLoader
 
 _logger = logging.getLogger(__name__)
@@ -126,6 +127,43 @@ class UiLoader(QUiLoader):
             return widget
 
 
+if "PySide2.QtCore" in sys.modules:
+
+    class _Line(QFrame):
+        """Widget to use as 'Line' Qt designer"""
+        def __init__(self, parent=None):
+            super(_Line, self).__init__(parent)
+            self.setFrameShape(QFrame.HLine)
+            self.setFrameShadow(QFrame.Sunken)
+
+        def getOrientation(self):
+            shape = self.frameShape()
+            if shape == QFrame.HLine:
+                return Qt.Horizontal
+            elif shape == QFrame.VLine:
+                return Qt.Vertical
+            else:
+                raise RuntimeError("Wrong shape: %d", shape)
+
+        def setOrientation(self, orientation):
+            if orientation == Qt.Horizontal:
+                self.setFrameShape(QFrame.HLine)
+            elif orientation == Qt.Vertical:
+                self.setFrameShape(QFrame.VLine)
+            else:
+                raise ValueError("Unsupported orientation %s" % str(orientation))
+
+        orientation = Property("Qt::Orientation", getOrientation, setOrientation)
+
+
+    CUSTOM_WIDGETS = {"Line": _Line}
+    """Default custom widgets for `loadUi`"""
+
+else:  # PySide support
+    CUSTOM_WIDGETS = {}
+    """Default custom widgets for `loadUi`"""
+
+
 def loadUi(uifile, baseinstance=None, package=None, resource_suffix=None):
     """
     Dynamically load a user interface from the given ``uifile``.
@@ -155,7 +193,7 @@ def loadUi(uifile, baseinstance=None, package=None, resource_suffix=None):
         _logger.warning(
             "loadUi resource_suffix parameter not implemented with PySide")
 
-    loader = UiLoader(baseinstance)
+    loader = UiLoader(baseinstance, customWidgets=CUSTOM_WIDGETS)
     widget = loader.load(uifile)
     QMetaObject.connectSlotsByName(widget)
     return widget
