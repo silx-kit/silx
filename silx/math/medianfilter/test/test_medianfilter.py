@@ -29,7 +29,7 @@ __date__ = "17/01/2018"
 
 import unittest
 import numpy
-from silx.math.medianfilter import medfilt2d
+from silx.math.medianfilter import medfilt2d, medfilt1d
 from silx.math.medianfilter.medianfilter import reflect, mirror
 from silx.math.medianfilter.medianfilter import MODES as silx_mf_modes
 from silx.utils.testutils import ParametricTestCase
@@ -108,6 +108,14 @@ class TestMedianFilterNearest(ParametricTestCase):
                             mode='nearest')
 
         self.assertTrue(numpy.array_equal(dataIn, dataOut))
+
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=3, conditional=False,
+                      mode='nearest'),
+            [0, 2, 5, 2, 1])
+        )
 
     def testFilter3Conditionnal(self):
         """Test that the conditional filter apply correctly in a 10x10 matrix
@@ -257,6 +265,14 @@ class TestMedianFilterReflect(ParametricTestCase):
         self.assertEqual(output[1, 0], 20)
         self.assertEqual(output[1, 1], 20)
 
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=5, conditional=False,
+                      mode='reflect'),
+            [2, 2, 2, 2, 2])
+        )
+
 
 class TestMedianFilterMirror(ParametricTestCase):
     """Unit test for the median filter in mirror mode
@@ -341,6 +357,13 @@ class TestMedianFilterMirror(ParametricTestCase):
         self.assertEqual(output[1, 0], 21)
         self.assertEqual(output[1, 1], 20)
 
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=5, conditional=False,
+                      mode='mirror'),
+            [2, 5, 2, 5, 2])
+        )
 
 class TestMedianFilterShrink(ParametricTestCase):
     """Unit test for the median filter in mirror mode
@@ -458,6 +481,13 @@ class TestMedianFilterShrink(ParametricTestCase):
         self.assertEqual(output[1, 0], 20)
         self.assertEqual(output[1, 1], 20)
 
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=3, conditional=False,
+                      mode='shrink'),
+            [5, 2, 5, 2, 6])
+        )
 
 class TestMedianFilterConstant(ParametricTestCase):
     """Unit test for the median filter in constant mode
@@ -539,6 +569,13 @@ class TestMedianFilterConstant(ParametricTestCase):
         self.assertEqual(output[1, 0], 0)
         self.assertEqual(output[1, 1], 20)
 
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=5, conditional=False,
+                      mode='constant'),
+            [0, 2, 2, 2, 1])
+        )
 
 class TestGeneralExecution(ParametricTestCase):
     """Some general test on median filter application"""
