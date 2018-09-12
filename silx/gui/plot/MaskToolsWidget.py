@@ -43,9 +43,11 @@ import sys
 import numpy
 import logging
 import collections
+import h5py
 
 from silx.image import shapes
-from silx.io.utils import NEXUS_HDF5_EXT
+from silx.io.utils import NEXUS_HDF5_EXT, is_dataset
+from silx.gui.dialog.DatasetDialog import DatasetDialog
 
 from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
 from . import items
@@ -93,7 +95,7 @@ class ImageMask(BaseMask):
         """Save current mask in a file
 
         :param str filename: The file where to save to mask
-        :param str kind: The kind of file to save in 'edf', 'tif', 'npy',
+        :param str kind: The kind of file to save in 'edf', 'tif', 'npy', 'h5'
             or 'msk' (if FabIO is installed)
         :raise Exception: Raised if the file writing fail
         """
@@ -455,6 +457,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 _logger.error("Can't load fit2d mask file")
                 _logger.debug("Backtrace", exc_info=True)
                 raise e
+        elif ("." + extension) in NEXUS_HDF5_EXT:
+            mask = self._loadFromHdf5(filename)
+            if mask is None:
+                raise IOError("Could not load mask from HDF5 dataset")
         else:
             msg = "Extension '%s' is not supported."
             raise RuntimeError(msg % extension)
@@ -477,6 +483,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         extensions["EDF files"] = "*.edf"
         extensions["TIFF files"] = "*.tif *.tiff"
         extensions["NumPy binary files"] = "*.npy"
+        extensions["HDF5 files"] = _HDF5_EXT_STR
         # Fit2D mask is displayed anyway fabio is here or not
         # to show to the user that the option exists
         extensions["Fit2D mask files"] = "*.msk"
@@ -513,6 +520,33 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             msg.setText("Cannot load mask from file. " + message)
             msg.exec_()
 
+    def _loadFromHdf5(self, filename):
+        dataPath = self._selectDataset(filename)
+        if dataPath is None:
+            return None
+
+        with h5py.File(filename, "r") as h5f:
+            dataset = h5f.get(dataPath)
+            if not is_dataset(dataset):
+                raise IOError("%s is not a dataset" % dataPath)
+            mask = dataset[()]
+        return mask
+
+    def _selectDataset(self, filename):
+        """Open a dialog to prompt the user to select a dataset in
+        a hdf5 file.
+
+        :param str filename: name of an existing HDF5 file
+        :rtype: str
+        :return: Name of selected dataset
+        """
+        dialog = DatasetDialog()
+        dialog.addFile(filename)
+        dialog.setWindowTitle("Select a dataset")
+        if not dialog.exec_():
+            return None
+        return dialog.getSelectedDataUrl().data_path()
+
     def _saveMask(self):
         """Open Save mask dialog"""
         dialog = qt.QFileDialog(self)
@@ -522,7 +556,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             'EDF (*.edf)',
             'TIFF (*.tif)',
             'NumPy binary file (*.npy)',
-            'HDF5 (%s)' * _HDF5_EXT_STR,
+            'HDF5 (%s)' % _HDF5_EXT_STR,
             # Fit2D mask is displayed anyway fabio is here or not
             # to show to the user that the option exists
             'Fit2D mask (*.msk)',
@@ -545,12 +579,13 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 if (len(filename) > len(ext) and
                         filename[-len(ext):].lower() == ext.lower()):
                     has_allowed_ext = True
+                    extension = ext
             if not has_allowed_ext:
                 filename += ".h5"
+                extension = ".h5"
         else:
             # convert filter name to extension name with the .
             extension = nameFilter.split()[-1][2:-1]
-
             if not filename.lower().endswith(extension):
                 filename += extension
 
