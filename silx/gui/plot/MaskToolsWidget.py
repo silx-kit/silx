@@ -45,6 +45,7 @@ import logging
 import collections
 
 from silx.image import shapes
+from silx.io.utils import NEXUS_HDF5_EXT
 
 from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
 from . import items
@@ -61,6 +62,9 @@ except ImportError:
 
 
 _logger = logging.getLogger(__name__)
+
+
+_HDF5_EXT_STR = ' '.join(['*' + ext for ext in NEXUS_HDF5_EXT])
 
 
 class ImageMask(BaseMask):
@@ -518,6 +522,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             'EDF (*.edf)',
             'TIFF (*.tif)',
             'NumPy binary file (*.npy)',
+            'HDF5 (%s)' * _HDF5_EXT_STR,
             # Fit2D mask is displayed anyway fabio is here or not
             # to show to the user that the option exists
             'Fit2D mask (*.msk)',
@@ -530,13 +535,24 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             dialog.close()
             return
 
-        # convert filter name to extension name with the .
-        extension = dialog.selectedNameFilter().split()[-1][2:-1]
+        nameFilter = dialog.selectedNameFilter()
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
-        if not filename.lower().endswith(extension):
-            filename += extension
+        if "HDF5" in nameFilter:
+            has_allowed_ext = False
+            for ext in NEXUS_HDF5_EXT:
+                if (len(filename) > len(ext) and
+                        filename[-len(ext):].lower() == ext.lower()):
+                    has_allowed_ext = True
+            if not has_allowed_ext:
+                filename += ".h5"
+        else:
+            # convert filter name to extension name with the .
+            extension = nameFilter.split()[-1][2:-1]
+
+            if not filename.lower().endswith(extension):
+                filename += extension
 
         if os.path.exists(filename):
             try:
