@@ -85,15 +85,22 @@ class DatasetDialog(_Hdf5ItemSelectionDialog):
     def _updateUrl(self):
         # overloaded to filter for datasets
         nodes = list(self._tree.selectedH5Nodes())
-        subgroupName = self._lineEditNewItem.text()
+        newDatasetName = self._lineEditNewItem.text()
+        isDatasetSelected = False
         if nodes:
             node = nodes[0]
             if silx.io.is_dataset(node.h5py_object):
                 data_path = node.local_name
-                if subgroupName.lstrip("/"):
+                isDatasetSelected = True
+            elif silx.io.is_group(node.h5py_object):
+                data_path = node.local_name
+                if newDatasetName.lstrip("/"):
                     if not data_path.endswith("/"):
                         data_path += "/"
-                    data_path += subgroupName.lstrip("/")
+                    data_path += newDatasetName.lstrip("/")
+                    isDatasetSelected = True
+
+            if isDatasetSelected:
                 self._selectedUrl = DataUrl(file_path=node.local_filename,
                                             data_path=data_path)
                 self._okButton.setEnabled(True)
