@@ -26,9 +26,7 @@
 tree.
 
 .. autoclass:: DatasetDialog
-   :members:
-   :inherited-members:
-
+   :members: addFile, addGroup, getSelectedDataUrl, setMode
 
 """
 from .GroupDialog import _Hdf5ItemSelectionDialog

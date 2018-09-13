@@ -26,8 +26,7 @@
 tree.
 
 .. autoclass:: GroupDialog
-   :members:
-   :inherited-members:
+   :members: addFile, addGroup, getSelectedDataUrl, setMode
 
 """
 from silx.gui import qt
@@ -42,7 +41,12 @@ __date__ = "22/03/2018"
 
 class _Hdf5ItemSelectionDialog(qt.QDialog):
     SaveMode = 1
+    """Mode used to set the HDF5 item selection dialog to *save* mode.
+    This adds a text field to type in a new item name."""
+
     LoadMode = 2
+    """Mode used to set the HDF5 item selection dialog to *load* mode.
+    Only existing items of the HDF5 file can be selected in this mode."""
 
     def __init__(self, parent=None):
         qt.QDialog.__init__(self, parent)
