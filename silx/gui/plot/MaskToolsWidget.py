@@ -593,12 +593,14 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         """Open Save mask dialog"""
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Save Mask")
+        dialog.setOption(dialog.DontUseNativeDialog)
         dialog.setModal(1)
+        hdf5Filter = 'HDF5 (%s)' % _HDF5_EXT_STR
         filters = [
             'EDF (*.edf)',
             'TIFF (*.tif)',
             'NumPy binary file (*.npy)',
-            'HDF5 (%s)' % _HDF5_EXT_STR,
+            hdf5Filter,
             # Fit2D mask is displayed anyway fabio is here or not
             # to show to the user that the option exists
             'Fit2D mask (*.msk)',
@@ -607,6 +609,16 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         dialog.setFileMode(qt.QFileDialog.AnyFile)
         dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
         dialog.setDirectory(self.maskFileDir)
+
+        def onFilterSelection(filt_):
+            # disable overwrite confirmation for HDF5,
+            # because we append the data to existing files
+            if filt_ == hdf5Filter:
+                dialog.setOption(dialog.DontConfirmOverwrite)
+            else:
+                dialog.setOption(dialog.DontConfirmOverwrite, False)
+
+        dialog.filterSelected.connect(onFilterSelection)
         if not dialog.exec_():
             dialog.close()
             return
