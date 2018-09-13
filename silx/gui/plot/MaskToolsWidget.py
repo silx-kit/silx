@@ -69,6 +69,22 @@ _logger = logging.getLogger(__name__)
 _HDF5_EXT_STR = ' '.join(['*' + ext for ext in NEXUS_HDF5_EXT])
 
 
+def _selectDataset(filename):
+    """Open a dialog to prompt the user to select a dataset in
+    a hdf5 file.
+
+    :param str filename: name of an existing HDF5 file
+    :rtype: str
+    :return: Name of selected dataset
+    """
+    dialog = DatasetDialog()
+    dialog.addFile(filename)
+    dialog.setWindowTitle("Select a 2D dataset")
+    if not dialog.exec_():
+        return None
+    return dialog.getSelectedDataUrl().data_path()
+
+
 class ImageMask(BaseMask):
     """A 2D mask field with update operations.
 
@@ -113,6 +129,9 @@ class ImageMask(BaseMask):
             except IOError:
                 raise RuntimeError("Mask file can't be written")
 
+        elif ("." + kind) in NEXUS_HDF5_EXT:
+            self._saveToHdf5(filename, self.getMask(copy=False))
+
         elif kind == 'msk':
             if fabio is None:
                 raise ImportError("Fit2d mask files can't be written: Fabio module is not available")
@@ -124,9 +143,40 @@ class ImageMask(BaseMask):
             except Exception:
                 _logger.debug("Backtrace", exc_info=True)
                 raise RuntimeError("Mask file can't be written")
-
         else:
             raise ValueError("Format '%s' is not supported" % kind)
+
+    @staticmethod
+    def _saveToHdf5(filename, mask):
+        """Save a mask array to a HDF5 file.
+
+        :param str filename: name of an existing HDF5 file
+        :param numpy.ndarray mask: Mask array.
+        :returns: True if operation succeeded, False otherwise.
+        """
+        if not os.path.exists(filename):
+            # create new file
+            with h5py.File(filename, "w") as _h5f:
+                pass
+        dataPath = _selectDataset(filename)
+        if dataPath is None:
+            return False
+        with h5py.File(filename, "a") as h5f:
+            existing_ds = h5f.get(dataPath)
+            if existing_ds is not None:
+                reply = qt.QMessageBox.question(
+                        None,
+                        "Confirm overwrite",
+                        "Do you want to overwrite an existing dataset?",
+                        qt.QMessageBox.Yes | qt.QMessageBox.No)
+                if reply != qt.QMessageBox.Yes:
+                    return False
+                del h5f[dataPath]
+            try:
+                h5f.create_dataset(dataPath, data=mask)
+            except Exception:
+                return False
+        return True
 
     # Drawing operations
     def updateRectangle(self, level, row, col, height, width, mask=True):
@@ -520,8 +570,15 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             msg.setText("Cannot load mask from file. " + message)
             msg.exec_()
 
-    def _loadFromHdf5(self, filename):
-        dataPath = self._selectDataset(filename)
+    @staticmethod
+    def _loadFromHdf5(filename):
+        """Load a mask array from a HDF5 file.
+
+        :param str filename: name of an existing HDF5 file
+        :returns: A mask as a numpy array, or None if the interactive dialog
+            was cancelled
+        """
+        dataPath = _selectDataset(filename)
         if dataPath is None:
             return None
 
@@ -531,21 +588,6 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 raise IOError("%s is not a dataset" % dataPath)
             mask = dataset[()]
         return mask
-
-    def _selectDataset(self, filename):
-        """Open a dialog to prompt the user to select a dataset in
-        a hdf5 file.
-
-        :param str filename: name of an existing HDF5 file
-        :rtype: str
-        :return: Name of selected dataset
-        """
-        dialog = DatasetDialog()
-        dialog.addFile(filename)
-        dialog.setWindowTitle("Select a dataset")
-        if not dialog.exec_():
-            return None
-        return dialog.getSelectedDataUrl().data_path()
 
     def _saveMask(self):
         """Open Save mask dialog"""
@@ -581,15 +623,15 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                     has_allowed_ext = True
                     extension = ext
             if not has_allowed_ext:
-                filename += ".h5"
                 extension = ".h5"
+                filename += ".h5"
         else:
             # convert filter name to extension name with the .
             extension = nameFilter.split()[-1][2:-1]
             if not filename.lower().endswith(extension):
                 filename += extension
 
-        if os.path.exists(filename):
+        if os.path.exists(filename) and "HDF5" not in nameFilter:
             try:
                 os.remove(filename)
             except IOError:
@@ -604,6 +646,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         try:
             self.save(filename, extension[1:])
         except Exception as e:
+            raise
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
