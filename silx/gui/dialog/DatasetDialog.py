@@ -109,4 +109,4 @@ class DatasetDialog(_Hdf5ItemSelectionDialog):
             else:
                 self._selectedUrl = None
                 self._okButton.setEnabled(False)
-                self._labelSelection.setText("Select a dataset")
+                self._labelSelection.setText("Select a dataset or type a new dataset name")
