@@ -69,17 +69,19 @@ _logger = logging.getLogger(__name__)
 _HDF5_EXT_STR = ' '.join(['*' + ext for ext in NEXUS_HDF5_EXT])
 
 
-def _selectDataset(filename):
+def _selectDataset(filename, mode=DatasetDialog.SaveMode):
     """Open a dialog to prompt the user to select a dataset in
     a hdf5 file.
 
     :param str filename: name of an existing HDF5 file
+    :param mode: DatasetDialog.SaveMode or DatasetDialog.LoadMode
     :rtype: str
     :return: Name of selected dataset
     """
     dialog = DatasetDialog()
     dialog.addFile(filename)
     dialog.setWindowTitle("Select a 2D dataset")
+    dialog.setMode(mode)
     if not dialog.exec_():
         return None
     return dialog.getSelectedDataUrl().data_path()
@@ -578,7 +580,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         :returns: A mask as a numpy array, or None if the interactive dialog
             was cancelled
         """
-        dataPath = _selectDataset(filename)
+        dataPath = _selectDataset(filename, mode=DatasetDialog.LoadMode)
         if dataPath is None:
             return None
 

@@ -29,7 +29,6 @@ tree.
    :members:
    :inherited-members:
 
-
 """
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeView import Hdf5TreeView
@@ -42,6 +41,9 @@ __date__ = "22/03/2018"
 
 
 class _Hdf5ItemSelectionDialog(qt.QDialog):
+    SaveMode = 1
+    LoadMode = 2
+
     def __init__(self, parent=None):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle("HDF5 item selection")
@@ -56,14 +58,18 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
 
         self._header = self._tree.header()
 
-        self._labelNewItem = qt.QLabel(self)
+        self._newItemWidget = qt.QWidget(self)
+        newItemLayout = qt.QVBoxLayout(self._newItemWidget)
+        self._labelNewItem = qt.QLabel(self._newItemWidget)
         self._labelNewItem.setText("Create new item in selected group (optional):")
-        self._lineEditNewItem = qt.QLineEdit(self)
+        self._lineEditNewItem = qt.QLineEdit(self._newItemWidget)
         self._lineEditNewItem.setToolTip(
                 "Specify the name of a new item "
                 "to be created in the selected group.")
         self._lineEditNewItem.textChanged.connect(
                 self._onNewItemNameChange)
+        newItemLayout.addWidget(self._labelNewItem)
+        newItemLayout.addWidget(self._lineEditNewItem)
 
         _labelSelectionTitle = qt.QLabel(self)
         _labelSelectionTitle.setText("Current selection")
@@ -82,8 +88,7 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
 
         vlayout = qt.QVBoxLayout(self)
         vlayout.addWidget(self._tree)
-        vlayout.addWidget(self._labelNewItem)
-        vlayout.addWidget(self._lineEditNewItem)
+        vlayout.addWidget(self._newItemWidget)
         vlayout.addWidget(_labelSelectionTitle)
         vlayout.addWidget(self._labelSelection)
         vlayout.addWidget(buttonBox)
@@ -102,6 +107,20 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
     def _onActivation(self, idx):
         # double-click or enter press
         self.accept()
+
+    def setMode(self, mode):
+        """Set dialog mode DatasetDialog.SaveMode or DatasetDialog.LoadMode
+
+        :param mode: DatasetDialog.SaveMode or DatasetDialog.LoadMode
+        """
+        if mode == self.LoadMode:
+            # hide "Create new item" field
+            self._lineEditNewItem.clear()
+            self._newItemWidget.hide()
+        elif mode == self.SaveMode:
+            self._newItemWidget.show()
+        else:
+            raise ValueError("Invalid DatasetDialog mode %s" % mode)
 
     def addFile(self, path):
         """Add a HDF5 file to the tree.

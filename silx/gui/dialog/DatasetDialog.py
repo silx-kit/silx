@@ -74,6 +74,18 @@ class DatasetDialog(_Hdf5ItemSelectionDialog):
                                   self._model.LINK_COLUMN,
                                   self._model.TYPE_COLUMN,
                                   self._model.SHAPE_COLUMN])
+        self._selectDatasetStatusText = "Select a dataset or type a new dataset name"
+
+    def setMode(self, mode):
+        """Set dialog mode DatasetDialog.SaveMode or DatasetDialog.LoadMode
+
+        :param mode: DatasetDialog.SaveMode or DatasetDialog.LoadMode
+        """
+        _Hdf5ItemSelectionDialog.setMode(self, mode)
+        if mode == DatasetDialog.SaveMode:
+            self._selectDatasetStatusText = "Select a dataset or type a new dataset name"
+        elif mode == DatasetDialog.LoadMode:
+            self._selectDatasetStatusText = "Select a dataset"
 
     def _onActivation(self, idx):
         # double-click or enter press: filter for datasets
@@ -109,4 +121,4 @@ class DatasetDialog(_Hdf5ItemSelectionDialog):
             else:
                 self._selectedUrl = None
                 self._okButton.setEnabled(False)
-                self._labelSelection.setText("Select a dataset or type a new dataset name")
+                self._labelSelection.setText(self._selectDatasetStatusText)
