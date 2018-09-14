@@ -126,6 +126,59 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         parent = self.parent()
         return None if parent is None else parent.getData(copy=copy)
 
+    def _pick(self, x, y):
+        """Perform picking in this item at given widget position.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :return:
+            Data indices as (depths, rows, columns) at picked position or None
+        :rtype: Union[None,List[numpy.ndarray]]
+        """
+        primitive = self._getScenePrimitive()
+        viewport = primitive.viewport
+
+        # Convert x, y from window to NDC
+        positionNdc = viewport.windowToNdc(x, y, checkInside=True)
+        if None in positionNdc:  # No picking outside viewport
+            return None
+
+        # Ray from NDC to object
+        rayNdc = numpy.array((positionNdc + (-1., 1.),
+                              positionNdc + (1., 1.)),
+                             dtype=numpy.float64)
+        rayCamera = viewport.camera.intrinsic.transformPoints(
+            rayNdc,
+            direct=False,
+            perspectiveDivide=True)
+        rayScene = viewport.camera.extrinsic.transformPoints(
+            rayCamera, direct=False)
+        rayObject = primitive.objectToSceneTransform.transformPoints(
+            rayScene, direct=False)[:, :3]
+
+        points = utils.segmentPlaneIntersect(
+            rayObject[0],
+            rayObject[1],
+            planeNorm=self.getNormal(),
+            planePt=self.getPoint())
+
+        if len(points) == 1:  # Single intersection
+            if numpy.any(points[0] < 0.):
+                return None  # Outside volume
+            z, y, x = int(points[0][2]), int(points[0][1]), int(points[0][0])
+
+            data = self.getData(copy=False)
+            if data is None:
+                return None  # No dataset
+
+            depth, height, width = data.shape
+            if z < depth and y < height and x < width:
+                return numpy.array((z,)), numpy.array((y,)), numpy.array((x,))
+            else:
+                return None  # Outside image
+        else:  # Either no intersection or segment and image are coplanar
+            return None
+
 
 class Isosurface(Item3D):
     """Class representing an iso-surface in a :class:`ScalarField3D` item.
@@ -268,6 +321,63 @@ class Isosurface(Item3D):
                                          mode='triangles',
                                          indices=indices)
                 self._getScenePrimitive().children = [mesh]
+
+    def _pick(self, x, y):
+        """Perform picking in this item at given widget position.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :return:
+            Data indices as (depths, rows, columns) at picked position or None
+        :rtype: Union[None,List[numpy.ndarray]]
+        """
+        primitive = self._getScenePrimitive()
+        viewport = primitive.viewport
+
+        # Convert x, y from window to NDC
+        positionNdc = viewport.windowToNdc(x, y, checkInside=True)
+        if None in positionNdc:  # No picking outside viewport
+            return None
+
+        # Ray from NDC to object
+        rayNdc = numpy.array((positionNdc + (-1., 1.),
+                              positionNdc + (1., 1.)),
+                             dtype=numpy.float64)
+        rayCamera = viewport.camera.intrinsic.transformPoints(
+            rayNdc,
+            direct=False,
+            perspectiveDivide=True)
+        rayScene = viewport.camera.extrinsic.transformPoints(
+            rayCamera, direct=False)
+        rayObject = primitive.objectToSceneTransform.transformPoints(
+            rayScene, direct=False)[:, :3]
+
+        data = self.getData(copy=False)
+        bins = utils.segmentVolumeIntersect(
+            rayObject, numpy.array(data.shape) - 1)
+        if bins is None:
+            return None
+
+        # gather bin data
+        offsets = [(i, j, k) for i in (0, 1) for j in (0, 1) for k in (0, 1)]
+        indices = bins[:, numpy.newaxis, :] + offsets
+        binsData = data[indices[:, :, 0], indices[:, :, 1], indices[:, :, 2]]
+        # binsData.shape = nbins, 8
+        # TODO up-to this point everything can be done once for all isosurfaces
+
+        # check bin candidates
+        level = self.getLevel()
+        mask = numpy.logical_and(numpy.nanmin(binsData, axis=1) <= level,
+                                 level <= numpy.nanmax(binsData, axis=1))
+        bins = bins[mask]
+        # binsData = binsData[mask]
+
+        if len(bins) == 0:
+            return None  # No bin candidate
+
+        # do picking on candidates
+        # TODO marching square + triangle picking or ray sampling
+        return tuple(bins.T)  # coarse approximation
 
 
 class ScalarField3D(DataItem3D):
@@ -475,3 +585,24 @@ class ScalarField3D(DataItem3D):
             yield cutPlane
         for isosurface in self.getIsosurfaces():
             yield isosurface
+
+    def pickItems(self, x, y):
+        """Iterator over picked items in the volume at given position.
+
+        Each picked item yield a 2-tuple: (item, list of picked indices)
+
+        It traverses the group sub-tree in a right-to-left bottom-up way.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        """
+        if not self.isVisible():
+            return  # empty iterator
+
+        if not self._fastPickingCheck(x, y):
+            return  # empty iterator
+
+        for child in reversed(tuple(self.visit())):
+            result = child.pick(x, y)
+            if result is not None:
+                yield child, result
