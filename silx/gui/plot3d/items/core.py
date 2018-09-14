@@ -219,6 +219,59 @@ class Item3D(qt.QObject):
                 self._setForegroundColor(
                     widget.getForegroundColor().getRgbF())
 
+    # picking
+
+    def pick(self, x, y):
+        """Perform picking in this item at given widget position.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :return: Data indices at picked position or None
+        :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
+        """
+        if not self.isVisible():  # No picking on hidden items
+            return None
+
+        if not self._fastPickingCheck(x, y):  # Fast picking approximation
+            return None
+
+        return self._pick(x, y)
+
+    def _fastPickingCheck(self, x, y):
+        """Approximate item pick test (e.g., bounding box-based picking.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :return: True if item might be picked
+        :rtype: bool
+        """
+        primitive = self._getScenePrimitive()
+        viewport = primitive.viewport
+
+        # Convert x, y from window to NDC
+        positionNdc = viewport.windowToNdc(x, y, checkInside=True)
+        if None in positionNdc:  # No picking outside viewport
+            return False
+
+        bounds = primitive.bounds(transformed=False, dataBounds=False)
+        if bounds is None:  # primitive has no bounds
+            return False
+
+        bounds = primitive.objectToNDCTransform.transformBounds(bounds)
+
+        return (bounds[0, 0] <= positionNdc[0] <= bounds[1, 0] and
+                bounds[0, 1] <= positionNdc[1] <= bounds[1, 1])
+
+    def _pick(self, x, y):
+        """Perform precise picking in this item at given widget position.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :return: Data indices at picked position or None
+        :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
+        """
+        return None
+
 
 class DataItem3D(Item3D):
     """Base class representing a data item with transform in the scene.
@@ -558,6 +611,33 @@ class _BaseGroupItem(DataItem3D):
             if hasattr(child, 'visit'):
                 for item in child.visit(included=False):
                     yield item
+
+    def pickItems(self, x, y):
+        """Iterator over picked items in the group at given position.
+
+        Each picked item yield a 2-tuple: (item, indices),
+        where indices is either a numpy.ndarray (for 1D data) or
+        a tuple of numpy.ndarray for nD data.
+
+        It traverses the group sub-tree in a right-to-left bottom-up way.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        """
+        if not self.isVisible():
+            return  # empty iterator
+
+        if not self._fastPickingCheck(x, y):
+            return  # empty iterator
+
+        for child in reversed(self.getItems()):
+            if hasattr(child, 'pickItems'):
+                for picking in child.pickItems(x, y):
+                    yield picking  # Flatten result
+
+            result = child.pick(x, y)
+            if result is not None:
+                yield child, result
 
 
 class GroupItem(_BaseGroupItem):
