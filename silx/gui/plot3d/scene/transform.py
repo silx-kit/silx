@@ -409,7 +409,7 @@ class Transform(event.Notifier):
 
     _CUBE_CORNERS = numpy.array(list(itertools.product((0., 1.), repeat=3)),
                                 dtype=numpy.float32)
-    """Unit cube corners used by :meth:`transformRectangularBox`"""
+    """Unit cube corners used by :meth:`transformBounds`"""
 
     def transformBounds(self, bounds, direct=True):
         """Apply the transform to an axes-aligned rectangular box.
