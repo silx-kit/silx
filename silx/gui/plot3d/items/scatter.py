@@ -148,6 +148,55 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         return self._scatter.getAttribute('value', copy=copy).reshape(-1)
 
+    def _pick(self, x, y, threshold=0., sort='depth'):
+        """Perform picking in this item at given widget position.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :param float threshold: Picking threshold in pixel.
+            Perform picking in a square of size 2*threshold x 2*threshold.
+        :param str sort: How returned indices are sorted:
+
+            - 'index' (default): sort by the value of the indices
+            - 'depth':  Sort by the depth of the points from the current
+              camera point of view.
+        :return: Data indices of picked points or None if no picked point
+        :rtype: Union[None,numpy.array]
+        """
+        assert sort in ('index', 'depth')
+
+        primitive = self._getScenePrimitive()
+
+        # Convert x, y to NDC
+        positionNdc = primitive.viewport.windowToNdc(x, y, checkInside=True)
+        if None in positionNdc:  # No picking outside viewport
+            return None
+
+        # Project data to NDC
+        xData = self.getXData(copy=False)
+        if len(xData) == 0:  # No data in the scatter
+            return None
+
+        pointsNdc = primitive.objectToNDCTransform.transformPoints(
+            numpy.transpose((xData,
+                             self.getYData(copy=False),
+                             self.getZData(copy=False),
+                             numpy.ones_like(xData))),
+            perspectiveDivide=True)
+
+        # Perform picking
+        distancesNdc = numpy.abs(pointsNdc[:, :2] - positionNdc)
+        # TODO issue with symbol size: using pixel instead of points
+        threshold += self.getSymbolSize()/2.
+        thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
+        picked = numpy.where(numpy.all(distancesNdc < thresholdNdc, axis=1))[0]
+
+        if sort == 'depth':
+            # Sort picked points from front to back
+            picked = picked[numpy.argsort(pointsNdc[picked, 2])]
+
+        return picked if picked.size > 0 else None
+
 
 class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
     """2D scatter data with settable visualization mode.
@@ -372,6 +421,60 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :rtype: numpy.ndarray
         """
         return numpy.array(self._value, copy=copy)
+
+    def _pick(self, x, y, threshold=0., sort='depth'):
+        """Perform picking in this item at given widget position.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :param float threshold: Picking threshold in pixel.
+            Perform picking in a square of size 2*threshold x 2*threshold.
+        :param str sort: How returned indices are sorted:
+
+            - 'index' (default): sort by the value of the indices
+            - 'depth':  Sort by the depth of the points from the current
+              camera point of view.
+        :return: Data indices of picked points or None if no picked point
+        :rtype: Union[None,numpy.array]
+        """
+        assert sort in ('index', 'depth')
+
+        primitive = self._getScenePrimitive()
+
+        # Convert x, y to NDC
+        positionNdc = primitive.viewport.windowToNdc(x, y, checkInside=True)
+        if None in positionNdc:  # No picking outside viewport
+            return None
+
+        # Project data to NDC
+        xData = self.getXData(copy=False)
+        if len(xData) == 0:  # No data in the scatter
+            return None
+
+        if self.isHeightMap():
+            zData = self.getValues(copy=False)
+        else:
+            zData = numpy.zeros_like(xData)
+
+        pointsNdc = primitive.objectToNDCTransform.transformPoints(
+            numpy.transpose((xData,
+                             self.getYData(copy=False),
+                             zData,
+                             numpy.ones_like(xData))),
+            perspectiveDivide=True)
+
+        # Perform picking
+        distancesNdc = numpy.abs(pointsNdc[:, :2] - positionNdc)
+        # TODO issue with symbol size: using pixel instead of points
+        threshold += self.getSymbolSize()/2.
+        thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
+        picked = numpy.where(numpy.all(distancesNdc < thresholdNdc, axis=1))[0]
+
+        if sort == 'depth':
+            # Sort picked points from front to back
+            picked = picked[numpy.argsort(pointsNdc[picked, 2])]
+
+        return picked if picked.size > 0 else None
 
     def _updateScene(self):
         self._getScenePrimitive().children = []  # Remove previous primitives
