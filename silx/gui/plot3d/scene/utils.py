@@ -435,6 +435,110 @@ def boxPlaneIntersect(boxVertices, boxLineIndices, planeNorm, planePt):
         return points
 
 
+def clipSegmentToBounds(segment, bounds):
+    """Clip segment to volume aligned with axes.
+
+    :param numpy.ndarray segment: (p0, p1)
+    :param numpy.ndarray bounds: (lower corner, upper corner)
+    :return: Either clipped (p0, p1) or None if outside volume
+    :rtype: Union[None,List[numpy.ndarray]]
+    """
+    segment = numpy.array(segment, copy=False)
+    bounds = numpy.array(bounds, copy=False)
+
+    p0, p1 = segment
+    # Get intersection points of ray with volume boundary planes
+    # Line equation: P = offset * delta + p0
+    delta = p1 - p0
+    mask = delta != 0
+    offsets = ((bounds[:, mask] - p0[mask]) / delta[mask]).reshape(-1)
+    offsets.sort()  # So that intersection points are sorted along the line
+    points = offsets.reshape(-1, 1) * delta + p0
+
+    # Find intersection points that are included in the volume
+    # TODO probably subject to arithmetic errors: do no check the coordinate of the plane?
+    mask = numpy.logical_and(numpy.all(bounds[0] <= points, axis=1),
+                             numpy.all(points <= bounds[1], axis=1))
+    intersections = numpy.unique(offsets[mask])
+    if len(intersections) != 2:
+        return None
+
+    intersections.sort()
+    # Do p1 first as p0 is need to compute it
+    if intersections[1] < 1:  # clip p1
+        segment[1] = intersections[1] * delta + p0
+    if intersections[0] > 0:  # clip p0
+        segment[0] = intersections[0] * delta + p0
+    return segment
+
+
+def segmentVolumeIntersect(segment, nbins):
+    """Get bin indices intersecting with segment
+
+    It should work with N dimensions.
+    Coordinate convention (z, y, x) or (x, y, z) should not matter
+    as long as segment and nbins are consistent.
+
+    :param numpy.ndarray segment:
+        Segment end points as a 2xN array of coordinates
+    :param numpy.ndarray nbins:
+        Shape of the volume with same coordinates order as segment
+    :return: List of bins indices as a 2D array or None if no bins
+    :rtype: Union[None,numpy.ndarray]
+    """
+    segment = numpy.asarray(segment)
+    nbins = numpy.asarray(nbins)
+
+    assert segment.ndim == 2
+    assert segment.shape[0] == 2
+    assert nbins.ndim == 1
+    assert segment.shape[1] == nbins.size
+
+    dim = len(nbins)
+
+    bounds = numpy.array((numpy.zeros_like(nbins), nbins))
+    segment = clipSegmentToBounds(segment, bounds)
+    if segment is None:
+        return None  # Segment outside volume
+    p0, p1 = segment
+
+    # Get intersections
+
+    # Get coordinates of bin edges crossing the segment
+    clipped = numpy.ceil(numpy.clip(segment, 0, nbins))
+    start = numpy.min(clipped, axis=0)
+    stop = numpy.max(clipped, axis=0)  # stop is NOT included
+    edgesByDim = [numpy.arange(start[i], stop[i]) for i in range(dim)]
+
+    # Line equation: P = t * delta + p0
+    delta = p1 - p0
+
+    # Get bin edge/line intersections as sorted points along the line
+    # Get corresponding line parameters
+    t = []
+    if numpy.all(0 <= p0) and numpy.all(p0 <= nbins):
+        t.append([0.])  # p0 within volume, add it
+    t += [(edgesByDim[i] - p0[i]) / delta[i] for i in range(dim) if delta[i] != 0]
+    if numpy.all(0 <= p1) and numpy.all(p1 <= nbins):
+        t.append([1.])  # p1 within volume, add it
+    t = numpy.concatenate(t)
+    t.sort(kind='mergesort')
+
+    # Remove duplicates
+    unique = numpy.ones((len(t),), dtype=bool)
+    numpy.not_equal(t[1:], t[:-1], out=unique[1:])
+    t = t[unique]
+
+    if len(t) < 2:
+        return None  # Not enough intersection points
+
+    # bin edges/line intersection points
+    points = t.reshape(-1, 1) * delta + p0
+    centers = (points[:-1] + points[1:]) / 2.
+    bins = numpy.floor(centers).astype(numpy.int)
+    return bins
+
+
 # Plane #######################################################################
 
 class Plane(event.Notifier):
