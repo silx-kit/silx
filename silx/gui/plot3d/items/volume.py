@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 import logging
+import itertools
 import time
 import numpy
 
@@ -41,7 +42,7 @@ from silx.math.marchingcubes import MarchingCubes
 from ... import qt
 from ...colors import rgba
 
-from ..scene import cutplane, primitives, transform
+from ..scene import cutplane, primitives, transform, utils
 
 from .core import DataItem3D, Item3D, ItemChangedType, Item3DChangedType
 from .mixins import ColormapMixIn, InterpolationMixIn, PlaneMixIn
@@ -77,7 +78,8 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
     def _parentChanged(self, event):
         """Handle data change in the parent this plane belongs to"""
         if event == ItemChangedType.DATA:
-            self._getPlane().setData(self.sender().getData(), copy=False)
+            self._getPlane().setData(self.sender().getData(copy=False),
+                                     copy=False)
 
             # Store data range info as 3-tuple of values
             self._dataRange = self.sender().getDataRange()
@@ -113,6 +115,17 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         """
         return self._dataRange
 
+    def getData(self, copy=True):
+        """Return 3D dataset.
+
+        :param bool copy:
+           True (default) to get a copy,
+           False to get the internal data (DO NOT modify!)
+        :return: The data set (or None if not set)
+        """
+        parent = self.parent()
+        return None if parent is None else parent.getData(copy=copy)
+
 
 class Isosurface(Item3D):
     """Class representing an iso-surface in a :class:`ScalarField3D` item.
@@ -122,24 +135,28 @@ class Isosurface(Item3D):
 
     def __init__(self, parent):
         Item3D.__init__(self, parent=parent)
+        assert isinstance(parent, ScalarField3D)
+        parent.sigItemChanged.connect(self._scalarField3DChanged)
         self._level = float('nan')
         self._autoLevelFunction = None
         self._color = rgba('#FFD700FF')
-        self._data = None
-
-    # TODO register to ScalarField3D signal instead?
-    def _setData(self, data, copy=True):
-        """Set the data set from which to build the iso-surface.
-
-        :param numpy.ndarray data: The 3D data set or None
-        :param bool copy: True to make a copy, False to use as is if possible
-        """
-        if data is None:
-            self._data = None
-        else:
-            self._data = numpy.array(data, copy=copy, order='C')
-
         self._updateScenePrimitive()
+
+    def _scalarField3DChanged(self, event):
+        """Handle parent's ScalarField3D sigItemChanged"""
+        if event == ItemChangedType.DATA:
+            self._updateScenePrimitive()
+
+    def getData(self, copy=True):
+        """Return 3D dataset.
+
+        :param bool copy:
+           True (default) to get a copy,
+           False to get the internal data (DO NOT modify!)
+        :return: The data set (or None if not set)
+        """
+        parent = self.parent()
+        return None if parent is None else parent.getData(copy=copy)
 
     def getLevel(self):
         """Return the level of this iso-surface (float)"""
@@ -203,7 +220,9 @@ class Isosurface(Item3D):
         """Update underlying mesh"""
         self._getScenePrimitive().children = []
 
-        if self._data is None:
+        data = self.getData(copy=False)
+
+        if data is None:
             if self.isAutoLevel():
                 self._level = float('nan')
 
@@ -211,7 +230,7 @@ class Isosurface(Item3D):
             if self.isAutoLevel():
                 st = time.time()
                 try:
-                    level = float(self.getAutoLevelFunction()(self._data))
+                    level = float(self.getAutoLevelFunction()(data))
 
                 except Exception:
                     module_ = self.getAutoLevelFunction().__module__
@@ -236,7 +255,7 @@ class Isosurface(Item3D):
 
             st = time.time()
             vertices, normals, indices = MarchingCubes(
-                self._data,
+                data,
                 isolevel=self._level)
             _logger.info('Computed iso-surface in %f s.', time.time() - st)
 
@@ -327,10 +346,6 @@ class ScalarField3D(DataItem3D):
 
             self._boundedGroup.shape = self._data.shape
 
-        # Update iso-surfaces
-        for isosurface in self.getIsosurfaces():
-            isosurface._setData(self._data, copy=False)
-
         self._updated(ItemChangedType.DATA)
 
     def getData(self, copy=True):
@@ -401,7 +416,6 @@ class ScalarField3D(DataItem3D):
             isosurface.setAutoLevelFunction(level)
         else:
             isosurface.setLevel(level)
-        isosurface._setData(self._data, copy=False)
         isosurface.sigItemChanged.connect(self._isosurfaceItemChanged)
 
         self._isosurfaces.append(isosurface)
