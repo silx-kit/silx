@@ -1,1 +1,2 @@
 PyOpenGL     # PyOpenGL pre-release broken on Windows (#2074)
+pybind11     # For pyopencl 2018.2 to build
