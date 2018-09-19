@@ -5,12 +5,6 @@ Installation steps
 *silx* supports most operating systems and different versions of the Python
 programming language.
 
-While `numpy <http://www.numpy.org/>`_ is the only mandatory dependency,
-graphical widgets require Qt. The management of data files requires
-`h5py <http://docs.h5py.org/en/latest/build.html>`_ and
-`fabio <https://github.com/silx-kit/fabio>`_, while high performance data-analysis
-code on GPU requires `pyopencl <https://mathema.tician.de/software/pyopencl/>`_.
-
 This table summarizes the support matrix of silx:
 
 +------------+--------------+---------------------+
@@ -22,6 +16,8 @@ This table summarizes the support matrix of silx:
 +------------+--------------+---------------------+
 | `Linux`_   | 2.7, 3.4-3.7 | PyQt5.3+, PySide2   |
 +------------+--------------+---------------------+
+
+For the description of *silx* dependencies, see the Dependencies_ section.
 
 For all platforms, you can install *silx* with pip, see `Installing with pip`_.
 
@@ -60,6 +56,12 @@ Dependencies
 ------------
 
 .. _dependencies:
+
+The mandatory dependencies are:
+
+- `numpy <http://www.numpy.org/>`_
+- `h5py <http://docs.h5py.org/en/latest/build.html>`_
+- `fabio <https://github.com/silx-kit/fabio>`_
 
 The GUI widgets depend on the following extra packages:
 
