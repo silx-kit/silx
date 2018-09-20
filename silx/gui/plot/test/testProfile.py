@@ -75,58 +75,168 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         """Test horizontal and vertical profile, without and with image"""
         # Use Plot backend widget to submit mouse events
         widget = self.plot.getWidgetHandle()
+        for method in ('sum', 'mean'):
+            with self.subTest(method=method):
+                # 2 positions to use for mouse events
+                pos1 = widget.width() * 0.4, widget.height() * 0.4
+                pos2 = widget.width() * 0.6, widget.height() * 0.6
 
-        # 2 positions to use for mouse events
-        pos1 = widget.width() * 0.4, widget.height() * 0.4
-        pos2 = widget.width() * 0.6, widget.height() * 0.6
+                for action in (self.toolBar.hLineAction, self.toolBar.vLineAction):
+                    with self.subTest(mode=action.text()):
+                        # Trigger tool button for mode
+                        toolButton = getQToolButtonFromAction(action)
+                        self.assertIsNot(toolButton, None)
+                        self.mouseMove(toolButton)
+                        self.mouseClick(toolButton, qt.Qt.LeftButton)
 
-        for action in (self.toolBar.hLineAction, self.toolBar.vLineAction):
-            with self.subTest(mode=action.text()):
-                # Trigger tool button for mode
-                toolButton = getQToolButtonFromAction(action)
-                self.assertIsNot(toolButton, None)
-                self.mouseMove(toolButton)
-                self.mouseClick(toolButton, qt.Qt.LeftButton)
+                        # Without image
+                        self.mouseMove(widget, pos=pos1)
+                        self.mouseClick(widget, qt.Qt.LeftButton, pos=pos1)
 
-                # Without image
-                self.mouseMove(widget, pos=pos1)
-                self.mouseClick(widget, qt.Qt.LeftButton, pos=pos1)
+                        # with image
+                        self.plot.addImage(
+                            numpy.arange(100 * 100).reshape(100, -1))
+                        self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
+                        self.mouseMove(widget, pos=pos2)
+                        self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
 
-                # with image
-                self.plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
-                self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
-                self.mouseMove(widget, pos=pos2)
-                self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
-
-                self.mouseMove(widget)
-                self.mouseClick(widget, qt.Qt.LeftButton)
+                        self.mouseMove(widget)
+                        self.mouseClick(widget, qt.Qt.LeftButton)
 
     def testDiagonalProfile(self):
         """Test diagonal profile, without and with image"""
         # Use Plot backend widget to submit mouse events
         widget = self.plot.getWidgetHandle()
 
-        # 2 positions to use for mouse events
-        pos1 = widget.width() * 0.4, widget.height() * 0.4
-        pos2 = widget.width() * 0.6, widget.height() * 0.6
+        for method in ('sum', 'mean'):
+            with self.subTest(method=method):
+                self.toolBar.setProfileMethod(method)
 
-        # Trigger tool button for diagonal profile mode
-        toolButton = getQToolButtonFromAction(self.toolBar.lineAction)
+                # 2 positions to use for mouse events
+                pos1 = widget.width() * 0.4, widget.height() * 0.4
+                pos2 = widget.width() * 0.6, widget.height() * 0.6
+
+                for image in (False, True):
+                    with self.subTest(image=image):
+                        if image:
+                            self.plot.addImage(
+                                numpy.arange(100 * 100).reshape(100, -1))
+
+                        # Trigger tool button for diagonal profile mode
+                        toolButton = getQToolButtonFromAction(
+                            self.toolBar.lineAction)
+                        self.assertIsNot(toolButton, None)
+                        self.mouseMove(toolButton)
+                        self.mouseClick(toolButton, qt.Qt.LeftButton)
+                        self.toolBar.lineWidthSpinBox.setValue(3)
+
+                        # draw profile line
+                        self.mouseMove(widget, pos=pos1)
+                        self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
+                        self.mouseMove(widget, pos=pos2)
+                        self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
+
+                        if image is True:
+                            profileCurve = self.toolBar.getProfilePlot().getAllCurves()[0]
+                            if method == 'sum':
+                                self.assertTrue(profileCurve.getData()[1].max() > 10000)
+                            elif method == 'mean':
+                                self.assertTrue(profileCurve.getData()[1].max() < 10000)
+                        self.plot.clear()
+
+
+class TestProfile3DToolBar(TestCaseQt):
+    """Tests for Profile3DToolBar widget.
+    """
+    def setUp(self):
+        super(TestProfile3DToolBar, self).setUp()
+        self.plot = StackView()
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+
+        self.plot.setStack(numpy.array([
+            [[0, 1, 2], [3, 4, 5]],
+            [[6, 7, 8], [9, 10, 11]],
+            [[12, 13, 14], [15, 16, 17]]
+        ]))
+
+    def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.plot = None
+
+        super(TestProfile3DToolBar, self).tearDown()
+
+    def testMethodProfile1DAnd2D(self):
+        """Test that the profile can have a different method if we want to
+        compute then in 1D or in 2D"""
+
+        _3DProfileToolbar = self.plot.getProfileToolbar()
+        _2DProfilePlot = _3DProfileToolbar.getProfilePlot()
+        self.plot.getProfileToolbar().setProfileMethod('mean')
+        self.plot.getProfileToolbar().lineWidthSpinBox.setValue(3)
+        self.assertTrue(_3DProfileToolbar.getProfileMethod() == 'mean')
+
+        # check 2D 'mean' profile
+        _3DProfileToolbar.profile3dAction.computeProfileIn2D()
+        toolButton = getQToolButtonFromAction(_3DProfileToolbar.vLineAction)
         self.assertIsNot(toolButton, None)
         self.mouseMove(toolButton)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
+        plot2D = self.plot.getPlot().getWidgetHandle()
+        pos1 = plot2D.width() * 0.5, plot2D.height() * 0.5
+        self.mouseClick(plot2D, qt.Qt.LeftButton, pos=pos1)
+        self.assertTrue(numpy.array_equal(
+            _2DProfilePlot.getActiveImage().getData(),
+            numpy.array([[1, 4], [7, 10], [13, 16]])
+        ))
 
-        for image in (False, True):
-            with self.subTest(image=image):
-                if image:
-                    self.plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
+        # check 1D 'sum' profile
+        _2DProfileToolbar = _2DProfilePlot.getProfileToolbar()
+        _2DProfileToolbar.setProfileMethod('sum')
+        self.assertTrue(_2DProfileToolbar.getProfileMethod() == 'sum')
+        _1DProfilePlot = _2DProfileToolbar.getProfilePlot()
 
-                self.mouseMove(widget, pos=pos1)
-                self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
-                self.mouseMove(widget, pos=pos2)
-                self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
+        _2DProfileToolbar.lineWidthSpinBox.setValue(3)
+        toolButton = getQToolButtonFromAction(_2DProfileToolbar.vLineAction)
+        self.assertIsNot(toolButton, None)
+        self.mouseMove(toolButton)
+        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        plot1D = _2DProfilePlot.getWidgetHandle()
+        pos1 = plot1D.width() * 0.5, plot1D.height() * 0.5
+        self.mouseClick(plot1D, qt.Qt.LeftButton, pos=pos1)
+        self.assertTrue(numpy.array_equal(
+            _1DProfilePlot.getAllCurves()[0].getData()[1],
+            numpy.array([5, 17, 29])
+        ))
 
-                self.plot.clear()
+    def testMethodSumLine(self):
+        """Simple interaction test to make sure the sum is correctly computed
+        """
+        _3DProfileToolbar = self.plot.getProfileToolbar()
+        _2DProfilePlot = _3DProfileToolbar.getProfilePlot()
+        self.plot.getProfileToolbar().setProfileMethod('sum')
+        self.plot.getProfileToolbar().lineWidthSpinBox.setValue(3)
+        self.assertTrue(_3DProfileToolbar.getProfileMethod() == 'sum')
+
+        # check 2D 'mean' profile
+        _3DProfileToolbar.profile3dAction.computeProfileIn2D()
+        toolButton = getQToolButtonFromAction(_3DProfileToolbar.lineAction)
+        self.assertIsNot(toolButton, None)
+        self.mouseMove(toolButton)
+        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        plot2D = self.plot.getPlot().getWidgetHandle()
+        pos1 = plot2D.width() * 0.5, plot2D.height() * 0.2
+        pos2 = plot2D.width() * 0.5, plot2D.height() * 0.8
+
+        self.mouseMove(plot2D, pos=pos1)
+        self.mousePress(plot2D, qt.Qt.LeftButton, pos=pos1)
+        self.mouseMove(plot2D, pos=pos2)
+        self.mouseRelease(plot2D, qt.Qt.LeftButton, pos=pos2)
+        self.assertTrue(numpy.array_equal(
+            _2DProfilePlot.getActiveImage().getData(),
+            numpy.array([[3, 12], [21, 30], [39, 48]])
+        ))
 
 
 class TestGetProfilePlot(TestCaseQt):
@@ -157,8 +267,6 @@ class TestGetProfilePlot(TestCaseQt):
         self.assertIsInstance(plot.getProfileToolbar().getProfileMainWindow(),
                               qt.QMainWindow)
 
-        # plot.getProfileToolbar().profile3dAction.computeProfileIn2D()  # default
-
         self.assertIsInstance(plot.getProfileToolbar().getProfilePlot(),
                               Plot2D)
         plot.getProfileToolbar().profile3dAction.computeProfileIn1D()
@@ -172,8 +280,8 @@ class TestGetProfilePlot(TestCaseQt):
 
 def suite():
     test_suite = unittest.TestSuite()
-    # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestProfileToolBar, TestGetProfilePlot):
+    for testClass in (TestProfileToolBar, TestGetProfilePlot,
+                      TestProfile3DToolBar):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite

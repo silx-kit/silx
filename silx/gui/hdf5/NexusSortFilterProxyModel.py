@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/10/2017"
+__date__ = "24/07/2018"
 
 
 import logging
@@ -34,6 +34,7 @@ import numpy
 from .. import qt
 from .Hdf5TreeModel import Hdf5TreeModel
 import silx.io.utils
+from silx.gui import icons
 
 
 _logger = logging.getLogger(__name__)
@@ -45,6 +46,25 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
     def __init__(self, parent=None):
         qt.QSortFilterProxyModel.__init__(self, parent)
         self.__split = re.compile("(\\d+|\\D+)")
+        self.__iconCache = {}
+
+    def hasChildren(self, parent):
+        """Returns true if parent has any children; otherwise returns false.
+
+        :param qt.QModelIndex parent: Index of the item to check
+        :rtype: bool
+        """
+        parent = self.mapToSource(parent)
+        return self.sourceModel().hasChildren(parent)
+
+    def rowCount(self, parent):
+        """Returns the number of rows under the given parent.
+
+        :param qt.QModelIndex parent: Index of the item to check
+        :rtype: int
+        """
+        parent = self.mapToSource(parent)
+        return self.sourceModel().rowCount(parent)
 
     def lessThan(self, sourceLeft, sourceRight):
         """Returns True if the value of the item referred to by the given
@@ -86,6 +106,14 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         nxClass = node.obj.attrs.get("NX_class", None)
         return nxClass == "NXentry"
 
+    def __isNXnode(self, node):
+        """Returns true if the node is an NX concept"""
+        class_ = node.h5Class
+        if class_ is None or class_ != silx.io.utils.H5Type.GROUP:
+            return False
+        nxClass = node.obj.attrs.get("NX_class", None)
+        return nxClass is not None
+
     def getWordsAndNumbers(self, name):
         """
         Returns a list of words and integers composing the name.
@@ -96,11 +124,14 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         :param str name: A name
         :rtype: List
         """
+        nonSensitive = self.sortCaseSensitivity() == qt.Qt.CaseInsensitive
         words = self.__split.findall(name)
         result = []
         for i in words:
             if i[0].isdigit():
                 i = int(i)
+            elif nonSensitive:
+                i = i.lower()
             result.append(i)
         return result
 
@@ -145,3 +176,47 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         except Exception:
             _logger.debug("Exception occurred", exc_info=True)
         return None
+
+    def __createCompoundIcon(self, backgroundIcon, foregroundIcon):
+        icon = qt.QIcon()
+
+        sizes = backgroundIcon.availableSizes()
+        sizes = sorted(sizes, key=lambda s: s.height())
+        sizes = filter(lambda s: s.height() < 100, sizes)
+        sizes = list(sizes)
+        if len(sizes) > 0:
+            baseSize = sizes[-1]
+        else:
+            baseSize = qt.QSize(32, 32)
+
+        modes = [qt.QIcon.Normal, qt.QIcon.Disabled]
+        for mode in modes:
+            pixmap = qt.QPixmap(baseSize)
+            pixmap.fill(qt.Qt.transparent)
+            painter = qt.QPainter(pixmap)
+            painter.drawPixmap(0, 0, backgroundIcon.pixmap(baseSize, mode=mode))
+            painter.drawPixmap(0, 0, foregroundIcon.pixmap(baseSize, mode=mode))
+            painter.end()
+            icon.addPixmap(pixmap, mode=mode)
+
+        return icon
+
+    def __getNxIcon(self, baseIcon):
+        iconHash = baseIcon.cacheKey()
+        icon = self.__iconCache.get(iconHash, None)
+        if icon is None:
+            nxIcon = icons.getQIcon("layer-nx")
+            icon = self.__createCompoundIcon(baseIcon, nxIcon)
+            self.__iconCache[iconHash] = icon
+        return icon
+
+    def data(self, index, role=qt.Qt.DisplayRole):
+        result = super(NexusSortFilterProxyModel, self).data(index, role)
+
+        if index.column() == Hdf5TreeModel.NAME_COLUMN:
+            if role == qt.Qt.DecorationRole:
+                sourceIndex = self.mapToSource(index)
+                item = self.sourceModel().data(sourceIndex, Hdf5TreeModel.H5PY_ITEM_ROLE)
+                if self.__isNXnode(item):
+                    result = self.__getNxIcon(result)
+        return result

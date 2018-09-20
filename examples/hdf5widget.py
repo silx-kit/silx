@@ -421,6 +421,16 @@ def get_hdf5_with_nxdata():
     gd1.create_dataset("hypercube",
                        data=numpy.arange(2*3*4*5*6).reshape((2, 3, 4, 5, 6)))
 
+    gd2 = g.create_group("3D_nonlinear_scaling")
+    gd2.attrs["NX_class"] = u"NXdata"
+    gd2.attrs["signal"] = u"cube"
+    gd2.attrs["axes"] = str_attrs(["img_idx", "rows_coordinates", "cols_coordinates"])
+    gd2.create_dataset("cube", data=numpy.arange(4*5*6).reshape((4, 5, 6)))
+    gd2.create_dataset("img_idx", data=numpy.array([2., -0.1, 8, 3.14]))
+    gd2.create_dataset("rows_coordinates", data=0.1*numpy.arange(5))
+    gd2.create_dataset("cols_coordinates", data=[0.1, 0.6, 0.7, 8., 8.1, 8.2])
+
+
     # invalid NXdata
     g = h5.create_group("invalid")
     g0 = g.create_group("invalid NXdata")

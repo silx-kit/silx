@@ -83,12 +83,12 @@ class LauncherCommand(object):
         else:
             module = self.get_module()
             if module is None:
-                _logger.error("Imposible to load module name '%s'" % self.module_name)
+                _logger.error("Impossible to load module name '%s'" % self.module_name)
                 return None
 
             # reach the 'main' function
             if not hasattr(module, "main"):
-                raise TypeError("Module excpect to have a 'main' function")
+                raise TypeError("Module expect to have a 'main' function")
             else:
                 main = getattr(module, "main")
             return main

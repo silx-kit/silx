@@ -1,7 +1,7 @@
 /*
  *   Project: SIFT: An algorithm for image alignement
  *
- *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2018 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -42,25 +42,26 @@
  * Nota: updated to have coalesced access on dim[0]
  */
 
-__kernel void combine(
-	__global float *u,
-	float a,
-	__global float *v,
-	float b,
-	__global float *w,
-	int dog,
-	int width,
-	int height)
+kernel void combine(
+                    global float *u,
+                    float a,
+                    global float *v,
+                    float b,
+                    global float *w,
+                    int dog,
+                    int width,
+                    int height)
 {
 
-	int gid1 = (int) get_global_id(1);
-	int gid0 = (int) get_global_id(0);
+    int gid1 = (int) get_global_id(1);
+    int gid0 = (int) get_global_id(0);
 
-	if (gid0 < width && gid1 < height) {
-		int index = gid0 + width * gid1;
-		int index_dog = dog * width * height +  index;
-		w[index_dog] = a * u[index] + b * v[index];
-	}
+    if (gid0 < width && gid1 < height) 
+    {
+        int index = gid0 + width * gid1;
+        int index_dog = dog * width * height +  index;
+        w[index_dog] = a * u[index] + b * v[index];
+    }
 }
 
 
@@ -78,44 +79,29 @@ __kernel void combine(
  */
 
 kernel void compact(
-	global actual_keypoint* keypoints,
-	global actual_keypoint* output,
-	global int* counter,
-	int start_keypoint,
-	int end_keypoint)
+    global actual_keypoint* keypoints,
+    global actual_keypoint* output,
+    global int* counter,
+    int start_keypoint,
+    int end_keypoint)
 {
 
-	int gid0 = (int) get_global_id(0);
-	if (gid0 < start_keypoint)
-	{
-		output[gid0] = keypoints[gid0];
-	}
-	else if (gid0 < end_keypoint)
-	{
-	    actual_keypoint k = keypoints[gid0];
+    int gid0 = (int) get_global_id(0);
+    if (gid0 < start_keypoint)
+    {
+        output[gid0] = keypoints[gid0];
+    }
+    else if (gid0 < end_keypoint)
+    {
+        actual_keypoint k = keypoints[gid0];
 
-		if (k.row >= 0.0f)
-		{ //Coordinates are never negative
-			int old = atomic_inc(counter);
-			if (old < end_keypoint)
-			{
-			    output[old] = k;
-			}
-		}
-	}
+        if (k.row >= 0.0f)
+        { //Coordinates are never negative
+            int old = atomic_inc(counter);
+            if (old < end_keypoint)
+            {
+                output[old] = k;
+            }
+        }
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

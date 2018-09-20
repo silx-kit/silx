@@ -37,14 +37,12 @@ Get data
 
 Those methods return objects providing access to plotted data:
 
+.. automethod:: PlotWidget.getItems
+
 .. automethod:: PlotWidget.getCurve
 .. automethod:: PlotWidget.getImage
 .. automethod:: PlotWidget.getScatter
 .. automethod:: PlotWidget.getHistogram
-
-.. automethod:: PlotWidget.getAllCurves
-.. automethod:: PlotWidget.getAllImages
-
 
 Plot markers
 ............
@@ -148,7 +146,6 @@ Misc.
 
 .. automethod:: PlotWidget.getWidgetHandle
 .. automethod:: PlotWidget.saveGraph
-.. automethod:: PlotWidget.setDefaultBackend
 
 Signals
 .......
@@ -160,6 +157,8 @@ The :class:`PlotWidget` provides the following Qt signals:
 .. autoattribute:: PlotWidget.sigSetGraphGrid
 .. autoattribute:: PlotWidget.sigSetGraphCursor
 .. autoattribute:: PlotWidget.sigSetPanWithArrowKeys
+.. autoattribute:: PlotWidget.sigItemAdded
+.. autoattribute:: PlotWidget.sigItemAboutToBeRemoved
 .. autoattribute:: PlotWidget.sigContentChanged
 .. autoattribute:: PlotWidget.sigActiveCurveChanged
 .. autoattribute:: PlotWidget.sigActiveImageChanged

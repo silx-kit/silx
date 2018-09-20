@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -140,7 +140,7 @@ cdef class MarchingCubes:
         else:
             raise IndexError("Index out of range")
 
-    def process(self, cnumpy.ndarray[cnumpy.float32_t, ndim=3, mode='c'] data):
+    def process(self, data):
         """Compute an isosurface from a 3D scalar field.
 
         This builds vertices, normals and indices arrays.
@@ -149,6 +149,9 @@ cdef class MarchingCubes:
 
         :param numpy.ndarray data: 3D scalar field
         """
+        # Make sure data is a 3D contiguous array of native endian float32
+        data = numpy.ascontiguousarray(data, dtype='=f4')
+        assert data.ndim == 3
         cdef float[:] c_data = numpy.ravel(data)
         cdef unsigned int depth, height, width
 
@@ -158,14 +161,18 @@ cdef class MarchingCubes:
 
         self.c_mc.process(&c_data[0], depth, height, width)
 
-    def process_slice(self,
-            cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] slice0,
-            cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] slice1):
+    def process_slice(self, slice0, slice1):
         """Process a new slice to build the isosurface.
 
         :param numpy.ndarray slice0: Slice previously provided as slice1.
         :param numpy.ndarray slice1: Slice to process.
         """
+        # Make sure slices are 2D contiguous arrays of native endian float32
+        slice0 = numpy.ascontiguousarray(slice0, dtype='=f4')
+        assert slice0.ndim == 2
+        slice1 = numpy.ascontiguousarray(slice1, dtype='=f4')
+        assert slice1.ndim == 2
+
         assert slice0.shape[0] == slice1.shape[0]
         assert slice0.shape[1] == slice1.shape[1]
 

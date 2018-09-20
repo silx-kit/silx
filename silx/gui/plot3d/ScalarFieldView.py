@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "14/06/2018"
 
 import re
 import logging
@@ -42,8 +42,8 @@ from collections import deque
 import numpy
 
 from silx.gui import qt, icons
-from silx.gui.plot.Colors import rgba
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import rgba
+from silx.gui.colors import Colormap
 
 from silx.math.marchingcubes import MarchingCubes
 from silx.math.combo import min_max
@@ -643,7 +643,7 @@ class CutPlane(qt.QObject):
         """Returns the colormap set by :meth:`setColormap`.
 
         :return: The colormap
-        :rtype: ~silx.gui.plot.Colormap.Colormap
+        :rtype: ~silx.gui.colors.Colormap
         """
         return self._colormap
 
@@ -660,7 +660,7 @@ class CutPlane(qt.QObject):
         :param name: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
             Or Colormap object.
-        :type name: str or ~silx.gui.plot.Colormap.Colormap
+        :type name: str or ~silx.gui.colors.Colormap
         :param str norm: Colormap mapping: 'linear' or 'log'.
         :param float vmin: The minimum value of the range or None for autoscale
         :param float vmax: The maximum value of the range or None for autoscale

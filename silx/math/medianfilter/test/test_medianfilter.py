@@ -1,6 +1,6 @@
 # coding: utf-8
 # ##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ __date__ = "17/01/2018"
 
 import unittest
 import numpy
-from silx.math.medianfilter import medfilt2d
+from silx.math.medianfilter import medfilt2d, medfilt1d
 from silx.math.medianfilter.medianfilter import reflect, mirror
 from silx.math.medianfilter.medianfilter import MODES as silx_mf_modes
 from silx.utils.testutils import ParametricTestCase
@@ -109,6 +109,14 @@ class TestMedianFilterNearest(ParametricTestCase):
 
         self.assertTrue(numpy.array_equal(dataIn, dataOut))
 
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=3, conditional=False,
+                      mode='nearest'),
+            [0, 2, 5, 2, 1])
+        )
+
     def testFilter3Conditionnal(self):
         """Test that the conditional filter apply correctly in a 10x10 matrix
         with a 3x3 kernel
@@ -137,6 +145,30 @@ class TestMedianFilterNearest(ParametricTestCase):
         self.assertTrue(dataOut[0] == 0)
         self.assertTrue(dataOut[9] == 9)
         self.assertTrue(dataOut[99] == 99)
+
+    def testNaNs(self):
+        """Test median filter on image with NaNs in nearest mode"""
+        # Data with a NaN in first corner
+        nan_corner = numpy.arange(100.).reshape(10, 10)
+        nan_corner[0, 0] = numpy.nan
+        output = medfilt2d(
+            nan_corner, kernel_size=3, conditional=False, mode='nearest')
+        self.assertEqual(output[0, 0], 10)
+        self.assertEqual(output[0, 1], 2)
+        self.assertEqual(output[1, 0], 11)
+        self.assertEqual(output[1, 1], 12)
+
+        # Data with some NaNs
+        some_nans = numpy.arange(100.).reshape(10, 10)
+        some_nans[0, 1] = numpy.nan
+        some_nans[1, 1] = numpy.nan
+        some_nans[1, 0] = numpy.nan
+        output = medfilt2d(
+            some_nans, kernel_size=3, conditional=False, mode='nearest')
+        self.assertEqual(output[0, 0], 0)
+        self.assertEqual(output[0, 1], 2)
+        self.assertEqual(output[1, 0], 20)
+        self.assertEqual(output[1, 1], 20)
 
 
 class TestMedianFilterReflect(ParametricTestCase):
@@ -209,6 +241,38 @@ class TestMedianFilterReflect(ParametricTestCase):
                         mode='reflect')
         self.assertTrue(numpy.array_equal(thRes, res))
 
+    def testNaNs(self):
+        """Test median filter on image with NaNs in reflect mode"""
+        # Data with a NaN in first corner
+        nan_corner = numpy.arange(100.).reshape(10, 10)
+        nan_corner[0, 0] = numpy.nan
+        output = medfilt2d(
+            nan_corner, kernel_size=3, conditional=False, mode='reflect')
+        self.assertEqual(output[0, 0], 10)
+        self.assertEqual(output[0, 1], 2)
+        self.assertEqual(output[1, 0], 11)
+        self.assertEqual(output[1, 1], 12)
+
+        # Data with some NaNs
+        some_nans = numpy.arange(100.).reshape(10, 10)
+        some_nans[0, 1] = numpy.nan
+        some_nans[1, 1] = numpy.nan
+        some_nans[1, 0] = numpy.nan
+        output = medfilt2d(
+            some_nans, kernel_size=3, conditional=False, mode='reflect')
+        self.assertEqual(output[0, 0], 0)
+        self.assertEqual(output[0, 1], 2)
+        self.assertEqual(output[1, 0], 20)
+        self.assertEqual(output[1, 1], 20)
+
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=5, conditional=False,
+                      mode='reflect'),
+            [2, 2, 2, 2, 2])
+        )
+
 
 class TestMedianFilterMirror(ParametricTestCase):
     """Unit test for the median filter in mirror mode
@@ -269,6 +333,37 @@ class TestMedianFilterMirror(ParametricTestCase):
 
         self.assertTrue(numpy.array_equal(thRes, res))
 
+    def testNaNs(self):
+        """Test median filter on image with NaNs in mirror mode"""
+        # Data with a NaN in first corner
+        nan_corner = numpy.arange(100.).reshape(10, 10)
+        nan_corner[0, 0] = numpy.nan
+        output = medfilt2d(
+            nan_corner, kernel_size=3, conditional=False, mode='mirror')
+        self.assertEqual(output[0, 0], 11)
+        self.assertEqual(output[0, 1], 11)
+        self.assertEqual(output[1, 0], 11)
+        self.assertEqual(output[1, 1], 12)
+
+        # Data with some NaNs
+        some_nans = numpy.arange(100.).reshape(10, 10)
+        some_nans[0, 1] = numpy.nan
+        some_nans[1, 1] = numpy.nan
+        some_nans[1, 0] = numpy.nan
+        output = medfilt2d(
+            some_nans, kernel_size=3, conditional=False, mode='mirror')
+        self.assertEqual(output[0, 0], 0)
+        self.assertEqual(output[0, 1], 12)
+        self.assertEqual(output[1, 0], 21)
+        self.assertEqual(output[1, 1], 20)
+
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=5, conditional=False,
+                      mode='mirror'),
+            [2, 5, 2, 5, 2])
+        )
 
 class TestMedianFilterShrink(ParametricTestCase):
     """Unit test for the median filter in mirror mode
@@ -362,6 +457,125 @@ class TestMedianFilterShrink(ParametricTestCase):
 
         self.assertTrue(numpy.array_equal(resK1, thRes))
 
+    def testNaNs(self):
+        """Test median filter on image with NaNs in shrink mode"""
+        # Data with a NaN in first corner
+        nan_corner = numpy.arange(100.).reshape(10, 10)
+        nan_corner[0, 0] = numpy.nan
+        output = medfilt2d(
+            nan_corner, kernel_size=3, conditional=False, mode='shrink')
+        self.assertEqual(output[0, 0], 10)
+        self.assertEqual(output[0, 1], 10)
+        self.assertEqual(output[1, 0], 11)
+        self.assertEqual(output[1, 1], 12)
+
+        # Data with some NaNs
+        some_nans = numpy.arange(100.).reshape(10, 10)
+        some_nans[0, 1] = numpy.nan
+        some_nans[1, 1] = numpy.nan
+        some_nans[1, 0] = numpy.nan
+        output = medfilt2d(
+            some_nans, kernel_size=3, conditional=False, mode='shrink')
+        self.assertEqual(output[0, 0], 0)
+        self.assertEqual(output[0, 1], 2)
+        self.assertEqual(output[1, 0], 20)
+        self.assertEqual(output[1, 1], 20)
+
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=3, conditional=False,
+                      mode='shrink'),
+            [5, 2, 5, 2, 6])
+        )
+
+class TestMedianFilterConstant(ParametricTestCase):
+    """Unit test for the median filter in constant mode
+    """
+
+    def testRandom10(self):
+        """Test a (5, 3) window to a random array"""
+        kernel = (3, 5)
+
+        thRes = numpy.array([
+            [0., 0.02839148, 0.05564293, 0.02839148, 0.],
+            [0.05272484, 0.40555336, 0.4440632, 0.42161216, 0.28773158],
+            [0.05272484, 0.44406320, 0.46372299, 0.42161216, 0.28773158],
+            [0.20303021, 0.46372299, 0.56049024, 0.44406320, 0.33623165],
+            [0., 0.07813661, 0.33623165, 0.07813661, 0.]])
+
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
+                        kernel_size=kernel,
+                        conditional=False,
+                        mode='constant')
+
+        self.assertTrue(numpy.array_equal(thRes, res))
+
+    RANDOM_FLOAT_MAT = numpy.array([
+        [0.05564293, 0.62717157, 0.75002406, 0.40555336, 0.70278975],
+        [0.76532598, 0.02839148, 0.05272484, 0.65166994, 0.42161216],
+        [0.23067427, 0.74219128, 0.56049024, 0.44406320, 0.28773158],
+        [0.81025249, 0.20303021, 0.68382382, 0.46372299, 0.81281709],
+        [0.94691602, 0.07813661, 0.81651256, 0.84220106, 0.33623165]])
+
+    def testRandom10Conditionnal(self):
+        """Test the median filter in reflect mode and with the conditionnal
+        option"""
+        kernel = (1, 3)
+
+        print(RANDOM_FLOAT_MAT)
+
+        thRes = numpy.array([
+            [0.05564293, 0.62717157, 0.62717157, 0.70278975, 0.40555336],
+            [0.02839148, 0.05272484, 0.05272484, 0.42161216, 0.42161216],
+            [0.23067427, 0.56049024, 0.56049024, 0.44406320, 0.28773158],
+            [0.20303021, 0.68382382, 0.46372299, 0.68382382, 0.46372299],
+            [0.07813661, 0.81651256, 0.81651256, 0.81651256, 0.33623165]])
+
+        res = medfilt2d(image=RANDOM_FLOAT_MAT,
+                        kernel_size=kernel,
+                        conditional=True,
+                        mode='constant')
+
+        self.assertTrue(numpy.array_equal(thRes, res))
+
+    def testNaNs(self):
+        """Test median filter on image with NaNs in constant mode"""
+        # Data with a NaN in first corner
+        nan_corner = numpy.arange(100.).reshape(10, 10)
+        nan_corner[0, 0] = numpy.nan
+        output = medfilt2d(nan_corner,
+                           kernel_size=3,
+                           conditional=False,
+                           mode='constant',
+                           cval=0)
+        self.assertEqual(output[0, 0], 0)
+        self.assertEqual(output[0, 1], 2)
+        self.assertEqual(output[1, 0], 10)
+        self.assertEqual(output[1, 1], 12)
+
+        # Data with some NaNs
+        some_nans = numpy.arange(100.).reshape(10, 10)
+        some_nans[0, 1] = numpy.nan
+        some_nans[1, 1] = numpy.nan
+        some_nans[1, 0] = numpy.nan
+        output = medfilt2d(some_nans,
+                           kernel_size=3,
+                           conditional=False,
+                           mode='constant',
+                           cval=0)
+        self.assertEqual(output[0, 0], 0)
+        self.assertEqual(output[0, 1], 0)
+        self.assertEqual(output[1, 0], 0)
+        self.assertEqual(output[1, 1], 20)
+
+    def testFilter3_1d(self):
+        """Test binding and result of the 1d filter"""
+        self.assertTrue(numpy.array_equal(
+            medfilt1d(RANDOM_INT_MAT[0], kernel_size=5, conditional=False,
+                      mode='constant'),
+            [0, 2, 2, 2, 1])
+        )
 
 class TestGeneralExecution(ParametricTestCase):
     """Some general test on median filter application"""
@@ -395,6 +609,42 @@ class TestGeneralExecution(ParametricTestCase):
                           conditional=False,
                           mode=mode)
                 self.assertTrue(numpy.array_equal(dataIn, dataInCopy))
+
+    def testAllNaNs(self):
+        """Test median filter on image all NaNs"""
+        all_nans = numpy.empty((10, 10), dtype=numpy.float32)
+        all_nans[:] = numpy.nan
+
+        for mode in silx_mf_modes:
+            for conditional in (True, False):
+                with self.subTest(mode=mode, conditional=conditional):
+                    output = medfilt2d(
+                        all_nans,
+                        kernel_size=3,
+                        conditional=conditional,
+                        mode=mode,
+                        cval=numpy.nan)
+                    self.assertTrue(numpy.all(numpy.isnan(output)))
+
+    def testConditionalWithNaNs(self):
+        """Test that NaNs are propagated through conditional median filter"""
+        for mode in silx_mf_modes:
+            with self.subTest(mode=mode):
+                image = numpy.ones((10, 10), dtype=numpy.float32)
+                nan_mask = numpy.zeros_like(image, dtype=bool)
+                nan_mask[0, 0] = True
+                nan_mask[4, :] = True
+                nan_mask[6, 4] = True
+                image[nan_mask] = numpy.nan
+                output = medfilt2d(
+                    image,
+                    kernel_size=3,
+                    conditional=True,
+                    mode=mode)
+                out_isnan = numpy.isnan(output)
+                self.assertTrue(numpy.all(out_isnan[nan_mask]))
+                self.assertFalse(
+                    numpy.any(out_isnan[numpy.logical_not(nan_mask)]))
 
 
 def _getScipyAndSilxCommonModes():
@@ -474,9 +724,13 @@ class TestVsScipy(ParametricTestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for test in [TestGeneralExecution, TestVsScipy,
-                 TestMedianFilterNearest, TestMedianFilterReflect,
-                 TestMedianFilterMirror, TestMedianFilterShrink]:
+    for test in [TestGeneralExecution,
+                 TestVsScipy,
+                 TestMedianFilterNearest,
+                 TestMedianFilterReflect,
+                 TestMedianFilterMirror,
+                 TestMedianFilterShrink,
+                 TestMedianFilterConstant]:
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return test_suite

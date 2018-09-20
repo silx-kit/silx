@@ -45,39 +45,40 @@
 
 
 // The _FILE extension correspond to the formula found in the "OpenCL in Action" supplementary files
-#define VECTOR_SORT_FILE(input, dir)                              \
-        comp = (input < shuffle(input, mask2)) ^ dir;             \
-        input = shuffle(input, as_uint4(comp * 2 + add2));        \
-        comp = (input < shuffle(input, mask1)) ^ dir;             \
-        input = shuffle(input, as_uint4(comp + add1));            \
+#define VECTOR_SORT_FILE(input, dir)\
+        comp = (input < shuffle(input, mask2)) ^ dir;\
+        input = shuffle(input, as_uint4(comp * 2 + add2));\
+        comp = (input < shuffle(input, mask1)) ^ dir;\
+        input = shuffle(input, as_uint4(comp + add1));\
 
 
-#define VECTOR_SWAP_FILE(input1, input2, dir)                     \
-        temp = input1;                                            \
-        comp = ((input1 < input2) ^ dir) * 4 + add3;              \
-        input1 = shuffle2(input1, input2, as_uint4(comp));        \
-        input2 = shuffle2(input2, temp, as_uint4(comp));          \
+#define VECTOR_SWAP_FILE(input1, input2, dir)\
+        temp = input1;\
+        comp = ((input1 < input2) ^ dir) * 4 + add3;\
+        input1 = shuffle2(input1, input2, as_uint4(comp));\
+        input2 = shuffle2(input2, temp, as_uint4(comp));\
 
 
 
 // Functions to be called from an actual kernel.
 
 static float8 my_sort_file(uint local_id, uint group_id, uint local_size,
-                           float8 input, __local float4 *l_data){
+                           float8 input, local float4 *l_data)
+{
     float4 input1, input2, temp;
     float8 output;
 
-	int dir;
-	uint id, size, stride;
-	int4 comp;
+    int dir;
+    uint id, size, stride;
+    int4 comp;
 
-	uint4 mask1 = (uint4)(1, 0, 3, 2);
-	uint4 mask2 = (uint4)(2, 3, 0, 1);
-	uint4 mask3 = (uint4)(3, 2, 1, 0);
+    uint4 mask1 = (uint4)(1, 0, 3, 2);
+    uint4 mask2 = (uint4)(2, 3, 0, 1);
+    uint4 mask3 = (uint4)(3, 2, 1, 0);
 
-	int4 add1 = (int4)(1, 1, 3, 3);
-	int4 add2 = (int4)(2, 3, 2, 3);
-	int4 add3 = (int4)(1, 2, 2, 3);
+    int4 add1 = (int4)(1, 1, 3, 3);
+    int4 add2 = (int4)(2, 3, 2, 3);
+    int4 add3 = (int4)(1, 2, 2, 3);
 
     // retrieve input data
     input1 = (float4)(input.s0, input.s1, input.s2, input.s3);
@@ -86,86 +87,91 @@ static float8 my_sort_file(uint local_id, uint group_id, uint local_size,
     // Find global address
     id = local_id * 2;
 
-	/* Sort input 1 - ascending */
-	comp = input1 < shuffle(input1, mask1);
-	input1 = shuffle(input1, as_uint4(comp + add1));
-	comp = input1 < shuffle(input1, mask2);
-	input1 = shuffle(input1, as_uint4(comp * 2 + add2));
-	comp = input1 < shuffle(input1, mask3);
-	input1 = shuffle(input1, as_uint4(comp + add3));
+    /* Sort input 1 - ascending */
+    comp = input1 < shuffle(input1, mask1);
+    input1 = shuffle(input1, as_uint4(comp + add1));
+    comp = input1 < shuffle(input1, mask2);
+    input1 = shuffle(input1, as_uint4(comp * 2 + add2));
+    comp = input1 < shuffle(input1, mask3);
+    input1 = shuffle(input1, as_uint4(comp + add3));
 
-	/* Sort input 2 - descending */
-	comp = input2 > shuffle(input2, mask1);
-	input2 = shuffle(input2, as_uint4(comp + add1));
-	comp = input2 > shuffle(input2, mask2);
-	input2 = shuffle(input2, as_uint4(comp * 2 + add2));
-	comp = input2 > shuffle(input2, mask3);
-	input2 = shuffle(input2, as_uint4(comp + add3));
+    /* Sort input 2 - descending */
+    comp = input2 > shuffle(input2, mask1);
+    input2 = shuffle(input2, as_uint4(comp + add1));
+    comp = input2 > shuffle(input2, mask2);
+    input2 = shuffle(input2, as_uint4(comp * 2 + add2));
+    comp = input2 > shuffle(input2, mask3);
+    input2 = shuffle(input2, as_uint4(comp + add3));
 
-	/* Swap corresponding elements of input 1 and 2 */
-	add3 = (int4)(4, 5, 6, 7);
-	dir = - (int) (local_id % 2);
-	temp = input1;
-	comp = ((input1 < input2) ^ dir) * 4 + add3;
-	input1 = shuffle2(input1, input2, as_uint4(comp));
-	input2 = shuffle2(input2, temp, as_uint4(comp));
+    /* Swap corresponding elements of input 1 and 2 */
+    add3 = (int4)(4, 5, 6, 7);
+    dir = - (int) (local_id % 2);
+    temp = input1;
+    comp = ((input1 < input2) ^ dir) * 4 + add3;
+    input1 = shuffle2(input1, input2, as_uint4(comp));
+    input2 = shuffle2(input2, temp, as_uint4(comp));
 
-	/* Sort data and store in local memory */
-	VECTOR_SORT_FILE(input1, dir);
-	VECTOR_SORT_FILE(input2, dir);
-	l_data[id] = input1;
-	l_data[id+1] = input2;
+    /* Sort data and store in local memory */
+    VECTOR_SORT_FILE(input1, dir);
+    VECTOR_SORT_FILE(input2, dir);
+    l_data[id] = input1;
+    l_data[id+1] = input2;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    
+    /* Create bitonic set */
+    for(size = 2; size < local_size; size <<= 1) {
+      dir = - (int) (local_id/size & 1) ;
 
-	/* Create bitonic set */
-	for(size = 2; size < local_size; size <<= 1) {
-	  dir = - (int) (local_id/size & 1) ;
+      for(stride = size; stride > 1; stride >>= 1) {
+         barrier(CLK_LOCAL_MEM_FENCE);
+         id = local_id + (local_id/stride)*stride;
+         VECTOR_SWAP_FILE(l_data[id], l_data[id + stride], dir)
+      }
 
-	  for(stride = size; stride > 1; stride >>= 1) {
-		 barrier(CLK_LOCAL_MEM_FENCE);
-		 id = local_id + (local_id/stride)*stride;
-		 VECTOR_SWAP_FILE(l_data[id], l_data[id + stride], dir)
-	  }
+      barrier(CLK_LOCAL_MEM_FENCE);
+      id = local_id * 2;
+      input1 = l_data[id];
+      input2 = l_data[id+1];
+      temp = input1;
+      comp = ((input1 < input2) ^ dir) * 4 + add3;
+      input1 = shuffle2(input1, input2, as_uint4(comp));
+      input2 = shuffle2(input2, temp, as_uint4(comp));
+      VECTOR_SORT_FILE(input1, dir);
+      VECTOR_SORT_FILE(input2, dir);
+      l_data[id] = input1;
+      l_data[id+1] = input2;
+      barrier(CLK_LOCAL_MEM_FENCE);
+    }
 
-	  barrier(CLK_LOCAL_MEM_FENCE);
-	  id = local_id * 2;
-	  input1 = l_data[id];
-	  input2 = l_data[id+1];
-	  temp = input1;
-	  comp = ((input1 < input2) ^ dir) * 4 + add3;
-	  input1 = shuffle2(input1, input2, as_uint4(comp));
-	  input2 = shuffle2(input2, temp, as_uint4(comp));
-	  VECTOR_SORT_FILE(input1, dir);
-	  VECTOR_SORT_FILE(input2, dir);
-	  l_data[id] = input1;
-	  l_data[id+1] = input2;
-	}
+    /* Perform bitonic merge */
+    dir = - (int) (group_id % 2);
+    for(stride = local_size; stride > 1; stride >>= 1) 
+    {
+      barrier(CLK_LOCAL_MEM_FENCE);
+      id = local_id + (local_id/stride)*stride;
+      VECTOR_SWAP_FILE(l_data[id], l_data[id + stride], dir)
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
 
-	/* Perform bitonic merge */
-	dir = - (int) (group_id % 2);
-	for(stride = local_size; stride > 1; stride >>= 1) {
-	  barrier(CLK_LOCAL_MEM_FENCE);
-	  id = local_id + (local_id/stride)*stride;
-	  VECTOR_SWAP_FILE(l_data[id], l_data[id + stride], dir)
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
+    /* Perform final sort */
+    id = local_id * 2;
+    input1 = l_data[id]; 
+    input2 = l_data[id+1];
+    temp = input1;
+    comp = ((input1 < input2) ^ dir) * 4 + add3;
+    input1 = shuffle2(input1, input2, as_uint4(comp));
+    input2 = shuffle2(input2, temp, as_uint4(comp));
+    VECTOR_SORT_FILE(input1, dir);
+    VECTOR_SORT_FILE(input2, dir);
 
-	/* Perform final sort */
-	id = local_id * 2;
-	input1 = l_data[id]; input2 = l_data[id+1];
-	temp = input1;
-	comp = ((input1 < input2) ^ dir) * 4 + add3;
-	input1 = shuffle2(input1, input2, as_uint4(comp));
-	input2 = shuffle2(input2, temp, as_uint4(comp));
-	VECTOR_SORT_FILE(input1, dir);
-	VECTOR_SORT_FILE(input2, dir);
-
-	// setup output and return it
-	output = (float8)(input1, input2);
-	return  output;
+    // setup output and return it
+    output = (float8)(input1, input2);
+    return  output;
 }
 
 static float8 my_sort_book(uint local_id, uint group_id, uint local_size,
-                           float8 input, __local float4 *l_data){
+                           float8 input, local float4 *l_data)
+{
     float4 input1, input2, temp;
     float8 output;
     uint4 comp, swap, mask1, mask2, add1, add2, add3;
@@ -213,11 +219,13 @@ static float8 my_sort_book(uint local_id, uint group_id, uint local_size,
     l_data[id+1] = input2;
 
     // Perform upper stages
-    for(size = 2; size < local_size;    size <<= 1) {
+    for(size = 2; size < local_size;    size <<= 1) 
+    {
         dir = local_id/size & 1;
 
         //Perform    lower stages
-        for(stride = size; stride > 1; stride >>= 1) {
+        for(stride = size; stride > 1; stride >>= 1) 
+        {
             barrier(CLK_LOCAL_MEM_FENCE);
             id = local_id +    (local_id/stride)*stride;
             VECTOR_SWAP_BOOK(l_data[id],    l_data[id + stride], dir)
@@ -239,7 +247,8 @@ static float8 my_sort_book(uint local_id, uint group_id, uint local_size,
     dir = group_id % 2;
 
     // Perform bitonic merge
-    for(stride = local_size; stride > 1; stride >>= 1) {
+    for(stride = local_size; stride > 1; stride >>= 1) 
+    {
         barrier(CLK_LOCAL_MEM_FENCE);
         id = local_id +    (local_id/stride)*stride;
         VECTOR_SWAP_BOOK(l_data[id], l_data[id + stride], dir)
@@ -269,8 +278,9 @@ static float8 my_sort_book(uint local_id, uint group_id, uint local_size,
 // Perform the sort on the whole array
 // dim0: wg=number_of_element/8
 
-__kernel void bsort_all(__global float4 *g_data,
-                        __local float4 *l_data) {
+kernel void bsort_all(global float4 *g_data,
+                      local float4 *l_data)
+{
     float4 input1, input2;
     float8 input, output;
     uint id, global_start;
@@ -293,8 +303,9 @@ __kernel void bsort_all(__global float4 *g_data,
 // Perform the sort along the horizontal axis of a 2D image
 // dim0 = y: wg=1
 // dim1 = x: wg=number_of_element/8
-__kernel void bsort_horizontal(__global float *g_data,
-                               __local  float4 *l_data) {
+kernel void bsort_horizontal(global float *g_data,
+                             local float4 *l_data) 
+{
     float8 input, output;
     uint id, global_start, offset;
 
@@ -331,8 +342,9 @@ __kernel void bsort_horizontal(__global float *g_data,
 // dim1 = x: wg=1
 // check if transposing +bsort_horizontal is not more efficient ?
 
-__kernel void bsort_vertical(__global float *g_data,
-                             __local float4 *l_data) {
+kernel void bsort_vertical(global float *g_data,
+                           local float4 *l_data) 
+{
     // we need to read 8 float position along the vertical axis
     float8 input, output;
     uint id, global_start, padding;
@@ -342,7 +354,7 @@ __kernel void bsort_vertical(__global float *g_data,
     id = get_local_id(0) * 8 * padding + get_global_id(1);
     global_start = get_group_id(0) * get_local_size(0) * 8 * padding + id;
 
-	input = (float8)(g_data[global_start            ],
+    input = (float8)(g_data[global_start            ],
                      g_data[global_start + padding  ],
                      g_data[global_start + 2*padding],
                      g_data[global_start + 3*padding],
@@ -365,8 +377,8 @@ __kernel void bsort_vertical(__global float *g_data,
 
 
 //Tested working reference kernel frm the book. This only works under Linux
-__kernel void bsort_book(__global float4 *g_data,
-                         __local float4 *l_data) {
+kernel void bsort_book(global float4 *g_data,
+                         local float4 *l_data) {
     float4 input1, input2, temp;
     uint4 comp, swap, mask1, mask2, add1, add2, add3;
     uint id, dir, global_start, size, stride;
@@ -459,7 +471,7 @@ __kernel void bsort_book(__global float4 *g_data,
 
 //Tested working reference kernel from the addition files. This only works under any operating system
 /* Perform initial sort */
-__kernel void bsort_file(__global float4 *g_data, __local float4 *l_data) {
+kernel void bsort_file(global float4 *g_data, local float4 *l_data) {
 
    int dir;
    uint id, global_start, size, stride;

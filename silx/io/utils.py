@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "14/02/2018"
+__date__ = "18/04/2018"
 
 import numpy
 import os.path
@@ -86,8 +86,8 @@ def supported_extensions(flat_formats=True):
     """
     formats = {}
     if h5py is not None:
-        formats["HDF5 files"] = set(["*.h5", "*.hdf"])
-        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf"])
+        formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
+        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
     formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
     if flat_formats:
         try:
@@ -204,7 +204,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
 
         # make sure y_array is a 2D array even for a single curve
         if len(y_array.shape) == 1:
-            y_array.shape = (1, y_array.shape[0])
+            y_array = y_array.reshape(1, y_array.shape[0])
         elif len(y_array.shape) > 2 or len(y_array.shape) < 1:
             raise IndexError("y must be a 1D or 2D array")
 
@@ -820,7 +820,7 @@ def get_data(url):
 
         if fabio_file.nframes == 1:
             if index != 0:
-                raise ValueError("Only a single frame availalbe. Slice %s out of range" % index)
+                raise ValueError("Only a single frame available. Slice %s out of range" % index)
             data = fabio_file.data
         else:
             data = fabio_file.getframe(index).data

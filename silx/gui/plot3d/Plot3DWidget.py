@@ -28,15 +28,15 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "24/04/2018"
 
 
 import logging
 
 from silx.gui import qt
-from silx.gui.plot.Colors import rgba
+from silx.gui.colors import rgba
 from . import actions
-from .._utils import convertArrayToQImage
+from ..utils.image import convertArrayToQImage
 
 from .. import _glutils as glu
 from .scene import interaction, primitives, transform

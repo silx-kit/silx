@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,10 @@ __date__ = "22/06/2016"
 
 import unittest
 
-from .test_medianfilter import suite as test_medianfilter
+from . import test_medianfilter
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_medianfilter())
+    test_suite.addTest(test_medianfilter.suite())
     return test_suite

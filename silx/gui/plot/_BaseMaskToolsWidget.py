@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +29,17 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "29/08/2018"
 
 import os
+import weakref
 
 import numpy
 
 from silx.gui import qt, icons
 from silx.gui.widgets.FloatEdit import FloatEdit
-from silx.gui.plot.Colormap import Colormap
-from silx.gui.plot.Colors import rgba
+from silx.gui.colors import Colormap
+from silx.gui.colors import rgba
 from .actions.mode import PanModeAction
 
 
@@ -372,7 +373,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         # as parent have to be the first argument of the widget to fit
         # QtDesigner need but here plot can't be None by default.
         assert plot is not None
-        self._plot = plot
+        self._plotRef = weakref.ref(plot)
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
 
         self._colormap = Colormap(name="",
@@ -409,12 +410,21 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         :param bool copy: True (default) to get a copy of the mask.
                           If False, the returned array MUST not be modified.
-        :return: The array of the mask with dimension of the 'active' plot item.
-                 If there is no active image or scatter, an empty array is
-                 returned.
-        :rtype: numpy.ndarray of uint8
+        :return: The mask (as an array of uint8) with dimension of
+                 the 'active' plot item.
+                 If there is no active image or scatter, it returns None.
+        :rtype: Union[numpy.ndarray,None]
         """
-        return self._mask.getMask(copy=copy)
+        mask = self._mask.getMask(copy=copy)
+        return None if mask.size == 0 else mask
+
+    def setSelectionMask(self, mask):
+        """Set the mask: Must be implemented in subclass"""
+        raise NotImplementedError()
+
+    def resetSelectionMask(self):
+        """Reset the mask: Must be implemented in subclass"""
+        raise NotImplementedError()
 
     def multipleMasks(self):
         """Return the current mode of multiple masks support.
@@ -453,7 +463,11 @@ class BaseMaskToolsWidget(qt.QWidget):
     @property
     def plot(self):
         """The :class:`.PlotWindow` this widget is attached to."""
-        return self._plot
+        plot = self._plotRef()
+        if plot is None:
+            raise RuntimeError(
+                'Mask widget attached to a PlotWidget that no longer exists')
+        return plot
 
     def setDirection(self, direction=qt.QBoxLayout.LeftToRight):
         """Set the direction of the layout of the widget
@@ -582,6 +596,10 @@ class BaseMaskToolsWidget(qt.QWidget):
         maskGroup.setLayout(layout)
         return maskGroup
 
+    def isMaskInteractionActivated(self):
+        """Returns true if any mask interaction is activated"""
+        return self.drawActionGroup.checkedAction() is not None
+
     def _initDrawGroupBox(self):
         """Init drawing tools widgets"""
         layout = qt.QVBoxLayout()
@@ -604,8 +622,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
         self.polygonAction.setToolTip(
                 'Polygon selection tool: (Un)Mask a polygonal region <b>S</b><br>'
-                'Left-click to place polygon corners<br>'
-                'Right-click to place the last corner')
+                'Left-click to place new polygon corners<br>'
+                'Left-click on first corner to close the polygon')
         self.polygonAction.setCheckable(True)
         self.polygonAction.triggered.connect(self._activePolygonMode)
         self.addAction(self.polygonAction)
@@ -962,13 +980,20 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.plot.setInteractiveMode('draw', shape='polygon', source=self, color=color)
         self._updateDrawingModeWidgets()
 
+    def _getPencilWidth(self):
+        """Returns the width of the pencil to use in data coordinates`
+
+        :rtype: float
+        """
+        return self.pencilSpinBox.value()
+
     def _activePencilMode(self):
         """Handle pencil action mode triggering"""
         self._releaseDrawingMode()
         self._drawingMode = 'pencil'
         self.plot.sigPlotSignal.connect(self._plotDrawEvent)
         color = self.getCurrentMaskColor()
-        width = self.pencilSpinBox.value()
+        width = self._getPencilWidth()
         self.plot.setInteractiveMode(
             'draw', shape='pencil', source=self, color=color, width=width)
         self._updateDrawingModeWidgets()

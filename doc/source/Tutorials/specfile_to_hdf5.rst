@@ -6,7 +6,7 @@ Introduction to SPEC data files
 -------------------------------
 
 SPEC data files are ASCII files.
-They contain two general types of block of lines:
+They contain two general types of line blocks:
 
  - header lines starting with a ``#`` immediately followed by one or more characters
    identifying the information that follows
@@ -17,9 +17,9 @@ Header lines
 
 There are two types of headers. The first type is the *file header*. File headers always start
 with a ``#F`` line.
-The metadata stored in a file header applies to all the content of the data file, until a
+The metadata stored in a file header refers to all the content of the data file, until a
 new file header is encountered. There can be more than one file header, but a file with
-multiple headers can be treated as multiple SPEC files concatenated into a single one.
+multiple headers can be treated as a set of multiple SPEC files concatenated into a single one.
 File headers are sometimes missing.
 
 A file header contains general information:
@@ -33,15 +33,15 @@ A file header contains general information:
 The second type of header is the *scan header*. A scan header must start with a ``#S`` line
 and must be preceded by an empty line. This also applies to files without file headers: in
 such a case, the file must start with an empty line.
-The metadata stored in scan headers applies to a single block of data lines.
+The metadata stored in scan headers refers to a single block of data lines.
 
-A scan header contains following information:
+A scan header contains the following information:
 
  - ``#S`` - Mandatory first line showing the scan number and the
    command that was used to record the scan
  - ``#D`` - scan time and date
  - ``#Q`` - *H, K, L* values
- - ``#P`` - Motor positions (corresponding motor names are in file header ``#O``)
+ - ``#P`` - Motor positions (the corresponding motor names are in the file header ``#O``)
  - ``#N`` - Number of data columns in the following data block
  - ``#L`` - Column labels (``#N`` labels separated by two blank spaces)
 
@@ -57,20 +57,20 @@ Data blocks are structured as 2D arrays. Each line contains ``#N`` values, each 
 corresponding to the label with the same position in the ``#L`` scan header line.
 This implies that each column corresponds to one series of measurements.
 
-A column typically contains motor positions for a given positioner, a timestamp or the measurement
+A column typically includes motor positions for a given positioner, a timestamp or the measurement
 of a sensor.
 
 MCA data
 ++++++++
 
-Newer SPEC files can also contain multi-channel analyser data, in between each *normal* data line.
+More recent SPEC files can also comprise multi-channel analyser data, between *normal* data lines.
 A multichannel analyser records multiple values per single measurement.
-This is typically a histogram of number of counts against channels (*MCA spectrum*), to analyze energy distribution
+This is typically a histogram of number of counts against channels (*MCA spectrum*), to analyse the energy distribution
 of a process.
 
 SPEC data files containing MCA data have additional scan header lines:
 
- - ``#@MCA %16C`` - a spectrum will usually extend for more than one line.
+ - ``#@MCA %16C`` - a spectrum will usually extend over more than one line.
    This indicates a number of 16 values per line.
  - ``#@CHANN`` - contains 4 values:
 
@@ -79,14 +79,14 @@ SPEC data files containing MCA data have additional scan header lines:
    - the last channel number
    - the increment between two channel numbers (usually 1)
  - ``#@CALIB`` - 3 polynomial calibration values a, b, c. ( i.e. energy = a + b * channel + c * channel ^ 2)
- - ``#@CTIME`` - 3 values: preset time, live time, elapsed time
+ - ``#@CTIME`` - 3 values: preset time, life time, elapsed time
 
 The actual MCA data for a single spectrum usually spans over multiple lines.
-A spectrum starts on a new line with a ``@A``, and when it span over multiple lines, all
-lines except the last one end with a continuation character ``\``.
+A spectrum starts on a new line with ``@A``, and when it spans over multiple lines, all
+lines except the last one end by a continuation character ``\``.
 
-Example of SPEC file
-++++++++++++++++++++
+Example of SPEC files
++++++++++++++++++++++
 
 Example of file header::
 
@@ -126,7 +126,7 @@ Example of scan and data block, without MCA::
     29.366004  45256 0.000343 734 419 248 229 236 343 178082 664 0.00372862 0.00765939 0.0041217 0.00235285 0.00185308 0.00139262 0.00128592 0.00132523 0.00192608 1364 330
     29.36998  45258 0.00036 847 448 254 229 248 360 178342 668 0.00374561 0.00857342 0.0047493 0.00251203 0.00194009 0.00142423 0.00128405 0.00139059 0.00201859 1529 346
 
-Synthetic example of file with 3 scans. The last scan includes MCA data.
+Synthetic example of a file with 3 scans. The last scan includes MCA data.
 
 ::
 
@@ -230,30 +230,30 @@ The structure exposed is as follows::
           …
 
 Scans appear as *Groups* at the root level. The name of a scan group is
-made of two numbers, the first one being the *scan number* from the ``#S``
+composed of two numbers, the first one being the *scan number* from the ``#S``
 header line, and the second one being the *scan order*.
-If a scan number appears multiple times in a SPEC file, the scan order is incremented.
-For examples, the scan *3.2* designates the second occurence of scan number 3 in a given file.
+If a scan number appears multiple times in a SPEC file, the scan order is incremented by one.
+For example, the scan *3.2* designates the second occurence of scan number 3 in a given file.
 
 Data is stored in the ``measurement`` subgroup, one dataset per column. The dataset name
-is the column label as it appears on the ``#L`` header line.
+is the column label as it appears in the ``#L`` header line.
 
 The ``instrument`` subgroup contains following subgroups:
 
     - ``specfile`` - contains two datasets, ``file_header`` and ``scan_header``,
       containing all header lines as a long string. Lines are delimited by the ``\n`` character.
-    - ``positioners`` - contains one dataset per motor (positioner), containing
-      either the single motor position from the ``#P`` header line, or a complete 1D array
-      of positions if the motor names corresponds to a data column (i.e. if the motor name
-      from the ``#O`` header line is identical to a label on the ``#L`` header line)
+    - ``positioners`` - contains one dataset per motor (positioner), including
+      either the single motor position from the ``#P`` header line or a complete 1D array
+      of positions if the motor names correspond to a data column (i.e. if the motor name
+      from the ``#O`` header line is identical to a label in the ``#L`` header line)
     - one subgroup per MCA analyser/device containing a 2D ``data`` array with all spectra
       recorded by this analyser, as well as datasets for the various MCA metadata
       (``#@`` header lines). The first dimension of the ``data`` array corresponds to the number
       of points and the second one to the spectrum length.
 
 
-In addition the the data columns, this group contains one subgroup per MCA analyser/device
-with links to the data already contained in  ``instrument/mca_...``
+In addition to the data columns, this group contains one subgroup per MCA analyser/device
+with links to the data already comprised in  ``instrument/mca_...``
 
 spech5 examples
 +++++++++++++++
@@ -282,7 +282,7 @@ Accessing groups and datasets:
     mca_0_spectra = measurement_group["mca_0/data"]
 
 
-Files and groups can be treated as iterators, which allows looping through them.
+Files and groups can be treated as iterators, allowing looping through them.
 
 .. code-block:: python
 
@@ -296,8 +296,8 @@ Files and groups can be treated as iterators, which allows looping through them.
 
 .. note::
 
-    A :class:`SpecH5` object is also returned when you open a SPEC file
-    with :meth:`silx.io.open`. See :doc:`io` for additional information.
+    A :class:`SpecH5` object is also returned when one open a SPEC file
+    through :meth:`silx.io.open`. See ":doc:`io`" for additional information.
 
 Converting SPEC data to HDF5
 ++++++++++++++++++++++++++++

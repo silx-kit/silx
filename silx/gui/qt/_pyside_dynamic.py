@@ -39,11 +39,15 @@ from __future__ import (print_function, division, unicode_literals,
                         absolute_import)
 
 import logging
+import sys
 
-from PySide.QtCore import QMetaObject
-from PySide.QtUiTools import QUiLoader
-from PySide.QtGui import QMainWindow
-
+if "PySide.QtCore" in sys.modules:
+    from PySide.QtCore import QMetaObject
+    from PySide.QtUiTools import QUiLoader
+else:  # PySide2
+    from PySide2.QtCore import QMetaObject, Property, Qt
+    from PySide2.QtWidgets import QFrame
+    from PySide2.QtUiTools import QUiLoader
 
 _logger = logging.getLogger(__name__)
 
@@ -57,7 +61,7 @@ class UiLoader(QUiLoader):
     create a new instance of the top-level widget, but creates the user
     interface in an existing instance of the top-level class.
 
-    This mimics the behaviour of :func:`PyQt4.uic.loadUi`.
+    This mimics the behaviour of :func:`PyQt*.uic.loadUi`.
     """
 
     def __init__(self, baseinstance, customWidgets=None):
@@ -113,7 +117,7 @@ class UiLoader(QUiLoader):
 
             if self.baseinstance:
                 # set an attribute for the new child widget on the base
-                # instance, just like PyQt4.uic.loadUi does.
+                # instance, just like PyQt*.uic.loadUi does.
                 setattr(self.baseinstance, name, widget)
 
                 # this outputs the various widget names, e.g.
@@ -121,6 +125,43 @@ class UiLoader(QUiLoader):
                 # print(name)
 
             return widget
+
+
+if "PySide2.QtCore" in sys.modules:
+
+    class _Line(QFrame):
+        """Widget to use as 'Line' Qt designer"""
+        def __init__(self, parent=None):
+            super(_Line, self).__init__(parent)
+            self.setFrameShape(QFrame.HLine)
+            self.setFrameShadow(QFrame.Sunken)
+
+        def getOrientation(self):
+            shape = self.frameShape()
+            if shape == QFrame.HLine:
+                return Qt.Horizontal
+            elif shape == QFrame.VLine:
+                return Qt.Vertical
+            else:
+                raise RuntimeError("Wrong shape: %d", shape)
+
+        def setOrientation(self, orientation):
+            if orientation == Qt.Horizontal:
+                self.setFrameShape(QFrame.HLine)
+            elif orientation == Qt.Vertical:
+                self.setFrameShape(QFrame.VLine)
+            else:
+                raise ValueError("Unsupported orientation %s" % str(orientation))
+
+        orientation = Property("Qt::Orientation", getOrientation, setOrientation)
+
+
+    CUSTOM_WIDGETS = {"Line": _Line}
+    """Default custom widgets for `loadUi`"""
+
+else:  # PySide support
+    CUSTOM_WIDGETS = {}
+    """Default custom widgets for `loadUi`"""
 
 
 def loadUi(uifile, baseinstance=None, package=None, resource_suffix=None):
@@ -152,7 +193,7 @@ def loadUi(uifile, baseinstance=None, package=None, resource_suffix=None):
         _logger.warning(
             "loadUi resource_suffix parameter not implemented with PySide")
 
-    loader = UiLoader(baseinstance)
+    loader = UiLoader(baseinstance, customWidgets=CUSTOM_WIDGETS)
     widget = loader.load(uifile)
     QMetaObject.connectSlotsByName(widget)
     return widget

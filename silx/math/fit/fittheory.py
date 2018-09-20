@@ -1,7 +1,7 @@
 # coding: utf-8
 #/*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -69,13 +69,13 @@ class FitTheory(object):
             signature, as explained in the documentation for :attr:`function`.
         """
         self.function = function
-        """Regular fit functions must have the signature *f(x, \*params) -> y*,
+        """Regular fit functions must have the signature ``f(x, *params) -> y``,
         where *x* is a 1D array of values for the independent variable,
         *params* are the parameters to be fitted and *y* is the output array
         that we want to have the best fit to a series of data points.
 
         Background functions used by :class:`FitManager` must have a slightly
-        different signature: *f(x, y0, \*params) -> bg*, where *y0* is the
+        different signature: ``f(x, y0, *params) -> bg``, where *y0* is the
         array of original data points and *bg* is the background signal that
         we want to subtract from the data array prior to fitting the regular
         fit function.
@@ -149,7 +149,7 @@ class FitTheory(object):
         A background function is an secondary function that needs to be added
         to the main fit function to better fit the original data.
         If this flag is set to *True*, modules using this theory are informed
-        that :attr:`function` has the signature *f(x, y0, \*params) -> bg*,
+        that :attr:`function` has the signature ``f(x, y0, *params) -> bg``,
         instead of the usual fit function signature."""
 
     def default_estimate(self, x=None, y=None, bg=None):

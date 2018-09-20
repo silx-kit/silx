@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/12/2017"
+__date__ = "04/05/2018"
 
 
 import logging
@@ -100,6 +100,26 @@ def htmlFromDict(dictionary, title=None):
     result += "</ul>"
     result += "</body></html>"
     return result
+
+
+class Hdf5DatasetMimeData(qt.QMimeData):
+    """Mimedata class to identify an internal drag and drop of a Hdf5Node."""
+
+    MIME_TYPE = "application/x-internal-h5py-dataset"
+
+    def __init__(self, node=None, dataset=None):
+        qt.QMimeData.__init__(self)
+        self.__dataset = dataset
+        self.__node = node
+        self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
+
+    def node(self):
+        return self.__node
+
+    def dataset(self):
+        if self.__node is not None:
+            return self.__node.obj
+        return self.__dataset
 
 
 class Hdf5NodeMimeData(qt.QMimeData):

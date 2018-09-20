@@ -29,7 +29,7 @@ Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/09/2017"
+__date__ = "19/06/2018"
 
 
 import os
@@ -193,10 +193,13 @@ class MultiImageAnimatedIcon(AbstractAnimatedIcon):
         self.__frames = []
         for i in range(100):
             try:
-                pixmap = getQPixmap("%s/%02d" % (filename, i))
+                filename = getQFile("%s/%02d" % (filename, i))
             except ValueError:
                 break
-            icon = qt.QIcon(pixmap)
+            try:
+                icon = qt.QIcon(filename.fileName())
+            except ValueError:
+                break
             self.__frames.append(icon)
 
         if len(self.__frames) == 0:
@@ -328,8 +331,7 @@ def getQIcon(name):
     """
     if name not in _cached_icons:
         qfile = getQFile(name)
-        pixmap = qt.QPixmap(qfile.fileName())
-        icon = qt.QIcon(pixmap)
+        icon = qt.QIcon(qfile.fileName())
         _cached_icons[name] = icon
     else:
         icon = _cached_icons[name]
@@ -392,7 +394,7 @@ def getQFile(name):
     for format_ in _supported_formats:
         format_ = str(format_)
         filename = silx.resources._resource_filename('%s.%s' % (name, format_),
-                                                    default_directory=os.path.join('gui', 'icons'))
+                                                     default_directory=os.path.join('gui', 'icons'))
         qfile = qt.QFile(filename)
         if qfile.exists():
             return qfile

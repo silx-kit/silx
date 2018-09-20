@@ -40,7 +40,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/01/2018"
+__date__ = "05/07/2018"
 
 import os
 import unittest
@@ -48,12 +48,9 @@ import time
 import logging
 import numpy
 try:
-    import scipy
+    import scipy.misc
 except ImportError:
     scipy = None
-else:
-    import scipy.misc
-    import scipy.ndimage
 
 from silx.utils.testutils import parameterize
 # for Python implementation of tested functions
@@ -226,10 +223,10 @@ class TestKeypoints(unittest.TestCase):
         # sort to compare added keypoints
         upbound = min(cnt, updated_nb_keypoints)
         d1, d2, d3, d4 = keypoints_compare(ref[0:upbound], res[0:upbound])
-        self.assert_(d1 < 1e-4, "delta_cols=%s" % (d1))
-        self.assert_(d2 < 1e-4, "delta_rows=%s" % (d2))
-        self.assert_(d3 < 1e-4, "delta_sigma=%s" % (d3))
-        self.assert_(d4 < 1e-1, "delta_angle=%s" % (d4))  # orientation has a poor precision
+        self.assertLess(d1, 1e-4, "delta_cols=%s" % (d1))
+        self.assertLess(d2, 1e-4, "delta_rows=%s" % (d2))
+        self.assertLess(d3, 1e-4, "delta_sigma=%s" % (d3))
+        self.assertLess(d4, 1e-1, "delta_angle=%s" % (d4))  # orientation has a poor precision
         logger.info("delta_cols=%s" % d1)
         logger.info("delta_rows=%s" % d2)
         logger.info("delta_sigma=%s" % d3)
@@ -317,6 +314,7 @@ class TestKeypoints(unittest.TestCase):
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
             logger.info("Descriptors computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
+
 @unittest.skipUnless(ocl, "opencl missing")
 class TestFeature(unittest.TestCase):
     """Test a simple image with all possible path"""
@@ -361,7 +359,7 @@ class TestFeature(unittest.TestCase):
                 idx = (abs(k[3] - orientations).argmin())
                 l1 = abs(k[4] - keypoints[idx]).sum()
                 if l1 > 100:
-                    logger.warning("error is not neglectable %s\n%s\%s", l1, k[4], keypoints[idx])
+                    logger.warning("error is not neglectable %s\n%s\n%s", l1, k[4], keypoints[idx])
                 self.assertLessEqual(l1, 500, "keypoint matches %i matches:\n%s\ngot:\n%s\nexpected:\n%s" % (i, l1, k[4], keypoints[idx]))
 
         from silx.opencl.sift import SiftPlan

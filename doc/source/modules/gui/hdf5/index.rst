@@ -43,4 +43,5 @@ Public modules
    hdf5treemodel.rst
    hdf5contextmenuevent.rst
    h5node.rst
+   hdf5headerview.rst
    nexussortfilterproxymodel.rst

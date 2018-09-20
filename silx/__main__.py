@@ -32,7 +32,7 @@ Your environment should provide a command `silx`. You can reach help with
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/06/2017"
+__date__ = "07/06/2018"
 
 
 import logging
@@ -54,7 +54,7 @@ def main():
     """
     launcher = Launcher(prog="silx", version=silx._version.version)
     launcher.add_command("view",
-                         module_name="silx.app.view",
+                         module_name="silx.app.view.main",
                          description="Browse a data file with a GUI")
     launcher.add_command("convert",
                          module_name="silx.app.convert",

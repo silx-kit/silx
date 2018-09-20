@@ -30,8 +30,9 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/10/2017"
+__date__ = "05/07/2018"
 
+import collections
 import functools
 import os.path
 import logging
@@ -41,6 +42,7 @@ from .TextFormatter import TextFormatter
 import silx.gui.hdf5
 from silx.gui.widgets import HierarchicalTableView
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
+from ..hdf5._utils import htmlFromDict
 
 try:
     import h5py
@@ -54,7 +56,7 @@ _logger = logging.getLogger(__name__)
 class _CellData(object):
     """Store a table item
     """
-    def __init__(self, value=None, isHeader=False, span=None):
+    def __init__(self, value=None, isHeader=False, span=None, tooltip=None):
         """
         Constructor
 
@@ -65,6 +67,7 @@ class _CellData(object):
         self.__value = value
         self.__isHeader = isHeader
         self.__span = span
+        self.__tooltip = tooltip
 
     def isHeader(self):
         """Returns true if the property is a sub-header title.
@@ -84,6 +87,22 @@ class _CellData(object):
         :rtype: tuple
         """
         return self.__span
+
+    def tooltip(self):
+        """Returns the tooltip of the item.
+
+        :rtype: tuple
+        """
+        return self.__tooltip
+
+    def invalidateValue(self):
+        self.__value = None
+
+    def invalidateToolTip(self):
+        self.__tooltip = None
+
+    def data(self, role):
+        return None
 
 
 class _TableData(object):
@@ -143,7 +162,7 @@ class _TableData(object):
         item = _CellData(value=headerLabel, isHeader=True, span=(1, self.__colCount))
         self.__data.append([item])
 
-    def addHeaderValueRow(self, headerLabel, value):
+    def addHeaderValueRow(self, headerLabel, value, tooltip=None):
         """Append the table with a row using the first column as an header and
         other cells as a single cell for the value.
 
@@ -151,7 +170,7 @@ class _TableData(object):
         :param object value: value to store.
         """
         header = _CellData(value=headerLabel, isHeader=True)
-        value = _CellData(value=value, span=(1, self.__colCount))
+        value = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip)
         self.__data.append([header, value])
 
     def addRow(self, *args):
@@ -165,6 +184,46 @@ class _TableData(object):
                 value = _CellData(value=value)
             row.append(value)
         self.__data.append(row)
+
+
+class _CellFilterAvailableData(_CellData):
+    """Cell rendering for availability of a filter"""
+
+    _states = {
+        True: ("Available", qt.QColor(0x000000), None, None),
+        False: ("Not available", qt.QColor(0xFFFFFF), qt.QColor(0xFF0000),
+                "You have to install this filter on your system to be able to read this dataset"),
+        "na": ("n.a.", qt.QColor(0x000000), None,
+               "This version of h5py/hdf5 is not able to display the information"),
+    }
+
+    def __init__(self, filterId):
+        import h5py.version
+        if h5py.version.hdf5_version_tuple >= (1, 10, 2):
+            # Previous versions only returns True if the filter was first used
+            # to decode a dataset
+            import h5py.h5z
+            self.__availability = h5py.h5z.filter_avail(filterId)
+        else:
+            self.__availability = "na"
+        _CellData.__init__(self)
+
+    def value(self):
+        state = self._states[self.__availability]
+        return state[0]
+
+    def tooltip(self):
+        state = self._states[self.__availability]
+        return state[3]
+
+    def data(self, role=qt.Qt.DisplayRole):
+        state = self._states[self.__availability]
+        if role == qt.Qt.TextColorRole:
+            return state[1]
+        elif role == qt.Qt.BackgroundColorRole:
+            return state[2]
+        else:
+            return None
 
 
 class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
@@ -182,7 +241,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         super(Hdf5TableModel, self).__init__(parent)
 
         self.__obj = None
-        self.__data = _TableData(columnCount=4)
+        self.__data = _TableData(columnCount=5)
         self.__formatter = None
         self.__hdf5Formatter = Hdf5Formatter(self)
         formatter = TextFormatter(self)
@@ -214,8 +273,23 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         elif role == qt.Qt.DisplayRole:
             value = cell.value()
             if callable(value):
-                value = value(self.__obj)
+                try:
+                    value = value(self.__obj)
+                except Exception:
+                    cell.invalidateValue()
+                    raise
             return value
+        elif role == qt.Qt.ToolTipRole:
+            value = cell.tooltip()
+            if callable(value):
+                try:
+                    value = value(self.__obj)
+                except Exception:
+                    cell.invalidateToolTip()
+                    raise
+            return value
+        else:
+            return cell.data(role)
         return None
 
     def flags(self, index):
@@ -259,6 +333,14 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
     def __formatHdf5Type(self, dataset):
         """Format the HDF5 type"""
         return self.__hdf5Formatter.humanReadableHdf5Type(dataset)
+
+    def __attributeTooltip(self, attribute):
+        attributeDict = collections.OrderedDict()
+        if hasattr(attribute, "shape"):
+            attributeDict["Shape"] = self.__hdf5Formatter.humanReadableShape(attribute)
+        attributeDict["Data type"] = self.__hdf5Formatter.humanReadableType(attribute, full=True)
+        html = htmlFromDict(attributeDict, title="HDF5 Attribute")
+        return html
 
     def __formatDType(self, dataset):
         """Format the numpy dtype"""
@@ -310,7 +392,8 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             # it's a real H5py object
             self.__data.addHeaderValueRow("Basename", lambda x: os.path.basename(x.name))
             self.__data.addHeaderValueRow("Name", lambda x: x.name)
-            self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
+            if obj.file is not None:
+                self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
 
             if hasattr(obj, "path"):
                 # That's a link
@@ -322,8 +405,11 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             else:
                 if silx.io.is_file(obj):
                     physical = lambda x: x.filename + SEPARATOR + x.name
+                elif obj.file is not None:
+                        physical = lambda x: x.file.filename + SEPARATOR + x.name
                 else:
-                    physical = lambda x: x.file.filename + SEPARATOR + x.name
+                    # Guess it is a virtual node
+                    physical = "No physical location"
                 self.__data.addHeaderValueRow("Physical", physical)
 
         if hasattr(obj, "dtype"):
@@ -353,23 +439,28 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     hdf5id = _CellData(value="HDF5 ID", isHeader=True)
                     name = _CellData(value="Name", isHeader=True)
                     options = _CellData(value="Options", isHeader=True)
-                    self.__data.addRow(pos, hdf5id, name, options)
+                    availability = _CellData(value="", isHeader=True)
+                    self.__data.addRow(pos, hdf5id, name, options, availability)
                 for index in range(dcpl.get_nfilters()):
-                    callback = lambda index, dataIndex, x: self.__get_filter_info(x, index)[dataIndex]
-                    pos = _CellData(value=functools.partial(callback, index, 0))
-                    hdf5id = _CellData(value=functools.partial(callback, index, 1))
-                    name = _CellData(value=functools.partial(callback, index, 2))
-                    options = _CellData(value=functools.partial(callback, index, 3))
-                    self.__data.addRow(pos, hdf5id, name, options)
+                    filterId, name, options = self.__getFilterInfo(obj, index)
+                    pos = _CellData(value=index)
+                    hdf5id = _CellData(value=filterId)
+                    name = _CellData(value=name)
+                    options = _CellData(value=options)
+                    availability = _CellFilterAvailableData(filterId=filterId)
+                    self.__data.addRow(pos, hdf5id, name, options, availability)
 
         if hasattr(obj, "attrs"):
             if len(obj.attrs) > 0:
                 self.__data.addHeaderRow(headerLabel="Attributes")
                 for key in sorted(obj.attrs.keys()):
                     callback = lambda key, x: self.__formatter.toString(x.attrs[key])
-                    self.__data.addHeaderValueRow(headerLabel=key, value=functools.partial(callback, key))
+                    callbackTooltip = lambda key, x: self.__attributeTooltip(x.attrs[key])
+                    self.__data.addHeaderValueRow(headerLabel=key,
+                                                  value=functools.partial(callback, key),
+                                                  tooltip=functools.partial(callbackTooltip, key))
 
-    def __get_filter_info(self, dataset, filterIndex):
+    def __getFilterInfo(self, dataset, filterIndex):
         """Get a tuple of readable info from dataset filters
 
         :param h5py.Dataset dataset: A h5py dataset
@@ -381,10 +472,10 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             filterId, _flags, cdValues, name = info
             name = self.__formatter.toString(name)
             options = " ".join([self.__formatter.toString(i) for i in cdValues])
-            return (filterIndex, filterId, name, options)
+            return (filterId, name, options)
         except Exception:
             _logger.debug("Backtrace", exc_info=True)
-        return [filterIndex, None, None, None]
+        return (None, None, None)
 
     def object(self):
         """Returns the internal object modelized.
@@ -447,7 +538,7 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
     def setData(self, data):
         """Set the h5py-like object exposed by the model
 
-        :param h5pyObject: A h5py-like object. It can be a `h5py.Dataset`,
+        :param data: A h5py-like object. It can be a `h5py.Dataset`,
             a `h5py.File`, a `h5py.Group`. It also can be a,
             `silx.gui.hdf5.H5Node` which is needed to display some local path
             information.
@@ -459,5 +550,8 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         else:
             setResizeMode = header.setSectionResizeMode
         setResizeMode(0, qt.QHeaderView.Fixed)
-        setResizeMode(1, qt.QHeaderView.Stretch)
-        header.setStretchLastSection(True)
+        setResizeMode(1, qt.QHeaderView.ResizeToContents)
+        setResizeMode(2, qt.QHeaderView.Stretch)
+        setResizeMode(3, qt.QHeaderView.ResizeToContents)
+        setResizeMode(4, qt.QHeaderView.ResizeToContents)
+        header.setStretchLastSection(False)

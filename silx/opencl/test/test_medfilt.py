@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "05/07/2018"
 
 
 import sys
@@ -112,7 +112,7 @@ class TestMedianFilter(unittest.TestCase):
             logger.info("test_medfilt: size: %s: skipped")
         else:
             logger.info("test_medfilt: size: %s error %s, t_ref: %.3fs, t_ocl: %.3fs" % r)
-            self.assert_(r.error == 0, 'Results are correct')
+            self.assertEqual(r.error, 0, 'Results are correct')
 
     def benchmark(self, limit=36):
         "Run some benchmarking"

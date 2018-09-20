@@ -1,7 +1,7 @@
 silx |version|
 ==============
 
-The silx project aims at providing a collection of Python packages to support the
+The silx project aims to provide a collection of Python packages to support the
 development of data assessment, reduction and analysis at synchrotron radiation
 facilities.
 It intends to provide reading/writing tools for different file formats, data
@@ -9,7 +9,7 @@ reduction routines and a set of Qt widgets to browse and visualise data.
 Silx can be cited by its DOIs referenced on
 `Zenodo <https://doi.org/10.5281/zenodo.591709>`_.
 
-The current version (v0.7) caters for:
+The current version (v\ |version|) caters for:
 
 * Supporting `HDF5 <https://www.hdfgroup.org/HDF5/>`_,
   `SPEC <https://certif.com/spec.html>`_ and

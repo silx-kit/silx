@@ -30,7 +30,7 @@ from __future__ import absolute_import
 
 __authors__ = ["D. N."]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "24/04/2018"
 
 import logging
 import sys
@@ -40,7 +40,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.icons import getQIcon
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.widgets.FloatEdit import FloatEdit
 
 from .ScalarFieldView import Isosurface
@@ -694,6 +694,10 @@ class IsoSurfaceRootItem(SubjectItem):
     Root (i.e : column index 0) Isosurface item.
     """
 
+    def __init__(self, subject, normalization, *args):
+        self._isoLevelSliderNormalization = normalization
+        super(IsoSurfaceRootItem, self).__init__(subject, *args)
+
     def getSignals(self):
         subject = self.subject
         return [subject.sigColorChanged,
@@ -717,7 +721,8 @@ class IsoSurfaceRootItem(SubjectItem):
         self.setCheckState((visible and qt.Qt.Checked) or qt.Qt.Unchecked)
 
         nameItem = qt.QStandardItem('Level')
-        sliderItem = IsoSurfaceLevelSlider(self.subject)
+        sliderItem = IsoSurfaceLevelSlider(self.subject,
+                                           self._isoLevelSliderNormalization)
         self.appendRow([nameItem, sliderItem])
 
         nameItem = qt.QStandardItem('Color')
@@ -788,11 +793,21 @@ class IsoSurfaceLevelItem(SubjectItem):
 
 
 class _IsoLevelSlider(qt.QSlider):
-    """QSlider used for iso-surface level"""
+    """QSlider used for iso-surface level with linear scale"""
 
-    def __init__(self, parent, subject):
+    def __init__(self, parent, subject, normalization):
         super(_IsoLevelSlider, self).__init__(parent=parent)
         self.subject = subject
+
+        if normalization == 'arcsinh':
+            self.__norm = numpy.arcsinh
+            self.__invNorm = numpy.sinh
+        elif normalization == 'linear':
+            self.__norm = lambda x: x
+            self.__invNorm = lambda x: x
+        else:
+            raise ValueError(
+                "Unsupported normalization %s", normalization)
 
         self.sliderReleased.connect(self.__sliderReleased)
 
@@ -804,10 +819,13 @@ class _IsoLevelSlider(qt.QSlider):
         dataRange = self.subject.parent().getDataRange()
 
         if dataRange is not None:
-            width = dataRange[-1] - dataRange[0]
+            min_ = self.__norm(dataRange[0])
+            max_ = self.__norm(dataRange[-1])
+
+            width = max_ - min_
             if width > 0:
                 sliderWidth = self.maximum() - self.minimum()
-                sliderPosition = sliderWidth * (level - dataRange[0]) / width
+                sliderPosition = sliderWidth * (self.__norm(level) - min_) / width
                 self.setValue(sliderPosition)
 
     def __dataChanged(self):
@@ -818,11 +836,12 @@ class _IsoLevelSlider(qt.QSlider):
         value = self.value()
         dataRange = self.subject.parent().getDataRange()
         if dataRange is not None:
-            min_, _, max_ = dataRange
+            min_ = self.__norm(dataRange[0])
+            max_ = self.__norm(dataRange[-1])
             width = max_ - min_
             sliderWidth = self.maximum() - self.minimum()
             level = min_ + width * value / sliderWidth
-            self.subject.setLevel(level)
+            self.subject.setLevel(self.__invNorm(level))
 
 
 class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
@@ -832,8 +851,12 @@ class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
     nTicks = 1000
     persistent = True
 
+    def __init__(self, subject, normalization):
+        self.normalization = normalization
+        super(IsoSurfaceLevelSlider, self).__init__(subject)
+
     def getEditor(self, parent, option, index):
-        editor = _IsoLevelSlider(parent, self.subject)
+        editor = _IsoLevelSlider(parent, self.subject, self.normalization)
         editor.setOrientation(qt.Qt.Horizontal)
         editor.setMinimum(0)
         editor.setMaximum(self.nTicks)
@@ -1024,13 +1047,13 @@ class IsoSurfaceAddRemoveWidget(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        addBtn = qt.QToolButton()
+        addBtn = qt.QToolButton(self)
         addBtn.setText('+')
         addBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
         layout.addWidget(addBtn)
         addBtn.clicked.connect(self.__addClicked)
 
-        removeBtn = qt.QToolButton()
+        removeBtn = qt.QToolButton(self)
         removeBtn.setText('-')
         removeBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
         layout.addWidget(removeBtn)
@@ -1067,6 +1090,11 @@ class IsoSurfaceGroup(SubjectItem):
     """
     Root item for the list of isosurface items.
     """
+
+    def __init__(self, subject, normalization, *args):
+        self._isoLevelSliderNormalization = normalization
+        super(IsoSurfaceGroup, self).__init__(subject, *args)
+
     def getSignals(self):
         subject = self.subject
         return [subject.sigIsosurfaceAdded, subject.sigIsosurfaceRemoved]
@@ -1090,7 +1118,9 @@ class IsoSurfaceGroup(SubjectItem):
                 raise ValueError('Expected an isosurface instance.')
 
     def __addIsosurface(self, isosurface):
-        valueItem = IsoSurfaceRootItem(subject=isosurface)
+        valueItem = IsoSurfaceRootItem(
+            subject=isosurface,
+            normalization=self._isoLevelSliderNormalization)
         nameItem = IsoSurfaceLevelItem(subject=isosurface)
         self.insertRow(max(0, self.rowCount() - 1), [valueItem, nameItem])
 
@@ -1570,6 +1600,7 @@ class TreeView(qt.QTreeView):
     def __init__(self, parent=None):
         super(TreeView, self).__init__(parent)
         self.__openedIndex = None
+        self._isoLevelSliderNormalization = 'linear'
 
         self.setIconSize(qt.QSize(16, 16))
 
@@ -1607,7 +1638,10 @@ class TreeView(qt.QTreeView):
 
         item = IsoSurfaceCount(sfView)
         item.setEditable(False)
-        model.appendRow([IsoSurfaceGroup(sfView, 'Isosurfaces'), item])
+        model.appendRow([IsoSurfaceGroup(sfView,
+                                         self._isoLevelSliderNormalization,
+                                         'Isosurfaces'),
+                         item])
 
         item = qt.QStandardItem()
         item.setEditable(False)
@@ -1771,3 +1805,13 @@ class TreeView(qt.QTreeView):
     def __delegateEvent(self, task):
         if task == 'remove_iso':
             self.__removeIsosurfaces()
+
+    def setIsoLevelSliderNormalization(self, normalization):
+        """Set the normalization for iso level slider
+
+        This MUST be called *before* :meth:`setSfView` to have an effect.
+
+        :param str normalization: Either 'linear' or 'arcsinh'
+        """
+        assert normalization in ('linear', 'arcsinh')
+        self._isoLevelSliderNormalization = normalization

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,22 +26,24 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/01/2018"
+__date__ = "24/04/2018"
 
 
 import unittest
 import logging
 import numpy
 
-from silx.utils.testutils import ParametricTestCase
+from silx.utils.testutils import ParametricTestCase, parameterize
 from silx.gui.test.utils import SignalListener
 from silx.gui.test.utils import TestCaseQt
 from silx.utils import testutils
 from silx.utils import deprecation
 
+from silx.test.utils import test_options
+
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
 
@@ -139,6 +141,43 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.qapp.processEvents()
         self.assertNotEqual(listener.callCount(), 0)
 
+    def testAddRemoveItemSignals(self):
+        """Test sigItemAdded and sigItemAboutToBeRemoved"""
+        listener = SignalListener()
+        self.plot.sigItemAdded.connect(listener.partial('add'))
+        self.plot.sigItemAboutToBeRemoved.connect(listener.partial('remove'))
+
+        self.plot.addCurve((1, 2, 3), (3, 2, 1), legend='curve')
+        self.assertEqual(listener.callCount(), 1)
+
+        curve = self.plot.getCurve('curve')
+        self.plot.remove('curve')
+        self.assertEqual(listener.callCount(), 2)
+        self.assertEqual(listener.arguments(callIndex=0), ('add', curve))
+        self.assertEqual(listener.arguments(callIndex=1), ('remove', curve))
+
+    def testGetItems(self):
+        """Test getItems method"""
+        curve_x = 1, 2
+        self.plot.addCurve(curve_x, (3, 4))
+        image = (0, 1), (2, 3)
+        self.plot.addImage(image)
+        scatter_x = 10, 11
+        self.plot.addScatter(scatter_x, (12, 13), (0, 1))
+        marker_pos = 5, 5
+        self.plot.addMarker(*marker_pos)
+        marker_x = 6
+        self.plot.addXMarker(marker_x)
+        self.plot.addItem((0, 5), (2, 10), shape='rectangle')
+
+        items = self.plot.getItems()
+        self.assertEqual(len(items), 6)
+        self.assertTrue(numpy.all(numpy.equal(items[0].getXData(), curve_x)))
+        self.assertTrue(numpy.all(numpy.equal(items[1].getData(), image)))
+        self.assertTrue(numpy.all(numpy.equal(items[2].getXData(), scatter_x)))
+        self.assertTrue(numpy.all(numpy.equal(items[3].getPosition(), marker_pos)))
+        self.assertTrue(numpy.all(numpy.equal(items[4].getPosition()[0], marker_x)))
+        self.assertEqual(items[5].getType(), 'rectangle')
 
 class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addImage"""
@@ -268,10 +307,10 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
                 self.plot.setKeepDataAspectRatio(True)
                 xmin, xmax = self.plot.getXAxis().getLimits()
                 ymin, ymax = self.plot.getYAxis().getLimits()
-                self.assertTrue(xmin <= min(xbounds))
-                self.assertTrue(xmax >= max(xbounds))
-                self.assertTrue(ymin <= min(ybounds))
-                self.assertTrue(ymax >= max(ybounds))
+                self.assertTrue(round(xmin, 7) <= min(xbounds))
+                self.assertTrue(round(xmax, 7) >= max(xbounds))
+                self.assertTrue(round(ymin, 7) <= min(ybounds))
+                self.assertTrue(round(ymax, 7) >= max(ybounds))
 
                 self.plot.setKeepDataAspectRatio(False)  # Reset aspect ratio
                 self.plot.clear()
@@ -660,9 +699,13 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
     xData = numpy.arange(1, 10)
     yData = xData ** 2
 
+    def __init__(self, methodName='runTest', backend=None):
+        unittest.TestCase.__init__(self, methodName)
+        self.__backend = backend
+
     def setUp(self):
         super(TestPlotAxes, self).setUp()
-        self.plot = PlotWidget()
+        self.plot = PlotWidget(backend=self.__backend)
         # It is not needed to display the plot
         # It saves a lot of time
         # self.plot.show()
@@ -721,7 +764,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
                 if getter is not None:
                     self.assertEqual(getter(), expected)
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Logarithmic(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -760,7 +803,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisLogarithmic(), False)
         self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_AutoScale(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -799,7 +842,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisAutoScale(), True)
         self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Inverted(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
@@ -875,7 +918,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.getYAxis(axis="right").sigLimitsChanged.connect(listener.partial(axis="y2"))
         self.plot.setLimits(0, 1, 0, 1, 0, 1)
         # at least one event per axis
-        self.assertEquals(len(set(listener.karguments(argumentName="axis"))), 3)
+        self.assertEqual(len(set(listener.karguments(argumentName="axis"))), 3)
 
     def testLimitsChanged_resetZoom(self):
         self.plot.addCurve(self.xData, self.yData,
@@ -888,7 +931,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.getYAxis(axis="right").sigLimitsChanged.connect(listener.partial(axis="y2"))
         self.plot.resetZoom()
         # at least one event per axis
-        self.assertEquals(len(set(listener.karguments(argumentName="axis"))), 3)
+        self.assertEqual(len(set(listener.karguments(argumentName="axis"))), 3)
 
     def testLimitsChanged_setXLimit(self):
         self.plot.addCurve(self.xData, self.yData,
@@ -900,8 +943,8 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         axis.sigLimitsChanged.connect(listener)
         axis.setLimits(20, 30)
         # at least one event per axis
-        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
-        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+        self.assertEqual(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEqual(axis.getLimits(), (20.0, 30.0))
 
     def testLimitsChanged_setYLimit(self):
         self.plot.addCurve(self.xData, self.yData,
@@ -913,8 +956,8 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         axis.sigLimitsChanged.connect(listener)
         axis.setLimits(20, 30)
         # at least one event per axis
-        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
-        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+        self.assertEqual(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEqual(axis.getLimits(), (20.0, 30.0))
 
     def testLimitsChanged_setYRightLimit(self):
         self.plot.addCurve(self.xData, self.yData,
@@ -926,8 +969,8 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         axis.sigLimitsChanged.connect(listener)
         axis.setLimits(20, 30)
         # at least one event per axis
-        self.assertEquals(listener.arguments(callIndex=-1), (20.0, 30.0))
-        self.assertEquals(axis.getLimits(), (20.0, 30.0))
+        self.assertEqual(listener.arguments(callIndex=-1), (20.0, 30.0))
+        self.assertEqual(axis.getLimits(), (20.0, 30.0))
 
     def testScaleProxy(self):
         listener = SignalListener()
@@ -937,9 +980,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         yright.sigScaleChanged.connect(listener.partial("right"))
         yright.setScale(yright.LOGARITHMIC)
 
-        self.assertEquals(y.getScale(), y.LOGARITHMIC)
+        self.assertEqual(y.getScale(), y.LOGARITHMIC)
         events = listener.arguments()
-        self.assertEquals(len(events), 2)
+        self.assertEqual(len(events), 2)
         self.assertIn(("left", y.LOGARITHMIC), events)
         self.assertIn(("right", y.LOGARITHMIC), events)
 
@@ -951,9 +994,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         yright.sigAutoScaleChanged.connect(listener.partial("right"))
         yright.setAutoScale(False)
 
-        self.assertEquals(y.isAutoScale(), False)
+        self.assertEqual(y.isAutoScale(), False)
         events = listener.arguments()
-        self.assertEquals(len(events), 2)
+        self.assertEqual(len(events), 2)
         self.assertIn(("left", False), events)
         self.assertIn(("right", False), events)
 
@@ -965,9 +1008,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         yright.sigInvertedChanged.connect(listener.partial("right"))
         yright.setInverted(True)
 
-        self.assertEquals(y.isInverted(), True)
+        self.assertEqual(y.isInverted(), True)
         events = listener.arguments()
-        self.assertEquals(len(events), 2)
+        self.assertEqual(len(events), 2)
         self.assertIn(("left", True), events)
         self.assertIn(("right", True), events)
 
@@ -1355,19 +1398,22 @@ class TestPlotItemLog(PlotWidgetTestCase):
 
 
 def suite():
+    testClasses = (TestPlotWidget, TestPlotImage, TestPlotCurve,
+                   TestPlotMarker, TestPlotItem, TestPlotAxes,
+                   TestPlotEmptyLog, TestPlotCurveLog, TestPlotImageLog,
+                   TestPlotMarkerLog, TestPlotItemLog)
+
     test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestPlotWidget))
-    test_suite.addTest(loadTests(TestPlotImage))
-    test_suite.addTest(loadTests(TestPlotCurve))
-    test_suite.addTest(loadTests(TestPlotMarker))
-    test_suite.addTest(loadTests(TestPlotItem))
-    test_suite.addTest(loadTests(TestPlotAxes))
-    test_suite.addTest(loadTests(TestPlotEmptyLog))
-    test_suite.addTest(loadTests(TestPlotCurveLog))
-    test_suite.addTest(loadTests(TestPlotImageLog))
-    test_suite.addTest(loadTests(TestPlotMarkerLog))
-    test_suite.addTest(loadTests(TestPlotItemLog))
+
+    # Tests with matplotlib
+    for testClass in testClasses:
+        test_suite.addTest(parameterize(testClass, backend=None))
+
+    if test_options.WITH_GL_TEST:
+        # Tests with OpenGL backend
+        for testClass in testClasses:
+            test_suite.addTest(parameterize(testClass, backend='gl'))
+
     return test_suite
 
 

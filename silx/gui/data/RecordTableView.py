@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ from silx.gui.widgets.TableWidget import CopySelectedCellsAction
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "02/10/2017"
+__date__ = "29/08/2018"
 
 
 class _MultiLineItem(qt.QItemDelegate):
@@ -205,10 +205,13 @@ class RecordTableModel(qt.QAbstractTableModel):
             if len(key) > 1:
                 data = data[key[1]]
 
+        # no dtype in case of 1D array of unicode objects (#2093)
+        dtype = getattr(data, "dtype", None)
+
         if role == qt.Qt.DisplayRole:
-            return self.__formatter.toString(data, dtype=self.__data.dtype)
+            return self.__formatter.toString(data, dtype=dtype)
         elif role == qt.Qt.EditRole:
-            return self.__editFormatter.toString(data, dtype=self.__data.dtype)
+            return self.__editFormatter.toString(data, dtype=dtype)
         return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
@@ -382,8 +385,10 @@ class RecordTableView(qt.QTableView):
         qt.QTableView.__init__(self, parent)
 
         model = _ShowEditorProxyModel(self)
-        model.setSourceModel(RecordTableModel())
+        self._model = RecordTableModel()
+        model.setSourceModel(self._model)
         self.setModel(model)
+
         self.__multilineView = _MultiLineItem(self)
         self.setEditTriggers(qt.QAbstractItemView.AllEditTriggers)
         self._copyAction = CopySelectedCellsAction(self)
@@ -393,13 +398,16 @@ class RecordTableView(qt.QTableView):
         self._copyAction.trigger()
 
     def setArrayData(self, data):
-        self.model().sourceModel().setArrayData(data)
+        model = self.model()
+        sourceModel = model.sourceModel()
+        sourceModel.setArrayData(data)
+
         if data is not None:
             if issubclass(data.dtype.type, (numpy.string_, numpy.unicode_)):
                 # TODO it would be nice to also fix fields
                 # but using it only for string array is already very useful
                 self.setItemDelegateForColumn(0, self.__multilineView)
-                self.model().forceCellEditor(True)
+                model.forceCellEditor(True)
             else:
                 self.setItemDelegateForColumn(0, None)
-                self.model().forceCellEditor(False)
+                model.forceCellEditor(False)

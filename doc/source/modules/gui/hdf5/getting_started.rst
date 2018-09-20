@@ -4,10 +4,9 @@ Getting started with HDF5 widgets
 =================================
 
 Silx provides an implementation of a tree model and a tree view for HDF5 files.
-The aim of this tree is to provide a convenient read-only widget for a big
-amount of data and supporting file formats often used in synchrotrons.
+The aim of this tree is to provide a convenient read-only widget supporting file formats often used in synchrotrons for big amounts of data.
 
-This page provides some source code to show how to use this widget.
+This page displays some source code to explain how to use this widget.
 
 Commented source code
 ---------------------
@@ -34,15 +33,15 @@ HDF5 widgets are all exposed by the package `silx.gui.hdf5`.
 Custom your tree view
 +++++++++++++++++++++
 
-The tree view can be customized to be sorted by default.
+The tree view can be customised to be sorted by default.
 
 .. testcode::
 
    # Sort content of files by time or name
    treeview.setSortingEnabled(True)
 
-The model can be customized to support mouse interaction.
-A convenient method :meth:`Hdf5TreeView.findHdf5TreeModel` returns the main
+The model can be customised to support mouse interaction.
+A convenient method, i.e., :meth:`Hdf5TreeView.findHdf5TreeModel`, returns the main
 HDF5 model used through proxy models.
 
 .. testcode::
@@ -55,8 +54,7 @@ HDF5 model used through proxy models.
    # Allow the user to reorder files with drag-and-drop
    model.setFileMoveEnabled(True)
 
-The tree view is also provided with a custom header which help to choose
-visible columns.
+The tree view is also provided with a custom header that helps to choose visible columns.
 
 .. testcode::
 
@@ -72,18 +70,18 @@ visible columns.
 Add a file by name
 ++++++++++++++++++
 
-The model can be used to add HDF5. It is internally using
+The model can be used to add an HDF5 file. It is internally using
 :func:`silx.io.open`.
 
 .. code-block:: python
 
    model.insertFile("test.h5")
 
-Add a file with h5py
-++++++++++++++++++++
+Add a file using h5py
++++++++++++++++++++++
 
-The model internally uses :mod:`h5py` object API. We can use h5py file, group
-and dataset as it is.
+The model internally uses the :mod:`h5py` object API.
+We can use directly h5py Files, Groups and Datasets.
 
 .. code-block:: python
 
@@ -97,10 +95,10 @@ and dataset as it is.
    model.insertH5pyObject(h5["group1"])
    model.insertH5pyObject(h5["group1/dataset50"])
 
-Add a file with silx
-++++++++++++++++++++
+Add a file using silx
++++++++++++++++++++++
 
-Silx also provides an input API. It supports HDF5 files through :mod:`h5py`.
+Silx also provides an input API and supports HDF5 files through :mod:`h5py`.
 
 .. code-block:: python
 
@@ -119,7 +117,7 @@ Custom context menu
 The :class:`Hdf5TreeView` provides a callback API to populate the context menu.
 The callback receives a :class:`Hdf5ContextMenuEvent` every time the user
 requests the context menu. The event contains :class:`H5Node` objects which wrap
-h5py objects with extra information.
+h5py objects adding extra information.
 
 .. testcode::
 
@@ -147,27 +145,27 @@ The :class:`Hdf5TreeView` widget provides default Qt signals inherited from
 
 - `activated`:
       This signal is emitted when the item specified by index is
-      activated by the user. How to activate items depends on the platform;
+      activated by the user. How to activate items depends on the platform,
       e.g., by single- or double-clicking the item, or by pressing the
-      Return or Enter key when the item is current.
+      Return or Enter key when the item is the current one.
 - `clicked`:
-      This signal is emitted when a mouse button is clicked. The item the mouse
-      was clicked on is specified by index. The signal is only emitted when the
-      index is valid.
+      This signal is emitted when a mouse button is clicked. The item selected by
+      mouse click is specified by index. The signal is only emitted when the
+      index is a valid one.
 - `doubleClicked`:
-      This signal is emitted when a mouse button is double-clicked. The item
-      the mouse was double-clicked on is specified by index. The signal is
-      only emitted when the index is valid.
+      This signal is emitted when a mouse button is double-clicked.
+      The selected item is specified by index.
+      The signal is only emitted when the index is a valid one.
 - `entered`:
       This signal is emitted when the mouse cursor enters the item specified by
       index. Mouse tracking needs to be enabled for this feature to work.
 - `pressed`:
-      This signal is emitted when a mouse button is pressed. The item the mouse
-      was pressed on is specified by index. The signal is only emitted when the
-      index is valid.
+      This signal is emitted when a mouse button is pressed.
+      The selected item is specified by index.
+      The signal is only emitted when the index is a valid one.
 
 The method :meth:`Hdf5TreeView.selectedH5Nodes` returns an iterator of :class:`H5Node`
-objects which wrap h5py objects with extra information.
+objects which wrap h5py objects adding extra information.
 
 .. testcode::
 
@@ -204,7 +202,7 @@ Example
    examples_hdf5widget.rst
 
 The :doc:`examples_hdf5widget` sample code provides an example of properties of
-the view, the model and the header.
+the view, model and header.
 
 .. image:: img/Hdf5Example.png
    :height: 200px
@@ -214,13 +212,12 @@ the view, the model and the header.
 
 Source code: :doc:`examples_hdf5widget`.
 
-After installing `silx` and downloading the script, you can start it from the
-command prompt:
+After installing `silx` and downloading the script, you can run it from the
+command line prompt:
 
 .. code-block:: bash
 
    python hdf5widget.py <files>
 
 This example loads files added to the command line, or files dropped from the
-file system. It also provides a GUI to display test files created
-programmatically.
+file system. It also provides a GUI to display dummy test files.

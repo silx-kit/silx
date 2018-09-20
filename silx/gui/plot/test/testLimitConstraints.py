@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,9 +44,9 @@ class TestLimitConstaints(unittest.TestCase):
 
     def testApi(self):
         """Test availability of the API"""
-        self.plot.getXAxis().setLimitsConstraints(minPos=1, maxPos=1)
+        self.plot.getXAxis().setLimitsConstraints(minPos=1, maxPos=10)
         self.plot.getXAxis().setRangeConstraints(minRange=1, maxRange=1)
-        self.plot.getYAxis().setLimitsConstraints(minPos=1, maxPos=1)
+        self.plot.getYAxis().setLimitsConstraints(minPos=1, maxPos=10)
         self.plot.getYAxis().setRangeConstraints(minRange=1, maxRange=1)
 
     def testXMinMax(self):

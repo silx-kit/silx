@@ -45,6 +45,8 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/11/2017"
 
+
+import sys
 import numpy
 
 from silx.gui import qt
@@ -192,6 +194,9 @@ sceneWidget.addItem(group)  # Add the group as an item of the scene
 
 # Show the SceneWidget widget
 window.show()
+
+# Display exception in a pop-up message box
+sys.excepthook = qt.exceptionHandler
 
 # Run Qt event loop
 qapp.exec_()

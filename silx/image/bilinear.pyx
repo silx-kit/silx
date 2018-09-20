@@ -268,8 +268,9 @@ cdef class BilinearImage:
         return numpy.asarray(res).reshape(shape)
 
     @cython.boundscheck(False)
-    def profile_line(self, src, dst, int linewidth=1):
-        """Return the intensity profile of an image measured along a scan line.
+    def profile_line(self, src, dst, int linewidth=1, method='mean'):
+        """Return the mean or sum of intensity profile of an image measured
+        along a scan line.
 
         :param src: The start point of the scan line.
         :type src: 2-tuple of numeric scalar
@@ -278,6 +279,8 @@ cdef class BilinearImage:
             in contrast to standard numpy indexing.
         :type dst: 2-tuple of numeric scalar
         :param int linewidth: Width of the scanline (unit image pixel).
+        :param str method: 'mean' or 'sum' depending if we want to compute the
+            mean intensity along the line or the sum.
         :return: The intensity profile along the scan line.
             The length of the profile is the ceil of the computed length
             of the scan line.
@@ -313,6 +316,7 @@ cdef class BilinearImage:
         src_row -= row_width * (linewidth - 1) / 2.
         src_col -= col_width * (linewidth - 1) / 2.
 
+        compute_mean = (method == 'mean')
         with nogil:
             for i in range(lengt):
                 sum = 0
@@ -329,7 +333,10 @@ cdef class BilinearImage:
                         cnt = cnt + 1
                         sum = sum + self.c_funct(new_col, new_row)
                 if cnt:
-                    result[i] += sum / cnt
+                    if compute_mean is True:
+                        result[i] += sum / cnt
+                    else:
+                        result[i] += sum
 
         # Ensures the result is exported as numpy array and not memory view.
         return numpy.asarray(result)

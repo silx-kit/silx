@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,16 @@
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "24/04/2018"
 
 
 import logging
+import weakref
 import numpy
+
 from ._utils import ticklayout
-from .. import qt, icons
-from silx.gui.plot import Colormap
+from .. import qt
+from silx.gui import colors
 
 _logger = logging.getLogger(__name__)
 
@@ -70,7 +72,7 @@ class ColorBarWidget(qt.QWidget):
 
     def __init__(self, parent=None, plot=None, legend=None):
         self._isConnected = False
-        self._plot = None
+        self._plotRef = None
         self._colormap = None
         self._data = None
 
@@ -96,7 +98,7 @@ class ColorBarWidget(qt.QWidget):
 
     def getPlot(self):
         """Returns the :class:`Plot` associated to this widget or None"""
-        return self._plot
+        return None if self._plotRef is None else self._plotRef()
 
     def setPlot(self, plot):
         """Associate a plot to the ColorBar
@@ -105,27 +107,38 @@ class ColorBarWidget(qt.QWidget):
                      If None will remove any connection with a previous plot.
         """
         self._disconnectPlot()
-        self._plot = plot
+        self._plotRef = None if plot is None else weakref.ref(plot)
         self._connectPlot()
 
     def _disconnectPlot(self):
         """Disconnect from Plot signals"""
-        if self._plot is not None and self._isConnected:
+        plot = self.getPlot()
+        if plot is not None and self._isConnected:
             self._isConnected = False
-            self._plot.sigActiveImageChanged.disconnect(
+            plot.sigActiveImageChanged.disconnect(
                 self._activeImageChanged)
-            self._plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
+            plot.sigActiveScatterChanged.disconnect(
+                self._activeScatterChanged)
+            plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
 
     def _connectPlot(self):
         """Connect to Plot signals"""
-        if self._plot is not None and not self._isConnected:
-            activeImageLegend = self._plot.getActiveImage(just_legend=True)
-            if activeImageLegend is None:  # Show plot default colormap
+        plot = self.getPlot()
+        if plot is not None and not self._isConnected:
+            activeImageLegend = plot.getActiveImage(just_legend=True)
+            activeScatterLegend = plot._getActiveItem(
+                kind='scatter', just_legend=True)
+            if activeImageLegend is None and activeScatterLegend is None:
+                # Show plot default colormap
                 self._syncWithDefaultColormap()
-            else:  # Show active image colormap
+            elif activeImageLegend is not None:  # Show active image colormap
                 self._activeImageChanged(None, activeImageLegend)
-            self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
-            self._plot.sigPlotSignal.connect(self._defaultColormapChanged)
+            elif activeScatterLegend is not None:  # Show active scatter colormap
+                self._activeScatterChanged(None, activeScatterLegend)
+
+            plot.sigActiveImageChanged.connect(self._activeImageChanged)
+            plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
+            plot.sigPlotSignal.connect(self._defaultColormapChanged)
             self._isConnected = True
 
     def setVisible(self, isVisible):
@@ -142,19 +155,17 @@ class ColorBarWidget(qt.QWidget):
         self._disconnectPlot()
 
     def getColormap(self):
-        """
+        """Returns the colormap displayed in the colorbar.
 
-        :return: the :class:`.Colormap` colormap displayed in the colorbar.
-
+        :rtype: ~silx.gui.colors.Colormap
         """
         return self.getColorScaleBar().getColormap()
 
     def setColormap(self, colormap, data=None):
         """Set the colormap to be displayed.
 
-        :param colormap: The colormap to apply on the
-            ColorBarWidget
-        :type colormap: :class:`.Colormap`
+        :param ~silx.gui.colors.Colormap colormap:
+            The colormap to apply on the ColorBarWidget
         :param numpy.ndarray data: the data to display, needed if the colormap
             require an autoscale
         """
@@ -194,38 +205,60 @@ class ColorBarWidget(qt.QWidget):
         :return: return the legend displayed along the colorbar
         :rtype: str
         """
-        return self.legend.getText()
+        return self.legend.text()
+
+    def _activeScatterChanged(self, previous, legend):
+        """Handle plot active scatter changed"""
+        plot = self.getPlot()
+
+        # Do not handle active scatter while there is an image
+        if plot.getActiveImage() is not None:
+            return
+
+        if legend is None:  # No active scatter, display no colormap
+            self.setColormap(colormap=None)
+            return
+
+        # Sync with active scatter
+        activeScatter = plot._getActiveItem(kind='scatter')
+
+        self.setColormap(colormap=activeScatter.getColormap(),
+                         data=activeScatter.getValueData(copy=False))
 
     def _activeImageChanged(self, previous, legend):
-        """Handle plot active curve changed"""
-        if legend is None:  # No active image, display no colormap
-            self.setColormap(colormap=None)
-            return
+        """Handle plot active image changed"""
+        plot = self.getPlot()
 
-        # Sync with active image
-        image = self._plot.getActiveImage().getData(copy=False)
+        if legend is None:  # No active image, try with active scatter
+            activeScatterLegend = plot._getActiveItem(
+                kind='scatter', just_legend=True)
+            # No more active image, use active scatter if any
+            self._activeScatterChanged(None, activeScatterLegend)
+        else:
+            # Sync with active image
+            image = plot.getActiveImage().getData(copy=False)
 
-        # RGB(A) image, display default colormap
-        if image.ndim != 2:
-            self.setColormap(colormap=None)
-            return
+            # RGB(A) image, display default colormap
+            if image.ndim != 2:
+                self.setColormap(colormap=None)
+                return
 
-        # data image, sync with image colormap
-        # do we need the copy here : used in the case we are changing
-        # vmin and vmax but should have already be done by the plot
-        self.setColormap(colormap=self._plot.getActiveImage().getColormap(),
-                         data=image)
+            # data image, sync with image colormap
+            # do we need the copy here : used in the case we are changing
+            # vmin and vmax but should have already be done by the plot
+            self.setColormap(colormap=plot.getActiveImage().getColormap(),
+                             data=image)
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
         if (event['event'] == 'defaultColormapChanged' and
-                self._plot.getActiveImage() is None):
+                self.getPlot().getActiveImage() is None):
             # No active image, take default colormap update into account
             self._syncWithDefaultColormap()
 
     def _syncWithDefaultColormap(self, data=None):
         """Update colorbar according to plot default colormap"""
-        self.setColormap(self._plot.getDefaultColormap(), data)
+        self.setColormap(self.getPlot().getDefaultColormap(), data)
 
     def getColorScaleBar(self):
         """
@@ -316,9 +349,9 @@ class ColorScaleBar(qt.QWidget):
         if colormap:
             vmin, vmax = colormap.getColormapRange(data)
         else:
-            vmin, vmax = Colormap.DEFAULT_MIN_LIN, Colormap.DEFAULT_MAX_LIN
+            vmin, vmax = colors.DEFAULT_MIN_LIN, colors.DEFAULT_MAX_LIN
 
-        norm = colormap.getNormalization() if colormap else Colormap.Colormap.LINEAR
+        norm = colormap.getNormalization() if colormap else colors.Colormap.LINEAR
         self.tickbar = _TickBar(vmin=vmin,
                                 vmax=vmax,
                                 norm=norm,
@@ -503,7 +536,7 @@ class _ColorScale(qt.QWidget):
         if colormap is None:
             self.vmin, self.vmax = None, None
         else:
-            assert colormap.getNormalization() in Colormap.Colormap.NORMALIZATIONS
+            assert colormap.getNormalization() in colors.Colormap.NORMALIZATIONS
             self.vmin, self.vmax = self._colormap.getColormapRange(data=data)
         self._updateColorGradient()
         self.update()
@@ -575,9 +608,9 @@ class _ColorScale(qt.QWidget):
 
         vmin = self.vmin
         vmax = self.vmax
-        if colormap.getNormalization() == Colormap.Colormap.LINEAR:
+        if colormap.getNormalization() == colors.Colormap.LINEAR:
             return vmin + (vmax - vmin) * value
-        elif colormap.getNormalization() == Colormap.Colormap.LOGARITHM:
+        elif colormap.getNormalization() == colors.Colormap.LOGARITHM:
             rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
             return numpy.power(10., rpos)
         else:
@@ -706,9 +739,9 @@ class _TickBar(qt.QWidget):
             # No range: no ticks
             self.ticks = ()
             self.subTicks = ()
-        elif self._norm == Colormap.Colormap.LOGARITHM:
+        elif self._norm == colors.Colormap.LOGARITHM:
             self._computeTicksLog(nticks)
-        elif self._norm == Colormap.Colormap.LINEAR:
+        elif self._norm == colors.Colormap.LINEAR:
             self._computeTicksLin(nticks)
         else:
             err = 'TickBar - Wrong normalization %s' % self._norm
@@ -765,9 +798,9 @@ class _TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        if self._norm == Colormap.Colormap.LINEAR:
+        if self._norm == colors.Colormap.LINEAR:
             return 1 - (val - self._vmin) / (self._vmax - self._vmin)
-        elif self._norm == Colormap.Colormap.LOGARITHM:
+        elif self._norm == colors.Colormap.LOGARITHM:
             return 1 - (numpy.log10(val) - numpy.log10(self._vmin)) / (numpy.log10(self._vmax) - numpy.log(self._vmin))
         else:
             raise ValueError('Norm is not recognized')

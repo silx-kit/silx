@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "17/08/2017"
+__date__ = "24/07/2018"
 
 
 import weakref
@@ -40,15 +40,15 @@ from silx.image.bilinear import BilinearImage
 from .. import icons
 from .. import qt
 from . import items
-from .Colors import cursorColorForColormap
+from ..colors import cursorColorForColormap
 from . import actions
-from .PlotToolButtons import ProfileToolButton
+from .PlotToolButtons import ProfileToolButton, ProfileOptionToolButton
 from .ProfileMainWindow import ProfileMainWindow
 
 from silx.utils.deprecation import deprecated
 
 
-def _alignedFullProfile(data, origin, scale, position, roiWidth, axis):
+def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     """Get a profile along one axis on a stack of images
 
     :param numpy.ndarray data: 3D volume (stack of 2D images)
@@ -59,10 +59,12 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis):
                            on the axis orthogonal to the profile direction.
     :param int roiWidth: Width of the profile in image pixels.
     :param int axis: 0 for horizontal profile, 1 for vertical.
+    :param str method: method to compute the profile. Can be 'mean' or 'sum'
     :return: profile image + effective ROI area corners in plot coords
     """
     assert axis in (0, 1)
     assert len(data.shape) == 3
+    assert method in ('mean', 'sum')
 
     # Convert from plot to image coords
     imgPos = int((position - origin[1 - axis]) / scale[1 - axis])
@@ -81,8 +83,13 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis):
     end = start + roiWidth
 
     if start < height and end > 0:
-        profile = data[:, max(0, start):min(end, height), :].mean(
-            axis=1, dtype=numpy.float32)
+        if method == 'mean':
+            _fct = numpy.mean
+        elif method == 'sum':
+            _fct = numpy.sum
+        else:
+            raise ValueError('method not managed')
+        profile = _fct(data[:, max(0, start):min(end, height), :], axis=1).astype(numpy.float32)
     else:
         profile = numpy.zeros((nimages, width), dtype=numpy.float32)
 
@@ -102,7 +109,7 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis):
     return profile, area
 
 
-def _alignedPartialProfile(data, rowRange, colRange, axis):
+def _alignedPartialProfile(data, rowRange, colRange, axis, method):
     """Mean of a rectangular region (ROI) of a stack of images
     along a given axis.
 
@@ -117,6 +124,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
     :param int axis: The axis along which to take the profile of the ROI.
                      0: Sum rows along columns.
                      1: Sum columns along rows.
+    :param str method: method to compute the profile. Can be 'mean' or 'sum'
     :return: Profile image along the ROI as the mean of the intersection
              of the ROI and the image.
     """
@@ -124,6 +132,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
     assert len(data.shape) == 3
     assert rowRange[0] < rowRange[1]
     assert colRange[0] < colRange[1]
+    assert method in ('mean', 'sum')
 
     nimages, height, width = data.shape
 
@@ -138,8 +147,15 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
     colStart = min(max(0, colRange[0]), width)
     colEnd = min(max(0, colRange[1]), width)
 
-    imgProfile = numpy.mean(data[:, rowStart:rowEnd, colStart:colEnd],
-                            axis=axis + 1, dtype=numpy.float32)
+    if method == 'mean':
+        _fct = numpy.mean
+    elif method == 'sum':
+        _fct = numpy.sum
+    else:
+        raise ValueError('method not managed')
+
+    imgProfile = _fct(data[:, rowStart:rowEnd, colStart:colEnd], axis=axis + 1,
+                      dtype=numpy.float32)
 
     # Profile including out of bound area
     profile = numpy.zeros((nimages, profileLength), dtype=numpy.float32)
@@ -151,7 +167,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
     return profile
 
 
-def createProfile(roiInfo, currentData, origin, scale, lineWidth):
+def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
     """Create the profile line for the the given image.
 
     :param roiInfo: information about the ROI: start point, end point and
@@ -163,6 +179,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth):
     :param scale: (sx, sy) the scale to use
     :type scale: 2-tuple of float
     :param int lineWidth: width of the profile line
+    :param str method: method to compute the profile. Can be 'mean' or 'sum'
     :return: `profile, area, profileName, xLabel`, where:
         - profile is a 2D array of the profiles of the stack of images.
           For a single image, the profile is a curve, so this parameter
@@ -192,7 +209,8 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth):
         profile, area = _alignedFullProfile(currentData3D,
                                             origin, scale,
                                             roiStart[1], roiWidth,
-                                            axis=0)
+                                            axis=0,
+                                            method=method)
 
         yMin, yMax = min(area[1]), max(area[1]) - 1
         if roiWidth <= 1:
@@ -205,7 +223,8 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth):
         profile, area = _alignedFullProfile(currentData3D,
                                             origin, scale,
                                             roiStart[0], roiWidth,
-                                            axis=1)
+                                            axis=1,
+                                            method=method)
 
         xMin, xMax = min(area[0]), max(area[0]) - 1
         if roiWidth <= 1:
@@ -240,7 +259,8 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth):
                 colRange = startPt[1], endPt[1] + 1
                 profile = _alignedPartialProfile(currentData3D,
                                                  rowRange, colRange,
-                                                 axis=0)
+                                                 axis=0,
+                                                 method=method)
 
             else:  # Column aligned
                 rowRange = startPt[0], endPt[0] + 1
@@ -248,7 +268,8 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth):
                             int(startPt[1] + 0.5 + 0.5 * roiWidth))
                 profile = _alignedPartialProfile(currentData3D,
                                                  rowRange, colRange,
-                                                 axis=1)
+                                                 axis=1,
+                                                 method=method)
 
             # Convert ranges to plot coords to draw ROI area
             area = (
@@ -273,7 +294,8 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth):
                 profile.append(bilinear.profile_line(
                     (startPt[0] - 0.5, startPt[1] - 0.5),
                     (endPt[0] - 0.5, endPt[1] - 0.5),
-                    roiWidth))
+                    roiWidth,
+                    method=method))
             profile = numpy.array(profile)
 
             # Extend ROI with half a pixel on each end, and
@@ -346,6 +368,8 @@ class ProfileToolBar(qt.QToolBar):
 
     _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
 
+    DEFAULT_PROF_METHOD = 'mean'
+
     def __init__(self, parent=None, plot=None, profileWindow=None,
                  title='Profile Selection'):
         super(ProfileToolBar, self).__init__(title, parent)
@@ -354,6 +378,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self._overlayColor = None
         self._defaultOverlayColor = 'red'  # update when active image change
+        self._method = self.DEFAULT_PROF_METHOD
 
         self._roiInfo = None  # Store start and end points and type of ROI
 
@@ -426,11 +451,16 @@ class ProfileToolBar(qt.QToolBar):
         # Add width spin box to toolbar
         self.addWidget(qt.QLabel('W:'))
         self.lineWidthSpinBox = qt.QSpinBox(self)
-        self.lineWidthSpinBox.setRange(0, 1000)
+        self.lineWidthSpinBox.setRange(1, 1000)
         self.lineWidthSpinBox.setValue(1)
         self.lineWidthSpinBox.valueChanged[int].connect(
             self._lineWidthSpinBoxValueChangedSlot)
         self.addWidget(self.lineWidthSpinBox)
+
+        self.methodsButton = ProfileOptionToolButton(parent=self, plot=self)
+        self.addWidget(self.methodsButton)
+        # TODO: add connection with the signal
+        self.methodsButton.sigMethodChanged.connect(self.setProfileMethod)
 
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
@@ -602,9 +632,10 @@ class ProfileToolBar(qt.QToolBar):
                             origin=image.getOrigin(),
                             scale=image.getScale(),
                             colormap=None,  # Not used for 2D data
-                            z=image.getZValue())
+                            z=image.getZValue(),
+                            method=self.getProfileMethod())
 
-    def _createProfile(self, currentData, origin, scale, colormap, z):
+    def _createProfile(self, currentData, origin, scale, colormap, z, method):
         """Create the profile line for the the given image.
 
         :param numpy.ndarray currentData: the image or the stack of images
@@ -624,7 +655,8 @@ class ProfileToolBar(qt.QToolBar):
             currentData=currentData,
             origin=origin,
             scale=scale,
-            lineWidth=self.lineWidthSpinBox.value())
+            lineWidth=self.lineWidthSpinBox.value(),
+            method=method)
 
         self.getProfilePlot().setGraphTitle(profileName)
 
@@ -637,6 +669,12 @@ class ProfileToolBar(qt.QToolBar):
                                            colormap=colormap)
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+            # Scale horizontal and vertical profile coordinates
+            if self._roiInfo[2] == 'X':
+                coords = coords * scale[0] + origin[0]
+            elif self._roiInfo[2] == 'Y':
+                coords = coords * scale[1] + origin[1]
+
             self.getProfilePlot().addCurve(coords,
                                            profile[0],
                                            legend=profileName,
@@ -686,6 +724,14 @@ class ProfileToolBar(qt.QToolBar):
         if self.getProfileMainWindow() is not None:
             self.getProfileMainWindow().hide()
 
+    def setProfileMethod(self, method):
+        assert method in ('sum', 'mean')
+        self._method = method
+        self.updateProfile()
+
+    def getProfileMethod(self):
+        return self._method
+
 
 class Profile3DToolBar(ProfileToolBar):
     def __init__(self, parent=None, stackview=None,
@@ -714,6 +760,7 @@ class Profile3DToolBar(ProfileToolBar):
         # create the 3D toolbar
         self._profileType = None
         self._setProfileType(2)
+        self._method3D = 'sum'
 
     def _setProfileType(self, dimensions):
         """Set the profile type: "1D" for a curve (profile on a single image)
@@ -744,12 +791,20 @@ class Profile3DToolBar(ProfileToolBar):
             self.getProfilePlot().setGraphTitle('')
             self.getProfilePlot().getXAxis().setLabel('X')
             self.getProfilePlot().getYAxis().setLabel('Y')
-
             self._createProfile(currentData=stackData[0],
                                 origin=stackData[1]['origin'],
                                 scale=stackData[1]['scale'],
                                 colormap=stackData[1]['colormap'],
-                                z=stackData[1]['z'])
+                                z=stackData[1]['z'],
+                                method=self.getProfileMethod())
         else:
             raise ValueError(
                     "Profile type must be 1D or 2D, not %s" % self._profileType)
+
+    def setProfileMethod(self, method):
+        assert method in ('sum', 'mean')
+        self._method3D = method
+        self.updateProfile()
+
+    def getProfileMethod(self):
+        return self._method3D

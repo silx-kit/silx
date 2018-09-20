@@ -27,18 +27,19 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "14/06/2018"
 
 import collections
 from copy import deepcopy
 import logging
+import warnings
 import weakref
 import numpy
 from silx.third_party import six, enum
 
 from ... import qt
-from .. import Colors
-from ..Colormap import Colormap
+from ... import colors
+from ...colors import Colormap
 
 
 _logger = logging.getLogger(__name__)
@@ -409,7 +410,7 @@ class ColormapMixIn(ItemMixInBase):
     def setColormap(self, colormap):
         """Set the colormap of this image
 
-        :param silx.gui.plot.Colormap.Colormap colormap: colormap description
+        :param silx.gui.colors.Colormap colormap: colormap description
         """
         if isinstance(colormap, dict):
             colormap = Colormap._fromDict(colormap)
@@ -619,17 +620,17 @@ class ColorMixIn(ItemMixInBase):
 
         :param color: color(s) to be used
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
-                     one of the predefined color names defined in Colors.py
+                     one of the predefined color names defined in colors.py
         :param bool copy: True (Default) to get a copy,
                          False to use internal representation (do not modify!)
         """
         if isinstance(color, six.string_types):
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
         else:
             color = numpy.array(color, copy=copy)
             # TODO more checks + improve color array support
             if color.ndim == 1:  # Single RGBA color
-                color = Colors.rgba(color)
+                color = colors.rgba(color)
             else:  # Array of colors
                 assert color.ndim == 2
 
@@ -767,7 +768,10 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
                 error = numpy.ravel(error)
 
             # Supports error being scalar, N or 2xN array
-            errorClipped = (value - numpy.atleast_2d(error)[0]) <= 0
+            valueMinusError = value - numpy.atleast_2d(error)[0]
+            errorClipped = numpy.isnan(valueMinusError)
+            mask = numpy.logical_not(errorClipped)
+            errorClipped[mask] = valueMinusError[mask] <= 0
 
             if numpy.any(errorClipped):  # Need filtering
 
@@ -805,10 +809,20 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         """
         assert xPositive or yPositive
         if (xPositive, yPositive) not in self._clippedCache:
-            x = self.getXData(copy=False)
-            y = self.getYData(copy=False)
-            xclipped = (x <= 0) if xPositive else False
-            yclipped = (y <= 0) if yPositive else False
+            xclipped, yclipped = False, False
+
+            if xPositive:
+                x = self.getXData(copy=False)
+                with warnings.catch_warnings():  # Ignore NaN warnings
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    xclipped = x <= 0
+
+            if yPositive:
+                y = self.getYData(copy=False)
+                with warnings.catch_warnings():  # Ignore NaN warnings
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    yclipped = y <= 0
+
             self._clippedCache[(xPositive, yPositive)] = \
                 numpy.logical_or(xclipped, yclipped)
         return self._clippedCache[(xPositive, yPositive)]

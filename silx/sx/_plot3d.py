@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/02/2018"
+__date__ = "24/04/2018"
 
 
 from collections import Iterable
@@ -38,8 +38,8 @@ from ..gui import qt
 from ..gui.plot3d.SceneWindow import SceneWindow
 from ..gui.plot3d.ScalarFieldView import ScalarFieldView
 from ..gui.plot3d import SFViewParamTree
-from ..gui.plot.Colormap import Colormap
-from ..gui.plot.Colors import rgba
+from ..gui.colors import Colormap
+from ..gui.colors import rgba
 
 
 _logger = logging.getLogger(__name__)
@@ -148,7 +148,7 @@ def contour3d(scalars,
     treeView.setSfView(scalarField)  # Attach the parameter tree to the view
 
     # Add the parameter tree to the main window in a dock widget
-    dock = qt.QDockWidget()
+    dock = qt.QDockWidget(scalarField)
     dock.setWindowTitle('Parameters')
     dock.setWidget(treeView)
     scalarField.addDockWidget(qt.Qt.RightDockWidgetArea, dock)

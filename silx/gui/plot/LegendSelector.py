@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,10 @@ __data__ = "16/10/2017"
 import logging
 import weakref
 
-from .. import qt
+import numpy
+
+from .. import qt, colors
+from . import items
 
 
 _logger = logging.getLogger(__name__)
@@ -92,10 +95,16 @@ NoLineStyle = (None, 'None', 'none', '', ' ')
 
 
 class LegendIcon(qt.QWidget):
-    """Object displaying a curve linestyle and symbol."""
+    """Object displaying a curve linestyle and symbol.
 
-    def __init__(self, parent=None):
+    :param QWidget parent: See :class:`QWidget`
+    :param Union[~silx.gui.plot.items.Curve,None] curve:
+        Curve with which to synchronize
+    """
+
+    def __init__(self, parent=None, curve=None):
         super(LegendIcon, self).__init__(parent)
+        self._curveRef = None
 
         # Visibilities
         self.showLine = True
@@ -118,8 +127,82 @@ class LegendIcon(qt.QWidget):
         self.setSizePolicy(qt.QSizePolicy.Fixed,
                            qt.QSizePolicy.Fixed)
 
+        self.setCurve(curve)
+
     def sizeHint(self):
         return qt.QSize(50, 15)
+
+    # Synchronize with a curve
+
+    def getCurve(self):
+        """Returns curve associated to this widget
+
+        :rtype: Union[~silx.gui.plot.items.Curve,None]
+        """
+        return None if self._curveRef is None else self._curveRef()
+
+    def setCurve(self, curve):
+        """Set the curve with which to synchronize this widget.
+
+        :param curve: Union[~silx.gui.plot.items.Curve,None]
+        """
+        assert curve is None or isinstance(curve, items.Curve)
+
+        previousCurve = self.getCurve()
+        if curve == previousCurve:
+            return
+
+        if previousCurve is not None:
+            previousCurve.sigItemChanged.disconnect(self._curveChanged)
+
+        self._curveRef = None if curve is None else weakref.ref(curve)
+
+        if curve is not None:
+            curve.sigItemChanged.connect(self._curveChanged)
+
+        self._update()
+
+    def _update(self):
+        """Update widget according to current curve state.
+        """
+        curve = self.getCurve()
+        if curve is None:
+            _logger.error('Curve no more exists')
+            self.setEnabled(False)
+            return
+
+        self.setEnabled(curve.isVisible())
+        self.setSymbol(curve.getSymbol())
+        self.setLineWidth(curve.getLineWidth())
+        self.setLineStyle(curve.getLineStyle())
+
+        color = curve.getCurrentColor()
+        if numpy.array(color, copy=False).ndim != 1:
+            # array of colors, use transparent black
+            color = 0., 0., 0., 0.
+        color = colors.rgba(color)  # Make sure it is float in [0, 1]
+        alpha = curve.getAlpha()
+        color = qt.QColor.fromRgbF(
+            color[0], color[1], color[2], color[3] * alpha)
+        self.setLineColor(color)
+        self.setSymbolColor(color)
+        self.update()  # TODO this should not be needed
+
+    def _curveChanged(self, event):
+        """Handle update of curve item
+
+        :param event: Kind of change
+        """
+        if event in (items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.SYMBOL,
+                     items.ItemChangedType.SYMBOL_SIZE,
+                     items.ItemChangedType.LINE_WIDTH,
+                     items.ItemChangedType.LINE_STYLE,
+                     items.ItemChangedType.COLOR,
+                     items.ItemChangedType.ALPHA,
+                     items.ItemChangedType.HIGHLIGHTED,
+                     items.ItemChangedType.HIGHLIGHTED_COLOR):
+            self._update()
 
     # Modify Symbol
     def setSymbol(self, symbol):
@@ -185,6 +268,14 @@ class LegendIcon(qt.QWidget):
         symbolOffset = qt.QPointF(.5 * (ratio - 1.), 0.)
         # Determine and scale offset
         offset = qt.QPointF(float(rect.left()) / scale, float(rect.top()) / scale)
+
+        # Override color when disabled
+        if self.isEnabled():
+            overrideColor = None
+        else:
+            overrideColor = palette.color(qt.QPalette.Disabled,
+                                          qt.QPalette.WindowText)
+
         # Draw BG rectangle (for debugging)
         # bottomRight = qt.QPointF(
         #    float(rect.right())/scale,
@@ -197,15 +288,15 @@ class LegendIcon(qt.QWidget):
             linePath.moveTo(0., 0.5)
             linePath.lineTo(ratio, 0.5)
             # linePath.lineTo(2.5, 0.5)
+            lineBrush = qt.QBrush(
+                self.lineColor if overrideColor is None else overrideColor)
             linePen = qt.QPen(
-                qt.QBrush(self.lineColor),
+                lineBrush,
                 (self.lineWidth / self.height()),
                 self.lineStyle,
                 qt.Qt.FlatCap
             )
-            llist.append((linePath,
-                          linePen,
-                          qt.QBrush(self.lineColor)))
+            llist.append((linePath, linePen, lineBrush))
         if (self.showSymbol and len(self.symbol) and
                 self.symbol not in NoSymbols):
             # PITFALL ahead: Let this be a warning to others
@@ -214,9 +305,8 @@ class LegendIcon(qt.QWidget):
             symbolPath = qt.QPainterPath(Symbols[self.symbol])
             symbolPath.translate(symbolOffset)
             symbolBrush = qt.QBrush(
-                self.symbolColor,
-                self.symbolStyle
-            )
+                self.symbolColor if overrideColor is None else overrideColor,
+                self.symbolStyle)
             symbolPen = qt.QPen(
                 self.symbolOutlineBrush,  # Brush
                 1. / self.height(),       # Width

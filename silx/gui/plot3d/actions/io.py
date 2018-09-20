@@ -43,7 +43,7 @@ from silx.gui import qt, printer
 from silx.gui.icons import getQIcon
 from .Plot3DAction import Plot3DAction
 from ..utils import mng
-from ..._utils import convertQImageToArray
+from ...utils.image import convertQImageToArray
 
 
 _logger = logging.getLogger(__name__)

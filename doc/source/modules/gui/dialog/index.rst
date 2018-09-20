@@ -17,10 +17,14 @@ Snapshot of the widgets:
    :height: 150px
    :align: middle
 
-======================== ==========================
-|imgImageFileDialog|        |imgDataFileDialog|
-:class:`ImageFileDialog`  :class:`DataFileDialog`
-======================== ==========================
+.. |imgGroupDialog| image:: ./img/datafiledialog.png
+   :height: 150px
+   :align: middle
+
+======================== ========================== ==========================
+|imgImageFileDialog|      |imgDataFileDialog|       |imgGroupDialog|
+:class:`ImageFileDialog`  :class:`DataFileDialog`   :class:`GroupDialog`
+======================== ========================== ==========================
 
 Public modules:
 
@@ -30,4 +34,6 @@ Public modules:
    imagefiledialog.rst
    datafiledialog.rst
    abstractdatafiledialog.rst
+   groupdialog.rst
+   colormapdialog.rst
 

@@ -44,14 +44,14 @@
 
 kernel void
 memset_float( global float *array,
-				const float value,
-				const int SIZE
-){
-	int gid = get_global_id(0);
-	if (gid<SIZE)
-	{
-		array[gid] = value;
-	}
+              const float value,
+              const int SIZE)
+{
+    int gid = (int) get_global_id(0);
+    if (gid<SIZE)
+    {
+        array[gid] = value;
+    }
 }
 
 /**
@@ -65,14 +65,14 @@ memset_float( global float *array,
 
 kernel void
 memset_int( global int *array,
-			const int value,
-			const int SIZE
+            const int value,
+            const int SIZE
 ){
-	int gid = get_global_id(0);
-	if (gid<SIZE)
-	{
-		array[gid] = value;
-	}
+    int gid = (int) get_global_id(0);
+    if (gid<SIZE)
+    {
+        array[gid] = value;
+    }
 }
 
 /**
@@ -86,24 +86,24 @@ memset_int( global int *array,
 
 kernel void
 memset_kp( global featured_keypoint *array,
-			const float fvalue,
-			const unsigned char uvalue,
-			const int SIZE)
+            const float fvalue,
+            const unsigned char uvalue,
+            const int SIZE)
 {
-	int gid = get_global_id(0);
-	if (gid<SIZE)
-	{
-		featured_keypoint kpd;
-		actual_keypoint kp;
-		kp.row = fvalue;
-		kp.col = fvalue;
-		kp.scale = fvalue;
-		kp.angle = fvalue;
-		kpd.keypoint = kp;
-		for (int i=0;i<128;i++)
-		{
-			kpd.desc[i] = uvalue;
-		}
-		array[gid] = kpd;
-	}
+    int gid = (int) get_global_id(0);
+    if (gid<SIZE)
+    {
+        featured_keypoint kpd;
+        actual_keypoint kp;
+        kp.row = fvalue;
+        kp.col = fvalue;
+        kp.scale = fvalue;
+        kp.angle = fvalue;
+        kpd.keypoint = kp;
+        for (int i=0;i<128;i++)
+        {
+            kpd.desc[i] = uvalue;
+        }
+        array[gid] = kpd;
+    }
 }

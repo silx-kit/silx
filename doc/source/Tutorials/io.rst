@@ -22,19 +22,16 @@ Background
 ----------
 
 In the past, it was necessary to learn how to use multiple libraries to read multiple
-data formats. The library *FabIO* was designed to read images in many formats, but not to read
+data formats. The library *FabIO* was designed to read in images in many formats, but not to read in
 more heterogeneous formats, such as *HDF5* or *SPEC*.
 
 To read *SPEC* data files in Python, a common solution was to use the *PyMca* module
 :mod:`PyMca5.PyMcaIO.specfilewrapper`.
-Regarding HDF5 files, the de-facto standard for reading them in Python is to
-use the *h5py* library.
+Regarding HDF5 files, the de-facto standard for reading them in Python is the *h5py* library.
 
-*silx* tries to address this situation by providing a unified way to read all
-data formats supported at the ESRF.
-Today, HDF5 is the preffered format to store
-data for many scientific institutions, including most synchrotrons.
-So it was decided to provide tools for reading data that mimic the *h5py* library's API.
+*silx* tries to provide a unified way to read all data formats supported at the ESRF.
+Today, HDF5 is the preferred format to store data for many scientific institutions, including most synchrotrons.
+Hence, it was decided to provide tools for reading data that mimic the *h5py* library's API.
 
 
 Definitions
@@ -44,9 +41,9 @@ HDF5
 ++++
 
 The *HDF5* format is a *hierarchical data format*, designed to store and
-organize large amounts of data.
+organise large amounts of data.
 
-A HDF5 file contains a number of *datasets*, which are multidimensional arrays
+An HDF5 file contains a number of *datasets*, which are multidimensional arrays
 of a homogeneous type.
 
 These datasets are stored in container structures
@@ -54,10 +51,11 @@ called *groups*. Groups can also be stored in other groups, allowing to
 define a hierarchical tree structure.
 
 Both datasets and groups may have *attributes* attached to them. Attributes are
-used to document the object. They are similar to datasets in several ways
-(data container of homogeneous type), but they are typically much smaller.
+used to document an object. Attributes are similar to datasets in several respects
+(data containers of homogeneous type), but there sizes are typically much smaller
+than the object data themselves.
 
-It is a common analogy to compare a HDF5 file to a filesystem.
+It is quite common to compare an HDF5 file to a filesystem.
 Groups are analogous to directories, while datasets are analogous to files,
 and attributes are analogous to file metadata (creation date, last modification...).
 
@@ -68,16 +66,16 @@ and attributes are analogous to file metadata (creation date, last modification.
 h5py
 ++++
 
-The *h5py* library is a Pythonic interface to the `HDF5`_ binary data format.
+The *h5py* library is a pythonic interface to the `HDF5`_ binary data format.
 
 It exposes an HDF5 group as a python object that resembles a python
-dictionary, and an HDF5 dataset or attribute as an object that resembles a
+dictionary and an HDF5 dataset or attribute as an object that resembles a
 numpy array.
 
 API description
 ---------------
 
-All main objects, File, Group and Dataset, share the following attributes:
+All main objects, i.e., File, Group and Dataset, share the following attributes:
 
  - :attr:`attrs`: Attributes, as a dictionary of metadata for the group or dataset.
  - :attr:`basename`: String giving the basename of this group or dataset.
@@ -94,12 +92,12 @@ The API of the file objects returned by the :meth:`silx.io.open`
 function tries to be as close as possible to the API of the :class:`h5py.File`
 objects used to read HDF5 data.
 
-A h5py file is a group with just a few extra attributes and methods.
+An h5py file is a group with just a few extra attributes and methods.
 
 The objects defined in `silx.io` implement a subset of these attributes and methods:
 
  - :attr:`filename`: Name of the file on disk.
- - :attr:`mode`: String indicating if the file is open in read mode ("r")
+ - :attr:`mode`: String indicating whether the file is open in read mode ("r")
    or write mode ("w"). :meth:`silx.io.open` always returns objects in read mode.
  - :meth:`close`: Close this file. All child objects, groups and datasets, will become invalid.
 
@@ -110,7 +108,7 @@ Group object
 
 Group objects behave like python dictionaries.
 
-You can iterate over a group's :meth:`keys`, which are the names of the objects
+One can iterate over group's :meth:`keys`, that are the names of the objects
 encapsulated by the group (datasets and sub-groups). The :meth:`values` method
 returns an iterator over the encapsulated objects. The :meth:`items` method returns
 an iterator over `(name, value)` pairs.
@@ -131,7 +129,7 @@ Example
 Accessing data
 ++++++++++++++
 
-In this first example, we open a Spec data file and we print some of its information.
+In this first example below, we open a Spec data file and print some pieces of its information.
 
 .. code-block:: python
 
@@ -144,9 +142,9 @@ In this first example, we open a Spec data file and we print some of its informa
     <silx.io.spech5.ScanGroup object at 0x7f00d0715b90>
 
 
-We just opened a file, keeping a reference to the file object as ``sf``.
-We then printed all items contained in this root group. We can see that all
-these items are groups. Lets looks at what is inside these groups, and find
+We opened a file, keeping a reference to the file object as ``sf``.
+We then printed all items contained in the root group. We can see that all
+these items are groups. Let us look at what is inside these groups, and find
 datasets:
 
 
@@ -176,8 +174,8 @@ datasets:
     Found item sample
     sample is a group.
 
-We could have replaced the first three lines with this single line,
-by iterating over the iterator returned by the group method :meth:`items`:
+We could have replaced the first three lines by the following single line,
+using the iterator returned by the group method :meth:`items`:
 
 .. code-block:: python
 
@@ -196,7 +194,7 @@ Let's look at a dataset:
     <HDF5-like dataset "title": shape (), type "|S29">
 
 As you can see, printing a dataset does not print the data itself, it only print a
-representation of the dataset object. The information printed tells us that the
+representation of the dataset object. The printed information tells that the
 object is similar to a numpy array, with a *shape* and a *type*.
 
 In this case, we are dealing with a scalar dataset, so we can use the same syntax as
@@ -207,7 +205,7 @@ in numpy to access the scalar value, ``result = dset[()]``:
     >>> print(sf["2.1/title"][()])
     2  ascan  phi 0.61 1.61  20 1
 
-Similarly, you need to use numpy slicing to access values in numeric array:
+Similarly, you need to use numpy slicing to access values in a numeric array:
 
 .. code-block:: python
 
@@ -219,7 +217,7 @@ Similarly, you need to use numpy slicing to access values in numeric array:
     >>> entire_phi_array = sf["2.1/measurement/Phi"][:]
 
 Here we could read the entire array by slicing it with ``[:]``, because we know
-it is a 1D array. For a 2D array, the slicing argument would have been ``[:, :]``.
+it is a 1D array. For a 2D array, the slicing argument would be ``[:, :]``.
 
 For a dataset of unknown dimensionality (including scalar datasets), the
 ``Ellipsis`` object (represented by ``...``) can be used to slice the object.
@@ -235,12 +233,12 @@ For a dataset of unknown dimensionality (including scalar datasets), the
       1.50999999  1.55999994  1.61000001]
 
 To read more about the usage of ``Ellipsis`` to slice arrays, see
-`Indexing numpy arrays <http://scipy-cookbook.readthedocs.io/items/Indexing.html?highlight=indexing#Multidimensional-slices>`_
+`"Indexing numpy arrays" <http://scipy-cookbook.readthedocs.io/items/Indexing.html?highlight=indexing#Multidimensional-slices>`_
 in the scipy documentation.
 
-Note that slicing a scalar dataset with ``[()]`` is not strictly equivalent to
-slicing with ``[...]``. The former gives you the actual scalar value in
-the dataset, while the latter always gives you an array object, which happens to
+Note that slicing a scalar dataset via ``[()]`` is not strictly equivalent to
+slicing via ``[...]``. The former returns the actual scalar value in
+the dataset, while the latter always returns an array object, which happens to
 be 0D in the case of a scalar.
 
     >>> sf["2.1/instrument/positioners/Delta"][()]
@@ -251,7 +249,7 @@ be 0D in the case of a scalar.
 Closing the file
 ++++++++++++++++
 
-You should always make sure to close the files that you opened. The simple way of
+You should always make sure to close the files that you opened. The simplest way of
 closing a file is to call its :meth:`close` method.
 
 .. code-block:: python
@@ -264,12 +262,12 @@ closing a file is to call its :meth:`close` method.
 
     sf.close()
 
-The drawback of this method is that, if an error is raised while processing
+The drawback of this method is that, if an error is arising while processing
 the file, the program might never reach the ``sf.close()`` line.
-Leaving files open can cause various issues for the rest of your program,
+Leaving files open can cause various issues to the rest of your program,
 such as consuming memory, not being able to reopen the file when you need it...
 
-The best way to ensure the file is always properly closed is to use the file
+The best way to ensure that the file is always properly closed is to use the file
 inside its context manager:
 
 .. code-block:: python
@@ -286,5 +284,5 @@ Additional resources
 
 - `h5py documentation <http://docs.h5py.org/en/latest/>`_
 - `Formats supported by FabIO <http://www.silx.org/doc/fabio/dev/getting_started.html#list-of-file-formats-that-fabio-can-read-and-write>`_
-- `Spec file h5py-like structure <http://www.silx.org/doc/silx/dev/modules/io/spech5.html#api-description>`_
+- `Spec file with h5py-like structure <http://www.silx.org/doc/silx/dev/modules/io/spech5.html#api-description>`_
 - `HDF5 format documentation <https://support.hdfgroup.org/HDF5/>`_

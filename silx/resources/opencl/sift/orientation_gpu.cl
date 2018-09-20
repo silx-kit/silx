@@ -93,23 +93,23 @@ TODO:
 */
 
 kernel void orientation_gpu(
-    global unified_keypoint* keypoints,
-    global float* grad,
-    global float* ori,
-    global int* counter,
-    int octsize,
-    float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
-    int nb_keypoints,
-    int keypoints_start,
-    int keypoints_end,
-    int grad_width,
-    int grad_height,
-    local float* hist, //size 36
-    local volatile float* hist2, //size 128
-    local volatile int* pos) //size 128
+                            global unified_keypoint* keypoints,
+                            global float* grad,
+                            global float* ori,
+                            global int* counter,
+                            int octsize,
+                            float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
+                            int nb_keypoints,
+                            int keypoints_start,
+                            int keypoints_end,
+                            int grad_width,
+                            int grad_height,
+                            local float* hist, //size 36
+                            local volatile float* hist2, //size 128
+                            local volatile int* pos) //size 128
 {
-    int lid0 = get_local_id(0);
-    int groupid = get_group_id(0);
+    int lid0 = (int) get_local_id(0);
+    int groupid = (int) get_group_id(0);
 
     if ((groupid< keypoints_start) || (groupid >= keypoints_end))
     {   //    Process only valid points
@@ -117,9 +117,11 @@ kernel void orientation_gpu(
     }
     guess_keypoint raw_kp = keypoints[groupid].raw;
     if (raw_kp.row < 0.0f )
+    {
         return;
+    }
 
-    int    bin, prev=0, next=0;
+    int bin, prev=0, next=0;
     int old;
     float distsq, gval, angle, interp=0.0;
     float hist_prev, hist_curr, hist_next;
@@ -375,6 +377,3 @@ kernel void orientation_gpu(
         } //end "val >= 80%*maxval"
     }
 }
-
-
-

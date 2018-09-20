@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/11/2017"
+__date__ = "24/04/2018"
 
 import logging
 import time
@@ -39,7 +39,7 @@ from silx.math.combo import min_max
 from silx.math.marchingcubes import MarchingCubes
 
 from ... import qt
-from ...plot.Colors import rgba
+from ...colors import rgba
 
 from ..scene import cutplane, primitives, transform
 

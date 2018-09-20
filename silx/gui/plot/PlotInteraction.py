@@ -1,7 +1,7 @@
 #  coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "24/04/2018"
 
 
 import math
@@ -34,7 +34,8 @@ import numpy
 import time
 import weakref
 
-from . import Colors
+from .. import colors
+from .. import qt
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
@@ -115,10 +116,51 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
 
     Base class for :class:`Pan` and :class:`Zoom`
     """
+
+    _DOUBLE_CLICK_TIMEOUT = 0.4
+
     class ZoomIdle(ClickOrDrag.Idle):
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
+
+    def click(self, x, y, btn):
+        """Handle clicks by sending events
+
+        :param int x: Mouse X position in pixels
+        :param int y: Mouse Y position in pixels
+        :param btn: Clicked mouse button
+        """
+        if btn == LEFT_BTN:
+            lastClickTime, lastClickPos = self._lastClick
+
+            # Signal mouse double clicked event first
+            if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
+                # Use position of first click
+                eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
+                                               *lastClickPos)
+                self.plot.notify(**eventDict)
+
+                self._lastClick = 0., None
+            else:
+                # Signal mouse clicked event
+                dataPos = self.plot.pixelToData(x, y)
+                assert dataPos is not None
+                eventDict = prepareMouseSignal('mouseClicked', 'left',
+                                               dataPos[0], dataPos[1],
+                                               x, y)
+                self.plot.notify(**eventDict)
+
+                self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
+
+        elif btn == RIGHT_BTN:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            eventDict = prepareMouseSignal('mouseClicked', 'right',
+                                           dataPos[0], dataPos[1],
+                                           x, y)
+            self.plot.notify(**eventDict)
 
     def __init__(self, plot):
         """Init.
@@ -134,6 +176,8 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
             'drag': ClickOrDrag.Drag
         }
         StateMachine.__init__(self, states, 'idle')
+
+        self._lastClick = 0., None
 
 
 # Pan #########################################################################
@@ -229,11 +273,9 @@ class Zoom(_ZoomOnWheel):
     Zoom-in on selected area, zoom-out on right click,
     and zoom on mouse wheel.
     """
-    _DOUBLE_CLICK_TIMEOUT = 0.4
 
     def __init__(self, plot, color):
         self.color = color
-        self._lastClick = 0., None
 
         super(Zoom, self).__init__(plot)
         self.plot.getLimitsHistory().clear()
@@ -262,38 +304,6 @@ class Zoom(_ZoomOnWheel):
                     areaX1 = center + numpy.sign(x1 - x0) * 0.5 * areaWidth
 
         return areaX0, areaY0, areaX1, areaY1
-
-    def click(self, x, y, btn):
-        if btn == LEFT_BTN:
-            lastClickTime, lastClickPos = self._lastClick
-
-            # Signal mouse double clicked event first
-            if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
-                # Use position of first click
-                eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
-                                               *lastClickPos)
-                self.plot.notify(**eventDict)
-
-                self._lastClick = 0., None
-            else:
-                # Signal mouse clicked event
-                dataPos = self.plot.pixelToData(x, y)
-                assert dataPos is not None
-                eventDict = prepareMouseSignal('mouseClicked', 'left',
-                                               dataPos[0], dataPos[1],
-                                               x, y)
-                self.plot.notify(**eventDict)
-
-                self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
-
-        elif btn == RIGHT_BTN:
-            # Signal mouse clicked event
-            dataPos = self.plot.pixelToData(x, y)
-            assert dataPos is not None
-            eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                           dataPos[0], dataPos[1],
-                                           x, y)
-            self.plot.notify(**eventDict)
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -424,7 +434,7 @@ class SelectPolygon(Select):
             """Update drawing first point, using self._firstPos"""
             x, y = self.machine.plot.dataToPixel(*self._firstPos, check=False)
 
-            offset = self.machine.DRAG_THRESHOLD_DIST
+            offset = self.machine.getDragThreshold()
             points = [(x - offset, y - offset),
                       (x - offset, y + offset),
                       (x + offset, y + offset),
@@ -458,10 +468,10 @@ class SelectPolygon(Select):
                                                          check=False)
                 dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
 
+                threshold = self.machine.getDragThreshold()
+
                 # Only allow to close polygon after first point
-                if (len(self.points) > 2 and
-                        dx < self.machine.DRAG_THRESHOLD_DIST and
-                        dy < self.machine.DRAG_THRESHOLD_DIST):
+                if len(self.points) > 2 and dx <= threshold and dy <= threshold:
                     self.machine.resetSelectionArea()
 
                     self.points[-1] = self.points[0]
@@ -489,8 +499,7 @@ class SelectPolygon(Select):
                 previousPos = self.machine.plot.dataToPixel(*self.points[-2],
                                                             check=False)
                 dx, dy = abs(previousPos[0] - x), abs(previousPos[1] - y)
-                if(dx >= self.machine.DRAG_THRESHOLD_DIST or
-                   dy >= self.machine.DRAG_THRESHOLD_DIST):
+                if dx >= threshold or dy >= threshold:
                     self.points.append(dataPos)
                 else:
                     self.points[-1] = dataPos
@@ -502,8 +511,9 @@ class SelectPolygon(Select):
             firstPos = self.machine.plot.dataToPixel(*self._firstPos,
                                                      check=False)
             dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-            if (dx < self.machine.DRAG_THRESHOLD_DIST and
-                    dy < self.machine.DRAG_THRESHOLD_DIST):
+            threshold = self.machine.getDragThreshold()
+
+            if dx <= threshold and dy <= threshold:
                 x, y = firstPos  # Snap to first point
 
             dataPos = self.machine.plot.pixelToData(x, y)
@@ -522,6 +532,17 @@ class SelectPolygon(Select):
     def cancel(self):
         if isinstance(self.state, self.states['select']):
             self.resetSelectionArea()
+
+    def getDragThreshold(self):
+        """Return dragging ratio with device to pixel ratio applied.
+
+        :rtype: float
+        """
+        ratio = 1.
+        if qt.BINDING in ('PyQt5', 'PySide2'):
+            ratio = self.plot.window().windowHandle().devicePixelRatio()
+        return self.DRAG_THRESHOLD_DIST * ratio
+
 
 
 class Select2Points(Select):
@@ -1204,6 +1225,48 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.plot.setGraphCursorShape()
 
 
+class ItemsInteractionForCombo(ItemsInteraction):
+    """Interaction with items to combine through :class:`FocusManager`.
+    """
+
+    class Idle(ItemsInteraction.Idle):
+        def onPress(self, x, y, btn):
+            if btn == LEFT_BTN:
+                def test(item):
+                    return (item.isSelectable() or
+                            (isinstance(item, items.DraggableMixIn) and
+                             item.isDraggable()))
+
+                picked = self.machine.plot._pickMarker(x, y, test)
+                if picked is not None:
+                    itemInteraction = True
+
+                else:
+                    picked = self.machine.plot._pickImageOrCurve(x, y, test)
+                    itemInteraction = picked is not None
+
+                if itemInteraction:  # Request focus and handle interaction
+                    self.goto('clickOrDrag', x, y)
+                    return True
+                else:  # Do not request focus
+                    return False
+
+            elif btn == RIGHT_BTN:
+                self.goto('rightClick', x, y)
+                return True
+
+    def __init__(self, plot):
+        _PlotInteraction.__init__(self, plot)
+
+        states = {
+            'idle': ItemsInteractionForCombo.Idle,
+            'rightClick': ClickOrDrag.RightClick,
+            'clickOrDrag': ClickOrDrag.ClickOrDrag,
+            'drag': ClickOrDrag.Drag
+        }
+        StateMachine.__init__(self, states, 'idle')
+
+
 # FocusManager ################################################################
 
 class FocusManager(StateMachine):
@@ -1344,6 +1407,74 @@ class ZoomAndSelect(ItemsInteraction):
             return super(ZoomAndSelect, self).endDrag(startPos, endPos)
 
 
+class PanAndSelect(ItemsInteraction):
+    """Combine Pan and ItemInteraction state machine.
+
+    :param plot: The Plot to which this interaction is attached
+    """
+
+    def __init__(self, plot):
+        super(PanAndSelect, self).__init__(plot)
+        self._pan = Pan(plot)
+        self._doPan = False
+
+    def click(self, x, y, btn):
+        """Handle mouse click
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: True if click is catched by an item, False otherwise
+        """
+        eventDict = self._handleClick(x, y, btn)
+
+        if eventDict is not None:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            clickedEventDict = prepareMouseSignal('mouseClicked', btn,
+                                                  dataPos[0], dataPos[1],
+                                                  x, y)
+            self.plot.notify(**clickedEventDict)
+
+            self.plot.notify(**eventDict)
+
+        else:
+            self._pan.click(x, y, btn)
+
+    def beginDrag(self, x, y):
+        """Handle start drag and switching between zoom and item drag.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        self._doPan = not super(PanAndSelect, self).beginDrag(x, y)
+        if self._doPan:
+            self._pan.beginDrag(x, y)
+
+    def drag(self, x, y):
+        """Handle drag, eventually forwarding to zoom.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        if self._doPan:
+            return self._pan.drag(x, y)
+        else:
+            return super(PanAndSelect, self).drag(x, y)
+
+    def endDrag(self, startPos, endPos):
+        """Handle end of drag, eventually forwarding to zoom.
+
+        :param startPos: (x, y) position at the beginning of the drag
+        :param endPos: (x, y) position at the end of the drag
+        """
+        if self._doPan:
+            return self._pan.endDrag(startPos, endPos)
+        else:
+            return super(PanAndSelect, self).endDrag(startPos, endPos)
+
+
 # Interaction mode control ####################################################
 
 class PlotInteraction(object):
@@ -1384,12 +1515,21 @@ class PlotInteraction(object):
         if isinstance(self._eventHandler, ZoomAndSelect):
             return {'mode': 'zoom', 'color': self._eventHandler.color}
 
+        elif isinstance(self._eventHandler, FocusManager):
+            drawHandler = self._eventHandler.eventHandlers[1]
+            if not isinstance(drawHandler, Select):
+                raise RuntimeError('Unknown interactive mode')
+
+            result = drawHandler.parameters.copy()
+            result['mode'] = 'draw'
+            return result
+
         elif isinstance(self._eventHandler, Select):
             result = self._eventHandler.parameters.copy()
             result['mode'] = 'draw'
             return result
 
-        elif isinstance(self._eventHandler, Pan):
+        elif isinstance(self._eventHandler, PanAndSelect):
             return {'mode': 'pan'}
 
         else:
@@ -1400,7 +1540,7 @@ class PlotInteraction(object):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
-                         In 'draw', 'pan', 'select', 'zoom'.
+                         In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
                       If None, selection area is not drawn.
@@ -1413,15 +1553,15 @@ class PlotInteraction(object):
         :param str label: Only for 'draw' mode.
         :param float width: Width of the pencil. Only for draw pencil mode.
         """
-        assert mode in ('draw', 'pan', 'select', 'zoom')
+        assert mode in ('draw', 'pan', 'select', 'select-draw', 'zoom')
 
         plot = self._plot()
         assert plot is not None
 
         if color not in (None, 'video inverted'):
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
 
-        if mode == 'draw':
+        if mode in ('draw', 'select-draw'):
             assert shape in self._DRAW_MODES
             eventHandlerClass = self._DRAW_MODES[shape]
             parameters = {
@@ -1430,14 +1570,21 @@ class PlotInteraction(object):
                 'color': color,
                 'width': width,
             }
+            eventHandler = eventHandlerClass(plot, parameters)
 
             self._eventHandler.cancel()
-            self._eventHandler = eventHandlerClass(plot, parameters)
+
+            if mode == 'draw':
+                self._eventHandler = eventHandler
+
+            else:  # mode == 'select-draw'
+                self._eventHandler = FocusManager(
+                    (ItemsInteractionForCombo(plot), eventHandler))
 
         elif mode == 'pan':
             # Ignores color, shape and label
             self._eventHandler.cancel()
-            self._eventHandler = Pan(plot)
+            self._eventHandler = PanAndSelect(plot)
 
         elif mode == 'zoom':
             # Ignores shape and label

@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 1995-2017 European Synchrotron Radiation Facility
+# Copyright (C) 1995-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -521,11 +521,12 @@ sfReadFile(SpecFile *sf,SfCursor *cursor,int *error) {
   free(buffer);
 
   sf->no_scans = cursor->scanno;
- /*
-  * Save last
-  */
-  sfSaveScan(sf,cursor,error);
-
+  if (sf->no_scans > 0) {
+     /*
+      * Save last
+      */
+      sfSaveScan(sf,cursor,error);
+  }
   return;
 
 }
@@ -790,24 +791,21 @@ sfSaveScan(SpecFile *sf, SfCursor *cursor,int *error) {
 static void
 sfAssignScanNumbers(SpecFile *sf) {
 
-  int                    size,i;
-  char                  *buffer,*ptr;
-
-  char   buffer2[50];
+  int i;
+  char *ptr;
+  char buffer[50];
+  char buffer2[50];
 
   register   ObjectList *object,
                         *object2;
   SpecScan              *scan,
                         *scan2;
 
-  size = 50;
-  buffer = (char *) malloc(size);
-
   for ( object = (sf->list).first; object; object=object->next) {
         scan = (SpecScan *) object->contents;
 
         lseek(sf->fd,scan->offset,SEEK_SET);
-        read(sf->fd,buffer,size);
+        read(sf->fd,buffer,sizeof(buffer));
         buffer[49] = '\0';
 
         for ( ptr = buffer+3,i=0; *ptr != ' ';ptr++,i++) buffer2[i] = *ptr;

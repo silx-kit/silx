@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "29/01/2018"
+__date__ = "02/03/2018"
 __license__ = "MIT"
 
 import distutils.util
@@ -76,7 +76,11 @@ def createBasicHandler():
 
 # Use an handler compatible with unittests, else use_buffer is not working
 logging.root.addHandler(createBasicHandler())
+
+# Capture all default warnings
 logging.captureWarnings(True)
+import warnings
+warnings.simplefilter('default')
 
 logger = logging.getLogger("run_tests")
 logger.setLevel(logging.WARNING)
@@ -292,7 +296,12 @@ def build_project(name, root_dir):
     p = subprocess.Popen([sys.executable, "setup.py", "build"],
                          shell=False, cwd=root_dir)
     logger.debug("subprocess ended with rc= %s", p.wait())
-    return home
+
+    if os.path.isdir(home):
+        return home
+    alt_home = os.path.join(os.path.dirname(home), "lib")
+    if os.path.isdir(alt_home):
+        return alt_home
 
 
 def import_project_module(project_name, project_dir):
@@ -311,7 +320,8 @@ def import_project_module(project_name, project_dir):
                 PROJECT_NAME)
     else:  # Use built source
         build_dir = build_project(project_name, project_dir)
-
+        if build_dir is None:
+            logging.error("Built project is not available !!! investigate")
         sys.path.insert(0, build_dir)
         logger.warning("Patched sys.path, added: '%s'", build_dir)
         module = importer(project_name)
@@ -332,155 +342,157 @@ def get_test_options(project_module):
     return test_options
 
 
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_NAME = get_project_name(PROJECT_DIR)
-logger.info("Project name: %s", PROJECT_NAME)
+if __name__ == "__main__":  # Needed for multiprocessing support on Windows
+    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_NAME = get_project_name(PROJECT_DIR)
+    logger.info("Project name: %s", PROJECT_NAME)
 
-project_module = import_project_module(PROJECT_NAME, PROJECT_DIR)
-PROJECT_VERSION = getattr(project_module, 'version', '')
-PROJECT_PATH = project_module.__path__[0]
-
-test_options = get_test_options(project_module)
-"""Contains extra configuration for the tests."""
+    project_module = import_project_module(PROJECT_NAME, PROJECT_DIR)
+    PROJECT_VERSION = getattr(project_module, 'version', '')
+    PROJECT_PATH = project_module.__path__[0]
 
 
-epilog = """Environment variables:
-WITH_QT_TEST=False to disable graphical tests
-SILX_OPENCL=False to disable OpenCL tests
-SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
-GPU=False to disable the use of a GPU with OpenCL test
-WITH_GL_TEST=False to disable tests using OpenGL
-"""
-parser = ArgumentParser(description='Run the tests.',
-                        epilog=epilog)
-
-parser.add_argument("--installed",
-                    action="store_true", dest="installed", default=False,
-                    help=("Test the installed version instead of" +
-                          "building from the source"))
-parser.add_argument("-c", "--coverage", dest="coverage",
-                    action="store_true", default=False,
-                    help=("Report code coverage" +
-                          "(requires 'coverage' and 'lxml' module)"))
-parser.add_argument("-m", "--memprofile", dest="memprofile",
-                    action="store_true", default=False,
-                    help="Report memory profiling")
-parser.add_argument("-v", "--verbose", default=0,
-                    action="count", dest="verbose",
-                    help="Increase verbosity. Option -v prints additional " +
-                         "INFO messages. Use -vv for full verbosity, " +
-                         "including debug messages and test help strings.")
-parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
-if test_options is not None:
-    test_options.add_parser_argument(parser)
-
-default_test_name = "%s.test.suite" % PROJECT_NAME
-parser.add_argument("test_name", nargs='*',
-                    default=(default_test_name,),
-                    help="Test names to run (Default: %s)" % default_test_name)
-options = parser.parse_args()
-sys.argv = [sys.argv[0]]
+    test_options = get_test_options(project_module)
+    """Contains extra configuration for the tests."""
 
 
-test_verbosity = 1
-use_buffer = True
-if options.verbose == 1:
-    logging.root.setLevel(logging.INFO)
-    logger.info("Set log level: INFO")
-    test_verbosity = 2
-    use_buffer = False
-elif options.verbose > 1:
-    logging.root.setLevel(logging.DEBUG)
-    logger.info("Set log level: DEBUG")
-    test_verbosity = 2
-    use_buffer = False
+    epilog = """Environment variables:
+    WITH_QT_TEST=False to disable graphical tests
+    SILX_OPENCL=False to disable OpenCL tests
+    SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
+    GPU=False to disable the use of a GPU with OpenCL test
+    WITH_GL_TEST=False to disable tests using OpenGL
+    """
+    parser = ArgumentParser(description='Run the tests.',
+                            epilog=epilog)
 
-if options.coverage:
-    logger.info("Running test-coverage")
-    import coverage
-    omits = ["*test*", "*third_party*", "*/setup.py",
-             # temporary test modules (silx.math.fit.test.test_fitmanager)
-             "*customfun.py", ]
-    try:
-        cov = coverage.Coverage(omit=omits)
-    except AttributeError:
-        cov = coverage.coverage(omit=omits)
-    cov.start()
+    parser.add_argument("--installed",
+                        action="store_true", dest="installed", default=False,
+                        help=("Test the installed version instead of" +
+                              "building from the source"))
+    parser.add_argument("-c", "--coverage", dest="coverage",
+                        action="store_true", default=False,
+                        help=("Report code coverage" +
+                              "(requires 'coverage' and 'lxml' module)"))
+    parser.add_argument("-m", "--memprofile", dest="memprofile",
+                        action="store_true", default=False,
+                        help="Report memory profiling")
+    parser.add_argument("-v", "--verbose", default=0,
+                        action="count", dest="verbose",
+                        help="Increase verbosity. Option -v prints additional " +
+                             "INFO messages. Use -vv for full verbosity, " +
+                             "including debug messages and test help strings.")
+    parser.add_argument("--qt-binding", dest="qt_binding", default=None,
+                        help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+    if test_options is not None:
+        test_options.add_parser_argument(parser)
 
-if options.qt_binding:
-    binding = options.qt_binding.lower()
-    if binding == "pyqt4":
-        logger.info("Force using PyQt4")
-        if sys.version < "3.0.0":
-            try:
-                import sip
-                sip.setapi("QString", 2)
-                sip.setapi("QVariant", 2)
-            except Exception:
-                logger.warning("Cannot set sip API")
-        import PyQt4.QtCore  # noqa
-    elif binding == "pyqt5":
-        logger.info("Force using PyQt5")
-        import PyQt5.QtCore  # noqa
-    elif binding == "pyside":
-        logger.info("Force using PySide")
-        import PySide.QtCore  # noqa
-    elif binding == "pyside2":
-        logger.info("Force using PySide2")
-        import PySide2.QtCore  # noqa
+    default_test_name = "%s.test.suite" % PROJECT_NAME
+    parser.add_argument("test_name", nargs='*',
+                        default=(default_test_name,),
+                        help="Test names to run (Default: %s)" % default_test_name)
+    options = parser.parse_args()
+    sys.argv = [sys.argv[0]]
+
+
+    test_verbosity = 1
+    use_buffer = True
+    if options.verbose == 1:
+        logging.root.setLevel(logging.INFO)
+        logger.info("Set log level: INFO")
+        test_verbosity = 2
+        use_buffer = False
+    elif options.verbose > 1:
+        logging.root.setLevel(logging.DEBUG)
+        logger.info("Set log level: DEBUG")
+        test_verbosity = 2
+        use_buffer = False
+
+    if options.coverage:
+        logger.info("Running test-coverage")
+        import coverage
+        omits = ["*test*", "*third_party*", "*/setup.py",
+                 # temporary test modules (silx.math.fit.test.test_fitmanager)
+                 "*customfun.py", ]
+        try:
+            cov = coverage.Coverage(omit=omits)
+        except AttributeError:
+            cov = coverage.coverage(omit=omits)
+        cov.start()
+
+    if options.qt_binding:
+        binding = options.qt_binding.lower()
+        if binding == "pyqt4":
+            logger.info("Force using PyQt4")
+            if sys.version < "3.0.0":
+                try:
+                    import sip
+                    sip.setapi("QString", 2)
+                    sip.setapi("QVariant", 2)
+                except Exception:
+                    logger.warning("Cannot set sip API")
+            import PyQt4.QtCore  # noqa
+        elif binding == "pyqt5":
+            logger.info("Force using PyQt5")
+            import PyQt5.QtCore  # noqa
+        elif binding == "pyside":
+            logger.info("Force using PySide")
+            import PySide.QtCore  # noqa
+        elif binding == "pyside2":
+            logger.info("Force using PySide2")
+            import PySide2.QtCore  # noqa
+        else:
+            raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
+
+    # Run the tests
+    runnerArgs = {}
+    runnerArgs["verbosity"] = test_verbosity
+    runnerArgs["buffer"] = use_buffer
+    if options.memprofile:
+        runnerArgs["resultclass"] = ProfileTextTestResult
     else:
-        raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
+        runnerArgs["resultclass"] = TextTestResultWithSkipList
+    runner = unittest.TextTestRunner(**runnerArgs)
 
-# Run the tests
-runnerArgs = {}
-runnerArgs["verbosity"] = test_verbosity
-runnerArgs["buffer"] = use_buffer
-if options.memprofile:
-    runnerArgs["resultclass"] = ProfileTextTestResult
-else:
-    runnerArgs["resultclass"] = TextTestResultWithSkipList
-runner = unittest.TextTestRunner(**runnerArgs)
+    logger.warning("Test %s %s from %s",
+                   PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
 
-logger.warning("Test %s %s from %s",
-               PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
+    test_module_name = PROJECT_NAME + '.test'
+    logger.info('Import %s', test_module_name)
+    test_module = importer(test_module_name)
+    test_suite = unittest.TestSuite()
 
-test_module_name = PROJECT_NAME + '.test'
-logger.info('Import %s', test_module_name)
-test_module = importer(test_module_name)
-test_suite = unittest.TestSuite()
-
-if test_options is not None:
-    # Configure the test options according to the command lines and the the environment
-    test_options.configure(options)
-else:
-    logger.warning("No test options available.")
+    if test_options is not None:
+        # Configure the test options according to the command lines and the the environment
+        test_options.configure(options)
+    else:
+        logger.warning("No test options available.")
 
 
-if not options.test_name:
-    # Do not use test loader to avoid cryptic exception
-    # when an error occur during import
-    project_test_suite = getattr(test_module, 'suite')
-    test_suite.addTest(project_test_suite())
-else:
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
+    if not options.test_name:
+        # Do not use test loader to avoid cryptic exception
+        # when an error occur during import
+        project_test_suite = getattr(test_module, 'suite')
+        test_suite.addTest(project_test_suite())
+    else:
+        test_suite.addTest(
+            unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
 
-# Display the result when using CTRL-C
-unittest.installHandler()
+    # Display the result when using CTRL-C
+    unittest.installHandler()
 
-result = runner.run(test_suite)
+    result = runner.run(test_suite)
 
-if result.wasSuccessful():
-    exit_status = 0
-else:
-    exit_status = 1
+    if result.wasSuccessful():
+        exit_status = 0
+    else:
+        exit_status = 1
 
 
-if options.coverage:
-    cov.stop()
-    cov.save()
-    with open("coverage.rst", "w") as fn:
-        fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH))
+    if options.coverage:
+        cov.stop()
+        cov.save()
+        with open("coverage.rst", "w") as fn:
+            fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH))
 
-sys.exit(exit_status)
+    sys.exit(exit_status)

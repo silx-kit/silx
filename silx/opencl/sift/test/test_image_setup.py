@@ -37,16 +37,15 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2017"
+__date__ = "25/06/2018"
 
 import numpy
 try:
-    import scipy
-except ImportError:
-    scipy = None
-else:
     import scipy.ndimage
     import scipy.misc
+except ImportError:
+    scipy = None
+
 from .test_image_functions import my_gradient, normalize_image, shrink, my_local_maxmin, \
     my_interp_keypoint, my_descriptor, my_orientation
 from .test_algebra import my_compact
@@ -84,8 +83,7 @@ def local_maxmin_setup():
     else:
         l2 = scipy.misc.lena().astype(numpy.float32)
 
-
-    l2 = numpy.ascontiguousarray(l2[0:507, 0:209]);
+    l2 = numpy.ascontiguousarray(l2[0:507, 0:209])
     # l2 = scipy.misc.imread("../aerial.tiff").astype(numpy.float32)
     l = normalize_image(l2)  # do not forget to normalize the image if you want to compare with sift.cpp
     for octave_cnt in range(1, int(numpy.log2(octsize)) + 1 + 1):
@@ -192,9 +190,3 @@ def matching_setup():
     kp1 = desc
     kp2 = numpy.ascontiguousarray(desc[::-1])
     return kp1, kp2, nb_keypoints, actual_nb_keypoints
-
-
-
-
-
-

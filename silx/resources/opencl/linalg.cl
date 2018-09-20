@@ -33,25 +33,25 @@
  * sizeY: number of rows of the image
  *
  **/
-__kernel void kern_gradient2D(
-    __global float* slice,
-    __global float2* slice_grad,
+kernel void kern_gradient2D(
+    global float* slice,
+    global float2* slice_grad,
     int sizeX,
     int sizeY)
 {
 
-    uint gidx = get_global_id(0);
-    uint gidy = get_global_id(1);
-    float val_x = 0, val_y = 0;
+    int gidx = (int) get_global_id(0);
+    int gidy = (int) get_global_id(1);
 
-    if (gidx < sizeX && gidy < sizeY) {
-        if (gidx == sizeX-1) val_y = 0;
-        else val_y = slice[(gidy)*sizeX+gidx+1] - slice[(gidy)*sizeX+gidx];
-        if (gidy == sizeY-1) val_x = 0;
-        else val_x = slice[(gidy+1)*sizeX+gidx] - slice[(gidy)*sizeX+gidx];
+    if ((gidx < sizeX) && (gidy < sizeY))
+    {
+    	// Note the direction inconstancy ! (JK 07/2018)
 
-        slice_grad[(gidy)*sizeX+gidx].x = val_x;
-        slice_grad[(gidy)*sizeX+gidx].y = val_y;
+        float val_y = (gidx == (sizeX-1))? 0: slice[gidy*sizeX+gidx+1] - slice[gidy*sizeX+gidx];
+        float val_x = (gidy == (sizeY-1))? 0: slice[(gidy+1)*sizeX+gidx] - slice[(gidy)*sizeX+gidx];
+
+        slice_grad[gidy*sizeX+gidx].x = val_x;
+        slice_grad[gidy*sizeX+gidx].y = val_y;
     }
 }
 
@@ -65,25 +65,24 @@ __kernel void kern_gradient2D(
  * sizeY: number of rows of the input
  *
  **/
-__kernel void kern_divergence2D(
-    __global float2* slice_grad,
-    __global float* slice,
+kernel void kern_divergence2D(
+    global float2* slice_grad,
+    global float* slice,
     int sizeX,
     int sizeY)
 {
-    uint gidx = get_global_id(0);
-    uint gidy = get_global_id(1);
-    float val_x = 0, val_y = 0;
+    int gidx = (int) get_global_id(0);
+    int gidy = (int) get_global_id(1);
 
-    if (gidx < sizeX && gidy < sizeY) {
-        if (gidx == 0) val_y = slice_grad[(gidy)*sizeX+gidx].y;
-        else val_y = slice_grad[(gidy)*sizeX+gidx].y - slice_grad[(gidy)*sizeX+gidx-1].y;
-        if (gidy == 0) val_x = slice_grad[(gidy)*sizeX+gidx].x;
-        else val_x = slice_grad[(gidy)*sizeX+gidx].x - slice_grad[(gidy-1)*sizeX+gidx].x;
-        slice[(gidy)*sizeX+gidx] = val_x + val_y;
+    if (gidx < sizeX && gidy < sizeY)
+    {
+        float val_x, val_y;
+        val_y = (gidx == 0)?
+        		slice_grad[(gidy)*sizeX+gidx].y :
+        		slice_grad[(gidy)*sizeX+gidx].y - slice_grad[(gidy)*sizeX+gidx-1].y;
+        val_x = (gidy == 0)?
+        		slice_grad[(gidy)*sizeX+gidx].x:
+                slice_grad[(gidy)*sizeX+gidx].x - slice_grad[(gidy-1)*sizeX+gidx].x;
+        slice[gidy*sizeX+gidx] = val_x + val_y;
     }
 }
-
-
-
-

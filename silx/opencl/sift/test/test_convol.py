@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "05/07/2018"
 
 import os
 import time
@@ -45,16 +45,15 @@ import logging
 import numpy
 
 try:
-    import scipy
-except:
+    import scipy.misc
+    import scipy.ndimage
+except ImportError:
     scipy = None
-else:
-    import scipy.misc, scipy.ndimage
 
 import unittest
-from silx.opencl import ocl, kernel_workgroup_size
+from silx.opencl import ocl
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl.array
 from ..utils import calc_size, get_opencl_code
 logger = logging.getLogger(__name__)
 
@@ -122,7 +121,7 @@ class TestConvol(unittest.TestCase):
 
     def tearDown(self):
         self.input = None
-#        self.gpudata.release()
+        # self.gpudata.release()
         self.program = None
         self.gpu_in = self.gpu_tmp = self.gpu_out = None
 
@@ -144,10 +143,10 @@ class TestConvol(unittest.TestCase):
             ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis=-1, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
-            if ksize % 2 == 0:  #we have a problem with even kernels !!!
-                self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
+            if ksize % 2 == 0:  # we have a problem with even kernels !!!
+                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
-                self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
@@ -176,10 +175,10 @@ class TestConvol(unittest.TestCase):
             ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis=0, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
-            if ksize % 2 == 0:  #we have a problem with even kernels !!!
-                self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
+            if ksize % 2 == 0:  # we have a problem with even kernels !!!
+                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
-                self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
@@ -204,13 +203,13 @@ class TestConvol(unittest.TestCase):
             k2.wait()
             t1 = time.time()
             ref = my_blur(self.input, gaussian)
-#            ref = scipy.ndimage.filters.gaussian_filter(self.input, sigma, mode="reflect")
+            # ref = scipy.ndimage.filters.gaussian_filter(self.input, sigma, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
-            if ksize % 2 == 0:  #we have a problem with even kernels !!!
-                self.assert_(delta < 50, "sigma= %s delta=%s" % (sigma, delta))
+            if ksize % 2 == 0:  # we have a problem with even kernels !!!
+                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
             else:
-                self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))

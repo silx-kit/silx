@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,16 @@
 #
 # ############################################################################*/
 
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "22/06/2016"
 
+
 import os.path
 
-import numpy
-
 from numpy.distutils.misc_util import Configuration
+
 
 def configuration(parent_package='', top_path=None):
     config = Configuration('fit', parent_package, top_path)
@@ -41,7 +42,7 @@ def configuration(parent_package='', top_path=None):
     # =====================================
     fun_src = [os.path.join('functions', "src", "funs.c"),
                "functions.pyx"]
-    fun_inc = [os.path.join('functions', 'include'), numpy.get_include()]
+    fun_inc = [os.path.join('functions', 'include')]
 
     config.add_extension('functions',
                          sources=fun_src,
@@ -55,7 +56,7 @@ def configuration(parent_package='', top_path=None):
                 for srcf in ["smoothnd.c", "snip1d.c",
                              "snip2d.c", "snip3d.c", "strip.c"]]
     filt_src.append("filters.pyx")
-    filt_inc = [os.path.join('filters', 'include'), numpy.get_include()]
+    filt_inc = [os.path.join('filters', 'include')]
 
     config.add_extension('filters',
                          sources=filt_src,
@@ -67,7 +68,7 @@ def configuration(parent_package='', top_path=None):
     # =====================================
     peaks_src = [os.path.join('peaks', "src", "peaks.c"),
                  "peaks.pyx"]
-    peaks_inc = [os.path.join('peaks', 'include'), numpy.get_include()]
+    peaks_inc = [os.path.join('peaks', 'include')]
 
     config.add_extension('peaks',
                          sources=peaks_src,

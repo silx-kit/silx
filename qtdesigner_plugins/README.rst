@@ -1,7 +1,7 @@
 Using silx widgets in Qt Designer
 =================================
 
-With PyQt_, it is possible to use ``silx.gui`` widgets (and widgets written with PyQt in general) from the `Qt Designer`_.
+It is possible to use ``silx.gui`` widgets (and in general widgets based on PyQt) from the `Qt Designer`_.
 
 The following ``silx.gui`` widgets are available in the Qt Designer:
 
@@ -19,19 +19,19 @@ The following software must be installed:
 - Python_.
 - PyQt_ with the designer plugin.
 - The ``silx`` Python package and its dependencies.
-  :mod:`silx.gui.plot` widgets requires matplotlib_.
+  :mod:`silx.gui.plot` widgets require matplotlib_.
 
 Usage
 -----
 
-The **PYQTDESIGNERPATH** environment variable defines the search paths for plugins enabling use of PyQt widgets in the designer.
+The **PYQTDESIGNERPATH** environment variable defines the search paths for plugins enabling the use of PyQt widgets in the Qt designer.
 
-To start the Qt Designer with ``silx.gui`` widgets available, on Linux, run the following from the command line::
+To access ``silx.gui`` widgets from within Qt designer, under Linux, type from the command line::
 
     PYQTDESIGNERPATH=<silx_designer_plugin_dir> designer
 
 
-See `Using Qt Designer <http://pyqt.sourceforge.net/Docs/PyQt5/designer.html>`_ in PyQt_ documentation.
+See `"using Qt Designer" <http://pyqt.sourceforge.net/Docs/PyQt5/designer.html>`_ in the PyQt_ documentation.
 
 .. _Qt: http://www.qt.io/
 .. _Python: https://www.python.org/

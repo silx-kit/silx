@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -195,8 +195,9 @@ class Text2D(object):
 
         gl.glUniform1i(prog.uniforms['texText'], texUnit)
 
+        mat = numpy.dot(matrix, mat4Translate(int(self.x), int(self.y)))
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              matrix * mat4Translate(int(self.x), int(self.y)))
+                              mat.astype(numpy.float32))
 
         gl.glUniform4f(prog.uniforms['color'], *self.color)
         if self.bgColor is not None:

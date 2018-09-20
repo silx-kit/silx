@@ -28,17 +28,18 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/10/2017"
+__date__ = "24/04/2018"
 
 import numpy
 import weakref
 
 from silx.third_party import enum
 from .. import qt
-from ..plot.Colors import rgba
+from ..colors import rgba
 
 from .Plot3DWidget import Plot3DWidget
 from . import items
+from .items.core import RootGroupWithAxesItem
 from .scene import interaction
 from ._model import SceneModel, visitQAbstractItemModel
 from ._model.items import Item3DRow
@@ -363,7 +364,7 @@ class SceneWidget(Plot3DWidget):
         self._foregroundColor = 1., 1., 1., 1.
         self._highlightColor = 0.7, 0.7, 0., 1.
 
-        self._sceneGroup = items.GroupWithAxesItem(parent=self)
+        self._sceneGroup = RootGroupWithAxesItem(parent=self)
         self._sceneGroup.setLabel('Data')
 
         self.viewport.scene.children.append(self._sceneGroup._getScenePrimitive())
@@ -567,7 +568,7 @@ class SceneWidget(Plot3DWidget):
 
     def clearItems(self):
         """Remove all item from :class:`SceneWidget`."""
-        return self.getSceneGroup().clear()
+        return self.getSceneGroup().clearItems()
 
     # Colors
 

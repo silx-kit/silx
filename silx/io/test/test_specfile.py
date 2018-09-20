@@ -184,7 +184,7 @@ class TestSpecFile(unittest.TestCase):
     def test_open(self):
         self.assertIsInstance(self.sf, SpecFile)
         with self.assertRaises(specfile.SfErrFileOpen):
-            sf2 = SpecFile("doesnt_exist.dat")
+            SpecFile("doesnt_exist.dat")
 
         # test filename types unicode and bytes
         if sys.version_info[0] < 3:
@@ -208,7 +208,7 @@ class TestSpecFile(unittest.TestCase):
 
     def test_number_of_scans(self):
         self.assertEqual(4, len(self.sf))
-        
+
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sf.list(),
                          [1, 25, 26, 1])
@@ -216,14 +216,14 @@ class TestSpecFile(unittest.TestCase):
                          ["1.1", "25.1", "26.1", "1.2"])
 
     def test_index_number_order(self):
-        self.assertEqual(self.sf.index(1, 2), 3)  #sf["1.2"]==sf[3]
-        self.assertEqual(self.sf.number(1), 25)   #sf[1]==sf["25"]
-        self.assertEqual(self.sf.order(3), 2)     #sf[3]==sf["1.2"]
+        self.assertEqual(self.sf.index(1, 2), 3)  # sf["1.2"]==sf[3]
+        self.assertEqual(self.sf.number(1), 25)   # sf[1]==sf["25"]
+        self.assertEqual(self.sf.order(3), 2)     # sf[3]==sf["1.2"]
         with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(3, 2)
         with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(99)
-        
+
     def test_getitem(self):
         self.assertIsInstance(self.sf[2], Scan)
         self.assertIsInstance(self.sf["1.2"], Scan)
@@ -233,12 +233,12 @@ class TestSpecFile(unittest.TestCase):
         # float indexing not allowed
         with self.assertRaisesRegexp(TypeError, 'The scan identification k'):
             self.sf[1.2]
-        # non existant scan with "N.M" indexing 
+        # non existant scan with "N.M" indexing
         with self.assertRaises(KeyError):
             self.sf["3.2"]
 
     def test_specfile_iterator(self):
-        i=0
+        i = 0
         for scan in self.sf:
             if i == 1:
                 self.assertEqual(scan.motor_positions,
@@ -277,7 +277,7 @@ class TestSpecFile(unittest.TestCase):
         Epoch"""
         self.assertEqual(self.scan1_2.header[1],
                          '#E 1455180876')
-        
+
     def test_scan_labels(self):
         self.assertEqual(self.scan1.labels,
                          ['first column', 'second column', '3rd_col'])
@@ -343,7 +343,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(sum(self.scan1_2.mca[2]), 21.7)
 
         # Negative indexing
-        self.assertEqual(sum(self.scan1_2.mca[len(self.scan1_2.mca)-1]),
+        self.assertEqual(sum(self.scan1_2.mca[len(self.scan1_2.mca) - 1]),
                          sum(self.scan1_2.mca[-1]))
 
         # Test iterator

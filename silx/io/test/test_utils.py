@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ expected_spec1 = r"""#F .*
 3  6\.00
 """
 
-expected_spec2 = expected_spec1 + """
+expected_spec2 = expected_spec1 + r"""
 #S 2 Ordinate2
 #D .*
 #N 2
@@ -362,14 +362,14 @@ class TestOpen(unittest.TestCase):
         f = utils.open(self.spec_filename)
         self.assertIsNotNone(f)
         if h5py is not None:
-            self.assertEquals(f.h5py_class, h5py.File)
+            self.assertEqual(f.h5py_class, h5py.File)
         f.close()
 
     def testSpecWith(self):
         with utils.open(self.spec_filename) as f:
             self.assertIsNotNone(f)
             if h5py is not None:
-                self.assertEquals(f.h5py_class, h5py.File)
+                self.assertEqual(f.h5py_class, h5py.File)
 
     def testEdf(self):
         if h5py is None:
@@ -379,7 +379,7 @@ class TestOpen(unittest.TestCase):
 
         f = utils.open(self.edf_filename)
         self.assertIsNotNone(f)
-        self.assertEquals(f.h5py_class, h5py.File)
+        self.assertEqual(f.h5py_class, h5py.File)
         f.close()
 
     def testEdfWith(self):
@@ -390,7 +390,7 @@ class TestOpen(unittest.TestCase):
 
         with utils.open(self.edf_filename) as f:
             self.assertIsNotNone(f)
-            self.assertEquals(f.h5py_class, h5py.File)
+            self.assertEqual(f.h5py_class, h5py.File)
 
     def testUnsupported(self):
         self.assertRaises(IOError, utils.open, self.txt_filename)

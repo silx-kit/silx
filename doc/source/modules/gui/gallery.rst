@@ -75,13 +75,20 @@ Widgets gallery
    * - .. image:: dialog/img/datafiledialog.png
          :height: 150px
          :align: center
-     - :class:`DataFileDialog` is a dialog that allow users to select
-       any datasets or groups from an HDF5-like file.
+     - :class:`DataFileDialog` is a dialog that allows users to select
+       any datasets or groups from any HDF5-like file. It features a file
+       browser that can also browse the content of HDF5 file as if they were
+       directories.
    * - .. image:: dialog/img/imagefiledialog_h5.png
          :height: 150px
          :align: center
-     - :class:`ImageFileDialog` is a dialog that allow users to select
-       an image from an HDF5-like file.
+     - :class:`ImageFileDialog` is a dialog that allows users to select
+       an image from any HDF5-like file.
+   * - .. image:: dialog/img/groupdialog.png
+         :height: 150px
+         :align: center
+     - :class:`GroupDialog` is a dialog that allows users to select
+       a group from one or several specified HDF5-like files.
 
 
 :mod:`silx.gui.fit` Widgets
@@ -179,7 +186,14 @@ Plotting widgets:
        2D dataset of complex data.
        It allows to switch between viewing amplitude, phase, real, imaginary,
        colored phase with amplitude or log10(amplitude) as brightness.
-
+   * - .. image:: plot/img/ScatterView.png
+          :height: 150px
+          :align: center
+     - :class:`CompareImages` is a widget dedicated to compare 2 images.
+   * - .. image:: plot/img/CompareImages.png
+          :height: 150px
+          :align: center
+     - :class:`CompareImages` is a widget dedicated to compare 2 images.
 
 Additional widgets:
 
@@ -204,6 +218,10 @@ Additional widgets:
           :align: center
      - :class:`.ColorBar.ColorBarWidget` display colormap gradient and can be linked with a plot
        to display the colormap
+   * - .. image:: plot/img/statsWidget.png
+          :height: 150px
+          :align: center
+     - :class:`.statsWidget.StatsWidget` display statistics on plot's items (curve, images...)
 
 .. _plot3d-gallery:
 
@@ -275,6 +293,11 @@ Additional widgets:
          :align: center
      - :class:`FrameBrowser.HorizontalSliderWithBrowser` is a :class:`FrameBrowser`
        with an additional slider.
+   * - .. image:: widgets/img/RangeSlider.png
+          :width: 150px
+          :align: center
+     - :class:`~silx.gui.widgets.RangeSlider.RangeSlider` is a slider with 2 thumbs dedicated
+       to the interactive selection of an interval.
    * - .. image:: widgets/img/PeriodicCombo.png
          :width: 150px
          :align: center

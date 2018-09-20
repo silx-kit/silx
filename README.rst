@@ -5,7 +5,7 @@ silx toolkit
 The purpose of the *silx* project is to provide a collection of Python packages to support the
 development of data assessment, reduction and analysis applications at synchrotron
 radiation facilities.
-It aims at providing reading/writing different file formats, data reduction routines
+*silx* aims to provide reading/writing tools for different file formats, data reduction routines
 and a set of Qt widgets to browse and visualise data.
 
 The current version features:
@@ -33,12 +33,18 @@ The current version features:
 Installation
 ------------
 
-To install silx, run:
+To install silx (and all its dependencies), run:
 
-.. code-block:: bash 
- 
+ .. code-block:: bash
+
+    pip install silx[full]
+
+To install silx with a minimal set of dependencies, run:
+
+.. code-block:: bash
+
     pip install silx
-    
+
 Or using Anaconda on Linux and MacOS:
 
 .. code-block:: bash 
@@ -94,8 +100,8 @@ Citation
 *silx* releases can be cited via their DOI on Zenodo: |zenodo DOI|
 
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
-   :target: https://travis-ci.org/silx-kit/silx
+   :target: https://travis-ci.org/silx-kit/silx?branch=master
 .. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/ESRF/silx
+   :target: https://ci.appveyor.com/project/ESRF/silx?branch=master
 .. |zenodo DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591709.svg
    :target: https://doi.org/10.5281/zenodo.591709

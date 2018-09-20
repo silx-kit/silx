@@ -38,7 +38,7 @@ be user defined, or by default are loaded from
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/02/2017"
+__date__ = "17/07/2018"
 
 import logging
 import sys
@@ -315,8 +315,8 @@ class FitWidget(qt.QWidget):
         configuration.update(self.configure())
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
-        warnings.warn("Method renamed to setData",
-                      DeprecationWarning)
+        warnings.warning("Method renamed to setData",
+                         DeprecationWarning)
         self.setData(x, y, sigmay, xmin, xmax)
 
     def setData(self, x, y, sigmay=None, xmin=None, xmax=None):
@@ -525,8 +525,8 @@ class FitWidget(qt.QWidget):
         self._emitSignal(ddict)
 
     def startfit(self):
-        warnings.warn("Method renamed to startFit",
-                      DeprecationWarning)
+        warnings.warning("Method renamed to startFit",
+                         DeprecationWarning)
         self.startFit()
 
     def startFit(self):

@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "03/07/2018"
 
 
 import unittest
@@ -50,7 +50,7 @@ import silx.io.url
 from silx.gui import qt
 from silx.gui.test import utils
 from ..ImageFileDialog import ImageFileDialog
-from silx.gui.plot.Colormap import Colormap
+from silx.gui.colors import Colormap
 from silx.gui.hdf5 import Hdf5TreeModel
 
 _tmpDirectory = None
@@ -80,6 +80,18 @@ def setUpModule():
 
     if h5py is not None:
         filename = _tmpDirectory + "/data.h5"
+        f = h5py.File(filename, "w")
+        f["scalar"] = 10
+        f["image"] = data
+        f["cube"] = [data, data + 1, data + 2]
+        f["complex_image"] = data * 1j
+        f["group/image"] = data
+        f.close()
+
+    if h5py is not None:
+        directory = os.path.join(_tmpDirectory, "data")
+        os.mkdir(directory)
+        filename = os.path.join(directory, "data.h5")
         f = h5py.File(filename, "w")
         f["scalar"] = 10
         f["image"] = data
@@ -129,7 +141,7 @@ class _UtilsMixin(object):
         path2_ = os.path.normcase(path2)
         if path1_ != path2_:
             # Use the unittest API to log and display error
-            self.assertEquals(path1, path2)
+            self.assertEqual(path1, path2)
 
     def assertNotSamePath(self, path1, path2):
         path1_ = os.path.normcase(path1)
@@ -153,7 +165,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         self.keyClick(dialog, qt.Qt.Key_Escape)
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickCancel(self):
         dialog = self.createDialog()
@@ -165,7 +177,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.mouseClick(button, qt.Qt.LeftButton)
         self.assertFalse(dialog.isVisible())
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickLockedOpen(self):
         dialog = self.createDialog()
@@ -177,7 +189,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.mouseClick(button, qt.Qt.LeftButton)
         # open button locked, dialog is not closed
         self.assertTrue(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Rejected)
+        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickOpen(self):
         if fabio is None:
@@ -194,7 +206,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
         self.assertFalse(dialog.isVisible())
-        self.assertEquals(dialog.result(), qt.QDialog.Accepted)
+        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testClickOnShortcut(self):
         dialog = self.createDialog()
@@ -256,7 +268,7 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = utils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
         toParentButton = utils.getQToolButtonFromAction(action)
-        filename = _tmpDirectory + "/data.h5"
+        filename = _tmpDirectory + "/data/data.h5"
 
         # init state
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
@@ -272,11 +284,11 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory)
+        self.assertSamePath(url.text(), _tmpDirectory + "/data")
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), os.path.dirname(_tmpDirectory))
+        self.assertSamePath(url.text(), _tmpDirectory)
 
     def testClickOnBackToRootTool(self):
         if h5py is None:
@@ -540,21 +552,21 @@ class TestImageFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 5)
+        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 6)
 
         codecName = fabio.edfimage.EdfImage.codec_name()
         index = filters.indexFromCodec(codecName)
         filters.setCurrentIndex(index)
         filters.activated[int].emit(index)
         self.qWait(50)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 3)
+        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 4)
 
         codecName = fabio.fit2dmaskimage.Fit2dMaskImage.codec_name()
         index = filters.indexFromCodec(codecName)
         filters.setCurrentIndex(index)
         filters.activated[int].emit(index)
         self.qWait(50)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 1)
+        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 2)
 
 
 class TestImageFileDialogApi(utils.TestCaseQt, _UtilsMixin):

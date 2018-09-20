@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a few simple Qt widgets that rely only on a Qt wrapper
-for Python (PyQt5, PyQt4 or PySide). No other optional dependencies of *silx*
-should be required."""
+"""This package provides a few simple Qt widgets that rely only on a Qt binding for Python.
+
+No other optional dependencies of *silx* should be required."""

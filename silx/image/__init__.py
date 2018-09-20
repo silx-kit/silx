@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,12 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
+"""This package provides some processing functions for 2D images.
+
+For more processing functions, see the silx.math and silx.opencl packages.
+
+See silx documentation: http://www.silx.org/doc/silx/latest/
+"""
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"

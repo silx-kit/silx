@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,11 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""This package embeds a few dependency of silx.
+
+This is meant for internal use.
+"""
+
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"

@@ -11,3 +11,4 @@
    histogram.rst
    medianfilter.rst
    combo.rst
+   colormap.rst

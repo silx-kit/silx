@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +24,15 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/11/2017"
+__date__ = "24/04/2018"
 
 
 import logging
 import os
 import sys
 import unittest
-from silx.test.utils import test_options
 
+from silx.test.utils import test_options
 
 _logger = logging.getLogger(__name__)
 
@@ -73,12 +73,14 @@ def suite():
     from ..widgets import test as test_widgets
     from ..data import test as test_data
     from ..dialog import test as test_dialog
+    from ..utils import test as test_utils
+
     from . import test_qt
     # Console tests disabled due to corruption of python environment
     # (see issue #538 on github)
     # from . import test_console
     from . import test_icons
-    from . import test_utils
+    from . import test_colors
 
     try:
         from ..plot3d.test import suite as test_plot3d_suite
@@ -102,6 +104,7 @@ def suite():
     test_suite.addTest(test_widgets.suite())
     # test_suite.addTest(test_console.suite())   # see issue #538 on github
     test_suite.addTest(test_icons.suite())
+    test_suite.addTest(test_colors.suite())
     test_suite.addTest(test_data.suite())
     test_suite.addTest(test_utils.suite())
     test_suite.addTest(test_plot3d_suite())

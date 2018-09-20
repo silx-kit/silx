@@ -57,10 +57,14 @@ import numpy
 import silx.io
 from silx.io import is_dataset, is_group, is_softlink
 from silx.third_party import six
+try:
+    from silx.io import fabioh5
+except ImportError:
+    fabioh5 = None
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "17/07/2018"
 
 _logger = logging.getLogger(__name__)
 
@@ -88,11 +92,11 @@ def _create_link(h5f, link_name, target_name,
     if link_name not in h5f:
         _logger.debug("Creating link " + link_name + " -> " + target_name)
     elif overwrite_data:
-        _logger.warn("Overwriting " + link_name + " with link to " +
+        _logger.warning("Overwriting " + link_name + " with link to " +
                      target_name)
         del h5f[link_name]
     else:
-        _logger.warn(link_name + " already exist. Cannot create link to " +
+        _logger.warning(link_name + " already exist. Cannot create link to " +
                      target_name)
         return None
 
@@ -197,7 +201,6 @@ class Hdf5Writer(object):
     def append_member_to_h5(self, h5like_name, obj):
         """Add one group or one dataset to :attr:`h5f`"""
         h5_name = self.h5path + h5like_name.lstrip("/")
-
         if is_softlink(obj):
             # links to be created after all groups and datasets
             h5_target = self.h5path + obj.path.lstrip("/")
@@ -209,16 +212,28 @@ class Hdf5Writer(object):
             member_initially_exists = h5_name in self._h5f
 
             if self.overwrite_data and member_initially_exists:
-                _logger.warn("Overwriting dataset: " + h5_name)
+                _logger.warning("Overwriting dataset: " + h5_name)
                 del self._h5f[h5_name]
 
             if self.overwrite_data or not member_initially_exists:
-                # fancy arguments don't apply to small dataset
-                if obj.size < self.min_size:
-                    ds = self._h5f.create_dataset(h5_name, data=obj.value)
-                else:
-                    ds = self._h5f.create_dataset(h5_name, data=obj.value,
+                if fabioh5 is not None and \
+                        isinstance(obj, fabioh5.FrameData) and \
+                        len(obj.shape) > 2:
+                    # special case of multiframe data
+                    # write frame by frame to save memory usage low
+                    ds = self._h5f.create_dataset(h5_name,
+                                                  shape=obj.shape,
+                                                  dtype=obj.dtype,
                                                   **self.create_dataset_args)
+                    for i, frame in enumerate(obj):
+                        ds[i] = frame
+                else:
+                    # fancy arguments don't apply to small dataset
+                    if obj.size < self.min_size:
+                        ds = self._h5f.create_dataset(h5_name, data=obj.value)
+                    else:
+                        ds = self._h5f.create_dataset(h5_name, data=obj.value,
+                                                      **self.create_dataset_args)
             else:
                 ds = self._h5f[h5_name]
 
@@ -229,7 +244,7 @@ class Hdf5Writer(object):
                                     _attr_utf8(obj.attrs[key]))
 
             if not self.overwrite_data and member_initially_exists:
-                _logger.warn("Not overwriting existing dataset: " + h5_name)
+                _logger.warning("Not overwriting existing dataset: " + h5_name)
 
         elif is_group(obj):
             if h5_name not in self._h5f:

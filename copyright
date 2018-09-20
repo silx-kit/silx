@@ -3,7 +3,7 @@ Upstream-Name: silx
 Source: https://github.com/silx-kit/silx
 
 Files: *
-Copyright: 2004-2017 European Synchrotron Radiation Facility
+Copyright: 2004-2018 European Synchrotron Radiation Facility
            Data analysis unit (silx@esrf.fr) 
 License: MIT
 
@@ -18,6 +18,10 @@ License: CC0
 Files: silx/gui/_pyside_dynamic.py
 Copyright: 2011 Sebastian Wiesner <lunaryorn@gmail.com>
            Modifications by Charl Botha <cpbotha@vxlabs.com>
+License: MIT
+
+Files: silx/third_party/modest_image.py
+Copyright: 2013 Chris Beaumont
 License: MIT
 
 License: MIT

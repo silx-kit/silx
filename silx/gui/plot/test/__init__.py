@@ -24,24 +24,21 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/11/2017"
+__date__ = "23/07/2018"
 
 
 import unittest
 
 from .._utils import test
 from . import testColorBar
-from . import testColormap
-from . import testColormapDialog
-from . import testColors
 from . import testCurvesROIWidget
+from . import testStats
 from . import testAlphaSlider
 from . import testInteraction
 from . import testLegendSelector
 from . import testMaskToolsWidget
 from . import testScatterMaskToolsWidget
 from . import testPlotInteraction
-from . import testTools
 from . import testPlotWidgetNoBackend
 from . import testPlotWidget
 from . import testPlotWindow
@@ -53,16 +50,22 @@ from . import testLimitConstraints
 from . import testComplexImageView
 from . import testImageView
 from . import testSaveAction
+from . import testScatterView
+from . import testPixelIntensityHistoAction
+from . import testCompareImages
 
 
 def suite():
+    # Lazy-loading to avoid cyclic reference
+    from ..tools import test as testTools
+
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         [test.suite(),
+         testTools.suite(),
          testColorBar.suite(),
-         testColors.suite(),
-         testColormapDialog.suite(),
          testCurvesROIWidget.suite(),
+         testStats.suite(),
          testAlphaSlider.suite(),
          testInteraction.suite(),
          testLegendSelector.suite(),
@@ -70,16 +73,18 @@ def suite():
          testScatterMaskToolsWidget.suite(),
          testPlotInteraction.suite(),
          testPlotWidgetNoBackend.suite(),
-         testTools.suite(),
          testPlotWidget.suite(),
          testPlotWindow.suite(),
          testProfile.suite(),
          testStackView.suite(),
-         testColormap.suite(),
          testItem.suite(),
          testUtilsAxis.suite(),
          testLimitConstraints.suite(),
          testComplexImageView.suite(),
          testImageView.suite(),
-         testSaveAction.suite()])
+         testSaveAction.suite(),
+         testScatterView.suite(),
+         testPixelIntensityHistoAction.suite(),
+         testCompareImages.suite()
+        ])
     return test_suite

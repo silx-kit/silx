@@ -49,6 +49,7 @@ from silx.gui.plot.ImageView import ImageViewMainWindow
 from silx.gui import qt
 import numpy
 
+logging.basicConfig()
 logger = logging.getLogger(__name__)
 
 

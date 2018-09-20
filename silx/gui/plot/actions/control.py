@@ -50,12 +50,11 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "24/04/2018"
 
 from . import PlotAction
 import logging
 from silx.gui.plot import items
-from silx.gui.plot.ColormapDialog import ColormapDialog
 from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.gui import qt
 from silx.gui import icons
@@ -328,6 +327,7 @@ class ColormapAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.plot.sigActiveImageChanged.connect(self._updateColormap)
+        self.plot.sigActiveScatterChanged.connect(self._updateColormap)
 
     def setColorDialog(self, colorDialog):
         """Set a specific color dialog instead of using the default dialog."""
@@ -344,6 +344,7 @@ class ColormapAction(PlotAction):
         :parent QWidget parent: Parent of the new colormap
         :rtype: ColormapDialog
         """
+        from silx.gui.dialog.ColormapDialog import ColormapDialog
         dialog = ColormapDialog(parent=parent)
         dialog.setModal(False)
         return dialog
@@ -393,10 +394,19 @@ class ColormapAction(PlotAction):
 
         else:
             # No active image or active image is RGBA,
-            # set dialog from default info
-            colormap = self.plot.getDefaultColormap()
-            # Reset histogram and range if any
-            self._dialog.setData(None)
+            # Check for active scatter plot
+            scatter = self.plot._getActiveItem(kind='scatter')
+            if scatter is not None:
+                colormap = scatter.getColormap()
+                data = scatter.getValueData(copy=False)
+                self._dialog.setData(data)
+
+            else:
+                # No active data image nor scatter,
+                # set dialog from default info
+                colormap = self.plot.getDefaultColormap()
+                # Reset histogram and range if any
+                self._dialog.setData(None)
 
         self._dialog.setColormap(colormap)
 
@@ -408,7 +418,7 @@ class ColorBarAction(PlotAction):
     :param parent: See :class:`QAction`
     """
     def __init__(self, plot, parent=None):
-        self._dialog = None  # To store an instance of ColormapDialog
+        self._dialog = None  # To store an instance of ColorBar
         super(ColorBarAction, self).__init__(
             plot, icon='colorbar', text='Colorbar',
             tooltip="Show/Hide the colorbar",
@@ -591,3 +601,4 @@ class ShowAxisAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setAxesDisplayed(checked)
+

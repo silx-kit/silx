@@ -27,7 +27,7 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/12/2017"
+__date__ = "24/07/2018"
 
 import numpy
 import numbers
@@ -204,9 +204,15 @@ class TextFormatter(qt.QObject):
     def __formatBinary(self, data):
         if isinstance(data, numpy.void):
             if six.PY2:
-                data = [ord(d) for d in data.item()]
+                data = [ord(d) for d in data.data]
             else:
-                data = data.item().astype(numpy.uint8)
+                data = data.item()
+                if isinstance(data, numpy.ndarray):
+                    # Before numpy 1.15.0 the item API was returning a numpy array
+                    data = data.astype(numpy.uint8)
+                else:
+                    # Now it is supposed to be a bytes type
+                    pass
         elif six.PY2:
             data = [ord(d) for d in data]
             # In python3 data is already a bytes array
@@ -266,6 +272,8 @@ class TextFormatter(qt.QObject):
             elif vlen == six.binary_type:
                 # HDF5 ASCII
                 return self.__formatCharString(data)
+            elif isinstance(vlen, numpy.dtype):
+                return self.toString(data, vlen)
         return None
 
     def toString(self, data, dtype=None):
@@ -291,11 +299,17 @@ class TextFormatter(qt.QObject):
             else:
                 text = [self.toString(d, dtype) for d in data]
                 return "[" + " ".join(text) + "]"
+        if dtype is not None and dtype.kind == 'O':
+            text = self.__formatH5pyObject(data, dtype)
+            if text is not None:
+                return text
         elif isinstance(data, numpy.void):
             if dtype is None:
                 dtype = data.dtype
-            if data.dtype.fields is not None:
-                text = [self.toString(data[f], dtype) for f in dtype.fields]
+            if dtype.fields is not None:
+                text = []
+                for index, field in enumerate(dtype.fields.items()):
+                    text.append(field[0] + ":" + self.toString(data[index], field[1][0]))
                 return "(" + " ".join(text) + ")"
             return self.__formatBinary(data)
         elif isinstance(data, (numpy.unicode_, six.text_type)):
@@ -340,7 +354,7 @@ class TextFormatter(qt.QObject):
         elif isinstance(data, (numbers.Real, numpy.floating)):
             # It have to be done before complex checking
             return self.__floatFormat % data
-        elif isinstance(data, (numpy.complex_, numbers.Complex)):
+        elif isinstance(data, (numpy.complexfloating, numbers.Complex)):
             text = ""
             if data.real != 0:
                 text += self.__floatFormat % data.real

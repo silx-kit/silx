@@ -27,7 +27,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Test suite for algebra kernels 
+Test suite for algebra kernels
 """
 
 from __future__ import division, print_function
@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/09/2017"
+__date__ = "05/07/2018"
 
 import os
 import time
@@ -46,7 +46,6 @@ import numpy
 import unittest
 from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
-    import pyopencl
     import pyopencl.array
 from ..utils import calc_size, get_opencl_code
 logger = logging.getLogger(__name__)
@@ -136,7 +135,7 @@ class TestAlgebra(unittest.TestCase):
         t2 = time.time()
         delta = abs(ref - res).max()
         logger.debug("delta=%s" % delta)
-        self.assert_(delta < 1e-4, "delta=%s" % (delta))
+        self.assertLess(delta, 1e-4, "delta=%s" % (delta))
         if self.PROFILE:
             logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.debug("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
@@ -150,7 +149,7 @@ class TestAlgebra(unittest.TestCase):
         keypoints = numpy.random.rand(nbkeypoints, 4).astype(numpy.float32)
         nb_ones = 0
         for i in range(nbkeypoints):
-            if ((numpy.random.rand(1))[0] < 0.25): #discard about 1 out of 4
+            if ((numpy.random.rand(1))[0] < 0.25):  # discard about 1 out of 4
                 keypoints[i] = (-1, -1, i, -1)
                 nb_ones += 1
             else:
@@ -184,7 +183,7 @@ class TestAlgebra(unittest.TestCase):
         ref_sort_arg = ref[:, 2].argsort(axis=0)
         ref_sort = ref[ref_sort_arg]
         delta = abs((res_sort - ref_sort)).max()
-        self.assert_(delta < 1e-5, "delta=%s" % (delta))
+        self.assertLess(delta, 1e-5, "delta=%s" % (delta))
         self.assertEqual(count, count_ref, "counters are the same")
         logger.debug("delta=%s", delta)
         if self.PROFILE:

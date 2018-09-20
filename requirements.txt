@@ -3,21 +3,21 @@
 
 --trusted-host www.silx.org
 --find-links http://www.silx.org/pub/wheelhouse/
---only-binary numpy,h5py,scipy,PyQt4,PyQt5,PySide
+--only-binary numpy,h5py,scipy,PyQt4,PyQt5
 
 numpy >= 1.8
 scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
-fabio >= 0.6              # For silx.io
+fabio >= 0.7              # For silx.io
 h5py                      # For silx.io
-pyopencl                  # For silx.opencl
+pyopencl; platform_machine in "i386, x86_64"  # For silx.opencl
 Mako                      # For pyopencl reduction
-ipython                   # For silx.gui.console
 qtconsole                 # For silx.gui.console
 matplotlib >= 1.2.0       # For silx.gui.plot
 PyOpenGL                  # For silx.gui.plot3d
-Pillow                    # for silx.opencl.image.test
+Pillow                    # For silx.opencl.image.test
+python-dateutil           # For silx.gui.plot
 
-# PyQt4, PyQt5 or PySide  # For silx.gui
+# PyQt5, PySide2 or PyQt4 # For silx.gui
 # Try to install a Qt binding from a wheel
 # This is no available for all configurations
 

@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/01/2018"
+__date__ = "25/06/2018"
 
 
 import os
@@ -45,17 +45,15 @@ import unittest
 import time
 import logging
 import numpy
-from silx.third_party import six
 try:
-    import scipy
-except ImportError:
-    scipy = None
-else:
     import scipy.misc
     import scipy.ndimage
+except ImportError:
+    scipy = None
+
 from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl.array
 # for Python implementation of tested functions
 # from .test_image_functions import
 # from .test_image_setup import
@@ -125,7 +123,7 @@ class TestTransform(unittest.TestCase):
         # ---------------
         matrix = numpy.array([[1.0, -0.75], [0.7, 0.5]], dtype=numpy.float32)
         offset_value = numpy.array([250.0, -150.0], dtype=numpy.float32)
-        transformation = lambda img : scipy.ndimage.interpolation.affine_transform(img, matrix, offset=offset_value, order=1, mode="constant")
+        transformation = lambda img: scipy.ndimage.interpolation.affine_transform(img, matrix, offset=offset_value, order=1, mode="constant")
         image_transformed = transformation(self.image)
 
         fill_value = numpy.float32(0.0)
@@ -203,4 +201,3 @@ def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestTransform("test_transform"))
     return testSuite
-

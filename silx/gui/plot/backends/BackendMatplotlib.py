@@ -28,12 +28,14 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "18/10/2017"
+__date__ = "01/08/2018"
 
 
 import logging
-
+import datetime as dt
 import numpy
+
+from pkg_resources import parse_version as _parse_version
 
 
 _logger = logging.getLogger(__name__)
@@ -42,7 +44,6 @@ _logger = logging.getLogger(__name__)
 from ... import qt
 
 # First of all init matplotlib and set its backend
-from ..matplotlib import Colormap as MPLColormap
 from ..matplotlib import FigureCanvasQTAgg
 import matplotlib
 from matplotlib.container import Container
@@ -52,10 +53,102 @@ from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
+from matplotlib.ticker import Formatter, ScalarFormatter, Locator
 
-from ..matplotlib.ModestImage import ModestImage
+
+from ....third_party.modest_image import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
+from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
+
+
+
+class NiceDateLocator(Locator):
+    """
+    Matplotlib Locator that uses Nice Numbers algorithm (adapted to dates)
+    to find the tick locations. This results in the same number behaviour
+    as when using the silx Open GL backend.
+
+    Expects the data to be posix timestampes (i.e. seconds since 1970)
+    """
+    def __init__(self, numTicks=5, tz=None):
+        """
+        :param numTicks: target number of ticks
+        :param datetime.tzinfo tz: optional time zone. None is local time.
+        """
+        super(NiceDateLocator, self).__init__()
+        self.numTicks = numTicks
+
+        self._spacing = None
+        self._unit = None
+        self.tz = tz
+
+    @property
+    def spacing(self):
+        """ The current spacing. Will be updated when new tick value are made"""
+        return self._spacing
+
+    @property
+    def unit(self):
+        """ The current DtUnit. Will be updated when new tick value are made"""
+        return self._unit
+
+    def __call__(self):
+        """Return the locations of the ticks"""
+        vmin, vmax = self.axis.get_view_interval()
+        return self.tick_values(vmin, vmax)
+
+    def tick_values(self, vmin, vmax):
+        """ Calculates tick values
+        """
+        if vmax < vmin:
+            vmin, vmax = vmax, vmin
+
+        # vmin and vmax should be timestamps (i.e. seconds since 1 Jan 1970)
+        dtMin = dt.datetime.fromtimestamp(vmin, tz=self.tz)
+        dtMax = dt.datetime.fromtimestamp(vmax, tz=self.tz)
+        dtTicks, self._spacing, self._unit = \
+            calcTicks(dtMin, dtMax, self.numTicks)
+
+        # Convert datetime back to time stamps.
+        ticks = [timestamp(dtTick) for dtTick in dtTicks]
+        return ticks
+
+
+
+class NiceAutoDateFormatter(Formatter):
+    """
+    Matplotlib FuncFormatter that is linked to a NiceDateLocator and gives the
+    best possible formats given the locators current spacing an date unit.
+    """
+
+    def __init__(self, locator, tz=None):
+        """
+        :param niceDateLocator: a NiceDateLocator object
+        :param datetime.tzinfo tz: optional time zone. None is local time.
+        """
+        super(NiceAutoDateFormatter, self).__init__()
+        self.locator = locator
+        self.tz = tz
+
+    @property
+    def formatString(self):
+        if self.locator.spacing is None or self.locator.unit is None:
+            # Locator has no spacing or units yet. Return elaborate fmtString
+            return "Y-%m-%d %H:%M:%S"
+        else:
+            return bestFormatString(self.locator.spacing, self.locator.unit)
+
+
+    def __call__(self, x, pos=None):
+        """Return the format for tick val *x* at position *pos*
+           Expects x to be a POSIX timestamp (seconds since 1 Jan 1970)
+        """
+        dateTime = dt.datetime.fromtimestamp(x, tz=self.tz)
+        tickStr = dateTime.strftime(self.formatString)
+        return tickStr
+
+
 
 
 class _MarkerContainer(Container):
@@ -130,6 +223,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
         self._axesDisplayed = True
+        self._matplotlibVersion = _parse_version(matplotlib.__version__)
 
         self.fig = Figure()
         self.fig.set_facecolor("w")
@@ -153,7 +247,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_autoscaley_on(True)
         self.ax.set_zorder(1)
         # this works but the figure color is left
-        if matplotlib.__version__[0] < '2':
+        if self._matplotlibVersion < _parse_version('2'):
             self.ax.set_axis_bgcolor('none')
         else:
             self.ax.set_facecolor('none')
@@ -165,9 +259,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._colormaps = {}
 
         self._graphCursor = tuple()
-        self.matplotlibVersion = matplotlib.__version__
 
         self._enableAxis('right', False)
+        self._isXAxisTimeSeries = False
 
     # Add methods
 
@@ -235,7 +329,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                    color=actualColor,
                                    marker=symbol,
                                    picker=picker,
-                                   s=symbolsize)
+                                   s=symbolsize**2)
             artists.append(scatter)
 
             if fill:
@@ -286,7 +380,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # No transparent colormap with matplotlib < 1.2.0
         # Add support for transparent colormap for uint8 data with
         # colormap with 256 colors, linear norm, [0, 255] range
-        if matplotlib.__version__ < '1.2.0':
+        if self._matplotlibVersion < _parse_version('1.2.0'):
             if (len(data.shape) == 2 and colormap.getName() is None and
                     colormap.getColormapLUT() is not None):
                 colors = colormap.getColormapLUT()
@@ -313,29 +407,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             imageClass = AxesImage
 
-        # the normalization can be a source of time waste
-        # Two possibilities, we receive data or a ready to show image
-        if len(data.shape) == 3:  # RGBA image
-            image = imageClass(self.ax,
-                               label="__IMAGE__" + legend,
-                               interpolation='nearest',
-                               picker=picker,
-                               zorder=z,
-                               origin='lower')
+        # All image are shown as RGBA image
+        image = imageClass(self.ax,
+                           label="__IMAGE__" + legend,
+                           interpolation='nearest',
+                           picker=picker,
+                           zorder=z,
+                           origin='lower')
 
-        else:
-            # Convert colormap argument to matplotlib colormap
-            scalarMappable = MPLColormap.getScalarMappable(colormap, data)
-
-            # try as data
-            image = imageClass(self.ax,
-                               label="__IMAGE__" + legend,
-                               interpolation='nearest',
-                               cmap=scalarMappable.cmap,
-                               picker=picker,
-                               zorder=z,
-                               norm=scalarMappable.norm,
-                               origin='lower')
         if alpha < 1:
             image.set_alpha(alpha)
 
@@ -359,13 +438,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
             ystep = 1 if scale[1] >= 0. else -1
             data = data[::ystep, ::xstep]
 
-        if matplotlib.__version__ < "2.1":
+        if self._matplotlibVersion < _parse_version('2.1'):
             # matplotlib 1.4.2 do not support float128
             dtype = data.dtype
             if dtype.kind == "f" and dtype.itemsize >= 16:
                 _logger.warning("Your matplotlib version do not support "
-                                "float128. Data converted to floa64.")
+                                "float128. Data converted to float64.")
                 data = data.astype(numpy.float64)
+
+        if data.ndim == 2:  # Data image, convert to RGBA image
+            data = colormap.applyToData(data)
 
         image.set_data(data)
 
@@ -437,7 +519,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint):
+                  symbol, linestyle, linewidth, constraint):
         legend = "__MARKER__" + legend
 
         textArtist = None
@@ -465,7 +547,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                           verticalalignment=valign)
 
         elif x is not None:
-            line = self.ax.axvline(x, label=legend, color=color)
+            line = self.ax.axvline(x,
+                                   label=legend,
+                                   color=color,
+                                   linewidth=linewidth,
+                                   linestyle=linestyle)
             if text is not None:
                 # Y position will be updated in updateMarkerText call
                 textArtist = self.ax.text(x, 1., " " + text,
@@ -474,7 +560,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                           verticalalignment='top')
 
         elif y is not None:
-            line = self.ax.axhline(y, label=legend, color=color)
+            line = self.ax.axhline(y,
+                                   label=legend,
+                                   color=color,
+                                   linewidth=linewidth,
+                                   linestyle=linestyle)
 
             if text is not None:
                 # X position will be updated in updateMarkerText call
@@ -671,11 +761,39 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Graph axes
 
+    def setXAxisTimeZone(self, tz):
+        super(BackendMatplotlib, self).setXAxisTimeZone(tz)
+
+        # Make new formatter and locator with the time zone.
+        self.setXAxisTimeSeries(self.isXAxisTimeSeries())
+
+    def isXAxisTimeSeries(self):
+        return self._isXAxisTimeSeries
+
+    def setXAxisTimeSeries(self, isTimeSeries):
+        self._isXAxisTimeSeries = isTimeSeries
+        if self._isXAxisTimeSeries:
+            # We can't use a matplotlib.dates.DateFormatter because it expects
+            # the data to be in datetimes. Silx works internally with
+            # timestamps (floats).
+            locator = NiceDateLocator(tz=self.getXAxisTimeZone())
+            self.ax.xaxis.set_major_locator(locator)
+            self.ax.xaxis.set_major_formatter(
+                NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone()))
+        else:
+            try:
+                scalarFormatter = ScalarFormatter(useOffset=False)
+            except:
+                _logger.warning('Cannot disabled axes offsets in %s ' %
+                                matplotlib.__version__)
+                scalarFormatter = ScalarFormatter()
+            self.ax.xaxis.set_major_formatter(scalarFormatter)
+
     def setXAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
         # to log scale with both limits <= 0
         # In this case a draw with positive limits is needed first
-        if flag and matplotlib.__version__ >= '2.1.0':
+        if flag and self._matplotlibVersion >= _parse_version('2.1.0'):
             xlim = self.ax.get_xlim()
             if xlim[0] <= 0 and xlim[1] <= 0:
                 self.ax.set_xlim(1, 10)
@@ -685,15 +803,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.set_xscale('log' if flag else 'linear')
 
     def setYAxisLogarithmic(self, flag):
-        # Workaround for matplotlib 2.1.0 when one tries to set an axis
-        # to log scale with both limits <= 0
-        # In this case a draw with positive limits is needed first
-        if flag and matplotlib.__version__ >= '2.1.0':
+        # Workaround for matplotlib 2.0 issue with negative bounds
+        # before switching to log scale
+        if flag and self._matplotlibVersion >= _parse_version('2.0.0'):
             redraw = False
-            for axis in (self.ax, self.ax2):
+            for axis, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
                 ylim = axis.get_ylim()
-                if ylim[0] <= 0 and ylim[1] <= 0:
-                    axis.set_ylim(1, 10)
+                if ylim[0] <= 0 or ylim[1] <= 0:
+                    dataRange = self._plot.getDataRange()[dataRangeIndex]
+                    if dataRange is None:
+                        dataRange = 1, 100  # Fallback
+                    axis.set_ylim(*dataRange)
                     redraw = True
             if redraw:
                 self.draw()
@@ -722,15 +842,30 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Data <-> Pixel coordinates conversion
 
+    def _mplQtYAxisCoordConversion(self, y):
+        """Qt origin (top) to/from matplotlib origin (bottom) conversion.
+
+        :rtype: float
+        """
+        height = self.fig.get_window_extent().height
+        return height - y
+
     def dataToPixel(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
 
         pixels = ax.transData.transform_point((x, y))
         xPixel, yPixel = pixels.T
+
+        # Convert from matplotlib origin (bottom) to Qt origin (top)
+        yPixel = self._mplQtYAxisCoordConversion(yPixel)
+
         return xPixel, yPixel
 
     def pixelToData(self, x, y, axis, check):
         ax = self.ax2 if axis == "right" else self.ax
+
+        # Convert from Qt origin (top) to matplotlib origin (bottom)
+        y = self._mplQtYAxisCoordConversion(y)
 
         inv = ax.transData.inverted()
         x, y = inv.transform_point((x, y))
@@ -745,12 +880,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return x, y
 
     def getPlotBoundsInPixels(self):
-        bbox = self.ax.get_window_extent().transformed(
-            self.fig.dpi_scale_trans.inverted())
-        dpi = self.fig.dpi
+        bbox = self.ax.get_window_extent()
         # Warning this is not returning int...
-        return (bbox.bounds[0] * dpi, bbox.bounds[1] * dpi,
-                bbox.bounds[2] * dpi, bbox.bounds[3] * dpi)
+        return (bbox.xmin,
+                self._mplQtYAxisCoordConversion(bbox.ymax),
+                bbox.width,
+                bbox.height)
 
     def setAxesDisplayed(self, displayed):
         """Display or not the axes.
@@ -822,7 +957,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def _onMousePress(self, event):
         self._plot.onMousePress(
-            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
+            event.x, self._mplQtYAxisCoordConversion(event.y),
+            self._MPL_TO_PLOT_BUTTONS[event.button])
 
     def _onMouseMove(self, event):
         if self._graphCursor:
@@ -839,14 +975,17 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                 self._plot._setDirtyPlot(overlayOnly=True)
             # onMouseMove must trigger replot if dirty flag is raised
 
-        self._plot.onMouseMove(event.x, event.y)
+        self._plot.onMouseMove(
+            event.x, self._mplQtYAxisCoordConversion(event.y))
 
     def _onMouseRelease(self, event):
         self._plot.onMouseRelease(
-            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
+            event.x, self._mplQtYAxisCoordConversion(event.y),
+            self._MPL_TO_PLOT_BUTTONS[event.button])
 
     def _onMouseWheel(self, event):
-        self._plot.onMouseWheel(event.x, event.y, event.step)
+        self._plot.onMouseWheel(
+            event.x, self._mplQtYAxisCoordConversion(event.y), event.step)
 
     def leaveEvent(self, event):
         """QWidget event handler"""
@@ -880,7 +1019,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self._picked = []
 
         # Weird way to do an explicit picking: Simulate a button press event
-        mouseEvent = MouseEvent('button_press_event', self, x, y)
+        mouseEvent = MouseEvent('button_press_event',
+                                self, x, self._mplQtYAxisCoordConversion(y))
         cid = self.mpl_connect('pick_event', self._onPick)
         self.fig.pick(mouseEvent)
         self.mpl_disconnect(cid)
@@ -924,7 +1064,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         """
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
-        if matplotlib.__version__ >= "2.0.0":
+        if self._matplotlibVersion >= _parse_version("2.0.0"):
             try:
                 FigureCanvasQTAgg.draw(self)
             except ValueError as err:
@@ -956,7 +1096,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             if yRightLimits != self.ax2.get_ybound():
                 self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
-
         self._drawOverlays()
 
     def replot(self):
@@ -975,11 +1114,16 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         elif dirtyFlag:  # Need full redraw
             self.draw()
 
+        # Workaround issue of rendering overlays with some matplotlib versions
+        if (_parse_version('1.5') <= self._matplotlibVersion < _parse_version('2.1') and
+                not hasattr(self, '_firstReplot')):
+            self._firstReplot = False
+            if self._overlays or self._graphCursor:
+                qt.QTimer.singleShot(0, self.draw)  # Request async draw
 
     # cursor
 
     _QT_CURSORS = {
-        None: qt.Qt.ArrowCursor,
         BackendBase.CURSOR_DEFAULT: qt.Qt.ArrowCursor,
         BackendBase.CURSOR_POINTING: qt.Qt.PointingHandCursor,
         BackendBase.CURSOR_SIZE_HOR: qt.Qt.SizeHorCursor,
@@ -988,6 +1132,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     }
 
     def setGraphCursorShape(self, cursor):
-        cursor = self._QT_CURSORS[cursor]
-
-        FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))
+        if cursor is None:
+            FigureCanvasQTAgg.unsetCursor(self)
+        else:
+            cursor = self._QT_CURSORS[cursor]
+            FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))

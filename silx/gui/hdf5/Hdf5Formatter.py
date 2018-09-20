@@ -27,7 +27,7 @@ text."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/01/2018"
+__date__ = "06/06/2018"
 
 import numpy
 from silx.third_party import six
@@ -119,7 +119,11 @@ class Hdf5Formatter(qt.QObject):
         return text
 
     def humanReadableType(self, dataset, full=False):
-        dtype = dataset.dtype
+        if hasattr(dataset, "dtype"):
+            dtype = dataset.dtype
+        else:
+            # Fallback...
+            dtype = type(dataset)
         return self.humanReadableDType(dtype, full)
 
     def humanReadableDType(self, dtype, full=False):
@@ -164,6 +168,16 @@ class Hdf5Formatter(qt.QObject):
                     return "enum"
 
         text = str(dtype.newbyteorder('N'))
+        if numpy.issubdtype(dtype, numpy.floating):
+            if hasattr(numpy, "float128") and dtype == numpy.float128:
+                text = "float80"
+                if full:
+                    text += " (padding 128bits)"
+            elif hasattr(numpy, "float96") and dtype == numpy.float96:
+                text = "float80"
+                if full:
+                    text += " (padding 96bits)"
+
         if full:
             if dtype.byteorder == "<":
                 text = "Little-endian " + text

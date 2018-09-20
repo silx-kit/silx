@@ -9,10 +9,13 @@
 Plot functions
 --------------
 
+.. currentmodule:: silx.sx._plot
+
 The following functions plot curves and images with silx widgets:
 
 - :func:`plot` for curves
 - :func:`imshow` for images
+- :func:`scatter` for scatter plot
 
 The :func:`ginput` function handles user selection on those widgets.
 
@@ -29,6 +32,11 @@ The :func:`ginput` function handles user selection on those widgets.
 
 .. autofunction:: imshow
 
+:func:`scatter`
++++++++++++++++
+
+.. autofunction:: scatter
+
 
 :func:`ginput`
 ++++++++++++++
@@ -37,6 +45,8 @@ The :func:`ginput` function handles user selection on those widgets.
 
 3D plot functions
 -----------------
+
+.. currentmodule:: silx.sx._plot3d
 
 The following functions plot 3D data with silx widgets (it requires OpenGL):
 

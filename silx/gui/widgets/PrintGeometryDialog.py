@@ -40,7 +40,7 @@ class PrintGeometryWidget(qt.QWidget):
         self.mainLayout = qt.QGridLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(2)
-        hbox = qt.QWidget()
+        hbox = qt.QWidget(self)
         hboxLayout = qt.QHBoxLayout(hbox)
         hboxLayout.setContentsMargins(0, 0, 0, 0)
         hboxLayout.setSpacing(2)

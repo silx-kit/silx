@@ -72,7 +72,7 @@ Specfile data structure exposed by this API:
 appear in the original file, as a string of lines separated by newline (``\\n``) characters.
 
 The title is the content of the ``#S`` scan header line without the leading
-``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
+``#S`` and without the scan number (e.g ``"ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
 
 The start time is converted to ISO8601 format (``"2016-02-23T22:49:05Z"``),
 if the original date format is standard.
@@ -198,7 +198,7 @@ from silx.third_party import six
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/03/2018"
+__date__ = "17/07/2018"
 
 logger1 = logging.getLogger(__name__)
 
@@ -312,7 +312,7 @@ def _parse_ctime(ctime_lines, analyser_index=0):
     """
     :param ctime_lines: e.g ``@CTIME %f %f %f``, first word ``@CTIME`` optional
         When multiple CTIME lines are present in a scan header, this argument
-        is a concatenation of them separated by a ``\n`` character.
+        is a concatenation of them separated by a ``\\n`` character.
     :param analyser_index: MCA device/analyser index, when multiple devices
         are in a scan.
     :return: (preset_time, live_time, elapsed_time)
@@ -362,13 +362,13 @@ def spec_date_to_iso8601(date, zone=None):
 
     days_rx = '(?P<day>' + '|'.join(days) + ')'
     months_rx = '(?P<month>' + '|'.join(months) + ')'
-    year_rx = '(?P<year>\d{4})'
-    day_nb_rx = '(?P<day_nb>[0-3 ]\d)'
-    month_nb_rx = '(?P<month_nb>[0-1]\d)'
-    hh_rx = '(?P<hh>[0-2]\d)'
-    mm_rx = '(?P<mm>[0-5]\d)'
-    ss_rx = '(?P<ss>[0-5]\d)'
-    tz_rx = '(?P<tz>[+-]\d\d:\d\d){0,1}'
+    year_rx = r'(?P<year>\d{4})'
+    day_nb_rx = r'(?P<day_nb>[0-3 ]\d)'
+    month_nb_rx = r'(?P<month_nb>[0-1]\d)'
+    hh_rx = r'(?P<hh>[0-2]\d)'
+    mm_rx = r'(?P<mm>[0-5]\d)'
+    ss_rx = r'(?P<ss>[0-5]\d)'
+    tz_rx = r'(?P<tz>[+-]\d\d:\d\d){0,1}'
 
     # date formats must have either month_nb (1..12) or month (Jan, Feb, ...)
     re_tpls = ['{days} {months} {day_nb} {hh}:{mm}:{ss}{tz} {year}',
@@ -600,24 +600,24 @@ class ScanGroup(commonh5.Group, SpecH5Group):
             try:
                 start_time_str = spec_date_to_iso8601(scan.scan_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warn("Could not parse date format in scan %s header." +
-                             " Using original date not converted to ISO-8601",
-                             scan_key)
+                logger1.warning("Could not parse date format in scan %s header." +
+                                " Using original date not converted to ISO-8601",
+                                scan_key)
                 start_time_str = scan.scan_header_dict["D"]
         elif "D" in scan.file_header_dict:
-            logger1.warn("No #D line in scan %s header. " +
-                         "Using file header for start_time.",
-                         scan_key)
+            logger1.warning("No #D line in scan %s header. " +
+                            "Using file header for start_time.",
+                            scan_key)
             try:
                 start_time_str = spec_date_to_iso8601(scan.file_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warn("Could not parse date format in scan %s header. " +
-                             "Using original date not converted to ISO-8601",
-                             scan_key)
+                logger1.warning("Could not parse date format in scan %s header. " +
+                                "Using original date not converted to ISO-8601",
+                                scan_key)
                 start_time_str = scan.file_header_dict["D"]
         else:
-            logger1.warn("No #D line in %s header. Setting date to empty string.",
-                         scan_key)
+            logger1.warning("No #D line in %s header. Setting date to empty string.",
+                            scan_key)
             start_time_str = ""
         self.add_node(SpecH5NodeDataset(name="start_time",
                                         data=to_h5py_utf8(start_time_str),

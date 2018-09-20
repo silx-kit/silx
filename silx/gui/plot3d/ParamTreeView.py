@@ -394,7 +394,11 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                         if hasattr(notifySignal, 'signature'):  # Qt4
                             signature = notifySignal.signature()
                         else:
-                            signature = bytes(notifySignal.methodSignature())
+                            signature = notifySignal.methodSignature()
+                            if qt.BINDING == 'PySide2':
+                                signature = signature.data()
+                            else:
+                                signature = bytes(signature)
 
                         if hasattr(signature, 'decode'):  # For PySide with python3
                             signature = signature.decode('ascii')

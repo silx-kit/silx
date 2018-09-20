@@ -42,17 +42,18 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/08/2017"
+__date__ = "26/04/2018"
 
 
 import logging
 import numpy
 
+import silx
 from .. import qt
 
 from . import items, PlotWindow, PlotWidget, actions
-from .Colormap import Colormap
-from .Colors import cursorColorForColormap
+from ..colors import Colormap
+from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 
@@ -296,6 +297,9 @@ class ImageView(PlotWindow):
         if parent is None:
             self.setWindowTitle('ImageView')
 
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+            self.getYAxis().setInverted(True)
+
         self._initWidgets(backend)
 
         self.profile = ProfileToolBar(plot=self)
@@ -356,7 +360,7 @@ class ImageView(PlotWindow):
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        centralWidget = qt.QWidget()
+        centralWidget = qt.QWidget(self)
         centralWidget.setLayout(layout)
         self.setCentralWidget(centralWidget)
 

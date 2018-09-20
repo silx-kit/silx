@@ -12,9 +12,11 @@ Public modules:
 .. toctree::
     :maxdepth: 2
 
+    flowlayout.rst
     framebrowser.rst
     periodictable.rst
     printpreview.rst
+    rangeslider.rst
     tablewidget.rst
     threadpoolpushbutton.rst
     waitingpushbutton.rst

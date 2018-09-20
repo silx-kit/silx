@@ -47,6 +47,63 @@
    :show-inheritance:
    :members:
 
+:class:`ScatterToolBar` class
+-----------------------------
+
+.. autoclass:: ScatterToolBar
+   :show-inheritance:
+   :members:
+
+:mod:`~silx.gui.plot.tools.CurveLegendsWidget`
+----------------------------------------------
+
+.. automodule:: silx.gui.plot.tools.CurveLegendsWidget
+
+.. image:: img/CurveLegendsWidget.png
+   :align: center
+
+.. autoclass:: silx.gui.plot.tools.CurveLegendsWidget.CurveLegendsWidget
+   :show-inheritance:
+   :members:
+
+:mod:`~silx.gui.plot.tools.roi`: Region of interest
+---------------------------------------------------
+
+.. automodule:: silx.gui.plot.tools.roi
+
+.. currentmodule:: silx.gui.plot.tools.roi
+
+:class:`RegionOfInterestManager` class
+++++++++++++++++++++++++++++++++++++++
+
+.. autoclass:: RegionOfInterestManager
+   :members:
+
+:class:`InteractiveRegionOfInterestManager` class
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. autoclass:: InteractiveRegionOfInterestManager
+   :members:
+
+:class:`RegionOfInterestTableWidget` class
+++++++++++++++++++++++++++++++++++++++++++
+
+.. autoclass:: RegionOfInterestTableWidget
+   :members:
+
+:mod:`~silx.gui.plot.tools.profile`: Profile Tools
+--------------------------------------------------
+
+.. automodule:: silx.gui.plot.tools.profile
+
+.. currentmodule:: silx.gui.plot.tools.profile
+
+:class:`ScatterProfileToolBar`
+++++++++++++++++++++++++++++++
+
+.. autoclass:: ScatterProfileToolBar
+   :members: sigProfileChanged, getProfilePoints, getProfileValues, getProfileTitle, getPlotWidget, isDefaultProfileWindowEnabled, setDefaultProfileWindowEnabled, getDefaultProfileWindow, getColor, setColor, clearProfile, getNPoints, setNPoints
+
 .. currentmodule:: silx.gui.plot
 
 :mod:`ColorBar`: ColorBar Widget

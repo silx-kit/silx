@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,10 @@ class ProfileMainWindow(qt.QMainWindow):
     """Emitted by :meth:`closeEvent` (e.g. when the window is closed
     through the window manager's close icon)."""
 
+    sigProfileMethodChanged = qt.Signal(str)
+    """Emitted when the method to compute the profile changed (for now can be
+    sum or mean)"""
+
     def __init__(self, parent=None):
         qt.QMainWindow.__init__(self, parent=parent)
 
@@ -57,6 +61,7 @@ class ProfileMainWindow(qt.QMainWindow):
         # by default, profile is assumed to be a 1D curve
         self._profileType = None
         self.setProfileType("1D")
+        self.setProfileMethod('sum')
 
     def setProfileType(self, profileType):
         """Set which profile plot widget (1D or 2D) is to be used
@@ -67,12 +72,13 @@ class ProfileMainWindow(qt.QMainWindow):
         # import here to avoid circular import
         from .PlotWindow import Plot1D, Plot2D      # noqa
         self._profileType = profileType
-
         if self._profileType == "1D":
             if self._plot2D is not None:
                 self._plot2D.setParent(None)   # necessary to avoid widget destruction
             if self._plot1D is None:
                 self._plot1D = Plot1D()
+                self._plot1D.setGraphYLabel('Profile')
+                self._plot1D.setGraphXLabel('')
             self.setCentralWidget(self._plot1D)
         elif self._profileType == "2D":
             if self._plot1D is not None:
@@ -97,3 +103,13 @@ class ProfileMainWindow(qt.QMainWindow):
     def closeEvent(self, qCloseEvent):
         self.sigClose.emit()
         qCloseEvent.accept()
+
+    def setProfileMethod(self, method):
+        """
+
+        :param str method: method to manage the 'width' in the profile
+            (computing mean or sum).
+        """
+        assert method in ('sum', 'mean')
+        self._method = method
+        self.sigProfileMethodChanged.emit(self._method)

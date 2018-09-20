@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,10 +32,12 @@ __date__ = "18/10/2016"
 
 import unittest
 
+from .test_dtime_ticklayout import suite as test_dtime_ticklayout_suite
 from .test_ticklayout import suite as test_ticklayout_suite
 
 
 def suite():
     testsuite = unittest.TestSuite()
+    testsuite.addTest(test_dtime_ticklayout_suite())
     testsuite.addTest(test_ticklayout_suite())
     return testsuite

@@ -20,7 +20,6 @@ The different events emitted by :class:`Plot` and by the interaction modes are c
 
 The :class:`PlotWindow` uses additional widgets:
 
-- :mod:`.ColormapDialog` to change colormap settings.
 - :mod:`.CurvesROIWidget` to create regions of interest for curves
 - :mod:`.LegendSelector` to display a list of curves legends which provides some control on the curves (e.g., select, delete).
 - :mod:`.MaskToolsWidget` to provide tools to draw a mask on an image.
@@ -39,14 +38,12 @@ The :class:`PlotWindow` uses additional widgets:
 
 The widgets also use the following miscellaneous modules:
 
-- :mod:`.Colors` to convert colors from name to RGB(A)
 - :mod:`._utils`: utility functions
 
 The :mod:`backends` package provide the implementation of the rendering used by the :class:`Plot`.
 It contains:
 :mod:`.backends.BackendBase` defines the API any plot backend should provide in :class:`BackendBase`.
 :mod:`.backends.BackendMatplotlib` implements a `matplotlib <http://matplotlib.org/>`_ backend.
-It uses :mod:`.backends.ModestImage` to provide a faster matplotlib AxesImage class using nearest values.
 The :mod:`.backends.BackendMatplotlib` the provides two classes:
 
 .. currentmodule:: silx.gui.plot.backends.BackendMatplotlib
@@ -87,22 +84,6 @@ The following modules are the modules used internally by the plot package.
 
 .. automodule:: silx.gui.plot.backends.BackendMatplotlib
    :members:
-
-:mod:`ColormapDialog`
-+++++++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.ColormapDialog
-
-.. automodule:: silx.gui.plot.ColormapDialog
-   :members:
-
-:mod:`Colors`
-+++++++++++++
-
-.. currentmodule:: silx.gui.plot.Colors
-
-.. automodule:: silx.gui.plot.Colors
-   :members: rgba
 
 :mod:`CurvesROIWidget`
 ++++++++++++++++++++++

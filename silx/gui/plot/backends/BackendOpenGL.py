@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/08/2017"
+__date__ = "01/08/2018"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -38,8 +38,7 @@ import numpy
 
 from .._utils import FLOAT32_MINPOS
 from . import BackendBase
-from .. import Colors
-from ..Colormap import Colormap
+from ... import colors
 from ... import qt
 
 from ..._glutils import gl
@@ -355,7 +354,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._markers = OrderedDict()
         self._items = OrderedDict()
         self._plotContent = PlotDataContent()  # For images and curves
-        self._selectionAreas = OrderedDict()
         self._glGarbageCollector = []
 
         self._plotFrame = GLPlotFrame2D(
@@ -399,7 +397,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         previousMousePosInPixels = self._mousePosInPixels
         self._mousePosInPixels = (xPixel, yPixel) if isCursorInPlot else None
         if (self._crosshairCursor is not None and
-                previousMousePosInPixels != self._crosshairCursor):
+                previousMousePosInPixels != self._mousePosInPixels):
             # Avoid replot when cursor remains outside plot area
             self._plot._setDirtyPlot(overlayOnly=True)
 
@@ -431,14 +429,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # OpenGLWidget API
 
-    @staticmethod
-    def _setBlendFuncGL():
-        # gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-        gl.glBlendFuncSeparate(gl.GL_SRC_ALPHA,
-                               gl.GL_ONE_MINUS_SRC_ALPHA,
-                               gl.GL_ONE,
-                               gl.GL_ONE)
-
     def initializeGL(self):
         gl.testGL()
 
@@ -446,7 +436,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glClearStencil(0)
 
         gl.glEnable(gl.GL_BLEND)
-        self._setBlendFuncGL()
+        # gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+        gl.glBlendFuncSeparate(gl.GL_SRC_ALPHA,
+                               gl.GL_ONE_MINUS_SRC_ALPHA,
+                               gl.GL_ONE,
+                               gl.GL_ONE)
 
         # For lines
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
@@ -500,7 +494,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         gl.glUniform1i(self._progTex.uniforms['tex'], texUnit)
         gl.glUniformMatrix4fv(self._progTex.uniforms['matrix'], 1, gl.GL_TRUE,
-                              mat4Identity())
+                              mat4Identity().astype(numpy.float32))
 
         stride = self._plotVertices.shape[-1] * self._plotVertices.itemsize
         gl.glEnableVertexAttribArray(self._progTex.attributes['position'])
@@ -649,24 +643,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
 
-        isXLog = self._plotFrame.xAxis.isLog
-        isYLog = self._plotFrame.yAxis.isLog
-
         # Render in plot area
         gl.glScissor(self._plotFrame.margins.left,
                      self._plotFrame.margins.bottom,
                      plotWidth, plotHeight)
         gl.glEnable(gl.GL_SCISSOR_TEST)
 
-        gl.glViewport(self._plotFrame.margins.left,
-                      self._plotFrame.margins.bottom,
-                      plotWidth, plotHeight)
+        gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
         # Prepare vertical and horizontal markers rendering
         self._progBase.use()
-        gl.glUniformMatrix4fv(self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                              self._plotFrame.transformedDataProjMat)
-        gl.glUniform2i(self._progBase.uniforms['isLog'], isXLog, isYLog)
+        gl.glUniformMatrix4fv(
+            self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
+            self.matScreenProj.astype(numpy.float32))
+        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
         gl.glUniform1i(self._progBase.uniforms['hatchStep'], 0)
         gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
         posAttrib = self._progBase.attributes['position']
@@ -677,10 +667,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         for marker in self._markers.values():
             xCoord, yCoord = marker['x'], marker['y']
 
-            if ((isXLog and xCoord is not None and
-                    xCoord < FLOAT32_MINPOS) or
-                    (isYLog and yCoord is not None and
-                     yCoord < FLOAT32_MINPOS)):
+            if ((self._plotFrame.xAxis.isLog and
+                    xCoord is not None and
+                    xCoord <= 0) or
+                    (self._plotFrame.yAxis.isLog and
+                    yCoord is not None and
+                    yCoord <= 0)):
                 # Do not render markers with negative coords on log axis
                 continue
 
@@ -706,9 +698,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                            align=RIGHT, valign=BOTTOM)
                             labels.append(label)
 
-                        xMin, xMax = self._plotFrame.dataRanges.x
-                        vertices = numpy.array(((xMin, yCoord),
-                                                (xMax, yCoord)),
+                        width = self._plotFrame.size[0]
+                        vertices = numpy.array(((0, pixelPos[1]),
+                                                (width, pixelPos[1])),
                                                dtype=numpy.float32)
 
                     else:  # yCoord is None: vertical line in data space
@@ -721,13 +713,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                            align=LEFT, valign=TOP)
                             labels.append(label)
 
-                        yMin, yMax = self._plotFrame.dataRanges.y
-                        vertices = numpy.array(((xCoord, yMin),
-                                                (xCoord, yMax)),
+                        height = self._plotFrame.size[1]
+                        vertices = numpy.array(((pixelPos[0], 0),
+                                                (pixelPos[0], height)),
                                                dtype=numpy.float32)
 
                 self._progBase.use()
-
                 gl.glUniform4f(self._progBase.uniforms['color'],
                                *marker['color'])
 
@@ -759,13 +750,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 # For now simple implementation: using a curve for each marker
                 # Should pack all markers to a single set of points
                 markerCurve = GLPlotCurve2D(
-                    numpy.array((xCoord,), dtype=numpy.float32),
-                    numpy.array((yCoord,), dtype=numpy.float32),
+                    numpy.array((pixelPos[0],), dtype=numpy.float64),
+                    numpy.array((pixelPos[1],), dtype=numpy.float64),
                     marker=marker['symbol'],
                     markerColor=marker['color'],
                     markerSize=11)
-                markerCurve.render(self._plotFrame.transformedDataProjMat,
-                                   isXLog, isYLog)
+                markerCurve.render(self.matScreenProj, False, False)
                 markerCurve.discard()
 
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
@@ -777,8 +767,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
     def _renderOverlayGL(self):
-        # Render selection area and crosshair cursor
-        if self._selectionAreas or self._crosshairCursor is not None:
+        # Render crosshair cursor
+        if self._crosshairCursor is not None:
             plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
 
             # Scissor to plot area
@@ -788,41 +778,21 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             gl.glEnable(gl.GL_SCISSOR_TEST)
 
             self._progBase.use()
-            gl.glUniform2i(self._progBase.uniforms['isLog'],
-                           self._plotFrame.xAxis.isLog,
-                           self._plotFrame.yAxis.isLog)
+            gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
             gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
             posAttrib = self._progBase.attributes['position']
             matrixUnif = self._progBase.uniforms['matrix']
             colorUnif = self._progBase.uniforms['color']
             hatchStepUnif = self._progBase.uniforms['hatchStep']
 
-            # Render selection area in plot area
-            if self._selectionAreas:
-                gl.glViewport(self._plotFrame.margins.left,
-                              self._plotFrame.margins.bottom,
-                              plotWidth, plotHeight)
-
-                gl.glUniformMatrix4fv(matrixUnif, 1, gl.GL_TRUE,
-                                      self._plotFrame.transformedDataProjMat)
-
-                for shape in self._selectionAreas.values():
-                    if shape.isVideoInverted:
-                        gl.glBlendFunc(gl.GL_ONE_MINUS_DST_COLOR, gl.GL_ZERO)
-
-                    shape.render(posAttrib, colorUnif, hatchStepUnif)
-
-                    if shape.isVideoInverted:
-                        self._setBlendFuncGL()
-
-            # Render crosshair cursor is screen frame but with scissor
+            # Render crosshair cursor in screen frame but with scissor
             if (self._crosshairCursor is not None and
                     self._mousePosInPixels is not None):
                 gl.glViewport(
                     0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
                 gl.glUniformMatrix4fv(matrixUnif, 1, gl.GL_TRUE,
-                                      self.matScreenProj)
+                                      self.matScreenProj.astype(numpy.float32))
 
                 color, lineWidth = self._crosshairCursor
                 gl.glUniform4f(colorUnif, *color)
@@ -881,30 +851,29 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             isXLog, isYLog)
 
         # Render Items
+        gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
+
         self._progBase.use()
         gl.glUniformMatrix4fv(self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                              self._plotFrame.transformedDataProjMat)
-        gl.glUniform2i(self._progBase.uniforms['isLog'],
-                       self._plotFrame.xAxis.isLog,
-                       self._plotFrame.yAxis.isLog)
+                              self.matScreenProj.astype(numpy.float32))
+        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
         gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
 
         for item in self._items.values():
-            shape2D = item.get('_shape2D')
-            if shape2D is None:
-                closed = item['shape'] != 'polylines'
-                shape2D = Shape2D(tuple(zip(item['x'], item['y'])),
-                                  fill=item['fill'],
-                                  fillColor=item['color'],
-                                  stroke=True,
-                                  strokeColor=item['color'],
-                                  strokeClosed=closed)
-                item['_shape2D'] = shape2D
-
-            if ((isXLog and shape2D.xMin < FLOAT32_MINPOS) or
-                    (isYLog and shape2D.yMin < FLOAT32_MINPOS)):
+            if ((isXLog and numpy.min(item['x']) < FLOAT32_MINPOS) or
+                    (isYLog and numpy.min(item['y']) < FLOAT32_MINPOS)):
                 # Ignore items <= 0. on log axes
                 continue
+
+            closed = item['shape'] != 'polylines'
+            points = [self.dataToPixel(x, y, axis='left', check=False)
+                      for (x, y) in zip(item['x'], item['y'])]
+            shape2D = Shape2D(points,
+                              fill=item['fill'],
+                              fillColor=item['color'],
+                              stroke=True,
+                              strokeColor=item['color'],
+                              strokeClosed=closed)
 
             posAttrib = self._progBase.attributes['position']
             colorUnif = self._progBase.uniforms['color']
@@ -944,6 +913,21 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # Add methods
 
+    @staticmethod
+    def _castArrayTo(v):
+        """Returns best floating type to cast the array to.
+
+        :param numpy.ndarray v: Array to cast
+        :rtype: numpy.dtype
+        :raise ValueError: If dtype is not supported
+        """
+        if numpy.issubdtype(v.dtype, numpy.floating):
+            return numpy.float32 if v.itemsize <= 4 else numpy.float64
+        elif numpy.issubdtype(v.dtype, numpy.integer):
+            return numpy.float32 if v.itemsize <= 2 else numpy.float64
+        else:
+            raise ValueError('Unsupported data type')
+
     def addCurve(self, x, y, legend,
                  color, symbol, linewidth, linestyle,
                  yaxis,
@@ -954,14 +938,68 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
-        x = numpy.array(x, dtype=numpy.float32, copy=False, order='C')
-        y = numpy.array(y, dtype=numpy.float32, copy=False, order='C')
+        # Convert input data
+        x = numpy.array(x, copy=False)
+        y = numpy.array(y, copy=False)
+
+        # Check if float32 is enough
+        if (self._castArrayTo(x) is numpy.float32 and
+                self._castArrayTo(y) is numpy.float32):
+            dtype = numpy.float32
+        else:
+            dtype = numpy.float64
+
+        x = numpy.array(x, dtype=dtype, copy=False, order='C')
+        y = numpy.array(y, dtype=dtype, copy=False, order='C')
+
+        # Convert errors to float32
         if xerror is not None:
             xerror = numpy.array(
                 xerror, dtype=numpy.float32, copy=False, order='C')
         if yerror is not None:
             yerror = numpy.array(
                 yerror, dtype=numpy.float32, copy=False, order='C')
+
+        # Handle axes log scale: convert data
+
+        if self._plotFrame.xAxis.isLog:
+            logX = numpy.log10(x)
+
+            if xerror is not None:
+                # Transform xerror so that
+                # log10(x) +/- xerror' = log10(x +/- xerror)
+                if hasattr(xerror, 'shape') and len(xerror.shape) == 2:
+                    xErrorMinus, xErrorPlus = xerror[0], xerror[1]
+                else:
+                    xErrorMinus, xErrorPlus = xerror, xerror
+                xErrorMinus = logX - numpy.log10(x - xErrorMinus)
+                xErrorPlus = numpy.log10(x + xErrorPlus) - logX
+                xerror = numpy.array((xErrorMinus, xErrorPlus),
+                                     dtype=numpy.float32)
+
+            x = logX
+
+        isYLog = (yaxis == 'left' and self._plotFrame.yAxis.isLog) or (
+            yaxis == 'right' and self._plotFrame.y2Axis.isLog)
+
+        if isYLog:
+            logY = numpy.log10(y)
+
+            if yerror is not None:
+                # Transform yerror so that
+                # log10(y) +/- yerror' = log10(y +/- yerror)
+                if hasattr(yerror, 'shape') and len(yerror.shape) == 2:
+                    yErrorMinus, yErrorPlus = yerror[0], yerror[1]
+                else:
+                    yErrorMinus, yErrorPlus = yerror, yerror
+                yErrorMinus = logY - numpy.log10(y - yErrorMinus)
+                yErrorPlus = numpy.log10(y + yErrorPlus) - logY
+                yerror = numpy.array((yErrorMinus, yErrorPlus),
+                                     dtype=numpy.float32)
+
+            y = logY
+
+        # TODO check if need more filtering of error (e.g., clip to positive)
 
         # TODO check and improve this
         if (len(color) == 4 and
@@ -973,7 +1011,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             color = None
         else:
             colorArray = None
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
 
         if alpha < 1.:  # Apply image transparency
             if colorArray is not None and colorArray.shape[1] == 4:
@@ -995,7 +1033,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               marker=symbol,
                               markerColor=color,
                               markerSize=symbolsize,
-                              fillColor=color if fill else None)
+                              fillColor=color if fill else None,
+                              isYLog=isYLog)
         curve.info = {
             'legend': legend,
             'zOrder': z,
@@ -1054,7 +1093,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         elif len(data.shape) == 3:
             # For RGB, RGBA data
             assert data.shape[2] in (3, 4)
-            assert data.dtype in (numpy.float32, numpy.uint8)
+
+            if numpy.issubdtype(data.dtype, numpy.floating):
+                data = numpy.array(data, dtype=numpy.float32, copy=False)
+            elif numpy.issubdtype(data.dtype, numpy.integer):
+                data = numpy.array(data, dtype=numpy.uint8, copy=False)
+            else:
+                raise ValueError('Unsupported data type')
 
             image = GLPlotRGBAImage(data, origin, scale, alpha)
 
@@ -1106,7 +1151,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         self._items[legend] = {
             'shape': shape,
-            'color': Colors.rgba(color),
+            'color': colors.rgba(color),
             'fill': 'hatch' if fill else None,
             'x': x,
             'y': y
@@ -1116,10 +1161,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint):
+                  symbol, linestyle, linewidth, constraint):
 
         if symbol is None:
             symbol = '+'
+
+        if linestyle != '-' or linewidth != 1:
+            _logger.warning(
+                'OpenGL backend does not support marker line style and width.')
 
         behaviors = set()
         if selectable:
@@ -1133,19 +1182,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if isConstraint:
             x, y = constraint(x, y)
 
-        if x is not None and self._plotFrame.xAxis.isLog and x <= 0.:
-            raise RuntimeError(
-                'Cannot add marker with X <= 0 with X axis log scale')
-        if y is not None and self._plotFrame.yAxis.isLog and y <= 0.:
-            raise RuntimeError(
-                'Cannot add marker with Y <= 0 with Y axis log scale')
-
         self._markers[legend] = {
             'x': x,
             'y': y,
             'legend': legend,
             'text': text,
-            'color': Colors.rgba(color),
+            'color': colors.rgba(color),
             'behaviors': behaviors,
             'constraint': constraint if isConstraint else None,
             'symbol': symbol,
@@ -1185,7 +1227,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # Interaction methods
 
     _QT_CURSORS = {
-        None: qt.Qt.ArrowCursor,
         BackendBase.CURSOR_DEFAULT: qt.Qt.ArrowCursor,
         BackendBase.CURSOR_POINTING: qt.Qt.PointingHandCursor,
         BackendBase.CURSOR_SIZE_HOR: qt.Qt.SizeHorCursor,
@@ -1194,9 +1235,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     }
 
     def setGraphCursorShape(self, cursor):
-        cursor = self._QT_CURSORS[cursor]
-
-        super(BackendOpenGL, self).setCursor(qt.QCursor(cursor))
+        if cursor is None:
+            super(BackendOpenGL, self).unsetCursor()
+        else:
+            cursor = self._QT_CURSORS[cursor]
+            super(BackendOpenGL, self).setCursor(qt.QCursor(cursor))
 
     def setGraphCursor(self, flag, color, linewidth, linestyle):
         if linestyle is not '-':
@@ -1204,7 +1247,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 "BackendOpenGL.setGraphCursor linestyle parameter ignored")
 
         if flag:
-            color = Colors.rgba(color)
+            color = colors.rgba(color)
             crosshairCursor = color, linewidth
         else:
             crosshairCursor = None
@@ -1303,6 +1346,16 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             yPickMin, yPickMax = yPick0, yPick1
                         else:
                             yPickMin, yPickMax = yPick1, yPick0
+
+                        # Apply log scale if axis is log
+                        if self._plotFrame.xAxis.isLog:
+                            xPickMin = numpy.log10(xPickMin)
+                            xPickMax = numpy.log10(xPickMax)
+
+                        if (yAxis == 'left' and self._plotFrame.yAxis.isLog) or (
+                                yAxis == 'right' and self._plotFrame.y2Axis.isLog):
+                            yPickMin = numpy.log10(yPickMin)
+                            yPickMax = numpy.log10(yPickMax)
 
                         pickedIndices = item.pick(xPickMin, yPickMin,
                                                   xPickMax, yPickMax)
@@ -1547,6 +1600,18 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._setPlotBounds(y2Range=(ymin, ymax), keepDim='y')
 
     # Graph axes
+
+    def getXAxisTimeZone(self):
+        return self._plotFrame.xAxis.timeZone
+
+    def setXAxisTimeZone(self, tz):
+        self._plotFrame.xAxis.timeZone = tz
+
+    def isXAxisTimeSeries(self):
+        return self._plotFrame.xAxis.isTimeSeries
+
+    def setXAxisTimeSeries(self, isTimeSeries):
+        self._plotFrame.xAxis.isTimeSeries = isTimeSeries
 
     def setXAxisLogarithmic(self, flag):
         if flag != self._plotFrame.xAxis.isLog:

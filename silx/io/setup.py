@@ -4,7 +4,7 @@
 #
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ __date__ = "03/10/2016"
 import os
 import sys
 
-import numpy
 from numpy.distutils.misc_util import Configuration
 
 
@@ -67,6 +66,7 @@ else:
 def configuration(parent_package='', top_path=None):
     config = Configuration('io', parent_package, top_path)
     config.add_subpackage('test')
+    config.add_subpackage('nxdata')
 
     srcfiles = ['sfheader', 'sfinit', 'sflists', 'sfdata', 'sfindex',
                 'sflabel', 'sfmca', 'sftools', 'locale_management']
@@ -76,8 +76,7 @@ def configuration(parent_package='', top_path=None):
     config.add_extension('specfile',
                          sources=sources,
                          define_macros=define_macros,
-                         include_dirs=[os.path.join('specfile', 'include'),
-                                       numpy.get_include()],
+                         include_dirs=[os.path.join('specfile', 'include')],
                          language='c')
     return config
 
