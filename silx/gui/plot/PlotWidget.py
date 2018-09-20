@@ -1644,6 +1644,8 @@ class PlotWidget(qt.QMainWindow):
         if not self.isActiveCurveHandling():
             return
         if legend is None and self.getActiveCurveSelectionMode() == "AlwaysOne":
+            _logger.info( \
+                'setActiveCurve(None) ignored due to active curve selection mode')
             return
 
         return self._setActiveItem(kind='curve', legend=legend)
