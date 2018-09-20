@@ -1654,10 +1654,10 @@ class PlotWidget(qt.QMainWindow):
         """Sets the current selection mode.
            Only "AlwaysOne" (case insensitive) changes the default "AtMostOne"
         """
-        self._activeCurveMode = "AtMostOne"
+        self._activeCurveSelectionMode = "AtMostOne"
         if hasattr(mode, "upper"):
             if mode.upper() == "ALWAYSONE":
-                self._activeCurveMode = "AlwaysOne"
+                self._activeCurveSelectionMode = "AlwaysOne"
 
     def getActiveCurveSelectionMode(self):
         """Returns the current selection mode.
