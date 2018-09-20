@@ -670,7 +670,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.assertEqual(current, legend)
         self.assertEqual(self.plot.getActiveCurveSelectionMode(), "AlwaysOne")
         self.plot.setActiveCurve(None)
-        self.assertEqual(current, None)
+        self.assertEqual(current, legend)
 
     def testActiveImageAndLabels(self):
         # Active image handling always on, no API for toggling it
