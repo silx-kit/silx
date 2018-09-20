@@ -427,8 +427,7 @@ class TestPlotCurve(PlotWidgetTestCase):
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve 2",
                            replace=False, resetzoom=False,
-                           color=color, symbol='o')
-
+                           color=color, symbol='o')        
 
 class TestPlotMarker(PlotWidgetTestCase):
     """Basic tests for add*Marker"""
@@ -599,7 +598,11 @@ class TestPlotItem(PlotWidgetTestCase):
 
 
 class TestPlotActiveCurveImage(PlotWidgetTestCase):
-    """Basic tests for active image handling"""
+    """Basic tests for active curve and image handling"""
+
+    def tearDown(self):
+        self.plot.setActiveCurveHandling(False)
+        super(TestPlotActiveCurveImage, self).tearDown()
 
     def testActiveCurveAndLabels(self):
         # Active curve handling off, no label change
@@ -646,6 +649,28 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.plot.clear()
         self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
         self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
+
+    def testPlotActiveCurveSelectionMode(self):
+        self.plot.setActiveCurveHandling(True)
+        legend = "curve 1"
+        self.plot.addCurve(self.xData, self.yData,
+                           legend=legend,
+                           color="green")
+
+        # active curve should be None when None is set as active curve
+        self.plot.setActiveCurve(legend)
+        current = self.plot.getActiveCurve(just_legend=True)
+        self.assertEqual(current, legend)
+        self.plot.setActiveCurve(None)
+        self.assertEqual(current, None)
+
+        # active curve should not change when None set as active curve
+        self.plot.setActiveCurve(legend)
+        self.plot.setActiveCurveHandling("AlwaysOne")
+        self.assertEqual(current, legend)
+        self.assertEqual(self.plot.getActiveCurveSelectionMode(), "AlwaysOne")
+        self.plot.setActiveCurve(None)
+        self.assertEqual(current, None)
 
     def testActiveImageAndLabels(self):
         # Active image handling always on, no API for toggling it
