@@ -4,7 +4,7 @@
 #    Project: S I L X project
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2017 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2018 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -33,8 +33,8 @@
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
-__copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "16/10/2017"
+__copyright__ = "2012-2018 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "20/09/2018"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 
 
 if os.environ.get("SILX_OPENCL") in ["0", "False"]:
-    logger.warning("Use of OpenCL has been disables from environment variable: SILX_OPENCL=0")
+    logger.info("Use of OpenCL has been disables from environment variable: SILX_OPENCL=0")
     pyopencl = None
 else:
     try:
@@ -317,7 +317,7 @@ class OpenCL(object):
                     flop_core = 1
                 workgroup = device.max_work_group_size
                 if (devtype == "CPU") and (pypl.vendor == "Apple"):
-                    logger.warning("For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size.")
+                    logger.info("For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size.")
                     workgroup = _measure_workgroup_size(device, fast=True)
                 if (devtype == "GPU") and os.environ.get("GPU") == "False":
                     # Environment variable to disable GPU devices
