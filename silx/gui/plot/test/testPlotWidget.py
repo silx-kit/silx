@@ -599,6 +599,10 @@ class TestPlotItem(PlotWidgetTestCase):
 
 class TestPlotActiveCurveImage(PlotWidgetTestCase):
     """Basic tests for active curve and image handling"""
+    xData = numpy.arange(1000)
+    yData = -500 + 100 * numpy.sin(xData)
+    xData2 = xData + 1000
+    yData2 = xData - 1000 + 200 * numpy.random.random(1000)
 
     def tearDown(self):
         self.plot.setActiveCurveHandling(False)
@@ -629,6 +633,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         # labels changed as active curve
         self.plot.addCurve((1, 2), (1, 2), legend='1',
                            xlabel='x1', ylabel='y1')
+        self.plot.setActiveCurve('1')
         self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
         self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
 
@@ -662,14 +667,17 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, legend)
         self.plot.setActiveCurve(None)
+        current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, None)
 
         # active curve should not change when None set as active curve
         self.plot.setActiveCurve(legend)
         self.plot.setActiveCurveHandling("AlwaysOne")
+        current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, legend)
         self.assertEqual(self.plot.getActiveCurveSelectionMode(), "AlwaysOne")
         self.plot.setActiveCurve(None)
+        current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, legend)
 
     def testActiveImageAndLabels(self):
