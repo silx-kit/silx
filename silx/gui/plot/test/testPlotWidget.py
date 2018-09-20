@@ -605,6 +605,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         super(TestPlotActiveCurveImage, self).tearDown()
 
     def testActiveCurveAndLabels(self):
+        raise ValueError("CRASH PLEASE!!!")
         # Active curve handling off, no label change
         self.plot.setActiveCurveHandling(False)
         self.plot.getXAxis().setLabel('XLabel')
