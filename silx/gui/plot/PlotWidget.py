@@ -266,6 +266,7 @@ class PlotWidget(qt.QMainWindow):
         self._styleIndex = 0
 
         self._activeCurveHandling = True
+        self._activeCurveSelectionMode = "AtMostOne"
         self._activeCurveColor = "#000000"
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
@@ -1585,12 +1586,14 @@ class PlotWidget(qt.QMainWindow):
     def setActiveCurveHandling(self, flag=True):
         """Enable/Disable active curve selection.
 
-        :param bool flag: True (the default) to enable active curve selection.
+        :param flag: Anything that can be considered True (the default) to enable active curve selection.
+                     The string "AlwaysOne" disables the possibility to unselect a curve by clicking on an empty region.
         """
         if not flag:
             self.setActiveCurve(None)  # Reset active curve
 
         self._activeCurveHandling = bool(flag)
+        self.setActiveCurveSelectionMode(flag)
 
     def getActiveCurveColor(self):
         """Get the color used to display the currently active curve.
@@ -1640,8 +1643,25 @@ class PlotWidget(qt.QMainWindow):
 
         if not self.isActiveCurveHandling():
             return
+        if legend is None and self.getActiveCurveSelectionMode() == "AlwaysOne":
+            return
 
         return self._setActiveItem(kind='curve', legend=legend)
+
+    def setActiveCurveSelectionMode(self, mode):
+        """Sets the current selection mode.
+           Only "AlwaysOne" (case insensitive) changes the default "AtMostOne"
+        """
+        self._activeCurveMode = "AtMostOne"
+        if hasattr(mode, "upper"):
+            if mode.upper() == "ALWAYSONE":
+                self._activeCurveMode = "AlwaysOne"
+
+    def getActiveCurveSelectionMode(self):
+        """Returns the current selection mode.
+           For the time being it can be "AtMostOne" or "AlwaysOne"
+        """
+        return self._activeCurveSelectionMode
 
     def getActiveImage(self, just_legend=False):
         """Returns the currently active image.
