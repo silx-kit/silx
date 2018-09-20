@@ -855,16 +855,16 @@ def get_project_configuration(dry_run):
     install_requires = [
         # for most of the computation
         "numpy%s" % numpy_requested_version,
-        # for the script launcher
-        "setuptools"]
+        # for the script launcher and pkg_resources
+        "setuptools",
+        # for io support
+        "h5py",
+        "fabio>=0.7"]
 
     setup_requires = ["setuptools", "numpy"]
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
-        # io
-        'h5py',
-        'fabio>=0.7',
         # opencl
         'pyopencl',
         'Mako',

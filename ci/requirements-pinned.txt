@@ -1,1 +1,6 @@
-PyOpenGL     # PyOpenGL pre-release broken on Windows (#2074)
+# To use pyopencl wheels on Windows
+--trusted-host www.silx.org
+--find-links http://www.silx.org/pub/wheelhouse/
+
+PyOpenGL               # PyOpenGL pre-release broken on Windows (#2074)
+pyopencl==2018.1.1     # Until pyopencl 2018.2 issue is fixed
