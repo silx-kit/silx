@@ -450,8 +450,9 @@ def clipSegmentToBounds(segment, bounds):
     # Get intersection points of ray with volume boundary planes
     # Line equation: P = offset * delta + p0
     delta = p1 - p0
-    delta[delta == 0] = numpy.nan  # Invalidated to avoid division by zero
-    offsets = ((bounds - p0) / delta).reshape(-1)
+    deltaNotZero = numpy.array(delta, copy=True)
+    deltaNotZero[deltaNotZero == 0] = numpy.nan  # Invalidated to avoid division by zero
+    offsets = ((bounds - p0) / deltaNotZero).reshape(-1)
     points = offsets.reshape(-1, 1) * delta + p0
 
     # Avoid precision errors by using bounds value
