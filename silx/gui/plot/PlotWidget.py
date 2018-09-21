@@ -743,8 +743,11 @@ class PlotWidget(qt.QMainWindow):
         if wasActive:
             self.setActiveCurve(curve.getLegend())
         elif self.getActiveCurveSelectionMode() == "AlwaysOne":
-            if len(self.getAllCurves(just_legend=True, withhidden=False)) == 1:
-                self.setActiveCurve(curve.getLegend())
+            if self.getActiveCurve(just_legend=True) is None:
+                if len(self.getAllCurves(just_legend=True,
+                                     withhidden=False)) == 1:
+                    if curve.isVisible():
+                        self.setActiveCurve(curve.getLegend())
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -1661,9 +1664,12 @@ class PlotWidget(qt.QMainWindow):
         if hasattr(mode, "upper"):
             if mode.upper() == "ALWAYSONE":
                 self._activeCurveSelectionMode = "AlwaysOne"
-                curves = self.getAllCurves(just_legend=True, withhidden=False) 
-                if len(curves) == 1:
-                    self.setActiveCurve(curves[0])
+                if self.getActiveCurve(just_legend=True) is None:
+                    curves = self.getAllCurves(just_legend=False,
+                                               withhidden=False) 
+                    if len(curves) == 1:
+                        if curves[0].isVisible():
+                            self.setActiveCurve(curves[0].getLegend())
 
     def getActiveCurveSelectionMode(self):
         """Returns the current selection mode.
