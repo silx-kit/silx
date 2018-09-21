@@ -32,7 +32,6 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 import logging
-import itertools
 import time
 import numpy
 
@@ -370,13 +369,30 @@ class Isosurface(Item3D):
         mask = numpy.logical_and(numpy.nanmin(binsData, axis=1) <= level,
                                  level <= numpy.nanmax(binsData, axis=1))
         bins = bins[mask]
-        # binsData = binsData[mask]
+        binsData = binsData[mask]
 
         if len(bins) == 0:
             return None  # No bin candidate
 
         # do picking on candidates
-        # TODO marching square + triangle picking or ray sampling
+        intersections = []
+        depths = []
+        for currentBin, data in zip(bins, binsData):
+            mc = MarchingCubes(data.reshape(2, 2, 2), isolevel=level)
+            points = mc.get_vertices() + currentBin
+            triangles = points[mc.get_indices()]
+            t = utils.segmentTrianglesIntersection(rayObject, triangles)[1]
+            if len(t) != 0:
+                # Compute intersection points and get closest data point
+                points = t.reshape(1, -1) * (rayObject[1] - rayObject[0]) + rayObject[0]
+                # Get closest data points by rounding to int
+                intersections.extend(numpy.round(points).astype(numpy.int))
+                depths.extend(t)
+
+        if len(intersections) == 0:
+            return None  # No intersected triangles
+
+        bins = numpy.array(intersections)[numpy.argsort(depths)]
         return tuple(bins.T)  # coarse approximation
 
 
