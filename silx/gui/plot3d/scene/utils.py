@@ -450,13 +450,17 @@ def clipSegmentToBounds(segment, bounds):
     # Get intersection points of ray with volume boundary planes
     # Line equation: P = offset * delta + p0
     delta = p1 - p0
-    mask = delta != 0
-    offsets = ((bounds[:, mask] - p0[mask]) / delta[mask]).reshape(-1)
-    offsets.sort()  # So that intersection points are sorted along the line
+    delta[delta == 0] = numpy.nan  # Invalidated to avoid division by zero
+    offsets = ((bounds - p0) / delta).reshape(-1)
     points = offsets.reshape(-1, 1) * delta + p0
 
+    # Avoid precision errors by using bounds value
+    points.shape = 2, 3, 3  # Reshape 1 point per bound value
+    for dim in range(3):
+        points[:, dim, dim] = bounds[:, dim]
+    points.shape = -1, 3  # Set back to 2D array
+
     # Find intersection points that are included in the volume
-    # TODO probably subject to arithmetic errors: do no check the coordinate of the plane?
     mask = numpy.logical_and(numpy.all(bounds[0] <= points, axis=1),
                              numpy.all(points <= bounds[1], axis=1))
     intersections = numpy.unique(offsets[mask])
