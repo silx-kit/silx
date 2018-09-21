@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/09/2018"
+__date__ = "21/09/2018"
 
 
 import unittest
@@ -656,11 +656,15 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
 
     def testPlotActiveCurveSelectionMode(self):
+        self.plot.clear()
         self.plot.setActiveCurveHandling(True)
         legend = "curve 1"
         self.plot.addCurve(self.xData, self.yData,
                            legend=legend,
                            color="green")
+
+        # active curve should be None
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
 
         # active curve should be None when None is set as active curve
         self.plot.setActiveCurve(legend)
@@ -670,16 +674,43 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, None)
 
-        # active curve should not change when None set as active curve
-        self.plot.setActiveCurve(legend)
+        # testing it automatically toggles if there is only one
         self.plot.setActiveCurveHandling("AlwaysOne")
         current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, legend)
+        
+        # active curve should not change when None set as active curve
         self.assertEqual(self.plot.getActiveCurveSelectionMode(), "AlwaysOne")
         self.plot.setActiveCurve(None)
         current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, legend)
 
+        # situation where no curve is active
+        self.plot.clear()
+        self.plot.setActiveCurveHandling(True)
+        self.assertNotEqual(self.plot.getActiveCurveSelectionMode(), "AlwaysOne")
+        self.plot.addCurve(self.xData, self.yData,
+                           legend=legend,
+                           color="green")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)        
+        self.plot.addCurve(self.xData2, self.yData2,
+                           legend="curve 2",
+                           color="red")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
+        self.plot.setActiveCurveHandling("AlwaysOne")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
+
+        # the first curve added should be active
+        self.plot.clear()
+        self.plot.addCurve(self.xData, self.yData,
+                           legend=legend,
+                           color="green")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), legend)
+        self.plot.addCurve(self.xData2, self.yData2,
+                           legend="curve 2",
+                           color="red")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), legend)
+        
     def testActiveImageAndLabels(self):
         # Active image handling always on, no API for toggling it
         self.plot.getXAxis().setLabel('XLabel')

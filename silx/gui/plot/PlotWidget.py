@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "29/08/2018"
+__date__ = "21/09/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -742,6 +742,9 @@ class PlotWidget(qt.QMainWindow):
 
         if wasActive:
             self.setActiveCurve(curve.getLegend())
+        elif self.getActiveCurveSelectionMode() == "AlwaysOne":
+            if len(self.getAllCurves(just_legend=True, withhidden=False)) == 1:
+                self.setActiveCurve(curve.getLegend())
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -1658,6 +1661,9 @@ class PlotWidget(qt.QMainWindow):
         if hasattr(mode, "upper"):
             if mode.upper() == "ALWAYSONE":
                 self._activeCurveSelectionMode = "AlwaysOne"
+                curves = self.getAllCurves(just_legend=True, withhidden=False) 
+                if len(curves) == 1:
+                    self.setActiveCurve(curves[0])
 
     def getActiveCurveSelectionMode(self):
         """Returns the current selection mode.
