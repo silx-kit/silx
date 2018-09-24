@@ -41,6 +41,7 @@ from ... import qt
 from ...plot.items import ItemChangedType
 from .. import scene
 from ..scene import axes, primitives, transform
+from ._pick import PickContext
 
 
 @enum.unique
@@ -229,19 +230,27 @@ class Item3D(qt.QObject):
         :return: Data indices at picked position or None
         :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
         """
+        return self._pick(PickContext(x, y))
+
+    def _pick(self, context):
+        """Implement :meth:`pick`
+
+        :param PickContext context: Current picking context
+        :return: Data indices at picked position or None
+        :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
+        """
         if not self.isVisible():  # No picking on hidden items
             return None
 
-        if not self._fastPickingCheck(x, y):  # Fast picking approximation
+        if not self._pickFastCheck(context):  # Fast picking approximation
             return None
 
-        return self._pick(x, y)
+        return self._pickFull(context)
 
-    def _fastPickingCheck(self, x, y):
+    def _pickFastCheck(self, context):
         """Approximate item pick test (e.g., bounding box-based picking.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param PickContext context: Current picking context
         :return: True if item might be picked
         :rtype: bool
         """
@@ -249,6 +258,7 @@ class Item3D(qt.QObject):
         viewport = primitive.viewport
 
         # Convert x, y from window to NDC
+        x, y = context.getWidgetPosition()
         positionNdc = viewport.windowToNdc(x, y, checkInside=True)
         if None in positionNdc:  # No picking outside viewport
             return False
@@ -262,11 +272,10 @@ class Item3D(qt.QObject):
         return (bounds[0, 0] <= positionNdc[0] <= bounds[1, 0] and
                 bounds[0, 1] <= positionNdc[1] <= bounds[1, 1])
 
-    def _pick(self, x, y):
+    def _pickFull(self, context):
         """Perform precise picking in this item at given widget position.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param PickContext context: Current picking context
         :return: Data indices at picked position or None
         :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
         """
@@ -514,7 +523,77 @@ class DataItem3D(Item3D):
             self._updated(Item3DChangedType.BOUNDING_BOX_VISIBLE)
 
 
-class _BaseGroupItem(DataItem3D):
+class BaseNodeItem(DataItem3D):
+    """Base class for data item having children (e.g., group, 3d volume)."""
+
+    def __init__(self, parent=None, group=None):
+        """Base class representing a group of items in the scene.
+
+        :param parent: The View widget this item belongs to.
+        :param Union[GroupBBox, None] group:
+            The scene group to use for rendering
+        """
+        DataItem3D.__init__(self, parent=parent, group=group)
+
+    def getItems(self):
+        """Returns the list of items currently present in the group.
+
+        :rtype: tuple
+        """
+        raise NotImplementedError('getItems must be implemented in subclass')
+
+    def visit(self, included=True):
+        """Generator visiting the group content.
+
+        It traverses the group sub-tree in a top-down left-to-right way.
+
+        :param bool included: True (default) to include self in visit
+        """
+        if included:
+            yield self
+        for child in self.getItems():
+            yield child
+            if hasattr(child, 'visit'):
+                for item in child.visit(included=False):
+                    yield item
+
+    def pickItems(self, x, y):
+        """Iterator over picked items in the group at given position.
+
+        Each picked item yield a 2-tuple: (item, indices),
+        where indices is either a numpy.ndarray (for 1D data) or
+        a tuple of numpy.ndarray for nD data.
+
+        It traverses the group sub-tree in a right-to-left bottom-up way.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        """
+        for result in self._pickItems(PickContext(x, y)):
+            yield result
+
+    def _pickItems(self, context):
+        """Implement :meth:`pickItems`
+
+        :param PickContext context: Current picking context
+        """
+        if not self.isVisible():
+            return  # empty iterator
+
+        if not self._pickFastCheck(context):
+            return  # empty iterator
+
+        for child in reversed(self.getItems()):
+            if isinstance(child, BaseNodeItem):
+                for picking in child._pickItems(context):
+                    yield picking  # Flatten result
+
+            result = child._pick(context)
+            if result is not None:
+                yield child, result
+
+
+class _BaseGroupItem(BaseNodeItem):
     """Base class for group of items sharing a common transform."""
 
     sigItemAdded = qt.Signal(object)
@@ -536,7 +615,7 @@ class _BaseGroupItem(DataItem3D):
         :param Union[GroupBBox, None] group:
             The scene group to use for rendering
         """
-        DataItem3D.__init__(self, parent=parent, group=group)
+        BaseNodeItem.__init__(self, parent=parent, group=group)
         self._items = []
 
     def _getGroupPrimitive(self):
@@ -596,48 +675,6 @@ class _BaseGroupItem(DataItem3D):
         """Remove all item from the group."""
         for item in self.getItems():
             self.removeItem(item)
-
-    def visit(self, included=True):
-        """Generator visiting the group content.
-
-        It traverses the group sub-tree in a top-down left-to-right way.
-
-        :param bool included: True (default) to include self in visit
-        """
-        if included:
-            yield self
-        for child in self.getItems():
-            yield child
-            if hasattr(child, 'visit'):
-                for item in child.visit(included=False):
-                    yield item
-
-    def pickItems(self, x, y):
-        """Iterator over picked items in the group at given position.
-
-        Each picked item yield a 2-tuple: (item, indices),
-        where indices is either a numpy.ndarray (for 1D data) or
-        a tuple of numpy.ndarray for nD data.
-
-        It traverses the group sub-tree in a right-to-left bottom-up way.
-
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
-        """
-        if not self.isVisible():
-            return  # empty iterator
-
-        if not self._fastPickingCheck(x, y):
-            return  # empty iterator
-
-        for child in reversed(self.getItems()):
-            if hasattr(child, 'pickItems'):
-                for picking in child.pickItems(x, y):
-                    yield picking  # Flatten result
-
-            result = child.pick(x, y)
-            if result is not None:
-                yield child, result
 
 
 class GroupItem(_BaseGroupItem):

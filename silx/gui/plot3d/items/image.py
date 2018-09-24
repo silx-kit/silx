@@ -54,11 +54,10 @@ class _Image(DataItem3D, InterpolationMixIn):
     def getData(self, copy=True):
         raise NotImplementedError()
 
-    def _pick(self, x, y):
+    def _pickFull(self, context):
         """Perform picking in this item at given widget position.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param PickContext context: Current picking context
         :return: Data indices as (rows, columns) at picked position or None
         :rtype: Union[None,List[numpy.ndarray]]
         """
@@ -66,6 +65,7 @@ class _Image(DataItem3D, InterpolationMixIn):
         viewport = primitive.viewport
 
         # Convert x, y from window to NDC
+        x, y = context.getWidgetPosition()
         positionNdc = viewport.windowToNdc(x, y, checkInside=True)
         if None in positionNdc:  # No picking outside viewport
             return None

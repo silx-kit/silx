@@ -148,11 +148,10 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         return self._scatter.getAttribute('value', copy=copy).reshape(-1)
 
-    def _pick(self, x, y, threshold=0., sort='depth'):
+    def _pickFull(self, context, threshold=0., sort='depth'):
         """Perform picking in this item at given widget position.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param PickContext context: Current picking context
         :param float threshold: Picking threshold in pixel.
             Perform picking in a square of size 2*threshold x 2*threshold.
         :param str sort: How returned indices are sorted:
@@ -168,6 +167,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         primitive = self._getScenePrimitive()
 
         # Convert x, y to NDC
+        x, y = context.getWidgetPosition()
         positionNdc = primitive.viewport.windowToNdc(x, y, checkInside=True)
         if None in positionNdc:  # No picking outside viewport
             return None
@@ -422,11 +422,10 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         return numpy.array(self._value, copy=copy)
 
-    def _pick(self, x, y, threshold=0., sort='depth'):
+    def _pickFull(self, context, threshold=0., sort='depth'):
         """Perform picking in this item at given widget position.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param PickContext context: Current picking context
         :param float threshold: Picking threshold in pixel.
             Perform picking in a square of size 2*threshold x 2*threshold.
         :param str sort: How returned indices are sorted:
@@ -442,6 +441,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         primitive = self._getScenePrimitive()
 
         # Convert x, y to NDC
+        x, y = context.getWidgetPosition()
         positionNdc = primitive.viewport.windowToNdc(x, y, checkInside=True)
         if None in positionNdc:  # No picking outside viewport
             return None

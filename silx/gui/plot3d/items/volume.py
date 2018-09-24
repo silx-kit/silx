@@ -44,7 +44,9 @@ from ...colors import rgba
 from ..scene import cutplane, primitives, transform, utils
 
 from .core import DataItem3D, Item3D, ItemChangedType, Item3DChangedType
+from .core import BaseNodeItem
 from .mixins import ColormapMixIn, InterpolationMixIn, PlaneMixIn
+from ._pick import PickContext
 
 
 _logger = logging.getLogger(__name__)
@@ -125,11 +127,10 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         parent = self.parent()
         return None if parent is None else parent.getData(copy=copy)
 
-    def _pick(self, x, y):
+    def _pickFull(self, context):
         """Perform picking in this item at given widget position.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param PickContext context: Current picking context
         :return:
             Data indices as (depths, rows, columns) at picked position or None
         :rtype: Union[None,List[numpy.ndarray]]
@@ -138,6 +139,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         viewport = primitive.viewport
 
         # Convert x, y from window to NDC
+        x, y = context.getWidgetPosition()
         positionNdc = viewport.windowToNdc(x, y, checkInside=True)
         if None in positionNdc:  # No picking outside viewport
             return None
@@ -321,11 +323,10 @@ class Isosurface(Item3D):
                                          indices=indices)
                 self._getScenePrimitive().children = [mesh]
 
-    def _pick(self, x, y):
+    def _pickFull(self, context):
         """Perform picking in this item at given widget position.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param PickContext context: Current picking context
         :return:
             Data indices as (depths, rows, columns) at picked position or None
         :rtype: Union[None,List[numpy.ndarray]]
@@ -334,6 +335,7 @@ class Isosurface(Item3D):
         viewport = primitive.viewport
 
         # Convert x, y from window to NDC
+        x, y = context.getWidgetPosition()
         positionNdc = viewport.windowToNdc(x, y, checkInside=True)
         if None in positionNdc:  # No picking outside viewport
             return None
@@ -396,14 +398,14 @@ class Isosurface(Item3D):
         return tuple(bins.T)  # coarse approximation
 
 
-class ScalarField3D(DataItem3D):
+class ScalarField3D(BaseNodeItem):
     """3D scalar field on a regular grid.
 
     :param parent: The View widget this item belongs to.
     """
 
     def __init__(self, parent=None):
-        DataItem3D.__init__(self, parent=parent)
+        BaseNodeItem.__init__(self, parent=parent)
 
         # Gives this item the shape of the data, no matter
         # of the isosurface/cut plane size
@@ -588,37 +590,11 @@ class ScalarField3D(DataItem3D):
                            key=lambda isosurface: - isosurface.getLevel())
         self._isogroup.children = [iso._getScenePrimitive() for iso in sortedIso]
 
-    def visit(self, included=True):
-        """Generator visiting the ScalarField3D content.
+    # BaseNodeItem
 
-        It first access cut planes and then isosurface
+    def getItems(self):
+        """Returns the list of items currently present in the ScalarField3D.
 
-        :param bool included: True (default) to include self in visit
+        :rtype: tuple
         """
-        if included:
-            yield self
-        for cutPlane in self.getCutPlanes():
-            yield cutPlane
-        for isosurface in self.getIsosurfaces():
-            yield isosurface
-
-    def pickItems(self, x, y):
-        """Iterator over picked items in the volume at given position.
-
-        Each picked item yield a 2-tuple: (item, list of picked indices)
-
-        It traverses the group sub-tree in a right-to-left bottom-up way.
-
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
-        """
-        if not self.isVisible():
-            return  # empty iterator
-
-        if not self._fastPickingCheck(x, y):
-            return  # empty iterator
-
-        for child in reversed(tuple(self.visit())):
-            result = child.pick(x, y)
-            if result is not None:
-                yield child, result
+        return self.getCutPlanes() + self.getIsosurfaces()
