@@ -350,7 +350,7 @@ class Isosurface(Item3D):
             t = utils.segmentTrianglesIntersection(rayObject, triangles)[1]
             if len(t) != 0:
                 # Compute intersection points and get closest data point
-                points = t.reshape(1, -1) * (rayObject[1] - rayObject[0]) + rayObject[0]
+                points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
                 # Get closest data points by rounding to int
                 intersections.extend(numpy.round(points).astype(numpy.int))
                 depths.extend(t)
