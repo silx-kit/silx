@@ -230,7 +230,8 @@ class Item3D(qt.QObject):
         :return: Data indices at picked position or None
         :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
         """
-        return self._pick(PickContext(x, y))
+        context = PickContext(x, y, self._getScenePrimitive().viewport)
+        return self._pick(context)
 
     def _pick(self, context):
         """Implement :meth:`pick`
@@ -255,11 +256,8 @@ class Item3D(qt.QObject):
         :rtype: bool
         """
         primitive = self._getScenePrimitive()
-        viewport = primitive.viewport
 
-        # Convert x, y from window to NDC
-        x, y = context.getWidgetPosition()
-        positionNdc = viewport.windowToNdc(x, y, checkInside=True)
+        positionNdc = context.getNDCPosition()
         if None in positionNdc:  # No picking outside viewport
             return False
 
@@ -569,7 +567,8 @@ class BaseNodeItem(DataItem3D):
         :param int x: X widget coordinate
         :param int y: Y widget coordinate
         """
-        for result in self._pickItems(PickContext(x, y)):
+        context = PickContext(x, y, self._getScenePrimitive().viewport)
+        for result in self._pickItems(context):
             yield result
 
     def _pickItems(self, context):

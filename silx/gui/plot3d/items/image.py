@@ -61,31 +61,13 @@ class _Image(DataItem3D, InterpolationMixIn):
         :return: Data indices as (rows, columns) at picked position or None
         :rtype: Union[None,List[numpy.ndarray]]
         """
-        primitive = self._getScenePrimitive()
-        viewport = primitive.viewport
-
-        # Convert x, y from window to NDC
-        x, y = context.getWidgetPosition()
-        positionNdc = viewport.windowToNdc(x, y, checkInside=True)
-        if None in positionNdc:  # No picking outside viewport
+        rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
+        if rayObject is None:
             return None
 
-        # Ray from NDC to object
-        rayNdc = numpy.array((positionNdc + (-1., 1.),
-                              positionNdc + (1., 1.)),
-                             dtype=numpy.float64)
-        rayCamera = viewport.camera.intrinsic.transformPoints(
-            rayNdc,
-            direct=False,
-            perspectiveDivide=True)
-        rayScene = viewport.camera.extrinsic.transformPoints(
-            rayCamera, direct=False)
-        rayObject = primitive.objectToSceneTransform.transformPoints(
-            rayScene, direct=False)[:, :3]
-
         points = utils.segmentPlaneIntersect(
-            rayObject[0],
-            rayObject[1],
+            rayObject[0, :3],
+            rayObject[1, :3],
             planeNorm=numpy.array((0., 0., 1.), dtype=numpy.float64),
             planePt=numpy.array((0., 0., 0.), dtype=numpy.float64))
 

@@ -31,16 +31,31 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/09/2018"
 
+import numpy
+
+from ..scene import Viewport, Base
+
 
 class PickContext(object):
     """Store information related to current picking
 
     :param int x: Widget coordinate
     :param int y: Widget coordinate
+    :param ~silx.gui.plot3d.scene.Viewport viewport:
+        Viewport where picking occurs
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, viewport):
         self._widgetPosition = x, y
+        assert isinstance(viewport, Viewport)
+        self._viewport = viewport
+
+    def getViewport(self):
+        """Returns viewport where picking occurs
+
+        :rtype: ~silx.gui.plot3d.scene.Viewport
+        """
+        return self._viewport
 
     def getWidgetPosition(self):
         """Returns (x, y) position in pixel in the widget
@@ -51,3 +66,55 @@ class PickContext(object):
         :rtype: List[int]
         """
         return self._widgetPosition
+
+    def getNDCPosition(self):
+        """Return Normalized device coordinates of picked point.
+
+        :return: (x, y) in NDC coordinates or None if outside viewport.
+        :rtype: Union[None,List[float]]
+        """
+        # Convert x, y from window to NDC
+        x, y = self.getWidgetPosition()
+        return self.getViewport().windowToNdc(x, y, checkInside=True)
+
+    def getPickingSegment(self, frame):
+        """Returns picking segment in requested coordinate frame.
+
+        :param Union[str,Base] frame:
+            The frame in which to get the picking segment,
+            either a keyword: 'ndc', 'camera', 'scene' or a scene
+            :class:`~silx.gui.plot3d.scene.Base` object.
+        :return: Near and far points of the segment as (x, y, z, w)
+            or None if picked point is outside viewport
+        :rtype: Union[None,numpy.ndarray]
+        """
+        assert frame in ('ndc', 'camera', 'scene') or isinstance(frame, Base)
+
+        positionNdc = self.getNDCPosition()
+        if positionNdc is None:
+            return None
+
+        rayNdc = numpy.array((positionNdc + (-1., 1.),
+                              positionNdc + (1., 1.)),
+                             dtype=numpy.float64)
+        if frame == 'ndc':
+            return rayNdc
+
+        viewport = self.getViewport()
+
+        rayCamera = viewport.camera.intrinsic.transformPoints(
+            rayNdc,
+            direct=False,
+            perspectiveDivide=True)
+        if frame == 'camera':
+            return rayCamera
+
+        rayScene = viewport.camera.extrinsic.transformPoints(
+            rayCamera, direct=False)
+        if frame == 'scene':
+            return rayScene
+
+        # frame is a scene Base object
+        rayObject = frame.objectToSceneTransform.transformPoints(
+            rayScene, direct=False)
+        return rayObject

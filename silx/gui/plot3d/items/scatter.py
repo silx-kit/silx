@@ -164,11 +164,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         assert sort in ('index', 'depth')
 
-        primitive = self._getScenePrimitive()
-
-        # Convert x, y to NDC
-        x, y = context.getWidgetPosition()
-        positionNdc = primitive.viewport.windowToNdc(x, y, checkInside=True)
+        positionNdc = context.getNDCPosition()
         if None in positionNdc:  # No picking outside viewport
             return None
 
@@ -176,6 +172,8 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         xData = self.getXData(copy=False)
         if len(xData) == 0:  # No data in the scatter
             return None
+
+        primitive = self._getScenePrimitive()
 
         pointsNdc = primitive.objectToNDCTransform.transformPoints(
             numpy.transpose((xData,
@@ -438,11 +436,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         assert sort in ('index', 'depth')
 
-        primitive = self._getScenePrimitive()
-
-        # Convert x, y to NDC
-        x, y = context.getWidgetPosition()
-        positionNdc = primitive.viewport.windowToNdc(x, y, checkInside=True)
+        positionNdc = context.getNDCPosition()
         if None in positionNdc:  # No picking outside viewport
             return None
 
@@ -455,6 +449,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             zData = self.getValues(copy=False)
         else:
             zData = numpy.zeros_like(xData)
+
+        primitive = self._getScenePrimitive()
 
         pointsNdc = primitive.objectToNDCTransform.transformPoints(
             numpy.transpose((xData,
