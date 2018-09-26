@@ -49,6 +49,19 @@ class PickContext(object):
         self._widgetPosition = x, y
         assert isinstance(viewport, Viewport)
         self._viewport = viewport
+        self._ndcZRange = -1., 1.
+        self._enabled = True
+
+    def copy(self):
+        """Returns a copy
+
+        :rtype: PickContent
+        """
+        x, y = self.getWidgetPosition()
+        context = PickContext(x, y, self.getViewport())
+        context.setNDCZRange(*self._ndcZRange)
+        context.setEnabled(self.isEnabled())
+        return context
 
     def getViewport(self):
         """Returns viewport where picking occurs
@@ -67,12 +80,39 @@ class PickContext(object):
         """
         return self._widgetPosition
 
+    def setEnabled(self, enabled):
+        """Set whether picking is enabled or not
+
+        :param bool enabled: True to enable picking, False otherwise
+        """
+        self._enabled = bool(enabled)
+
+    def isEnabled(self):
+        """Returns True if picking is currently enabled, False otherwise.
+
+        :rtype: bool
+        """
+        return self._enabled
+
+    def setNDCZRange(self, near=-1., far=1.):
+        """Set near and far Z value in normalized device coordinates
+
+        This allows to clip the ray to a subset of the NDC range
+
+        :param float near: Near segment end point Z coordinate
+        :param float far: Far segment end point Z coordinate
+        """
+        self._ndcZRange = near, far
+
     def getNDCPosition(self):
         """Return Normalized device coordinates of picked point.
 
         :return: (x, y) in NDC coordinates or None if outside viewport.
         :rtype: Union[None,List[float]]
         """
+        if not self.isEnabled():
+            return None
+
         # Convert x, y from window to NDC
         x, y = self.getWidgetPosition()
         return self.getViewport().windowToNdc(x, y, checkInside=True)
@@ -94,8 +134,9 @@ class PickContext(object):
         if positionNdc is None:
             return None
 
-        rayNdc = numpy.array((positionNdc + (-1., 1.),
-                              positionNdc + (1., 1.)),
+        near, far = self._ndcZRange
+        rayNdc = numpy.array((positionNdc + (near, 1.),
+                              positionNdc + (far, 1.)),
                              dtype=numpy.float64)
         if frame == 'ndc':
             return rayNdc

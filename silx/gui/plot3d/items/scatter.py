@@ -164,8 +164,8 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         assert sort in ('index', 'depth')
 
-        positionNdc = context.getNDCPosition()
-        if None in positionNdc:  # No picking outside viewport
+        rayNdc = context.getPickingSegment(frame='ndc')
+        if rayNdc is None:  # No picking outside viewport
             return None
 
         # Project data to NDC
@@ -183,11 +183,14 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             perspectiveDivide=True)
 
         # Perform picking
-        distancesNdc = numpy.abs(pointsNdc[:, :2] - positionNdc)
+        distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
         threshold += self.getSymbolSize()/2.
         thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
-        picked = numpy.where(numpy.all(distancesNdc < thresholdNdc, axis=1))[0]
+        picked = numpy.where(numpy.logical_and(
+                numpy.all(distancesNdc < thresholdNdc, axis=1),
+                numpy.logical_and(rayNdc[0, 2] <= pointsNdc[:, 2],
+                                  pointsNdc[:, 2] <= rayNdc[1, 2])))[0]
 
         if sort == 'depth':
             # Sort picked points from front to back
@@ -436,8 +439,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         assert sort in ('index', 'depth')
 
-        positionNdc = context.getNDCPosition()
-        if None in positionNdc:  # No picking outside viewport
+        rayNdc = context.getPickingSegment(frame='ndc')
+        if rayNdc is None:  # No picking outside viewport
             return None
 
         # Project data to NDC
@@ -460,11 +463,14 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             perspectiveDivide=True)
 
         # Perform picking
-        distancesNdc = numpy.abs(pointsNdc[:, :2] - positionNdc)
+        distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
         threshold += self.getSymbolSize()/2.
         thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
-        picked = numpy.where(numpy.all(distancesNdc < thresholdNdc, axis=1))[0]
+        picked = numpy.where(numpy.logical_and(
+            numpy.all(distancesNdc < thresholdNdc, axis=1),
+            numpy.logical_and(rayNdc[0, 2] <= pointsNdc[:, 2],
+                              pointsNdc[:, 2] <= rayNdc[1, 2])))[0]
 
         if sort == 'depth':
             # Sort picked points from front to back

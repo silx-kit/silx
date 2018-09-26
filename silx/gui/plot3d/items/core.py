@@ -240,6 +240,9 @@ class Item3D(qt.QObject):
         :return: Data indices at picked position or None
         :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
         """
+        if not context.isEnabled():
+            return None  # Fast fail when picking is disabled
+
         if not self.isVisible():  # No picking on hidden items
             return None
 
@@ -258,7 +261,7 @@ class Item3D(qt.QObject):
         primitive = self._getScenePrimitive()
 
         positionNdc = context.getNDCPosition()
-        if None in positionNdc:  # No picking outside viewport
+        if positionNdc is None:  # No picking outside viewport
             return False
 
         bounds = primitive.bounds(transformed=False, dataBounds=False)
@@ -562,7 +565,7 @@ class BaseNodeItem(DataItem3D):
         where indices is either a numpy.ndarray (for 1D data) or
         a tuple of numpy.ndarray for nD data.
 
-        It traverses the group sub-tree in a right-to-left bottom-up way.
+        It traverses the group sub-tree in a left-to-right top-down way.
 
         :param int x: X widget coordinate
         :param int y: Y widget coordinate
@@ -579,17 +582,24 @@ class BaseNodeItem(DataItem3D):
         if not self.isVisible():
             return  # empty iterator
 
+        # Use a copy to discard context changes once this returns
+        context = context.copy()
+
         if not self._pickFastCheck(context):
             return  # empty iterator
 
-        for child in reversed(self.getItems()):
+        result = self._pick(context)
+        if result is not None:
+            yield self, result
+
+        for child in self.getItems():
             if isinstance(child, BaseNodeItem):
                 for picking in child._pickItems(context):
                     yield picking  # Flatten result
-
-            result = child._pick(context)
-            if result is not None:
-                yield child, result
+            else:
+                result = child._pick(context)
+                if result is not None:
+                    yield child, result
 
 
 class _BaseGroupItem(BaseNodeItem):
