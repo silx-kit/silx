@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "03/04/2017"
 
 
+from collections import OrderedDict
 import numpy
 
 from ...._glutils import font, gl, getGLContext, Program, Texture
@@ -39,6 +40,45 @@ from .GLSupport import mat4Translate
 
 
 # TODO: Font should be configurable by the main program: using mpl.rcParams?
+
+
+class _Cache(object):
+    """LRU (Least Recent Used) cache.
+
+    :param int maxsize: Maximum number of (key, value) pairs in the cache
+    :param callable callback:
+       Called when a (key, value) pair is removed from the cache.
+       It must take 2 arguments: key and value.
+    """
+
+    def __init__(self, maxsize=128, callback=None):
+        self._maxsize = int(maxsize)
+        self._callback = callback
+        self._cache = OrderedDict()
+
+    def __contains__(self, item):
+        return item in self._cache
+
+    def __getitem__(self, key):
+        if key in self._cache:
+            # Remove/add key from ordered dict to store last access info
+            value = self._cache.pop(key)
+            self._cache[key] = value
+            return value
+        else:
+            raise KeyError
+
+    def __setitem__(self, key, value):
+        """Add a key, value pair to the cache.
+
+        :param key: The key to set
+        :param value: The corresponding value
+        """
+        if key not in self._cache and len(self._cache) >= self._maxsize:
+            removedKey, removedValue = self._cache.popitem(last=False)
+            if self._callback is not None:
+                self._callback(removedKey, removedValue)
+        self._cache[key] = value
 
 
 # Text2D ######################################################################
@@ -87,11 +127,11 @@ class Text2D(object):
                        _SHADERS['fragment'],
                        attrib0='position')
 
-    _textures = {}
+    # Discard texture objects when removed from the cache
+    _textures = _Cache(callback=lambda key, value: value[0].discard())
     """Cache already created textures"""
-    # TODO limit cache size and discard least recent used
 
-    _sizes = {}
+    _sizes = _Cache()
     """Cache already computed sizes"""
 
     def __init__(self, text, x=0, y=0,
