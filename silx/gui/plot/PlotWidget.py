@@ -266,7 +266,7 @@ class PlotWidget(qt.QMainWindow):
         self._styleIndex = 0
 
         self._activeCurveHandling = True
-        self._activeCurveSelectionMode = "AtMostOne"
+        self._activeCurveSelectionMode = "atmostone"
         self._activeCurveColor = "#000000"
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
