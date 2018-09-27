@@ -265,7 +265,7 @@ class PlotWidget(qt.QMainWindow):
         self._colorIndex = 0
         self._styleIndex = 0
 
-        self._activeCurveSelectionMode = "AtMostOne"
+        self._activeCurveSelectionMode = "atmostone"
         self._activeCurveColor = "#000000"
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
@@ -1589,15 +1589,15 @@ class PlotWidget(qt.QMainWindow):
 
         :rtype: bool
         """
-        return self.getActiveCurveSelectionMode() != 'None'
+        return self.getActiveCurveSelectionMode() != 'none'
 
     def setActiveCurveHandling(self, flag=True):
         """Enable/Disable active curve selection.
 
-        :param bool flag: True to enable 'AtMostOne' active curve selection,
+        :param bool flag: True to enable 'atmostone' active curve selection,
             False to disable active curve selection.
         """
-        self.setActiveCurveSelectionMode('AtMostOne' if flag else 'None')
+        self.setActiveCurveSelectionMode('atmostone' if flag else 'none')
 
     def getActiveCurveColor(self):
         """Get the color used to display the currently active curve.
@@ -1647,7 +1647,7 @@ class PlotWidget(qt.QMainWindow):
 
         if not self.isActiveCurveHandling():
             return
-        if legend is None and self.getActiveCurveSelectionMode() == "AlwaysOne":
+        if legend is None and self.getActiveCurveSelectionMode() == "alwaysone":
             _logger.info(
                 'setActiveCurve(None) ignored due to active curve selection mode')
             return
@@ -1658,16 +1658,16 @@ class PlotWidget(qt.QMainWindow):
         """Sets the current selection mode.
 
         :param str mode: The active curve selection mode to use.
-            It can be: 'AlwaysOne', 'AtMostOne' or 'None'.
+            It can be: 'alwaysone', 'atmostone' or 'none'.
         """
-        assert mode in ('AlwaysOne', 'AtMostOne', 'None')
+        assert mode in ('alwaysone', 'atmostone', 'none')
 
         if mode != self._activeCurveSelectionMode:
             self._activeCurveSelectionMode = mode
-            if mode == 'None':
+            if mode == 'none':
                 self.setActiveCurve(None)  # Reset active curve
 
-            if mode == 'AlwaysOne' and self.getActiveCurve() is None:
+            if mode == 'alwaysone' and self.getActiveCurve() is None:
                 # Select an active curve
                 curves = self.getAllCurves(just_legend=False,
                                            withhidden=False)
@@ -1678,7 +1678,7 @@ class PlotWidget(qt.QMainWindow):
     def getActiveCurveSelectionMode(self):
         """Returns the current selection mode.
 
-        It can be "AtMostOne", "AlwaysOne" or "None".
+        It can be "atMostone", "alwaysone" or "none".
 
         :rtype: str
         """
