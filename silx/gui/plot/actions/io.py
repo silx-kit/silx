@@ -40,7 +40,7 @@ __license__ = "MIT"
 __date__ = "12/07/2018"
 
 from . import PlotAction
-from silx.io.utils import save1D, savespec
+from silx.io.utils import save1D, savespec, NEXUS_HDF5_EXT
 from silx.io.nxdata import save_NXdata
 import logging
 import sys
@@ -62,9 +62,7 @@ else:
 
 _logger = logging.getLogger(__name__)
 
-
-_NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs",  ".hdf", ".hdf5", ".cxi"]
-_NEXUS_HDF5_EXT_STR = ' '.join(['*' + ext for ext in _NEXUS_HDF5_EXT])
+_NEXUS_HDF5_EXT_STR = ' '.join(['*' + ext for ext in NEXUS_HDF5_EXT])
 
 
 def selectOutputGroup(h5filename):
