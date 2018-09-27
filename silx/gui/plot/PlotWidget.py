@@ -1664,8 +1664,8 @@ class PlotWidget(qt.QMainWindow):
 
         if mode != self._activeCurveSelectionMode:
             self._activeCurveSelectionMode = mode
-            if mode == 'none':
-                self.setActiveCurve(None)  # Reset active curve
+            if mode == 'none':  # reset active curve
+                self._setActiveItem(kind='curve', legend=None)
 
             if mode == 'alwaysone' and self.getActiveCurve() is None:
                 # Select an active curve
