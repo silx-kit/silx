@@ -265,8 +265,7 @@ class PlotWidget(qt.QMainWindow):
         self._colorIndex = 0
         self._styleIndex = 0
 
-        self._activeCurveHandling = True
-        self._activeCurveSelectionMode = "atmostone"
+        self._activeCurveSelectionMode = "AtMostOne"
         self._activeCurveColor = "#000000"
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
@@ -1587,7 +1586,7 @@ class PlotWidget(qt.QMainWindow):
 
     def isActiveCurveHandling(self):
         """Returns True if active curve selection is enabled."""
-        return self._activeCurveHandling
+        return bool(self.getActiveCurveSelectionMode())
 
     def setActiveCurveHandling(self, flag=True):
         """Enable/Disable active curve selection.
@@ -1598,7 +1597,6 @@ class PlotWidget(qt.QMainWindow):
         if not flag:
             self.setActiveCurve(None)  # Reset active curve
 
-        self._activeCurveHandling = bool(flag)
         self.setActiveCurveSelectionMode(flag)
 
     def getActiveCurveColor(self):
