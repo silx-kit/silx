@@ -675,12 +675,12 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.assertEqual(current, None)
 
         # testing it automatically toggles if there is only one
-        self.plot.setActiveCurveHandling("AlwaysOne")
+        self.plot.setActiveCurveHandling("alwaysone")
         current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, legend)
         
         # active curve should not change when None set as active curve
-        self.assertEqual(self.plot.getActiveCurveSelectionMode(), "AlwaysOne")
+        self.assertEqual(self.plot.getActiveCurveSelectionMode(), "alwaysone")
         self.plot.setActiveCurve(None)
         current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, legend)
@@ -688,7 +688,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         # situation where no curve is active
         self.plot.clear()
         self.plot.setActiveCurveHandling(True)
-        self.assertNotEqual(self.plot.getActiveCurveSelectionMode(), "AlwaysOne")
+        self.assertNotEqual(self.plot.getActiveCurveSelectionMode(), "alwaysone")
         self.plot.addCurve(self.xData, self.yData,
                            legend=legend,
                            color="green")
@@ -697,7 +697,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
                            legend="curve 2",
                            color="red")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
-        self.plot.setActiveCurveHandling("AlwaysOne")
+        self.plot.setActiveCurveHandling("alwaysone")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
 
         # the first curve added should be active
