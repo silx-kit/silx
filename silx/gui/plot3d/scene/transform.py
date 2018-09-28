@@ -341,7 +341,7 @@ class Transform(event.Notifier):
             mask = result[:, 3] != 0.
             result[mask] /= result[mask, 3][:, numpy.newaxis]
 
-        return result[:, 3] if dimension == 3 else result
+        return result[:, :3] if dimension == 3 else result
 
     @staticmethod
     def _prepareVector(vector, w):
