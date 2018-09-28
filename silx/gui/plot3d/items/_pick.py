@@ -184,10 +184,13 @@ class PickingResult(object):
         No copy is made.
     """
 
-    def __init__(self, item, positions, indices=()):
+    def __init__(self, item, positions, indices=None):
         self._item = item
         self._positions = numpy.array(positions, copy=False, dtype=numpy.float)
-        self._indices = numpy.array(indices, copy=False, dtype=numpy.int)
+        if indices is None:
+            self._indices = None
+        else:
+            self._indices = numpy.array(indices, copy=False, dtype=numpy.int)
 
     def getItem(self):
         """Returns the item this results corresponds to.
@@ -205,8 +208,10 @@ class PickingResult(object):
 
         :param bool copy: True (default) to get a copy,
             False to return internal arrays
-        :rtype: Union[numpy.ndarray,List[numpy.ndarray]]
+        :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
         """
+        if self._indices is None:
+            return None
         indices = numpy.array(self._indices, copy=copy)
         return indices if indices.ndim == 1 else tuple(indices)
 
