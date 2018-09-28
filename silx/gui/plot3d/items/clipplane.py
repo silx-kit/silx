@@ -132,7 +132,6 @@ class ClipPlane(Item3D, PlaneMixIn):
             picked, points, _ = info
 
             if picked:
-                # TODO check what we want to return
-                return PickingResult(self, indices=points[0])
+                return PickingResult(self, positions=[points[0]])
 
         return None

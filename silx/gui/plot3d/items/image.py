@@ -79,7 +79,10 @@ class _Image(DataItem3D, InterpolationMixIn):
             data = self.getData(copy=False)
             height, width = data.shape[:2]
             if row < height and column < width:
-                return PickingResult(self, indices=([row], [column]))
+                return PickingResult(
+                    self,
+                    positions=[(points[0][0], points[0][1], 0.)],
+                    indices=([row], [column]))
             else:
                 return None  # Outside image
         else:  # Either no intersection or segment and image are coplanar

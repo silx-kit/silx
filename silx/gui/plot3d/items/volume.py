@@ -155,7 +155,9 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
 
             depth, height, width = data.shape
             if z < depth and y < height and x < width:
-                return PickingResult(self, indices=([z], [y], [x]))
+                return PickingResult(self,
+                                     positions=[points[0]],
+                                     indices=([z], [y], [x]))
             else:
                 return None  # Outside image
         else:  # Either no intersection or segment and image are coplanar
@@ -352,14 +354,15 @@ class Isosurface(Item3D):
                 # Compute intersection points and get closest data point
                 points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
                 # Get closest data points by rounding to int
-                intersections.extend(numpy.round(points).astype(numpy.int))
+                intersections.extend(points)
                 depths.extend(t)
 
         if len(intersections) == 0:
             return None  # No intersected triangles
 
-        bins = numpy.array(intersections)[numpy.argsort(depths)]
-        return PickingResult(self, indices=bins.T)
+        intersections = numpy.array(intersections)[numpy.argsort(depths)]
+        indices = numpy.transpose(numpy.round(intersections).astype(numpy.int))
+        return PickingResult(self, positions=intersections, indices=indices)
 
 
 class ScalarField3D(BaseNodeItem):

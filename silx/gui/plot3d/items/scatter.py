@@ -176,12 +176,13 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
         primitive = self._getScenePrimitive()
 
+        dataPoints = numpy.transpose((xData,
+                                      self.getYData(copy=False),
+                                      self.getZData(copy=False),
+                                      numpy.ones_like(xData)))
+
         pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            numpy.transpose((xData,
-                             self.getYData(copy=False),
-                             self.getZData(copy=False),
-                             numpy.ones_like(xData))),
-            perspectiveDivide=True)
+            dataPoints, perspectiveDivide=True)
 
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
@@ -198,7 +199,9 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             picked = picked[numpy.argsort(pointsNdc[picked, 2])]
 
         if picked.size > 0:
-            return PickingResult(self, indices=picked)
+            return PickingResult(self,
+                                 positions=dataPoints[picked, :3],
+                                 indices=picked)
         else:
             return None
 
@@ -459,12 +462,13 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
         primitive = self._getScenePrimitive()
 
+        dataPoints = numpy.transpose((xData,
+                                      self.getYData(copy=False),
+                                      zData,
+                                      numpy.ones_like(xData)))
+
         pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            numpy.transpose((xData,
-                             self.getYData(copy=False),
-                             zData,
-                             numpy.ones_like(xData))),
-            perspectiveDivide=True)
+            dataPoints, perspectiveDivide=True)
 
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
@@ -481,7 +485,9 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             picked = picked[numpy.argsort(pointsNdc[picked, 2])]
 
         if picked.size > 0:
-            return PickingResult(self, indices=picked)
+            return PickingResult(self,
+                                 positions=dataPoints[picked, :3],
+                                 indices=picked)
         else:
             return None
 

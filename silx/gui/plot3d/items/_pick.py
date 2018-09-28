@@ -177,14 +177,17 @@ class PickingResult(object):
     """Class to access picking information in a 3D scene
 
     :param ~silx.gui.plot3d.items.Item3D item: The picked item
+    :param numpy.ndarray positions:
+        Nx3 array-like of picked positions (x, y, z) in item coordinates.
     :param numpy.ndarray indices: Array-like of indices of picked data.
         Either 1D or 2D with dim0: data dimension and dim1: indices.
         No copy is made.
     """
 
-    def __init__(self, item, indices):
+    def __init__(self, item, positions, indices=()):
         self._item = item
-        self._indices = numpy.array(indices)
+        self._positions = numpy.array(positions, copy=False, dtype=numpy.float)
+        self._indices = numpy.array(indices, copy=False, dtype=numpy.int)
 
     def getItem(self):
         """Returns the item this results corresponds to.
@@ -206,3 +209,13 @@ class PickingResult(object):
         """
         indices = numpy.array(self._indices, copy=copy)
         return indices if indices.ndim == 1 else tuple(indices)
+
+    def getPositions(self, copy=True):
+        """Returns picking positions in item coordinates.
+
+        :param bool copy: True (default) to get a copy,
+            False to return internal arrays
+        :return: Nx3 array of (x, y, z) coordinates
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(self._positions, copy=copy)
