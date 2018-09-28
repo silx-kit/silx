@@ -51,16 +51,11 @@ class ClipPlane(Item3D, PlaneMixIn):
         Item3D.__init__(self, parent=parent, primitive=plane)
         PlaneMixIn.__init__(self, plane=plane)
 
-    def _pickFastCheck(self, context):
-        return True
-
-    def _pickFull(self, context):
-        """Perform picking in this item at given widget position.
+    def __pickPreProcessing(self, context):
+        """Common processing for :meth:`_pickPostProcess` and :meth:`_pickFull`
 
         :param PickContext context: Current picking context
-        :return:
-            Data indices as (depths, rows, columns) at picked position or None
-        :rtype: Union[None,List[numpy.ndarray]]
+        :return None or (bounds, intersection points, rayObject)
         """
         plane = self._getPlane()
         planeParent = plane.parent
@@ -82,25 +77,62 @@ class ClipPlane(Item3D, PlaneMixIn):
             planeNorm=self.getNormal(),
             planePt=self.getPoint())
 
-        if (len(points) == 1 and
-                numpy.all(bounds[0] <= points[0]) and
-                numpy.all(points[0] <= bounds[1])):
-            # A single intersection inside bounding box
-            # Clip NDC z range for following brother items
-            ndcIntersect = plane.objectToNDCTransform.transformPoint(
-                points[0], perspectiveDivide=True)
-            ndcNormal = plane.objectToNDCTransform.transformNormal(
-                self.getNormal())
-            if ndcNormal[2] < 0:
-                context.setNDCZRange(-1., ndcIntersect[2])
-            else:
-                context.setNDCZRange(ndcIntersect[2], 1.)
+        # A single intersection inside bounding box
+        picked = (len(points) == 1 and
+                  numpy.all(bounds[0] <= points[0]) and
+                  numpy.all(points[0] <= bounds[1]))
 
-            return points[0]  # TODO check what we want to return
-        else:
-            rayObject[:, 3] = 1.  # Make sure 4h coordinate is one
-            if numpy.sum(rayObject[0] * self.getParameters()) < 0.:
-                # Disable picking for remaining brothers
-                context.setEnabled(False)
+        return picked, points, rayObject
+
+    def _pickPostProcess(self, context):
+        """Hook called after picking this item to update the context.
+
+        For node with children(i.e., groups): it is called *before* processing
+        the children and it is not called if the node is skipped.
+
+        :param PickContext context: Current picking context
+        """
+        if not self.isVisible():
+            return
+
+        info = self.__pickPreProcessing(context)
+        if info is not None:
+            picked, points, rayObject = info
+            plane = self._getPlane()
+
+            if picked:  # A single intersection inside bounding box
+                # Clip NDC z range for following brother items
+                ndcIntersect = plane.objectToNDCTransform.transformPoint(
+                    points[0], perspectiveDivide=True)
+                ndcNormal = plane.objectToNDCTransform.transformNormal(
+                    self.getNormal())
+                if ndcNormal[2] < 0:
+                    context.setNDCZRange(-1., ndcIntersect[2])
+                else:
+                    context.setNDCZRange(ndcIntersect[2], 1.)
+
+            else:
+                rayObject[:, 3] = 1.  # Make sure 4h coordinate is one
+                if numpy.sum(rayObject[0] * self.getParameters()) < 0.:
+                    # Disable picking for remaining brothers
+                    context.setEnabled(False)
+
+    def _pickFastCheck(self, context):
+        return True
+
+    def _pickFull(self, context):
+        """Perform picking in this item at given widget position.
+
+        :param PickContext context: Current picking context
+        :return:
+            Data indices as (depths, rows, columns) at picked position or None
+        :rtype: Union[None,List[numpy.ndarray]]
+        """
+        info = self.__pickPreProcessing(context)
+        if info is not None:
+            picked, points, _ = info
+
+            if picked:
+                return points[0]  # TODO check what we want to return
 
         return None

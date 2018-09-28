@@ -43,14 +43,17 @@ class PickContext(object):
     :param int y: Widget coordinate
     :param ~silx.gui.plot3d.scene.Viewport viewport:
         Viewport where picking occurs
+    :param Union[None,callable] condition:
+        Test whether each item needs to be picked or not.
     """
 
-    def __init__(self, x, y, viewport):
+    def __init__(self, x, y, viewport, condition):
         self._widgetPosition = x, y
         assert isinstance(viewport, Viewport)
         self._viewport = viewport
         self._ndcZRange = -1., 1.
         self._enabled = True
+        self._condition = condition
 
     def copy(self):
         """Returns a copy
@@ -58,10 +61,24 @@ class PickContext(object):
         :rtype: PickContent
         """
         x, y = self.getWidgetPosition()
-        context = PickContext(x, y, self.getViewport())
+        context = PickContext(x, y, self.getViewport(), self._condition)
         context.setNDCZRange(*self._ndcZRange)
         context.setEnabled(self.isEnabled())
         return context
+
+    def isItemPickable(self, item):
+        """Returns whether to process item (True) or to skip it (False)
+
+        :param Item3D item:
+        :rtype: bool
+        """
+        if not self.isEnabled():
+            return False
+
+        if not item.isVisible():
+            return False
+
+        return self._condition is None or self._condition(item)
 
     def getViewport(self):
         """Returns viewport where picking occurs

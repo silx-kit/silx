@@ -230,20 +230,35 @@ class Item3D(qt.QObject):
         :return: Data indices at picked position or None
         :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
         """
-        context = PickContext(x, y, self._getScenePrimitive().viewport)
-        return self._pick(context)
+        root = self.root()
+        if not isinstance(root, BaseNodeItem):
+            raise RuntimeError(
+                'Cannot perform picking: Item not attached to a root group')
+
+        try:
+            # Return result info, tree traversal until this item is needed
+            return next(root.pickItems(x, y, condition=lambda i: i is self))[1]
+        except StopIteration:
+            return None
+
+    def _pickPostProcess(self, context):
+        """Hook called after picking this item to update the context.
+
+        For node with children(i.e., groups): it is called *before* processing
+        the children and it is not called if the node is skipped.
+
+        :param PickContext context: Current picking context
+        """
+        pass
 
     def _pick(self, context):
-        """Implement :meth:`pick`
+        """Implement picking on this item.
 
         :param PickContext context: Current picking context
         :return: Data indices at picked position or None
         :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
         """
-        if not context.isEnabled():
-            return None  # Fast fail when picking is disabled
-
-        if not self.isVisible():  # No picking on hidden items
+        if not context.isItemPickable(self):
             return None
 
         if not self._pickFastCheck(context):  # Fast picking approximation
@@ -252,7 +267,7 @@ class Item3D(qt.QObject):
         return self._pickFull(context)
 
     def _pickFastCheck(self, context):
-        """Approximate item pick test (e.g., bounding box-based picking.
+        """Approximate item pick test (e.g., bounding box-based picking).
 
         :param PickContext context: Current picking context
         :return: True if item might be picked
@@ -558,7 +573,7 @@ class BaseNodeItem(DataItem3D):
                 for item in child.visit(included=False):
                     yield item
 
-    def pickItems(self, x, y):
+    def pickItems(self, x, y, condition=None):
         """Iterator over picked items in the group at given position.
 
         Each picked item yield a 2-tuple: (item, indices),
@@ -569,8 +584,15 @@ class BaseNodeItem(DataItem3D):
 
         :param int x: X widget coordinate
         :param int y: Y widget coordinate
+        :param callable condition: Optional test called for each item
+            checking whether to process it or not.
         """
-        context = PickContext(x, y, self._getScenePrimitive().viewport)
+        viewport = self._getScenePrimitive().viewport
+        if viewport is None:
+            raise RuntimeError(
+                'Cannot perform picking: Item not attached to a widget')
+
+        context = PickContext(x, y, viewport, condition)
         for result in self._pickItems(context):
             yield result
 
@@ -579,8 +601,8 @@ class BaseNodeItem(DataItem3D):
 
         :param PickContext context: Current picking context
         """
-        if not self.isVisible():
-            return  # empty iterator
+        if not context.isItemPickable(self):
+            return  # empty iterator: Skip node and all children
 
         # Use a copy to discard context changes once this returns
         context = context.copy()
@@ -591,15 +613,18 @@ class BaseNodeItem(DataItem3D):
         result = self._pick(context)
         if result is not None:
             yield self, result
+        self._pickPostProcess(context)
 
         for child in self.getItems():
             if isinstance(child, BaseNodeItem):
                 for picking in child._pickItems(context):
                     yield picking  # Flatten result
+
             else:
                 result = child._pick(context)
                 if result is not None:
                     yield child, result
+                child._pickPostProcess(context)
 
 
 class _BaseGroupItem(BaseNodeItem):
