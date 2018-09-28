@@ -67,17 +67,12 @@ class PickContext(object):
         return context
 
     def isItemPickable(self, item):
-        """Returns whether to process item (True) or to skip it (False)
+        """Check condition for the given item.
 
         :param Item3D item:
+        :return: Whether to process the item (True) or to skip it (False)
         :rtype: bool
         """
-        if not self.isEnabled():
-            return False
-
-        if not item.isVisible():
-            return False
-
         return self._condition is None or self._condition(item)
 
     def getViewport(self):

@@ -84,38 +84,36 @@ class ClipPlane(Item3D, PlaneMixIn):
 
         return picked, points, rayObject
 
-    def _pickPostProcess(self, context):
-        """Hook called after picking this item to update the context.
+    def _pick(self, context):
+        # Perform picking before modifying context
+        result = super(ClipPlane, self)._pick(context)
 
-        For node with children(i.e., groups): it is called *before* processing
-        the children and it is not called if the node is skipped.
+        # Modify context if needed
+        if self.isVisible() and context.isEnabled():
+            info = self.__pickPreProcessing(context)
+            if info is not None:
+                picked, points, rayObject = info
+                plane = self._getPlane()
 
-        :param PickContext context: Current picking context
-        """
-        if not self.isVisible():
-            return
+                if picked:  # A single intersection inside bounding box
+                    # Clip NDC z range for following brother items
+                    ndcIntersect = plane.objectToNDCTransform.transformPoint(
+                        points[0], perspectiveDivide=True)
+                    ndcNormal = plane.objectToNDCTransform.transformNormal(
+                        self.getNormal())
+                    if ndcNormal[2] < 0:
+                        context.setNDCZRange(-1., ndcIntersect[2])
+                    else:
+                        context.setNDCZRange(ndcIntersect[2], 1.)
 
-        info = self.__pickPreProcessing(context)
-        if info is not None:
-            picked, points, rayObject = info
-            plane = self._getPlane()
-
-            if picked:  # A single intersection inside bounding box
-                # Clip NDC z range for following brother items
-                ndcIntersect = plane.objectToNDCTransform.transformPoint(
-                    points[0], perspectiveDivide=True)
-                ndcNormal = plane.objectToNDCTransform.transformNormal(
-                    self.getNormal())
-                if ndcNormal[2] < 0:
-                    context.setNDCZRange(-1., ndcIntersect[2])
                 else:
-                    context.setNDCZRange(ndcIntersect[2], 1.)
+                    # TODO check this might not be correct
+                    rayObject[:, 3] = 1.  # Make sure 4h coordinate is one
+                    if numpy.sum(rayObject[0] * self.getParameters()) < 0.:
+                        # Disable picking for remaining brothers
+                        context.setEnabled(False)
 
-            else:
-                rayObject[:, 3] = 1.  # Make sure 4h coordinate is one
-                if numpy.sum(rayObject[0] * self.getParameters()) < 0.:
-                    # Disable picking for remaining brothers
-                    context.setEnabled(False)
+        return result
 
     def _pickFastCheck(self, context):
         return True

@@ -236,20 +236,10 @@ class Item3D(qt.QObject):
                 'Cannot perform picking: Item not attached to a root group')
 
         try:
-            # Return result info, tree traversal until this item is needed
+            # Return result info, do tree traversal until this item is needed
             return next(root.pickItems(x, y, condition=lambda i: i is self))[1]
         except StopIteration:
             return None
-
-    def _pickPostProcess(self, context):
-        """Hook called after picking this item to update the context.
-
-        For node with children(i.e., groups): it is called *before* processing
-        the children and it is not called if the node is skipped.
-
-        :param PickContext context: Current picking context
-        """
-        pass
 
     def _pick(self, context):
         """Implement picking on this item.
@@ -258,13 +248,12 @@ class Item3D(qt.QObject):
         :return: Data indices at picked position or None
         :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
         """
-        if not context.isItemPickable(self):
-            return None
-
-        if not self._pickFastCheck(context):  # Fast picking approximation
-            return None
-
-        return self._pickFull(context)
+        if (self.isVisible() and
+                context.isEnabled() and
+                context.isItemPickable(self) and
+                self._pickFastCheck(context)):
+            return self._pickFull(context)
+        return None
 
     def _pickFastCheck(self, context):
         """Approximate item pick test (e.g., bounding box-based picking).
@@ -601,8 +590,8 @@ class BaseNodeItem(DataItem3D):
 
         :param PickContext context: Current picking context
         """
-        if not context.isItemPickable(self):
-            return  # empty iterator: Skip node and all children
+        if not self.isVisible() or not context.isEnabled():
+            return  # empty iterator
 
         # Use a copy to discard context changes once this returns
         context = context.copy()
@@ -613,7 +602,6 @@ class BaseNodeItem(DataItem3D):
         result = self._pick(context)
         if result is not None:
             yield self, result
-        self._pickPostProcess(context)
 
         for child in self.getItems():
             if isinstance(child, BaseNodeItem):
@@ -624,7 +612,6 @@ class BaseNodeItem(DataItem3D):
                 result = child._pick(context)
                 if result is not None:
                     yield child, result
-                child._pickPostProcess(context)
 
 
 class _BaseGroupItem(BaseNodeItem):
