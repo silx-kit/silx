@@ -186,7 +186,12 @@ class PickingResult(object):
 
     def __init__(self, item, positions, indices=None):
         self._item = item
-        self._positions = numpy.array(positions, copy=False, dtype=numpy.float)
+        self._objectPositions = numpy.array(
+            positions, copy=False, dtype=numpy.float)
+
+        transform = item._getScenePrimitive().objectToSceneTransform
+        self._scenePositions = transform.transformPoints(self._objectPositions)
+
         if indices is None:
             self._indices = None
         else:
@@ -215,12 +220,21 @@ class PickingResult(object):
         indices = numpy.array(self._indices, copy=copy)
         return indices if indices.ndim == 1 else tuple(indices)
 
-    def getPositions(self, copy=True):
+    def getPositions(self, frame='scene', copy=True):
         """Returns picking positions in item coordinates.
 
+        :param str frame: The frame in which the positions are returned
+            Either 'scene' for world space or 'object' for item frame.
         :param bool copy: True (default) to get a copy,
             False to return internal arrays
         :return: Nx3 array of (x, y, z) coordinates
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._positions, copy=copy)
+        if frame == 'scene':
+            positions = self._scenePositions
+        elif frame == 'object':
+            positions = self._objectPositions
+        else:
+            raise ValueError('Unsupported frame argument: %s' % str(frame))
+
+        return numpy.array(positions, copy=copy)
