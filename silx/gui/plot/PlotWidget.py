@@ -741,7 +741,7 @@ class PlotWidget(qt.QMainWindow):
 
         if wasActive:
             self.setActiveCurve(curve.getLegend())
-        elif self.getActiveCurveSelectionMode() == "alwaysone":
+        elif self.getActiveCurveSelectionMode() == "legacy":
             if self.getActiveCurve(just_legend=True) is None:
                 if len(self.getAllCurves(just_legend=True,
                                      withhidden=False)) == 1:
@@ -1647,7 +1647,7 @@ class PlotWidget(qt.QMainWindow):
 
         if not self.isActiveCurveHandling():
             return
-        if legend is None and self.getActiveCurveSelectionMode() == "alwaysone":
+        if legend is None and self.getActiveCurveSelectionMode() == "legacy":
             _logger.info(
                 'setActiveCurve(None) ignored due to active curve selection mode')
             return
@@ -1658,16 +1658,16 @@ class PlotWidget(qt.QMainWindow):
         """Sets the current selection mode.
 
         :param str mode: The active curve selection mode to use.
-            It can be: 'alwaysone', 'atmostone' or 'none'.
+            It can be: 'legacy', 'atmostone' or 'none'.
         """
-        assert mode in ('alwaysone', 'atmostone', 'none')
+        assert mode in ('legacy', 'atmostone', 'none')
 
         if mode != self._activeCurveSelectionMode:
             self._activeCurveSelectionMode = mode
             if mode == 'none':  # reset active curve
                 self._setActiveItem(kind='curve', legend=None)
 
-            if mode == 'alwaysone' and self.getActiveCurve() is None:
+            elif mode == 'legacy' and self.getActiveCurve() is None:
                 # Select an active curve
                 curves = self.getAllCurves(just_legend=False,
                                            withhidden=False)
@@ -1678,7 +1678,7 @@ class PlotWidget(qt.QMainWindow):
     def getActiveCurveSelectionMode(self):
         """Returns the current selection mode.
 
-        It can be "atMostone", "alwaysone" or "none".
+        It can be "atmostone", "legacy" or "none".
 
         :rtype: str
         """
