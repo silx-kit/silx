@@ -265,7 +265,6 @@ class PlotWidget(qt.QMainWindow):
         self._colorIndex = 0
         self._styleIndex = 0
 
-        self._activeCurveHandling = True
         self._activeCurveSelectionMode = "atmostone"
         self._activeCurveColor = "#000000"
         self._activeLegend = {'curve': None, 'image': None,
@@ -742,7 +741,7 @@ class PlotWidget(qt.QMainWindow):
 
         if wasActive:
             self.setActiveCurve(curve.getLegend())
-        elif self.getActiveCurveSelectionMode() == "alwaysone":
+        elif self.getActiveCurveSelectionMode() == "legacy":
             if self.getActiveCurve(just_legend=True) is None:
                 if len(self.getAllCurves(just_legend=True,
                                      withhidden=False)) == 1:
@@ -1586,20 +1585,19 @@ class PlotWidget(qt.QMainWindow):
     # Active Curve/Image
 
     def isActiveCurveHandling(self):
-        """Returns True if active curve selection is enabled."""
-        return self._activeCurveHandling
+        """Returns True if active curve selection is enabled.
+
+        :rtype: bool
+        """
+        return self.getActiveCurveSelectionMode() != 'none'
 
     def setActiveCurveHandling(self, flag=True):
         """Enable/Disable active curve selection.
 
-        :param flag: Anything that can be considered True (the default) to enable active curve selection.
-                     The string "alwaysone" disables the possibility to unselect a curve by clicking on an empty region.
+        :param bool flag: True to enable 'atmostone' active curve selection,
+            False to disable active curve selection.
         """
-        if not flag:
-            self.setActiveCurve(None)  # Reset active curve
-
-        self._activeCurveHandling = bool(flag)
-        self.setActiveCurveSelectionMode(flag)
+        self.setActiveCurveSelectionMode('atmostone' if flag else 'none')
 
     def getActiveCurveColor(self):
         """Get the color used to display the currently active curve.
@@ -1649,8 +1647,8 @@ class PlotWidget(qt.QMainWindow):
 
         if not self.isActiveCurveHandling():
             return
-        if legend is None and self.getActiveCurveSelectionMode() == "alwaysone":
-            _logger.info( \
+        if legend is None and self.getActiveCurveSelectionMode() == "legacy":
+            _logger.info(
                 'setActiveCurve(None) ignored due to active curve selection mode')
             return
 
@@ -1658,22 +1656,31 @@ class PlotWidget(qt.QMainWindow):
 
     def setActiveCurveSelectionMode(self, mode):
         """Sets the current selection mode.
-           Only "alwaysone" (case insensitive) changes the default "atmostone"
+
+        :param str mode: The active curve selection mode to use.
+            It can be: 'legacy', 'atmostone' or 'none'.
         """
-        self._activeCurveSelectionMode = "atmostone"
-        if hasattr(mode, "upper"):
-            if mode.lower() == "alwaysone":
-                self._activeCurveSelectionMode = "alwaysone"
-                if self.getActiveCurve(just_legend=True) is None:
-                    curves = self.getAllCurves(just_legend=False,
-                                               withhidden=False) 
-                    if len(curves) == 1:
-                        if curves[0].isVisible():
-                            self.setActiveCurve(curves[0].getLegend())
+        assert mode in ('legacy', 'atmostone', 'none')
+
+        if mode != self._activeCurveSelectionMode:
+            self._activeCurveSelectionMode = mode
+            if mode == 'none':  # reset active curve
+                self._setActiveItem(kind='curve', legend=None)
+
+            elif mode == 'legacy' and self.getActiveCurve() is None:
+                # Select an active curve
+                curves = self.getAllCurves(just_legend=False,
+                                           withhidden=False)
+                if len(curves) == 1:
+                    if curves[0].isVisible():
+                        self.setActiveCurve(curves[0].getLegend())
 
     def getActiveCurveSelectionMode(self):
         """Returns the current selection mode.
-           For the time being it can be "atmostone" or "alwaysone"
+
+        It can be "atmostone", "legacy" or "none".
+
+        :rtype: str
         """
         return self._activeCurveSelectionMode
 

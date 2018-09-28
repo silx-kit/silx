@@ -132,8 +132,8 @@ Coordinates conversion
 Active Item
 ...........
 
-.. automethod:: PlotWidget.isActiveCurveHandling
-.. automethod:: PlotWidget.setActiveCurveHandling
+.. automethod:: PlotWidget.setActiveCurveSelectionMode
+.. automethod:: PlotWidget.getActiveCurveSelectionMode
 .. automethod:: PlotWidget.getActiveCurveColor
 .. automethod:: PlotWidget.setActiveCurveColor
 .. automethod:: PlotWidget.getActiveCurve
