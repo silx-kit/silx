@@ -45,7 +45,7 @@ from ..scene import cutplane, primitives, transform, utils
 
 from .core import BaseNodeItem, Item3D, ItemChangedType, Item3DChangedType
 from .mixins import ColormapMixIn, InterpolationMixIn, PlaneMixIn
-from ._pick import PickContext
+from ._pick import PickingResult
 
 
 _logger = logging.getLogger(__name__)
@@ -155,7 +155,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
 
             depth, height, width = data.shape
             if z < depth and y < height and x < width:
-                return numpy.array((z,)), numpy.array((y,)), numpy.array((x,))
+                return PickingResult(self, indices=([z], [y], [x]))
             else:
                 return None  # Outside image
         else:  # Either no intersection or segment and image are coplanar
@@ -359,7 +359,7 @@ class Isosurface(Item3D):
             return None  # No intersected triangles
 
         bins = numpy.array(intersections)[numpy.argsort(depths)]
-        return tuple(bins.T)  # coarse approximation
+        return PickingResult(self, indices=bins.T)
 
 
 class ScalarField3D(BaseNodeItem):

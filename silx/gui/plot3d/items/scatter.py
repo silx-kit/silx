@@ -40,6 +40,7 @@ from ..scene import function, primitives, utils
 
 from .core import DataItem3D, Item3DChangedType, ItemChangedType
 from .mixins import ColormapMixIn, SymbolMixIn
+from ._pick import PickingResult
 
 
 _logger = logging.getLevelName(__name__)
@@ -196,7 +197,10 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             # Sort picked points from front to back
             picked = picked[numpy.argsort(pointsNdc[picked, 2])]
 
-        return picked if picked.size > 0 else None
+        if picked.size > 0:
+            return PickingResult(self, indices=picked)
+        else:
+            return None
 
 
 class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
@@ -476,7 +480,10 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             # Sort picked points from front to back
             picked = picked[numpy.argsort(pointsNdc[picked, 2])]
 
-        return picked if picked.size > 0 else None
+        if picked.size > 0:
+            return PickingResult(self, indices=picked)
+        else:
+            return None
 
     def _updateScene(self):
         self._getScenePrimitive().children = []  # Remove previous primitives

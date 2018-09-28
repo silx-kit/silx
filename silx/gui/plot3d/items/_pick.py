@@ -171,3 +171,38 @@ class PickContext(object):
         rayObject = frame.objectToSceneTransform.transformPoints(
             rayScene, direct=False)
         return rayObject
+
+
+class PickingResult(object):
+    """Class to access picking information in a 3D scene
+
+    :param ~silx.gui.plot3d.items.Item3D item: The picked item
+    :param numpy.ndarray indices: Array-like of indices of picked data.
+        Either 1D or 2D with dim0: data dimension and dim1: indices.
+        No copy is made.
+    """
+
+    def __init__(self, item, indices):
+        self._item = item
+        self._indices = numpy.array(indices)
+
+    def getItem(self):
+        """Returns the item this results corresponds to.
+
+        :rtype: ~silx.gui.plot3d.items.Item3D
+        """
+        return self._item
+
+    def getIndices(self, copy=True):
+        """Returns indices of picked data.
+
+        If data is 1D, it returns a numpy.ndarray, otherwise
+        it returns a tuple with as many numpy.ndarray as there are
+        dimensions in the data.
+
+        :param bool copy: True (default) to get a copy,
+            False to return internal arrays
+        :rtype: Union[numpy.ndarray,List[numpy.ndarray]]
+        """
+        indices = numpy.array(self._indices, copy=copy)
+        return indices if indices.ndim == 1 else tuple(indices)

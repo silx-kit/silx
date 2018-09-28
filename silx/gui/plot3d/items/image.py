@@ -36,6 +36,7 @@ import numpy
 from ..scene import primitives, utils
 from .core import DataItem3D, ItemChangedType
 from .mixins import ColormapMixIn, InterpolationMixIn
+from ._pick import PickingResult
 
 
 class _Image(DataItem3D, InterpolationMixIn):
@@ -78,7 +79,7 @@ class _Image(DataItem3D, InterpolationMixIn):
             data = self.getData(copy=False)
             height, width = data.shape[:2]
             if row < height and column < width:
-                return numpy.array((row,)), numpy.array((column,))
+                return PickingResult(self, indices=([row], [column]))
             else:
                 return None  # Outside image
         else:  # Either no intersection or segment and image are coplanar

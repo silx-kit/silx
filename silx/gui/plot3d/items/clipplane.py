@@ -36,6 +36,7 @@ import numpy
 
 from ..scene import primitives, utils
 
+from ._pick import PickingResult
 from .core import Item3D
 from .mixins import PlaneMixIn
 
@@ -131,6 +132,7 @@ class ClipPlane(Item3D, PlaneMixIn):
             picked, points, _ = info
 
             if picked:
-                return points[0]  # TODO check what we want to return
+                # TODO check what we want to return
+                return PickingResult(self, indices=points[0])
 
         return None

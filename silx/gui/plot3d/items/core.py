@@ -227,8 +227,8 @@ class Item3D(qt.QObject):
 
         :param int x: X widget coordinate
         :param int y: Y widget coordinate
-        :return: Data indices at picked position or None
-        :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
+        :return: An object holding picking information or None
+        :rtype: Union[None,PickingResult]
         """
         root = self.root()
         if not isinstance(root, BaseNodeItem):
@@ -237,16 +237,16 @@ class Item3D(qt.QObject):
 
         try:
             # Return result info, do tree traversal until this item is needed
-            return next(root.pickItems(x, y, condition=lambda i: i is self))[1]
+            return next(root.pickItems(x, y, condition=lambda i: i is self))
         except StopIteration:
-            return None
+            return None  # Not picked
 
     def _pick(self, context):
         """Implement picking on this item.
 
         :param PickContext context: Current picking context
         :return: Data indices at picked position or None
-        :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
+        :rtype: Union[None,PickingResult]
         """
         if (self.isVisible() and
                 context.isEnabled() and
@@ -281,8 +281,8 @@ class Item3D(qt.QObject):
         """Perform precise picking in this item at given widget position.
 
         :param PickContext context: Current picking context
-        :return: Data indices at picked position or None
-        :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
         """
         return None
 
@@ -565,9 +565,8 @@ class BaseNodeItem(DataItem3D):
     def pickItems(self, x, y, condition=None):
         """Iterator over picked items in the group at given position.
 
-        Each picked item yield a 2-tuple: (item, indices),
-        where indices is either a numpy.ndarray (for 1D data) or
-        a tuple of numpy.ndarray for nD data.
+        Each picked item yield a :class:`PickingResult` object
+        holding the picking information.
 
         It traverses the group sub-tree in a left-to-right top-down way.
 
@@ -601,17 +600,17 @@ class BaseNodeItem(DataItem3D):
 
         result = self._pick(context)
         if result is not None:
-            yield self, result
+            yield result
 
         for child in self.getItems():
             if isinstance(child, BaseNodeItem):
-                for picking in child._pickItems(context):
-                    yield picking  # Flatten result
+                for result in child._pickItems(context):
+                    yield result  # Flatten result
 
             else:
                 result = child._pick(context)
                 if result is not None:
-                    yield child, result
+                    yield result
 
 
 class _BaseGroupItem(BaseNodeItem):
