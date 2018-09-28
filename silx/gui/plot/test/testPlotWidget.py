@@ -698,7 +698,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
                            color="red")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
         self.plot.setActiveCurveSelectionMode("legacy")
-        self.assertEqual(self.plot.getActiveCurve(just_legend=True), 'curve 1')
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
 
         # the first curve added should be active
         self.plot.clear()
