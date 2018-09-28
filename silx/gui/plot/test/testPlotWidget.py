@@ -692,7 +692,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.plot.addCurve(self.xData, self.yData,
                            legend=legend,
                            color="green")
-        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)        
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
         self.plot.addCurve(self.xData2, self.yData2,
                            legend="curve 2",
                            color="red")
