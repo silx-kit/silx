@@ -396,6 +396,21 @@ class SceneWidget(Plot3DWidget):
         """
         return self._sceneGroup
 
+    def pickItems(self, x, y, condition=None):
+        """Iterator over picked items in the scene at given position.
+
+        Each picked item yield a :class:`PickingResult` object
+        holding the picking information.
+
+        It traverses the scene tree in a left-to-right top-down way.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :param callable condition: Optional test called for each item
+            checking whether to process it or not.
+        """
+        return self.getSceneGroup().pickItems(x, y, condition)
+
     # Interactive modes
 
     def _handleSelectionChanged(self, current, previous):
