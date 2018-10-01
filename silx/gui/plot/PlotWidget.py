@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "29/08/2018"
+__date__ = "28/09/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -265,7 +265,7 @@ class PlotWidget(qt.QMainWindow):
         self._colorIndex = 0
         self._styleIndex = 0
 
-        self._activeCurveHandling = True
+        self._activeCurveSelectionMode = "atmostone"
         self._activeCurveColor = "#000000"
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
@@ -741,6 +741,12 @@ class PlotWidget(qt.QMainWindow):
 
         if wasActive:
             self.setActiveCurve(curve.getLegend())
+        elif self.getActiveCurveSelectionMode() == "legacy":
+            if self.getActiveCurve(just_legend=True) is None:
+                if len(self.getAllCurves(just_legend=True,
+                                     withhidden=False)) == 1:
+                    if curve.isVisible():
+                        self.setActiveCurve(curve.getLegend())
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -1579,18 +1585,19 @@ class PlotWidget(qt.QMainWindow):
     # Active Curve/Image
 
     def isActiveCurveHandling(self):
-        """Returns True if active curve selection is enabled."""
-        return self._activeCurveHandling
+        """Returns True if active curve selection is enabled.
+
+        :rtype: bool
+        """
+        return self.getActiveCurveSelectionMode() != 'none'
 
     def setActiveCurveHandling(self, flag=True):
         """Enable/Disable active curve selection.
 
-        :param bool flag: True (the default) to enable active curve selection.
+        :param bool flag: True to enable 'atmostone' active curve selection,
+            False to disable active curve selection.
         """
-        if not flag:
-            self.setActiveCurve(None)  # Reset active curve
-
-        self._activeCurveHandling = bool(flag)
+        self.setActiveCurveSelectionMode('atmostone' if flag else 'none')
 
     def getActiveCurveColor(self):
         """Get the color used to display the currently active curve.
@@ -1640,8 +1647,42 @@ class PlotWidget(qt.QMainWindow):
 
         if not self.isActiveCurveHandling():
             return
+        if legend is None and self.getActiveCurveSelectionMode() == "legacy":
+            _logger.info(
+                'setActiveCurve(None) ignored due to active curve selection mode')
+            return
 
         return self._setActiveItem(kind='curve', legend=legend)
+
+    def setActiveCurveSelectionMode(self, mode):
+        """Sets the current selection mode.
+
+        :param str mode: The active curve selection mode to use.
+            It can be: 'legacy', 'atmostone' or 'none'.
+        """
+        assert mode in ('legacy', 'atmostone', 'none')
+
+        if mode != self._activeCurveSelectionMode:
+            self._activeCurveSelectionMode = mode
+            if mode == 'none':  # reset active curve
+                self._setActiveItem(kind='curve', legend=None)
+
+            elif mode == 'legacy' and self.getActiveCurve() is None:
+                # Select an active curve
+                curves = self.getAllCurves(just_legend=False,
+                                           withhidden=False)
+                if len(curves) == 1:
+                    if curves[0].isVisible():
+                        self.setActiveCurve(curves[0].getLegend())
+
+    def getActiveCurveSelectionMode(self):
+        """Returns the current selection mode.
+
+        It can be "atmostone", "legacy" or "none".
+
+        :rtype: str
+        """
+        return self._activeCurveSelectionMode
 
     def getActiveImage(self, just_legend=False):
         """Returns the currently active image.

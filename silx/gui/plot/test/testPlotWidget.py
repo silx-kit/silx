@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "21/09/2018"
 
 
 import unittest
@@ -427,8 +427,7 @@ class TestPlotCurve(PlotWidgetTestCase):
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve 2",
                            replace=False, resetzoom=False,
-                           color=color, symbol='o')
-
+                           color=color, symbol='o')        
 
 class TestPlotMarker(PlotWidgetTestCase):
     """Basic tests for add*Marker"""
@@ -599,7 +598,15 @@ class TestPlotItem(PlotWidgetTestCase):
 
 
 class TestPlotActiveCurveImage(PlotWidgetTestCase):
-    """Basic tests for active image handling"""
+    """Basic tests for active curve and image handling"""
+    xData = numpy.arange(1000)
+    yData = -500 + 100 * numpy.sin(xData)
+    xData2 = xData + 1000
+    yData2 = xData - 1000 + 200 * numpy.random.random(1000)
+
+    def tearDown(self):
+        self.plot.setActiveCurveHandling(False)
+        super(TestPlotActiveCurveImage, self).tearDown()
 
     def testActiveCurveAndLabels(self):
         # Active curve handling off, no label change
@@ -626,6 +633,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         # labels changed as active curve
         self.plot.addCurve((1, 2), (1, 2), legend='1',
                            xlabel='x1', ylabel='y1')
+        self.plot.setActiveCurve('1')
         self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
         self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
 
@@ -647,6 +655,62 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
         self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
 
+    def testPlotActiveCurveSelectionMode(self):
+        self.plot.clear()
+        self.plot.setActiveCurveHandling(True)
+        legend = "curve 1"
+        self.plot.addCurve(self.xData, self.yData,
+                           legend=legend,
+                           color="green")
+
+        # active curve should be None
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
+
+        # active curve should be None when None is set as active curve
+        self.plot.setActiveCurve(legend)
+        current = self.plot.getActiveCurve(just_legend=True)
+        self.assertEqual(current, legend)
+        self.plot.setActiveCurve(None)
+        current = self.plot.getActiveCurve(just_legend=True)
+        self.assertEqual(current, None)
+
+        # testing it automatically toggles if there is only one
+        self.plot.setActiveCurveSelectionMode("legacy")
+        current = self.plot.getActiveCurve(just_legend=True)
+        self.assertEqual(current, legend)
+        
+        # active curve should not change when None set as active curve
+        self.assertEqual(self.plot.getActiveCurveSelectionMode(), "legacy")
+        self.plot.setActiveCurve(None)
+        current = self.plot.getActiveCurve(just_legend=True)
+        self.assertEqual(current, legend)
+
+        # situation where no curve is active
+        self.plot.clear()
+        self.plot.setActiveCurveHandling(True)
+        self.assertEqual(self.plot.getActiveCurveSelectionMode(), "atmostone")
+        self.plot.addCurve(self.xData, self.yData,
+                           legend=legend,
+                           color="green")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
+        self.plot.addCurve(self.xData2, self.yData2,
+                           legend="curve 2",
+                           color="red")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
+        self.plot.setActiveCurveSelectionMode("legacy")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
+
+        # the first curve added should be active
+        self.plot.clear()
+        self.plot.addCurve(self.xData, self.yData,
+                           legend=legend,
+                           color="green")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), legend)
+        self.plot.addCurve(self.xData2, self.yData2,
+                           legend="curve 2",
+                           color="red")
+        self.assertEqual(self.plot.getActiveCurve(just_legend=True), legend)
+        
     def testActiveImageAndLabels(self):
         # Active image handling always on, no API for toggling it
         self.plot.getXAxis().setLabel('XLabel')
@@ -1400,6 +1464,7 @@ class TestPlotItemLog(PlotWidgetTestCase):
 def suite():
     testClasses = (TestPlotWidget, TestPlotImage, TestPlotCurve,
                    TestPlotMarker, TestPlotItem, TestPlotAxes,
+                   TestPlotActiveCurveImage,
                    TestPlotEmptyLog, TestPlotCurveLog, TestPlotImageLog,
                    TestPlotMarkerLog, TestPlotItemLog)
 
