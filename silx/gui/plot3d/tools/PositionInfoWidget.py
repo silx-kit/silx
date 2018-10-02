@@ -124,7 +124,7 @@ class PositionInfoWidget(qt.QWidget):
         """
         if (event.type() == qt.QEvent.MouseButtonDblClick and
                 event.button() == qt.Qt.LeftButton):
-            self.pickAndShow(event.x(), event.y())
+            self.pick(event.x(), event.y())
 
         return super(PositionInfoWidget, self).eventFilter(watched, event)
 
