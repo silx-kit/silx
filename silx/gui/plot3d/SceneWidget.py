@@ -400,7 +400,8 @@ class SceneWidget(Plot3DWidget):
     def pickItems(self, x, y, condition=None):
         """Iterator over picked items in the scene at given position.
 
-        Each picked item yield a :class:`PickingResult` object
+        Each picked item yield a
+        :class:`~silx.gui.plot3d.items._pick.PickingResult` object
         holding the picking information.
 
         It traverses the scene tree in a left-to-right top-down way.
