@@ -222,25 +222,6 @@ class Item3D(qt.QObject):
 
     # picking
 
-    def pick(self, x, y):
-        """Perform picking in this item at given widget position.
-
-        :param int x: X widget device pixel coordinate
-        :param int y: Y widget device pixel coordinate
-        :return: An object holding picking information or None
-        :rtype: Union[None,PickingResult]
-        """
-        root = self.root()
-        if not isinstance(root, BaseNodeItem):
-            raise RuntimeError(
-                'Cannot perform picking: Item not attached to a root group')
-
-        try:
-            # Return result info, do tree traversal until this item is needed
-            return next(root.pickItems(x, y, condition=lambda i: i is self))
-        except StopIteration:
-            return None  # Not picked
-
     def _pick(self, context):
         """Implement picking on this item.
 
