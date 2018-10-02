@@ -22,7 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-""""""
+"""This module provides a widget that displays data values of a SceneWidget.
+"""
 
 from __future__ import absolute_import
 
@@ -89,9 +90,9 @@ class PositionInfoWidget(qt.QWidget):
         return widget
 
     def getSceneWidget(self):
-        """Returns the associated :class:`SceneWidget`
+        """Returns the associated :class:`SceneWidget` or None.
 
-        :rtype: Union[None,SceneWidget]
+        :rtype: Union[None,~silx.gui.plot3d.SceneWidget.SceneWidget]
         """
         if self._sceneWidgetRef is None:
             return None
@@ -101,7 +102,8 @@ class PositionInfoWidget(qt.QWidget):
     def setSceneWidget(self, widget):
         """Set the associated :class:`SceneWidget`
 
-        :param SceneWidget widget: 3D scene for which to display information
+        :param ~silx.gui.plot3d.SceneWidget.SceneWidget widget:
+            3D scene for which to display information
         """
         if widget is not None and not isinstance(widget, SceneWidget):
             raise ValueError("widget must be a SceneWidget or None")
@@ -117,12 +119,7 @@ class PositionInfoWidget(qt.QWidget):
             self._sceneWidgetRef = weakref.ref(widget)
 
     def eventFilter(self, watched, event):
-        """Filter events of SceneWidget to react on mouse events.
-
-        :param QObject watched: Watched SceneWidget
-        :param QEvent event: Received event
-        :rtype: bool
-        """
+        # Filter events of SceneWidget to react on mouse events.
         if (event.type() == qt.QEvent.MouseButtonDblClick and
                 event.button() == qt.Qt.LeftButton):
             self.pick(event.x(), event.y())
