@@ -225,8 +225,8 @@ class Item3D(qt.QObject):
     def pick(self, x, y):
         """Perform picking in this item at given widget position.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param int x: X widget device pixel coordinate
+        :param int y: Y widget device pixel coordinate
         :return: An object holding picking information or None
         :rtype: Union[None,PickingResult]
         """
@@ -570,8 +570,8 @@ class BaseNodeItem(DataItem3D):
 
         It traverses the group sub-tree in a left-to-right top-down way.
 
-        :param int x: X widget coordinate
-        :param int y: Y widget coordinate
+        :param int x: X widget device pixel coordinate
+        :param int y: Y widget device pixel coordinate
         :param callable condition: Optional test called for each item
             checking whether to process it or not.
         """

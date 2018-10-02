@@ -367,7 +367,8 @@ class SceneWidget(Plot3DWidget):
         self._sceneGroup = RootGroupWithAxesItem(parent=self)
         self._sceneGroup.setLabel('Data')
 
-        self.viewport.scene.children.append(self._sceneGroup._getScenePrimitive())
+        self.viewport.scene.children.append(
+            self._sceneGroup._getScenePrimitive())
 
     def model(self):
         """Returns the model corresponding the scene of this widget
@@ -409,7 +410,13 @@ class SceneWidget(Plot3DWidget):
         :param callable condition: Optional test called for each item
             checking whether to process it or not.
         """
-        return self.getSceneGroup().pickItems(x, y, condition)
+        if not self.isValid() or not self.isVisible():
+            return  # Empty iterator
+
+        devicePixelRatio = self.getDevicePixelRatio()
+        for result in self.getSceneGroup().pickItems(
+            x * devicePixelRatio, y * devicePixelRatio, condition):
+            yield result
 
     # Interactive modes
 
