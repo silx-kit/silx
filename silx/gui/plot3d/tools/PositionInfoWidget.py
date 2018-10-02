@@ -135,12 +135,12 @@ class PositionInfoWidget(qt.QWidget):
                        self._dataLabel, self._itemLabel):
             widget.setText('-')
 
-    _SCATTER_ITEMS = items.Scatter3D, items.Scatter2D
-    _DATA_ITEMS = (items.ImageData,
-                   items.ImageRgba,
-                   volume.CutPlane,
-                   volume.Isosurface)
-    _SUPPORTED_ITEMS = _SCATTER_ITEMS + _DATA_ITEMS
+    _SUPPORTED_ITEMS = (items.Scatter3D,
+                        items.Scatter2D,
+                        items.ImageData,
+                        items.ImageRgba,
+                        volume.CutPlane,
+                        volume.Isosurface)
     """Type of items that are picked"""
 
     def _isSupportedItem(self, item):
@@ -187,14 +187,9 @@ class PositionInfoWidget(qt.QWidget):
         self._yLabel.setText("%g" % y)
         self._zLabel.setText("%g" % z)
 
-        indices = picking.getIndices(copy=False)
-        if indices is not None and len(indices) > 0:
-            if isinstance(item, self._SCATTER_ITEMS):
-                data = item.getValues(copy=False)
-            else:  # _DATA_ITEMS
-                data = item.getData(copy=False)
-
-            data = data[indices][0]
+        data = picking.getData(copy=False)
+        if data is not None:
+            data = data[0]
             if hasattr(data, '__len__'):
                 text = ' '.join(["%.3g"] * len(data)) % tuple(data)
             else:

@@ -201,7 +201,8 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         if picked.size > 0:
             return PickingResult(self,
                                  positions=dataPoints[picked, :3],
-                                 indices=picked)
+                                 indices=picked,
+                                 fetchdata=self.getValues)
         else:
             return None
 
@@ -487,7 +488,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         if picked.size > 0:
             return PickingResult(self,
                                  positions=dataPoints[picked, :3],
-                                 indices=picked)
+                                 indices=picked,
+                                 fetchdata=self.getValues)
         else:
             return None
 

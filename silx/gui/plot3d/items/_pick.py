@@ -31,9 +31,13 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/09/2018"
 
+import logging
 import numpy
 
 from ..scene import Viewport, Base
+
+
+_logger = logging.getLogger(__name__)
 
 
 class PickContext(object):
@@ -174,17 +178,22 @@ class PickContext(object):
 
 
 class PickingResult(object):
-    """Class to access picking information in a 3D scene
-
-    :param ~silx.gui.plot3d.items.Item3D item: The picked item
-    :param numpy.ndarray positions:
-        Nx3 array-like of picked positions (x, y, z) in item coordinates.
-    :param numpy.ndarray indices: Array-like of indices of picked data.
-        Either 1D or 2D with dim0: data dimension and dim1: indices.
-        No copy is made.
+    """Class to access picking information in a 3D scene.
     """
 
-    def __init__(self, item, positions, indices=None):
+    def __init__(self, item, positions, indices=None, fetchdata=None):
+        """Init
+
+        :param ~silx.gui.plot3d.items.Item3D item: The picked item
+        :param numpy.ndarray positions:
+            Nx3 array-like of picked positions (x, y, z) in item coordinates.
+        :param numpy.ndarray indices: Array-like of indices of picked data.
+            Either 1D or 2D with dim0: data dimension and dim1: indices.
+            No copy is made.
+        :param callable fetchdata: Optional function with a bool copy argument
+            to provide an alternative function to access item data.
+            Default is to use `item.getData`.
+        """
         self._item = item
         self._objectPositions = numpy.array(
             positions, copy=False, dtype=numpy.float)
@@ -200,6 +209,8 @@ class PickingResult(object):
             self._indices = None
         else:
             self._indices = numpy.array(indices, copy=False, dtype=numpy.int)
+
+        self._fetchdata = fetchdata
 
     def getItem(self):
         """Returns the item this results corresponds to.
@@ -223,6 +234,29 @@ class PickingResult(object):
             return None
         indices = numpy.array(self._indices, copy=copy)
         return indices if indices.ndim == 1 else tuple(indices)
+
+    def getData(self, copy=True):
+        """Returns picked data values
+
+        :param bool copy: True (default) to get a copy,
+            False to return internal arrays
+        :rtype: Union[None,numpy.ndarray]
+        """
+
+        indices = self.getIndices(copy=False)
+        if indices is None or len(indices) == 0:
+            return None
+
+        item = self.getItem()
+        if self._fetchdata is None:
+            if hasattr(item, 'getData'):
+                data = item.getData(copy=False)
+            else:
+                return None
+        else:
+            data = self._fetchdata(copy=False)
+
+        return numpy.array(data[indices], copy=copy)
 
     def getPositions(self, frame='scene', copy=True):
         """Returns picking positions in item coordinates.
