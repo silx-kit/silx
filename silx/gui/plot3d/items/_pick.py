@@ -189,8 +189,12 @@ class PickingResult(object):
         self._objectPositions = numpy.array(
             positions, copy=False, dtype=numpy.float)
 
+        # TODO store matrix and do lazy computation
         transform = item._getScenePrimitive().objectToSceneTransform
         self._scenePositions = transform.transformPoints(self._objectPositions)
+
+        transform = item._getScenePrimitive().objectToNDCTransform
+        self._ndcPositions = transform.transformPoints(self._objectPositions)
 
         if indices is None:
             self._indices = None
@@ -224,13 +228,16 @@ class PickingResult(object):
         """Returns picking positions in item coordinates.
 
         :param str frame: The frame in which the positions are returned
-            Either 'scene' for world space or 'object' for item frame.
+            Either 'scene' for world space,
+            'ndc' for normalized device coordinates or 'object' for item frame.
         :param bool copy: True (default) to get a copy,
             False to return internal arrays
         :return: Nx3 array of (x, y, z) coordinates
         :rtype: numpy.ndarray
         """
-        if frame == 'scene':
+        if frame == 'ndc':
+            positions = self._ndcPositions
+        elif frame == 'scene':
             positions = self._scenePositions
         elif frame == 'object':
             positions = self._objectPositions
