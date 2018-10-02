@@ -189,12 +189,12 @@ class PickingResult(object):
         self._objectPositions = numpy.array(
             positions, copy=False, dtype=numpy.float)
 
-        # TODO store matrix and do lazy computation
-        transform = item._getScenePrimitive().objectToSceneTransform
-        self._scenePositions = transform.transformPoints(self._objectPositions)
-
-        transform = item._getScenePrimitive().objectToNDCTransform
-        self._ndcPositions = transform.transformPoints(self._objectPositions)
+        # Store matrices to generate positions on demand
+        primitive = item._getScenePrimitive()
+        self._objectToSceneTransform = primitive.objectToSceneTransform
+        self._objectToNDCTransform = primitive.objectToNDCTransform
+        self._scenePositions = None
+        self._ndcPositions = None
 
         if indices is None:
             self._indices = None
@@ -236,11 +236,22 @@ class PickingResult(object):
         :rtype: numpy.ndarray
         """
         if frame == 'ndc':
+            if self._ndcPositions is None:  # Lazy-loading
+                self._ndcPositions = self._objectToNDCTransform.transformPoints(
+                    self._objectPositions)
+
             positions = self._ndcPositions
+
         elif frame == 'scene':
+            if self._scenePositions is None:  # Lazy-loading
+                self._scenePositions = self._objectToSceneTransform.transformPoints(
+                    self._objectPositions)
+
             positions = self._scenePositions
+
         elif frame == 'object':
             positions = self._objectPositions
+
         else:
             raise ValueError('Unsupported frame argument: %s' % str(frame))
 
