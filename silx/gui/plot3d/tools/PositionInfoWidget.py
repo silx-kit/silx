@@ -53,6 +53,7 @@ class PositionInfoWidget(qt.QWidget):
         super(PositionInfoWidget, self).__init__(parent)
         self._sceneWidgetRef = None
 
+        self.setToolTip("Double-click on a data point to show its value")
         layout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight, self)
 
         self._xLabel = self._addInfoField('X')

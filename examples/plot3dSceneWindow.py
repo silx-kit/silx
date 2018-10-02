@@ -73,6 +73,7 @@ sceneWidget.setTextColor((0.1, 0.1, 0.1, 1.))
 positionInfo = PositionInfoWidget()
 positionInfo.setSceneWidget(sceneWidget)
 dock = BoxLayoutDockWidget()
+dock.setWindowTitle("Selection Info")
 dock.setWidget(positionInfo)
 window.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
 
