@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "03/10/2018"
 
 
-import logging
 import unittest
 
 import numpy
@@ -38,9 +37,6 @@ from silx.gui.test.utils import TestCaseQt
 from silx.gui import qt
 
 from silx.gui.plot3d.SceneWidget import SceneWidget, items
-
-
-_logger = logging.getLogger(__name__)
 
 
 class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
