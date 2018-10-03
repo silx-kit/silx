@@ -130,9 +130,8 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
-        :return:
-            Data indices as (depths, rows, columns) at picked position or None
-        :rtype: Union[None,List[numpy.ndarray]]
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
         """
         rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
         if rayObject is None:
@@ -310,9 +309,8 @@ class Isosurface(Item3D):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
-        :return:
-            Data indices as (depths, rows, columns) at picked position or None
-        :rtype: Union[None,List[numpy.ndarray]]
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
         """
         rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
         if rayObject is None:
