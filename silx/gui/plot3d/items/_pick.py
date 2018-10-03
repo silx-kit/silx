@@ -272,7 +272,7 @@ class PickingResult(object):
         if frame == 'ndc':
             if self._ndcPositions is None:  # Lazy-loading
                 self._ndcPositions = self._objectToNDCTransform.transformPoints(
-                    self._objectPositions)
+                    self._objectPositions, perspectiveDivide=True)
 
             positions = self._ndcPositions
 
