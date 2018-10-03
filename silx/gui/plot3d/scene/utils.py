@@ -556,7 +556,7 @@ def segmentTrianglesIntersection(segment, triangles):
     :param numpy.ndarray segment:
         Segment end points as a 2x3 array of coordinates
     :param numpy.ndarray triangles:
-        Nx3x3 array of triangles a
+        Nx3x3 array of triangles
     :return: (triangle indices, segment parameter, barycentric coord)
         Indices of intersected triangles, "depth" along the segment
         of the intersection point and barycentric coordinates of intersection
@@ -588,8 +588,9 @@ def segmentTrianglesIntersection(segment, triangles):
     del dCrossEdge02
     subVolumes[:, 2] = numpy.sum(t0s0CrossEdge01 * d, axis=1)
     subVolumes[:, 0] = volume - subVolumes[:, 1] - subVolumes[:, 2]
-
-    intersect = numpy.all(numpy.diff(numpy.sign(subVolumes), axis=1) == 0, axis=1)
+    intersect = numpy.logical_or(
+        numpy.all(subVolumes >= 0., axis=1),  # All positive
+        numpy.all(subVolumes <= 0., axis=1))  # All negative
     intersect = numpy.where(intersect)[0]  # Indices of intersected triangles
 
     # Get barycentric coordinates

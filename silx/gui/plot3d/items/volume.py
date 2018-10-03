@@ -350,6 +350,7 @@ class Isosurface(Item3D):
             points = mc.get_vertices() + currentBin
             triangles = points[mc.get_indices()]
             t = utils.segmentTrianglesIntersection(rayObject, triangles)[1]
+            t = numpy.unique(t)  # Duplicates happen on triangle edges
             if len(t) != 0:
                 # Compute intersection points and get closest data point
                 points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
