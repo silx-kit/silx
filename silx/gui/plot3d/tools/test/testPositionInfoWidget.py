@@ -77,7 +77,7 @@ class TestPositionInfoWidget(TestCaseQt):
         self.sceneWidget.resetZoom('front')
 
         # Double click at the center
-        self.mouseDClick(self.sceneWidget)
+        self.mouseDClick(self.sceneWidget, button=qt.Qt.LeftButton)
 
         # Clear displayed value
         self.positionInfoWidget.clear()
