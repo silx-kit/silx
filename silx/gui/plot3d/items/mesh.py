@@ -31,11 +31,17 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/07/2018"
 
+
+import logging
 import numpy
 
-from ..scene import primitives
-from .core import DataItem3D, ItemChangedType
+from ..scene import primitives, utils
 from ..scene.transform import Rotate
+from .core import DataItem3D, ItemChangedType
+from ._pick import PickingResult
+
+
+_logger = logging.getLogger(__name__)
 
 
 class Mesh(DataItem3D):
@@ -56,11 +62,7 @@ class Mesh(DataItem3D):
                 copy=True):
         """Set mesh geometry data.
 
-        Supported drawing modes are:
-
-        - For points: 'points'
-        - For lines: 'lines', 'line_strip', 'loop'
-        - For triangles: 'triangles', 'triangle_strip', 'fan'
+        Supported drawing modes are: 'triangles', 'triangle_strip', 'fan'
 
         :param numpy.ndarray position:
             Position (x, y, z) of each vertex as a (N, 3) array
@@ -73,7 +75,7 @@ class Mesh(DataItem3D):
         self._getScenePrimitive().children = []  # Remove any previous mesh
 
         if position is None or len(position) == 0:
-            self._mesh = 0
+            self._mesh = None
         else:
             self._mesh = primitives.Mesh3D(
                 position, color, normal, mode=mode, copy=copy)
@@ -144,6 +146,72 @@ class Mesh(DataItem3D):
         :rtype: str
         """
         return self._mesh.drawMode
+
+    def _pickFull(self, context):
+        """Perform precise picking in this item at given widget position.
+
+        :param PickContext context: Current picking context
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
+        """
+        rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
+        if rayObject is None:  # No picking outside viewport
+            return None
+        rayObject = rayObject[:, :3]
+
+        positions = self.getPositionData(copy=False)
+        if positions.size == 0:
+            return None
+
+        mode = self.getDrawMode()
+        if mode == 'triangles':
+            triangles = positions.reshape(-1, 3, 3)
+
+        elif mode == 'triangle_strip':
+            # Expand strip
+            triangles = numpy.empty((len(positions) - 2, 3, 3),
+                                    dtype=positions.dtype)
+            triangles[:, 0] = positions[:-2]
+            triangles[:, 1] = positions[1:-1]
+            triangles[:, 2] = positions[2:]
+
+        elif mode == 'fan':
+            # Expand fan
+            triangles = numpy.empty((len(positions) - 2, 3, 3),
+                                    dtype=positions.dtype)
+            triangles[:, 0] = positions[0]
+            triangles[:, 1] = positions[1:-1]
+            triangles[:, 2] = positions[2:]
+
+        else:
+            _logger.warning("Unsupported draw mode: %s" % mode)
+            return None
+
+        trianglesIndices, t, barycentric = utils.segmentTrianglesIntersection(
+            rayObject, triangles)
+
+        if len(trianglesIndices) == 0:
+            return None
+
+        points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
+
+        # Get vertex index from triangle index and closest point in triangle
+        closest = numpy.argmax(barycentric, axis=1)
+
+        if mode == 'triangles':
+            indices = trianglesIndices * 3 + closest
+
+        elif mode == 'triangle_strip':
+            indices = trianglesIndices + closest
+
+        elif mode == 'fan':
+            indices = trianglesIndices + closest  # For corners 1 and 2
+            indices[closest == 0] = 0  # For first corner (common)
+
+        return PickingResult(self,
+                             positions=points,
+                             indices=indices,
+                             fetchdata=self.getPositionData)
 
 
 class _CylindricalVolume(DataItem3D):
