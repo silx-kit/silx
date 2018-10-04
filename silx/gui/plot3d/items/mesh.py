@@ -223,6 +223,18 @@ class _CylindricalVolume(DataItem3D):
     def __init__(self, parent=None):
         DataItem3D.__init__(self, parent=parent)
         self._mesh = None
+        self._nbFaces = 0
+
+    def getPosition(self, copy=True):
+        """Get primitive positions.
+
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
+        :return: Position of the primitives as a (N, 3) array.
+        :rtype: numpy.ndarray
+        """
+        raise NotImplementedError("Must be implemented in subclass")
 
     def _setData(self, position, radius, height, angles, color, flatFaces,
                  rotation):
@@ -241,8 +253,11 @@ class _CylindricalVolume(DataItem3D):
         self._getScenePrimitive().children = []  # Remove any previous mesh
 
         if position is None or len(position) == 0:
-            self._mesh = 0
+            self._mesh = None
+            self._nbFaces = 0
         else:
+            self._nbFaces = len(angles) - 1
+
             volume = numpy.empty(shape=(len(angles) - 1, 12, 3),
                                  dtype=numpy.float32)
             normal = numpy.empty(shape=(len(angles) - 1, 12, 3),
@@ -331,6 +346,40 @@ class _CylindricalVolume(DataItem3D):
             self._getScenePrimitive().children.append(self._mesh)
 
         self.sigItemChanged.emit(ItemChangedType.DATA)
+
+    def _pickFull(self, context):
+        """Perform precise picking in this item at given widget position.
+
+        :param PickContext context: Current picking context
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
+        """
+        if self._mesh is None or self._nbFaces == 0:
+            return None
+
+        rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
+        if rayObject is None:  # No picking outside viewport
+            return None
+        rayObject = rayObject[:, :3]
+
+        positions = self._mesh.getAttribute('position', copy=False)
+        triangles = positions.reshape(-1, 3, 3)  # 'triangle' draw mode
+
+        trianglesIndices, t = utils.segmentTrianglesIntersection(
+            rayObject, triangles)[:2]
+
+        if len(trianglesIndices) == 0:
+            return None
+
+        points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
+
+        # Get object index from triangle index
+        indices = trianglesIndices // (4 * self._nbFaces)
+
+        return PickingResult(self,
+                             positions=points,
+                             indices=indices,
+                             fetchdata=self.getPosition)
 
 
 class Box(_CylindricalVolume):
