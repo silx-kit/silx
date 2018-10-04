@@ -533,9 +533,10 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         mode = self.getVisualization()
         if mode == 'points':
             # TODO issue with symbol size: using pixel instead of points
-            # TODO handle point and pixel symbols
-            return self._pickPoints(context, points,
-                                    threshold=self.getSymbolSize())
+            # Get "corrected" symbol size
+            _, threshold = self._getSceneSymbol()
+            return self._pickPoints(
+                context, points, threshold=max(3., threshold))
 
         elif mode == 'lines':
             # Picking only at point
