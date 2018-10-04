@@ -371,10 +371,19 @@ class _CylindricalVolume(DataItem3D):
         if len(trianglesIndices) == 0:
             return None
 
-        points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
-
         # Get object index from triangle index
         indices = trianglesIndices // (4 * self._nbFaces)
+
+        # Select closest intersection point for each primitive
+        indices, firstIndices = numpy.unique(indices, return_index=True)
+        t = t[firstIndices]
+
+        # Resort along t as result of numpy.unique is not sorted by t
+        sortedIndices = numpy.argsort(t)
+        t = t[sortedIndices]
+        indices = indices[sortedIndices]
+
+        points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
 
         return PickingResult(self,
                              positions=points,
