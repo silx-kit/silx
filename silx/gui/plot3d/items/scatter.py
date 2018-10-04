@@ -160,8 +160,8 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             - 'index' (default): sort by the value of the indices
             - 'depth':  Sort by the depth of the points from the current
               camera point of view.
-        :return: Data indices of picked points or None if no picked point
-        :rtype: Union[None,numpy.array]
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
         """
         assert sort in ('index', 'depth')
 
@@ -431,19 +431,19 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         return numpy.array(self._value, copy=copy)
 
-    def _pickFull(self, context, threshold=0., sort='depth'):
-        """Perform picking in this item at given widget position.
+    def _pickPoints(self, context, points, threshold=1., sort='depth'):
+        """Perform picking while in 'points' visualization mode
 
         :param PickContext context: Current picking context
         :param float threshold: Picking threshold in pixel.
-            Perform picking in a square of size 2*threshold x 2*threshold.
+            Perform picking in a square of size threshold x threshold.
         :param str sort: How returned indices are sorted:
 
             - 'index' (default): sort by the value of the indices
             - 'depth':  Sort by the depth of the points from the current
               camera point of view.
-        :return: Data indices of picked points or None if no picked point
-        :rtype: Union[None,numpy.array]
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
         """
         assert sort in ('index', 'depth')
 
@@ -452,30 +452,13 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             return None
 
         # Project data to NDC
-        xData = self.getXData(copy=False)
-        if len(xData) == 0:  # No data in the scatter
-            return None
-
-        if self.isHeightMap():
-            zData = self.getValues(copy=False)
-        else:
-            zData = numpy.zeros_like(xData)
-
         primitive = self._getScenePrimitive()
-
-        dataPoints = numpy.transpose((xData,
-                                      self.getYData(copy=False),
-                                      zData,
-                                      numpy.ones_like(xData)))
-
         pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            dataPoints, perspectiveDivide=True)
+            points, perspectiveDivide=True)
 
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
-        # TODO issue with symbol size: using pixel instead of points
-        threshold += self.getSymbolSize()/2.
-        thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
+        thresholdNdc = threshold / numpy.array(primitive.viewport.size)
         picked = numpy.where(numpy.logical_and(
             numpy.all(distancesNdc < thresholdNdc, axis=1),
             numpy.logical_and(rayNdc[0, 2] <= pointsNdc[:, 2],
@@ -487,11 +470,79 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
         if picked.size > 0:
             return PickingResult(self,
-                                 positions=dataPoints[picked, :3],
+                                 positions=points[picked, :3],
                                  indices=picked,
                                  fetchdata=self.getValues)
         else:
             return None
+
+    def _pickSolid(self, context, points):
+        """Perform picking while in 'solid' visualization mode
+
+        :param PickContext context: Current picking context
+        """
+        if self._cachedTrianglesIndices is None:
+            _logger.info("Picking on Scatter2D before rendering")
+            return None
+
+        rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
+        if rayObject is None:  # No picking outside viewport
+            return None
+        rayObject = rayObject[:, :3]
+
+        trianglesIndices = self._cachedTrianglesIndices.reshape(-1, 3)
+        triangles = points[trianglesIndices, :3]
+        selectedIndices, t, barycentric = utils.segmentTrianglesIntersection(
+            rayObject, triangles)
+        closest = numpy.argmax(barycentric, axis=1)
+
+        indices = trianglesIndices.reshape(-1, 3)[selectedIndices, closest]
+
+        if len(indices) == 0:  # No point is picked
+            return None
+
+        # Compute intersection points and get closest data point
+        positions = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
+
+        return PickingResult(self,
+                             positions=positions,
+                             indices=indices,
+                             fetchdata=self.getValues)
+
+    def _pickFull(self, context):
+        """Perform picking in this item at given widget position.
+
+        :param PickContext context: Current picking context
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
+        """
+        xData = self.getXData(copy=False)
+        if len(xData) == 0:  # No data in the scatter
+            return None
+
+        if self.isHeightMap():
+            zData = self.getValues(copy=False)
+        else:
+            zData = numpy.zeros_like(xData)
+
+        points = numpy.transpose((xData,
+                                  self.getYData(copy=False),
+                                  zData,
+                                  numpy.ones_like(xData)))
+
+        mode = self.getVisualization()
+        if mode == 'points':
+            # TODO issue with symbol size: using pixel instead of points
+            # TODO handle point and pixel symbols
+            return self._pickPoints(context, points,
+                                    threshold=self.getSymbolSize())
+
+        elif mode == 'lines':
+            # Picking only at point
+            return self._pickPoints(context, points, threshold=5.)
+
+        else:  # mode == 'solid'
+            return self._pickSolid(context, points)
 
     def _updateScene(self):
         self._getScenePrimitive().children = []  # Remove previous primitives
