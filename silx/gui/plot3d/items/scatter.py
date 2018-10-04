@@ -154,7 +154,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
         :param PickContext context: Current picking context
         :param float threshold: Picking threshold in pixel.
-            Perform picking in a square of size 2*threshold x 2*threshold.
+            Perform picking in a square of size threshold x threshold.
         :param str sort: How returned indices are sorted:
 
             - 'index' (default): sort by the value of the indices
@@ -187,7 +187,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
-        threshold += self.getSymbolSize()/2.
+        threshold += self.getSymbolSize()
         thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
         picked = numpy.where(numpy.logical_and(
                 numpy.all(distancesNdc < thresholdNdc, axis=1),
