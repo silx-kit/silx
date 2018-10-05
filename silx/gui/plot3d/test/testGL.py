@@ -32,7 +32,7 @@ import logging
 import unittest
 
 from silx.gui._glutils import gl, OpenGLWidget
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 
 

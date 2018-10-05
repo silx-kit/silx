@@ -32,7 +32,7 @@ import unittest
 
 from silx.gui.widgets.FlowLayout import FlowLayout
 from silx.gui import qt
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 
 
 class TestFlowLayout(TestCaseQt):

@@ -38,7 +38,7 @@ import os
 
 import silx.resources
 from silx.gui import qt
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import icons
 
 

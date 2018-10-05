@@ -29,7 +29,7 @@ __date__ = "23/03/2018"
 
 import unittest
 
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.widgets.FrameBrowser import FrameBrowser
 
 

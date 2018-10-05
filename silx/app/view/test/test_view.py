@@ -46,7 +46,7 @@ from silx.app.view.About import About
 from silx.app.view.DataPanel import DataPanel
 from silx.app.view.CustomNxdataWidget import CustomNxdataWidget
 from silx.gui.hdf5._utils import Hdf5DatasetMimeData
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.io import commonh5
 
 _tmpDirectory = None

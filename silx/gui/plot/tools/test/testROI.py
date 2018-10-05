@@ -32,7 +32,7 @@ import numpy.testing
 
 from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.test.utils import TestCaseQt, SignalListener
+from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow
 import silx.gui.plot.items.roi as roi_items
 from silx.gui.plot.tools import roi

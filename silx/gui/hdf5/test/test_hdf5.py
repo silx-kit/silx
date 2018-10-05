@@ -37,9 +37,9 @@ import numpy
 import shutil
 from contextlib import contextmanager
 from silx.gui import qt
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import hdf5
-from silx.gui.test.utils import SignalListener
+from silx.gui.utils.testutils import SignalListener
 from silx.io import commonh5
 import weakref
 

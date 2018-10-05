@@ -32,10 +32,10 @@ __date__ = "23/05/2018"
 import doctest
 import unittest
 
-from silx.gui.test.utils import qWaitForWindowExposedAndActivate
+from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.dialog import ColormapDialog
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import Colormap, preferredColormaps
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.PlotWindow import PlotWindow

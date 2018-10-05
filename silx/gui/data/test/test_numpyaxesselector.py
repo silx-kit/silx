@@ -34,8 +34,8 @@ from contextlib import contextmanager
 import numpy
 
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.gui.test.utils import SignalListener
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import SignalListener
+from silx.gui.utils.testutils import TestCaseQt
 
 try:
     import h5py

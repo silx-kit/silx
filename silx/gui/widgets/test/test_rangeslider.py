@@ -32,7 +32,7 @@ import unittest
 
 from silx.gui import qt, colors
 from silx.gui.widgets.RangeSlider import RangeSlider
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.utils.testutils import ParametricTestCase
 
 

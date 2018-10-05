@@ -33,7 +33,7 @@ import unittest
 
 import numpy
 
-from silx.gui.test.utils import SignalListener
+from silx.gui.utils.testutils import SignalListener
 from silx.gui.plot.items import ItemChangedType
 from .utils import PlotWidgetTestCase
 

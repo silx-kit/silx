@@ -32,7 +32,7 @@ import unittest
 import numpy
 import weakref
 
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot.CompareImages import CompareImages
 
 
