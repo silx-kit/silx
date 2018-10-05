@@ -368,6 +368,11 @@ class TestObjectAPI(ParametricTestCase):
         with self.assertRaises(NotEditableError):
             colormap.restoreState(state)
 
+    def testBadColorsType(self):
+        """Make sure colors can't be something else than an array"""
+        with self.assertRaises(TypeError):
+            Colormap(name='temperature', colors=256)
+
 
 class TestPreferredColormaps(unittest.TestCase):
     """Test get|setPreferredColormaps functions"""

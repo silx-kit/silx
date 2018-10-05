@@ -234,6 +234,8 @@ class Colormap(qt.QObject):
             self._colors = None
         else:
             colors = numpy.array(colors, copy=False)
+            if colors.shape == ():
+                raise TypeError("An array is expected for 'colors' argument. '%s' was found." % type(colors))
             colors.shape = -1, colors.shape[-1]
             if colors.dtype.kind == 'f':
                 colors = self._convertColorsFromFloatToUint8(colors)
