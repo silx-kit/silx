@@ -149,7 +149,7 @@ class ColormapDialogExample(qt.QMainWindow):
         self.colorDialogs.append(newDialog)
         self.mainWidget.layout().addWidget(newDialog)
 
-    def removeColorDialog(self, dialog):
+    def removeColorDialog(self, dialog, result):
         self.colorDialogs.remove(dialog)
 
     def setNoColormap(self):
