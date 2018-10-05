@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "14/06/2018"
+__date__ = "05/10/2018"
 
 from silx.gui import qt
 import copy as copy_mdl
@@ -518,6 +518,11 @@ class Colormap(qt.QObject):
             raise NotEditableError('Colormap is not editable')
         name = dic['name'] if 'name' in dic else None
         colors = dic['colors'] if 'colors' in dic else None
+        if name is not None and colors is not None:
+            if isinstance(colors, int):
+                # Filter out argument which was supported but never used
+                _logger.info("Unused 'colors' from colormap dictionary filterer.")
+                colors = None
         vmin = dic['vmin'] if 'vmin' in dic else None
         vmax = dic['vmax'] if 'vmax' in dic else None
         if 'normalization' in dic:
