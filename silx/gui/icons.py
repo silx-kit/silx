@@ -50,10 +50,23 @@ _cached_icons = None
 
 
 def getIconCache():
+    """Get access to all cached icons
+
+    :rtype: dict
+    """
     global _cached_icons
     if _cached_icons is None:
         _cached_icons = weakref.WeakValueDictionary()
+        # Clean up the cache before leaving the application
+        # See https://github.com/silx-kit/silx/issues/1771
+        qt.QApplication.instance().aboutToQuit.connect(cleanIconCache)
     return _cached_icons
+
+
+def cleanIconCache():
+    """Clean up the icon cache"""
+    _logger.debug("Clean up icon cache")
+    _cached_icons.clear()
 
 
 _supported_formats = None
