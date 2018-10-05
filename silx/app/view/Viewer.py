@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/06/2018"
+__date__ = "05/10/2018"
 
 
 import os
@@ -146,6 +146,18 @@ class Viewer(qt.QMainWindow):
         toolbar.setStyleSheet("QToolBar { border: 0px }")
 
         action = qt.QAction(toolbar)
+        action.setIcon(icons.getQIcon("view-refresh"))
+        action.setText("Refresh")
+        action.setToolTip("Refresh all selected items")
+        action.triggered.connect(self.__refreshSelected)
+        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_Plus))
+        toolbar.addAction(action)
+        treeView.addAction(action)
+        self.__refreshAction = action
+
+        toolbar.addSeparator()
+
+        action = qt.QAction(toolbar)
         action.setIcon(icons.getQIcon("tree-expand-all"))
         action.setText("Expand all")
         action.setToolTip("Expand all selected items")
@@ -172,6 +184,28 @@ class Viewer(qt.QMainWindow):
         layout.addWidget(toolbar)
         layout.addWidget(treeView)
         return widget
+
+    def __refreshSelected(self):
+        """Refresh all selected items
+        """
+        qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+
+        selection = self.__treeview.selectionModel()
+        indexes = selection.selectedIndexes()
+        model = self.__treeview.model()
+        h5files = []
+        while len(indexes) > 0:
+            index = indexes.pop(0)
+            if index.column() != 0:
+                continue
+            h5 = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            if silx.io.is_file(h5):
+                h5files.append(h5)
+
+        for h5 in h5files:
+            self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(h5)
+
+        qt.QApplication.restoreOverrideCursor()
 
     def __expandAllSelected(self):
         """Expand all selected items of the tree.
