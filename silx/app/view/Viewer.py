@@ -216,8 +216,61 @@ class Viewer(qt.QMainWindow):
 
         filename = h5.filename
         row = model.h5pyObjectRow(h5)
+        index = self.__treeview.model().index(row, 0, qt.QModelIndex())
+        paths = self.__getPathFromExpandedNodes(self.__treeview, index)
         model.removeH5pyObject(h5)
         model.insertFile(filename, row)
+        index = self.__treeview.model().index(row, 0, qt.QModelIndex())
+        self.__expandNodesFromPaths(self.__treeview, index, paths)
+
+    def __getPathFromExpandedNodes(self, view, rootIndex):
+        """Return relative path from the root index of the extended nodes"""
+        model = view.model()
+        rootPath = None
+        paths = []
+        indexes = [rootIndex]
+        while len(indexes):
+            index = indexes.pop(0)
+            if not view.isExpanded(index):
+                continue
+
+            node = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE)
+            path = node._getCanonicalName()
+            if rootPath is None:
+                rootPath = path
+            path = path[len(rootPath):]
+            paths.append(path)
+
+            for child in range(model.rowCount(index)):
+                childIndex = model.index(child, 0, index)
+                indexes.append(childIndex)
+        return paths
+
+    def __indexFromPath(self, model, rootIndex, path):
+        elements = path.split("/")
+        if elements[0] == "":
+            elements.pop(0)
+        index = rootIndex
+        while len(elements) != 0:
+            element = elements.pop(0)
+            found = False
+            for child in range(model.rowCount(index)):
+                childIndex = model.index(child, 0, index)
+                name = model.data(childIndex)
+                if element == name:
+                    index = childIndex
+                    found = True
+                    break
+            if not found:
+                return None
+        return index
+
+    def __expandNodesFromPaths(self, view, rootIndex, paths):
+        model = view.model()
+        for path in paths:
+            index = self.__indexFromPath(model, rootIndex, path)
+            if index is not None:
+                view.setExpanded(index, True)
 
     def __expandAllSelected(self):
         """Expand all selected items of the tree.
