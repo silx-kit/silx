@@ -40,6 +40,7 @@ __license__ = "MIT"
 __date__ = "05/12/2017"
 
 
+import numbers
 import sys
 
 from silx.third_party import six
@@ -362,7 +363,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             assert isinstance(editor, qt.QWidget)
             editor.setParent(parent)
 
-        elif isinstance(data, (int, float)) and editorHint is not None:
+        elif isinstance(data, numbers.Number) and editorHint is not None:
             # Use a slider
             editor = IntSliderEditor(parent)
             range_ = editorHint
@@ -476,7 +477,7 @@ class ParamTreeView(qt.QTreeView):
             editorHint = index.data(qt.Qt.UserRole)
             if (isinstance(data, bool) or
                     callable(editorHint) or
-                    (isinstance(data, (float, int)) and editorHint)):
+                    (isinstance(data, numbers.Number) and editorHint)):
                 self.openPersistentEditor(index)
                 self.__persistentEditors.add(index)
 
