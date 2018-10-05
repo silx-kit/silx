@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/06/2018"
+__date__ = "05/10/2018"
 
 
 import os
@@ -590,6 +590,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         filename = node.obj.filename
         self.insertFileAsync(filename, index.row(), synchronizingNode=node)
+
+    def h5pyObjectRow(self, h5pyObject):
+        for row in range(self.__root.childCount()):
+            item = self.__root.child(row)
+            if item.obj is h5pyObject:
+                return row
+        return -1
 
     def synchronizeH5pyObject(self, h5pyObject):
         """

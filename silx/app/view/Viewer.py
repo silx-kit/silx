@@ -202,10 +202,22 @@ class Viewer(qt.QMainWindow):
             if silx.io.is_file(h5):
                 h5files.append(h5)
 
+        model = self.__treeview.findHdf5TreeModel()
         for h5 in h5files:
-            self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(h5)
+            self.__synchronizeH5pyObject(h5)
 
         qt.QApplication.restoreOverrideCursor()
+
+    def __synchronizeH5pyObject(self, h5):
+        model = self.__treeview.findHdf5TreeModel()
+        # This is buggy right now while h5py do not alloow to close a file
+        # while references are still used
+        # model.synchronizeH5pyObject(h5)
+
+        filename = h5.filename
+        row = model.h5pyObjectRow(h5)
+        model.removeH5pyObject(h5)
+        model.insertFile(filename, row)
 
     def __expandAllSelected(self):
         """Expand all selected items of the tree.
@@ -720,5 +732,5 @@ class Viewer(qt.QMainWindow):
                 action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(h5))
                 menu.addAction(action)
                 action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(h5))
+                action.triggered.connect(lambda: self.__synchronizeH5pyObject(h5))
                 menu.addAction(action)
