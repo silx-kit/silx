@@ -224,8 +224,9 @@ class Viewer(qt.QMainWindow):
 
     def __synchronizeH5pyObject(self, h5):
         model = self.__treeview.findHdf5TreeModel()
-        # This is buggy right now while h5py do not alloow to close a file
-        # while references are still used
+        # This is buggy right now while h5py do not allow to close a file
+        # while references are still used.
+        # FIXME: The architecture have to be reworked to support this feature.
         # model.synchronizeH5pyObject(h5)
 
         filename = h5.filename
