@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "05/10/2018"
 
 import unittest
 import numpy
@@ -183,6 +183,17 @@ class TestDictAPI(unittest.TestCase):
         }
         with self.assertRaises(ValueError):
             Colormap._fromDict(clm_dict)
+
+    def testNumericalColors(self):
+        """Make sure the old API using colors=int was supported"""
+        clm_dict = {
+            'name': 'temperature',
+            'vmin': 1.0,
+            'vmax': 2.0,
+            'colors': 256,
+            'autoscale': False
+        }
+        Colormap._fromDict(clm_dict)
 
 
 class TestObjectAPI(ParametricTestCase):
@@ -356,6 +367,11 @@ class TestObjectAPI(ParametricTestCase):
         state = colormap.saveState()
         with self.assertRaises(NotEditableError):
             colormap.restoreState(state)
+
+    def testBadColorsType(self):
+        """Make sure colors can't be something else than an array"""
+        with self.assertRaises(TypeError):
+            Colormap(name='temperature', colors=256)
 
 
 class TestPreferredColormaps(unittest.TestCase):
