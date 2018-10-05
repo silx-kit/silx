@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -549,7 +549,7 @@ class StatsTable(TableWidget):
             self._statsOnVisibleData = b
             self._updateCurrentStats()
 
-    def _activeItemChanged(self, kind):
+    def _activeItemChanged(self, kind, previous, current):
         """Callback used when plotting only the active item"""
         assert kind in ('curve', 'image', 'scatter', 'histogram')
         self._updateItemObserve()
