@@ -36,7 +36,7 @@ from collections import OrderedDict
 import numpy
 from silx.gui import qt
 from silx.test.utils import temp_dir
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import PlotWindow, CurvesROIWidget
 
 

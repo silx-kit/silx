@@ -13,8 +13,8 @@
 .. automodule:: silx.test.utils
    :members:
 
-:mod:`silx.gui.test.utils`
---------------------------
+:mod:`silx.gui.utils.testutils`
+-------------------------------
 
-.. automodule:: silx.gui.test.utils
+.. automodule:: silx.gui.utils.testutils
    :members:

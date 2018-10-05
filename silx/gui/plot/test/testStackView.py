@@ -32,7 +32,7 @@ __date__ = "20/03/2017"
 import unittest
 import numpy
 
-from silx.gui.test.utils import TestCaseQt, SignalListener
+from silx.gui.utils.testutils import TestCaseQt, SignalListener
 
 from silx.gui import qt
 from silx.gui.plot import StackView

@@ -29,7 +29,7 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 import unittest
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.colors import Colormap

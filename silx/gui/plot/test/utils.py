@@ -31,7 +31,7 @@ __date__ = "26/01/2018"
 
 import logging
 
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget

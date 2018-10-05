@@ -38,7 +38,7 @@ import numpy
 from silx.gui import qt
 from silx.test.utils import temp_dir
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.test.utils import getQToolButtonFromAction
+from silx.gui.utils.testutils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, ScatterMaskToolsWidget
 from .utils import PlotWidgetTestCase
 

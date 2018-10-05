@@ -33,7 +33,7 @@ import os.path
 import unittest
 
 from silx.test.utils import temp_dir
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 
 from silx.gui import qt
 

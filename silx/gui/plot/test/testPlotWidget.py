@@ -34,8 +34,8 @@ import logging
 import numpy
 
 from silx.utils.testutils import ParametricTestCase, parameterize
-from silx.gui.test.utils import SignalListener
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import SignalListener
+from silx.gui.utils.testutils import TestCaseQt
 from silx.utils import testutils
 from silx.utils import deprecation
 

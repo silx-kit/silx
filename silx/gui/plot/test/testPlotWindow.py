@@ -32,7 +32,7 @@ __date__ = "27/06/2017"
 import doctest
 import unittest
 
-from silx.gui.test.utils import TestCaseQt, getQToolButtonFromAction
+from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow

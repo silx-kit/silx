@@ -33,7 +33,7 @@ from silx.gui import qt
 from silx.gui.plot.stats import stats
 from silx.gui.plot import StatsWidget
 from silx.gui.plot.stats import statshandler
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import Plot1D, Plot2D
 import unittest
 import logging

@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/07/2018"
+__date__ = "05/10/2018"
 
 
 import unittest
@@ -48,7 +48,7 @@ except ImportError:
 
 import silx.io.url
 from silx.gui import qt
-from silx.gui.test import utils
+from silx.gui.utils import testutils
 from ..DataFileDialog import DataFileDialog
 from silx.gui.hdf5 import Hdf5TreeModel
 
@@ -144,11 +144,11 @@ class _UtilsMixin(object):
             self.assertNotEquals(path1, path2)
 
 
-class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
+class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         self._deleteDialog()
-        utils.TestCaseQt.tearDown(self)
+        testutils.TestCaseQt.tearDown(self)
 
     def testDisplayAndKeyEscape(self):
         dialog = self.createDialog()
@@ -166,7 +166,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="cancel")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="cancel")[0]
         self.mouseClick(button, qt.Qt.LeftButton)
         self.assertFalse(dialog.isVisible())
         self.assertFalse(dialog.isVisible())
@@ -178,7 +178,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.mouseClick(button, qt.Qt.LeftButton)
         # open button locked, dialog is not closed
         self.assertTrue(dialog.isVisible())
@@ -188,7 +188,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -202,7 +202,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
         url = silx.io.url.DataUrl(dialog.selectedUrl())
@@ -214,7 +214,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -234,7 +234,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
         url = silx.io.url.DataUrl(dialog.selectedUrl())
@@ -246,7 +246,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -266,7 +266,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
         url = silx.io.url.DataUrl(dialog.selectedUrl())
@@ -281,9 +281,9 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
-        action = utils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
-        toParentButton = utils.getQToolButtonFromAction(action)
+        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        action = testutils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
+        toParentButton = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data/data.h5"
 
         # init state
@@ -313,9 +313,9 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
-        action = utils.findChildren(dialog, qt.QAction, name="toRootFileAction")[0]
-        button = utils.getQToolButtonFromAction(action)
+        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        action = testutils.findChildren(dialog, qt.QAction, name="toRootFileAction")[0]
+        button = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data.h5"
 
         # init state
@@ -338,9 +338,9 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
-        action = utils.findChildren(dialog, qt.QAction, name="toDirectoryAction")[0]
-        button = utils.getQToolButtonFromAction(action)
+        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        action = testutils.findChildren(dialog, qt.QAction, name="toDirectoryAction")[0]
+        button = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data.h5"
 
         # init state
@@ -367,9 +367,9 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = utils.findChildren(dialog, qt.QLineEdit, name="url")[0]
-        forwardAction = utils.findChildren(dialog, qt.QAction, name="forwardAction")[0]
-        backwardAction = utils.findChildren(dialog, qt.QAction, name="backwardAction")[0]
+        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        forwardAction = testutils.findChildren(dialog, qt.QAction, name="forwardAction")[0]
+        backwardAction = testutils.findChildren(dialog, qt.QAction, name="backwardAction")[0]
         filename = _tmpDirectory + "/data.h5"
 
         dialog.setDirectory(_tmpDirectory)
@@ -387,14 +387,14 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
 
-        button = utils.getQToolButtonFromAction(backwardAction)
+        button = testutils.getQToolButtonFromAction(backwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
         self.assertTrue(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
         self.assertSamePath(url.text(), path2)
 
-        button = utils.getQToolButtonFromAction(forwardAction)
+        button = testutils.getQToolButtonFromAction(forwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
@@ -494,7 +494,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # init state
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
         index = browser.rootIndex().model().index(filename)
@@ -514,7 +514,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         # init state
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/badformat.h5"
         index = browser.rootIndex().model().index(filename)
         browser.activated.emit(index)
@@ -538,7 +538,7 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         dialog.selectUrl(_tmpDirectory)
@@ -546,11 +546,11 @@ class TestDataFileDialogInteraction(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 4)
 
 
-class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
+class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         self._deleteDialog()
-        utils.TestCaseQt.tearDown(self)
+        testutils.TestCaseQt.tearDown(self)
 
     def _createDialog(self):
         dialog = DataFileDialog()
@@ -561,7 +561,7 @@ class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -581,14 +581,14 @@ class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertFalse(button.isEnabled())
 
     def testSelectDataset_Activate(self):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -608,7 +608,7 @@ class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
         url = silx.io.url.DataUrl(dialog.selectedUrl())
@@ -620,11 +620,11 @@ class TestDataFileDialog_FilterDataset(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(data, 10)
 
 
-class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
+class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         self._deleteDialog()
-        utils.TestCaseQt.tearDown(self)
+        testutils.TestCaseQt.tearDown(self)
 
     def _createDialog(self):
         dialog = DataFileDialog()
@@ -635,7 +635,7 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -655,7 +655,7 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
         url = silx.io.url.DataUrl(dialog.selectedUrl())
@@ -669,7 +669,7 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -689,15 +689,15 @@ class TestDataFileDialog_FilterGroup(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertFalse(button.isEnabled())
 
 
-class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
+class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         self._deleteDialog()
-        utils.TestCaseQt.tearDown(self)
+        testutils.TestCaseQt.tearDown(self)
 
     def _createDialog(self):
         def customFilter(obj):
@@ -714,7 +714,7 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -734,7 +734,7 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertFalse(button.isEnabled())
 
         self.assertRaises(Exception, dialog.selectedData)
@@ -743,7 +743,7 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
         if fabio is None:
             self.skipTest("fabio is missing")
         dialog = self.createDialog()
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         self.assertTrue(dialog.isVisible())
@@ -763,7 +763,7 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
 
-        button = utils.findChildren(dialog, qt.QPushButton, name="open")[0]
+        button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
         self.mouseClick(button, qt.Qt.LeftButton)
         url = silx.io.url.DataUrl(dialog.selectedUrl())
@@ -772,11 +772,11 @@ class TestDataFileDialog_FilterNXdata(utils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
 
-class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
+class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
 
     def tearDown(self):
         self._deleteDialog()
-        utils.TestCaseQt.tearDown(self)
+        testutils.TestCaseQt.tearDown(self)
 
     def _createDialog(self):
         dialog = DataFileDialog()
@@ -949,7 +949,7 @@ class TestDataFileDialogApi(utils.TestCaseQt, _UtilsMixin):
         dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
 
-        browser = utils.findChildren(dialog, qt.QWidget, name="browser")[0]
+        browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
 
         filename = _tmpDirectory + "/data.h5"
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/foobar")

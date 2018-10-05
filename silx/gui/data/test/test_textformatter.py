@@ -31,8 +31,8 @@ import shutil
 import tempfile
 import numpy
 
-from silx.gui.test.utils import TestCaseQt
-from silx.gui.test.utils import SignalListener
+from silx.gui.utils.testutils import TestCaseQt
+from silx.gui.utils.testutils import SignalListener
 from ..TextFormatter import TextFormatter
 from silx.third_party import six
 

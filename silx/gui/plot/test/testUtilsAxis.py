@@ -31,7 +31,7 @@ __date__ = "14/02/2018"
 
 import unittest
 from silx.gui.plot import PlotWidget
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot.utils.axis import SyncAxes
 
 

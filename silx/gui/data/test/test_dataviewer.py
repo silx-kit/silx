@@ -39,8 +39,8 @@ from .. import DataViews
 from silx.gui import qt
 
 from silx.gui.data.DataViewerFrame import DataViewerFrame
-from silx.gui.test.utils import SignalListener
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import SignalListener
+from silx.gui.utils.testutils import TestCaseQt
 
 try:
     import h5py

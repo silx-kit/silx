@@ -33,7 +33,7 @@ import numpy
 import unittest
 
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.test.utils import TestCaseQt, getQToolButtonFromAction
+from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction
 from silx.gui import qt
 from silx.gui.plot import Plot2D
 
