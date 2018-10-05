@@ -192,19 +192,33 @@ class Viewer(qt.QMainWindow):
 
         selection = self.__treeview.selectionModel()
         indexes = selection.selectedIndexes()
+        selectedRows = []
         model = self.__treeview.model()
         h5files = []
         while len(indexes) > 0:
             index = indexes.pop(0)
             if index.column() != 0:
                 continue
+            selectedRows.append(index.row())
             h5 = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
             if silx.io.is_file(h5):
                 h5files.append(h5)
 
+        if len(h5files) == 0:
+            qt.QApplication.restoreOverrideCursor()
+            return
+
         model = self.__treeview.findHdf5TreeModel()
         for h5 in h5files:
             self.__synchronizeH5pyObject(h5)
+
+        model = self.__treeview.model()
+        itemSelection = qt.QItemSelection()
+        for row in selectedRows:
+            index = model.index(row, 0, qt.QModelIndex())
+            indexEnd = model.index(row, model.columnCount() - 1, qt.QModelIndex())
+            itemSelection.select(index, indexEnd)
+        selection.select(itemSelection, qt.QItemSelectionModel.ClearAndSelect)
 
         qt.QApplication.restoreOverrideCursor()
 
