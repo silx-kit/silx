@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "08/10/2018"
 
 
 import os
@@ -192,17 +192,22 @@ class Viewer(qt.QMainWindow):
 
         selection = self.__treeview.selectionModel()
         indexes = selection.selectedIndexes()
-        selectedRows = []
+        selectedItems = []
         model = self.__treeview.model()
-        h5files = []
+        h5files = set([])
         while len(indexes) > 0:
             index = indexes.pop(0)
             if index.column() != 0:
                 continue
-            selectedRows.append(index.row())
             h5 = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
-            if silx.io.is_file(h5):
-                h5files.append(h5)
+            rootIndex = index
+            # Reach the root of the tree
+            while rootIndex.parent().isValid():
+                rootIndex = rootIndex.parent()
+            rootRow = rootIndex.row()
+            relativePath = self.__getRelativePath(model, rootIndex, index)
+            selectedItems.append((rootRow, relativePath))
+            h5files.add(h5.file)
 
         if len(h5files) == 0:
             qt.QApplication.restoreOverrideCursor()
@@ -214,9 +219,12 @@ class Viewer(qt.QMainWindow):
 
         model = self.__treeview.model()
         itemSelection = qt.QItemSelection()
-        for row in selectedRows:
-            index = model.index(row, 0, qt.QModelIndex())
-            indexEnd = model.index(row, model.columnCount() - 1, qt.QModelIndex())
+        for rootRow, relativePath in selectedItems:
+            rootIndex = model.index(rootRow, 0, qt.QModelIndex())
+            index = self.__indexFromPath(model, rootIndex, relativePath)
+            if index is None:
+                continue
+            indexEnd = model.index(index.row(), model.columnCount() - 1, index.parent())
             itemSelection.select(index, indexEnd)
         selection.select(itemSelection, qt.QItemSelectionModel.ClearAndSelect)
 
@@ -237,6 +245,25 @@ class Viewer(qt.QMainWindow):
         model.insertFile(filename, row)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         self.__expandNodesFromPaths(self.__treeview, index, paths)
+
+    def __getRelativePath(self, model, rootIndex, index):
+        """Returns a relative path from an index to his rootIndex.
+
+        If the path is empty the index is also the rootIndex.
+        """
+        path = ""
+        while index.isValid():
+            if index == rootIndex:
+                return path
+            name = model.data(index)
+            if path == "":
+                path = name
+            else:
+                path = name + "/" + path
+            index = index.parent()
+
+        # index is not a children of rootIndex
+        raise ValueError("index is not a children of the rootIndex")
 
     def __getPathFromExpandedNodes(self, view, rootIndex):
         """Return relative path from the root index of the extended nodes"""

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "08/10/2018"
 
 
 import os
@@ -594,7 +594,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def h5pyObjectRow(self, h5pyObject):
         for row in range(self.__root.childCount()):
             item = self.__root.child(row)
-            if item.obj is h5pyObject:
+            if item.obj == h5pyObject:
                 return row
         return -1
 
@@ -609,7 +609,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         index = 0
         while index < self.__root.childCount():
             item = self.__root.child(index)
-            if item.obj is h5pyObject:
+            if item.obj == h5pyObject:
                 qindex = self.index(index, 0, qt.QModelIndex())
                 self.synchronizeIndex(qindex)
             index += 1
@@ -621,7 +621,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param qt.QModelIndex index: Index of the item to remove
         """
         node = self.nodeFromIndex(index)
-        if node.parent is not self.__root:
+        if node.parent != self.__root:
             return
         self._closeFileIfOwned(node)
         self.beginRemoveRows(qt.QModelIndex(), index.row(), index.row())
@@ -639,7 +639,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         index = 0
         while index < self.__root.childCount():
             item = self.__root.child(index)
-            if item.obj is h5pyObject:
+            if item.obj == h5pyObject:
                 qindex = self.index(index, 0, qt.QModelIndex())
                 self.removeIndex(qindex)
             else:
