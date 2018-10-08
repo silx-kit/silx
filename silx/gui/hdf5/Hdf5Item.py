@@ -344,18 +344,14 @@ class Hdf5Item(Hdf5Node):
     def nexusClassName(self):
         """Returns the Nexus class name"""
         if self.__nx_class is None:
-            try:
-                self.__nx_class = self.obj.attrs.get("NX_class")
-            except Exception:
+            self.__nx_class = self.obj.attrs.get("NX_class", None)
+            if self.__nx_class is None:
                 self.__nx_class = ""
             else:
-                if self.__nx_class is None:
-                    self.__nx_class = ""
-                else:
-                    if six.PY2:
-                        self.__nx_class = self.__nx_class.decode()
-                    elif not isinstance(self.__nx_class, str):
-                        self.__nx_class = str(self.__nx_class, "UTF-8")
+                if six.PY2:
+                    self.__nx_class = self.__nx_class.decode()
+                elif not isinstance(self.__nx_class, str):
+                    self.__nx_class = str(self.__nx_class, "UTF-8")
         return self.__nx_class
 
     def dataName(self, role):
