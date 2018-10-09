@@ -118,6 +118,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         """Test resizing the widget and receiving limitsChanged events"""
         self.plot.resize(200, 200)
         self.qapp.processEvents()
+        self.qWait(100)
 
         xlim = self.plot.getXAxis().getLimits()
         ylim = self.plot.getYAxis().getLimits()
@@ -129,6 +130,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         # Resize without aspect ratio
         self.plot.resize(200, 300)
         self.qapp.processEvents()
+        self.qWait(100)
         self._checkLimits(expectedXLim=xlim, expectedYLim=ylim)
         self.assertEqual(listener.callCount(), 0)
 
@@ -139,6 +141,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
 
         self.plot.resize(200, 200)
         self.qapp.processEvents()
+        self.qWait(100)
         self.assertNotEqual(listener.callCount(), 0)
 
     def testAddRemoveItemSignals(self):
