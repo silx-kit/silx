@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +31,15 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "04/05/2017"
 
-from silx.math import medianfilter as medianfilter_cpp
-try:
-    from silx.opencl import medfilt as medfilt_opencl
-except ImportError:
-    medfilt_opencl = None
+
 import logging
+
+from silx.math import medianfilter as medianfilter_cpp
+from silx.opencl import ocl as _ocl
+if _ocl is not None:
+    from silx.opencl import medfilt as medfilt_opencl
+else:  # No OpenCL device or pyopencl not installed
+    medfilt_opencl = None
 
 
 _logger = logging.getLogger(__name__)
@@ -84,7 +87,7 @@ def medfilt2d(image, kernel_size=3, engine='cpp'):
                                         conditional=False)
     elif engine == 'opencl':
         if medfilt_opencl is None:
-            wrn = 'opencl median filter module import failed'
+            wrn = 'opencl median filter not available. '
             wrn += 'Launching cpp implementation.'
             _logger.warning(wrn)
             # instead call the cpp implementation
