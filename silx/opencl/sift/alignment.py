@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -51,8 +51,6 @@ from ..utils import calc_size, get_opencl_code
 from .utils import matching_correction
 import logging
 logger = logging.getLogger(__name__)
-if not pyopencl:
-    logger.warning("No PyOpenCL, no sift")
 
 from .match import MatchPlan
 from .plan import SiftPlan
