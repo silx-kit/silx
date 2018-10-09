@@ -66,6 +66,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         self._plotHistogram = None
         self._connectedToActiveImage = False
         self._histo = None
+        self._previousGeometry = None
 
     def _triggered(self, checked):
         """Update the plot of the histogram visibility status
@@ -79,15 +80,21 @@ class PixelIntensitiesHistoAction(PlotAction):
                 self._connectedToActiveImage = True
                 self.computeIntensityDistribution()
 
-            self.getHistogramPlotWidget().show()
-
+            tool = self.getHistogramPlotWidget()
+            tool.show()
+            if self._previousGeometry is not None:
+                # Restore the geometry
+                tool.setGeometry(self._previousGeometry)
         else:
             if self._connectedToActiveImage:
                 self.plot.sigActiveImageChanged.disconnect(
                     self._activeImageChanged)
                 self._connectedToActiveImage = False
 
-            self.getHistogramPlotWidget().hide()
+            tool = self.getHistogramPlotWidget()
+            # Save the geometry
+            self._previousGeometry = tool.geometry()
+            tool.hide()
 
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
@@ -141,6 +148,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         """
         if event.type() == qt.QEvent.Close:
             if self._plotHistogram is not None:
+                self._previousGeometry = self._plotHistogram.geometry()
                 self._plotHistogram.hide()
             self.setChecked(False)
 
@@ -159,7 +167,13 @@ class PixelIntensitiesHistoAction(PlotAction):
         """
         if self._isWindowInUse():
             tool = self.getHistogramPlotWidget()
+            if not isVisible:
+                # Save the geometry
+                self._previousGeometry = tool.geometry()
             tool.setVisible(isVisible)
+            if isVisible and self._previousGeometry is not None:
+                # Restore the geometry
+                tool.setGeometry(self._previousGeometry)
 
     def getHistogramPlotWidget(self):
         """Create the plot histogram if needed, otherwise create it
@@ -174,6 +188,8 @@ class PixelIntensitiesHistoAction(PlotAction):
             self._plotHistogram.installEventFilter(self)
             self._plotHistogram.getXAxis().setLabel("Value")
             self._plotHistogram.getYAxis().setLabel("Count")
+            if self._previousGeometry is not None:
+                self._plotHistogram.setGeometry(self._previousGeometry)
             plot = self.plot
             plot.sigVisibilityChanged.connect(self._ownerVisibilityChanged)
 
