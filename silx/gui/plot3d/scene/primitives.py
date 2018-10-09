@@ -201,7 +201,7 @@ class Geometry(core.Elem):
             array = self._glReadyArray(array, copy=copy)
 
             if name not in self._ATTR_INFO:
-                _logger.info('Not checking attribute %s dimensions', name)
+                _logger.debug('Not checking attribute %s dimensions', name)
             else:
                 checks = self._ATTR_INFO[name]
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,11 @@ __license__ = "MIT"
 __date__ = "15/11/2017"
 
 
-from ..scene import primitives
+import numpy
 
+from ..scene import primitives, utils
+
+from ._pick import PickingResult
 from .core import Item3D
 from .mixins import PlaneMixIn
 
@@ -48,3 +51,87 @@ class ClipPlane(Item3D, PlaneMixIn):
         plane = primitives.ClipPlane()
         Item3D.__init__(self, parent=parent, primitive=plane)
         PlaneMixIn.__init__(self, plane=plane)
+
+    def __pickPreProcessing(self, context):
+        """Common processing for :meth:`_pickPostProcess` and :meth:`_pickFull`
+
+        :param PickContext context: Current picking context
+        :return None or (bounds, intersection points, rayObject)
+        """
+        plane = self._getPlane()
+        planeParent = plane.parent
+        if planeParent is None:
+            return None
+
+        rayObject = context.getPickingSegment(frame=plane)
+        if rayObject is None:
+            return None
+
+        bounds = planeParent.bounds(dataBounds=True)
+        rayClip = utils.clipSegmentToBounds(rayObject[:, :3], bounds)
+        if rayClip is None:
+            return None  # Ray is outside parent's bounding box
+
+        points = utils.segmentPlaneIntersect(
+            rayObject[0, :3],
+            rayObject[1, :3],
+            planeNorm=self.getNormal(),
+            planePt=self.getPoint())
+
+        # A single intersection inside bounding box
+        picked = (len(points) == 1 and
+                  numpy.all(bounds[0] <= points[0]) and
+                  numpy.all(points[0] <= bounds[1]))
+
+        return picked, points, rayObject
+
+    def _pick(self, context):
+        # Perform picking before modifying context
+        result = super(ClipPlane, self)._pick(context)
+
+        # Modify context if needed
+        if self.isVisible() and context.isEnabled():
+            info = self.__pickPreProcessing(context)
+            if info is not None:
+                picked, points, rayObject = info
+                plane = self._getPlane()
+
+                if picked:  # A single intersection inside bounding box
+                    # Clip NDC z range for following brother items
+                    ndcIntersect = plane.objectToNDCTransform.transformPoint(
+                        points[0], perspectiveDivide=True)
+                    ndcNormal = plane.objectToNDCTransform.transformNormal(
+                        self.getNormal())
+                    if ndcNormal[2] < 0:
+                        context.setNDCZRange(-1., ndcIntersect[2])
+                    else:
+                        context.setNDCZRange(ndcIntersect[2], 1.)
+
+                else:
+                    # TODO check this might not be correct
+                    rayObject[:, 3] = 1.  # Make sure 4h coordinate is one
+                    if numpy.sum(rayObject[0] * self.getParameters()) < 0.:
+                        # Disable picking for remaining brothers
+                        context.setEnabled(False)
+
+        return result
+
+    def _pickFastCheck(self, context):
+        return True
+
+    def _pickFull(self, context):
+        """Perform picking in this item at given widget position.
+
+        :param PickContext context: Current picking context
+        :return:
+            Data indices as (depths, rows, columns) at picked position or None
+        :rtype: Union[None,List[numpy.ndarray]]
+        """
+        info = self.__pickPreProcessing(context)
+        if info is not None:
+            picked, points, _ = info
+
+            if picked:
+                return PickingResult(self, positions=[points[0]])
+
+        return None

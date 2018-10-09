@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ __date__ = "09/11/2017"
 
 
 import logging
-import os
 import unittest
 from silx.test.utils import test_options
 
@@ -39,7 +38,7 @@ _logger = logging.getLogger(__name__)
 
 
 def suite():
-    test_suite = unittest.TestSuite()
+    testsuite = unittest.TestSuite()
 
     if not test_options.WITH_GL_TEST:
         # Explicitly disabled tests
@@ -50,17 +49,21 @@ def suite():
             def runTest(self):
                 self.skipTest(test_options.WITH_GL_TEST_REASON)
 
-        test_suite.addTest(SkipPlot3DTest())
-        return test_suite
+        testsuite.addTest(SkipPlot3DTest())
+        return testsuite
 
     # Import here to avoid loading modules if tests are disabled
 
-    from ..scene import test as test_scene
+    from ..scene.test import suite as sceneTestSuite
+    from ..tools.test import suite as toolsTestSuite
     from .testGL import suite as testGLSuite
     from .testScalarFieldView import suite as testScalarFieldViewSuite
+    from .testSceneWidgetPicking import suite as testSceneWidgetPickingSuite
 
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(testGLSuite())
-    test_suite.addTest(test_scene.suite())
-    test_suite.addTest(testScalarFieldViewSuite())
-    return test_suite
+    testsuite = unittest.TestSuite()
+    testsuite.addTest(testGLSuite())
+    testsuite.addTest(sceneTestSuite())
+    testsuite.addTest(testScalarFieldViewSuite())
+    testsuite.addTest(testSceneWidgetPickingSuite())
+    testsuite.addTest(toolsTestSuite())
+    return testsuite

@@ -271,6 +271,26 @@ Additional widgets:
        It displays current parameters of the :class:`ScalarFieldView` and allows to modify it.
        See :ref:`plot3d-sample-code`.
 
+Additional widgets:
+
+.. list-table::
+   :widths: 1 4
+   :header-rows: 1
+
+   * - Widget
+     - Description
+   * - .. image:: plot3d/img/PositionInfoWidget.png
+          :width: 300px
+          :align: center
+     - :class:`~silx.gui.plot3d.tools.PositionInfoWidget.PositionInfoWidget` displays the position
+       and value of selected data point in a :class:`SceneWidget`.
+   * - .. image:: plot3d/img/GroupPropertiesWidget.png
+          :height: 150px
+          :align: center
+     - :class:`~silx.gui.plot3d.tools.GroupPropertiesWidget.GroupPropertiesWidget`
+       allows to reset properties of all items in a group in a :class:`SceneWidget`.
+
+
 
 :mod:`silx.gui.widgets` Widgets
 +++++++++++++++++++++++++++++++

@@ -38,3 +38,27 @@ Tool Buttons
 .. autoclass:: ViewpointToolButton
    :show-inheritance:
    :members:
+
+
+Widgets
+-------
+
+:mod:`PositionInfoWidget`
++++++++++++++++++++++++++
+
+.. automodule:: silx.gui.plot3d.tools.PositionInfoWidget
+
+.. image:: img/PositionInfoWidget.png
+
+.. autoclass:: silx.gui.plot3d.tools.PositionInfoWidget.PositionInfoWidget
+   :members:
+
+:mod:`GroupPropertiesWidget`
+++++++++++++++++++++++++++++
+
+.. automodule:: silx.gui.plot3d.tools.GroupPropertiesWidget
+
+.. image:: img/GroupPropertiesWidget.png
+
+.. autoclass:: silx.gui.plot3d.tools.GroupPropertiesWidget.GroupPropertiesWidget
+   :members:

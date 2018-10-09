@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,20 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""plot3d tools test suite."""
+
+from __future__ import absolute_import
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
-
-from numpy.distutils.misc_util import Configuration
+__date__ = "03/10/2018"
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('scene', parent_package, top_path)
-    config.add_subpackage('test')
-    return config
+import unittest
+from .testPositionInfoWidget import suite as testPositionInfoWidgetSuite
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+def suite():
+    testsuite = unittest.TestSuite()
+    testsuite.addTest(testPositionInfoWidgetSuite())
+    return testsuite

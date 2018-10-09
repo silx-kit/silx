@@ -41,6 +41,7 @@ from ... import qt
 from ...plot.items import ItemChangedType
 from .. import scene
 from ..scene import axes, primitives, transform
+from ._pick import PickContext
 
 
 @enum.unique
@@ -218,6 +219,53 @@ class Item3D(qt.QObject):
             if isinstance(widget, qt.QWidget):
                 self._setForegroundColor(
                     widget.getForegroundColor().getRgbF())
+
+    # picking
+
+    def _pick(self, context):
+        """Implement picking on this item.
+
+        :param PickContext context: Current picking context
+        :return: Data indices at picked position or None
+        :rtype: Union[None,PickingResult]
+        """
+        if (self.isVisible() and
+                context.isEnabled() and
+                context.isItemPickable(self) and
+                self._pickFastCheck(context)):
+            return self._pickFull(context)
+        return None
+
+    def _pickFastCheck(self, context):
+        """Approximate item pick test (e.g., bounding box-based picking).
+
+        :param PickContext context: Current picking context
+        :return: True if item might be picked
+        :rtype: bool
+        """
+        primitive = self._getScenePrimitive()
+
+        positionNdc = context.getNDCPosition()
+        if positionNdc is None:  # No picking outside viewport
+            return False
+
+        bounds = primitive.bounds(transformed=False, dataBounds=False)
+        if bounds is None:  # primitive has no bounds
+            return False
+
+        bounds = primitive.objectToNDCTransform.transformBounds(bounds)
+
+        return (bounds[0, 0] <= positionNdc[0] <= bounds[1, 0] and
+                bounds[0, 1] <= positionNdc[1] <= bounds[1, 1])
+
+    def _pickFull(self, context):
+        """Perform precise picking in this item at given widget position.
+
+        :param PickContext context: Current picking context
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
+        """
+        return None
 
 
 class DataItem3D(Item3D):
@@ -461,7 +509,92 @@ class DataItem3D(Item3D):
             self._updated(Item3DChangedType.BOUNDING_BOX_VISIBLE)
 
 
-class _BaseGroupItem(DataItem3D):
+class BaseNodeItem(DataItem3D):
+    """Base class for data item having children (e.g., group, 3d volume)."""
+
+    def __init__(self, parent=None, group=None):
+        """Base class representing a group of items in the scene.
+
+        :param parent: The View widget this item belongs to.
+        :param Union[GroupBBox, None] group:
+            The scene group to use for rendering
+        """
+        DataItem3D.__init__(self, parent=parent, group=group)
+
+    def getItems(self):
+        """Returns the list of items currently present in the group.
+
+        :rtype: tuple
+        """
+        raise NotImplementedError('getItems must be implemented in subclass')
+
+    def visit(self, included=True):
+        """Generator visiting the group content.
+
+        It traverses the group sub-tree in a top-down left-to-right way.
+
+        :param bool included: True (default) to include self in visit
+        """
+        if included:
+            yield self
+        for child in self.getItems():
+            yield child
+            if hasattr(child, 'visit'):
+                for item in child.visit(included=False):
+                    yield item
+
+    def pickItems(self, x, y, condition=None):
+        """Iterator over picked items in the group at given position.
+
+        Each picked item yield a :class:`PickingResult` object
+        holding the picking information.
+
+        It traverses the group sub-tree in a left-to-right top-down way.
+
+        :param int x: X widget device pixel coordinate
+        :param int y: Y widget device pixel coordinate
+        :param callable condition: Optional test called for each item
+            checking whether to process it or not.
+        """
+        viewport = self._getScenePrimitive().viewport
+        if viewport is None:
+            raise RuntimeError(
+                'Cannot perform picking: Item not attached to a widget')
+
+        context = PickContext(x, y, viewport, condition)
+        for result in self._pickItems(context):
+            yield result
+
+    def _pickItems(self, context):
+        """Implement :meth:`pickItems`
+
+        :param PickContext context: Current picking context
+        """
+        if not self.isVisible() or not context.isEnabled():
+            return  # empty iterator
+
+        # Use a copy to discard context changes once this returns
+        context = context.copy()
+
+        if not self._pickFastCheck(context):
+            return  # empty iterator
+
+        result = self._pick(context)
+        if result is not None:
+            yield result
+
+        for child in self.getItems():
+            if isinstance(child, BaseNodeItem):
+                for result in child._pickItems(context):
+                    yield result  # Flatten result
+
+            else:
+                result = child._pick(context)
+                if result is not None:
+                    yield result
+
+
+class _BaseGroupItem(BaseNodeItem):
     """Base class for group of items sharing a common transform."""
 
     sigItemAdded = qt.Signal(object)
@@ -483,7 +616,7 @@ class _BaseGroupItem(DataItem3D):
         :param Union[GroupBBox, None] group:
             The scene group to use for rendering
         """
-        DataItem3D.__init__(self, parent=parent, group=group)
+        BaseNodeItem.__init__(self, parent=parent, group=group)
         self._items = []
 
     def _getGroupPrimitive(self):
@@ -543,21 +676,6 @@ class _BaseGroupItem(DataItem3D):
         """Remove all item from the group."""
         for item in self.getItems():
             self.removeItem(item)
-
-    def visit(self, included=True):
-        """Generator visiting the group content.
-
-        It traverses the group sub-tree in a top-down left-to-right way.
-
-        :param bool included: True (default) to include self in visit
-        """
-        if included:
-            yield self
-        for child in self.getItems():
-            yield child
-            if hasattr(child, 'visit'):
-                for item in child.visit(included=False):
-                    yield item
 
 
 class GroupItem(_BaseGroupItem):

@@ -367,7 +367,8 @@ class SceneWidget(Plot3DWidget):
         self._sceneGroup = RootGroupWithAxesItem(parent=self)
         self._sceneGroup.setLabel('Data')
 
-        self.viewport.scene.children.append(self._sceneGroup._getScenePrimitive())
+        self.viewport.scene.children.append(
+            self._sceneGroup._getScenePrimitive())
 
     def model(self):
         """Returns the model corresponding the scene of this widget
@@ -395,6 +396,28 @@ class SceneWidget(Plot3DWidget):
         :rtype: GroupItem
         """
         return self._sceneGroup
+
+    def pickItems(self, x, y, condition=None):
+        """Iterator over picked items in the scene at given position.
+
+        Each picked item yield a
+        :class:`~silx.gui.plot3d.items._pick.PickingResult` object
+        holding the picking information.
+
+        It traverses the scene tree in a left-to-right top-down way.
+
+        :param int x: X widget coordinate
+        :param int y: Y widget coordinate
+        :param callable condition: Optional test called for each item
+            checking whether to process it or not.
+        """
+        if not self.isValid() or not self.isVisible():
+            return  # Empty iterator
+
+        devicePixelRatio = self.getDevicePixelRatio()
+        for result in self.getSceneGroup().pickItems(
+            x * devicePixelRatio, y * devicePixelRatio, condition):
+            yield result
 
     # Interactive modes
 
