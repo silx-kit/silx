@@ -142,15 +142,24 @@ class PixelIntensitiesHistoAction(PlotAction):
         if event.type() == qt.QEvent.Close:
             if self._plotHistogram is not None:
                 self._plotHistogram.hide()
-                print("tool hide")
             self.setChecked(False)
 
         return PlotAction.eventFilter(self, qobject, event)
 
-    def isWindowInUse(self):
+    def _isWindowInUse(self):
+        """Returns true if the tool window is currently in use."""
         if not self.isChecked():
             return False
         return self._plotHistogram is not None
+
+    def _ownerVisibilityChanged(self, isVisible):
+        """Called when the visibility of the parent of the tool window changes
+
+        :param bool isVisible: True if the parent became visible
+        """
+        if self._isWindowInUse():
+            tool = self.getHistogramPlotWidget()
+            tool.setVisible(isVisible)
 
     def getHistogramPlotWidget(self):
         """Create the plot histogram if needed, otherwise create it
@@ -159,14 +168,14 @@ class PixelIntensitiesHistoAction(PlotAction):
         """
         from silx.gui.plot.PlotWindow import Plot1D
         if self._plotHistogram is None:
-            print("---------------------------")
-            print("create tool)")
             self._plotHistogram = Plot1D(parent=self.plot)
             self._plotHistogram.setWindowFlags(qt.Qt.Window)
             self._plotHistogram.setWindowTitle('Image Intensity Histogram')
             self._plotHistogram.installEventFilter(self)
             self._plotHistogram.getXAxis().setLabel("Value")
             self._plotHistogram.getYAxis().setLabel("Count")
+            plot = self.plot
+            plot.sigVisibilityChanged.connect(self._ownerVisibilityChanged)
 
         return self._plotHistogram
 
