@@ -37,7 +37,7 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __date__ = "09/10/2018"
 __license__ = "MIT"
 
-from . import PlotAction
+from .PlotToolAction import PlotToolAction
 from silx.math.histogram import Histogramnd
 from silx.math.combo import min_max
 import numpy
@@ -47,7 +47,7 @@ from silx.gui import qt
 _logger = logging.getLogger(__name__)
 
 
-class PixelIntensitiesHistoAction(PlotAction):
+class PixelIntensitiesHistoAction(PlotToolAction):
     """QAction to plot the pixels intensities diagram
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -55,56 +55,33 @@ class PixelIntensitiesHistoAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        PlotAction.__init__(self,
-                            plot,
-                            icon='pixel-intensities',
-                            text='pixels intensity',
-                            tooltip='Compute image intensity distribution',
-                            triggered=self._triggered,
-                            parent=parent,
-                            checkable=True)
-        self._plotHistogram = None
+        PlotToolAction.__init__(self,
+                                plot,
+                                icon='pixel-intensities',
+                                text='pixels intensity',
+                                tooltip='Compute image intensity distribution',
+                                parent=parent)
         self._connectedToActiveImage = False
         self._histo = None
-        self._previousGeometry = None
 
-    def _triggered(self, checked):
-        """Update the plot of the histogram visibility status
+    def _connectPlot(self):
+        if not self._connectedToActiveImage:
+            self.plot.sigActiveImageChanged.connect(
+                self._activeImageChanged)
+            self._connectedToActiveImage = True
+            self.computeIntensityDistribution()
+        PlotToolAction._connectPlot(self)
 
-        :param bool checked: status  of the action button
-        """
-        self.setToolWindowVisible(checked)
-
-    def setToolWindowVisible(self, visible):
-        tool = self.getHistogramPlotWidget()
-        if tool.isVisible() == visible:
-            # Nothing to do
-            return
-
-        if visible:
-            if not self._connectedToActiveImage:
-                self.plot.sigActiveImageChanged.connect(
-                    self._activeImageChanged)
-                self._connectedToActiveImage = True
-                self.computeIntensityDistribution()
-
-            tool.show()
-            if self._previousGeometry is not None:
-                # Restore the geometry
-                tool.setGeometry(self._previousGeometry)
-        else:
-            if self._connectedToActiveImage:
-                self.plot.sigActiveImageChanged.disconnect(
-                    self._activeImageChanged)
-                self._connectedToActiveImage = False
-
-            # Save the geometry
-            self._previousGeometry = tool.geometry()
-            tool.hide()
+    def _disconnectPlot(self):
+        if self._connectedToActiveImage:
+            self.plot.sigActiveImageChanged.disconnect(
+                self._activeImageChanged)
+            self._connectedToActiveImage = False
+        PlotToolAction._disconnectPlot(self)
 
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
-        if self.isChecked():
+        if self._isWindowInUse():
             self.computeIntensityDistribution()
 
     def computeIntensityDistribution(self):
@@ -145,54 +122,21 @@ class PixelIntensitiesHistoAction(PlotAction):
                               color='#66aad7')
             plot.resetZoom()
 
-    def eventFilter(self, qobject, event):
-        """Observe when the close event is emitted then
-        simply uncheck the action button
-
-        :param qobject: the object observe
-        :param event: the event received by qobject
-        """
-        if event.type() == qt.QEvent.Close:
-            if self._plotHistogram is not None:
-                self._previousGeometry = self._plotHistogram.geometry()
-                self._plotHistogram.hide()
-            self.setChecked(False)
-
-        return PlotAction.eventFilter(self, qobject, event)
-
-    def _isWindowInUse(self):
-        """Returns true if the tool window is currently in use."""
-        if not self.isChecked():
-            return False
-        return self._plotHistogram is not None
-
-    def _ownerVisibilityChanged(self, isVisible):
-        """Called when the visibility of the parent of the tool window changes
-
-        :param bool isVisible: True if the parent became visible
-        """
-        if self._isWindowInUse():
-            self.setToolWindowVisible(isVisible)
-
     def getHistogramPlotWidget(self):
         """Create the plot histogram if needed, otherwise create it
 
         :return: the PlotWidget showing the histogram of the pixel intensities
         """
-        from silx.gui.plot.PlotWindow import Plot1D
-        if self._plotHistogram is None:
-            self._plotHistogram = Plot1D(parent=self.plot)
-            self._plotHistogram.setWindowFlags(qt.Qt.Window)
-            self._plotHistogram.setWindowTitle('Image Intensity Histogram')
-            self._plotHistogram.installEventFilter(self)
-            self._plotHistogram.getXAxis().setLabel("Value")
-            self._plotHistogram.getYAxis().setLabel("Count")
-            if self._previousGeometry is not None:
-                self._plotHistogram.setGeometry(self._previousGeometry)
-            plot = self.plot
-            plot.sigVisibilityChanged.connect(self._ownerVisibilityChanged)
+        return self._getToolWindow()
 
-        return self._plotHistogram
+    def _createToolWindow(self):
+        from silx.gui.plot.PlotWindow import Plot1D
+        window = Plot1D(parent=self.plot)
+        window.setWindowFlags(qt.Qt.Window)
+        window.setWindowTitle('Image Intensity Histogram')
+        window.getXAxis().setLabel("Value")
+        window.getYAxis().setLabel("Count")
+        return window
 
     def getHistogram(self):
         """Return the last computed histogram
