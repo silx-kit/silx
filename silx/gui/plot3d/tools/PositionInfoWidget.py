@@ -136,6 +136,10 @@ class PositionInfoWidget(qt.QWidget):
                         items.Scatter2D,
                         items.ImageData,
                         items.ImageRgba,
+                        items.Mesh,
+                        items.Box,
+                        items.Cylinder,
+                        items.Hexagon,
                         volume.CutPlane,
                         volume.Isosurface)
     """Type of items that are picked"""

@@ -173,6 +173,87 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
         picking = list(self.widget.pickItems(1, 1))
         self.assertEqual(len(picking), 0)
 
+    def testPickMesh(self):
+        """Test picking of Mesh items"""
+
+        triangles = items.Mesh()
+        triangles.setData(
+            position=((0, 0, 0), (1, 0, 0), (1, 1, 0),
+                      (0, 0, 0), (1, 1, 0), (0, 1, 0)),
+            color=(1, 0, 0, 1),
+            mode='triangles')
+        triangleStrip = items.Mesh()
+        triangleStrip.setData(
+            position=(((1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 1, 0))),
+            color=(0, 1, 0, 1),
+            mode='triangle_strip')
+        triangleFan = items.Mesh()
+        triangleFan.setData(
+            position=((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)),
+            color=(0, 0, 1, 1),
+            mode='fan')
+
+        for item in (triangles, triangleStrip, triangleFan):
+            with self.subTest(mode=item.getDrawMode()):
+                # Add item
+                self.widget.clearItems()
+                self.widget.addItem(item)
+                self.widget.resetZoom('front')
+                self.qapp.processEvents()
+
+                # Picking on data (at widget center)
+                picking = list(self.widget.pickItems(*self._widgetCenter()))
+
+                self.assertEqual(len(picking), 1)
+                self.assertIs(picking[0].getItem(), item)
+                nbPos = len(picking[0].getPositions())
+                data = picking[0].getData()
+                self.assertEqual(nbPos, len(data))
+                self.assertTrue(numpy.array_equal(
+                    data,
+                    item.getPositionData()[picking[0].getIndices()]))
+
+                # Picking outside data
+                picking = list(self.widget.pickItems(1, 1))
+                self.assertEqual(len(picking), 0)
+
+    def testPickCylindricalMesh(self):
+        """Test picking of Box, Cylinder and Hexagon items"""
+
+        positions = numpy.array(((0., 0., 0.), (1., 1., 0.), (2., 2., 0.)))
+        box = items.Box()
+        box.setData(position=positions)
+        cylinder = items.Cylinder()
+        cylinder.setData(position=positions)
+        hexagon = items.Hexagon()
+        hexagon.setData(position=positions)
+
+        for item in (box, cylinder, hexagon):
+            with self.subTest(item=item.__class__.__name__):
+                # Add item
+                self.widget.clearItems()
+                self.widget.addItem(item)
+                self.widget.resetZoom('front')
+                self.qapp.processEvents()
+
+                # Picking on data (at widget center)
+                picking = list(self.widget.pickItems(*self._widgetCenter()))
+
+                self.assertEqual(len(picking), 1)
+                self.assertIs(picking[0].getItem(), item)
+                nbPos = len(picking[0].getPositions())
+                data = picking[0].getData()
+                print(item.__class__.__name__, [positions[1]], data)
+                self.assertTrue(numpy.all(numpy.equal(positions[1], data)))
+                self.assertEqual(nbPos, len(data))
+                self.assertTrue(numpy.array_equal(
+                    data,
+                    item.getPosition()[picking[0].getIndices()]))
+
+                # Picking outside data
+                picking = list(self.widget.pickItems(1, 1))
+                self.assertEqual(len(picking), 0)
+
 
 def suite():
     testsuite = unittest.TestSuite()
