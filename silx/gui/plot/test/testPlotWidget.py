@@ -137,6 +137,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         # Resize with aspect ratio
         self.plot.setKeepDataAspectRatio(True)
         self.qapp.processEvents()
+        self.qWait(1000)
         listener.clear()  # Clean-up received signal
 
         self.plot.resize(200, 200)
