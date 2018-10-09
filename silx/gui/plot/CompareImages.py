@@ -46,11 +46,10 @@ from silx.third_party import enum
 
 _logger = logging.getLogger(__name__)
 
-try:
-    from silx.image import sift
-except ImportError as e:
-    _logger.warning("Error while importing sift: %s", str(e))
-    _logger.debug("Backtrace", exc_info=True)
+from silx.opencl import ocl
+if ocl is not None:
+    from silx.opencl import sift
+else:  # No OpenCL device or no pyopencl
     sift = None
 
 
