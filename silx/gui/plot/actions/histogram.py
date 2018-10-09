@@ -73,14 +73,21 @@ class PixelIntensitiesHistoAction(PlotAction):
 
         :param bool checked: status  of the action button
         """
-        if checked:
+        self.setToolWindowVisible(checked)
+
+    def setToolWindowVisible(self, visible):
+        tool = self.getHistogramPlotWidget()
+        if tool.isVisible() == visible:
+            # Nothing to do
+            return
+
+        if visible:
             if not self._connectedToActiveImage:
                 self.plot.sigActiveImageChanged.connect(
                     self._activeImageChanged)
                 self._connectedToActiveImage = True
                 self.computeIntensityDistribution()
 
-            tool = self.getHistogramPlotWidget()
             tool.show()
             if self._previousGeometry is not None:
                 # Restore the geometry
@@ -91,7 +98,6 @@ class PixelIntensitiesHistoAction(PlotAction):
                     self._activeImageChanged)
                 self._connectedToActiveImage = False
 
-            tool = self.getHistogramPlotWidget()
             # Save the geometry
             self._previousGeometry = tool.geometry()
             tool.hide()
@@ -166,14 +172,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         :param bool isVisible: True if the parent became visible
         """
         if self._isWindowInUse():
-            tool = self.getHistogramPlotWidget()
-            if not isVisible:
-                # Save the geometry
-                self._previousGeometry = tool.geometry()
-            tool.setVisible(isVisible)
-            if isVisible and self._previousGeometry is not None:
-                # Restore the geometry
-                tool.setGeometry(self._previousGeometry)
+            self.setToolWindowVisible(isVisible)
 
     def getHistogramPlotWidget(self):
         """Create the plot histogram if needed, otherwise create it
