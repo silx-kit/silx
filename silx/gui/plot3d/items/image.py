@@ -59,8 +59,8 @@ class _Image(DataItem3D, InterpolationMixIn):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
-        :return: Data indices as (rows, columns) at picked position or None
-        :rtype: Union[None,List[numpy.ndarray]]
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
         """
         rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
         if rayObject is None:

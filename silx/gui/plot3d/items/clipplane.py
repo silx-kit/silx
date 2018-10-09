@@ -123,9 +123,8 @@ class ClipPlane(Item3D, PlaneMixIn):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
-        :return:
-            Data indices as (depths, rows, columns) at picked position or None
-        :rtype: Union[None,List[numpy.ndarray]]
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
         """
         info = self.__pickPreProcessing(context)
         if info is not None:
