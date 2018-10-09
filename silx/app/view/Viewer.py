@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/06/2018"
+__date__ = "08/10/2018"
 
 
 import os
@@ -146,6 +146,18 @@ class Viewer(qt.QMainWindow):
         toolbar.setStyleSheet("QToolBar { border: 0px }")
 
         action = qt.QAction(toolbar)
+        action.setIcon(icons.getQIcon("view-refresh"))
+        action.setText("Refresh")
+        action.setToolTip("Refresh all selected items")
+        action.triggered.connect(self.__refreshSelected)
+        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_Plus))
+        toolbar.addAction(action)
+        treeView.addAction(action)
+        self.__refreshAction = action
+
+        toolbar.addSeparator()
+
+        action = qt.QAction(toolbar)
         action.setIcon(icons.getQIcon("tree-expand-all"))
         action.setText("Expand all")
         action.setToolTip("Expand all selected items")
@@ -173,6 +185,135 @@ class Viewer(qt.QMainWindow):
         layout.addWidget(treeView)
         return widget
 
+    def __refreshSelected(self):
+        """Refresh all selected items
+        """
+        qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+
+        selection = self.__treeview.selectionModel()
+        indexes = selection.selectedIndexes()
+        selectedItems = []
+        model = self.__treeview.model()
+        h5files = set([])
+        while len(indexes) > 0:
+            index = indexes.pop(0)
+            if index.column() != 0:
+                continue
+            h5 = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            rootIndex = index
+            # Reach the root of the tree
+            while rootIndex.parent().isValid():
+                rootIndex = rootIndex.parent()
+            rootRow = rootIndex.row()
+            relativePath = self.__getRelativePath(model, rootIndex, index)
+            selectedItems.append((rootRow, relativePath))
+            h5files.add(h5.file)
+
+        if len(h5files) == 0:
+            qt.QApplication.restoreOverrideCursor()
+            return
+
+        model = self.__treeview.findHdf5TreeModel()
+        for h5 in h5files:
+            self.__synchronizeH5pyObject(h5)
+
+        model = self.__treeview.model()
+        itemSelection = qt.QItemSelection()
+        for rootRow, relativePath in selectedItems:
+            rootIndex = model.index(rootRow, 0, qt.QModelIndex())
+            index = self.__indexFromPath(model, rootIndex, relativePath)
+            if index is None:
+                continue
+            indexEnd = model.index(index.row(), model.columnCount() - 1, index.parent())
+            itemSelection.select(index, indexEnd)
+        selection.select(itemSelection, qt.QItemSelectionModel.ClearAndSelect)
+
+        qt.QApplication.restoreOverrideCursor()
+
+    def __synchronizeH5pyObject(self, h5):
+        model = self.__treeview.findHdf5TreeModel()
+        # This is buggy right now while h5py do not allow to close a file
+        # while references are still used.
+        # FIXME: The architecture have to be reworked to support this feature.
+        # model.synchronizeH5pyObject(h5)
+
+        filename = h5.filename
+        row = model.h5pyObjectRow(h5)
+        index = self.__treeview.model().index(row, 0, qt.QModelIndex())
+        paths = self.__getPathFromExpandedNodes(self.__treeview, index)
+        model.removeH5pyObject(h5)
+        model.insertFile(filename, row)
+        index = self.__treeview.model().index(row, 0, qt.QModelIndex())
+        self.__expandNodesFromPaths(self.__treeview, index, paths)
+
+    def __getRelativePath(self, model, rootIndex, index):
+        """Returns a relative path from an index to his rootIndex.
+
+        If the path is empty the index is also the rootIndex.
+        """
+        path = ""
+        while index.isValid():
+            if index == rootIndex:
+                return path
+            name = model.data(index)
+            if path == "":
+                path = name
+            else:
+                path = name + "/" + path
+            index = index.parent()
+
+        # index is not a children of rootIndex
+        raise ValueError("index is not a children of the rootIndex")
+
+    def __getPathFromExpandedNodes(self, view, rootIndex):
+        """Return relative path from the root index of the extended nodes"""
+        model = view.model()
+        rootPath = None
+        paths = []
+        indexes = [rootIndex]
+        while len(indexes):
+            index = indexes.pop(0)
+            if not view.isExpanded(index):
+                continue
+
+            node = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE)
+            path = node._getCanonicalName()
+            if rootPath is None:
+                rootPath = path
+            path = path[len(rootPath):]
+            paths.append(path)
+
+            for child in range(model.rowCount(index)):
+                childIndex = model.index(child, 0, index)
+                indexes.append(childIndex)
+        return paths
+
+    def __indexFromPath(self, model, rootIndex, path):
+        elements = path.split("/")
+        if elements[0] == "":
+            elements.pop(0)
+        index = rootIndex
+        while len(elements) != 0:
+            element = elements.pop(0)
+            found = False
+            for child in range(model.rowCount(index)):
+                childIndex = model.index(child, 0, index)
+                name = model.data(childIndex)
+                if element == name:
+                    index = childIndex
+                    found = True
+                    break
+            if not found:
+                return None
+        return index
+
+    def __expandNodesFromPaths(self, view, rootIndex, paths):
+        model = view.model()
+        for path in paths:
+            index = self.__indexFromPath(model, rootIndex, path)
+            if index is not None:
+                view.setExpanded(index, True)
+
     def __expandAllSelected(self):
         """Expand all selected items of the tree.
 
@@ -185,6 +326,8 @@ class Viewer(qt.QMainWindow):
         model = self.__treeview.model()
         while len(indexes) > 0:
             index = indexes.pop(0)
+            if index.column() != 0:
+                continue
             if isinstance(index, tuple):
                 index, depth = index
             else:
@@ -211,6 +354,8 @@ class Viewer(qt.QMainWindow):
         model = self.__treeview.model()
         while len(indexes) > 0:
             index = indexes.pop(0)
+            if index.column() != 0:
+                continue
             if isinstance(index, tuple):
                 index, depth = index
             else:
@@ -682,5 +827,5 @@ class Viewer(qt.QMainWindow):
                 action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(h5))
                 menu.addAction(action)
                 action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(h5))
+                action.triggered.connect(lambda: self.__synchronizeH5pyObject(h5))
                 menu.addAction(action)
