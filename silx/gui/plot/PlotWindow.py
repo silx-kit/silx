@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/07/2018"
+__date__ = "09/10/2018"
 
 import collections
 import logging
@@ -98,6 +98,13 @@ class PlotWindow(PlotWidget):
     :param bool roi: Toggle visibilty of ROI action.
     :param bool mask: Toggle visibilty of mask action.
     :param bool fit: Toggle visibilty of fit action.
+    """
+
+    sigVisibilityChanged = qt.Signal(bool)
+    """Signal emitted when the widget becomes visible (or invisible).
+    This happens when the widget is hidden or shown.
+
+    It provides the visible state.
     """
 
     def __init__(self, parent=None, backend=None,
@@ -293,6 +300,14 @@ class PlotWindow(PlotWidget):
         for toolbar in (self._interactiveModeToolBar, self._outputToolBar):
             for action in toolbar.actions():
                 self.addAction(action)
+
+    def showEvent(self, event):
+        super(PlotWindow, self).showEvent(event)
+        self.sigVisibilityChanged.emit(True)
+
+    def hideEvent(self, event):
+        super(PlotWindow, self).hideEvent(event)
+        self.sigVisibilityChanged.emit(False)
 
     def getInteractiveModeToolBar(self):
         """Returns QToolBar controlling interactive mode.

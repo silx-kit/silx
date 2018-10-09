@@ -34,7 +34,7 @@ The following QAction are available:
 from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "30/04/2018"
+__date__ = "09/10/2018"
 __license__ = "MIT"
 
 from . import PlotAction
@@ -142,9 +142,15 @@ class PixelIntensitiesHistoAction(PlotAction):
         if event.type() == qt.QEvent.Close:
             if self._plotHistogram is not None:
                 self._plotHistogram.hide()
+                print("tool hide")
             self.setChecked(False)
 
         return PlotAction.eventFilter(self, qobject, event)
+
+    def isWindowInUse(self):
+        if not self.isChecked():
+            return False
+        return self._plotHistogram is not None
 
     def getHistogramPlotWidget(self):
         """Create the plot histogram if needed, otherwise create it
@@ -153,6 +159,8 @@ class PixelIntensitiesHistoAction(PlotAction):
         """
         from silx.gui.plot.PlotWindow import Plot1D
         if self._plotHistogram is None:
+            print("---------------------------")
+            print("create tool)")
             self._plotHistogram = Plot1D(parent=self.plot)
             self._plotHistogram.setWindowFlags(qt.Qt.Window)
             self._plotHistogram.setWindowTitle('Image Intensity Histogram')
