@@ -36,9 +36,9 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/01/2018"
+__date__ = "10/10/2018"
 
-from . import PlotAction
+from .PlotToolAction import PlotToolAction
 import logging
 from silx.gui import qt
 from silx.gui.plot.ItemsSelectionDialog import ItemsSelectionDialog
@@ -86,7 +86,7 @@ def _getUniqueHistogram(plt):
     return histograms[0]
 
 
-class FitAction(PlotAction):
+class FitAction(PlotToolAction):
     """QAction to open a :class:`FitWidget` and set its data to the
     active curve if any, or to the first curve.
 
@@ -97,21 +97,38 @@ class FitAction(PlotAction):
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
-            triggered=self._getFitWindow,
-            checkable=False, parent=parent)
-        self.fit_window = None
+            parent=parent)
+        self.fit_widget = None
 
-    def _getFitWindow(self):
-        self.xlabel = self.plot.getXAxis().getLabel()
-        self.ylabel = self.plot.getYAxis().getLabel()
-        self.xmin, self.xmax = self.plot.getXAxis().getLimits()
+    def _createToolWindow(self):
+        window = qt.QMainWindow(parent=self.plot)
+        # import done here rather than at module level to avoid circular import
+        # FitWidget -> BackgroundWidget -> PlotWindow -> actions -> fit -> FitWidget
+        from ...fit.FitWidget import FitWidget
+        fit_widget = FitWidget(parent=window)
+        window.setCentralWidget(fit_widget)
+        fit_widget.guibuttons.DismissButton.clicked.connect(window.close)
+        fit_widget.sigFitWidgetSignal.connect(self.handle_signal)
+        self.fit_widget = fit_widget
+        return window
+
+    def _connectPlot(self, window):
+        # Wait for the next iteration, else the plot is not yet initialized
+        # No curve available
+        qt.QTimer.singleShot(10, lambda: self._initFit(window))
+
+    def _initFit(self, window):
+        plot = self.plot
+        self.xlabel = plot.getXAxis().getLabel()
+        self.ylabel = plot.getYAxis().getLabel()
+        self.xmin, self.xmax = plot.getXAxis().getLimits()
 
         histo = _getUniqueHistogram(self.plot)
         curve = _getUniqueCurve(self.plot)
 
         if histo is None and curve is None:
             # ambiguous case, we need to ask which plot item to fit
-            isd = ItemsSelectionDialog(parent=self.plot, plot=self.plot)
+            isd = ItemsSelectionDialog(parent=plot, plot=self.plot)
             isd.setWindowTitle("Select item to be fitted")
             isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
             isd.setAvailableKinds(["curve", "histogram"])
@@ -141,29 +158,9 @@ class FitAction(PlotAction):
             self.x = item.getXData(copy=False)
             self.y = item.getYData(copy=False)
 
-        # open a window with a FitWidget
-        if self.fit_window is None:
-            self.fit_window = qt.QMainWindow()
-            # import done here rather than at module level to avoid circular import
-            # FitWidget -> BackgroundWidget -> PlotWindow -> actions -> fit -> FitWidget
-            from ...fit.FitWidget import FitWidget
-            self.fit_widget = FitWidget(parent=self.fit_window)
-            self.fit_window.setCentralWidget(
-                self.fit_widget)
-            self.fit_widget.guibuttons.DismissButton.clicked.connect(
-                self.fit_window.close)
-            self.fit_widget.sigFitWidgetSignal.connect(
-                self.handle_signal)
-            self.fit_window.show()
-        else:
-            if self.fit_window.isHidden():
-                self.fit_window.show()
-                self.fit_widget.show()
-            self.fit_window.raise_()
-
         self.fit_widget.setData(self.x, self.y,
                                 xmin=self.xmin, xmax=self.xmax)
-        self.fit_window.setWindowTitle(
+        window.setWindowTitle(
             "Fitting " + self.legend +
             " on x range %f-%f" % (self.xmin, self.xmax))
 
