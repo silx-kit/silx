@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/09/2018"
+__date__ = "12/10/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -205,6 +205,13 @@ class PlotWidget(qt.QMainWindow):
     It provides the item that will be removed.
     """
 
+    sigVisibilityChanged = qt.Signal(bool)
+    """Signal emitted when the widget becomes visible (or invisible).
+    This happens when the widget is hidden or shown.
+
+    It provides the visible state.
+    """
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, **kw):
         self._autoreplot = False
@@ -365,6 +372,11 @@ class PlotWidget(qt.QMainWindow):
         if self._autoreplot and self._dirty:
             self._backend.postRedisplay()
         super(PlotWidget, self).showEvent(event)
+        self.sigVisibilityChanged.emit(True)
+
+    def hideEvent(self, event):
+        super(PlotWidget, self).hideEvent(event)
+        self.sigVisibilityChanged.emit(False)
 
     def _invalidateDataRange(self):
         """
