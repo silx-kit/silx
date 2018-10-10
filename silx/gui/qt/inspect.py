@@ -36,10 +36,22 @@ __date__ = "08/10/2018"
 
 from . import _qt as qt
 
+
 if qt.BINDING in ('PyQt4', 'PyQt5'):
-    from sip import isdeleted as _isdeleted  # noqa
-    from sip import ispycreated as createdByPython  # noqa
-    from sip import ispyowned as ownedByPython  # noqa
+    if qt.BINDING == 'PyQt5':
+        try:
+            from PyQt5.sip import isdeleted as _isdeleted  # noqa
+            from PyQt5.sip import ispycreated as createdByPython  # noqa
+            from PyQt5.sip import ispyowned as ownedByPython  # noqa
+        except ImportError:
+            from sip import isdeleted as _isdeleted  # noqa
+            from sip import ispycreated as createdByPython  # noqa
+            from sip import ispyowned as ownedByPython  # noqa
+
+    else:  # PyQt4
+        from sip import isdeleted as _isdeleted  # noqa
+        from sip import ispycreated as createdByPython  # noqa
+        from sip import ispyowned as ownedByPython  # noqa
 
     def isValid(obj):
         """Returns True if underlying C++ object is valid.
