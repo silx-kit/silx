@@ -178,10 +178,11 @@ class H5Node(object):
         elif obj.name.startswith("/"):
             elements.pop(0)
         path = ""
+        subpath = ""
         while len(elements) > 0:
             e = elements.pop(0)
-            path = path + "/" + e
-            link = obj.parent.get(path, getlink=True)
+            subpath = path + "/" + e
+            link = obj.parent.get(subpath, getlink=True)
             classlink = silx.io.utils.get_h5_class(link)
 
             if classlink == silx.io.utils.H5Type.EXTERNAL_LINK:
@@ -190,14 +191,18 @@ class H5Node(object):
                 return self.__get_target(external_obj)
             elif classlink == silx.io.utils.H5Type.SOFT_LINK:
                 # Restart from this stat
-                path = ""
                 root_elements = link.path.split("/")
                 if link.path == "/":
+                    path = ""
                     root_elements = []
                 elif link.path.startswith("/"):
+                    path = ""
                     root_elements.pop(0)
+
                 for name in reversed(root_elements):
                     elements.insert(0, name)
+            else:
+                path = subpath
 
         return obj.file[path]
 
