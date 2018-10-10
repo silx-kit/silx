@@ -701,14 +701,14 @@ class TestH5Node(TestCaseQt):
     def testSoftLinkRelative(self):
         path = ["base.h5", "group", "soft_link_relative"]
         h5node = self.getH5NodeFromPath(self.model, path)
-        
+
         self.assertEqual(h5node.physical_filename, h5node.local_filename)
         self.assertIn("base.h5", h5node.physical_filename)
         self.assertEqual(h5node.physical_basename, "dataset")
         self.assertEqual(h5node.physical_name, "/group/dataset")
         self.assertEqual(h5node.local_basename, "soft_link_relative")
         self.assertEqual(h5node.local_name, "/group/soft_link_relative")
-        
+
     def testExternalLink(self):
         path = ["base.h5", "link", "external_link"]
         h5node = self.getH5NodeFromPath(self.model, path)
