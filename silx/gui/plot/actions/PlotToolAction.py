@@ -32,7 +32,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/10/2018"
+__date__ = "10/10/2018"
 
 
 import weakref
@@ -73,26 +73,30 @@ class PlotToolAction(PlotAction):
             return
 
         if visible:
-            self._connectPlot()
+            self._connectPlot(tool)
             tool.show()
             if self._previousGeometry is not None:
                 # Restore the geometry
                 tool.setGeometry(self._previousGeometry)
         else:
-            self._disconnectPlot()
+            self._disconnectPlot(tool)
             # Save the geometry
             self._previousGeometry = tool.geometry()
             tool.hide()
 
-    def _connectPlot(self):
+    def _connectPlot(self, window):
         """Called if the tool is visible and have to be updated according to
         event of the plot.
+
+        :param qt.QWidget window: The tool window
         """
         pass
 
-    def _disconnectPlot(self):
+    def _disconnectPlot(self, window):
         """Called if the tool is not visible and dont have anymore to be updated
         according to event of the plot.
+
+        :param qt.QWidget window: The tool window
         """
         pass
 

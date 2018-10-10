@@ -34,7 +34,7 @@ The following QAction are available:
 from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "09/10/2018"
+__date__ = "10/10/2018"
 __license__ = "MIT"
 
 from .PlotToolAction import PlotToolAction
@@ -64,20 +64,20 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self._connectedToActiveImage = False
         self._histo = None
 
-    def _connectPlot(self):
+    def _connectPlot(self, window):
         if not self._connectedToActiveImage:
             self.plot.sigActiveImageChanged.connect(
                 self._activeImageChanged)
             self._connectedToActiveImage = True
             self.computeIntensityDistribution()
-        PlotToolAction._connectPlot(self)
+        PlotToolAction._connectPlot(self, window)
 
-    def _disconnectPlot(self):
+    def _disconnectPlot(self, window):
         if self._connectedToActiveImage:
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChanged)
             self._connectedToActiveImage = False
-        PlotToolAction._disconnectPlot(self)
+        PlotToolAction._disconnectPlot(self, window)
 
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
