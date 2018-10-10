@@ -26,7 +26,7 @@
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "10/10/2018"
 
 import numpy
 
@@ -337,6 +337,7 @@ class ArrayImagePlot(qt.QWidget):
         self._plot.setDefaultColormap(Colormap(name="viridis",
                                                vmin=None, vmax=None,
                                                normalization=Colormap.LINEAR))
+        self._plot.getIntensityHistogramAction().setVisible(True)
 
         self.selectorDock = qt.QDockWidget("Data selector", self._plot)
         # not closable
