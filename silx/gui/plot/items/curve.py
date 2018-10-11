@@ -37,7 +37,7 @@ from silx.third_party import six
 from ....utils.deprecation import deprecated
 from ... import colors
 from .core import (Points, LabelsMixIn, ColorMixIn, YAxisMixIn,
-                   FillMixIn, LineMixIn, ItemChangedType)
+                   FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType)
 
 
 _logger = logging.getLogger(__name__)
@@ -51,9 +51,12 @@ class CurveStyle(object):
     :param color: Color
     :param Union[str,None] linestyle: Style of the line
     :param Union[float,None] linewidth: Width of the line
+    :param Union[str,None] symbol: Symbol for markers
+    :param Union[float,None] symbolsize: Size of the markers
     """
 
-    def __init__(self, color=None, linestyle=None, linewidth=None):
+    def __init__(self, color=None, linestyle=None, linewidth=None,
+                 symbol=None, symbolsize=None):
         if color is None:
             self._color = None
         else:
@@ -67,6 +70,12 @@ class CurveStyle(object):
         self._linestyle = linestyle
 
         self._linewidth = None if linewidth is None else float(linewidth)
+
+        if symbol is not None:
+            assert symbol in SymbolMixIn.getSupportedSymbols()
+        self._symbol = symbol
+
+        self._symbolsize = None if symbolsize is None else float(symbolsize)
 
     def getColor(self):
         """Returns the color or None if not set.
@@ -97,11 +106,37 @@ class CurveStyle(object):
         """
         return self._linewidth
 
+    def getSymbol(self):
+        """Return the point marker type.
+
+        Marker type::
+
+            - 'o' circle
+            - '.' point
+            - ',' pixel
+            - '+' cross
+            - 'x' x-cross
+            - 'd' diamond
+            - 's' square
+
+        :rtype: Union[str,None]
+        """
+        return self._symbol
+
+    def getSymbolSize(self):
+        """Return the point marker size in points.
+
+        :rtype: Union[float,None]
+        """
+        return self._symbolsize
+
     def __eq__(self, other):
         if isinstance(other, CurveStyle):
             return (self.getColor() == other.getColor() and
                     self.getLineStyle() == other.getLineStyle() and
-                    self.getLineWidth() == other.getLineWidth())
+                    self.getLineWidth() == other.getLineWidth() and
+                    self.getSymbol() == other.getSymbol() and
+                    self.getSymbolSize() == other.getSymbolSize())
         else:
             return False
 
@@ -153,11 +188,13 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         if len(xFiltered) == 0 or not numpy.any(numpy.isfinite(xFiltered)):
             return None  # No data to display, do not add renderer to backend
 
+        style = self.getCurrentStyle()
+
         return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
-                                color=self.getCurrentColor(),
-                                symbol=self.getSymbol(),
-                                linestyle=self.getCurrentLineStyle(),
-                                linewidth=self.getCurrentLineWidth(),
+                                color=style.getColor(),
+                                symbol=style.getSymbol(),
+                                linestyle=style.getLineStyle(),
+                                linewidth=style.getLineWidth(),
                                 yaxis=self.getYAxis(),
                                 xerror=xerror,
                                 yerror=yerror,
@@ -165,7 +202,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
                                 selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
-                                symbolsize=self.getSymbolSize())
+                                symbolsize=style.getSymbolSize())
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
@@ -274,38 +311,43 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         """
         self.setHighlightedStyle(CurveStyle(color))
 
+    def getCurrentStyle(self):
+        """Returns the current curve style.
+
+        Curve style depends on curve highlighting
+
+        :rtype: CurveStyle
+        """
+        if self.isHighlighted():
+            style = self.getHighlightedStyle()
+            color = style.getColor()
+            linestyle = style.getLineStyle()
+            linewidth = style.getLineWidth()
+            symbol = style.getSymbol()
+            symbolsize = style.getSymbolSize()
+
+            return CurveStyle(
+                color=self.getColor() if color is None else color,
+                linestyle=self.getLineStyle() if linestyle is None else linestyle,
+                linewidth=self.getLineWidth() if linewidth is None else linewidth,
+                symbol=self.getSymbol() if symbol is None else symbol,
+                symbolsize=self.getSymbolSize() if symbolsize is None else symbolsize)
+
+        else:
+             return CurveStyle(color=self.getColor(),
+                               linestyle=self.getLineStyle(),
+                               linewidth=self.getLineWidth(),
+                               symbol=self.getSymbol(),
+                               symbolsize=self.getSymbolSize())
+
+    @deprecated(replacement='Curve.getCurrentStyle()',
+                since_version='0.9.0')
     def getCurrentColor(self):
         """Returns the current color of the curve.
 
         This color is either the color of the curve or the highlighted color,
         depending on the highlight state.
 
-        :rtype: 4-tuple of int in [0, 255]
+        :rtype: 4-tuple of int in [0, 1]
         """
-        if self.isHighlighted():
-            highlightedColor = self.getHighlightedStyle().getColor()
-            if highlightedColor is not None:
-                return highlightedColor
-        return self.getColor()
-
-    def getCurrentLineStyle(self):
-        """Returns the current line style of the curve.
-
-        :rtype: str
-        """
-        if self.isHighlighted():
-            highlightedLineStyle = self.getHighlightedStyle().getLineStyle()
-            if highlightedLineStyle is not None:
-                return highlightedLineStyle
-        return self.getLineStyle()
-
-    def getCurrentLineWidth(self):
-        """Returns the current line width of the curve.
-
-        :rtype: float
-        """
-        if self.isHighlighted():
-            highlightedLineWidth = self.getHighlightedStyle().getLineWidth()
-            if highlightedLineWidth is not None:
-                return highlightedLineWidth
-        return self.getLineWidth()
+        return self.getCurrentStyle().getColor()
