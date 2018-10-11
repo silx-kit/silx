@@ -163,7 +163,7 @@ Plotting widgets:
           :align: center
      - :class:`.Plot1D` is a :class:`PlotWindow` configured with tools useful
        for curves.
-   * - .. image:: plot/img/Plot2D.png
+   * - .. snapshotqt:: silx/screenshots/Plot2D.py
           :height: 150px
           :align: center
      - :class:`.Plot2D` is a :class:`PlotWindow` configured with tools useful

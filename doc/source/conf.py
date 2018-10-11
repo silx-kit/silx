@@ -60,7 +60,16 @@ from silx.utils.deprecation import depreclog
 depreclog.disabled = 1
 
 # Add local sphinx extension directory
+
+dirname = os.path.dirname
+root_dir = dirname(dirname(dirname(os.path.abspath(__file__))))
+
+source_dir = dirname(dirname(silx.__file__))
+print('***************')
+print(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext'))
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext'))
+os.environ["PATH"] = os.path.join(root_dir, "app") + os.pathsep + os.environ.get("PATH", "")  
+os.environ["PYTHONPATH"] = source_dir + os.pathsep + os.environ.get("PYTHONPATH", "")
 
 # -- General configuration -----------------------------------------------------
 
@@ -76,6 +85,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.doctest',
     'sphinxext-archive',
+    'snapshotqt_directive',
     'nbsphinx'
 
 ]
