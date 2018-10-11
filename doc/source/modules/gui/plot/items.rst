@@ -30,10 +30,10 @@ Curve
              getXLabel, getYLabel,
              getLineWidth, setLineWidth, getLineStyle, setLineStyle,
              isHighlighted, setHighlighted, getHighlightedStyle, setHighlightedStyle,
-             getCurrentColor
+             getCurrentStyle
 
 .. autoclass:: CurveStyle
-   :members: getColor, getLineStyle, getLineWidth
+   :members: getColor, getLineStyle, getLineWidth, getSymbol, getSymbolSize
 
 Images
 ------
