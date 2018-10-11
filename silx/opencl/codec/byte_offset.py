@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/10/2017"
+__date__ = "11/10/2018"
 __status__ = "production"
 
 
@@ -404,8 +404,8 @@ class ByteOffset(OpenclProcessing):
                     allocator=functools.partial(out.base_data.get_sub_region,
                                                 out.offset))
 
-                evt = pyopencl.enqueue_copy_buffer(
-                    self.queue, d_compressed.data, out.data, byte_count=byte_count)
+                evt = pyopencl.enqueue_copy(self.queue, out.data, d_compressed.data,
+                                            byte_count=byte_count)
                 events.append(
                     EventDescription("copy D -> D: internal -> out", evt))
 
