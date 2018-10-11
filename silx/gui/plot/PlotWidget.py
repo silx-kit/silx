@@ -1602,16 +1602,22 @@ class PlotWidget(qt.QMainWindow):
     def setActiveCurveStyle(self,
                             color='#000000',
                             linewidth=None,
-                            linestyle=None):
+                            linestyle=None,
+                            symbol=None,
+                            symbolsize=None):
         """Set the style of active curve
 
         :param color: Color
         :param Union[str,None] linestyle: Style of the line
         :param Union[float,None] linewidth: Width of the line
+        :param Union[str,None] symbol: Symbol of the markers
+        :param Union[float,None] symbolsize: Size of the symbols
         """
         self._activeCurveStyle = CurveStyle(color=color,
                                             linewidth=linewidth,
-                                            linestyle=linestyle)
+                                            linestyle=linestyle,
+                                            symbol=symbol,
+                                            symbolsize=symbolsize)
         curve = self.getActiveCurve()
         if curve is not None:
             curve.setHighlightedStyle(self.getActiveCurveStyle())
