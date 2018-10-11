@@ -171,12 +171,14 @@ class LegendIcon(qt.QWidget):
             self.setEnabled(False)
             return
 
-        self.setEnabled(curve.isVisible())
-        self.setSymbol(curve.getSymbol())
-        self.setLineWidth(curve.getCurrentLineWidth())
-        self.setLineStyle(curve.getCurrentLineStyle())
+        style = curve.getCurrentStyle()
 
-        color = curve.getCurrentColor()
+        self.setEnabled(curve.isVisible())
+        self.setSymbol(style.getSymbol())
+        self.setLineWidth(style.getLineWidth())
+        self.setLineStyle(style.getLineStyle())
+
+        color = style.getColor()
         if numpy.array(color, copy=False).ndim != 1:
             # array of colors, use transparent black
             color = 0., 0., 0., 0.
@@ -1152,14 +1154,14 @@ class LegendsDockWidget(qt.QDockWidget):
         for curve in self.plot.getAllCurves(withhidden=True):
             legend = curve.getLegend()
             # Use active color if curve is active
-            color = qt.QColor.fromRgbF(*curve.getCurrentColor())
             isActive = legend == self.plot.getActiveCurve(just_legend=True)
+            style = curve.getCurrentStyle()
 
             curveInfo = {
-                'color': color,
-                'linewidth': curve.getLineWidth(),
-                'linestyle': curve.getLineStyle(),
-                'symbol': curve.getSymbol(),
+                'color': qt.QColor.fromRgbF(*style.getColor()),
+                'linewidth': style.getLineWidth(),
+                'linestyle': style.getLineStyle(),
+                'symbol': style.getSymbol(),
                 'selected': not self.plot.isCurveHidden(legend),
                 'active': isActive}
             legendList.append((legend, curveInfo))
