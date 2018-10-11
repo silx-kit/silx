@@ -273,7 +273,7 @@ class ScatterView(qt.QMainWindow):
         :return: Colormap currently in use
         :rtype: ~silx.gui.colors.Colormap
         """
-        self.getScatterItem().getColormap()
+        return self.getScatterItem().getColormap()
 
     # Control displayed scatter plot
 
