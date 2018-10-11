@@ -277,7 +277,7 @@ class ScatterView(qt.QMainWindow):
 
     # Control displayed scatter plot
 
-    def setData(self, x, y, value, xerror=None, yerror=None, copy=True):
+    def setData(self, x, y, value, xerror=None, yerror=None, alpha=None, copy=True):
         """Set the data of the scatter plot.
 
         To reset the scatter plot, set x, y and value to None.
@@ -295,6 +295,8 @@ class ScatterView(qt.QMainWindow):
 
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param alpha: Values with the transparency (between 0 and 1)
+        :type alpha: A float, or a numpy.ndarray of float32 
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
@@ -303,7 +305,7 @@ class ScatterView(qt.QMainWindow):
         value = () if value is None else value
 
         self.getScatterItem().setData(
-            x=x, y=y, value=value, xerror=xerror, yerror=yerror, copy=copy)
+            x=x, y=y, value=value, xerror=xerror, yerror=yerror, alpha=alpha, copy=copy)
 
     def getData(self, *args, **kwargs):
         return self.getScatterItem().getData(*args, **kwargs)

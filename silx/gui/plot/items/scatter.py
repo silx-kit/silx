@@ -166,6 +166,7 @@ class Scatter(Points, ColormapMixIn):
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param alpha: Values with the transparency (between 0 and 1)
+        :type alpha: A float, or a numpy.ndarray of float32 
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
