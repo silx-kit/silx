@@ -100,7 +100,7 @@ class _LegendWidget(qt.QWidget):
         """
         if event in (items.ItemChangedType.VISIBLE,
                      items.ItemChangedType.HIGHLIGHTED,
-                     items.ItemChangedType.HIGHLIGHTED_COLOR):
+                     items.ItemChangedType.HIGHLIGHTED_STYLE):
             self._update()
 
 

@@ -173,8 +173,8 @@ class LegendIcon(qt.QWidget):
 
         self.setEnabled(curve.isVisible())
         self.setSymbol(curve.getSymbol())
-        self.setLineWidth(curve.getLineWidth())
-        self.setLineStyle(curve.getLineStyle())
+        self.setLineWidth(curve.getCurrentLineWidth())
+        self.setLineStyle(curve.getCurrentLineStyle())
 
         color = curve.getCurrentColor()
         if numpy.array(color, copy=False).ndim != 1:
@@ -201,7 +201,7 @@ class LegendIcon(qt.QWidget):
                      items.ItemChangedType.COLOR,
                      items.ItemChangedType.ALPHA,
                      items.ItemChangedType.HIGHLIGHTED,
-                     items.ItemChangedType.HIGHLIGHTED_COLOR):
+                     items.ItemChangedType.HIGHLIGHTED_STYLE):
             self._update()
 
     # Modify Symbol
@@ -1152,12 +1152,8 @@ class LegendsDockWidget(qt.QDockWidget):
         for curve in self.plot.getAllCurves(withhidden=True):
             legend = curve.getLegend()
             # Use active color if curve is active
-            if legend == self.plot.getActiveCurve(just_legend=True):
-                color = qt.QColor(self.plot.getActiveCurveColor())
-                isActive = True
-            else:
-                color = qt.QColor.fromRgbF(*curve.getColor())
-                isActive = False
+            color = qt.QColor.fromRgbF(*curve.getCurrentColor())
+            isActive = legend == self.plot.getActiveCurve(just_legend=True)
 
             curveInfo = {
                 'color': color,
