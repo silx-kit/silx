@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
-__date__ = "19/09/2017"
+__date__ = "11/10/2018"
 
 import logging
 import numpy as np
@@ -64,6 +64,7 @@ if gpyfft is not None:
 # TODO: "output_size" argument for zero-padding.
 # In the case of rfft, it has to be taken into account in compute_output_shape()
 #
+
 
 class FFT(OpenclProcessing):
     """A class for OpenCL FFT"""
@@ -119,7 +120,6 @@ class FFT(OpenclProcessing):
         self.allocate_arrays()
         self.compute_plans()
 
-
     def compute_output_shape(self):
         if self.real_fft:
             # See "Notes" in the class docstring
@@ -159,13 +159,12 @@ class FFT(OpenclProcessing):
         self.plan_forward = gpyfft_fft(self.ctx, self.queue, self.d_input, self.d_output, axes=(1,0))#, axes=self.axes)
         #~ self.plan_inverse = gpyfft_fft(self.ctx, self.queue, self.d_output, self.d_input, real=True)
 
-
+    @staticmethod
     def _checkarray(arr, dtype):
         if not(arr.flags["C_CONTIGUOUS"] and arr.dtype == dtype):
             return np.ascontiguousarray(arr, dtype=dtype)
         else:
             return arr
-
 
     def update_input_array(self, array, dtype):
         if isinstance(array, np.ndarray):
@@ -181,7 +180,7 @@ class FFT(OpenclProcessing):
         else:
             raise ValueError("Unsupported array type - please use either numpy.ndarray or pyopencl.array.Array")
 
-    def update_output_array(array, dtype):
+    def update_output_array(self, array, dtype):
         if isinstance(array, cl.array.Array):
             # No copy, use the provided parray data directly
             # assuming id(self.plan_forward.output) == id(self.d_output)
@@ -189,7 +188,6 @@ class FFT(OpenclProcessing):
             self.d_output = array
         else:
             raise ValueError("Please use a pyopencl.array.Array as the output keyword argument of fft()")
-
 
     def recover_array_references(self):
         if self.d_input_old_ref is not None:
@@ -199,12 +197,11 @@ class FFT(OpenclProcessing):
             self.d_output = self.d_output_old_ref
             self.d_output_old_ref = None
 
-
-    def fft(input_array, output=None):
+    def fft(self, input_array, output=None):
         """
         Forward FT.
 
-        :param input: input array, either numpy.ndarry or pyopencl.Array. pyopencl.Buffer are not supported !
+        :param input: input array, either numpy.ndarray or pyopencl.Array. pyopencl.Buffer are not supported !
         :param output: Optional, output array, which has to be a pyopencl.Array.
                        If provided, mind the output shape for rfft !
                        If not provided, the output is returned as a new numpy array.
