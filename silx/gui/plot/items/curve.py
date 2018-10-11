@@ -33,12 +33,77 @@ __date__ = "24/04/2018"
 import logging
 import numpy
 
+from silx.third_party import six
+from ....utils.deprecation import deprecated
 from ... import colors
 from .core import (Points, LabelsMixIn, ColorMixIn, YAxisMixIn,
                    FillMixIn, LineMixIn, ItemChangedType)
 
 
 _logger = logging.getLogger(__name__)
+
+
+class CurveStyle(object):
+    """Object storing the style of a curve.
+
+    Set a value to None to use the default
+
+    :param color: Color
+    :param Union[str,None] linestyle: Style of the line
+    :param Union[float,None] linewidth: Width of the line
+    """
+
+    def __init__(self, color=None, linestyle=None, linewidth=None):
+        if color is None:
+            self._color = None
+        else:
+            if not isinstance(color, six.string_types):
+                color = numpy.array(color, copy=True)
+                assert color.ndim == 1 and color.size <= 4
+            self._color = colors.rgba(color)
+
+        if linestyle is not None:
+            assert linestyle in LineMixIn.getSupportedLineStyles()
+        self._linestyle = linestyle
+
+        self._linewidth = None if linewidth is None else float(linewidth)
+
+    def getColor(self):
+        """Returns the color or None if not set.
+
+        :rtype: Union[List[float],None]
+        """
+        return self._color
+
+    def getLineStyle(self):
+        """Return the type of the line or None if not set.
+
+        Type of line::
+
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+
+        :rtype: Union[str,None]
+        """
+        return self._linestyle
+
+    def getLineWidth(self):
+        """Return the curve line width in pixels or None if not set.
+
+        :rtype: Union[float,None]
+        """
+        return self._linewidth
+
+    def __eq__(self, other):
+        if isinstance(other, CurveStyle):
+            return (self.getColor() == other.getColor() and
+                    self.getLineStyle() == other.getLineStyle() and
+                    self.getLineWidth() == other.getLineWidth())
+        else:
+            return False
 
 
 class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
@@ -56,8 +121,8 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
     _DEFAULT_LINESTYLE = '-'
     """Default line style of the curve"""
 
-    _DEFAULT_HIGHLIGHT_COLOR = (0, 0, 0, 255)
-    """Default highlight color of the item"""
+    _DEFAULT_HIGHLIGHT_STYLE = CurveStyle(color='black')
+    """Default highlight style of the item"""
 
     def __init__(self):
         Points.__init__(self)
@@ -67,7 +132,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         LabelsMixIn.__init__(self)
         LineMixIn.__init__(self)
 
-        self._highlightColor = self._DEFAULT_HIGHLIGHT_COLOR
+        self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
         self._highlighted = False
 
         self.sigItemChanged.connect(self.__itemChanged)
@@ -91,8 +156,8 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
                                 color=self.getCurrentColor(),
                                 symbol=self.getSymbol(),
-                                linestyle=self.getLineStyle(),
-                                linewidth=self.getLineWidth(),
+                                linestyle=self.getCurrentLineStyle(),
+                                linewidth=self.getCurrentLineWidth(),
                                 yaxis=self.getYAxis(),
                                 xerror=xerror,
                                 yerror=yerror,
@@ -167,13 +232,39 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
             # TODO inefficient: better to use backend's setCurveColor
             self._updated(ItemChangedType.HIGHLIGHTED)
 
+    def getHighlightedStyle(self):
+        """Returns the highlighted style in use
+
+        :rtype: CurveStyle
+        """
+        return self._highlightStyle
+
+    def setHighlightedStyle(self, style):
+        """Set the style to use for highlighting
+
+        :param CurveStyle style: New style to use
+        """
+        previous = self.getHighlightedStyle()
+        if style != previous:
+            assert isinstance(style, CurveStyle)
+            self._highlightStyle = style
+            self._updated(ItemChangedType.HIGHLIGHTED_STYLE)
+
+            # Backward compatibility event
+            if previous.getColor() != style.getColor():
+                self._updated(ItemChangedType.HIGHLIGHTED_COLOR)
+
+    @deprecated(replacement='Curve.getHighlightedStyle().getColor()',
+                since_version='0.9.0')
     def getHighlightedColor(self):
         """Returns the RGBA highlight color of the item
 
-        :rtype: 4-tuple of int in [0, 255]
+        :rtype: 4-tuple of float in [0, 1]
         """
-        return self._highlightColor
+        return self.getHighlightedStyle().getColor()
 
+    @deprecated(replacement='Curve.setHighlightedStyle()',
+                since_version='0.9.0')
     def setHighlightedColor(self, color):
         """Set the color to use when highlighted
 
@@ -181,10 +272,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
                      one of the predefined color names defined in colors.py
         """
-        color = colors.rgba(color)
-        if color != self._highlightColor:
-            self._highlightColor = color
-            self._updated(ItemChangedType.HIGHLIGHTED_COLOR)
+        self.setHighlightedStyle(CurveStyle(color))
 
     def getCurrentColor(self):
         """Returns the current color of the curve.
@@ -195,6 +283,29 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         :rtype: 4-tuple of int in [0, 255]
         """
         if self.isHighlighted():
-            return self.getHighlightedColor()
-        else:
-            return self.getColor()
+            highlightedColor = self.getHighlightedStyle().getColor()
+            if highlightedColor is not None:
+                return highlightedColor
+        return self.getColor()
+
+    def getCurrentLineStyle(self):
+        """Returns the current line style of the curve.
+
+        :rtype: str
+        """
+        if self.isHighlighted():
+            highlightedLineStyle = self.getHighlightedStyle().getLineStyle()
+            if highlightedLineStyle is not None:
+                return highlightedLineStyle
+        return self.getLineStyle()
+
+    def getCurrentLineWidth(self):
+        """Returns the current line width of the curve.
+
+        :rtype: float
+        """
+        if self.isHighlighted():
+            highlightedLineWidth = self.getHighlightedStyle().getLineWidth()
+            if highlightedLineWidth is not None:
+                return highlightedLineWidth
+        return self.getLineWidth()

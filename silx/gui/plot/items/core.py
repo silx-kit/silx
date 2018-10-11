@@ -98,7 +98,10 @@ class ItemChangedType(enum.Enum):
     """Item's highlight state changed flag."""
 
     HIGHLIGHTED_COLOR = 'highlightedColorChanged'
-    """Item's highlighted color changed flag."""
+    """Deprecated, use HIGHLIGHTED_STYLE instead."""
+
+    HIGHLIGHTED_STYLE = 'highlightedStyleChanged'
+    """Item's highlighted style changed flag."""
 
     SCALE = 'scaleChanged'
     """Item's scale changed flag."""
