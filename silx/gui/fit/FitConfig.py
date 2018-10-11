@@ -138,7 +138,7 @@ class TabsDialogData(TabsDialog):
 
         self.default = {} if default is None else default
 
-        self.buttonDefault.clicked.connect(self.setDefault)
+        self.buttonDefault.clicked.connect(self._resetDefault)
         # self.keyPressEvent(qt.Qt.Key_Enter).
 
     def keyPressEvent(self, event):
@@ -173,6 +173,9 @@ class TabsDialogData(TabsDialog):
         """
         self.setDefault()
         super(TabsDialogData, self).reject()
+
+    def _resetDefault(self, checked):
+        self.setDefault()
 
     def setDefault(self, newdefault=None):
         """Reinitialize :attr:`output` with :attr:`default` or with
