@@ -1156,9 +1156,13 @@ class LegendsDockWidget(qt.QDockWidget):
             # Use active color if curve is active
             isActive = legend == self.plot.getActiveCurve(just_legend=True)
             style = curve.getCurrentStyle()
+            color = style.getColor()
+            if numpy.array(color, copy=False).ndim != 1:
+                # array of colors, use transparent black
+                color = 0., 0., 0., 0.
 
             curveInfo = {
-                'color': qt.QColor.fromRgbF(*style.getColor()),
+                'color': qt.QColor.fromRgbF(*color),
                 'linewidth': style.getLineWidth(),
                 'linestyle': style.getLineStyle(),
                 'symbol': style.getSymbol(),
