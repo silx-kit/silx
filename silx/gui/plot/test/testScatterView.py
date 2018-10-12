@@ -119,8 +119,9 @@ class TestScatterView(PlotWidgetTestCase):
         self.plot.setData(x, y, value, alpha=alpha)
         self.qapp.processEvents()
 
-        alphaData = self.plot.getAlphaData()
+        alphaData = self.plot.getScatterItem().getAlphaData()
         self.assertTrue(numpy.all(numpy.equal(alpha, alphaData)))
+
 
 def suite():
     test_suite = unittest.TestSuite()

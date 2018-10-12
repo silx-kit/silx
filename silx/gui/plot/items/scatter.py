@@ -68,7 +68,7 @@ class Scatter(Points, ColormapMixIn):
         rgbacolors = cmap.applyToData(self._value)
 
         if self.__alpha is not None:
-            rgbacolors[:, -1] = numpy.clip(self.__alpha*255, 0, 255).astype(numpy.uint8)
+            rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
 
         return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
                                 color=rgbacolors,
@@ -175,6 +175,16 @@ class Scatter(Points, ColormapMixIn):
         assert len(x) == len(value)
 
         self._value = value
+
+        if alpha is not None:
+            # Make sure alpha is an array of float in [0, 1]
+            alpha = numpy.array(alpha, copy=copy)
+            assert alpha.ndim == 1
+            assert len(x) == len(alpha)
+            if alpha.dtype.kind != 'f':
+                alpha = alpha.astype(numpy.float32)
+            if numpy.any(numpy.logical_or(alpha < 0., alpha > 1.)):
+                alpha = numpy.clip(alpha, 0., 1.)
         self.__alpha = alpha
         
         # set x, y, xerror, yerror
