@@ -45,6 +45,9 @@ class _HeaderLabel(qt.QLabel):
     def sizeHint(self):
         return qt.QSize(10, 30)
 
+    def minimumSizeHint(self):
+        return qt.QSize(10, 30)
+
     def paintEvent(self, event):
         painter = qt.QPainter(self)
 
