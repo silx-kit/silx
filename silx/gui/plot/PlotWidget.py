@@ -68,7 +68,7 @@ _logger = logging.getLogger(__name__)
 
 
 _COLORDICT = colors.COLORDICT
-_COLORLIST = silx.config.DEFAULT_COLORLIST
+_COLORLIST = silx.config.DEFAULT_PLOT_CURVE_COLORS
 
 """
 Object returned when requesting the data range.
