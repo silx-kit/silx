@@ -60,10 +60,13 @@ class CurveStyle(object):
         if color is None:
             self._color = None
         else:
-            if not isinstance(color, six.string_types):
-                color = numpy.array(color, copy=True)
-                assert color.ndim == 1 and color.size <= 4
-            self._color = colors.rgba(color)
+            if isinstance(color, six.string_types):
+                color = colors.rgba(color)
+            else:  # array-like expected
+                color = numpy.array(color, copy=False)
+                if color.ndim == 1:  # Array is 1D, this is a single color
+                    color = colors.rgba(color)
+            self._color = color
 
         if linestyle is not None:
             assert linestyle in LineMixIn.getSupportedLineStyles()
@@ -77,12 +80,18 @@ class CurveStyle(object):
 
         self._symbolsize = None if symbolsize is None else float(symbolsize)
 
-    def getColor(self):
+    def getColor(self, copy=True):
         """Returns the color or None if not set.
+
+        :param bool copy: True to get a copy (default),
+            False to get internal representation (do not modify!)
 
         :rtype: Union[List[float],None]
         """
-        return self._color
+        if isinstance(self._color, numpy.ndarray):
+            return numpy.array(self._color, copy=copy)
+        else:
+            return self._color
 
     def getLineStyle(self):
         """Return the type of the line or None if not set.
