@@ -49,13 +49,13 @@ try:
 except ImportError:
     msg = "Unable to import gpyfft. Please install it from: https://github.com/geggo/gpyfft"
     logger.warning(msg)
-    raise ImportError(msg)
+#     raise ImportError(msg)
     gpyfft = None
-if gpyfft is not None:
+    gpyfft_fft = None
+else:
     if not hasattr(gpyfft, "__version__"):
         msg = "Please install a more recent version of gpyfft from https://github.com/geggo/gpyfft"
         logger.warning(msg)
-        raise ImportError(msg)
         gpyfft = None
         gpyfft_fft = None
 
@@ -151,6 +151,8 @@ class FFT(OpenclProcessing):
         self.d_output_old_ref = None
 
     def compute_plans(self):
+        if gpyfft_fft is None:
+            raise ImportError("Unable to import gpyfft. Please install it from: https://github.com/geggo/gpyfft")
         self.plan_forward = gpyfft_fft(self.ctx, self.queue, self.d_input, self.d_output, axes=(1, 0))  # , axes=self.axes)
         # ~ self.plan_inverse = gpyfft_fft(self.ctx, self.queue, self.d_output, self.d_input, real=True)
 
