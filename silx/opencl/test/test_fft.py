@@ -30,10 +30,9 @@ from __future__ import division, print_function
 __authors__ = ["Jerome Kieffer"]
 __license__ = "MIT"
 __copyright__ = "2013-2018 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "11/10/2018"
+__date__ = "15/10/2018"
 
 import scipy.misc
-import time
 import logging
 import numpy
 import unittest
@@ -41,11 +40,11 @@ from .. import ocl
 if ocl:
     from .. import fft
     from .. import pyopencl
-from silx.test.utils import utilstest
 
 logger = logging.getLogger(__name__)
 
-@unittest.skipUnless(ocl, "PyOpenCl is missing")
+
+@unittest.skipUnless(fft.gpyfft, "gpyfft is missing")
 class TestFFT(unittest.TestCase):
 
     @classmethod
@@ -87,7 +86,7 @@ class TestFFT(unittest.TestCase):
         """
         f = fft.FFT(self.shape)
         res_ocl = f.fft(self.data)
-        res_np = numpy.fft.fft2(self.data)[:, :self.shape[-1] // 2 + 1]
+        res_np = numpy.fft.rfft2(self.data)
         err = abs(res_ocl - res_np).max()
         self.assertLess(err, 1e-3 * self.data.max(), "Results are roughly the same")
 

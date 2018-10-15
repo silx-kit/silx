@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
-__date__ = "11/10/2018"
+__date__ = "15/10/2018"
 
 import logging
 import numpy as np
@@ -38,7 +38,6 @@ from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 
 import pyopencl.array as parray
-from pyopencl.elementwise import ElementwiseKernel
 logger = logging.getLogger(__name__)
 
 cl = pyopencl
@@ -108,7 +107,7 @@ class FFT(OpenclProcessing):
         self.shape = shape
         if axes is None:
             # fftn
-            self.axes = np.arange(len(shape))[::-1] # FFTW convention
+            self.axes = np.arange(len(shape))[::-1]  # FFTW convention
         else:
             self.axes = axes
         self.fast_math = fast_math
@@ -123,8 +122,8 @@ class FFT(OpenclProcessing):
     def compute_output_shape(self):
         if self.real_fft:
             # See "Notes" in the class docstring
-            lastdim_size = self.shape[-1]//2 + 1
-            return self.shape[:-1] + (lastdim_size, )
+            lastdim_size = self.shape[-1] // 2 + 1
+            return self.shape[:-1] + (lastdim_size,)
         else:
             return self.shape
 
@@ -148,16 +147,12 @@ class FFT(OpenclProcessing):
 
         self.d_input = parray.zeros(self.queue, self.shape, dtype=self.input_dtype)
         self.d_output = parray.zeros(self.queue, self.output_shape, dtype=self.output_dtype)
-        #~ self.add_to_cl_mem({
-            #~ "d_input": self.d_input,
-            #~ "d_output": self.d_output
-        #~ })
         self.d_input_old_ref = None
         self.d_output_old_ref = None
 
     def compute_plans(self):
-        self.plan_forward = gpyfft_fft(self.ctx, self.queue, self.d_input, self.d_output, axes=(1,0))#, axes=self.axes)
-        #~ self.plan_inverse = gpyfft_fft(self.ctx, self.queue, self.d_output, self.d_input, real=True)
+        self.plan_forward = gpyfft_fft(self.ctx, self.queue, self.d_input, self.d_output, axes=(1, 0))  # , axes=self.axes)
+        # ~ self.plan_inverse = gpyfft_fft(self.ctx, self.queue, self.d_output, self.d_input, real=True)
 
     @staticmethod
     def _checkarray(arr, dtype):
@@ -172,7 +167,9 @@ class FFT(OpenclProcessing):
             array = self._checkarray(array, dtype)
             # FIXME gpyfft "update_arrays" is not implemented yet
             # assuming id(self.plan_forward.data) == id(self.d_input)
-            cl.enqueue_copy(self.queue, self.d_input.data, array)
+            evt = cl.enqueue_copy(self.queue, self.d_input.data, array)
+            if self.profile:
+                self.events.append(EventDescription("copy H->D", evt))
         elif isinstance(array, cl.array.Array):
             # No copy, use the provided parray data directly
             self.d_input_old_ref = self.d_input
@@ -212,13 +209,19 @@ class FFT(OpenclProcessing):
             self.update_output_array(output, self.output_dtype, "output")
 
         ev, = self.plan_forward.enqueue()
-        ev.wait()
-        #~ self.events.append(EventDescription("Forward FFT", ev))
+        if self.profile:
+            self.events.append(EventDescription("Forward FFT", ev))
+
         if output is None:
-            res = self.d_output.get()
+            # res = self.d_output.get()
+            res = np.empty(self.d_output.shape, self.d_output.dtype)
+            evt = cl.enqueue_copy(self.queue, res, self.d_output.data)
+            if self.profile:
+                self.events.append(EventDescription("copy D->F", evt))
         else:
             res = self.d_output
         self.recover_array_references()
+
         return res
 
 
