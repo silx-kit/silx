@@ -45,7 +45,7 @@ if ocl:
 logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(fft.gpyfft, "gpyfft is missing")
+@unittest.skipUnless(ocl and fft.gpyfft, "gpyfft is missing")
 class TestFFT(unittest.TestCase):
 
     @classmethod
