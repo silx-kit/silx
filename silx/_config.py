@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -81,3 +81,32 @@ class Config(object):
 
     .. versionadded:: 0.8
     """
+
+    DEFAULT_PLOT_CURVE_COLORS = ['#000000',  # black
+                                 '#0000ff',  # blue
+                                 '#ff0000',  # red
+                                 '#00ff00',  # green
+                                 '#ff66ff',  # pink
+                                 '#ffff00',  # yellow
+                                 '#a52a2a',  # brown
+                                 '#00ffff',  # cyan
+                                 '#ff00ff',  # magenta
+                                 '#ff9900',  # orange
+                                 '#6600ff',  # violet
+                                 '#a0a0a4',  # grey
+                                 '#000080',  # darkBlue
+                                 '#800000',  # darkRed
+                                 '#008000',  # darkGreen
+                                 '#008080',  # darkCyan
+                                 '#800080',  # darkMagenta
+                                 '#808000',  # darkYellow
+                                 '#660000']  # darkBrown
+    """Default list of colors for plot widget displaying curves.
+
+    It will have an influence on:
+
+    - :class:`silx.gui.plot.PlotWidget`
+
+    .. versionadded:: 0.9
+    """
+                                    

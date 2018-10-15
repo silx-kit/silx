@@ -68,27 +68,7 @@ _logger = logging.getLogger(__name__)
 
 
 _COLORDICT = colors.COLORDICT
-_COLORLIST = [_COLORDICT['black'],
-              _COLORDICT['blue'],
-              _COLORDICT['red'],
-              _COLORDICT['green'],
-              _COLORDICT['pink'],
-              _COLORDICT['yellow'],
-              _COLORDICT['brown'],
-              _COLORDICT['cyan'],
-              _COLORDICT['magenta'],
-              _COLORDICT['orange'],
-              _COLORDICT['violet'],
-              # _COLORDICT['bluegreen'],
-              _COLORDICT['grey'],
-              _COLORDICT['darkBlue'],
-              _COLORDICT['darkRed'],
-              _COLORDICT['darkGreen'],
-              _COLORDICT['darkCyan'],
-              _COLORDICT['darkMagenta'],
-              _COLORDICT['darkYellow'],
-              _COLORDICT['darkBrown']]
-
+_COLORLIST = silx.config.DEFAULT_PLOT_CURVE_COLORS
 
 """
 Object returned when requesting the data range.
