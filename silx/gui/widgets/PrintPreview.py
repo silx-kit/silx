@@ -411,6 +411,9 @@ class PrintPreviewDialog(qt.QDialog):
         """If the printer is not already set, try to interactively
         setup the printer using a QPrintDialog.
         In case of failure, hide widget and log a warning.
+
+        :return: True if printer was set. False if it failed or if the
+            selection dialog was canceled.
         """
         if self.printer is None:
             self.setup()
@@ -418,6 +421,7 @@ class PrintPreviewDialog(qt.QDialog):
             self.hide()
             _logger.warning("Printer setup failed or was cancelled, " +
                             "but printer is required.")
+        return self.printer is not None
 
     def setOutputFileName(self, name):
         """Set output filename.

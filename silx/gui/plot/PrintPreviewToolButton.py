@@ -175,10 +175,7 @@ class PrintPreviewToolButton(qt.QToolButton):
     def _plotToPrintPreview(self):
         """Grab the plot widget and send it to the print preview dialog.
         Make sure the print preview dialog is shown and raised."""
-        self.printPreviewDialog.ensurePrinterIsSet()
-
-        # in case the user cancelled the printer selection dialog:
-        if self.printPreviewDialog.printer is None:
+        if not self.printPreviewDialog.ensurePrinterIsSet():
             return
 
         if qt.HAS_SVG:
