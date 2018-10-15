@@ -53,7 +53,8 @@ class Scatter(Points, ColormapMixIn):
         Points.__init__(self)
         ColormapMixIn.__init__(self)
         self._value = ()
-
+        self.__alpha = None
+        
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
         # Filter-out values <= 0
@@ -65,6 +66,9 @@ class Scatter(Points, ColormapMixIn):
 
         cmap = self.getColormap()
         rgbacolors = cmap.applyToData(self._value)
+
+        if self.__alpha is not None:
+            rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
 
         return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
                                 color=rgbacolors,
@@ -112,6 +116,15 @@ class Scatter(Points, ColormapMixIn):
         """
         return numpy.array(self._value, copy=copy)
 
+    def getAlphaData(self, copy=True):
+        """Returns the alpha (transparency) assigned to the scatter data points.
+
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(self.__alpha, copy=copy)
+
     def getData(self, copy=True, displayed=False):
         """Returns the x, y coordinates and the value of the data points
 
@@ -137,7 +150,7 @@ class Scatter(Points, ColormapMixIn):
                 self.getYErrorData(copy))
 
     # reimplemented from Points to handle `value`
-    def setData(self, x, y, value, xerror=None, yerror=None, copy=True):
+    def setData(self, x, y, value, xerror=None, yerror=None, alpha=None, copy=True):
         """Set the data of the scatter.
 
         :param numpy.ndarray x: The data corresponding to the x coordinates.
@@ -152,6 +165,8 @@ class Scatter(Points, ColormapMixIn):
                       row 1 for negative errors.
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param alpha: Values with the transparency (between 0 and 1)
+        :type alpha: A float, or a numpy.ndarray of float32 
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
@@ -161,6 +176,17 @@ class Scatter(Points, ColormapMixIn):
 
         self._value = value
 
+        if alpha is not None:
+            # Make sure alpha is an array of float in [0, 1]
+            alpha = numpy.array(alpha, copy=copy)
+            assert alpha.ndim == 1
+            assert len(x) == len(alpha)
+            if alpha.dtype.kind != 'f':
+                alpha = alpha.astype(numpy.float32)
+            if numpy.any(numpy.logical_or(alpha < 0., alpha > 1.)):
+                alpha = numpy.clip(alpha, 0., 1.)
+        self.__alpha = alpha
+        
         # set x, y, xerror, yerror
 
         # call self._updated + plot._invalidateDataRange()

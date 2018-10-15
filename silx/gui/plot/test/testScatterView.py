@@ -103,6 +103,25 @@ class TestScatterView(PlotWidgetTestCase):
         self.assertIsNone(data[3])  # xerror
         self.assertIsNone(data[4])  # yerror
 
+    def testAlpha(self):
+        """Test alpha transparency in setData"""
+        _pts = 100
+        _levels = 100
+        _fwhm = 50
+        x = numpy.random.rand(_pts)*_levels
+        y = numpy.random.rand(_pts)*_levels
+        value = numpy.random.rand(_pts)*_levels
+        x0 = x[int(_pts/2)]
+        y0 = x[int(_pts/2)]
+        #2D Gaussian kernel
+        alpha = numpy.exp(-4*numpy.log(2) * ((x-x0)**2 + (y-y0)**2) / _fwhm**2)
+
+        self.plot.setData(x, y, value, alpha=alpha)
+        self.qapp.processEvents()
+
+        alphaData = self.plot.getScatterItem().getAlphaData()
+        self.assertTrue(numpy.all(numpy.equal(alpha, alphaData)))
+
 
 def suite():
     test_suite = unittest.TestSuite()
