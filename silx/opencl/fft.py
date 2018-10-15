@@ -217,7 +217,7 @@ class FFT(OpenclProcessing):
             res = np.empty(self.d_output.shape, self.d_output.dtype)
             evt = cl.enqueue_copy(self.queue, res, self.d_output.data)
             if self.profile:
-                self.events.append(EventDescription("copy D->F", evt))
+                self.events.append(EventDescription("copy D->H", evt))
         else:
             res = self.d_output
         self.recover_array_references()

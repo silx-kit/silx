@@ -32,6 +32,7 @@ __license__ = "MIT"
 __copyright__ = "2013-2018 European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "15/10/2018"
 
+import os
 import scipy.misc
 import logging
 import numpy
@@ -84,11 +85,12 @@ class TestFFT(unittest.TestCase):
         """
         tests the fft  kernel
         """
-        f = fft.FFT(self.shape)
+        f = fft.FFT(self.shape, profile=True)
         res_ocl = f.fft(self.data)
         res_np = numpy.fft.rfft2(self.data)
         err = abs(res_ocl - res_np).max()
         self.assertLess(err, 1e-3 * self.data.max(), "Results are roughly the same")
+        logger.debug(os.linesep.join(f.log_profile(verbose=False)))
 
 
 def suite():

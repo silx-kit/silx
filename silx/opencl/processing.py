@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "27/02/2018"
+__date__ = "15/10/2018"
 __status__ = "stable"
 
 
@@ -289,8 +289,11 @@ class OpenclProcessing(object):
                 else:
                     self.queue = pyopencl.CommandQueue(self.ctx)
 
-    def log_profile(self):
+    def log_profile(self, verbose=True):
         """If we are in profiling mode, prints out all timing for every single OpenCL call
+        
+        :param verbose: use the default logger by default
+        :return: list of strings: events with their timing to be assambled.
         """
         t = 0.0
         out = ["", "Profiling info for OpenCL %s" % self.__class__.__name__]
@@ -303,7 +306,8 @@ class OpenclProcessing(object):
 
         out.append("_" * 80)
         out.append("%50s:\t%.3fms" % ("Total execution time", t))
-        logger.info(os.linesep.join(out))
+        if verbose:
+            logger.info(os.linesep.join(out))
         return out
 
     def reset_log(self):
