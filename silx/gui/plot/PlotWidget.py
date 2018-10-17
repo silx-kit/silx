@@ -1600,7 +1600,7 @@ class PlotWidget(qt.QMainWindow):
         return self._activeCurveStyle
 
     def setActiveCurveStyle(self,
-                            color='#000000',
+                            color=None,
                             linewidth=None,
                             linestyle=None,
                             symbol=None,
