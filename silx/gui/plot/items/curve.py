@@ -141,7 +141,7 @@ class CurveStyle(object):
 
     def __eq__(self, other):
         if isinstance(other, CurveStyle):
-            return (self.getColor() == other.getColor() and
+            return (numpy.array_equal(self.getColor(), other.getColor()) and
                     self.getLineStyle() == other.getLineStyle() and
                     self.getLineWidth() == other.getLineWidth() and
                     self.getSymbol() == other.getSymbol() and
