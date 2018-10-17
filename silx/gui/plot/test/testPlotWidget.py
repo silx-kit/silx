@@ -43,6 +43,7 @@ from silx.test.utils import test_options
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
+from silx.gui.plot.items.curve import CurveStyle
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -714,7 +715,55 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
                            legend="curve 2",
                            color="red")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), legend)
-        
+
+    def testActiveCurveStyle(self):
+        """Test change of active curve style"""
+        self.plot.setActiveCurveHandling(True)
+        self.plot.setActiveCurveStyle(color='black')
+        style = self.plot.getActiveCurveStyle()
+        self.assertEqual(style.getColor(), (0., 0., 0., 1.))
+        self.assertIsNone(style.getLineStyle())
+        self.assertIsNone(style.getLineWidth())
+        self.assertIsNone(style.getSymbol())
+        self.assertIsNone(style.getSymbolSize())
+
+        self.plot.addCurve(x=self.xData, y=self.yData, legend="curve1")
+        curve = self.plot.getCurve("curve1")
+        curve.setColor('blue')
+        curve.setLineStyle('-')
+        curve.setLineWidth(1)
+        curve.setSymbol('o')
+        curve.setSymbolSize(5)
+
+        # Check default current style
+        defaultStyle = curve.getCurrentStyle()
+        self.assertEqual(defaultStyle, CurveStyle(color='blue',
+                                                  linestyle='-',
+                                                  linewidth=1,
+                                                  symbol='o',
+                                                  symbolsize=5))
+
+        # Activate curve with highlight color=black
+        self.plot.setActiveCurve("curve1")
+        style = curve.getCurrentStyle()
+        self.assertEqual(style.getColor(), (0., 0., 0., 1.))
+        self.assertEqual(style.getLineStyle(), '-')
+        self.assertEqual(style.getLineWidth(), 1)
+        self.assertEqual(style.getSymbol(), 'o')
+        self.assertEqual(style.getSymbolSize(), 5)
+
+        # Change highlight to linewidth=2
+        self.plot.setActiveCurveStyle(linewidth=2)
+        style = curve.getCurrentStyle()
+        self.assertEqual(style.getColor(), (0., 0., 1., 1.))
+        self.assertEqual(style.getLineStyle(), '-')
+        self.assertEqual(style.getLineWidth(), 2)
+        self.assertEqual(style.getSymbol(), 'o')
+        self.assertEqual(style.getSymbolSize(), 5)
+
+        self.plot.setActiveCurve(None)
+        self.assertEqual(curve.getCurrentStyle(), defaultStyle)
+
     def testActiveImageAndLabels(self):
         # Active image handling always on, no API for toggling it
         self.plot.getXAxis().setLabel('XLabel')
