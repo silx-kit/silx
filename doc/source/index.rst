@@ -44,6 +44,7 @@ The current version (v\ |version|) caters for:
    changelog.rst
    license.rst
    virtualenv.rst
+   troubleshooting.rst
 
 :doc:`overview`
     Releases, repository, issue tracker, mailing list, ...
@@ -71,6 +72,9 @@ The current version (v\ |version|) caters for:
 
 :doc:`license`
     License and copyright information
+
+:doc:`troubleshooting`
+    When things do not work as expected
 
 Indices
 =======
