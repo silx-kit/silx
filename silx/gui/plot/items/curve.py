@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -69,6 +69,15 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
 
         self._highlightColor = self._DEFAULT_HIGHLIGHT_COLOR
         self._highlighted = False
+
+        self.sigItemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        if event == ItemChangedType.YAXIS:
+            # TODO hackish data range implementation
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
