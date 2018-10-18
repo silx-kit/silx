@@ -357,6 +357,6 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
         This color is either the color of the curve or the highlighted color,
         depending on the highlight state.
 
-        :rtype: 4-tuple of int in [0, 1]
+        :rtype: 4-tuple of float in [0, 1]
         """
         return self.getCurrentStyle().getColor()
