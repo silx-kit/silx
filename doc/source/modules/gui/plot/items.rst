@@ -29,8 +29,11 @@ Curve
              isFill, setFill,
              getXLabel, getYLabel,
              getLineWidth, setLineWidth, getLineStyle, setLineStyle,
-             isHighlighted, setHighlighted, getHighlightedColor, setHighlightedColor,
-             getCurrentColor
+             isHighlighted, setHighlighted, getHighlightedStyle, setHighlightedStyle,
+             getCurrentStyle
+
+.. autoclass:: CurveStyle
+   :members: getColor, getLineStyle, getLineWidth, getSymbol, getSymbolSize
 
 Images
 ------

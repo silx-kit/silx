@@ -134,8 +134,8 @@ Active Item
 
 .. automethod:: PlotWidget.setActiveCurveSelectionMode
 .. automethod:: PlotWidget.getActiveCurveSelectionMode
-.. automethod:: PlotWidget.getActiveCurveColor
-.. automethod:: PlotWidget.setActiveCurveColor
+.. automethod:: PlotWidget.getActiveCurveStyle
+.. automethod:: PlotWidget.setActiveCurveStyle
 .. automethod:: PlotWidget.getActiveCurve
 .. automethod:: PlotWidget.setActiveCurve
 .. automethod:: PlotWidget.getActiveImage

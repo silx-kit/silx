@@ -98,7 +98,10 @@ class ItemChangedType(enum.Enum):
     """Item's highlight state changed flag."""
 
     HIGHLIGHTED_COLOR = 'highlightedColorChanged'
-    """Item's highlighted color changed flag."""
+    """Deprecated, use HIGHLIGHTED_STYLE instead."""
+
+    HIGHLIGHTED_STYLE = 'highlightedStyleChanged'
+    """Item's highlighted style changed flag."""
 
     SCALE = 'scaleChanged'
     """Item's scale changed flag."""
@@ -548,12 +551,26 @@ class LineMixIn(ItemMixInBase):
     _DEFAULT_LINESTYLE = '-'
     """Default line style"""
 
+    _SUPPORTED_LINESTYLE = '', ' ', '-', '--', '-.', ':', None
+    """Supported line styles"""
+
     def __init__(self):
         self._linewidth = self._DEFAULT_LINEWIDTH
         self._linestyle = self._DEFAULT_LINESTYLE
 
+    @classmethod
+    def getSupportedLineStyles(cls):
+        """Returns list of supported line styles.
+
+        :rtype: List[str,None]
+        """
+        return cls._SUPPORTED_LINESTYLE
+
     def getLineWidth(self):
-        """Return the curve line width in pixels (int)"""
+        """Return the curve line width in pixels
+
+        :rtype: float
+        """
         return self._linewidth
 
     def setLineWidth(self, width):
@@ -591,7 +608,7 @@ class LineMixIn(ItemMixInBase):
         :param str style: Line style
         """
         style = str(style)
-        assert style in ('', ' ', '-', '--', '-.', ':', None)
+        assert style in self.getSupportedLineStyles()
         if style is None:
             style = self._DEFAULT_LINESTYLE
         if style != self._linestyle:

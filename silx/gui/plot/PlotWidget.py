@@ -58,7 +58,8 @@ from .LimitsHistory import LimitsHistory
 from . import _utils
 
 from . import items
-from .items.axis import TickMode
+from .items.curve import CurveStyle
+from .items.axis import TickMode  # noqa
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
@@ -253,7 +254,7 @@ class PlotWidget(qt.QMainWindow):
         self._styleIndex = 0
 
         self._activeCurveSelectionMode = "atmostone"
-        self._activeCurveColor = "#000000"
+        self._activeCurveStyle = CurveStyle(color='#000000')
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
 
@@ -1591,13 +1592,45 @@ class PlotWidget(qt.QMainWindow):
         """
         self.setActiveCurveSelectionMode('atmostone' if flag else 'none')
 
+    def getActiveCurveStyle(self):
+        """Returns the current style applied to active curve
+
+        :rtype: CurveStyle
+        """
+        return self._activeCurveStyle
+
+    def setActiveCurveStyle(self,
+                            color=None,
+                            linewidth=None,
+                            linestyle=None,
+                            symbol=None,
+                            symbolsize=None):
+        """Set the style of active curve
+
+        :param color: Color
+        :param Union[str,None] linestyle: Style of the line
+        :param Union[float,None] linewidth: Width of the line
+        :param Union[str,None] symbol: Symbol of the markers
+        :param Union[float,None] symbolsize: Size of the symbols
+        """
+        self._activeCurveStyle = CurveStyle(color=color,
+                                            linewidth=linewidth,
+                                            linestyle=linestyle,
+                                            symbol=symbol,
+                                            symbolsize=symbolsize)
+        curve = self.getActiveCurve()
+        if curve is not None:
+            curve.setHighlightedStyle(self.getActiveCurveStyle())
+
+    @deprecated(replacement="getActiveCurveStyle", since_version="0.9")
     def getActiveCurveColor(self):
         """Get the color used to display the currently active curve.
 
         See :meth:`setActiveCurveColor`.
         """
-        return self._activeCurveColor
+        return self._activeCurveStyle.getColor()
 
+    @deprecated(replacement="setActiveCurveStyle", since_version="0.9")
     def setActiveCurveColor(self, color="#000000"):
         """Set the color to use to display the currently active curve.
 
@@ -1608,7 +1641,7 @@ class PlotWidget(qt.QMainWindow):
             color = "black"
         if color in self.colorDict:
             color = self.colorDict[color]
-        self._activeCurveColor = color
+        self.setActiveCurveStyle(color=color)
 
     def getActiveCurve(self, just_legend=False):
         """Return the currently active curve.
@@ -1759,7 +1792,7 @@ class PlotWidget(qt.QMainWindow):
 
                 # Curve specific: handle highlight
                 if kind == 'curve':
-                    item.setHighlightedColor(self.getActiveCurveColor())
+                    item.setHighlightedStyle(self.getActiveCurveStyle())
                     item.setHighlighted(True)
 
                 if isinstance(item, items.LabelsMixIn):
@@ -2388,7 +2421,7 @@ class PlotWidget(qt.QMainWindow):
             self._styleIndex = (self._styleIndex + 1) % len(self._styleList)
 
         # If color is the one of active curve, take the next one
-        if color == self.getActiveCurveColor():
+        if colors.rgba(color) == self.getActiveCurveStyle().getColor():
             color, style = self._getColorAndStyle()
 
         if not self._plotLines:
