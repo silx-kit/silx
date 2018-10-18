@@ -35,7 +35,7 @@ Installation
 
 To install silx (and all its dependencies), run:
 
- .. code-block:: bash
+.. code-block:: bash
 
     pip install silx[full]
 
