@@ -65,7 +65,8 @@ Build-Depends: cython,
                python3-scipy-dbg,
                python3-sphinx,
                python3-sphinxcontrib.programoutput,
-               help2man
+               help2man,
+               devscripts
 Standards-Version: 3.9.6
 Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/silx.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/silx.git
