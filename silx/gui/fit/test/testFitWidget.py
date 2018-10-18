@@ -26,7 +26,7 @@
 
 import unittest
 
-from ...test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 
 from ... import qt
 from .. import FitWidget
