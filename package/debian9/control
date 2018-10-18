@@ -45,7 +45,8 @@ Build-Depends: cython,
                python3-sphinxcontrib.programoutput,
                openstack-pkg-tools,
                help2man,
-               locales
+               locales,
+               devscripts
 Standards-Version: 3.9.8
 Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/silx.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/silx.git
