@@ -1,6 +1,58 @@
 Change Log
 ==========
 
+0.9.0: ????/??/??
+-----------------
+
+ * Graphical user interface:
+
+   * Plot:
+
+     * Adds options for mote curve style (see `silx.gui.plot.items.curve.CurveStyle`)
+     * Deprecates 'get|setActiveCurveColor'
+     * Adds alpha channel to `ScatterView`
+     * Adds get|setActiveCurveSelectionMode functions
+     * Adds `getItems` function
+     * Adds line style and width to line markers
+     * Adds signals `sigItemAdded` and `sigItemAboutToBeRemoved`
+
+   * Plot3D:
+
+     * Adds picking of Mesh, Box, Cylinder and Hexagon items
+     * Adds `PositionInfoWidget` widget
+
+   * Adds `CompareImages` widget
+   * Adds `RangeSlider` widget
+   * Adds `CurveLegendsWidget` widget
+   * Adds `FlowLayout` layout
+   * MaskWidget: support hdf5 for saving and loading mask
+   * Exposes `silx.gui.utils.image`
+
+ * Math:
+
+   * median filter (cpp):
+
+     * Adds a 'constant' mode
+     * Adds support of NaN
+
+ * `silx view`
+
+    * Fixes file synchronization
+    * Add button `refresh`
+    * Browsing tree keep node status when activate refresh
+    * Clean-up NXData virtual when refreshing
+
+ * Miscellaneous:
+
+   * Move silx.gui.test.utils to silx.gui.utils.testutils
+   * Add a silx.gui.qt.inspect module
+   * Fixes texture cache size in OpenGL backend
+   * Add h5py and fabio as strong dependencies
+   * Add `platform_machine` restriction to "i386, x86_64" for pyopencl
+   * Add fat binary generation
+   * Ship example within library
+   * Deprecates PyQt4 and PySide
+
 0.8.0: 2018/07/04
 -----------------
 
