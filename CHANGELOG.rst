@@ -6,52 +6,60 @@ Change Log
 
  * Graphical user interface:
 
+   * `silx.gui.widgets`:
+
+     * Adds `RangeSlider` widget, a slider with 2 thumbs
+     * Adds `CurveLegendsWidget` widget to display PlotWidget curve legends
+       (as an alternative to `LegendSelector` widget)
+     * Adds `FlowLayout` QWidget layout
+
    * Plot:
 
-     * Adds options for mote curve style (see `silx.gui.plot.items.curve.CurveStyle`)
-     * Deprecates 'get|setActiveCurveColor'
-     * Adds alpha channel to `ScatterView`
-     * Adds get|setActiveCurveSelectionMode functions
-     * Adds `getItems` function
-     * Adds line style and width to line markers
-     * Adds signals `sigItemAdded` and `sigItemAboutToBeRemoved`
+     * Adds `CompareImages` widget providing tools to compare 2 images
+     * `ScatterView`: Adds alpha channel support
+     * `MaskToolsWidget`: Adds load/save masks from/to HDF5 files
+
+     * `PlotWidget`:
+
+       * Adds `getItems` method, `sigItemAdded` and `sigItemAboutToBeRemoved` signals
+       * Adds more options for active curve highlighting (see `get|setActiveCurveStyle` method)
+       * Deprecates `get|setActiveCurveColor` methods
+       * Adds `get|setActiveCurveSelectionMode` methods to change the behavior of active curve selection
+       * Adds configurable line style and width to line markers
+       * Fixes texture cache size in OpenGL backend
 
    * Plot3D:
 
-     * Adds picking of Mesh, Box, Cylinder and Hexagon items
-     * Adds `PositionInfoWidget` widget
+     * Adds `SceneWidget.pickItems` method to retrieve the item and data at a given mouse position
+     * Adds `PositionInfoWidget` widget to display data value at a given mouse position
 
-   * Adds `CompareImages` widget
-   * Adds `RangeSlider` widget
-   * Adds `CurveLegendsWidget` widget
-   * Adds `FlowLayout` layout
-   * MaskWidget: support hdf5 for saving and loading mask
-   * Exposes `silx.gui.utils.image`
+   * `silx.gui.utils`:
+
+     * Adds `image` module for QImage/numpy array conversion functions
+     * Adds `testutils` helper module for writing Qt tests
+       (previously available internally as `silx.gui.test.utils`)
+
+   * Adds `silx.gui.qt.inspect` module to inspect Qt objects
 
  * Math:
 
-   * median filter (cpp):
+   * Updates median filter with support for Not-a-Number and a 'constant' padding mode
 
-     * Adds a 'constant' mode
-     * Adds support of NaN
-
- * `silx view`
+ * `silx view`:
 
     * Fixes file synchronization
-    * Add button `refresh`
-    * Browsing tree keep node status when activate refresh
-    * Clean-up NXData virtual when refreshing
+    * Adds a refresh button to synchronize file content
+
+ * Dependencies:
+
+   * Deprecates support of PySide Qt4 binding
+     (We intend to drop official support of PySide in silx 0.10.0)
+   * Deprecates support of PyQt4
+   * Adds `h5py` and `fabio` as strong dependencies
 
  * Miscellaneous:
 
-   * Move silx.gui.test.utils to silx.gui.utils.testutils
-   * Add a silx.gui.qt.inspect module
-   * Fixes texture cache size in OpenGL backend
-   * Add h5py and fabio as strong dependencies
-   * Add `platform_machine` restriction to "i386, x86_64" for pyopencl
-   * Add fat binary generation
-   * Ship example within library
-   * Deprecates PyQt4 and PySide
+   * Adds `silx.examples` package to ship the example with the library
 
 0.8.0: 2018/07/04
 -----------------
