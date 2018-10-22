@@ -345,7 +345,8 @@ class ImageView(PlotWindow):
         layout.addWidget(self.getWidgetHandle(), 0, 0)
         layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
         layout.addWidget(self._histoHPlot.getWidgetHandle(), 1, 0)
-        layout.addWidget(self._radarView, 1, 1)
+        layout.addWidget(self._radarView, 1, 1, 1, 2)
+        layout.addWidget(self.getColorBarWidget(), 0, 2)
 
         layout.setColumnMinimumWidth(0, self.IMAGE_MIN_SIZE)
         layout.setColumnStretch(0, 1)
