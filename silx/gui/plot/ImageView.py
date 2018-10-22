@@ -315,7 +315,7 @@ class ImageView(PlotWindow):
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
-        self._histoHPlot = PlotWidget(backend=backend)
+        self._histoHPlot = PlotWidget(backend=backend, parent=self)
         self._histoHPlot.getWidgetHandle().setMinimumHeight(
             self.HISTOGRAMS_HEIGHT)
         self._histoHPlot.getWidgetHandle().setMaximumHeight(
@@ -330,7 +330,7 @@ class ImageView(PlotWindow):
         self.getYAxis().sigInvertedChanged.connect(self._updateYAxisInverted)
         self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
 
-        self._histoVPlot = PlotWidget(backend=backend)
+        self._histoVPlot = PlotWidget(backend=backend, parent=self)
         self._histoVPlot.getWidgetHandle().setMinimumWidth(
             self.HISTOGRAMS_HEIGHT)
         self._histoVPlot.getWidgetHandle().setMaximumWidth(
@@ -338,7 +338,7 @@ class ImageView(PlotWindow):
         self._histoVPlot.setInteractiveMode('zoom')
         self._histoVPlot.sigPlotSignal.connect(self._histoVPlotCB)
 
-        self._radarView = RadarView()
+        self._radarView = RadarView(parent=self)
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
 
         layout = qt.QGridLayout()
