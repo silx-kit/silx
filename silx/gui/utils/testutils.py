@@ -40,6 +40,8 @@ import os
 _logger = logging.getLogger(__name__)
 
 from silx.gui import qt
+from silx.gui.qt import inspect as _inspect
+
 
 if qt.BINDING == 'PySide':
     from PySide.QtTest import QTest
@@ -139,11 +141,6 @@ class TestCaseQt(unittest.TestCase):
             # Makes sure a QApplication exists and do it once for all
             _qapp = qt.QApplication.instance() or qt.QApplication([])
 
-            # Makes sure QDesktopWidget is init
-            # Otherwise it happens randomly during the tests
-            cls._desktopWidget = _qapp.desktop()
-            _qapp.processEvents()
-
     @classmethod
     def tearDownClass(cls):
         sys.excepthook = cls._oldExceptionHook
@@ -173,7 +170,8 @@ class TestCaseQt(unittest.TestCase):
         gc.collect()
 
         widgets = [widget for widget in self.qapp.allWidgets()
-                   if widget not in self.__previousWidgets]
+                   if (widget not in self.__previousWidgets and
+                       _inspect.createdByPython(widget))]
         del self.__previousWidgets
 
         if qt.BINDING in ('PySide', 'PySide2'):
