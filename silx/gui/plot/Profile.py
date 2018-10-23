@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/07/2018"
+__date__ = "23/10/2018"
 
 
 import weakref
@@ -361,6 +361,9 @@ class ProfileToolBar(qt.QToolBar):
     :param plot: :class:`PlotWindow` instance on which to operate.
     :param profileWindow: Plot widget instance where to
                           display the profile curve or None to create one.
+    :param bool profileOptionButton: True to display a button to toggle
+                                     between different options for the
+                                     profile. (Default: False)
     :param str title: See :class:`QToolBar`.
     :param parent: See :class:`QToolBar`.
     """
@@ -371,7 +374,7 @@ class ProfileToolBar(qt.QToolBar):
     DEFAULT_PROF_METHOD = 'mean'
 
     def __init__(self, parent=None, plot=None, profileWindow=None,
-                 title='Profile Selection'):
+                 title='Profile Selection', profileOptionButton=False):
         super(ProfileToolBar, self).__init__(title, parent)
         assert plot is not None
         self._plotRef = weakref.ref(plot)
@@ -457,10 +460,12 @@ class ProfileToolBar(qt.QToolBar):
             self._lineWidthSpinBoxValueChangedSlot)
         self.addWidget(self.lineWidthSpinBox)
 
-        self.methodsButton = ProfileOptionToolButton(parent=self, plot=self)
-        self.addWidget(self.methodsButton)
-        # TODO: add connection with the signal
-        self.methodsButton.sigMethodChanged.connect(self.setProfileMethod)
+        # Add the profile option button.
+        if profileOptionButton:
+            self.methodsButton = ProfileOptionToolButton(parent=self, plot=self)
+            self.addWidget(self.methodsButton)
+            # TODO: add connection with the signal
+            self.methodsButton.sigMethodChanged.connect(self.setProfileMethod)
 
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)

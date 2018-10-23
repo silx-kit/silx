@@ -36,7 +36,7 @@ The following QToolButton are available:
 
 __authors__ = ["V. Valls", "H. Payno"]
 __license__ = "MIT"
-__date__ = "27/06/2017"
+__date__ = "23/10/2018"
 
 
 import functools
@@ -243,19 +243,19 @@ class YAxisOriginToolButton(PlotToolButton):
 class ProfileOptionToolButton(PlotToolButton):
     """Button to define option on the profile"""
     sigMethodChanged = qt.Signal(str)
-    
+
     def __init__(self, parent=None, plot=None):
         PlotToolButton.__init__(self, parent=parent, plot=plot)
 
         self.STATE = {}
         # is down
         self.STATE['sum', "icon"] = icons.getQIcon('math-sigma')
-        self.STATE['sum', "state"] = "compute profile sum"
-        self.STATE['sum', "action"] = "compute profile sum"
+        self.STATE['sum', "state"] = "Compute profile sum"
+        self.STATE['sum', "action"] = "Compute profile sum"
         # keep ration
         self.STATE['mean', "icon"] = icons.getQIcon('math-mean')
-        self.STATE['mean', "state"] = "compute profile mean"
-        self.STATE['mean', "action"] = "compute profile mean"
+        self.STATE['mean', "state"] = "Compute profile mean"
+        self.STATE['mean', "action"] = "Compute profile mean"
 
         sumAction = self._createAction('sum')
         sumAction.triggered.connect(self.setSum)
