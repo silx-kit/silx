@@ -2120,36 +2120,6 @@ class PlotWidget(qt.QMainWindow):
     def _isAxesDisplayed(self):
         return self._backend.isAxesDisplayed()
 
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetYAxisInverted(self):
-        """Signal emitted when Y axis orientation has changed"""
-        return self._yAxis.sigInvertedChanged
-
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetXAxisLogarithmic(self):
-        """Signal emitted when X axis scale has changed"""
-        return self._xAxis._sigLogarithmicChanged
-
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetYAxisLogarithmic(self):
-        """Signal emitted when Y axis scale has changed"""
-        return self._yAxis._sigLogarithmicChanged
-
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetXAxisAutoScale(self):
-        """Signal emitted when X axis autoscale has changed"""
-        return self._xAxis.sigAutoScaleChanged
-
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetYAxisAutoScale(self):
-        """Signal emitted when Y axis autoscale has changed"""
-        return self._yAxis.sigAutoScaleChanged
-
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
 
