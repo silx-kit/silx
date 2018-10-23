@@ -44,7 +44,6 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-from silx.utils import deprecation
 from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated
 # Import matplotlib backend here to init matplotlib our way
@@ -99,7 +98,7 @@ class PlotWidget(qt.QMainWindow):
 
     # TODO: Can be removed for silx 0.10
     @classproperty
-    @deprecation.deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
+    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
     def DEFAULT_BACKEND(self):
         """Class attribute setting the default backend for all instances."""
         return silx.config.DEFAULT_PLOT_BACKEND
@@ -299,7 +298,7 @@ class PlotWidget(qt.QMainWindow):
 
     # TODO: Can be removed for silx 0.10
     @staticmethod
-    @deprecation.deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
+    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
     def setDefaultBackend(backend):
         """Set system wide default plot backend.
 
