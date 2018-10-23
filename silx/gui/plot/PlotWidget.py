@@ -193,20 +193,11 @@ class PlotWidget(qt.QMainWindow):
     It provides the visible state.
     """
 
-    def __init__(self, parent=None, backend=None,
-                 legends=False, callback=None, **kw):
+    def __init__(self, parent=None, backend=None):
         self._autoreplot = False
         self._dirty = False
         self._cursorInPlot = False
         self.__muteActiveItemChanged = False
-
-        if kw:
-            _logger.warning(
-                'deprecated: __init__ extra arguments: %s', str(kw))
-        if legends:
-            _logger.warning('deprecated: __init__ legend argument')
-        if callback:
-            _logger.warning('deprecated: __init__ callback argument')
 
         self._panWithArrowKeys = True
         self._viewConstrains = None
@@ -528,13 +519,13 @@ class PlotWidget(qt.QMainWindow):
     # This value is used when curve is updated either internally or by user.
 
     def addCurve(self, x, y, legend=None, info=None,
-                 replace=False, replot=None,
+                 replace=False,
                  color=None, symbol=None,
                  linewidth=None, linestyle=None,
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
                  fill=None, resetzoom=True,
-                 histogram=None, copy=True, **kw):
+                 histogram=None, copy=True):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -617,15 +608,6 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :returns: The key string identify this curve
         """
-        # Deprecation warnings
-        if replot is not None:
-            _logger.warning(
-                'addCurve deprecated replot argument, use resetzoom instead')
-            resetzoom = replot and resetzoom
-
-        if kw:
-            _logger.warning('addCurve: deprecated extra arguments')
-
         # This is an histogram, use addHistogram
         if histogram is not None:
             histoLegend = self.addHistogram(histogram=y,
@@ -825,13 +807,13 @@ class PlotWidget(qt.QMainWindow):
         return legend
 
     def addImage(self, data, legend=None, info=None,
-                 replace=False, replot=None,
-                 xScale=None, yScale=None, z=None,
+                 replace=False,
+                 z=None,
                  selectable=None, draggable=None,
                  colormap=None, pixmap=None,
                  xlabel=None, ylabel=None,
                  origin=None, scale=None,
-                 resetzoom=True, copy=True, **kw):
+                 resetzoom=True, copy=True):
         """Add a 2D dataset or an image to the plot.
 
         It displays either an array of data using a colormap or a RGB(A) image.
@@ -883,28 +865,6 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :returns: The key string identify this image
         """
-        # Deprecation warnings
-        if xScale is not None or yScale is not None:
-            _logger.warning(
-                'addImage deprecated xScale and yScale arguments,'
-                'use origin, scale arguments instead.')
-            if origin is None and scale is None:
-                origin = xScale[0], yScale[0]
-                scale = xScale[1], yScale[1]
-            else:
-                _logger.warning(
-                    'addCurve: xScale, yScale and origin, scale arguments'
-                    ' are conflicting. xScale and yScale are ignored.'
-                    ' Use only origin, scale arguments.')
-
-        if replot is not None:
-            _logger.warning(
-                'addImage deprecated replot argument, use resetzoom instead')
-            resetzoom = replot and resetzoom
-
-        if kw:
-            _logger.warning('addImage: deprecated extra arguments')
-
         legend = "Unnamed Image 1.1" if legend is None else str(legend)
 
         # Check if image was previously active
@@ -1090,7 +1050,7 @@ class PlotWidget(qt.QMainWindow):
     def addItem(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
-                overlay=False, z=None, **kw):
+                overlay=False, z=None):
         """Add an item (i.e. a shape) to the plot.
 
         Items are uniquely identified by their legend.
@@ -1117,9 +1077,6 @@ class PlotWidget(qt.QMainWindow):
         :returns: The key string identify this item
         """
         # expected to receive the same parameters as the signal
-
-        if kw:
-            _logger.warning('addItem deprecated parameters: %s', str(kw))
 
         legend = "Unnamed Item 1.1" if legend is None else str(legend)
 
@@ -1148,8 +1105,7 @@ class PlotWidget(qt.QMainWindow):
                    color=None,
                    selectable=False,
                    draggable=False,
-                   constraint=None,
-                   **kw):
+                   constraint=None):
         """Add a vertical line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1177,10 +1133,6 @@ class PlotWidget(qt.QMainWindow):
                           and that returns the filtered coordinates.
         :return: The key string identify this marker
         """
-        if kw:
-            _logger.warning(
-                'addXMarker deprecated extra parameters: %s', str(kw))
-
         return self._addMarker(x=x, y=None, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
@@ -1192,8 +1144,7 @@ class PlotWidget(qt.QMainWindow):
                    color=None,
                    selectable=False,
                    draggable=False,
-                   constraint=None,
-                   **kw):
+                   constraint=None):
         """Add a horizontal line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1221,10 +1172,6 @@ class PlotWidget(qt.QMainWindow):
                           and that returns the filtered coordinates.
         :return: The key string identify this marker
         """
-        if kw:
-            _logger.warning(
-                'addYMarker deprecated extra parameters: %s', str(kw))
-
         return self._addMarker(x=None, y=y, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
@@ -1236,8 +1183,7 @@ class PlotWidget(qt.QMainWindow):
                   selectable=False,
                   draggable=False,
                   symbol='+',
-                  constraint=None,
-                  **kw):
+                  constraint=None):
         """Add a point marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1277,10 +1223,6 @@ class PlotWidget(qt.QMainWindow):
                           and that returns the filtered coordinates.
         :return: The key string identify this marker
         """
-        if kw:
-            _logger.warning(
-                'addMarker deprecated extra parameters: %s', str(kw))
-
         if x is None:
             xmin, xmax = self._xAxis.getLimits()
             x = 0.5 * (xmax + xmin)
@@ -1368,7 +1310,7 @@ class PlotWidget(qt.QMainWindow):
         curve = self._getItem('curve', legend)
         return curve is not None and not curve.isVisible()
 
-    def hideCurve(self, legend, flag=True, replot=None):
+    def hideCurve(self, legend, flag=True):
         """Show/Hide the curve associated to legend.
 
         Even when hidden, the curve is kept in the list of curves.
@@ -1376,9 +1318,6 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend associated to the curve to be hidden
         :param bool flag: True (default) to hide the curve, False to show it
         """
-        if replot is not None:
-            _logger.warning('hideCurve deprecated replot parameter')
-
         curve = self._getItem('curve', legend)
         if curve is None:
             _logger.warning('Curve not in plot: %s', legend)
@@ -1660,16 +1599,13 @@ class PlotWidget(qt.QMainWindow):
 
         return self._getActiveItem(kind='curve', just_legend=just_legend)
 
-    def setActiveCurve(self, legend, replot=None):
+    def setActiveCurve(self, legend):
         """Make the curve associated to legend the active curve.
 
         :param legend: The legend associated to the curve
                        or None to have no active curve.
         :type legend: str or None
         """
-        if replot is not None:
-            _logger.warning('setActiveCurve deprecated replot parameter')
-
         if not self.isActiveCurveHandling():
             return
         if legend is None and self.getActiveCurveSelectionMode() == "legacy":
@@ -1723,15 +1659,12 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getActiveItem(kind='image', just_legend=just_legend)
 
-    def setActiveImage(self, legend, replot=None):
+    def setActiveImage(self, legend):
         """Make the image associated to legend the active image.
 
         :param str legend: The legend associated to the image
                            or None to have no active image.
         """
-        if replot is not None:
-            _logger.warning('setActiveImage deprecated replot parameter')
-
         return self._setActiveItem(kind='image', legend=legend)
 
     def _getActiveItem(self, kind, just_legend=False):
@@ -2028,14 +1961,12 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._backend.getGraphXLimits()
 
-    def setGraphXLimits(self, xmin, xmax, replot=None):
+    def setGraphXLimits(self, xmin, xmax):
         """Set the graph X (bottom) limits.
 
         :param float xmin: minimum bottom axis value
         :param float xmax: maximum bottom axis value
         """
-        if replot is not None:
-            _logger.warning('setGraphXLimits deprecated replot parameter')
         self._xAxis.setLimits(xmin, xmax)
 
     def getGraphYLimits(self, axis='left'):
@@ -2049,7 +1980,7 @@ class PlotWidget(qt.QMainWindow):
         yAxis = self._yAxis if axis == 'left' else self._yRightAxis
         return yAxis.getLimits()
 
-    def setGraphYLimits(self, ymin, ymax, axis='left', replot=None):
+    def setGraphYLimits(self, ymin, ymax, axis='left'):
         """Set the graph Y limits.
 
         :param float ymin: minimum bottom axis value
@@ -2057,8 +1988,6 @@ class PlotWidget(qt.QMainWindow):
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
-        if replot is not None:
-            _logger.warning('setGraphYLimits deprecated replot parameter')
         assert axis in ('left', 'right')
         yAxis = self._yAxis if axis == 'left' else self._yRightAxis
         return yAxis.setLimits(ymin, ymax)
@@ -2510,7 +2439,7 @@ class PlotWidget(qt.QMainWindow):
         elif ddict['event'] == 'mouseClicked' and ddict['button'] == 'left':
             self.setActiveCurve(None)
 
-    def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
+    def saveGraph(self, filename, fileFormat=None, dpi=None):
         """Save a snapshot of the plot.
 
         Supported file formats depends on the backend in use.
@@ -2523,9 +2452,6 @@ class PlotWidget(qt.QMainWindow):
         :param str fileFormat:  String specifying the format
         :return: False if cannot save the plot, True otherwise
         """
-        if kw:
-            _logger.warning('Extra parameters ignored: %s', str(kw))
-
         if fileFormat is None:
             if not hasattr(filename, 'lower'):
                 _logger.warning(
@@ -3080,149 +3006,3 @@ class PlotWidget(qt.QMainWindow):
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.
             super(PlotWidget, self).keyPressEvent(event)
-
-    # Deprecated #
-
-    def isDrawModeEnabled(self):
-        """Deprecated, use :meth:`getInteractiveMode` instead.
-
-        Return True if the current interactive state is drawing."""
-        _logger.warning(
-            'isDrawModeEnabled deprecated, use getInteractiveMode instead')
-        return self.getInteractiveMode()['mode'] == 'draw'
-
-    def setDrawModeEnabled(self, flag=True, shape='polygon', label=None,
-                           color=None, **kwargs):
-        """Deprecated, use :meth:`setInteractiveMode` instead.
-
-        Set the drawing mode if flag is True and its parameters.
-
-        If flag is False, only item selection is enabled.
-
-        Warning: Zoom and drawing are not compatible and cannot be enabled
-        simultaneously.
-
-        :param bool flag: True to enable drawing and disable zoom and select.
-        :param str shape: Type of item to be drawn in:
-                          hline, vline, rectangle, polygon (default)
-        :param str label: Associated text for identifying draw signals
-        :param color: The color to use to draw the selection area
-        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in colors.py
-        """
-        _logger.warning(
-            'setDrawModeEnabled deprecated, use setInteractiveMode instead')
-
-        if kwargs:
-            _logger.warning('setDrawModeEnabled ignores additional parameters')
-
-        if color is None:
-            color = 'black'
-
-        if flag:
-            self.setInteractiveMode('draw', shape=shape,
-                                    label=label, color=color)
-        elif self.getInteractiveMode()['mode'] == 'draw':
-            self.setInteractiveMode('select')
-
-    def getDrawMode(self):
-        """Deprecated, use :meth:`getInteractiveMode` instead.
-
-        Return the draw mode parameters as a dict of None.
-
-        It returns None if the interactive mode is not a drawing mode,
-        otherwise, it returns a dict containing the drawing mode parameters
-        as provided to :meth:`setDrawModeEnabled`.
-        """
-        _logger.warning(
-            'getDrawMode deprecated, use getInteractiveMode instead')
-        mode = self.getInteractiveMode()
-        return mode if mode['mode'] == 'draw' else None
-
-    def isZoomModeEnabled(self):
-        """Deprecated, use :meth:`getInteractiveMode` instead.
-
-        Return True if the current interactive state is zooming."""
-        _logger.warning(
-            'isZoomModeEnabled deprecated, use getInteractiveMode instead')
-        return self.getInteractiveMode()['mode'] == 'zoom'
-
-    def setZoomModeEnabled(self, flag=True, color=None):
-        """Deprecated, use :meth:`setInteractiveMode` instead.
-
-        Set the zoom mode if flag is True, else item selection is enabled.
-
-        Warning: Zoom and drawing are not compatible and cannot be enabled
-        simultaneously
-
-        :param bool flag: If True, enable zoom and select mode.
-        :param color: The color to use to draw the selection area.
-                      (Default: 'black')
-        :param color: The color to use to draw the selection area
-        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in colors.py
-        """
-        _logger.warning(
-            'setZoomModeEnabled deprecated, use setInteractiveMode instead')
-        if color is None:
-            color = 'black'
-
-        if flag:
-            self.setInteractiveMode('zoom', color=color)
-        elif self.getInteractiveMode()['mode'] == 'zoom':
-            self.setInteractiveMode('select')
-
-    def insertMarker(self, *args, **kwargs):
-        """Deprecated, use :meth:`addMarker` instead."""
-        _logger.warning(
-            'insertMarker deprecated, use addMarker instead.')
-        return self.addMarker(*args, **kwargs)
-
-    def insertXMarker(self, *args, **kwargs):
-        """Deprecated, use :meth:`addXMarker` instead."""
-        _logger.warning(
-            'insertXMarker deprecated, use addXMarker instead.')
-        return self.addXMarker(*args, **kwargs)
-
-    def insertYMarker(self, *args, **kwargs):
-        """Deprecated, use :meth:`addYMarker` instead."""
-        _logger.warning(
-            'insertYMarker deprecated, use addYMarker instead.')
-        return self.addYMarker(*args, **kwargs)
-
-    def isActiveCurveHandlingEnabled(self):
-        """Deprecated, use :meth:`isActiveCurveHandling` instead."""
-        _logger.warning(
-            'isActiveCurveHandlingEnabled deprecated, '
-            'use isActiveCurveHandling instead.')
-        return self.isActiveCurveHandling()
-
-    def enableActiveCurveHandling(self, *args, **kwargs):
-        """Deprecated, use :meth:`setActiveCurveHandling` instead."""
-        _logger.warning(
-            'enableActiveCurveHandling deprecated, '
-            'use setActiveCurveHandling instead.')
-        return self.setActiveCurveHandling(*args, **kwargs)
-
-    def invertYAxis(self, *args, **kwargs):
-        """Deprecated, use :meth:`Axis.setInverted` instead."""
-        _logger.warning('invertYAxis deprecated, '
-                        'use getYAxis().setInverted instead.')
-        return self.getYAxis().setInverted(*args, **kwargs)
-
-    def showGrid(self, flag=True):
-        """Deprecated, use :meth:`setGraphGrid` instead."""
-        _logger.warning("showGrid deprecated, use setGraphGrid instead")
-        if flag in (0, False):
-            flag = None
-        elif flag in (1, True):
-            flag = 'major'
-        else:
-            flag = 'both'
-        return self.setGraphGrid(flag)
-
-    def keepDataAspectRatio(self, *args, **kwargs):
-        """Deprecated, use :meth:`setKeepDataAspectRatio`."""
-        _logger.warning('keepDataAspectRatio deprecated,'
-                        'use setKeepDataAspectRatio instead')
-        return self.setKeepDataAspectRatio(*args, **kwargs)
