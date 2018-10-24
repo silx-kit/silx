@@ -36,8 +36,6 @@ import numpy
 from silx.utils.testutils import ParametricTestCase, parameterize
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
-from silx.utils import testutils
-from silx.utils import deprecation
 
 from silx.test.utils import test_options
 
@@ -881,16 +879,11 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
                 if getter is not None:
                     self.assertEqual(getter(), expected)
 
-    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Logarithmic(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
         y = self.plot.getYAxis()
         yright = self.plot.getYAxis(axis="right")
-
-        listener = SignalListener()
-        self.plot.sigSetXAxisLogarithmic.connect(listener.partial("x"))
-        self.plot.sigSetYAxisLogarithmic.connect(listener.partial("y"))
 
         self.assertEqual(x.getScale(), x.LINEAR)
         self.assertEqual(y.getScale(), x.LINEAR)
@@ -902,7 +895,6 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.getScale(), x.LINEAR)
         self.assertEqual(self.plot.isXAxisLogarithmic(), True)
         self.assertEqual(self.plot.isYAxisLogarithmic(), False)
-        self.assertEqual(listener.arguments(callIndex=-1), ("x", True))
 
         self.plot.setYAxisLogarithmic(True)
         self.assertEqual(x.getScale(), x.LOGARITHMIC)
@@ -910,7 +902,6 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.getScale(), x.LOGARITHMIC)
         self.assertEqual(self.plot.isXAxisLogarithmic(), True)
         self.assertEqual(self.plot.isYAxisLogarithmic(), True)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
         yright.setScale(yright.LINEAR)
         self.assertEqual(x.getScale(), x.LOGARITHMIC)
@@ -918,18 +909,12 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.getScale(), x.LINEAR)
         self.assertEqual(self.plot.isXAxisLogarithmic(), True)
         self.assertEqual(self.plot.isYAxisLogarithmic(), False)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
-    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_AutoScale(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
         y = self.plot.getYAxis()
         yright = self.plot.getYAxis(axis="right")
-
-        listener = SignalListener()
-        self.plot.sigSetXAxisAutoScale.connect(listener.partial("x"))
-        self.plot.sigSetYAxisAutoScale.connect(listener.partial("y"))
 
         self.assertEqual(x.isAutoScale(), True)
         self.assertEqual(y.isAutoScale(), True)
@@ -941,7 +926,6 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.isAutoScale(), True)
         self.assertEqual(self.plot.isXAxisAutoScale(), False)
         self.assertEqual(self.plot.isYAxisAutoScale(), True)
-        self.assertEqual(listener.arguments(callIndex=-1), ("x", False))
 
         self.plot.setYAxisAutoScale(False)
         self.assertEqual(x.isAutoScale(), False)
@@ -949,7 +933,6 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.isAutoScale(), False)
         self.assertEqual(self.plot.isXAxisAutoScale(), False)
         self.assertEqual(self.plot.isYAxisAutoScale(), False)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
         yright.setAutoScale(True)
         self.assertEqual(x.isAutoScale(), False)
@@ -957,17 +940,12 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.isAutoScale(), True)
         self.assertEqual(self.plot.isXAxisAutoScale(), False)
         self.assertEqual(self.plot.isYAxisAutoScale(), True)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
-    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Inverted(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
         y = self.plot.getYAxis()
         yright = self.plot.getYAxis(axis="right")
-
-        listener = SignalListener()
-        self.plot.sigSetYAxisInverted.connect(listener.partial("y"))
 
         self.assertEqual(x.isInverted(), False)
         self.assertEqual(y.isInverted(), False)
@@ -978,14 +956,12 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(y.isInverted(), True)
         self.assertEqual(yright.isInverted(), True)
         self.assertEqual(self.plot.isYAxisInverted(), True)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
         yright.setInverted(False)
         self.assertEqual(x.isInverted(), False)
         self.assertEqual(y.isInverted(), False)
         self.assertEqual(yright.isInverted(), False)
         self.assertEqual(self.plot.isYAxisInverted(), False)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
     def testLogXWithData(self):
         self.plot.setGraphTitle('Curve X: Log Y: Linear')
