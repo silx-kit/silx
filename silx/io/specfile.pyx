@@ -655,12 +655,8 @@ cdef class SpecFile(object):
 
     def __init__(self, filename):
         if not isinstance(filename, str):
-            # encode unicode to str in python 2
-            if sys.version_info[0] < 3:
-                self.filename = filename.encode()
-            # decode bytes to str in python 3
-            elif sys.version_info[0] >= 3:
-                self.filename = filename.decode()
+            # decode bytes to str in python 3, str to unicode in python 2
+            self.filename = filename.decode()
         else:
             self.filename = filename
 
