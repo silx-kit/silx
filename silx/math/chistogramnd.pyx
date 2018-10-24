@@ -30,7 +30,7 @@ cimport numpy as cnumpy  # noqa
 cimport cython
 import numpy as np
 
-cimport histogramnd_c
+cimport silx.math.histogramnd_c as histogramnd_c
 
 
 def chistogramnd(sample,

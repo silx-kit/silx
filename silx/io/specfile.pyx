@@ -118,7 +118,7 @@ _logger = logging.getLogger(__name__)
 cimport cython
 from libc.stdlib cimport free
 
-cimport specfile_wrapper
+cimport silx.io.specfile_wrapper as specfile_wrapper
 
 
 SF_ERR_NO_ERRORS = 0

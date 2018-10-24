@@ -37,7 +37,7 @@ import numpy
 cimport numpy as cnumpy
 cimport cython
 
-cimport mc
+cimport silx.math.mc as mc
 
 
 # From numpy_common.pxi to avoid warnings while compiling C code

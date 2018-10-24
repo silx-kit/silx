@@ -1,6 +1,6 @@
 # coding: utf-8
 #/*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 cimport cython
-cimport filters_wrapper
+cimport silx.math.fit.filters_wrapper as filters_wrapper
 
 
 def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
