@@ -34,7 +34,7 @@ cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
 from libc.math cimport frexp, sqrt
-from math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
+from .math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
 
 import logging
 import numpy
