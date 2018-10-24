@@ -749,7 +749,7 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         index = self.mapToSource(index)
         filters = sourceModel.flags(index)
 
-        if self.__nameFilterDisables:
+        if self.__nameFilterDisables and not sourceModel.isDir(index):
             item = sourceModel._item(index)
             if not self.__nameFiltersAccepted(item):
                 filters &= ~qt.Qt.ItemIsEnabled

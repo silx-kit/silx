@@ -30,7 +30,7 @@ __date__ = "05/12/2016"
 
 import unittest
 
-from ...test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from .. import FitConfig
 
 

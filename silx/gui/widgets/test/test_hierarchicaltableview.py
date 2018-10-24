@@ -29,7 +29,7 @@ __date__ = "07/04/2017"
 import unittest
 
 from .. import HierarchicalTableView
-from ...test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 
 

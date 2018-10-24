@@ -33,7 +33,7 @@ import unittest
 import numpy
 
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 
 from silx.gui.plot3d.SceneWidget import SceneWidget, items

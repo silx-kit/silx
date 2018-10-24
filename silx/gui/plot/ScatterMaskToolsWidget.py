@@ -207,6 +207,13 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                  The mask can be cropped or padded to fit active scatter,
                  the returned shape is that of the scatter data.
         """
+        if self._data_scatter is None:
+            # this can happen if the mask tools widget has never been shown
+            self._data_scatter = self.plot._getActiveItem(kind="scatter")
+            if self._data_scatter is None:
+                return None
+            self._adjustColorAndBrushSize(self._data_scatter)
+
         if mask is None:
             self.resetSelectionMask()
             return self._data_scatter.getXData(copy=False).shape
@@ -261,6 +268,26 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self.plot.sigActiveScatterChanged.connect(
                 self._activeScatterChangedAfterCare)
 
+    def _adjustColorAndBrushSize(self, activeScatter):
+        colormap = activeScatter.getColormap()
+        self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
+        self._setMaskColors(self.levelSpinBox.value(),
+                            self.transparencySlider.value() /
+                            self.transparencySlider.maximum())
+        self._z = activeScatter.getZValue() + 1
+        self._data_scatter = activeScatter
+
+        # Adjust brush size to data range
+        xData = self._data_scatter.getXData(copy=False)
+        yData = self._data_scatter.getYData(copy=False)
+        # Adjust brush size to data range
+        if xData.size > 0 and yData.size > 0:
+            xMin, xMax = min_max(xData)
+            yMin, yMax = min_max(yData)
+            self._data_extent = max(xMax - xMin, yMax - yMin)
+        else:
+            self._data_extent = None
+
     def _activeScatterChangedAfterCare(self, previous, next):
         """Check synchro of active scatter and mask when mask widget is hidden.
 
@@ -278,19 +305,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self._data_scatter = None
 
         else:
-            colormap = activeScatter.getColormap()
-            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
-            self._setMaskColors(self.levelSpinBox.value(),
-                                self.transparencySlider.value() /
-                                self.transparencySlider.maximum())
-
-            self._z = activeScatter.getZValue() + 1
-            self._data_scatter = activeScatter
-
-            # Adjust brush size to data range
-            xMin, xMax = min_max(self._data_scatter.getXData(copy=False))
-            yMin, yMax = min_max(self._data_scatter.getYData(copy=False))
-            self._data_extent = max(xMax - xMin, yMax - yMin)
+            self._adjustColorAndBrushSize(activeScatter)
 
             if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
                 # scatter has not the same size, remove mask and stop listening
@@ -322,25 +337,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
         else:  # There is an active scatter
             self.setEnabled(True)
-
-            colormap = activeScatter.getColormap()
-            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
-            self._setMaskColors(self.levelSpinBox.value(),
-                                self.transparencySlider.value() /
-                                self.transparencySlider.maximum())
-
-            self._z = activeScatter.getZValue() + 1
-            self._data_scatter = activeScatter
-
-            # Adjust brush size to data range
-            xData = self._data_scatter.getXData(copy=False)
-            yData = self._data_scatter.getYData(copy=False)
-            if xData.size > 0 and yData.size > 0:
-                xMin, xMax = min_max(xData)
-                yMin, yMax = min_max(yData)
-                self._data_extent = max(xMax - xMin, yMax - yMin)
-            else:
-                self._data_extent = None
+            self._adjustColorAndBrushSize(activeScatter)
 
             self._mask.setDataItem(self._data_scatter)
             if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
