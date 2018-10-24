@@ -588,7 +588,8 @@ class BuildExt(build_ext):
             from Cython.Build import cythonize
             patched_exts = cythonize(
                 [ext],
-                compiler_directives={'embedsignature': True},
+                compiler_directives={'embedsignature': True,
+                                     'language_level': 3},
                 force=self.force_cython
             )
             ext.sources = patched_exts[0].sources
@@ -769,7 +770,8 @@ class SourceDistWithCython(sdist):
         from Cython.Build import cythonize
         cythonize(
             self.extensions,
-            compiler_directives={'embedsignature': True},
+            compiler_directives={'embedsignature': True,
+                                 'language_level': 3},
             force=True
         )
 
