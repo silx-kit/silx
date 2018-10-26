@@ -32,7 +32,7 @@ __date__ = "02/05/2017"
 
 from cython.parallel import prange
 cimport cython
-cimport median_filter
+cimport silx.math.medianfilter.median_filter as median_filter
 import numpy
 cimport numpy as cnumpy
 from libcpp cimport bool

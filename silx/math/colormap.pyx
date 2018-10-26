@@ -34,7 +34,7 @@ cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
 from libc.math cimport frexp, sqrt
-from math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
+from .math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
 
 import logging
 import numpy
@@ -333,7 +333,7 @@ def cmap(data,
          colors,
          double vmin,
          double vmax,
-         str normalization='linear',
+         normalization='linear',
          nan_color=None):
     """Convert data to colors with provided colors look-up table.
 
@@ -382,7 +382,7 @@ def cmap(data,
     image = _cmap(
         data.reshape(-1),
         colors.reshape(-1, nb_channels),
-        normalization,
+        str(normalization),
         vmin, vmax, nan_color)
     image.shape = data.shape + (nb_channels,)
 
