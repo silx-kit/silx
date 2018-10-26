@@ -457,10 +457,6 @@ class PlotWindow(PlotWidget):
         return self._colorbar
 
     # getters for dock widgets
-    @property
-    @deprecated(replacement="getLegendsDockWidget()", since_version="0.4.0")
-    def legendsDockWidget(self):
-        return self.getLegendsDockWidget()
 
     def getLegendsDockWidget(self):
         """DockWidget with Legend panel"""
@@ -469,11 +465,6 @@ class PlotWindow(PlotWidget):
             self._legendsDockWidget.hide()
             self.addTabbedDockWidget(self._legendsDockWidget)
         return self._legendsDockWidget
-
-    @property
-    @deprecated(replacement="getCurvesRoiWidget()", since_version="0.4.0")
-    def curvesROIDockWidget(self):
-        return self.getCurvesRoiDockWidget()
 
     def getCurvesRoiDockWidget(self):
         # Undocumented for a "soft deprecation" in version 0.7.0
@@ -495,11 +486,6 @@ class PlotWindow(PlotWidget):
             - :meth:`CurvesROIWidget.setRois`
         """
         return self.getCurvesRoiDockWidget().roiWidget
-
-    @property
-    @deprecated(replacement="getMaskToolsDockWidget()", since_version="0.4.0")
-    def maskToolsDockWidget(self):
-        return self.getMaskToolsDockWidget()
 
     def getMaskToolsDockWidget(self):
         """DockWidget with image mask panel (lazy-loaded)."""
@@ -539,11 +525,6 @@ class PlotWindow(PlotWidget):
     def panModeAction(self):
         return self.getInteractiveModeToolBar().getPanModeAction()
 
-    @property
-    @deprecated(replacement="getConsoleAction()", since_version="0.4.0")
-    def consoleAction(self):
-        return self.getConsoleAction()
-
     def getConsoleAction(self):
         """QAction handling the IPython console activation.
 
@@ -563,11 +544,6 @@ class PlotWindow(PlotWidget):
                 self._consoleAction.setEnabled(False)
         return self._consoleAction
 
-    @property
-    @deprecated(replacement="getCrosshairAction()", since_version="0.4.0")
-    def crosshairAction(self):
-        return self.getCrosshairAction()
-
     def getCrosshairAction(self):
         """Action toggling crosshair cursor mode.
 
@@ -577,23 +553,12 @@ class PlotWindow(PlotWidget):
             self._crosshairAction = actions.control.CrosshairAction(self, color='red')
         return self._crosshairAction
 
-    @property
-    @deprecated(replacement="getMaskAction()", since_version="0.4.0")
-    def maskAction(self):
-        return self.getMaskAction()
-
     def getMaskAction(self):
         """QAction toggling image mask dock widget
 
         :rtype: QAction
         """
         return self.getMaskToolsDockWidget().toggleViewAction()
-
-    @property
-    @deprecated(replacement="getPanWithArrowKeysAction()",
-                since_version="0.4.0")
-    def panWithArrowKeysAction(self):
-        return self.getPanWithArrowKeysAction()
 
     def getPanWithArrowKeysAction(self):
         """Action toggling pan with arrow keys.
@@ -603,11 +568,6 @@ class PlotWindow(PlotWidget):
         if self._panWithArrowKeysAction is None:
             self._panWithArrowKeysAction = actions.control.PanWithArrowKeysAction(self)
         return self._panWithArrowKeysAction
-
-    @property
-    @deprecated(replacement="getRoiAction()", since_version="0.4.0")
-    def roiAction(self):
-        return self.getRoiAction()
 
     def getStatsAction(self):
         if self._statsAction is None:
