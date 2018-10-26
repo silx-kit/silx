@@ -51,6 +51,8 @@ Functions
 
 .. autofunction:: is_valid_nxdata
 
+.. autofunction:: is_group_with_default_NXdata
+
 .. autofunction:: is_NXentry_with_default_NXdata
 
 .. autofunction:: is_NXroot_with_default_NXdata
@@ -59,6 +61,6 @@ Functions
 
 """
 from .parse import NXdata, get_default, is_valid_nxdata, InvalidNXdataError, \
-    is_NXentry_with_default_NXdata, is_NXroot_with_default_NXdata
+    is_NXentry_with_default_NXdata, is_NXroot_with_default_NXdata, is_group_with_default_NXdata
 from ._utils import get_attr_as_unicode, get_attr_as_string, nxdata_logger
 from .write import save_NXdata
