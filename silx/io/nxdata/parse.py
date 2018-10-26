@@ -856,7 +856,7 @@ def get_default(group, validate=True):
     if is_NXroot_with_default_NXdata(group, validate=validate):
         default_entry = group[group.attrs["default"]]
         default_data = default_entry[default_entry.attrs["default"]]
-    elif is_NXentry_with_default_NXdata(group, validate=validate):
+    elif is_group_with_default_NXdata(group, validate=validate):
         default_data = group[group.attrs["default"]]
     elif not validate or is_valid_nxdata(group):
         default_data = group
