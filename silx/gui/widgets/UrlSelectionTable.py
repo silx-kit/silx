@@ -74,16 +74,6 @@ class UrlSelectionTable(TableWidget):
         self.setSortingEnabled(True)
         self._checkBoxes = {}
 
-    def addRadio(self, name, **kwargs):
-        assert os.path.isfile(name)
-        if not os.path.isfile(name):
-            logger.error('%s is not a file path' % name)
-            return
-
-        imgFile = FileWithImage(name)
-        for imgFrmFile in imgFile.getImages(_load=False):
-            self.addUrl(imgFrmFile.url, **kwargs)
-
     def addUrl(self, url, **kwargs):
         """
 
