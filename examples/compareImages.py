@@ -207,10 +207,10 @@ if __name__ == "__main__":
             data2 = loadImage(options.files[1])
         window = CompareImages(backend=backend)
         window.setData(data1, data2)
-        window.setVisible(True)
     else:
         data = options.files
         window = CompareImagesSel(backend=backend)
         window.setFiles(options.files)
-        window.setVisible(True)
+
+    window.setVisible(True)
     app.exec_()
