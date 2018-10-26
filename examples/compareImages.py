@@ -76,11 +76,14 @@ class CompareImagesSel(qt.QMainWindow):
             self._selectionTable.addUrl(url)
 
     def setFiles(self, files):
-        urls = []
+        urls = list()
         for _file in files:
             if os.path.isfile(_file):
                 urls.append(DataUrl(file_path=_file, scheme=None))
+        urls.sort(key=lambda url: url.path())
         window.setUrls(urls)
+        window._selectionTable.setSelection(url_img_a=urls[0].path(),
+                                            url_img_b=urls[1].path())
 
     def clear(self):
         self._plot.clear()
