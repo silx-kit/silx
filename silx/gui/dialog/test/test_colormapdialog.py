@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "23/05/2018"
 
 
-import doctest
 import unittest
 
 from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate
@@ -45,23 +44,6 @@ import numpy.random
 
 # Makes sure a QApplication exists
 _qapp = qt.QApplication.instance() or qt.QApplication([])
-
-
-def _tearDownQt(docTest):
-    """Tear down to use for test from docstring.
-
-    Checks that dialog widget is displayed
-    """
-    dialogWidget = docTest.globs['dialog']
-    qWaitForWindowExposedAndActivate(dialogWidget)
-    dialogWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
-    dialogWidget.close()
-    del dialogWidget
-    _qapp.processEvents()
-
-
-cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)
-"""Test suite of tests from the module's docstrings."""
 
 
 class TestColormapDialog(TestCaseQt, ParametricTestCase):
@@ -387,7 +369,6 @@ class TestColormapAction(TestCaseQt):
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(cmapDocTestSuite)
     for testClass in (TestColormapDialog, TestColormapAction):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
