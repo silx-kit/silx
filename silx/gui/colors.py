@@ -32,7 +32,6 @@ __license__ = "MIT"
 __date__ = "05/10/2018"
 
 from silx.gui import qt
-import copy as copy_mdl
 import numpy
 import logging
 from silx.math.combo import min_max
@@ -294,6 +293,8 @@ class Colormap(qt.QObject):
                 vmin = None
                 vmax = None
 
+        self._name = None
+        self._colors = None
         if name is not None:  # Ignores colors
             self.setName(name)
         else:
