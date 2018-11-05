@@ -154,23 +154,9 @@ def cursorColorForColormap(colormapName):
     return _COLORMAP_CURSOR_COLORS.get(colormapName, 'black')
 
 
-DEFAULT_COLORMAPS = (
-    'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
-"""Tuple of supported colormap names."""
-
-DEFAULT_MIN_LIN = 0
-"""Default min value if in linear normalization"""
-DEFAULT_MAX_LIN = 1
-"""Default max value if in linear normalization"""
-DEFAULT_MIN_LOG = 1
-"""Default min value if in log normalization"""
-DEFAULT_MAX_LOG = 10
-"""Default max value if in log normalization"""
-
-
 # Colormap loader
 
-_AVAILABLE_AS_RESOURCE = ('magma', 'inferno', 'plasma', 'viridis')
+_AVAILABLE_AS_RESOURCE = 'viridis', 'magma', 'inferno', 'plasma'
 """List available colormap name as resources"""
 
 
@@ -253,6 +239,19 @@ def _getColormap(name):
         _COLORMAP_CACHE[name] = lut
 
     return _COLORMAP_CACHE[name]
+
+
+DEFAULT_COLORMAPS = _AVAILABLE_AS_BUILTINS + _AVAILABLE_AS_RESOURCE
+"""Tuple of supported colormap names."""
+
+DEFAULT_MIN_LIN = 0
+"""Default min value if in linear normalization"""
+DEFAULT_MAX_LIN = 1
+"""Default max value if in linear normalization"""
+DEFAULT_MIN_LOG = 1
+"""Default min value if in log normalization"""
+DEFAULT_MAX_LOG = 10
+"""Default max value if in log normalization"""
 
 
 class Colormap(qt.QObject):
@@ -676,7 +675,8 @@ class Colormap(qt.QObject):
         """Get the supported colormap names as a tuple of str.
 
         The list should at least contain and start by:
-        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
+        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
+         'viridis', 'magma', 'inferno', 'plasma')
         :rtype: tuple
         """
         if _matplotlib_cm is not None:
@@ -685,7 +685,9 @@ class Colormap(qt.QObject):
             colormaps = set()
         colormaps.update(_AVAILABLE_AS_BUILTINS)
         colormaps.update(_AVAILABLE_AS_RESOURCE)
-        colormaps = tuple(sorted(colormaps))
+
+        colormaps = tuple(cmap for cmap in sorted(colormaps)
+                      if cmap not in DEFAULT_COLORMAPS)
 
         return DEFAULT_COLORMAPS + colormaps
 
@@ -793,7 +795,6 @@ def preferredColormaps():
     """
     global _PREFERRED_COLORMAPS
     if _PREFERRED_COLORMAPS is None:
-        _PREFERRED_COLORMAPS = DEFAULT_COLORMAPS
         # Initialize preferred colormaps
         setPreferredColormaps(('gray', 'reversed gray',
                                'temperature', 'red', 'green', 'blue', 'jet',
