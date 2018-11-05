@@ -801,7 +801,7 @@ class _TickBar(qt.QWidget):
         if self._norm == colors.Colormap.LINEAR:
             return 1 - (val - self._vmin) / (self._vmax - self._vmin)
         elif self._norm == colors.Colormap.LOGARITHM:
-            return 1 - (numpy.log10(val) - numpy.log10(self._vmin)) / (numpy.log10(self._vmax) - numpy.log(self._vmin))
+            return 1 - (numpy.log10(val) - numpy.log10(self._vmin)) / (numpy.log10(self._vmax) - numpy.log10(self._vmin))
         else:
             raise ValueError('Norm is not recognized')
 
