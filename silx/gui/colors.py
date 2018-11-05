@@ -229,8 +229,7 @@ def _getColormap(name):
 
         elif _matplotlib_cm is not None:  # Try to load with matplotlib
             colormap = _matplotlib_cm.get_cmap(name)
-            lut = colormap(numpy.linspace(0, 1, 256, endpoint=True))
-            # TODO improve for color list cmaps
+            lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
             lut = _convertColorsFromFloatToUint8(lut)
         else:
             raise ValueError("Unknown colormap %s", name)
@@ -283,8 +282,9 @@ class Colormap(qt.QObject):
 
     def __init__(self, name='gray', colors=None, normalization=LINEAR, vmin=None, vmax=None):
         qt.QObject.__init__(self)
+        self._editable = True
+
         assert normalization in Colormap.NORMALIZATIONS
-        assert not (name is None and colors is None)
         if normalization is Colormap.LOGARITHM:
             if (vmin is not None and vmin < 0) or (vmax is not None and vmax < 0):
                 m = "Unsuported vmin (%s) and/or vmax (%s) given for a log scale."
@@ -294,66 +294,41 @@ class Colormap(qt.QObject):
                 vmin = None
                 vmax = None
 
-        self._name = str(name) if name is not None else None
-        self._setColors(colors)
+        if name is not None:  # Ignores colors
+            self.setName(name)
+        else:
+            self.setColormapLUT(colors)
+
         self._normalization = str(normalization)
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
-        self._editable = True
-
-    def isAutoscale(self):
-        """Return True if both min and max are in autoscale mode"""
-        return self._vmin is None and self._vmax is None
-
-    def getName(self):
-        """Return the name of the colormap
-        :rtype: str
-        """
-        return self._name
-
-    def _setColors(self, colors):
-        if colors is None:
-            self._colors = None
-        else:
-            colors = numpy.array(colors, copy=False)
-            if colors.shape == ():
-                raise TypeError("An array is expected for 'colors' argument. '%s' was found." % type(colors))
-            colors.shape = -1, colors.shape[-1]
-            if colors.dtype.kind == 'f':
-                colors = _convertColorsFromFloatToUint8(colors)
-
-            # Makes sure it is RGBA8888
-            self._colors = numpy.zeros((len(colors), 4), dtype=numpy.uint8)
-            self._colors[:, 3] = 255  # Alpha channel
-            self._colors[:, :colors.shape[1]] = colors  # Copy colors
 
     def getNColors(self, nbColors=None):
         """Returns N colors computed by sampling the colormap regularly.
 
         :param nbColors:
             The number of colors in the returned array or None for the default value.
-            The default value is 256 for colormap with a name (see :meth:`setName`) and
-            it is the size of the LUT for colormap defined with :meth:`setColormapLUT`.
+            The default value is the size of the colormap LUT.
         :type nbColors: int or None
         :return: 2D array of uint8 of shape (nbColors, 4)
         :rtype: numpy.ndarray
         """
         # Handle default value for nbColors
         if nbColors is None:
-            lut = self.getColormapLUT()
-            if lut is not None:  # In this case uses LUT length
-                nbColors = len(lut)
-            else:  # Default to 256
-                nbColors = 256
+            return numpy.array(self._colors, copy=True)
+        else:
+            colormap = self.copy()
+            colormap.setNormalization(Colormap.LINEAR)
+            colormap.setVRange(vmin=None, vmax=None)
+            colors = colormap.applyToData(
+                numpy.arange(int(nbColors), dtype=numpy.int))
+            return colors
 
-        nbColors = int(nbColors)
-
-        colormap = self.copy()
-        colormap.setNormalization(Colormap.LINEAR)
-        colormap.setVRange(vmin=None, vmax=None)
-        colors = colormap.applyToData(
-            numpy.arange(nbColors, dtype=numpy.int))
-        return colors
+    def getName(self):
+        """Return the name of the colormap
+        :rtype: str
+        """
+        return self._name
 
     def setName(self, name):
         """Set the name of the colormap to use.
@@ -367,19 +342,22 @@ class Colormap(qt.QObject):
             raise NotEditableError('Colormap is not editable')
         assert name in self.getSupportedColormaps()
         self._name = str(name)
-        self._colors = None
+        self._colors = _getColormap(self._name)
         self.sigChanged.emit()
 
     def getColormapLUT(self):
-        """Return the list of colors for the colormap or None if not set
+        """Return the list of colors for the colormap or None if not set.
+
+        This returns None if the colormap was set with :meth:`setName`.
+        Use :meth:`getNColors` to get the colormap LUT for any colormap.
 
         :return: the list of colors for the colormap or None if not set
         :rtype: numpy.ndarray or None
         """
-        if self._colors is None:
-            return None
-        else:
+        if self._name is None:
             return numpy.array(self._colors, copy=True)
+        else:
+            return None
 
     def setColormapLUT(self, colors):
         """Set the colors of the colormap.
@@ -392,9 +370,20 @@ class Colormap(qt.QObject):
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
-        self._setColors(colors)
-        if len(colors) is 0:
-            self._colors = None
+        assert colors is not None
+
+        colors = numpy.array(colors, copy=False)
+        if colors.shape == ():
+            raise TypeError("An array is expected for 'colors' argument. '%s' was found." % type(colors))
+        assert len(colors) != 0
+        colors.shape = -1, colors.shape[-1]
+        if colors.dtype.kind == 'f':
+            colors = _convertColorsFromFloatToUint8(colors)
+
+        # Makes sure it is RGBA8888
+        self._colors = numpy.zeros((len(colors), 4), dtype=numpy.uint8)
+        self._colors[:, 3] = 255  # Alpha channel
+        self._colors[:, :colors.shape[1]] = colors  # Copy colors
 
         self._name = None
         self.sigChanged.emit()
@@ -416,6 +405,10 @@ class Colormap(qt.QObject):
             raise NotEditableError('Colormap is not editable')
         self._normalization = str(norm)
         self.sigChanged.emit()
+
+    def isAutoscale(self):
+        """Return True if both min and max are in autoscale mode"""
+        return self._vmin is None and self._vmax is None
 
     def getVMin(self):
         """Return the lower bound of the colormap
@@ -586,7 +579,7 @@ class Colormap(qt.QObject):
         """
         return {
             'name': self._name,
-            'colors': copy_mdl.copy(self._colors),
+            'colors': self.getColormapLUT(),
             'vmin': self._vmin,
             'vmax': self._vmax,
             'autoscale': self.isAutoscale(),
@@ -628,8 +621,10 @@ class Colormap(qt.QObject):
         if dic.get('autoscale', False):
             vmin, vmax = None, None
 
-        self._name = name
-        self._colors = colors
+        if name is not None:
+            self.setName(name)
+        else:
+            self.setColormapLUT(colors)
         self._vmin = vmin
         self._vmax = vmax
         self._autoscale = True if (vmin is None and vmax is None) else False
@@ -649,7 +644,7 @@ class Colormap(qt.QObject):
         :rtype: silx.gui.colors.Colormap
         """
         return Colormap(name=self._name,
-                        colors=copy_mdl.copy(self._colors),
+                        colors=self.getColormapLUT(),
                         vmin=self._vmin,
                         vmax=self._vmax,
                         normalization=self._normalization)
@@ -659,16 +654,9 @@ class Colormap(qt.QObject):
 
         :param numpy.ndarray data: The data to convert.
         """
-        name = self.getName()
-        if name is not None:  # Get corresponding LUT
-            colors = _getColormap(name)
-        else:  # Use user defined LUT
-            colors = self.getColormapLUT()
-
         vmin, vmax = self.getColormapRange(data)
         normalization = self.getNormalization()
-
-        return _cmap(data, colors, vmin, vmax, normalization)
+        return _cmap(data, self._colors, vmin, vmax, normalization)
 
     @staticmethod
     def getSupportedColormaps():
@@ -687,7 +675,7 @@ class Colormap(qt.QObject):
         colormaps.update(_AVAILABLE_AS_RESOURCE)
 
         colormaps = tuple(cmap for cmap in sorted(colormaps)
-                      if cmap not in DEFAULT_COLORMAPS)
+                          if cmap not in DEFAULT_COLORMAPS)
 
         return DEFAULT_COLORMAPS + colormaps
 
