@@ -864,7 +864,7 @@ class _TickBar(qt.QWidget):
     def _guessType(self, font):
         """Try fo find the better format to display the tick's labels
 
-        :param QFont font: the font we want want to use durint the painting
+        :param QFont font: the font we want to use during the painting
         """
         form = self._getStandardFormat()
 
@@ -873,7 +873,7 @@ class _TickBar(qt.QWidget):
         for tick in self.ticks:
             width = max(fm.width(form.format(tick)), width)
 
-        # if the length of the string are too long we are mooving to scientific
+        # if the length of the string are too long we are moving to scientific
         # display
         if width > _TickBar._WIDTH_DISP_VAL - _TickBar._LINE_WIDTH:
             return self._getScientificForm()
