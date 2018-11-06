@@ -31,9 +31,10 @@ __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
 __date__ = "06/11/2018"
 
-from silx.gui import qt
 import numpy
 import logging
+
+from silx.gui import qt
 from silx.math.combo import min_max
 from silx.math.colormap import cmap as _cmap
 from silx.utils.exceptions import NotEditableError
