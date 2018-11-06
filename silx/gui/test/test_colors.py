@@ -158,12 +158,12 @@ class TestDictAPI(unittest.TestCase):
         self.assertFalse(colormapObject.isAutoscale() == clm_dict['autoscale'])
 
     def testMissingKeysFromDict(self):
-        """Make sure we can create a Colormap object from a dictionnary even if
-        there is missing keys excepts if those keys are 'colors' or 'name'
+        """Make sure we can create a Colormap object from a dictionary even if
+        there is missing keys except if those keys are 'colors' or 'name'
         """
-        colormap = Colormap._fromDict({'name': 'toto'})
+        colormap = Colormap._fromDict({'name': 'blue'})
         self.assertTrue(colormap.getVMin() is None)
-        colormap = Colormap._fromDict({'colors': numpy.zeros(10)})
+        colormap = Colormap._fromDict({'colors': numpy.zeros((5, 3))})
         self.assertTrue(colormap.getName() is None)
 
         with self.assertRaises(ValueError):
@@ -227,7 +227,7 @@ class TestObjectAPI(ParametricTestCase):
     def testCopy(self):
         """Make sure the copy function is correctly processing
         """
-        colormapObject = Colormap(name='toto',
+        colormapObject = Colormap(name='red',
                                   colors=numpy.array([12, 13, 14]),
                                   vmin=None,
                                   vmax=None,
