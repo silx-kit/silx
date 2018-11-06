@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/06/2018"
+__date__ = "06/11/2018"
 
 
 import collections
@@ -263,7 +263,6 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     colormap.setNormalization(norm)
     colormap.setVMin(vmin)
     colormap.setVMax(vmax)
-    plt.setDefaultColormap(colormap)
 
     # Handle aspect
     if aspect in (None, False, 'auto', 'normal'):
