@@ -690,6 +690,19 @@ class Colormap(qt.QObject):
                         vmax=self._vmax,
                         normalization=self._normalization)
 
+    def deepcopy(self):
+        """Return a copy of the Colormap.
+
+        If a LUT is provided the numpy array data is also copyed.
+
+        :rtype: silx.gui.colors.Colormap
+        """
+        return Colormap(name=self._name,
+                        colors=self.getColormapLUT(),
+                        vmin=self._vmin,
+                        vmax=self._vmax,
+                        normalization=self._normalization)
+
     def applyToData(self, data):
         """Apply the colormap to the data
 
