@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "06/11/2018"
 
 
 import logging
@@ -109,7 +109,7 @@ class SXTest(TestCaseQt, ParametricTestCase):
         plt = sx.imshow(img)
         self._expose_and_close(plt)
 
-        # image, gray cmap
+        # image, named cmap
         plt = sx.imshow(img, cmap='jet', title='jet cmap')
         self._expose_and_close(plt)
 
