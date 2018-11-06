@@ -295,10 +295,12 @@ class Colormap(qt.QObject):
 
         self._name = None
         self._colors = None
-        if name is not None:  # Ignores colors
-            self.setName(name)
-        else:
+
+        if colors is not None:
             self.setColormapLUT(colors)
+
+        if name is not None:
+            self.setName(name)  # And resets colormap LUT
 
         self._normalization = str(normalization)
         self._vmin = float(vmin) if vmin is not None else None
@@ -377,6 +379,8 @@ class Colormap(qt.QObject):
         if colors.shape == ():
             raise TypeError("An array is expected for 'colors' argument. '%s' was found." % type(colors))
         assert len(colors) != 0
+        assert colors.ndim >= 2
+        assert colors.shape[-1] <= 4  # Provide up to 4 channels (RGBA)
         colors.shape = -1, colors.shape[-1]
         if colors.dtype.kind == 'f':
             colors = _convertColorsFromFloatToUint8(colors)
