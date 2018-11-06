@@ -52,7 +52,7 @@ from silx.third_party import six
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/04/2018"
+__date__ = "06/11/2018"
 
 
 class InvalidNXdataError(Exception):
@@ -181,8 +181,14 @@ class NXdata(object):
             uncertainties_names = get_uncertainties_names(self.group, signal_name)
             if uncertainties_names is not None:
                 if len(uncertainties_names) != len(axes_names):
-                    self.issues.append("@uncertainties does not define the same " +
-                                       "number of fields than @axes")
+                    if len(uncertainties_names) < len(axes_names):
+                        # ignore the field to avoid index error in the axes loop
+                        uncertainties_names = None
+                        self.issues.append("@uncertainties does not define the same " +
+                                           "number of fields than @axes. Field ignored")
+                    else:
+                        self.issues.append("@uncertainties does not define the same " +
+                                           "number of fields than @axes")
 
             # Test individual axes
             is_scatter = True  # true if all axes have the same size as the signal
