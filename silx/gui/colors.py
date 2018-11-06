@@ -38,6 +38,7 @@ from silx.gui import qt
 from silx.math.combo import min_max
 from silx.math.colormap import cmap as _cmap
 from silx.utils.exceptions import NotEditableError
+from silx.utils import deprecation
 from silx.resources import resource_filename as _resource_filename
 
 
@@ -300,6 +301,12 @@ class Colormap(qt.QObject):
         self._colors = None
 
         if colors is not None and name is not None:
+            deprecation.deprecated_warning("Argument",
+                                           name="silx.gui.plot.Colors",
+                                           reason="name and colors can't be used at the same time",
+                                           since_version="0.10.0",
+                                           skip_backtrace_count=1)
+
             colors = None
 
         if name is not None:
