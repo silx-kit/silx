@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "06/11/2018"
 
 from silx.gui import qt
 import numpy
@@ -255,6 +255,8 @@ DEFAULT_MAX_LOG = 10
 class Colormap(qt.QObject):
     """Description of a colormap
 
+    If no `name` nor `colors` are provided, a default gray LUT is used.
+
     :param str name: Name of the colormap
     :param tuple colors: optional, custom colormap.
             Nx3 or Nx4 numpy array of RGB(A) colors,
@@ -279,7 +281,7 @@ class Colormap(qt.QObject):
     sigChanged = qt.Signal()
     """Signal emitted when the colormap has changed."""
 
-    def __init__(self, name='gray', colors=None, normalization=LINEAR, vmin=None, vmax=None):
+    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None):
         qt.QObject.__init__(self)
         self._editable = True
 
@@ -296,11 +298,16 @@ class Colormap(qt.QObject):
         self._name = None
         self._colors = None
 
-        if colors is not None:
-            self.setColormapLUT(colors)
+        if colors is not None and name is not None:
+            colors = None
 
         if name is not None:
             self.setName(name)  # And resets colormap LUT
+        elif colors is not None:
+            self.setColormapLUT(colors)
+        else:
+            # Default colormap is grey
+            self.setName("gray")
 
         self._normalization = str(normalization)
         self._vmin = float(vmin) if vmin is not None else None
