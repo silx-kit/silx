@@ -710,6 +710,10 @@ class Colormap(qt.QObject):
 
     def __eq__(self, other):
         """Compare colormap values and not pointers"""
+        if other is None:
+            return False
+        if not isinstance(other, Colormap):
+            return False
         return (self.getName() == other.getName() and
                 self.getNormalization() == other.getNormalization() and
                 self.getVMin() == other.getVMin() and

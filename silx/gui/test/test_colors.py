@@ -375,6 +375,19 @@ class TestObjectAPI(ParametricTestCase):
         with self.assertRaises(TypeError):
             Colormap(colors=256)
 
+    def testEqual(self):
+        colormap1 = Colormap()
+        colormap2 = Colormap()
+        self.assertEqual(colormap1, colormap2)
+
+    def testCompareString(self):
+        colormap = Colormap()
+        self.assertNotEqual(colormap, "a")
+
+    def testCompareNone(self):
+        colormap = Colormap()
+        self.assertNotEqual(colormap, None)
+
 
 class TestPreferredColormaps(unittest.TestCase):
     """Test get|setPreferredColormaps functions"""
