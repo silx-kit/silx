@@ -228,14 +228,16 @@ class TestObjectAPI(ParametricTestCase):
         """Make sure the copy function is correctly processing
         """
         colormapObject = Colormap(name='red',
-                                  colors=numpy.array([12, 13, 14]),
+                                  colors=numpy.array([[1., 0., 0.],
+                                                      [0., 1., 0.],
+                                                      [0., 0., 1.]]),
                                   vmin=None,
                                   vmax=None,
                                   normalization=Colormap.LOGARITHM)
 
         colormapObject2 = colormapObject.copy()
         self.assertTrue(colormapObject == colormapObject2)
-        colormapObject.setColormapLUT(numpy.array([0, 1]))
+        colormapObject.setColormapLUT([[0, 0, 0], [255, 255, 255]])
         self.assertFalse(colormapObject == colormapObject2)
 
         colormapObject2 = colormapObject.copy()
@@ -361,7 +363,7 @@ class TestObjectAPI(ParametricTestCase):
         with self.assertRaises(NotEditableError):
             colormap.setName('magma')
         with self.assertRaises(NotEditableError):
-            colormap.setColormapLUT(numpy.array([0, 1]))
+            colormap.setColormapLUT([[0., 0., 0.], [1., 1., 1.]])
         with self.assertRaises(NotEditableError):
             colormap._setFromDict(colormap._toDict())
         state = colormap.saveState()
