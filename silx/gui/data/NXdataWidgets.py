@@ -72,21 +72,16 @@ class ArrayCurvePlot(qt.QWidget):
 
         self._plot = Plot1D(self)
 
-        self.selectorDock = qt.QDockWidget("Data selector", self._plot)
-        # not closable
-        self.selectorDock.setFeatures(qt.QDockWidget.DockWidgetMovable |
-                                      qt.QDockWidget.DockWidgetFloatable)
-        self._selector = NumpyAxesSelector(self.selectorDock)
+        self._selector = NumpyAxesSelector(self)
         self._selector.setNamedAxesSelectorVisibility(False)
         self.__selector_is_connected = False
-        self.selectorDock.setWidget(self._selector)
-        self._plot.addTabbedDockWidget(self.selectorDock)
 
         self._plot.sigActiveCurveChanged.connect(self._setYLabelFromActiveLegend)
 
-        layout = qt.QGridLayout()
+        layout = qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._plot, 0, 0)
+        layout.addWidget(self._plot)
+        layout.addWidget(self._selector)
 
         self.setLayout(layout)
 
@@ -130,9 +125,9 @@ class ArrayCurvePlot(qt.QWidget):
         self._selector.setAxisNames(["Y"])
 
         if len(ys[0].shape) < 2:
-            self.selectorDock.hide()
+            self._selector.hide()
         else:
-            self.selectorDock.show()
+            self._selector.show()
 
         self._plot.setGraphTitle(title or "")
         self._updateCurve()
@@ -339,11 +334,8 @@ class ArrayImagePlot(qt.QWidget):
                                                normalization=Colormap.LINEAR))
         self._plot.getIntensityHistogramAction().setVisible(True)
 
-        self.selectorDock = qt.QDockWidget("Data selector", self._plot)
         # not closable
-        self.selectorDock.setFeatures(qt.QDockWidget.DockWidgetMovable |
-                                      qt.QDockWidget.DockWidgetFloatable)
-        self._selector = NumpyAxesSelector(self.selectorDock)
+        self._selector = NumpyAxesSelector(self)
         self._selector.setNamedAxesSelectorVisibility(False)
         self._selector.selectionChanged.connect(self._updateImage)
 
@@ -355,9 +347,8 @@ class ArrayImagePlot(qt.QWidget):
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
+        layout.addWidget(self._selector)
         layout.addWidget(self._auxSigSlider)
-        self.selectorDock.setWidget(self._selector)
-        self._plot.addTabbedDockWidget(self.selectorDock)
 
         self.setLayout(layout)
 
@@ -413,9 +404,9 @@ class ArrayImagePlot(qt.QWidget):
         self._selector.setData(signals[0])
 
         if len(signals[0].shape) <= img_ndim:
-            self.selectorDock.hide()
+            self._selector.hide()
         else:
-            self.selectorDock.show()
+            self._selector.show()
 
         self._auxSigSlider.setMaximum(len(signals) - 1)
         if len(signals) > 1:
