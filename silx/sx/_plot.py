@@ -39,8 +39,7 @@ import numpy
 from ..utils.weakref import WeakList
 from ..gui import qt
 from ..gui.plot import Plot1D, Plot2D, ScatterView
-from ..gui.colors import COLORDICT
-from ..gui.colors import Colormap
+from ..gui import colors
 from ..gui.plot.tools import roi
 from ..gui.plot.items import roi as roi_items
 from ..gui.plot.tools.toolbars import InteractiveModeToolBar
@@ -165,7 +164,7 @@ def plot(*args, **kwargs):
         # Parse style
         if style:
             # Handle color first
-            possible_colors = [c for c in COLORDICT if style.startswith(c)]
+            possible_colors = [c for c in colors.COLORDICT if style.startswith(c)]
             if possible_colors:  # Take the longest string matching a color name
                 curve_color = possible_colors[0]
                 for c in possible_colors[1:]:
@@ -203,7 +202,7 @@ def plot(*args, **kwargs):
     return plt
 
 
-def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
+def imshow(data=None, cmap=None, norm=colors.Colormap.LINEAR,
            vmin=None, vmax=None,
            aspect=False,
            origin='upper', scale=(1., 1.),
@@ -259,7 +258,7 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
     colormap = plt.getDefaultColormap()
     if cmap is not None:
         colormap.setName(cmap)
-    assert norm in Colormap.NORMALIZATIONS
+    assert norm in colors.Colormap.NORMALIZATIONS
     colormap.setNormalization(norm)
     colormap.setVMin(vmin)
     colormap.setVMax(vmax)
@@ -294,7 +293,7 @@ def imshow(data=None, cmap=None, norm=Colormap.LINEAR,
 
 def scatter(x=None, y=None, value=None, size=None,
             marker='o',
-            cmap=None, norm=Colormap.LINEAR,
+            cmap=None, norm=colors.Colormap.LINEAR,
             vmin=None, vmax=None):
     """
     Plot scattered data in a :class:`~silx.gui.plot.ScatterView` widget.
@@ -342,7 +341,7 @@ def scatter(x=None, y=None, value=None, size=None,
     colormap = plt.getPlotWidget().getDefaultColormap()
     if cmap is not None:
         colormap.setName(cmap)
-    assert norm in Colormap.NORMALIZATIONS
+    assert norm in colors.Colormap.NORMALIZATIONS
     colormap.setNormalization(norm)
     colormap.setVMin(vmin)
     colormap.setVMax(vmax)
