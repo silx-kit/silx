@@ -388,6 +388,14 @@ class TestObjectAPI(ParametricTestCase):
         colormap = Colormap()
         self.assertNotEqual(colormap, None)
 
+    def testSet(self):
+        colormap = Colormap()
+        other = Colormap(name="viridis", vmin=1, vmax=2, normalization=Colormap.LOGARITHM)
+        self.assertNotEqual(colormap, other)
+        colormap.setFromColormap(other)
+        self.assertIsNot(colormap, other)
+        self.assertEqual(colormap, other)
+
 
 class TestPreferredColormaps(unittest.TestCase):
     """Test get|setPreferredColormaps functions"""

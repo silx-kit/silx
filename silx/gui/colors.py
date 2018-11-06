@@ -321,6 +321,26 @@ class Colormap(qt.QObject):
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
 
+    def setFromColormap(self, other):
+        """Set this colormap using information from the `other` colormap.
+
+        :param Colormap other: Colormap to use as reference.
+        """
+        if not self.isEditable():
+            raise NotEditableError('Colormap is not editable')
+        if self == other:
+            return
+        old = self.blockSignals(True)
+        name = other.getName()
+        if name is not None:
+            self.setName(name)
+        else:
+            self.setColormapLUT(other.getColormapLUT())
+        self.setNormalization(other.getNormalization())
+        self.setVRange(other.getVMin(), other.getVMax())
+        self.blockSignals(old)
+        self.sigChanged.emit()
+
     def getNColors(self, nbColors=None):
         """Returns N colors computed by sampling the colormap regularly.
 
