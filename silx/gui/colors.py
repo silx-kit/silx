@@ -635,7 +635,7 @@ class Colormap(qt.QObject):
 
     @staticmethod
     def _fromDict(dic):
-        colormap = Colormap(name="")
+        colormap = Colormap()
         colormap._setFromDict(dic)
         return colormap
 
