@@ -379,6 +379,10 @@ class ExternalResources(object):
             except six.moves.urllib.error.URLError:
                 raise unittest.SkipTest("network unreachable.")
 
+            if not os.path.isdir(os.path.dirname(fullfilename)):
+                # Create sub-directory if needed
+                os.makedirs(os.path.dirname(fullfilename))
+
             try:
                 with open(fullfilename, "wb") as outfile:
                     outfile.write(data)
