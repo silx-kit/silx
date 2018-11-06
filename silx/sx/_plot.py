@@ -230,7 +230,9 @@ def imshow(data=None, cmap=None, norm=colors.Colormap.LINEAR,
 
     :param data: data to plot as an image
     :type data: numpy.ndarray-like with 2 dimensions
-    :param str cmap: The name of the colormap to use for the plot.
+    :param str cmap: The name of the colormap to use for the plot. It also
+        supports a numpy array containing a RGB LUT, or a `colors.Colormap`
+        instance.
     :param str norm: The normalization of the colormap:
                      'linear' (default) or 'log'
     :param float vmin: The value to use for the min of the colormap
@@ -256,7 +258,12 @@ def imshow(data=None, cmap=None, norm=colors.Colormap.LINEAR,
 
     # Update default colormap with input parameters
     colormap = plt.getDefaultColormap()
-    if cmap is not None:
+    if isinstance(cmap, colors.Colormap):
+        colormap = cmap
+        plt.setDefaultColormap(colormap)
+    elif isinstance(cmap, numpy.ndarray):
+        colormap.setColors(cmap)
+    elif cmap is not None:
         colormap.setName(cmap)
     assert norm in colors.Colormap.NORMALIZATIONS
     colormap.setNormalization(norm)

@@ -38,6 +38,7 @@ from silx.gui import qt
 # load TestCaseQt before sx
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import rgba
+from silx.gui.colors import Colormap
 from silx import sx
 
 
@@ -111,6 +112,10 @@ class SXTest(TestCaseQt, ParametricTestCase):
 
         # image, named cmap
         plt = sx.imshow(img, cmap='jet', title='jet cmap')
+        self._expose_and_close(plt)
+
+        # image, custom colormap
+        plt = sx.imshow(img, cmap=Colormap(), title='custom colormap')
         self._expose_and_close(plt)
 
         # image, log cmap
