@@ -335,7 +335,7 @@ class Colormap(qt.QObject):
         if name is not None:
             self.setName(name)
         else:
-            self.setColormapLUT(other.getColormapLUT())
+            self.setColormapLUT(other.getColormapLUT(copy=False))
         self.setNormalization(other.getNormalization())
         self.setVRange(other.getVMin(), other.getVMax())
         self.blockSignals(old)
@@ -383,17 +383,18 @@ class Colormap(qt.QObject):
         self._colors = _getColormap(self._name)
         self.sigChanged.emit()
 
-    def getColormapLUT(self):
+    def getColormapLUT(self, copy=True):
         """Return the list of colors for the colormap or None if not set.
 
         This returns None if the colormap was set with :meth:`setName`.
         Use :meth:`getNColors` to get the colormap LUT for any colormap.
 
+        :param bool copy: If true a copy of the numpy array is provided
         :return: the list of colors for the colormap or None if not set
         :rtype: numpy.ndarray or None
         """
         if self._name is None:
-            return numpy.array(self._colors, copy=True)
+            return numpy.array(self._colors, copy=copy)
         else:
             return None
 
@@ -684,7 +685,7 @@ class Colormap(qt.QObject):
         :rtype: silx.gui.colors.Colormap
         """
         return Colormap(name=self._name,
-                        colors=self.getColormapLUT(),
+                        colors=self.getColormapLUT(copy=False),
                         vmin=self._vmin,
                         vmax=self._vmax,
                         normalization=self._normalization)
