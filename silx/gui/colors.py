@@ -709,7 +709,7 @@ class Colormap(qt.QObject):
         :rtype: tuple
         """
         if _matplotlib_cm is not None:
-            colormaps = set(_matplotlib_cm.datad.keys())
+            colormaps = set(_matplotlib_cm.cmap_d.keys())
         else:
             colormaps = set()
         colormaps.update(_AVAILABLE_AS_BUILTINS)
