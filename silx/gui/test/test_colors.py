@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "06/11/2018"
 
 import unittest
 import numpy
@@ -373,7 +373,28 @@ class TestObjectAPI(ParametricTestCase):
     def testBadColorsType(self):
         """Make sure colors can't be something else than an array"""
         with self.assertRaises(TypeError):
-            Colormap(name='temperature', colors=256)
+            Colormap(colors=256)
+
+    def testEqual(self):
+        colormap1 = Colormap()
+        colormap2 = Colormap()
+        self.assertEqual(colormap1, colormap2)
+
+    def testCompareString(self):
+        colormap = Colormap()
+        self.assertNotEqual(colormap, "a")
+
+    def testCompareNone(self):
+        colormap = Colormap()
+        self.assertNotEqual(colormap, None)
+
+    def testSet(self):
+        colormap = Colormap()
+        other = Colormap(name="viridis", vmin=1, vmax=2, normalization=Colormap.LOGARITHM)
+        self.assertNotEqual(colormap, other)
+        colormap.setFromColormap(other)
+        self.assertIsNot(colormap, other)
+        self.assertEqual(colormap, other)
 
 
 class TestPreferredColormaps(unittest.TestCase):

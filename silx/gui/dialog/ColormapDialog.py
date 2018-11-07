@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "06/11/2018"
 
 
 import logging
@@ -727,9 +727,9 @@ class ColormapDialog(qt.QDialog):
         """
         colormap = self.getColormap()
         if colormap is not None and self._colormapStoredState is not None:
-            if self._colormap()._toDict() != self._colormapStoredState:
+            if colormap != self._colormapStoredState:
                 self._ignoreColormapChange = True
-                colormap._setFromDict(self._colormapStoredState)
+                colormap.setFromColormap(self._colormapStoredState)
                 self._ignoreColormapChange = False
                 self._applyColormap()
 
@@ -801,7 +801,7 @@ class ColormapDialog(qt.QDialog):
         """
         colormap = self.getColormap()
         if colormap is not None:
-            self._colormapStoredState = colormap._toDict()
+            self._colormapStoredState = colormap.copy()
         else:
             self._colormapStoredState = None
 
@@ -839,7 +839,7 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is not None and colormap.isEditable():
             # can reset only in the case the colormap changed
-            rStateEnabled = colormap._toDict() != self._colormapStoredState
+            rStateEnabled = colormap != self._colormapStoredState
         resetButton.setEnabled(rStateEnabled)
 
     def _applyColormap(self):

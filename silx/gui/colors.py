@@ -29,14 +29,16 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "07/11/2018"
 
-from silx.gui import qt
 import numpy
 import logging
+
+from silx.gui import qt
 from silx.math.combo import min_max
 from silx.math.colormap import cmap as _cmap
 from silx.utils.exceptions import NotEditableError
+from silx.utils import deprecation
 from silx.resources import resource_filename as _resource_filename
 
 
@@ -255,6 +257,8 @@ DEFAULT_MAX_LOG = 10
 class Colormap(qt.QObject):
     """Description of a colormap
 
+    If no `name` nor `colors` are provided, a default gray LUT is used.
+
     :param str name: Name of the colormap
     :param tuple colors: optional, custom colormap.
             Nx3 or Nx4 numpy array of RGB(A) colors,
@@ -279,7 +283,7 @@ class Colormap(qt.QObject):
     sigChanged = qt.Signal()
     """Signal emitted when the colormap has changed."""
 
-    def __init__(self, name='gray', colors=None, normalization=LINEAR, vmin=None, vmax=None):
+    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None):
         qt.QObject.__init__(self)
         self._editable = True
 
@@ -296,15 +300,46 @@ class Colormap(qt.QObject):
         self._name = None
         self._colors = None
 
-        if colors is not None:
-            self.setColormapLUT(colors)
+        if colors is not None and name is not None:
+            deprecation.deprecated_warning("Argument",
+                                           name="silx.gui.plot.Colors",
+                                           reason="name and colors can't be used at the same time",
+                                           since_version="0.10.0",
+                                           skip_backtrace_count=1)
+
+            colors = None
 
         if name is not None:
             self.setName(name)  # And resets colormap LUT
+        elif colors is not None:
+            self.setColormapLUT(colors)
+        else:
+            # Default colormap is grey
+            self.setName("gray")
 
         self._normalization = str(normalization)
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
+
+    def setFromColormap(self, other):
+        """Set this colormap using information from the `other` colormap.
+
+        :param Colormap other: Colormap to use as reference.
+        """
+        if not self.isEditable():
+            raise NotEditableError('Colormap is not editable')
+        if self == other:
+            return
+        old = self.blockSignals(True)
+        name = other.getName()
+        if name is not None:
+            self.setName(name)
+        else:
+            self.setColormapLUT(other.getColormapLUT())
+        self.setNormalization(other.getNormalization())
+        self.setVRange(other.getVMin(), other.getVMax())
+        self.blockSignals(old)
+        self.sigChanged.emit()
 
     def getNColors(self, nbColors=None):
         """Returns N colors computed by sampling the colormap regularly.
@@ -348,17 +383,18 @@ class Colormap(qt.QObject):
         self._colors = _getColormap(self._name)
         self.sigChanged.emit()
 
-    def getColormapLUT(self):
+    def getColormapLUT(self, copy=True):
         """Return the list of colors for the colormap or None if not set.
 
         This returns None if the colormap was set with :meth:`setName`.
         Use :meth:`getNColors` to get the colormap LUT for any colormap.
 
+        :param bool copy: If true a copy of the numpy array is provided
         :return: the list of colors for the colormap or None if not set
         :rtype: numpy.ndarray or None
         """
         if self._name is None:
-            return numpy.array(self._colors, copy=True)
+            return numpy.array(self._colors, copy=copy)
         else:
             return None
 
@@ -695,6 +731,10 @@ class Colormap(qt.QObject):
 
     def __eq__(self, other):
         """Compare colormap values and not pointers"""
+        if other is None:
+            return False
+        if not isinstance(other, Colormap):
+            return False
         return (self.getName() == other.getName() and
                 self.getNormalization() == other.getNormalization() and
                 self.getVMin() == other.getVMin() and
