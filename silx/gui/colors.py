@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "06/11/2018"
+__date__ = "07/11/2018"
 
 import numpy
 import logging
@@ -335,7 +335,7 @@ class Colormap(qt.QObject):
         if name is not None:
             self.setName(name)
         else:
-            self.setColormapLUT(other.getColormapLUT(copy=False))
+            self.setColormapLUT(other.getColormapLUT())
         self.setNormalization(other.getNormalization())
         self.setVRange(other.getVMin(), other.getVMax())
         self.blockSignals(old)
@@ -681,19 +681,6 @@ class Colormap(qt.QObject):
 
     def copy(self):
         """Return a copy of the Colormap.
-
-        :rtype: silx.gui.colors.Colormap
-        """
-        return Colormap(name=self._name,
-                        colors=self.getColormapLUT(copy=False),
-                        vmin=self._vmin,
-                        vmax=self._vmax,
-                        normalization=self._normalization)
-
-    def deepcopy(self):
-        """Return a copy of the Colormap.
-
-        If a LUT is provided the numpy array data is also copyed.
 
         :rtype: silx.gui.colors.Colormap
         """
