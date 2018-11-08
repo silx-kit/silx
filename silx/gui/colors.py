@@ -29,11 +29,11 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "07/11/2018"
+__date__ = "08/11/2018"
 
 import numpy
 import logging
-
+import collections
 from silx.gui import qt
 from silx.math.combo import min_max
 from silx.math.colormap import cmap as _cmap
@@ -81,6 +81,29 @@ _COLORDICT['darkMagenta'] = '#800080'
 # FIXME: It could be nice to expose a functional API instead of that attribute
 COLORDICT = _COLORDICT
 
+
+_LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor_color", "default", "preferred"])
+"""Description of a LUT for internal purpose."""
+
+
+_AVAILABLE_LUTS = collections.OrderedDict([
+    ('gray', _LUT_DESCRIPTION('builtin', 'pink', True, True)),
+    ('reversed gray', _LUT_DESCRIPTION('builtin', 'pink', True, True)),
+    ('temperature', _LUT_DESCRIPTION('builtin', 'pink', True, True)),
+    ('red', _LUT_DESCRIPTION('builtin', 'green', True, True)),
+    ('green', _LUT_DESCRIPTION('builtin', 'pink', True, True)),
+    ('blue', _LUT_DESCRIPTION('builtin', 'yellow', True, True)),
+    ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True, True)),
+    ('viridis', _LUT_DESCRIPTION('resource', 'pink', True, True)),
+    ('magma', _LUT_DESCRIPTION('resource', 'green', True, True)),
+    ('inferno', _LUT_DESCRIPTION('resource', 'green', True, True)),
+    ('plasma', _LUT_DESCRIPTION('resource', 'green', True, True)),
+    ('hsv', _LUT_DESCRIPTION('matplotlib', 'black', False, True)),
+])
+"""Description for internal porpose of all the default LUT provided by the library."""
+
+DEFAULT_COLORMAPS = tuple([k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].default])
+"""Tuple of supported colormap names."""
 
 def rgba(color, colorDict=None):
     """Convert color code '#RRGGBB' and '#RRGGBBAA' to (R, G, B, A)
@@ -130,21 +153,6 @@ def rgba(color, colorDict=None):
     return r, g, b, a
 
 
-_COLORMAP_CURSOR_COLORS = {
-    'gray': 'pink',
-    'reversed gray': 'pink',
-    'temperature': 'pink',
-    'red': 'green',
-    'green': 'pink',
-    'blue': 'yellow',
-    'jet': 'pink',
-    'viridis': 'pink',
-    'magma': 'green',
-    'inferno': 'green',
-    'plasma': 'green',
-}
-
-
 def cursorColorForColormap(colormapName):
     """Get a color suitable for overlay over a colormap.
 
@@ -152,19 +160,15 @@ def cursorColorForColormap(colormapName):
     :return: Name of the color.
     :rtype: str
     """
-    return _COLORMAP_CURSOR_COLORS.get(colormapName, 'black')
+    description = _AVAILABLE_LUTS.get(colormapName, None)
+    if description is not None:
+        color = description.cursor_color
+        if color is not None:
+            return color
+    return 'black'
 
 
 # Colormap loader
-
-_AVAILABLE_AS_RESOURCE = 'viridis', 'magma', 'inferno', 'plasma'
-"""List available colormap name as resources"""
-
-
-_AVAILABLE_AS_BUILTINS = ('gray', 'reversed gray',
-                          'temperature', 'red', 'green', 'blue')
-"""List of colormaps available through built-in declarations"""
-
 
 _COLORMAP_CACHE = {}
 """Cache already used colormaps as name: color LUT"""
@@ -182,7 +186,7 @@ def _convertColorsFromFloatToUint8(colors):
         colors.astype(numpy.float64) * 256, 0., 255.).astype(numpy.uint8)
 
 
-def _getColormap(name):
+def _createColormapLut(name):
     """Returns the color LUT corresponding to a colormap name
 
     :param str name: Name of the colormap to load
@@ -190,10 +194,11 @@ def _getColormap(name):
     :rtype: numpy.ndarray
     :raise ValueError: If no colormap corresponds to name
     """
-    name = str(name)
-
-    if name not in _COLORMAP_CACHE:
-        if name in _AVAILABLE_AS_BUILTINS:  # Build colormap LUT
+    description = _AVAILABLE_LUTS.get(name)
+    use_mpl = False
+    if description is not None:
+        if description.source == "builtin":
+            # Build colormap LUT
             lut = numpy.zeros((256, 4), dtype=numpy.uint8)
             lut[:, 3] = 255
 
@@ -220,30 +225,52 @@ def _getColormap(name):
                 lut[64:128, 2] = numpy.arange(254, 0, -4, dtype=numpy.uint8)
             else:
                 raise RuntimeError("Built-in colormap not implemented")
+            return lut
 
-        elif name in _AVAILABLE_AS_RESOURCE:  # Load colormap LUT
+        elif description.source == "resource":
+            # Load colormap LUT
             colors = numpy.load(_resource_filename("gui/colormaps/%s.npy" % name))
             # Convert to uint8 and add alpha channel
             lut = numpy.empty((len(colors), 4), dtype=numpy.uint8)
             lut[:, :3] = _convertColorsFromFloatToUint8(colors)
             lut[:, 3] = 255
+            return lut
 
-        elif _matplotlib_cm is not None:  # Try to load with matplotlib
-            colormap = _matplotlib_cm.get_cmap(name)
-            lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
-            lut = _convertColorsFromFloatToUint8(lut)
+        elif description.source == "matplotlib":
+            use_mpl = True
+
         else:
-            raise ValueError("Unknown colormap %s", name)
+            raise RuntimeError("Internal LUT source '%s' unsupported" % description.source)
 
-        # Store loaded LUT
+    # Here it expect a matplotlib LUTs
+
+    if use_mpl:
+        # matplotlib is mandatory
+        if _matplotlib_cm is None:
+            raise ValueError("The colormap '%s' expect matplotlib, but matplotlib is not installed" % name)
+
+    if _matplotlib_cm is not None:  # Try to load with matplotlib
+        colormap = _matplotlib_cm.get_cmap(name)
+        lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
+        lut = _convertColorsFromFloatToUint8(lut)
+        return lut
+
+    raise ValueError("Unknown colormap '%s'" % name)
+
+
+def _getColormap(name):
+    """Returns the color LUT corresponding to a colormap name
+
+    :param str name: Name of the colormap to load
+    :returns: Corresponding table of colors
+    :rtype: numpy.ndarray
+    :raise ValueError: If no colormap corresponds to name
+    """
+    name = str(name)
+    if name not in _COLORMAP_CACHE:
+        lut = _createColormapLut(name)
         _COLORMAP_CACHE[name] = lut
-
     return _COLORMAP_CACHE[name]
-
-
-DEFAULT_COLORMAPS = _AVAILABLE_AS_BUILTINS + _AVAILABLE_AS_RESOURCE
-"""Tuple of supported colormap names."""
-
 DEFAULT_MIN_LIN = 0
 """Default min value if in linear normalization"""
 DEFAULT_MAX_LIN = 1
@@ -708,12 +735,10 @@ class Colormap(qt.QObject):
          'viridis', 'magma', 'inferno', 'plasma')
         :rtype: tuple
         """
+        colormaps = set()
         if _matplotlib_cm is not None:
-            colormaps = set(_matplotlib_cm.cmap_d.keys())
-        else:
-            colormaps = set()
-        colormaps.update(_AVAILABLE_AS_BUILTINS)
-        colormaps.update(_AVAILABLE_AS_RESOURCE)
+            colormaps.update(_matplotlib_cm.cmap_d.keys())
+        colormaps.update(_AVAILABLE_LUTS.keys())
 
         colormaps = tuple(cmap for cmap in sorted(colormaps)
                           if cmap not in DEFAULT_COLORMAPS)
@@ -829,10 +854,8 @@ def preferredColormaps():
     global _PREFERRED_COLORMAPS
     if _PREFERRED_COLORMAPS is None:
         # Initialize preferred colormaps
-        setPreferredColormaps(('gray', 'reversed gray',
-                               'temperature', 'red', 'green', 'blue', 'jet',
-                               'viridis', 'magma', 'inferno', 'plasma',
-                               'hsv'))
+        default_preferred = [k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].preferred]
+        setPreferredColormaps(default_preferred)
     return _PREFERRED_COLORMAPS
 
 
