@@ -424,6 +424,55 @@ class TestPreferredColormaps(unittest.TestCase):
         self.assertEqual(colors.preferredColormaps(), colormaps)
 
 
+class TestRegisteredLut(unittest.TestCase):
+    """Test get|setPreferredColormaps functions"""
+
+    def setUp(self):
+        # Save preferred colormaps
+        lut = numpy.arange(8 * 3)
+        lut.shape = -1, 3
+        lut = lut / (8.0 * 3)
+        colors.registerLUT("test_8", colors=lut, cursor_color='blue')
+
+    def testColormap(self):
+        colormap = Colormap("test_8")
+        self.assertIsNotNone(colormap)
+
+    def testCursor(self):
+        color = colors.cursorColorForColormap("test_8")
+        self.assertEqual(color, 'blue')
+
+    def testLut(self):
+        colormap = Colormap("test_8")
+        colors = colormap.getNColors(8)
+        self.assertEquals(len(colors), 8)
+
+    def testUint8(self):
+        lut = numpy.array([[255, 0, 0], [200, 0, 0], [150, 0, 0]], dtype="uint")
+        colors.registerLUT("test_type", lut)
+        colormap = colors.Colormap(name="test_type")
+        lut = colormap.getNColors(3)
+        self.assertEqual(lut.shape, (3, 4))
+        self.assertEqual(lut[0, 0], 255)
+
+    def testFloatRGB(self):
+        lut = numpy.array([[1.0, 0, 0], [0.5, 0, 0], [0, 0, 0]], dtype="float")
+        colors.registerLUT("test_type", lut)
+        colormap = colors.Colormap(name="test_type")
+        lut = colormap.getNColors(3)
+        self.assertEqual(lut.shape, (3, 4))
+        self.assertEqual(lut[0, 0], 255)
+
+    def testFloatRGBA(self):
+        lut = numpy.array([[1.0, 0, 0, 128 / 256.0], [0.5, 0, 0, 1.0], [0.0, 0, 0, 1.0]], dtype="float")
+        colors.registerLUT("test_type", lut)
+        colormap = colors.Colormap(name="test_type")
+        lut = colormap.getNColors(3)
+        self.assertEqual(lut.shape, (3, 4))
+        self.assertEqual(lut[0, 0], 255)
+        self.assertEqual(lut[0, 3], 128)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
@@ -432,6 +481,7 @@ def suite():
     test_suite.addTest(loadTests(TestDictAPI))
     test_suite.addTest(loadTests(TestObjectAPI))
     test_suite.addTest(loadTests(TestPreferredColormaps))
+    test_suite.addTest(loadTests(TestRegisteredLut))
     return test_suite
 
 

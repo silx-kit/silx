@@ -907,3 +907,21 @@ def _setPreferredColormaps(colormaps):
 
     global _PREFERRED_COLORMAPS
     _PREFERRED_COLORMAPS = colormaps
+
+
+def registerLUT(name, colors, cursor_color='black'):
+    """Register a custom LUT to be used with `Colormap` objects.
+
+    It can override existing LUT names.
+
+    :param str name: Name of the LUT as defined to configure colormaps
+    :param numpy.ndarray colors: The custom LUT to register.
+            Nx3 or Nx4 numpy array of RGB(A) colors,
+            either uint8 or float in [0, 1].
+    :param str cursor_color: Color used to display overlay over images using
+        colormap with this LUT.
+    """
+    description = _LUT_DESCRIPTION('user', cursor_color, True)
+    colors = _arrayToRgba8888(colors)
+    _AVAILABLE_LUTS[name] = description
+    _COLORMAP_CACHE[name] = colors
