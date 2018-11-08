@@ -864,10 +864,11 @@ def preferredColormaps():
             default_preferred = config.PREFERRED_COLORMAPS
         else:
             default_preferred = [k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].preferred]
-        setPreferredColormaps(default_preferred)
+        _setPreferredColormaps(default_preferred)
     return _PREFERRED_COLORMAPS
 
 
+@deprecation.deprecated(replacement="silx.config.PREFFERED_COLORMAPS", since_version="0.10")
 def setPreferredColormaps(colormaps):
     """Set the list of preferred colormap names.
 
@@ -878,6 +879,10 @@ def setPreferredColormaps(colormaps):
     :type colormaps: iterable of str
     :raise ValueError: if the list of available preferred colormaps is empty.
     """
+    _setPreferredColormaps(colormaps)
+
+
+def _setPreferredColormaps(colormaps):
     supportedColormaps = Colormap.getSupportedColormaps()
     colormaps = tuple(
         cmap for cmap in colormaps if cmap in supportedColormaps)

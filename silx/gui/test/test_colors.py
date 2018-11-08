@@ -29,14 +29,13 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "06/11/2018"
+__date__ = "08/11/2018"
 
 import unittest
 import numpy
 from silx.utils.testutils import ParametricTestCase
 from silx.gui import colors
 from silx.gui.colors import Colormap
-from silx.gui.colors import preferredColormaps, setPreferredColormaps
 from silx.utils.exceptions import NotEditableError
 
 
@@ -402,27 +401,27 @@ class TestPreferredColormaps(unittest.TestCase):
 
     def setUp(self):
         # Save preferred colormaps
-        self._colormaps = preferredColormaps()
+        self._colormaps = colors.preferredColormaps()
 
     def tearDown(self):
         # Restore saved preferred colormaps
-        setPreferredColormaps(self._colormaps)
+        colors._setPreferredColormaps(self._colormaps)
 
     def test(self):
         colormaps = 'viridis', 'magma'
 
-        setPreferredColormaps(colormaps)
-        self.assertEqual(preferredColormaps(), colormaps)
+        colors._setPreferredColormaps(colormaps)
+        self.assertEqual(colors.preferredColormaps(), colormaps)
 
         with self.assertRaises(ValueError):
-            setPreferredColormaps(())
+            colors._setPreferredColormaps(())
 
         with self.assertRaises(ValueError):
-            setPreferredColormaps(('This is not a colormap',))
+            colors._setPreferredColormaps(('This is not a colormap',))
 
         colormaps = 'red', 'green'
-        setPreferredColormaps(('This is not a colormap',) + colormaps)
-        self.assertEqual(preferredColormaps(), colormaps)
+        colors._setPreferredColormaps(('This is not a colormap',) + colormaps)
+        self.assertEqual(colors.preferredColormaps(), colormaps)
 
 
 def suite():
