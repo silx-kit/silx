@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "06/11/2018"
+__date__ = "08/11/2018"
 
 
 import logging
@@ -154,14 +154,15 @@ class _ColormapNameCombox(qt.QComboBox):
         qt.QComboBox.__init__(self, parent)
         self.__initItems()
 
-    ORIGINAL_NAME = qt.Qt.UserRole + 1
+    LUT_NAME = qt.Qt.UserRole + 1
+    LUT_COLORS = qt.Qt.UserRole + 2
 
     def __initItems(self):
         for colormapName in preferredColormaps():
             index = self.count()
             self.addItem(str.title(colormapName))
             self.setItemIcon(index, self.getIconPreview(colormapName))
-            self.setItemData(index, colormapName, role=self.ORIGINAL_NAME)
+            self.setItemData(index, colormapName, role=self.LUT_NAME)
 
     def getIconPreview(self, colormapName):
         """Return an icon preview from a LUT name.
@@ -204,18 +205,50 @@ class _ColormapNameCombox(qt.QComboBox):
         return qt.QIcon(pixmap)
 
     def getCurrentName(self):
-        return self.itemData(self.currentIndex(), self.ORIGINAL_NAME)
+        return self.itemData(self.currentIndex(), self.LUT_NAME)
 
-    def findColormap(self, name):
-        return self.findData(name, role=self.ORIGINAL_NAME)
+    def getCurrentColors(self):
+        return self.itemData(self.currentIndex(), self.LUT_COLORS)
 
-    def setCurrentName(self, name):
-        index = self.findColormap(name)
+    def findLutName(self, name):
+        return self.findData(name, role=self.LUT_NAME)
+
+    def findLutColors(self, lut):
+        for index in range(self.count()):
+            if self.itemData(index, role=self.LUT_NAME) is not None:
+                continue
+            colors = self.itemData(index, role=self.LUT_COLORS)
+            if colors is None:
+                continue
+            if numpy.array_equal(colors, lut):
+                return index
+        return -1
+
+    def setCurrentLut(self, colormap):
+        name = colormap.getName()
+        if name is not None:
+            self._setCurrentName(name)
+        else:
+            lut = colormap.getColormapLUT()
+            self._setCurrentLut(lut)
+
+    def _setCurrentLut(self, lut):
+        index = self.findLutColors(lut)
+        if index == -1:
+            index = self.count()
+            self.addItem("Custom")
+            self.setItemIcon(index, qt.QIcon())
+            self.setItemData(index, None, role=self.LUT_NAME)
+            self.setItemData(index, lut, role=self.LUT_COLORS)
+        self.setCurrentIndex(index)
+
+    def _setCurrentName(self, name):
+        index = self.findLutName(name)
         if index < 0:
             index = self.count()
             self.addItem(str.title(name))
             self.setItemIcon(index, self.getIconPreview(name))
-            self.setItemData(index, name, role=self.ORIGINAL_NAME)
+            self.setItemData(index, name, role=self.LUT_NAME)
         self.setCurrentIndex(index)
 
 
@@ -276,7 +309,7 @@ class ColormapDialog(qt.QDialog):
 
         # Colormap row
         self._comboBoxColormap = _ColormapNameCombox(parent=formWidget)
-        self._comboBoxColormap.currentIndexChanged[int].connect(self._updateName)
+        self._comboBoxColormap.currentIndexChanged[int].connect(self._updateLut)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
 
         # Normalization row
@@ -856,12 +889,8 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setEnabled(False)
         else:
             self._ignoreColormapChange = True
-
-            if colormap.getName() is not None:
-                name = colormap.getName()
-                self._comboBoxColormap.setCurrentName(name)
-                self._comboBoxColormap.setEnabled(self._colormap().isEditable())
-
+            self._comboBoxColormap.setCurrentLut(colormap)
+            self._comboBoxColormap.setEnabled(colormap.isEditable())
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             self._normButtonLinear.setChecked(
                 colormap.getNormalization() == Colormap.LINEAR)
@@ -870,12 +899,12 @@ class ColormapDialog(qt.QDialog):
             vmin = colormap.getVMin()
             vmax = colormap.getVMax()
             dataRange = colormap.getColormapRange()
-            self._normButtonLinear.setEnabled(self._colormap().isEditable())
-            self._normButtonLog.setEnabled(self._colormap().isEditable())
+            self._normButtonLinear.setEnabled(colormap.isEditable())
+            self._normButtonLog.setEnabled(colormap.isEditable())
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
-            self._minValue.setEnabled(self._colormap().isEditable())
-            self._maxValue.setEnabled(self._colormap().isEditable())
+            self._minValue.setEnabled(colormap.isEditable())
+            self._maxValue.setEnabled(colormap.isEditable())
             self._ignoreColormapChange = False
 
         self._plotUpdate()
@@ -908,14 +937,19 @@ class ColormapDialog(qt.QDialog):
         self._plotUpdate()
         self._updateResetButton()
 
-    def _updateName(self):
+    def _updateLut(self):
         if self._ignoreColormapChange is True:
             return
 
-        if self._colormap():
+        colormap = self._colormap()
+        if colormap is not None:
             self._ignoreColormapChange = True
-            self._colormap().setName(
-                self._comboBoxColormap.getCurrentName())
+            name = self._comboBoxColormap.getCurrentName()
+            if name is not None:
+                colormap.setName(name)
+            else:
+                lut = self._comboBoxColormap.getCurrentColors()
+                colormap.setColormapLUT(lut)
             self._ignoreColormapChange = False
 
     def _updateLinearNorm(self, isNormLinear):

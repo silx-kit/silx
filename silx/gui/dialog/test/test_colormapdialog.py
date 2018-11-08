@@ -70,7 +70,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         colormapDiag2.setColormap(self.colormap)
         self.colormapDiag.setColormap(self.colormap)
 
-        self.colormapDiag._comboBoxColormap.setCurrentName('red')
+        self.colormapDiag._comboBoxColormap._setCurrentName('red')
         self.colormapDiag._normButtonLog.setChecked(True)
         self.assertTrue(self.colormap.getName() == 'red')
         self.assertTrue(self.colormapDiag.getColormap().getName() == 'red')
@@ -193,7 +193,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.show()
         del self.colormap
         self.assertTrue(self.colormapDiag.getColormap() is None)
-        self.colormapDiag._comboBoxColormap.setCurrentName('blue')
+        self.colormapDiag._comboBoxColormap._setCurrentName('blue')
 
     def testColormapEditedOutside(self):
         """Make sure the GUI is still up to date if the colormap is modified
@@ -256,7 +256,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         cb = self.colormapDiag._comboBoxColormap
         self.assertTrue(cb.getCurrentName() == colormapName)
         cb.setCurrentIndex(0)
-        index = cb.findColormap(colormapName)
+        index = cb.findLutName(colormapName)
         assert index is not 0  # if 0 then the rest of the test has no sense
         cb.setCurrentIndex(index)
         self.assertTrue(cb.getCurrentName() == colormapName)
