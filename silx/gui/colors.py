@@ -916,4 +916,5 @@ def registerLUT(name, colors, cursor_color='black'):
     description = _LUT_DESCRIPTION('user', cursor_color, True)
     colors = _arrayToRgba8888(colors)
     _AVAILABLE_LUTS[name] = description
+    # Register the cache as the LUT was already loaded
     _COLORMAP_CACHE[name] = colors
