@@ -35,6 +35,7 @@ import numpy
 import logging
 import collections
 from silx.gui import qt
+from silx import config
 from silx.math.combo import min_max
 from silx.math.colormap import cmap as _cmap
 from silx.utils.exceptions import NotEditableError
@@ -859,7 +860,10 @@ def preferredColormaps():
     global _PREFERRED_COLORMAPS
     if _PREFERRED_COLORMAPS is None:
         # Initialize preferred colormaps
-        default_preferred = [k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].preferred]
+        if config.PREFERRED_COLORMAPS is not None:
+            default_preferred = config.PREFERRED_COLORMAPS
+        else:
+            default_preferred = [k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].preferred]
         setPreferredColormaps(default_preferred)
     return _PREFERRED_COLORMAPS
 

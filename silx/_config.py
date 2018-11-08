@@ -28,7 +28,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2018"
+__date__ = "08/11/2018"
 
 
 class Config(object):
@@ -61,6 +61,16 @@ class Config(object):
     :module:`silx.gui.colors`.
 
     .. versionadded:: 0.8
+    """
+
+    PREFERRED_COLORMAPS = None
+    """List the preferred LUT names which have to be displayed by default
+    in widgets providing LUT selection.
+
+    The available list of names are availaible in the module
+    :module:`silx.gui.colors`.
+
+    .. versionadded:: 0.10
     """
 
     DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = 'upward'
