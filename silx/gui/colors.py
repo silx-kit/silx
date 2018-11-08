@@ -188,16 +188,34 @@ _COLORMAP_CACHE = {}
 """Cache already used colormaps as name: color LUT"""
 
 
-def _convertColorsFromFloatToUint8(colors):
-    """Convert colors from float in [0, 1] to uint8
+def _arrayToRgba8888(colors):
+    """Convert colors from a numpy array using float (0..1) int or uint
+    (0..255) to uint8 RGBA.
 
-    :param numpy.ndarray colors: Array of float colors to convert
+    :param numpy.ndarray colors: Array of float int or uint  colors to convert
     :return: colors as uint8
     :rtype: numpy.ndarray
     """
-    # Each bin is [N, N+1[ except the last one: [255, 256]
-    return numpy.clip(
-        colors.astype(numpy.float64) * 256, 0., 255.).astype(numpy.uint8)
+    assert len(colors.shape) == 2
+    assert colors.shape[1] in (3, 4)
+
+    if colors.dtype == numpy.uint8:
+        pass
+    elif colors.dtype.kind == 'f':
+        # Each bin is [N, N+1[ except the last one: [255, 256]
+        colors = numpy.clip(colors.astype(numpy.float64) * 256, 0., 255.)
+        colors = colors.astype(numpy.uint8)
+    elif colors.dtype.kind in 'iu':
+        colors = numpy.clip(colors, 0, 255)
+        colors = colors.astype(numpy.uint8)
+
+    if colors.shape[1] == 3:
+        tmp = numpy.empty((len(colors), 4), dtype=numpy.uint8)
+        tmp[:, 0:3] = colors
+        tmp[:, 3] = 255
+        colors = tmp
+
+    return colors
 
 
 def _createColormapLut(name):
@@ -245,9 +263,7 @@ def _createColormapLut(name):
             # Load colormap LUT
             colors = numpy.load(_resource_filename("gui/colormaps/%s.npy" % name))
             # Convert to uint8 and add alpha channel
-            lut = numpy.empty((len(colors), 4), dtype=numpy.uint8)
-            lut[:, :3] = _convertColorsFromFloatToUint8(colors)
-            lut[:, 3] = 255
+            lut = _arrayToRgba8888(colors)
             return lut
 
         elif description.source == "matplotlib":
@@ -266,7 +282,7 @@ def _createColormapLut(name):
     if _matplotlib_cm is not None:  # Try to load with matplotlib
         colormap = _matplotlib_cm.get_cmap(name)
         lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
-        lut = _convertColorsFromFloatToUint8(lut)
+        lut = _arrayToRgba8888(lut)
         return lut
 
     raise ValueError("Unknown colormap '%s'" % name)
@@ -452,7 +468,7 @@ class Colormap(qt.QObject):
         assert colors.shape[-1] <= 4  # Provide up to 4 channels (RGBA)
         colors.shape = -1, colors.shape[-1]
         if colors.dtype.kind == 'f':
-            colors = _convertColorsFromFloatToUint8(colors)
+            colors = _arrayToRgba8888(colors)
 
         # Makes sure it is RGBA8888
         self._colors = numpy.zeros((len(colors), 4), dtype=numpy.uint8)
