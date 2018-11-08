@@ -354,7 +354,7 @@ class ColormapDialog(qt.QDialog):
         normButtonGroup.setExclusive(True)
         normButtonGroup.addButton(self._normButtonLinear)
         normButtonGroup.addButton(self._normButtonLog)
-        self._normButtonLinear.toggled[bool].connect(self._updateLinearNorm)
+        self._normButtonLinear.toggled[bool].connect(self._updateNormalization)
 
         normLayout = qt.QHBoxLayout()
         normLayout.setContentsMargins(0, 0, 0, 0)
@@ -984,14 +984,15 @@ class ColormapDialog(qt.QDialog):
                 colormap.setColormapLUT(lut)
             self._ignoreColormapChange = False
 
-    def _updateLinearNorm(self, isNormLinear):
+    def _updateNormalization(self, isNormLinear):
         if self._ignoreColormapChange is True:
             return
 
-        if self._colormap():
+        colormap = self.getColormap()
+        if colormap is not None:
             self._ignoreColormapChange = True
             norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
-            self._colormap().setNormalization(norm)
+            colormap.setNormalization(norm)
             self._ignoreColormapChange = False
 
     def _minMaxTextEdited(self, text):
