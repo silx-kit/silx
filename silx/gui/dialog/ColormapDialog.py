@@ -149,6 +149,22 @@ class _BoundaryWidget(qt.QWidget):
         self._updateDisplayedText()
 
 
+class _HashableNumpyArray(object):
+    """Holster of numpy array to provide hashable and comparable objects"""
+
+    def __init__(self, array):
+        self.__array = array
+
+    def __eq__(self, other):
+        if not isinstance(other, _HashableNumpyArray):
+            return False
+        return numpy.array_equal(self.__array, other.__array)
+
+    def __hash__(self):
+        # str only uses head and tail of the numpy array
+        return hash(str(self.__array))
+
+
 class _ColormapNameCombox(qt.QComboBox):
     def __init__(self, parent=None):
         qt.QComboBox.__init__(self, parent)
@@ -161,33 +177,49 @@ class _ColormapNameCombox(qt.QComboBox):
         for colormapName in preferredColormaps():
             index = self.count()
             self.addItem(str.title(colormapName))
-            self.setItemIcon(index, self.getIconPreview(colormapName))
+            self.setItemIcon(index, self.getIconPreview(name=colormapName))
             self.setItemData(index, colormapName, role=self.LUT_NAME)
 
-    def getIconPreview(self, colormapName):
+    def getIconPreview(self, name=None, colors=None):
         """Return an icon preview from a LUT name.
 
         This icons are cached into a global structure.
 
-        :param str colormapName: str
+        :param str name: Name of the LUT
+        :param numpy.ndarray colors: Colors identify the LUT
         :rtype: qt.QIcon
         """
-        if colormapName not in _colormapIconPreview:
-            icon = self.createIconPreview(colormapName)
-            _colormapIconPreview[colormapName] = icon
-        return _colormapIconPreview[colormapName]
+        iconHash = (name, _HashableNumpyArray(colors))
+        icon = _colormapIconPreview.get(iconHash, None)
+        if icon is None:
+            icon = self.createIconPreview(name, colors)
+            _colormapIconPreview[iconHash] = icon
+        return icon
 
-    def createIconPreview(self, colormapName):
+    def createIconPreview(self, name=None, colors=None):
         """Create and return an icon preview from a LUT name.
 
         This icons are cached into a global structure.
 
-        :param str colormapName: Name of the LUT
+        :param str name: Name of the LUT
+        :param numpy.ndarray colors: Colors identify the LUT
         :rtype: qt.QIcon
         """
-        colormap = Colormap(colormapName)
+        colormap = Colormap(name)
         size = 32
-        lut = colormap.getNColors(size)
+        if name is not None:
+            lut = colormap.getNColors(size)
+        else:
+            lut = colors
+            if len(lut) > size:
+                # Down sample
+                step = int(len(lut) / size)
+                lut = lut[::step]
+            elif len(lut) < size:
+                # Over sample
+                indexes = numpy.arange(size) / float(size) * (len(lut) - 1)
+                indexes = indexes.astype("int")
+                lut = lut[indexes]
         if lut is None or len(lut) == 0:
             return qt.QIcon()
 
@@ -237,7 +269,7 @@ class _ColormapNameCombox(qt.QComboBox):
         if index == -1:
             index = self.count()
             self.addItem("Custom")
-            self.setItemIcon(index, qt.QIcon())
+            self.setItemIcon(index, self.getIconPreview(colors=lut))
             self.setItemData(index, None, role=self.LUT_NAME)
             self.setItemData(index, lut, role=self.LUT_COLORS)
         self.setCurrentIndex(index)
@@ -247,7 +279,7 @@ class _ColormapNameCombox(qt.QComboBox):
         if index < 0:
             index = self.count()
             self.addItem(str.title(name))
-            self.setItemIcon(index, self.getIconPreview(name))
+            self.setItemIcon(index, self.getIconPreview(name=name))
             self.setItemData(index, name, role=self.LUT_NAME)
         self.setCurrentIndex(index)
 
