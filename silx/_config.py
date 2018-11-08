@@ -119,4 +119,3 @@ class Config(object):
 
     .. versionadded:: 0.9
     """
-                                    
