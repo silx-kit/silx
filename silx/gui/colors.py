@@ -82,28 +82,31 @@ _COLORDICT['darkMagenta'] = '#800080'
 COLORDICT = _COLORDICT
 
 
-_LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor_color", "default", "preferred"])
+_LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor_color", "preferred"])
 """Description of a LUT for internal purpose."""
 
 
 _AVAILABLE_LUTS = collections.OrderedDict([
-    ('gray', _LUT_DESCRIPTION('builtin', 'pink', True, True)),
-    ('reversed gray', _LUT_DESCRIPTION('builtin', 'pink', True, True)),
-    ('temperature', _LUT_DESCRIPTION('builtin', 'pink', True, True)),
-    ('red', _LUT_DESCRIPTION('builtin', 'green', True, True)),
-    ('green', _LUT_DESCRIPTION('builtin', 'pink', True, True)),
-    ('blue', _LUT_DESCRIPTION('builtin', 'yellow', True, True)),
-    ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True, True)),
-    ('viridis', _LUT_DESCRIPTION('resource', 'pink', True, True)),
-    ('magma', _LUT_DESCRIPTION('resource', 'green', True, True)),
-    ('inferno', _LUT_DESCRIPTION('resource', 'green', True, True)),
-    ('plasma', _LUT_DESCRIPTION('resource', 'green', True, True)),
-    ('hsv', _LUT_DESCRIPTION('matplotlib', 'black', False, True)),
+    ('gray', _LUT_DESCRIPTION('builtin', 'pink', True)),
+    ('reversed gray', _LUT_DESCRIPTION('builtin', 'pink', True)),
+    ('temperature', _LUT_DESCRIPTION('builtin', 'pink', True)),
+    ('red', _LUT_DESCRIPTION('builtin', 'green', True)),
+    ('green', _LUT_DESCRIPTION('builtin', 'pink', True)),
+    ('blue', _LUT_DESCRIPTION('builtin', 'yellow', True)),
+    ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True)),
+    ('viridis', _LUT_DESCRIPTION('resource', 'pink', True)),
+    ('magma', _LUT_DESCRIPTION('resource', 'green', True)),
+    ('inferno', _LUT_DESCRIPTION('resource', 'green', True)),
+    ('plasma', _LUT_DESCRIPTION('resource', 'green', True)),
+    ('hsv', _LUT_DESCRIPTION('matplotlib', 'black', True)),
 ])
 """Description for internal porpose of all the default LUT provided by the library."""
 
-DEFAULT_COLORMAPS = tuple([k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].default])
-"""Tuple of supported colormap names."""
+DEFAULT_COLORMAPS = tuple(_AVAILABLE_LUTS.keys())
+"""Tuple of supported colormap names.
+
+This attribute should not be used as has it could be unsynchronized.
+"""
 
 DEFAULT_MIN_LIN = 0
 """Default min value if in linear normalization"""
@@ -743,9 +746,9 @@ class Colormap(qt.QObject):
         colormaps.update(_AVAILABLE_LUTS.keys())
 
         colormaps = tuple(cmap for cmap in sorted(colormaps)
-                          if cmap not in DEFAULT_COLORMAPS)
+                          if cmap not in _AVAILABLE_LUTS.keys())
 
-        return DEFAULT_COLORMAPS + colormaps
+        return tuple(_AVAILABLE_LUTS.keys()) + colormaps
 
     def __str__(self):
         return str(self._toDict())
