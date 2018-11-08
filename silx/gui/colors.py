@@ -465,16 +465,8 @@ class Colormap(qt.QObject):
             raise TypeError("An array is expected for 'colors' argument. '%s' was found." % type(colors))
         assert len(colors) != 0
         assert colors.ndim >= 2
-        assert colors.shape[-1] <= 4  # Provide up to 4 channels (RGBA)
         colors.shape = -1, colors.shape[-1]
-        if colors.dtype.kind == 'f':
-            colors = _arrayToRgba8888(colors)
-
-        # Makes sure it is RGBA8888
-        self._colors = numpy.zeros((len(colors), 4), dtype=numpy.uint8)
-        self._colors[:, 3] = 255  # Alpha channel
-        self._colors[:, :colors.shape[1]] = colors  # Copy colors
-
+        self._colors = _arrayToRgba8888(colors)
         self._name = None
         self.sigChanged.emit()
 
