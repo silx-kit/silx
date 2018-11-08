@@ -105,6 +105,16 @@ _AVAILABLE_LUTS = collections.OrderedDict([
 DEFAULT_COLORMAPS = tuple([k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].default])
 """Tuple of supported colormap names."""
 
+DEFAULT_MIN_LIN = 0
+"""Default min value if in linear normalization"""
+DEFAULT_MAX_LIN = 1
+"""Default max value if in linear normalization"""
+DEFAULT_MIN_LOG = 1
+"""Default min value if in log normalization"""
+DEFAULT_MAX_LOG = 10
+"""Default max value if in log normalization"""
+
+
 def rgba(color, colorDict=None):
     """Convert color code '#RRGGBB' and '#RRGGBBAA' to (R, G, B, A)
 
@@ -271,14 +281,6 @@ def _getColormap(name):
         lut = _createColormapLut(name)
         _COLORMAP_CACHE[name] = lut
     return _COLORMAP_CACHE[name]
-DEFAULT_MIN_LIN = 0
-"""Default min value if in linear normalization"""
-DEFAULT_MAX_LIN = 1
-"""Default max value if in linear normalization"""
-DEFAULT_MIN_LOG = 1
-"""Default min value if in log normalization"""
-DEFAULT_MAX_LOG = 10
-"""Default max value if in log normalization"""
 
 
 class Colormap(qt.QObject):
