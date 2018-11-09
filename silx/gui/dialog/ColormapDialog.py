@@ -73,6 +73,7 @@ import numpy
 from .. import qt
 from ..colors import Colormap, preferredColormaps
 from ..plot import PlotWidget
+from ..plot.items.axis import Axis
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
 from silx.math.combo import min_max
@@ -335,13 +336,12 @@ class ColormapDialog(qt.QDialog):
         self._normButtonLinear = qt.QRadioButton('Linear')
         self._normButtonLinear.setChecked(True)
         self._normButtonLog = qt.QRadioButton('Log')
-        self._normButtonLog.toggled.connect(self._activeLogNorm)
 
         normButtonGroup = qt.QButtonGroup(self)
         normButtonGroup.setExclusive(True)
         normButtonGroup.addButton(self._normButtonLinear)
         normButtonGroup.addButton(self._normButtonLog)
-        self._normButtonLinear.toggled[bool].connect(self._updateNormalization)
+        normButtonGroup.buttonClicked[qt.QAbstractButton].connect(self._updateNormalization)
 
         normLayout = qt.QHBoxLayout()
         normLayout.setContentsMargins(0, 0, 0, 0)
@@ -486,6 +486,49 @@ class ColormapDialog(qt.QDialog):
     def sizeHint(self):
         return self.layout().minimumSize()
 
+    def _computeView(self, dataMin, dataMax):
+        """Compute the location of the view according to the bound of the data
+
+        :rtype: Tuple(float, float)
+        """
+        marginRatio = 1.0 / 6.0
+        scale = self._plot.getXAxis().getScale()
+
+        if self._dataRange is not None:
+            if scale == Axis.LOGARITHMIC:
+                minRange = self._dataRange[1]
+            else:
+                minRange = self._dataRange[0]
+            maxRange = self._dataRange[2]
+            if minRange is not None:
+                dataMin = min(dataMin, minRange)
+                dataMax = max(dataMax, maxRange)
+
+        if self._histogramData is not None:
+            info = min_max(self._histogramData[1])
+            if scale == Axis.LOGARITHMIC:
+                minHisto = info.min_positive
+            else:
+                minHisto = info.minimum
+            maxHisto = info.maximum
+            if minHisto is not None:
+                dataMin = min(dataMin, minHisto)
+                dataMax = max(dataMax, maxHisto)
+
+        if scale == Axis.LOGARITHMIC:
+            marge = marginRatio * abs(numpy.log10(dataMax) - numpy.log10(dataMin))
+            viewMin = 10**(numpy.log10(dataMin) - marge)
+            viewMax = 10**(numpy.log10(dataMax) + marge)
+        else:  # scale == Axis.LINEAR:
+            marge = marginRatio * abs(dataMax - dataMin)
+            if marge < 0.0001:
+                # Smaller that the QLineEdit precision
+                marge = 0.0001
+            viewMin = dataMin - marge
+            viewMax = dataMax + marge
+
+        return viewMin, viewMax
+
     def _plotUpdate(self, updateMarkers=True):
         """Update the plot content
 
@@ -506,27 +549,8 @@ class ColormapDialog(qt.QDialog):
         if minData > maxData:
             # avoid a full collapse
             minData, maxData = maxData, minData
-        minimum = minData
-        maximum = maxData
 
-        if self._dataRange is not None:
-            minRange = self._dataRange[0]
-            maxRange = self._dataRange[2]
-            minimum = min(minimum, minRange)
-            maximum = max(maximum, maxRange)
-
-        if self._histogramData is not None:
-            minHisto = self._histogramData[1][0]
-            maxHisto = self._histogramData[1][-1]
-            minimum = min(minimum, minHisto)
-            maximum = max(maximum, maxHisto)
-
-        marge = abs(maximum - minimum) / 6.0
-        if marge < 0.0001:
-            # Smaller that the QLineEdit precision
-            marge = 0.0001
-
-        minView, maxView = minimum - marge, maximum + marge
+        minView, maxView = self._computeView(minData, maxData)
 
         if updateMarkers:
             # Save the state in we are not moving the markers
@@ -924,6 +948,11 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
             self._minValue.setEnabled(colormap.isEditable())
             self._maxValue.setEnabled(colormap.isEditable())
+
+            axis = self._plot.getXAxis()
+            scale = axis.LINEAR if colormap.getNormalization() == Colormap.LINEAR else axis.LOGARITHMIC
+            axis.setScale(scale)
+
             self._ignoreColormapChange = False
 
         self._plotUpdate()
@@ -971,16 +1000,30 @@ class ColormapDialog(qt.QDialog):
                 colormap.setColormapLUT(lut)
             self._ignoreColormapChange = False
 
-    def _updateNormalization(self, isNormLinear):
+    def _updateNormalization(self, button):
         if self._ignoreColormapChange is True:
             return
+        if not button.isChecked():
+            return
+
+        if button is self._normButtonLinear:
+            norm = Colormap.LINEAR
+            scale = Axis.LINEAR
+        elif button is self._normButtonLog:
+            norm = Colormap.LOGARITHM
+            scale = Axis.LOGARITHMIC
+        else:
+            assert(False)
 
         colormap = self.getColormap()
         if colormap is not None:
             self._ignoreColormapChange = True
-            norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
             colormap.setNormalization(norm)
+            axis = self._plot.getXAxis()
+            axis.setScale(scale)
             self._ignoreColormapChange = False
+
+        self._updateMinMaxData()
 
     def _minMaxTextEdited(self, text):
         """Handle _minValue and _maxValue textEdited signal"""
@@ -1029,13 +1072,3 @@ class ColormapDialog(qt.QDialog):
         else:
             # Use QDialog keyPressEvent
             super(ColormapDialog, self).keyPressEvent(event)
-
-    def _activeLogNorm(self, isLog):
-        if self._ignoreColormapChange is True:
-            return
-        if self._colormap():
-            self._ignoreColormapChange = True
-            norm = Colormap.LOGARITHM if isLog is True else Colormap.LINEAR
-            self._colormap().setNormalization(norm)
-            self._ignoreColormapChange = False
-        self._updateMinMaxData()
