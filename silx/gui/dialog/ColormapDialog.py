@@ -940,6 +940,7 @@ class ColormapDialog(qt.QDialog):
         if self.isVisible():
             self._applyColormap()
         else:
+            self._updateResetButton()
             self._displayLater()
 
     def _updateResetButton(self):
