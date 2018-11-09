@@ -647,7 +647,7 @@ class ColormapDialog(qt.QDialog):
         return dataRange
 
     @staticmethod
-    def computeHistogram(data):
+    def computeHistogram(data, scale=Axis.LINEAR):
         """Compute the data histogram as used by :meth:`setHistogram`.
 
         :param data: The data to process
@@ -664,7 +664,12 @@ class ColormapDialog(qt.QDialog):
         if len(_data) == 0:
             return None, None
 
+        if scale == Axis.LOGARITHMIC:
+            _data = numpy.log10(_data)
         xmin, xmax = min_max(_data, min_positive=False, finite=True)
+        if xmin is None:
+            return None, None
+
         nbins = min(256, int(numpy.sqrt(_data.size)))
         data_range = xmin, xmax
 
@@ -677,7 +682,10 @@ class ColormapDialog(qt.QDialog):
         _data = _data.ravel().astype(numpy.float32)
 
         histogram = Histogramnd(_data, n_bins=nbins, histo_range=data_range)
-        return histogram.histo, histogram.edges[0]
+        bins = histogram.edges[0]
+        if scale == Axis.LOGARITHMIC:
+            bins = 10**bins
+        return histogram.histo, bins
 
     def _getData(self):
         if self._data is None:
@@ -736,9 +744,14 @@ class ColormapDialog(qt.QDialog):
             self.setDataRange(*result)
         elif mode == _DataInPlotMode.HISTOGRAM:
             # The histogram should be done in a worker thread
-            result = self.computeHistogram(data)
+            result = self.computeHistogram(data, scale=self._plot.getXAxis().getScale())
             self.setHistogram(*result)
             self.setDataRange()
+
+    def _invalidateHistogram(self):
+        """Recompute the histogram if it is displayed"""
+        if self._dataInPlotMode == _DataInPlotMode.HISTOGRAM:
+            self._updateDataInPlot()
 
     def _colormapAboutToFinalize(self, weakrefColormap):
         """Callback when the data weakref is about to be finalized."""
@@ -1023,6 +1036,7 @@ class ColormapDialog(qt.QDialog):
             axis.setScale(scale)
             self._ignoreColormapChange = False
 
+        self._invalidateHistogram()
         self._updateMinMaxData()
 
     def _minMaxTextEdited(self, text):
