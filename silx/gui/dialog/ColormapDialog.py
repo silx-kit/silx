@@ -308,6 +308,7 @@ class ColormapDialog(qt.QDialog):
         the self.setcolormap is a callback)
         """
 
+        self.__displayInvalidated = False
         self._histogramData = None
         self._minMaxWasEdited = False
         self._initialRange = None
@@ -440,9 +441,17 @@ class ColormapDialog(qt.QDialog):
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
 
+    def _displayLater(self):
+        self.__displayInvalidated = True
+
     def showEvent(self, event):
         self.visibleChanged.emit(True)
         super(ColormapDialog, self).showEvent(event)
+        if self.isVisible():
+            if self.__displayInvalidated:
+                self._applyColormap()
+                self._updateDataInPlot()
+                self.__displayInvalidated = False
 
     def closeEvent(self, event):
         if not self.isModal():
@@ -708,7 +717,10 @@ class ColormapDialog(qt.QDialog):
         else:
             self._data = weakref.ref(data, self._dataAboutToFinalize)
 
-        self._updateDataInPlot()
+        if self.isVisible():
+            self._updateDataInPlot()
+        else:
+            self._displayLater()
 
     def _setDataInPlotMode(self, mode):
         if self._dataInPlotMode == mode:
@@ -925,8 +937,10 @@ class ColormapDialog(qt.QDialog):
 
         self._colormap = colormap
         self.storeCurrentState()
-        self._updateResetButton()
-        self._applyColormap()
+        if self.isVisible():
+            self._applyColormap()
+        else:
+            self._displayLater()
 
     def _updateResetButton(self):
         resetButton = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
