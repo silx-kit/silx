@@ -829,12 +829,18 @@ class ColormapDialog(qt.QDialog):
         :param float positiveMin: The positive minimum of the data
         :param float maximum: The maximum of the data
         """
-        if minimum is None or positiveMin is None or maximum is None:
+        scale = self._plot.getXAxis().getScale()
+        if scale == Axis.LOGARITHMIC:
+            dataMin, dataMax = positiveMin, maximum
+        else:
+            dataMin, dataMax = minimum, maximum
+
+        if dataMin is None or dataMax is None:
             self._dataRange = None
             self._plot.remove(legend='Range', kind='histogram')
         else:
             hist = numpy.array([1])
-            bin_edges = numpy.array([minimum, maximum])
+            bin_edges = numpy.array([dataMin, dataMax])
             self._plot.addHistogram(hist,
                                     bin_edges,
                                     legend="Range",
