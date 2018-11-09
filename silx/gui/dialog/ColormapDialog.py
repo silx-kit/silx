@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "08/11/2018"
+__date__ = "09/11/2018"
 
 
 import logging
@@ -149,22 +149,6 @@ class _BoundaryWidget(qt.QWidget):
         self._updateDisplayedText()
 
 
-class _HashableNumpyArray(object):
-    """Holster of numpy array to provide hashable and comparable objects"""
-
-    def __init__(self, array):
-        self.__array = array
-
-    def __eq__(self, other):
-        if not isinstance(other, _HashableNumpyArray):
-            return False
-        return numpy.array_equal(self.__array, other.__array)
-
-    def __hash__(self):
-        # str only uses head and tail of the numpy array
-        return hash(str(self.__array))
-
-
 class _ColormapNameCombox(qt.QComboBox):
     def __init__(self, parent=None):
         qt.QComboBox.__init__(self, parent)
@@ -189,11 +173,14 @@ class _ColormapNameCombox(qt.QComboBox):
         :param numpy.ndarray colors: Colors identify the LUT
         :rtype: qt.QIcon
         """
-        iconHash = (name, _HashableNumpyArray(colors))
-        icon = _colormapIconPreview.get(iconHash, None)
+        if name is not None:
+            iconKey = name
+        else:
+            iconKey = tuple(colors)
+        icon = _colormapIconPreview.get(iconKey, None)
         if icon is None:
             icon = self.createIconPreview(name, colors)
-            _colormapIconPreview[iconHash] = icon
+            _colormapIconPreview[iconKey] = icon
         return icon
 
     def createIconPreview(self, name=None, colors=None):
