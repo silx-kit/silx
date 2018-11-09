@@ -72,7 +72,7 @@ class FFT(OpenclProcessing):
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
                  profile=False
                  ):
-        """Constructor of the class for iterative tomographic reconstruction algorithms.
+        """Constructor of the class OpenCL FFT.
 
         :param shape: shape of the input data.
         :param axes: Optional, the axes to perform the FFT on.
@@ -225,30 +225,3 @@ class FFT(OpenclProcessing):
         self.recover_array_references()
 
         return res
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
