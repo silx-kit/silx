@@ -829,7 +829,7 @@ class Viewer(qt.QMainWindow):
                 menu.addAction(action)
 
             if silx.io.is_file(h5):
-                action = qt.QAction("Remove %s" % obj.local_filename, event.source())
+                action = qt.QAction("Close %s" % obj.local_filename, event.source())
                 action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(h5))
                 menu.addAction(action)
                 action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
