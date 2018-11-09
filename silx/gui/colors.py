@@ -103,11 +103,6 @@ _AVAILABLE_LUTS = collections.OrderedDict([
 ])
 """Description for internal porpose of all the default LUT provided by the library."""
 
-DEFAULT_COLORMAPS = tuple(_AVAILABLE_LUTS.keys())
-"""Tuple of supported colormap names.
-
-This attribute should not be used as has it could be unsynchronized.
-"""
 
 DEFAULT_MIN_LIN = 0
 """Default min value if in linear normalization"""
