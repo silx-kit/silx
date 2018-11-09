@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/10/2018"
+__date__ = "09/11/2018"
 
 
 import os
@@ -74,6 +74,7 @@ class Viewer(qt.QMainWindow):
         rightPanel.setOrientation(qt.Qt.Vertical)
         self.__splitter2 = rightPanel
 
+        self.__displayIt = None
         self.__treeWindow = self.__createTreeWindow(self.__treeview)
 
         # Custom the model to be able to manage the life cycle of the files
@@ -387,6 +388,8 @@ class Viewer(qt.QMainWindow):
 
     def __h5FileLoaded(self, loadedH5):
         self.__context.pushRecentFile(loadedH5.file.filename)
+        if loadedH5.file.filename == self.__displayIt:
+            self.displayData(loadedH5)
 
     def __h5FileRemoved(self, removedH5):
         self.__dataPanel.removeDatasetsFrom(removedH5)
@@ -737,6 +740,9 @@ class Viewer(qt.QMainWindow):
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
     def appendFile(self, filename):
+        if self.__displayIt is None:
+            # Store the file to display it (loading could be async)
+            self.__displayIt = filename
         self.__treeview.findHdf5TreeModel().appendFile(filename)
 
     def displaySelectedData(self):
