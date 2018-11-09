@@ -406,10 +406,11 @@ class Viewer(qt.QMainWindow):
         self.__context.saveSettings()
 
         # Clean up as much as possible Python objects
-        model = self.__customNxdata.model()
-        model.clear()
-        model = self.__treeview.findHdf5TreeModel()
-        model.clear()
+        self.displayData(None)
+        customModel = self.__customNxdata.model()
+        customModel.clear()
+        hdf5Model = self.__treeview.findHdf5TreeModel()
+        hdf5Model.clear()
 
     def saveSettings(self, settings):
         """Save the window settings to this settings object
