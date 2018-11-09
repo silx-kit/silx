@@ -887,7 +887,7 @@ def setPreferredColormaps(colormaps):
     _PREFERRED_COLORMAPS = colormaps
 
 
-def registerLUT(name, colors, cursor_color='black'):
+def registerLUT(name, colors, cursor_color='black', preferred=True):
     """Register a custom LUT to be used with `Colormap` objects.
 
     It can override existing LUT names.
@@ -896,11 +896,24 @@ def registerLUT(name, colors, cursor_color='black'):
     :param numpy.ndarray colors: The custom LUT to register.
             Nx3 or Nx4 numpy array of RGB(A) colors,
             either uint8 or float in [0, 1].
+    :param bool preferred: If true, this LUT will be displayed as part of the
+        preferred colormaps in dialogs.
     :param str cursor_color: Color used to display overlay over images using
         colormap with this LUT.
     """
-    description = _LUT_DESCRIPTION('user', cursor_color, True)
+    description = _LUT_DESCRIPTION('user', cursor_color, preferred=preferred)
     colors = _arrayToRgba8888(colors)
     _AVAILABLE_LUTS[name] = description
+
+    if preferred:
+        # Invalidate the preferred cache
+        global _PREFERRED_COLORMAPS
+        if _PREFERRED_COLORMAPS is not None:
+            if name not in _PREFERRED_COLORMAPS:
+                _PREFERRED_COLORMAPS.append(name)
+        else:
+            # The cache is not yet loaded, it's fine
+            pass
+
     # Register the cache as the LUT was already loaded
     _COLORMAP_CACHE[name] = colors
