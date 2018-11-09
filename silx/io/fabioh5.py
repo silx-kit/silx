@@ -262,6 +262,26 @@ class ImageGroup(commonh5.LazyLoadableGroup):
         self.add_node(detector)
 
 
+class HxDataPreviewGroup(commonh5.LazyLoadableGroup):
+    """Define the NxData group which is used as the default NXdata to show the
+    content of the file.
+    """
+
+    def __init__(self, name, fabio_reader, parent=None):
+        attrs = {
+            "NX_class": "NXdata",
+            "interpretation": "image",
+            "signal": "data",
+        }
+        commonh5.LazyLoadableGroup.__init__(self, name, parent, attrs)
+        self.__fabio_reader = fabio_reader
+
+    def _create_child(self):
+        basepath = self.parent.name
+        data = commonh5.SoftLink("data", path=basepath + "/instrument/detector_0/data")
+        self.add_node(data)
+
+
 class SampleGroup(commonh5.LazyLoadableGroup):
     """Define the image group (sub group of measurement) using Fabio data.
     """
@@ -917,14 +937,15 @@ class File(commonh5.File):
         self.__fabio_reader = self.create_fabio_reader(file_name, fabio_image, file_series)
         if fabio_image is not None:
             file_name = fabio_image.filename
+        scan = self.create_scan_group(self.__fabio_reader)
 
         attrs = {"NX_class": "NXroot",
                  "file_time": datetime.datetime.now().isoformat(),
-                 "creator": "silx %s" % silx_version}
+                 "creator": "silx %s" % silx_version,
+                 "default": scan.basename}
         if file_name is not None:
             attrs["file_name"] = file_name
         commonh5.File.__init__(self, name=file_name, attrs=attrs)
-        scan = self.create_scan_group(self.__fabio_reader)
         self.add_node(scan)
 
     def create_scan_group(self, fabio_reader):
@@ -934,8 +955,12 @@ class File(commonh5.File):
         :param FabioReader fabio_reader: A reader for the Fabio image
         :rtype: commonh5.Group
         """
-
-        scan = commonh5.Group("scan_0", attrs={"NX_class": "NXentry"})
+        nxdata = HxDataPreviewGroup("image", fabio_reader)
+        scan_attrs = {
+            "NX_class": "NXentry",
+            "default": nxdata.basename,
+        }
+        scan = commonh5.Group("scan_0", attrs=scan_attrs)
         instrument = commonh5.Group("instrument", attrs={"NX_class": "NXinstrument"})
         measurement = MeasurementGroup("measurement", fabio_reader, attrs={"NX_class": "NXcollection"})
         file_ = commonh5.Group("file", attrs={"NX_class": "NXcollection"})
@@ -949,6 +974,7 @@ class File(commonh5.File):
         instrument.add_node(detector)
         file_.add_node(raw_header)
         scan.add_node(measurement)
+        scan.add_node(nxdata)
 
         if fabio_reader.has_sample_information():
             sample = SampleGroup("sample", fabio_reader)
