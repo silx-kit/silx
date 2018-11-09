@@ -403,10 +403,11 @@ class FabioReader(object):
         may fail.
         """
         if self.__must_be_closed:
-            # It looks like there is no close on FabioImage
-            # self.__fabio_image.close()
-            pass
-        self.__fabio_image = None
+            # Make sure the API of fabio provide it a 'close' method
+            # TODO the test can be removed if fabio version >= 0.8
+            if hasattr(self.__fabio_file, "close"):
+                self.__fabio_file.close()
+        self.__fabio_file = None
 
     def fabio_file(self):
         return self.__fabio_file
