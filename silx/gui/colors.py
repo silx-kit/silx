@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "08/11/2018"
+__date__ = "09/11/2018"
 
 import numpy
 import logging
@@ -868,15 +868,11 @@ def preferredColormaps():
     global _PREFERRED_COLORMAPS
     if _PREFERRED_COLORMAPS is None:
         # Initialize preferred colormaps
-        if config.PREFERRED_COLORMAPS is not None:
-            default_preferred = config.PREFERRED_COLORMAPS
-        else:
-            default_preferred = [k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].preferred]
-        _setPreferredColormaps(default_preferred)
-    return _PREFERRED_COLORMAPS
+        default_preferred = [k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].preferred]
+        setPreferredColormaps(default_preferred)
+    return tuple(_PREFERRED_COLORMAPS)
 
 
-@deprecation.deprecated(replacement="silx.config.PREFFERED_COLORMAPS", since_version="0.10")
 def setPreferredColormaps(colormaps):
     """Set the list of preferred colormap names.
 
@@ -887,13 +883,8 @@ def setPreferredColormaps(colormaps):
     :type colormaps: iterable of str
     :raise ValueError: if the list of available preferred colormaps is empty.
     """
-    _setPreferredColormaps(colormaps)
-
-
-def _setPreferredColormaps(colormaps):
     supportedColormaps = Colormap.getSupportedColormaps()
-    colormaps = tuple(
-        cmap for cmap in colormaps if cmap in supportedColormaps)
+    colormaps = [cmap for cmap in colormaps if cmap in supportedColormaps]
     if len(colormaps) == 0:
         raise ValueError("Cannot set preferred colormaps to an empty list")
 

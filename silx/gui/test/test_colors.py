@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
-__date__ = "08/11/2018"
+__date__ = "09/11/2018"
 
 import unittest
 import numpy
@@ -405,22 +405,22 @@ class TestPreferredColormaps(unittest.TestCase):
 
     def tearDown(self):
         # Restore saved preferred colormaps
-        colors._setPreferredColormaps(self._colormaps)
+        colors.setPreferredColormaps(self._colormaps)
 
     def test(self):
         colormaps = 'viridis', 'magma'
 
-        colors._setPreferredColormaps(colormaps)
+        colors.setPreferredColormaps(colormaps)
         self.assertEqual(colors.preferredColormaps(), colormaps)
 
         with self.assertRaises(ValueError):
-            colors._setPreferredColormaps(())
+            colors.setPreferredColormaps(())
 
         with self.assertRaises(ValueError):
-            colors._setPreferredColormaps(('This is not a colormap',))
+            colors.setPreferredColormaps(('This is not a colormap',))
 
         colormaps = 'red', 'green'
-        colors._setPreferredColormaps(('This is not a colormap',) + colormaps)
+        colors.setPreferredColormaps(('This is not a colormap',) + colormaps)
         self.assertEqual(colors.preferredColormaps(), colormaps)
 
 
