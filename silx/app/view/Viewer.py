@@ -389,6 +389,7 @@ class Viewer(qt.QMainWindow):
     def __h5FileLoaded(self, loadedH5):
         self.__context.pushRecentFile(loadedH5.file.filename)
         if loadedH5.file.filename == self.__displayIt:
+            self.__displayIt = None
             self.displayData(loadedH5)
 
     def __h5FileRemoved(self, removedH5):
