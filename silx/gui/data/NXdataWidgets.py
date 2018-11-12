@@ -26,7 +26,7 @@
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/11/2018"
+__date__ = "12/11/2018"
 
 import numpy
 
@@ -177,7 +177,9 @@ class ArrayCurvePlot(qt.QWidget):
                 break
 
     def clear(self):
+        old = self._selector.blockSignals(True)
         self._selector.clear()
+        self._selector.blockSignals(old)
         self._plot.clear()
 
 
@@ -487,7 +489,9 @@ class ArrayImagePlot(qt.QWidget):
         self._plot.resetZoom()
 
     def clear(self):
+        old = self._selector.blockSignals(True)
         self._selector.clear()
+        self._selector.blockSignals(old)
         self._plot.clear()
 
 
@@ -658,5 +662,7 @@ class ArrayStackPlot(qt.QWidget):
                         self.__x_axis_name])
 
     def clear(self):
+        old = self._selector.blockSignals(True)
         self._selector.clear()
+        self._selector.blockSignals(old)
         self._stack_view.clear()
