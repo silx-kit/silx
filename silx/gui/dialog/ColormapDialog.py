@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "06/11/2018"
+__date__ = "09/11/2018"
 
 
 import logging
@@ -73,6 +73,7 @@ import numpy
 from .. import qt
 from ..colors import Colormap, preferredColormaps
 from ..plot import PlotWidget
+from ..plot.items.axis import Axis
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
 from silx.math.combo import min_max
@@ -154,39 +155,59 @@ class _ColormapNameCombox(qt.QComboBox):
         qt.QComboBox.__init__(self, parent)
         self.__initItems()
 
-    ORIGINAL_NAME = qt.Qt.UserRole + 1
+    LUT_NAME = qt.Qt.UserRole + 1
+    LUT_COLORS = qt.Qt.UserRole + 2
 
     def __initItems(self):
         for colormapName in preferredColormaps():
             index = self.count()
             self.addItem(str.title(colormapName))
-            self.setItemIcon(index, self.getIconPreview(colormapName))
-            self.setItemData(index, colormapName, role=self.ORIGINAL_NAME)
+            self.setItemIcon(index, self.getIconPreview(name=colormapName))
+            self.setItemData(index, colormapName, role=self.LUT_NAME)
 
-    def getIconPreview(self, colormapName):
+    def getIconPreview(self, name=None, colors=None):
         """Return an icon preview from a LUT name.
 
         This icons are cached into a global structure.
 
-        :param str colormapName: str
+        :param str name: Name of the LUT
+        :param numpy.ndarray colors: Colors identify the LUT
         :rtype: qt.QIcon
         """
-        if colormapName not in _colormapIconPreview:
-            icon = self.createIconPreview(colormapName)
-            _colormapIconPreview[colormapName] = icon
-        return _colormapIconPreview[colormapName]
+        if name is not None:
+            iconKey = name
+        else:
+            iconKey = tuple(colors)
+        icon = _colormapIconPreview.get(iconKey, None)
+        if icon is None:
+            icon = self.createIconPreview(name, colors)
+            _colormapIconPreview[iconKey] = icon
+        return icon
 
-    def createIconPreview(self, colormapName):
+    def createIconPreview(self, name=None, colors=None):
         """Create and return an icon preview from a LUT name.
 
         This icons are cached into a global structure.
 
-        :param str colormapName: Name of the LUT
+        :param str name: Name of the LUT
+        :param numpy.ndarray colors: Colors identify the LUT
         :rtype: qt.QIcon
         """
-        colormap = Colormap(colormapName)
+        colormap = Colormap(name)
         size = 32
-        lut = colormap.getNColors(size)
+        if name is not None:
+            lut = colormap.getNColors(size)
+        else:
+            lut = colors
+            if len(lut) > size:
+                # Down sample
+                step = int(len(lut) / size)
+                lut = lut[::step]
+            elif len(lut) < size:
+                # Over sample
+                indexes = numpy.arange(size) / float(size) * (len(lut) - 1)
+                indexes = indexes.astype("int")
+                lut = lut[indexes]
         if lut is None or len(lut) == 0:
             return qt.QIcon()
 
@@ -204,18 +225,50 @@ class _ColormapNameCombox(qt.QComboBox):
         return qt.QIcon(pixmap)
 
     def getCurrentName(self):
-        return self.itemData(self.currentIndex(), self.ORIGINAL_NAME)
+        return self.itemData(self.currentIndex(), self.LUT_NAME)
 
-    def findColormap(self, name):
-        return self.findData(name, role=self.ORIGINAL_NAME)
+    def getCurrentColors(self):
+        return self.itemData(self.currentIndex(), self.LUT_COLORS)
 
-    def setCurrentName(self, name):
-        index = self.findColormap(name)
+    def findLutName(self, name):
+        return self.findData(name, role=self.LUT_NAME)
+
+    def findLutColors(self, lut):
+        for index in range(self.count()):
+            if self.itemData(index, role=self.LUT_NAME) is not None:
+                continue
+            colors = self.itemData(index, role=self.LUT_COLORS)
+            if colors is None:
+                continue
+            if numpy.array_equal(colors, lut):
+                return index
+        return -1
+
+    def setCurrentLut(self, colormap):
+        name = colormap.getName()
+        if name is not None:
+            self._setCurrentName(name)
+        else:
+            lut = colormap.getColormapLUT()
+            self._setCurrentLut(lut)
+
+    def _setCurrentLut(self, lut):
+        index = self.findLutColors(lut)
+        if index == -1:
+            index = self.count()
+            self.addItem("Custom")
+            self.setItemIcon(index, self.getIconPreview(colors=lut))
+            self.setItemData(index, None, role=self.LUT_NAME)
+            self.setItemData(index, lut, role=self.LUT_COLORS)
+        self.setCurrentIndex(index)
+
+    def _setCurrentName(self, name):
+        index = self.findLutName(name)
         if index < 0:
             index = self.count()
             self.addItem(str.title(name))
-            self.setItemIcon(index, self.getIconPreview(name))
-            self.setItemData(index, name, role=self.ORIGINAL_NAME)
+            self.setItemIcon(index, self.getIconPreview(name=name))
+            self.setItemData(index, name, role=self.LUT_NAME)
         self.setCurrentIndex(index)
 
 
@@ -255,6 +308,7 @@ class ColormapDialog(qt.QDialog):
         the self.setcolormap is a callback)
         """
 
+        self.__displayInvalidated = False
         self._histogramData = None
         self._minMaxWasEdited = False
         self._initialRange = None
@@ -276,20 +330,19 @@ class ColormapDialog(qt.QDialog):
 
         # Colormap row
         self._comboBoxColormap = _ColormapNameCombox(parent=formWidget)
-        self._comboBoxColormap.currentIndexChanged[int].connect(self._updateName)
+        self._comboBoxColormap.currentIndexChanged[int].connect(self._updateLut)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
 
         # Normalization row
         self._normButtonLinear = qt.QRadioButton('Linear')
         self._normButtonLinear.setChecked(True)
         self._normButtonLog = qt.QRadioButton('Log')
-        self._normButtonLog.toggled.connect(self._activeLogNorm)
 
         normButtonGroup = qt.QButtonGroup(self)
         normButtonGroup.setExclusive(True)
         normButtonGroup.addButton(self._normButtonLinear)
         normButtonGroup.addButton(self._normButtonLog)
-        self._normButtonLinear.toggled[bool].connect(self._updateLinearNorm)
+        normButtonGroup.buttonClicked[qt.QAbstractButton].connect(self._updateNormalization)
 
         normLayout = qt.QHBoxLayout()
         normLayout.setContentsMargins(0, 0, 0, 0)
@@ -388,9 +441,17 @@ class ColormapDialog(qt.QDialog):
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
 
+    def _displayLater(self):
+        self.__displayInvalidated = True
+
     def showEvent(self, event):
         self.visibleChanged.emit(True)
         super(ColormapDialog, self).showEvent(event)
+        if self.isVisible():
+            if self.__displayInvalidated:
+                self._applyColormap()
+                self._updateDataInPlot()
+                self.__displayInvalidated = False
 
     def closeEvent(self, event):
         if not self.isModal():
@@ -434,6 +495,49 @@ class ColormapDialog(qt.QDialog):
     def sizeHint(self):
         return self.layout().minimumSize()
 
+    def _computeView(self, dataMin, dataMax):
+        """Compute the location of the view according to the bound of the data
+
+        :rtype: Tuple(float, float)
+        """
+        marginRatio = 1.0 / 6.0
+        scale = self._plot.getXAxis().getScale()
+
+        if self._dataRange is not None:
+            if scale == Axis.LOGARITHMIC:
+                minRange = self._dataRange[1]
+            else:
+                minRange = self._dataRange[0]
+            maxRange = self._dataRange[2]
+            if minRange is not None:
+                dataMin = min(dataMin, minRange)
+                dataMax = max(dataMax, maxRange)
+
+        if self._histogramData is not None:
+            info = min_max(self._histogramData[1])
+            if scale == Axis.LOGARITHMIC:
+                minHisto = info.min_positive
+            else:
+                minHisto = info.minimum
+            maxHisto = info.maximum
+            if minHisto is not None:
+                dataMin = min(dataMin, minHisto)
+                dataMax = max(dataMax, maxHisto)
+
+        if scale == Axis.LOGARITHMIC:
+            marge = marginRatio * abs(numpy.log10(dataMax) - numpy.log10(dataMin))
+            viewMin = 10**(numpy.log10(dataMin) - marge)
+            viewMax = 10**(numpy.log10(dataMax) + marge)
+        else:  # scale == Axis.LINEAR:
+            marge = marginRatio * abs(dataMax - dataMin)
+            if marge < 0.0001:
+                # Smaller that the QLineEdit precision
+                marge = 0.0001
+            viewMin = dataMin - marge
+            viewMax = dataMax + marge
+
+        return viewMin, viewMax
+
     def _plotUpdate(self, updateMarkers=True):
         """Update the plot content
 
@@ -454,27 +558,8 @@ class ColormapDialog(qt.QDialog):
         if minData > maxData:
             # avoid a full collapse
             minData, maxData = maxData, minData
-        minimum = minData
-        maximum = maxData
 
-        if self._dataRange is not None:
-            minRange = self._dataRange[0]
-            maxRange = self._dataRange[2]
-            minimum = min(minimum, minRange)
-            maximum = max(maximum, maxRange)
-
-        if self._histogramData is not None:
-            minHisto = self._histogramData[1][0]
-            maxHisto = self._histogramData[1][-1]
-            minimum = min(minimum, minHisto)
-            maximum = max(maximum, maxHisto)
-
-        marge = abs(maximum - minimum) / 6.0
-        if marge < 0.0001:
-            # Smaller that the QLineEdit precision
-            marge = 0.0001
-
-        minView, maxView = minimum - marge, maximum + marge
+        minView, maxView = self._computeView(minData, maxData)
 
         if updateMarkers:
             # Save the state in we are not moving the markers
@@ -571,7 +656,7 @@ class ColormapDialog(qt.QDialog):
         return dataRange
 
     @staticmethod
-    def computeHistogram(data):
+    def computeHistogram(data, scale=Axis.LINEAR):
         """Compute the data histogram as used by :meth:`setHistogram`.
 
         :param data: The data to process
@@ -588,7 +673,12 @@ class ColormapDialog(qt.QDialog):
         if len(_data) == 0:
             return None, None
 
+        if scale == Axis.LOGARITHMIC:
+            _data = numpy.log10(_data)
         xmin, xmax = min_max(_data, min_positive=False, finite=True)
+        if xmin is None:
+            return None, None
+
         nbins = min(256, int(numpy.sqrt(_data.size)))
         data_range = xmin, xmax
 
@@ -601,7 +691,10 @@ class ColormapDialog(qt.QDialog):
         _data = _data.ravel().astype(numpy.float32)
 
         histogram = Histogramnd(_data, n_bins=nbins, histo_range=data_range)
-        return histogram.histo, histogram.edges[0]
+        bins = histogram.edges[0]
+        if scale == Axis.LOGARITHMIC:
+            bins = 10**bins
+        return histogram.histo, bins
 
     def _getData(self):
         if self._data is None:
@@ -624,7 +717,10 @@ class ColormapDialog(qt.QDialog):
         else:
             self._data = weakref.ref(data, self._dataAboutToFinalize)
 
-        self._updateDataInPlot()
+        if self.isVisible():
+            self._updateDataInPlot()
+        else:
+            self._displayLater()
 
     def _setDataInPlotMode(self, mode):
         if self._dataInPlotMode == mode:
@@ -660,9 +756,14 @@ class ColormapDialog(qt.QDialog):
             self.setDataRange(*result)
         elif mode == _DataInPlotMode.HISTOGRAM:
             # The histogram should be done in a worker thread
-            result = self.computeHistogram(data)
+            result = self.computeHistogram(data, scale=self._plot.getXAxis().getScale())
             self.setHistogram(*result)
             self.setDataRange()
+
+    def _invalidateHistogram(self):
+        """Recompute the histogram if it is displayed"""
+        if self._dataInPlotMode == _DataInPlotMode.HISTOGRAM:
+            self._updateDataInPlot()
 
     def _colormapAboutToFinalize(self, weakrefColormap):
         """Callback when the data weakref is about to be finalized."""
@@ -740,12 +841,18 @@ class ColormapDialog(qt.QDialog):
         :param float positiveMin: The positive minimum of the data
         :param float maximum: The maximum of the data
         """
-        if minimum is None or positiveMin is None or maximum is None:
+        scale = self._plot.getXAxis().getScale()
+        if scale == Axis.LOGARITHMIC:
+            dataMin, dataMax = positiveMin, maximum
+        else:
+            dataMin, dataMax = minimum, maximum
+
+        if dataMin is None or dataMax is None:
             self._dataRange = None
             self._plot.remove(legend='Range', kind='histogram')
         else:
             hist = numpy.array([1])
-            bin_edges = numpy.array([minimum, maximum])
+            bin_edges = numpy.array([dataMin, dataMax])
             self._plot.addHistogram(hist,
                                     bin_edges,
                                     legend="Range",
@@ -830,8 +937,11 @@ class ColormapDialog(qt.QDialog):
 
         self._colormap = colormap
         self.storeCurrentState()
-        self._updateResetButton()
-        self._applyColormap()
+        if self.isVisible():
+            self._applyColormap()
+        else:
+            self._updateResetButton()
+            self._displayLater()
 
     def _updateResetButton(self):
         resetButton = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
@@ -856,12 +966,8 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setEnabled(False)
         else:
             self._ignoreColormapChange = True
-
-            if colormap.getName() is not None:
-                name = colormap.getName()
-                self._comboBoxColormap.setCurrentName(name)
-                self._comboBoxColormap.setEnabled(self._colormap().isEditable())
-
+            self._comboBoxColormap.setCurrentLut(colormap)
+            self._comboBoxColormap.setEnabled(colormap.isEditable())
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             self._normButtonLinear.setChecked(
                 colormap.getNormalization() == Colormap.LINEAR)
@@ -870,12 +976,17 @@ class ColormapDialog(qt.QDialog):
             vmin = colormap.getVMin()
             vmax = colormap.getVMax()
             dataRange = colormap.getColormapRange()
-            self._normButtonLinear.setEnabled(self._colormap().isEditable())
-            self._normButtonLog.setEnabled(self._colormap().isEditable())
+            self._normButtonLinear.setEnabled(colormap.isEditable())
+            self._normButtonLog.setEnabled(colormap.isEditable())
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
-            self._minValue.setEnabled(self._colormap().isEditable())
-            self._maxValue.setEnabled(self._colormap().isEditable())
+            self._minValue.setEnabled(colormap.isEditable())
+            self._maxValue.setEnabled(colormap.isEditable())
+
+            axis = self._plot.getXAxis()
+            scale = axis.LINEAR if colormap.getNormalization() == Colormap.LINEAR else axis.LOGARITHMIC
+            axis.setScale(scale)
+
             self._ignoreColormapChange = False
 
         self._plotUpdate()
@@ -908,25 +1019,46 @@ class ColormapDialog(qt.QDialog):
         self._plotUpdate()
         self._updateResetButton()
 
-    def _updateName(self):
+    def _updateLut(self):
         if self._ignoreColormapChange is True:
             return
 
-        if self._colormap():
+        colormap = self._colormap()
+        if colormap is not None:
             self._ignoreColormapChange = True
-            self._colormap().setName(
-                self._comboBoxColormap.getCurrentName())
+            name = self._comboBoxColormap.getCurrentName()
+            if name is not None:
+                colormap.setName(name)
+            else:
+                lut = self._comboBoxColormap.getCurrentColors()
+                colormap.setColormapLUT(lut)
             self._ignoreColormapChange = False
 
-    def _updateLinearNorm(self, isNormLinear):
+    def _updateNormalization(self, button):
         if self._ignoreColormapChange is True:
             return
+        if not button.isChecked():
+            return
 
-        if self._colormap():
+        if button is self._normButtonLinear:
+            norm = Colormap.LINEAR
+            scale = Axis.LINEAR
+        elif button is self._normButtonLog:
+            norm = Colormap.LOGARITHM
+            scale = Axis.LOGARITHMIC
+        else:
+            assert(False)
+
+        colormap = self.getColormap()
+        if colormap is not None:
             self._ignoreColormapChange = True
-            norm = Colormap.LINEAR if isNormLinear else Colormap.LOGARITHM
-            self._colormap().setNormalization(norm)
+            colormap.setNormalization(norm)
+            axis = self._plot.getXAxis()
+            axis.setScale(scale)
             self._ignoreColormapChange = False
+
+        self._invalidateHistogram()
+        self._updateMinMaxData()
 
     def _minMaxTextEdited(self, text):
         """Handle _minValue and _maxValue textEdited signal"""
@@ -975,13 +1107,3 @@ class ColormapDialog(qt.QDialog):
         else:
             # Use QDialog keyPressEvent
             super(ColormapDialog, self).keyPressEvent(event)
-
-    def _activeLogNorm(self, isLog):
-        if self._ignoreColormapChange is True:
-            return
-        if self._colormap():
-            self._ignoreColormapChange = True
-            norm = Colormap.LOGARITHM if isLog is True else Colormap.LINEAR
-            self._colormap().setNormalization(norm)
-            self._ignoreColormapChange = False
-        self._updateMinMaxData()

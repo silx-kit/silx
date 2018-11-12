@@ -26,12 +26,11 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "09/11/2018"
 
 
 import unittest
 
-from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.dialog import ColormapDialog
 from silx.gui.utils.testutils import TestCaseQt
@@ -68,10 +67,12 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         editing the same colormap"""
         colormapDiag2 = ColormapDialog.ColormapDialog()
         colormapDiag2.setColormap(self.colormap)
+        colormapDiag2.show()
         self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag.show()
 
-        self.colormapDiag._comboBoxColormap.setCurrentName('red')
-        self.colormapDiag._normButtonLog.setChecked(True)
+        self.colormapDiag._comboBoxColormap._setCurrentName('red')
+        self.colormapDiag._normButtonLog.click()
         self.assertTrue(self.colormap.getName() == 'red')
         self.assertTrue(self.colormapDiag.getColormap().getName() == 'red')
         self.assertTrue(self.colormap.getNormalization() == 'log')
@@ -160,6 +161,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def testSetColormapIsCorrect(self):
         """Make sure the interface fir the colormap when set a new colormap"""
         self.colormap.setName('red')
+        self.colormapDiag.show()
         for norm in (Colormap.NORMALIZATIONS):
             for autoscale in (True, False):
                 if autoscale is True:
@@ -193,7 +195,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.show()
         del self.colormap
         self.assertTrue(self.colormapDiag.getColormap() is None)
-        self.colormapDiag._comboBoxColormap.setCurrentName('blue')
+        self.colormapDiag._comboBoxColormap._setCurrentName('blue')
 
     def testColormapEditedOutside(self):
         """Make sure the GUI is still up to date if the colormap is modified
@@ -256,7 +258,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         cb = self.colormapDiag._comboBoxColormap
         self.assertTrue(cb.getCurrentName() == colormapName)
         cb.setCurrentIndex(0)
-        index = cb.findColormap(colormapName)
+        index = cb.findLutName(colormapName)
         assert index is not 0  # if 0 then the rest of the test has no sense
         cb.setCurrentIndex(index)
         self.assertTrue(cb.getCurrentName() == colormapName)
@@ -265,6 +267,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         """Test that the colormapDialog is correctly updated when changing the
         colormap editable status"""
         colormap = Colormap(normalization='linear', vmin=1.0, vmax=10.0)
+        self.colormapDiag.show()
         self.colormapDiag.setColormap(colormap)
         for editable in (True, False):
             with self.subTest(editable=editable):
@@ -284,7 +287,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         # False
         self.colormapDiag.setModal(False)
         colormap.setEditable(True)
-        self.colormapDiag._normButtonLog.setChecked(True)
+        self.colormapDiag._normButtonLog.click()
         resetButton = self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
         self.assertTrue(resetButton.isEnabled())
         colormap.setEditable(False)

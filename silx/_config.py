@@ -28,7 +28,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/04/2018"
+__date__ = "09/11/2018"
 
 
 class Config(object):
@@ -109,4 +109,3 @@ class Config(object):
 
     .. versionadded:: 0.9
     """
-                                    
