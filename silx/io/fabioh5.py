@@ -262,7 +262,7 @@ class ImageGroup(commonh5.LazyLoadableGroup):
         self.add_node(detector)
 
 
-class HxDataPreviewGroup(commonh5.LazyLoadableGroup):
+class NxDataPreviewGroup(commonh5.LazyLoadableGroup):
     """Define the NxData group which is used as the default NXdata to show the
     content of the file.
     """
@@ -960,7 +960,7 @@ class File(commonh5.File):
         :param FabioReader fabio_reader: A reader for the Fabio image
         :rtype: commonh5.Group
         """
-        nxdata = HxDataPreviewGroup("image", fabio_reader)
+        nxdata = NxDataPreviewGroup("image", fabio_reader)
         scan_attrs = {
             "NX_class": "NXentry",
             "default": nxdata.basename,
