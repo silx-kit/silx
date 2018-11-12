@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/10/2018"
+__date__ = "09/11/2018"
 
 
 import os
@@ -74,6 +74,7 @@ class Viewer(qt.QMainWindow):
         rightPanel.setOrientation(qt.Qt.Vertical)
         self.__splitter2 = rightPanel
 
+        self.__displayIt = None
         self.__treeWindow = self.__createTreeWindow(self.__treeview)
 
         # Custom the model to be able to manage the life cycle of the files
@@ -387,6 +388,9 @@ class Viewer(qt.QMainWindow):
 
     def __h5FileLoaded(self, loadedH5):
         self.__context.pushRecentFile(loadedH5.file.filename)
+        if loadedH5.file.filename == self.__displayIt:
+            self.__displayIt = None
+            self.displayData(loadedH5)
 
     def __h5FileRemoved(self, removedH5):
         self.__dataPanel.removeDatasetsFrom(removedH5)
@@ -402,10 +406,11 @@ class Viewer(qt.QMainWindow):
         self.__context.saveSettings()
 
         # Clean up as much as possible Python objects
-        model = self.__customNxdata.model()
-        model.clear()
-        model = self.__treeview.findHdf5TreeModel()
-        model.clear()
+        self.displayData(None)
+        customModel = self.__customNxdata.model()
+        customModel.clear()
+        hdf5Model = self.__treeview.findHdf5TreeModel()
+        hdf5Model.clear()
 
     def saveSettings(self, settings):
         """Save the window settings to this settings object
@@ -737,6 +742,9 @@ class Viewer(qt.QMainWindow):
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
     def appendFile(self, filename):
+        if self.__displayIt is None:
+            # Store the file to display it (loading could be async)
+            self.__displayIt = filename
         self.__treeview.findHdf5TreeModel().appendFile(filename)
 
     def displaySelectedData(self):
@@ -823,7 +831,7 @@ class Viewer(qt.QMainWindow):
                 menu.addAction(action)
 
             if silx.io.is_file(h5):
-                action = qt.QAction("Remove %s" % obj.local_filename, event.source())
+                action = qt.QAction("Close %s" % obj.local_filename, event.source())
                 action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(h5))
                 menu.addAction(action)
                 action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())

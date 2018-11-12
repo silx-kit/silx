@@ -288,6 +288,7 @@ class DataViewer(qt.QFrame):
         else:
             self.__displayedData = self.__data
 
+        # TODO: would be good to avoid that, it should be synchonous
         qt.QTimer.singleShot(10, self.__setDataInView)
 
     def __setDataInView(self):
