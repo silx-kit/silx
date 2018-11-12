@@ -268,9 +268,13 @@ class HxDataPreviewGroup(commonh5.LazyLoadableGroup):
     """
 
     def __init__(self, name, fabio_reader, parent=None):
+        if fabio_reader.is_spectrum():
+            interpretation = "spectrum"
+        else:
+            interpretation = "image"
         attrs = {
             "NX_class": "NXdata",
-            "interpretation": "image",
+            "interpretation": interpretation,
             "signal": "data",
         }
         commonh5.LazyLoadableGroup.__init__(self, name, parent, attrs)
