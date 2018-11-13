@@ -223,7 +223,7 @@ def snip2d(data, snip_width):
 def snip3d(data, snip_width):
     """Estimate the baseline (background) of a 3D data signal by clipping peaks.
 
-    Implementation of the algorithm SNIP in 2D described in [Morhac97]_.
+    Implementation of the algorithm SNIP in 3D described in [Morhac97]_.
 
     :param data: 3D array
     :type data: numpy.ndarray
