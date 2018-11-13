@@ -40,6 +40,19 @@ Smoothing functions:
     - :func:`smooth2d`
     - :func:`smooth3d`
 
+References:
+-----------
+
+.. [Morhac97] Miroslav Morháč et al.
+   Background elimination methods for multidimensional coincidence γ-ray spectra.
+   Nucl. Instruments and Methods in Physics Research A401 (1997) 113-132.
+   https://doi.org/10.1016/S0168-9002(97)01023-1
+
+.. [Ryan88] C.G. Ryan et al.
+   SNIP, a statistics-sensitive background treatment for the quantitative analysis of PIXE spectra in geoscience applications.
+   Nucl. Instruments and Methods in Physics Research B34 (1988) 396-402*.
+   https://doi.org/10.1016/0168-583X(88)90063-8
+
 API documentation:
 -------------------
 
@@ -127,13 +140,9 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
 def snip1d(data, snip_width):
     """Estimate the baseline (background) of a 1D data vector by clipping peaks.
 
-    Implementation of the algorithm SNIP in 1D is described in *Miroslav
-    Morhac et al. Nucl. Instruments and Methods in Physics Research A401
-    (1997) 113-132*.
-
-    The original idea for 1D and the low-statistics-digital-filter (lsdf) come
-    from *C.G. Ryan et al. Nucl. Instruments and Methods in Physics Research
-    B34 (1988) 396-402*.
+    Implementation of the algorithm SNIP in 1D is described in [Morhac97]_.
+    The original idea for 1D and the low-statistics-digital-filter (lsdf) comes
+    from [Ryan88]_.
 
     :param data: Data array, preferably 1D and of type *numpy.float64*.
         Else, the data array will be flattened and converted to
@@ -171,9 +180,7 @@ def snip1d(data, snip_width):
 def snip2d(data, snip_width):
     """Estimate the baseline (background) of a 2D data signal by clipping peaks.
 
-    Implementation of the algorithm SNIP in 2D described in
-    *Miroslav Morhac et al. Nucl. Instruments and Methods in Physics Research
-    A401 (1997) 113-132.*
+    Implementation of the algorithm SNIP in 2D described in [Morhac97]_.
 
     :param data: 2D array
     :type data: numpy.ndarray
@@ -216,9 +223,7 @@ def snip2d(data, snip_width):
 def snip3d(data, snip_width):
     """Estimate the baseline (background) of a 3D data signal by clipping peaks.
 
-    Implementation of the algorithm SNIP in 2D described in
-    *Miroslav Morhac et al. Nucl. Instruments and Methods in Physics Research
-    A401 (1997) 113-132.*
+    Implementation of the algorithm SNIP in 2D described in [Morhac97]_.
 
     :param data: 3D array
     :type data: numpy.ndarray
