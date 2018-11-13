@@ -107,7 +107,7 @@ class FFT(OpenclProcessing):
         self.shape = shape
         if axes is None:
             # fftn
-            self.axes = np.arange(len(shape))[::-1]  # FFTW convention
+            self.axes = tuple(range(len(shape))[::-1])  # FFTW convention
         else:
             self.axes = axes
         self.fast_math = fast_math
@@ -153,7 +153,7 @@ class FFT(OpenclProcessing):
     def compute_plans(self):
         if gpyfft_fft is None:
             raise ImportError("Unable to import gpyfft. Please install it from: https://github.com/geggo/gpyfft")
-        self.plan_forward = gpyfft_fft(self.ctx, self.queue, self.d_input, self.d_output, axes=(1, 0))  # , axes=self.axes)
+        self.plan_forward = gpyfft_fft(self.ctx, self.queue, self.d_input, self.d_output, axes=self.axes)
         # ~ self.plan_inverse = gpyfft_fft(self.ctx, self.queue, self.d_output, self.d_input, real=True)
 
     @staticmethod
