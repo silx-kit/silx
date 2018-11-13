@@ -37,11 +37,11 @@ from scipy.misc import ascent
 import logging
 import numpy as np
 import unittest
-from .. import ocl
-from ...utils.testutils import parameterize
+from silx.opencl import ocl
+from silx.utils.testutils import parameterize
 if ocl:
-    from .. import fft
-    from .. import pyopencl
+    from silx.opencl import fft
+    from silx.opencl import pyopencl
 
 logger = logging.getLogger(__name__)
 
