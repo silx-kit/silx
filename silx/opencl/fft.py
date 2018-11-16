@@ -176,6 +176,7 @@ class FFT(OpenclProcessing):
             # No copy, use the provided parray data directly
             self.d_input_old_ref = self.d_input
             self.d_input = array
+            self.plan_forward.data = array
         else:
             raise ValueError("Unsupported array type - please use either numpy.ndarray or pyopencl.array.Array")
 
@@ -192,6 +193,7 @@ class FFT(OpenclProcessing):
         if self.d_input_old_ref is not None:
             self.d_input = self.d_input_old_ref
             self.d_input_old_ref = None
+            self.plan_forward.data = self.d_input
         if self.d_output_old_ref is not None:
             self.d_output = self.d_output_old_ref
             self.d_output_old_ref = None
