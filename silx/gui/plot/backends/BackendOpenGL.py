@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/08/2018"
+__date__ = "19/11/2018"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -1723,3 +1723,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def setAxesDisplayed(self, displayed):
         BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         self._plotFrame.displayed = displayed
+
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
+        # TODO
