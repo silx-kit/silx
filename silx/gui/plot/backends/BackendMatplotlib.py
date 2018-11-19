@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "01/08/2018"
+__date__ = "19/11/2018"
 
 
 import logging
@@ -60,7 +60,6 @@ from ....third_party.modest_image import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
-
 
 
 class NiceDateLocator(Locator):
@@ -115,7 +114,6 @@ class NiceDateLocator(Locator):
         return ticks
 
 
-
 class NiceAutoDateFormatter(Formatter):
     """
     Matplotlib FuncFormatter that is linked to a NiceDateLocator and gives the
@@ -139,7 +137,6 @@ class NiceAutoDateFormatter(Formatter):
         else:
             return bestFormatString(self.locator.spacing, self.locator.unit)
 
-
     def __call__(self, x, pos=None):
         """Return the format for tick val *x* at position *pos*
            Expects x to be a POSIX timestamp (seconds since 1 Jan 1970)
@@ -147,8 +144,6 @@ class NiceAutoDateFormatter(Formatter):
         dateTime = dt.datetime.fromtimestamp(x, tz=self.tz)
         tickStr = dateTime.strftime(self.formatString)
         return tickStr
-
-
 
 
 class _MarkerContainer(Container):
@@ -239,9 +234,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax2.get_yaxis().get_major_formatter().set_useOffset(False)
             self.ax2.get_xaxis().get_major_formatter().set_useOffset(False)
         except:
-            _logger.warning('Cannot disabled axes offsets in %s ' \
+            _logger.warning('Cannot disabled axes offsets in %s '
                             % matplotlib.__version__)
-        
+
         # critical for picking!!!!
         self.ax2.set_zorder(0)
         self.ax2.set_autoscaley_on(True)
