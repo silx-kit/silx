@@ -338,6 +338,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                   f=f)
         BackendBase.BackendBase.__init__(self, plot, parent)
 
+        self._backgroundColor = 1., 1., 1., 1.
+        self._dataBackgroundColor = None
+
         self.matScreenProj = mat4Identity()
 
         self._progBase = glu.Program(
@@ -432,7 +435,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def initializeGL(self):
         gl.testGL()
 
-        gl.glClearColor(1., 1., 1., 1.)
         gl.glClearStencil(0)
 
         gl.glEnable(gl.GL_BLEND)
@@ -482,6 +484,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 self._plotFBOs[context] = plotFBOTex
 
             with plotFBOTex:
+                gl.glClearColor(*self._backgroundColor)
                 gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
                 self._renderPlotAreaGL()
                 self._plotFrame.render()
@@ -530,6 +533,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             item.discard()
         self._glGarbageCollector = []
 
+        gl.glClearColor(*self._backgroundColor)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
 
         # Check if window is large enough
@@ -826,6 +830,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                      self._plotFrame.margins.bottom,
                      plotWidth, plotHeight)
         gl.glEnable(gl.GL_SCISSOR_TEST)
+
+        if self._dataBackgroundColor is not None:
+            gl.glClearColor(*self._dataBackgroundColor)
+            gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
         # Matrix
         trBounds = self._plotFrame.transformedDataRanges
@@ -1725,5 +1733,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._plotFrame.displayed = displayed
 
     def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
-        # FIXME: Implement this
-        _logger.warning("Set background color to the OpenGL backend is not yet implemented")
+        if backgroundColor is not None:
+            self._backgroundColor = backgroundColor
+        else:
+            self._backgroundColor = 1., 1., 1., 1.
+        self._dataBackgroundColor = dataBackgroundColor

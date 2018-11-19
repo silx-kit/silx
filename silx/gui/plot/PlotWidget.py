@@ -376,6 +376,7 @@ class PlotWidget(qt.QMainWindow):
             return
         self._backgroundColor = color
         self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
+        self._setDirtyPlot()
 
     def getDataBackgroundColor(self):
         """Returns the RGBA colors used to display the background of the plot
@@ -403,6 +404,7 @@ class PlotWidget(qt.QMainWindow):
             return
         self._dataBackgroundColor = color
         self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
+        self._setDirtyPlot()
 
     def showEvent(self, event):
         if self._autoreplot and self._dirty:
