@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/10/2018"
+__date__ = "19/11/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -208,27 +208,8 @@ class PlotWidget(qt.QMainWindow):
         else:
             self.setWindowTitle('PlotWidget')
 
-        if backend is None:
-            backend = silx.config.DEFAULT_PLOT_BACKEND
-
-        if hasattr(backend, "__call__"):
-            self._backend = backend(self, parent)
-
-        elif hasattr(backend, "lower"):
-            lowerCaseString = backend.lower()
-            if lowerCaseString in ("matplotlib", "mpl"):
-                backendClass = BackendMatplotlibQt
-            elif lowerCaseString in ('gl', 'opengl'):
-                from .backends.BackendOpenGL import BackendOpenGL
-                backendClass = BackendOpenGL
-            elif lowerCaseString == 'none':
-                from .backends.BackendBase import BackendBase as backendClass
-            else:
-                raise ValueError("Backend not supported %s" % backend)
-            self._backend = backendClass(self, parent)
-
-        else:
-            raise ValueError("Backend not supported %s" % str(backend))
+        self._backend = None
+        self._setBackend(backend)
 
         self.setCallback()  # set _callback
 
@@ -295,6 +276,34 @@ class PlotWidget(qt.QMainWindow):
         self.setGraphXLimits(0., 100.)
         self.setGraphYLimits(0., 100., axis='right')
         self.setGraphYLimits(0., 100., axis='left')
+
+    def _setBackend(self, backend):
+        """Setup a new backend"""
+        assert(self._backend is None)
+
+        if backend is None:
+            backend = silx.config.DEFAULT_PLOT_BACKEND
+
+        if hasattr(backend, "__call__"):
+            backend = backend(self, self)
+
+        elif hasattr(backend, "lower"):
+            lowerCaseString = backend.lower()
+            if lowerCaseString in ("matplotlib", "mpl"):
+                backendClass = BackendMatplotlibQt
+            elif lowerCaseString in ('gl', 'opengl'):
+                from .backends.BackendOpenGL import BackendOpenGL
+                backendClass = BackendOpenGL
+            elif lowerCaseString == 'none':
+                from .backends.BackendBase import BackendBase as backendClass
+            else:
+                raise ValueError("Backend not supported %s" % backend)
+            backend = backendClass(self, self)
+
+        else:
+            raise ValueError("Backend not supported %s" % str(backend))
+
+        self._backend = backend
 
     # TODO: Can be removed for silx 0.10
     @staticmethod
