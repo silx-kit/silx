@@ -1725,4 +1725,5 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._plotFrame.displayed = displayed
 
     def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
-        # TODO
+        # FIXME: Implement this
+        _logger.warning("Set background color to the OpenGL backend is not yet implemented")
