@@ -27,13 +27,14 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/02/2018"
+__date__ = "19/11/2018"
 
 import functools
 import logging
 from contextlib import contextmanager
 import weakref
 import silx.utils.weakref as silxWeakref
+from silx.gui.plot.items.axis import Axis, XAxis, YAxis
 
 try:
     from ...qt.inspect import isValid as _isQObjectValid
@@ -61,7 +62,13 @@ class SyncAxes(object):
     .. versionadded:: 0.6
     """
 
-    def __init__(self, axes, syncLimits=True, syncScale=True, syncDirection=True):
+    def __init__(self, axes,
+                 syncLimits=True,
+                 syncScale=True,
+                 syncDirection=True,
+                 syncCenter=False,
+                 syncZoom=False,
+                 ):
         """
         Constructor
 
@@ -69,13 +76,26 @@ class SyncAxes(object):
         :param bool syncLimits: Synchronize axes limits
         :param bool syncScale: Synchronize axes scale
         :param bool syncDirection: Synchronize axes direction
+        :param bool syncCenter: Synchronize the center of the axes in the center
+            of the plots
+        :param bool syncZoom: Synchronize the zoom of the plot
         """
         object.__init__(self)
+
+        def implies(x, y): return bool(y ** x)
+
+        assert(implies(syncZoom, not syncLimits))
+        assert(implies(syncCenter, not syncLimits))
+        assert(implies(syncLimits, not syncCenter))
+        assert(implies(syncLimits, not syncZoom))
+
         self.__locked = False
         self.__axisRefs = []
         self.__syncLimits = syncLimits
         self.__syncScale = syncScale
         self.__syncDirection = syncDirection
+        self.__syncCenter = syncCenter
+        self.__syncZoom = syncZoom
         self.__callbacks = None
 
         for axis in axes:
@@ -109,6 +129,22 @@ class SyncAxes(object):
                 sig = axis.sigLimitsChanged
                 sig.connect(callback)
                 callbacks.append(("sigLimitsChanged", callback))
+            elif self.__syncCenter and self.__syncZoom:
+                # the weakref is needed to be able ignore self references
+                callback = silxWeakref.WeakMethodProxy(self.__axisCenterAndZoomChanged)
+                callback = functools.partial(callback, refAxis)
+                sig = axis.sigLimitsChanged
+                sig.connect(callback)
+                callbacks.append(("sigLimitsChanged", callback))
+            elif self.__syncZoom:
+                raise NotImplementedError()
+            elif self.__syncCenter:
+                # the weakref is needed to be able ignore self references
+                callback = silxWeakref.WeakMethodProxy(self.__axisCenterChanged)
+                callback = functools.partial(callback, refAxis)
+                sig = axis.sigLimitsChanged
+                sig.connect(callback)
+                callbacks.append(("sigLimitsChanged", callback))
             if self.__syncScale:
                 # the weakref is needed to be able ignore self references
                 callback = silxWeakref.WeakMethodProxy(self.__axisScaleChanged)
@@ -131,6 +167,10 @@ class SyncAxes(object):
         refMainAxis = weakref.ref(mainAxis)
         if self.__syncLimits:
             self.__axisLimitsChanged(refMainAxis, *mainAxis.getLimits())
+        elif self.__syncCenter and self.__syncZoom:
+            self.__axisCenterAndZoomChanged(refMainAxis, *mainAxis.getLimits())
+        elif self.__syncCenter:
+            self.__axisCenterChanged(refMainAxis, *mainAxis.getLimits())
         if self.__syncScale:
             self.__axisScaleChanged(refMainAxis, mainAxis.getScale())
         if self.__syncDirection:
@@ -180,6 +220,79 @@ class SyncAxes(object):
         changedAxis = changedAxis()
         with self.__inhibitSignals():
             for axis in self.__otherAxes(changedAxis):
+                axis.setLimits(vmin, vmax)
+
+    def __getAxesCenter(self, axis, vmin, vmax):
+        """Returns the value displayed in the center of this axis range.
+
+        :rtype: float
+        """
+        scale = axis.getScale()
+        if scale == Axis.LINEAR:
+            center = (vmin + vmax) * 0.5
+        else:
+            raise NotImplementedError("Log scale not implemented")
+        return center
+
+    def __getRangeInPixel(self, axis):
+        """Returns the size of the axis in pixel"""
+        bounds = axis._getPlot().getPlotBoundsInPixels()
+        # bounds: left, top, width, height
+        if isinstance(axis, XAxis):
+            return bounds[2]
+        elif isinstance(axis, YAxis):
+            return bounds[3]
+        else:
+            assert(False)
+
+    def __getLimitsFromCenter(self, axis, pos, pixelSize=None):
+        """Returns the limits to apply to this axis to move the `pos` into the
+        center of this axis.
+
+        :param Axis axis:
+        :param float pos: Position in the center of the computed limits
+        :param Union[None,float] pixelSize: Pixel size to apply to compute the
+            limits. If `None` the current pixel size is applyed.
+        """
+        scale = axis.getScale()
+        if scale == Axis.LINEAR:
+            if pixelSize is None:
+                # Use the current pixel size of the axis
+                limits = axis.getLimits()
+                valueRange = limits[0] - limits[1]
+                a = pos - valueRange * 0.5
+                b = pos + valueRange * 0.5
+            else:
+                pixelRange = self.__getRangeInPixel(axis)
+                a = pos - pixelRange * 0.5 * pixelSize
+                b = pos + pixelRange * 0.5 * pixelSize
+
+        else:
+            raise NotImplementedError("Log scale not implemented")
+        if a > b:
+            return b, a
+        return a, b
+
+    def __axisCenterAndZoomChanged(self, changedAxis, vmin, vmax):
+        if self.__locked:
+            return
+        changedAxis = changedAxis()
+        with self.__inhibitSignals():
+            center = self.__getAxesCenter(changedAxis, vmin, vmax)
+            pixelRange = self.__getRangeInPixel(changedAxis)
+            pixelSize = (vmax - vmin) / pixelRange
+            for axis in self.__otherAxes(changedAxis):
+                vmin, vmax = self.__getLimitsFromCenter(axis, center, pixelSize)
+                axis.setLimits(vmin, vmax)
+
+    def __axisCenterChanged(self, changedAxis, vmin, vmax):
+        if self.__locked:
+            return
+        changedAxis = changedAxis()
+        with self.__inhibitSignals():
+            center = self.__getAxesCenter(changedAxis, vmin, vmax)
+            for axis in self.__otherAxes(changedAxis):
+                vmin, vmax = self.__getLimitsFromCenter(axis, center)
                 axis.setLimits(vmin, vmax)
 
     def __axisScaleChanged(self, changedAxis, scale):
