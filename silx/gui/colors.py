@@ -423,7 +423,8 @@ class Colormap(qt.QObject):
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
-        assert name in self.getSupportedColormaps()
+        if name not in self.getSupportedColormaps():
+            raise ValueError("Colormap name '%s' is not supported" % name)
         self._name = str(name)
         self._colors = _getColormap(self._name)
         self.sigChanged.emit()
