@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "09/11/2018"
+__date__ = "19/11/2018"
 
 import numpy
 import logging
@@ -77,6 +77,7 @@ _COLORDICT['darkBrown'] = '#660000'
 _COLORDICT['darkCyan'] = '#008080'
 _COLORDICT['darkYellow'] = '#808000'
 _COLORDICT['darkMagenta'] = '#800080'
+_COLORDICT['transparent'] = '#00000000'
 
 
 # FIXME: It could be nice to expose a functional API instead of that attribute

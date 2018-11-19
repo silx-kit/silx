@@ -229,6 +229,9 @@ class PlotWidget(qt.QMainWindow):
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
 
+        self._backgroundColor = None
+        self._dataBackgroundColor = None
+
         # default properties
         self._cursorConfiguration = None
 
@@ -347,6 +350,59 @@ class PlotWidget(qt.QMainWindow):
 
         if self._autoreplot and not wasDirty and self.isVisible():
             self._backend.postRedisplay()
+
+    def getBackgroundColor(self):
+        """Returns the RGBA colors used to display the background of this widget
+
+        The default value is an invalid `QColor`.
+
+        :rtype: qt.QColor
+        """
+        if self._backgroundColor is None:
+            # An invalid color
+            return qt.QColor()
+        rgba = self._backgroundColor
+        return qt.QColor(*rgba)
+
+    def setBackgroundColor(self, color):
+        """Set the background color of this widget.
+
+        :param color: The new color. It can be farious formats (tuple,
+            numpy array, QColor)
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._backgroundColor == color:
+            return
+        self._backgroundColor = color
+        self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
+
+    def getDataBackgroundColor(self):
+        """Returns the RGBA colors used to display the background of the plot
+        view displaying the data.
+
+        The default value is an invalid `QColor`.
+
+        :rtype: qt.QColor
+        """
+        if self._dataBackgroundColor is None:
+            # An invalid color
+            return qt.QColor()
+        rgba = self._dataBackgroundColor
+        return qt.QColor(*rgba)
+
+    def setDataBackgroundColor(self, color):
+        """Set the background color of this widget.
+
+        :param color: The new color. It can be farious formats (tuple,
+            numpy array, QColor)
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._dataBackgroundColor == color:
+            return
+        self._dataBackgroundColor = color
+        self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
 
     def showEvent(self, event):
         if self._autoreplot and self._dirty:
