@@ -1132,3 +1132,15 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         else:
             cursor = self._QT_CURSORS[cursor]
             FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))
+
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
+        if backgroundColor is None:
+            backgroundColor = 'w'
+        self.fig.patch.set_facecolor(backgroundColor)
+        if dataBackgroundColor is None:
+            dataBackgroundColor = backgroundColor
+
+        if self._matplotlibVersion < _parse_version('2'):
+            self.ax.set_axis_bgcolor(dataBackgroundColor)
+        else:
+            self.ax.set_facecolor(dataBackgroundColor)
