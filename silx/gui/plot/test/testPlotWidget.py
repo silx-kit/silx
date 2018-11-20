@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/09/2018"
+__date__ = "19/11/2018"
 
 
 import unittest
@@ -181,6 +181,37 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertTrue(numpy.all(numpy.equal(items[3].getPosition(), marker_pos)))
         self.assertTrue(numpy.all(numpy.equal(items[4].getPosition()[0], marker_x)))
         self.assertEqual(items[5].getType(), 'rectangle')
+
+    def testBackGroundColors(self):
+        self.plot.setVisible(True)
+        self.qWaitForWindowExposed(self.plot)
+        self.qapp.processEvents()
+
+        # Custom the full background
+        color = self.plot.getBackgroundColor()
+        self.assertFalse(color.isValid())
+        self.plot.setBackgroundColor("red")
+        color = self.plot.getBackgroundColor()
+        self.assertTrue(color.isValid())
+        self.qapp.processEvents()
+
+        # Custom the data background
+        color = self.plot.getDataBackgroundColor()
+        self.assertFalse(color.isValid())
+        self.plot.setDataBackgroundColor("red")
+        color = self.plot.getDataBackgroundColor()
+        self.assertTrue(color.isValid())
+        self.qapp.processEvents()
+
+        # Back to default
+        self.plot.setBackgroundColor(None)
+        self.plot.setDataBackgroundColor(None)
+        color = self.plot.getBackgroundColor()
+        self.assertFalse(color.isValid())
+        color = self.plot.getDataBackgroundColor()
+        self.assertFalse(color.isValid())
+        self.qapp.processEvents()
+
 
 class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addImage"""

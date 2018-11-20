@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/10/2018"
+__date__ = "19/11/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -208,27 +208,8 @@ class PlotWidget(qt.QMainWindow):
         else:
             self.setWindowTitle('PlotWidget')
 
-        if backend is None:
-            backend = silx.config.DEFAULT_PLOT_BACKEND
-
-        if hasattr(backend, "__call__"):
-            self._backend = backend(self, parent)
-
-        elif hasattr(backend, "lower"):
-            lowerCaseString = backend.lower()
-            if lowerCaseString in ("matplotlib", "mpl"):
-                backendClass = BackendMatplotlibQt
-            elif lowerCaseString in ('gl', 'opengl'):
-                from .backends.BackendOpenGL import BackendOpenGL
-                backendClass = BackendOpenGL
-            elif lowerCaseString == 'none':
-                from .backends.BackendBase import BackendBase as backendClass
-            else:
-                raise ValueError("Backend not supported %s" % backend)
-            self._backend = backendClass(self, parent)
-
-        else:
-            raise ValueError("Backend not supported %s" % str(backend))
+        self._backend = None
+        self._setBackend(backend)
 
         self.setCallback()  # set _callback
 
@@ -247,6 +228,9 @@ class PlotWidget(qt.QMainWindow):
         self._activeCurveStyle = CurveStyle(color='#000000')
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
+
+        self._backgroundColor = None
+        self._dataBackgroundColor = None
 
         # default properties
         self._cursorConfiguration = None
@@ -296,6 +280,34 @@ class PlotWidget(qt.QMainWindow):
         self.setGraphYLimits(0., 100., axis='right')
         self.setGraphYLimits(0., 100., axis='left')
 
+    def _setBackend(self, backend):
+        """Setup a new backend"""
+        assert(self._backend is None)
+
+        if backend is None:
+            backend = silx.config.DEFAULT_PLOT_BACKEND
+
+        if hasattr(backend, "__call__"):
+            backend = backend(self, self)
+
+        elif hasattr(backend, "lower"):
+            lowerCaseString = backend.lower()
+            if lowerCaseString in ("matplotlib", "mpl"):
+                backendClass = BackendMatplotlibQt
+            elif lowerCaseString in ('gl', 'opengl'):
+                from .backends.BackendOpenGL import BackendOpenGL
+                backendClass = BackendOpenGL
+            elif lowerCaseString == 'none':
+                from .backends.BackendBase import BackendBase as backendClass
+            else:
+                raise ValueError("Backend not supported %s" % backend)
+            backend = backendClass(self, self)
+
+        else:
+            raise ValueError("Backend not supported %s" % str(backend))
+
+        self._backend = backend
+
     # TODO: Can be removed for silx 0.10
     @staticmethod
     @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
@@ -338,6 +350,61 @@ class PlotWidget(qt.QMainWindow):
 
         if self._autoreplot and not wasDirty and self.isVisible():
             self._backend.postRedisplay()
+
+    def getBackgroundColor(self):
+        """Returns the RGBA colors used to display the background of this widget
+
+        The default value is an invalid `QColor`.
+
+        :rtype: qt.QColor
+        """
+        if self._backgroundColor is None:
+            # An invalid color
+            return qt.QColor()
+        rgba = self._backgroundColor
+        return qt.QColor(*rgba)
+
+    def setBackgroundColor(self, color):
+        """Set the background color of this widget.
+
+        :param color: The new color. It can be farious formats (tuple,
+            numpy array, QColor)
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._backgroundColor == color:
+            return
+        self._backgroundColor = color
+        self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
+        self._setDirtyPlot()
+
+    def getDataBackgroundColor(self):
+        """Returns the RGBA colors used to display the background of the plot
+        view displaying the data.
+
+        The default value is an invalid `QColor`.
+
+        :rtype: qt.QColor
+        """
+        if self._dataBackgroundColor is None:
+            # An invalid color
+            return qt.QColor()
+        rgba = self._dataBackgroundColor
+        return qt.QColor(*rgba)
+
+    def setDataBackgroundColor(self, color):
+        """Set the background color of this widget.
+
+        :param color: The new color. It can be farious formats (tuple,
+            numpy array, QColor)
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._dataBackgroundColor == color:
+            return
+        self._dataBackgroundColor = color
+        self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
+        self._setDirtyPlot()
 
     def showEvent(self, event):
         if self._autoreplot and self._dirty:

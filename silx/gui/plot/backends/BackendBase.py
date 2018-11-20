@@ -31,7 +31,7 @@ This API is a simplified version of PyMca PlotBackend API.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "19/11/2018"
 
 import weakref
 from ... import qt
@@ -546,3 +546,21 @@ class BackendBase(object):
         This only check status set to axes from the public API
         """
         return self._axesDisplayed
+
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
+        """
+        Set background colors used to display this widget.
+
+        If a `backgroundColor` is set, it is used for all the background of the
+        widget, while no `dataBackgroundColor` is used.
+
+        If a `dataBackgroundColor` is set, it is used to set the background
+        of the view displayed the data only. The widget outside the axes will
+        still use the `backgroundColor` as background.
+
+        :param Union[Tuple[float],None] backgroundColor: Background of the
+            widget
+        :param Union[Tuple[float],None] dataBackgroundColor: Background of the
+            data view
+        """
+        pass
