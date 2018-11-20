@@ -68,6 +68,7 @@ class SyncAxes(object):
                  syncDirection=True,
                  syncCenter=False,
                  syncZoom=False,
+                 filterHiddenPlots=False
                  ):
         """
         Constructor
@@ -89,6 +90,7 @@ class SyncAxes(object):
         assert(implies(syncLimits, not syncCenter))
         assert(implies(syncLimits, not syncZoom))
 
+        self.__filterHiddenPlots = filterHiddenPlots
         self.__locked = False
         self.__axisRefs = []
         self.__syncLimits = syncLimits
@@ -97,6 +99,7 @@ class SyncAxes(object):
         self.__syncCenter = syncCenter
         self.__syncZoom = syncZoom
         self.__callbacks = None
+        self.__lastMainAxis = None
 
         for axis in axes:
             self.addAxis(axis)
@@ -170,6 +173,14 @@ class SyncAxes(object):
             sig.connect(callback)
             callbacks.append(("sigInvertedChanged", callback))
 
+        if self.__filterHiddenPlots:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisVisibilityChanged)
+            callback = functools.partial(callback, refAxis)
+            plot = axis._getPlot()
+            plot.sigVisibilityChanged.connect(callback)
+            callbacks.append(("sigVisibilityChanged", callback))
+
         self.__callbacks[refAxis] = callbacks
 
     def __disconnectAxes(self, axis):
@@ -177,8 +188,13 @@ class SyncAxes(object):
             ref = weakref.ref(axis)
             callbacks = self.__callbacks.pop(ref)
             for sigName, callback in callbacks:
-                sig = getattr(axis, sigName)
-                sig.disconnect(callback)
+                if sigName == "sigVisibilityChanged":
+                    obj = axis._getPlot()
+                else:
+                    obj = axis
+                if obj is not None:
+                    sig = getattr(obj, sigName)
+                    sig.disconnect(callback)
 
     def addAxis(self, axis):
         """Add a new axes to synchronize."""
@@ -194,14 +210,16 @@ class SyncAxes(object):
         if self.isSynchronizing():
             self.__disconnectAxes(axis)
 
-    def synchronize(self):
+    def synchronize(self, mainAxis=None):
         """Synchronize programatically all the axes"""
         # sync the current state
         axes = self.__getAxes()
         if len(axes) == 0:
             return
 
-        mainAxis = axes[0]
+        if mainAxis is None:
+            mainAxis = axes[0]
+
         refMainAxis = weakref.ref(mainAxis)
         if self.__syncLimits:
             self.__axisLimitsChanged(refMainAxis, *mainAxis.getLimits())
@@ -243,19 +261,29 @@ class SyncAxes(object):
         yield
         self.__locked = False
 
-    def __otherAxes(self, changedAxis):
+    def __axesToUpdate(self, changedAxis):
         for axis in self.__getAxes():
             if axis is changedAxis:
                 continue
+            if self.__filterHiddenPlots:
+                plot = axis._getPlot()
+                if not plot.isVisible():
+                    continue
             yield axis
 
-    def __axisLimitsChanged(self, changedAxis, vmin, vmax):
+    def __axisVisibilityChanged(self, changedAxis, isVisible):
+        if not isVisible:
+            return
         if self.__locked:
             return
         changedAxis = changedAxis()
-        with self.__inhibitSignals():
-            for axis in self.__otherAxes(changedAxis):
-                axis.setLimits(vmin, vmax)
+        if self.__lastMainAxis is None:
+            self.__lastMainAxis = self.__axisRefs[0]
+        mainAxis = self.__lastMainAxis
+        mainAxis = mainAxis()
+        self.synchronize(mainAxis=mainAxis)
+        # force back the main axis
+        self.__lastMainAxis = weakref.ref(mainAxis)
 
     def __getAxesCenter(self, axis, vmin, vmax):
         """Returns the value displayed in the center of this axis range.
@@ -308,40 +336,53 @@ class SyncAxes(object):
             return b, a
         return a, b
 
+    def __axisLimitsChanged(self, changedAxis, vmin, vmax):
+        if self.__locked:
+            return
+        self.__lastMainAxis = changedAxis
+        changedAxis = changedAxis()
+        with self.__inhibitSignals():
+            for axis in self.__axesToUpdate(changedAxis):
+                axis.setLimits(vmin, vmax)
+
     def __axisCenterAndZoomChanged(self, changedAxis, vmin, vmax):
         if self.__locked:
             return
+        self.__lastMainAxis = changedAxis
         changedAxis = changedAxis()
         with self.__inhibitSignals():
             center = self.__getAxesCenter(changedAxis, vmin, vmax)
             pixelRange = self.__getRangeInPixel(changedAxis)
             pixelSize = (vmax - vmin) / pixelRange
-            for axis in self.__otherAxes(changedAxis):
+            for axis in self.__axesToUpdate(changedAxis):
                 vmin, vmax = self.__getLimitsFromCenter(axis, center, pixelSize)
                 axis.setLimits(vmin, vmax)
 
     def __axisCenterChanged(self, changedAxis, vmin, vmax):
         if self.__locked:
             return
+        self.__lastMainAxis = changedAxis
         changedAxis = changedAxis()
         with self.__inhibitSignals():
             center = self.__getAxesCenter(changedAxis, vmin, vmax)
-            for axis in self.__otherAxes(changedAxis):
+            for axis in self.__axesToUpdate(changedAxis):
                 vmin, vmax = self.__getLimitsFromCenter(axis, center)
                 axis.setLimits(vmin, vmax)
 
     def __axisScaleChanged(self, changedAxis, scale):
         if self.__locked:
             return
+        self.__lastMainAxis = changedAxis
         changedAxis = changedAxis()
         with self.__inhibitSignals():
-            for axis in self.__otherAxes(changedAxis):
+            for axis in self.__axesToUpdate(changedAxis):
                 axis.setScale(scale)
 
     def __axisInvertedChanged(self, changedAxis, isInverted):
         if self.__locked:
             return
+        self.__lastMainAxis = changedAxis
         changedAxis = changedAxis()
         with self.__inhibitSignals():
-            for axis in self.__otherAxes(changedAxis):
+            for axis in self.__axesToUpdate(changedAxis):
                 axis.setInverted(isInverted)
