@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "20/11/2018"
 
 
 import unittest
@@ -181,6 +181,26 @@ class TestAxisSync(TestCaseQt):
         self.assertEqual(self.plot1.getXAxis().getLimits(), (0, 200))
         self.assertEqual(self.plot2.getXAxis().getLimits(), (0, 200))
         self.assertEqual(self.plot3.getXAxis().getLimits(), (0, 200))
+
+    def testAddAxis(self):
+        """Test synchronization after construction"""
+        sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis()])
+        sync.addAxis(self.plot3.getXAxis())
+
+        self.plot1.getXAxis().setLimits(10, 500)
+        self.assertEqual(self.plot1.getXAxis().getLimits(), (10, 500))
+        self.assertEqual(self.plot2.getXAxis().getLimits(), (10, 500))
+        self.assertEqual(self.plot3.getXAxis().getLimits(), (10, 500))
+
+    def testRemoveAxis(self):
+        """Test synchronization after construction"""
+        sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()])
+        sync.removeAxis(self.plot3.getXAxis())
+
+        self.plot1.getXAxis().setLimits(10, 500)
+        self.assertEqual(self.plot1.getXAxis().getLimits(), (10, 500))
+        self.assertEqual(self.plot2.getXAxis().getLimits(), (10, 500))
+        self.assertNotEqual(self.plot3.getXAxis().getLimits(), (10, 500))
 
 
 def suite():

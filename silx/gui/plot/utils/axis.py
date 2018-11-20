@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "20/11/2018"
 
 import functools
 import logging
@@ -99,7 +99,7 @@ class SyncAxes(object):
         self.__callbacks = None
 
         for axis in axes:
-            self.__axisRefs.append(weakref.ref(axis))
+            self.addAxis(axis)
 
         self.start()
 
@@ -110,59 +110,97 @@ class SyncAxes(object):
         After that, any changes to any axes will be used to synchronize other
         axes.
         """
-        if self.__callbacks is not None:
+        if self.isSynchronizing():
             raise RuntimeError("Axes already synchronized")
         self.__callbacks = {}
 
         axes = self.__getAxes()
-        if len(axes) == 0:
-            raise RuntimeError('No axis to synchronize')
 
         # register callback for further sync
         for axis in axes:
-            refAxis = weakref.ref(axis)
-            callbacks = []
-            if self.__syncLimits:
-                # the weakref is needed to be able ignore self references
-                callback = silxWeakref.WeakMethodProxy(self.__axisLimitsChanged)
-                callback = functools.partial(callback, refAxis)
-                sig = axis.sigLimitsChanged
-                sig.connect(callback)
-                callbacks.append(("sigLimitsChanged", callback))
-            elif self.__syncCenter and self.__syncZoom:
-                # the weakref is needed to be able ignore self references
-                callback = silxWeakref.WeakMethodProxy(self.__axisCenterAndZoomChanged)
-                callback = functools.partial(callback, refAxis)
-                sig = axis.sigLimitsChanged
-                sig.connect(callback)
-                callbacks.append(("sigLimitsChanged", callback))
-            elif self.__syncZoom:
-                raise NotImplementedError()
-            elif self.__syncCenter:
-                # the weakref is needed to be able ignore self references
-                callback = silxWeakref.WeakMethodProxy(self.__axisCenterChanged)
-                callback = functools.partial(callback, refAxis)
-                sig = axis.sigLimitsChanged
-                sig.connect(callback)
-                callbacks.append(("sigLimitsChanged", callback))
-            if self.__syncScale:
-                # the weakref is needed to be able ignore self references
-                callback = silxWeakref.WeakMethodProxy(self.__axisScaleChanged)
-                callback = functools.partial(callback, refAxis)
-                sig = axis.sigScaleChanged
-                sig.connect(callback)
-                callbacks.append(("sigScaleChanged", callback))
-            if self.__syncDirection:
-                # the weakref is needed to be able ignore self references
-                callback = silxWeakref.WeakMethodProxy(self.__axisInvertedChanged)
-                callback = functools.partial(callback, refAxis)
-                sig = axis.sigInvertedChanged
-                sig.connect(callback)
-                callbacks.append(("sigInvertedChanged", callback))
+            self.__connectAxes(axis)
+        self.synchronize()
 
-            self.__callbacks[refAxis] = callbacks
+    def isSynchronizing(self):
+        """Returns true of event are connected to the axis to synchronize them
+        altogether
 
+        :rtype: bool
+        """
+        return self.__callbacks is not None
+
+    def __connectAxes(self, axis):
+        refAxis = weakref.ref(axis)
+        callbacks = []
+        if self.__syncLimits:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisLimitsChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigLimitsChanged
+            sig.connect(callback)
+            callbacks.append(("sigLimitsChanged", callback))
+        elif self.__syncCenter and self.__syncZoom:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisCenterAndZoomChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigLimitsChanged
+            sig.connect(callback)
+            callbacks.append(("sigLimitsChanged", callback))
+        elif self.__syncZoom:
+            raise NotImplementedError()
+        elif self.__syncCenter:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisCenterChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigLimitsChanged
+            sig.connect(callback)
+            callbacks.append(("sigLimitsChanged", callback))
+        if self.__syncScale:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisScaleChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigScaleChanged
+            sig.connect(callback)
+            callbacks.append(("sigScaleChanged", callback))
+        if self.__syncDirection:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisInvertedChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigInvertedChanged
+            sig.connect(callback)
+            callbacks.append(("sigInvertedChanged", callback))
+
+        self.__callbacks[refAxis] = callbacks
+
+    def __disconnectAxes(self, axis):
+        if axis is not None and _isQObjectValid(axis):
+            ref = weakref.ref(axis)
+            callbacks = self.__callbacks.pop(ref)
+            for sigName, callback in callbacks:
+                sig = getattr(axis, sigName)
+                sig.disconnect(callback)
+
+    def addAxis(self, axis):
+        """Add a new axes to synchronize."""
+        self.__axisRefs.append(weakref.ref(axis))
+        if self.isSynchronizing():
+            self.__connectAxes(axis)
+            # This could be done faster as only this axis have to be fixed
+            self.synchronize()
+
+    def removeAxis(self, axis):
+        ref = weakref.ref(axis)
+        self.__axisRefs.remove(ref)
+        if self.isSynchronizing():
+            self.__disconnectAxes(axis)
+
+    def synchronize(self):
+        """Synchronize programatically all the axes"""
         # sync the current state
+        axes = self.__getAxes()
+        if len(axes) == 0:
+            return
+
         mainAxis = axes[0]
         refMainAxis = weakref.ref(mainAxis)
         if self.__syncLimits:
@@ -178,14 +216,11 @@ class SyncAxes(object):
 
     def stop(self):
         """Stop the synchronization of the axes"""
-        if self.__callbacks is None:
+        if not self.isSynchronizing():
             raise RuntimeError("Axes not synchronized")
-        for ref, callbacks in self.__callbacks.items():
+        for ref in list(self.__callbacks.keys()):
             axis = ref()
-            if axis is not None and _isQObjectValid(axis):
-                for sigName, callback in callbacks:
-                    sig = getattr(axis, sigName)
-                    sig.disconnect(callback)
+            self.__disconnectAxes(axis)
         self.__callbacks = None
 
     def __del__(self):
