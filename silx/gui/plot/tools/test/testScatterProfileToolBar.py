@@ -97,7 +97,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.profile._getRoiManager().addRoi(roi)
 
         # Wait for async interpolator init
-        for _ in range(10):
+        for _ in range(20):
             self.qWait(200)
             if not self.profile.hasPendingOperations():
                 break
