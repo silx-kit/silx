@@ -353,6 +353,8 @@ class SyncAxes(object):
         with self.__inhibitSignals():
             center = self.__getAxesCenter(changedAxis, vmin, vmax)
             pixelRange = self.__getRangeInPixel(changedAxis)
+            if pixelRange == 0:
+                return
             pixelSize = (vmax - vmin) / pixelRange
             for axis in self.__axesToUpdate(changedAxis):
                 vmin, vmax = self.__getLimitsFromCenter(axis, center, pixelSize)
