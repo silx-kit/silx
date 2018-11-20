@@ -163,6 +163,12 @@ class FFT(OpenclProcessing):
         else:
             return arr
 
+    @staticmethod
+    def _checkarray_device(arr, dtype):
+        if arr.dtype != dtype:
+            raise ValueError("Invalid datatype: expected %s, got %s" % (dtype, arr.dtype))
+
+
     def update_input_array(self, array, dtype):
         if isinstance(array, np.ndarray):
             # TODO check size/shape ?
@@ -174,6 +180,7 @@ class FFT(OpenclProcessing):
                 self.events.append(EventDescription("copy H->D", evt))
         elif isinstance(array, cl.array.Array):
             # No copy, use the provided parray data directly
+            self._checkarray_device(array, dtype)
             self.d_input_old_ref = self.d_input
             self.d_input = array
             self.plan_forward.data = array
@@ -184,8 +191,10 @@ class FFT(OpenclProcessing):
         if isinstance(array, cl.array.Array):
             # No copy, use the provided parray data directly
             # assuming id(self.plan_forward.output) == id(self.d_output)
+            self._checkarray_device(array, dtype)
             self.d_output_old_ref = self.d_output
             self.d_output = array
+            self.plan_forward.result = array
         else:
             raise ValueError("Please use a pyopencl.array.Array as the output keyword argument of fft()")
 
@@ -196,6 +205,7 @@ class FFT(OpenclProcessing):
             self.plan_forward.data = self.d_input
         if self.d_output_old_ref is not None:
             self.d_output = self.d_output_old_ref
+            self.plan_forward.result = self.d_output_old_ref
             self.d_output_old_ref = None
 
     def fft(self, input_array, output=None):
@@ -210,7 +220,7 @@ class FFT(OpenclProcessing):
 
         self.update_input_array(input_array, self.input_dtype)
         if output is not None:
-            self.update_output_array(output, self.output_dtype, "output")
+            self.update_output_array(output, self.output_dtype)
 
         ev, = self.plan_forward.enqueue()
         if self.profile:
