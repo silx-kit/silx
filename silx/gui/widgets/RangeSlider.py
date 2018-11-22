@@ -591,21 +591,23 @@ class RangeSlider(qt.QWidget):
                           painter,
                           self)
 
-        painter.save()
-        pen = painter.pen()
-        pen.setWidth(1)
-        pen.setColor(qt.Qt.black if self.isEnabled() else qt.Qt.gray)
-        painter.setPen(pen)
-        painter.drawRect(pixmapRect.adjusted(-1, -1, 1, 1))
-        painter.restore()
+        if self.__pixmap is not None:
+            painter.save()
+            pen = painter.pen()
+            pen.setWidth(1)
+            pen.setColor(qt.Qt.black if self.isEnabled() else qt.Qt.gray)
+            painter.setPen(pen)
+            painter.drawRect(pixmapRect.adjusted(-1, -1, 1, 1))
+            painter.restore()
 
-        if self.isEnabled() and self.__pixmap is not None:
-            painter.drawPixmap(area.adjusted(self._SLIDER_WIDTH / 2,
-                                             self._PIXMAP_VOFFSET,
-                                             -self._SLIDER_WIDTH / 2 + 1,
-                                             -self._PIXMAP_VOFFSET + 1),
-                               self.__pixmap,
-                               self.__pixmap.rect())
+            if self.isEnabled():
+                rect = area.adjusted(self._SLIDER_WIDTH / 2,
+                                     self._PIXMAP_VOFFSET,
+                                     -self._SLIDER_WIDTH / 2 + 1,
+                                     -self._PIXMAP_VOFFSET + 1)
+                painter.drawPixmap(rect,
+                                   self.__pixmap,
+                                   self.__pixmap.rect())
 
         for name in ('first', 'second'):
             rect = self.__sliderRect(name)
