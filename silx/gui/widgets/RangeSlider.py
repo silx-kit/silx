@@ -579,19 +579,19 @@ class RangeSlider(qt.QWidget):
         style = qt.QApplication.style()
 
         area = self.__drawArea()
-        pixmapRect = self.__pixMapRect()
-
-        option = qt.QStyleOptionProgressBar()
-        option.initFrom(self)
-        option.rect = area
-        option.state = (qt.QStyle.State_Enabled if self.isEnabled()
-                        else qt.QStyle.State_None)
-        style.drawControl(qt.QStyle.CE_ProgressBarGroove,
-                          option,
-                          painter,
-                          self)
-
         if self.__pixmap is not None:
+            pixmapRect = self.__pixMapRect()
+
+            option = qt.QStyleOptionProgressBar()
+            option.initFrom(self)
+            option.rect = area
+            option.state = (qt.QStyle.State_Enabled if self.isEnabled()
+                            else qt.QStyle.State_None)
+            style.drawControl(qt.QStyle.CE_ProgressBarGroove,
+                              option,
+                              painter,
+                              self)
+
             painter.save()
             pen = painter.pen()
             pen.setWidth(1)
@@ -608,6 +608,34 @@ class RangeSlider(qt.QWidget):
                 painter.drawPixmap(rect,
                                    self.__pixmap,
                                    self.__pixmap.rect())
+        else:
+            # Draw slider background
+            option = qt.QStyleOptionSlider()
+            option.initFrom(self)
+            option.rect = area
+            option.upsideDown = True  # Looks to be needed to have no value overlay
+            option.sliderValue = 0
+            option.sliderPosition = 0
+            option.minimum = 0
+            option.maximum = 1000
+            option.state = (qt.QStyle.State_Enabled if self.isEnabled()
+                            else qt.QStyle.State_None)
+            option.subControls = qt.QStyle.SC_SliderGroove
+            style.drawComplexControl(qt.QStyle.CC_Slider, option, painter, self)
+
+            # Draw slider background for the value
+            rect = qt.QRect(area)
+            first, second = self.__getValuesInPercent()
+            posLeft = rect.left() + int(rect.width() * first) - 5
+            posRight = rect.left() + int(rect.width() * second) + 2
+            rect.setLeft(posLeft)
+            rect.setRight(posRight)
+            option.rect = rect
+            option.upsideDown = False
+            option.sliderPosition = 1000
+            option.sliderValue = 1000
+            option.subControls = qt.QStyle.SC_SliderGroove
+            style.drawComplexControl(qt.QStyle.CC_Slider, option, painter, self)
 
         for name in ('first', 'second'):
             rect = self.__sliderRect(name)
@@ -624,6 +652,16 @@ class RangeSlider(qt.QWidget):
             option.rect = rect
             style.drawControl(
                 qt.QStyle.CE_PushButton, option, painter, self)
+
+    def __getValuesInPercent(self):
+        """Returns the first and second values in percent
+
+        :rtype: float, float
+        """
+        vRange = self.__maxValue - self.__minValue
+        first = (self.__firstValue - self.__minValue) / vRange
+        second = (self.__secondValue - self.__minValue) / vRange
+        return first, second
 
     def sizeHint(self):
         return qt.QSize(200, self.minimumHeight())
