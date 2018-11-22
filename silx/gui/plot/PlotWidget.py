@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "22/11/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -2255,6 +2255,8 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True to respect data aspect ratio
         """
         flag = bool(flag)
+        if flag == self.isKeepDataAspectRatio():
+            return
         self._backend.setKeepDataAspectRatio(flag=flag)
         self._setDirtyPlot()
         self._forceResetZoom()
