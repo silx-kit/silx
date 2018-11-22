@@ -31,7 +31,7 @@ from __future__ import absolute_import, division
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/08/2018"
+__date__ = "22/11/2018"
 
 
 import numpy as numpy
@@ -584,8 +584,8 @@ class RangeSlider(qt.QWidget):
         option = qt.QStyleOptionProgressBar()
         option.initFrom(self)
         option.rect = area
-        option.state = ((self.isEnabled() and qt.QStyle.State_Enabled)
-                        or qt.QStyle.State_None)
+        option.state = (qt.QStyle.State_Enabled if self.isEnabled()
+                        else qt.QStyle.State_None)
         style.drawControl(qt.QStyle.CE_ProgressBarGroove,
                           option,
                           painter,
