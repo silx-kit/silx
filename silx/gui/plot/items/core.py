@@ -411,7 +411,7 @@ class ColormapMixIn(ItemMixInBase):
         return self._colormap
 
     def setColormap(self, colormap):
-        """Set the colormap of this image
+        """Set the colormap of this item
 
         :param silx.gui.colors.Colormap colormap: colormap description
         """
