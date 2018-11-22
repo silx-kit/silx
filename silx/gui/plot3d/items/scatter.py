@@ -269,8 +269,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         Supported visualization modes are:
 
         - 'points': For scatter plot representation
-        - 'lines': For Delaunay tesselation-based wireframe representation
-        - 'solid': For Delaunay tesselation-based solid surface representation
+        - 'lines': For Delaunay tessellation-based wireframe representation
+        - 'solid': For Delaunay tessellation-based solid surface representation
 
         :param str mode: Mode of representation to use
         """
