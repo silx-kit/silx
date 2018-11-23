@@ -31,7 +31,7 @@ from __future__ import absolute_import, division
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/11/2018"
+__date__ = "23/11/2018"
 
 
 import numpy as numpy
@@ -86,6 +86,8 @@ class RangeSlider(qt.QWidget):
         self.__secondValue = 1.
         self.__minValue = 0.
         self.__maxValue = 1.
+        self.__hoverRect = qt.QRect()
+        self.__hoverControl = None
 
         self.__focus = None
         self.__moving = None
@@ -100,12 +102,41 @@ class RangeSlider(qt.QWidget):
         super(RangeSlider, self).__init__(parent)
 
         self.setFocusPolicy(qt.Qt.ClickFocus)
+        self.setAttribute(qt.Qt.WA_Hover)
 
         self.setMinimumSize(qt.QSize(50, 20))
         self.setMaximumHeight(20)
 
         # Broadcast value changed signal
         self.sigValueChanged.connect(self.__emitPositionChanged)
+
+    def event(self, event):
+        t = event.type()
+        if t == qt.QEvent.HoverEnter or t == qt.QEvent.HoverLeave or t == qt.QEvent.HoverMove:
+            return self.__updateHoverControl(event.pos())
+        else:
+            return super(RangeSlider, self).event(event)
+
+    def __updateHoverControl(self, pos):
+        hoverControl, hoverRect = self.__findHoverControl(pos)
+        if hoverControl != self.__hoverControl:
+            self.update(self.__hoverRect)
+            self.update(hoverRect)
+            self.__hoverControl = hoverControl
+            self.__hoverRect = hoverRect
+            return True
+        return hoverControl is not None
+
+    def __findHoverControl(self, pos):
+        """Returns the control at the position and it's rect location"""
+        for name in ["first", "second"]:
+            rect = self.__sliderRect(name)
+            if rect.contains(pos):
+                return name, rect
+        rect = self.__drawArea()
+        if rect.contains(pos):
+            return "groove", rect
+        return None, qt.QRect()
 
     # Position <-> Value conversion
 
@@ -620,6 +651,10 @@ class RangeSlider(qt.QWidget):
             option.maximum = 1000
             option.state = (qt.QStyle.State_Enabled if self.isEnabled()
                             else qt.QStyle.State_None)
+            if self.__hoverControl == "groove":
+                option.state |= qt.QStyle.State_MouseOver
+            elif option.state & qt.QStyle.State_MouseOver:
+                option.state ^= qt.QStyle.State_MouseOver
             option.subControls = qt.QStyle.SC_SliderGroove
             style.drawComplexControl(qt.QStyle.CC_Slider, option, painter, self)
 
@@ -637,13 +672,18 @@ class RangeSlider(qt.QWidget):
             option.subControls = qt.QStyle.SC_SliderGroove
             style.drawComplexControl(qt.QStyle.CC_Slider, option, painter, self)
 
+        # Avoid glitch when moving handles
+        hoverControl = self.__moving or self.__hoverControl
+
         for name in ('first', 'second'):
             rect = self.__sliderRect(name)
             option = qt.QStyleOptionButton()
             option.initFrom(self)
             option.icon = self.__icons[name]
             option.iconSize = rect.size() * 0.7
-            if option.state & qt.QStyle.State_MouseOver:
+            if hoverControl == name:
+                option.state |= qt.QStyle.State_MouseOver
+            elif option.state & qt.QStyle.State_MouseOver:
                 option.state ^= qt.QStyle.State_MouseOver
             if self.__focus == name:
                 option.state |= qt.QStyle.State_HasFocus
