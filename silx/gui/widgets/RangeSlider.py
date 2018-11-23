@@ -660,11 +660,9 @@ class RangeSlider(qt.QWidget):
 
             # Draw slider background for the value
             rect = qt.QRect(area)
-            first, second = self.__getValuesInPercent()
-            posLeft = rect.left() + int(rect.width() * first) - 5
-            posRight = rect.left() + int(rect.width() * second) + 2
-            rect.setLeft(posLeft)
-            rect.setRight(posRight)
+            first, second = self.__sliderRect("first"), self.__sliderRect("second")
+            rect.setLeft(first.right())
+            rect.setRight(second.left())
             option.rect = rect
             option.upsideDown = False
             option.sliderPosition = 1000
@@ -692,16 +690,6 @@ class RangeSlider(qt.QWidget):
             option.rect = rect
             style.drawControl(
                 qt.QStyle.CE_PushButton, option, painter, self)
-
-    def __getValuesInPercent(self):
-        """Returns the first and second values in percent
-
-        :rtype: float, float
-        """
-        vRange = self.__maxValue - self.__minValue
-        first = (self.__firstValue - self.__minValue) / vRange
-        second = (self.__secondValue - self.__minValue) / vRange
-        return first, second
 
     def sizeHint(self):
         return qt.QSize(200, self.minimumHeight())
