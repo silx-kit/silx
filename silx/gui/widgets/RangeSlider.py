@@ -630,13 +630,13 @@ class RangeSlider(qt.QWidget):
             pen.setWidth(1)
             pen.setColor(qt.Qt.black if self.isEnabled() else qt.Qt.gray)
             painter.setPen(pen)
-            painter.drawRect(pixmapRect.adjusted(-1, -1, 1, 1))
+            painter.drawRect(pixmapRect.adjusted(-1, -1, 0, 1))
             painter.restore()
 
             if self.isEnabled():
-                rect = area.adjusted(self._SLIDER_WIDTH / 2,
+                rect = area.adjusted(self._SLIDER_WIDTH // 2,
                                      self._PIXMAP_VOFFSET,
-                                     -self._SLIDER_WIDTH / 2 + 1,
+                                     -self._SLIDER_WIDTH // 2,
                                      -self._PIXMAP_VOFFSET + 1)
                 painter.drawPixmap(rect,
                                    self.__pixmap,
