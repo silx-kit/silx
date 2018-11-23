@@ -597,13 +597,13 @@ class RangeSlider(qt.QWidget):
     def __sliderAreaRect(self):
         return self.__drawArea().adjusted(self._SLIDER_WIDTH / 2.,
                                           0,
-                                          -self._SLIDER_WIDTH / 2.,
+                                          -self._SLIDER_WIDTH / 2. + 1,
                                           0)
 
     def __pixMapRect(self):
         return self.__sliderAreaRect().adjusted(0,
                                                 self._PIXMAP_VOFFSET,
-                                                0,
+                                                -1,
                                                 -self._PIXMAP_VOFFSET)
 
     def paintEvent(self, event):
