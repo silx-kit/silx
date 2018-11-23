@@ -500,10 +500,12 @@ class RangeSlider(qt.QWidget):
         super(RangeSlider, self).mouseMoveEvent(event)
 
         if self.__moving is not None:
-            position = self.__xPixelToPosition(event.pos().x())
+            delta = self._SLIDER_WIDTH // 2
             if self.__moving == 'first':
+                position = self.__xPixelToPosition(event.pos().x() + delta)
                 self.setFirstPosition(position)
             else:
+                position = self.__xPixelToPosition(event.pos().x() - delta)
                 self.setSecondPosition(position)
 
     def mouseReleaseEvent(self, event):
