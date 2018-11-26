@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/11/2018"
+__date__ = "26/11/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -362,7 +362,8 @@ class PlotWidget(qt.QMainWindow):
             # An invalid color
             return qt.QColor()
         rgba = self._backgroundColor
-        return qt.QColor(*rgba)
+        color = qt.QColor.fromRgbF(*rgba)
+        return color
 
     def setBackgroundColor(self, color):
         """Set the background color of this widget.
@@ -390,7 +391,8 @@ class PlotWidget(qt.QMainWindow):
             # An invalid color
             return qt.QColor()
         rgba = self._dataBackgroundColor
-        return qt.QColor(*rgba)
+        color = qt.QColor.fromRgbF(*rgba)
+        return color
 
     def setDataBackgroundColor(self, color):
         """Set the background color of this widget.
