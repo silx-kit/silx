@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "27/02/2018"
+__date__ = "04/10/2018"
 __status__ = "stable"
 
 
@@ -284,8 +284,8 @@ class OpenclProcessing(object):
             with self.sem:
                 self.profile = bool(value)
                 if self.profile:
-                    self.queue = pyopencl.CommandQueue(self.ctx,
-                        properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                    properties = pyopencl.command_queue_properties.PROFILING_ENABLE
+                    self.queue = pyopencl.CommandQueue(self.ctx, properties=properties)
                 else:
                     self.queue = pyopencl.CommandQueue(self.ctx)
 
@@ -297,9 +297,14 @@ class OpenclProcessing(object):
         if self.profile:
             for e in self.events:
                 if "__len__" in dir(e) and len(e) >= 2:
-                    et = 1e-6 * (e[1].profile.end - e[1].profile.start)
+                    try:
+                        et = 1e-6 * (e[1].profile.end - e[1].profile.start)
+                    except Exception as err:
+                        logger.warning("No profiling for %s (%s)", e[0], err)
+                        et = numpy.nan
+                    else:
+                        t += et
                     out.append("%50s:\t%.3fms" % (e[0], et))
-                    t += et
 
         out.append("_" * 80)
         out.append("%50s:\t%.3fms" % ("Total execution time", t))
@@ -312,7 +317,8 @@ class OpenclProcessing(object):
         """
         with self.sem:
             self.events = []
-
+    reset_profile = reset_log
+    
 # This should be implemented by concrete class
 #     def __copy__(self):
 #         """Shallow copy of the object
