@@ -131,9 +131,6 @@ class DataInfo(object):
             elif nx_class == "NXdata":
                 # group claiming to be NXdata could not be parsed
                 self.isInvalidNXdata = True
-            elif nx_class == "NXentry" and "default" in data.attrs:
-                # entry claiming to have a default NXdata could not be parsed
-                self.isInvalidNXdata = True
             elif nx_class == "NXroot" or silx.io.is_file(data):
                 # root claiming to have a default entry
                 if "default" in data.attrs:
@@ -141,6 +138,9 @@ class DataInfo(object):
                     if def_entry in data and "default" in data[def_entry].attrs:
                         # and entry claims to have default NXdata
                         self.isInvalidNXdata = True
+            elif "default" in data.attrs:
+                # group claiming to have a default NXdata could not be parsed
+                self.isInvalidNXdata = True
 
         if isinstance(data, numpy.ndarray):
             self.isArray = True
@@ -1096,17 +1096,6 @@ class _InvalidNXdataView(DataView):
                 # invalid: could not even be parsed by NXdata
                 self._msg = "Group has @NX_class = NXdata, but could not be interpreted"
                 self._msg += " as valid NXdata."
-            elif nx_class == "NXentry":
-                self._msg = "NXentry group provides a @default attribute,"
-                default_nxdata_name = data.attrs["default"]
-                if default_nxdata_name not in data:
-                    self._msg += " but no corresponding NXdata group exists."
-                elif get_attr_as_unicode(data[default_nxdata_name], "NX_class") != "NXdata":
-                    self._msg += " but the corresponding item is not a "
-                    self._msg += "NXdata group."
-                else:
-                    self._msg += " but the corresponding NXdata seems to be"
-                    self._msg += " malformed."
             elif nx_class == "NXroot" or silx.io.is_file(data):
                 default_entry = data[data.attrs["default"]]
                 default_nxdata_name = default_entry.attrs["default"]
@@ -1117,6 +1106,17 @@ class _InvalidNXdataView(DataView):
                     self._msg += " but no corresponding NXdata group exists."
                 elif get_attr_as_unicode(default_entry[default_nxdata_name],
                                          "NX_class") != "NXdata":
+                    self._msg += " but the corresponding item is not a "
+                    self._msg += "NXdata group."
+                else:
+                    self._msg += " but the corresponding NXdata seems to be"
+                    self._msg += " malformed."
+            else:
+                self._msg = "Group provides a @default attribute,"
+                default_nxdata_name = data.attrs["default"]
+                if default_nxdata_name not in data:
+                    self._msg += " but no corresponding NXdata group exists."
+                elif get_attr_as_unicode(data[default_nxdata_name], "NX_class") != "NXdata":
                     self._msg += " but the corresponding item is not a "
                     self._msg += "NXdata group."
                 else:

@@ -56,6 +56,9 @@ then
             stretch)
                 debian_version=9
                 ;;
+            buster)
+                debian_version=9
+                ;;
         esac
     fi
 

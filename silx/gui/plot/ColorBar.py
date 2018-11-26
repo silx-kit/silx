@@ -801,7 +801,7 @@ class _TickBar(qt.QWidget):
         if self._norm == colors.Colormap.LINEAR:
             return 1 - (val - self._vmin) / (self._vmax - self._vmin)
         elif self._norm == colors.Colormap.LOGARITHM:
-            return 1 - (numpy.log10(val) - numpy.log10(self._vmin)) / (numpy.log10(self._vmax) - numpy.log(self._vmin))
+            return 1 - (numpy.log10(val) - numpy.log10(self._vmin)) / (numpy.log10(self._vmax) - numpy.log10(self._vmin))
         else:
             raise ValueError('Norm is not recognized')
 
@@ -864,7 +864,7 @@ class _TickBar(qt.QWidget):
     def _guessType(self, font):
         """Try fo find the better format to display the tick's labels
 
-        :param QFont font: the font we want want to use durint the painting
+        :param QFont font: the font we want to use during the painting
         """
         form = self._getStandardFormat()
 
@@ -873,7 +873,7 @@ class _TickBar(qt.QWidget):
         for tick in self.ticks:
             width = max(fm.width(form.format(tick)), width)
 
-        # if the length of the string are too long we are mooving to scientific
+        # if the length of the string are too long we are moving to scientific
         # display
         if width > _TickBar._WIDTH_DISP_VAL - _TickBar._LINE_WIDTH:
             return self._getScientificForm()

@@ -27,3 +27,9 @@ For sample code using :class:`SceneWidget`, see ``plot3dSceneWindow.py`` in :ref
    :maxdepth: 2
 
    items.rst
+
+:class:`~silx.gui.plot3d.items._pick.PickingResult`
+---------------------------------------------------
+
+.. autoclass:: silx.gui.plot3d.items._pick.PickingResult
+   :members:

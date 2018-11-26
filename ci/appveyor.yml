@@ -1,4 +1,4 @@
-version: 0.9-dev{build}
+version: 0.10-dev{build}
 
 # fetch repository as zip archive
 shallow_clone: true
@@ -32,10 +32,6 @@ environment:
         # Python 2.7
         - PYTHON_DIR: "C:\\Python27-x64"
           QT_BINDING: "PyQt4"
-          WITH_GL_TEST: False
-
-        - PYTHON_DIR: "C:\\Python27-x64"
-          QT_BINDING: "PySide"
           WITH_GL_TEST: False
 
 install:

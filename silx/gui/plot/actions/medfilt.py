@@ -39,9 +39,9 @@ from __future__ import division
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 
-__date__ = "03/01/2018"
+__date__ = "10/10/2018"
 
-from . import PlotAction
+from .PlotToolAction import PlotToolAction
 from silx.gui.widgets.MedianFilterDialog import MedianFilterDialog
 from silx.math.medianfilter import medfilt2d
 import logging
@@ -49,7 +49,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class MedianFilterAction(PlotAction):
+class MedianFilterAction(PlotToolAction):
     """QAction to plot the pixels intensities diagram
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -57,27 +57,29 @@ class MedianFilterAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        PlotAction.__init__(self,
-                            plot,
-                            icon='median-filter',
-                            text='median filter',
-                            tooltip='Apply a median filter on the image',
-                            triggered=self._triggered,
-                            parent=parent)
+        PlotToolAction.__init__(self,
+                                plot,
+                                icon='median-filter',
+                                text='median filter',
+                                tooltip='Apply a median filter on the image',
+                                parent=parent)
         self._originalImage = None
         self._legend = None
         self._filteredImage = None
-        self._popup = MedianFilterDialog(parent=plot)
-        self._popup.sigFilterOptChanged.connect(self._updateFilter)
+
+    def _createToolWindow(self):
+        popup = MedianFilterDialog(parent=self.plot)
+        popup.sigFilterOptChanged.connect(self._updateFilter)
+        return popup
+
+    def _connectPlot(self, window):
+        PlotToolAction._connectPlot(self, window)
         self.plot.sigActiveImageChanged.connect(self._updateActiveImage)
         self._updateActiveImage()
 
-    def _triggered(self, checked):
-        """Update the plot of the histogram visibility status
-
-        :param bool checked: status  of the action button
-        """
-        self._popup.show()
+    def _disconnectPlot(self, window):
+        PlotToolAction._disconnectPlot(self, window)
+        self.plot.sigActiveImageChanged.disconnect(self._updateActiveImage)
 
     def _updateActiveImage(self):
         """Set _activeImageLegend and _originalImage from the active image"""

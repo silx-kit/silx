@@ -37,9 +37,9 @@ import numpy
 import shutil
 from contextlib import contextmanager
 from silx.gui import qt
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import hdf5
-from silx.gui.test.utils import SignalListener
+from silx.gui.utils.testutils import SignalListener
 from silx.io import commonh5
 import weakref
 
@@ -595,6 +595,7 @@ class TestH5Node(TestCaseQt):
         h5["link/soft_link_to_group"] = h5py.SoftLink("/group")
         h5["link/soft_link_to_link"] = h5py.SoftLink("/link/soft_link")
         h5["link/soft_link_to_file"] = h5py.SoftLink("/")
+        h5["group/soft_link_relative"] = h5py.SoftLink("dataset")
         h5["link/external_link"] = h5py.ExternalLink(externalFilename, "/target/dataset")
         h5["link/external_link_to_link"] = h5py.ExternalLink(externalFilename, "/target/link")
         h5["broken_link/external_broken_file"] = h5py.ExternalLink(externalFilename + "_not_exists", "/target/link")
@@ -696,6 +697,17 @@ class TestH5Node(TestCaseQt):
         self.assertEqual(h5node.physical_name, "/group/dataset")
         self.assertEqual(h5node.local_basename, "soft_link_to_link")
         self.assertEqual(h5node.local_name, "/link/soft_link_to_link")
+
+    def testSoftLinkRelative(self):
+        path = ["base.h5", "group", "soft_link_relative"]
+        h5node = self.getH5NodeFromPath(self.model, path)
+
+        self.assertEqual(h5node.physical_filename, h5node.local_filename)
+        self.assertIn("base.h5", h5node.physical_filename)
+        self.assertEqual(h5node.physical_basename, "dataset")
+        self.assertEqual(h5node.physical_name, "/group/dataset")
+        self.assertEqual(h5node.local_basename, "soft_link_relative")
+        self.assertEqual(h5node.local_name, "/group/soft_link_relative")
 
     def testExternalLink(self):
         path = ["base.h5", "link", "external_link"]

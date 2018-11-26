@@ -1,6 +1,66 @@
 Change Log
 ==========
 
+0.9.0: 2018/10/23
+-----------------
+
+ * Graphical user interface:
+
+   * `silx.gui.widgets`:
+
+     * Adds `RangeSlider` widget, a slider with 2 thumbs
+     * Adds `CurveLegendsWidget` widget to display PlotWidget curve legends
+       (as an alternative to `LegendSelector` widget)
+     * Adds `FlowLayout` QWidget layout
+
+   * Plot:
+
+     * Adds `CompareImages` widget providing tools to compare 2 images
+     * `ScatterView`: Adds alpha channel support
+     * `MaskToolsWidget`: Adds load/save masks from/to HDF5 files
+
+     * `PlotWidget`:
+
+       * Adds `getItems` method, `sigItemAdded` and `sigItemAboutToBeRemoved` signals
+       * Adds more options for active curve highlighting (see `get|setActiveCurveStyle` method)
+       * Deprecates `get|setActiveCurveColor` methods
+       * Adds `get|setActiveCurveSelectionMode` methods to change the behavior of active curve selection
+       * Adds configurable line style and width to line markers
+       * Fixes texture cache size in OpenGL backend
+
+   * Plot3D:
+
+     * Adds `SceneWidget.pickItems` method to retrieve the item and data at a given mouse position
+     * Adds `PositionInfoWidget` widget to display data value at a given mouse position
+
+   * `silx.gui.utils`:
+
+     * Adds `image` module for QImage/numpy array conversion functions
+     * Adds `testutils` helper module for writing Qt tests
+       (previously available internally as `silx.gui.test.utils`)
+
+   * Adds `silx.gui.qt.inspect` module to inspect Qt objects
+
+ * Math:
+
+   * Updates median filter with support for Not-a-Number and a 'constant' padding mode
+
+ * `silx view`:
+
+    * Fixes file synchronization
+    * Adds a refresh button to synchronize file content
+
+ * Dependencies:
+
+   * Deprecates support of PySide Qt4 binding
+     (We intend to drop official support of PySide in silx 0.10.0)
+   * Deprecates support of PyQt4
+   * Adds `h5py` and `fabio` as strong dependencies
+
+ * Miscellaneous:
+
+   * Adds `silx.examples` package to ship the example with the library
+
 0.8.0: 2018/07/04
 -----------------
 

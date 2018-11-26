@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/12/2017"
+__date__ = "22/11/2018"
 
 import datetime as dt
 import logging
@@ -448,6 +448,8 @@ class YAxis(Axis):
                           False for Y axis going from bottom to top
         """
         flag = bool(flag)
+        if self.isInverted() == flag:
+            return
         self._getBackend().setYAxisInverted(flag)
         self._getPlot()._setDirtyPlot()
         self.sigInvertedChanged.emit(flag)

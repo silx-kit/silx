@@ -41,10 +41,11 @@ from silx.math.marchingcubes import MarchingCubes
 from ... import qt
 from ...colors import rgba
 
-from ..scene import cutplane, primitives, transform
+from ..scene import cutplane, primitives, transform, utils
 
-from .core import DataItem3D, Item3D, ItemChangedType, Item3DChangedType
+from .core import BaseNodeItem, Item3D, ItemChangedType, Item3DChangedType
 from .mixins import ColormapMixIn, InterpolationMixIn, PlaneMixIn
+from ._pick import PickingResult
 
 
 _logger = logging.getLogger(__name__)
@@ -77,7 +78,8 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
     def _parentChanged(self, event):
         """Handle data change in the parent this plane belongs to"""
         if event == ItemChangedType.DATA:
-            self._getPlane().setData(self.sender().getData(), copy=False)
+            self._getPlane().setData(self.sender().getData(copy=False),
+                                     copy=False)
 
             # Store data range info as 3-tuple of values
             self._dataRange = self.sender().getDataRange()
@@ -113,6 +115,53 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         """
         return self._dataRange
 
+    def getData(self, copy=True):
+        """Return 3D dataset.
+
+        :param bool copy:
+           True (default) to get a copy,
+           False to get the internal data (DO NOT modify!)
+        :return: The data set (or None if not set)
+        """
+        parent = self.parent()
+        return None if parent is None else parent.getData(copy=copy)
+
+    def _pickFull(self, context):
+        """Perform picking in this item at given widget position.
+
+        :param PickContext context: Current picking context
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
+        """
+        rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
+        if rayObject is None:
+            return None
+
+        points = utils.segmentPlaneIntersect(
+            rayObject[0, :3],
+            rayObject[1, :3],
+            planeNorm=self.getNormal(),
+            planePt=self.getPoint())
+
+        if len(points) == 1:  # Single intersection
+            if numpy.any(points[0] < 0.):
+                return None  # Outside volume
+            z, y, x = int(points[0][2]), int(points[0][1]), int(points[0][0])
+
+            data = self.getData(copy=False)
+            if data is None:
+                return None  # No dataset
+
+            depth, height, width = data.shape
+            if z < depth and y < height and x < width:
+                return PickingResult(self,
+                                     positions=[points[0]],
+                                     indices=([z], [y], [x]))
+            else:
+                return None  # Outside image
+        else:  # Either no intersection or segment and image are coplanar
+            return None
+
 
 class Isosurface(Item3D):
     """Class representing an iso-surface in a :class:`ScalarField3D` item.
@@ -122,24 +171,28 @@ class Isosurface(Item3D):
 
     def __init__(self, parent):
         Item3D.__init__(self, parent=parent)
+        assert isinstance(parent, ScalarField3D)
+        parent.sigItemChanged.connect(self._scalarField3DChanged)
         self._level = float('nan')
         self._autoLevelFunction = None
         self._color = rgba('#FFD700FF')
-        self._data = None
-
-    # TODO register to ScalarField3D signal instead?
-    def _setData(self, data, copy=True):
-        """Set the data set from which to build the iso-surface.
-
-        :param numpy.ndarray data: The 3D data set or None
-        :param bool copy: True to make a copy, False to use as is if possible
-        """
-        if data is None:
-            self._data = None
-        else:
-            self._data = numpy.array(data, copy=copy, order='C')
-
         self._updateScenePrimitive()
+
+    def _scalarField3DChanged(self, event):
+        """Handle parent's ScalarField3D sigItemChanged"""
+        if event == ItemChangedType.DATA:
+            self._updateScenePrimitive()
+
+    def getData(self, copy=True):
+        """Return 3D dataset.
+
+        :param bool copy:
+           True (default) to get a copy,
+           False to get the internal data (DO NOT modify!)
+        :return: The data set (or None if not set)
+        """
+        parent = self.parent()
+        return None if parent is None else parent.getData(copy=copy)
 
     def getLevel(self):
         """Return the level of this iso-surface (float)"""
@@ -203,7 +256,9 @@ class Isosurface(Item3D):
         """Update underlying mesh"""
         self._getScenePrimitive().children = []
 
-        if self._data is None:
+        data = self.getData(copy=False)
+
+        if data is None:
             if self.isAutoLevel():
                 self._level = float('nan')
 
@@ -211,7 +266,7 @@ class Isosurface(Item3D):
             if self.isAutoLevel():
                 st = time.time()
                 try:
-                    level = float(self.getAutoLevelFunction()(self._data))
+                    level = float(self.getAutoLevelFunction()(data))
 
                 except Exception:
                     module_ = self.getAutoLevelFunction().__module__
@@ -236,7 +291,7 @@ class Isosurface(Item3D):
 
             st = time.time()
             vertices, normals, indices = MarchingCubes(
-                self._data,
+                data,
                 isolevel=self._level)
             _logger.info('Computed iso-surface in %f s.', time.time() - st)
 
@@ -250,15 +305,73 @@ class Isosurface(Item3D):
                                          indices=indices)
                 self._getScenePrimitive().children = [mesh]
 
+    def _pickFull(self, context):
+        """Perform picking in this item at given widget position.
 
-class ScalarField3D(DataItem3D):
+        :param PickContext context: Current picking context
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
+        """
+        rayObject = context.getPickingSegment(frame=self._getScenePrimitive())
+        if rayObject is None:
+            return None
+        rayObject = rayObject[:, :3]
+
+        data = self.getData(copy=False)
+        bins = utils.segmentVolumeIntersect(
+            rayObject, numpy.array(data.shape) - 1)
+        if bins is None:
+            return None
+
+        # gather bin data
+        offsets = [(i, j, k) for i in (0, 1) for j in (0, 1) for k in (0, 1)]
+        indices = bins[:, numpy.newaxis, :] + offsets
+        binsData = data[indices[:, :, 0], indices[:, :, 1], indices[:, :, 2]]
+        # binsData.shape = nbins, 8
+        # TODO up-to this point everything can be done once for all isosurfaces
+
+        # check bin candidates
+        level = self.getLevel()
+        mask = numpy.logical_and(numpy.nanmin(binsData, axis=1) <= level,
+                                 level <= numpy.nanmax(binsData, axis=1))
+        bins = bins[mask]
+        binsData = binsData[mask]
+
+        if len(bins) == 0:
+            return None  # No bin candidate
+
+        # do picking on candidates
+        intersections = []
+        depths = []
+        for currentBin, data in zip(bins, binsData):
+            mc = MarchingCubes(data.reshape(2, 2, 2), isolevel=level)
+            points = mc.get_vertices() + currentBin
+            triangles = points[mc.get_indices()]
+            t = utils.segmentTrianglesIntersection(rayObject, triangles)[1]
+            t = numpy.unique(t)  # Duplicates happen on triangle edges
+            if len(t) != 0:
+                # Compute intersection points and get closest data point
+                points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
+                # Get closest data points by rounding to int
+                intersections.extend(points)
+                depths.extend(t)
+
+        if len(intersections) == 0:
+            return None  # No intersected triangles
+
+        intersections = numpy.array(intersections)[numpy.argsort(depths)]
+        indices = numpy.transpose(numpy.round(intersections).astype(numpy.int))
+        return PickingResult(self, positions=intersections, indices=indices)
+
+
+class ScalarField3D(BaseNodeItem):
     """3D scalar field on a regular grid.
 
     :param parent: The View widget this item belongs to.
     """
 
     def __init__(self, parent=None):
-        DataItem3D.__init__(self, parent=parent)
+        BaseNodeItem.__init__(self, parent=parent)
 
         # Gives this item the shape of the data, no matter
         # of the isosurface/cut plane size
@@ -326,10 +439,6 @@ class ScalarField3D(DataItem3D):
             self._dataRange = dataRange
 
             self._boundedGroup.shape = self._data.shape
-
-        # Update iso-surfaces
-        for isosurface in self.getIsosurfaces():
-            isosurface._setData(self._data, copy=False)
 
         self._updated(ItemChangedType.DATA)
 
@@ -401,7 +510,6 @@ class ScalarField3D(DataItem3D):
             isosurface.setAutoLevelFunction(level)
         else:
             isosurface.setLevel(level)
-        isosurface._setData(self._data, copy=False)
         isosurface.sigItemChanged.connect(self._isosurfaceItemChanged)
 
         self._isosurfaces.append(isosurface)
@@ -448,16 +556,11 @@ class ScalarField3D(DataItem3D):
                            key=lambda isosurface: - isosurface.getLevel())
         self._isogroup.children = [iso._getScenePrimitive() for iso in sortedIso]
 
-    def visit(self, included=True):
-        """Generator visiting the ScalarField3D content.
+    # BaseNodeItem
 
-        It first access cut planes and then isosurface
+    def getItems(self):
+        """Returns the list of items currently present in the ScalarField3D.
 
-        :param bool included: True (default) to include self in visit
+        :rtype: tuple
         """
-        if included:
-            yield self
-        for cutPlane in self.getCutPlanes():
-            yield cutPlane
-        for isosurface in self.getIsosurfaces():
-            yield isosurface
+        return self.getCutPlanes() + self.getIsosurfaces()

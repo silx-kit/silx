@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2004-2016 V.A. Sole, European Synchrotron Radiation Facility
+# Copyright (C) 2004-2018 V.A. Sole, European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -60,7 +60,7 @@ class TabsDialog(qt.QDialog):
         # layout2.addWidget(self.buttonHelp)
 
         self.buttonDefault = qt.QPushButton(self)
-        self.buttonDefault.setText("Default")
+        self.buttonDefault.setText("Undo changes")
         layout2.addWidget(self.buttonDefault)
 
         spacer = qt.QSpacerItem(20, 20,
@@ -138,7 +138,7 @@ class TabsDialogData(TabsDialog):
 
         self.default = {} if default is None else default
 
-        self.buttonDefault.clicked.connect(self.setDefault)
+        self.buttonDefault.clicked.connect(self._resetDefault)
         # self.keyPressEvent(qt.Qt.Key_Enter).
 
     def keyPressEvent(self, event):
@@ -173,6 +173,9 @@ class TabsDialogData(TabsDialog):
         """
         self.setDefault()
         super(TabsDialogData, self).reject()
+
+    def _resetDefault(self, checked):
+        self.setDefault()
 
     def setDefault(self, newdefault=None):
         """Reinitialize :attr:`output` with :attr:`default` or with

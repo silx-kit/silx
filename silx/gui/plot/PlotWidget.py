@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/09/2018"
+__date__ = "22/11/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -44,7 +44,6 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-from silx.utils import deprecation
 from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated
 # Import matplotlib backend here to init matplotlib our way
@@ -58,7 +57,8 @@ from .LimitsHistory import LimitsHistory
 from . import _utils
 
 from . import items
-from .items.axis import TickMode
+from .items.curve import CurveStyle
+from .items.axis import TickMode  # noqa
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
@@ -68,27 +68,7 @@ _logger = logging.getLogger(__name__)
 
 
 _COLORDICT = colors.COLORDICT
-_COLORLIST = [_COLORDICT['black'],
-              _COLORDICT['blue'],
-              _COLORDICT['red'],
-              _COLORDICT['green'],
-              _COLORDICT['pink'],
-              _COLORDICT['yellow'],
-              _COLORDICT['brown'],
-              _COLORDICT['cyan'],
-              _COLORDICT['magenta'],
-              _COLORDICT['orange'],
-              _COLORDICT['violet'],
-              # _COLORDICT['bluegreen'],
-              _COLORDICT['grey'],
-              _COLORDICT['darkBlue'],
-              _COLORDICT['darkRed'],
-              _COLORDICT['darkGreen'],
-              _COLORDICT['darkCyan'],
-              _COLORDICT['darkMagenta'],
-              _COLORDICT['darkYellow'],
-              _COLORDICT['darkBrown']]
-
+_COLORLIST = silx.config.DEFAULT_PLOT_CURVE_COLORS
 
 """
 Object returned when requesting the data range.
@@ -118,7 +98,7 @@ class PlotWidget(qt.QMainWindow):
 
     # TODO: Can be removed for silx 0.10
     @classproperty
-    @deprecation.deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
+    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
     def DEFAULT_BACKEND(self):
         """Class attribute setting the default backend for all instances."""
         return silx.config.DEFAULT_PLOT_BACKEND
@@ -205,20 +185,18 @@ class PlotWidget(qt.QMainWindow):
     It provides the item that will be removed.
     """
 
-    def __init__(self, parent=None, backend=None,
-                 legends=False, callback=None, **kw):
+    sigVisibilityChanged = qt.Signal(bool)
+    """Signal emitted when the widget becomes visible (or invisible).
+    This happens when the widget is hidden or shown.
+
+    It provides the visible state.
+    """
+
+    def __init__(self, parent=None, backend=None):
         self._autoreplot = False
         self._dirty = False
         self._cursorInPlot = False
         self.__muteActiveItemChanged = False
-
-        if kw:
-            _logger.warning(
-                'deprecated: __init__ extra arguments: %s', str(kw))
-        if legends:
-            _logger.warning('deprecated: __init__ legend argument')
-        if callback:
-            _logger.warning('deprecated: __init__ callback argument')
 
         self._panWithArrowKeys = True
         self._viewConstrains = None
@@ -230,27 +208,8 @@ class PlotWidget(qt.QMainWindow):
         else:
             self.setWindowTitle('PlotWidget')
 
-        if backend is None:
-            backend = silx.config.DEFAULT_PLOT_BACKEND
-
-        if hasattr(backend, "__call__"):
-            self._backend = backend(self, parent)
-
-        elif hasattr(backend, "lower"):
-            lowerCaseString = backend.lower()
-            if lowerCaseString in ("matplotlib", "mpl"):
-                backendClass = BackendMatplotlibQt
-            elif lowerCaseString in ('gl', 'opengl'):
-                from .backends.BackendOpenGL import BackendOpenGL
-                backendClass = BackendOpenGL
-            elif lowerCaseString == 'none':
-                from .backends.BackendBase import BackendBase as backendClass
-            else:
-                raise ValueError("Backend not supported %s" % backend)
-            self._backend = backendClass(self, parent)
-
-        else:
-            raise ValueError("Backend not supported %s" % str(backend))
+        self._backend = None
+        self._setBackend(backend)
 
         self.setCallback()  # set _callback
 
@@ -266,9 +225,12 @@ class PlotWidget(qt.QMainWindow):
         self._styleIndex = 0
 
         self._activeCurveSelectionMode = "atmostone"
-        self._activeCurveColor = "#000000"
+        self._activeCurveStyle = CurveStyle(color='#000000')
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
+
+        self._backgroundColor = None
+        self._dataBackgroundColor = None
 
         # default properties
         self._cursorConfiguration = None
@@ -318,9 +280,37 @@ class PlotWidget(qt.QMainWindow):
         self.setGraphYLimits(0., 100., axis='right')
         self.setGraphYLimits(0., 100., axis='left')
 
+    def _setBackend(self, backend):
+        """Setup a new backend"""
+        assert(self._backend is None)
+
+        if backend is None:
+            backend = silx.config.DEFAULT_PLOT_BACKEND
+
+        if hasattr(backend, "__call__"):
+            backend = backend(self, self)
+
+        elif hasattr(backend, "lower"):
+            lowerCaseString = backend.lower()
+            if lowerCaseString in ("matplotlib", "mpl"):
+                backendClass = BackendMatplotlibQt
+            elif lowerCaseString in ('gl', 'opengl'):
+                from .backends.BackendOpenGL import BackendOpenGL
+                backendClass = BackendOpenGL
+            elif lowerCaseString == 'none':
+                from .backends.BackendBase import BackendBase as backendClass
+            else:
+                raise ValueError("Backend not supported %s" % backend)
+            backend = backendClass(self, self)
+
+        else:
+            raise ValueError("Backend not supported %s" % str(backend))
+
+        self._backend = backend
+
     # TODO: Can be removed for silx 0.10
     @staticmethod
-    @deprecation.deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
+    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
     def setDefaultBackend(backend):
         """Set system wide default plot backend.
 
@@ -361,10 +351,70 @@ class PlotWidget(qt.QMainWindow):
         if self._autoreplot and not wasDirty and self.isVisible():
             self._backend.postRedisplay()
 
+    def getBackgroundColor(self):
+        """Returns the RGBA colors used to display the background of this widget
+
+        The default value is an invalid `QColor`.
+
+        :rtype: qt.QColor
+        """
+        if self._backgroundColor is None:
+            # An invalid color
+            return qt.QColor()
+        rgba = self._backgroundColor
+        return qt.QColor(*rgba)
+
+    def setBackgroundColor(self, color):
+        """Set the background color of this widget.
+
+        :param color: The new color. It can be farious formats (tuple,
+            numpy array, QColor)
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._backgroundColor == color:
+            return
+        self._backgroundColor = color
+        self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
+        self._setDirtyPlot()
+
+    def getDataBackgroundColor(self):
+        """Returns the RGBA colors used to display the background of the plot
+        view displaying the data.
+
+        The default value is an invalid `QColor`.
+
+        :rtype: qt.QColor
+        """
+        if self._dataBackgroundColor is None:
+            # An invalid color
+            return qt.QColor()
+        rgba = self._dataBackgroundColor
+        return qt.QColor(*rgba)
+
+    def setDataBackgroundColor(self, color):
+        """Set the background color of this widget.
+
+        :param color: The new color. It can be farious formats (tuple,
+            numpy array, QColor)
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._dataBackgroundColor == color:
+            return
+        self._dataBackgroundColor = color
+        self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
+        self._setDirtyPlot()
+
     def showEvent(self, event):
         if self._autoreplot and self._dirty:
             self._backend.postRedisplay()
         super(PlotWidget, self).showEvent(event)
+        self.sigVisibilityChanged.emit(True)
+
+    def hideEvent(self, event):
+        super(PlotWidget, self).hideEvent(event)
+        self.sigVisibilityChanged.emit(False)
 
     def _invalidateDataRange(self):
         """
@@ -535,13 +585,13 @@ class PlotWidget(qt.QMainWindow):
     # This value is used when curve is updated either internally or by user.
 
     def addCurve(self, x, y, legend=None, info=None,
-                 replace=False, replot=None,
+                 replace=False,
                  color=None, symbol=None,
                  linewidth=None, linestyle=None,
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
                  fill=None, resetzoom=True,
-                 histogram=None, copy=True, **kw):
+                 histogram=None, copy=True):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -624,15 +674,6 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :returns: The key string identify this curve
         """
-        # Deprecation warnings
-        if replot is not None:
-            _logger.warning(
-                'addCurve deprecated replot argument, use resetzoom instead')
-            resetzoom = replot and resetzoom
-
-        if kw:
-            _logger.warning('addCurve: deprecated extra arguments')
-
         # This is an histogram, use addHistogram
         if histogram is not None:
             histoLegend = self.addHistogram(histogram=y,
@@ -832,13 +873,13 @@ class PlotWidget(qt.QMainWindow):
         return legend
 
     def addImage(self, data, legend=None, info=None,
-                 replace=False, replot=None,
-                 xScale=None, yScale=None, z=None,
+                 replace=False,
+                 z=None,
                  selectable=None, draggable=None,
                  colormap=None, pixmap=None,
                  xlabel=None, ylabel=None,
                  origin=None, scale=None,
-                 resetzoom=True, copy=True, **kw):
+                 resetzoom=True, copy=True):
         """Add a 2D dataset or an image to the plot.
 
         It displays either an array of data using a colormap or a RGB(A) image.
@@ -890,28 +931,6 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :returns: The key string identify this image
         """
-        # Deprecation warnings
-        if xScale is not None or yScale is not None:
-            _logger.warning(
-                'addImage deprecated xScale and yScale arguments,'
-                'use origin, scale arguments instead.')
-            if origin is None and scale is None:
-                origin = xScale[0], yScale[0]
-                scale = xScale[1], yScale[1]
-            else:
-                _logger.warning(
-                    'addCurve: xScale, yScale and origin, scale arguments'
-                    ' are conflicting. xScale and yScale are ignored.'
-                    ' Use only origin, scale arguments.')
-
-        if replot is not None:
-            _logger.warning(
-                'addImage deprecated replot argument, use resetzoom instead')
-            resetzoom = replot and resetzoom
-
-        if kw:
-            _logger.warning('addImage: deprecated extra arguments')
-
         legend = "Unnamed Image 1.1" if legend is None else str(legend)
 
         # Check if image was previously active
@@ -1097,7 +1116,7 @@ class PlotWidget(qt.QMainWindow):
     def addItem(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
-                overlay=False, z=None, **kw):
+                overlay=False, z=None):
         """Add an item (i.e. a shape) to the plot.
 
         Items are uniquely identified by their legend.
@@ -1124,9 +1143,6 @@ class PlotWidget(qt.QMainWindow):
         :returns: The key string identify this item
         """
         # expected to receive the same parameters as the signal
-
-        if kw:
-            _logger.warning('addItem deprecated parameters: %s', str(kw))
 
         legend = "Unnamed Item 1.1" if legend is None else str(legend)
 
@@ -1155,8 +1171,7 @@ class PlotWidget(qt.QMainWindow):
                    color=None,
                    selectable=False,
                    draggable=False,
-                   constraint=None,
-                   **kw):
+                   constraint=None):
         """Add a vertical line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1184,10 +1199,6 @@ class PlotWidget(qt.QMainWindow):
                           and that returns the filtered coordinates.
         :return: The key string identify this marker
         """
-        if kw:
-            _logger.warning(
-                'addXMarker deprecated extra parameters: %s', str(kw))
-
         return self._addMarker(x=x, y=None, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
@@ -1199,8 +1210,7 @@ class PlotWidget(qt.QMainWindow):
                    color=None,
                    selectable=False,
                    draggable=False,
-                   constraint=None,
-                   **kw):
+                   constraint=None):
         """Add a horizontal line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1228,10 +1238,6 @@ class PlotWidget(qt.QMainWindow):
                           and that returns the filtered coordinates.
         :return: The key string identify this marker
         """
-        if kw:
-            _logger.warning(
-                'addYMarker deprecated extra parameters: %s', str(kw))
-
         return self._addMarker(x=None, y=y, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
@@ -1243,8 +1249,7 @@ class PlotWidget(qt.QMainWindow):
                   selectable=False,
                   draggable=False,
                   symbol='+',
-                  constraint=None,
-                  **kw):
+                  constraint=None):
         """Add a point marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1284,10 +1289,6 @@ class PlotWidget(qt.QMainWindow):
                           and that returns the filtered coordinates.
         :return: The key string identify this marker
         """
-        if kw:
-            _logger.warning(
-                'addMarker deprecated extra parameters: %s', str(kw))
-
         if x is None:
             xmin, xmax = self._xAxis.getLimits()
             x = 0.5 * (xmax + xmin)
@@ -1375,7 +1376,7 @@ class PlotWidget(qt.QMainWindow):
         curve = self._getItem('curve', legend)
         return curve is not None and not curve.isVisible()
 
-    def hideCurve(self, legend, flag=True, replot=None):
+    def hideCurve(self, legend, flag=True):
         """Show/Hide the curve associated to legend.
 
         Even when hidden, the curve is kept in the list of curves.
@@ -1383,9 +1384,6 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend associated to the curve to be hidden
         :param bool flag: True (default) to hide the curve, False to show it
         """
-        if replot is not None:
-            _logger.warning('hideCurve deprecated replot parameter')
-
         curve = self._getItem('curve', legend)
         if curve is None:
             _logger.warning('Curve not in plot: %s', legend)
@@ -1599,13 +1597,45 @@ class PlotWidget(qt.QMainWindow):
         """
         self.setActiveCurveSelectionMode('atmostone' if flag else 'none')
 
+    def getActiveCurveStyle(self):
+        """Returns the current style applied to active curve
+
+        :rtype: CurveStyle
+        """
+        return self._activeCurveStyle
+
+    def setActiveCurveStyle(self,
+                            color=None,
+                            linewidth=None,
+                            linestyle=None,
+                            symbol=None,
+                            symbolsize=None):
+        """Set the style of active curve
+
+        :param color: Color
+        :param Union[str,None] linestyle: Style of the line
+        :param Union[float,None] linewidth: Width of the line
+        :param Union[str,None] symbol: Symbol of the markers
+        :param Union[float,None] symbolsize: Size of the symbols
+        """
+        self._activeCurveStyle = CurveStyle(color=color,
+                                            linewidth=linewidth,
+                                            linestyle=linestyle,
+                                            symbol=symbol,
+                                            symbolsize=symbolsize)
+        curve = self.getActiveCurve()
+        if curve is not None:
+            curve.setHighlightedStyle(self.getActiveCurveStyle())
+
+    @deprecated(replacement="getActiveCurveStyle", since_version="0.9")
     def getActiveCurveColor(self):
         """Get the color used to display the currently active curve.
 
         See :meth:`setActiveCurveColor`.
         """
-        return self._activeCurveColor
+        return self._activeCurveStyle.getColor()
 
+    @deprecated(replacement="setActiveCurveStyle", since_version="0.9")
     def setActiveCurveColor(self, color="#000000"):
         """Set the color to use to display the currently active curve.
 
@@ -1616,7 +1646,7 @@ class PlotWidget(qt.QMainWindow):
             color = "black"
         if color in self.colorDict:
             color = self.colorDict[color]
-        self._activeCurveColor = color
+        self.setActiveCurveStyle(color=color)
 
     def getActiveCurve(self, just_legend=False):
         """Return the currently active curve.
@@ -1635,16 +1665,13 @@ class PlotWidget(qt.QMainWindow):
 
         return self._getActiveItem(kind='curve', just_legend=just_legend)
 
-    def setActiveCurve(self, legend, replot=None):
+    def setActiveCurve(self, legend):
         """Make the curve associated to legend the active curve.
 
         :param legend: The legend associated to the curve
                        or None to have no active curve.
         :type legend: str or None
         """
-        if replot is not None:
-            _logger.warning('setActiveCurve deprecated replot parameter')
-
         if not self.isActiveCurveHandling():
             return
         if legend is None and self.getActiveCurveSelectionMode() == "legacy":
@@ -1698,15 +1725,12 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getActiveItem(kind='image', just_legend=just_legend)
 
-    def setActiveImage(self, legend, replot=None):
+    def setActiveImage(self, legend):
         """Make the image associated to legend the active image.
 
         :param str legend: The legend associated to the image
                            or None to have no active image.
         """
-        if replot is not None:
-            _logger.warning('setActiveImage deprecated replot parameter')
-
         return self._setActiveItem(kind='image', legend=legend)
 
     def _getActiveItem(self, kind, just_legend=False):
@@ -1767,7 +1791,7 @@ class PlotWidget(qt.QMainWindow):
 
                 # Curve specific: handle highlight
                 if kind == 'curve':
-                    item.setHighlightedColor(self.getActiveCurveColor())
+                    item.setHighlightedStyle(self.getActiveCurveStyle())
                     item.setHighlighted(True)
 
                 if isinstance(item, items.LabelsMixIn):
@@ -2003,14 +2027,12 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._backend.getGraphXLimits()
 
-    def setGraphXLimits(self, xmin, xmax, replot=None):
+    def setGraphXLimits(self, xmin, xmax):
         """Set the graph X (bottom) limits.
 
         :param float xmin: minimum bottom axis value
         :param float xmax: maximum bottom axis value
         """
-        if replot is not None:
-            _logger.warning('setGraphXLimits deprecated replot parameter')
         self._xAxis.setLimits(xmin, xmax)
 
     def getGraphYLimits(self, axis='left'):
@@ -2024,7 +2046,7 @@ class PlotWidget(qt.QMainWindow):
         yAxis = self._yAxis if axis == 'left' else self._yRightAxis
         return yAxis.getLimits()
 
-    def setGraphYLimits(self, ymin, ymax, axis='left', replot=None):
+    def setGraphYLimits(self, ymin, ymax, axis='left'):
         """Set the graph Y limits.
 
         :param float ymin: minimum bottom axis value
@@ -2032,8 +2054,6 @@ class PlotWidget(qt.QMainWindow):
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
-        if replot is not None:
-            _logger.warning('setGraphYLimits deprecated replot parameter')
         assert axis in ('left', 'right')
         yAxis = self._yAxis if axis == 'left' else self._yRightAxis
         return yAxis.setLimits(ymin, ymax)
@@ -2167,36 +2187,6 @@ class PlotWidget(qt.QMainWindow):
     def _isAxesDisplayed(self):
         return self._backend.isAxesDisplayed()
 
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetYAxisInverted(self):
-        """Signal emitted when Y axis orientation has changed"""
-        return self._yAxis.sigInvertedChanged
-
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetXAxisLogarithmic(self):
-        """Signal emitted when X axis scale has changed"""
-        return self._xAxis._sigLogarithmicChanged
-
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetYAxisLogarithmic(self):
-        """Signal emitted when Y axis scale has changed"""
-        return self._yAxis._sigLogarithmicChanged
-
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetXAxisAutoScale(self):
-        """Signal emitted when X axis autoscale has changed"""
-        return self._xAxis.sigAutoScaleChanged
-
-    @property
-    @deprecated(since_version='0.6')
-    def sigSetYAxisAutoScale(self):
-        """Signal emitted when Y axis autoscale has changed"""
-        return self._yAxis.sigAutoScaleChanged
-
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
 
@@ -2265,6 +2255,8 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True to respect data aspect ratio
         """
         flag = bool(flag)
+        if flag == self.isKeepDataAspectRatio():
+            return
         self._backend.setKeepDataAspectRatio(flag=flag)
         self._setDirtyPlot()
         self._forceResetZoom()
@@ -2396,7 +2388,7 @@ class PlotWidget(qt.QMainWindow):
             self._styleIndex = (self._styleIndex + 1) % len(self._styleList)
 
         # If color is the one of active curve, take the next one
-        if color == self.getActiveCurveColor():
+        if colors.rgba(color) == self.getActiveCurveStyle().getColor():
             color, style = self._getColorAndStyle()
 
         if not self._plotLines:
@@ -2485,7 +2477,7 @@ class PlotWidget(qt.QMainWindow):
         elif ddict['event'] == 'mouseClicked' and ddict['button'] == 'left':
             self.setActiveCurve(None)
 
-    def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
+    def saveGraph(self, filename, fileFormat=None, dpi=None):
         """Save a snapshot of the plot.
 
         Supported file formats depends on the backend in use.
@@ -2498,9 +2490,6 @@ class PlotWidget(qt.QMainWindow):
         :param str fileFormat:  String specifying the format
         :return: False if cannot save the plot, True otherwise
         """
-        if kw:
-            _logger.warning('Extra parameters ignored: %s', str(kw))
-
         if fileFormat is None:
             if not hasattr(filename, 'lower'):
                 _logger.warning(
@@ -3055,149 +3044,3 @@ class PlotWidget(qt.QMainWindow):
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.
             super(PlotWidget, self).keyPressEvent(event)
-
-    # Deprecated #
-
-    def isDrawModeEnabled(self):
-        """Deprecated, use :meth:`getInteractiveMode` instead.
-
-        Return True if the current interactive state is drawing."""
-        _logger.warning(
-            'isDrawModeEnabled deprecated, use getInteractiveMode instead')
-        return self.getInteractiveMode()['mode'] == 'draw'
-
-    def setDrawModeEnabled(self, flag=True, shape='polygon', label=None,
-                           color=None, **kwargs):
-        """Deprecated, use :meth:`setInteractiveMode` instead.
-
-        Set the drawing mode if flag is True and its parameters.
-
-        If flag is False, only item selection is enabled.
-
-        Warning: Zoom and drawing are not compatible and cannot be enabled
-        simultaneously.
-
-        :param bool flag: True to enable drawing and disable zoom and select.
-        :param str shape: Type of item to be drawn in:
-                          hline, vline, rectangle, polygon (default)
-        :param str label: Associated text for identifying draw signals
-        :param color: The color to use to draw the selection area
-        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in colors.py
-        """
-        _logger.warning(
-            'setDrawModeEnabled deprecated, use setInteractiveMode instead')
-
-        if kwargs:
-            _logger.warning('setDrawModeEnabled ignores additional parameters')
-
-        if color is None:
-            color = 'black'
-
-        if flag:
-            self.setInteractiveMode('draw', shape=shape,
-                                    label=label, color=color)
-        elif self.getInteractiveMode()['mode'] == 'draw':
-            self.setInteractiveMode('select')
-
-    def getDrawMode(self):
-        """Deprecated, use :meth:`getInteractiveMode` instead.
-
-        Return the draw mode parameters as a dict of None.
-
-        It returns None if the interactive mode is not a drawing mode,
-        otherwise, it returns a dict containing the drawing mode parameters
-        as provided to :meth:`setDrawModeEnabled`.
-        """
-        _logger.warning(
-            'getDrawMode deprecated, use getInteractiveMode instead')
-        mode = self.getInteractiveMode()
-        return mode if mode['mode'] == 'draw' else None
-
-    def isZoomModeEnabled(self):
-        """Deprecated, use :meth:`getInteractiveMode` instead.
-
-        Return True if the current interactive state is zooming."""
-        _logger.warning(
-            'isZoomModeEnabled deprecated, use getInteractiveMode instead')
-        return self.getInteractiveMode()['mode'] == 'zoom'
-
-    def setZoomModeEnabled(self, flag=True, color=None):
-        """Deprecated, use :meth:`setInteractiveMode` instead.
-
-        Set the zoom mode if flag is True, else item selection is enabled.
-
-        Warning: Zoom and drawing are not compatible and cannot be enabled
-        simultaneously
-
-        :param bool flag: If True, enable zoom and select mode.
-        :param color: The color to use to draw the selection area.
-                      (Default: 'black')
-        :param color: The color to use to draw the selection area
-        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in colors.py
-        """
-        _logger.warning(
-            'setZoomModeEnabled deprecated, use setInteractiveMode instead')
-        if color is None:
-            color = 'black'
-
-        if flag:
-            self.setInteractiveMode('zoom', color=color)
-        elif self.getInteractiveMode()['mode'] == 'zoom':
-            self.setInteractiveMode('select')
-
-    def insertMarker(self, *args, **kwargs):
-        """Deprecated, use :meth:`addMarker` instead."""
-        _logger.warning(
-            'insertMarker deprecated, use addMarker instead.')
-        return self.addMarker(*args, **kwargs)
-
-    def insertXMarker(self, *args, **kwargs):
-        """Deprecated, use :meth:`addXMarker` instead."""
-        _logger.warning(
-            'insertXMarker deprecated, use addXMarker instead.')
-        return self.addXMarker(*args, **kwargs)
-
-    def insertYMarker(self, *args, **kwargs):
-        """Deprecated, use :meth:`addYMarker` instead."""
-        _logger.warning(
-            'insertYMarker deprecated, use addYMarker instead.')
-        return self.addYMarker(*args, **kwargs)
-
-    def isActiveCurveHandlingEnabled(self):
-        """Deprecated, use :meth:`isActiveCurveHandling` instead."""
-        _logger.warning(
-            'isActiveCurveHandlingEnabled deprecated, '
-            'use isActiveCurveHandling instead.')
-        return self.isActiveCurveHandling()
-
-    def enableActiveCurveHandling(self, *args, **kwargs):
-        """Deprecated, use :meth:`setActiveCurveHandling` instead."""
-        _logger.warning(
-            'enableActiveCurveHandling deprecated, '
-            'use setActiveCurveHandling instead.')
-        return self.setActiveCurveHandling(*args, **kwargs)
-
-    def invertYAxis(self, *args, **kwargs):
-        """Deprecated, use :meth:`Axis.setInverted` instead."""
-        _logger.warning('invertYAxis deprecated, '
-                        'use getYAxis().setInverted instead.')
-        return self.getYAxis().setInverted(*args, **kwargs)
-
-    def showGrid(self, flag=True):
-        """Deprecated, use :meth:`setGraphGrid` instead."""
-        _logger.warning("showGrid deprecated, use setGraphGrid instead")
-        if flag in (0, False):
-            flag = None
-        elif flag in (1, True):
-            flag = 'major'
-        else:
-            flag = 'both'
-        return self.setGraphGrid(flag)
-
-    def keepDataAspectRatio(self, *args, **kwargs):
-        """Deprecated, use :meth:`setKeepDataAspectRatio`."""
-        _logger.warning('keepDataAspectRatio deprecated,'
-                        'use setKeepDataAspectRatio instead')
-        return self.setKeepDataAspectRatio(*args, **kwargs)

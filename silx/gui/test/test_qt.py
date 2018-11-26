@@ -33,9 +33,13 @@ import os.path
 import unittest
 
 from silx.test.utils import temp_dir
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 
 from silx.gui import qt
+try:
+    from silx.gui.qt import inspect as qt_inspect
+except ImportError:
+    qt_inspect = None
 
 
 class TestQtWrapper(unittest.TestCase):
@@ -159,9 +163,35 @@ class TestLoadUi(TestCaseQt):
             testMainWindow.close()
 
 
+class TestQtInspect(unittest.TestCase):
+    """Test functions of silx.gui.qt.inspect module"""
+
+    # shiboken module is not always available
+    @unittest.skipIf(qt.BINDING == 'PySide' and qt_inspect is None,
+                     reason="shiboken module not available")
+    def test(self):
+        """Test functions of silx.gui.qt.inspect module"""
+        self.assertIsNotNone(qt_inspect)
+
+        parent = qt.QObject()
+
+        self.assertTrue(qt_inspect.isValid(parent))
+        self.assertTrue(qt_inspect.createdByPython(parent))
+        self.assertTrue(qt_inspect.ownedByPython(parent))
+
+        obj = qt.QObject(parent)
+
+        self.assertTrue(qt_inspect.isValid(obj))
+        self.assertTrue(qt_inspect.createdByPython(obj))
+        self.assertFalse(qt_inspect.ownedByPython(obj))
+
+        del parent
+        self.assertFalse(qt_inspect.isValid(obj))
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    for TestCaseCls in (TestQtWrapper, TestLoadUi):
+    for TestCaseCls in (TestQtWrapper, TestLoadUi, TestQtInspect):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestCaseCls))
     return test_suite

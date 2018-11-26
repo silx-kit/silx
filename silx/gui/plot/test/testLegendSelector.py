@@ -33,7 +33,7 @@ import logging
 import unittest
 
 from silx.gui import qt
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import LegendSelector
 
 

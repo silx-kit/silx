@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -175,7 +175,8 @@ class PrintPreviewToolButton(qt.QToolButton):
     def _plotToPrintPreview(self):
         """Grab the plot widget and send it to the print preview dialog.
         Make sure the print preview dialog is shown and raised."""
-        self.printPreviewDialog.ensurePrinterIsSet()
+        if not self.printPreviewDialog.ensurePrinterIsSet():
+            return
 
         if qt.HAS_SVG:
             svgRenderer, viewBox = self._getSvgRendererAndViewbox()

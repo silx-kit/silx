@@ -435,6 +435,186 @@ def boxPlaneIntersect(boxVertices, boxLineIndices, planeNorm, planePt):
         return points
 
 
+def clipSegmentToBounds(segment, bounds):
+    """Clip segment to volume aligned with axes.
+
+    :param numpy.ndarray segment: (p0, p1)
+    :param numpy.ndarray bounds: (lower corner, upper corner)
+    :return: Either clipped (p0, p1) or None if outside volume
+    :rtype: Union[None,List[numpy.ndarray]]
+    """
+    segment = numpy.array(segment, copy=False)
+    bounds = numpy.array(bounds, copy=False)
+
+    p0, p1 = segment
+    # Get intersection points of ray with volume boundary planes
+    # Line equation: P = offset * delta + p0
+    delta = p1 - p0
+    deltaNotZero = numpy.array(delta, copy=True)
+    deltaNotZero[deltaNotZero == 0] = numpy.nan  # Invalidated to avoid division by zero
+    offsets = ((bounds - p0) / deltaNotZero).reshape(-1)
+    points = offsets.reshape(-1, 1) * delta + p0
+
+    # Avoid precision errors by using bounds value
+    points.shape = 2, 3, 3  # Reshape 1 point per bound value
+    for dim in range(3):
+        points[:, dim, dim] = bounds[:, dim]
+    points.shape = -1, 3  # Set back to 2D array
+
+    # Find intersection points that are included in the volume
+    mask = numpy.logical_and(numpy.all(bounds[0] <= points, axis=1),
+                             numpy.all(points <= bounds[1], axis=1))
+    intersections = numpy.unique(offsets[mask])
+    if len(intersections) != 2:
+        return None
+
+    intersections.sort()
+    # Do p1 first as p0 is need to compute it
+    if intersections[1] < 1:  # clip p1
+        segment[1] = intersections[1] * delta + p0
+    if intersections[0] > 0:  # clip p0
+        segment[0] = intersections[0] * delta + p0
+    return segment
+
+
+def segmentVolumeIntersect(segment, nbins):
+    """Get bin indices intersecting with segment
+
+    It should work with N dimensions.
+    Coordinate convention (z, y, x) or (x, y, z) should not matter
+    as long as segment and nbins are consistent.
+
+    :param numpy.ndarray segment:
+        Segment end points as a 2xN array of coordinates
+    :param numpy.ndarray nbins:
+        Shape of the volume with same coordinates order as segment
+    :return: List of bins indices as a 2D array or None if no bins
+    :rtype: Union[None,numpy.ndarray]
+    """
+    segment = numpy.asarray(segment)
+    nbins = numpy.asarray(nbins)
+
+    assert segment.ndim == 2
+    assert segment.shape[0] == 2
+    assert nbins.ndim == 1
+    assert segment.shape[1] == nbins.size
+
+    dim = len(nbins)
+
+    bounds = numpy.array((numpy.zeros_like(nbins), nbins))
+    segment = clipSegmentToBounds(segment, bounds)
+    if segment is None:
+        return None  # Segment outside volume
+    p0, p1 = segment
+
+    # Get intersections
+
+    # Get coordinates of bin edges crossing the segment
+    clipped = numpy.ceil(numpy.clip(segment, 0, nbins))
+    start = numpy.min(clipped, axis=0)
+    stop = numpy.max(clipped, axis=0)  # stop is NOT included
+    edgesByDim = [numpy.arange(start[i], stop[i]) for i in range(dim)]
+
+    # Line equation: P = t * delta + p0
+    delta = p1 - p0
+
+    # Get bin edge/line intersections as sorted points along the line
+    # Get corresponding line parameters
+    t = []
+    if numpy.all(0 <= p0) and numpy.all(p0 <= nbins):
+        t.append([0.])  # p0 within volume, add it
+    t += [(edgesByDim[i] - p0[i]) / delta[i] for i in range(dim) if delta[i] != 0]
+    if numpy.all(0 <= p1) and numpy.all(p1 <= nbins):
+        t.append([1.])  # p1 within volume, add it
+    t = numpy.concatenate(t)
+    t.sort(kind='mergesort')
+
+    # Remove duplicates
+    unique = numpy.ones((len(t),), dtype=bool)
+    numpy.not_equal(t[1:], t[:-1], out=unique[1:])
+    t = t[unique]
+
+    if len(t) < 2:
+        return None  # Not enough intersection points
+
+    # bin edges/line intersection points
+    points = t.reshape(-1, 1) * delta + p0
+    centers = (points[:-1] + points[1:]) / 2.
+    bins = numpy.floor(centers).astype(numpy.int)
+    return bins
+
+
+def segmentTrianglesIntersection(segment, triangles):
+    """Check for segment/triangles intersection.
+
+    This is based on signed tetrahedron volume comparison.
+
+    See A. Kensler, A., Shirley, P.
+    Optimizing Ray-Triangle Intersection via Automated Search.
+    Symposium on Interactive Ray Tracing, vol. 0, p33-38 (2006)
+
+    :param numpy.ndarray segment:
+        Segment end points as a 2x3 array of coordinates
+    :param numpy.ndarray triangles:
+        Nx3x3 array of triangles
+    :return: (triangle indices, segment parameter, barycentric coord)
+        Indices of intersected triangles, "depth" along the segment
+        of the intersection point and barycentric coordinates of intersection
+        point in the triangle.
+    :rtype: List[numpy.ndarray]
+    """
+    # TODO triangles from vertices + indices
+    # TODO early rejection? e.g., check segment bbox vs triangle bbox
+    segment = numpy.asarray(segment)
+    assert segment.ndim == 2
+    assert segment.shape == (2, 3)
+
+    triangles = numpy.asarray(triangles)
+    assert triangles.ndim == 3
+    assert triangles.shape[1] == 3
+
+    # Test line/triangles intersection
+    d = segment[1] - segment[0]
+    t0s0 = segment[0] - triangles[:, 0, :]
+    edge01 = triangles[:, 1, :] - triangles[:, 0, :]
+    edge02 = triangles[:, 2, :] - triangles[:, 0, :]
+
+    dCrossEdge02 = numpy.cross(d, edge02)
+    t0s0CrossEdge01 = numpy.cross(t0s0, edge01)
+    volume = numpy.sum(dCrossEdge02 * edge01, axis=1)
+    del edge01
+    subVolumes = numpy.empty((len(triangles), 3), dtype=triangles.dtype)
+    subVolumes[:, 1] = numpy.sum(dCrossEdge02 * t0s0, axis=1)
+    del dCrossEdge02
+    subVolumes[:, 2] = numpy.sum(t0s0CrossEdge01 * d, axis=1)
+    subVolumes[:, 0] = volume - subVolumes[:, 1] - subVolumes[:, 2]
+    intersect = numpy.logical_or(
+        numpy.all(subVolumes >= 0., axis=1),  # All positive
+        numpy.all(subVolumes <= 0., axis=1))  # All negative
+    intersect = numpy.where(intersect)[0]  # Indices of intersected triangles
+
+    # Get barycentric coordinates
+    barycentric = subVolumes[intersect] / volume[intersect].reshape(-1, 1)
+    del subVolumes
+
+    # Test segment/triangles intersection
+    volAlpha = numpy.sum(t0s0CrossEdge01[intersect] * edge02[intersect], axis=1)
+    t = volAlpha / volume[intersect]  # segment parameter of intersected triangles
+    del t0s0CrossEdge01
+    del edge02
+    del volAlpha
+    del volume
+
+    inSegmentMask = numpy.logical_and(t >= 0., t <= 1.)
+    intersect = intersect[inSegmentMask]
+    t = t[inSegmentMask]
+    barycentric = barycentric[inSegmentMask]
+
+    # Sort intersecting triangles by t
+    indices = numpy.argsort(t)
+    return intersect[indices], t[indices], barycentric[indices]
+
+
 # Plane #######################################################################
 
 class Plane(event.Notifier):

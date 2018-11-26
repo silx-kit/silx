@@ -37,6 +37,7 @@ Other public functions:
  - :func:`is_valid_nxdata`
  - :func:`is_NXroot_with_default_NXdata`
  - :func:`is_NXentry_with_default_NXdata`
+ - :func:`is_group_with_default_NXdata`
 
 """
 
@@ -51,7 +52,7 @@ from silx.third_party import six
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/04/2018"
+__date__ = "06/11/2018"
 
 
 class InvalidNXdataError(Exception):
@@ -180,8 +181,14 @@ class NXdata(object):
             uncertainties_names = get_uncertainties_names(self.group, signal_name)
             if uncertainties_names is not None:
                 if len(uncertainties_names) != len(axes_names):
-                    self.issues.append("@uncertainties does not define the same " +
-                                       "number of fields than @axes")
+                    if len(uncertainties_names) < len(axes_names):
+                        # ignore the field to avoid index error in the axes loop
+                        uncertainties_names = None
+                        self.issues.append("@uncertainties does not define the same " +
+                                           "number of fields than @axes. Field ignored")
+                    else:
+                        self.issues.append("@uncertainties does not define the same " +
+                                           "number of fields than @axes")
 
             # Test individual axes
             is_scatter = True  # true if all axes have the same size as the signal
@@ -750,20 +757,19 @@ def is_valid_nxdata(group):   # noqa
     return nxd.is_valid
 
 
-def is_NXentry_with_default_NXdata(group, validate=True):
-    """Return True if group is a valid NXentry defining a valid default
+def is_group_with_default_NXdata(group, validate=True):
+    """Return True if group defines a valid default
     NXdata.
 
+    .. note::
+
+        See https://github.com/silx-kit/silx/issues/2215
+
     :param group: h5py-like object.
-    :param bool validate: Set this to False if you are sure that the target group
-        is valid NXdata (i.e. :func:`silx.io.nxdata.is_valid_nxdata(target_group)`
-        returns True). Parameter provided for optimisation purposes."""
-    if not is_group(group):
-        return False
-
-    if get_attr_as_unicode(group, "NX_class") != "NXentry":
-        return False
-
+    :param bool validate: Set this to skip the NXdata validation, and only
+        check the existence of the group.
+        Parameter provided for optimisation purposes, to avoid double
+        validation if the validation is already performed separately."""
     default_nxdata_name = group.attrs.get("default")
     if default_nxdata_name is None or default_nxdata_name not in group:
         return False
@@ -779,9 +785,34 @@ def is_NXentry_with_default_NXdata(group, validate=True):
         return is_valid_nxdata(default_nxdata_group)
 
 
+def is_NXentry_with_default_NXdata(group, validate=True):
+    """Return True if group is a valid NXentry defining a valid default
+    NXdata.
+
+    :param group: h5py-like object.
+    :param bool validate: Set this to skip the NXdata validation, and only
+        check the existence of the group.
+        Parameter provided for optimisation purposes, to avoid double
+        validation if the validation is already performed separately."""
+    if not is_group(group):
+        return False
+
+    if get_attr_as_unicode(group, "NX_class") != "NXentry":
+        return False
+
+    return is_group_with_default_NXdata(group, validate)
+
+
 def is_NXroot_with_default_NXdata(group, validate=True):
     """Return True if group is a valid NXroot defining a default NXentry
     defining a valid default NXdata.
+
+    .. note::
+
+        A NXroot group cannot directly define a default NXdata. If a
+        *@default* argument is present, it must point to a NXentry group.
+        This NXentry must define a valid NXdata for this function to return
+        True.
 
     :param group: h5py-like object.
     :param bool validate: Set this to False if you are sure that the target group
@@ -831,7 +862,7 @@ def get_default(group, validate=True):
     if is_NXroot_with_default_NXdata(group, validate=validate):
         default_entry = group[group.attrs["default"]]
         default_data = default_entry[default_entry.attrs["default"]]
-    elif is_NXentry_with_default_NXdata(group, validate=validate):
+    elif is_group_with_default_NXdata(group, validate=validate):
         default_data = group[group.attrs["default"]]
     elif not validate or is_valid_nxdata(group):
         default_data = group

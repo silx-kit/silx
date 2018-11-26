@@ -32,7 +32,7 @@ import unittest
 
 from silx.gui.widgets.BoxLayoutDockWidget import BoxLayoutDockWidget
 from silx.gui import qt
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 
 
 class TestBoxLayoutDockWidget(TestCaseQt):

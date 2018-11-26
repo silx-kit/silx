@@ -50,8 +50,6 @@ from ..common import pyopencl, kernel_workgroup_size
 from .utils import calc_size
 from ..processing import OpenclProcessing, BufferDescription
 logger = logging.getLogger(__name__)
-if not pyopencl:
-    logger.warning("No PyOpenCL, no sift")
 
 
 class MatchPlan(OpenclProcessing):

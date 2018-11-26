@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "06/11/2018"
 
 
 import logging
@@ -36,8 +36,9 @@ from silx.test.utils import test_options
 
 from silx.gui import qt
 # load TestCaseQt before sx
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import rgba
+from silx.gui.colors import Colormap
 from silx import sx
 
 
@@ -109,8 +110,12 @@ class SXTest(TestCaseQt, ParametricTestCase):
         plt = sx.imshow(img)
         self._expose_and_close(plt)
 
-        # image, gray cmap
+        # image, named cmap
         plt = sx.imshow(img, cmap='jet', title='jet cmap')
+        self._expose_and_close(plt)
+
+        # image, custom colormap
+        plt = sx.imshow(img, cmap=Colormap(), title='custom colormap')
         self._expose_and_close(plt)
 
         # image, log cmap
@@ -204,7 +209,6 @@ class SXTest(TestCaseQt, ParametricTestCase):
         isosurfaces = window.getIsosurfaces()
         self.assertEqual(len(isosurfaces), 1)
 
-        self._expose_and_close(window)
         if not window.getPlot3DWidget().isValid():
             self.skipTest("OpenGL context is not valid")
 
@@ -218,8 +222,6 @@ class SXTest(TestCaseQt, ParametricTestCase):
         for iso, color in zip(isosurfaces, colors):
             self.assertEqual(rgba(iso.getColor()), rgba(color))
 
-        self._expose_and_close(window)
-
         # by isolevel, single color
         contours = 0.2, 0.5
         window = sx.contour3d(data, copy=False, contours=contours,
@@ -232,8 +234,6 @@ class SXTest(TestCaseQt, ParametricTestCase):
             self.assertEqual(rgba(iso.getColor()),
                              rgba('yellow'))
 
-        self._expose_and_close(window)
-
         # Single isolevel, colormap
         window = sx.contour3d(data, copy=False, contours=0.5,
                               colormap='gray', vmin=0.6, opacity=0.4)
@@ -243,8 +243,6 @@ class SXTest(TestCaseQt, ParametricTestCase):
         self.assertEqual(isosurfaces[0].getLevel(), 0.5)
         self.assertEqual(rgba(isosurfaces[0].getColor()),
                          (0., 0., 0., 0.4))
-
-        self._expose_and_close(window)
 
     @unittest.skipUnless(test_options.WITH_GL_TEST,
                          test_options.WITH_GL_TEST_REASON)
@@ -258,23 +256,19 @@ class SXTest(TestCaseQt, ParametricTestCase):
         # 3D positions, no value
         window = sx.points3d(x, y, z)
 
-        self._expose_and_close(window)
         if not window.getSceneWidget().isValid():
             self.skipTest("OpenGL context is not valid")
 
         # 3D positions, values
         window = sx.points3d(x, y, z, values, mode='2dsquare',
                              colormap='magma', vmin=0.4, vmax=0.5)
-        self._expose_and_close(window)
 
         # 2D positions, no value
         window = sx.points3d(x, y)
-        self._expose_and_close(window)
 
         # 2D positions, values
         window = sx.points3d(x, y, values=values, mode=',',
                              colormap='magma', vmin=0.4, vmax=0.5)
-        self._expose_and_close(window)
 
 
 def suite():

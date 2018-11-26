@@ -35,7 +35,7 @@ import unittest
 
 from silx.third_party.concurrent_futures import wait
 from silx.gui import qt
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt
 
 from silx.gui.utils import concurrent
 

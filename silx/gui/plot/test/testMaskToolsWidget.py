@@ -38,7 +38,7 @@ import numpy
 from silx.gui import qt
 from silx.test.utils import temp_dir
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.test.utils import getQToolButtonFromAction
+from silx.gui.utils.testutils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, MaskToolsWidget
 from .utils import PlotWidgetTestCase
 
@@ -108,7 +108,9 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self.mouseMove(plot, pos=(0, 0))
         for pos in star:
             self.mouseMove(plot, pos=pos)
+            self.qapp.processEvents()
             self.mouseClick(plot, qt.Qt.LeftButton, pos=pos)
+            self.qapp.processEvents()
 
     def _drawPencil(self):
         """Draw a star polygon in the plot"""

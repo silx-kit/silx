@@ -376,13 +376,11 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._plotRef = weakref.ref(plot)
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
 
-        self._colormap = Colormap(name="",
-                                  normalization='linear',
+        self._colormap = Colormap(normalization='linear',
                                   vmin=0,
-                                  vmax=self._maxLevelNumber,
-                                  colors=None)
+                                  vmax=self._maxLevelNumber)
         self._defaultOverlayColor = rgba('gray')  # Color of the mask
-        self._setMaskColors(1, 0.5)
+        self._setMaskColors(1, 0.5)  # Set the colormap LUT
 
         if not isinstance(mask, BaseMask):
             raise TypeError("mask is not an instance of BaseMask")

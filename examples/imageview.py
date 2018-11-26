@@ -42,7 +42,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "08/11/2018"
 
 import logging
 from silx.gui.plot.ImageView import ImageViewMainWindow
@@ -118,8 +118,7 @@ def main(argv=None):
 
     if args.log:  # Use log normalization by default
         colormap = mainWindow.getDefaultColormap()
-        colormap['normalization'] = 'log'
-        mainWindow.setColormap(colormap)
+        colormap.setNormalization(colormap.LOGARITHM)
 
     mainWindow.setImage(data,
                         origin=args.origin,

@@ -35,6 +35,13 @@ from contextlib import contextmanager
 import weakref
 import silx.utils.weakref as silxWeakref
 
+try:
+    from ...qt.inspect import isValid as _isQObjectValid
+except ImportError:  # PySide(1) fallback
+    def _isQObjectValid(obj):
+        return True
+
+
 _logger = logging.getLogger(__name__)
 
 
@@ -135,7 +142,7 @@ class SyncAxes(object):
             raise RuntimeError("Axes not synchronized")
         for ref, callbacks in self.__callbacks.items():
             axis = ref()
-            if axis is not None:
+            if axis is not None and _isQObjectValid(axis):
                 for sigName, callback in callbacks:
                     sig = getattr(axis, sigName)
                     sig.disconnect(callback)

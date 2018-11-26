@@ -34,7 +34,7 @@ import unittest
 import numpy
 
 from silx.utils.testutils import TestLogging
-from silx.gui.test.utils import qWaitForWindowExposedAndActivate
+from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.plot import tools

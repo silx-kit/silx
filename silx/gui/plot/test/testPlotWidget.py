@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/09/2018"
+__date__ = "19/11/2018"
 
 
 import unittest
@@ -34,15 +34,14 @@ import logging
 import numpy
 
 from silx.utils.testutils import ParametricTestCase, parameterize
-from silx.gui.test.utils import SignalListener
-from silx.gui.test.utils import TestCaseQt
-from silx.utils import testutils
-from silx.utils import deprecation
+from silx.gui.utils.testutils import SignalListener
+from silx.gui.utils.testutils import TestCaseQt
 
 from silx.test.utils import test_options
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
+from silx.gui.plot.items.curve import CurveStyle
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -118,6 +117,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         """Test resizing the widget and receiving limitsChanged events"""
         self.plot.resize(200, 200)
         self.qapp.processEvents()
+        self.qWait(100)
 
         xlim = self.plot.getXAxis().getLimits()
         ylim = self.plot.getYAxis().getLimits()
@@ -129,16 +129,19 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         # Resize without aspect ratio
         self.plot.resize(200, 300)
         self.qapp.processEvents()
+        self.qWait(100)
         self._checkLimits(expectedXLim=xlim, expectedYLim=ylim)
         self.assertEqual(listener.callCount(), 0)
 
         # Resize with aspect ratio
         self.plot.setKeepDataAspectRatio(True)
         self.qapp.processEvents()
+        self.qWait(1000)
         listener.clear()  # Clean-up received signal
 
         self.plot.resize(200, 200)
         self.qapp.processEvents()
+        self.qWait(100)
         self.assertNotEqual(listener.callCount(), 0)
 
     def testAddRemoveItemSignals(self):
@@ -178,6 +181,37 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertTrue(numpy.all(numpy.equal(items[3].getPosition(), marker_pos)))
         self.assertTrue(numpy.all(numpy.equal(items[4].getPosition()[0], marker_x)))
         self.assertEqual(items[5].getType(), 'rectangle')
+
+    def testBackGroundColors(self):
+        self.plot.setVisible(True)
+        self.qWaitForWindowExposed(self.plot)
+        self.qapp.processEvents()
+
+        # Custom the full background
+        color = self.plot.getBackgroundColor()
+        self.assertFalse(color.isValid())
+        self.plot.setBackgroundColor("red")
+        color = self.plot.getBackgroundColor()
+        self.assertTrue(color.isValid())
+        self.qapp.processEvents()
+
+        # Custom the data background
+        color = self.plot.getDataBackgroundColor()
+        self.assertFalse(color.isValid())
+        self.plot.setDataBackgroundColor("red")
+        color = self.plot.getDataBackgroundColor()
+        self.assertTrue(color.isValid())
+        self.qapp.processEvents()
+
+        # Back to default
+        self.plot.setBackgroundColor(None)
+        self.plot.setDataBackgroundColor(None)
+        color = self.plot.getBackgroundColor()
+        self.assertFalse(color.isValid())
+        color = self.plot.getDataBackgroundColor()
+        self.assertFalse(color.isValid())
+        self.qapp.processEvents()
+
 
 class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addImage"""
@@ -710,7 +744,55 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
                            legend="curve 2",
                            color="red")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), legend)
-        
+
+    def testActiveCurveStyle(self):
+        """Test change of active curve style"""
+        self.plot.setActiveCurveHandling(True)
+        self.plot.setActiveCurveStyle(color='black')
+        style = self.plot.getActiveCurveStyle()
+        self.assertEqual(style.getColor(), (0., 0., 0., 1.))
+        self.assertIsNone(style.getLineStyle())
+        self.assertIsNone(style.getLineWidth())
+        self.assertIsNone(style.getSymbol())
+        self.assertIsNone(style.getSymbolSize())
+
+        self.plot.addCurve(x=self.xData, y=self.yData, legend="curve1")
+        curve = self.plot.getCurve("curve1")
+        curve.setColor('blue')
+        curve.setLineStyle('-')
+        curve.setLineWidth(1)
+        curve.setSymbol('o')
+        curve.setSymbolSize(5)
+
+        # Check default current style
+        defaultStyle = curve.getCurrentStyle()
+        self.assertEqual(defaultStyle, CurveStyle(color='blue',
+                                                  linestyle='-',
+                                                  linewidth=1,
+                                                  symbol='o',
+                                                  symbolsize=5))
+
+        # Activate curve with highlight color=black
+        self.plot.setActiveCurve("curve1")
+        style = curve.getCurrentStyle()
+        self.assertEqual(style.getColor(), (0., 0., 0., 1.))
+        self.assertEqual(style.getLineStyle(), '-')
+        self.assertEqual(style.getLineWidth(), 1)
+        self.assertEqual(style.getSymbol(), 'o')
+        self.assertEqual(style.getSymbolSize(), 5)
+
+        # Change highlight to linewidth=2
+        self.plot.setActiveCurveStyle(linewidth=2)
+        style = curve.getCurrentStyle()
+        self.assertEqual(style.getColor(), (0., 0., 1., 1.))
+        self.assertEqual(style.getLineStyle(), '-')
+        self.assertEqual(style.getLineWidth(), 2)
+        self.assertEqual(style.getSymbol(), 'o')
+        self.assertEqual(style.getSymbolSize(), 5)
+
+        self.plot.setActiveCurve(None)
+        self.assertEqual(curve.getCurrentStyle(), defaultStyle)
+
     def testActiveImageAndLabels(self):
         # Active image handling always on, no API for toggling it
         self.plot.getXAxis().setLabel('XLabel')
@@ -828,16 +910,11 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
                 if getter is not None:
                     self.assertEqual(getter(), expected)
 
-    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Logarithmic(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
         y = self.plot.getYAxis()
         yright = self.plot.getYAxis(axis="right")
-
-        listener = SignalListener()
-        self.plot.sigSetXAxisLogarithmic.connect(listener.partial("x"))
-        self.plot.sigSetYAxisLogarithmic.connect(listener.partial("y"))
 
         self.assertEqual(x.getScale(), x.LINEAR)
         self.assertEqual(y.getScale(), x.LINEAR)
@@ -849,7 +926,6 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.getScale(), x.LINEAR)
         self.assertEqual(self.plot.isXAxisLogarithmic(), True)
         self.assertEqual(self.plot.isYAxisLogarithmic(), False)
-        self.assertEqual(listener.arguments(callIndex=-1), ("x", True))
 
         self.plot.setYAxisLogarithmic(True)
         self.assertEqual(x.getScale(), x.LOGARITHMIC)
@@ -857,7 +933,6 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.getScale(), x.LOGARITHMIC)
         self.assertEqual(self.plot.isXAxisLogarithmic(), True)
         self.assertEqual(self.plot.isYAxisLogarithmic(), True)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
         yright.setScale(yright.LINEAR)
         self.assertEqual(x.getScale(), x.LOGARITHMIC)
@@ -865,18 +940,12 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.getScale(), x.LINEAR)
         self.assertEqual(self.plot.isXAxisLogarithmic(), True)
         self.assertEqual(self.plot.isYAxisLogarithmic(), False)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
-    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_AutoScale(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
         y = self.plot.getYAxis()
         yright = self.plot.getYAxis(axis="right")
-
-        listener = SignalListener()
-        self.plot.sigSetXAxisAutoScale.connect(listener.partial("x"))
-        self.plot.sigSetYAxisAutoScale.connect(listener.partial("y"))
 
         self.assertEqual(x.isAutoScale(), True)
         self.assertEqual(y.isAutoScale(), True)
@@ -888,7 +957,6 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.isAutoScale(), True)
         self.assertEqual(self.plot.isXAxisAutoScale(), False)
         self.assertEqual(self.plot.isYAxisAutoScale(), True)
-        self.assertEqual(listener.arguments(callIndex=-1), ("x", False))
 
         self.plot.setYAxisAutoScale(False)
         self.assertEqual(x.isAutoScale(), False)
@@ -896,7 +964,6 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.isAutoScale(), False)
         self.assertEqual(self.plot.isXAxisAutoScale(), False)
         self.assertEqual(self.plot.isYAxisAutoScale(), False)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
         yright.setAutoScale(True)
         self.assertEqual(x.isAutoScale(), False)
@@ -904,17 +971,12 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(yright.isAutoScale(), True)
         self.assertEqual(self.plot.isXAxisAutoScale(), False)
         self.assertEqual(self.plot.isYAxisAutoScale(), True)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
-    @testutils.test_logging(deprecation.depreclog.name)
     def testOldPlotAxis_Inverted(self):
         """Test silx API prior to silx 0.6"""
         x = self.plot.getXAxis()
         y = self.plot.getYAxis()
         yright = self.plot.getYAxis(axis="right")
-
-        listener = SignalListener()
-        self.plot.sigSetYAxisInverted.connect(listener.partial("y"))
 
         self.assertEqual(x.isInverted(), False)
         self.assertEqual(y.isInverted(), False)
@@ -925,14 +987,12 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(y.isInverted(), True)
         self.assertEqual(yright.isInverted(), True)
         self.assertEqual(self.plot.isYAxisInverted(), True)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", True))
 
         yright.setInverted(False)
         self.assertEqual(x.isInverted(), False)
         self.assertEqual(y.isInverted(), False)
         self.assertEqual(yright.isInverted(), False)
         self.assertEqual(self.plot.isYAxisInverted(), False)
-        self.assertEqual(listener.arguments(callIndex=-1), ("y", False))
 
     def testLogXWithData(self):
         self.plot.setGraphTitle('Curve X: Log Y: Linear')

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/06/2018"
+__date__ = "20/11/2018"
 
 import sys
 import argparse
@@ -35,25 +35,6 @@ import signal
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
-
-if "silx.gui.qt" not in sys.modules:
-    # Try first PyQt5 and not the priority imposed by silx.gui.qt.
-    # To avoid problem with unittests we only do it if silx.gui.qt is not
-    # yet loaded.
-    # TODO: Can be removed for silx 0.8, as it should be the default binding
-    # of the silx library.
-    try:
-        import PyQt5.QtCore
-    except ImportError:
-        pass
-
-import silx
-from silx.gui import qt
-
-
-def sigintHandler(*args):
-    """Handler for the SIGINT signal."""
-    qt.QApplication.quit()
 
 
 def createParser():
@@ -83,22 +64,17 @@ def createParser():
     return parser
 
 
-def main(argv):
-    """
-    Main function to launch the viewer as an application
-
-    :param argv: Command line arguments
-    :returns: exit status
-    """
-    parser = createParser()
-    options = parser.parse_args(argv[1:])
-
+def mainQt(options):
+    """Part of the main depending on Qt"""
     if options.debug:
         logging.root.setLevel(logging.DEBUG)
 
     #
     # Import most of the things here to be sure to use the right logging level
     #
+
+    import silx
+    from silx.gui import qt
 
     try:
         # it should be loaded before h5py
@@ -118,12 +94,12 @@ def main(argv):
         _logger.error(message)
         return -1
 
-    #
-    # Run the application
-    #
-
     app = qt.QApplication([])
     qt.QLocale.setDefault(qt.QLocale.c())
+
+    def sigintHandler(*args):
+        """Handler for the SIGINT signal."""
+        qt.QApplication.quit()
 
     signal.signal(signal.SIGINT, sigintHandler)
     sys.excepthook = qt.exceptionHandler
@@ -162,6 +138,18 @@ def main(argv):
     # remove ending warnings relative to QTimer
     app.deleteLater()
     return result
+
+
+def main(argv):
+    """
+    Main function to launch the viewer as an application
+
+    :param argv: Command line arguments
+    :returns: exit status
+    """
+    parser = createParser()
+    options = parser.parse_args(argv[1:])
+    mainQt(options)
 
 
 if __name__ == '__main__':

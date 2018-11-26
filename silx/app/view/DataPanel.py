@@ -25,9 +25,10 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/06/2018"
+__date__ = "12/10/2018"
 
 import logging
+import os.path
 
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
@@ -44,6 +45,26 @@ class _HeaderLabel(qt.QLabel):
 
     def sizeHint(self):
         return qt.QSize(10, 30)
+
+    def minimumSizeHint(self):
+        return qt.QSize(10, 30)
+
+    def setData(self, filename, path):
+        if filename == "" and path == "":
+            text = ""
+        elif filename == "":
+            text = path
+        else:
+            text = "%s::%s" % (filename, path)
+        self.setText(text)
+        tooltip = ""
+        template = "<li><b>%s</b>: %s</li>"
+        tooltip += template % ("Directory", os.path.dirname(filename))
+        tooltip += template % ("File name", os.path.basename(filename))
+        tooltip += template % ("Data path", path)
+        tooltip = "<ul>%s</ul>" % tooltip
+        tooltip = "<html>%s</html>" % tooltip
+        self.setToolTip(tooltip)
 
     def paintEvent(self, event):
         painter = qt.QPainter(self)
@@ -101,14 +122,14 @@ class DataPanel(qt.QWidget):
             self.__dataTitle.setVisible(True)
             if hasattr(data, "name"):
                 if hasattr(data, "file"):
-                    label = str(data.file.filename)
-                    label += "::"
+                    filename = str(data.file.filename)
                 else:
-                    label = ""
-                label += data.name
+                    filename = ""
+                path = data.name
             else:
-                label = ""
-            self.__dataTitle.setText(label)
+                filename = ""
+                path = ""
+            self.__dataTitle.setData(filename, path)
 
     def setCustomDataItem(self, item):
         self.__customNxdataItem = item

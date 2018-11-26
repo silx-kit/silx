@@ -29,7 +29,13 @@ from matplotlib.colors import ListedColormap
 import matplotlib.colors
 import matplotlib.cm
 import silx.resources
-from silx.utils.deprecation import deprecated
+from silx.utils.deprecation import deprecated, deprecated_warning
+
+
+deprecated_warning(type_='module',
+                   name=__file__,
+                   replacement='silx.gui.colors.Colormap',
+                   since_version='0.10.0')
 
 
 _logger = logging.getLogger(__name__)
@@ -46,25 +52,30 @@ _CMAPS = {}
 
 
 @property
+@deprecated(since_version='0.10.0')
 def magma():
     return getColormap('magma')
 
 
 @property
+@deprecated(since_version='0.10.0')
 def inferno():
     return getColormap('inferno')
 
 
 @property
+@deprecated(since_version='0.10.0')
 def plasma():
     return getColormap('plasma')
 
 
 @property
+@deprecated(since_version='0.10.0')
 def viridis():
     return getColormap('viridis')
 
 
+@deprecated(since_version='0.10.0')
 def getColormap(name):
     """Returns matplotlib colormap corresponding to given name
 
@@ -143,6 +154,7 @@ def getColormap(name):
         return matplotlib.cm.get_cmap(name)
 
 
+@deprecated(since_version='0.10.0')
 def getScalarMappable(colormap, data=None):
     """Returns matplotlib ScalarMappable corresponding to colormap
 
@@ -223,6 +235,8 @@ def applyColormapToData(data, colormap):
     return rgbaImage
 
 
+@deprecated(replacement='silx.colors.Colormap.getSupportedColormaps',
+            since_version='0.10.0')
 def getSupportedColormaps():
     """Get the supported colormap names as a tuple of str.
     """

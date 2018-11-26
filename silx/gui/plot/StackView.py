@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "26/04/2018"
+__date__ = "10/10/2018"
 
 import numpy
 import logging
@@ -216,6 +216,7 @@ class StackView(qt.QMainWindow):
                                 copy=copy, save=save, print_=print_,
                                 control=control, position=position,
                                 roi=False, mask=mask)
+        self._plot.getIntensityHistogramAction().setVisible(True)
         self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal
