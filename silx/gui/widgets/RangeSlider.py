@@ -31,13 +31,24 @@ from __future__ import absolute_import, division
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/11/2018"
+__date__ = "26/11/2018"
 
 
 import numpy as numpy
 
 from silx.gui import qt, icons, colors
 from silx.gui.utils.image import convertArrayToQImage
+
+
+class StyleOptionRangeSlider(qt.QStyleOption):
+    def __init__(self):
+        super(StyleOptionRangeSlider, self).__init__()
+        self.minimum = None
+        self.maximum = None
+        self.sliderPosition1 = None
+        self.sliderPosition2 = None
+        self.handlerRect1 = None
+        self.handlerRect2 = None
 
 
 class RangeSlider(qt.QWidget):
@@ -642,35 +653,22 @@ class RangeSlider(qt.QWidget):
                                    self.__pixmap,
                                    self.__pixmap.rect())
         else:
-            # Draw slider background
-            option = qt.QStyleOptionSlider()
+            option = StyleOptionRangeSlider()
             option.initFrom(self)
             option.rect = area
-            option.upsideDown = True  # Looks to be needed to have no value overlay
-            option.sliderValue = 0
-            option.sliderPosition = 0
-            option.minimum = 0
-            option.maximum = 1000
+            option.sliderPosition1 = self.__firstValue
+            option.sliderPosition2 = self.__secondValue
+            option.handlerRect1 = self.__sliderRect("first")
+            option.handlerRect2 = self.__sliderRect("second")
+            option.minimum = self.__minValue
+            option.maximum = self.__maxValue
             option.state = (qt.QStyle.State_Enabled if self.isEnabled()
                             else qt.QStyle.State_None)
             if self.__hoverControl == "groove":
                 option.state |= qt.QStyle.State_MouseOver
             elif option.state & qt.QStyle.State_MouseOver:
                 option.state ^= qt.QStyle.State_MouseOver
-            option.subControls = qt.QStyle.SC_SliderGroove
-            style.drawComplexControl(qt.QStyle.CC_Slider, option, painter, self)
-
-            # Draw slider background for the value
-            rect = qt.QRect(area)
-            first, second = self.__sliderRect("first"), self.__sliderRect("second")
-            rect.setLeft(first.right())
-            rect.setRight(second.left())
-            option.rect = rect
-            option.upsideDown = False
-            option.sliderPosition = 1000
-            option.sliderValue = 1000
-            option.subControls = qt.QStyle.SC_SliderGroove
-            style.drawComplexControl(qt.QStyle.CC_Slider, option, painter, self)
+            self.drawRangeSliderBackground(painter, option, self)
 
         # Avoid glitch when moving handles
         hoverControl = self.__moving or self.__hoverControl
@@ -695,3 +693,73 @@ class RangeSlider(qt.QWidget):
 
     def sizeHint(self):
         return qt.QSize(200, self.minimumHeight())
+
+    @classmethod
+    def drawRangeSliderBackground(cls, painter, option, widget):
+        """Draw the background of the RangeSlider widget into the painter.
+
+        :param qt.QPainter painter: A painter
+        :param StyleOptionRangeSlider option: Options to draw the widget
+        :param qt.QWidget: The widget which have to be drawn
+        """
+        painter.save()
+        painter.translate(0.5, 0.5)
+
+        backgroundRect = qt.QRect(option.rect)
+        if backgroundRect.height() > 8:
+            center = backgroundRect.center()
+            backgroundRect.setHeight(8)
+            backgroundRect.moveCenter(center)
+
+        selectedRangeRect = qt.QRect(backgroundRect)
+        selectedRangeRect.setLeft(option.handlerRect1.center().x())
+        selectedRangeRect.setRight(option.handlerRect2.center().x())
+
+        highlight = option.palette.color(qt.QPalette.Highlight)
+        activeHighlight = highlight
+        selectedOutline = option.palette.color(qt.QPalette.Highlight)
+
+        buttonColor = option.palette.button().color()
+        val = qt.qGray(buttonColor.rgb())
+        buttonColor = buttonColor.lighter(100 + max(1, (180 - val) // 6))
+        buttonColor.setHsv(buttonColor.hue(), buttonColor.saturation() * 0.75, buttonColor.value())
+
+        grooveColor = qt.QColor()
+        grooveColor.setHsv(buttonColor.hue(),
+                           min(255, (int)(buttonColor.saturation())),
+                           min(255, (int)(buttonColor.value() * 0.9)))
+
+        selectedInnerContrastLine = qt.QColor(255, 255, 255, 30)
+
+        outline = option.palette.color(qt.QPalette.Background).darker(140)
+        if (option.state & qt.QStyle.State_HasFocus and option.state & qt.QStyle.State_KeyboardFocusChange):
+            outline = highlight.darker(125)
+            if outline.value() > 160:
+                outline.setHsl(highlight.hue(), highlight.saturation(), 160)
+
+        # Draw background groove
+        painter.setRenderHint(qt.QPainter.Antialiasing, True)
+        gradient = qt.QLinearGradient()
+        gradient.setStart(backgroundRect.center().x(), backgroundRect.top())
+        gradient.setFinalStop(backgroundRect.center().x(), backgroundRect.bottom())
+        painter.setPen(qt.QPen(outline))
+        gradient.setColorAt(0, grooveColor.darker(110))
+        gradient.setColorAt(1, grooveColor.lighter(110))
+        painter.setBrush(gradient)
+        painter.drawRoundedRect(backgroundRect.adjusted(1, 1, -2, -2), 1, 1)
+
+        # Draw slider background for the value
+        gradient = qt.QLinearGradient()
+        gradient.setStart(selectedRangeRect.center().x(), selectedRangeRect.top())
+        gradient.setFinalStop(selectedRangeRect.center().x(), selectedRangeRect.bottom())
+        painter.setRenderHint(qt.QPainter.Antialiasing, True)
+        painter.setPen(qt.QPen(selectedOutline))
+        gradient.setColorAt(0, activeHighlight)
+        gradient.setColorAt(1, activeHighlight.lighter(130))
+        painter.setBrush(gradient)
+        painter.drawRoundedRect(selectedRangeRect.adjusted(1, 1, -2, -2), 1, 1)
+        painter.setPen(selectedInnerContrastLine)
+        painter.setBrush(qt.Qt.NoBrush)
+        painter.drawRoundedRect(selectedRangeRect.adjusted(2, 2, -3, -3), 1, 1)
+
+        painter.restore()
