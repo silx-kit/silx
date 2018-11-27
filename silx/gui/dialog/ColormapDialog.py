@@ -573,6 +573,9 @@ class ColormapDialog(qt.QDialog):
             minView = min(minView, self._initialRange[0])
             maxView = max(maxView, self._initialRange[1])
 
+        if minView > minData:
+            # Hide the min range
+            minData = minView
         x = [minView, minData, maxData, maxView]
         y = [0, 0, 1, 1]
 
