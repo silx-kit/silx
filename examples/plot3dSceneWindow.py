@@ -83,6 +83,7 @@ window.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
 img = numpy.random.random(3 * SIZE ** 2).reshape(SIZE, SIZE, 3)  # Dummy image
 
 imageRgba = sceneWidget.addImage(img)  # Add ImageRgba item to the scene
+imageRgba.setLabel('Random RGBA image')  # Set name displayed in parameter tree
 
 # Set imageRgba transform
 imageRgba.setTranslation(SIZE*.15, SIZE*.15, 0.)  # Translate the image
