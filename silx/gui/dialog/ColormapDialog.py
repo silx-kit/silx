@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "09/11/2018"
+__date__ = "27/11/2018"
 
 
 import logging
@@ -525,6 +525,11 @@ class ColormapDialog(qt.QDialog):
                 dataMax = max(dataMax, maxHisto)
 
         if scale == Axis.LOGARITHMIC:
+            epsilon = numpy.finfo(numpy.float32).eps
+            if dataMin == 0:
+                dataMin = epsilon
+            if dataMax < dataMin:
+                dataMax = dataMin + epsilon
             marge = marginRatio * abs(numpy.log10(dataMax) - numpy.log10(dataMin))
             viewMin = 10**(numpy.log10(dataMin) - marge)
             viewMax = 10**(numpy.log10(dataMax) + marge)
