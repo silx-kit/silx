@@ -586,26 +586,37 @@ class ColormapDialog(qt.QDialog):
                             linestyle='-',
                             resetzoom=False)
 
-        if updateMarkers:
-            minDraggable = (self._colormap().isEditable() and
-                            not self._minValue.isAutoChecked())
-            self._plot.addXMarker(
-                self._minValue.getFiniteValue(),
-                legend='Min',
-                text='Min',
-                draggable=minDraggable,
-                color='blue',
-                constraint=self._plotMinMarkerConstraint)
+        scale = self._plot.getXAxis().getScale()
 
-            maxDraggable = (self._colormap().isEditable() and
-                            not self._maxValue.isAutoChecked())
-            self._plot.addXMarker(
-                self._maxValue.getFiniteValue(),
-                legend='Max',
-                text='Max',
-                draggable=maxDraggable,
-                color='blue',
-                constraint=self._plotMaxMarkerConstraint)
+        if updateMarkers:
+            posMin = self._minValue.getFiniteValue()
+            posMax = self._maxValue.getFiniteValue()
+
+            def isDisplayable(pos):
+                if scale == Axis.LOGARITHMIC:
+                    return pos > 0.0
+                return True
+
+            if isDisplayable(posMin):
+                minDraggable = (self._colormap().isEditable() and
+                                not self._minValue.isAutoChecked())
+                self._plot.addXMarker(
+                    posMin,
+                    legend='Min',
+                    text='Min',
+                    draggable=minDraggable,
+                    color='blue',
+                    constraint=self._plotMinMarkerConstraint)
+            if isDisplayable(posMax):
+                maxDraggable = (self._colormap().isEditable() and
+                                not self._maxValue.isAutoChecked())
+                self._plot.addXMarker(
+                    posMax,
+                    legend='Max',
+                    text='Max',
+                    draggable=maxDraggable,
+                    color='blue',
+                    constraint=self._plotMaxMarkerConstraint)
 
         self._plot.resetZoom()
 
