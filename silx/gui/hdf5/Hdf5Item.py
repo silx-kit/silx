@@ -224,7 +224,7 @@ class Hdf5Item(Hdf5Node):
                     link = silx.io.utils.get_h5_class(class_=link)
                 except Exception:
                     lib_name = self.obj.__class__.__module__.split(".")[0]
-                    _logger.warning("Internal %s error", lib_name, exc_info=True)
+                    _logger.error("Internal %s error", lib_name)
                     _logger.debug("Backtrace", exc_info=True)
                     class_ = None
                     try:
