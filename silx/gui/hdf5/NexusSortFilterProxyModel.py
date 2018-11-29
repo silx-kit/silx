@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/07/2018"
+__date__ = "29/11/2018"
 
 
 import logging
@@ -108,6 +108,8 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
 
     def __isNXnode(self, node):
         """Returns true if the node is an NX concept"""
+        if not hasattr(node, "h5Class"):
+            return False
         class_ = node.h5Class
         if class_ is None or class_ != silx.io.utils.H5Type.GROUP:
             return False
