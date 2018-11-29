@@ -52,7 +52,7 @@ from silx.third_party import six
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/11/2018"
+__date__ = "29/11/2018"
 
 
 class InvalidNXdataError(Exception):
@@ -152,6 +152,7 @@ class NXdata(object):
             raise TypeError("group must be a h5py-like group")
         if get_attr_as_unicode(self.group, "NX_class") != "NXdata":
             self.issues.append("Group has no attribute @NX_class='NXdata'")
+            return
 
         signal_name = get_signal_name(self.group)
         if signal_name is None:
