@@ -314,10 +314,10 @@ def import_project_module(project_name, project_dir):
     if "--installed" in sys.argv:
         try:
             module = importer(project_name)
-        except ImportError:
-            raise ImportError(
-                "%s not installed: Cannot run tests on installed version" %
-                PROJECT_NAME)
+        except Exception:
+            logger.error("Cannot run tests on installed version: %s not installed or raising error.",
+                         project_name)
+            raise
     else:  # Use built source
         build_dir = build_project(project_name, project_dir)
         if build_dir is None:
