@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/09/2018"
+__date__ = "29/11/2018"
 
 
 import logging
@@ -217,7 +217,25 @@ class Hdf5Item(Hdf5Node):
 
     def _populateChild(self, populateAll=False):
         if self.isGroupObj():
-            for name in self.obj:
+            keys = []
+            try:
+                for name in self.obj:
+                    keys.append(name)
+            except Exception:
+                lib_name = self.obj.__class__.__module__.split(".")[0]
+                _logger.error("Internal %s error. The file is corrupted.", lib_name)
+                _logger.debug("Backtrace", exc_info=True)
+                if keys == []:
+                    # If the file was open in READ_ONLY we still can reach something
+                    # https://github.com/silx-kit/silx/issues/2262
+                    try:
+                        for name in self.obj:
+                            keys.append(name)
+                    except Exception:
+                        lib_name = self.obj.__class__.__module__.split(".")[0]
+                        _logger.error("Internal %s error (second time). The file is corrupted.", lib_name)
+                        _logger.debug("Backtrace", exc_info=True)
+            for name in keys:
                 try:
                     class_ = self.obj.get(name, getclass=True)
                     link = self.obj.get(name, getclass=True, getlink=True)
