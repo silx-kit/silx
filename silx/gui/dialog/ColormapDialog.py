@@ -63,7 +63,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "09/11/2018"
+__date__ = "27/11/2018"
 
 
 import logging
@@ -525,6 +525,11 @@ class ColormapDialog(qt.QDialog):
                 dataMax = max(dataMax, maxHisto)
 
         if scale == Axis.LOGARITHMIC:
+            epsilon = numpy.finfo(numpy.float32).eps
+            if dataMin == 0:
+                dataMin = epsilon
+            if dataMax < dataMin:
+                dataMax = dataMin + epsilon
             marge = marginRatio * abs(numpy.log10(dataMax) - numpy.log10(dataMin))
             viewMin = 10**(numpy.log10(dataMin) - marge)
             viewMax = 10**(numpy.log10(dataMax) + marge)
@@ -568,6 +573,9 @@ class ColormapDialog(qt.QDialog):
             minView = min(minView, self._initialRange[0])
             maxView = max(maxView, self._initialRange[1])
 
+        if minView > minData:
+            # Hide the min range
+            minData = minView
         x = [minView, minData, maxData, maxView]
         y = [0, 0, 1, 1]
 
@@ -578,26 +586,37 @@ class ColormapDialog(qt.QDialog):
                             linestyle='-',
                             resetzoom=False)
 
-        if updateMarkers:
-            minDraggable = (self._colormap().isEditable() and
-                            not self._minValue.isAutoChecked())
-            self._plot.addXMarker(
-                self._minValue.getFiniteValue(),
-                legend='Min',
-                text='Min',
-                draggable=minDraggable,
-                color='blue',
-                constraint=self._plotMinMarkerConstraint)
+        scale = self._plot.getXAxis().getScale()
 
-            maxDraggable = (self._colormap().isEditable() and
-                            not self._maxValue.isAutoChecked())
-            self._plot.addXMarker(
-                self._maxValue.getFiniteValue(),
-                legend='Max',
-                text='Max',
-                draggable=maxDraggable,
-                color='blue',
-                constraint=self._plotMaxMarkerConstraint)
+        if updateMarkers:
+            posMin = self._minValue.getFiniteValue()
+            posMax = self._maxValue.getFiniteValue()
+
+            def isDisplayable(pos):
+                if scale == Axis.LOGARITHMIC:
+                    return pos > 0.0
+                return True
+
+            if isDisplayable(posMin):
+                minDraggable = (self._colormap().isEditable() and
+                                not self._minValue.isAutoChecked())
+                self._plot.addXMarker(
+                    posMin,
+                    legend='Min',
+                    text='Min',
+                    draggable=minDraggable,
+                    color='blue',
+                    constraint=self._plotMinMarkerConstraint)
+            if isDisplayable(posMax):
+                maxDraggable = (self._colormap().isEditable() and
+                                not self._maxValue.isAutoChecked())
+                self._plot.addXMarker(
+                    posMax,
+                    legend='Max',
+                    text='Max',
+                    draggable=maxDraggable,
+                    color='blue',
+                    constraint=self._plotMaxMarkerConstraint)
 
         self._plot.resetZoom()
 
