@@ -39,6 +39,7 @@ from silx.gui.plot import Plot2D
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
 from silx.gui.plot.items.roi import RectangleROI
+from silx.gui.plot.items import LineMixIn, SymbolMixIn
 
 
 def dummy_image():
@@ -69,7 +70,12 @@ def updateAddedRegionOfInterest(roi):
     """Called for each added region of interest: set the name"""
     if roi.getLabel() == '':
         roi.setLabel('ROI %d' % len(roiManager.getRois()))
-
+    if isinstance(roi, LineMixIn):
+        roi.setLineWidth(2)
+        roi.setLineStyle('--')
+    if isinstance(roi, SymbolMixIn):
+        roi.setSymbol('o')
+        roi.setSymbolSize(5)
 
 roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)
 
