@@ -450,23 +450,27 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return image
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z):
+    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+                linestyle, linewidth):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
         if shape == "line":
             item = self.ax.plot(x, y, label=legend, color=color,
-                                linestyle='-', marker=None)[0]
+                                linestyle=linestyle, linewidth=linewidth,
+                                marker=None)[0]
 
         elif shape == "hline":
             if hasattr(y, "__len__"):
                 y = y[-1]
-            item = self.ax.axhline(y, label=legend, color=color)
+            item = self.ax.axhline(y, label=legend, color=color,
+                                   linestyle=linestyle, linewidth=linewidth)
 
         elif shape == "vline":
             if hasattr(x, "__len__"):
                 x = x[-1]
-            item = self.ax.axvline(x, label=legend, color=color)
+            item = self.ax.axvline(x, label=legend, color=color,
+                                   linestyle=linestyle, linewidth=linewidth)
 
         elif shape == 'rectangle':
             xMin = numpy.nanmin(xView)
@@ -479,7 +483,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
                              width=w,
                              height=h,
                              fill=False,
-                             color=color)
+                             color=color,
+                             linestyle=linestyle,
+                             linewidth=linewidth)
             if fill:
                 item.set_hatch('.')
 
@@ -495,7 +501,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
                            closed=closed,
                            fill=False,
                            label=legend,
-                           color=color)
+                           color=color,
+                           linestyle=linestyle,
+                           linewidth=linewidth)
             if fill and shape == 'polygon':
                 item.set_hatch('/')
 

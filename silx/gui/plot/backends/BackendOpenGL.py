@@ -882,6 +882,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               stroke=True,
                               strokeColor=item['color'],
                               strokeClosed=closed)
+            # TODO support linestyle and linewidth
 
             posAttrib = self._progBase.attributes['position']
             colorUnif = self._progBase.uniforms['color']
@@ -1131,7 +1132,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return legend, 'image'
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z):
+    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+                linestyle, linewidth):
         # TODO handle overlay
         if shape not in ('polygon', 'rectangle', 'line',
                          'vline', 'hline', 'polylines'):
@@ -1162,7 +1164,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'color': colors.rgba(color),
             'fill': 'hatch' if fill else None,
             'x': x,
-            'y': y
+            'y': y,
+            'linestyle': linestyle,
+            'linewidth': linewidth
         }
 
         return legend, 'item'
