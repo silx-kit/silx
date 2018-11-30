@@ -382,7 +382,7 @@ class Zoom(_ZoomOnWheel):
         x0, y0 = startPos
         x1, y1 = endPos
 
-        if x0 != x1 or y0 != y1:
+        if x0 != x1 and y0 != y1:
             # Avoid empty zoom area
             self._zoom(x0, y0, x1, y1)
 
