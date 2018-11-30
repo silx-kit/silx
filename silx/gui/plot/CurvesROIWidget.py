@@ -220,9 +220,9 @@ class CurvesROIWidget(qt.QWidget):
         if roi.getName() == "ICR":
             roi.setType("Default")
         else:
-            roi.setType(self.plot.getXAxis().getLabel())
+            roi.setType(self.getPlotWidget().getXAxis().getLabel())
 
-        xmin, xmax = self.plot.getXAxis().getLimits()
+        xmin, xmax = self.getPlotWidget().getXAxis().getLimits()
         fromdata = xmin + 0.25 * (xmax - xmin)
         todata = xmin + 0.75 * (xmax - xmin)
         if roi.isICR():
