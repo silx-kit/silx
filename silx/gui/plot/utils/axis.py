@@ -80,6 +80,8 @@ class SyncAxes(object):
         :param bool syncCenter: Synchronize the center of the axes in the center
             of the plots
         :param bool syncZoom: Synchronize the zoom of the plot
+        :param bool filterHiddenPlots: True to avoid updating hidden plots.
+            Default: False.
         """
         object.__init__(self)
 
@@ -125,8 +127,8 @@ class SyncAxes(object):
         self.synchronize()
 
     def isSynchronizing(self):
-        """Returns true of event are connected to the axis to synchronize them
-        altogether
+        """Returns true if events are connected to the axes to synchronize them
+        all together
 
         :rtype: bool
         """
@@ -197,7 +199,10 @@ class SyncAxes(object):
                     sig.disconnect(callback)
 
     def addAxis(self, axis):
-        """Add a new axes to synchronize."""
+        """Add a new axes to synchronize.
+
+        :param ~silx.gui.plot.items.Axis axis: The axis to synchronize
+        """
         self.__axisRefs.append(weakref.ref(axis))
         if self.isSynchronizing():
             self.__connectAxes(axis)
@@ -205,13 +210,21 @@ class SyncAxes(object):
             self.synchronize()
 
     def removeAxis(self, axis):
+        """Remove an axis from the synchronized axes.
+
+        :param ~silx.gui.plot.items.Axis axis: The axis to remove
+        """
         ref = weakref.ref(axis)
         self.__axisRefs.remove(ref)
         if self.isSynchronizing():
             self.__disconnectAxes(axis)
 
     def synchronize(self, mainAxis=None):
-        """Synchronize programatically all the axes"""
+        """Synchronize programatically all the axes.
+
+        :param ~silx.gui.plot.items.Axis mainAxis:
+            The axis to take as reference (Default: the first axis).
+        """
         # sync the current state
         axes = self.__getAxes()
         if len(axes) == 0:
