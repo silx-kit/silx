@@ -274,6 +274,8 @@ class Zoom(_ZoomOnWheel):
     and zoom on mouse wheel.
     """
 
+    SURFACE_THRESHOLD = 5
+
     def __init__(self, plot, color):
         self.color = color
 
@@ -382,7 +384,7 @@ class Zoom(_ZoomOnWheel):
         x0, y0 = startPos
         x1, y1 = endPos
 
-        if x0 != x1 and y0 != y1:
+        if abs(x0 - x1) * abs(y0 - y1) >= self.SURFACE_THRESHOLD:
             # Avoid empty zoom area
             self._zoom(x0, y0, x1, y1)
 
