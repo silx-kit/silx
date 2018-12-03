@@ -741,8 +741,10 @@ class Colormap(qt.QObject):
         """Get the supported colormap names as a tuple of str.
 
         The list should at least contain and start by:
-        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
+
+         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
          'viridis', 'magma', 'inferno', 'plasma')
+
         :rtype: tuple
         """
         colormaps = set()

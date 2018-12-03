@@ -488,7 +488,8 @@ class SceneWidget(Plot3DWidget):
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
         :return: The newly created scalar volume item
-        :rtype: items.ScalarField3D
+        :rtype: ~silx.gui.plot3d.items.volume.ScalarField3D
+
         """
         volume = items.ScalarField3D()
         volume.setData(data, copy=copy)
@@ -508,7 +509,7 @@ class SceneWidget(Plot3DWidget):
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
         :return: The newly created 3D scatter item
-        :rtype: items.Scatter3D
+        :rtype: ~silx.gui.plot3d.items.scatter.Scatter3D
         """
         scatter3d = items.Scatter3D()
         scatter3d.setData(x=x, y=y, z=z, value=value, copy=copy)
@@ -528,7 +529,7 @@ class SceneWidget(Plot3DWidget):
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
         :return: The newly created 2D scatter item
-        :rtype: items.Scatter2D
+        :rtype: ~silx.gui.plot3d.items.scatter.Scatter2D
         """
         scatter2d = items.Scatter2D()
         scatter2d.setData(x=x, y=y, value=value, copy=copy)
@@ -548,7 +549,7 @@ class SceneWidget(Plot3DWidget):
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
         :return: The newly created image item
-        :rtype: items.ImageData or items.ImageRgba
+        :rtype: ~silx.gui.plot3d.items.image.ImageData or ~silx.gui.plot3d.items.image.ImageRgba
         :raise ValueError: For arrays of unsupported dimensions
         """
         data = numpy.array(data, copy=False)
