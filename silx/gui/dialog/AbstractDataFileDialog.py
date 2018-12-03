@@ -28,7 +28,7 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/03/2018"
+__date__ = "03/12/2018"
 
 
 import sys
@@ -36,6 +36,8 @@ import os
 import logging
 import numpy
 import functools
+from distutils.version import LooseVersion
+
 import silx.io.url
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
@@ -49,6 +51,12 @@ except ImportError:
 
 
 _logger = logging.getLogger(__name__)
+
+
+DEFAULT_SIDEBAR_URL = True
+"""Set it to false to disable initilializing of the sidebar urls with the
+default Qt list. This could allow to disable a behaviour known to segfault on
+some version of PyQt."""
 
 
 class _IconProvider(object):
@@ -143,14 +151,22 @@ class _SideBar(qt.QListView):
         :rtype: List[str]
         """
         urls = []
-        if qt.qVersion().startswith("5.") and sys.platform in ["linux", "linux2"]:
+        version = LooseVersion(qt.qVersion())
+        feed_sidebar = True
+
+        if not DEFAULT_SIDEBAR_URL:
+            _logger.debug("Skip default sidebar URLs (from setted variable)")
+            feed_sidebar = False
+        elif version.version[0] == 4 and sys.platform in ["win32"]:
+            # Avoid locking the GUI 5min in case of use of network driver
+            _logger.debug("Skip default sidebar URLs (avoid lock when using network drivers)")
+            feed_sidebar = False
+        elif version < LooseVersion("5.11.2") and qt.BINDING == "PyQt5" and sys.platform in ["linux", "linux2"]:
             # Avoid segfault on PyQt5 + gtk
             _logger.debug("Skip default sidebar URLs (avoid PyQt5 segfault)")
-            pass
-        elif qt.qVersion().startswith("4.") and sys.platform in ["win32"]:
-            # Avoid 5min of locked GUI relative to network driver
-            _logger.debug("Skip default sidebar URLs (avoid lock when using network drivers)")
-        else:
+            feed_sidebar = False
+
+        if feed_sidebar:
             # Get default shortcut
             # There is no other way
             d = qt.QFileDialog(self)
