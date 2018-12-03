@@ -849,8 +849,8 @@ class ROITable(TableWidget):
                 return
             assert isinstance(self.activeRoi, ROI)
             markerHandler = self._markersHandler.getMarkerHandler(self.activeRoi.getID())
-            assert markerHandler
-            markerHandler.updateMarkers()
+            if markerHandler is not None:
+                markerHandler.updateMarkers()
 
     def getRois(self, order, asDict=False):
         """

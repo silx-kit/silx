@@ -77,13 +77,16 @@ class TestCurvesROIWidget(TestCaseQt):
 
         # Add two ROI
         self.mouseClick(self.widget.roiWidget.addButton, qt.Qt.LeftButton)
+        self.qWait(200)
         self.mouseClick(self.widget.roiWidget.addButton, qt.Qt.LeftButton)
+        self.qWait(200)
 
         # Change active curve
         self.plot.setActiveCurve(str(1))
 
         # Delete a ROI
         self.mouseClick(self.widget.roiWidget.delButton, qt.Qt.LeftButton)
+        self.qWait(200)
 
         with temp_dir() as tmpDir:
             self.tmpFile = os.path.join(tmpDir, 'test.ini')
@@ -96,6 +99,7 @@ class TestCurvesROIWidget(TestCaseQt):
             # Reset ROIs
             self.mouseClick(self.widget.roiWidget.resetButton,
                             qt.Qt.LeftButton)
+            self.qWait(200)
             rois = self.widget.getRois()
             self.assertTrue(len(rois) is 1)
             print(rois)
