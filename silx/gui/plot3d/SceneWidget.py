@@ -260,7 +260,11 @@ class SceneSelection(qt.QObject):
         """Handle updates of the selected item"""
         if event == items.Item3DChangedType.ROOT_ITEM:
             item = self.sender()
-            if item.root() != self.getSceneGroup():
+
+            parent = self.parent()
+            assert isinstance(parent, SceneWidget)
+
+            if item.root() != parent.getSceneGroup():
                 self.setSelectedItem(None)
 
     # Synchronization with QItemSelectionModel
