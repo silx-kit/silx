@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Taken from: https://gist.github.com/cpbotha/1b42a20c8f3eb9bb7cb8
+# Plus: https://github.com/spyder-ide/qtpy/commit/001a862c401d757feb63025f88dbb4601d353c84
 
 # Copyright (c) 2011 Sebastian Wiesner <lunaryorn@gmail.com>
 # Modifications by Charl Botha <cpbotha@vxlabs.com>
@@ -83,7 +84,9 @@ class UiLoader(QUiLoader):
 
         QUiLoader.__init__(self, baseinstance)
         self.baseinstance = baseinstance
-        self.customWidgets = customWidgets
+        self.customWidgets = {}
+        self.uifile = None
+        self.customWidgets.update(customWidgets)
 
     def createWidget(self, class_name, parent=None, name=''):
         """
@@ -107,13 +110,15 @@ class UiLoader(QUiLoader):
                 # this will raise KeyError if the user has not supplied the
                 # relevant class_name in the dictionary, or TypeError, if
                 # customWidgets is None
-                try:
-                    widget = self.customWidgets[class_name](parent)
-
-                except (TypeError, KeyError):
+                if class_name not in self.customWidgets:
                     raise Exception('No custom widget ' + class_name +
                                     ' found in customWidgets param of' +
-                                    'UiLoader __init__.')
+                                    'UiFile %s.' % self.uifile)
+                try:
+                    widget = self.customWidgets[class_name](parent)
+                except Exception:
+                    _logger.error("Fail to instanciate widget %s from file %s", class_name, self.uifile)
+                    raise
 
             if self.baseinstance:
                 # set an attribute for the new child widget on the base
@@ -125,6 +130,42 @@ class UiLoader(QUiLoader):
                 # print(name)
 
             return widget
+
+    def _parse_custom_widgets(self, ui_file):
+        """
+        This function is used to parse a ui file and look for the <customwidgets>
+        section, then automatically load all the custom widget classes.
+        """
+        import importlib
+        from xml.etree.ElementTree import ElementTree
+
+        # Parse the UI file
+        etree = ElementTree()
+        ui = etree.parse(ui_file)
+
+        # Get the customwidgets section
+        custom_widgets = ui.find('customwidgets')
+
+        if custom_widgets is None:
+            return
+
+        custom_widget_classes = {}
+
+        for custom_widget in custom_widgets.getchildren():
+
+            cw_class = custom_widget.find('class').text
+            cw_header = custom_widget.find('header').text
+
+            module = importlib.import_module(cw_header)
+
+            custom_widget_classes[cw_class] = getattr(module, cw_class)
+
+        self.customWidgets.update(custom_widget_classes)
+
+    def load(self, uifile):
+        self._parse_custom_widgets(uifile)
+        self.uifile = uifile
+        return QUiLoader.load(self, uifile)
 
 
 if "PySide2.QtCore" in sys.modules:
@@ -154,7 +195,6 @@ if "PySide2.QtCore" in sys.modules:
                 raise ValueError("Unsupported orientation %s" % str(orientation))
 
         orientation = Property("Qt::Orientation", getOrientation, setOrientation)
-
 
     CUSTOM_WIDGETS = {"Line": _Line}
     """Default custom widgets for `loadUi`"""
