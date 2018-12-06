@@ -345,8 +345,20 @@ if sphinx is not None:
                 self.mkpath(self.builder_target_dir)
                 BuildDoc.run(self)
             sys.path.pop(0)
+
+    class BuildDocAndGenerateScreenshotCommand(BuildDocCommand):
+        def run(self):
+            old = os.environ.get('SILX_GENERATE_SCREENSHOT')
+            os.environ['SILX_GENERATE_SCREENSHOT'] = 'True'
+            BuildDocCommand.run(self)
+            if old is not None:
+                os.environ['SILX_GENERATE_SCREENSHOT'] = old
+            else:
+                del os.environ['SILX_GENERATE_SCREENSHOT']
+
 else:
     BuildDocCommand = SphinxExpectedCommand
+    BuildDocAndGenerateScreenshotCommand = SphinxExpectedCommand
 
 
 # ################### #
@@ -911,6 +923,7 @@ def get_project_configuration(dry_run):
         build=Build,
         build_py=build_py,
         test=PyTest,
+        build_screenshots=BuildDocAndGenerateScreenshotCommand,
         build_doc=BuildDocCommand,
         test_doc=TestDocCommand,
         build_ext=BuildExt,
