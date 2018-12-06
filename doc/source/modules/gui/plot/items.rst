@@ -32,7 +32,7 @@ Curve
              isHighlighted, setHighlighted, getHighlightedStyle, setHighlightedStyle,
              getCurrentStyle
 
-.. autoclass:: silx.gui.plot.items.curve.CurveStyle
+.. autoclass:: CurveStyle
    :members: getColor, getLineStyle, getLineWidth, getSymbol, getSymbolSize
 
 Images
