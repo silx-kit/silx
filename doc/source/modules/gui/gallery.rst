@@ -275,9 +275,10 @@ Additional widgets:
        and associated toolbars.
        It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
        See ``plot3dSceneWindow.py`` in :ref:`plot3d-sample-code`.
-   * - .. image:: plot3d/img/SceneWidget.png
+   * - .. snapshotqt:: plot3d/img/SceneWidget.png
           :height: 150px
           :align: center
+          :script: examples/plot3dSceneWindow.py
      - :class:`SceneWidget` is a :class:`Plot3DWidget` providing a 3D scene for visualizing different kind of data.
        It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
        See ``plot3dSceneWindow.py`` in :ref:`plot3d-sample-code`.
