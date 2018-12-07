@@ -348,13 +348,13 @@ if sphinx is not None:
 
     class BuildDocAndGenerateScreenshotCommand(BuildDocCommand):
         def run(self):
-            old = os.environ.get('SILX_GENERATE_SCREENSHOT')
-            os.environ['SILX_GENERATE_SCREENSHOT'] = 'True'
+            old = os.environ.get('DIRECTIVE_SNAPSHOT_QT')
+            os.environ['DIRECTIVE_SNAPSHOT_QT'] = 'True'
             BuildDocCommand.run(self)
             if old is not None:
-                os.environ['SILX_GENERATE_SCREENSHOT'] = old
+                os.environ['DIRECTIVE_SNAPSHOT_QT'] = old
             else:
-                del os.environ['SILX_GENERATE_SCREENSHOT']
+                del os.environ['DIRECTIVE_SNAPSHOT_QT']
 
 else:
     BuildDocCommand = SphinxExpectedCommand

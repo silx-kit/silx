@@ -76,7 +76,7 @@ env.update(
      "PATH": os.environ.get("PATH", "")})
 
 
-if not os.environ.get('SILX_GENERATE_SCREENSHOT') == 'True':
+if not os.environ.get('DIRECTIVE_SNAPSHOT_QT') == 'True':
     """
     In case we don't wan't to regenerate screenshot, simply apply Figure
     directive

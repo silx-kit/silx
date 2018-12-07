@@ -66,7 +66,6 @@ root_dir = dirname(dirname(dirname(os.path.abspath(__file__))))
 
 source_dir = dirname(dirname(silx.__file__))
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext'))
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext', 'qt'))
 
 # -- General configuration -----------------------------------------------------
 
