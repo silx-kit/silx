@@ -74,7 +74,6 @@ env = os.environ.copy()
 env.update(
     {"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
      "PATH": os.environ.get("PATH", "")})
-import silx
 
 
 if not os.environ.get('SILX_GENERATE_SCREENSHOT') == 'True':
@@ -143,15 +142,10 @@ else:
                :align: center
                :height: 5cm
                :script: myscript.py
-        
         """
         option_spec = Image.option_spec.copy()
         option_spec['script'] = directives.unchanged
         has_content = True
-
-        # TODO this should be configured in conf.py
-        SNAPSHOTS_QT = os.path.join('snapshotsqt_directive')
-        """The path where to store images relative to doc directory."""
 
         def run(self):
             assert len(self.arguments) > 0
@@ -179,13 +173,12 @@ else:
             has_source_code = not (self.content is None or len(self.content) is 0)
             if has_source_code:
                 with open(output_script, 'w') as _file:
-                    _file.write("from silx.gui import qt\n")
+                    _file.write("# from silx.gui import qt\n")
                     _file.write("# app = qt.QApplication([])\n")
                     for _line in self.content:
                         _towrite = _line.lstrip(' ')
                         if not _towrite.startswith(':'):
                             _file.write(_towrite + '\n')
-                            # has_source_code = True
                     _file.write("app.exec_()")
                 self.content = []
                 if script is not None:
@@ -223,14 +216,9 @@ else:
         if qt.BINDING == 'PyQt4':
             def grabWindow(winID):
                 return qt.QPixmap.grabWindow(winID)
-        elif qt.BINDING == 'PyQt5':
+        elif qt.BINDING in ('PyQt5', 'PySide2'):
             def grabWindow(winID):
                 screen = qt.QApplication.primaryScreen()
-                return screen.grabWindow(winID)
-        elif qt.BINDING == 'PySide2':
-            def grabWindow(winID):
-                screen = qt.QApplication.primaryScreen()
-                import PySide2.QtGui
                 return screen.grabWindow(winID)
 
         global _count
