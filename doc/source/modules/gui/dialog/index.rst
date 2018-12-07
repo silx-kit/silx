@@ -9,11 +9,11 @@
 Snapshot of the widgets:
 
 
-.. |imgImageFileDialog| image:: ../../../../screenshots/gui/dialog/img/ImageFileDialogH5.png
+.. |imgImageFileDialog| image:: ./img/imagefiledialog_h5.png
    :height: 150px
    :align: middle
 
-.. |imgDataFileDialog| image:: ../../../../screenshots/gui/dialog/img/DataFileDialog.png
+.. |imgDataFileDialog| image:: ./img/datafiledialog.png
    :height: 150px
    :align: middle
 
@@ -26,7 +26,7 @@ Snapshot of the widgets:
 :class:`ImageFileDialog`  :class:`DataFileDialog`  :class:`ColormapDialog`
 ======================== ========================= ========================
 
-.. |imgGroupDialog| image:: ../../../../screenshots/gui/dialog/img/GroupDialog.png
+.. |imgGroupDialog| image:: ./img/groupdialog.png
    :height: 150px
    :align: middle
 
