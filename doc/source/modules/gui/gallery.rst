@@ -48,7 +48,7 @@ Widgets gallery
          table = ArrayTableWidget()
          table.setArrayData(numpy.random.random((100, 100, 100)))
          table.resize(500, 300)
-         table.show()"
+         table.show()
      - :class:`ArrayTableWidget` is a table widget with browsers designed to
        display the content of multi-dimensional data arrays.
    * - .. snapshotqt:: data/img/DataViewer.png

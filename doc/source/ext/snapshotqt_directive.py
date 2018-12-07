@@ -1,3 +1,27 @@
+# coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
 """RST directive to include snapshot of a Qt application in Sphinx doc.
 
 Configuration variable in conf.py:
@@ -8,6 +32,11 @@ Configuration variable in conf.py:
   (default: '..').
 """
 from __future__ import absolute_import
+
+__authors__ = ["H. Payno", "T. Vincent"]
+__license__ = "MIT"
+__date__ = "07/12/2018"
+
 import os
 import logging
 import subprocess
@@ -15,12 +44,14 @@ import sys
 import distutils
 import shutil
 from docutils.parsers.rst.directives.images import Image
+from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
 from docutils.nodes import fully_normalize_name
 from docutils import nodes
 
 # from docutils.par
 # note: conf.py is patching the PATH so this will be the 'current' qt version
+
 
 def _distutils_dir_name(dname="lib"):
     """
@@ -96,14 +127,26 @@ else:
         the path given in conf.py 'snapshotqt_script_dir' value.
 
         ::
-    
-            .. snapshotqt: ../examples/demo.py
+
+            .. snapshotqt: img/demo.py
                :align: center
                :height: 5cm
-    
-               Caption of the image.
+
+               source code
+
+
+        you can also define a snapshot from a script, using the :script: option
+        .. note:: on this path are given from the project root level
+
+        ::
+            .. snapshotqt: img/demo.py
+               :align: center
+               :height: 5cm
+               :script: myscript.py
+        
         """
         option_spec = Image.option_spec.copy()
+        option_spec['script'] = directives.unchanged
         has_content = True
 
         # TODO this should be configured in conf.py
@@ -113,6 +156,7 @@ else:
         def run(self):
             assert len(self.arguments) > 0
             # Run script stored in arguments and replace by snapshot filename
+            script = self.options.pop('script', None)
             env = self.state.document.settings.env
 
             image_ext = env.config.snapshotqt_image_type.lower()
@@ -121,6 +165,7 @@ else:
 
             image_file_source_path = env.relfn2path(self.arguments[0])[0]
             image_file_source_path = os.path.join(home, env.srcdir, image_file_source_path)
+
             def createNeededDirs(_dir):
                 parentDir = os.path.dirname(_dir)
                 if parentDir not in ('', os.sep):
@@ -131,29 +176,36 @@ else:
             createNeededDirs(os.path.dirname(output_script))
             assert os.path.exists(os.path.dirname(image_file_source_path))
 
-            has_source_code = False
-            with open(output_script, 'w') as _file:
-                _file.write("from silx.gui import qt\n")
-                # _file.write("app = qt.QApplication().instance\n")
-                for _line in self.content:
-                    _towrite = _line.lstrip(' ')
-                    if not _towrite.startswith(':'):
-                        _file.write(_towrite + '\n')
-                        has_source_code = True
-                _file.write("app.exec_()")
-            self.content = []
-            if not has_source_code:
-                _logger.warning('no source code defined in the snapshot'
-                                 'directive, fail to generate a screenshot')
-            else:
+            has_source_code = not (self.content is None or len(self.content) is 0)
+            if has_source_code:
+                with open(output_script, 'w') as _file:
+                    _file.write("from silx.gui import qt\n")
+                    _file.write("# app = qt.QApplication([])\n")
+                    for _line in self.content:
+                        _towrite = _line.lstrip(' ')
+                        if not _towrite.startswith(':'):
+                            _file.write(_towrite + '\n')
+                            # has_source_code = True
+                    _file.write("app.exec_()")
+                self.content = []
+                if script is not None:
+                    _logger.warning('Cannot specify a script if source code (content) is given.'
+                                    'Ignore script option')
                 makescreenshot(script_or_module=output_script,
                                filename=image_file_source_path)
-            self.options['figwidth'] = 'image'
+            else:
+                # script
+                if script is None:
+                    _logger.warning('no source code or script defined in the snapshot'
+                                    'directive, fail to generate a screenshot')
+                else:
+                    script_path = os.path.join(home, script)
+                    makescreenshot(script_or_module=script_path,
+                                   filename=image_file_source_path)
 
             #
             # Use created image as in Figure
             return super(SnapshotQtDirective, self).run()
-
 
     def setup(app):
         app.add_config_value('snapshotqt_image_type', 'png', 'env')
@@ -161,7 +213,7 @@ else:
         app.add_directive('snapshotqt', SnapshotQtDirective)
         return {'version': '0.1'}
 
-    # screenshot function ########################################################
+    # screensImageFileDialogH5.hot function ########################################################
 
     def makescreenshot(script_or_module, filename):
         _logger.info('generate screenshot for %s from %s, binding is %s'
@@ -225,45 +277,7 @@ else:
                 execfile(script_or_module)
             else:
                 with open(script_or_module) as f:
-                    code = compile(f.read(), "somefile.py", 'exec')
+                    code = compile(f.read(), script_or_module, 'exec')
                     exec(code)
         except Exception as e:
             _logger.error(e)
-
-
-# main ########################################################################
-if __name__ == '__main__':
-    import argparse
-
-    # Parse argv
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        epilog="""Arguments provided after the script or module name are passed
-        to the script or module.""")
-    parser.add_argument(
-        '-o', '--output', nargs=1, type=str,
-        default='snapshot.png',
-        help='Image filename of the snapshot (default: snapshot.png).')
-    parser.add_argument(
-        '--bindings', nargs='?',
-        choices=('PySide2', 'PyQt4', 'PyQt5', 'auto'),
-        default='auto',
-        help="""Qt bindings used by the script/module.
-        If 'auto' (the default), it is probed from available python modules.
-        """)
-    parser.add_argument(
-        '-m', '--module', action='store_true',
-        help='Run the corresponding module as a script.')
-    parser.add_argument(
-        'script_or_module', nargs=1, type=str,
-        help='Python script to run for the snapshot.')
-    args, unknown = parser.parse_known_args()
-    script_or_module = args.script_or_module[0]
-    # arguments provided after the script or module
-    extra_args = sys.argv[sys.argv.index(script_or_module) + 1:]
-    if unknown != extra_args:
-        parser.print_usage()
-        _logger.error(
-            '%s: incorrect arguments', os.path.basename(sys.argv[0]))
-        sys.exit(1)
-    makescreenshot(script_or_module, args.output[0])
