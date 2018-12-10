@@ -194,7 +194,7 @@ class CurvesROIWidget(qt.QWidget):
         return self.roiTable.getRois(order)
 
     @deprecation.deprecated(reason="Moved to ROITable",
-                            since_version="0.8.0")
+                            since_version="0.10.0")
     def setMiddleROIMarkerFlag(self, flag=True):
         return self.roiTable.setMiddleROIMarkerFlag(flag)
 
@@ -409,7 +409,7 @@ class CurvesROIWidget(qt.QWidget):
 
     @deprecation.deprecated(reason="API modification",
                             replacement="setRois",
-                            since_version="0.8.0")
+                            since_version="0.10.0")
     def fillFromROIDict(self, *args, **kwargs):
         self.roiTable.fillFromROIDict(*args, **kwargs)
 
@@ -565,7 +565,7 @@ class ROITable(TableWidget):
         assert order in [None, "from", "to", "type"]
         self.clear()
 
-        # backward comptaibility since 0.8.0
+        # backward comptaibility since 0.10.0
         if isinstance(rois, dict):
             deprecation.deprecated_warning(name='rois', type_='Parameter',
                                            reason='Rois should now be a list '
@@ -806,7 +806,7 @@ class ROITable(TableWidget):
 
     @deprecation.deprecated(reason="Removed",
                             replacement="roidict and roidict.values()",
-                            since_version="0.8.0")
+                            since_version="0.10.0")
     def getROIListAndDict(self):
         """
 
@@ -826,11 +826,11 @@ class ROITable(TableWidget):
         if roiDict:
             deprecation.deprecated_warning(name='roiDict', type_='Parameter',
                                            reason='Unused parameter',
-                                           since_version="0.8.0")
+                                           since_version="0.10.0")
         if roiList:
             deprecation.deprecated_warning(name='roiList', type_='Parameter',
                                            reason='Unused parameter',
-                                           since_version="0.8.0")
+                                           since_version="0.10.0")
 
         for roiID in self._roiDict:
             self._updateRoiInfo(roiID)
@@ -996,7 +996,7 @@ class ROITable(TableWidget):
 
     @deprecation.deprecated(reason="API modification",
                             replacement="setRois",
-                            since_version="0.8.0")
+                            since_version="0.10.0")
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
         """Set the ROIs by providing a list of ROI names and a dictionary
         of ROI information for each ROI.
