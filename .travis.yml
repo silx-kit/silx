@@ -15,6 +15,7 @@ matrix:
               - BUILD_COMMAND=sdist
               - QT_BINDING=
               - SILX_OPENCL=1
+              - BUILD_SCREENSHOT=0
 
         - python: 3.4
           os: linux
@@ -23,6 +24,7 @@ matrix:
               - QT_BINDING=
               - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
               - SILX_OPENCL=1
+              - BUILD_SCREENSHOT=0
 
         - python: 3.5
           os: linux
@@ -30,6 +32,7 @@ matrix:
               - BUILD_COMMAND=sdist
               - QT_BINDING=PyQt5
               - SILX_OPENCL=1
+              - BUILD_SCREENSHOT=1
 
         - python: 3.6
           os: linux
@@ -37,12 +40,14 @@ matrix:
               - BUILD_COMMAND=sdist
               - QT_BINDING=PySide2
               - SILX_OPENCL=1
+              - BUILD_SCREENSHOT=0
 
         - language: generic
           os: osx
           env:
               - BUILD_COMMAND=bdist_wheel
               - QT_BINDING=PyQt5
+              - BUILD_SCREENSHOT=0
 
 cache:
     apt: true
@@ -56,6 +61,7 @@ addons:
             - opencl-headers
             - libgl1-mesa-glx  # For OpenGL
             - xserver-xorg-video-dummy  # For OpenGL
+            - pandoc  # For documentation
 
 before_install:
     # On Linux: install OpenCL
@@ -109,6 +115,14 @@ before_script:
           pip install -q --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io;
       fi
 
+    # install pandoc if needed
+    - if [ "$BUILD_SCREENSHOT" -eq 1 ];
+      then
+          pip install  -q --upgrade pandoc;
+          pip install  -q --upgrade Sphinx;
+          pip install  -q --upgrade nbsphinx;
+      fi
+
     # Install built package
     # Make sure silx does not come from cache or pypi
     # At this point all install_requires dependencies MUST be installed
@@ -140,6 +154,11 @@ script:
           python run_tests.py --installed -v --qt-binding=$QT_BINDING;
       else
           python run_tests.py --installed -v --no-gui;
+      fi
+
+    - if [ "$BUILD_SCREENSHOT" -eq 1 ];
+      then
+          python setup.py build build_screenshots;
       fi
 
 after_failure:
