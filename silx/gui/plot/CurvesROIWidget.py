@@ -202,7 +202,7 @@ class CurvesROIWidget(qt.QWidget):
 
     def _add(self):
         """Add button clicked handler"""
-        def getNextROIName():
+        def getNextRoiName():
             rois = self.roiTable.getRois(order=None)
             roisNames = []
             [roisNames.append(roiName) for roiName in rois]
@@ -217,7 +217,7 @@ class CurvesROIWidget(qt.QWidget):
                     newroi = "newroi %d" % i
                 return newroi
 
-        roi = ROI(name=getNextROIName())
+        roi = ROI(name=getNextRoiName())
 
         if roi.getName() == "ICR":
             roi.setType("Default")
@@ -474,7 +474,7 @@ class ROITable(TableWidget):
         super(ROITable, self).__init__(parent)
         self._showAllMarkers = False
         self._middleROIMarkerFlag = False
-        self._userIsEditingROI = False
+        self._userIsEditingRoi = False
         """bool used to avoid conflict when editing the ROI object"""
         self._isConnected = False
         self._roiToItems = {}
@@ -644,7 +644,7 @@ class ROITable(TableWidget):
             return item
 
     def _itemChanged(self, item):
-        def getROI():
+        def getRoi():
             IDItem = self.item(item.row(), self.COLUMNS_INDEX['ID'])
             assert IDItem
             id = int(IDItem.text())
@@ -656,9 +656,9 @@ class ROITable(TableWidget):
             if self.activeRoi and roi.getID() == self.activeRoi.getID():
                 self.activeROIChanged.emit()
 
-        self._userIsEditingROI = True
+        self._userIsEditingRoi = True
         if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
-            roi = getROI()
+            roi = getRoi()
 
             if item.text() not in ('', self.INFO_NOT_FOUND):
                 try:
@@ -674,12 +674,12 @@ class ROITable(TableWidget):
                 signalChanged(roi)
 
         if item.column() is self.COLUMNS_INDEX['ROI']:
-            roi = getROI()
+            roi = getRoi()
             roi.setName(item.text())
             self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
             signalChanged(roi)
 
-        self._userIsEditingROI = False
+        self._userIsEditingRoi = False
 
     def deleteActiveRoi(self):
         """
@@ -735,7 +735,7 @@ class ROITable(TableWidget):
                 self.activeROIChanged.emit()
 
     def _updateRoiInfo(self, roiID):
-        if self._userIsEditingROI is True:
+        if self._userIsEditingRoi is True:
             return
         if roiID not in self._roiDict:
             return
