@@ -16,6 +16,7 @@ print(sys.version)
 print(" ")
 
 print("Platform: " + platform.platform())
+print("- Machine: " + platform.machine())
 print(" ")
 
 try:
