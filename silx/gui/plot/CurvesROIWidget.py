@@ -564,7 +564,7 @@ class ROITable(TableWidget):
         assert order in [None, "from", "to", "type"]
         self.clear()
 
-        # backward comptaibility since 0.10.0
+        # backward compatibility since 0.10.0
         if isinstance(rois, dict):
             deprecation.deprecated_warning(name='rois', type_='Parameter',
                                            reason='Rois should now be a list '
@@ -578,6 +578,7 @@ class ROITable(TableWidget):
             for roi in rois:
                 assert isinstance(roi, ROI)
                 self.addRoi(roi)
+        self._updateMarkers()
 
     def addRoi(self, roi):
         """
