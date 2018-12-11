@@ -43,7 +43,7 @@ from .mixins import ColormapMixIn, SymbolMixIn
 from ._pick import PickingResult
 
 
-_logger = logging.getLevelName(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
