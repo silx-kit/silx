@@ -477,6 +477,7 @@ class ROITable(TableWidget):
         self._isConnected = False
         self._roiToItems = {}
         self._roiDict = {}
+        """dict of ROI object. Key is ROi id, value is the ROI object"""
         self._markersHandler = _RoiMarkerManager()
 
         """
@@ -500,7 +501,7 @@ class ROITable(TableWidget):
     def _getRoiDict(self):
         ddict = {}
         for id in self._roiDict:
-            ddict[self._roiDict[id].name] = self._roiDict[id]
+            ddict[self._roiDict[id].getName()] = self._roiDict[id]
         return ddict
 
     def clear(self):
