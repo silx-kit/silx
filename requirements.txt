@@ -15,7 +15,7 @@ enum34; python_version == '2.7'
 futures; python_version == '2.7'
 
 # Extra dependencies (from setup.py extra_requires 'full' target)
-pyopencl; platform_machine in "i386, x86_64"  # For silx.opencl
+pyopencl; platform_machine in "i386, x86_64, AMD64"  # For silx.opencl
 Mako                      # For pyopencl reduction
 qtconsole                 # For silx.gui.console
 matplotlib >= 1.2.0       # For silx.gui.plot
