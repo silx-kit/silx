@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Test of the filtered backprojection module"""
+"""Test of the FFT module"""
 
 from __future__ import division, print_function
 
