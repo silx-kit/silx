@@ -55,13 +55,8 @@ if pyopencl:
     except:
         v = pyopencl.array.vec()
         float8 = v.float8
-        old_style = numpy.dtype([("s0", numpy.float32), ("s1", numpy.float32),
-                                 ("s2", numpy.float32), ("s3", numpy.float32),
-                                 ("s4", numpy.float32), ("s5", numpy.float32),
-                                 ("s6", numpy.float32), ("s7", numpy.float32)])
     else:
         float8 = cltypes.float8
-        old_style = False
 
 else:
     raise ImportError("pyopencl is not installed")
@@ -193,4 +188,3 @@ class Statistics(OpenclProcessing):
         return res
 
     __call__ = process
-
