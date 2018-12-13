@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "17/10/2017"
+__date__ = "13/12/2018"
 
 import os
 import unittest
@@ -36,6 +36,8 @@ from . import test_linalg
 from . import test_array_utils
 from ..codec import test as test_codec
 from . import test_image
+from . import test_stats
+
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -47,6 +49,7 @@ def suite():
     test_suite.addTests(test_array_utils.suite())
     test_suite.addTests(test_codec.suite())
     test_suite.addTests(test_image.suite())
+    test_suite.addTests(test_stats.suite())
     # Allow to remove sift from the project
     test_base_dir = os.path.dirname(__file__)
     sift_dir = os.path.join(test_base_dir, "..", "sift")
