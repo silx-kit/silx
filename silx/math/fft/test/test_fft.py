@@ -165,7 +165,7 @@ class TestFFT(unittest.TestCase):
         err = self.check_current_backend()
         if err is not None:
             self.skipTest(err)
-        if test_options.TEST_LOW_MEM:
+        if self.size == "3D" and test_options.TEST_LOW_MEM:
             self.skipTest("low mem")
 
         ndim = len(self.size)
