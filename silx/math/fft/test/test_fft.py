@@ -27,34 +27,16 @@
 
 import numpy as np
 import unittest
+import logging
 from scipy.misc import ascent
-from mfft.fft import FFT
-from mfft.clfft import __have_clfft__
-from mfft.cufft import __have_cufft__
-from mfft.fftw import __have_fftw__
+from silx.utils.testutils import parameterize
+from silx.math.fft.fft import FFT
+from silx.math.fft.clfft import __have_clfft__
+from silx.math.fft.cufft import __have_cufft__
+from silx.math.fft.fftw import __have_fftw__
 
-
-# http://eli.thegreenplace.net/2011/08/02/python-unit-testing-parametrized-test-cases/
-class ParametrizedTestCase(unittest.TestCase):
-    """ TestCase classes that want to be parametrized should
-        inherit from this class.
-    """
-    def __init__(self, methodName='runTest', param=None):
-        super(ParametrizedTestCase, self).__init__(methodName)
-        self.param = param
-
-    @staticmethod
-    def parametrize(testcase_klass, param=None):
-        """ Create a suite containing all tests taken from the given
-            subclass, passing them the parameter 'param'.
-        """
-        testloader = unittest.TestLoader()
-        testnames = testloader.getTestCaseNames(testcase_klass)
-        suite = unittest.TestSuite()
-        for name in testnames:
-            suite.addTest(testcase_klass(name, param=param))
-        return suite
-
+from silx.test.utils import test_options
+logger = logging.getLogger(__name__)
 
 class TransformInfos(object):
     def __init__(self):
@@ -63,7 +45,7 @@ class TransformInfos(object):
             "batched_1D",
             "2D",
             "batched_2D",
-            #~ "3D",
+            "3D",
         ]
         self.modes = {
             "R2C": np.float32,
@@ -101,7 +83,7 @@ class TestData(object):
 
 
 
-class TestFFT(ParametrizedTestCase):
+class TestFFT(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -116,6 +98,12 @@ class TestFFT(ParametrizedTestCase):
         super(TestFFT, cls).tearDownClass()
         if __have_clfft__:
             del cls.Ctx
+
+
+    def __init__(self, methodName='runTest', param=None):
+        unittest.TestCase.__init__(self, methodName)
+        self.param = param
+
 
     def setUp(self):
         self.tol = {
@@ -177,6 +165,8 @@ class TestFFT(ParametrizedTestCase):
         err = self.check_current_backend()
         if err is not None:
             self.skipTest(err)
+        if test_options.TEST_LOW_MEM:
+            self.skipTest("low mem")
 
         ndim = len(self.size)
         input_data = self.test_data.data_refs[ndim].astype(self.transform_infos.modes[self.mode])
@@ -218,14 +208,14 @@ class TestFFT(ParametrizedTestCase):
         )
 
 
-
-
-
-class TestNumpyFFT(ParametrizedTestCase):
+class TestNumpyFFT(unittest.TestCase):
     """
     Test the Numpy backend individually.
     """
 
+    def __init__(self, methodName='runTest', param=None):
+        unittest.TestCase.__init__(self, methodName)
+        self.param = param
 
     def setUp(self):
         transforms = {
@@ -245,7 +235,6 @@ class TestNumpyFFT(ParametrizedTestCase):
         transforms["batched_1D"] = transforms["1D"]
         transforms["batched_2D"] = transforms["2D"]
         self.transforms = transforms
-
 
 
     def test_numpy_fft(self):
@@ -275,8 +264,6 @@ class TestNumpyFFT(ParametrizedTestCase):
         self.assertTrue(np.allclose(res2, ref2))
 
 
-
-
 def test_numpy_backend(dimensions=None):
     testSuite = unittest.TestSuite()
     transform_infos = TransformInfos()
@@ -284,12 +271,12 @@ def test_numpy_backend(dimensions=None):
     dimensions = dimensions or transform_infos.dimensions
 
     for trdim in dimensions:
-        print("   testing %s" % trdim)
+        logger.debug("   testing %s" % trdim)
         for mode in transform_infos.modes:
-            print("   testing %s:%s" % (trdim, mode))
+            logger.debug("   testing %s:%s" % (trdim, mode))
             for size in transform_infos.sizes[trdim]:
-                print("      size: %s" % str(size))
-                testcase = ParametrizedTestCase.parametrize(
+                logger.debug("      size: %s" % str(size))
+                testcase = parameterize(
                     TestNumpyFFT,
                     param={
                         "transform_infos": transform_infos,
@@ -309,14 +296,14 @@ def test_fft(backend, dimensions=None):
     test_data = TestData()
     dimensions = dimensions or transform_infos.dimensions
 
-    print("Testing backend: %s" % backend)
+    logger.info("Testing backend: %s" % backend)
     for trdim in dimensions:
-        print("   testing %s" % trdim)
+        logger.debug("   testing %s" % trdim)
         for mode in transform_infos.modes:
-            print("   testing %s:%s" % (trdim, mode))
+            logger.debug("   testing %s:%s" % (trdim, mode))
             for size in transform_infos.sizes[trdim]:
-                print("      size: %s" % str(size))
-                testcase = ParametrizedTestCase.parametrize(
+                logger.debug("      size: %s" % str(size))
+                testcase = parameterize(
                     TestFFT,
                     param={
                         "transform_infos": transform_infos,
@@ -334,11 +321,11 @@ def test_fft(backend, dimensions=None):
 def test_all():
     suite = unittest.TestSuite()
 
-    #~ suite.addTest(test_numpy_backend())
+    suite.addTest(test_numpy_backend())
 
-    #~ suite.addTest(test_fft("fftw"))
+    suite.addTest(test_fft("fftw"))
     suite.addTest(test_fft("opencl"))
-    #~ suite.addTest(test_fft("cuda"))
+    suite.addTest(test_fft("cuda"))
     return suite
 
 
