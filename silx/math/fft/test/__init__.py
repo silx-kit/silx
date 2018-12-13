@@ -21,20 +21,8 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""This package provides some processing functions for 1D, 2D, 3D or nD arrays.
 
-For additional processing functions dedicated to 2D images,
-see the silx.image package.
-For OpenCL-based processing functions see the silx.opencl package.
+from .test_fft import test_all
 
-See silx documentation: http://www.silx.org/doc/silx/latest/
-"""
-
-__authors__ = ["D. Naudet", "V.A. Sole", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "11/05/2017"
-
-from .histogram import Histogramnd  # noqa
-from .histogram import HistogramndLut  # noqa
-from .medianfilter import medfilt, medfilt1d, medfilt2d
-from .fft import fft
+def suite():
+    return test_all()
