@@ -208,7 +208,7 @@ class CLFFT(BaseFFT):
         evt.wait()
 
 
-    def fft(self, array, output=None, async=False):
+    def fft(self, array, output=None, do_async=False):
         """
         Perform a
         (forward) Fast Fourier Transform.
@@ -219,7 +219,7 @@ class CLFFT(BaseFFT):
             Input data. Must be consistent with the current context.
         output: numpy.ndarray or pyopencl.array, optional
             Output data. By default, output is a numpy.ndarray.
-        async: bool, optional
+        do_async: bool, optional
             Whether to perform operation in asynchronous mode. Default is False,
             meaning that we wait for transform to complete.
         """
@@ -227,7 +227,7 @@ class CLFFT(BaseFFT):
         data_out = self.set_output_data(output, copy=False)
         self.update_forward_plan_arrays()
         event, = self.plan_forward.enqueue()
-        if not(async):
+        if not(do_async):
             event.wait()
         if output is not None:
             self.copy_output_if_numpy(output, self.data_out)
@@ -238,7 +238,7 @@ class CLFFT(BaseFFT):
         return res
 
 
-    def ifft(self, array, output=None, async=False):
+    def ifft(self, array, output=None, do_async=False):
         """
         Perform a
         (inverse) Fast Fourier Transform.
@@ -249,7 +249,7 @@ class CLFFT(BaseFFT):
             Input data. Must be consistent with the current context.
         output: numpy.ndarray or pyopencl.array, optional
             Output data. By default, output is a numpy.ndarray.
-        async: bool, optional
+        do_async: bool, optional
             Whether to perform operation in asynchronous mode. Default is False,
             meaning that we wait for transform to complete.
         """
@@ -257,7 +257,7 @@ class CLFFT(BaseFFT):
         data_out = self.set_input_data(output, copy=False)
         self.update_inverse_plan_arrays()
         event, = self.plan_inverse.enqueue(forward=False)
-        if not(async):
+        if not(do_async):
             event.wait()
         if output is not None:
             self.copy_output_if_numpy(output, self.data_in)
