@@ -40,6 +40,19 @@ if __have_fftw__:
 
 
 class FFTW(BaseFFT):
+    """
+    Initialize a FFTW plan.
+    Please see FFT class for parameters help.
+
+    FFTW-specific parameters
+    -------------------------
+
+    :param check_alignment: bool
+        If set to True and "data" is provided, this will enforce the input data
+        to be "byte aligned", which might imply extra memory usage.
+    :param num_threads: int
+        Number of threads for computing FFT.
+    """
     def __init__(
         self,
         shape=None,
@@ -51,17 +64,6 @@ class FFTW(BaseFFT):
         check_alignment=False,
         num_threads=1,
     ):
-        """
-        Initialize a FFTW plan.
-        Please see FFT class for parameters help.
-
-        FFTW-specific parameters:
-        check_alignment: bool
-            If set to True and "data" is provided, this will enforce the input data
-            to be "byte aligned", which might imply extra memory usage.
-        num_threads: int
-            Number of threads for computing FFT.
-        """
         if not(__have_fftw__):
             raise ImportError("Please install pyfftw >= %s to use the FFTW back-end" % __required_pyfftw_version__)
         super(FFTW, self).__init__(
@@ -163,6 +165,15 @@ class FFTW(BaseFFT):
 
 
     def fft(self, array, output=None):
+        """
+        Perform a
+        (forward) Fast Fourier Transform.
+
+        :param array: numpy.ndarray or pyopencl.array
+            Input data. Must be consistent with the current context.
+        :param output: numpy.ndarray, optional
+            Output data.
+        """
         data_in = self.set_input_data(array, copy=True)
         data_out = self.set_output_data(output, copy=False)
         # execute.__call__ does both update_arrays() and normalization
@@ -176,6 +187,15 @@ class FFTW(BaseFFT):
 
 
     def ifft(self, array, output=None):
+        """
+        Perform a
+        (inverse) Fast Fourier Transform.
+
+        :param array: numpy.ndarray or pycuda.gpuarray
+            Input data. Must be consistent with the current context.
+        :param output: numpy.ndarray, optional
+            Output data.
+        """
         data_in = self.set_output_data(array, copy=True)
         data_out = self.set_input_data(output, copy=False)
         # execute.__call__ does both update_arrays() and normalization

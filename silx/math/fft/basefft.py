@@ -52,11 +52,11 @@ def check_version(package, required_version):
 
 
 class BaseFFT(object):
+    """
+    Base class for all FFT backends.
+    """
     def __init__(self, **kwargs):
-        """
-        Base class for all FFT backends.
-        """
-        self.get_args(**kwargs)
+        self.__get_args(**kwargs)
 
         if self.shape is None and self.dtype is None and self.data is None:
             raise ValueError("Please provide either (shape and dtype) or data")
@@ -65,12 +65,12 @@ class BaseFFT(object):
             self.dtype = self.data.dtype
         self.user_data = self.data
         self.data_allocated = False
-        self.calc_axes()
-        self.set_dtypes()
-        self.calc_shape()
+        self.__calc_axes()
+        self.__set_dtypes()
+        self.__calc_shape()
 
 
-    def get_args(self, **kwargs):
+    def __get_args(self, **kwargs):
         expected_args = {
             "shape": None,
             "dtype": None,
@@ -87,7 +87,7 @@ class BaseFFT(object):
         for arg_name, arg_val in kwargs.items():
             setattr(self, arg_name, arg_val)
 
-    def set_dtypes(self):
+    def __set_dtypes(self):
         dtypes_mapping = {
             np.dtype("float32"): np.complex64,
             np.dtype("float64"): np.complex128,
@@ -106,7 +106,7 @@ class BaseFFT(object):
         self.dtype_out = dtypes_mapping[self.dtype_in]
 
 
-    def calc_shape(self):
+    def __calc_shape(self):
         # TODO allow for C2C even for real input data (?)
         if self.dtype_in in [np.float32, np.float64]:
             last_dim = self.shape[-1]//2 + 1
@@ -115,7 +115,7 @@ class BaseFFT(object):
         else:
             self.shape_out = self.shape
 
-    def calc_axes(self):
+    def __calc_axes(self):
         default_axes = tuple(range(len(self.shape)))
         if self.axes is None:
             self.axes = default_axes
@@ -149,4 +149,9 @@ class BaseFFT(object):
         else:
             return self.set_data(self.data_out, data, self.shape_out, self.dtype_out, copy=copy, name="data_out")
 
+    def fft(self, array, **kwargs):
+        raise ValueError("This should be implemented by back-end FFT")
+
+    def ifft(self, array, **kwargs):
+        raise ValueError("This should be implemented by back-end FFT")
 

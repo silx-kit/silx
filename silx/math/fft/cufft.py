@@ -37,6 +37,17 @@ except ImportError:
     __have_cufft__ = False
 
 class CUFFT(BaseFFT):
+    """
+    Initialize a cufft plan.
+    Please see FFT class for parameters help.
+
+    CUFFT-specific parameters
+    --------------------------
+
+    :param stream: pycuda.driver.Stream
+      Stream with which to associate the plan. If no stream is specified,
+      the default stream is used.
+    """
     def __init__(
         self,
         shape=None,
@@ -47,15 +58,6 @@ class CUFFT(BaseFFT):
         normalize="rescale",
         stream=None,
     ):
-        """
-        Initialize a cufft plan.
-        Please see FFT class for parameters help.
-
-        CUFFT-specific parameters:
-        stream: pycuda.driver.Stream
-          Stream with which to associate the plan. If no stream is specified,
-          the default stream is used.
-        """
         if not(__have_cufft__) or not(__have_cufft__):
             raise ImportError("Please install pycuda and scikit-cuda to use the CUDA back-end")
 
@@ -201,11 +203,9 @@ class CUFFT(BaseFFT):
         Perform a
         (forward) Fast Fourier Transform.
 
-        Parameters
-        ----------
-        array: numpy.ndarray or pycuda.gpuarray
+        :param array: numpy.ndarray or pycuda.gpuarray
             Input data. Must be consistent with the current context.
-        output: numpy.ndarray or pycuda.gpuarray, optional
+        :param output: numpy.ndarray or pycuda.gpuarray, optional
             Output data. By default, output is a numpy.ndarray.
         """
         data_in = self.set_input_data(array, copy=False)
@@ -232,11 +232,9 @@ class CUFFT(BaseFFT):
         Perform a
         (inverse) Fast Fourier Transform.
 
-        Parameters
-        ----------
-        array: numpy.ndarray or pycuda.gpuarray
+        :param array: numpy.ndarray or pycuda.gpuarray
             Input data. Must be consistent with the current context.
-        output: numpy.ndarray or pycuda.gpuarray, optional
+        :param output: numpy.ndarray or pycuda.gpuarray, optional
             Output data. By default, output is a numpy.ndarray.
         """
         data_in = self.set_output_data(array, copy=False)
@@ -256,6 +254,4 @@ class CUFFT(BaseFFT):
             res = self.data_in.get()
         self.recover_array_references()
         return res
-
-
 

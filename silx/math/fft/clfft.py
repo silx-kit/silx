@@ -42,6 +42,19 @@ if __have_clfft__:
     __have_clfft__ = check_version(gpyfft, __required_gpyfft_version__)
 
 class CLFFT(BaseFFT):
+    """
+    Initialize a clfft plan.
+    Please see FFT class for parameters help.
+
+    CLFFT-specific parameters
+    --------------------------
+
+    :param ctx: pyopencl.Context
+        If set to other than None, an existing pyopencl context is used.
+    :param fast_math: bool
+        If set to True, computations will be done with "fast math" mode,
+        i.e more speed but less accuracy.
+    """
     def __init__(
         self,
         shape=None,
@@ -53,17 +66,6 @@ class CLFFT(BaseFFT):
         ctx=None,
         fast_math=False,
     ):
-        """
-        Initialize a clfft plan.
-        Please see FFT class for parameters help.
-
-        CLFFT-specific parameters:
-        ctx: pyopencl.Context
-            If set to other than None, an existing pyopencl context is used.
-        fast_math: bool
-            If set to True, computations will be done with "fast math" mode,
-            i.e more speed but less accuracy.
-        """
         if not(__have_clfft__) or not(__have_clfft__):
             raise ImportError("Please install pyopencl and gpyfft >= %s to use the OpenCL back-end" % __required_gpyfft_version__)
 
@@ -213,13 +215,11 @@ class CLFFT(BaseFFT):
         Perform a
         (forward) Fast Fourier Transform.
 
-        Parameters
-        ----------
-        array: numpy.ndarray or pyopencl.array
+        :param array: numpy.ndarray or pyopencl.array
             Input data. Must be consistent with the current context.
-        output: numpy.ndarray or pyopencl.array, optional
+        :param output: numpy.ndarray or pyopencl.array, optional
             Output data. By default, output is a numpy.ndarray.
-        do_async: bool, optional
+        :param do_async: bool, optional
             Whether to perform operation in asynchronous mode. Default is False,
             meaning that we wait for transform to complete.
         """
@@ -243,13 +243,11 @@ class CLFFT(BaseFFT):
         Perform a
         (inverse) Fast Fourier Transform.
 
-        Parameters
-        ----------
-        array: numpy.ndarray or pyopencl.array
+        :param array: numpy.ndarray or pyopencl.array
             Input data. Must be consistent with the current context.
-        output: numpy.ndarray or pyopencl.array, optional
+        :param output: numpy.ndarray or pyopencl.array, optional
             Output data. By default, output is a numpy.ndarray.
-        do_async: bool, optional
+        :param do_async: bool, optional
             Whether to perform operation in asynchronous mode. Default is False,
             meaning that we wait for transform to complete.
         """

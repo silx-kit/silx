@@ -43,33 +43,31 @@ def FFT(
     """
     Initialize a FFT plan.
 
-    Parameters
-    ----------
-    shape: tuple
+    :param shape: tuple
         Shape of the input data.
-    dtype: type
+    :param dtype: type
         Data type of the input data.
-    data: numpy.ndarray, optional
+    :param data: numpy.ndarray, optional
         Input data. If provided, the arguments "shape" and "dtype" are ignored,
         and are instead infered from "data".
-    shape_out: tuple, optional
+    :param shape_out: tuple, optional
         Shape of output data. By default, the data has the same shape as the input
         data (in case of C2C transform), or a shape with the last dimension halved
         (in case of R2C transform). If shape_out is provided, it must be greater
         or equal than the shape of input data. In this case, FFT is performed
         with zero-padding.
-    axes: tuple
+    :param axes: tuple
         Axes along which FFT is computed.
           * For 2D transform: axes=(1,0)
           * For batched 1D transform of 2D image: axes=(0,)
-    normalize: str
+    :param normalize: str
         Whether to normalize FFT and IFFT. Possible values are:
           * "rescale": in this case, Fourier data is divided by "N"
             before IFFT, so that (FFT(data)) = data
           * "ortho": in this case, FFT and IFFT are adjoint of eachother,
             the transform is unitary. Both FFT and IFFT are scaled with 1/sqrt(N).
           * "none": no normalizatio is done : IFFT(FFT(data)) = data*N
-    backend: str
+    :param backend: str
         FFT Backend to use. Value can be "numpy", "fftw", "opencl", "cuda".
     """
     backends = {
@@ -95,9 +93,3 @@ def FFT(
         **kwargs
     )
     return F
-
-
-
-
-
-

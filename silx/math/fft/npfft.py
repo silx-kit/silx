@@ -29,6 +29,10 @@ from .basefft import BaseFFT
 
 
 class NPFFT(BaseFFT):
+    """
+    Initialize a numpy plan.
+    Please see FFT class for parameters help.
+    """
     def __init__(
         self,
         shape=None,
@@ -38,11 +42,6 @@ class NPFFT(BaseFFT):
         axes=None,
         normalize="rescale",
     ):
-        """
-        Initialize a numpy plan.
-        Please see FFT class for parameters help.
-        """
-
         super(NPFFT, self).__init__(
             shape=shape,
             dtype=dtype,
@@ -105,11 +104,8 @@ class NPFFT(BaseFFT):
         Perform a
         (forward) Fast Fourier Transform.
 
-        Parameters
-        ----------
-        array: numpy.ndarray or pyopencl.array
+        :param array: numpy.ndarray or pyopencl.array
             Input data. Must be consistent with the current context.
-
         """
         return self.numpy_funcs[0](array, **self.numpy_args)
 
@@ -119,12 +115,8 @@ class NPFFT(BaseFFT):
         Perform a
         (inverse) Fast Fourier Transform.
 
-        Parameters
-        ----------
-        array: numpy.ndarray or pyopencl.array
+        :param array: numpy.ndarray or pyopencl.array
             Input data. Must be consistent with the current context.
         """
         return self.numpy_funcs[1](array, **self.numpy_args)
-
-
 
