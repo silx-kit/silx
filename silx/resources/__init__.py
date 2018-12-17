@@ -68,7 +68,10 @@ import logging
 import tempfile
 import unittest
 import importlib
-from silx.third_party import six
+
+import six
+
+
 logger = logging.getLogger(__name__)
 
 

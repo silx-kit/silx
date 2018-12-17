@@ -23,11 +23,12 @@
 #
 # ###########################################################################*/
 
-import h5py
 import os
 import logging
+
+import h5py
 import numpy
-from silx.third_party import six
+import six
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"

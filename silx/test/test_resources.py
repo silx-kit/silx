@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,12 +32,13 @@ __date__ = "17/01/2018"
 import os
 import unittest
 import shutil
+import socket
 import tempfile
 
-from silx.third_party import six
+import six
+
 import silx.resources
 from .utils import utilstest
-import socket
 
 
 class TestResources(unittest.TestCase):

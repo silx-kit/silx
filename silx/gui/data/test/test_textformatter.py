@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,12 +29,13 @@ __date__ = "12/12/2017"
 import unittest
 import shutil
 import tempfile
+
 import numpy
+import six
 
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.utils.testutils import SignalListener
 from ..TextFormatter import TextFormatter
-from silx.third_party import six
 
 try:
     import h5py

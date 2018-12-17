@@ -32,10 +32,12 @@ __date__ = "14/06/2018"
 import collections
 from copy import deepcopy
 import logging
+import enum
 import warnings
 import weakref
+
 import numpy
-from silx.third_party import six, enum
+import six
 
 from ... import qt
 from ... import colors

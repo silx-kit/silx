@@ -66,6 +66,7 @@ __license__ = "MIT"
 __date__ = "27/11/2018"
 
 
+import enum
 import logging
 
 import numpy
@@ -77,7 +78,6 @@ from ..plot.items.axis import Axis
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
 from silx.math.combo import min_max
-from silx.third_party import enum
 from silx.gui import icons
 from silx.math.histogram import Histogramnd
 

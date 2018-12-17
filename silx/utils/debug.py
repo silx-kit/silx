@@ -27,7 +27,8 @@
 import inspect
 import types
 import logging
-from silx.third_party import six
+
+import six
 
 
 debug_logger = logging.getLogger("silx.DEBUG")

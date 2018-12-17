@@ -38,8 +38,7 @@ import logging
 import weakref
 
 import numpy
-
-from silx.third_party import six
+import six
 
 from ...utils.image import convertArrayToQImage
 from ...colors import preferredColormaps

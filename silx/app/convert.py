@@ -28,13 +28,14 @@ import os
 import argparse
 from glob import glob
 import logging
-import numpy
 import re
 import time
 
+import numpy
+import six
+
 import silx.io
 from silx.io.specfile import is_specfile
-from silx.third_party import six
 
 try:
     from silx.io import fabioh5

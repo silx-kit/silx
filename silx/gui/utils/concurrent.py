@@ -30,7 +30,7 @@ __license__ = "MIT"
 __date__ = "09/03/2018"
 
 
-from silx.third_party.concurrent_futures import Future
+from concurrent.futures import Future
 
 from .. import qt
 

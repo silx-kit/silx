@@ -32,10 +32,10 @@ __license__ = "MIT"
 __date__ = "15/11/2017"
 
 from collections import defaultdict
+import enum
 
 import numpy
-
-from silx.third_party import enum, six
+import six
 
 from ... import qt
 from ...plot.items import ItemChangedType

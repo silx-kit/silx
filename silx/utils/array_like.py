@@ -48,9 +48,11 @@ Functions:
 """
 
 from __future__ import absolute_import, print_function, division
-import numpy
+
 import sys
-from silx.third_party import six
+
+import numpy
+import six
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"

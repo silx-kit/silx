@@ -40,9 +40,9 @@ import os
 
 import fabio.file_series
 import numpy
+import six
 
 from . import commonh5
-from silx.third_party import six
 from silx import version as silx_version
 import silx.utils.number
 

@@ -30,13 +30,13 @@ __license__ = "MIT"
 __date__ = "22/11/2018"
 
 import datetime as dt
+import enum
 import logging
 
 import dateutil.tz
 
 from ... import qt
 
-from silx.third_party import enum
 
 _logger = logging.getLogger(__name__)
 

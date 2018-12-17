@@ -31,6 +31,7 @@ __date__ = "28/06/2018"
 
 
 import collections
+import enum
 import functools
 import logging
 import time
@@ -38,7 +39,6 @@ import weakref
 
 import numpy
 
-from ....third_party import enum
 from ....utils.weakref import WeakMethodProxy
 from ... import qt, icons
 from .. import PlotWidget

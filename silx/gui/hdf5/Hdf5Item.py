@@ -30,6 +30,9 @@ __date__ = "29/11/2018"
 
 import logging
 import collections
+
+import six
+
 from .. import qt
 from .. import icons
 from . import _utils
@@ -37,7 +40,6 @@ from .Hdf5Node import Hdf5Node
 import silx.io.utils
 from silx.gui.data.TextFormatter import TextFormatter
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
-from ...third_party import six
 _logger = logging.getLogger(__name__)
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)

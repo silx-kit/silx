@@ -33,9 +33,9 @@ __date__ = "14/06/2018"
 
 
 import logging
-import numpy
+import enum
 
-from silx.third_party import enum
+import numpy
 
 from ...colors import Colormap
 from .core import ColormapMixIn, ItemChangedType

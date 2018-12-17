@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,15 +34,16 @@ __date__ = "03/12/2018"
 import sys
 import os
 import logging
-import numpy
 import functools
 from distutils.version import LooseVersion
+
+import numpy
+import six
 
 import silx.io.url
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
-from silx.third_party import six
 from .FileTypeComboBox import FileTypeComboBox
 try:
     import fabio

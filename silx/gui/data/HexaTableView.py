@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,13 @@ hexadecimal viewer.
 """
 from __future__ import division
 
-import numpy
 import collections
+
+import numpy
+import six
+
 from silx.gui import qt
 import silx.io.utils
-from silx.third_party import six
 from silx.gui.widgets.TableWidget import CopySelectedCellsAction
 
 __authors__ = ["V. Valls"]
