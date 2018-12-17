@@ -601,7 +601,8 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         # following line prevents dragging along the previously selected
         # item when resizing another one
         scene.clearSelection()
-        rect = parent.rect()
+
+        rect = parent.boundingRect()
         self._x = rect.x()
         self._y = rect.y()
         self._w = rect.width()
@@ -658,9 +659,12 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         if qt.qVersion() < "5.0":
             parent.scale(scalex, scaley)
         else:
-            # the correct equivalent would be:
-            # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
-            parent.setScale(scalex)
+            x = parent.boundingRect().x()
+            y = parent.boundingRect().y()
+            w = scalex * self._w
+            h = scaley * self._h
+            parent.setRect(qt.QRectF(x, y, w, h))
+            self.setRect(qt.QRectF(x + w - 40, y + h - 40, 40, 40))
 
         self.scene().removeItem(self._newRect)
         self._newRect = None
