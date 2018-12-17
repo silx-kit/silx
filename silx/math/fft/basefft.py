@@ -24,21 +24,13 @@
 #
 # ###########################################################################*/
 import numpy as np
-
+from pkg_resources import parse_version
 
 
 def check_version(package, required_version):
     """
     Check whether a given package version is superior or equal to required_version.
     """
-    def numeric_version_repr(ver):
-        """
-        Dummy numeric representation of a semantic version.
-        The version is in format "X.Y.Z" where it is assumed that
-        Y < 1000 and Z < 10000.
-        """
-        major, minor, patch = ver.split(".")
-        return int(major) * 1e3 + int(minor) + int(patch) * 1e-4
     try:
         ver = getattr(package, "__version__")
     except AttributeError:
@@ -46,9 +38,9 @@ def check_version(package, required_version):
             ver = getattr(package, "version")
         except Exception:
             return False
-    req_num = numeric_version_repr(required_version)
-    ver_num = numeric_version_repr(ver)
-    return ver_num >= req_num
+    req_v = parse_version(required_version)
+    ver_v = parse_version(ver)
+    return ver_v >= req_v
 
 
 class BaseFFT(object):
