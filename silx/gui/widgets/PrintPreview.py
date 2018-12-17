@@ -285,7 +285,7 @@ class PrintPreviewDialog(qt.QDialog):
 
     def addSvgItem(self, item, title=None,
                    comment=None, commentPosition=None,
-                   viewBox=None):
+                   viewBox=None, keepRatio=True):
         """Add a SVG item to the scene.
 
         :param QSvgRenderer item: SVG item to be added to the scene.
@@ -295,6 +295,8 @@ class PrintPreviewDialog(qt.QDialog):
         :param QRectF viewBox: Bounding box for the item on the print page
             (xOffset, yOffset, width, height). If None, use original
             item size.
+        :param bool keepRatio: If True, resizing the item will preserve its
+            original aspect ratio.
         """
         if not qt.HAS_SVG:
             raise RuntimeError("Missing QtSvg library.")
@@ -331,7 +333,8 @@ class PrintPreviewDialog(qt.QDialog):
         svgItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         svgItem.setFlag(qt.QGraphicsItem.ItemIsFocusable, False)
 
-        rectItemResizeRect = _GraphicsResizeRectItem(svgItem, self.scene)
+        rectItemResizeRect = _GraphicsResizeRectItem(svgItem, self.scene,
+                                                     keepratio=keepRatio)
         rectItemResizeRect.setZValue(2)
 
         self._svgItems.append(item)
