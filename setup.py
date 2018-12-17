@@ -861,7 +861,13 @@ def get_project_configuration(dry_run):
         "setuptools",
         # for io support
         "h5py",
-        "fabio>=0.7"]
+        "fabio>=0.7",
+        # Python 2/3 compatibility
+        "six",
+        # Python 2.7 backports
+        "enum34; python_version == '2.7'",
+        "futures; python_version == '2.7'",
+        ]
 
     setup_requires = ["setuptools", "numpy"]
 
