@@ -31,9 +31,10 @@ __date__ = "24/04/2018"
 
 
 import logging
-import numpy
 
-from silx.third_party import six
+import numpy
+import six
+
 from ....utils.deprecation import deprecated
 from ... import colors
 from .core import (Points, LabelsMixIn, ColorMixIn, YAxisMixIn,

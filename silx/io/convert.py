@@ -52,11 +52,12 @@ Text strings are written to the HDF5 datasets as variable-length utf-8.
 """
 
 import logging
+
 import numpy
+import six
 
 import silx.io
 from silx.io import is_dataset, is_group, is_softlink
-from silx.third_party import six
 try:
     from silx.io import fabioh5
 except ImportError:

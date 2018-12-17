@@ -29,10 +29,11 @@ files. They are used in :mod:`spech5` and :mod:`fabioh5`.
     library, which is not a mandatory dependency for `silx`.
 """
 import collections
+import weakref
+
 import h5py
 import numpy
-from silx.third_party import six
-import weakref
+import six
 
 from . import utils
 

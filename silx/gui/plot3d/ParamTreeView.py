@@ -43,7 +43,7 @@ __date__ = "05/12/2017"
 import numbers
 import sys
 
-from silx.third_party import six
+import six
 
 from .. import qt
 from ..widgets.FloatEdit import FloatEdit as _FloatEdit

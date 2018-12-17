@@ -27,16 +27,19 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "27/01/2018"
 
+
+import tempfile
+import unittest
+
 try:
     import h5py
 except ImportError:
     h5py = None
 import numpy
-import tempfile
-import unittest
+import six
+
 from .. import nxdata
 
-from silx.third_party import six
 
 text_dtype = h5py.special_dtype(vlen=six.text_type)
 

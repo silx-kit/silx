@@ -35,6 +35,7 @@ import logging
 import weakref
 
 import numpy
+import six
 
 from ..utils.weakref import WeakList
 from ..gui import qt
@@ -43,7 +44,6 @@ from ..gui import colors
 from ..gui.plot.tools import roi
 from ..gui.plot.items import roi as roi_items
 from ..gui.plot.tools.toolbars import InteractiveModeToolBar
-from silx.third_party import six
 
 
 _logger = logging.getLogger(__name__)

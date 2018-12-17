@@ -27,16 +27,18 @@ __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
 __date__ = "18/04/2018"
 
-import numpy
+
+import enum
 import os.path
 import sys
 import time
 import logging
 import collections
 
+import numpy
+import six
+
 from silx.utils.proxy import Proxy
-from silx.third_party import six
-from silx.third_party import enum
 import silx.io.url
 
 try:

@@ -33,7 +33,9 @@
 import logging
 import sys
 import tempfile
+
 import numpy
+import six
 
 logging.basicConfig()
 _logger = logging.getLogger("hdf5widget")
@@ -50,7 +52,6 @@ import h5py
 
 import silx.gui.hdf5
 import silx.utils.html
-from silx.third_party import six
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton

@@ -24,6 +24,8 @@
 # ###########################################################################*/
 """Test of async module."""
 
+from __future__ import absolute_import
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "09/03/2018"
@@ -33,7 +35,7 @@ import threading
 import unittest
 
 
-from silx.third_party.concurrent_futures import wait
+from concurrent.futures import wait
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 

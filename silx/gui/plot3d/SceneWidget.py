@@ -30,10 +30,11 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/04/2018"
 
-import numpy
+import enum
 import weakref
 
-from silx.third_party import enum
+import numpy
+
 from .. import qt
 from ..colors import rgba
 
