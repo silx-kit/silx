@@ -368,7 +368,7 @@ class Hdf5Item(Hdf5Node):
             if obj is None:
                 text = ""
             else:
-                text = self._getFormatter().humanReadableValue(obj)
+                text = self._getFormatter().textFormatter().toString(obj)
             self.__nx_class = text.strip('"')
         return self.__nx_class
 
