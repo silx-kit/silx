@@ -864,10 +864,15 @@ def get_project_configuration(dry_run):
         "fabio>=0.7",
         # Python 2/3 compatibility
         "six",
-        # Python 2.7 backports
-        "enum34; python_version == '2.7'",
-        "futures; python_version == '2.7'",
         ]
+
+    # Add Python 2.7 backports
+    # Equivalent to but supported by old setuptools:
+    # "enum34; python_version == '2.7'",
+    # "futures; python_version == '2.7'",
+    if sys.version_info[0] == 2:
+        install_requires.append("enum34")
+        install_requires.append("futures")
 
     setup_requires = ["setuptools", "numpy"]
 
