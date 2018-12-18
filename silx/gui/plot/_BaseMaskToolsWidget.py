@@ -141,7 +141,7 @@ class BaseMask(qt.QObject):
     def commit(self):
         """Append the current mask to history if changed"""
         if (not self._history or self._redo or
-                not numpy.all(numpy.equal(self._mask, self._history[-1]))):
+                not numpy.array_equal(self._mask, self._history[-1])):
             if self._redo:
                 self._redo = []  # Reset redo as a new action as been performed
                 self.sigRedoable[bool].emit(False)
