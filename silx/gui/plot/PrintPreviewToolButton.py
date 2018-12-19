@@ -181,7 +181,8 @@ class PrintPreviewToolButton(qt.QToolButton):
         if qt.HAS_SVG:
             svgRenderer, viewBox = self._getSvgRendererAndViewbox()
             self.printPreviewDialog.addSvgItem(svgRenderer,
-                                               viewBox=viewBox)
+                                               viewBox=viewBox,
+                                               keepRatio=self._printGeometry["keepAspectRatio"])
         else:
             _logger.warning("Missing QtSvg library, using a raster image")
             if qt.BINDING in ["PyQt4", "PySide"]:

@@ -285,7 +285,7 @@ class PrintPreviewDialog(qt.QDialog):
 
     def addSvgItem(self, item, title=None,
                    comment=None, commentPosition=None,
-                   viewBox=None):
+                   viewBox=None, keepRatio=True):
         """Add a SVG item to the scene.
 
         :param QSvgRenderer item: SVG item to be added to the scene.
@@ -295,6 +295,8 @@ class PrintPreviewDialog(qt.QDialog):
         :param QRectF viewBox: Bounding box for the item on the print page
             (xOffset, yOffset, width, height). If None, use original
             item size.
+        :param bool keepRatio: If True, resizing the item will preserve its
+            original aspect ratio.
         """
         if not qt.HAS_SVG:
             raise RuntimeError("Missing QtSvg library.")
@@ -331,7 +333,8 @@ class PrintPreviewDialog(qt.QDialog):
         svgItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         svgItem.setFlag(qt.QGraphicsItem.ItemIsFocusable, False)
 
-        rectItemResizeRect = _GraphicsResizeRectItem(svgItem, self.scene)
+        rectItemResizeRect = _GraphicsResizeRectItem(svgItem, self.scene,
+                                                     keepratio=keepRatio)
         rectItemResizeRect.setZValue(2)
 
         self._svgItems.append(item)
@@ -601,7 +604,8 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         # following line prevents dragging along the previously selected
         # item when resizing another one
         scene.clearSelection()
-        rect = parent.rect()
+
+        rect = parent.boundingRect()
         self._x = rect.x()
         self._y = rect.y()
         self._w = rect.width()
@@ -658,9 +662,12 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         if qt.qVersion() < "5.0":
             parent.scale(scalex, scaley)
         else:
-            # the correct equivalent would be:
-            # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
-            parent.setScale(scalex)
+            x = parent.boundingRect().x()
+            y = parent.boundingRect().y()
+            w = scalex * self._w
+            h = scaley * self._h
+            parent.setRect(qt.QRectF(x, y, w, h))
+            self.setRect(qt.QRectF(x + w - 40, y + h - 40, 40, 40))
 
         self.scene().removeItem(self._newRect)
         self._newRect = None
