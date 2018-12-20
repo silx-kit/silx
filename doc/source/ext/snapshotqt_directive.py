@@ -253,7 +253,7 @@ else:
                                          _grabActiveWindowAndClose)
                 else:
                     app.quit()
-                    _logger.error(
+                    raise TimeoutError(
                         'Aborted: It took too long to have an active window.')
         script_or_module = os.path.abspath(script_or_module)
 
