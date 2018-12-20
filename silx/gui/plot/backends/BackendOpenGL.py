@@ -44,10 +44,11 @@ from ... import qt
 from ..._glutils import gl
 from ... import _glutils as glu
 from .glutils import (
+    GLLines2D,
     GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D,
     mat4Ortho, mat4Identity,
     LEFT, RIGHT, BOTTOM, TOP,
-    Text2D, Shape2D)
+    Text2D, FilledShape2D)
 from .glutils.PlotImageFile import saveImageToFile
 
 _logger = logging.getLogger(__name__)
@@ -861,33 +862,43 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # Render Items
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-        self._progBase.use()
-        gl.glUniformMatrix4fv(self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                              self.matScreenProj.astype(numpy.float32))
-        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
-        gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
-
         for item in self._items.values():
             if ((isXLog and numpy.min(item['x']) < FLOAT32_MINPOS) or
                     (isYLog and numpy.min(item['y']) < FLOAT32_MINPOS)):
                 # Ignore items <= 0. on log axes
                 continue
 
-            closed = item['shape'] != 'polylines'
             points = [self.dataToPixel(x, y, axis='left', check=False)
                       for (x, y) in zip(item['x'], item['y'])]
-            shape2D = Shape2D(points,
-                              fill=item['fill'],
-                              fillColor=item['color'],
-                              stroke=True,
-                              strokeColor=item['color'],
-                              strokeClosed=closed)
-            # TODO support linestyle and linewidth
 
-            posAttrib = self._progBase.attributes['position']
-            colorUnif = self._progBase.uniforms['color']
-            hatchStepUnif = self._progBase.uniforms['hatchStep']
-            shape2D.render(posAttrib, colorUnif, hatchStepUnif)
+            # Draw the fill
+            if item['fill'] is not None:
+                self._progBase.use()
+                gl.glUniformMatrix4fv(
+                    self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
+                    self.matScreenProj.astype(numpy.float32))
+                gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
+                gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
+
+                shape2D = FilledShape2D(
+                    points, style=item['fill'], color=item['color'])
+                shape2D.render(
+                    posAttrib=self._progBase.attributes['position'],
+                    colorUnif=self._progBase.uniforms['color'],
+                    hatchStepUnif=self._progBase.uniforms['hatchStep'])
+
+            # Draw the stroke
+            if item['linestyle'] not in ('', ' ', None):
+                if item['shape'] != 'polylines':
+                    # close the polyline
+                    points = numpy.append(points,
+                                          numpy.atleast_2d(points[0]), axis=0)
+
+                lines = GLLines2D(points[:, 0], points[:, 1],
+                                  style=item['linestyle'],
+                                  color=item['color'],
+                                  width=item['linewidth'])
+                lines.render(self.matScreenProj)
 
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
