@@ -111,6 +111,7 @@ from .. import icons
 from . import PlotWidget
 from ..widgets.PrintPreview import PrintPreviewDialog, SingletonPrintPreviewDialog
 from ..widgets.PrintGeometryDialog import PrintGeometryDialog
+from silx.utils.deprecation import deprecated
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -132,7 +133,7 @@ class PrintPreviewToolButton(qt.QToolButton):
 
         if not isinstance(plot, PlotWidget):
             raise TypeError("plot parameter must be a PlotWidget")
-        self.plot = plot
+        self._plot = plot
 
         self.setIcon(icons.getQIcon('document-print'))
 
@@ -190,12 +191,18 @@ class PrintPreviewToolButton(qt.QToolButton):
         """
         return None, None
 
+    @property
+    @deprecated(since_version="0.10",
+                replacement="getPlot()")
+    def plot(self):
+        return self._plot
+
     def getPlot(self):
         """Return the :class:`.PlotWidget` associated with this tool button.
 
         :rtype: :class:`.PlotWidget`
         """
-        return self.plot
+        return self._plot
 
     def _plotToPrintPreview(self):
         """Grab the plot widget and send it to the print preview dialog.
@@ -216,10 +223,10 @@ class PrintPreviewToolButton(qt.QToolButton):
         else:
             _logger.warning("Missing QtSvg library, using a raster image")
             if qt.BINDING in ["PyQt4", "PySide"]:
-                pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
+                pixmap = qt.QPixmap.grabWidget(self._plot.centralWidget())
             else:
                 # PyQt5 and hopefully PyQt6+
-                pixmap = self.plot.centralWidget().grab()
+                pixmap = self._plot.centralWidget().grab()
             self.printPreviewDialog.addPixmap(pixmap,
                                               title=self.getTitle(),
                                               comment=comment,
@@ -235,7 +242,7 @@ class PrintPreviewToolButton(qt.QToolButton):
         and to the geometry configuration (width, height, ratio) specified
         by the user."""
         imgData = StringIO()
-        assert self.plot.saveGraph(imgData, fileFormat="svg"), \
+        assert self._plot.saveGraph(imgData, fileFormat="svg"), \
             "Unable to save graph"
         imgData.flush()
         imgData.seek(0)
@@ -344,7 +351,7 @@ class PrintPreviewToolButton(qt.QToolButton):
             self._printGeometry = self._printConfigurationDialog.getPrintGeometry()
 
     def _getPlotAspectRatio(self):
-        widget = self.plot.centralWidget()
+        widget = self._plot.centralWidget()
         graphWidth = float(widget.width())
         graphHeight = float(widget.height())
         return graphHeight / graphWidth
