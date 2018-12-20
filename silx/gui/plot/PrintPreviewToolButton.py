@@ -114,7 +114,7 @@ from ..widgets.PrintGeometryDialog import PrintGeometryDialog
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/07/2017"
+__date__ = "20/12/2018"
 
 _logger = logging.getLogger(__name__)
 # _logger.setLevel(logging.DEBUG)
@@ -139,12 +139,12 @@ class PrintPreviewToolButton(qt.QToolButton):
         printGeomAction = qt.QAction("Print geometry", self)
         printGeomAction.setToolTip("Define a print geometry prior to sending "
                                    "the plot to the print preview dialog")
-        printGeomAction.setIcon(icons.getQIcon('shape-rectangle'))      # fixme: icon not displayed in menu
+        printGeomAction.setIcon(icons.getQIcon('shape-rectangle'))
         printGeomAction.triggered.connect(self._setPrintConfiguration)
 
         printPreviewAction = qt.QAction("Print preview", self)
         printPreviewAction.setToolTip("Send plot to the print preview dialog")
-        printPreviewAction.setIcon(icons.getQIcon('document-print'))      # fixme: icon not displayed
+        printPreviewAction.setIcon(icons.getQIcon('document-print'))
         printPreviewAction.triggered.connect(self._plotToPrintPreview)
 
         menu = qt.QMenu(self)
@@ -172,15 +172,38 @@ class PrintPreviewToolButton(qt.QToolButton):
             self._printPreviewDialog = PrintPreviewDialog(self.parent())
         return self._printPreviewDialog
 
+    def getTitle(self):
+        """Implement this method to fetch the title in the plot.
+
+        :return: Title to be printed above the plot, or None (no title added)
+        :rtype: str or None
+        """
+        return None
+
+    def getCommentAndPosition(self):
+        """Implement this method to fetch the legend to be printed below the
+        figure and its position.
+
+        :return: Legend to be printed below the figure and its position
+            ("CENTER" or "LEFT")
+        :rtype: (str, str) or (None, None)
+        """
+        return None, None
+
     def _plotToPrintPreview(self):
         """Grab the plot widget and send it to the print preview dialog.
         Make sure the print preview dialog is shown and raised."""
         if not self.printPreviewDialog.ensurePrinterIsSet():
             return
 
+        comment, commentPosition = self.getCommentAndPosition()
+
         if qt.HAS_SVG:
             svgRenderer, viewBox = self._getSvgRendererAndViewbox()
             self.printPreviewDialog.addSvgItem(svgRenderer,
+                                               title=self.getTitle(),
+                                               comment=comment,
+                                               commentPosition=commentPosition,
                                                viewBox=viewBox,
                                                keepRatio=self._printGeometry["keepAspectRatio"])
         else:
@@ -190,7 +213,10 @@ class PrintPreviewToolButton(qt.QToolButton):
             else:
                 # PyQt5 and hopefully PyQt6+
                 pixmap = self.plot.centralWidget().grab()
-            self.printPreviewDialog.addPixmap(pixmap)
+            self.printPreviewDialog.addPixmap(pixmap,
+                                              title=self.getTitle(),
+                                              comment=comment,
+                                              commentPosition=commentPosition)
         self.printPreviewDialog.show()
         self.printPreviewDialog.raise_()
 
