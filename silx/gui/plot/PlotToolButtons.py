@@ -257,17 +257,17 @@ class ProfileOptionToolButton(PlotToolButton):
         self.STATE['mean', "state"] = "Compute profile mean"
         self.STATE['mean', "action"] = "Compute profile mean"
 
-        sumAction = self._createAction('sum')
-        sumAction.triggered.connect(self.setSum)
-        sumAction.setIconVisibleInMenu(True)
+        self.sumAction = self._createAction('sum')
+        self.sumAction.triggered.connect(self.setSum)
+        self.sumAction.setIconVisibleInMenu(True)
 
-        meanAction = self._createAction('mean')
-        meanAction.triggered.connect(self.setMean)
-        meanAction.setIconVisibleInMenu(True)
+        self.meanAction = self._createAction('mean')
+        self.meanAction.triggered.connect(self.setMean)
+        self.meanAction.setIconVisibleInMenu(True)
 
         menu = qt.QMenu(self)
-        menu.addAction(sumAction)
-        menu.addAction(meanAction)
+        menu.addAction(self.sumAction)
+        menu.addAction(self.meanAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
         self.setMean()
