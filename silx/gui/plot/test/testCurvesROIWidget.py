@@ -52,7 +52,8 @@ class TestCurvesROIWidget(TestCaseQt):
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
-        self.widget = CurvesROIWidget.CurvesROIDockWidget(plot=self.plot, name='TEST')
+        self.widget = self.plot.getCurvesRoiDockWidget()
+
         self.widget.show()
         self.qWaitForWindowExposed(self.widget)
 
@@ -67,10 +68,6 @@ class TestCurvesROIWidget(TestCaseQt):
 
         super(TestCurvesROIWidget, self).tearDown()
 
-    def testEmptyPlot(self):
-        """Empty plot, display ROI widget"""
-        pass
-
     def testWithCurves(self):
         """Plot with curves: test all ROI widget buttons"""
         for offset in range(2):
@@ -80,13 +77,16 @@ class TestCurvesROIWidget(TestCaseQt):
 
         # Add two ROI
         self.mouseClick(self.widget.roiWidget.addButton, qt.Qt.LeftButton)
+        self.qWait(200)
         self.mouseClick(self.widget.roiWidget.addButton, qt.Qt.LeftButton)
+        self.qWait(200)
 
         # Change active curve
         self.plot.setActiveCurve(str(1))
 
         # Delete a ROI
         self.mouseClick(self.widget.roiWidget.delButton, qt.Qt.LeftButton)
+        self.qWait(200)
 
         with temp_dir() as tmpDir:
             self.tmpFile = os.path.join(tmpDir, 'test.ini')
@@ -94,30 +94,41 @@ class TestCurvesROIWidget(TestCaseQt):
             # Save ROIs
             self.widget.roiWidget.save(self.tmpFile)
             self.assertTrue(os.path.isfile(self.tmpFile))
+            self.assertTrue(len(self.widget.getRois()) is 2)
 
             # Reset ROIs
             self.mouseClick(self.widget.roiWidget.resetButton,
                             qt.Qt.LeftButton)
+            self.qWait(200)
+            rois = self.widget.getRois()
+            self.assertTrue(len(rois) is 1)
+            print(rois)
+            roiID = list(rois.keys())[0]
+            self.assertTrue(rois[roiID].getName() == 'ICR')
 
             # Load ROIs
             self.widget.roiWidget.load(self.tmpFile)
+            self.assertTrue(len(self.widget.getRois()) is 2)
 
             del self.tmpFile
 
     def testMiddleMarker(self):
         """Test with middle marker enabled"""
-        self.widget.roiWidget.setMiddleROIMarkerFlag(True)
+        self.widget.roiWidget.roiTable.setMiddleROIMarkerFlag(True)
 
         # Add a ROI
         self.mouseClick(self.widget.roiWidget.addButton, qt.Qt.LeftButton)
 
-        xleftMarker = self.plot._getMarker(legend='ROI min').getXPosition()
-        xMiddleMarker = self.plot._getMarker(legend='ROI middle').getXPosition()
-        xRightMarker = self.plot._getMarker(legend='ROI max').getXPosition()
-        self.assertAlmostEqual(xMiddleMarker,
-                               xleftMarker + (xRightMarker - xleftMarker) / 2.)
+        for roiID in self.widget.roiWidget.roiTable._markersHandler._roiMarkerHandlers:
+            handler = self.widget.roiWidget.roiTable._markersHandler._roiMarkerHandlers[roiID]
+            assert handler.getMarker('min')
+            xleftMarker = handler.getMarker('min').getXPosition()
+            xMiddleMarker = handler.getMarker('middle').getXPosition()
+            xRightMarker = handler.getMarker('max').getXPosition()
+            thValue = xleftMarker + (xRightMarker - xleftMarker) / 2.
+            self.assertAlmostEqual(xMiddleMarker, thValue)
 
-    def testCalculation(self):
+    def testAreaCalculation(self):
         x = numpy.arange(100.)
         y = numpy.arange(100.)
 
@@ -129,28 +140,56 @@ class TestCurvesROIWidget(TestCaseQt):
         self.plot.setActiveCurve("positive")
 
         # Add two ROIs
-        ddict = {}
-        ddict["positive"] = {"from": 10, "to": 20, "type":"X"}
-        ddict["negative"] = {"from": -20, "to": -10, "type":"X"}
-        self.widget.roiWidget.setRois(ddict)
+        roi_neg = CurvesROIWidget.ROI(name='negative', fromdata=-20,
+                                      todata=-10, type_='X')
+        roi_pos = CurvesROIWidget.ROI(name='positive', fromdata=10,
+                                      todata=20, type_='X')
 
-        # And calculate the expected output
-        self.widget.calculateROIs()
+        self.widget.roiWidget.setRois((roi_pos, roi_neg))
 
-        output = self.widget.roiWidget.getRois()
-        self.assertEqual(output["positive"]["rawcounts"],
-                         y[ddict["positive"]["from"]:ddict["positive"]["to"]+1].sum(),
-                         "Calculation failed on positive X coordinates")
+        posCurve = self.plot.getCurve('positive')
+        negCurve = self.plot.getCurve('negative')
 
-        # Set the curve with negative X coordinates as active
-        self.plot.setActiveCurve("negative")
+        self.assertEqual(roi_pos.computeRawAndNetArea(posCurve),
+                        (numpy.trapz(y=[10, 20], x=[10, 20]),
+                        0.0))
+        self.assertEqual(roi_pos.computeRawAndNetArea(negCurve),
+                         (0.0, 0.0))
+        self.assertEqual(roi_neg.computeRawAndNetArea(posCurve),
+                         ((0.0), 0.0))
+        self.assertEqual(roi_neg.computeRawAndNetArea(negCurve),
+                         ((-150.0), 0.0))
 
-        # the ROIs should have been automatically updated
-        output = self.widget.roiWidget.getRois()
-        selection = numpy.nonzero((-x >= output["negative"]["from"]) & \
-                                  (-x <= output["negative"]["to"]))[0]
-        self.assertEqual(output["negative"]["rawcounts"],
-                         y[selection].sum(), "Calculation failed on negative X coordinates")
+    def testCountsCalculation(self):
+        x = numpy.arange(100.)
+        y = numpy.arange(100.)
+
+        # Add two curves
+        self.plot.addCurve(x, y, legend="positive")
+        self.plot.addCurve(-x, y, legend="negative")
+
+        # Make sure there is an active curve and it is the positive one
+        self.plot.setActiveCurve("positive")
+
+        # Add two ROIs
+        roi_neg = CurvesROIWidget.ROI(name='negative', fromdata=-20,
+                                      todata=-10, type_='X')
+        roi_pos = CurvesROIWidget.ROI(name='positive', fromdata=10,
+                                      todata=20, type_='X')
+
+        self.widget.roiWidget.setRois((roi_pos, roi_neg))
+
+        posCurve = self.plot.getCurve('positive')
+        negCurve = self.plot.getCurve('negative')
+
+        self.assertEqual(roi_pos.computeRawAndNetCounts(posCurve),
+                         (y[10:21].sum(), 0.0))
+        self.assertEqual(roi_pos.computeRawAndNetCounts(negCurve),
+                         (0.0, 0.0))
+        self.assertEqual(roi_neg.computeRawAndNetCounts(posCurve),
+                         ((0.0), 0.0))
+        self.assertEqual(roi_neg.computeRawAndNetCounts(negCurve),
+                         (y[10:21].sum(), 0.0))
 
     def testDeferedInit(self):
         x = numpy.arange(100.)
@@ -164,11 +203,103 @@ class TestCurvesROIWidget(TestCaseQt):
         ])
 
         roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
-        self.assertFalse(roiWidget._isInit)
         self.plot.getCurvesRoiDockWidget().setRois(roisDefs)
         self.assertTrue(len(roiWidget.getRois()) is len(roisDefs))
         self.plot.getCurvesRoiDockWidget().setVisible(True)
         self.assertTrue(len(roiWidget.getRois()) is len(roisDefs))
+
+    def testDictCompatibility(self):
+        """Test that ROI api is valid with dict and not information is lost"""
+        roiDict = {'from': 20, 'to': 200, 'type': 'energy', 'comment': 'no',
+                   'name': 'myROI', 'calibration': [1, 2, 3]}
+        roi = CurvesROIWidget.ROI._fromDict(roiDict)
+        self.assertTrue(roi.toDict() == roiDict)
+
+    def testShowAllROI(self):
+        x = numpy.arange(100.)
+        y = numpy.arange(100.)
+        self.plot.addCurve(x=x, y=y, legend="name", replace="True")
+
+        roisDefsDict = {
+            "range1": {"from": 20, "to": 200,"type": "energy"},
+            "range2": {"from": 300, "to": 500, "type": "energy"}
+        }
+
+        roisDefsObj = (
+            CurvesROIWidget.ROI(name='range3', fromdata=20, todata=200,
+                                type_='energy'),
+            CurvesROIWidget.ROI(name='range4', fromdata=300, todata=500,
+                                type_='energy')
+        )
+        self.widget.roiWidget.showAllMarkers(True)
+        roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
+        roiWidget.setRois(roisDefsDict)
+        self.assertTrue(len(self.plot._getAllMarkers()) is 2*3)
+
+        markersHandler = self.widget.roiWidget.roiTable._markersHandler
+        roiWidget.showAllMarkers(True)
+        ICRROI = markersHandler.getVisibleRois()
+        self.assertTrue(len(ICRROI) is 2)
+
+        roiWidget.showAllMarkers(False)
+        ICRROI = markersHandler.getVisibleRois()
+        self.assertTrue(len(ICRROI) is 1)
+
+        roiWidget.setRois(roisDefsObj)
+        self.qapp.processEvents()
+        self.assertTrue(len(self.plot._getAllMarkers()) is 2*3)
+
+        markersHandler = self.widget.roiWidget.roiTable._markersHandler
+        roiWidget.showAllMarkers(True)
+        ICRROI = markersHandler.getVisibleRois()
+        self.assertTrue(len(ICRROI) is 2)
+
+        roiWidget.showAllMarkers(False)
+        ICRROI = markersHandler.getVisibleRois()
+        self.assertTrue(len(ICRROI) is 1)
+
+    def testRoiEdition(self):
+        """Make sure if the ROI object is edited the ROITable will be updated
+        """
+        roi = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
+        self.widget.roiWidget.setRois((roi, ))
+
+        x = (0, 1, 1, 2, 2, 3)
+        y = (1, 1, 2, 2, 1, 1)
+        self.plot.addCurve(x=x, y=y, legend='linearCurve')
+        self.plot.setActiveCurve(legend='linearCurve')
+        self.widget.calculateROIs()
+
+        roiTable = self.widget.roiWidget.roiTable
+        indexesColumns = CurvesROIWidget.ROITable.COLUMNS_INDEX
+        itemRawCounts = roiTable.item(0, indexesColumns['Raw Counts'])
+        itemNetCounts = roiTable.item(0, indexesColumns['Net Counts'])
+
+        self.assertTrue(itemRawCounts.text() == '8.0')
+        self.assertTrue(itemNetCounts.text() == '2.0')
+
+        itemRawArea = roiTable.item(0, indexesColumns['Raw Area'])
+        itemNetArea = roiTable.item(0, indexesColumns['Net Area'])
+
+        self.assertTrue(itemRawArea.text() == '4.0')
+        self.assertTrue(itemNetArea.text() == '1.0')
+
+        roi.setTo(2)
+        itemRawArea = roiTable.item(0, indexesColumns['Raw Area'])
+        self.assertTrue(itemRawArea.text() == '3.0')
+        roi.setFrom(1)
+        itemRawArea = roiTable.item(0, indexesColumns['Raw Area'])
+        self.assertTrue(itemRawArea.text() == '2.0')
+
+    def testRemoveActiveROI(self):
+        roi = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
+        self.widget.roiWidget.setRois((roi,))
+
+        self.widget.roiWidget.roiTable.setActiveRoi(None)
+        self.assertTrue(len(self.widget.roiWidget.roiTable.selectedItems()) is 0)
+        self.widget.roiWidget.setRois((roi,))
+        self.plot.setActiveCurve(legend='linearCurve')
+        self.widget.calculateROIs()
 
 
 def suite():
