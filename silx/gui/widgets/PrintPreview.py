@@ -659,15 +659,14 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         else:
             scalex = self._newRect.rect().width() / self._w
             scaley = self._newRect.rect().height() / self._h
+
         if qt.qVersion() < "5.0":
             parent.scale(scalex, scaley)
         else:
-            x = parent.boundingRect().x()
-            y = parent.boundingRect().y()
-            w = scalex * self._w
-            h = scaley * self._h
-            parent.setRect(qt.QRectF(x, y, w, h))
-            self.setRect(qt.QRectF(x + w - 40, y + h - 40, 40, 40))
+            # apply the scale to the previous transformation matrix
+            previousTransform = parent.transform()
+            parent.setTransform(
+                    previousTransform.scale(scalex, scaley))
 
         self.scene().removeItem(self._newRect)
         self._newRect = None
