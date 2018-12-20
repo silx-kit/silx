@@ -256,16 +256,14 @@ else:
                     _logger.error(
                         'Aborted: It took too long to have an active window.')
         script_or_module = os.path.abspath(script_or_module)
-        try:
-            sys.argv = [script_or_module]
-            sys.path.append(
-                os.path.abspath(os.path.dirname(script_or_module)))
-            qt.QTimer.singleShot(_TIMEOUT, _grabActiveWindowAndClose)
-            if sys.version_info < (3, ):
-                execfile(script_or_module)
-            else:
-                with open(script_or_module) as f:
-                    code = compile(f.read(), script_or_module, 'exec')
-                    exec(code)
-        except Exception as e:
-            _logger.error(e)
+
+        sys.argv = [script_or_module]
+        sys.path.append(
+            os.path.abspath(os.path.dirname(script_or_module)))
+        qt.QTimer.singleShot(_TIMEOUT, _grabActiveWindowAndClose)
+        if sys.version_info < (3, ):
+            execfile(script_or_module)
+        else:
+            with open(script_or_module) as f:
+                code = compile(f.read(), script_or_module, 'exec')
+                exec(code)
