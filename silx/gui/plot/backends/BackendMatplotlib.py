@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "26/11/2018"
+__date__ = "19/12/2018"
 
 
 import logging
@@ -907,27 +907,27 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._plot._setDirtyPlot()
 
     def _synchronizeBackgroundColors(self):
-            backgroundColor = self._plot.getBackgroundColor()
-            dataBackgroundColor = self._plot.getDataBackgroundColor()
+        backgroundColor = self._plot.getBackgroundColor()
+        dataBackgroundColor = self._plot.getDataBackgroundColor()
 
-            if backgroundColor.isValid() is None:
-                backgroundColor = backgroundColor.getRgbF()
-            else:
-                backgroundColor = 'w'
+        if backgroundColor.isValid():
+            backgroundColor = backgroundColor.getRgbF()
+        else:
+            backgroundColor = 'w'
 
-            if dataBackgroundColor.isValid():
-                dataBackgroundColor = dataBackgroundColor.getRgbF()
-            else:
-                dataBackgroundColor = backgroundColor
+        if dataBackgroundColor.isValid():
+            dataBackgroundColor = dataBackgroundColor.getRgbF()
+        else:
+            dataBackgroundColor = backgroundColor
 
-            if self.ax.axison:
-                self.fig.patch.set_facecolor(backgroundColor)
-                if self._matplotlibVersion < _parse_version('2'):
-                    self.ax.set_axis_bgcolor(dataBackgroundColor)
-                else:
-                    self.ax.set_facecolor(dataBackgroundColor)
+        if self.ax.axison:
+            self.fig.patch.set_facecolor(backgroundColor)
+            if self._matplotlibVersion < _parse_version('2'):
+                self.ax.set_axis_bgcolor(dataBackgroundColor)
             else:
-                self.fig.patch.set_facecolor(dataBackgroundColor)
+                self.ax.set_facecolor(dataBackgroundColor)
+        else:
+            self.fig.patch.set_facecolor(dataBackgroundColor)
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
