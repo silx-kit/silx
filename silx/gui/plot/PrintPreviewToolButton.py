@@ -190,6 +190,13 @@ class PrintPreviewToolButton(qt.QToolButton):
         """
         return None, None
 
+    def getPlot(self):
+        """Return the :class:`.PlotWidget` associated with this tool button.
+
+        :rtype: :class:`.PlotWidget`
+        """
+        return self.plot
+
     def _plotToPrintPreview(self):
         """Grab the plot widget and send it to the print preview dialog.
         Make sure the print preview dialog is shown and raised."""
