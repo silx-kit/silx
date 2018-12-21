@@ -458,7 +458,7 @@ class ProfileToolBar(qt.QToolBar):
         self.addWidget(self.lineWidthSpinBox)
 
         self.methodsButton = ProfileOptionToolButton(parent=self, plot=self)
-        self.addWidget(self.methodsButton)
+        self.__profileOptionToolAction = self.addWidget(self.methodsButton)
         # TODO: add connection with the signal
         self.methodsButton.sigMethodChanged.connect(self.setProfileMethod)
 
@@ -731,6 +731,9 @@ class ProfileToolBar(qt.QToolBar):
 
     def getProfileMethod(self):
         return self._method
+
+    def getProfileOptionToolAction(self):
+        return self.__profileOptionToolAction
 
 
 class Profile3DToolBar(ProfileToolBar):
