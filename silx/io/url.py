@@ -351,7 +351,7 @@ class DataUrl(object):
         return self.__data_path
 
     def data_slice(self):
-        """Returns the slicing applyed to the data.
+        """Returns the slicing applied to the data.
 
         It is a tuple containing numbers, slice or ellipses.
 
