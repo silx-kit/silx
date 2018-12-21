@@ -467,7 +467,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return image
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
-                linestyle, linewidth):
+                linestyle, linewidth, linebgcolor):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 

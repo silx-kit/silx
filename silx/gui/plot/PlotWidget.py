@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/11/2018"
+__date__ = "21/12/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -1118,7 +1118,8 @@ class PlotWidget(qt.QMainWindow):
     def addItem(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
-                overlay=False, z=None):
+                overlay=False, z=None, linestyle="-", linewidth=1.0,
+                linebgcolor=None):
         """Add an item (i.e. a shape) to the plot.
 
         Items are uniquely identified by their legend.
@@ -1142,6 +1143,19 @@ class PlotWidget(qt.QMainWindow):
                              This allows for rendering optimization if this
                              item is changed often.
         :param int z: Layer on which to draw the item (default: 2)
+        :param str linestyle: Style of the line.
+            Only relevant for line markers where X or Y is None.
+            Value in:
+
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+        :param float linewidth: Width of the line.
+            Only relevant for line markers where X or Y is None.
+        :param str linebgcolor: Background color of the line, e.g., 'blue', 'b',
+            '#FF0000'. It is used to draw dotted line using a second color.
         :returns: The key string identify this item
         """
         # expected to receive the same parameters as the signal
@@ -1163,6 +1177,8 @@ class PlotWidget(qt.QMainWindow):
         item.setOverlay(overlay)
         item.setZValue(z)
         item.setPoints(numpy.array((xdata, ydata)).T)
+        item.setLineStyle(linestyle)
+        item.setLineWidth(linewidth)
 
         self._add(item)
 

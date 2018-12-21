@@ -31,7 +31,7 @@ This API is a simplified version of PyMca PlotBackend API.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "21/12/2018"
 
 import weakref
 from ... import qt
@@ -171,7 +171,7 @@ class BackendBase(object):
         return legend
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
-                linestyle, linewidth):
+                linestyle, linewidth, linebgcolor):
         """Add an item (i.e. a shape) to the plot.
 
         :param numpy.ndarray x: The X coords of the points of the shape
@@ -194,6 +194,8 @@ class BackendBase(object):
             - ':'  dotted line
         :param float linewidth: Width of the line.
             Only relevant for line markers where X or Y is None.
+        :param str linebgcolor: Background color of the line, e.g., 'blue', 'b',
+            '#FF0000'. It is used to draw dotted line using a second color.
         :returns: The handle used by the backend to univocally access the item
         """
         return legend

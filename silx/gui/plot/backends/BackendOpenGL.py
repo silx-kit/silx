@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "21/12/2018"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -1025,7 +1025,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return legend, 'image'
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
-                linestyle, linewidth):
+                linestyle, linewidth, linebgcolor):
         # TODO handle overlay
         if shape not in ('polygon', 'rectangle', 'line',
                          'vline', 'hline', 'polylines'):
