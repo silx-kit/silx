@@ -78,7 +78,6 @@ class TestStatistics(unittest.TestCase):
             abs(res.mean - cls.ref.mean) < 0.01 and
             abs(res.std - cls.ref.std) < 0.1)
 
-    @unittest.skipUnless(ocl, "pyopencl is missing")
     def test_measurement(self):
         """
         tests that all devices are working properly ...
