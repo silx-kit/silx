@@ -96,10 +96,18 @@ class _PlotInteraction(object):
 
         fill = fill != 'none'  # TODO not very nice either
 
+        greyed = colors.greyed(color)[0]
+        if greyed < 0.5:
+            color2 = "white"
+        else:
+            color2 = "black"
+
         self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
                           replace=False,
-                          shape=shape, color=color, fill=fill,
+                          shape=shape, fill=fill,
+                          color=color, linebgcolor=color2, linestyle="--",
                           overlay=True)
+
         self._selectionAreas.add(legend)
 
     def resetSelectionArea(self):
