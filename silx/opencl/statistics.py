@@ -98,7 +98,7 @@ class Statistics(OpenclProcessing):
                            clinfo
         :param deviceid: Integer with the device identifier, as given by clinfo
         :param block_size: preferred workgroup size, may vary depending on the
-                           outpcome of the compilation
+                           outcome of the compilation
         :param profile: switch on profiling to be able to profile at the kernel
                         level, store profiling elements (makes code slightly
                         slower)
