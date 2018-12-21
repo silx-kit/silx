@@ -185,8 +185,8 @@ class PrintPreviewToolButton(qt.QToolButton):
         """Implement this method to fetch the legend to be printed below the
         figure and its position.
 
-        :return: Legend to be printed below the figure and its position
-            ("CENTER" or "LEFT")
+        :return: Legend to be printed below the figure and its position:
+            "CENTER", "LEFT" or "RIGHT"
         :rtype: (str, str) or (None, None)
         """
         return None, None

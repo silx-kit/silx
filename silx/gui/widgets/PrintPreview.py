@@ -350,7 +350,6 @@ class PrintPreviewDialog(qt.QDialog):
         scaleCalculationRect = qt.QRectF(commentItem.boundingRect())
         scale = svgItem.boundingRect().width() / scaleCalculationRect.width()
 
-
         commentItem.setPlainText(comment)
         commentItem.setZValue(1)
 
