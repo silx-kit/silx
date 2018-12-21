@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "14/06/2018"
+__date__ = "21/12/2018"
 
 import collections
 from copy import deepcopy
@@ -894,14 +894,14 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
             # use the getData class method because instance method can be
             # overloaded to return additional arrays
             data = Points.getData(self, copy=False,
-                                 displayed=True)
+                                  displayed=True)
             if len(data) == 5:
                 # hack to avoid duplicating caching mechanism in Scatter
                 # (happens when cached data is used, caching done using
                 # Scatter._logFilterData)
-                x, y, xerror, yerror = data[0], data[1], data[3], data[4]
+                x, y, _xerror, _yerror = data[0], data[1], data[3], data[4]
             else:
-                x, y, xerror, yerror = data
+                x, y, _xerror, _yerror = data
 
             self._boundsCache[(xPositive, yPositive)] = (
                 numpy.nanmin(x),
