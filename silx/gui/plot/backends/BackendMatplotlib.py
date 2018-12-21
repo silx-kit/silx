@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "19/12/2018"
+__date__ = "21/12/2018"
 
 
 import logging
@@ -60,6 +60,22 @@ from ....third_party.modest_image import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
+
+
+_PATCH_LINESTYLE = {
+    "-": 'solid',
+    "--": 'dashed',
+    '-.': 'dashdot',
+    ':': 'dotted',
+    '': "solid",
+    None: "solid",
+}
+"""Patches do not uses the same matplotlib syntax"""
+
+
+def normalize_linestyle(linestyle):
+    """Normalize known old-style linestyle, else return the provided value."""
+    return _PATCH_LINESTYLE.get(linestyle, linestyle)
 
 
 class NiceDateLocator(Locator):
@@ -454,6 +470,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 linestyle, linewidth):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
+
+        linestyle = normalize_linestyle(linestyle)
 
         if shape == "line":
             item = self.ax.plot(x, y, label=legend, color=color,
