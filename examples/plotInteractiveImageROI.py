@@ -67,8 +67,8 @@ roiManager.setColor('pink')  # Set the color of ROI
 # Set the name of each created region of interest
 def updateAddedRegionOfInterest(roi):
     """Called for each added region of interest: set the name"""
-    if roi.getLabel() == '':
-        roi.setLabel('ROI %d' % len(roiManager.getRois()))
+    if roi.getName() == '':
+        roi.setName('ROI %d' % len(roiManager.getRois()))
 
 
 roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)
