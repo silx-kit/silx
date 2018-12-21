@@ -562,16 +562,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-        # Prepare vertical and horizontal markers rendering
-        self._progBase.use()
-        gl.glUniformMatrix4fv(
-            self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-            self.matScreenProj.astype(numpy.float32))
-        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
-        gl.glUniform1i(self._progBase.uniforms['hatchStep'], 0)
-        gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
-        posAttrib = self._progBase.attributes['position']
-
         labels = []
         pixelOffset = 3
 
@@ -603,9 +593,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         labels.append(label)
 
                     width = self._plotFrame.size[0]
-                    vertices = numpy.array(((0, pixelPos[1]),
-                                            (width, pixelPos[1])),
-                                           dtype=numpy.float32)
+                    lines = GLLines2D((0, width), (pixelPos[1], pixelPos[1]),
+                                      style=marker['linestyle'],
+                                      color=marker['color'],
+                                      width=marker['linewidth'])
+                    lines.render(self.matScreenProj)
 
                 else:  # yCoord is None: vertical line in data space
                     if marker['text'] is not None:
@@ -618,22 +610,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         labels.append(label)
 
                     height = self._plotFrame.size[1]
-                    vertices = numpy.array(((pixelPos[0], 0),
-                                            (pixelPos[0], height)),
-                                           dtype=numpy.float32)
-
-                self._progBase.use()
-                gl.glUniform4f(self._progBase.uniforms['color'],
-                               *marker['color'])
-
-                gl.glEnableVertexAttribArray(posAttrib)
-                gl.glVertexAttribPointer(posAttrib,
-                                         2,
-                                         gl.GL_FLOAT,
-                                         gl.GL_FALSE,
-                                         0, vertices)
-                gl.glLineWidth(1)
-                gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
+                    lines = GLLines2D((pixelPos[0], pixelPos[0]), (0, height),
+                                      style=marker['linestyle'],
+                                      color=marker['color'],
+                                      width=marker['linewidth'])
+                    lines.render(self.matScreenProj)
 
             else:
                 pixelPos = self.dataToPixel(
@@ -767,8 +748,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 # Ignore items <= 0. on log axes
                 continue
 
-            points = [self.dataToPixel(x, y, axis='left', check=False)
-                      for (x, y) in zip(item['x'], item['y'])]
+            points = numpy.array([
+                self.dataToPixel(x, y, axis='left', check=False)
+                for (x, y) in zip(item['x'], item['y'])])
 
             # Draw the fill
             if item['fill'] is not None:
@@ -1088,10 +1070,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if symbol is None:
             symbol = '+'
 
-        if linestyle != '-' or linewidth != 1:
-            _logger.warning(
-                'OpenGL backend does not support marker line style and width.')
-
         behaviors = set()
         if selectable:
             behaviors.add('selectable')
@@ -1113,6 +1091,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'behaviors': behaviors,
             'constraint': constraint if isConstraint else None,
             'symbol': symbol,
+            'linestyle': linestyle,
+            'linewidth': linewidth,
         }
 
         return legend, 'marker'
