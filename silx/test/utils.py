@@ -30,7 +30,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "21/12/2018"
 
 
 import sys
@@ -70,11 +70,11 @@ class _TestOptions(object):
         self.TEST_LOW_MEM = False
         """Skip tests using too much memory"""
 
-    def configure(self, parsed_options):
+    def configure(self, parsed_options=None):
         """Configure the TestOptions class from the command line arguments and the
         environment variables
         """
-        if not parsed_options.gui:
+        if parsed_options is not None and parsed_options.gui:
             self.WITH_QT_TEST = False
             self.WITH_QT_TEST_REASON = "Skipped by command line"
         elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
@@ -84,20 +84,20 @@ class _TestOptions(object):
             self.WITH_QT_TEST = False
             self.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
 
-        if not parsed_options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
+        if parsed_options is not None and parsed_options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
             self.WITH_OPENCL_TEST = False
             # That's an easy way to skip OpenCL tests
             # It disable the use of OpenCL on the full silx project
             os.environ['SILX_OPENCL'] = "False"
 
-        if not parsed_options.opengl:
+        if parsed_options is not None and parsed_options.opengl:
             self.WITH_GL_TEST = False
             self.WITH_GL_TEST_REASON = "Skipped by command line"
         elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
             self.WITH_GL_TEST = False
             self.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
 
-        if parsed_options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+        if parsed_options is not None and parsed_options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
             self.TEST_LOW_MEM = True
 
         if self.WITH_QT_TEST:
