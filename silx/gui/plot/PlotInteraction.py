@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/11/2018"
+__date__ = "21/12/2018"
 
 
 import math
@@ -553,7 +553,6 @@ class SelectPolygon(Select):
         if qt.BINDING in ('PyQt5', 'PySide2'):
             ratio = self.plot.window().windowHandle().devicePixelRatio()
         return self.DRAG_THRESHOLD_DIST * ratio
-
 
 
 class Select2Points(Select):
