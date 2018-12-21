@@ -886,6 +886,8 @@ class ScalarFieldView(Plot3DWindow):
 
         self._bbox = axes.LabelledAxes()
         self._bbox.children = [self._group]
+        self._outerScale = transform.Scale(1., 1., 1.)
+        self._bbox.transforms = [self._outerScale]
         self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
 
         self._selectionBox = primitives.Box()
@@ -1203,6 +1205,25 @@ class ScalarFieldView(Plot3DWindow):
         return self._dataRange
 
     # Transformations
+
+    def setOuterScale(self, sx=1., sy=1., sz=1.):
+        """Set the scale to apply to the whole scene including the axes.
+
+        This is useful when axis lengths in data space are really different.
+
+        :param float sx: Scale factor along the X axis
+        :param float sy: Scale factor along the Y axis
+        :param float sz: Scale factor along the Z axis
+        """
+        self._outerScale.setScale(sx, sy, sz)
+        self.centerScene()
+
+    def getOuterScale(self):
+        """Returns the scales provided by :meth:`setOuterScale`.
+
+        :rtype: numpy.ndarray
+        """
+        return self._outerScale.scale
 
     def setScale(self, sx=1., sy=1., sz=1.):
         """Set the scale of the 3D scalar field (i.e., size of a voxel).
