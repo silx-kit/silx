@@ -31,7 +31,7 @@ It will skip all tests from :mod:`silx.test.gui`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "09/11/2017"
+__date__ = "21/12/2018"
 
 
 import logging
@@ -91,6 +91,7 @@ def suite():
 
 def run_tests():
     """Run test complete test_suite"""
+    test_options.configure()
     runner = unittest.TextTestRunner()
     if not runner.run(suite()).wasSuccessful():
         print("Test suite failed")
