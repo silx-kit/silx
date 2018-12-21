@@ -1026,6 +1026,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
+        # FIXME: implement lineStyle and lineBgColor
         # TODO handle overlay
         if shape not in ('polygon', 'rectangle', 'line',
                          'vline', 'hline', 'polylines'):
