@@ -75,7 +75,7 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
                                z=self.getZValue(),
                                linestyle=self.getLineStyle(),
                                linewidth=self.getLineWidth(),
-                               linebgcolor=None)
+                               linebgcolor=self.getLineBgColor())
 
     def isOverlay(self):
         """Return true if shape is drawn as an overlay

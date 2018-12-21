@@ -1179,6 +1179,7 @@ class PlotWidget(qt.QMainWindow):
         item.setPoints(numpy.array((xdata, ydata)).T)
         item.setLineStyle(linestyle)
         item.setLineWidth(linewidth)
+        item.setLineBgColor(linebgcolor)
 
         self._add(item)
 

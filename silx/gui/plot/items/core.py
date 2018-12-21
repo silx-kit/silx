@@ -84,6 +84,9 @@ class ItemChangedType(enum.Enum):
     COLOR = 'colorChanged'
     """Item's color changed flag."""
 
+    LINE_BG_COLOR = 'lineBgColorChanged'
+    """Item's line background color changed flag."""
+
     YAXIS = 'yAxisChanged'
     """Item's Y axis binding changed flag."""
 
@@ -559,6 +562,7 @@ class LineMixIn(ItemMixInBase):
     def __init__(self):
         self._linewidth = self._DEFAULT_LINEWIDTH
         self._linestyle = self._DEFAULT_LINESTYLE
+        self._lineBgColor = None
 
     @classmethod
     def getSupportedLineStyles(cls):
@@ -616,6 +620,34 @@ class LineMixIn(ItemMixInBase):
         if style != self._linestyle:
             self._linestyle = style
             self._updated(ItemChangedType.LINE_STYLE)
+
+    def getLineBgColor(self):
+        """Returns the RGBA color of the item
+        :rtype: 4-tuple of float in [0, 1] or array of colors
+        """
+        return self._lineBgColor
+
+    def setLineBgColor(self, color, copy=True):
+        """Set item color
+        :param color: color(s) to be used
+        :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
+                     one of the predefined color names defined in colors.py
+        :param bool copy: True (Default) to get a copy,
+                         False to use internal representation (do not modify!)
+        """
+        if color is not None:
+            if isinstance(color, six.string_types):
+                color = colors.rgba(color)
+            else:
+                color = numpy.array(color, copy=copy)
+                # TODO more checks + improve color array support
+                if color.ndim == 1:  # Single RGBA color
+                    color = colors.rgba(color)
+                else:  # Array of colors
+                    assert color.ndim == 2
+
+        self._lineBgColor = color
+        self._updated(ItemChangedType.LINE_BG_COLOR)
 
 
 class ColorMixIn(ItemMixInBase):
