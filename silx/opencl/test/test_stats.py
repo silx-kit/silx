@@ -71,11 +71,12 @@ class TestStatistics(unittest.TestCase):
 
     @classmethod
     def validate(cls, res):
-        return (res.min == cls.ref.min) and \
-               (res.max == cls.ref.max) and \
-               (res.cnt == cls.ref.cnt) and \
-               abs(res.mean - cls.ref.mean) < 0.01 and \
-               abs(res.std - cls.ref.std) < 0.1
+        return (
+            (res.min == cls.ref.min) and
+            (res.max == cls.ref.max) and
+            (res.cnt == cls.ref.cnt) and
+            abs(res.mean - cls.ref.mean) < 0.01 and
+            abs(res.std - cls.ref.std) < 0.1)
 
     @unittest.skipUnless(ocl, "pyopencl is missing")
     def test_measurement(self):
