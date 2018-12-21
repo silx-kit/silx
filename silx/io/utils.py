@@ -838,3 +838,70 @@ def get_data(url):
         raise ValueError("Scheme '%s' not supported" % url.scheme())
 
     return data
+
+
+def vol_to_h5_external_dataset(vol_file, output_url, shape=None,
+                               info_file=None, vol_dtype=numpy.float32,
+                               overwrite=False):
+    """
+    Create an dataset at 'output_url' pointing the given vol_file.
+    Shape has to be given or info_file specify to extract it.
+
+    :param str vol_file: path to the .vol file
+    :param url output_url: url to save the external dataset
+    :param tuple or None shape: shape of the volume
+    :param str or None info_file: .vol.info file, write by pyhst and containing
+                                  shape information
+    :param numpy.dtype vol_dtype: type of the volume element. This information
+                                  is not available on .vol.info but for now
+                                  type is know to be float32.
+    :param bool overwrite: if the data path already exists will raise a
+                           ValueError if overwrite is False.
+                           Otherwise overwrite.
+    """
+    assert isinstance(output_url, silx.io.url.DataUrl)
+    assert shape is None or isinstance(shape, (tuple, list))
+    v_majeur, v_mineur, v_micro = h5py.version.version.split('.')
+    if v_majeur <= '2' and v_mineur < '9':
+        raise Exception('h5py >= 2.9 should be installed to access the '
+                        'external feature.')
+
+    if info_file is None and shape is None:
+        raise ValueError('shape or info_file should be given in order to create'
+                         ' the external dataset')
+    _shape = shape
+    if info_file is not None:
+        def info_file_to_dict():
+            ddict = {}
+            with builtin_open(info_file, "r") as _file:
+                lines = _file.readlines()
+                for line in lines:
+                    if not '=' in line:
+                        continue
+                    l = line.rstrip().replace(' ', '')
+                    l = l.split('#')[0]
+                    key, value = l.split('=')
+                    ddict[key.lower()] = value
+            return ddict
+
+        ddict = info_file_to_dict()
+        if 'num_x' not in ddict or 'num_y' not in ddict or 'num_z' not in ddict:
+            raise ValueError('Unable to retrieve volume shape from %s' % info_file)
+        else:
+            dimX = int(ddict['num_x'])
+            dimY = int(ddict['num_y'])
+            dimZ = int(ddict['num_z'])
+            _shape = (dimZ, dimY, dimX)
+
+    with h5py.File(output_url.file_path()) as _h5_file:
+        if output_url.data_path() in _h5_file:
+            if overwrite is False:
+                raise ValueError('data_path already exists')
+            else:
+                logger.warning('will overwrite path %s' % output_url.data_path())
+                del _h5_file[output_url.data_path()]
+        external = [(vol_file, 0, h5py.h5f.UNLIMITED)]
+        _h5_file.create_dataset(output_url.data_path(),
+                                _shape,
+                                dtype=vol_dtype,
+                                external=external)

@@ -640,6 +640,105 @@ class TestGetData(unittest.TestCase):
         self.assertRaises(IOError, utils.get_data, url)
 
 
+def _h5_py_version_older_than(version):
+    v_majeur, v_mineur, v_micro = h5py.version.version.split('.')[:3]
+    r_majeur, r_mineur, r_micro = version.split('.')
+    return v_majeur >= r_majeur and v_mineur >= r_mineur
+
+
+@unittest.skipUnless(_h5_py_version_older_than('2.9.0'), 'h5py version < 2.9.0')
+class TestVolToH5(unittest.TestCase):
+    """Test conversion of .vol file to .h5 external dataset"""
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self._vol_file = os.path.join(self.tempdir, 'test_vol.vol')
+        self._file_info = os.path.join(self.tempdir, 'test_vol.info.vol')
+        self._dataset_shape = 100, 20, 5
+        data = numpy.random.random(self._dataset_shape[0] *
+                                   self._dataset_shape[1] *
+                                   self._dataset_shape[2]).astype(dtype=numpy.float32).reshape(self._dataset_shape)
+        numpy.save(file=self._vol_file, arr=data)
+        # those are storing into .noz file
+        assert os.path.exists(self._vol_file + '.npy')
+        os.rename(self._vol_file + '.npy', self._vol_file)
+        self.h5_file = os.path.join(self.tempdir, 'test_h5.h5')
+        self.external_dataset_path= '/root/my_external_dataset'
+        self._data_url = silx.io.url.DataUrl(file_path=self.h5_file,
+                                             data_path=self.external_dataset_path)
+        with open(self._file_info, 'w') as _fi:
+            _fi.write('NUM_X = %s\n' % self._dataset_shape[2])
+            _fi.write('NUM_Y = %s\n' % self._dataset_shape[1])
+            _fi.write('NUM_Z = %s\n' % self._dataset_shape[0])
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def check_dataset(self, h5_file, data_path, shape):
+        """Make sure the external dataset is valid"""
+        with h5py.File(h5_file, 'r') as _file:
+            return data_path in _file and _file[data_path].shape == shape
+
+    def test_h5_file_not_existing(self):
+        """Test that can create a file with external dataset from scratch"""
+        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
+                                         output_url=self._data_url,
+                                         shape=(100, 20, 5))
+        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
+                                           data_path=self.external_dataset_path,
+                                           shape=self._dataset_shape))
+        os.remove(self.h5_file)
+        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
+                                         output_url=self._data_url,
+                                         info_file=self._file_info)
+        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
+                                           data_path=self.external_dataset_path,
+                                           shape=self._dataset_shape))
+
+    def test_h5_file_existing(self):
+        """Test that can add the external dataset from an existing file"""
+        with h5py.File(self.h5_file, 'w') as _file:
+            _file['/root/dataset1'] = numpy.zeros((100, 100))
+            _file['/root/group/dataset2'] = numpy.ones((100, 100))
+        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
+                                         output_url=self._data_url,
+                                         shape=(100, 20, 5))
+        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
+                                           data_path=self.external_dataset_path,
+                                           shape=self._dataset_shape))
+
+    def test_vol_file_not_existing(self):
+        """Make sure error is raised if .vol file does not exists"""
+        os.remove(self._vol_file)
+        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
+                                         output_url=self._data_url,
+                                         shape=(100, 20, 5))
+
+        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
+                                           data_path=self.external_dataset_path,
+                                           shape=self._dataset_shape))
+
+    def test_conflicts(self):
+        """Test several conflict cases"""
+        # test if path already exists
+        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
+                                         output_url=self._data_url,
+                                         shape=(100, 20, 5))
+        with self.assertRaises(ValueError):
+            utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
+                                             output_url=self._data_url,
+                                             shape=(100, 20, 5),
+                                             overwrite=False)
+
+        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
+                                         output_url=self._data_url,
+                                         shape=(100, 20, 5),
+                                         overwrite=True)
+
+        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
+                                           data_path=self.external_dataset_path,
+                                           shape=self._dataset_shape))
+
+
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
@@ -648,6 +747,7 @@ def suite():
     test_suite.addTest(loadTests(TestOpen))
     test_suite.addTest(loadTests(TestNodes))
     test_suite.addTest(loadTests(TestGetData))
+    test_suite.addTest(loadTests(TestVolToH5))
     return test_suite
 
 
