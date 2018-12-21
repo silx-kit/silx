@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import logging
 
 import numpy
 
-from .core import (Item, ColorMixIn, FillMixIn, ItemChangedType)
+from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn
 
 
 _logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ _logger = logging.getLogger(__name__)
 
 # TODO probably make one class for each kind of shape
 # TODO check fill:polygon/polyline + fill = duplicated
-class Shape(Item, ColorMixIn, FillMixIn):
+class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
     """Description of a shape item
 
     :param str type_: The type of shape in:
@@ -53,6 +53,7 @@ class Shape(Item, ColorMixIn, FillMixIn):
         Item.__init__(self)
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
+        LineMixIn.__init__(self)
         self._overlay = False
         assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polylines')
         self._type = type_
@@ -71,7 +72,9 @@ class Shape(Item, ColorMixIn, FillMixIn):
                                color=self.getColor(),
                                fill=self.isFill(),
                                overlay=self.isOverlay(),
-                               z=self.getZValue())
+                               z=self.getZValue(),
+                               linestyle=self.getLineStyle(),
+                               linewidth=self.getLineWidth())
 
     def isOverlay(self):
         """Return true if shape is drawn as an overlay

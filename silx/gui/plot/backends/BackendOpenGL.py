@@ -44,10 +44,11 @@ from ... import qt
 from ..._glutils import gl
 from ... import _glutils as glu
 from .glutils import (
+    GLLines2D,
     GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D,
     mat4Ortho, mat4Identity,
     LEFT, RIGHT, BOTTOM, TOP,
-    Text2D, Shape2D)
+    Text2D, FilledShape2D)
 from .glutils.PlotImageFile import saveImageToFile
 
 _logger = logging.getLogger(__name__)
@@ -547,100 +548,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         glu.setGLContextGetter()
         _current_context = None
 
-    def _nonOrthoAxesLineMarkerPrimitives(self, marker, pixelOffset):
-        """Generates the vertices and label for a line marker.
-
-        :param dict marker: Description of a line marker
-        :param int pixelOffset: Offset of text from borders in pixels
-        :return: Line vertices and Text label or None
-        :rtype: 2-tuple (2x2 numpy.array of float, Text2D)
-        """
-        label, vertices = None, None
-
-        xCoord, yCoord = marker['x'], marker['y']
-        assert xCoord is None or yCoord is None  # Specific to line markers
-
-        # Get plot corners in data coords
-        plotLeft, plotTop, plotWidth, plotHeight = self.getPlotBoundsInPixels()
-
-        corners = [(plotLeft, plotTop),
-                   (plotLeft, plotTop + plotHeight),
-                   (plotLeft + plotWidth, plotTop + plotHeight),
-                   (plotLeft + plotWidth, plotTop)]
-        corners = numpy.array([self.pixelToData(x, y, axis='left', check=False)
-                               for (x, y) in corners])
-
-        borders = {
-            'right': (corners[3], corners[2]),
-            'top': (corners[0], corners[3]),
-            'bottom': (corners[2], corners[1]),
-            'left': (corners[1], corners[0])
-        }
-
-        textLayouts = {  # align, valign, offsets
-            'right': (RIGHT, BOTTOM, (-1., -1.)),
-            'top': (LEFT, TOP, (1., 1.)),
-            'bottom': (LEFT, BOTTOM, (1., -1.)),
-            'left': (LEFT, BOTTOM, (1., -1.))
-        }
-
-        if xCoord is None:  # Horizontal line in data space
-            if marker['text'] is not None:
-                # Find intersection of hline with borders in data
-                # Order is important as it stops at first intersection
-                for border_name in ('right', 'top', 'bottom', 'left'):
-                    (x0, y0), (x1, y1) = borders[border_name]
-
-                    if min(y0, y1) <= yCoord < max(y0, y1):
-                        xIntersect = (yCoord - y0) * (x1 - x0) / (y1 - y0) + x0
-
-                        # Add text label
-                        pixelPos = self.dataToPixel(
-                            xIntersect, yCoord, axis='left', check=False)
-
-                        align, valign, offsets = textLayouts[border_name]
-
-                        x = pixelPos[0] + offsets[0] * pixelOffset
-                        y = pixelPos[1] + offsets[1] * pixelOffset
-                        label = Text2D(marker['text'], x, y,
-                                       color=marker['color'],
-                                       bgColor=(1., 1., 1., 0.5),
-                                       align=align, valign=valign)
-                        break  # Stop at first intersection
-
-            xMin, xMax = corners[:, 0].min(), corners[:, 0].max()
-            vertices = numpy.array(
-                ((xMin, yCoord), (xMax, yCoord)), dtype=numpy.float32)
-
-        else:  # yCoord is None: vertical line in data space
-            if marker['text'] is not None:
-                # Find intersection of hline with borders in data
-                # Order is important as it stops at first intersection
-                for border_name in ('top', 'bottom', 'right', 'left'):
-                    (x0, y0), (x1, y1) = borders[border_name]
-                    if min(x0, x1) <= xCoord < max(x0, x1):
-                        yIntersect = (xCoord - x0) * (y1 - y0) / (x1 - x0) + y0
-
-                        # Add text label
-                        pixelPos = self.dataToPixel(
-                            xCoord, yIntersect, axis='left', check=False)
-
-                        align, valign, offsets = textLayouts[border_name]
-
-                        x = pixelPos[0] + offsets[0] * pixelOffset
-                        y = pixelPos[1] + offsets[1] * pixelOffset
-                        label = Text2D(marker['text'], x, y,
-                                       color=marker['color'],
-                                       bgColor=(1., 1., 1., 0.5),
-                                       align=align, valign=valign)
-                        break  # Stop at first intersection
-
-            yMin, yMax = corners[:, 1].min(), corners[:, 1].max()
-            vertices = numpy.array(
-                ((xCoord, yMin), (xCoord, yMax)), dtype=numpy.float32)
-
-        return vertices, label
-
     def _renderMarkersGL(self):
         if len(self._markers) == 0:
             return
@@ -654,16 +561,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glEnable(gl.GL_SCISSOR_TEST)
 
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
-
-        # Prepare vertical and horizontal markers rendering
-        self._progBase.use()
-        gl.glUniformMatrix4fv(
-            self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-            self.matScreenProj.astype(numpy.float32))
-        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
-        gl.glUniform1i(self._progBase.uniforms['hatchStep'], 0)
-        gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
-        posAttrib = self._progBase.attributes['position']
 
         labels = []
         pixelOffset = 3
@@ -681,59 +578,43 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 continue
 
             if xCoord is None or yCoord is None:
-                if not self.isDefaultBaseVectors():  # Non-orthogonal axes
-                    vertices, label = self._nonOrthoAxesLineMarkerPrimitives(
-                        marker, pixelOffset)
-                    if label is not None:
+                pixelPos = self.dataToPixel(
+                    xCoord, yCoord, axis='left', check=False)
+
+                if xCoord is None:  # Horizontal line in data space
+                    if marker['text'] is not None:
+                        x = self._plotFrame.size[0] - \
+                            self._plotFrame.margins.right - pixelOffset
+                        y = pixelPos[1] - pixelOffset
+                        label = Text2D(marker['text'], x, y,
+                                       color=marker['color'],
+                                       bgColor=(1., 1., 1., 0.5),
+                                       align=RIGHT, valign=BOTTOM)
                         labels.append(label)
 
-                else:  # Orthogonal axes
-                    pixelPos = self.dataToPixel(
-                        xCoord, yCoord, axis='left', check=False)
+                    width = self._plotFrame.size[0]
+                    lines = GLLines2D((0, width), (pixelPos[1], pixelPos[1]),
+                                      style=marker['linestyle'],
+                                      color=marker['color'],
+                                      width=marker['linewidth'])
+                    lines.render(self.matScreenProj)
 
-                    if xCoord is None:  # Horizontal line in data space
-                        if marker['text'] is not None:
-                            x = self._plotFrame.size[0] - \
-                                self._plotFrame.margins.right - pixelOffset
-                            y = pixelPos[1] - pixelOffset
-                            label = Text2D(marker['text'], x, y,
-                                           color=marker['color'],
-                                           bgColor=(1., 1., 1., 0.5),
-                                           align=RIGHT, valign=BOTTOM)
-                            labels.append(label)
+                else:  # yCoord is None: vertical line in data space
+                    if marker['text'] is not None:
+                        x = pixelPos[0] + pixelOffset
+                        y = self._plotFrame.margins.top + pixelOffset
+                        label = Text2D(marker['text'], x, y,
+                                       color=marker['color'],
+                                       bgColor=(1., 1., 1., 0.5),
+                                       align=LEFT, valign=TOP)
+                        labels.append(label)
 
-                        width = self._plotFrame.size[0]
-                        vertices = numpy.array(((0, pixelPos[1]),
-                                                (width, pixelPos[1])),
-                                               dtype=numpy.float32)
-
-                    else:  # yCoord is None: vertical line in data space
-                        if marker['text'] is not None:
-                            x = pixelPos[0] + pixelOffset
-                            y = self._plotFrame.margins.top + pixelOffset
-                            label = Text2D(marker['text'], x, y,
-                                           color=marker['color'],
-                                           bgColor=(1., 1., 1., 0.5),
-                                           align=LEFT, valign=TOP)
-                            labels.append(label)
-
-                        height = self._plotFrame.size[1]
-                        vertices = numpy.array(((pixelPos[0], 0),
-                                                (pixelPos[0], height)),
-                                               dtype=numpy.float32)
-
-                self._progBase.use()
-                gl.glUniform4f(self._progBase.uniforms['color'],
-                               *marker['color'])
-
-                gl.glEnableVertexAttribArray(posAttrib)
-                gl.glVertexAttribPointer(posAttrib,
-                                         2,
-                                         gl.GL_FLOAT,
-                                         gl.GL_FALSE,
-                                         0, vertices)
-                gl.glLineWidth(1)
-                gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
+                    height = self._plotFrame.size[1]
+                    lines = GLLines2D((pixelPos[0], pixelPos[0]), (0, height),
+                                      style=marker['linestyle'],
+                                      color=marker['color'],
+                                      width=marker['linewidth'])
+                    lines.render(self.matScreenProj)
 
             else:
                 pixelPos = self.dataToPixel(
@@ -861,32 +742,44 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # Render Items
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-        self._progBase.use()
-        gl.glUniformMatrix4fv(self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                              self.matScreenProj.astype(numpy.float32))
-        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
-        gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
-
         for item in self._items.values():
             if ((isXLog and numpy.min(item['x']) < FLOAT32_MINPOS) or
                     (isYLog and numpy.min(item['y']) < FLOAT32_MINPOS)):
                 # Ignore items <= 0. on log axes
                 continue
 
-            closed = item['shape'] != 'polylines'
-            points = [self.dataToPixel(x, y, axis='left', check=False)
-                      for (x, y) in zip(item['x'], item['y'])]
-            shape2D = Shape2D(points,
-                              fill=item['fill'],
-                              fillColor=item['color'],
-                              stroke=True,
-                              strokeColor=item['color'],
-                              strokeClosed=closed)
+            points = numpy.array([
+                self.dataToPixel(x, y, axis='left', check=False)
+                for (x, y) in zip(item['x'], item['y'])])
 
-            posAttrib = self._progBase.attributes['position']
-            colorUnif = self._progBase.uniforms['color']
-            hatchStepUnif = self._progBase.uniforms['hatchStep']
-            shape2D.render(posAttrib, colorUnif, hatchStepUnif)
+            # Draw the fill
+            if item['fill'] is not None:
+                self._progBase.use()
+                gl.glUniformMatrix4fv(
+                    self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
+                    self.matScreenProj.astype(numpy.float32))
+                gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
+                gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
+
+                shape2D = FilledShape2D(
+                    points, style=item['fill'], color=item['color'])
+                shape2D.render(
+                    posAttrib=self._progBase.attributes['position'],
+                    colorUnif=self._progBase.uniforms['color'],
+                    hatchStepUnif=self._progBase.uniforms['hatchStep'])
+
+            # Draw the stroke
+            if item['linestyle'] not in ('', ' ', None):
+                if item['shape'] != 'polylines':
+                    # close the polyline
+                    points = numpy.append(points,
+                                          numpy.atleast_2d(points[0]), axis=0)
+
+                lines = GLLines2D(points[:, 0], points[:, 1],
+                                  style=item['linestyle'],
+                                  color=item['color'],
+                                  width=item['linewidth'])
+                lines.render(self.matScreenProj)
 
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
@@ -1131,7 +1024,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return legend, 'image'
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z):
+    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+                linestyle, linewidth):
         # TODO handle overlay
         if shape not in ('polygon', 'rectangle', 'line',
                          'vline', 'hline', 'polylines'):
@@ -1162,7 +1056,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'color': colors.rgba(color),
             'fill': 'hatch' if fill else None,
             'x': x,
-            'y': y
+            'y': y,
+            'linestyle': linestyle,
+            'linewidth': linewidth
         }
 
         return legend, 'item'
@@ -1173,10 +1069,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         if symbol is None:
             symbol = '+'
-
-        if linestyle != '-' or linewidth != 1:
-            _logger.warning(
-                'OpenGL backend does not support marker line style and width.')
 
         behaviors = set()
         if selectable:
@@ -1199,6 +1091,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'behaviors': behaviors,
             'constraint': constraint if isConstraint else None,
             'symbol': symbol,
+            'linestyle': linestyle,
+            'linewidth': linewidth,
         }
 
         return legend, 'marker'
@@ -1449,37 +1343,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if label:
                 _logger.warning('Right axis label not implemented')
 
-    # Non orthogonal axes
-
-    def setBaseVectors(self, x=(1., 0.), y=(0., 1.)):
-        """Set base vectors.
-
-        Useful for non-orthogonal axes.
-        If an axis is in log scale, skew is applied to log transformed values.
-
-        Base vector does not work well with log axes, to investi
-        """
-        if x != (1., 0.) and y != (0., 1.):
-            if self._plotFrame.xAxis.isLog:
-                _logger.warning("setBaseVectors disables X axis logarithmic.")
-                self.setXAxisLogarithmic(False)
-            if self._plotFrame.yAxis.isLog:
-                _logger.warning("setBaseVectors disables Y axis logarithmic.")
-                self.setYAxisLogarithmic(False)
-
-            if self.isKeepDataAspectRatio():
-                _logger.warning("setBaseVectors disables keepDataAspectRatio.")
-                self.keepDataAspectRatio(False)
-
-        self._plotFrame.baseVectors = x, y
-
-    def getBaseVectors(self):
-        return self._plotFrame.baseVectors
-
-    def isDefaultBaseVectors(self):
-        return self._plotFrame.baseVectors == \
-            self._plotFrame.DEFAULT_BASE_VECTORS
-
     # Graph limits
 
     def _setDataRanges(self, xlim=None, ylim=None, y2lim=None):
@@ -1493,26 +1356,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         """
         # Update axes range with a clipped range if too wide
         self._plotFrame.setDataRanges(xlim, ylim, y2lim)
-
-        if not self.isDefaultBaseVectors():
-            # Update axes range with axes bounds in data coords
-            plotLeft, plotTop, plotWidth, plotHeight = \
-                self.getPlotBoundsInPixels()
-
-            self._plotFrame.xAxis.dataRange = sorted([
-                self.pixelToData(x, y, axis='left', check=False)[0]
-                for (x, y) in ((plotLeft, plotTop + plotHeight),
-                               (plotLeft + plotWidth, plotTop + plotHeight))])
-
-            self._plotFrame.yAxis.dataRange = sorted([
-                self.pixelToData(x, y, axis='left', check=False)[1]
-                for (x, y) in ((plotLeft, plotTop + plotHeight),
-                               (plotLeft, plotTop))])
-
-            self._plotFrame.y2Axis.dataRange = sorted([
-                self.pixelToData(x, y, axis='right', check=False)[1]
-                for (x, y) in ((plotLeft + plotWidth, plotTop + plotHeight),
-                               (plotLeft + plotWidth, plotTop))])
 
     def _ensureAspectRatio(self, keepDim=None):
         """Update plot bounds in order to keep aspect ratio.
@@ -1627,11 +1470,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 _logger.warning(
                     "KeepDataAspectRatio is ignored with log axes")
 
-            if flag and not self.isDefaultBaseVectors():
-                _logger.warning(
-                    "setXAxisLogarithmic ignored because baseVectors are set")
-                return
-
             self._plotFrame.xAxis.isLog = flag
 
     def setYAxisLogarithmic(self, flag):
@@ -1640,11 +1478,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if flag and self._keepDataAspectRatio:
                 _logger.warning(
                     "KeepDataAspectRatio is ignored with log axes")
-
-            if flag and not self.isDefaultBaseVectors():
-                _logger.warning(
-                    "setYAxisLogarithmic ignored because baseVectors are set")
-                return
 
             self._plotFrame.yAxis.isLog = flag
             self._plotFrame.y2Axis.isLog = flag
@@ -1666,9 +1499,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if flag and (self._plotFrame.xAxis.isLog or
                      self._plotFrame.yAxis.isLog):
             _logger.warning("KeepDataAspectRatio is ignored with log axes")
-        if flag and not self.isDefaultBaseVectors():
-            _logger.warning(
-                "keepDataAspectRatio ignored because baseVectors are set")
 
         self._keepDataAspectRatio = flag
 
