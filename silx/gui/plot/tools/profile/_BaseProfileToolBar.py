@@ -321,7 +321,7 @@ class _BaseProfileToolBar(qt.QToolBar):
 
     def __roiAdded(self, roi):
         """Handle new ROI"""
-        roi.setLabel('Profile')
+        roi.setName('Profile')
         roi.setEditable(True)
 
         # Remove any other ROI
