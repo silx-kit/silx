@@ -30,11 +30,14 @@ import sys
 import logging
 import numpy
 import argparse
+import os
 
 import silx.io
 from silx.gui import qt
 import silx.test.utils
+from silx.io.url import DataUrl
 from silx.gui.plot.CompareImages import CompareImages
+from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
 
 _logger = logging.getLogger(__name__)
 
@@ -49,6 +52,70 @@ try:
 except ImportError:
     _logger.debug("Backtrace", exc_info=True)
     PIL = None
+
+
+class CompareImagesSelection(qt.QMainWindow):
+    def __init__(self, backend):
+        qt.QMainWindow.__init__(self, parent=None)
+        self._plot = CompareImages(parent=self, backend=backend)
+
+        self._selectionTable = UrlSelectionTable(parent=self)
+        self._dockWidgetMenu = qt.QDockWidget(parent=self)
+        self._dockWidgetMenu.layout().setContentsMargins(0, 0, 0, 0)
+        self._dockWidgetMenu.setFeatures(qt.QDockWidget.DockWidgetMovable)
+        self._dockWidgetMenu.setWidget(self._selectionTable)
+        self.addDockWidget(qt.Qt.LeftDockWidgetArea, self._dockWidgetMenu)
+
+        self.setCentralWidget(self._plot)
+
+        self._selectionTable.sigImageAChanged.connect(self._updateImageA)
+        self._selectionTable.sigImageBChanged.connect(self._updateImageB)
+
+    def setUrls(self, urls):
+        for url in urls:
+            self._selectionTable.addUrl(url)
+
+    def setFiles(self, files):
+        urls = list()
+        for _file in files:
+            if os.path.isfile(_file):
+                urls.append(DataUrl(file_path=_file, scheme=None))
+        urls.sort(key=lambda url: url.path())
+        window.setUrls(urls)
+        window._selectionTable.setSelection(url_img_a=urls[0].path(),
+                                            url_img_b=urls[1].path())
+
+    def clear(self):
+        self._plot.clear()
+        self._selectionTable.clear()
+
+    def _updateImageA(self, urlpath):
+        self._updateImage(urlpath, self._plot.setImage1)
+
+    def _updateImage(self, urlpath, fctptr):
+        def getData():
+            _url = silx.io.url.DataUrl(path=urlpath)
+            for scheme in ('silx', 'fabio'):
+                try:
+                    dataImg = silx.io.utils.get_data(
+                        silx.io.url.DataUrl(file_path=_url.file_path(),
+                                            data_slice=_url.data_slice(),
+                                            data_path=_url.data_path(),
+                                            scheme=scheme))
+                except:
+                    _logger.debug("Error while loading image with %s" % scheme,
+                                  exc_info=True)
+                else:
+                    # TODO: check is an image
+                    return dataImg
+            return None
+
+        data = getData()
+        if data is not None:
+            fctptr(data)
+
+    def _updateImageB(self, urlpath):
+        self._updateImage(urlpath, self._plot.setImage2)
 
 
 def createTestData():
@@ -128,22 +195,25 @@ if __name__ == "__main__":
     if options.debug:
         logging.root.setLevel(logging.DEBUG)
 
-    if options.testdata:
-        _logger.info("Generate test data")
-        data1, data2 = createTestData()
-    else:
-        if len(options.files) != 2:
-            raise Exception("Expected 2 images to compare them")
-        data1 = loadImage(options.files[0])
-        data2 = loadImage(options.files[1])
-
     if options.use_opengl_plot:
         backend = "gl"
     else:
         backend = "mpl"
 
     app = qt.QApplication([])
-    window = CompareImages(backend=backend)
-    window.setData(data1, data2)
+    if options.testdata or len(options.files) == 2:
+        if options.testdata:
+            _logger.info("Generate test data")
+            data1, data2 = createTestData()
+        else:
+            data1 = loadImage(options.files[0])
+            data2 = loadImage(options.files[1])
+        window = CompareImages(backend=backend)
+        window.setData(data1, data2)
+    else:
+        data = options.files
+        window = CompareImagesSelection(backend=backend)
+        window.setFiles(options.files)
+
     window.setVisible(True)
     app.exec_()
