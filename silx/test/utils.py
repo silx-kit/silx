@@ -30,7 +30,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/12/2018"
+__date__ = "03/01/2019"
 
 
 import sys
@@ -101,9 +101,13 @@ class _TestOptions(object):
             self.TEST_LOW_MEM = True
 
         if self.WITH_QT_TEST:
-            from silx.gui import qt
-            if sys.platform == "win32" and qt.qVersion() == "5.9.2":
-                self.SKIP_TEST_FOR_ISSUE_936 = True
+            try:
+                from silx.gui import qt
+            except ImportError:
+                pass
+            else:
+                if sys.platform == "win32" and qt.qVersion() == "5.9.2":
+                    self.SKIP_TEST_FOR_ISSUE_936 = True
 
     def add_parser_argument(self, parser):
         """Add extrat arguments to the test argument parser
