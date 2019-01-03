@@ -54,7 +54,7 @@ except ImportError:
     PIL = None
 
 
-class CompareImagesSel(qt.QMainWindow):
+class CompareImagesSelection(qt.QMainWindow):
     def __init__(self, backend):
         qt.QMainWindow.__init__(self, parent=None)
         self._plot = CompareImages(parent=self, backend=backend)
@@ -201,8 +201,8 @@ if __name__ == "__main__":
         backend = "mpl"
 
     app = qt.QApplication([])
-    if options.testdata is True or len(options.files) is 2:
-        if options.testdata is True:
+    if options.testdata or len(options.files) == 2:
+        if options.testdata:
             _logger.info("Generate test data")
             data1, data2 = createTestData()
         else:
@@ -212,7 +212,7 @@ if __name__ == "__main__":
         window.setData(data1, data2)
     else:
         data = options.files
-        window = CompareImagesSel(backend=backend)
+        window = CompareImagesSelection(backend=backend)
         window.setFiles(options.files)
 
     window.setVisible(True)
