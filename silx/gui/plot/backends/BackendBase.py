@@ -548,7 +548,7 @@ class BackendBase(object):
         return self._axesDisplayed
 
 
-    def setForegroundColor(selfs, foregroundColor, gridColor=None):
+    def setForegroundColors(self, foregroundColor, gridColor=None):
         """
         Set foreground and grid colors used to display this widget.
         

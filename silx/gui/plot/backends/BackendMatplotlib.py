@@ -904,6 +904,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax.set_position([0, 0, 1, 1])
             self.ax2.set_position([0, 0, 1, 1])
         self._synchronizeBackgroundColors()
+        self._synchronizeBackgroundColors()
         self._plot._setDirtyPlot()
 
     def _synchronizeBackgroundColors(self):
@@ -928,6 +929,40 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     self.ax.set_facecolor(dataBackgroundColor)
             else:
                 self.fig.patch.set_facecolor(dataBackgroundColor)
+
+    def _synchronizeForegroundColors(self):
+            foregroundColor = self._plot.getForegroundColor()
+            gridColor = self._plot.getGridColor()
+
+            if foregroundColor.isValid():
+                foregroundColor = foregroundColor.getRgbF()
+            else:
+                foregroundColor = 'k'
+
+            if gridColor.isValid():
+                gridColor = gridColor.getRgbF()
+            else:
+                gridColor = foregroundColor
+
+            if self.ax.axison:
+                self.ax.spines['bottom'].set_color(foregroundColor)
+                self.ax.spines['top'].set_color(foregroundColor)
+                self.ax.spines['right'].set_color(foregroundColor)
+                self.ax.spines['left'].set_color(foregroundColor)
+                self.ax.tick_params(axis='x', colors=foregroundColor)
+                self.ax.tick_params(axis='y', colors=foregroundColor)
+                self.ax.yaxis.label.set_color(foregroundColor)
+                self.ax.xaxis.label.set_color(foregroundColor)
+                self.ax.title.set_color(foregroundColor)
+
+                for line in self.ax.get_xgridlines():
+                    line.set_color(gridColor)
+
+                for line in self.ax.get_ygridlines():
+                    line.set_color(gridColor)
+                #self.ax.grid().set_markeredgecolor(gridColor)
+
+
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
@@ -1159,3 +1194,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
         self._synchronizeBackgroundColors()
+
+    def setForegroundColors(self, foregroundColor, gridColor=None):
+        self._synchronizeForegroundColors()

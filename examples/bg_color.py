@@ -11,13 +11,14 @@ import numpy as np
 
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QColor, QPalette
+from PyQt5.QtCore import Qt
 from silx.gui.plot import Plot1D, Plot2D, TickMode
 from silx.gui.plot.Colormap import Colormap
 
 
 logger = logging.getLogger("main")
 
-if 0:
+if 1:
     BACKEND = 'mpl'
 else:
     BACKEND = 'gl'
@@ -87,18 +88,17 @@ def makePlot1D():
     xAxis = plot1D.getXAxis()
     xAxis.setLimits(-11, 35)
 
-    foregroundColor = QColor(0, 0, 0)
-    #gridColor = QColor(40, 40, 40)
-    gridColor = QColor(255, 0, 0,)
+    foregroundColor = QColor(Qt.red)
+    gridColor = QColor(Qt.magenta)
 
-    backgroundColor = QColor(255, 255, 255)
-    dataBackgroundColor = QColor(200, 200, 200)
+    backgroundColor = QColor(255, 255, 0)
+    dataBackgroundColor = QColor(200, 200, 0)
 
     plot1D.setGraphTitle("My Title")
     plot1D.setForegroundColor(foregroundColor)
     plot1D.setGridColor(gridColor)
     plot1D.setBackgroundColor(backgroundColor)
-    #plot1D.setDataBackgroundColor(dataBackgroundColor)
+    plot1D.setDataBackgroundColor(dataBackgroundColor) # does't work in with grid on GL backend
 
     #setWidgetColor(plot1D, testColor, PaletteRoleEnum.Window)
     #setWidgetColor(plot1D, foregroundColor, PaletteRoleEnum.WindowText)
