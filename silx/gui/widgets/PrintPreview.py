@@ -374,7 +374,7 @@ class PrintPreviewDialog(qt.QDialog):
         cursor.mergeBlockFormat(center_format)
         cursor.clearSelection()
         commentItem.setTextCursor(cursor)
-        if alignment = qt.Qt.AlignLeft:
+        if alignment == qt.Qt.AlignLeft:
             deltax = 0
         else:
             deltax = (svgItem.boundingRect().width() - commentItem.boundingRect().width()) / 2.
