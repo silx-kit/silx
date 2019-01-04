@@ -362,7 +362,6 @@ class PrintPreviewDialog(qt.QDialog):
         # align
         if commentPosition.upper() == "CENTER":
             alignment = qt.Qt.AlignCenter
-            print("centering")
         elif commentPosition.upper() == "RIGHT":
             alignment = qt.Qt.AlignRight
         else:
@@ -375,7 +374,10 @@ class PrintPreviewDialog(qt.QDialog):
         cursor.mergeBlockFormat(center_format)
         cursor.clearSelection()
         commentItem.setTextCursor(cursor)
-        deltax = (svgItem.boundingRect().width() - commentItem.boundingRect().width()) / 2.
+        if alignment = qt.Qt.AlignLeft:
+            deltax = 0
+        else:
+            deltax = (svgItem.boundingRect().width() - commentItem.boundingRect().width()) / 2.
         commentItem.moveBy(svgItem.boundingRect().x() + deltax,
                            svgItem.boundingRect().y() + svgItem.boundingRect().height())
 
