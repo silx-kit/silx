@@ -911,7 +911,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             backgroundColor = self._plot.getBackgroundColor()
             dataBackgroundColor = self._plot.getDataBackgroundColor()
 
-            if backgroundColor.isValid() is None:
+            if backgroundColor.isValid():
                 backgroundColor = backgroundColor.getRgbF()
             else:
                 backgroundColor = 'w'
