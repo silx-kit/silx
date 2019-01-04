@@ -21,7 +21,7 @@ import logging
 import collections
 from argparse import ArgumentParser
 
-#logging.basicConfig()
+logging.basicConfig()
 logger = logging.getLogger("bootstrap")
 
 
