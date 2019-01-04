@@ -338,6 +338,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                   f=f)
         BackendBase.BackendBase.__init__(self, plot, parent)
 
+        self._foregroundColor = 0., 0., 0., 1.
+        self._gridColor = 0.3, 0.3, 0.3, 1.
         self._backgroundColor = 1., 1., 1., 1.
         self._dataBackgroundColor = None
 
@@ -360,6 +362,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._glGarbageCollector = []
 
         self._plotFrame = GLPlotFrame2D(
+            foregroundColor = self._foregroundColor,
+            gridColor = self._gridColor,
             margins={'left': 100, 'right': 50, 'top': 50, 'bottom': 50})
 
         # Make postRedisplay asynchronous using Qt signal
@@ -1731,6 +1735,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def setAxesDisplayed(self, displayed):
         BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         self._plotFrame.displayed = displayed
+
+    def setForegroundColors(self, foregroundColor, gridColor=None):
+        if foregroundColor is not None:
+            self._foregroundColor = foregroundColor
+        else:
+            self._foregroundColor = 0., 0., 0., 1.
+
+        if gridColor is not None:
+            self._gridColor = gridColor
+        else:
+            self._gridColor = self._foregroundColor
+
+        self._plotFrame.foregroundColor = self._foregroundColor
+        self._plotFrame.gridColor = self._gridColor
 
     def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
         if backgroundColor is not None:

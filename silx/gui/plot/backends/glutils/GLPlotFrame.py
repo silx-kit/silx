@@ -63,6 +63,7 @@ class PlotAxis(object):
 
     def __init__(self, plot,
                  tickLength=(0., 0.),
+                 foregroundColor=(0., 0., 0., 1.0),
                  labelAlign=CENTER, labelVAlign=CENTER,
                  titleAlign=CENTER, titleVAlign=CENTER,
                  titleRotate=0, titleOffset=(0., 0.)):
@@ -78,6 +79,7 @@ class PlotAxis(object):
         self._title = ''
 
         self._tickLength = tickLength
+        self._foregroundColor = foregroundColor
         self._labelAlign = labelAlign
         self._labelVAlign = labelVAlign
         self._titleAlign = titleAlign
@@ -169,6 +171,20 @@ class PlotAxis(object):
                 plot._dirty()
 
     @property
+    def foregroundColor(self):
+        """Color used for frame and labels"""
+        return self._foregroundColor
+
+    @foregroundColor.setter
+    def foregroundColor(self, color):
+        """Color used for frame and labels"""
+        assert len(color) == 4, \
+            "foregroundColor must have length 4, got {}".format(len(self._foregroundColor))
+        if self._foregroundColor != color:
+            self._foregroundColor = color
+            self._dirtyTicks()
+
+    @property
     def ticks(self):
         """Ticks as tuples: ((x, y) in display, dataPos, textLabel)."""
         if self._ticks is None:
@@ -192,6 +208,7 @@ class PlotAxis(object):
                 tickScale = 1.
 
                 label = Text2D(text=text,
+                               color=self._foregroundColor,
                                x=xPixel - xTickLength,
                                y=yPixel - yTickLength,
                                align=self._labelAlign,
@@ -223,6 +240,7 @@ class PlotAxis(object):
         # yOffset -= 3 * yTickLength
 
         axisTitle = Text2D(text=self.title,
+                           color=self._foregroundColor,
                            x=xAxisCenter + xOffset,
                            y=yAxisCenter + yOffset,
                            align=self._titleAlign,
@@ -373,15 +391,21 @@ class GLPlotFrame(object):
     # Margins used when plot frame is not displayed
     _NoDisplayMargins = _Margins(0, 0, 0, 0)
 
-    def __init__(self, margins):
+    def __init__(self, margins, foregroundColor, gridColor):
         """
         :param margins: The margins around plot area for axis and labels.
         :type margins: dict with 'left', 'right', 'top', 'bottom' keys and
                        values as ints.
+        :param foregroundColor: color used for the frame and labels.
+        :type foregroundColor: tuple with RGBA values ranging from 0.0 to 1.0
+        :param gridColor: color used for grid lines.
+        :type gridColor: tuple RGBA with RGBA values ranging from 0.0 to 1.0
         """
         self._renderResources = None
 
         self._margins = self._Margins(**margins)
+        self._foregroundColor = foregroundColor
+        self._gridColor = gridColor
 
         self.axes = []  # List of PlotAxis to be updated by subclasses
 
@@ -400,6 +424,36 @@ class GLPlotFrame(object):
     GRID_SUB_TICKS = 2
     GRID_ALL_TICKS = (GRID_MAIN_TICKS + GRID_SUB_TICKS)
 
+    @property
+    def foregroundColor(self):
+        """Color used for frame and labels"""
+        return self._foregroundColor
+        
+    @foregroundColor.setter
+    def foregroundColor(self, color):
+        """Color used for frame and labels"""
+        assert len(color) == 4, \
+            "foregroundColor must have length 4, got {}".format(len(self._foregroundColor))
+        if self._foregroundColor != color:
+            self._foregroundColor = color
+            for axis in self.axes:
+                axis.foregroundColor = color
+            self._dirty()
+
+    @property
+    def gridColor(self):
+        """Color used for frame and labels"""
+        return self._gridColor
+        
+    @gridColor.setter
+    def gridColor(self, color):
+        """Color used for frame and labels"""
+        assert len(color) == 4, \
+            "gridColor must have length 4, got {}".format(len(self._gridColor))
+        if self._gridColor != color:
+            self._gridColor = color
+            self._dirty()
+        
     @property
     def displayed(self):
         """Whether axes and their labels are displayed or not (bool)"""
@@ -522,6 +576,7 @@ class GLPlotFrame(object):
                   self.margins.right) // 2
         yTitle = self.margins.top - self._TICK_LENGTH_IN_PIXELS
         labels.append(Text2D(text=self.title,
+                             color=self._foregroundColor,
                              x=xTitle,
                              y=yTitle,
                              align=CENTER,
@@ -556,7 +611,7 @@ class GLPlotFrame(object):
 
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
                               matProj.astype(numpy.float32))
-        gl.glUniform4f(prog.uniforms['color'], 0., 0., 0., 1.)
+        gl.glUniform4f(prog.uniforms['color'], *self._foregroundColor)
         gl.glUniform1f(prog.uniforms['tickFactor'], 0.)
 
         gl.glEnableVertexAttribArray(prog.attributes['position'])
@@ -590,7 +645,7 @@ class GLPlotFrame(object):
         gl.glLineWidth(self._LINE_WIDTH)
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
                               matProj.astype(numpy.float32))
-        gl.glUniform4f(prog.uniforms['color'], 0.7, 0.7, 0.7, 1.)
+        gl.glUniform4f(prog.uniforms['color'], *self._gridColor)
         gl.glUniform1f(prog.uniforms['tickFactor'], 0.)  # 1/2.)  # 1/tickLen
 
         gl.glEnableVertexAttribArray(prog.attributes['position'])
@@ -606,15 +661,21 @@ class GLPlotFrame(object):
 # GLPlotFrame2D ###############################################################
 
 class GLPlotFrame2D(GLPlotFrame):
-    def __init__(self, margins):
+    def __init__(self, margins, foregroundColor, gridColor):
         """
         :param margins: The margins around plot area for axis and labels.
         :type margins: dict with 'left', 'right', 'top', 'bottom' keys and
                        values as ints.
+        :param foregroundColor: color used for the frame and labels.
+        :type foregroundColor: tuple with RGBA values ranging from 0.0 to 1.0
+        :param gridColor: color used for grid lines.
+        :type gridColor: tuple RGBA with RGBA values ranging from 0.0 to 1.0
+
         """
-        super(GLPlotFrame2D, self).__init__(margins)
+        super(GLPlotFrame2D, self).__init__(margins, foregroundColor, gridColor)
         self.axes.append(PlotAxis(self,
                                   tickLength=(0., -5.),
+                                  foregroundColor=self._foregroundColor,
                                   labelAlign=CENTER, labelVAlign=TOP,
                                   titleAlign=CENTER, titleVAlign=TOP,
                                   titleRotate=0,
@@ -624,6 +685,7 @@ class GLPlotFrame2D(GLPlotFrame):
 
         self.axes.append(PlotAxis(self,
                                   tickLength=(5., 0.),
+                                  foregroundColor=self._foregroundColor,
                                   labelAlign=RIGHT, labelVAlign=CENTER,
                                   titleAlign=CENTER, titleVAlign=BOTTOM,
                                   titleRotate=ROTATE_270,
@@ -632,6 +694,7 @@ class GLPlotFrame2D(GLPlotFrame):
 
         self._y2Axis = PlotAxis(self,
                                 tickLength=(-5., 0.),
+                                foregroundColor=self._foregroundColor,
                                 labelAlign=LEFT, labelVAlign=CENTER,
                                 titleAlign=CENTER, titleVAlign=TOP,
                                 titleRotate=ROTATE_270,
@@ -1114,3 +1177,19 @@ class GLPlotFrame2D(GLPlotFrame):
         vertices = numpy.append(vertices, extraVertices, axis=0)
 
         self._renderResources = (vertices, gridVertices, labels)
+
+
+    @property
+    def foregroundColor(self):
+        """Color used for frame and labels"""
+        return self._foregroundColor
+
+    @foregroundColor.setter
+    def foregroundColor(self, color):
+        """Color used for frame and labels"""
+        assert len(color) == 4, \
+            "foregroundColor must have length 4, got {}".format(len(self._foregroundColor))
+        if self._foregroundColor != color:
+            self._y2Axis.foregroundColor = color
+            GLPlotFrame.foregroundColor.fset(self, color) # call parent property
+
