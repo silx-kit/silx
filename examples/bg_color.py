@@ -18,7 +18,7 @@ from silx.gui.plot.Colormap import Colormap
 
 logger = logging.getLogger("main")
 
-if 1:
+if 0:
     BACKEND = 'mpl'
 else:
     BACKEND = 'gl'
@@ -88,11 +88,18 @@ def makePlot1D():
     xAxis = plot1D.getXAxis()
     xAxis.setLimits(-11, 35)
 
-    foregroundColor = QColor(Qt.red)
-    gridColor = QColor(Qt.magenta)
-
-    backgroundColor = QColor(255, 255, 0)
-    dataBackgroundColor = QColor(200, 200, 0)
+    if 0:
+        # Debugging them with ugly but obvious colors.
+        foregroundColor = QColor(Qt.red)
+        gridColor = QColor(Qt.magenta)
+        backgroundColor = QColor(255, 255, 0)
+        dataBackgroundColor = QColor(200, 200, 0)
+    else:
+        # Dark theme
+        foregroundColor = QColor(255, 255, 255)
+        gridColor = QColor(100, 100, 100)
+        backgroundColor = QColor(0, 0, 0)
+        dataBackgroundColor = QColor(40, 40, 40)
 
     plot1D.setGraphTitle("My Title")
     plot1D.setForegroundColor(foregroundColor)
@@ -100,8 +107,8 @@ def makePlot1D():
     plot1D.setBackgroundColor(backgroundColor)
     plot1D.setDataBackgroundColor(dataBackgroundColor) # does't work in with grid on GL backend
 
-    #setWidgetColor(plot1D, testColor, PaletteRoleEnum.Window)
-    #setWidgetColor(plot1D, foregroundColor, PaletteRoleEnum.WindowText)
+    setWidgetColor(plot1D, backgroundColor, PaletteRoleEnum.Window)
+    setWidgetColor(plot1D, foregroundColor, PaletteRoleEnum.WindowText)
 
     plot1D.addCurve(x=x, y=y, legend='curve')
 
