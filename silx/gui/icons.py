@@ -29,7 +29,7 @@ Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "07/01/2019"
 
 
 import os
@@ -420,4 +420,5 @@ def getQFile(name):
         qfile = qt.QFile(filename)
         if qfile.exists():
             return qfile
+        _logger.debug("File '%s' not found.", filename)
     raise ValueError('Not an icon name: %s' % name)
