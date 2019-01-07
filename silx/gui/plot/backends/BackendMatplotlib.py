@@ -963,8 +963,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 #self.ax.grid().set_markeredgecolor(gridColor)
 
 
-
-
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     """QWidget matplotlib backend using a QtAgg canvas.
 
