@@ -42,22 +42,38 @@ from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot import PrintPreviewToolButton
 
+
+class MyPrintPreviewButton(PrintPreviewToolButton.PrintPreviewToolButton):
+    """This class illustrates how to subclass PrintPreviewToolButton
+    to add a title and a comment."""
+    def getTitle(self):
+        return "Widget 1's plot"
+
+    def getCommentAndPosition(self):
+        legends = self.getPlot().getAllCurves(just_legend=True)
+        comment = "Curves displayed in widget 1:\n\t"
+        if legends:
+            comment += ", ".join(legends)
+        else:
+            comment += "none"
+        return comment, "CENTER"
+
+
 app = qt.QApplication([])
 
 x = numpy.arange(1000)
 
-# first widget has a standalone print preview action
+# first widget has a standalone preview action with custom title and comment
 pw1 = PlotWidget()
 pw1.setWindowTitle("Widget 1 with standalone print preview")
 toolbar1 = qt.QToolBar(pw1)
-toolbutton1 = PrintPreviewToolButton.PrintPreviewToolButton(parent=toolbar1,
-                                                            plot=pw1)
+toolbutton1 = MyPrintPreviewButton(parent=toolbar1, plot=pw1)
 pw1.addToolBar(toolbar1)
 toolbar1.addWidget(toolbutton1)
 pw1.show()
 pw1.addCurve(x, numpy.tan(x * 2 * numpy.pi / 1000))
 
-# next two plots share a common print preview
+# next two plots share a common standard print preview
 pw2 = PlotWidget()
 pw2.setWindowTitle("Widget 2 with shared print preview")
 toolbar2 = qt.QToolBar(pw2)

@@ -888,23 +888,6 @@ class GLPlotFrame2D(GLPlotFrame):
                     _logger.info('yMax: warning log10(%f)', y2Max)
                     y2Max = 0.
 
-            # Non-orthogonal axes
-            if self.baseVectors != self.DEFAULT_BASE_VECTORS:
-                (xx, xy), (yx, yy) = self.baseVectors
-                skew_mat = numpy.array(((xx, yx), (xy, yy)))
-
-                corners = [(xMin, yMin), (xMin, yMax),
-                           (xMax, yMin), (xMax, yMax),
-                           (xMin, y2Min), (xMin, y2Max),
-                           (xMax, y2Min), (xMax, y2Max)]
-
-                corners = numpy.array(
-                    [numpy.dot(skew_mat, corner) for corner in corners],
-                    dtype=numpy.float32)
-                xMin, xMax = corners[:, 0].min(),  corners[:, 0].max()
-                yMin, yMax = corners[0:4, 1].min(), corners[0:4, 1].max()
-                y2Min, y2Max = corners[4:, 1].min(), corners[4:, 1].max()
-
             self._transformedDataRanges = self._DataRanges(
                 (xMin, xMax), (yMin, yMax), (y2Min, y2Max))
 
@@ -924,16 +907,6 @@ class GLPlotFrame2D(GLPlotFrame):
                 mat = mat4Ortho(xMin, xMax, yMax, yMin, 1, -1)
             else:
                 mat = mat4Ortho(xMin, xMax, yMin, yMax, 1, -1)
-
-            # Non-orthogonal axes
-            if self.baseVectors != self.DEFAULT_BASE_VECTORS:
-                (xx, xy), (yx, yy) = self.baseVectors
-                mat = numpy.dot(mat, numpy.array((
-                    (xx, yx, 0., 0.),
-                    (xy, yy, 0., 0.),
-                    (0., 0., 1., 0.),
-                    (0., 0., 0., 1.)), dtype=numpy.float64))
-
             self._transformedDataProjMat = mat
 
         return self._transformedDataProjMat
@@ -953,16 +926,6 @@ class GLPlotFrame2D(GLPlotFrame):
                 mat = mat4Ortho(xMin, xMax, y2Max, y2Min, 1, -1)
             else:
                 mat = mat4Ortho(xMin, xMax, y2Min, y2Max, 1, -1)
-
-            # Non-orthogonal axes
-            if self.baseVectors != self.DEFAULT_BASE_VECTORS:
-                (xx, xy), (yx, yy) = self.baseVectors
-                mat = numpy.dot(mat, numpy.matrix((
-                    (xx, yx, 0., 0.),
-                    (xy, yy, 0., 0.),
-                    (0., 0., 1., 0.),
-                    (0., 0., 0., 1.)), dtype=numpy.float64))
-
             self._transformedDataY2ProjMat = mat
 
         return self._transformedDataY2ProjMat

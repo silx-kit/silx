@@ -300,6 +300,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             _logger.error('Not an image, shape: %d', len(mask.shape))
             return None
 
+        # Handle mask with single level
+        if self.multipleMasks() == 'single':
+            mask = numpy.array(mask != 0, dtype=numpy.uint8)
+
         # if mask has not changed, do nothing
         if numpy.array_equal(mask, self.getSelectionMask()):
             return mask.shape

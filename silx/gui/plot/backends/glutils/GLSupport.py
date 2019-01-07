@@ -60,16 +60,12 @@ def buildFillMaskIndices(nIndices, dtype=None):
     return indices
 
 
-class Shape2D(object):
+class FilledShape2D(object):
     _NO_HATCH = 0
     _HATCH_STEP = 20
 
-    def __init__(self, points, fill='solid', stroke=True,
-                 fillColor=(0., 0., 0., 1.), strokeColor=(0., 0., 0., 1.),
-                 strokeClosed=True):
+    def __init__(self, points, style='solid', color=(0., 0., 0., 1.)):
         self.vertices = numpy.array(points, dtype=numpy.float32, copy=False)
-        self.strokeClosed = strokeClosed
-
         self._indices = buildFillMaskIndices(len(self.vertices))
 
         tVertex = numpy.transpose(self.vertices)
@@ -81,28 +77,16 @@ class Shape2D(object):
         self._xMin, self._xMax = xMin, xMax
         self._yMin, self._yMax = yMin, yMax
 
-        self.fill = fill
-        self.fillColor = fillColor
-        self.stroke = stroke
-        self.strokeColor = strokeColor
+        self.style = style
+        self.color = color
 
-    @property
-    def xMin(self):
-        return self._xMin
+    def render(self, posAttrib, colorUnif, hatchStepUnif):
+        assert self.style in ('hatch', 'solid')
+        gl.glUniform4f(colorUnif, *self.color)
+        step = self._HATCH_STEP if self.style == 'hatch' else self._NO_HATCH
+        gl.glUniform1i(hatchStepUnif, step)
 
-    @property
-    def xMax(self):
-        return self._xMax
-
-    @property
-    def yMin(self):
-        return self._yMin
-
-    @property
-    def yMax(self):
-        return self._yMax
-
-    def prepareFillMask(self, posAttrib):
+        # Prepare fill mask
         gl.glEnableVertexAttribArray(posAttrib)
         gl.glVertexAttribPointer(posAttrib,
                                  2,
@@ -126,9 +110,6 @@ class Shape2D(object):
         gl.glColorMask(gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
         gl.glDepthMask(gl.GL_TRUE)
 
-    def renderFill(self, posAttrib):
-        self.prepareFillMask(posAttrib)
-
         gl.glVertexAttribPointer(posAttrib,
                                  2,
                                  gl.GL_FLOAT,
@@ -137,30 +118,6 @@ class Shape2D(object):
         gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self.bboxVertices))
 
         gl.glDisable(gl.GL_STENCIL_TEST)
-
-    def renderStroke(self, posAttrib):
-        gl.glEnableVertexAttribArray(posAttrib)
-        gl.glVertexAttribPointer(posAttrib,
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0, self.vertices)
-        gl.glLineWidth(1)
-        drawMode = gl.GL_LINE_LOOP if self.strokeClosed else gl.GL_LINE_STRIP
-        gl.glDrawArrays(drawMode, 0, len(self.vertices))
-
-    def render(self, posAttrib, colorUnif, hatchStepUnif):
-        assert self.fill in ['hatch', 'solid', None]
-        if self.fill is not None:
-            gl.glUniform4f(colorUnif, *self.fillColor)
-            step = self._HATCH_STEP if self.fill == 'hatch' else self._NO_HATCH
-            gl.glUniform1i(hatchStepUnif, step)
-            self.renderFill(posAttrib)
-
-        if self.stroke:
-            gl.glUniform4f(colorUnif, *self.strokeColor)
-            gl.glUniform1i(hatchStepUnif, self._NO_HATCH)
-            self.renderStroke(posAttrib)
 
 
 # matrix ######################################################################

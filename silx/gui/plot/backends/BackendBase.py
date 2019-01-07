@@ -170,7 +170,8 @@ class BackendBase(object):
         """
         return legend
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z):
+    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+                linestyle, linewidth):
         """Add an item (i.e. a shape) to the plot.
 
         :param numpy.ndarray x: The X coords of the points of the shape
@@ -182,6 +183,17 @@ class BackendBase(object):
         :param bool fill: True to fill the shape
         :param bool overlay: True if item is an overlay, False otherwise
         :param int z: Layer on which to draw the item
+        :param str linestyle: Style of the line.
+            Only relevant for line markers where X or Y is None.
+            Value in:
+
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+        :param float linewidth: Width of the line.
+            Only relevant for line markers where X or Y is None.
         :returns: The handle used by the backend to univocally access the item
         """
         return legend

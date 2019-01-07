@@ -65,7 +65,7 @@ class RegionOfInterest(qt.QObject):
         # Avoid circular dependancy
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
-        super(RegionOfInterest, self).__init__(parent)
+        qt.QObject.__init__(self, parent)
         self._color = rgba('red')
         self._items = WeakList()
         self._editAnchors = WeakList()
@@ -108,7 +108,7 @@ class RegionOfInterest(qt.QObject):
         return qt.QColor.fromRgbF(*self._color)
 
     def _getAnchorColor(self, color):
-        """Returns the anchor color from the base ROI  color
+        """Returns the anchor color from the base ROI color
 
         :param Union[numpy.array,Tuple,List]: color
         :rtype: Union[numpy.array,Tuple,List]
@@ -209,7 +209,7 @@ class RegionOfInterest(qt.QObject):
     def setFirstShapePoints(self, points):
         """"Initialize the ROI using the points from the first interaction.
 
-        This interaction is constains by the plot API and only supports few
+        This interaction is constrained by the plot API and only supports few
         shapes.
         """
         points = self._createControlPointsFromFirstShape(points)
@@ -410,6 +410,13 @@ class RegionOfInterest(qt.QObject):
                 plot._remove(item)
         self._labelItem = None
 
+    def _updated(self, event=None, checkVisibility=True):
+        """Implement Item mix-in update method by updating the plot items
+
+        See :class:`~silx.gui.plot.items.Item._updated`
+        """
+        self._createPlotItems()
+
     def __str__(self):
         """Returns parameters of the ROI as a string."""
         points = self._getControlPoints()
@@ -417,7 +424,7 @@ class RegionOfInterest(qt.QObject):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class PointROI(RegionOfInterest):
+class PointROI(RegionOfInterest, items.SymbolMixIn):
     """A ROI identifying a point in a 2D plot."""
 
     _kind = "Point"
@@ -425,6 +432,10 @@ class PointROI(RegionOfInterest):
 
     _plotShape = "point"
     """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.SymbolMixIn.__init__(self)
+        RegionOfInterest.__init__(self, parent=parent)
 
     def getPosition(self):
         """Returns the position of this ROI
@@ -458,6 +469,8 @@ class PointROI(RegionOfInterest):
         marker.setPosition(points[0][0], points[0][1])
         marker.setText(self.getLabel())
         marker.setColor(rgba(self.getColor()))
+        marker.setSymbol(self.getSymbol())
+        marker.setSymbolSize(self.getSymbolSize())
         marker._setDraggable(False)
         return [marker]
 
@@ -466,6 +479,8 @@ class PointROI(RegionOfInterest):
         marker.setPosition(points[0][0], points[0][1])
         marker.setText(self.getLabel())
         marker._setDraggable(self.isEditable())
+        marker.setSymbol(self.getSymbol())
+        marker.setSymbolSize(self.getSymbolSize())
         return [marker]
 
     def __str__(self):
@@ -474,7 +489,7 @@ class PointROI(RegionOfInterest):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class LineROI(RegionOfInterest):
+class LineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying a line in a 2D plot.
 
     This ROI provides 1 anchor for each boundary of the line, plus an center
@@ -486,6 +501,10 @@ class LineROI(RegionOfInterest):
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
+        RegionOfInterest.__init__(self, parent=parent)
 
     def _createControlPointsFromFirstShape(self, points):
         center = numpy.mean(points, axis=0)
@@ -535,6 +554,8 @@ class LineROI(RegionOfInterest):
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
+        item.setLineStyle(self.getLineStyle())
+        item.setLineWidth(self.getLineWidth())
         return [item]
 
     def _createAnchorItems(self, points):
@@ -582,7 +603,7 @@ class LineROI(RegionOfInterest):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class HorizontalLineROI(RegionOfInterest):
+class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying an horizontal line in a 2D plot."""
 
     _kind = "HLine"
@@ -590,6 +611,10 @@ class HorizontalLineROI(RegionOfInterest):
 
     _plotShape = "hline"
     """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
+        RegionOfInterest.__init__(self, parent=parent)
 
     def _createControlPointsFromFirstShape(self, points):
         points = numpy.array([(float('nan'), points[0, 1])],
@@ -636,6 +661,8 @@ class HorizontalLineROI(RegionOfInterest):
         marker.setText(self.getLabel())
         marker.setColor(rgba(self.getColor()))
         marker._setDraggable(False)
+        marker.setLineWidth(self.getLineWidth())
+        marker.setLineStyle(self.getLineStyle())
         return [marker]
 
     def _createAnchorItems(self, points):
@@ -643,6 +670,8 @@ class HorizontalLineROI(RegionOfInterest):
         marker.setPosition(points[0][0], points[0][1])
         marker.setText(self.getLabel())
         marker._setDraggable(self.isEditable())
+        marker.setLineWidth(self.getLineWidth())
+        marker.setLineStyle(self.getLineStyle())
         return [marker]
 
     def __str__(self):
@@ -651,7 +680,7 @@ class HorizontalLineROI(RegionOfInterest):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class VerticalLineROI(RegionOfInterest):
+class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying a vertical line in a 2D plot."""
 
     _kind = "VLine"
@@ -659,6 +688,10 @@ class VerticalLineROI(RegionOfInterest):
 
     _plotShape = "vline"
     """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
+        RegionOfInterest.__init__(self, parent=parent)
 
     def _createControlPointsFromFirstShape(self, points):
         points = numpy.array([(points[0, 0], float('nan'))],
@@ -705,6 +738,8 @@ class VerticalLineROI(RegionOfInterest):
         marker.setText(self.getLabel())
         marker.setColor(rgba(self.getColor()))
         marker._setDraggable(False)
+        marker.setLineWidth(self.getLineWidth())
+        marker.setLineStyle(self.getLineStyle())
         return [marker]
 
     def _createAnchorItems(self, points):
@@ -712,6 +747,8 @@ class VerticalLineROI(RegionOfInterest):
         marker.setPosition(points[0][0], points[0][1])
         marker.setText(self.getLabel())
         marker._setDraggable(self.isEditable())
+        marker.setLineWidth(self.getLineWidth())
+        marker.setLineStyle(self.getLineStyle())
         return [marker]
 
     def __str__(self):
@@ -720,7 +757,7 @@ class VerticalLineROI(RegionOfInterest):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class RectangleROI(RegionOfInterest):
+class RectangleROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying a rectangle in a 2D plot.
 
     This ROI provides 1 anchor for each corner, plus an anchor in the
@@ -732,6 +769,10 @@ class RectangleROI(RegionOfInterest):
 
     _plotShape = "rectangle"
     """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
+        RegionOfInterest.__init__(self, parent=parent)
 
     def _createControlPointsFromFirstShape(self, points):
         point0 = points[0]
@@ -838,6 +879,8 @@ class RectangleROI(RegionOfInterest):
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
+        item.setLineStyle(self.getLineStyle())
+        item.setLineWidth(self.getLineWidth())
         return [item]
 
     def _createAnchorItems(self, points):
@@ -894,7 +937,7 @@ class RectangleROI(RegionOfInterest):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class PolygonROI(RegionOfInterest):
+class PolygonROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying a closed polygon in a 2D plot.
 
     This ROI provides 1 anchor for each point of the polygon.
@@ -905,6 +948,10 @@ class PolygonROI(RegionOfInterest):
 
     _plotShape = "polygon"
     """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
+        RegionOfInterest.__init__(self, parent=parent)
 
     def getPoints(self):
         """Returns the list of the points of this polygon.
@@ -948,6 +995,8 @@ class PolygonROI(RegionOfInterest):
             item.setColor(rgba(self.getColor()))
             item.setFill(False)
             item.setOverlay(True)
+            item.setLineStyle(self.getLineStyle())
+            item.setLineWidth(self.getLineWidth())
             return [item]
 
     def _createAnchorItems(self, points):
@@ -967,7 +1016,7 @@ class PolygonROI(RegionOfInterest):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class ArcROI(RegionOfInterest):
+class ArcROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying an arc of a circle with a width.
 
     This ROI provides 3 anchors to control the curvature, 1 anchor to control
@@ -986,6 +1035,7 @@ class ArcROI(RegionOfInterest):
                                                           'startAngle', 'endAngle'])
 
     def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
         self._geometry = None
 
@@ -1357,6 +1407,8 @@ class ArcROI(RegionOfInterest):
         item.setColor(rgba(self.getColor()))
         item.setFill(False)
         item.setOverlay(True)
+        item.setLineStyle(self.getLineStyle())
+        item.setLineWidth(self.getLineWidth())
         return [item]
 
     def _createAnchorItems(self, points):

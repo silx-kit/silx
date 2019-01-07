@@ -42,7 +42,7 @@ import numpy
 from silx.math.combo import min_max
 
 from ...._glutils import gl
-from ...._glutils import Program, vertexBuffer
+from ...._glutils import Program, vertexBuffer, VertexBufferAttrib
 from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
 
 
@@ -245,7 +245,7 @@ class _Fill2D(object):
 SOLID, DASHED, DASHDOT, DOTTED = '-', '--', '-.', ':'
 
 
-class _Lines2D(object):
+class GLLines2D(object):
     """Object rendering curve as a polyline
 
     :param xVboData: X coordinates VBO
@@ -340,11 +340,32 @@ class _Lines2D(object):
     def __init__(self, xVboData=None, yVboData=None,
                  colorVboData=None, distVboData=None,
                  style=SOLID, color=(0., 0., 0., 1.),
-                 width=1, dashPeriod=20, drawMode=None,
+                 width=1, dashPeriod=10., drawMode=None,
                  offset=(0., 0.)):
+        if (xVboData is not None and
+                not isinstance(xVboData, VertexBufferAttrib)):
+            xVboData = numpy.array(xVboData, copy=False, dtype=numpy.float32)
         self.xVboData = xVboData
+
+        if (yVboData is not None and
+                not isinstance(yVboData, VertexBufferAttrib)):
+            yVboData = numpy.array(yVboData, copy=False, dtype=numpy.float32)
         self.yVboData = yVboData
+
+        # Compute distances if not given while providing numpy array coordinates
+        if (isinstance(self.xVboData, numpy.ndarray) and
+                isinstance(self.yVboData, numpy.ndarray) and
+                distVboData is None):
+            distVboData = distancesFromArrays(self.xVboData, self.yVboData)
+
+        if (distVboData is not None and
+                not isinstance(distVboData, VertexBufferAttrib)):
+            distVboData = numpy.array(
+                distVboData, copy=False, dtype=numpy.float32)
         self.distVboData = distVboData
+
+        if colorVboData is not None:
+            assert isinstance(colorVboData, VertexBufferAttrib)
         self.colorVboData = colorVboData
         self.useColorVboData = colorVboData is not None
 
@@ -396,29 +417,39 @@ class _Lines2D(object):
             gl.glUniform2f(program.uniforms['halfViewportSize'],
                            0.5 * viewWidth, 0.5 * viewHeight)
 
+            dashPeriod = self.dashPeriod * self.width
             if self.style == DOTTED:
-                dash = (0.1 * self.dashPeriod,
-                        0.6 * self.dashPeriod,
-                        0.7 * self.dashPeriod,
-                        self.dashPeriod)
+                dash = (0.2 * dashPeriod,
+                        0.5 * dashPeriod,
+                        0.7 * dashPeriod,
+                        dashPeriod)
             elif self.style == DASHDOT:
-                dash = (0.3 * self.dashPeriod,
-                        0.5 * self.dashPeriod,
-                        0.6 * self.dashPeriod,
-                        self.dashPeriod)
+                dash = (0.3 * dashPeriod,
+                        0.5 * dashPeriod,
+                        0.6 * dashPeriod,
+                        dashPeriod)
             else:
-                dash = (0.5 * self.dashPeriod,
-                        self.dashPeriod,
-                        self.dashPeriod,
-                        self.dashPeriod)
+                dash = (0.5 * dashPeriod,
+                        dashPeriod,
+                        dashPeriod,
+                        dashPeriod)
 
             gl.glUniform4f(program.uniforms['dash'], *dash)
 
             distAttrib = program.attributes['distance']
             gl.glEnableVertexAttribArray(distAttrib)
-            self.distVboData.setVertexAttrib(distAttrib)
+            if isinstance(self.distVboData, VertexBufferAttrib):
+                self.distVboData.setVertexAttrib(distAttrib)
+            else:
+                gl.glVertexAttribPointer(distAttrib,
+                                         1,
+                                         gl.GL_FLOAT,
+                                         False,
+                                         0,
+                                         self.distVboData)
 
-        gl.glEnable(gl.GL_LINE_SMOOTH)
+        if self.width != 1:
+            gl.glEnable(gl.GL_LINE_SMOOTH)
 
         matrix = numpy.dot(matrix,
                            mat4Translate(*self.offset)).astype(numpy.float32)
@@ -435,11 +466,27 @@ class _Lines2D(object):
 
         xPosAttrib = program.attributes['xPos']
         gl.glEnableVertexAttribArray(xPosAttrib)
-        self.xVboData.setVertexAttrib(xPosAttrib)
+        if isinstance(self.xVboData, VertexBufferAttrib):
+            self.xVboData.setVertexAttrib(xPosAttrib)
+        else:
+            gl.glVertexAttribPointer(xPosAttrib,
+                                     1,
+                                     gl.GL_FLOAT,
+                                     False,
+                                     0,
+                                     self.xVboData)
 
         yPosAttrib = program.attributes['yPos']
         gl.glEnableVertexAttribArray(yPosAttrib)
-        self.yVboData.setVertexAttrib(yPosAttrib)
+        if isinstance(self.yVboData, VertexBufferAttrib):
+            self.yVboData.setVertexAttrib(yPosAttrib)
+        else:
+            gl.glVertexAttribPointer(yPosAttrib,
+                                     1,
+                                     gl.GL_FLOAT,
+                                     False,
+                                     0,
+                                     self.yVboData)
 
         gl.glLineWidth(self.width)
         gl.glDrawArrays(self._drawMode, 0, self.xVboData.size)
@@ -447,7 +494,7 @@ class _Lines2D(object):
         gl.glDisable(gl.GL_LINE_SMOOTH)
 
 
-def _distancesFromArrays(xData, yData):
+def distancesFromArrays(xData, yData):
     """Returns distances between each points
 
     :param numpy.ndarray xData: X coordinate of points
@@ -711,7 +758,7 @@ class _ErrorBars(object):
     This is using its own VBO as opposed to fill/points/lines.
     There is no picking on error bars.
 
-    It uses 2 vertices per error bars and uses :class:`_Lines2D` to
+    It uses 2 vertices per error bars and uses :class:`GLLines2D` to
     render error bars and :class:`_Points2D` to render the ends.
 
     :param numpy.ndarray xData: X coordinates of the data.
@@ -753,7 +800,7 @@ class _ErrorBars(object):
             self._xData, self._yData = None, None
             self._xError, self._yError = None, None
 
-        self._lines = _Lines2D(
+        self._lines = GLLines2D(
             None, None, color=color, drawMode=gl.GL_LINES, offset=offset)
         self._xErrPoints = _Points2D(
             None, None, color=color, marker=V_LINE, offset=offset)
@@ -957,7 +1004,7 @@ class GLPlotCurve2D(object):
                                      self.xMin, self.yMin,
                                      offset=self.offset)
 
-        self.lines = _Lines2D()
+        self.lines = GLLines2D()
         self.lines.style = lineStyle
         self.lines.color = lineColor
         self.lines.width = lineWidth
@@ -999,7 +1046,7 @@ class GLPlotCurve2D(object):
     @classmethod
     def init(cls):
         """OpenGL context initialization"""
-        _Lines2D.init()
+        GLLines2D.init()
         _Points2D.init()
 
     def prepare(self):
@@ -1007,7 +1054,7 @@ class GLPlotCurve2D(object):
         if self.xVboData is None:
             xAttrib, yAttrib, cAttrib, dAttrib = None, None, None, None
             if self.lineStyle in (DASHED, DASHDOT, DOTTED):
-                dists = _distancesFromArrays(self.xData, self.yData)
+                dists = distancesFromArrays(self.xData, self.yData)
                 if self.colorData is None:
                     xAttrib, yAttrib, dAttrib = vertexBuffer(
                         (self.xData, self.yData, dists))

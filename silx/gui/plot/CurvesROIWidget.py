@@ -22,50 +22,43 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Widget to handle regions of interest (ROI) on curves displayed in a PlotWindow.
+"""
+Widget to handle regions of interest (:class:`ROI`) on curves displayed in a
+:class:`PlotWindow`.
 
 This widget is meant to work with :class:`PlotWindow`.
-
-ROI are defined by :
-
-- A name (`ROI` column)
-- A type. The type is the label of the x axis.
-  This can be used to apply or not some ROI to a curve and do some post processing.
-- The x coordinate of the left limit (`from` column)
-- The x coordinate of the right limit (`to` column)
-- Raw counts: Sum of the curve's values in the defined Region Of Intereset.
-
-  .. image:: img/rawCounts.png
-
-- Net counts: Raw counts minus background
-
-  .. image:: img/netCounts.png
 """
 
-__authors__ = ["V.A. Sole", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "13/11/2017"
+__date__ = "13/03/2018"
 
 from collections import OrderedDict
-
 import logging
 import os
 import sys
-import weakref
-
+import functools
 import numpy
-
 from silx.io import dictdump
 from silx.utils import deprecation
-
+from silx.utils.weakref import WeakMethodProxy
 from .. import icons, qt
+from silx.gui.plot.items.curve import Curve
+from silx.math.combo import min_max
+import weakref
+from silx.gui.widgets.TableWidget import TableWidget
 
 
 _logger = logging.getLogger(__name__)
 
 
 class CurvesROIWidget(qt.QWidget):
-    """Widget displaying a table of ROI information.
+    """
+    Widget displaying a table of ROI information.
+
+    Implements also the following behavior:
+
+    * if the roiTable has no ROI when showing create the default ICR one
 
     :param parent: See :class:`QWidget`
     :param str name: The title of this widget
@@ -73,19 +66,18 @@ class CurvesROIWidget(qt.QWidget):
 
     sigROIWidgetSignal = qt.Signal(object)
     """Signal of ROIs modifications.
-
-    Modification information if given as a dict with an 'event' key
-    providing the type of events.
-
-    Type of events:
-
-    - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
-
-    - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
-      'rowheader'
+       Modification information if given as a dict with an 'event' key
+       providing the type of events.
+       Type of events:
+        - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
+        - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
+          'rowheader'
     """
 
     sigROISignal = qt.Signal(object)
+    """Deprecated signal for backward compatibility with silx < 0.7.
+    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
+    """
 
     def __init__(self, parent=None, name=None, plot=None):
         super(CurvesROIWidget, self).__init__(parent)
@@ -93,6 +85,8 @@ class CurvesROIWidget(qt.QWidget):
             self.setWindowTitle(name)
         assert plot is not None
         self._plotRef = weakref.ref(plot)
+        self._showAllMarkers = False
+        self.currentROI = None
 
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -103,13 +97,22 @@ class CurvesROIWidget(qt.QWidget):
         self.setHeader()
         layout.addWidget(self.headerLabel)
         ##############
-        self.roiTable = ROITable(self)
+        widgetAllCheckbox = qt.QWidget(parent=self)
+        self._showAllCheckBox = qt.QCheckBox("show all ROI",
+                                             parent=widgetAllCheckbox)
+        widgetAllCheckbox.setLayout(qt.QHBoxLayout())
+        spacer = qt.QWidget(parent=widgetAllCheckbox)
+        spacer.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+        widgetAllCheckbox.layout().addWidget(spacer)
+        widgetAllCheckbox.layout().addWidget(self._showAllCheckBox)
+        layout.addWidget(widgetAllCheckbox)
+        ##############
+        self.roiTable = ROITable(self, plot=plot)
         rheight = self.roiTable.horizontalHeader().sizeHint().height()
         self.roiTable.setMinimumHeight(4 * rheight)
-        self.fillFromROIDict = self.roiTable.fillFromROIDict
-        self.getROIListAndDict = self.roiTable.getROIListAndDict
         layout.addWidget(self.roiTable)
         self._roiFileDir = qt.QDir.home().absolutePath()
+        self._showAllCheckBox.toggled.connect(self.roiTable.showAllMarkers)
         #################
 
         hbox = qt.QWidget(self)
@@ -127,7 +130,8 @@ class CurvesROIWidget(qt.QWidget):
         self.addButton.setToolTip('Remove the selected ROI')
         self.resetButton = qt.QPushButton(hbox)
         self.resetButton.setText("Reset")
-        self.addButton.setToolTip('Clear all created ROIs. We only let the default ROI')
+        self.addButton.setToolTip('Clear all created ROIs. We only let the '
+                                  'default ROI')
 
         hboxlayout.addWidget(self.addButton)
         hboxlayout.addWidget(self.delButton)
@@ -155,13 +159,13 @@ class CurvesROIWidget(qt.QWidget):
 
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
-        self.roiTable.sigROITableSignal.connect(self._forward)
 
-        self.currentROI = None
         self._middleROIMarkerFlag = False
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
 
+        # expose API
+        self.getROIListAndDict = self.roiTable.getROIListAndDict
     def getPlotWidget(self):
         """Returns the associated PlotWidget or None
 
@@ -172,10 +176,7 @@ class CurvesROIWidget(qt.QWidget):
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
         qt.QWidget.showEvent(self, event)
-
-    def hideEvent(self, event):
-        self._visibilityChangedHandler(visible=False)
-        qt.QWidget.hideEvent(self, event)
+        self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
 
     @property
     def roiFileDir(self):
@@ -188,135 +189,83 @@ class CurvesROIWidget(qt.QWidget):
     def roiFileDir(self, roiFileDir):
         self._roiFileDir = str(roiFileDir)
 
-    def setRois(self, roidict, order=None):
-        """Set the ROIs by providing a dictionary of ROI information.
-
-        The dictionary keys are the ROI names.
-        Each value is a sub-dictionary of ROI info with the following fields:
-
-        - ``"from"``: x coordinate of the left limit, as a float
-        - ``"to"``: x coordinate of the right limit, as a float
-        - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
-
-
-        :param roidict: Dictionary of ROIs
-        :param str order: Field used for ordering the ROIs.
-             One of "from", "to", "type".
-             None (default) for no ordering, or same order as specified
-             in parameter ``roidict`` if provided as an OrderedDict.
-        """
-        if order is None or order.lower() == "none":
-            roilist = list(roidict.keys())
-        else:
-            assert order in ["from", "to", "type"]
-            roilist = sorted(roidict.keys(),
-                             key=lambda roi_name: roidict[roi_name].get(order))
-
-        return self.roiTable.fillFromROIDict(roilist, roidict)
+    def setRois(self, rois, order=None):
+        return self.roiTable.setRois(rois, order)
 
     def getRois(self, order=None):
-        """Return the currently defined ROIs, as an ordered dict.
+        return self.roiTable.getRois(order)
 
-        The dictionary keys are the ROI names.
-        Each value is a sub-dictionary of ROI info with the following fields:
-
-        - ``"from"``: x coordinate of the left limit, as a float
-        - ``"to"``: x coordinate of the right limit, as a float
-        - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
-
-
-        :param order: Field used for ordering the ROIs.
-             One of "from", "to", "type", "netcounts", "rawcounts".
-             None (default) to get the same order as displayed in the widget.
-        :return: Ordered dictionary of ROI information
-        """
-        roilist, roidict = self.roiTable.getROIListAndDict()
-        if order is None or order.lower() == "none":
-            ordered_roilist = roilist
-        else:
-            assert order in ["from", "to", "type", "netcounts", "rawcounts"]
-            ordered_roilist = sorted(roidict.keys(),
-                                     key=lambda roi_name: roidict[roi_name].get(order))
-
-        return OrderedDict([(name, roidict[name]) for name in ordered_roilist])
-
+    @deprecation.deprecated(reason="Moved to ROITable",
+                            since_version="0.10.0")
     def setMiddleROIMarkerFlag(self, flag=True):
-        """Activate or deactivate middle marker.
-
-        This allows shifting both min and max limits at once, by dragging
-        a marker located in the middle.
-
-        :param bool flag: True to activate middle ROI marker
-        """
-        if flag:
-            self._middleROIMarkerFlag = True
-        else:
-            self._middleROIMarkerFlag = False
+        return self.roiTable.setMiddleROIMarkerFlag(flag)
 
     def _add(self):
         """Add button clicked handler"""
+        def getNextRoiName():
+            rois = self.roiTable.getRois(order=None)
+            roisNames = []
+            [roisNames.append(roiName) for roiName in rois]
+            nrois = len(rois)
+            if nrois == 0:
+                return "ICR"
+            else:
+                i = 1
+                newroi = "newroi %d" % i
+                while newroi in roisNames:
+                    i += 1
+                    newroi = "newroi %d" % i
+                return newroi
+
+        roi = ROI(name=getNextRoiName())
+
+        if roi.getName() == "ICR":
+            roi.setType("Default")
+        else:
+            roi.setType(self.getPlotWidget().getXAxis().getLabel())
+
+        xmin, xmax = self.getPlotWidget().getXAxis().getLimits()
+        fromdata = xmin + 0.25 * (xmax - xmin)
+        todata = xmin + 0.75 * (xmax - xmin)
+        if roi.isICR():
+            fromdata, dummy0, todata, dummy1 = self._getAllLimits()
+        roi.setFrom(fromdata)
+        roi.setTo(todata)
+
+        self.roiTable.addRoi(roi)
+
+        # back compatibility pymca roi signals
         ddict = {}
         ddict['event'] = "AddROI"
-        roilist, roidict = self.roiTable.getROIListAndDict()
-        ddict['roilist'] = roilist
-        ddict['roidict'] = roidict
+        ddict['roilist'] = self.roiTable.roidict.values()
+        ddict['roidict'] = self.roiTable.roidict
         self.sigROIWidgetSignal.emit(ddict)
+        # end back compatibility pymca roi signals
 
     def _del(self):
         """Delete button clicked handler"""
-        row = self.roiTable.currentRow()
-        if row >= 0:
-            index = self.roiTable.labels.index('Type')
-            text = str(self.roiTable.item(row, index).text())
-            if text.upper() != 'DEFAULT':
-                index = self.roiTable.labels.index('ROI')
-                key = str(self.roiTable.item(row, index).text())
-            else:
-                # This is to prevent deleting ICR ROI, that is
-                # usually initialized as "Default" type.
-                return
-            roilist, roidict = self.roiTable.getROIListAndDict()
-            row = roilist.index(key)
-            del roilist[row]
-            del roidict[key]
-            if len(roilist) > 0:
-                currentroi = roilist[0]
-            else:
-                currentroi = None
+        self.roiTable.deleteActiveRoi()
 
-            self.roiTable.fillFromROIDict(roilist=roilist,
-                                          roidict=roidict,
-                                          currentroi=currentroi)
-            ddict = {}
-            ddict['event'] = "DelROI"
-            ddict['roilist'] = roilist
-            ddict['roidict'] = roidict
-            self.sigROIWidgetSignal.emit(ddict)
-
-    def _forward(self, ddict):
-        """Broadcast events from ROITable signal"""
+        # back compatibility pymca roi signals
+        ddict = {}
+        ddict['event'] = "DelROI"
+        ddict['roilist'] = self.roiTable.roidict.values()
+        ddict['roidict'] = self.roiTable.roidict
         self.sigROIWidgetSignal.emit(ddict)
+        # end back compatibility pymca roi signals
 
     def _reset(self):
         """Reset button clicked handler"""
+        self.roiTable.clear()
+        self._add()
+
+        # back compatibility pymca roi signals
         ddict = {}
         ddict['event'] = "ResetROI"
-        roilist0, roidict0 = self.roiTable.getROIListAndDict()
-        index = 0
-        for key in roilist0:
-            if roidict0[key]['type'].upper() == 'DEFAULT':
-                index = roilist0.index(key)
-                break
-        roilist = []
-        roidict = {}
-        if len(roilist0):
-            roilist.append(roilist0[index])
-            roidict[roilist[0]] = {}
-            roidict[roilist[0]].update(roidict0[roilist[0]])
-            self.roiTable.fillFromROIDict(roilist=roilist, roidict=roidict)
-        ddict['roilist'] = roilist
-        ddict['roidict'] = roidict
+        ddict['roilist'] = self.roiTable.roidict.values()
+        ddict['roidict'] = self.roiTable.roidict
         self.sigROIWidgetSignal.emit(ddict)
+        # end back compatibility pymca roi signals
 
     def _load(self):
         """Load button clicked handler"""
@@ -334,32 +283,22 @@ class CurvesROIWidget(qt.QWidget):
         dialog.close()
 
         self.roiFileDir = os.path.dirname(outputFile)
-        self.load(outputFile)
+        self.roiTable.load(outputFile)
+
+        # back compatibility pymca roi signals
+        ddict = {}
+        ddict['event'] = "LoadROI"
+        ddict['roilist'] = self.roiTable.roidict.values()
+        ddict['roidict'] = self.roiTable.roidict
+        self.sigROIWidgetSignal.emit(ddict)
+        # end back compatibility pymca roi signals
 
     def load(self, filename):
         """Load ROI widget information from a file storing a dict of ROI.
 
         :param str filename: The file from which to load ROI
         """
-        rois = dictdump.load(filename)
-        currentROI = None
-        if self.roiTable.rowCount():
-            item = self.roiTable.item(self.roiTable.currentRow(), 0)
-            if item is not None:
-                currentROI = str(item.text())
-
-        # Remove rawcounts and netcounts from ROIs
-        for roi in rois['ROI']['roidict'].values():
-            roi.pop('rawcounts', None)
-            roi.pop('netcounts', None)
-
-        self.roiTable.fillFromROIDict(roilist=rois['ROI']['roilist'],
-                                      roidict=rois['ROI']['roidict'],
-                                      currentroi=currentROI)
-
-        roilist, roidict = self.roiTable.getROIListAndDict()
-        event = {'event': 'LoadROI', 'roilist': roilist, 'roidict': roidict}
-        self.sigROIWidgetSignal.emit(event)
+        self.roiTable.load(filename)
 
     def _save(self):
         """Save button clicked handler"""
@@ -396,142 +335,24 @@ class CurvesROIWidget(qt.QWidget):
 
         :param str filename: The file to which to save the ROIs
         """
-        roilist, roidict = self.roiTable.getROIListAndDict()
-        datadict = {'ROI': {'roilist': roilist, 'roidict': roidict}}
-        dictdump.dump(datadict, filename)
+        self.roiTable.save(filename)
 
     def setHeader(self, text='ROIs'):
         """Set the header text of this widget"""
         self.headerLabel.setText("<b>%s<\b>" % text)
 
-    def _roiSignal(self, ddict):
-        """Handle ROI widget signal"""
-        _logger.debug("CurvesROIWidget._roiSignal %s", str(ddict))
-        plot = self.getPlotWidget()
-        if plot is None:
-            return
+    @deprecation.deprecated(replacement="calculateRois",
+                            reason="CamelCase convention",
+                            since_version="0.7")
+    def calculateROIs(self, *args, **kw):
+        self.calculateRois(*args, **kw)
 
-        if ddict['event'] == "AddROI":
-            xmin, xmax = plot.getXAxis().getLimits()
-            fromdata = xmin + 0.25 * (xmax - xmin)
-            todata = xmin + 0.75 * (xmax - xmin)
-            plot.remove('ROI min', kind='marker')
-            plot.remove('ROI max', kind='marker')
-            if self._middleROIMarkerFlag:
-                plot.remove('ROI middle', kind='marker')
-            roiList, roiDict = self.roiTable.getROIListAndDict()
-            nrois = len(roiList)
-            if nrois == 0:
-                newroi = "ICR"
-                fromdata, dummy0, todata, dummy1 = self._getAllLimits()
-                draggable = False
-                color = 'black'
-            else:
-                # find the next index free for newroi.
-                for i in range(nrois):
-                    i += 1
-                    newroi = "newroi %d" % i
-                    if newroi not in roiList:
-                        break
-                color = 'blue'
-                draggable = True
-            plot.addXMarker(fromdata,
-                            legend='ROI min',
-                            text='ROI min',
-                            color=color,
-                            draggable=draggable)
-            plot.addXMarker(todata,
-                            legend='ROI max',
-                            text='ROI max',
-                            color=color,
-                            draggable=draggable)
-            if draggable and self._middleROIMarkerFlag:
-                pos = 0.5 * (fromdata + todata)
-                plot.addXMarker(pos,
-                                legend='ROI middle',
-                                text="",
-                                color='yellow',
-                                draggable=draggable)
-            roiList.append(newroi)
-            roiDict[newroi] = {}
-            if newroi == "ICR":
-                roiDict[newroi]['type'] = "Default"
-            else:
-                roiDict[newroi]['type'] = plot.getXAxis().getLabel()
-            roiDict[newroi]['from'] = fromdata
-            roiDict[newroi]['to'] = todata
-            self.roiTable.fillFromROIDict(roilist=roiList,
-                                          roidict=roiDict,
-                                          currentroi=newroi)
-            self.currentROI = newroi
-            self.calculateRois()
-        elif ddict['event'] in ['DelROI', "ResetROI"]:
-            plot.remove('ROI min', kind='marker')
-            plot.remove('ROI max', kind='marker')
-            if self._middleROIMarkerFlag:
-                plot.remove('ROI middle', kind='marker')
-            roiList, roiDict = self.roiTable.getROIListAndDict()
-            roiDictKeys = list(roiDict.keys())
-            if len(roiDictKeys):
-                currentroi = roiDictKeys[0]
-            else:
-                # create again the ICR
-                ddict = {"event": "AddROI"}
-                return self._roiSignal(ddict)
+    def calculateRois(self, roiList=None, roiDict=None):
+        """Compute ROI information"""
+        return self.roiTable.calculateRois()
 
-            self.roiTable.fillFromROIDict(roilist=roiList,
-                                          roidict=roiDict,
-                                          currentroi=currentroi)
-            self.currentROI = currentroi
-
-        elif ddict['event'] == 'LoadROI':
-            self.calculateRois()
-
-        elif ddict['event'] == 'selectionChanged':
-            _logger.debug("Selection changed")
-            self.roilist, self.roidict = self.roiTable.getROIListAndDict()
-            fromdata = ddict['roi']['from']
-            todata = ddict['roi']['to']
-            plot.remove('ROI min', kind='marker')
-            plot.remove('ROI max', kind='marker')
-            if ddict['key'] == 'ICR':
-                draggable = False
-                color = 'black'
-            else:
-                draggable = True
-                color = 'blue'
-            plot.addXMarker(fromdata,
-                            legend='ROI min',
-                            text='ROI min',
-                            color=color,
-                            draggable=draggable)
-            plot.addXMarker(todata,
-                            legend='ROI max',
-                            text='ROI max',
-                            color=color,
-                            draggable=draggable)
-            if draggable and self._middleROIMarkerFlag:
-                pos = 0.5 * (fromdata + todata)
-                plot.addXMarker(pos,
-                                legend='ROI middle',
-                                text="",
-                                color='yellow',
-                                draggable=True)
-            self.currentROI = ddict['key']
-            if ddict['colheader'] in ['From', 'To']:
-                dict0 = {}
-                dict0['event'] = "SetActiveCurveEvent"
-                dict0['legend'] = plot.getActiveCurve(just_legend=1)
-                plot.setActiveCurve(dict0['legend'])
-            elif ddict['colheader'] == 'Raw Counts':
-                pass
-            elif ddict['colheader'] == 'Net Counts':
-                pass
-            else:
-                self._emitCurrentROISignal()
-
-        else:
-            _logger.debug("Unknown or ignored event %s", ddict['event'])
+    def showAllMarkers(self, _show=True):
+        self.roiTable.showAllMarkers(_show)
 
     def _getAllLimits(self):
         """Retrieve the limits based on the curves."""
@@ -565,429 +386,1109 @@ class CurvesROIWidget(qt.QWidget):
 
         return xmin, ymin, xmax, ymax
 
-    @deprecation.deprecated(replacement="calculateRois",
-                            reason="CamelCase convention")
-    def calculateROIs(self, *args, **kw):
-        self.calculateRois(*args, **kw)
+    def showEvent(self, event):
+        self._visibilityChangedHandler(visible=True)
+        qt.QWidget.showEvent(self, event)
 
-    def calculateRois(self, roiList=None, roiDict=None):
-        """Compute ROI information"""
-        if roiList is None or roiDict is None:
-            roiList, roiDict = self.roiTable.getROIListAndDict()
-
-        plot = self.getPlotWidget()
-        if plot is None:
-            activeCurve = None
-        else:
-            activeCurve = plot.getActiveCurve(just_legend=False)
-
-        if activeCurve is None:
-            xproc = None
-            yproc = None
-            self.setHeader()
-        else:
-            x = activeCurve.getXData(copy=False)
-            y = activeCurve.getYData(copy=False)
-            legend = activeCurve.getLegend()
-            idx = numpy.argsort(x, kind='mergesort')
-            xproc = numpy.take(x, idx)
-            yproc = numpy.take(y, idx)
-            self.setHeader('ROIs of %s' % legend)
-
-        for key in roiList:
-            if key == 'ICR':
-                if xproc is not None:
-                    roiDict[key]['from'] = xproc.min()
-                    roiDict[key]['to'] = xproc.max()
-                else:
-                    roiDict[key]['from'] = 0
-                    roiDict[key]['to'] = -1
-            fromData = roiDict[key]['from']
-            toData = roiDict[key]['to']
-            if xproc is not None:
-                idx = numpy.nonzero((fromData <= xproc) &
-                                    (xproc <= toData))[0]
-                if len(idx):
-                    xw = xproc[idx]
-                    yw = yproc[idx]
-                    rawCounts = yw.sum(dtype=numpy.float)
-                    deltaX = xw[-1] - xw[0]
-                    deltaY = yw[-1] - yw[0]
-                    if deltaX > 0.0:
-                        slope = (deltaY / deltaX)
-                        background = yw[0] + slope * (xw - xw[0])
-                        netCounts = (rawCounts -
-                                     background.sum(dtype=numpy.float))
-                    else:
-                        netCounts = 0.0
-                else:
-                    rawCounts = 0.0
-                    netCounts = 0.0
-                roiDict[key]['rawcounts'] = rawCounts
-                roiDict[key]['netcounts'] = netCounts
-            else:
-                roiDict[key].pop('rawcounts', None)
-                roiDict[key].pop('netcounts', None)
-
-        self.roiTable.fillFromROIDict(
-                roilist=roiList,
-                roidict=roiDict,
-                currentroi=self.currentROI if self.currentROI in roiList else None)
-
-    def _emitCurrentROISignal(self):
-        ddict = {}
-        ddict['event'] = "currentROISignal"
-        _roiList, roiDict = self.roiTable.getROIListAndDict()
-        if self.currentROI in roiDict:
-            ddict['ROI'] = roiDict[self.currentROI]
-        else:
-            self.currentROI = None
-        ddict['current'] = self.currentROI
-        self.sigROISignal.emit(ddict)
-
-    def _handleROIMarkerEvent(self, ddict):
-        """Handle plot signals related to marker events."""
-        if ddict['event'] == 'markerMoved':
-
-            label = ddict['label']
-            if label not in ['ROI min', 'ROI max', 'ROI middle']:
-                return
-
-            roiList, roiDict = self.roiTable.getROIListAndDict()
-            if self.currentROI is None:
-                return
-            if self.currentROI not in roiDict:
-                return
-
-            plot = self.getPlotWidget()
-            if plot is None:
-                return
-
-            x = ddict['x']
-
-            if label == 'ROI min':
-                roiDict[self.currentROI]['from'] = x
-                if self._middleROIMarkerFlag:
-                    pos = 0.5 * (roiDict[self.currentROI]['to'] +
-                                 roiDict[self.currentROI]['from'])
-                    plot.addXMarker(pos,
-                                    legend='ROI middle',
-                                    text='',
-                                    color='yellow',
-                                    draggable=True)
-            elif label == 'ROI max':
-                roiDict[self.currentROI]['to'] = x
-                if self._middleROIMarkerFlag:
-                    pos = 0.5 * (roiDict[self.currentROI]['to'] +
-                                 roiDict[self.currentROI]['from'])
-                    plot.addXMarker(pos,
-                                    legend='ROI middle',
-                                    text='',
-                                    color='yellow',
-                                    draggable=True)
-            elif label == 'ROI middle':
-                delta = x - 0.5 * (roiDict[self.currentROI]['from'] +
-                                   roiDict[self.currentROI]['to'])
-                roiDict[self.currentROI]['from'] += delta
-                roiDict[self.currentROI]['to'] += delta
-                plot.addXMarker(roiDict[self.currentROI]['from'],
-                                legend='ROI min',
-                                text='ROI min',
-                                color='blue',
-                                draggable=True)
-                plot.addXMarker(roiDict[self.currentROI]['to'],
-                                legend='ROI max',
-                                text='ROI max',
-                                color='blue',
-                                draggable=True)
-            else:
-                return
-            self.calculateRois(roiList, roiDict)
-            self._emitCurrentROISignal()
+    def hideEvent(self, event):
+        self._visibilityChangedHandler(visible=False)
+        qt.QWidget.hideEvent(self, event)
 
     def _visibilityChangedHandler(self, visible):
         """Handle widget's visibility updates.
 
         It is connected to plot signals only when visible.
         """
-        plot = self.getPlotWidget()
-
         if visible:
-            if not self._isInit:
-                # Deferred ROI widget init finalization
-                self._finalizeInit()
-
-            if not self._isConnected and plot is not None:
-                plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
-                plot.sigActiveCurveChanged.connect(
-                    self._activeCurveChanged)
-                self._isConnected = True
-
+            # if no ROI existing yet, add the default one
+            if self.roiTable.rowCount() is 0:
+                self._add()
                 self.calculateRois()
+
+    @deprecation.deprecated(reason="API modification",
+                            replacement="setRois",
+                            since_version="0.10.0")
+    def fillFromROIDict(self, *args, **kwargs):
+        self.roiTable.fillFromROIDict(*args, **kwargs)
+
+    def _emitCurrentROISignal(self):
+        ddict = {}
+        ddict['event'] = "currentROISignal"
+        if self.roiTable.activeRoi is not None:
+            ddict['ROI'] = self.roiTable.activeRoi.toDict()
+            ddict['current'] = self.roiTable.activeRoi.getName()
         else:
-            if self._isConnected:
-                if plot is not None:
-                    plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
-                    plot.sigActiveCurveChanged.disconnect(
-                        self._activeCurveChanged)
-                self._isConnected = False
+            ddict['current'] = None
+        self.sigROISignal.emit(ddict)
 
-    def _activeCurveChanged(self, *args):
-        """Recompute ROIs when active curve changed."""
-        self.calculateRois()
-
-    def _finalizeInit(self):
-        self._isInit = True
-        self.sigROIWidgetSignal.connect(self._roiSignal)
-        # initialize with the ICR if no ROi existing yet
-        if len(self.getRois()) is 0:
-            self._roiSignal({'event': "AddROI"})
+    @property
+    def currentRoi(self):
+        return self.roiTable.activeRoi
 
 
-class ROITable(qt.QTableWidget):
+class _FloatItem(qt.QTableWidgetItem):
+    """
+    Simple QTableWidgetItem overloading the < operator to deal with ordering
+    """
+    def __init__(self):
+        qt.QTableWidgetItem.__init__(self, type=qt.QTableWidgetItem.Type)
+
+    def __lt__(self, other):
+        if self.text() in ('', ROITable.INFO_NOT_FOUND):
+            return False
+        if other.text() in ('', ROITable.INFO_NOT_FOUND):
+            return True
+        return float(self.text()) < float(other.text())
+
+
+class ROITable(TableWidget):
     """Table widget displaying ROI information.
 
     See :class:`QTableWidget` for constructor arguments.
+
+    Behavior: listen at the active curve changed only when the widget is
+    visible. Otherwise won't compute the row and net counts...
     """
 
-    sigROITableSignal = qt.Signal(object)
-    """Signal of ROI table modifications.
-    """
+    activeROIChanged = qt.Signal()
+    """Signal emitted when the active roi changed or when the value of the
+    active roi are changing"""
 
-    def __init__(self, *args, **kwargs):
-        super(ROITable, self).__init__(*args, **kwargs)
-        self.setRowCount(1)
-        self.labels = 'ROI', 'Type', 'From', 'To', 'Raw Counts', 'Net Counts'
-        self.setColumnCount(len(self.labels))
-        self.setSortingEnabled(False)
+    COLUMNS_INDEX = OrderedDict([
+        ('ID', 0),
+        ('ROI', 1),
+        ('Type', 2),
+        ('From', 3),
+        ('To', 4),
+        ('Raw Counts', 5),
+        ('Net Counts', 6),
+        ('Raw Area', 7),
+        ('Net Area', 8),
+    ])
 
-        for index, label in enumerate(self.labels):
-            item = self.horizontalHeaderItem(index)
-            if item is None:
-                item = qt.QTableWidgetItem(label,
-                                           qt.QTableWidgetItem.Type)
-            item.setText(label)
-            self.setHorizontalHeaderItem(index, item)
+    COLUMNS = list(COLUMNS_INDEX.keys())
 
-        self.roidict = {}
-        self.roilist = []
+    INFO_NOT_FOUND = '????????'
 
-        self.building = False
-        self.fillFromROIDict(roilist=self.roilist, roidict=self.roidict)
+    def __init__(self, parent=None, plot=None, rois=None):
+        super(ROITable, self).__init__(parent)
+        self._showAllMarkers = False
+        self._middleROIMarkerFlag = False
+        self._userIsEditingRoi = False
+        """bool used to avoid conflict when editing the ROI object"""
+        self._isConnected = False
+        self._roiToItems = {}
+        self._roiDict = {}
+        """dict of ROI object. Key is ROi id, value is the ROI object"""
+        self._markersHandler = _RoiMarkerManager()
 
-        self.cellClicked[(int, int)].connect(self._cellClickedSlot)
-        self.cellChanged[(int, int)].connect(self._cellChangedSlot)
-        verticalHeader = self.verticalHeader()
-        verticalHeader.sectionClicked[int].connect(self._rowChangedSlot)
-
+        """
+        Associate for each marker legend used when the `_showAllMarkers` option
+        is active a roi.
+        """
+        self.setColumnCount(len(self.COLUMNS))
+        self.setPlot(plot)
         self.__setTooltip()
+        self.setSortingEnabled(True)
+        self.itemChanged.connect(self._itemChanged)
+
+    @property
+    def roidict(self):
+        return self._getRoiDict()
+
+    @property
+    def activeRoi(self):
+        return self._markersHandler._activeRoi
+
+    def _getRoiDict(self):
+        ddict = {}
+        for id in self._roiDict:
+            ddict[self._roiDict[id].getName()] = self._roiDict[id]
+        return ddict
+
+    def clear(self):
+        """
+        .. note:: clear the interface only. keep the roidict...
+        """
+        self._markersHandler.clear()
+        self._roiToItems = {}
+        self._roiDict = {}
+
+        qt.QTableWidget.clear(self)
+        self.setRowCount(0)
+        self.setHorizontalHeaderLabels(self.COLUMNS)
+        header = self.horizontalHeader()
+        if hasattr(header, 'setSectionResizeMode'):  # Qt5
+            header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
+        else:  # Qt4
+            header.setResizeMode(qt.QHeaderView.ResizeToContents)
+        self.sortByColumn(0, qt.Qt.AscendingOrder)
+        self.hideColumn(self.COLUMNS_INDEX['ID'])
+
+    def setPlot(self, plot):
+        self.clear()
+        self.plot = plot
 
     def __setTooltip(self):
-        assert(self.labels[0] == 'ROI')
-        self.horizontalHeaderItem(0).setToolTip('Region of interest identifier')
-        assert(self.labels[1] == 'Type')
-        self.horizontalHeaderItem(1).setToolTip('Type of the ROI')
-        assert(self.labels[2] == 'From')
-        self.horizontalHeaderItem(2).setToolTip('X-value of the min point')
-        assert(self.labels[3] == 'To')
-        self.horizontalHeaderItem(3).setToolTip('X-value of the max point')
-        assert(self.labels[4] == 'Raw Counts')
-        self.horizontalHeaderItem(4).setToolTip('Estimation of the integral \
-            between y=0 and the selected curve')
-        assert(self.labels[5] == 'Net Counts')
-        self.horizontalHeaderItem(5).setToolTip('Estimation of the integral \
-            between the segment [maxPt, minPt] and the selected curve')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['ROI']).setToolTip(
+            'Region of interest identifier')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['Type']).setToolTip(
+            'Type of the ROI')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['From']).setToolTip(
+            'X-value of the min point')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['To']).setToolTip(
+            'X-value of the max point')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['Raw Counts']).setToolTip(
+            'Estimation of the integral between y=0 and the selected curve')
+        self.horizontalHeaderItem(self.COLUMNS_INDEX['Net Counts']).setToolTip(
+            'Estimation of the integral between the segment [maxPt, minPt] '
+            'and the selected curve')
 
+    def setRois(self, rois, order=None):
+        """Set the ROIs by providing a dictionary of ROI information.
+
+        The dictionary keys are the ROI names.
+        Each value is a sub-dictionary of ROI info with the following fields:
+
+        - ``"from"``: x coordinate of the left limit, as a float
+        - ``"to"``: x coordinate of the right limit, as a float
+        - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
+
+        :param roidict: Dictionary of ROIs
+        :param str order: Field used for ordering the ROIs.
+             One of "from", "to", "type".
+             None (default) for no ordering, or same order as specified
+             in parameter ``roidict`` if provided as an OrderedDict.
+        """
+        assert order in [None, "from", "to", "type"]
+        self.clear()
+
+        # backward compatibility since 0.10.0
+        if isinstance(rois, dict):
+            deprecation.deprecated_warning(name='rois', type_='Parameter',
+                                           reason='Rois should now be a list '
+                                                  'of ROI object',
+                                           since_version="0.10.0")
+            for roiName, roi in rois.items():
+                roi['name'] = roiName
+                _roi = ROI._fromDict(roi)
+                self.addRoi(_roi)
+        else:
+            for roi in rois:
+                assert isinstance(roi, ROI)
+                self.addRoi(roi)
+        self._updateMarkers()
+
+    def addRoi(self, roi):
+        """
+
+        :param :class:`ROI` roi: roi to add to the table
+        """
+        assert isinstance(roi, ROI)
+        self._getItem(name='ID', row=None, roi=roi)
+        self._roiDict[roi.getID()] = roi
+        self._markersHandler.add(roi, _RoiMarkerHandler(roi, self.plot))
+        self._updateRoiInfo(roi.getID())
+        callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
+                                     roi.getID())
+        roi.sigChanged.connect(callback)
+        # set it as the active one
+        self.setActiveRoi(roi)
+
+    def _getItem(self, name, row, roi):
+        if row:
+            item = self.item(row, self.COLUMNS_INDEX[name])
+        else:
+            item = None
+        if item:
+            return item
+        else:
+            if name == 'ID':
+                assert roi
+                if roi.getID() in self._roiToItems:
+                    return self._roiToItems[roi.getID()]
+                else:
+                    # create a new row
+                    row = self.rowCount()
+                    self.setRowCount(self.rowCount() + 1)
+                    item = qt.QTableWidgetItem(str(roi.getID()),
+                                               type=qt.QTableWidgetItem.Type)
+                    self._roiToItems[roi.getID()] = item
+            elif name == 'ROI':
+                item = qt.QTableWidgetItem(roi.getName() if roi else '',
+                                           type=qt.QTableWidgetItem.Type)
+                if roi.getName().upper() in ('ICR', 'DEFAULT'):
+                    item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                else:
+                    item.setFlags(qt.Qt.ItemIsSelectable |
+                                  qt.Qt.ItemIsEnabled |
+                                  qt.Qt.ItemIsEditable)
+            elif name == 'Type':
+                item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
+                item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+            elif name in ('To', 'From'):
+                item = _FloatItem()
+                if roi.getName().upper() in ('ICR', 'DEFAULT'):
+                    item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
+                else:
+                    item.setFlags(qt.Qt.ItemIsSelectable |
+                                  qt.Qt.ItemIsEnabled |
+                                  qt.Qt.ItemIsEditable)
+            elif name in ('Raw Counts', 'Net Counts', 'Raw Area', 'Net Area'):
+                item = _FloatItem()
+                item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+            else:
+                raise ValueError('item type not recognized')
+
+            self.setItem(row, self.COLUMNS_INDEX[name], item)
+            return item
+
+    def _itemChanged(self, item):
+        def getRoi():
+            IDItem = self.item(item.row(), self.COLUMNS_INDEX['ID'])
+            assert IDItem
+            id = int(IDItem.text())
+            assert id in self._roiDict
+            roi = self._roiDict[id]
+            return roi
+
+        def signalChanged(roi):
+            if self.activeRoi and roi.getID() == self.activeRoi.getID():
+                self.activeROIChanged.emit()
+
+        self._userIsEditingRoi = True
+        if item.column() in (self.COLUMNS_INDEX['To'], self.COLUMNS_INDEX['From']):
+            roi = getRoi()
+
+            if item.text() not in ('', self.INFO_NOT_FOUND):
+                try:
+                    value = float(item.text())
+                except ValueError:
+                    value = 0
+                if item.column() == self.COLUMNS_INDEX['To']:
+                    roi.setTo(value)
+                else:
+                    assert(item.column() == self.COLUMNS_INDEX['From'])
+                    roi.setFrom(value)
+                self._updateMarker(roi.getName())
+                signalChanged(roi)
+
+        if item.column() is self.COLUMNS_INDEX['ROI']:
+            roi = getRoi()
+            roi.setName(item.text())
+            self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
+            signalChanged(roi)
+
+        self._userIsEditingRoi = False
+
+    def deleteActiveRoi(self):
+        """
+        remove the current active roi
+        """
+        activeItems = self.selectedItems()
+        if len(activeItems) is 0:
+            return
+        roiToRm = set()
+        for item in activeItems:
+            row = item.row()
+            itemID = self.item(row, self.COLUMNS_INDEX['ID'])
+            roiToRm.add(self._roiDict[int(itemID.text())])
+        [self.removeROI(roi) for roi in roiToRm]
+        self.setActiveRoi(None)
+
+    def removeROI(self, roi):
+        """
+        remove the requested roi
+
+        :param str name: the name of the roi to remove from the table
+        """
+        if roi and roi.getID() in self._roiToItems:
+            item = self._roiToItems[roi.getID()]
+            self.removeRow(item.row())
+            del self._roiToItems[roi.getID()]
+
+            assert roi.getID() in self._roiDict
+            del self._roiDict[roi.getID()]
+            self._markersHandler.remove(roi)
+
+            callback = functools.partial(WeakMethodProxy(self._updateRoiInfo),
+                                         roi.getID())
+            roi.sigChanged.connect(callback)
+
+    def setActiveRoi(self, roi):
+        """
+        Define the given roi as the active one.
+
+        .. warning:: this roi should already be registred / added to the table
+
+        :param :class:`ROI` roi: the roi to defined as active
+        """
+        if roi is None:
+            self.clearSelection()
+            self._markersHandler.setActiveRoi(None)
+            self.activeROIChanged.emit()
+        else:
+            assert isinstance(roi, ROI)
+            if roi and roi.getID() in self._roiToItems.keys():
+                self.selectRow(self._roiToItems[roi.getID()].row())
+                self._markersHandler.setActiveRoi(roi)
+                self.activeROIChanged.emit()
+
+    def _updateRoiInfo(self, roiID):
+        if self._userIsEditingRoi is True:
+            return
+        if roiID not in self._roiDict:
+            return
+        roi = self._roiDict[roiID]
+        if roi.isICR():
+            activeCurve = self.plot.getActiveCurve()
+            if activeCurve:
+                xData = activeCurve.getXData()
+                if len(xData) > 0:
+                    min, max = min_max(xData)
+                    roi.blockSignals(True)
+                    roi.setFrom(min)
+                    roi.setTo(max)
+                    roi.blockSignals(False)
+
+        itemID = self._getItem(name='ID', roi=roi, row=None)
+        itemName = self._getItem(name='ROI', row=itemID.row(), roi=roi)
+        itemName.setText(roi.getName())
+
+        itemType = self._getItem(name='Type', row=itemID.row(), roi=roi)
+        itemType.setText(roi.getType() or self.INFO_NOT_FOUND)
+
+        itemFrom = self._getItem(name='From', row=itemID.row(), roi=roi)
+        fromdata = str(roi.getFrom()) if roi.getFrom() is not None else self.INFO_NOT_FOUND
+        itemFrom.setText(fromdata)
+
+        itemTo = self._getItem(name='To', row=itemID.row(), roi=roi)
+        todata = str(roi.getTo()) if roi.getTo() is not None else self.INFO_NOT_FOUND
+        itemTo.setText(todata)
+
+        rawCounts, netCounts = roi.computeRawAndNetCounts(
+            curve=self.plot.getActiveCurve(just_legend=False))
+        itemRawCounts = self._getItem(name='Raw Counts', row=itemID.row(),
+                                      roi=roi)
+        rawCounts = str(rawCounts) if rawCounts is not None else self.INFO_NOT_FOUND
+        itemRawCounts.setText(rawCounts)
+
+        itemNetCounts = self._getItem(name='Net Counts', row=itemID.row(),
+                                      roi=roi)
+        netCounts = str(netCounts) if netCounts is not None else self.INFO_NOT_FOUND
+        itemNetCounts.setText(netCounts)
+
+        rawArea, netArea = roi.computeRawAndNetArea(
+            curve=self.plot.getActiveCurve(just_legend=False))
+        itemRawArea = self._getItem(name='Raw Area', row=itemID.row(),
+                                      roi=roi)
+        rawArea = str(rawArea) if rawArea is not None else self.INFO_NOT_FOUND
+        itemRawArea.setText(rawArea)
+
+        itemNetArea = self._getItem(name='Net Area', row=itemID.row(),
+                                    roi=roi)
+        netArea = str(netArea) if netArea is not None else self.INFO_NOT_FOUND
+        itemNetArea.setText(netArea)
+
+        if self.activeRoi and roi.getID() == self.activeRoi.getID():
+            self.activeROIChanged.emit()
+
+    def currentChanged(self, current, previous):
+        if previous and current.row() != previous.row() and current.row() >= 0:
+            roiItem = self.item(current.row(),
+                                self.COLUMNS_INDEX['ID'])
+
+            assert roiItem
+            self.setActiveRoi(self._roiDict[int(roiItem.text())])
+            self._markersHandler.updateAllMarkers()
+        qt.QTableWidget.currentChanged(self, current, previous)
+
+    @deprecation.deprecated(reason="Removed",
+                            replacement="roidict and roidict.values()",
+                            since_version="0.10.0")
+    def getROIListAndDict(self):
+        """
+
+        :return: the list of roi objects and the dictionary of roi name to roi
+                 object.
+        """
+        roidict = self._roiDict
+        return list(roidict.values()), roidict
+
+    def calculateRois(self, roiList=None, roiDict=None):
+        """
+        Update values of all registred rois (raw and net counts in particular)
+
+        :param roiList: deprecated parameter
+        :param roiDict: deprecated parameter
+        """
+        if roiDict:
+            deprecation.deprecated_warning(name='roiDict', type_='Parameter',
+                                           reason='Unused parameter',
+                                           since_version="0.10.0")
+        if roiList:
+            deprecation.deprecated_warning(name='roiList', type_='Parameter',
+                                           reason='Unused parameter',
+                                           since_version="0.10.0")
+
+        for roiID in self._roiDict:
+            self._updateRoiInfo(roiID)
+
+    def _updateMarker(self, roiID):
+        """Make sure the marker of the given roi name is updated"""
+        if self._showAllMarkers or (self.activeRoi
+                                    and self.activeRoi.getName() == roiID):
+            self._updateMarkers()
+
+    def _updateMarkers(self):
+        if self._showAllMarkers is True:
+            self._markersHandler.updateMarkers()
+        else:
+            if not self.activeRoi or not self.plot:
+                return
+            assert isinstance(self.activeRoi, ROI)
+            markerHandler = self._markersHandler.getMarkerHandler(self.activeRoi.getID())
+            if markerHandler is not None:
+                markerHandler.updateMarkers()
+
+    def getRois(self, order, asDict=False):
+        """
+        Return the currently defined ROIs, as an ordered dict.
+
+        The dictionary keys are the ROI names.
+        Each value is a :class:`ROI` object..
+
+        :param order: Field used for ordering the ROIs.
+             One of "from", "to", "type", "netcounts", "rawcounts".
+             None (default) to get the same order as displayed in the widget.
+        :return: Ordered dictionary of ROI information
+        """
+
+        if order is None or order.lower() == "none":
+            ordered_roilist = list(self._roiDict.values())
+            res = OrderedDict([(roi.getName(), self._roiDict[roi.getID()]) for roi in ordered_roilist])
+        else:
+            assert order in ["from", "to", "type", "netcounts", "rawcounts"]
+            ordered_roilist = sorted(self._roiDict.keys(),
+                                     key=lambda roi_id: self._roiDict[roi_id].get(order))
+            res = OrderedDict([(roi.getName(), self._roiDict[id]) for id in ordered_roilist])
+
+        return res
+
+    def save(self, filename):
+        """
+        Save current ROIs of the widget as a dict of ROI to a file.
+
+        :param str filename: The file to which to save the ROIs
+        """
+        roilist = []
+        roidict = {}
+        for roiID, roi in self._roiDict.items():
+            roilist.append(roi.toDict())
+            roidict[roi.getName()] = roi.toDict()
+        datadict = {'ROI': {'roilist': roilist, 'roidict': roidict}}
+        dictdump.dump(datadict, filename)
+
+    def load(self, filename):
+        """
+        Load ROI widget information from a file storing a dict of ROI.
+
+        :param str filename: The file from which to load ROI
+        """
+        roisDict = dictdump.load(filename)
+        rois = []
+
+        # Remove rawcounts and netcounts from ROIs
+        for roiDict in roisDict['ROI']['roidict'].values():
+            roiDict.pop('rawcounts', None)
+            roiDict.pop('netcounts', None)
+            rois.append(ROI._fromDict(roiDict))
+
+        self.setRois(rois)
+
+    def showAllMarkers(self, _show=True):
+        """
+
+        :param bool _show: if true show all the markers of all the ROIs
+                           boundaries otherwise will only show the one of
+                           the active ROI.
+        """
+        self._markersHandler.setShowAllMarkers(_show)
+
+    def setMiddleROIMarkerFlag(self, flag=True):
+        """
+        Activate or deactivate middle marker.
+
+        This allows shifting both min and max limits at once, by dragging
+        a marker located in the middle.
+
+        :param bool flag: True to activate middle ROI marker
+        """
+        self._middleROIMarkerFlag = flag
+
+    def _handleROIMarkerEvent(self, ddict):
+        """Handle plot signals related to marker events."""
+        if ddict['event'] == 'markerMoved':
+            label = ddict['label']
+            roiID = self._markersHandler.getRoiID(markerID=label)
+            if roiID:
+                self._markersHandler.changePosition(markerID=label,
+                                                    x=ddict['x'])
+                self._updateRoiInfo(roiID)
+
+    def showEvent(self, event):
+        self._visibilityChangedHandler(visible=True)
+        qt.QWidget.showEvent(self, event)
+
+    def hideEvent(self, event):
+        self._visibilityChangedHandler(visible=False)
+        qt.QWidget.hideEvent(self, event)
+
+    def _visibilityChangedHandler(self, visible):
+        """Handle widget's visibility updates.
+
+        It is connected to plot signals only when visible.
+        """
+        if visible:
+            assert self.plot
+            if self._isConnected is False:
+                self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
+                self.plot.sigActiveCurveChanged.connect(self._activeCurveChanged)
+                self._isConnected = True
+            self.calculateRois()
+        else:
+            if self._isConnected:
+                self.plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
+                self.plot.sigActiveCurveChanged.disconnect(self._activeCurveChanged)
+                self._isConnected = False
+
+    def _activeCurveChanged(self, curve):
+        self.calculateRois()
+
+    def setCountsVisible(self, visible):
+        """
+        Display the columns relative to areas or not
+
+        :param bool visible: True if the columns 'Raw Area' and 'Net Area'
+                             should be visible.
+        """
+        if visible is True:
+            self.showColumn(self.COLUMNS_INDEX['Raw Counts'])
+            self.showColumn(self.COLUMNS_INDEX['Net Counts'])
+        else:
+            self.hideColumn(self.COLUMNS_INDEX['Raw Counts'])
+            self.hideColumn(self.COLUMNS_INDEX['Net Counts'])
+
+    def setAreaVisible(self, visible):
+        """
+        Display the columns relative to areas or not
+
+        :param bool visible: True if the columns 'Raw Area' and 'Net Area'
+                             should be visible.
+        """
+        if visible is True:
+            self.showColumn(self.COLUMNS_INDEX['Raw Area'])
+            self.showColumn(self.COLUMNS_INDEX['Net Area'])
+        else:
+            self.hideColumn(self.COLUMNS_INDEX['Raw Area'])
+            self.hideColumn(self.COLUMNS_INDEX['Net Area'])
+
+    @deprecation.deprecated(reason="API modification",
+                            replacement="setRois",
+                            since_version="0.10.0")
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
-        """Set the ROIs by providing a list of ROI names and a dictionary
+        """Set the ROIs by providing a list of ROI names and a dictionary
         of ROI information for each ROI.
-
         The ROI names must match an existing dictionary key.
         The name list is used to provide an order for the ROIs.
-
         The dictionary's values are sub-dictionaries containing 3
         mandatory fields:
-
            - ``"from"``: x coordinate of the left limit, as a float
            - ``"to"``: x coordinate of the right limit, as a float
            - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
-
         :param roilist: List of ROI names (keys of roidict)
         :type roilist: List
         :param dict roidict: Dict of ROI information
         :param currentroi: Name of the selected ROI or None (no selection)
         """
-        if roidict is None:
-            roidict = {}
-
-        self.building = True
-        line0 = 0
-        self.roilist = []
-        self.roidict = {}
-        for key in roilist:
-            if key in roidict.keys():
-                roi = roidict[key]
-                self.roilist.append(key)
-                self.roidict[key] = {}
-                self.roidict[key].update(roi)
-                line0 = line0 + 1
-                nlines = self.rowCount()
-                if (line0 > nlines):
-                    self.setRowCount(line0)
-                line = line0 - 1
-                self.roidict[key]['line'] = line
-                ROI = key
-                roitype = "%s" % roi['type']
-                fromdata = "%6g" % (roi['from'])
-                todata = "%6g" % (roi['to'])
-                if 'rawcounts' in roi:
-                    rawcounts = "%6g" % (roi['rawcounts'])
-                else:
-                    rawcounts = " ?????? "
-                if 'netcounts' in roi:
-                    netcounts = "%6g" % (roi['netcounts'])
-                else:
-                    netcounts = " ?????? "
-                fields = [ROI, roitype, fromdata, todata, rawcounts, netcounts]
-                col = 0
-                for field in fields:
-                    key2 = self.item(line, col)
-                    if key2 is None:
-                        key2 = qt.QTableWidgetItem(field,
-                                                   qt.QTableWidgetItem.Type)
-                        self.setItem(line, col, key2)
-                    else:
-                        key2.setText(field)
-                    if (ROI.upper() == 'ICR') or (ROI.upper() == 'DEFAULT'):
-                            key2.setFlags(qt.Qt.ItemIsSelectable |
-                                          qt.Qt.ItemIsEnabled)
-                    else:
-                        if col in [0, 2, 3]:
-                            key2.setFlags(qt.Qt.ItemIsSelectable |
-                                          qt.Qt.ItemIsEnabled |
-                                          qt.Qt.ItemIsEditable)
-                        else:
-                            key2.setFlags(qt.Qt.ItemIsSelectable |
-                                          qt.Qt.ItemIsEnabled)
-                    col = col + 1
-        self.setRowCount(line0)
-        i = 0
-        for _label in self.labels:
-            self.resizeColumnToContents(i)
-            i = i + 1
-        self.sortByColumn(2, qt.Qt.AscendingOrder)
-        for i in range(len(self.roilist)):
-            key = str(self.item(i, 0).text())
-            self.roilist[i] = key
-            self.roidict[key]['line'] = i
-        if len(self.roilist) == 1:
-            self.selectRow(0)
+        if roidict is not None:
+            deprecation.deprecated_warning(name='roidict', type_='Parameter',
+                                           reason='Rois should now be a list '
+                                                  'of ROI object',
+                                           since_version="0.10.0")
+            self.setRois(roidict)
         else:
-            if currentroi in self.roidict.keys():
-                self.selectRow(self.roidict[currentroi]['line'])
-                _logger.debug("Qt4 ensureCellVisible to be implemented")
-        self.building = False
-
-    def getROIListAndDict(self):
-        """Return the currently defined ROIs, as a 2-tuple
-        ``(roiList, roiDict)``
-
-        ``roiList`` is a list of ROI names.
-        ``roiDict`` is a dictionary of ROI info.
-
-        The ROI names must match an existing dictionary key.
-        The name list is used to provide an order for the ROIs.
-
-        The dictionary's values are sub-dictionaries containing 3
-        fields:
-
-           - ``"from"``: x coordinate of the left limit, as a float
-           - ``"to"``: x coordinate of the right limit, as a float
-           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+            self.setRois(roilist)
+        if currentroi:
+            self.setActiveRoi(currentroi)
 
 
-        :return: ordered dict as a tuple of (list of ROI names, dict of info)
+_indexNextROI = 0
+
+
+class ROI(qt.QObject):
+    """The Region Of Interest is defined by:
+
+    - A name
+    - A type. The type is the label of the x axis. This can be used to apply or
+    not some ROI to a curve and do some post processing.
+    - The x coordinate of the left limit (fromdata)
+    - The x coordinate of the right limit (todata)
+
+    :param str: name of the ROI
+    :param fromdata: left limit of the roi
+    :param todata: right limit of the roi
+    :param type: type of the ROI
+    """
+
+    sigChanged = qt.Signal()
+    """Signal emitted when the ROI is edited"""
+
+    def __init__(self, name, fromdata=None, todata=None, type_=None):
+        qt.QObject.__init__(self)
+        assert type(name) is str
+        global _indexNextROI
+        self._id = _indexNextROI
+        _indexNextROI += 1
+
+        self._name = name
+        self._fromdata = fromdata
+        self._todata = todata
+        self._type = type_ or 'Default'
+
+    def getID(self):
         """
-        return self.roilist, self.roidict
 
-    def _cellClickedSlot(self, *var, **kw):
-        # selection changed event, get the current selection
-        row = self.currentRow()
-        col = self.currentColumn()
-        if row >= 0 and row < len(self.roilist):
-            item = self.item(row, 0)
-            text = '' if item is None else str(item.text())
-            self.roilist[row] = text
-            self._emitSelectionChangedSignal(row, col)
+        :return int: the unique ID of the ROI
+        """
+        return self._id
 
-    def _rowChangedSlot(self, row):
-        self._emitSelectionChangedSignal(row, 0)
+    def setType(self, type_):
+        """
 
-    def _cellChangedSlot(self, row, col):
-        _logger.debug("_cellChangedSlot(%d, %d)", row, col)
-        if self.building:
-            return
-        if col == 0:
-            self.nameSlot(row, col)
+        :param str type_:
+        """
+        self._type = type_
+        self.sigChanged.emit()
+
+    def getType(self):
+        """
+
+        :return str: the type of the ROI.
+        """
+        return self._type
+
+    def setName(self, name):
+        """
+        Set the name of the :class:`ROI`
+
+        :param str name:
+        """
+        self._name = name
+        self.sigChanged.emit()
+
+    def getName(self):
+        """
+
+        :return str: name of the :class:`ROI`
+        """
+        return self._name
+
+    def setFrom(self, frm):
+        """
+
+        :param frm: set x coordinate of the left limit
+        """
+        self._fromdata = frm
+        self.sigChanged.emit()
+
+    def getFrom(self):
+        """
+
+        :return: x coordinate of the left limit
+        """
+        return self._fromdata
+
+    def setTo(self, to):
+        """
+
+        :param to: x coordinate of the right limit
+        """
+        self._todata = to
+        self.sigChanged.emit()
+
+    def getTo(self):
+        """
+
+        :return: x coordinate of the right limit
+        """
+        return self._todata
+
+    def getMiddle(self):
+        """
+
+        :return: middle position between 'from' and 'to' values
+        """
+        return 0.5 * (self.getFrom() + self.getTo())
+
+    def toDict(self):
+        """
+
+        :return: dict containing the roi parameters
+        """
+        ddict = {
+            'type': self._type,
+            'name': self._name,
+            'from': self._fromdata,
+            'to': self._todata,
+        }
+        if hasattr(self, '_extraInfo'):
+            ddict.update(self._extraInfo)
+        return ddict
+
+    @staticmethod
+    def _fromDict(dic):
+        assert 'name' in dic
+        roi = ROI(name=dic['name'])
+        roi._extraInfo = {}
+        for key in dic:
+            if key == 'from':
+                roi.setFrom(dic['from'])
+            elif key == 'to':
+                roi.setTo(dic['to'])
+            elif key == 'type':
+                roi.setType(dic['type'])
+            else:
+                roi._extraInfo[key] = dic[key]
+
+        return roi
+
+    def isICR(self):
+        """
+
+        :return: True if the ROI is the `ICR`
+        """
+        return self._name == 'ICR'
+
+    def computeRawAndNetCounts(self, curve):
+        """Compute the Raw and net counts in the ROI for the given curve.
+
+        - Raw count: Points values sum of the curve in the defined Region Of
+           Interest.
+
+          .. image:: img/rawCounts.png
+
+        - Net count: Raw counts minus background
+
+          .. image:: img/netCounts.png
+
+        :param CurveItem curve:
+        :return tuple: rawCount, netCount
+        """
+        assert isinstance(curve, Curve) or curve is None
+
+        if curve is None:
+            return None, None
+
+        x = curve.getXData(copy=False)
+        y = curve.getYData(copy=False)
+
+        idx = numpy.nonzero((self._fromdata <= x) &
+                            (x <= self._todata))[0]
+        if len(idx):
+            xw = x[idx]
+            yw = y[idx]
+            rawCounts = yw.sum(dtype=numpy.float)
+            deltaX = xw[-1] - xw[0]
+            deltaY = yw[-1] - yw[0]
+            if deltaX > 0.0:
+                slope = (deltaY / deltaX)
+                background = yw[0] + slope * (xw - xw[0])
+                netCounts = (rawCounts -
+                             background.sum(dtype=numpy.float))
+            else:
+                netCounts = 0.0
         else:
-            self._valueChanged(row, col)
+            rawCounts = 0.0
+            netCounts = 0.0
+        return rawCounts, netCounts
 
-    def _valueChanged(self, row, col):
-        if col not in [2, 3]:
-            return
-        item = self.item(row, col)
-        if item is None:
-            return
-        text = str(item.text())
-        try:
-            value = float(text)
-        except:
-            return
-        if row >= len(self.roilist):
-            _logger.debug("deleting???")
-            return
-        item = self.item(row, 0)
-        if item is None:
-            text = ""
+    def computeRawAndNetArea(self, curve):
+        """Compute the Raw and net counts in the ROI for the given curve.
+
+        - Raw area: integral of the curve between the min ROI point and the
+           max ROI point to the y = 0 line.
+
+          .. image:: img/rawAreas.png
+
+        - Net area: Raw counts minus background
+
+          .. image:: img/netAreas.png
+
+        :param CurveItem curve:
+        :return tuple: rawArea, netArea
+        """
+        assert isinstance(curve, Curve) or curve is None
+
+        if curve is None:
+            return None, None
+
+        x = curve.getXData(copy=False)
+        y = curve.getYData(copy=False)
+
+        y = y[(x >= self._fromdata) & (x <= self._todata)]
+        x = x[(x >= self._fromdata) & (x <= self._todata)]
+
+        if x.size is 0:
+            return 0.0, 0.0
+
+        rawArea = numpy.trapz(y, x=x)
+        # to speed up and avoid an intersection calculation we are taking the
+        # closest index to the ROI
+        closestXLeftIndex = (numpy.abs(x - self.getFrom())).argmin()
+        closestXRightIndex = (numpy.abs(x - self.getTo())).argmin()
+        yBackground = y[closestXLeftIndex], y[closestXRightIndex]
+        background = numpy.trapz(yBackground, x=x)
+        netArea = rawArea - background
+        return rawArea, netArea
+
+
+class _RoiMarkerManager(object):
+    """
+    Deal with all the ROI markers
+    """
+    def __init__(self):
+        self._roiMarkerHandlers = {}
+        self._middleROIMarkerFlag = False
+        self._showAllMarkers = False
+        self._activeRoi = None
+
+    def setActiveRoi(self, roi):
+        self._activeRoi = roi
+        self.updateAllMarkers()
+
+    def setShowAllMarkers(self, show):
+        if show != self._showAllMarkers:
+            self._showAllMarkers = show
+            self.updateAllMarkers()
+
+    def add(self, roi, markersHandler):
+        assert isinstance(roi, ROI)
+        assert isinstance(markersHandler, _RoiMarkerHandler)
+        if roi.getID() in self._roiMarkerHandlers:
+            raise ValueError('roi with the same ID already existing')
         else:
-            text = str(item.text())
-        if not len(text):
-            return
-        if col == 2:
-            self.roidict[text]['from'] = value
-        elif col == 3:
-            self.roidict[text]['to'] = value
-        self._emitSelectionChangedSignal(row, col)
+            self._roiMarkerHandlers[roi.getID()] = markersHandler
 
-    def nameSlot(self, row, col):
-        if col != 0:
-            return
-        if row >= len(self.roilist):
-            _logger.debug("deleting???")
-            return
-        item = self.item(row, col)
-        if item is None:
-            text = ""
+    def getMarkerHandler(self, roiID):
+        if roiID in self._roiMarkerHandlers:
+            return self._roiMarkerHandlers[roiID]
         else:
-            text = str(item.text())
-        if len(text) and (text not in self.roilist):
-            old = self.roilist[row]
-            self.roilist[row] = text
-            self.roidict[text] = {}
-            self.roidict[text].update(self.roidict[old])
-            del self.roidict[old]
-            self._emitSelectionChangedSignal(row, col)
+            return None
 
-    def _emitSelectionChangedSignal(self, row, col):
-        ddict = {}
-        ddict['event'] = "selectionChanged"
-        ddict['row'] = row
-        ddict['col'] = col
-        ddict['roi'] = self.roidict[self.roilist[row]]
-        ddict['key'] = self.roilist[row]
-        ddict['colheader'] = self.labels[col]
-        ddict['rowheader'] = "%d" % row
-        self.sigROITableSignal.emit(ddict)
+    def clear(self):
+        roisHandler = list(self._roiMarkerHandlers.values())
+        for roiHandler in roisHandler:
+            self.remove(roiHandler.roi)
+
+    def remove(self, roi):
+        if roi is None:
+            return
+        assert isinstance(roi, ROI)
+        if roi.getID() in self._roiMarkerHandlers:
+            self._roiMarkerHandlers[roi.getID()].clear()
+            del self._roiMarkerHandlers[roi.getID()]
+
+    def hasMarker(self, markerID):
+        assert type(markerID) is str
+        return self.getMarker(markerID) is not None
+
+    def changePosition(self, markerID, x):
+        markerHandler = self.getMarker(markerID)
+        if markerHandler is None:
+            raise ValueError('Marker %s not register' % markerID)
+        markerHandler.changePosition(markerID=markerID, x=x)
+
+    def updateMarker(self, markerID):
+        markerHandler = self.getMarker(markerID)
+        if markerHandler is None:
+            raise ValueError('Marker %s not register' % markerID)
+        roiID = self.getRoiID(markerID)
+        visible = (self._activeRoi and self._activeRoi.getID() == roiID) or self._showAllMarkers is True
+        markerHandler.setVisible(visible)
+        markerHandler.updateAllMarkers()
+
+    def updateRoiMarkers(self, roiID):
+        if roiID in self._roiMarkerHandlers:
+            visible = ((self._activeRoi and self._activeRoi.getID() == roiID)
+                       or self._showAllMarkers is True)
+            self._roiMarkerHandlers[roiID].setVisible(visible)
+            self._roiMarkerHandlers[roiID].updateMarkers()
+
+    def getMarker(self, markerID):
+        assert type(markerID) is str
+        for marker in list(self._roiMarkerHandlers.values()):
+            if marker.hasMarker(markerID):
+                return marker
+
+    def updateMarkers(self):
+        for markerHandler in list(self._roiMarkerHandlers.values()):
+            markerHandler.updateMarkers()
+
+    def getRoiID(self, markerID):
+        for roiID, markerHandler in self._roiMarkerHandlers.items():
+            if markerHandler.hasMarker(markerID):
+                return roiID
+        return None
+
+    def setShowMiddleMarkers(self, show):
+        self._middleROIMarkerFlag = show
+        self._roiMarkerHandlers.updateAllMarkers()
+
+    def updateAllMarkers(self):
+        for roiID in self._roiMarkerHandlers:
+            self.updateRoiMarkers(roiID)
+
+    def getVisibleRois(self):
+        res = {}
+        for roiID, roiHandler in self._roiMarkerHandlers.items():
+            markers = (roiHandler.getMarker('min'), roiHandler.getMarker('max'),
+                       roiHandler.getMarker('middle'))
+            for marker in markers:
+                if marker.isVisible():
+                    if roiID not in res:
+                        res[roiID] = []
+                    res[roiID].append(marker)
+        return res
+
+
+class _RoiMarkerHandler(object):
+    """Used to deal with ROI markers used in ROITable"""
+    def __init__(self, roi, plot):
+        assert roi and isinstance(roi, ROI)
+        assert plot
+
+        self._roi = weakref.ref(roi)
+        self._plot = weakref.ref(plot)
+        self.draggable = False if roi.isICR() else True
+        self._color = 'blue' if roi.isICR() else 'black'
+        self._displayMidMarker = True
+        self._visible = True
+
+    @property
+    def plot(self):
+        return self._plot()
+
+    def clear(self):
+        if self.plot and self.roi:
+            self.plot.removeMarker(self._markerID('min'))
+            self.plot.removeMarker(self._markerID('max'))
+            self.plot.removeMarker(self._markerID('middle'))
+
+    @property
+    def roi(self):
+        return self._roi()
+
+    def setVisible(self, visible):
+        if visible != self._visible:
+            self._visible = visible
+            self.updateMarkers()
+
+    def showMiddleMarker(self, visible):
+        self._displayMidMarker = visible
+        self.getMarker('middle').setVisible(self._displayMidMarker)
+
+    def updateMarkers(self):
+        if self.roi is None:
+            return
+        self._updateMinMarkerPos()
+        self._updateMaxMarkerPos()
+        self._updateMiddleMarkerPos()
+
+    def _updateMinMarkerPos(self):
+        self.getMarker('min').setPosition(x=self.roi.getFrom(), y=None)
+        self.getMarker('min').setVisible(self._visible)
+
+    def _updateMaxMarkerPos(self):
+        self.getMarker('max').setPosition(x=self.roi.getTo(), y=None)
+        self.getMarker('max').setVisible(self._visible)
+
+    def _updateMiddleMarkerPos(self):
+        self.getMarker('middle').setPosition(x=self.roi.getMiddle(), y=None)
+        self.getMarker('middle').setVisible(self._displayMidMarker and self._visible)
+
+    def getMarker(self, markerType):
+        if self.plot is None:
+            return None
+        assert markerType in ('min', 'max', 'middle')
+        if self.plot._getMarker(self._markerID(markerType)) is None:
+            assert self.roi
+            if markerType == 'min':
+                val = self.roi.getFrom()
+            elif markerType == 'max':
+                val = self.roi.getTo()
+            else:
+                val = self.roi.getMiddle()
+
+            _color = self._color
+            if markerType == 'middle':
+                _color = 'yellow'
+            self.plot.addXMarker(val,
+                                 legend=self._markerID(markerType),
+                                 text=self.getMarkerName(markerType),
+                                 color=_color,
+                                 draggable=self.draggable)
+        return self.plot._getMarker(self._markerID(markerType))
+
+    def _markerID(self, markerType):
+        assert markerType in ('min', 'max', 'middle')
+        assert self.roi
+        return '_'.join((str(self.roi.getID()), markerType))
+
+    def getMarkerName(self, markerType):
+        assert markerType in ('min', 'max', 'middle')
+        assert self.roi
+        return ' '.join((self.roi.getName(), markerType))
+
+    def updateTexts(self):
+        self.getMarker('min').setText(self.getMarkerName('min'))
+        self.getMarker('max').setText(self.getMarkerName('max'))
+        self.getMarker('middle').setText(self.getMarkerName('middle'))
+
+    def changePosition(self, markerID, x):
+        assert self.hasMarker(markerID)
+        markerType = self._getMarkerType(markerID)
+        assert markerType is not None
+        if self.roi is None:
+            return
+        if markerType == 'min':
+            self.roi.setFrom(x)
+            self._updateMiddleMarkerPos()
+        elif markerType == 'max':
+            self.roi.setTo(x)
+            self._updateMiddleMarkerPos()
+        else:
+            delta = x - 0.5 * (self.roi.getFrom() + self.roi.getTo())
+            self.roi.setFrom(self.roi.getFrom() + delta)
+            self.roi.setTo(self.roi.getTo() + delta)
+            self._updateMinMarkerPos()
+            self._updateMaxMarkerPos()
+
+    def hasMarker(self, marker):
+        return marker in (self._markerID('min'),
+                          self._markerID('max'),
+                          self._markerID('middle'))
+
+    def _getMarkerType(self, markerID):
+        if markerID.endswith('_min'):
+            return 'min'
+        elif markerID.endswith('_max'):
+            return 'max'
+        elif markerID.endswith('_middle'):
+            return 'middle'
+        else:
+            return None
 
 
 class CurvesROIDockWidget(qt.QDockWidget):
@@ -1007,6 +1508,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
     def __init__(self, parent=None, plot=None, name=None):
         super(CurvesROIDockWidget, self).__init__(name, parent)
 
+        assert plot is not None
+        self.plot = plot
         self.roiWidget = CurvesROIWidget(self, name, plot=plot)
         """Main widget of type :class:`CurvesROIWidget`"""
 
@@ -1016,11 +1519,14 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.calculateROIs = self.calculateRois = self.roiWidget.calculateRois
         self.setRois = self.roiWidget.setRois
         self.getRois = self.roiWidget.getRois
+
         self.roiWidget.sigROISignal.connect(self._forwardSigROISignal)
-        self.currentROI = self.roiWidget.currentROI
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
+
+        self.setAreaVisible = self.roiWidget.roiTable.setAreaVisible
+        self.setCountsVisible = self.roiWidget.roiTable.setCountsVisible
 
     def _forwardSigROISignal(self, ddict):
         # emit deprecated signal for backward compatibility (silx < 0.7)
@@ -1042,3 +1548,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         """
         self.raise_()
         qt.QDockWidget.showEvent(self, event)
+
+    @property
+    def currentROI(self):
+        return self.roiWidget.currentRoi

@@ -285,7 +285,7 @@ class PrintPreviewDialog(qt.QDialog):
 
     def addSvgItem(self, item, title=None,
                    comment=None, commentPosition=None,
-                   viewBox=None):
+                   viewBox=None, keepRatio=True):
         """Add a SVG item to the scene.
 
         :param QSvgRenderer item: SVG item to be added to the scene.
@@ -295,6 +295,8 @@ class PrintPreviewDialog(qt.QDialog):
         :param QRectF viewBox: Bounding box for the item on the print page
             (xOffset, yOffset, width, height). If None, use original
             item size.
+        :param bool keepRatio: If True, resizing the item will preserve its
+            original aspect ratio.
         """
         if not qt.HAS_SVG:
             raise RuntimeError("Missing QtSvg library.")
@@ -331,35 +333,23 @@ class PrintPreviewDialog(qt.QDialog):
         svgItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         svgItem.setFlag(qt.QGraphicsItem.ItemIsFocusable, False)
 
-        rectItemResizeRect = _GraphicsResizeRectItem(svgItem, self.scene)
+        rectItemResizeRect = _GraphicsResizeRectItem(svgItem, self.scene,
+                                                     keepratio=keepRatio)
         rectItemResizeRect.setZValue(2)
 
         self._svgItems.append(item)
 
-        if qt.qVersion() < '5.0':
-            textItem = qt.QGraphicsTextItem(title, svgItem, self.scene)
-        else:
-            textItem = qt.QGraphicsTextItem(title, svgItem)
-        textItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
-        title_offset = 0.5 * textItem.boundingRect().width()
-        textItem.setZValue(1)
-        textItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
-
+        # Comment / legend
         dummyComment = 80 * "1"
         if qt.qVersion() < '5.0':
             commentItem = qt.QGraphicsTextItem(dummyComment, svgItem, self.scene)
         else:
             commentItem = qt.QGraphicsTextItem(dummyComment, svgItem)
         commentItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
+        # we scale the text to have the legend  box have the same width as the graph
         scaleCalculationRect = qt.QRectF(commentItem.boundingRect())
         scale = svgItem.boundingRect().width() / scaleCalculationRect.width()
-        comment_offset = 0.5 * commentItem.boundingRect().width()
-        if commentPosition.upper() == "LEFT":
-            x = 1
-        else:
-            x = 0.5 * svgItem.boundingRect().width() - comment_offset * scale  # fixme: centering
-        commentItem.moveBy(svgItem.boundingRect().x() + x,
-                           svgItem.boundingRect().y() + svgItem.boundingRect().height())
+
         commentItem.setPlainText(comment)
         commentItem.setZValue(1)
 
@@ -367,17 +357,46 @@ class PrintPreviewDialog(qt.QDialog):
         if qt.qVersion() < "5.0":
             commentItem.scale(scale, scale)
         else:
-            # the correct equivalent would be:
-            # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
             commentItem.setScale(scale)
+
+        # align
+        if commentPosition.upper() == "CENTER":
+            alignment = qt.Qt.AlignCenter
+        elif commentPosition.upper() == "RIGHT":
+            alignment = qt.Qt.AlignRight
+        else:
+            alignment = qt.Qt.AlignLeft
+        commentItem.setTextWidth(commentItem.boundingRect().width())
+        center_format = qt.QTextBlockFormat()
+        center_format.setAlignment(alignment)
+        cursor = commentItem.textCursor()
+        cursor.select(qt.QTextCursor.Document)
+        cursor.mergeBlockFormat(center_format)
+        cursor.clearSelection()
+        commentItem.setTextCursor(cursor)
+        if alignment == qt.Qt.AlignLeft:
+            deltax = 0
+        else:
+            deltax = (svgItem.boundingRect().width() - commentItem.boundingRect().width()) / 2.
+        commentItem.moveBy(svgItem.boundingRect().x() + deltax,
+                           svgItem.boundingRect().y() + svgItem.boundingRect().height())
+
+        # Title
+        if qt.qVersion() < '5.0':
+            textItem = qt.QGraphicsTextItem(title, svgItem, self.scene)
+        else:
+            textItem = qt.QGraphicsTextItem(title, svgItem)
+        textItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
+        textItem.setZValue(1)
+        textItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
+
+        title_offset = 0.5 * textItem.boundingRect().width()
         textItem.moveBy(svgItem.boundingRect().x() +
                         0.5 * svgItem.boundingRect().width() - title_offset * scale,
                         svgItem.boundingRect().y())
         if qt.qVersion() < "5.0":
             textItem.scale(scale, scale)
         else:
-            # the correct equivalent would be:
-            # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
             textItem.setScale(scale)
 
     def setup(self):
@@ -601,7 +620,8 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         # following line prevents dragging along the previously selected
         # item when resizing another one
         scene.clearSelection()
-        rect = parent.rect()
+
+        rect = parent.boundingRect()
         self._x = rect.x()
         self._y = rect.y()
         self._w = rect.width()
@@ -655,12 +675,14 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         else:
             scalex = self._newRect.rect().width() / self._w
             scaley = self._newRect.rect().height() / self._h
+
         if qt.qVersion() < "5.0":
             parent.scale(scalex, scaley)
         else:
-            # the correct equivalent would be:
-            # rectItem.setTransform(qt.QTransform.fromScale(scalex, scaley))
-            parent.setScale(scalex)
+            # apply the scale to the previous transformation matrix
+            previousTransform = parent.transform()
+            parent.setTransform(
+                    previousTransform.scale(scalex, scaley))
 
         self.scene().removeItem(self._newRect)
         self._newRect = None
