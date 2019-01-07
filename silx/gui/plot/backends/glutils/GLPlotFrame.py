@@ -1178,7 +1178,6 @@ class GLPlotFrame2D(GLPlotFrame):
 
         self._renderResources = (vertices, gridVertices, labels)
 
-
     @property
     def foregroundColor(self):
         """Color used for frame and labels"""
@@ -1192,4 +1191,3 @@ class GLPlotFrame2D(GLPlotFrame):
         if self._foregroundColor != color:
             self._y2Axis.foregroundColor = color
             GLPlotFrame.foregroundColor.fset(self, color) # call parent property
-
