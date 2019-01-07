@@ -844,20 +844,19 @@ def vol_to_h5_external_dataset(vol_file, output_url, shape=None,
                                info_file=None, vol_dtype=numpy.float32,
                                overwrite=False):
     """
-    Create an dataset at 'output_url' pointing the given vol_file.
-    Shape has to be given or info_file specify to extract it.
+    Create a HDF5 dataset at `output_url` pointing to the given vol_file.
 
-    :param str vol_file: path to the .vol file
-    :param url output_url: url to save the external dataset
-    :param tuple or None shape: shape of the volume
-    :param str or None info_file: .vol.info file, write by pyhst and containing
-                                  shape information
-    :param numpy.dtype vol_dtype: type of the volume element. This information
-                                  is not available on .vol.info but for now
-                                  type is know to be float32.
-    :param bool overwrite: if the data path already exists will raise a
-                           ValueError if overwrite is False.
-                           Otherwise overwrite.
+    Either `shape` or `info_file` must be provided.
+
+    :param str vol_file: Path to the .vol file
+    :param DataUrl output_url: HDF5 URL where to save the external dataset
+    :param Union[tuple,None] shape: Shape of the volume
+    :param Union[str,None] info_file:
+        .vol.info file name written by pyhst and containing the shape information
+    :param numpy.dtype vol_dtype: Data type of the volume elements (default: float32)
+    :param bool overwrite: True to allow overwriting (default: False).
+    :raises ValueError: If both `shape` and `info_file` are not given or
+        if `output_url` exists but `overwrite` is False.
     """
     assert isinstance(output_url, silx.io.url.DataUrl)
     assert shape is None or isinstance(shape, (tuple, list))
