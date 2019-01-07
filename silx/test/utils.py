@@ -74,7 +74,7 @@ class _TestOptions(object):
         """Configure the TestOptions class from the command line arguments and the
         environment variables
         """
-        if parsed_options is not None and parsed_options.gui:
+        if parsed_options is not None and not parsed_options.gui:
             self.WITH_QT_TEST = False
             self.WITH_QT_TEST_REASON = "Skipped by command line"
         elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
