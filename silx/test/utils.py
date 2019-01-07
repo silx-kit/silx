@@ -84,20 +84,20 @@ class _TestOptions(object):
             self.WITH_QT_TEST = False
             self.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
 
-        if parsed_options is not None and parsed_options.opencl or os.environ.get('SILX_OPENCL', 'True') == 'False':
+        if (parsed_options is not None and not parsed_options.opencl) or os.environ.get('SILX_OPENCL', 'True') == 'False':
             self.WITH_OPENCL_TEST = False
             # That's an easy way to skip OpenCL tests
             # It disable the use of OpenCL on the full silx project
             os.environ['SILX_OPENCL'] = "False"
 
-        if parsed_options is not None and parsed_options.opengl:
+        if parsed_options is not None and not parsed_options.opengl:
             self.WITH_GL_TEST = False
             self.WITH_GL_TEST_REASON = "Skipped by command line"
         elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
             self.WITH_GL_TEST = False
             self.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
 
-        if parsed_options is not None and parsed_options.low_mem or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+        if (parsed_options is not None and parsed_options.low_mem) or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
             self.TEST_LOW_MEM = True
 
         if self.WITH_QT_TEST:
