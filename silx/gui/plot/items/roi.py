@@ -40,12 +40,13 @@ from ....utils.weakref import WeakList
 from ... import qt
 from .. import items
 from ...colors import rgba
+from ..RegionOfInterest import _BaseRegionOfInterest
 
 
 logger = logging.getLogger(__name__)
 
 
-class RegionOfInterest(qt.QObject):
+class RegionOfInterest(_BaseRegionOfInterest):
     """Object describing a region of interest in a plot.
 
     :param QObject parent:
@@ -62,15 +63,14 @@ class RegionOfInterest(qt.QObject):
     """Signal emitted everytime the shape or position of the ROI changes"""
 
     def __init__(self, parent=None):
-        # Avoid circular dependancy
+        # Avoid circular dependency
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
-        qt.QObject.__init__(self, parent)
+        _BaseRegionOfInterest.__init__(self, parent, name='')
         self._color = rgba('red')
         self._items = WeakList()
         self._editAnchors = WeakList()
         self._points = None
-        self._label = ''
         self._labelItem = None
         self._editable = False
 
@@ -139,12 +139,13 @@ class RegionOfInterest(qt.QObject):
                 if isinstance(item, items.ColorMixIn):
                     item.setColor(rgbaColor)
 
+    # TODO: hould probably be renamed getName
     def getLabel(self):
         """Returns the label displayed for this ROI.
 
         :rtype: str
         """
-        return self._label
+        return self.getName()
 
     def setLabel(self, label):
         """Set the label displayed with this ROI.
@@ -153,7 +154,7 @@ class RegionOfInterest(qt.QObject):
         """
         label = str(label)
         if label != self._label:
-            self._label = label
+            self.setName(label)
             self._updateLabelItem(label)
 
     def isEditable(self):
