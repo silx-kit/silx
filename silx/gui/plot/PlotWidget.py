@@ -352,9 +352,7 @@ class PlotWidget(qt.QMainWindow):
             self._backend.postRedisplay()
 
     def getBackgroundColor(self):
-        """Returns the RGBA colors used to display the background of this widget
-
-        The default value is an invalid `QColor`.
+        """Returns the RGBA colors used to display the background of this widget.
 
         :rtype: qt.QColor
         """
@@ -368,7 +366,7 @@ class PlotWidget(qt.QMainWindow):
     def setBackgroundColor(self, color):
         """Set the background color of this widget.
 
-        :param color: The new color. It can be farious formats (tuple,
+        :param color: The new color. It can be various formats (tuple,
             numpy array, QColor)
         """
         if color is not None:
