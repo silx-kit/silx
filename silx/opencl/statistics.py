@@ -52,7 +52,7 @@ if pyopencl:
     from pyopencl.reduction import ReductionKernel
     try:
         from pyopencl import cltypes
-    except:
+    except ImportError:
         v = pyopencl.array.vec()
         float8 = v.float8
     else:
@@ -70,7 +70,7 @@ zero8 = "(float8)(FLT_MAX, -FLT_MAX, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)"
 class Statistics(OpenclProcessing):
     """A class for doing statistical analysis using OpenCL
 
-    :param List[int] shape: Shape of input data to treat
+    :param List[int] size: Shape of input data to treat
     :param numpy.dtype dtype: Input data type
     :param numpy.ndarray template: Data template to extract size & dtype
     :param ctx: Actual working context, left to None for automatic
@@ -143,13 +143,15 @@ class Statistics(OpenclProcessing):
         dest_type = numpy.dtype([i.dtype for i in self.buffers if i.name == dest][0])
         events = []
         if (data.dtype == dest_type) or (data.dtype.itemsize > dest_type.itemsize):
-            copy_image = pyopencl.enqueue_copy(self.queue, self.cl_mem[dest].data, numpy.ascontiguousarray(data, dest_type))
+            copy_image = pyopencl.enqueue_copy(self.queue, self.cl_mem[dest].data,
+                                               numpy.ascontiguousarray(data, dest_type))
             events.append(EventDescription("copy H->D %s" % dest, copy_image))
         else:
             copy_image = pyopencl.enqueue_copy(self.queue, self.cl_mem["raw"].data, numpy.ascontiguousarray(data))
             kernel = getattr(self.program, self.mapping[data.dtype.type])
             cast_to_float = kernel(self.queue, (self.size,), None, self.cl_mem["raw"].data, self.cl_mem[dest].data)
-            events += [EventDescription("copy H->D %s" % dest, copy_image), EventDescription("cast to float", cast_to_float)]
+            events += [EventDescription("copy H->D %s" % dest, copy_image),
+                       EventDescription("cast to float", cast_to_float)]
         if self.profile:
             self.events += events
         return events
@@ -173,17 +175,17 @@ class Statistics(OpenclProcessing):
             if self.profile:
                 self.events += events
             res_h = res_d.get()
-        min = 1.0 * res_h["s0"]
-        max = 1.0 * res_h["s1"]
+        min_ = 1.0 * res_h["s0"]
+        max_ = 1.0 * res_h["s1"]
         count = 1.0 * res_h["s2"] + res_h["s3"]
-        sum = 1.0 * res_h["s4"] + res_h["s5"]
-        M2 = 1.0 * res_h["s6"] + res_h["s7"]
-        var = M2 / (count - 1.0)
-        res = StatResults(min,
-                          max,
+        sum_ = 1.0 * res_h["s4"] + res_h["s5"]
+        m2 = 1.0 * res_h["s6"] + res_h["s7"]
+        var = m2 / (count - 1.0)
+        res = StatResults(min_,
+                          max_,
                           count,
-                          sum,
-                          sum / count,
+                          sum_,
+                          sum_ / count,
                           var,
                           sqrt(var))
         return res
