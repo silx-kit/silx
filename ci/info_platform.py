@@ -8,10 +8,15 @@ __license__ = "MIT"
 
 
 import sys
+import platform
 
 print("Python %s bits" % (tuple.__itemsize__ * 8))
 print("       maxsize: %s\t maxunicode: %s" % (sys.maxsize, sys.maxunicode))
 print(sys.version)
+print(" ")
+
+print("Platform: " + platform.platform())
+print("- Machine: " + platform.machine())
 print(" ")
 
 try:
