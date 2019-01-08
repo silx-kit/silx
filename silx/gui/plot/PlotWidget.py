@@ -31,7 +31,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/11/2018"
+__date__ = "21/12/2018"
 
 
 from collections import OrderedDict, namedtuple
@@ -352,23 +352,21 @@ class PlotWidget(qt.QMainWindow):
             self._backend.postRedisplay()
 
     def getBackgroundColor(self):
-        """Returns the RGBA colors used to display the background of this widget
-
-        The default value is an invalid `QColor`.
+        """Returns the RGBA colors used to display the background of this widget.
 
         :rtype: qt.QColor
         """
         if self._backgroundColor is None:
-            # An invalid color
-            return qt.QColor()
-        rgba = self._backgroundColor
-        color = qt.QColor.fromRgbF(*rgba)
+            color = qt.QColor(255, 255, 255, 255)
+        else:
+            rgba = self._backgroundColor
+            color = qt.QColor.fromRgbF(*rgba)
         return color
 
     def setBackgroundColor(self, color):
         """Set the background color of this widget.
 
-        :param color: The new color. It can be farious formats (tuple,
+        :param color: The new color. It can be various formats (tuple,
             numpy array, QColor)
         """
         if color is not None:

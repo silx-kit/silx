@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "03/01/2019"
 
 
 import unittest
@@ -189,7 +189,8 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
 
         # Custom the full background
         color = self.plot.getBackgroundColor()
-        self.assertFalse(color.isValid())
+        self.assertTrue(color.isValid())
+        self.assertEqual(color, qt.QColor(255, 255, 255))
         self.plot.setBackgroundColor("red")
         color = self.plot.getBackgroundColor()
         self.assertTrue(color.isValid())
@@ -207,7 +208,8 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.plot.setBackgroundColor(None)
         self.plot.setDataBackgroundColor(None)
         color = self.plot.getBackgroundColor()
-        self.assertFalse(color.isValid())
+        self.assertTrue(color.isValid())
+        self.assertEqual(color, qt.QColor(255, 255, 255))
         color = self.plot.getDataBackgroundColor()
         self.assertFalse(color.isValid())
         self.qapp.processEvents()

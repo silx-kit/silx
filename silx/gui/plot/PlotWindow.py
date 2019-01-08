@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/12/2018"
+__date__ = "21/12/2018"
 
 import collections
 import logging
@@ -306,6 +306,9 @@ class PlotWindow(PlotWidget):
             color = self.getBackgroundColor()
         else:
             color = self.getDataBackgroundColor()
+            if not color.isValid():
+                # If no color defined, use the background one
+                color = self.getBackgroundColor()
         palette = self._colorbar.palette()
         palette.setColor(qt.QPalette.Background, color)
         palette.setColor(qt.QPalette.Window, color)
