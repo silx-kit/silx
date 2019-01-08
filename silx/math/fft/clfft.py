@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,19 +41,20 @@ __required_gpyfft_version__ = "0.3.0"
 if __have_clfft__:
     __have_clfft__ = check_version(gpyfft, __required_gpyfft_version__)
 
+
 class CLFFT(BaseFFT):
-    """
-    Initialize a clfft plan.
+    """Initialize a clfft plan.
+
     Please see FFT class for parameters help.
 
     CLFFT-specific parameters
     --------------------------
 
-    :param ctx: pyopencl.Context
+    :param pyopencl.Context ctx:
         If set to other than None, an existing pyopencl context is used.
-    :param fast_math: bool
+    :param bool fast_math:
         If set to True, computations will be done with "fast math" mode,
-        i.e more speed but less accuracy.
+        i.e., more speed but less accuracy.
     """
     def __init__(
         self,
@@ -98,10 +99,11 @@ class CLFFT(BaseFFT):
                 "Normalization modes other than rescale are not implemented with OpenCL backend yet."
             )
 
-
     def fix_axes(self):
         """
-        "Fix" axes. clfft does not have the same convention as FFTW/cuda/numpy.
+        "Fix" axes.
+
+        clfft does not have the same convention as FFTW/cuda/numpy.
         """
         self.axes = self.axes[::-1]
 
@@ -212,16 +214,15 @@ class CLFFT(BaseFFT):
 
     def fft(self, array, output=None, do_async=False):
         """
-        Perform a
-        (forward) Fast Fourier Transform.
+        Perform a (forward) Fast Fourier Transform.
 
-        :param array: numpy.ndarray or pyopencl.array
+        :param Union[numpy.ndarray,pyopencl.array] array:
             Input data. Must be consistent with the current context.
-        :param output: numpy.ndarray or pyopencl.array, optional
+        :param Union[numpy.ndarray,pyopencl.array] output:
             Output data. By default, output is a numpy.ndarray.
-        :param do_async: bool, optional
-            Whether to perform operation in asynchronous mode. Default is False,
-            meaning that we wait for transform to complete.
+        :param bool do_async:
+            Whether to perform operation in asynchronous mode.
+            Default is False, meaning that we wait for transform to complete.
         """
         data_in = self.set_input_data(array, copy=False)
         data_out = self.set_output_data(output, copy=False)
@@ -240,16 +241,15 @@ class CLFFT(BaseFFT):
 
     def ifft(self, array, output=None, do_async=False):
         """
-        Perform a
-        (inverse) Fast Fourier Transform.
+        Perform a (inverse) Fast Fourier Transform.
 
-        :param array: numpy.ndarray or pyopencl.array
+        :param Union[numpy.ndarray,pyopencl.array] array:
             Input data. Must be consistent with the current context.
-        :param output: numpy.ndarray or pyopencl.array, optional
+        :param Union[numpy.ndarray,pyopencl.array] output:
             Output data. By default, output is a numpy.ndarray.
-        :param do_async: bool, optional
-            Whether to perform operation in asynchronous mode. Default is False,
-            meaning that we wait for transform to complete.
+        :param bool do_async:
+            Whether to perform operation in asynchronous mode.
+            Default is False, meaning that we wait for transform to complete.
         """
         data_in = self.set_output_data(array, copy=False)
         data_out = self.set_input_data(output, copy=False)

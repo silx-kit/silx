@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import numpy as np
 from .fftw import FFTW
 from .clfft import CLFFT
 from .npfft import NPFFT
@@ -43,31 +42,33 @@ def FFT(
     """
     Initialize a FFT plan.
 
-    :param shape: tuple
+    :param List[int] shape:
         Shape of the input data.
-    :param dtype: type
+    :param numpy.dtype dtype:
         Data type of the input data.
-    :param data: numpy.ndarray, optional
-        Input data. If provided, the arguments "shape" and "dtype" are ignored,
-        and are instead infered from "data".
-    :param shape_out: tuple, optional
-        Shape of output data. By default, the data has the same shape as the input
+    :param numpy.ndarray data:
+        Optional input data.
+        If provided, the arguments "shape" and "dtype" are ignored,
+        and are instead inferred from "data".
+    :param List[int] shape_out:
+        Optional shape of output data.
+        By default, the data has the same shape as the input
         data (in case of C2C transform), or a shape with the last dimension halved
         (in case of R2C transform). If shape_out is provided, it must be greater
         or equal than the shape of input data. In this case, FFT is performed
         with zero-padding.
-    :param axes: tuple
+    :param List[int] axes:
         Axes along which FFT is computed.
           * For 2D transform: axes=(1,0)
           * For batched 1D transform of 2D image: axes=(0,)
-    :param normalize: str
+    :param str normalize:
         Whether to normalize FFT and IFFT. Possible values are:
           * "rescale": in this case, Fourier data is divided by "N"
             before IFFT, so that (FFT(data)) = data
           * "ortho": in this case, FFT and IFFT are adjoint of eachother,
             the transform is unitary. Both FFT and IFFT are scaled with 1/sqrt(N).
           * "none": no normalizatio is done : IFFT(FFT(data)) = data*N
-    :param backend: str
+    :param str backend:
         FFT Backend to use. Value can be "numpy", "fftw", "opencl", "cuda".
     """
     backends = {

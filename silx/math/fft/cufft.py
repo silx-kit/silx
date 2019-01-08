@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,15 +36,16 @@ try:
 except ImportError:
     __have_cufft__ = False
 
+
 class CUFFT(BaseFFT):
-    """
-    Initialize a cufft plan.
+    """Initialize a cufft plan
+
     Please see FFT class for parameters help.
 
     CUFFT-specific parameters
     --------------------------
 
-    :param stream: pycuda.driver.Stream
+    :param pycuda.driver.Stream stream:
       Stream with which to associate the plan. If no stream is specified,
       the default stream is used.
     """
@@ -200,12 +201,11 @@ class CUFFT(BaseFFT):
 
     def fft(self, array, output=None):
         """
-        Perform a
-        (forward) Fast Fourier Transform.
+        Perform a (forward) Fast Fourier Transform.
 
-        :param array: numpy.ndarray or pycuda.gpuarray
+        :param Union[numpy.ndarray,pycuda.gpuarray] array:
             Input data. Must be consistent with the current context.
-        :param output: numpy.ndarray or pycuda.gpuarray, optional
+        :param Union[numpy.ndarray,pycuda.gpuarray] output:
             Output data. By default, output is a numpy.ndarray.
         """
         data_in = self.set_input_data(array, copy=False)
@@ -229,12 +229,11 @@ class CUFFT(BaseFFT):
 
     def ifft(self, array, output=None):
         """
-        Perform a
-        (inverse) Fast Fourier Transform.
+        Perform a (inverse) Fast Fourier Transform.
 
-        :param array: numpy.ndarray or pycuda.gpuarray
+        :param Union[numpy.ndarray,pycuda.gpuarray] array:
             Input data. Must be consistent with the current context.
-        :param output: numpy.ndarray or pycuda.gpuarray, optional
+        :param Union[numpy.ndarray,pycuda.gpuarray] output:
             Output data. By default, output is a numpy.ndarray.
         """
         data_in = self.set_output_data(array, copy=False)
