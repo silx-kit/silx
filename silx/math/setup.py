@@ -38,6 +38,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('test')
     config.add_subpackage('fit')
     config.add_subpackage('medianfilter')
+    config.add_subpackage('fft')
 
     # =====================================
     # histogramnd
