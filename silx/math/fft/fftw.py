@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,17 +40,17 @@ if __have_fftw__:
 
 
 class FFTW(BaseFFT):
-    """
-    Initialize a FFTW plan.
+    """Initialize a FFTW plan.
+
     Please see FFT class for parameters help.
 
     FFTW-specific parameters
     -------------------------
 
-    :param check_alignment: bool
+    :param bool check_alignment:
         If set to True and "data" is provided, this will enforce the input data
         to be "byte aligned", which might imply extra memory usage.
-    :param num_threads: int
+    :param int num_threads:
         Number of threads for computing FFT.
     """
     def __init__(
@@ -107,6 +107,7 @@ class FFTW(BaseFFT):
         """
         Check that a given array is compatible with the FFTW plans,
         in terms of alignment and data type.
+
         If the provided array does not meet any of the checks, a new array
         is returned.
         """
@@ -166,13 +167,12 @@ class FFTW(BaseFFT):
 
     def fft(self, array, output=None):
         """
-        Perform a
-        (forward) Fast Fourier Transform.
+        Perform a (forward) Fast Fourier Transform.
 
-        :param array: numpy.ndarray or pyopencl.array
+        :param numpy.ndarray array:
             Input data. Must be consistent with the current context.
-        :param output: numpy.ndarray, optional
-            Output data.
+        :param numpy.ndarray output:
+            Optional output data.
         """
         data_in = self.set_input_data(array, copy=True)
         data_out = self.set_output_data(output, copy=False)
@@ -188,13 +188,12 @@ class FFTW(BaseFFT):
 
     def ifft(self, array, output=None):
         """
-        Perform a
-        (inverse) Fast Fourier Transform.
+        Perform a (inverse) Fast Fourier Transform.
 
-        :param array: numpy.ndarray or pycuda.gpuarray
+        :param numpy.ndarray array:
             Input data. Must be consistent with the current context.
-        :param output: numpy.ndarray, optional
-            Output data.
+        :param numpy.ndarray output:
+            Optional output data.
         """
         data_in = self.set_output_data(array, copy=True)
         data_out = self.set_input_data(output, copy=False)

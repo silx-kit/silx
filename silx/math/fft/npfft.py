@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,8 @@ from .basefft import BaseFFT
 
 
 class NPFFT(BaseFFT):
-    """
-    Initialize a numpy plan.
+    """Initialize a numpy plan.
+
     Please see FFT class for parameters help.
     """
     def __init__(
@@ -101,10 +101,9 @@ class NPFFT(BaseFFT):
 
     def fft(self, array):
         """
-        Perform a
-        (forward) Fast Fourier Transform.
+        Perform a (forward) Fast Fourier Transform.
 
-        :param array: numpy.ndarray or pyopencl.array
+        :param numpy.ndarray array:
             Input data. Must be consistent with the current context.
         """
         return self.numpy_funcs[0](array, **self.numpy_args)
@@ -112,10 +111,9 @@ class NPFFT(BaseFFT):
 
     def ifft(self, array):
         """
-        Perform a
-        (inverse) Fast Fourier Transform.
+        Perform a (inverse) Fast Fourier Transform.
 
-        :param array: numpy.ndarray or pyopencl.array
+        :param numpy.ndarray array:
             Input data. Must be consistent with the current context.
         """
         return self.numpy_funcs[1](array, **self.numpy_args)
