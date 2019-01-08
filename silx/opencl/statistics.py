@@ -34,7 +34,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "13/12/2018"
+__date__ = "14/12/2018"
 __copyright__ = "2012-2017, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -125,13 +125,20 @@ class Statistics(OpenclProcessing):
         "Compile the kernel"
         OpenclProcessing.compile_kernels(self, self.kernel_files, "-D NIMAGE=%i" % self.size)
         src = concatenate_cl_kernel(("kahan.cl", "statistics.cl"))
-        self.reduction = ReductionKernel(self.ctx,
-                                         dtype_out=float8,
-                                         neutral=zero8,
-                                         map_expr="map_statistics(data, i)",
-                                         reduce_expr="reduce_statistics(a,b)",
-                                         arguments="__global float *data",
-                                         preamble=src)
+        self.reduction_comp = ReductionKernel(self.ctx,
+                                              dtype_out=float8,
+                                              neutral=zero8,
+                                              map_expr="map_statistics(data, i)",
+                                              reduce_expr="reduce_statistics(a,b)",
+                                              arguments="__global float *data",
+                                              preamble=src)
+        self.reduction_simple = ReductionKernel(self.ctx,
+                                                dtype_out=float8,
+                                                neutral=zero8,
+                                                map_expr="map_statistics(data, i)",
+                                                reduce_expr="reduce_statistics_simple(a,b)",
+                                                arguments="__global float *data",
+                                                preamble=src)
 
     def send_buffer(self, data, dest):
         """Send a numpy array to the device, including the cast on the device if possible
@@ -154,10 +161,11 @@ class Statistics(OpenclProcessing):
             self.events += events
         return events
 
-    def process(self, data):
+    def process(self, data, comp=True):
         """Actually calculate the statics on the data
 
         :param data: numpy array with the image
+        :param comp: use Kahan compensated arithmetics for the calculation 
         :return: Statistics named tuple
         """
         if data.ndim != 1:
@@ -167,11 +175,15 @@ class Statistics(OpenclProcessing):
         events = []
         with self.sem:
             self.send_buffer(data, "converted")
-            res_d, evt = self.reduction(self.cl_mem["converted"][:self.size], queue=self.queue, return_event=True)
-            events.append(EventDescription("statistical reduction", evt))
+            if comp:
+                reduction = self.reduction_comp
+            else:
+                reduction = self.reduction_simple
+            res_d, evt = reduction(self.cl_mem["converted"][:self.size], queue=self.queue, return_event=True)
+            events.append(EventDescription("statistical reduction %s" % ("comp"if comp else "simple"), evt))
             if self.profile:
                 self.events += events
-            res_h = res_d.get()
+        res_h = res_d.get()
         min = 1.0 * res_h["s0"]
         max = 1.0 * res_h["s1"]
         count = 1.0 * res_h["s2"] + res_h["s3"]

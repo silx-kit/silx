@@ -42,7 +42,7 @@ static inline float2 compensated_sum(float2 a, float2 b)
     float first = a.s0;
     float second = b.s0;
     if (fabs(second) > fabs(first))
-    {
+    { //swap first and second
         float tmp = first;
         first = second;
         second = tmp;
@@ -69,6 +69,18 @@ static inline float2 compensated_inv(float2 a)
     float err  = a.s1;
     return (float2)(1.0f/main, -err/(main*main));
 }
+
+// calculate a/b  with error compensation
+static inline float2 compensated_div(float2 a, float2 b)
+{
+    float ah = a.s0;
+    float al  = a.s1;
+    float bh = b.s0;
+    float bl  = b.s1;
+    float bl_over_bh = bl/bh;
+    return kahan_sum(kahan_sum(a, -a.s1 * bl_over_bh), -a.s0 * bl_over_bh) / bh;
+}
+
 
 // calculate a.b where a and b are float2
 static inline float2 comp_dot2(float2 a, float2 b)
