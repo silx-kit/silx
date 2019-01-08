@@ -3,7 +3,7 @@
 #    Project: SILX
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2018 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2019 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -27,8 +27,8 @@
 
 """A module for performing basic statistical analysis (min, max, mean, std) on
 large data where numpy is not very efficient.  
-
 """
+
 from __future__ import absolute_import, print_function, with_statement, division
 
 
@@ -68,7 +68,22 @@ zero8 = "(float8)(FLT_MAX, -FLT_MAX, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)"
 
 
 class Statistics(OpenclProcessing):
-    """A class for doing statistical analysis using OpenCL"""
+    """A class for doing statistical analysis using OpenCL
+
+    :param List[int] shape: Shape of input data to treat
+    :param numpy.dtype dtype: Input data type
+    :param numpy.ndarray template: Data template to extract size & dtype
+    :param ctx: Actual working context, left to None for automatic
+                initialization from device type or platformid/deviceid
+    :param str devicetype: Type of device, can be "CPU", "GPU", "ACC" or "ALL"
+    :param int platformid: Platform identifier as given by clinfo
+    :param int deviceid: Device identifier as given by clinfo
+    :param int block_size:
+        Preferred workgroup size, may vary depending on the outcome of the compilation
+    :param bool profile:
+        Switch on profiling to be able to profile at the kernel level,
+        store profiling elements (makes code slightly slower)
+    """
     buffers = [
                BufferDescription("raw", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("converted", 1, numpy.float32, mf.READ_WRITE),
@@ -85,20 +100,6 @@ class Statistics(OpenclProcessing):
                  ctx=None, devicetype="all", platformid=None, deviceid=None,
                  block_size=None, profile=False
                  ):
-        """Constructor of the OpenCL statistical analysis
-
-        :param shape: shape of the data to treat
-        :param dtype: input datatype
-        :param template: data template to extract size & dtype
-        :param ctx: actual working context, left to None for automatic
-                    initialization from device type or platformid/deviceid
-        :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
-        :param platformid: integer with the platform_identifier, as given by clinfo
-        :param deviceid: Integer with the device identifier, as given by clinfo
-        :param block_size: preferred workgroup size, may vary depending on the outpcome of the compilation
-        :param profile: switch on profiling to be able to profile at the kernel level,
-                        store profiling elements (makes code slightly slower)
-        """
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   block_size=block_size, profile=profile)
@@ -116,13 +117,12 @@ class Statistics(OpenclProcessing):
         self.set_kernel_arguments()
 
     def set_kernel_arguments(self):
-        """Parametrize all kernel arguments
-        """
+        """Parametrize all kernel arguments"""
         for val in self.mapping.values():
             self.cl_kernel_args[val] = OrderedDict(((i, self.cl_mem[i]) for i in ("raw", "converted")))
 
     def compile_kernels(self):
-        "Compile the kernel"
+        """Compile the kernel"""
         OpenclProcessing.compile_kernels(self, self.kernel_files, "-D NIMAGE=%i" % self.size)
         src = concatenate_cl_kernel(("kahan.cl", "statistics.cl"))
         self.reduction = ReductionKernel(self.ctx,
@@ -136,7 +136,7 @@ class Statistics(OpenclProcessing):
     def send_buffer(self, data, dest):
         """Send a numpy array to the device, including the cast on the device if possible
 
-        :param data: numpy array with data
+        :param numpy.ndarray data: numpy array with data
         :param dest: name of the buffer as registered in the class
         """
 
@@ -157,8 +157,9 @@ class Statistics(OpenclProcessing):
     def process(self, data):
         """Actually calculate the statics on the data
 
-        :param data: numpy array with the image
+        :param numpy.ndarray data: numpy array with the image
         :return: Statistics named tuple
+        :rtype: StatResults
         """
         if data.ndim != 1:
             data = data.ravel()
