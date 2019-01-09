@@ -1,5 +1,5 @@
 
-dist: trusty
+dist: xenial
 sudo: required
 
 language: python
@@ -51,9 +51,7 @@ addons:
     apt:
         packages:
             - libegl1-mesa  # Required by Qt xcb platform plugin
-            - opencl-headers
-            - ocl-icd-libopencl1
-            - opencl-headers
+            - ocl-icd-opencl-dev  # OpenCL headers, lib and icd loader
             - libgl1-mesa-glx  # For OpenGL
             - xserver-xorg-video-dummy  # For OpenGL
 
