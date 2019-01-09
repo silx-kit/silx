@@ -647,7 +647,7 @@ def _h5_py_version_older_than(version):
 
 
 @unittest.skipUnless(_h5_py_version_older_than('2.9.0'), 'h5py version < 2.9.0')
-class TestVolToH5(unittest.TestCase):
+class TestRawFileToH5(unittest.TestCase):
     """Test conversion of .vol file to .h5 external dataset"""
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
@@ -680,9 +680,10 @@ class TestVolToH5(unittest.TestCase):
 
     def test_h5_file_not_existing(self):
         """Test that can create a file with external dataset from scratch"""
-        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
-                                         output_url=self._data_url,
-                                         shape=(100, 20, 5))
+        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+                                             output_url=self._data_url,
+                                             shape=(100, 20, 5),
+                                             vol_dtype=numpy.float32)
         self.assertTrue(self.check_dataset(h5_file=self.h5_file,
                                            data_path=self.external_dataset_path,
                                            shape=self._dataset_shape))
@@ -699,9 +700,10 @@ class TestVolToH5(unittest.TestCase):
         with h5py.File(self.h5_file, 'w') as _file:
             _file['/root/dataset1'] = numpy.zeros((100, 100))
             _file['/root/group/dataset2'] = numpy.ones((100, 100))
-        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
-                                         output_url=self._data_url,
-                                         shape=(100, 20, 5))
+        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+                                             output_url=self._data_url,
+                                             shape=(100, 20, 5),
+                                             vol_dtype=numpy.float32)
         self.assertTrue(self.check_dataset(h5_file=self.h5_file,
                                            data_path=self.external_dataset_path,
                                            shape=self._dataset_shape))
@@ -709,9 +711,10 @@ class TestVolToH5(unittest.TestCase):
     def test_vol_file_not_existing(self):
         """Make sure error is raised if .vol file does not exists"""
         os.remove(self._vol_file)
-        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
-                                         output_url=self._data_url,
-                                         shape=(100, 20, 5))
+        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+                                             output_url=self._data_url,
+                                             shape=(100, 20, 5),
+                                             vol_dtype=numpy.float32)
 
         self.assertTrue(self.check_dataset(h5_file=self.h5_file,
                                            data_path=self.external_dataset_path,
@@ -720,19 +723,22 @@ class TestVolToH5(unittest.TestCase):
     def test_conflicts(self):
         """Test several conflict cases"""
         # test if path already exists
-        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
-                                         output_url=self._data_url,
-                                         shape=(100, 20, 5))
-        with self.assertRaises(ValueError):
-            utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
+        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
                                              output_url=self._data_url,
                                              shape=(100, 20, 5),
-                                             overwrite=False)
+                                             vol_dtype=numpy.float32)
+        with self.assertRaises(ValueError):
+            utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+                                                 output_url=self._data_url,
+                                                 shape=(100, 20, 5),
+                                                 overwrite=False,
+                                                 vol_dtype=numpy.float32)
 
-        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
-                                         output_url=self._data_url,
-                                         shape=(100, 20, 5),
-                                         overwrite=True)
+        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+                                             output_url=self._data_url,
+                                             shape=(100, 20, 5),
+                                             overwrite=True,
+                                             vol_dtype=numpy.float32)
 
         self.assertTrue(self.check_dataset(h5_file=self.h5_file,
                                            data_path=self.external_dataset_path,
@@ -747,7 +753,7 @@ def suite():
     test_suite.addTest(loadTests(TestOpen))
     test_suite.addTest(loadTests(TestNodes))
     test_suite.addTest(loadTests(TestGetData))
-    test_suite.addTest(loadTests(TestVolToH5))
+    test_suite.addTest(loadTests(TestRawFileToH5))
     return test_suite
 
 
