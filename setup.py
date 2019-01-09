@@ -345,8 +345,20 @@ if sphinx is not None:
                 self.mkpath(self.builder_target_dir)
                 BuildDoc.run(self)
             sys.path.pop(0)
+
+    class BuildDocAndGenerateScreenshotCommand(BuildDocCommand):
+        def run(self):
+            old = os.environ.get('DIRECTIVE_SNAPSHOT_QT')
+            os.environ['DIRECTIVE_SNAPSHOT_QT'] = 'True'
+            BuildDocCommand.run(self)
+            if old is not None:
+                os.environ['DIRECTIVE_SNAPSHOT_QT'] = old
+            else:
+                del os.environ['DIRECTIVE_SNAPSHOT_QT']
+
 else:
     BuildDocCommand = SphinxExpectedCommand
+    BuildDocAndGenerateScreenshotCommand = SphinxExpectedCommand
 
 
 # ################### #
@@ -922,6 +934,7 @@ def get_project_configuration(dry_run):
         build=Build,
         build_py=build_py,
         test=PyTest,
+        build_screenshots=BuildDocAndGenerateScreenshotCommand,
         build_doc=BuildDocCommand,
         test_doc=TestDocCommand,
         build_ext=BuildExt,

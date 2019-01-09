@@ -57,7 +57,7 @@ from silx.gui.widgets.BoxLayoutDockWidget import BoxLayoutDockWidget
 SIZE = 1024
 
 # Create QApplication
-qapp = qt.QApplication([])
+qapp = qt.QApplication.instance() or qt.QApplication([])
 
 # Create a SceneWindow widget
 window = SceneWindow()
