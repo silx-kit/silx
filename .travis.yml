@@ -67,8 +67,8 @@ install:
 
     # Install build dependencies
     - pip install -q --upgrade wheel
-    - pip install -q --upgrade numpy
-    - pip install -q --upgrade cython
+    - pip install -q --upgrade numpy --pre
+    - pip install -q --upgrade cython --pre
 
     # Print Python info
     - python ./ci/info_platform.py
