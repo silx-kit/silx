@@ -360,6 +360,16 @@ class PlotWidget(qt.QMainWindow):
         if self._autoreplot and not wasDirty and self.isVisible():
             self._backend.postRedisplay()
 
+    def _foregroundColorsUpdated(self):
+        """Handle change of foreground/grid color"""
+        if self._gridColor is None:
+            gridColor = self._foregroundColor
+        else:
+            gridColor = self._gridColor
+        self._backend.setForegroundColors(
+            self._foregroundColor, gridColor)
+        self._setDirtyPlot()
+
     def getForegroundColor(self):
         """Returns the RGBA colors used to display the foreground of this widget
 
@@ -376,9 +386,7 @@ class PlotWidget(qt.QMainWindow):
         color = colors.rgba(color)
         if self._foregroundColor != color:
             self._foregroundColor = color
-            self._backend.setForegroundColors(self._foregroundColor,
-                                              self._gridColor)
-            self._setDirtyPlot()
+            self._foregroundColorsUpdated()
 
     def getGridColor(self):
         """Returns the RGBA colors used to display the grid lines
@@ -405,9 +413,17 @@ class PlotWidget(qt.QMainWindow):
             color = colors.rgba(color)
         if self._gridColor != color:
             self._gridColor = color
-            self._backend.setForegroundColors(self._foregroundColor,
-                                              self._gridColor)
-            self._setDirtyPlot()
+            self._foregroundColorsUpdated()
+
+    def _backgroundColorsUpdated(self):
+        """Handle change of background/data background color"""
+        if self._dataBackgroundColor is None:
+            dataBGColor = self._backgroundColor
+        else:
+            dataBGColor = self._dataBackgroundColor
+        self._backend.setBackgroundColors(
+            self._backgroundColor, dataBGColor)
+        self._setDirtyPlot()
 
     def getBackgroundColor(self):
         """Returns the RGBA colors used to display the background of this widget.
@@ -425,9 +441,7 @@ class PlotWidget(qt.QMainWindow):
         color = colors.rgba(color)
         if self._backgroundColor != color:
             self._backgroundColor = color
-            self._backend.setBackgroundColors(self._backgroundColor,
-                                              self._dataBackgroundColor)
-            self._setDirtyPlot()
+            self._backgroundColorsUpdated()
 
     def getDataBackgroundColor(self):
         """Returns the RGBA colors used to display the background of the plot
@@ -457,9 +471,7 @@ class PlotWidget(qt.QMainWindow):
             color = colors.rgba(color)
         if self._dataBackgroundColor != color:
             self._dataBackgroundColor = color
-            self._backend.setBackgroundColors(self._backgroundColor,
-                                              self._dataBackgroundColor)
-            self._setDirtyPlot()
+            self._backgroundColorsUpdated()
 
     def showEvent(self, event):
         if self._autoreplot and self._dirty:
