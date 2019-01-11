@@ -283,6 +283,10 @@ class PlotWidget(qt.QMainWindow):
         self.setGraphYLimits(0., 100., axis='right')
         self.setGraphYLimits(0., 100., axis='left')
 
+        # Sync backend colors with default ones
+        self._foregroundColorsUpdated()
+        self._backgroundColorsUpdated()
+
     def _setBackend(self, backend):
         """Setup a new backend"""
         assert(self._backend is None)
