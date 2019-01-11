@@ -615,10 +615,15 @@ class BuildExt(build_ext):
 
         # Convert flags from gcc to MSVC if required
         if self.compiler.compiler_type == 'msvc':
-            ext.extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
-                                      for f in ext.extra_compile_args]
-            ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
-                                   for f in ext.extra_link_args]
+            extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
+                                  for f in ext.extra_compile_args]
+            # Avoid empty arg
+            ext.extra_compile_args = [arg for arg in extra_compile_args if arg]
+
+            extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
+                               for f in ext.extra_link_args]
+            # Avoid empty arg
+            ext.extra_link_args = [arg for arg in extra_link_args if arg]
 
         elif self.compiler.compiler_type == 'unix':
             # Avoids runtime symbol collision for manylinux1 platform
