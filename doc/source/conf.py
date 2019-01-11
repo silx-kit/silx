@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # /*##########################################################################
-# Copyright (C) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,11 +60,6 @@ from silx.utils.deprecation import depreclog
 depreclog.disabled = 1
 
 # Add local sphinx extension directory
-
-dirname = os.path.dirname
-root_dir = dirname(dirname(dirname(os.path.abspath(__file__))))
-
-source_dir = dirname(dirname(silx.__file__))
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext'))
 
 # -- General configuration -----------------------------------------------------
