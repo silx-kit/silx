@@ -64,7 +64,7 @@ build_script:
     - "pip list --format=columns"
 
     # Build
-    - "python setup.py bdist_wheel bdist_msi"
+    - "python setup.py bdist_wheel"
     - ps: "ls dist"
 
     # Leave build virtualenv
