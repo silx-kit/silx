@@ -34,7 +34,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "08/01/2019"
+__date__ = "11/01/2019"
 __copyright__ = "2012-2017, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -127,7 +127,7 @@ class Statistics(OpenclProcessing):
         OpenclProcessing.compile_kernels(self,
                                          self.kernel_files,
                                          "-D NIMAGE=%i" % self.size)
-
+        compiler_options = self.get_compiler_options(x87_volatile=True)
         src = concatenate_cl_kernel(("kahan.cl", "statistics.cl"))
         self.reduction_comp = ReductionKernel(self.ctx,
                                               dtype_out=float8,
@@ -135,14 +135,16 @@ class Statistics(OpenclProcessing):
                                               map_expr="map_statistics(data, i)",
                                               reduce_expr="reduce_statistics(a,b)",
                                               arguments="__global float *data",
-                                              preamble=src)
+                                              preamble=src,
+                                              options=compiler_options)
         self.reduction_simple = ReductionKernel(self.ctx,
                                                 dtype_out=float8,
                                                 neutral=zero8,
                                                 map_expr="map_statistics(data, i)",
                                                 reduce_expr="reduce_statistics_simple(a,b)",
                                                 arguments="__global float *data",
-                                                preamble=src)
+                                                preamble=src,
+                                                options=compiler_options)
 
     def send_buffer(self, data, dest):
         """
