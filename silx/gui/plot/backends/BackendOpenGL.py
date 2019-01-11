@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -782,6 +782,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 lines = GLLines2D(points[:, 0], points[:, 1],
                                   style=item['linestyle'],
                                   color=item['color'],
+                                  dash2ndColor=item['linebgcolor'],
                                   width=item['linewidth'])
                 lines.render(self.matScreenProj)
 
@@ -1030,7 +1031,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
-        # FIXME: implement lineStyle and lineBgColor
         # TODO handle overlay
         if shape not in ('polygon', 'rectangle', 'line',
                          'vline', 'hline', 'polylines'):
@@ -1063,7 +1063,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'x': x,
             'y': y,
             'linestyle': linestyle,
-            'linewidth': linewidth
+            'linewidth': linewidth,
+            'linebgcolor': linebgcolor,
         }
 
         return legend, 'item'

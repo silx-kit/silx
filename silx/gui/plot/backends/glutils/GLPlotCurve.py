@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -323,6 +323,7 @@ class GLLines2D(object):
         /* Dashes: [0, x], [y, z]
            Dash period: w */
         uniform vec4 dash;
+        uniform vec4 dash2ndColor;
 
         varying float vDist;
         varying vec4 vColor;
@@ -330,16 +331,21 @@ class GLLines2D(object):
         void main(void) {
             float dist = mod(vDist, dash.w);
             if ((dist > dash.x && dist < dash.y) || dist > dash.z) {
-                discard;
+                if (dash2ndColor.a == 0.) {
+                    discard;  // Discard full transparent bg color
+                } else {
+                    gl_FragColor = dash2ndColor;
+                }
+            } else {
+                gl_FragColor = vColor;
             }
-            gl_FragColor = vColor;
         }
         """,
         attrib0='xPos')
 
     def __init__(self, xVboData=None, yVboData=None,
                  colorVboData=None, distVboData=None,
-                 style=SOLID, color=(0., 0., 0., 1.),
+                 style=SOLID, color=(0., 0., 0., 1.), dash2ndColor=None,
                  width=1, dashPeriod=10., drawMode=None,
                  offset=(0., 0.)):
         if (xVboData is not None and
@@ -370,6 +376,7 @@ class GLLines2D(object):
         self.useColorVboData = colorVboData is not None
 
         self.color = color
+        self.dash2ndColor = dash2ndColor
         self.width = width
         self._style = None
         self.style = style
@@ -435,6 +442,13 @@ class GLLines2D(object):
                         dashPeriod)
 
             gl.glUniform4f(program.uniforms['dash'], *dash)
+
+            if self.dash2ndColor is None:
+                # Use fully transparent color which gets discarded in shader
+                dash2ndColor = (0., 0., 0., 0.)
+            else:
+                dash2ndColor = self.dash2ndColor
+            gl.glUniform4f(program.uniforms['dash2ndColor'], *dash2ndColor)
 
             distAttrib = program.attributes['distance']
             gl.glEnableVertexAttribArray(distAttrib)
