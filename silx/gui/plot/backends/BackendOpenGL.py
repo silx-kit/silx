@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -339,10 +339,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                   f=f)
         BackendBase.BackendBase.__init__(self, plot, parent)
 
-        self._foregroundColor = 0., 0., 0., 1.
-        self._gridColor = 0.3, 0.3, 0.3, 1.
         self._backgroundColor = 1., 1., 1., 1.
-        self._dataBackgroundColor = None
+        self._dataBackgroundColor = 1., 1., 1., 1.
 
         self.matScreenProj = mat4Identity()
 
@@ -363,8 +361,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._glGarbageCollector = []
 
         self._plotFrame = GLPlotFrame2D(
-            foregroundColor = self._foregroundColor,
-            gridColor = self._gridColor,
             margins={'left': 100, 'right': 50, 'top': 50, 'bottom': 50})
 
         # Make postRedisplay asynchronous using Qt signal
@@ -716,7 +712,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                      plotWidth, plotHeight)
         gl.glEnable(gl.GL_SCISSOR_TEST)
 
-        if self._dataBackgroundColor is not None:
+        if self._dataBackgroundColor != self._backgroundColor:
             gl.glClearColor(*self._dataBackgroundColor)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
@@ -1566,23 +1562,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         self._plotFrame.displayed = displayed
 
-    def setForegroundColors(self, foregroundColor, gridColor=None):
-        if foregroundColor is not None:
-            self._foregroundColor = foregroundColor
-        else:
-            self._foregroundColor = 0., 0., 0., 1.
+    def setForegroundColors(self, foregroundColor, gridColor):
+        self._plotFrame.foregroundColor = foregroundColor
+        self._plotFrame.gridColor = gridColor
 
-        if gridColor is not None:
-            self._gridColor = gridColor
-        else:
-            self._gridColor = self._foregroundColor
-
-        self._plotFrame.foregroundColor = self._foregroundColor
-        self._plotFrame.gridColor = self._gridColor
-
-    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
-        if backgroundColor is not None:
-            self._backgroundColor = backgroundColor
-        else:
-            self._backgroundColor = 1., 1., 1., 1.
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
+        self._backgroundColor = backgroundColor
         self._dataBackgroundColor = dataBackgroundColor
