@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -229,9 +229,10 @@ class PlotWidget(qt.QMainWindow):
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
 
-        self._foregroundColor = None
+        # plot colors (updated later to sync backend)
+        self._foregroundColor = 0., 0., 0., 0.
         self._gridColor = None
-        self._backgroundColor = None
+        self._backgroundColor = 0., 0., 0., 0.
         self._dataBackgroundColor = None
 
         # default properties
@@ -281,6 +282,12 @@ class PlotWidget(qt.QMainWindow):
         self.setGraphXLimits(0., 100.)
         self.setGraphYLimits(0., 100., axis='right')
         self.setGraphYLimits(0., 100., axis='left')
+
+        # Set default colors
+        self.setBackgroundColor((1., 1., 1., 1.))
+        self.setDataBackgroundColor(None)
+        self.setForegroundColor((0., 0., 0., 1.))
+        self.setGridColor((.7, .7, .7, 1.))
 
     def _setBackend(self, backend):
         """Setup a new backend"""
@@ -356,113 +363,103 @@ class PlotWidget(qt.QMainWindow):
     def getForegroundColor(self):
         """Returns the RGBA colors used to display the foreground of this widget
 
-        The default value is an invalid `QColor`.
-
         :rtype: qt.QColor
         """
-        if self._foregroundColor is None:
-            # An invalid color
-            return qt.QColor()
-        rgba = self._foregroundColor
-        color = qt.QColor.fromRgbF(*rgba)
-        return color
+        return qt.QColor.fromRgbF(*self._foregroundColor)
 
     def setForegroundColor(self, color):
         """Set the foreground color of this widget.
 
-        :param color: The new color. It can be farious formats (tuple,
-            numpy array, QColor)
+        :param color: The new RGB(A) color.
+        :type: Union[List[int],List[float],QColor]
         """
-        if color is not None:
-            color = colors.rgba(color)
-        if self._foregroundColor == color:
-            return
-        self._foregroundColor = color
-        self._backend.setForegroundColors(self._foregroundColor, self._gridColor)
-        self._setDirtyPlot()
+        color = colors.rgba(color)
+        if self._foregroundColor != color:
+            self._foregroundColor = color
+            self._backend.setForegroundColors(self._foregroundColor,
+                                              self._gridColor)
+            self._setDirtyPlot()
 
     def getGridColor(self):
         """Returns the RGBA colors used to display the grid lines
 
-        The default value is an invalid `QColor`.
+        An invalid QColor is returned if there is no grid color,
+        in which case the foreground color is used.
 
         :rtype: qt.QColor
         """
         if self._gridColor is None:
-            # An invalid color
-            return qt.QColor()
-        rgba = self._gridColor
-        color = qt.QColor.fromRgbF(*rgba)
-        return color
+            return qt.QColor()  # An invalid color
+        else:
+            return qt.QColor.fromRgbF(*self._gridColor)
 
     def setGridColor(self, color):
         """Set the grid lines color
 
-        :param color: The new color. It can be farious formats (tuple,
-            numpy array, QColor)
+        :param color: The new RGB(A) color.
+        :type: Union[List[int],List[float],QColor,None]
         """
+        if isinstance(color, qt.QColor) and not color.isValid():
+            color = None
         if color is not None:
             color = colors.rgba(color)
-        if self._gridColor == color:
-            return
-        self._gridColor = color
-        self._backend.setForegroundColors(self._foregroundColor, self._gridColor)
-        self._setDirtyPlot()    
+        if self._gridColor != color:
+            self._gridColor = color
+            self._backend.setForegroundColors(self._foregroundColor,
+                                              self._gridColor)
+            self._setDirtyPlot()
 
     def getBackgroundColor(self):
         """Returns the RGBA colors used to display the background of this widget.
 
         :rtype: qt.QColor
         """
-        if self._backgroundColor is None:
-            color = qt.QColor(255, 255, 255, 255)
-        else:
-            rgba = self._backgroundColor
-            color = qt.QColor.fromRgbF(*rgba)
-        return color
+        return qt.QColor.fromRgbF(*self._backgroundColor)
 
     def setBackgroundColor(self, color):
         """Set the background color of this widget.
 
-        :param color: The new color. It can be various formats (tuple,
-            numpy array, QColor)
+        :param color: The new RGB(A) color.
+        :type: Union[List[int],List[float],QColor]
         """
-        if color is not None:
-            color = colors.rgba(color)
-        if self._backgroundColor == color:
-            return
-        self._backgroundColor = color
-        self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
-        self._setDirtyPlot()
+        color = colors.rgba(color)
+        if self._backgroundColor != color:
+            self._backgroundColor = color
+            self._backend.setBackgroundColors(self._backgroundColor,
+                                              self._dataBackgroundColor)
+            self._setDirtyPlot()
 
     def getDataBackgroundColor(self):
         """Returns the RGBA colors used to display the background of the plot
         view displaying the data.
 
-        The default value is an invalid `QColor`.
+        An invalid QColor is returned if there is no data background color.
 
         :rtype: qt.QColor
         """
         if self._dataBackgroundColor is None:
             # An invalid color
             return qt.QColor()
-        rgba = self._dataBackgroundColor
-        color = qt.QColor.fromRgbF(*rgba)
-        return color
+        else:
+            return qt.QColor.fromRgbF(*self._dataBackgroundColor)
 
     def setDataBackgroundColor(self, color):
         """Set the background color of this widget.
 
-        :param color: The new color. It can be farious formats (tuple,
-            numpy array, QColor)
+        Set to None or an invalid QColor to use the background color.
+
+        :param color: The new RGB(A) color.
+        :type: Union[List[int],List[float],QColor,None]
         """
+        if isinstance(color, qt.QColor) and not color.isValid():
+            color = None
         if color is not None:
             color = colors.rgba(color)
-        if self._dataBackgroundColor == color:
-            return
-        self._dataBackgroundColor = color
-        self._backend.setBackgroundColors(self._backgroundColor, self._dataBackgroundColor)
-        self._setDirtyPlot()
+        if self._dataBackgroundColor != color:
+            self._dataBackgroundColor = color
+            self._backend.setBackgroundColors(self._backgroundColor,
+                                              self._dataBackgroundColor)
+            self._setDirtyPlot()
 
     def showEvent(self, event):
         if self._autoreplot and self._dirty:
