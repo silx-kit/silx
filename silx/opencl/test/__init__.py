@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "13/12/2018"
+__date__ = "11/01/2019"
 
 import os
 import unittest
@@ -50,6 +50,7 @@ def suite():
     test_suite.addTests(test_codec.suite())
     test_suite.addTests(test_image.suite())
     test_suite.addTests(test_stats.suite())
+    test_suite.addTests(test_kahan.suite())
     # Allow to remove sift from the project
     test_base_dir = os.path.dirname(__file__)
     sift_dir = os.path.join(test_base_dir, "..", "sift")
