@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -912,18 +912,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax.set_position([0, 0, 1, 1])
             self.ax2.set_position([0, 0, 1, 1])
         self._synchronizeBackgroundColors()
-        self._synchronizeBackgroundColors()
+        self._synchronizeForegroundColors()
         self._plot._setDirtyPlot()
 
     def _synchronizeBackgroundColors(self):
-        backgroundColor = self._plot.getBackgroundColor()
+        backgroundColor = self._plot.getBackgroundColor().getRgbF()
+
         dataBackgroundColor = self._plot.getDataBackgroundColor()
-
-        if backgroundColor.isValid():
-            backgroundColor = backgroundColor.getRgbF()
-        else:
-            backgroundColor = 'w'
-
         if dataBackgroundColor.isValid():
             dataBackgroundColor = dataBackgroundColor.getRgbF()
         else:
@@ -939,36 +934,31 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.fig.patch.set_facecolor(dataBackgroundColor)
 
     def _synchronizeForegroundColors(self):
-            foregroundColor = self._plot.getForegroundColor()
-            gridColor = self._plot.getGridColor()
+        foregroundColor = self._plot.getForegroundColor().getRgbF()
 
-            if foregroundColor.isValid():
-                foregroundColor = foregroundColor.getRgbF()
-            else:
-                foregroundColor = 'k'
+        gridColor = self._plot.getGridColor()
+        if gridColor.isValid():
+            gridColor = gridColor.getRgbF()
+        else:
+            gridColor = foregroundColor
 
-            if gridColor.isValid():
-                gridColor = gridColor.getRgbF()
-            else:
-                gridColor = foregroundColor
+        if self.ax.axison:
+            self.ax.spines['bottom'].set_color(foregroundColor)
+            self.ax.spines['top'].set_color(foregroundColor)
+            self.ax.spines['right'].set_color(foregroundColor)
+            self.ax.spines['left'].set_color(foregroundColor)
+            self.ax.tick_params(axis='x', colors=foregroundColor)
+            self.ax.tick_params(axis='y', colors=foregroundColor)
+            self.ax.yaxis.label.set_color(foregroundColor)
+            self.ax.xaxis.label.set_color(foregroundColor)
+            self.ax.title.set_color(foregroundColor)
 
-            if self.ax.axison:
-                self.ax.spines['bottom'].set_color(foregroundColor)
-                self.ax.spines['top'].set_color(foregroundColor)
-                self.ax.spines['right'].set_color(foregroundColor)
-                self.ax.spines['left'].set_color(foregroundColor)
-                self.ax.tick_params(axis='x', colors=foregroundColor)
-                self.ax.tick_params(axis='y', colors=foregroundColor)
-                self.ax.yaxis.label.set_color(foregroundColor)
-                self.ax.xaxis.label.set_color(foregroundColor)
-                self.ax.title.set_color(foregroundColor)
+            for line in self.ax.get_xgridlines():
+                line.set_color(gridColor)
 
-                for line in self.ax.get_xgridlines():
-                    line.set_color(gridColor)
-
-                for line in self.ax.get_ygridlines():
-                    line.set_color(gridColor)
-                #self.ax.grid().set_markeredgecolor(gridColor)
+            for line in self.ax.get_ygridlines():
+                line.set_color(gridColor)
+            # self.ax.grid().set_markeredgecolor(gridColor)
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
@@ -1198,8 +1188,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             cursor = self._QT_CURSORS[cursor]
             FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))
 
-    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
         self._synchronizeBackgroundColors()
 
-    def setForegroundColors(self, foregroundColor, gridColor=None):
+    def setForegroundColors(self, foregroundColor, gridColor):
         self._synchronizeForegroundColors()
