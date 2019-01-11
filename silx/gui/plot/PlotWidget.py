@@ -230,9 +230,9 @@ class PlotWidget(qt.QMainWindow):
                               'scatter': None}
 
         # plot colors (updated later to sync backend)
-        self._foregroundColor = 0., 0., 0., 0.
-        self._gridColor = None
-        self._backgroundColor = 0., 0., 0., 0.
+        self._foregroundColor = 0., 0., 0., 1.
+        self._gridColor = .7, .7, .7, 1.
+        self._backgroundColor = 1., 1., 1., 1.
         self._dataBackgroundColor = None
 
         # default properties
@@ -282,12 +282,6 @@ class PlotWidget(qt.QMainWindow):
         self.setGraphXLimits(0., 100.)
         self.setGraphYLimits(0., 100., axis='right')
         self.setGraphYLimits(0., 100., axis='left')
-
-        # Set default colors
-        self.setBackgroundColor((1., 1., 1., 1.))
-        self.setDataBackgroundColor(None)
-        self.setForegroundColor((0., 0., 0., 1.))
-        self.setGridColor((.7, .7, .7, 1.))
 
     def _setBackend(self, backend):
         """Setup a new backend"""

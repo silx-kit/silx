@@ -361,6 +361,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._glGarbageCollector = []
 
         self._plotFrame = GLPlotFrame2D(
+            foregroundColor=(0., 0., 0., 1.),
+            gridColor=(.7, .7, .7, 1.),
             margins={'left': 100, 'right': 50, 'top': 50, 'bottom': 50})
 
         # Make postRedisplay asynchronous using Qt signal
@@ -705,8 +707,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def _renderPlotAreaGL(self):
         plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
 
-        self._plotFrame.renderGrid()
-
         gl.glScissor(self._plotFrame.margins.left,
                      self._plotFrame.margins.bottom,
                      plotWidth, plotHeight)
@@ -715,6 +715,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if self._dataBackgroundColor != self._backgroundColor:
             gl.glClearColor(*self._dataBackgroundColor)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+
+        self._plotFrame.renderGrid()
 
         # Matrix
         trBounds = self._plotFrame.transformedDataRanges
