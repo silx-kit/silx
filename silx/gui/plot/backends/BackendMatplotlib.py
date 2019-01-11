@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "19/12/2018"
+__date__ = "21/12/2018"
 
 
 import logging
@@ -60,6 +60,22 @@ from ....third_party.modest_image import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
+
+
+_PATCH_LINESTYLE = {
+    "-": 'solid',
+    "--": 'dashed',
+    '-.': 'dashdot',
+    ':': 'dotted',
+    '': "solid",
+    None: "solid",
+}
+"""Patches do not uses the same matplotlib syntax"""
+
+
+def normalize_linestyle(linestyle):
+    """Normalize known old-style linestyle, else return the provided value."""
+    return _PATCH_LINESTYLE.get(linestyle, linestyle)
 
 
 class NiceDateLocator(Locator):
@@ -197,6 +213,44 @@ class _MarkerContainer(Container):
                     xmax = xmin
                 xmax -= 0.005 * delta
                 self.text.set_x(xmax)
+
+
+class _DoubleColoredLinePatch(matplotlib.patches.Patch):
+    """Matplotlib patch to display any patch using double color."""
+
+    def __init__(self, patch):
+        super(_DoubleColoredLinePatch, self).__init__()
+        self.__patch = patch
+        self.linebgcolor = None
+
+    def __getattr__(self, name):
+        return getattr(self.__patch, name)
+
+    def draw(self, renderer):
+        oldLineStype = self.__patch.get_linestyle()
+        if self.linebgcolor is not None and oldLineStype != "solid":
+            oldLineColor = self.__patch.get_edgecolor()
+            oldHatch = self.__patch.get_hatch()
+            self.__patch.set_linestyle("solid")
+            self.__patch.set_edgecolor(self.linebgcolor)
+            self.__patch.set_hatch(None)
+            self.__patch.draw(renderer)
+            self.__patch.set_linestyle(oldLineStype)
+            self.__patch.set_edgecolor(oldLineColor)
+            self.__patch.set_hatch(oldHatch)
+        self.__patch.draw(renderer)
+
+    def set_transform(self, transform):
+        self.__patch.set_transform(transform)
+
+    def get_path(self):
+        return self.__patch.get_path()
+
+    def contains(self, mouseevent, radius=None):
+        return self.__patch.contains(mouseevent, radius)
+
+    def contains_point(self, point, radius=None):
+        return self.__patch.contains_point(point, radius)
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -451,9 +505,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return image
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
-                linestyle, linewidth):
+                linestyle, linewidth, linebgcolor):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
+
+        linestyle = normalize_linestyle(linestyle)
 
         if shape == "line":
             item = self.ax.plot(x, y, label=legend, color=color,
@@ -489,6 +545,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if fill:
                 item.set_hatch('.')
 
+            if linestyle != "solid" and linebgcolor is not None:
+                item = _DoubleColoredLinePatch(item)
+                item.linebgcolor = linebgcolor
+
             self.ax.add_patch(item)
 
         elif shape in ('polygon', 'polylines'):
@@ -506,6 +566,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
                            linewidth=linewidth)
             if fill and shape == 'polygon':
                 item.set_hatch('/')
+
+            if linestyle != "solid" and linebgcolor is not None:
+                item = _DoubleColoredLinePatch(item)
+                item.linebgcolor = linebgcolor
 
             self.ax.add_patch(item)
 

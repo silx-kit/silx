@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/11/2018"
+__date__ = "21/12/2018"
 
 
 import math
@@ -96,10 +96,18 @@ class _PlotInteraction(object):
 
         fill = fill != 'none'  # TODO not very nice either
 
+        greyed = colors.greyed(color)[0]
+        if greyed < 0.5:
+            color2 = "white"
+        else:
+            color2 = "black"
+
         self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
                           replace=False,
-                          shape=shape, color=color, fill=fill,
+                          shape=shape, fill=fill,
+                          color=color, linebgcolor=color2, linestyle="--",
                           overlay=True)
+
         self._selectionAreas.add(legend)
 
     def resetSelectionArea(self):
@@ -553,7 +561,6 @@ class SelectPolygon(Select):
         if qt.BINDING in ('PyQt5', 'PySide2'):
             ratio = self.plot.window().windowHandle().devicePixelRatio()
         return self.DRAG_THRESHOLD_DIST * ratio
-
 
 
 class Select2Points(Select):

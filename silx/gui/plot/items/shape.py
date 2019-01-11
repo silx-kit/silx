@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/05/2017"
+__date__ = "21/12/2018"
 
 
 import logging
@@ -74,7 +74,8 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
                                overlay=self.isOverlay(),
                                z=self.getZValue(),
                                linestyle=self.getLineStyle(),
-                               linewidth=self.getLineWidth())
+                               linewidth=self.getLineWidth(),
+                               linebgcolor=self.getLineBgColor())
 
     def isOverlay(self):
         """Return true if shape is drawn as an overlay
