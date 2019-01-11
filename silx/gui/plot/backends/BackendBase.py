@@ -559,6 +559,21 @@ class BackendBase(object):
         """
         return self._axesDisplayed
 
+    def setForegroundColors(self, foregroundColor, gridColor=None):
+        """
+        Set foreground and grid colors used to display this widget.
+        
+        If a `foregroundColor` is set, it is used for all the foreground of the
+        widget, while no `gridColor` is used.
+
+        If a `gridColor` is set, it is used to set the grid color only.
+
+        :param Union[Tuple[float],None] foregroundColor: Foreground of the
+            widget
+        :param Union[Tuple[float],None] gridColor: Grid color of the data view
+        """
+        pass
+
     def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
         """
         Set background colors used to display this widget.

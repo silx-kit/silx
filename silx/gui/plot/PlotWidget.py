@@ -229,6 +229,8 @@ class PlotWidget(qt.QMainWindow):
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
 
+        self._foregroundColor = None
+        self._gridColor = None
         self._backgroundColor = None
         self._dataBackgroundColor = None
 
@@ -350,6 +352,62 @@ class PlotWidget(qt.QMainWindow):
 
         if self._autoreplot and not wasDirty and self.isVisible():
             self._backend.postRedisplay()
+
+    def getForegroundColor(self):
+        """Returns the RGBA colors used to display the foreground of this widget
+
+        The default value is an invalid `QColor`.
+
+        :rtype: qt.QColor
+        """
+        if self._foregroundColor is None:
+            # An invalid color
+            return qt.QColor()
+        rgba = self._foregroundColor
+        color = qt.QColor.fromRgbF(*rgba)
+        return color
+
+    def setForegroundColor(self, color):
+        """Set the foreground color of this widget.
+
+        :param color: The new color. It can be farious formats (tuple,
+            numpy array, QColor)
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._foregroundColor == color:
+            return
+        self._foregroundColor = color
+        self._backend.setForegroundColors(self._foregroundColor, self._gridColor)
+        self._setDirtyPlot()
+
+    def getGridColor(self):
+        """Returns the RGBA colors used to display the grid lines
+
+        The default value is an invalid `QColor`.
+
+        :rtype: qt.QColor
+        """
+        if self._gridColor is None:
+            # An invalid color
+            return qt.QColor()
+        rgba = self._gridColor
+        color = qt.QColor.fromRgbF(*rgba)
+        return color
+
+    def setGridColor(self, color):
+        """Set the grid lines color
+
+        :param color: The new color. It can be farious formats (tuple,
+            numpy array, QColor)
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._gridColor == color:
+            return
+        self._gridColor = color
+        self._backend.setForegroundColors(self._foregroundColor, self._gridColor)
+        self._setDirtyPlot()    
 
     def getBackgroundColor(self):
         """Returns the RGBA colors used to display the background of this widget.
