@@ -117,12 +117,12 @@ class Octaveh5(object):
             return None
 
         for key, val in iter(dict(gr_level2).items()):
-            data_dict[str(key)] = list(val.items())[1][1].value
+            data_dict[str(key)] = list(val.items())[1][1][()]
 
-            if list(val.items())[0][1].value != np.string_('sq_string'):
+            if list(val.items())[0][1][()] != np.string_('sq_string'):
                 data_dict[str(key)] = float(data_dict[str(key)])
             else:
-                if list(val.items())[0][1].value == np.string_('sq_string'):
+                if list(val.items())[0][1][()] == np.string_('sq_string'):
                     # in the case the string has been stored as an nd-array of char
                     if type(data_dict[str(key)]) is np.ndarray:
                         data_dict[str(key)] = "".join(chr(item) for item in data_dict[str(key)])
