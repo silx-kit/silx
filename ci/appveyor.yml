@@ -28,22 +28,24 @@ environment:
         - PYTHON_DIR: "C:\\Python37-x64"
           QT_BINDING: "PyQt5"
           WITH_GL_TEST: True
+          PIP_OPTIONS: "-q --pre"
 
         # Python 2.7
         - PYTHON_DIR: "C:\\Python27-x64"
           QT_BINDING: "PyQt4"
           WITH_GL_TEST: False
+          PIP_OPTIONS: "-q"
 
 install:
     # Add Python to PATH
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
     # Upgrade/install distribution modules
-    - "pip install --upgrade setuptools"
-    - "python -m pip install --upgrade pip"
+    - "pip install %PIP_OPTIONS% --upgrade setuptools"
+    - "python -m pip install %PIP_OPTIONS% --upgrade pip"
 
     # Install virtualenv
-    - "pip install --upgrade virtualenv"
+    - "pip install %PIP_OPTIONS% --upgrade virtualenv"
     - "virtualenv --version"
 
     # Download Mesa OpenGL in Python directory when testing OpenGL
@@ -55,9 +57,9 @@ build_script:
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
 
     # Install build dependencies
-    - "pip install --upgrade wheel"
-    - "pip install --upgrade numpy --pre"
-    - "pip install --upgrade cython --pre"
+    - "pip install %PIP_OPTIONS% --upgrade wheel"
+    - "pip install %PIP_OPTIONS% --upgrade numpy"
+    - "pip install %PIP_OPTIONS% --upgrade cython"
 
     # Print Python info
     - "python ci\\info_platform.py"
@@ -77,13 +79,13 @@ before_test:
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
 
     # First install any temporary pinned/additional requirements
-    - pip install --pre -r "ci\requirements-pinned.txt
+    - pip install %PIP_OPTIONS% -r "ci\requirements-pinned.txt
 
     # Install dependencies
-    - pip install --pre -r requirements.txt
+    - pip install %PIP_OPTIONS% -r requirements.txt
 
     # Install selected Qt binding
-    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ %QT_BINDING%"
+    - "pip install %PIP_OPTIONS% --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ %QT_BINDING%"
 
     # Install the generated wheel package to test it
     # Make sure silx does not come from cache or pypi

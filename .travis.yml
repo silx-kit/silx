@@ -15,6 +15,7 @@ matrix:
               - BUILD_COMMAND=sdist
               - QT_BINDING=
               - SILX_OPENCL=1
+              - PIP_OPTIONS="-q"
 
         - python: 3.4
           os: linux
@@ -23,6 +24,7 @@ matrix:
               - QT_BINDING=
               - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
               - SILX_OPENCL=1
+              - PIP_OPTIONS="-q"
 
         - python: 3.5
           os: linux
@@ -30,6 +32,7 @@ matrix:
               - BUILD_COMMAND=sdist
               - QT_BINDING=PyQt5
               - SILX_OPENCL=1
+              - PIP_OPTIONS="-q --pre"
 
         - python: 3.7
           os: linux
@@ -37,12 +40,14 @@ matrix:
               - BUILD_COMMAND=sdist
               - QT_BINDING=PySide2
               - SILX_OPENCL=1
+              - PIP_OPTIONS="-q --pre"
 
         - language: generic
           os: osx
           env:
               - BUILD_COMMAND=bdist_wheel
               - QT_BINDING=PyQt5
+              - PIP_OPTIONS="-q --pre"
 
 cache:
     apt: true
@@ -62,13 +67,13 @@ before_install:
 
 install:
     # Upgrade distribution modules
-    - python -m pip install -q --upgrade pip
-    - pip install -q --upgrade setuptools
+    - python -m pip install ${PIP_OPTIONS} --upgrade pip
+    - pip install ${PIP_OPTIONS} --upgrade setuptools
 
     # Install build dependencies
-    - pip install -q --upgrade wheel
-    - pip install -q --upgrade numpy --pre
-    - pip install -q --upgrade cython --pre
+    - pip install ${PIP_OPTIONS} --upgrade wheel
+    - pip install ${PIP_OPTIONS} --upgrade numpy
+    - pip install ${PIP_OPTIONS} --upgrade cython
 
     # Print Python info
     - python ./ci/info_platform.py
@@ -96,15 +101,15 @@ before_script:
     # First install any temporary pinned/additional requirements
     - if [ -s "ci/requirements-pinned.txt" ];
       then
-      pip install -q --pre -r ci/requirements-pinned.txt;
+      pip install ${PIP_OPTIONS} -r ci/requirements-pinned.txt;
       fi
 
     # This installs PyQt and scipy if wheels are available
-    - pip install -q --pre -r requirements.txt
+    - pip install ${PIP_OPTIONS} -r requirements.txt
     # Install PySide2 if needed
     - if [ "$QT_BINDING" == "PySide2" ];
       then
-          pip install -q --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io;
+          pip install ${PIP_OPTIONS} --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io;
       fi
 
     # Install built package
@@ -123,7 +128,7 @@ before_script:
 
     - if [ "$TRAVIS_OS_NAME" == "osx" ];
       then
-          pip install -q --upgrade pynput;
+          pip install ${PIP_OPTIONS} --upgrade pynput;
           python ci/close_popup.py;
       fi
 
