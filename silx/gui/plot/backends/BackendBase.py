@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -561,35 +561,19 @@ class BackendBase(object):
         """
         return self._axesDisplayed
 
-    def setForegroundColors(self, foregroundColor, gridColor=None):
-        """
-        Set foreground and grid colors used to display this widget.
+    def setForegroundColors(self, foregroundColor, gridColor):
+        """Set foreground and grid colors used to display this widget.
         
-        If a `foregroundColor` is set, it is used for all the foreground of the
-        widget, while no `gridColor` is used.
-
-        If a `gridColor` is set, it is used to set the grid color only.
-
-        :param Union[Tuple[float],None] foregroundColor: Foreground of the
-            widget
-        :param Union[Tuple[float],None] gridColor: Grid color of the data view
+        :param List[float] foregroundColor: RGBA foreground color of the widget
+        :param List[float] gridColor: RGBA grid color of the data view
         """
         pass
 
-    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
-        """
-        Set background colors used to display this widget.
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
+        """Set background colors used to display this widget.
 
-        If a `backgroundColor` is set, it is used for all the background of the
-        widget, while no `dataBackgroundColor` is used.
-
-        If a `dataBackgroundColor` is set, it is used to set the background
-        of the view displayed the data only. The widget outside the axes will
-        still use the `backgroundColor` as background.
-
-        :param Union[Tuple[float],None] backgroundColor: Background of the
-            widget
-        :param Union[Tuple[float],None] dataBackgroundColor: Background of the
-            data view
+        :param List[float] backgroundColor: RGBA background color of the widget
+        :param Union[Tuple[float],None] dataBackgroundColor:
+            RGBA background color of the data view
         """
         pass

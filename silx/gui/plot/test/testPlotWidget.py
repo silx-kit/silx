@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -205,7 +205,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.qapp.processEvents()
 
         # Back to default
-        self.plot.setBackgroundColor(None)
+        self.plot.setBackgroundColor('white')
         self.plot.setDataBackgroundColor(None)
         color = self.plot.getBackgroundColor()
         self.assertTrue(color.isValid())
