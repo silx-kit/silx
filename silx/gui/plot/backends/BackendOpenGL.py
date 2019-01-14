@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -752,12 +752,28 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 # Ignore items <= 0. on log axes
                 continue
 
-            points = numpy.array([
-                self.dataToPixel(x, y, axis='left', check=False)
-                for (x, y) in zip(item['x'], item['y'])])
+            if item['shape'] == 'hline':
+                width = self._plotFrame.size[0]
+                _, yPixel = self.dataToPixel(
+                    None, item['y'], axis='left', check=False)
+                points = numpy.array(((0., yPixel), (width, yPixel)),
+                                     dtype=numpy.float32)
+
+            elif item['shape'] == 'vline':
+                xPixel, _ = self.dataToPixel(
+                    item['x'], None, axis='left', check=False)
+                height = self._plotFrame.size[1]
+                points = numpy.array(((xPixel, 0), (xPixel, height)),
+                                     dtype=numpy.float32)
+
+            else:
+                points = numpy.array([
+                    self.dataToPixel(x, y, axis='left', check=False)
+                    for (x, y) in zip(item['x'], item['y'])])
 
             # Draw the fill
-            if item['fill'] is not None:
+            if (item['fill'] is not None and
+                    item['shape'] not in ('hline', 'vline')):
                 self._progBase.use()
                 gl.glUniformMatrix4fv(
                     self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
@@ -782,6 +798,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 lines = GLLines2D(points[:, 0], points[:, 1],
                                   style=item['linestyle'],
                                   color=item['color'],
+                                  dash2ndColor=item['linebgcolor'],
                                   width=item['linewidth'])
                 lines.render(self.matScreenProj)
 
@@ -1030,7 +1047,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
-        # FIXME: implement lineStyle and lineBgColor
         # TODO handle overlay
         if shape not in ('polygon', 'rectangle', 'line',
                          'vline', 'hline', 'polylines'):
@@ -1063,7 +1079,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'x': x,
             'y': y,
             'linestyle': linestyle,
-            'linewidth': linewidth
+            'linewidth': linewidth,
+            'linebgcolor': linebgcolor,
         }
 
         return legend, 'item'

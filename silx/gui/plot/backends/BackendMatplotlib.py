@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -506,6 +506,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
+        if (linebgcolor is not None and
+                shape not in ('rectangle', 'polygon', 'polylines')):
+            _logger.warning(
+                'linebgcolor not implemented for %s with matplotlib backend',
+                shape)
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
