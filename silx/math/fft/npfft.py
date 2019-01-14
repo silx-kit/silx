@@ -86,7 +86,11 @@ class NPFFT(BaseFFT):
     def compute_plans(self):
         ndim = len(self.shape)
         funcs = self._fft_functions[self.real_transform][np.minimum(ndim, 3)]
-        self.numpy_args = {"norm": self.normalize}
+        if np.version.version[:4] in ["1.8.", "1.9."]:
+            # norm keyword was introduced in 1.10 and we support numpy >= 1.8
+            self.numpy_args = {}
+        else:
+            self.numpy_args = {"norm": self.normalize}
         # Batched transform
         if (self.user_axes is not None) and len(self.user_axes) < ndim:
             funcs = self._fft_functions[self.real_transform][np.minimum(ndim-1, 3)]
