@@ -113,7 +113,7 @@ class TestSaveActionExtension(PlotWidgetTestCase):
         self.assertTrue(nameFilter in saveAction.getFileFilters('all'))
         filters = saveAction.getFileFilters('all')
         self.assertEqual(filters[nameFilter], self._dummySaveFunction)
-        self.assertEqual(list(filters).index(nameFilter),3)
+        self.assertEqual(list(filters.keys()).index(nameFilter),3)
 
         # Update an existing file filter
         nameFilter = SaveAction.IMAGE_FILTER_EDF
@@ -128,7 +128,7 @@ class TestSaveActionExtension(PlotWidgetTestCase):
                                  self._dummySaveFunction, index=newIndex)
         filters = saveAction.getFileFilters('image')
         self.assertEqual(filters[nameFilter], self._dummySaveFunction)
-        self.assertEqual(list(filters).index(nameFilter),newIndex)
+        self.assertEqual(list(filters.keys()).index(nameFilter),newIndex)
 
 def suite():
     test_suite = unittest.TestSuite()
