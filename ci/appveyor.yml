@@ -77,7 +77,7 @@ before_test:
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
 
     # First install any temporary pinned/additional requirements
-    - pip install -r "ci\requirements-pinned.txt
+    - pip install --pre -r "ci\requirements-pinned.txt
 
     # Install dependencies
     - pip install --pre -r requirements.txt

@@ -96,7 +96,7 @@ before_script:
     # First install any temporary pinned/additional requirements
     - if [ -s "ci/requirements-pinned.txt" ];
       then
-          pip install -q -r ci/requirements-pinned.txt;
+      pip install -q --pre -r ci/requirements-pinned.txt;
       fi
 
     # This installs PyQt and scipy if wheels are available
