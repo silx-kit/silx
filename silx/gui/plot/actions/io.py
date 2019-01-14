@@ -517,9 +517,9 @@ class SaveAction(PlotAction):
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
 
-        # first append the new filter to prevent colissions
+        # first append or replace the new filter to prevent colissions
         self._filters[dataKind][nameFilter] = func
-        if index in [None, -1]:
+        if index is None:
             # we are already done
             return
 
@@ -538,13 +538,16 @@ class SaveAction(PlotAction):
             _logger.info(txt)
             return
 
-        # get the new ordered list of keys
-        keyList.insert(keyList[-1], index)
-        del keyList[-1]
+        # get the new ordered list
+        oldIndex = keyList.index(nameFilter)
+        del keyList[oldIndex]
+        keyList.insert(nameFilter, index)
+
         # build the new filters
         newFilters = OrderedDict()
         for key in keyList:
             newFilters[key] = self._filters[dataKind][key]
+
         # and update the filters
         self._filters[dataKind] = newFilters
         return
