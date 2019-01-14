@@ -541,7 +541,7 @@ class SaveAction(PlotAction):
         # get the new ordered list
         oldIndex = keyList.index(nameFilter)
         del keyList[oldIndex]
-        keyList.insert(nameFilter, index)
+        keyList.insert(index, nameFilter)
 
         # build the new filters
         newFilters = OrderedDict()
