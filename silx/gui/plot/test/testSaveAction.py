@@ -122,13 +122,14 @@ class TestSaveActionExtension(PlotWidgetTestCase):
                          self._dummySaveFunction)
 
         # Change the position of an existing file filter
-        oldIndex = list(saveAction.getFileFilters('image')).index(nameFilter)
+        nameFilter = 'Dummy file2 (*.dummy)'
+        oldIndex = list(saveAction.getFileFilters('all')).index(nameFilter)
         newIndex = oldIndex - 1
-        saveAction.setFileFilter('image', nameFilter,
+        saveAction.setFileFilter('all', nameFilter,
                                  self._dummySaveFunction, index=newIndex)
-        filters = saveAction.getFileFilters('image')
+        filters = saveAction.getFileFilters('all')
         self.assertEqual(filters[nameFilter], self._dummySaveFunction)
-        self.assertEqual(list(filters.keys()).index(nameFilter),newIndex)
+        self.assertEqual(list(filters.keys()).index(nameFilter), newIndex)
 
 def suite():
     test_suite = unittest.TestSuite()
