@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -296,9 +296,19 @@ class PlotWindow(PlotWidget):
         super(PlotWindow, self).setBackgroundColor(color)
         self._updateColorBarBackground()
 
+    setBackgroundColor.__doc__ = PlotWidget.setBackgroundColor.__doc__
+
     def setDataBackgroundColor(self, color):
         super(PlotWindow, self).setDataBackgroundColor(color)
         self._updateColorBarBackground()
+
+    setDataBackgroundColor.__doc__ = PlotWidget.setDataBackgroundColor.__doc__
+
+    def setForegroundColor(self, color):
+        super(PlotWindow, self).setForegroundColor(color)
+        self._updateColorBarBackground()
+
+    setForegroundColor.__doc__ = PlotWidget.setForegroundColor.__doc__
 
     def _updateColorBarBackground(self):
         """Update the colorbar background according to the state of the plot"""
@@ -309,9 +319,14 @@ class PlotWindow(PlotWidget):
             if not color.isValid():
                 # If no color defined, use the background one
                 color = self.getBackgroundColor()
+
+        foreground = self.getForegroundColor()
+
         palette = self._colorbar.palette()
         palette.setColor(qt.QPalette.Background, color)
         palette.setColor(qt.QPalette.Window, color)
+        palette.setColor(qt.QPalette.WindowText, foreground)
+        palette.setColor(qt.QPalette.Text, foreground)
         self._colorbar.setPalette(palette)
 
     def getInteractiveModeToolBar(self):
