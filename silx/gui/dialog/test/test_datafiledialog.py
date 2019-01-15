@@ -36,16 +36,12 @@ import shutil
 import os
 import io
 import weakref
-
-try:
-    import fabio
-except ImportError:
-    fabio = None
 try:
     import h5py
 except ImportError:
     h5py = None
 
+import fabio
 import silx.io.url
 from silx.gui import qt
 from silx.gui.utils import testutils
@@ -62,10 +58,9 @@ def setUpModule():
     data = numpy.arange(100 * 100)
     data.shape = 100, 100
 
-    if fabio is not None:
-        filename = _tmpDirectory + "/singleimage.edf"
-        image = fabio.edfimage.EdfImage(data=data)
-        image.write(filename)
+    filename = _tmpDirectory + "/singleimage.edf"
+    image = fabio.edfimage.EdfImage(data=data)
+    image.write(filename)
 
     if h5py is not None:
         filename = _tmpDirectory + "/data.h5"
@@ -185,8 +180,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testSelectRoot_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -211,8 +204,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testSelectGroup_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -243,8 +234,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testSelectDataset_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -402,8 +391,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(url.text(), path3)
 
     def testSelectImageFromEdf(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -535,8 +522,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
     def testFilterExtensions(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -558,8 +543,6 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
         return dialog
 
     def testSelectGroup_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -585,8 +568,6 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
         self.assertFalse(button.isEnabled())
 
     def testSelectDataset_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -632,8 +613,6 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
         return dialog
 
     def testSelectGroup_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -666,8 +645,6 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
         self.assertRaises(Exception, dialog.selectedData)
 
     def testSelectDataset_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -711,8 +688,6 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
         return dialog
 
     def testSelectGroupRefused_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -740,8 +715,6 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
         self.assertRaises(Exception, dialog.selectedData)
 
     def testSelectNXdataAccepted_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()

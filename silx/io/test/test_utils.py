@@ -40,10 +40,7 @@ try:
 except ImportError:
     h5py = None
 
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
 
 
 __authors__ = ["P. Knobel"]
@@ -303,13 +300,12 @@ class TestOpen(unittest.TestCase):
         utils.savespec(cls.spec_filename, [1], [1.1], xlabel="x", ylabel="y",
                        fmt=["%d", "%.2f"], close_file=True, scan_number=1)
 
-        if fabio is not None:
-            cls.edf_filename = os.path.join(directory, "test.edf")
-            header = fabio.fabioimage.OrderedDict()
-            header["integer"] = "10"
-            data = numpy.array([[10, 50], [50, 10]])
-            fabiofile = fabio.edfimage.EdfImage(data, header)
-            fabiofile.write(cls.edf_filename)
+        cls.edf_filename = os.path.join(directory, "test.edf")
+        header = fabio.fabioimage.OrderedDict()
+        header["integer"] = "10"
+        data = numpy.array([[10, 50], [50, 10]])
+        fabiofile = fabio.edfimage.EdfImage(data, header)
+        fabiofile.write(cls.edf_filename)
 
         cls.txt_filename = os.path.join(directory, "test.txt")
         f = io.open(cls.txt_filename, "w+t")
@@ -374,8 +370,6 @@ class TestOpen(unittest.TestCase):
     def testEdf(self):
         if h5py is None:
             self.skipTest("H5py is missing")
-        if fabio is None:
-            self.skipTest("Fabio is missing")
 
         f = utils.open(self.edf_filename)
         self.assertIsNotNone(f)
@@ -385,8 +379,6 @@ class TestOpen(unittest.TestCase):
     def testEdfWith(self):
         if h5py is None:
             self.skipTest("H5py is missing")
-        if fabio is None:
-            self.skipTest("Fabio is missing")
 
         with utils.open(self.edf_filename) as f:
             self.assertIsNotNone(f)
@@ -410,8 +402,6 @@ class TestOpen(unittest.TestCase):
     def test_fabio_scheme(self):
         if h5py is None:
             self.skipTest("H5py is missing")
-        if fabio is None:
-            self.skipTest("Fabio is missing")
         url = silx.io.url.DataUrl(scheme="fabio", file_path=self.edf_filename)
         self.assertRaises(IOError, utils.open, url.path())
 
@@ -534,16 +524,15 @@ class TestGetData(unittest.TestCase):
         utils.savespec(cls.spec_filename, [1], [1.1], xlabel="x", ylabel="y",
                        fmt=["%d", "%.2f"], close_file=True, scan_number=1)
 
-        if fabio is not None:
-            cls.edf_filename = os.path.join(directory, "test.edf")
-            cls.edf_multiframe_filename = os.path.join(directory, "test_multi.edf")
-            header = fabio.fabioimage.OrderedDict()
-            header["integer"] = "10"
-            data = numpy.array([[10, 50], [50, 10]])
-            fabiofile = fabio.edfimage.EdfImage(data, header)
-            fabiofile.write(cls.edf_filename)
-            fabiofile.appendFrame(data=data, header=header)
-            fabiofile.write(cls.edf_multiframe_filename)
+        cls.edf_filename = os.path.join(directory, "test.edf")
+        cls.edf_multiframe_filename = os.path.join(directory, "test_multi.edf")
+        header = fabio.fabioimage.OrderedDict()
+        header["integer"] = "10"
+        data = numpy.array([[10, 50], [50, 10]])
+        fabiofile = fabio.edfimage.EdfImage(data, header)
+        fabiofile.write(cls.edf_filename)
+        fabiofile.appendFrame(data=data, header=header)
+        fabiofile.write(cls.edf_multiframe_filename)
 
         cls.txt_filename = os.path.join(directory, "test.txt")
         f = io.open(cls.txt_filename, "w+t")
@@ -588,38 +577,28 @@ class TestGetData(unittest.TestCase):
     def test_edf_using_silx(self):
         if h5py is None:
             self.skipTest("H5py is missing")
-        if fabio is None:
-            self.skipTest("fabio is missing")
         url = "silx:%s?/scan_0/instrument/detector_0/data" % self.edf_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
         self.assertEqual(data[0, 0], 10)
 
     def test_fabio_frame(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         url = "fabio:%s?slice=1" % self.edf_multiframe_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
         self.assertEqual(data[0, 0], 10)
 
     def test_fabio_singleframe(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         url = "fabio:%s?slice=0" % self.edf_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
         self.assertEqual(data[0, 0], 10)
 
     def test_fabio_too_much_frames(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         url = "fabio:%s?slice=..." % self.edf_multiframe_filename
         self.assertRaises(ValueError, utils.get_data, url)
 
     def test_fabio_no_frame(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         url = "fabio:%s" % self.edf_filename
         data = utils.get_data(url=url)
         self.assertEqual(data.shape, (2, 2))
@@ -630,8 +609,6 @@ class TestGetData(unittest.TestCase):
         self.assertRaises(ValueError, utils.get_data, url)
 
     def test_no_scheme(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         url = "%s?path=/group/group/array2d&slice=5" % self.h5_filename
         self.assertRaises((ValueError, IOError), utils.get_data, url)
 

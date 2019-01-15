@@ -36,10 +36,8 @@ from silx.gui import qt
 from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 import silx.io
 from .AbstractDataFileDialog import AbstractDataFileDialog
-try:
-    import fabio
-except ImportError:
-    fabio = None
+
+import fabio
 
 
 _logger = logging.getLogger(__name__)

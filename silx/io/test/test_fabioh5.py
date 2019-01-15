@@ -36,18 +36,14 @@ import shutil
 
 _logger = logging.getLogger(__name__)
 
-
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
 
 try:
     import h5py
 except ImportError:
     h5py = None
 
-if fabio is not None and h5py is not None:
+if h5py is not None:
     from .. import fabioh5
     from .. import commonh5
 
@@ -55,8 +51,6 @@ if fabio is not None and h5py is not None:
 class TestFabioH5(unittest.TestCase):
 
     def setUp(self):
-        if fabio is None:
-            self.skipTest("fabio is needed")
         if h5py is None:
             self.skipTest("h5py is needed")
 
@@ -381,8 +375,6 @@ class TestFabioH5MultiFrames(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if fabio is None:
-            raise unittest.SkipTest("fabio is needed")
         if h5py is None:
             raise unittest.SkipTest("h5py is needed")
 
@@ -470,8 +462,6 @@ class TestFabioH5WithEdf(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if fabio is None:
-            raise unittest.SkipTest("fabio is needed")
         if h5py is None:
             raise unittest.SkipTest("h5py is needed")
 
@@ -510,19 +500,16 @@ class TestFabioH5WithEdf(unittest.TestCase):
         self.assertNotIn("/scan_0/instrument/detector_0/others/HeaderID", self.h5_image)
 
 
-if fabio is not None:
-    class _TestableFrameData(fabioh5.FrameData):
-        """Allow to test if the full data is reached."""
-        def _create_data(self):
-            raise RuntimeError("Not supposed to be called")
+class _TestableFrameData(fabioh5.FrameData):
+    """Allow to test if the full data is reached."""
+    def _create_data(self):
+        raise RuntimeError("Not supposed to be called")
 
 
 class TestFabioH5WithFileSeries(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if fabio is None:
-            raise unittest.SkipTest("fabio is needed")
         if h5py is None:
             raise unittest.SkipTest("h5py is needed")
 

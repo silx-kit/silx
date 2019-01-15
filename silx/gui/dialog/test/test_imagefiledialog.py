@@ -36,16 +36,12 @@ import shutil
 import os
 import io
 import weakref
-
-try:
-    import fabio
-except ImportError:
-    fabio = None
 try:
     import h5py
 except ImportError:
     h5py = None
 
+import fabio
 import silx.io.url
 from silx.gui import qt
 from silx.gui.utils import testutils
@@ -63,20 +59,19 @@ def setUpModule():
     data = numpy.arange(100 * 100)
     data.shape = 100, 100
 
-    if fabio is not None:
-        filename = _tmpDirectory + "/singleimage.edf"
-        image = fabio.edfimage.EdfImage(data=data)
-        image.write(filename)
+    filename = _tmpDirectory + "/singleimage.edf"
+    image = fabio.edfimage.EdfImage(data=data)
+    image.write(filename)
 
-        filename = _tmpDirectory + "/multiframe.edf"
-        image = fabio.edfimage.EdfImage(data=data)
-        image.appendFrame(data=data + 1)
-        image.appendFrame(data=data + 2)
-        image.write(filename)
+    filename = _tmpDirectory + "/multiframe.edf"
+    image = fabio.edfimage.EdfImage(data=data)
+    image.appendFrame(data=data + 1)
+    image.appendFrame(data=data + 2)
+    image.write(filename)
 
-        filename = _tmpDirectory + "/singleimage.msk"
-        image = fabio.fit2dmaskimage.Fit2dMaskImage(data=data % 2 == 1)
-        image.write(filename)
+    filename = _tmpDirectory + "/singleimage.msk"
+    image = fabio.fit2dmaskimage.Fit2dMaskImage(data=data % 2 == 1)
+    image.write(filename)
 
     if h5py is not None:
         filename = _tmpDirectory + "/data.h5"
@@ -192,8 +187,6 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Rejected)
 
     def testDisplayAndClickOpen(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -386,8 +379,6 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(url.text(), path3)
 
     def testSelectImageFromEdf(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -402,8 +393,6 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedUrl(), path)
 
     def testSelectImageFromEdf_Activate(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -426,8 +415,6 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedUrl(), path)
 
     def testSelectFrameFromEdf(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -444,8 +431,6 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedUrl(), path)
 
     def testSelectImageFromMsk(self):
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -543,8 +528,6 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
     def testFilterExtensions(self):
         if h5py is None:
             self.skipTest("h5py is missing")
-        if fabio is None:
-            self.skipTest("fabio is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filters = testutils.findChildren(dialog, qt.QWidget, name="fileTypeCombo")[0]
