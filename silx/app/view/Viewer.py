@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "09/11/2018"
+__date__ = "15/01/2019"
 
 
 import os
@@ -41,6 +41,7 @@ from .ApplicationContext import ApplicationContext
 from .CustomNxdataWidget import CustomNxdataWidget
 from .CustomNxdataWidget import CustomNxDataToolBar
 from . import utils
+from silx.gui.utils import projecturl
 from .DataPanel import DataPanel
 
 
@@ -507,6 +508,11 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.about)
         self._aboutAction = action
 
+        action = qt.QAction("&Documentation", self)
+        action.setStatusTip("Show the Silx library's documentation")
+        action.triggered.connect(self.showDocumentation)
+        self._documentationAction = action
+
         # Plot backend
 
         action = qt.QAction("Plot rendering backend", self)
@@ -667,6 +673,7 @@ class Viewer(qt.QMainWindow):
 
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
+        helpMenu.addAction(self._documentationAction)
 
     def open(self):
         dialog = self.createFileDialog()
@@ -728,6 +735,11 @@ class Viewer(qt.QMainWindow):
     def about(self):
         from .About import About
         About.about(self, "Silx viewer")
+
+    def showDocumentation(self):
+        subpath = "index.html"
+        url = projecturl.getDocumentationUrl(subpath)
+        qt.QDesktopServices.openUrl(qt.QUrl(url))
 
     def __forcePlotImageDownward(self):
         silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "downward"
