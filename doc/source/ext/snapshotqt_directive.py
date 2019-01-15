@@ -266,4 +266,4 @@ else:
         else:
             with open(script_or_module) as f:
                 code = compile(f.read(), script_or_module, 'exec')
-                exec(code)
+                exec(code, globals(), locals())
