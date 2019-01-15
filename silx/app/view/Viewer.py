@@ -62,6 +62,9 @@ class Viewer(qt.QMainWindow):
         qt.QMainWindow.__init__(self, parent)
         self.setWindowTitle("Silx viewer")
 
+        silxIcon = icons.getQIcon("silx")
+        self.setWindowIcon(silxIcon)
+
         self.__context = ApplicationContext(self, settings)
         self.__context.restoreLibrarySettings()
 
