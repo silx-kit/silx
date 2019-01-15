@@ -378,8 +378,8 @@ class PlotWidget(qt.QMainWindow):
     def setForegroundColor(self, color):
         """Set the foreground color of this widget.
 
-        :param color: The new RGB(A) color.
-        :type: Union[List[int],List[float],QColor]
+        :param Union[List[int],List[float],QColor] color:
+            The new RGB(A) color.
         """
         color = colors.rgba(color)
         if self._foregroundColor != color:
@@ -402,8 +402,8 @@ class PlotWidget(qt.QMainWindow):
     def setGridColor(self, color):
         """Set the grid lines color
 
-        :param color: The new RGB(A) color.
-        :type: Union[List[int],List[float],QColor,None]
+        :param Union[List[int],List[float],QColor,None] color:
+            The new RGB(A) color.
         """
         if isinstance(color, qt.QColor) and not color.isValid():
             color = None
@@ -433,8 +433,8 @@ class PlotWidget(qt.QMainWindow):
     def setBackgroundColor(self, color):
         """Set the background color of this widget.
 
-        :param color: The new RGB(A) color.
-        :type: Union[List[int],List[float],QColor]
+        :param Union[List[int],List[float],QColor] color:
+            The new RGB(A) color.
         """
         color = colors.rgba(color)
         if self._backgroundColor != color:
@@ -460,8 +460,8 @@ class PlotWidget(qt.QMainWindow):
 
         Set to None or an invalid QColor to use the background color.
 
-        :param color: The new RGB(A) color.
-        :type: Union[List[int],List[float],QColor,None]
+        :param Union[List[int],List[float],QColor,None] color:
+            The new RGB(A) color.
         """
         if isinstance(color, qt.QColor) and not color.isValid():
             color = None
