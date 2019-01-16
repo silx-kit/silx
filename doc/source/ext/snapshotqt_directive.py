@@ -83,6 +83,7 @@ if not os.environ.get('DIRECTIVE_SNAPSHOT_QT') == 'True':
     """
     class SnapshotQtDirective(Image):
         option_spec = Image.option_spec.copy()
+        option_spec['script'] = directives.unchanged
         has_content = True
 
         def run(self):
