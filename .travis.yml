@@ -112,7 +112,7 @@ before_script:
     # Install PySide2 if needed
     - if [ "$QT_BINDING" == "PySide2" ];
       then
-          pip install ${PIP_OPTIONS} --index-url=http://download.qt.io/snapshots/ci/pyside/5.11/latest/ pyside2 --trusted-host download.qt.io;
+          pip install ${PIP_OPTIONS} pyside2;
       fi
 
     # Install built package
