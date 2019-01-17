@@ -42,10 +42,7 @@ from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 
 class _DataViewMock(DataView):
@@ -170,8 +167,6 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertEqual(DataViews.RAW_MODE, widget.displayedView().modeId())
 
     def test_3d_h5_dataset(self):
-        if h5py is None:
-            self.skipTest("h5py library is not available")
         with self.h5_temporary_file() as h5file:
             dataset = h5file["data"]
             widget = self.create_widget()

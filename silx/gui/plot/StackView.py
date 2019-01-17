@@ -89,14 +89,8 @@ from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
 from silx.utils.deprecation import deprecated_warning
 
-try:
-    import h5py
-except ImportError:
-    def is_dataset(obj):
-        return False
-    h5py = None
-else:
-    from silx.io.utils import is_dataset
+import h5py
+from silx.io.utils import is_dataset
 
 _logger = logging.getLogger(__name__)
 

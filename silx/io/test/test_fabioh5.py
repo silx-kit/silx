@@ -37,22 +37,15 @@ import shutil
 _logger = logging.getLogger(__name__)
 
 import fabio
+import h5py
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
-if h5py is not None:
-    from .. import fabioh5
-    from .. import commonh5
+from .. import commonh5
+from .. import fabioh5
 
 
 class TestFabioH5(unittest.TestCase):
 
     def setUp(self):
-        if h5py is None:
-            self.skipTest("h5py is needed")
 
         header = {
             "integer": "-100",
@@ -375,8 +368,6 @@ class TestFabioH5MultiFrames(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if h5py is None:
-            raise unittest.SkipTest("h5py is needed")
 
         names = ["A", "B", "C", "D"]
         values = [["32000", "-10", "5.0", "1"],
@@ -462,8 +453,6 @@ class TestFabioH5WithEdf(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if h5py is None:
-            raise unittest.SkipTest("h5py is needed")
 
         cls.tmp_directory = tempfile.mkdtemp()
 
@@ -510,8 +499,6 @@ class TestFabioH5WithFileSeries(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if h5py is None:
-            raise unittest.SkipTest("h5py is needed")
 
         cls.tmp_directory = tempfile.mkdtemp()
 

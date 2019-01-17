@@ -115,7 +115,6 @@ except Exception as error:
 else:
     logger.info("Numpy %s", numpy.version.version)
 
-
 try:
     import h5py
 except Exception as error:

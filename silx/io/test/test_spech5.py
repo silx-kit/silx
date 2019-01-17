@@ -37,10 +37,7 @@ from .. import spech5
 from ..spech5 import (SpecH5, SpecH5Dataset, spec_date_to_iso8601)
 from .. import specfile
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -299,8 +296,6 @@ class TestSpecH5(unittest.TestCase):
 
     def testGetClass(self):
         """Test :meth:`SpecH5Group.get`"""
-        if h5py is None:
-            self.skipTest("h5py is not available")
         self.assertIs(self.sfh5["1.1"].get("start_time", getclass=True),
                       h5py.Dataset)
         self.assertIs(self.sfh5["1.1"].get("instrument", getclass=True),
@@ -309,7 +304,6 @@ class TestSpecH5(unittest.TestCase):
         # spech5 does not define external link, so there is no way
         # a group can *get* a SpecH5 class
 
-    @unittest.skipIf(h5py is None, "test requires h5py (not installed)")
     def testGetApi(self):
         result = self.sfh5.get("1.1", getclass=True, getlink=True)
         self.assertIs(result, h5py.HardLink)
@@ -332,7 +326,6 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(self.sfh5["/1.2/instrument/positioners"],
                          self.sfh5["1.2"]["instrument"]["positioners"])
 
-    @unittest.skipIf(h5py is None, "test requires h5py (not installed)")
     def testH5pyClass(self):
         """Test :attr:`h5py_class` returns the corresponding h5py class
         (h5py.File, h5py.Group, h5py.Dataset)"""

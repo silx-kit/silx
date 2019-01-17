@@ -37,11 +37,7 @@ _logger = logging.getLogger(__name__)
 
 import silx.io
 import silx.io.utils
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 try:
     from .. import commonh5
@@ -86,11 +82,10 @@ class TestCommonFeatures(unittest.TestCase):
         self.assertTrue(silx.io.is_group(node))
         self.assertFalse(silx.io.is_dataset(node))
         self.assertEqual(len(node.attrs), 0)
-        if h5py is not None:
-            class_ = self.h5.get("group", getclass=True)
-            classlink = self.h5.get("group", getlink=True, getclass=True)
-            self.assertEqual(class_, h5py.Group)
-            self.assertEqual(classlink, h5py.HardLink)
+        class_ = self.h5.get("group", getclass=True)
+        classlink = self.h5.get("group", getlink=True, getclass=True)
+        self.assertEqual(class_, h5py.Group)
+        self.assertEqual(classlink, h5py.HardLink)
 
     def test_dataset(self):
         node = self.h5["group/dataset"]
@@ -98,41 +93,37 @@ class TestCommonFeatures(unittest.TestCase):
         self.assertFalse(silx.io.is_group(node))
         self.assertTrue(silx.io.is_dataset(node))
         self.assertEqual(len(node.attrs), 0)
-        if h5py is not None:
-            class_ = self.h5.get("group/dataset", getclass=True)
-            classlink = self.h5.get("group/dataset", getlink=True, getclass=True)
-            self.assertEqual(class_, h5py.Dataset)
-            self.assertEqual(classlink, h5py.HardLink)
+        class_ = self.h5.get("group/dataset", getclass=True)
+        classlink = self.h5.get("group/dataset", getlink=True, getclass=True)
+        self.assertEqual(class_, h5py.Dataset)
+        self.assertEqual(classlink, h5py.HardLink)
 
     def test_soft_link(self):
         node = self.h5["link/soft_link"]
         self.assertEqual(node.name, "/link/soft_link")
-        if h5py is not None:
-            class_ = self.h5.get("link/soft_link", getclass=True)
-            link = self.h5.get("link/soft_link", getlink=True)
-            classlink = self.h5.get("link/soft_link", getlink=True, getclass=True)
-            self.assertEqual(class_, h5py.Dataset)
-            self.assertTrue(isinstance(link, (h5py.SoftLink, commonh5.SoftLink)))
-            self.assertTrue(silx.io.utils.is_softlink(link))
-            self.assertEqual(classlink, h5py.SoftLink)
-
+        class_ = self.h5.get("link/soft_link", getclass=True)
+        link = self.h5.get("link/soft_link", getlink=True)
+        classlink = self.h5.get("link/soft_link", getlink=True, getclass=True)
+        self.assertEqual(class_, h5py.Dataset)
+        self.assertTrue(isinstance(link, (h5py.SoftLink, commonh5.SoftLink)))
+        self.assertTrue(silx.io.utils.is_softlink(link))
+        self.assertEqual(classlink, h5py.SoftLink)
+ 
     def test_external_link(self):
         node = self.h5["link/external_link"]
         self.assertEqual(node.name, "/target/dataset")
-        if h5py is not None:
-            class_ = self.h5.get("link/external_link", getclass=True)
-            classlink = self.h5.get("link/external_link", getlink=True, getclass=True)
-            self.assertEqual(class_, h5py.Dataset)
-            self.assertEqual(classlink, h5py.ExternalLink)
+        class_ = self.h5.get("link/external_link", getclass=True)
+        classlink = self.h5.get("link/external_link", getlink=True, getclass=True)
+        self.assertEqual(class_, h5py.Dataset)
+        self.assertEqual(classlink, h5py.ExternalLink)
 
     def test_external_link_to_link(self):
         node = self.h5["link/external_link_to_link"]
         self.assertEqual(node.name, "/target/link")
-        if h5py is not None:
-            class_ = self.h5.get("link/external_link_to_link", getclass=True)
-            classlink = self.h5.get("link/external_link_to_link", getlink=True, getclass=True)
-            self.assertEqual(class_, h5py.Dataset)
-            self.assertEqual(classlink, h5py.ExternalLink)
+        class_ = self.h5.get("link/external_link_to_link", getclass=True)
+        classlink = self.h5.get("link/external_link_to_link", getlink=True, getclass=True)
+        self.assertEqual(class_, h5py.Dataset)
+        self.assertEqual(classlink, h5py.ExternalLink)
 
     def test_create_groups(self):
         c = self.h5.create_group(self.id() + "/a/b/c")
@@ -218,8 +209,6 @@ class TestSpecificCommonH5(unittest.TestCase):
     Test of shared features should be done by TestCommonFeatures."""
 
     def setUp(self):
-        if h5py is None:
-            self.skipTest("h5py is needed")
         if commonh5 is None:
             self.skipTest("silx.io.commonh5 is needed")
 

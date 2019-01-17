@@ -51,12 +51,7 @@ Here is an example of a simple read and write :
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-
-try:
-    import h5py
-except ImportError as e:
-    logger.error("Module " + __name__ + " requires h5py")
-    raise e
+import h5py
 
 __authors__ = ["C. Nemoz", "H. Payno"]
 __license__ = "MIT"

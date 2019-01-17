@@ -307,19 +307,13 @@ def main(argv):
         _logger.debug("Backtrace", exc_info=True)
         hdf5plugin = None
 
+    import h5py
+
     try:
-        import h5py
         from silx.io.convert import write_to_h5
     except ImportError:
         _logger.debug("Backtrace", exc_info=True)
-        h5py = None
         write_to_h5 = None
-
-    if h5py is None:
-        message = "Module 'h5py' is not installed but is mandatory."\
-            + " You can install it using \"pip install h5py\"."
-        _logger.error(message)
-        return -1
 
     if hdf5plugin is None:
         message = "Module 'hdf5plugin' is not installed. It supports additional hdf5"\

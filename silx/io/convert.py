@@ -69,11 +69,7 @@ __date__ = "17/07/2018"
 
 _logger = logging.getLogger(__name__)
 
-try:
-    import h5py
-except ImportError as e:
-    _logger.error("Module " + __name__ + " requires h5py")
-    raise e
+import h5py
 
 
 def _create_link(h5f, link_name, target_name,

@@ -36,12 +36,8 @@ import shutil
 import os
 import io
 import weakref
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
 import fabio
+import h5py
 import silx.io.url
 from silx.gui import qt
 from silx.gui.utils import testutils
@@ -62,31 +58,29 @@ def setUpModule():
     image = fabio.edfimage.EdfImage(data=data)
     image.write(filename)
 
-    if h5py is not None:
-        filename = _tmpDirectory + "/data.h5"
-        f = h5py.File(filename, "w")
-        f["scalar"] = 10
-        f["image"] = data
-        f["cube"] = [data, data + 1, data + 2]
-        f["complex_image"] = data * 1j
-        f["group/image"] = data
-        f["nxdata/foo"] = 10
-        f["nxdata"].attrs["NX_class"] = u"NXdata"
-        f.close()
+    filename = _tmpDirectory + "/data.h5"
+    f = h5py.File(filename, "w")
+    f["scalar"] = 10
+    f["image"] = data
+    f["cube"] = [data, data + 1, data + 2]
+    f["complex_image"] = data * 1j
+    f["group/image"] = data
+    f["nxdata/foo"] = 10
+    f["nxdata"].attrs["NX_class"] = u"NXdata"
+    f.close()
 
-    if h5py is not None:
-        directory = os.path.join(_tmpDirectory, "data")
-        os.mkdir(directory)
-        filename = os.path.join(directory, "data.h5")
-        f = h5py.File(filename, "w")
-        f["scalar"] = 10
-        f["image"] = data
-        f["cube"] = [data, data + 1, data + 2]
-        f["complex_image"] = data * 1j
-        f["group/image"] = data
-        f["nxdata/foo"] = 10
-        f["nxdata"].attrs["NX_class"] = u"NXdata"
-        f.close()
+    directory = os.path.join(_tmpDirectory, "data")
+    os.mkdir(directory)
+    filename = os.path.join(directory, "data.h5")
+    f = h5py.File(filename, "w")
+    f["scalar"] = 10
+    f["image"] = data
+    f["cube"] = [data, data + 1, data + 2]
+    f["complex_image"] = data * 1j
+    f["group/image"] = data
+    f["nxdata/foo"] = 10
+    f["nxdata"].attrs["NX_class"] = u"NXdata"
+    f.close()
 
     filename = _tmpDirectory + "/badformat.h5"
     with io.open(filename, "wb") as f:
@@ -264,8 +258,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testClickOnBackToParentTool(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -296,8 +288,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(url.text(), _tmpDirectory)
 
     def testClickOnBackToRootTool(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -321,8 +311,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # self.assertFalse(button.isEnabled())
 
     def testClickOnBackToDirectoryTool(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -350,8 +338,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.allowedLeakingWidgets = 1
 
     def testClickOnHistoryTools(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -404,8 +390,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedUrl(), url.path())
 
     def testSelectImage(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -420,8 +404,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedUrl(), path)
 
     def testSelectScalar(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -436,8 +418,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(dialog.selectedUrl(), path)
 
     def testSelectGroup(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -454,8 +434,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(uri.data_path(), "/group")
 
     def testSelectRoot(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -472,8 +450,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertSamePath(uri.data_path(), "/")
 
     def testSelectH5_Activate(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -520,8 +496,6 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         return selectable
 
     def testFilterExtensions(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         dialog.show()
@@ -917,8 +891,6 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         self.assertIsNone(dialog._selectedData())
 
     def testBadSubpath(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
 
@@ -938,8 +910,6 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(url.data_path(), "/group")
 
     def testUnsupportedSlicingPath(self):
-        if h5py is None:
-            self.skipTest("h5py is missing")
         dialog = self.createDialog()
         self.qWaitForPendingActions(dialog)
         dialog.selectUrl(_tmpDirectory + "/data.h5?path=/cube&slice=0")
