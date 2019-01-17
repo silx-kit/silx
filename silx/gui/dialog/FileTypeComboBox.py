@@ -179,7 +179,7 @@ class FileTypeComboBox(qt.QComboBox):
             if len(e[1]) < 10:
                 self.addItem("%s%s (%s)" % (self.INDENTATION, e[0], " ".join(e[1])))
             else:
-                self.addItem(e[0])
+                self.addItem("%s%s" % (self.INDENTATION, e[0]))
             codec = Codec(fabio_codec=e[2])
             self.setItemData(index, e[1], role=self.EXTENSIONS_ROLE)
             self.setItemData(index, codec, role=self.CODEC_ROLE)
