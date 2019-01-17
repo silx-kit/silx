@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/11/2018"
+__date__ = "17/01/2019"
 
 import sys
 import argparse
@@ -75,6 +75,9 @@ def mainQt(options):
 
     import silx
     from silx.gui import qt
+    # Make sure matplotlib is configured
+    # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
+    from silx.gui.plot import matplotlib
 
     try:
         # it should be loaded before h5py
