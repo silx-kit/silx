@@ -28,12 +28,16 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/05/2018"
+__date__ = "17/01/2019"
 
 
 import logging
-from .. import qt
+import os.path
+
 import silx.io.utils
+import silx.io.url
+
+from .. import qt
 from silx.utils.html import escape
 
 _logger = logging.getLogger(__name__)
@@ -419,3 +423,43 @@ class H5Node(object):
         :rtype: str
         """
         return self.physical_name.split("/")[-1]
+
+    @property
+    def data_url(self):
+        """Returns a :class:`silx.io.url.DataUrl` object identify this node in the file
+        system.
+
+        :rtype: ~silx.io.url.DataUrl
+        """
+        absolute_filename = os.path.abspath(self.local_filename)
+        return silx.io.url.DataUrl(scheme="silx",
+                                   file_path=absolute_filename,
+                                   data_path=self.local_name)
+
+    @property
+    def url(self):
+        """Returns an URL object identifying this node in the file
+        system.
+
+        This URL can be used in different ways.
+
+        .. code-block:: python
+
+            # Parsing the URL
+            import silx.io.url
+            dataurl = silx.io.url.DataUrl(item.url)
+            # dataurl provides access to URL fields
+
+            # Open a numpy array
+            import silx.io
+            dataset = silx.io.get_data(item.url)
+
+            # Open an hdf5 object (URL targetting a file or a group)
+            import silx.io
+            with silx.io.open(item.url) as h5:
+                ...your stuff...
+
+        :rtype: str
+        """
+        data_url = self.data_url
+        return data_url.path()
