@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/10/2018"
+__date__ = "17/01/2019"
 
 
 import os
@@ -360,9 +360,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def mimeTypes(self):
         types = []
-        if self.__fileMoveEnabled:
-            types.append(_utils.Hdf5NodeMimeData.MIME_TYPE)
-        if self.__datasetDragEnabled:
+        if self.__fileMoveEnabled or self.__datasetDragEnabled:
             types.append(_utils.Hdf5DatasetMimeData.MIME_TYPE)
         return types
 
@@ -386,7 +384,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         node = self.nodeFromIndex(indexes[0])
 
         if self.__fileMoveEnabled and node.parent is self.__root:
-            mimeData = _utils.Hdf5NodeMimeData(node=node)
+            mimeData = _utils.Hdf5DatasetMimeData(node=node, isRoot=True)
         elif self.__datasetDragEnabled:
             mimeData = _utils.Hdf5DatasetMimeData(node=node)
         else:
@@ -413,23 +411,24 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if action == qt.Qt.IgnoreAction:
             return True
 
-        if self.__fileMoveEnabled and mimedata.hasFormat(_utils.Hdf5NodeMimeData.MIME_TYPE):
-            dragNode = mimedata.node()
-            parentNode = self.nodeFromIndex(parentIndex)
-            if parentNode is not dragNode.parent:
-                return False
+        if self.__fileMoveEnabled and mimedata.hasFormat(_utils.Hdf5DatasetMimeData.MIME_TYPE):
+            if mimedata.isRoot():
+                dragNode = mimedata.node()
+                parentNode = self.nodeFromIndex(parentIndex)
+                if parentNode is not dragNode.parent:
+                    return False
 
-            if row == -1:
-                # append to the parent
-                row = parentNode.childCount()
-            else:
-                # insert at row
-                pass
+                if row == -1:
+                    # append to the parent
+                    row = parentNode.childCount()
+                else:
+                    # insert at row
+                    pass
 
-            dragNodeParent = dragNode.parent
-            sourceRow = dragNodeParent.indexOfChild(dragNode)
-            self.moveRow(parentIndex, sourceRow, parentIndex, row)
-            return True
+                dragNodeParent = dragNode.parent
+                sourceRow = dragNodeParent.indexOfChild(dragNode)
+                self.moveRow(parentIndex, sourceRow, parentIndex, row)
+                return True
 
         if self.__fileDropEnabled and mimedata.hasFormat("text/uri-list"):
 

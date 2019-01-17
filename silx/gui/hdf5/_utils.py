@@ -111,11 +111,15 @@ class Hdf5DatasetMimeData(qt.QMimeData):
 
     MIME_TYPE = "application/x-internal-h5py-dataset"
 
-    def __init__(self, node=None, dataset=None):
+    def __init__(self, node=None, dataset=None, isRoot=False):
         qt.QMimeData.__init__(self)
         self.__dataset = dataset
         self.__node = node
+        self.__isRoot = isRoot
         self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
+
+    def isRoot(self):
+        return self.__isRoot
 
     def node(self):
         return self.__node
@@ -124,20 +128,6 @@ class Hdf5DatasetMimeData(qt.QMimeData):
         if self.__node is not None:
             return self.__node.obj
         return self.__dataset
-
-
-class Hdf5NodeMimeData(qt.QMimeData):
-    """Mimedata class to identify an internal drag and drop of a Hdf5Node."""
-
-    MIME_TYPE = "application/x-internal-h5py-node"
-
-    def __init__(self, node=None):
-        qt.QMimeData.__init__(self)
-        self.__node = node
-        self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
-
-    def node(self):
-        return self.__node
 
 
 class H5Node(object):
