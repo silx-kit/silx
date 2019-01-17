@@ -94,15 +94,27 @@ class CUFFT(BaseFFT):
         self.cufft_batch_size = 1
         self.cufft_shape = self.shape
         if (self.axes is not None) and (len(self.axes) < len(self.shape)):
-            # In the easiest batch mode, dimension 0 is equal to batch_size.
-            # Otherwise, we have to configure istride/idist.
-            dims = tuple(np.arange(len(self.shape)))
-            if self.axes != dims[1:]:
-                raise NotImplementedError(
-                    "With the CUDA backend, batched transform can currently be performed only with axes=%s" % dims[1:]
-                )
+            # In the easiest case, the transform is computed along the fastest dimensions:
+            #  - 1D transforms of lines of 2D data
+            #  - 2D transforms of images of 3D data (stacked along slow dim)
+            #  - 1D transforms of 3D data along fastest dim
+            # Otherwise, we have to configure cuda "advanced memory layout",
+            # which is not implemented yet.
+
+            data_ndims = len(self.shape)
+            supported_axes = {
+                2: [(1,)],
+                3: [(1, 2), (2, 1), (1,), (2,)],
+            }
+            if self.axes not in supported_axes[data_ndims]:
+                raise NotImplementedError("With the CUDA backend, batched transform is only supported along fastest dimensions")
             self.cufft_batch_size = self.shape[0]
             self.cufft_shape = self.shape[1:]
+            if data_ndims == 3 and len(self.axes) == 1:
+                # 1D transform on 3D data: here only supported along fast dim,
+                # so batch_size is Nx*Ny
+                self.cufft_batch_size = np.prod(self.shape[:2])
+                self.cufft_shape = (self.shape[-1],)
             if len(self.cufft_shape) == 1:
                 self.cufft_shape = self.cufft_shape[0]
 
