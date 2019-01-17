@@ -36,7 +36,6 @@ import os.path
 
 import silx.io.utils
 import silx.io.url
-
 from .. import qt
 from silx.utils.html import escape
 
@@ -111,12 +110,19 @@ class Hdf5DatasetMimeData(qt.QMimeData):
 
     MIME_TYPE = "application/x-internal-h5py-dataset"
 
+    SILX_URI_TYPE = "application/x-silx-uri"
+
     def __init__(self, node=None, dataset=None, isRoot=False):
         qt.QMimeData.__init__(self)
         self.__dataset = dataset
         self.__node = node
         self.__isRoot = isRoot
         self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
+        if node is not None:
+            h5Node = H5Node(node)
+            silxUrl = h5Node.url
+            self.setText(silxUrl)
+            self.setData(self.SILX_URI_TYPE, silxUrl.encode(encoding='utf-8'))
 
     def isRoot(self):
         return self.__isRoot
