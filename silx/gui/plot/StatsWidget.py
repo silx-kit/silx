@@ -182,8 +182,8 @@ class StatsTable(TableWidget):
             if activeScatter:
                 self._addItem(activeScatter)
         else:
-            [self._addItem(curve) for curve in self.plot.getAllCurves()]
-            [self._addItem(image) for image in self.plot.getAllImages()]
+            [self._addItem(curve) for curve in plot.getAllCurves()]
+            [self._addItem(image) for image in plot.getAllImages()]
             scatters = plot._getItems(kind='scatter',
                                       just_legend=False,
                                       withhidden=True)
