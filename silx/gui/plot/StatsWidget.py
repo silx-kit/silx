@@ -72,7 +72,7 @@ class StatsTable(TableWidget):
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
-        self.plot = None
+        self._plot = None
         self._displayOnlyActItem = False
         self._statsOnVisibleData = False
         self._lgdAndKindToItems = {}
@@ -151,80 +151,83 @@ class StatsTable(TableWidget):
         :param PlotWidget plot:
             The plot containing the items on which statistics are applied
         """
-        if self.plot:
-            self._dealWithPlotConnection(create=False)
-        self.plot = plot
+        self._dealWithPlotConnection(create=False)
+        self._plot = plot
         self.clear()
-        if self.plot:
-            self._dealWithPlotConnection(create=True)
-            self._updateItemObserve()
+        self._dealWithPlotConnection(create=True)
+        self._updateItemObserve()
 
     def getPlot(self):
         """Returns the plot attached to this widget
 
         :rtype: PlotWidget
         """
-        return self.plot
+        return self._plot
 
     def _updateItemObserve(self):
-        if self.plot:
-            self.clear()
-            if self._displayOnlyActItem is True:
-                activeCurve = self.plot.getActiveCurve(just_legend=False)
-                activeScatter = self.plot._getActiveItem(kind='scatter',
-                                                         just_legend=False)
-                activeImage = self.plot.getActiveImage(just_legend=False)
-                if activeCurve:
-                    self._addItem(activeCurve)
-                if activeImage:
-                    self._addItem(activeImage)
-                if activeScatter:
-                    self._addItem(activeScatter)
-            else:
-                [self._addItem(curve) for curve in self.plot.getAllCurves()]
-                [self._addItem(image) for image in self.plot.getAllImages()]
-                scatters = self.plot._getItems(kind='scatter',
-                                               just_legend=False,
-                                               withhidden=True)
-                [self._addItem(scatter) for scatter in scatters]
-                histograms = self.plot._getItems(kind='histogram',
-                                                 just_legend=False,
-                                                 withhidden=True)
-                [self._addItem(histogram) for histogram in histograms]
+        plot = self.getPlot()
+        if plot is None:
+            return
+
+        self.clear()
+        if self._displayOnlyActItem is True:
+            activeCurve = plot.getActiveCurve(just_legend=False)
+            activeScatter = plot._getActiveItem(kind='scatter',
+                                                just_legend=False)
+            activeImage = plot.getActiveImage(just_legend=False)
+            if activeCurve:
+                self._addItem(activeCurve)
+            if activeImage:
+                self._addItem(activeImage)
+            if activeScatter:
+                self._addItem(activeScatter)
+        else:
+            [self._addItem(curve) for curve in self.plot.getAllCurves()]
+            [self._addItem(image) for image in self.plot.getAllImages()]
+            scatters = plot._getItems(kind='scatter',
+                                      just_legend=False,
+                                      withhidden=True)
+            [self._addItem(scatter) for scatter in scatters]
+            histograms = plot._getItems(kind='histogram',
+                                        just_legend=False,
+                                        withhidden=True)
+            [self._addItem(histogram) for histogram in histograms]
 
     def _dealWithPlotConnection(self, create=True):
         """Manage connection to plot signals
 
         Note: connection on Item are managed by the _removeItem function
         """
-        if self.plot is None:
+        plot = self.getPlot()
+        if plot is None:
             return
+
         if self._displayOnlyActItem:
             if create is True:
                 if self.callbackImage is None:
                     self.callbackImage = functools.partial(self._activeItemChanged, 'image')
                     self.callbackScatter = functools.partial(self._activeItemChanged, 'scatter')
                     self.callbackCurve = functools.partial(self._activeItemChanged, 'curve')
-                self.plot.sigActiveImageChanged.connect(self.callbackImage)
-                self.plot.sigActiveScatterChanged.connect(self.callbackScatter)
-                self.plot.sigActiveCurveChanged.connect(self.callbackCurve)
+                plot.sigActiveImageChanged.connect(self.callbackImage)
+                plot.sigActiveScatterChanged.connect(self.callbackScatter)
+                plot.sigActiveCurveChanged.connect(self.callbackCurve)
             else:
                 if self.callbackImage is not None:
-                    self.plot.sigActiveImageChanged.disconnect(self.callbackImage)
-                    self.plot.sigActiveScatterChanged.disconnect(self.callbackScatter)
-                    self.plot.sigActiveCurveChanged.disconnect(self.callbackCurve)
+                    plot.sigActiveImageChanged.disconnect(self.callbackImage)
+                    plot.sigActiveScatterChanged.disconnect(self.callbackScatter)
+                    plot.sigActiveCurveChanged.disconnect(self.callbackCurve)
                 self.callbackImage = None
                 self.callbackScatter = None
                 self.callbackCurve = None
         else:
             if create is True:
-                self.plot.sigContentChanged.connect(self._plotContentChanged)
+                plot.sigContentChanged.connect(self._plotContentChanged)
             else:
-                self.plot.sigContentChanged.disconnect(self._plotContentChanged)
+                plot.sigContentChanged.disconnect(self._plotContentChanged)
         if create is True:
-            self.plot.sigPlotSignal.connect(self._zoomPlotChanged)
+            plot.sigPlotSignal.connect(self._zoomPlotChanged)
         else:
-            self.plot.sigPlotSignal.disconnect(self._zoomPlotChanged)
+            plot.sigPlotSignal.disconnect(self._zoomPlotChanged)
 
     def clear(self):
         """Clear all existing items"""
@@ -316,7 +319,7 @@ class StatsTable(TableWidget):
         return self._lgdAndKindToItems[(legend, kind)][name]
 
     def _removeItem(self, legend, kind):
-        if (legend, kind) not in self._lgdAndKindToItems or not self.plot:
+        if (legend, kind) not in self._lgdAndKindToItems or not self.getPlot():
             return
 
         self.firstItem = self._lgdAndKindToItems[(legend, kind)]['legend']
@@ -331,18 +334,22 @@ class StatsTable(TableWidget):
             self._updateStats(lgdAndKind[0], lgdAndKind[1])
 
     def _updateStats(self, legend, kind, event=None):
+        plot = self.getPlot()
+        if plot is None:
+            return
+
         if self._statsHandler is None:
             return
 
         assert kind in ('curve', 'image', 'scatter', 'histogram')
         if kind == 'curve':
-            item = self.plot.getCurve(legend)
+            item = plot.getCurve(legend)
         elif kind == 'image':
-            item = self.plot.getImage(legend)
+            item = plot.getImage(legend)
         elif kind == 'scatter':
-            item = self.plot.getScatter(legend)
+            item = plot.getScatter(legend)
         elif kind == 'histogram':
-            item = self.plot.getHistogram(legend)
+            item = plot.getHistogram(legend)
         else:
             raise ValueError('kind not managed')
 
@@ -351,7 +358,8 @@ class StatsTable(TableWidget):
 
         assert isinstance(item, self.COMPATIBLE_ITEMS)
 
-        statsValDict = self._statsHandler.calculate(item, self.plot,
+        statsValDict = self._statsHandler.calculate(item,
+                                                    plot,
                                                     self._statsOnVisibleData)
 
         lgdItem = self._lgdAndKindToItems[(item.getLegend(), kind)]['legend']
@@ -365,17 +373,21 @@ class StatsTable(TableWidget):
             tableItem.setText(str(statVal))
 
     def currentChanged(self, current, previous):
+        plot = self.getPlot()
+        if plot is None:
+            return
+
         if current.row() >= 0:
             legendItem = self.item(current.row(), self._columns_index['legend'])
             assert legendItem
             kindItem = self.item(current.row(), self._columns_index['kind'])
             kind = kindItem.text()
             if kind == 'curve':
-                self.plot.setActiveCurve(legendItem.text())
+                plot.setActiveCurve(legendItem.text())
             elif kind == 'image':
-                self.plot.setActiveImage(legendItem.text())
+                plot.setActiveImage(legendItem.text())
             elif kind == 'scatter':
-                self.plot._setActiveItem('scatter', legendItem.text())
+                plot._setActiveItem('scatter', legendItem.text())
             elif kind == 'histogram':
                 # active histogram not managed by the plot actually
                 pass
@@ -417,18 +429,20 @@ class StatsTable(TableWidget):
 
     def _plotContentChanged(self, action, kind, legend):
         """Callback used when plotting all the plot items"""
-        if kind not in ('curve', 'image', 'scatter', 'histogram'):
+        plot = self.getPlot()
+        if plot is None:
             return
+
         if kind == 'curve':
-            item = self.plot.getCurve(legend)
+            item = plot.getCurve(legend)
         elif kind == 'image':
-            item = self.plot.getImage(legend)
+            item = plot.getImage(legend)
         elif kind == 'scatter':
-            item = self.plot.getScatter(legend)
+            item = plot.getScatter(legend)
         elif kind == 'histogram':
-            item = self.plot.getHistogram(legend)
+            item = plot.getHistogram(legend)
         else:
-            raise ValueError('kind not managed')
+            return
 
         if action == 'add':
             if item is None:
