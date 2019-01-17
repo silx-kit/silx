@@ -28,7 +28,7 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/02/2018"
+__date__ = "17/01/2019"
 
 try:
     import fabio
@@ -138,8 +138,22 @@ class FileTypeComboBox(qt.QComboBox):
     def __insertFabioFormats(self):
         formats = fabio.fabioformats.get_classes(reader=True)
 
+        from fabio import fabioutils
+        if hasattr(fabioutils, "COMPRESSED_EXTENSIONS"):
+            compressedExtensions = fabioutils.COMPRESSED_EXTENSIONS
+        else:
+            # Support for fabio < 0.9
+            compressedExtensions = set(["gz", "bz2"])
+
         extensions = []
         allExtensions = set([])
+
+        def extensionsIterator(reader):
+            for extension in reader.DEFAULT_EXTENSIONS:
+                yield "*.%s" % extension
+            for compressedExtension in compressedExtensions:
+                for extension in reader.DEFAULT_EXTENSIONS:
+                    yield "*.%s.%s" % (extension, compressedExtension)
 
         for reader in formats:
             if not hasattr(reader, "DESCRIPTION"):
@@ -147,8 +161,7 @@ class FileTypeComboBox(qt.QComboBox):
             if not hasattr(reader, "DEFAULT_EXTENSIONS"):
                 continue
 
-            ext = reader.DEFAULT_EXTENSIONS
-            ext = ["*.%s" % e for e in ext]
+            ext = list(extensionsIterator(reader))
             allExtensions.update(ext)
             if ext == []:
                 ext = ["*"]
