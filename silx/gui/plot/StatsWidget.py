@@ -31,9 +31,11 @@ __license__ = "MIT"
 __date__ = "24/07/2018"
 
 
-import functools
-import numpy
 from collections import OrderedDict
+import functools
+import weakref
+
+import numpy
 
 import silx.utils.weakref
 from silx.gui import qt
@@ -72,7 +74,7 @@ class StatsTable(TableWidget):
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
-        self._plot = None
+        self._plotRef = None
         self._displayOnlyActItem = False
         self._statsOnVisibleData = False
         self._lgdAndKindToItems = {}
@@ -148,11 +150,11 @@ class StatsTable(TableWidget):
     def setPlot(self, plot):
         """Define the plot to interact with
 
-        :param PlotWidget plot:
+        :param Union[PlotWidget,None] plot:
             The plot containing the items on which statistics are applied
         """
         self._dealWithPlotConnection(create=False)
-        self._plot = plot
+        self._plotRef = None if plot is None else weakref.ref(plot)
         self.clear()
         self._dealWithPlotConnection(create=True)
         self._updateItemObserve()
@@ -160,9 +162,9 @@ class StatsTable(TableWidget):
     def getPlot(self):
         """Returns the plot attached to this widget
 
-        :rtype: PlotWidget
+        :rtype: Union[PlotWidget,None]
         """
-        return self._plot
+        return None if self._plotRef is None else self._plotRef()
 
     def _updateItemObserve(self):
         plot = self.getPlot()
