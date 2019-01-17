@@ -161,11 +161,13 @@ class FileTypeComboBox(qt.QComboBox):
             if not hasattr(reader, "DEFAULT_EXTENSIONS"):
                 continue
 
+            displayext = reader.DEFAULT_EXTENSIONS
+            displayext = ["*.%s" % e for e in displayext]
             ext = list(extensionsIterator(reader))
             allExtensions.update(ext)
             if ext == []:
                 ext = ["*"]
-            extensions.append((reader.DESCRIPTION, ext, reader.codec_name()))
+            extensions.append((reader.DESCRIPTION, displayext, ext, reader.codec_name()))
         extensions = list(sorted(extensions))
 
         allExtensions = list(sorted(list(allExtensions)))
@@ -175,13 +177,14 @@ class FileTypeComboBox(qt.QComboBox):
         self.setItemData(index, Codec(any_fabio=True), role=self.CODEC_ROLE)
 
         for e in extensions:
+            description, displayExt, allExt, _codecName = e
             index = self.count()
             if len(e[1]) < 10:
-                self.addItem("%s%s (%s)" % (self.INDENTATION, e[0], " ".join(e[1])))
+                self.addItem("%s%s (%s)" % (self.INDENTATION, description, " ".join(displayExt)))
             else:
-                self.addItem("%s%s" % (self.INDENTATION, e[0]))
-            codec = Codec(fabio_codec=e[2])
-            self.setItemData(index, e[1], role=self.EXTENSIONS_ROLE)
+                self.addItem("%s%s" % (self.INDENTATION, description))
+            codec = Codec(fabio_codec=_codecName)
+            self.setItemData(index, allExt, role=self.EXTENSIONS_ROLE)
             self.setItemData(index, codec, role=self.CODEC_ROLE)
 
     def itemExtensions(self, index):
