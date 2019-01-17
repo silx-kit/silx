@@ -405,8 +405,8 @@ class StatsTable(TableWidget):
         """
         if self._displayOnlyActItem == displayOnlyActItem:
             return
-        self._displayOnlyActItem = displayOnlyActItem
         self._dealWithPlotConnection(create=False)
+        self._displayOnlyActItem = displayOnlyActItem
         self._updateItemObserve()
         self._dealWithPlotConnection(create=True)
 
