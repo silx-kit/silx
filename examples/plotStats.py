@@ -46,6 +46,7 @@ from silx.gui import qt
 from silx.gui.colors import Colormap
 from silx.gui.plot import Plot1D
 from silx.gui.plot.stats.stats import StatBase
+from silx.gui.plot.StatsLineWidget import BasicLineStatsWidget, BasicGridStatsWidget
 import numpy
 
 
@@ -114,6 +115,13 @@ def main():
 
     plot.getStatsWidget().setStats(stats)
     plot.getStatsWidget().parent().setVisible(True)
+
+    # lineStats1 = BasicLineStatsWidget(plot=plot)
+    # lineStats1.setStats(stats)
+    # lineStats1.show()
+
+    lineStats2 = BasicGridStatsWidget(plot=plot)
+    lineStats2.show()
 
     plot.show()
     app.exec_()

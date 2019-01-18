@@ -66,10 +66,11 @@ class LineStatsWidget(qt.QWidget):
 
     COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
 
-    def __init__(self, parent=None, plot=None, kind='curve'):
+    def __init__(self, parent=None, plot=None, kind='curve',
+                 statsOnVisibleData=False):
         qt.QWidget.__init__(self, parent)
         self._plotRef = None
-        self._statsOnVisibleData = True
+        self._statsOnVisibleData = statsOnVisibleData
         self._item_kind = kind
         self.callbackImage = None
         self.callbackScatter = None
@@ -212,6 +213,20 @@ class LineStatsWidget(qt.QWidget):
             if 'event' in event and event['event'] == 'limitsChanged':
                 self._updateStats()
 
+    def setStatsOnVisibleData(self, b):
+        """Toggle computation of statistics on whole data or only visible ones.
+
+        .. warning:: When visible data is activated we will process to a simple
+                     filtering of visible data by the user. The filtering is a
+                     simple data sub-sampling. No interpolation is made to fit
+                     data to boundaries.
+
+        :param bool b: True if we want to apply statistics only on visible data
+        """
+        if self._statsOnVisibleData != b:
+            self._statsOnVisibleData = b
+            self._updateStats()
+
 
 class BasicLineStatsWidget(LineStatsWidget):
     """
@@ -228,8 +243,10 @@ class BasicLineStatsWidget(LineStatsWidget):
         statsmdl.StatCOM()
     ))
 
-    def __init__(self, parent=None, plot=None, stats=STATS, kind='curve'):
-        LineStatsWidget.__init__(self, parent=parent, plot=plot, kind=kind)
+    def __init__(self, parent=None, plot=None, stats=STATS, kind='curve',
+                 statsOnVisibleData=False):
+        LineStatsWidget.__init__(self, parent=parent, plot=plot, kind=kind,
+                                 statsOnVisibleData=statsOnVisibleData)
         if stats is not None:
             self.setStats(stats)
 
@@ -249,8 +266,9 @@ class BasicGridStatsWidget(LineStatsWidget):
     ))
 
     def __init__(self, parent=None, plot=None, stats=STATS, kind='curve',
-                 width=4):
-        LineStatsWidget.__init__(self, parent=parent, plot=plot, kind=kind)
+                 statsOnVisibleData=False, width=4):
+        LineStatsWidget.__init__(self, parent=parent, plot=plot, kind=kind,
+                                 statsOnVisibleData=statsOnVisibleData)
         self._n_statistics_per_line = width
         self.setLayout(qt.QGridLayout())
         if stats is not None:
