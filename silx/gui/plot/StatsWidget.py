@@ -40,10 +40,6 @@ import numpy
 import silx.utils.weakref
 from silx.gui import qt
 from silx.gui import icons
-from silx.gui.plot.items.curve import Curve as CurveItem
-from silx.gui.plot.items.histogram import Histogram as HistogramItem
-from silx.gui.plot.items.image import ImageBase as ImageItem
-from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from silx.gui.plot import stats as statsmdl
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
@@ -63,14 +59,8 @@ class StatsTable(TableWidget):
     :param PlotWidget plot: :class:`.PlotWidget` instance on which to operate
     """
 
-    COMPATIBLE_KINDS = {
-        'curve': CurveItem,
-        'image': ImageItem,
-        'scatter': ScatterItem,
-        'histogram': HistogramItem
-    }
-
-    COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
+    COMPATIBLE_ITEMS = tuple(
+        item for items in statsmdl.BASIC_COMPATIBLE_KINDS.values() for item in items)
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
@@ -135,17 +125,16 @@ class StatsTable(TableWidget):
             self._updateStats(legend, kind)
 
     @staticmethod
-    def _getKind(myItem):
-        if isinstance(myItem, CurveItem):
-            return 'curve'
-        elif isinstance(myItem, ImageItem):
-            return 'image'
-        elif isinstance(myItem, ScatterItem):
-            return 'scatter'
-        elif isinstance(myItem, HistogramItem):
-            return 'histogram'
-        else:
-            return None
+    def _getKind(item):
+        """Returns the kind of item
+
+        :param item:
+        :rtype: str
+        """
+        for kind, types in statsmdl.BASIC_COMPATIBLE_KINDS:
+            if isinstance(item, types):
+                return kind
+        return None
 
     def setPlot(self, plot):
         """Define the plot to interact with
@@ -267,13 +256,14 @@ class StatsTable(TableWidget):
 
     def _addItem(self, item):
         assert isinstance(item, self.COMPATIBLE_ITEMS)
-        if (item.getLegend(), self._getKind(item)) in self._lgdAndKindToItems:
-            self._updateStats(item.getLegend(), self._getKind(item))
+
+        kind = self._getKind(item)
+        if (item.getLegend(), kind) in self._lgdAndKindToItems:
+            self._updateStats(item.getLegend(), kind)
             return
 
         self.setRowCount(self.rowCount() + 1)
         indexTable = self.rowCount() - 1
-        kind = self._getKind(item)
 
         self._lgdAndKindToItems[(item.getLegend(), kind)] = {}
 
@@ -321,7 +311,7 @@ class StatsTable(TableWidget):
         return self._lgdAndKindToItems[(legend, kind)][name]
 
     def _removeItem(self, legend, kind):
-        if (legend, kind) not in self._lgdAndKindToItems or not self.getPlot():
+        if (legend, kind) not in self._lgdAndKindToItems:
             return
 
         self.firstItem = self._lgdAndKindToItems[(legend, kind)]['legend']
