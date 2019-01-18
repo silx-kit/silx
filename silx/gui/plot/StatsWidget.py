@@ -69,24 +69,22 @@ class StatsTable(TableWidget):
         self._statsOnVisibleData = False
         self._lgdAndKindToItems = {}
         """Associate to a tuple(legend, kind) the items legend"""
-        self.callbackImage = None
-        self.callbackScatter = None
-        self.callbackCurve = None
+        self._callbackImage = None
+        self._callbackScatter = None
+        self._callbackCurve = None
         """Associate the curve legend to his first item"""
         self._statsHandler = None
         self._legendsSet = []
         """list of legends actually displayed"""
         self._resetColumns()
-
-        self.setColumnCount(len(self._columns))
+        self.setColumnCount(len(self._columns_index))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         self.setPlot(plot)
         self.setSortingEnabled(True)
 
     def _resetColumns(self):
         self._columns_index = OrderedDict([('legend', 0), ('kind', 1)])
-        self._columns = self._columns_index.keys()
-        self.setColumnCount(len(self._columns))
+        self.setColumnCount(len(self._columns_index))
 
     def setStats(self, statsHandler):
         """Set which stats to display and the associated formatting.
@@ -107,8 +105,7 @@ class StatsTable(TableWidget):
             assert isinstance(stat, statsmdl.StatBase)
             self._columns_index[statName] = len(self._columns_index)
         self._statsHandler = _statsHandler
-        self._columns = self._columns_index.keys()
-        self.setColumnCount(len(self._columns))
+        self.setColumnCount(len(self._columns_index))
 
         self._updateItemObserve()
         self._updateAllStats()
@@ -195,21 +192,27 @@ class StatsTable(TableWidget):
 
         if self._displayOnlyActItem:
             if create is True:
-                if self.callbackImage is None:
-                    self.callbackImage = functools.partial(self._activeItemChanged, 'image')
-                    self.callbackScatter = functools.partial(self._activeItemChanged, 'scatter')
-                    self.callbackCurve = functools.partial(self._activeItemChanged, 'curve')
-                plot.sigActiveImageChanged.connect(self.callbackImage)
-                plot.sigActiveScatterChanged.connect(self.callbackScatter)
-                plot.sigActiveCurveChanged.connect(self.callbackCurve)
+                if self._callbackImage is None:
+                    self._callbackImage = functools.partial(
+                        self._activeItemChanged, 'image')
+                    self._callbackScatter = functools.partial(
+                        self._activeItemChanged, 'scatter')
+                    self._callbackCurve = functools.partial(
+                        self._activeItemChanged, 'curve')
+                plot.sigActiveImageChanged.connect(self._callbackImage)
+                plot.sigActiveScatterChanged.connect(self._callbackScatter)
+                plot.sigActiveCurveChanged.connect(self._callbackCurve)
             else:
-                if self.callbackImage is not None:
-                    plot.sigActiveImageChanged.disconnect(self.callbackImage)
-                    plot.sigActiveScatterChanged.disconnect(self.callbackScatter)
-                    plot.sigActiveCurveChanged.disconnect(self.callbackCurve)
-                self.callbackImage = None
-                self.callbackScatter = None
-                self.callbackCurve = None
+                if self._callbackImage is not None:
+                    plot.sigActiveImageChanged.disconnect(
+                        self._callbackImage)
+                    plot.sigActiveScatterChanged.disconnect(
+                        self._callbackScatter)
+                    plot.sigActiveCurveChanged.disconnect(
+                        self._callbackCurve)
+                self._callbackImage = None
+                self._callbackScatter = None
+                self._callbackCurve = None
         else:
             if create is True:
                 plot.sigContentChanged.connect(self._plotContentChanged)
@@ -222,18 +225,17 @@ class StatsTable(TableWidget):
 
     def clear(self):
         """Clear all existing items"""
-        lgdsAndKinds = list(self._lgdAndKindToItems.keys())
-        for lgdAndKind in lgdsAndKinds:
+        for lgdAndKind in list(self._lgdAndKindToItems.keys()):
             self._removeItem(legend=lgdAndKind[0], kind=lgdAndKind[1])
         self._lgdAndKindToItems = {}
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
 
         # It have to called befor3e accessing to the header items
-        self.setHorizontalHeaderLabels(list(self._columns))
+        self.setHorizontalHeaderLabels(list(self._columns_index.keys()))
 
         if self._statsHandler is not None:
-            for columnId, name in enumerate(self._columns):
+            for columnId, name in enumerate(self._columns_index.keys()):
                 item = self.horizontalHeaderItem(columnId)
                 if name in self._statsHandler.stats:
                     stat = self._statsHandler.stats[name]
@@ -268,10 +270,9 @@ class StatsTable(TableWidget):
         self._lgdAndKindToItems[(item.getLegend(), kind)] = {}
 
         # the get item will manage the item creation of not existing
-        _createItem = self._getItem
-        for itemName in self._columns:
-            _createItem(name=itemName, legend=item.getLegend(), kind=kind,
-                        indexTable=indexTable)
+        for itemName in self._columns_index.keys():
+            self._getItem(name=itemName, legend=item.getLegend(), kind=kind,
+                          indexTable=indexTable)
 
         self._updateStats(legend=item.getLegend(), kind=kind)
 
@@ -286,8 +287,7 @@ class StatsTable(TableWidget):
     def _getItem(self, name, legend, kind, indexTable):
         if (legend, kind) not in self._lgdAndKindToItems:
             self._lgdAndKindToItems[(legend, kind)] = {}
-        if not (name in self._lgdAndKindToItems[(legend, kind)] and
-                self._lgdAndKindToItems[(legend, kind)]):
+        if name not in self._lgdAndKindToItems[(legend, kind)]:
             if name in ('legend', 'kind'):
                 _item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
                 if name == 'legend':
@@ -314,9 +314,9 @@ class StatsTable(TableWidget):
         if (legend, kind) not in self._lgdAndKindToItems:
             return
 
-        self.firstItem = self._lgdAndKindToItems[(legend, kind)]['legend']
+        firstItem = self._lgdAndKindToItems[(legend, kind)]['legend']
         del self._lgdAndKindToItems[(legend, kind)]
-        self.removeRow(self.firstItem.row())
+        self.removeRow(firstItem.row())
         self._legendsSet.remove(legend)
         self.setColumnHidden(self._columns_index['kind'],
                              legend not in self._legendsSet)
