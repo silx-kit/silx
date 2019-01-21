@@ -239,9 +239,9 @@ class StatsTable(TableWidget):
 
                 # Handle sync of table selection with current curve
                 connections += [
-                    (plot.sigActiveCurveChanged, self._plotActiveCurveChanged),
-                    (plot.sigActiveImageChanged, self._plotActiveImageChanged),
-                    (plot.sigActiveScatterChanged, self._plotActiveScatterChanged)]
+                    (plot.sigActiveCurveChanged, self._plot2dActiveCurveChanged),
+                    (plot.sigActiveImageChanged, self._plot2dActiveImageChanged),
+                    (plot.sigActiveScatterChanged, self._plot2dActiveScatterChanged)]
 
         elif isinstance(plot, SceneWidget):
             if self._displayOnlyActItem:
@@ -253,6 +253,8 @@ class StatsTable(TableWidget):
                 connections += [
                     (scene.sigItemAdded, self._plotItemAdded),
                     (scene.sigItemRemoved, self._plotItemRemoved)]
+                connections.append((plot.selection().sigCurrentChanged,
+                                    self._plot3dCurrentChanged))
 
         for signal, slot in connections:
             if create:
@@ -447,7 +449,8 @@ class StatsTable(TableWidget):
                     if plot._getActiveItem(kind) != item:
                         plot._setActiveItem(kind, item.getLegend())
             elif isinstance(plot, SceneWidget):
-                pass  # TODO
+                item = current.data(qt.Qt.UserRole)
+                plot.selection().setCurrentItem(item)
 
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
         """Toggle display off all items or only the active/selected one
@@ -512,15 +515,35 @@ class StatsTable(TableWidget):
         if self._statsOnVisibleData and event['event'] == 'limitsChanged':
                 self._updateAllStats()
 
+    # SceneWidget specific slot
+
+    def _plot3dCurrentChanged(self, current, previous):
+        """Handle change of selection in a :class:`SceneWidget`
+
+        :param Item3D current:
+        :param Item3D previous:
+        """
+        plot = self.getPlot()
+        if isinstance(plot, SceneWidget):
+            row = self._itemToRow(current)
+            if row is None:
+                if self.currentRow() >= 0:
+                    self.setCurrentCell(-1, -1)
+            else:
+                if row != self.currentRow():
+                    self.setCurrentCell(row, 0)
+
+            plot.selection().setCurrentItem(current)
+
     # PlotWidget specific slots
 
-    def _activeItemChanged(self, kind):
+    def _plot2dActiveItemChanged(self, kind):
         """Generic plot active item management.
 
         :param str kind:
         """
         plot = self.getPlot()
-        if plot is not None:
+        if isinstance(plot, PlotWidget):
             item = plot._getActiveItem(kind=kind)
             if item is not None:
                 row = self._itemToRow(item)
@@ -530,17 +553,17 @@ class StatsTable(TableWidget):
                 if self.currentRow() >= 0:
                     self.setCurrentCell(-1, -1)
 
-    def _plotActiveCurveChanged(self, previous, current):
+    def _plot2dActiveCurveChanged(self, previous, current):
         """Handle update of active curve"""
-        self._activeItemChanged(kind='curve')
+        self._plot2dActiveItemChanged(kind='curve')
 
-    def _plotActiveImageChanged(self, previous, current):
+    def _plot2dActiveImageChanged(self, previous, current):
         """Handle update of active image"""
-        self._activeItemChanged(kind='image')
+        self._plot2dActiveItemChanged(kind='image')
 
-    def _plotActiveScatterChanged(self, previous, current):
+    def _plot2dActiveScatterChanged(self, previous, current):
         """Handle update of active scatter"""
-        self._activeItemChanged(kind='scatter')
+        self._plot2dActiveItemChanged(kind='scatter')
 
 
 class _OptionsWidget(qt.QToolBar):
