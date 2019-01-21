@@ -1170,13 +1170,32 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         plot = self.getPlot()
         if plot is not None:
             item = plot._getActiveItem(kind=self._item_kind)
-            if(item is not None and self._statsHandler is not None and
-               len(self._statsHandler) > 0):
+            if item is None:
+                for stat_name, stat_widget in self._statQlineEdit.items():
+                    stat_widget.setText('')
+            elif (self._statsHandler is not None and len(self._statsHandler) > 0):
                 statsValDict = self._statsHandler.calculate(item,
                                                             plot,
                                                             self._statsOnVisibleData)
                 for statName, statVal in list(statsValDict.items()):
                     self._statQlineEdit[statName].setText(statVal)
+
+    def setKind(self, kind):
+        """Change the kind of active item to display
+
+        :param str kind: kind of item to display information for ('curve' ...)
+        """
+        if self._item_kind != kind:
+            self._item_kind = kind
+            self._updateAllStats()
+
+    def getKind(self):
+        """
+
+        :return: kind of item we want to compute statistic for
+         :rtype: str
+        """
+        return self._item_kind
 
 
 class BasicLineStatsWidget(LineStatsWidget):

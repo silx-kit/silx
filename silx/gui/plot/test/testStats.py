@@ -576,7 +576,15 @@ class TestLineWidget(TestCaseQt):
         self.widget.setStatsOnVisibleData(True)
         self.qapp.processEvents()
         self.assertTrue(self.widget._statQlineEdit['min'].text() == '14.000')
-
+        self.plot.setActiveCurve(None)
+        self.assertTrue(self.plot.getActiveCurve() is None)
+        self.widget.setStatsOnVisibleData(False)
+        self.qapp.processEvents()
+        self.assertFalse(self.widget._statQlineEdit['min'].text() == '14.000')
+        self.widget.setKind('image')
+        self.plot.addImage(numpy.arange(100*100).reshape(100, 100) + 0.312)
+        self.qapp.processEvents()
+        self.assertTrue(self.widget._statQlineEdit['min'].text() == '0.312')
 
 def suite():
     test_suite = unittest.TestSuite()
