@@ -1059,6 +1059,7 @@ DEFAULT_STATS = StatsHandler((
     (('std', numpy.std), StatFormatter()),
 ))
 
+
 class BasicStatsWidget(StatsWidget):
     """
     Widget defining a simple set of :class:`Stat` to be displayed on a
@@ -1113,8 +1114,14 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         self.layout().setSpacing(2)
         self.layout().setContentsMargins(2, 2, 2, 2)
 
-        qLabel = qt.QLabel(statistic.name + ':', parent=self)
-        qLineEdit = qt.QLineEdit('', parent=self)
+        if isinstance(self.layout(), qt.QGridLayout):
+            parent = self
+        else:
+            widget = qt.QWidget(parent=self)
+            parent = widget
+
+        qLabel = qt.QLabel(statistic.name + ':', parent=parent)
+        qLineEdit = qt.QLineEdit('', parent=parent)
         qLineEdit.setReadOnly(True)
 
         if isinstance(self.layout(), qt.QGridLayout):
@@ -1125,7 +1132,6 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         else:
             # create a mother widget to make sure both will always be displayed
             # side by side
-            widget = qt.QWidget(parent=self)
             widget.setLayout(qt.QHBoxLayout())
             widget.layout().setSpacing(0)
             widget.layout().setContentsMargins(0, 0, 0, 0)

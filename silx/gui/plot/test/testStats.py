@@ -558,17 +558,20 @@ class TestLineWidget(TestCaseQt):
         self.plot.addCurve(x, y, legend='curve1')
         y = range(-2, 18)
         self.plot.addCurve(x, y, legend='curve2')
-        self.widget = StatsWidget.BasicLineStatsWidget(plot=self.plot,
-                                                       kind='curve')
+        self.widget = StatsWidget.BasicGridStatsWidget(plot=self.plot,
+                                                       kind='curve',
+                                                       stats=mystats)
 
     def tearDown(self):
+        self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
+        self.widget.setPlot(None)
+        self.widget._statQlineEdit.clear()
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.widget.close()
         self.widget = None
         self.plot = None
-        self.qapp.processEvents()
         TestCaseQt.tearDown(self)
 
     def test(self):
@@ -591,6 +594,7 @@ class TestLineWidget(TestCaseQt):
         self.plot.addImage(numpy.arange(100*100).reshape(100, 100) + 0.312)
         self.qapp.processEvents()
         self.assertTrue(self.widget._statQlineEdit['min'].text() == '0.312')
+
 
 def suite():
     test_suite = unittest.TestSuite()
