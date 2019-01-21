@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,17 @@ __license__ = "MIT"
 __date__ = "06/06/2018"
 
 
-import numpy
-from silx.gui.plot.items.curve import Curve as CurveItem
-from silx.gui.plot.items.image import ImageBase as ImageItem
-from silx.gui.plot.items.scatter import Scatter as ScatterItem
-from silx.gui.plot.items.histogram import Histogram as HistogramItem
-from silx.math.combo import min_max
 from collections import OrderedDict
 import logging
+
+import numpy
+
+from .. import PlotWidget
+from .. import items
+from ...plot3d.SceneWidget import SceneWidget
+from ...plot3d import items as items3d
+from ....math.combo import min_max
+
 
 logger = logging.getLogger(__name__)
 
@@ -73,14 +76,19 @@ class Stats(OrderedDict):
                       of the calculation as value
         """
         res = {}
-        if isinstance(item, CurveItem):
+        if isinstance(item, items.Curve):
             context = _CurveContext(item, plot, onlimits)
-        elif isinstance(item, ImageItem):
+        elif isinstance(item,
+                (items.ImageBase, items3d.ImageRgba, items3d.ImageData)):
             context = _ImageContext(item, plot, onlimits)
-        elif isinstance(item, ScatterItem):
+        elif isinstance(item, (items.Scatter, items3d.Scatter2D)):
             context = _ScatterContext(item, plot, onlimits)
-        elif isinstance(item, HistogramItem):
+        elif isinstance(item, items.Histogram):
             context = _HistogramContext(item, plot, onlimits)
+        elif isinstance(item, items3d.Scatter3D):
+            raise NotImplementedError()  # TODO
+        elif isinstance(item, items3d.ScalarField3D):
+            raise NotImplementedError()  # TODO
         else:
             raise ValueError('Item type not managed')
         for statName, stat in list(self.items()):
@@ -194,8 +202,10 @@ class _HistogramContext(_StatsContext):
 
 
 class _ScatterContext(_StatsContext):
-    """
-    StatsContext for :class:`Scatter`
+    """StatsContext scatter plots.
+
+    It supports :class:`~silx.gui.plot.items.Scatter` and
+    :class:`~silx.gui.plot3d.items.Scatter2D`.
 
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
@@ -207,19 +217,33 @@ class _ScatterContext(_StatsContext):
                                onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        xData, yData, valueData, xerror, yerror = item.getData(copy=True)
-        assert plot
+        if isinstance(item, items.Scatter):
+            valueData = item.getValueData()
+        elif isinstance(item, items3d.Scatter2D):
+            valueData = item.getValues()  # TODO make APIs consistent
+        else:
+            raise RuntimeError("Unhandled item %s" % str(item))
+        xData = item.getXData()
+        yData = item.getYData()
+
         if onlimits:
-            minX, maxX = plot.getXAxis().getLimits()
-            minY, maxY = plot.getYAxis().getLimits()
-            # filter on X axis
-            valueData = valueData[(minX <= xData) & (xData <= maxX)]
-            yData = yData[(minX <= xData) & (xData <= maxX)]
-            xData = xData[(minX <= xData) & (xData <= maxX)]
-            # filter on Y axis
-            valueData = valueData[(minY <= yData) & (yData <= maxY)]
-            xData = xData[(minY <= yData) & (yData <= maxY)]
-            yData = yData[(minY <= yData) & (yData <= maxY)]
+            if isinstance(plot, PlotWidget):
+                minX, maxX = plot.getXAxis().getLimits()
+                minY, maxY = plot.getYAxis().getLimits()
+                # filter on X axis
+                valueData = valueData[(minX <= xData) & (xData <= maxX)]
+                yData = yData[(minX <= xData) & (xData <= maxX)]
+                xData = xData[(minX <= xData) & (xData <= maxX)]
+                # filter on Y axis
+                valueData = valueData[(minY <= yData) & (yData <= maxY)]
+                xData = xData[(minY <= yData) & (yData <= maxY)]
+                yData = yData[(minY <= yData) & (yData <= maxY)]
+            elif isinstance(plot, SceneWidget):
+                logger.error(
+                    "Statistics on visible data is not implemented for 3D")
+            else:
+                raise RuntimeError("Unsupported plot %s" % str(plot))
+
         if len(valueData) > 0:
             self.min, self.max = min_max(valueData)
         else:
@@ -229,8 +253,11 @@ class _ScatterContext(_StatsContext):
 
 
 class _ImageContext(_StatsContext):
-    """
-    StatsContext for :class:`ImageBase`
+    """StatsContext for images.
+
+    It supports :class:`~silx.gui.plot.items.ImageBase`,
+    :class:`~silx.gui.plot3d.items.ImageData` and
+    :class:`~silx.gui.plot3d.items.ImageRgba`.
 
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
@@ -242,28 +269,41 @@ class _ImageContext(_StatsContext):
                                plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        self.origin = item.getOrigin()
-        self.scale = item.getScale()
+        if isinstance(item, items.ImageBase):
+            self.origin = item.getOrigin()
+            self.scale = item.getScale()
+        elif isinstance(item, (items3d.ImageData, items3d.ImageRgba)):
+            # TODO handle transformations
+            self.origin = 0., 0.
+            self.scale = 1., 1.
+        else:
+            raise RuntimeError("Unhandled item: %s" % str(item))
+
         self.data = item.getData()
 
         if onlimits:
-            minX, maxX = plot.getXAxis().getLimits()
-            minY, maxY = plot.getYAxis().getLimits()
+            if isinstance(plot, PlotWidget):
+                minX, maxX = plot.getXAxis().getLimits()
+                minY, maxY = plot.getYAxis().getLimits()
 
-            XMinBound = int((minX - self.origin[0]) / self.scale[0])
-            YMinBound = int((minY - self.origin[1]) / self.scale[1])
-            XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
-            YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
+                XMinBound = int((minX - self.origin[0]) / self.scale[0])
+                YMinBound = int((minY - self.origin[1]) / self.scale[1])
+                XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
+                YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
 
-            XMinBound = max(XMinBound, 0)
-            YMinBound = max(YMinBound, 0)
+                XMinBound = max(XMinBound, 0)
+                YMinBound = max(YMinBound, 0)
 
-            if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
-                return self.noDataSelected()
-            data = item.getData()
-            self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
-        else:
-            self.data = item.getData()
+                if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
+                    self.data = None
+                else:
+                    self.data = self.data[YMinBound:YMaxBound + 1,
+                                          XMinBound:XMaxBound + 1]
+            elif isinstance(plot, SceneWidget):
+                logger.error(
+                    "Statistics on visible data is not implemented for 3D")
+            else:
+                raise RuntimeError("Unsupported plot %s" % str(plot))
 
         if self.data.size > 0:
             self.min, self.max = min_max(self.data)
@@ -273,10 +313,10 @@ class _ImageContext(_StatsContext):
 
 
 BASIC_COMPATIBLE_KINDS = {
-    'curve': CurveItem,
-    'image': ImageItem,
-    'scatter': ScatterItem,
-    'histogram': HistogramItem,
+    'curve': (items.Curve,),
+    'image': (items.ImageBase, items3d.ImageData, items3d.ImageData),
+    'scatter': (items.Scatter, items3d.Scatter2D),
+    'histogram': (items.Histogram,),
 }
 
 
