@@ -544,6 +544,11 @@ class TestLineWidget(TestCaseQt):
     """Some test for the StatsLineWidget."""
     def setUp(self):
         TestCaseQt.setUp(self)
+
+        mystats = statshandler.StatsHandler((
+            stats.StatMin(),
+        ))
+
         self.plot = Plot1D()
         self.plot.show()
         x = range(20)
@@ -563,6 +568,7 @@ class TestLineWidget(TestCaseQt):
         self.widget.close()
         self.widget = None
         self.plot = None
+        self.qapp.processEvents()
         TestCaseQt.tearDown(self)
 
     def test(self):
