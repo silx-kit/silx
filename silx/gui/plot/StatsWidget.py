@@ -32,6 +32,7 @@ __date__ = "24/07/2018"
 
 
 from collections import OrderedDict
+from contextlib import contextmanager
 import logging
 import weakref
 
@@ -42,7 +43,11 @@ from silx.gui import icons
 from silx.gui.plot import stats as statsmdl
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
+
 from . import PlotWidget
+from . import items as plotitems
+from ..plot3d.SceneWidget import SceneWidget
+from ..plot3d import items as plot3ditems
 
 
 _logger = logging.getLogger(__name__)
@@ -59,12 +64,15 @@ class StatsTable(TableWidget):
     * standard deviation (std)
 
     :param QWidget parent: The widget's parent.
-    :param PlotWidget plot:
-        :class:`PlotWidget` instance on which to operate
+    :param Union[PlotWidget,SceneWidget] plot:
+        :class:`PlotWidget` or :class:`SceneWidget` instance on which to operate
     """
 
     COMPATIBLE_ITEMS = tuple(
         item for items in statsmdl.BASIC_COMPATIBLE_KINDS.values() for item in items)
+
+    _LEGEND_HEADER_DATA = 'legend'
+    _KIND_HEADER_DATA = 'kind'
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
@@ -81,14 +89,27 @@ class StatsTable(TableWidget):
 
         # Init headers
         headerItem = qt.QTableWidgetItem('Legend')
-        headerItem.setData(qt.Qt.UserRole, 'legend')
+        headerItem.setData(qt.Qt.UserRole, self._LEGEND_HEADER_DATA)
         self.setHorizontalHeaderItem(0, headerItem)
         headerItem = qt.QTableWidgetItem('Kind')
-        headerItem.setData(qt.Qt.UserRole, 'kind')
+        headerItem.setData(qt.Qt.UserRole, self._KIND_HEADER_DATA)
         self.setHorizontalHeaderItem(1, headerItem)
 
         self.setSortingEnabled(True)
         self.setPlot(plot)
+
+    @contextmanager
+    def _disableSorting(self):
+        """Context manager that disables table sorting
+
+        Previous state is restored when leaving
+        """
+        sorting = self.isSortingEnabled()
+        if sorting:
+            self.setSortingEnabled(False)
+        yield
+        if sorting:
+            self.setSortingEnabled(sorting)
 
     def setStats(self, statsHandler):
         """Set which stats to display and the associated formatting.
@@ -146,40 +167,50 @@ class StatsTable(TableWidget):
     def setPlot(self, plot):
         """Define the plot to interact with
 
-        :param Union[PlotWidget,None] plot:
+        :param Union[PlotWidget,SceneWidget,None] plot:
             The plot containing the items on which statistics are applied
         """
-        assert plot is None or isinstance(plot, PlotWidget)
+        assert plot is None or isinstance(plot, (PlotWidget, SceneWidget))
         self._dealWithPlotConnection(create=False)
-        self._plotRef = None if plot is None else weakref.ref(plot)
         self._removeAllItems()
+        self._plotRef = None if plot is None else weakref.ref(plot)
         self._dealWithPlotConnection(create=True)
         self._updateItemObserve()
 
     def getPlot(self):
         """Returns the plot attached to this widget
 
-        :rtype: Union[PlotWidget,None]
+        :rtype: Union[PlotWidget,SceneWidget,None]
         """
         return None if self._plotRef is None else self._plotRef()
 
     def _updateItemObserve(self):
         """Reload table depending on mode"""
-        plot = self.getPlot()
-        if plot is None:
-            return
+        plot = self.getPlot()  # can be None
 
         self._removeAllItems()
 
-        if self._displayOnlyActItem:
-            for kind in PlotWidget._ACTIVE_ITEM_KINDS:
-                item = plot._getActiveItem(kind=kind)
-                if item is not None:
-                    self._addItem(item)
-        else:
-            for item in plot._getItems():
-                if isinstance(item, self.COMPATIBLE_ITEMS):
-                    self._addItem(item)
+        # Get selected or all items from the plot
+        items = []
+        if self._displayOnlyActItem:  # Only selected
+            if isinstance(plot, PlotWidget):
+                for kind in PlotWidget._ACTIVE_ITEM_KINDS:
+                    item = plot._getActiveItem(kind=kind)
+                    if item is not None:
+                        items.append(item)
+            elif isinstance(plot, SceneWidget):
+                items = [plot.selection().getCurrentItem()]
+
+        else:  # All items
+            if isinstance(plot, PlotWidget):
+                items = plot._getItems()
+            elif isinstance(plot, SceneWidget):
+                items = plot.getItems()
+
+        # Add items to the plot
+        for item in items:
+            if isinstance(item, self.COMPATIBLE_ITEMS):
+                self._addItem(item)
 
     def _dealWithPlotConnection(self, create=True):
         """Manage connection to plot signals
@@ -191,16 +222,33 @@ class StatsTable(TableWidget):
             return
 
         # Prepare list of (signal, slot) to connect/disconnect
-        connections = [(plot.sigPlotSignal, self._zoomPlotChanged)]
-        if self._displayOnlyActItem:
-            connections += [
-                (plot.sigActiveCurveChanged, self._plotActiveCurveChanged),
-                (plot.sigActiveImageChanged, self._plotActiveImageChanged),
-                (plot.sigActiveScatterChanged, self._plotActiveScatterChanged)]
-        else:
-            connections += [
-                (plot.sigItemAdded, self._plotItemAdded),
-                (plot.sigItemAboutToBeRemoved, self._plotItemRemoved)]
+        connections = []
+        if isinstance(plot, PlotWidget):
+            connections.append((plot.sigPlotSignal, self._zoomPlotChanged))
+            if self._displayOnlyActItem:
+                connections += [
+                    (plot.sigActiveCurveChanged, self._plotActiveCurveChanged),
+                    (plot.sigActiveImageChanged, self._plotActiveImageChanged),
+                    (plot.sigActiveScatterChanged, self._plotActiveScatterChanged)]
+                connections += [
+                    (plot.sigActiveCurveChanged, self._plotCurrentChanged),
+                    (plot.sigActiveImageChanged, self._plotCurrentChanged),
+                    (plot.sigActiveScatterChanged, self._plotCurrentChanged)]
+            else:
+                connections += [
+                    (plot.sigItemAdded, self._plotItemAdded),
+                    (plot.sigItemAboutToBeRemoved, self._plotItemRemoved)]
+
+        elif isinstance(plot, SceneWidget):
+            if self._displayOnlyActItem:
+                selection = plot.selection()
+                connections.append(
+                    (selection.sigCurrentChanged, self._plotCurrentChanged))
+            else:
+                scene = plot.getSceneGroup()
+                connections += [
+                    (scene.sigItemAdded, self._plotItemAdded),
+                    (scene.sigItemRemoved, self._plotItemRemoved)]
 
         for signal, slot in connections:
             if create:
@@ -287,23 +335,20 @@ class StatsTable(TableWidget):
             tableItems.append(tableItem)
 
         # Disable sorting while adding table items
-        self.setSortingEnabled(False)
+        with self._disableSorting():
+            # Add a row to the table
+            self.setRowCount(self.rowCount() + 1)
 
-        # Add a row to the table
-        self.setRowCount(self.rowCount() + 1)
+            # Add table items to the last row
+            row = self.rowCount() - 1
+            for column, tableItem in enumerate(tableItems):
+                tableItem.setData(qt.Qt.UserRole, item)
+                tableItem.setFlags(
+                    qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
+                self.setItem(row, column, tableItem)
 
-        # Add table items to the last row
-        row = self.rowCount() - 1
-        for column, tableItem in enumerate(tableItems):
-            tableItem.setData(qt.Qt.UserRole, item)
-            tableItem.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
-            self.setItem(row, column, tableItem)
-
-        # Update table items content
-        self._updateStats(item)
-
-        # Restore sorting
-        self.setSortingEnabled(True)
+            # Update table items content
+            self._updateStats(item)
 
         # Listen for item changes
         item.sigItemChanged.connect(self._plotItemChanged)
@@ -351,27 +396,36 @@ class StatsTable(TableWidget):
         else:
             stats = {}
 
-        for name, tableItem in self._itemToTableItems(item).items():
-            if tableItem.column() == 0:
-                tableItem.setText(item.getLegend())
-            elif tableItem.column() == 1:
-                tableItem.setText(self._getKind(item))
-            else:
-                value = stats.get(name)
-                if value is None:
-                    _logger.error("Value not found for: %s", name)
-                    tableItem.setText('-')
+        with self._disableSorting():
+            for name, tableItem in self._itemToTableItems(item).items():
+                if name == self._LEGEND_HEADER_DATA:
+                    if isinstance(item, plotitems.Item):
+                        text = item.getLegend()
+                    elif isinstance(item, plot3ditems.Item3D):
+                        text = item.getLabel()
+                    else:
+                        _logger.error("Item not supported: %s", str(item))
+                        text = '-'
+                    tableItem.setText(text)
+                elif name == self._KIND_HEADER_DATA:
+                    tableItem.setText(self._getKind(item))
                 else:
-                    tableItem.setText(str(value))
+                    value = stats.get(name)
+                    if value is None:
+                        _logger.error("Value not found for: %s", name)
+                        tableItem.setText('-')
+                    else:
+                        tableItem.setText(str(value))
 
     def _updateAllStats(self):
         """Update stats for all rows in the table"""
-        for row in range(self.rowCount()):
-            tableItem = self.item(row, 0)
-            item = tableItem.data(qt.Qt.UserRole)
-            self._updateStats(item)
+        with self._disableSorting():
+            for row in range(self.rowCount()):
+                tableItem = self.item(row, 0)
+                item = tableItem.data(qt.Qt.UserRole)
+                self._updateStats(item)
 
-    def currentItemChanged(self, current, previous):
+    def currentItemChanged(self, current, previous):  # TODO check!
         # Overrides QTableWidget to handle active item change in the plot
         plot = self.getPlot()
         if plot is not None and current.row() >= 0:
@@ -409,39 +463,10 @@ class StatsTable(TableWidget):
             self._statsOnVisibleData = b
             self._updateAllStats()
 
-    # PlotWidget specific slots
-
-    # TODO is it a good idea to combine current item and active item?
-    # TODO Not sure...
-    def _activeItemChanged(self, kind, legend):
-        """Generic plot active item management.
-
-        :param str kind:
-        :param str legend:
-        """
+    def _plotCurrentChanged(self, *args, **kwargs):
+        """Update change of selected items"""
         if self._displayOnlyActItem:
             self._updateItemObserve()
-
-        plot = self.getPlot()
-        if plot is not None:
-            item = plot._getActiveItem(kind='curve')
-            if item is not None:
-                row = self._itemToRow(item)
-                self.setCurrentCell(row, 0)
-            else:
-                self.setCurrentCell(-1, -1)  # TODO Unselect?
-
-    def _plotActiveCurveChanged(self, previous, current):
-        """Handle update of active curve"""
-        self._activeItemChanged(kind='curve', legend=current)
-
-    def _plotActiveImageChanged(self, previous, current):
-        """Handle update of active image"""
-        self._activeItemChanged(kind='image', legend=current)
-
-    def _plotActiveScatterChanged(self, previous, current):
-        """Handle update of active scatter"""
-        self._activeItemChanged(kind='scatter', legend=current)
 
     def _plotItemAdded(self, item):
         """Handles new items in the plot
@@ -463,6 +488,38 @@ class StatsTable(TableWidget):
         """Handle zoom change."""
         if self._statsOnVisibleData and event['event'] == 'limitsChanged':
                 self._updateAllStats()
+
+    # PlotWidget specific slots
+
+    # TODO is it a good idea to combine current item and active item?
+    # TODO Not sure...
+
+    def _activeItemChanged(self, kind):
+        """Generic plot active item management.
+
+        :param str kind:
+        """
+        plot = self.getPlot()
+        if plot is not None:
+            item = plot._getActiveItem(kind='curve')
+            if item is not None:
+                row = self._itemToRow(item)
+                self.setCurrentCell(row, 0)
+            else:
+                self.setCurrentCell(-1, -1)  # TODO Unselect?
+
+    def _plotActiveCurveChanged(self, previous, current):
+        """Handle update of active curve"""
+        self._activeItemChanged(kind='curve')
+
+    def _plotActiveImageChanged(self, previous, current):
+        """Handle update of active image"""
+        self._activeItemChanged(kind='image')
+
+    def _plotActiveScatterChanged(self, previous, current):
+        """Handle update of active scatter"""
+        self._activeItemChanged(kind='scatter')
+
 
 
 class _OptionsWidget(qt.QToolBar):
@@ -539,7 +596,7 @@ class StatsWidget(qt.QWidget):
     * show statistics of all items or only the active one
 
     :param QWidget parent: Qt parent
-    :param PlotWidget plot:
+    :param Union[PlotWidget,SceneWidget] plot:
         The plot containing items on which we want statistics.
     :param StatsHandler stats:
         Set the statistics to be displayed and how to format them using
