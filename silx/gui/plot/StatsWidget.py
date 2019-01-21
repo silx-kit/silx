@@ -81,8 +81,10 @@ class StatsTable(TableWidget):
         self._statsOnVisibleData = False
         self._statsHandler = None
 
+        # Init for _displayOnlyActItem == False
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        self.currentItemChanged.connect(self._currentItemChanged)
 
         self.setRowCount(0)
         self.setColumnCount(2)
@@ -227,10 +229,6 @@ class StatsTable(TableWidget):
             connections.append((plot.sigPlotSignal, self._zoomPlotChanged))
             if self._displayOnlyActItem:
                 connections += [
-                    (plot.sigActiveCurveChanged, self._plotActiveCurveChanged),
-                    (plot.sigActiveImageChanged, self._plotActiveImageChanged),
-                    (plot.sigActiveScatterChanged, self._plotActiveScatterChanged)]
-                connections += [
                     (plot.sigActiveCurveChanged, self._plotCurrentChanged),
                     (plot.sigActiveImageChanged, self._plotCurrentChanged),
                     (plot.sigActiveScatterChanged, self._plotCurrentChanged)]
@@ -238,6 +236,12 @@ class StatsTable(TableWidget):
                 connections += [
                     (plot.sigItemAdded, self._plotItemAdded),
                     (plot.sigItemAboutToBeRemoved, self._plotItemRemoved)]
+
+                # Handle sync of table selection with current curve
+                connections += [
+                    (plot.sigActiveCurveChanged, self._plotActiveCurveChanged),
+                    (plot.sigActiveImageChanged, self._plotActiveImageChanged),
+                    (plot.sigActiveScatterChanged, self._plotActiveScatterChanged)]
 
         elif isinstance(plot, SceneWidget):
             if self._displayOnlyActItem:
@@ -351,7 +355,10 @@ class StatsTable(TableWidget):
             self._updateStats(item)
 
         # Listen for item changes
-        item.sigItemChanged.connect(self._plotItemChanged)
+        # Using queued connection to avoid issue with sender
+        # being that of the signal calling the signal
+        item.sigItemChanged.connect(self._plotItemChanged,
+                                    qt.Qt.QueuedConnection)
 
     def _removeItem(self, item):
         """Remove table items corresponding to given plot item from the table.
@@ -425,16 +432,22 @@ class StatsTable(TableWidget):
                 item = tableItem.data(qt.Qt.UserRole)
                 self._updateStats(item)
 
-    def currentItemChanged(self, current, previous):  # TODO check!
-        # Overrides QTableWidget to handle active item change in the plot
-        plot = self.getPlot()
-        if plot is not None and current.row() >= 0:
-            item = current.data(qt.Qt.UserRole)
-            kind = self._getKind(item)
-            if kind in PlotWidget._ACTIVE_ITEM_KINDS:
-                plot._setActiveItem(kind, item.getLegend())
+    def _currentItemChanged(self, current, previous):
+        """Handle change of selection in table and sync plot selection
 
-        super(StatsTable, self).currentItemChanged(current, previous)
+        :param QTableWidgetItem current:
+        :param QTableWidgetItem previous:
+        """
+        if current and current.row() >= 0:
+            plot = self.getPlot()
+            if isinstance(plot, PlotWidget):
+                item = current.data(qt.Qt.UserRole)
+                kind = self._getKind(item)
+                if kind in PlotWidget._ACTIVE_ITEM_KINDS:
+                    if plot._getActiveItem(kind) != item:
+                        plot._setActiveItem(kind, item.getLegend())
+            elif isinstance(plot, SceneWidget):
+                pass  # TODO
 
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
         """Toggle display off all items or only the active/selected one
@@ -445,9 +458,19 @@ class StatsTable(TableWidget):
         if self._displayOnlyActItem == displayOnlyActItem:
             return
         self._dealWithPlotConnection(create=False)
+        if not self._displayOnlyActItem:
+            self.currentItemChanged.disconnect(self._currentItemChanged)
+
         self._displayOnlyActItem = displayOnlyActItem
+
         self._updateItemObserve()
         self._dealWithPlotConnection(create=True)
+
+        if not self._displayOnlyActItem:
+            self.currentItemChanged.connect(self._currentItemChanged)
+            self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        else:
+            self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
     def setStatsOnVisibleData(self, b):
         """Toggle computation of statistics on whole data or only visible ones.
@@ -491,9 +514,6 @@ class StatsTable(TableWidget):
 
     # PlotWidget specific slots
 
-    # TODO is it a good idea to combine current item and active item?
-    # TODO Not sure...
-
     def _activeItemChanged(self, kind):
         """Generic plot active item management.
 
@@ -501,12 +521,14 @@ class StatsTable(TableWidget):
         """
         plot = self.getPlot()
         if plot is not None:
-            item = plot._getActiveItem(kind='curve')
+            item = plot._getActiveItem(kind=kind)
             if item is not None:
                 row = self._itemToRow(item)
-                self.setCurrentCell(row, 0)
+                if row != self.currentRow():
+                    self.setCurrentCell(row, 0)
             else:
-                self.setCurrentCell(-1, -1)  # TODO Unselect?
+                if self.currentRow() >= 0:
+                    self.setCurrentCell(-1, -1)
 
     def _plotActiveCurveChanged(self, previous, current):
         """Handle update of active curve"""
@@ -519,7 +541,6 @@ class StatsTable(TableWidget):
     def _plotActiveScatterChanged(self, previous, current):
         """Handle update of active scatter"""
         self._activeItemChanged(kind='scatter')
-
 
 
 class _OptionsWidget(qt.QToolBar):
