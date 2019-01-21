@@ -1049,6 +1049,16 @@ class StatsWidget(qt.QWidget):
     setStatsOnVisibleData.__doc__ = StatsTable.setStatsOnVisibleData.__doc__
 
 
+DEFAULT_STATS = StatsHandler((
+    (statsmdl.StatMin(), StatFormatter()),
+    statsmdl.StatCoordMin(),
+    (statsmdl.StatMax(), StatFormatter()),
+    statsmdl.StatCoordMax(),
+    statsmdl.StatCOM(),
+    (('mean', numpy.mean), StatFormatter()),
+    (('std', numpy.std), StatFormatter()),
+))
+
 class BasicStatsWidget(StatsWidget):
     """
     Widget defining a simple set of :class:`Stat` to be displayed on a
@@ -1058,19 +1068,8 @@ class BasicStatsWidget(StatsWidget):
     :param PlotWidget plot:
         The plot containing items on which we want statistics.
     """
-
-    STATS = StatsHandler((
-        (statsmdl.StatMin(), StatFormatter()),
-        statsmdl.StatCoordMin(),
-        (statsmdl.StatMax(), StatFormatter()),
-        statsmdl.StatCoordMax(),
-        (('std', numpy.std), StatFormatter()),
-        (('mean', numpy.mean), StatFormatter()),
-        statsmdl.StatCOM()
-    ))
-
     def __init__(self, parent=None, plot=None):
-        StatsWidget.__init__(self, parent=parent, plot=plot, stats=self.STATS)
+        StatsWidget.__init__(self, parent=parent, plot=plot, stats=DEFAULT_STATS)
 
 
 class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
@@ -1203,18 +1202,9 @@ class BasicLineStatsWidget(LineStatsWidget):
     Widget defining a simple set of :class:`Stat` to be displayed on a
     :class:`LineStatsWidget`.
     """
-    STATS = StatsHandler((
-        (statsmdl.StatMin(), StatFormatter()),
-        statsmdl.StatCoordMin(),
-        (statsmdl.StatMax(), StatFormatter()),
-        statsmdl.StatCoordMax(),
-        (('std', numpy.std), StatFormatter()),
-        (('mean', numpy.mean), StatFormatter()),
-        statsmdl.StatCOM()
-    ))
 
-    def __init__(self, parent=None, plot=None, stats=STATS, kind='curve',
-                 statsOnVisibleData=False):
+    def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
+                 kind='curve', statsOnVisibleData=False):
         LineStatsWidget.__init__(self, parent=parent, plot=plot, kind=kind,
                                  statsOnVisibleData=statsOnVisibleData)
         if stats is not None:
@@ -1225,18 +1215,9 @@ class BasicGridStatsWidget(LineStatsWidget):
     """
     pymca design like widget
     """
-    STATS = StatsHandler((
-        (statsmdl.StatMin(), StatFormatter()),
-        statsmdl.StatCoordMin(),
-        (statsmdl.StatMax(), StatFormatter()),
-        statsmdl.StatCoordMax(),
-        (('std', numpy.std), StatFormatter()),
-        (('mean', numpy.mean), StatFormatter()),
-        statsmdl.StatCOM()
-    ))
 
-    def __init__(self, parent=None, plot=None, stats=STATS, kind='curve',
-                 statsOnVisibleData=False, width=4):
+    def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
+                 kind='curve', statsOnVisibleData=False, width=4):
         LineStatsWidget.__init__(self, parent=parent, plot=plot, kind=kind,
                                  statsOnVisibleData=statsOnVisibleData)
         self._n_statistics_per_line = width
