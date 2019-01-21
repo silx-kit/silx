@@ -32,6 +32,7 @@ __date__ = "07/03/2018"
 from silx.gui import qt
 from silx.gui.plot.stats import stats
 from silx.gui.plot import StatsWidget
+from silx.gui.plot.StatsLineWidget import BasicLineStatsWidget
 from silx.gui.plot.stats import statshandler
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import Plot1D, Plot2D
@@ -541,11 +542,50 @@ class TestEmptyStatsWidget(TestCaseQt):
         widget.show()
 
 
+class TestLineWidget(TestCaseQt):
+    """Some test for the StatsLineWidget."""
+    def setUp(self):
+
+        TestCaseQt.setUp(self)
+        self.plot = Plot1D()
+        self.plot.show()
+        x = range(20)
+        y = range(20)
+        self.plot.addCurve(x, y, legend='curve0')
+        y = range(12, 32)
+        self.plot.addCurve(x, y, legend='curve1')
+        y = range(-2, 18)
+        self.plot.addCurve(x, y, legend='curve2')
+        self.widget = BasicLineStatsWidget(plot=self.plot, kind='curve',
+                                           statsOnVisibleData=False)
+
+    def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        self.widget = None
+        self.plot = None
+        TestCaseQt.tearDown(self)
+
+    def test(self):
+        self.widget.setStatsOnVisibleData(False)
+        self.qapp.processEvents()
+        self.plot.setActiveCurve(legend='curve0')
+        self.assertTrue(self.widget._statQlineEdit['min'].text() == '0.000')
+        self.plot.setActiveCurve(legend='curve1')
+        self.assertTrue(self.widget._statQlineEdit['min'].text() == '12.000')
+        self.plot.getXAxis().setLimitsConstraints(minPos=2, maxPos=5)
+        self.widget.setStatsOnVisibleData(True)
+        self.qapp.processEvents()
+        self.assertTrue(self.widget._statQlineEdit['min'].text() == '14.000')
+
+
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestStats, TestStatsHandler, TestStatsWidgetWithScatters,
                       TestStatsWidgetWithImages, TestStatsWidgetWithCurves,
-                      TestStatsFormatter, TestEmptyStatsWidget):
+                      TestStatsFormatter, TestEmptyStatsWidget, TestLineWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
