@@ -32,7 +32,6 @@ __date__ = "07/03/2018"
 from silx.gui import qt
 from silx.gui.plot.stats import stats
 from silx.gui.plot import StatsWidget
-from silx.gui.plot.StatsLineWidget import BasicLineStatsWidget
 from silx.gui.plot.stats import statshandler
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import Plot1D, Plot2D
@@ -556,8 +555,8 @@ class TestLineWidget(TestCaseQt):
         self.plot.addCurve(x, y, legend='curve1')
         y = range(-2, 18)
         self.plot.addCurve(x, y, legend='curve2')
-        self.widget = BasicLineStatsWidget(plot=self.plot, kind='curve',
-                                           statsOnVisibleData=False)
+        self.widget = StatsWidget.BasicLineStatsWidget(plot=self.plot,
+                                                       kind='curve')
 
     def tearDown(self):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
