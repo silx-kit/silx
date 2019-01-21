@@ -116,11 +116,8 @@ def main():
     plot.getStatsWidget().setStats(stats)
     plot.getStatsWidget().parent().setVisible(True)
 
-    # lineStats1 = BasicLineStatsWidget(plot=plot)
-    # lineStats1.setStats(stats)
-    # lineStats1.show()
-
-    lineStats2 = BasicGridStatsWidget(plot=plot)
+    lineStats2 = BasicGridStatsWidget(plot=plot, statsOnVisibleData=False,
+                                      kind='curve')
     lineStats2.show()
 
     plot.show()
