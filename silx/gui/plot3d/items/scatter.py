@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ import logging
 import sys
 import numpy
 
+from ....utils.deprecation import deprecated
 from ..scene import function, primitives, utils
 
 from .core import DataItem3D, Item3DChangedType, ItemChangedType
@@ -94,7 +95,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         self._scatter.setAttribute('z', z, copy=copy)
         self._scatter.setAttribute('value', value, copy=copy)
 
-        ColormapMixIn._setRangeFromData(self, self.getValues(copy=False))
+        ColormapMixIn._setRangeFromData(self, self.getValueData(copy=False))
         self._updated(ItemChangedType.DATA)
 
     def getData(self, copy=True):
@@ -107,7 +108,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         return (self.getXData(copy),
                 self.getYData(copy),
                 self.getZData(copy),
-                self.getValues(copy))
+                self.getValueData(copy))
 
     def getXData(self, copy=True):
         """Returns X data coordinates.
@@ -139,7 +140,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         return self._scatter.getAttribute('z', copy=copy).reshape(-1)
 
-    def getValues(self, copy=True):
+    def getValueData(self, copy=True):
         """Returns data values.
 
         :param bool copy: True to get a copy,
@@ -148,6 +149,11 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :rtype: numpy.ndarray
         """
         return self._scatter.getAttribute('value', copy=copy).reshape(-1)
+
+    @deprecated(reason="Consistency with PlotWidget items",
+                replacement="getValueData", since_version="0.10.0")
+    def getValues(self, copy=True):
+        return self.getValueData(copy)
 
     def _pickFull(self, context, threshold=0., sort='depth'):
         """Perform picking in this item at given widget position.
@@ -202,7 +208,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             return PickingResult(self,
                                  positions=dataPoints[picked, :3],
                                  indices=picked,
-                                 fetchdata=self.getValues)
+                                 fetchdata=self.getValueData)
         else:
             return None
 
@@ -384,7 +390,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         self._cachedTrianglesIndices = None
 
         # Store data range info
-        ColormapMixIn._setRangeFromData(self, self.getValues(copy=False))
+        ColormapMixIn._setRangeFromData(self, self.getValueData(copy=False))
 
         self._updateScene()
 
@@ -399,7 +405,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         return (self.getXData(copy=copy),
                 self.getYData(copy=copy),
-                self.getValues(copy=copy))
+                self.getValueData(copy=copy))
 
     def getXData(self, copy=True):
         """Returns X data coordinates.
@@ -421,7 +427,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         return numpy.array(self._y, copy=copy)
 
-    def getValues(self, copy=True):
+    def getValueData(self, copy=True):
         """Returns data values.
 
         :param bool copy: True to get a copy,
@@ -430,6 +436,11 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :rtype: numpy.ndarray
         """
         return numpy.array(self._value, copy=copy)
+
+    @deprecated(reason="Consistency with PlotWidget items",
+                replacement="getValueData", since_version="0.10.0")
+    def getValues(self, copy=True):
+        return self.getValueData(copy)
 
     def _pickPoints(self, context, points, threshold=1., sort='depth'):
         """Perform picking while in 'points' visualization mode
@@ -472,7 +483,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             return PickingResult(self,
                                  positions=points[picked, :3],
                                  indices=picked,
-                                 fetchdata=self.getValues)
+                                 fetchdata=self.getValueData)
         else:
             return None
 
@@ -507,7 +518,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         return PickingResult(self,
                              positions=positions,
                              indices=indices,
-                             fetchdata=self.getValues)
+                             fetchdata=self.getValueData)
 
     def _pickFull(self, context):
         """Perform picking in this item at given widget position.
@@ -521,7 +532,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             return None
 
         if self.isHeightMap():
-            zData = self.getValues(copy=False)
+            zData = self.getValueData(copy=False)
         else:
             zData = numpy.zeros_like(xData)
 

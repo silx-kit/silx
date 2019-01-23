@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -122,7 +122,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 self.assertEqual(nbPos, len(data))
                 self.assertTrue(numpy.array_equal(
                     data,
-                    item.getValues()[picking[0].getIndices()]))
+                    item.getValueData()[picking[0].getIndices()]))
 
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
