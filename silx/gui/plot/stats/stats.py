@@ -37,8 +37,6 @@ import numpy
 
 from .. import PlotWidget
 from .. import items
-from ...plot3d.SceneWidget import SceneWidget
-from ...plot3d import items as items3d
 from ....math.combo import min_max
 
 
@@ -75,11 +73,13 @@ class Stats(OrderedDict):
         :return dict: dictionary with :class:`Stat` name as ket and result
                       of the calculation as value
         """
+        from ...plot3d import items as items3d  # Lazy import
+
         res = {}
         if isinstance(item, items.Curve):
             context = _CurveContext(item, plot, onlimits)
         elif isinstance(item,
-                (items.ImageBase, items3d.ImageRgba, items3d.ImageData)):
+                (items.ImageData, items3d.ImageData)):
             context = _ImageContext(item, plot, onlimits)
         elif isinstance(item, (items.Scatter, items3d.Scatter2D)):
             context = _ScatterContext(item, plot, onlimits)
@@ -217,6 +217,8 @@ class _ScatterContext(_StatsContext):
                                onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
+        from ...plot3d import items as items3d  # Lazy import
+
         if isinstance(item, items.Scatter):
             valueData = item.getValueData()
         elif isinstance(item, items3d.Scatter2D):
@@ -238,9 +240,6 @@ class _ScatterContext(_StatsContext):
                 valueData = valueData[(minY <= yData) & (yData <= maxY)]
                 xData = xData[(minY <= yData) & (yData <= maxY)]
                 yData = yData[(minY <= yData) & (yData <= maxY)]
-            elif isinstance(plot, SceneWidget):
-                logger.error(
-                    "Statistics on visible data is not implemented for 3D")
             else:
                 raise RuntimeError("Unsupported plot %s" % str(plot))
 
@@ -272,12 +271,10 @@ class _ImageContext(_StatsContext):
         if isinstance(item, items.ImageBase):
             self.origin = item.getOrigin()
             self.scale = item.getScale()
-        elif isinstance(item, (items3d.ImageData, items3d.ImageRgba)):
-            # TODO handle transformations
+        else:
+            # TODO handle transformations for plot3d image
             self.origin = 0., 0.
             self.scale = 1., 1.
-        else:
-            raise RuntimeError("Unhandled item: %s" % str(item))
 
         self.data = item.getData()
 
@@ -299,9 +296,6 @@ class _ImageContext(_StatsContext):
                 else:
                     self.data = self.data[YMinBound:YMaxBound + 1,
                                           XMinBound:XMaxBound + 1]
-            elif isinstance(plot, SceneWidget):
-                logger.error(
-                    "Statistics on visible data is not implemented for 3D")
             else:
                 raise RuntimeError("Unsupported plot %s" % str(plot))
 
@@ -312,12 +306,7 @@ class _ImageContext(_StatsContext):
         self.values = self.data
 
 
-BASIC_COMPATIBLE_KINDS = {
-    'curve': (items.Curve,),
-    'image': (items.ImageBase, items3d.ImageData, items3d.ImageData),
-    'scatter': (items.Scatter, items3d.Scatter2D),
-    'histogram': (items.Histogram,),
-}
+BASIC_COMPATIBLE_KINDS = 'curve', 'image', 'scatter', 'histogram'
 
 
 class StatBase(object):
@@ -325,9 +314,8 @@ class StatBase(object):
     Base class for defining a statistic.
 
     :param str name: the name of the statistic. Must be unique.
-    :param compatibleKinds: the kind of items (curve, scatter...) for which
-                            the statistic apply.
-    :rtype: List or tuple
+    :param List[str] compatibleKinds:
+        The kind of items (curve, scatter...) for which the statistic apply.
     """
     def __init__(self, name, compatibleKinds=BASIC_COMPATIBLE_KINDS, description=None):
         self.name = name
