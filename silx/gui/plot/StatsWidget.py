@@ -127,14 +127,6 @@ class _Wrapper(qt.QObject):
         """
         return None
 
-    def _itemAdded(self, item):
-        if self.getKind(item) is not None:
-            self.sigItemAdded.emit(item)
-
-    def _itemRemoved(self, item):
-        if self.getKind(item) is not None:
-            self.sigItemRemoved.emit(item)
-
 
 class _PlotWidgetWrapper(_Wrapper):
     """Class handling PlotWidget specific calls and signal connections
@@ -147,8 +139,8 @@ class _PlotWidgetWrapper(_Wrapper):
     def __init__(self, plot):
         assert isinstance(plot, PlotWidget)
         super(_PlotWidgetWrapper, self).__init__(plot)
-        plot.sigItemAdded.connect(self._itemAdded)
-        plot.sigItemAboutToBeRemoved.connect(self._itemRemoved)
+        plot.sigItemAdded.connect(self.sigItemAdded.emit)
+        plot.sigItemAboutToBeRemoved.connect(self.sigItemRemoved.emit)
         plot.sigActiveCurveChanged.connect(self._activeCurveChanged)
         plot.sigActiveImageChanged.connect(self._activeImageChanged)
         plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
@@ -227,8 +219,8 @@ class _SceneWidgetWrapper(_Wrapper):
 
         assert isinstance(plot, SceneWidget)
         super(_SceneWidgetWrapper, self).__init__(plot)
-        plot.getSceneGroup().sigItemAdded.connect(self._itemAdded)
-        plot.getSceneGroup().sigItemRemoved.connect(self._itemRemoved)
+        plot.getSceneGroup().sigItemAdded.connect(self.sigItemAdded)
+        plot.getSceneGroup().sigItemRemoved.connect(self.sigItemRemoved)
         plot.selection().sigCurrentChanged.connect(self._currentChanged)
         # sigVisibleDataChanged is never emitted
 
@@ -484,17 +476,21 @@ class StatsTable(TableWidget):
     def _addItem(self, item):
         """Add a plot item to the table
 
+        If item is not supported, it is ignored.
+
         :param item: The plot item
+        :returns: True if the item is added to the widget.
+        :rtype: bool
         """
         if self._itemToRow(item) is not None:
-            _logger.error("Item already present in the table")
+            _logger.info("Item already present in the table")
             self._updateStats(item)
-            return
+            return True
 
         kind = self._plotWrapper.getKind(item)
-        if kind is None:
-            _logger.error("Item has not a supported type: %s", item)
-            return
+        if kind not in statsmdl.BASIC_COMPATIBLE_KINDS:
+            _logger.info("Item has not a supported type: %s", item)
+            return False
 
         # Prepare table items
         tableItems = [
@@ -538,6 +534,8 @@ class StatsTable(TableWidget):
         # being that of the signal calling the signal
         item.sigItemChanged.connect(self._plotItemChanged,
                                     qt.Qt.QueuedConnection)
+
+        return True
 
     def _removeItem(self, item):
         """Remove table items corresponding to given plot item from the table.
