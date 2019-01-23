@@ -217,14 +217,7 @@ class _ScatterContext(_StatsContext):
                                onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        from ...plot3d import items as items3d  # Lazy import
-
-        if isinstance(item, items.Scatter):
-            valueData = item.getValueData()
-        elif isinstance(item, items3d.Scatter2D):
-            valueData = item.getValues()  # TODO make APIs consistent
-        else:
-            raise RuntimeError("Unhandled item %s" % str(item))
+        valueData = item.getValueData()
         xData = item.getXData()
         yData = item.getYData()
 
