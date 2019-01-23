@@ -28,7 +28,7 @@ This module contains utilitaries used by other dialog modules.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/02/2018"
+__date__ = "17/01/2019"
 
 try:
     import fabio
@@ -138,8 +138,22 @@ class FileTypeComboBox(qt.QComboBox):
     def __insertFabioFormats(self):
         formats = fabio.fabioformats.get_classes(reader=True)
 
+        from fabio import fabioutils
+        if hasattr(fabioutils, "COMPRESSED_EXTENSIONS"):
+            compressedExtensions = fabioutils.COMPRESSED_EXTENSIONS
+        else:
+            # Support for fabio < 0.9
+            compressedExtensions = set(["gz", "bz2"])
+
         extensions = []
         allExtensions = set([])
+
+        def extensionsIterator(reader):
+            for extension in reader.DEFAULT_EXTENSIONS:
+                yield "*.%s" % extension
+            for compressedExtension in compressedExtensions:
+                for extension in reader.DEFAULT_EXTENSIONS:
+                    yield "*.%s.%s" % (extension, compressedExtension)
 
         for reader in formats:
             if not hasattr(reader, "DESCRIPTION"):
@@ -147,12 +161,13 @@ class FileTypeComboBox(qt.QComboBox):
             if not hasattr(reader, "DEFAULT_EXTENSIONS"):
                 continue
 
-            ext = reader.DEFAULT_EXTENSIONS
-            ext = ["*.%s" % e for e in ext]
+            displayext = reader.DEFAULT_EXTENSIONS
+            displayext = ["*.%s" % e for e in displayext]
+            ext = list(extensionsIterator(reader))
             allExtensions.update(ext)
             if ext == []:
                 ext = ["*"]
-            extensions.append((reader.DESCRIPTION, ext, reader.codec_name()))
+            extensions.append((reader.DESCRIPTION, displayext, ext, reader.codec_name()))
         extensions = list(sorted(extensions))
 
         allExtensions = list(sorted(list(allExtensions)))
@@ -162,13 +177,14 @@ class FileTypeComboBox(qt.QComboBox):
         self.setItemData(index, Codec(any_fabio=True), role=self.CODEC_ROLE)
 
         for e in extensions:
+            description, displayExt, allExt, _codecName = e
             index = self.count()
             if len(e[1]) < 10:
-                self.addItem("%s%s (%s)" % (self.INDENTATION, e[0], " ".join(e[1])))
+                self.addItem("%s%s (%s)" % (self.INDENTATION, description, " ".join(displayExt)))
             else:
-                self.addItem(e[0])
-            codec = Codec(fabio_codec=e[2])
-            self.setItemData(index, e[1], role=self.EXTENSIONS_ROLE)
+                self.addItem("%s%s" % (self.INDENTATION, description))
+            codec = Codec(fabio_codec=_codecName)
+            self.setItemData(index, allExt, role=self.EXTENSIONS_ROLE)
             self.setItemData(index, codec, role=self.CODEC_ROLE)
 
     def itemExtensions(self, index):
