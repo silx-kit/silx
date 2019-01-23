@@ -205,6 +205,7 @@ class _PlotWidgetWrapper(_Wrapper):
         else:
             return None
 
+
 class _SceneWidgetWrapper(_Wrapper):
     """Class handling PlotWidget specific calls and signal connections
 

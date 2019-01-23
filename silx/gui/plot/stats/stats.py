@@ -78,8 +78,7 @@ class Stats(OrderedDict):
         res = {}
         if isinstance(item, items.Curve):
             context = _CurveContext(item, plot, onlimits)
-        elif isinstance(item,
-                (items.ImageData, items3d.ImageData)):
+        elif isinstance(item, (items.ImageData, items3d.ImageData)):
             context = _ImageContext(item, plot, onlimits)
         elif isinstance(item, (items.Scatter, items3d.Scatter2D)):
             context = _ScatterContext(item, plot, onlimits)
@@ -328,7 +327,7 @@ class StatBase(object):
         """
         If necessary add a tooltip for a stat kind
 
-        :param str kinf: the kind of item the statistic is compute for.
+        :param str kind: the kind of item the statistic is compute for.
         :return: tooltip or None if no tooltip
         """
         return None
@@ -413,7 +412,7 @@ class StatCoordMin(StatBase):
             y = (index1D - x) / ySize
             x = x * scaleX + originX
             y = y * scaleY + originY
-            return (x, y)
+            return x, y
         else:
             raise ValueError('kind not managed')
 
@@ -422,6 +421,7 @@ class StatCoordMin(StatBase):
             return '(x, y)'
         else:
             return None
+
 
 class StatCoordMax(StatBase):
     """
@@ -446,7 +446,7 @@ class StatCoordMax(StatBase):
             y = (index1D - x) / ySize
             x = x * scaleX + originX
             y = y * scaleY + originY
-            return (x, y)
+            return x, y
         else:
             raise ValueError('kind not managed')
 
@@ -455,6 +455,7 @@ class StatCoordMax(StatBase):
             return '(x, y)'
         else:
             return None
+
 
 class StatCOM(StatBase):
     """
@@ -479,7 +480,7 @@ class StatCOM(StatBase):
             else:
                 xcom = numpy.sum(xData * values).astype(numpy.float32) / deno
                 ycom = numpy.sum(yData * values).astype(numpy.float32) / deno
-                return (xcom, ycom)
+                return xcom, ycom
         elif context.kind == 'image':
             yData = numpy.sum(context.data, axis=1)
             xData = numpy.sum(context.data, axis=0)
@@ -501,7 +502,7 @@ class StatCOM(StatBase):
             else:
                 xcom = numpy.sum(xData * dataXRange) / denoX
                 xcom = xcom * xScale + xOrigin
-            return (xcom, ycom)
+            return xcom, ycom
         else:
             raise ValueError('kind not managed')
 
