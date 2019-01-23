@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -89,10 +89,60 @@ class StatsHandler(object):
         self.stats = statsmdl.Stats()
         self.formatters = {}
         for elmt in statFormatters:
-            helper = _StatHelper(elmt)
-            self.add(stat=helper.stat, formatter=helper.statFormatter)
+            stat, formatter = self._processStatArgument(elmt)
+            self.add(stat=stat, formatter=formatter)
+
+    @staticmethod
+    def _processStatArgument(arg):
+        """Process an element of the init arguments
+
+        :param arg: The argument to process
+        :return: Corresponding (StatBase, StatFormatter)
+        """
+        stat, formatter = None, None
+
+        if isinstance(arg, statsmdl.StatBase):
+            stat = arg
+        else:
+            assert len(arg) > 0
+            if isinstance(arg[0], statsmdl.StatBase):
+                stat = arg[0]
+                if len(arg) > 2:
+                    raise ValueError('To many argument with %s. At most one '
+                                     'argument can be associated with the '
+                                     'BaseStat (the `StatFormatter`')
+                if len(arg) == 2:
+                    assert arg[1] is None or isinstance(arg[1], (StatFormatter, str))
+                    formatter = arg[1]
+            else:
+                if isinstance(arg[0], tuple):
+                    if len(arg) > 1:
+                        formatter = arg[1]
+                    arg = arg[0]
+
+                if type(arg[0]) is not str:
+                    raise ValueError('first element of the tuple should be a string'
+                                     ' or a StatBase instance')
+                if len(arg) == 1:
+                    raise ValueError('A function should be associated with the'
+                                     'stat name')
+                if len(arg) > 3:
+                    raise ValueError('Two much argument given for defining statistic.'
+                                     'Take at most three arguments (name, function, '
+                                     'kinds)')
+                if len(arg) == 2:
+                    stat = statsmdl.Stat(name=arg[0], fct=arg[1])
+                else:
+                    stat = statsmdl.Stat(name=arg[0], fct=arg[1], kinds=arg[2])
+
+        return stat, formatter
 
     def add(self, stat, formatter=None):
+        """Add a stat to the list.
+
+        :param StatBase stat:
+        :param Union[None,StatFormatter] formatter:
+        """
         assert isinstance(stat, statsmdl.StatBase)
         self.stats.add(stat)
         _formatter = formatter
@@ -101,9 +151,9 @@ class StatsHandler(object):
         self.formatters[stat.name] = _formatter
 
     def format(self, name, val):
-        """
-        Apply the format for the `name` statistic and the given value
-        :param name: the name of the associated statistic
+        """Apply the format for the `name` statistic and the given value
+
+        :param str name: the name of the associated statistic
         :param val: value before formatting
         :return: formatted value
         """
@@ -123,7 +173,7 @@ class StatsHandler(object):
 
     def calculate(self, item, plot, onlimits):
         """
-        compute all statistic registred and return the list of formatted
+        compute all statistic registered and return the list of formatted
         statistics result.
 
         :param item: item for which we want to compute statistics
@@ -137,54 +187,3 @@ class StatsHandler(object):
         for resName, resValue in list(res.items()):
             res[resName] = self.format(resName, res[resName])
         return res
-
-
-class _StatHelper(object):
-    """
-    Helper class to generated the requested StatBase instance and the
-    associated StatFormatter
-    """
-    def __init__(self, arg):
-        self.statFormatter = None
-        self.stat = None
-
-        if isinstance(arg, statsmdl.StatBase):
-            self.stat = arg
-        else:
-            assert len(arg) > 0
-            if isinstance(arg[0], statsmdl.StatBase):
-                self.dealWithStatAndFormatter(arg)
-            else:
-                _arg = arg
-                if isinstance(arg[0], tuple):
-                    _arg = arg[0]
-                    if len(arg) > 1:
-                        self.statFormatter = arg[1]
-                self.createStatInstanceAndFormatter(_arg)
-
-    def dealWithStatAndFormatter(self, arg):
-        assert isinstance(arg[0], statsmdl.StatBase)
-        self.stat = arg[0]
-        if len(arg) > 2:
-            raise ValueError('To many argument with %s. At most one '
-                             'argument can be associated with the '
-                             'BaseStat (the `StatFormatter`')
-        if len(arg) is 2:
-            assert isinstance(arg[1], (StatFormatter, type(None), str))
-            self.statFormatter = arg[1]
-
-    def createStatInstanceAndFormatter(self, arg):
-        if type(arg[0]) is not str:
-            raise ValueError('first element of the tuple should be a string'
-                             ' or a StatBase instance')
-        if len(arg) is 1:
-            raise ValueError('A function should be associated with the'
-                             'stat name')
-        if len(arg) > 3:
-            raise ValueError('Two much argument given for defining statistic.'
-                             'Take at most three arguments (name, function, '
-                             'kinds)')
-        if len(arg) is 2:
-            self.stat = statsmdl.Stat(name=arg[0], fct=arg[1])
-        else:
-            self.stat = statsmdl.Stat(name=arg[0], fct=arg[1], kinds=arg[2])
