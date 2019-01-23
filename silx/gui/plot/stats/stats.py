@@ -155,9 +155,13 @@ class _CurveContext(_StatsContext):
         xData, yData = item.getData(copy=True)[0:2]
 
         if onlimits:
-            minX, maxX = plot.getXAxis().getLimits()
-            yData = yData[(minX <= xData) & (xData <= maxX)]
-            xData = xData[(minX <= xData) & (xData <= maxX)]
+            if isinstance(plot, PlotWidget):
+                minX, maxX = plot.getXAxis().getLimits()
+            else:
+                raise RuntimeError("Unsupported plot %s" % str(plot))
+            mask = (minX <= xData) & (xData <= maxX)
+            yData = yData[mask]
+            xData = xData[mask]
 
         self.xData = xData
         self.yData = yData
@@ -186,9 +190,13 @@ class _HistogramContext(_StatsContext):
         xData, edges = item.getData(copy=True)[0:2]
         yData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
         if onlimits:
-            minX, maxX = plot.getXAxis().getLimits()
-            yData = yData[(minX <= xData) & (xData <= maxX)]
-            xData = xData[(minX <= xData) & (xData <= maxX)]
+            if isinstance(plot, PlotWidget):
+                minX, maxX = plot.getXAxis().getLimits()
+            else:
+                raise RuntimeError("Unsupported plot %s" % str(plot))
+            mask = (minX <= xData) & (xData <= maxX)
+            yData = yData[mask]
+            xData = xData[mask]
 
         self.xData = xData
         self.yData = yData
@@ -224,16 +232,17 @@ class _ScatterContext(_StatsContext):
             if isinstance(plot, PlotWidget):
                 minX, maxX = plot.getXAxis().getLimits()
                 minY, maxY = plot.getYAxis().getLimits()
-                # filter on X axis
-                valueData = valueData[(minX <= xData) & (xData <= maxX)]
-                yData = yData[(minX <= xData) & (xData <= maxX)]
-                xData = xData[(minX <= xData) & (xData <= maxX)]
-                # filter on Y axis
-                valueData = valueData[(minY <= yData) & (yData <= maxY)]
-                xData = xData[(minY <= yData) & (yData <= maxY)]
-                yData = yData[(minY <= yData) & (yData <= maxY)]
             else:
                 raise RuntimeError("Unsupported plot %s" % str(plot))
+
+            # filter on X axis
+            valueData = valueData[(minX <= xData) & (xData <= maxX)]
+            yData = yData[(minX <= xData) & (xData <= maxX)]
+            xData = xData[(minX <= xData) & (xData <= maxX)]
+            # filter on Y axis
+            valueData = valueData[(minY <= yData) & (yData <= maxY)]
+            xData = xData[(minY <= yData) & (yData <= maxY)]
+            yData = yData[(minY <= yData) & (yData <= maxY)]
 
         if len(valueData) > 0:
             self.min, self.max = min_max(valueData)
@@ -274,23 +283,22 @@ class _ImageContext(_StatsContext):
             if isinstance(plot, PlotWidget):
                 minX, maxX = plot.getXAxis().getLimits()
                 minY, maxY = plot.getYAxis().getLimits()
-
-                XMinBound = int((minX - self.origin[0]) / self.scale[0])
-                YMinBound = int((minY - self.origin[1]) / self.scale[1])
-                XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
-                YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
-
-                XMinBound = max(XMinBound, 0)
-                YMinBound = max(YMinBound, 0)
-
-                if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
-                    self.data = None
-                else:
-                    self.data = self.data[YMinBound:YMaxBound + 1,
-                                          XMinBound:XMaxBound + 1]
             else:
                 raise RuntimeError("Unsupported plot %s" % str(plot))
 
+            XMinBound = int((minX - self.origin[0]) / self.scale[0])
+            YMinBound = int((minY - self.origin[1]) / self.scale[1])
+            XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
+            YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
+
+            XMinBound = max(XMinBound, 0)
+            YMinBound = max(YMinBound, 0)
+
+            if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
+                self.data = None
+            else:
+                self.data = self.data[YMinBound:YMaxBound + 1,
+                                      XMinBound:XMaxBound + 1]
         if self.data.size > 0:
             self.min, self.max = min_max(self.data)
         else:
@@ -401,14 +409,15 @@ class StatCoordMin(StatBase):
             return context.xData[numpy.argmin(context.yData)]
         elif context.kind == 'scatter':
             xData, yData, valueData = context.data
-            return (xData[numpy.argmin(valueData)],
-                    yData[numpy.argmin(valueData)])
+            position = numpy.argmin(valueData)
+            return xData[position], yData[position]
+
         elif context.kind == 'image':
             scaleX, scaleY = context.scale
             originX, originY = context.origin
             index1D = numpy.argmin(context.data)
-            ySize = (context.data.shape[1])
-            x = index1D % context.data.shape[1]
+            ySize = context.data.shape[1]
+            x = index1D % ySize
             y = (index1D - x) / ySize
             x = x * scaleX + originX
             y = y * scaleY + originY
@@ -435,14 +444,15 @@ class StatCoordMax(StatBase):
             return context.xData[numpy.argmax(context.yData)]
         elif context.kind == 'scatter':
             xData, yData, valueData = context.data
-            return (xData[numpy.argmax(valueData)],
-                    yData[numpy.argmax(valueData)])
+            position = numpy.argmax(valueData)
+            return xData[position], yData[position]
+
         elif context.kind == 'image':
             scaleX, scaleY = context.scale
             originX, originY = context.origin
             index1D = numpy.argmax(context.data)
-            ySize = (context.data.shape[1])
-            x = index1D % context.data.shape[1]
+            ySize = context.data.shape[1]
+            x = index1D % ySize
             y = (index1D - x) / ySize
             x = x * scaleX + originX
             y = y * scaleY + originY
