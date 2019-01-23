@@ -82,7 +82,7 @@ class _Wrapper(qt.QObject):
     sigVisibleDataChanged = qt.Signal()
     """Signal emitted when the visible data area has changed"""
 
-    def __int__(self, plot=None):
+    def __init__(self, plot=None):
         super(_Wrapper, self).__init__(parent=None)
         self._plotRef = None if plot is None else weakref.ref(plot)
 
@@ -144,7 +144,7 @@ class _PlotWidgetWrapper(_Wrapper):
     :param PlotWidget plot:
     """
 
-    def __int__(self, plot):
+    def __init__(self, plot):
         assert isinstance(plot, PlotWidget)
         super(_PlotWidgetWrapper, self).__init__(plot)
         plot.sigItemAdded.connect(self._itemAdded)
@@ -221,14 +221,14 @@ class _SceneWidgetWrapper(_Wrapper):
     :param SceneWidget plot:
     """
 
-    def __int__(self, plot):
+    def __init__(self, plot):
         # Lazy-import to avoid circular imports
         from ..plot3d.SceneWidget import SceneWidget
 
         assert isinstance(plot, SceneWidget)
         super(_SceneWidgetWrapper, self).__init__(plot)
-        plot.sigItemAdded.connect(self._itemAdded)
-        plot.sigItemRemoved.connect(self._itemRemoved)
+        plot.getSceneGroup().sigItemAdded.connect(self._itemAdded)
+        plot.getSceneGroup().sigItemRemoved.connect(self._itemRemoved)
         plot.selection().sigCurrentChanged.connect(self._currentChanged)
         # sigVisibleDataChanged is never emitted
 
@@ -282,11 +282,12 @@ class StatsTable(TableWidget):
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
-        self._plotWrapper = _Wrapper()
-
         self._displayOnlyActItem = False
         self._statsOnVisibleData = False
         self._statsHandler = None
+
+        self._plotWrapper = _Wrapper()
+        self._dealWithPlotConnection(create=True)
 
         # Init for _displayOnlyActItem == False
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
