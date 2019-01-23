@@ -46,11 +46,220 @@ from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
 
 from . import PlotWidget
 from . import items as plotitems
-from ..plot3d.SceneWidget import SceneWidget
-from ..plot3d import items as plot3ditems
 
 
 _logger = logging.getLogger(__name__)
+
+
+# Helper class to handle specific calls to PlotWidget and SceneWidget
+
+class _Wrapper(qt.QObject):
+    """Base class for connection with PlotWidget and SceneWidget.
+
+    This class is used when no PlotWidget or SceneWidget is connected.
+
+    :param plot: The plot to be used
+    """
+
+    sigItemAdded = qt.Signal(object)
+    """Signal emitted when a new item is added.
+
+    It provides the added item.
+    """
+
+    sigItemRemoved = qt.Signal(object)
+    """Signal emitted when an item is (about to be) removed.
+
+    It provides the removed item.
+    """
+
+    sigCurrentChanged = qt.Signal(object)
+    """Signal emitted when the current item has changed.
+
+    It provides the current item.
+    """
+
+    sigVisibleDataChanged = qt.Signal()
+    """Signal emitted when the visible data area has changed"""
+
+    def __int__(self, plot=None):
+        super(_Wrapper, self).__init__(parent=None)
+        self._plotRef = None if plot is None else weakref.ref(plot)
+
+    def getPlot(self):
+        """Returns the plot attached to this widget"""
+        return None if self._plotRef is None else self._plotRef()
+
+    def getItems(self):
+        """Returns the list of items in the plot
+
+        :rtype: List[object]
+        """
+        return ()
+
+    def getSelectedItems(self):
+        """Returns the list of selected items in the plot
+
+        :rtype: List[object]
+        """
+        return ()
+
+    def setCurrentItem(self, item):
+        """Set the current/active item in the plot
+
+        :param item: The plot item to set as active/current
+        """
+        pass
+
+    def getLabel(self, item):
+        """Returns the label of the given item.
+
+        :param item:
+        :rtype: str
+        """
+        return ''
+
+    def getKind(self, item):
+        """Returns the kind of an item or None if not supported
+
+        :param item:
+        :rtype: Union[str,None]
+        """
+        return None
+
+    def _itemAdded(self, item):
+        if self.getKind(item) is not None:
+            self.sigItemAdded.emit(item)
+
+    def _itemRemoved(self, item):
+        if self.getKind(item) is not None:
+            self.sigItemRemoved.emit(item)
+
+
+class _PlotWidgetWrapper(_Wrapper):
+    """Class handling PlotWidget specific calls and signal connections
+
+    See :class:`._Wrapper` for documentation
+
+    :param PlotWidget plot:
+    """
+
+    def __int__(self, plot):
+        assert isinstance(plot, PlotWidget)
+        super(_PlotWidgetWrapper, self).__init__(plot)
+        plot.sigItemAdded.connect(self._itemAdded)
+        plot.sigItemAboutToBeRemoved.connect(self._itemRemoved)
+        plot.sigActiveCurveChanged.connect(self._activeCurveChanged)
+        plot.sigActiveImageChanged.connect(self._activeImageChanged)
+        plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
+        plot.sigPlotSignal.connect(self._limitsChanged)
+
+    def _activeChanged(self, kind):
+        """Handle change of active curve/image/scatter"""
+        plot = self.getPlot()
+        if plot is not None:
+            item = plot._getActiveItem(kind=kind)
+            if item is None or self.getKind(item) is not None:
+                self.sigCurrentChanged.emit(item)
+
+    def _activeCurveChanged(self, previous, current):
+        self._activeChanged(kind='curve')
+
+    def _activeImageChanged(self, previous, current):
+        self._activeChanged(kind='image')
+
+    def _activeScatterChanged(self, previous, current):
+        self._activeChanged(kind='scatter')
+
+    def _limitsChanged(self, event):
+        """Handle change of plot area limits."""
+        if event['event'] == 'limitsChanged':
+                self.sigVisibleDataChanged.emit()
+
+    def getItems(self):
+        plot = self.getPlot()
+        return () if plot is None else plot._getItems()
+
+    def getSelectedItems(self):
+        plot = self.getPlot()
+        items = []
+        if plot is not None:
+            for kind in plot._ACTIVE_ITEM_KINDS:
+                item = plot._getActiveItem(kind=kind)
+                if item is not None:
+                    items.append(item)
+        return tuple(items)
+
+    def setCurrentItem(self, item):
+        plot = self.getPlot()
+        if plot is not None:
+            kind = self.getKind(item)
+            if kind in plot._ACTIVE_ITEM_KINDS:
+                if plot._getActiveItem(kind) != item:
+                    plot._setActiveItem(kind, item.getLegend())
+
+    def getLabel(self, item):
+        return item.getLegend()
+
+    def getKind(self, item):
+        if isinstance(item, plotitems.Curve):
+            return 'curve'
+        elif isinstance(item, plotitems.ImageData):
+            return 'image'
+        elif isinstance(item, plotitems.Scatter):
+            return 'scatter'
+        elif isinstance(item, plotitems.Histogram):
+            return 'histogram'
+        else:
+            return None
+
+class _SceneWidgetWrapper(_Wrapper):
+    """Class handling PlotWidget specific calls and signal connections
+
+    See :class:`._Wrapper` for documentation
+
+    :param SceneWidget plot:
+    """
+
+    def __int__(self, plot):
+        # Lazy-import to avoid circular imports
+        from ..plot3d.SceneWidget import SceneWidget
+
+        assert isinstance(plot, SceneWidget)
+        super(_SceneWidgetWrapper, self).__init__(plot)
+        plot.sigItemAdded.connect(self._itemAdded)
+        plot.sigItemRemoved.connect(self._itemRemoved)
+        plot.selection().sigCurrentChanged.connect(self._currentChanged)
+        # sigVisibleDataChanged is never emitted
+
+    def _currentChanged(self, current, previous):
+        self.sigCurrentChanged.emit(current)
+
+    def getItems(self):
+        plot = self.getPlot()
+        return () if plot is None else plot.getItems()
+
+    def getSelectedItems(self):
+        plot = self.getPlot()
+        return () if plot is None else (plot.selection().getCurrentItem(),)
+
+    def setCurrentItem(self, item):
+        plot = self.getPlot()
+        if plot is not None:
+            plot.selection().setCurrentItem(item)
+
+    def getLabel(self, item):
+        return item.getLabel()
+
+    def getKind(self, item):
+        from ..plot3d import items as plot3ditems
+
+        if isinstance(item, plot3ditems.ImageData):
+            return 'image'
+        elif isinstance(item, plot3ditems.Scatter2D):
+            return 'scatter'
+        else:
+            return None
 
 
 class StatsTable(TableWidget):
@@ -68,15 +277,13 @@ class StatsTable(TableWidget):
         :class:`PlotWidget` or :class:`SceneWidget` instance on which to operate
     """
 
-    COMPATIBLE_ITEMS = tuple(
-        item for items in statsmdl.BASIC_COMPATIBLE_KINDS.values() for item in items)
-
     _LEGEND_HEADER_DATA = 'legend'
     _KIND_HEADER_DATA = 'kind'
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
-        self._plotRef = None
+        self._plotWrapper = _Wrapper()
+
         self._displayOnlyActItem = False
         self._statsOnVisibleData = False
         self._statsHandler = None
@@ -154,28 +361,22 @@ class StatsTable(TableWidget):
         """
         return self._statsHandler
 
-    @staticmethod
-    def _getKind(item):
-        """Returns the kind of item
-
-        :param item:
-        :rtype: str
-        """
-        for kind, types in statsmdl.BASIC_COMPATIBLE_KINDS.items():
-            if isinstance(item, types):
-                return kind
-        return None
-
     def setPlot(self, plot):
         """Define the plot to interact with
 
         :param Union[PlotWidget,SceneWidget,None] plot:
             The plot containing the items on which statistics are applied
         """
-        assert plot is None or isinstance(plot, (PlotWidget, SceneWidget))
         self._dealWithPlotConnection(create=False)
         self._removeAllItems()
-        self._plotRef = None if plot is None else weakref.ref(plot)
+
+        if plot is None:
+            self._plotWrapper = _Wrapper()
+        elif isinstance(plot, PlotWidget):
+            self._plotWrapper = _PlotWidgetWrapper(plot)
+        else:  # Expect a SceneWidget
+            self._plotWrapper = _SceneWidgetWrapper(plot)
+
         self._dealWithPlotConnection(create=True)
         self._updateItemObserve()
 
@@ -184,83 +385,58 @@ class StatsTable(TableWidget):
 
         :rtype: Union[PlotWidget,SceneWidget,None]
         """
-        return None if self._plotRef is None else self._plotRef()
+        return self._plotWrapper.getPlot()
 
-    def _updateItemObserve(self):
+    def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
-        plot = self.getPlot()  # can be None
-
         self._removeAllItems()
 
         # Get selected or all items from the plot
-        items = []
         if self._displayOnlyActItem:  # Only selected
-            if isinstance(plot, PlotWidget):
-                for kind in PlotWidget._ACTIVE_ITEM_KINDS:
-                    item = plot._getActiveItem(kind=kind)
-                    if item is not None:
-                        items.append(item)
-            elif isinstance(plot, SceneWidget):
-                items = [plot.selection().getCurrentItem()]
-
+            items = self._plotWrapper.getSelectedItems()
         else:  # All items
-            if isinstance(plot, PlotWidget):
-                items = plot._getItems()
-            elif isinstance(plot, SceneWidget):
-                items = plot.getItems()
+            items = self._plotWrapper.getItems()
 
         # Add items to the plot
         for item in items:
-            if isinstance(item, self.COMPATIBLE_ITEMS):
-                self._addItem(item)
+            self._addItem(item)
 
     def _dealWithPlotConnection(self, create=True):
         """Manage connection to plot signals
 
-        Note: connection on Item are managed by the _removeItem function
+        Note: connection on Item are managed by _addItem and _removeItem methods
         """
-        plot = self.getPlot()
-        if plot is None:
-            return
+        connections = []  # List of (signal, slot) to connect/disconnect
+        if self._statsOnVisibleData:
+            connections.append(
+                (self._plotWrapper.sigVisibleDataChanged, self._updateAllStats))
 
-        # Prepare list of (signal, slot) to connect/disconnect
-        connections = []
-        if isinstance(plot, PlotWidget):
-            connections.append((plot.sigPlotSignal, self._zoomPlotChanged))
-            if self._displayOnlyActItem:
-                connections += [
-                    (plot.sigActiveCurveChanged, self._plotCurrentChanged),
-                    (plot.sigActiveImageChanged, self._plotCurrentChanged),
-                    (plot.sigActiveScatterChanged, self._plotCurrentChanged)]
-            else:
-                connections += [
-                    (plot.sigItemAdded, self._plotItemAdded),
-                    (plot.sigItemAboutToBeRemoved, self._plotItemRemoved)]
-
-                # Handle sync of table selection with current curve
-                connections += [
-                    (plot.sigActiveCurveChanged, self._plot2dActiveCurveChanged),
-                    (plot.sigActiveImageChanged, self._plot2dActiveImageChanged),
-                    (plot.sigActiveScatterChanged, self._plot2dActiveScatterChanged)]
-
-        elif isinstance(plot, SceneWidget):
-            if self._displayOnlyActItem:
-                selection = plot.selection()
-                connections.append(
-                    (selection.sigCurrentChanged, self._plotCurrentChanged))
-            else:
-                scene = plot.getSceneGroup()
-                connections += [
-                    (scene.sigItemAdded, self._plotItemAdded),
-                    (scene.sigItemRemoved, self._plotItemRemoved)]
-                connections.append((plot.selection().sigCurrentChanged,
-                                    self._plot3dCurrentChanged))
+        if self._displayOnlyActItem:
+            connections.append(
+                (self._plotWrapper.sigCurrentChanged, self._updateItemObserve))
+        else:
+            connections += [
+                (self._plotWrapper.sigItemAdded, self._addItem),
+                (self._plotWrapper.sigItemRemoved, self._removeItem),
+                (self._plotWrapper.sigCurrentChanged, self._plotCurrentChanged)]
 
         for signal, slot in connections:
             if create:
                 signal.connect(slot)
             else:
                 signal.disconnect(slot)
+
+    def _plotCurrentChanged(self, current):
+        """Handle change of current item and update selection in table
+
+        :param current:
+        """
+        row = self._itemToRow(current)
+        if row is None:
+            if self.currentRow() >= 0:
+                self.setCurrentCell(-1, -1)
+        elif row != self.currentRow():
+            self.setCurrentCell(row, 0)
 
     def _itemToRow(self, item):
         """Find the row corresponding to a plot item
@@ -314,7 +490,7 @@ class StatsTable(TableWidget):
             self._updateStats(item)
             return
 
-        kind = self._getKind(item)
+        kind = self._plotWrapper.getKind(item)
         if kind is None:
             _logger.error("Item has not a supported type: %s", item)
             return
@@ -408,16 +584,10 @@ class StatsTable(TableWidget):
         with self._disableSorting():
             for name, tableItem in self._itemToTableItems(item).items():
                 if name == self._LEGEND_HEADER_DATA:
-                    if isinstance(item, plotitems.Item):
-                        text = item.getLegend()
-                    elif isinstance(item, plot3ditems.Item3D):
-                        text = item.getLabel()
-                    else:
-                        _logger.error("Item not supported: %s", str(item))
-                        text = '-'
+                    text = self._plotWrapper.getLabel(item)
                     tableItem.setText(text)
                 elif name == self._KIND_HEADER_DATA:
-                    tableItem.setText(self._getKind(item))
+                    tableItem.setText(self._plotWrapper.getKind(item))
                 else:
                     value = stats.get(name)
                     if value is None:
@@ -441,16 +611,8 @@ class StatsTable(TableWidget):
         :param QTableWidgetItem previous:
         """
         if current and current.row() >= 0:
-            plot = self.getPlot()
-            if isinstance(plot, PlotWidget):
-                item = current.data(qt.Qt.UserRole)
-                kind = self._getKind(item)
-                if kind in PlotWidget._ACTIVE_ITEM_KINDS:
-                    if plot._getActiveItem(kind) != item:
-                        plot._setActiveItem(kind, item.getLegend())
-            elif isinstance(plot, SceneWidget):
-                item = current.data(qt.Qt.UserRole)
-                plot.selection().setCurrentItem(item)
+            item = current.data(qt.Qt.UserRole)
+            self._plotWrapper.setCurrentItem(item)
 
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
         """Toggle display off all items or only the active/selected one
@@ -486,84 +648,10 @@ class StatsTable(TableWidget):
         :param bool b: True if we want to apply statistics only on visible data
         """
         if self._statsOnVisibleData != b:
+            self._dealWithPlotConnection(create=False)
             self._statsOnVisibleData = b
+            self._dealWithPlotConnection(create=True)
             self._updateAllStats()
-
-    def _plotCurrentChanged(self, *args, **kwargs):
-        """Update change of selected items"""
-        if self._displayOnlyActItem:
-            self._updateItemObserve()
-
-    def _plotItemAdded(self, item):
-        """Handles new items in the plot
-
-        :param item: New plot item
-        """
-        if isinstance(item, self.COMPATIBLE_ITEMS):
-            self._addItem(item)
-
-    def _plotItemRemoved(self, item):
-        """Handles removal of an item from the plot
-
-        :param item: Plot item being removed
-        """
-        if isinstance(item, self.COMPATIBLE_ITEMS):
-            self._removeItem(item)
-
-    def _zoomPlotChanged(self, event):
-        """Handle zoom change."""
-        if self._statsOnVisibleData and event['event'] == 'limitsChanged':
-                self._updateAllStats()
-
-    # SceneWidget specific slot
-
-    def _plot3dCurrentChanged(self, current, previous):
-        """Handle change of selection in a :class:`SceneWidget`
-
-        :param Item3D current:
-        :param Item3D previous:
-        """
-        plot = self.getPlot()
-        if isinstance(plot, SceneWidget):
-            row = self._itemToRow(current)
-            if row is None:
-                if self.currentRow() >= 0:
-                    self.setCurrentCell(-1, -1)
-            else:
-                if row != self.currentRow():
-                    self.setCurrentCell(row, 0)
-
-            plot.selection().setCurrentItem(current)
-
-    # PlotWidget specific slots
-
-    def _plot2dActiveItemChanged(self, kind):
-        """Generic plot active item management.
-
-        :param str kind:
-        """
-        plot = self.getPlot()
-        if isinstance(plot, PlotWidget):
-            item = plot._getActiveItem(kind=kind)
-            if item is not None:
-                row = self._itemToRow(item)
-                if row != self.currentRow():
-                    self.setCurrentCell(row, 0)
-            else:
-                if self.currentRow() >= 0:
-                    self.setCurrentCell(-1, -1)
-
-    def _plot2dActiveCurveChanged(self, previous, current):
-        """Handle update of active curve"""
-        self._plot2dActiveItemChanged(kind='curve')
-
-    def _plot2dActiveImageChanged(self, previous, current):
-        """Handle update of active image"""
-        self._plot2dActiveItemChanged(kind='image')
-
-    def _plot2dActiveScatterChanged(self, previous, current):
-        """Handle update of active scatter"""
-        self._plot2dActiveItemChanged(kind='scatter')
 
 
 class _OptionsWidget(qt.QToolBar):
