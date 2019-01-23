@@ -91,6 +91,7 @@ before_script:
     # Start X server with dummy video dirver
     # Use this instead of Xvfb to have RANDR extension
     # Otherwise there is a bug with Qt5.10.0
+    - export PIP_NO_CACHE_DIR=off
     - if [ "$TRAVIS_OS_NAME" == "linux" ];
       then
           export DISPLAY=:99.0;
