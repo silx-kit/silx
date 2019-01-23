@@ -717,6 +717,16 @@ class _OptionsWidget(qt.QToolBar):
     def isVisibleDataRangeMode(self):
         return self.dataRangeSelection.checkedAction() is self.__useVisibleData
 
+    def setVisibleDataRangeModeEnabled(self, enabled):
+        """Enable/Disable the visible data range mode
+
+        :param bool enabled: True to allow user to choose
+            stats on visible data
+        """
+        self.__useVisibleData.setEnabled(enabled)
+        if not enabled:
+            self.__useWholeData.setChecked(True)
+
 
 class StatsWidget(qt.QWidget):
     """
@@ -791,6 +801,8 @@ class StatsWidget(qt.QWidget):
     setStats.__doc__ = StatsTable.setStats.__doc__
 
     def setPlot(self, plot):
+        self._options.setVisibleDataRangeModeEnabled(
+            plot is None or isinstance(plot, PlotWidget))
         return self.getStatsTable().setPlot(plot=plot)
 
     setPlot.__doc__ = StatsTable.setPlot.__doc__
