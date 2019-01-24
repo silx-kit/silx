@@ -22,7 +22,7 @@ environment:
         WIN_SDK_ROOT: "C:\\Program Files\\Microsoft SDKs\\Windows"
         VENV_BUILD_DIR: "venv_build"
         VENV_TEST_DIR: "venv_test"
-        PIP_NO_CACHE_DIR: "off"
+
     matrix:
         # Python 3.7
         - PYTHON_DIR: "C:\\Python37-x64"
