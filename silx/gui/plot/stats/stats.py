@@ -131,11 +131,50 @@ class _StatsContext(object):
         self.min = None
         self.max = None
         self.data = None
+
         self.values = None
+        """The array of data"""
+
+        self.axes = None
+        """A list of array of position on each axis.
+
+        If the signal is an array,
+        then each axis has the length of that dimension,
+        and the order is (z, y, x) (i.e., as the array shape).
+        If the signal is not an array,
+        then each axis has the same length as the signal,
+        and the order is (x, y, z).
+        """
+
         self.createContext(item, plot, onlimits)
 
     def createContext(self, item, plot, onlimits):
         raise NotImplementedError("Base class")
+
+    def isStructuredData(self):
+        """Returns True if data as an array-like structure.
+
+        :rtype: bool
+        """
+        if self.values is None or self.axes is None:
+            return False
+
+        if numpy.prod([len(axis) for axis in self.axes]) == self.values.size:
+            return True
+        else:
+            # Make sure there is the right number of value in axes
+            for axis in self.axes:
+                assert len(axis) == self.values.size
+            return False
+
+    def isScalarData(self):
+        """Returns True if data is a scalar.
+
+        :rtype: bool
+        """
+        if self.values is None or self.axes is None:
+            return False
+        return len(self.axes) == self.values.ndim
 
 
 class _CurveContext(_StatsContext):
@@ -171,6 +210,7 @@ class _CurveContext(_StatsContext):
             self.min, self.max = None, None
         self.data = (xData, yData)
         self.values = yData
+        self.axes = (xData,)
 
 
 class _HistogramContext(_StatsContext):
@@ -206,6 +246,7 @@ class _HistogramContext(_StatsContext):
             self.min, self.max = None, None
         self.data = (xData, yData)
         self.values = yData
+        self.axes = (xData,)
 
 
 class _ScatterContext(_StatsContext):
@@ -250,6 +291,7 @@ class _ScatterContext(_StatsContext):
             self.min, self.max = None, None
         self.data = (xData, yData, valueData)
         self.values = valueData
+        self.axes = (xData, yData)
 
 
 class _ImageContext(_StatsContext):
@@ -305,6 +347,10 @@ class _ImageContext(_StatsContext):
             self.min, self.max = None, None
         self.values = self.data
 
+        if self.values is not None:
+            self.axes = (self.origin[1] + self.scale[1] * numpy.arange(self.data.shape[0]),
+                         self.origin[0] + self.scale[0] * numpy.arange(self.data.shape[1]))
+
 
 BASIC_COMPATIBLE_KINDS = 'curve', 'image', 'scatter', 'histogram'
 
@@ -326,7 +372,7 @@ class StatBase(object):
         """
         compute the statistic for the given :class:`StatsContext`
 
-        :param context:
+        :param _StatsContext context:
         :return dict: key is stat name, statistic computed is the dict value
         """
         raise NotImplementedError('Base class')
@@ -365,9 +411,7 @@ class Stat(StatBase):
 
 
 class StatMin(StatBase):
-    """
-    Compute the minimal value on data
-    """
+    """Compute the minimal value on data"""
     def __init__(self):
         StatBase.__init__(self, name='min')
 
@@ -376,9 +420,7 @@ class StatMin(StatBase):
 
 
 class StatMax(StatBase):
-    """
-    Compute the maximal value on data
-    """
+    """Compute the maximal value on data"""
     def __init__(self):
         StatBase.__init__(self, name='max')
 
@@ -387,9 +429,7 @@ class StatMax(StatBase):
 
 
 class StatDelta(StatBase):
-    """
-    Compute the delta between minimal and maximal on data
-    """
+    """Compute the delta between minimal and maximal on data"""
     def __init__(self):
         StatBase.__init__(self, name='delta')
 
@@ -397,127 +437,84 @@ class StatDelta(StatBase):
         return context.max - context.min
 
 
-class StatCoordMin(StatBase):
-    """
-    Compute the first coordinates of the data minimal value
-    """
+class _StatCoord(StatBase):
+    """Base class for argmin and argmax stats"""
+
+    def _indexToCoordinates(self, context, index):
+        """Returns the coordinates of data point at given index
+
+        If data is an array, coordinates are in reverse order from data shape.
+
+        :param _StatsContext context:
+        :param int index: Index in the flattened data array
+        :rtype: List[int]
+        """
+        if context.isStructuredData():
+            coordinates = []
+            for axis in reversed(context.axes):
+                coordinates.append(axis[index % len(axis)])
+                index = index // len(axis)
+            return tuple(coordinates)
+        else:
+            return tuple(axis[index] for axis in context.axes)
+
+
+class StatCoordMin(_StatCoord):
+    """Compute the coordinates of the first minimum value of the data"""
     def __init__(self):
-        StatBase.__init__(self, name='coords min')
+        _StatCoord.__init__(self, name='coords min')
 
     def calculate(self, context):
-        if context.kind in ('curve', 'histogram'):
-            return context.xData[numpy.argmin(context.yData)]
-        elif context.kind == 'scatter':
-            xData, yData, valueData = context.data
-            position = numpy.argmin(valueData)
-            return xData[position], yData[position]
-
-        elif context.kind == 'image':
-            scaleX, scaleY = context.scale
-            originX, originY = context.origin
-            index1D = numpy.argmin(context.data)
-            ySize = context.data.shape[1]
-            x = index1D % ySize
-            y = (index1D - x) / ySize
-            x = x * scaleX + originX
-            y = y * scaleY + originY
-            return x, y
-        else:
-            raise ValueError('kind not managed')
-
-    def getToolTip(self, kind):
-        if kind in ('scatter', 'image'):
-            return '(x, y)'
-        else:
+        if context.values is None or not context.isScalarData():
             return None
 
+        index = numpy.argmin(context.values)
+        return self._indexToCoordinates(context, index)
 
-class StatCoordMax(StatBase):
-    """
-    Compute the first coordinates of the data minimal value
-    """
+    def getToolTip(self, kind):
+        return "Coordinates of the first minimum value of the data"
+
+
+class StatCoordMax(_StatCoord):
+    """Compute the coordinates of the first maximum value of the data"""
     def __init__(self):
-        StatBase.__init__(self, name='coords max')
+        _StatCoord.__init__(self, name='coords max')
 
     def calculate(self, context):
-        if context.kind in ('curve', 'histogram'):
-            return context.xData[numpy.argmax(context.yData)]
-        elif context.kind == 'scatter':
-            xData, yData, valueData = context.data
-            position = numpy.argmax(valueData)
-            return xData[position], yData[position]
+        if context.values is None or not context.isScalarData():
+            return None
 
-        elif context.kind == 'image':
-            scaleX, scaleY = context.scale
-            originX, originY = context.origin
-            index1D = numpy.argmax(context.data)
-            ySize = context.data.shape[1]
-            x = index1D % ySize
-            y = (index1D - x) / ySize
-            x = x * scaleX + originX
-            y = y * scaleY + originY
-            return x, y
-        else:
-            raise ValueError('kind not managed')
+        index = numpy.argmax(context.values)
+        return self._indexToCoordinates(context, index)
 
     def getToolTip(self, kind):
-        if kind in ('scatter', 'image'):
-            return '(x, y)'
-        else:
-            return None
+        return "Coordinates of the first maximum value of the data"
 
 
 class StatCOM(StatBase):
-    """
-    Compute data center of mass
-    """
+    """Compute data center of mass"""
     def __init__(self):
         StatBase.__init__(self, name='COM', description='Center of mass')
 
     def calculate(self, context):
-        if context.kind in ('curve', 'histogram'):
-            xData, yData = context.data
-            deno = numpy.sum(yData).astype(numpy.float32)
-            if deno == 0.:
-                return numpy.nan
-            else:
-                return numpy.sum(xData * yData).astype(numpy.float32) / deno
-        elif context.kind == 'scatter':
-            xData, yData, values = context.data
-            deno = numpy.sum(values).astype(numpy.float32)
-            if deno == 0.:
-                return numpy.nan, numpy.nan
-            else:
-                xcom = numpy.sum(xData * values).astype(numpy.float32) / deno
-                ycom = numpy.sum(yData * values).astype(numpy.float32) / deno
-                return xcom, ycom
-        elif context.kind == 'image':
-            yData = numpy.sum(context.data, axis=1)
-            xData = numpy.sum(context.data, axis=0)
-            dataXRange = range(context.data.shape[1])
-            dataYRange = range(context.data.shape[0])
-            xScale, yScale = context.scale
-            xOrigin, yOrigin = context.origin
+        if context.values is None or not context.isScalarData():
+            return None
 
-            denoY = numpy.sum(yData)
-            if denoY == 0.:
-                ycom = numpy.nan
-            else:
-                ycom = numpy.sum(yData * dataYRange) / denoY
-                ycom = ycom * yScale + yOrigin
+        values = numpy.array(context.values, dtype=numpy.float64)
+        sum_ = numpy.sum(values)
+        if sum_ == 0.:
+            return (numpy.nan,) * len(context.axes)
 
-            denoX = numpy.sum(xData)
-            if denoX == 0.:
-                xcom = numpy.nan
-            else:
-                xcom = numpy.sum(xData * dataXRange) / denoX
-                xcom = xcom * xScale + xOrigin
-            return xcom, ycom
+        if context.isStructuredData():
+            centerofmass = []
+            for index, axis in enumerate(context.axes):
+                axes = tuple([i for i in range(len(context.axes)) if i != index])
+                centerofmass.append(
+                    numpy.sum(axis * numpy.sum(values, axis=axes)) / sum_)
+            return tuple(reversed(centerofmass))
         else:
-            raise ValueError('kind not managed')
+            return tuple(
+                numpy.sum(axis * values) / sum_ for axis in context.axes)
 
     def getToolTip(self, kind):
-        if kind in ('scatter', 'image'):
-            return '(x, y)'
-        else:
-            return None
+        return "Compute the center of mass of the dataset"
