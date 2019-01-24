@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -706,18 +706,11 @@ class Viewer(qt.QMainWindow):
         for description, ext in silx.io.supported_extensions().items():
             extensions[description] = " ".join(sorted(list(ext)))
 
-        try:
-            # NOTE: hdf5plugin have to be loaded before
-            import fabio
-        except Exception:
-            _logger.debug("Backtrace while loading fabio", exc_info=True)
-            fabio = None
-
-        if fabio is not None:
-            extensions["NeXus layout from EDF files"] = "*.edf"
-            extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
-            extensions["NeXus layout from CBF files"] = "*.cbf"
-            extensions["NeXus layout from MarCCD image files"] = "*.mccd"
+        # Add extensions supported by fabio
+        extensions["NeXus layout from EDF files"] = "*.edf"
+        extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
+        extensions["NeXus layout from CBF files"] = "*.cbf"
+        extensions["NeXus layout from MarCCD image files"] = "*.mccd"
 
         all_supported_extensions = set()
         for name, exts in extensions.items():
