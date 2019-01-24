@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -415,21 +415,23 @@ class TestStatsWidgetWithCurves(TestCaseQt):
         self.plot.addCurve(legend='curve3', x=range(10), y=range(10))
         self.assertTrue(self.widget.rowCount() is 4)
 
-    def testUpdateCurveFrmAddCurve(self):
+    def testUpdateCurveFromAddCurve(self):
         """Make sure the stats of the cuve will be removed after updating a
         curve"""
         self.plot.addCurve(legend='curve0', x=range(10), y=range(10))
+        self.qapp.processEvents()
         self.assertTrue(self.widget.rowCount() is 3)
-        itemMax = self.widget._getItem(name='max', legend='curve0',
-                                       kind='curve', indexTable=None)
-        self.assertTrue(itemMax.text() == '9')
+        curve = self.plot._getItem(kind='curve', legend='curve0')
+        tableItems = self.widget._itemToTableItems(curve)
+        self.assertEqual(tableItems['max'].text(), '9')
 
-    def testUpdateCurveFrmCurveObj(self):
+    def testUpdateCurveFromCurveObj(self):
         self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
+        self.qapp.processEvents()
         self.assertTrue(self.widget.rowCount() is 3)
-        itemMax = self.widget._getItem(name='max', legend='curve0',
-                                       kind='curve', indexTable=None)
-        self.assertTrue(itemMax.text() == '3')
+        curve = self.plot._getItem(kind='curve', legend='curve0')
+        tableItems = self.widget._itemToTableItems(curve)
+        self.assertEqual(tableItems['max'].text(), '3')
 
     def testSetAnotherPlot(self):
         plot2 = Plot1D()
@@ -444,12 +446,15 @@ class TestStatsWidgetWithCurves(TestCaseQt):
 
 class TestStatsWidgetWithImages(TestCaseQt):
     """Basic test for StatsWidget with images"""
+
+    IMAGE_LEGEND = 'test image'
+
     def setUp(self):
         TestCaseQt.setUp(self)
         self.plot = Plot2D()
 
         self.plot.addImage(data=numpy.arange(128*128).reshape(128, 128),
-                           legend='test image', replace=False)
+                           legend=self.IMAGE_LEGEND, replace=False)
 
         self.widget = StatsWidget.StatsTable(plot=self.plot)
 
@@ -476,31 +481,30 @@ class TestStatsWidgetWithImages(TestCaseQt):
         TestCaseQt.tearDown(self)
 
     def test(self):
-        columnsIndex = self.widget._columns_index
-        itemLegend = self.widget._lgdAndKindToItems[('test image', 'image')]['legend']
-        itemMin = self.widget.item(itemLegend.row(), columnsIndex['min'])
-        itemMax = self.widget.item(itemLegend.row(), columnsIndex['max'])
-        itemDelta = self.widget.item(itemLegend.row(), columnsIndex['delta'])
-        itemCoordsMin = self.widget.item(itemLegend.row(),
-                                         columnsIndex['coords min'])
-        itemCoordsMax = self.widget.item(itemLegend.row(),
-                                         columnsIndex['coords max'])
-        max = (128 * 128) - 1
-        self.assertTrue(itemMin.text() == '0.000')
-        self.assertTrue(itemMax.text() == '{0:.3f}'.format(max))
-        self.assertTrue(itemDelta.text() == '{0:.3f}'.format(max))
-        self.assertTrue(itemCoordsMin.text() == '0.0, 0.0')
-        self.assertTrue(itemCoordsMax.text() == '127.0, 127.0')
+        image = self.plot._getItem(
+            kind='image', legend=self.IMAGE_LEGEND)
+        tableItems = self.widget._itemToTableItems(image)
+
+        maxText = '{0:.3f}'.format((128 * 128) - 1)
+        self.assertEqual(tableItems['legend'].text(), self.IMAGE_LEGEND)
+        self.assertEqual(tableItems['min'].text(), '0.000')
+        self.assertEqual(tableItems['max'].text(), maxText)
+        self.assertEqual(tableItems['delta'].text(), maxText)
+        self.assertEqual(tableItems['coords min'].text(), '0.0, 0.0')
+        self.assertEqual(tableItems['coords max'].text(), '127.0, 127.0')
 
 
 class TestStatsWidgetWithScatters(TestCaseQt):
+
+    SCATTER_LEGEND = 'scatter plot'
+
     def setUp(self):
         TestCaseQt.setUp(self)
         self.scatterPlot = Plot2D()
         self.scatterPlot.addScatter([0, 1, 2, 20, 50, 60],
                                     [2, 3, 4, 26, 69, 6],
                                     [5, 6, 7, 10, 90, 20],
-                                    legend='scatter plot')
+                                    legend=self.SCATTER_LEGEND)
         self.widget = StatsWidget.StatsTable(plot=self.scatterPlot)
 
         mystats = statshandler.StatsHandler((
@@ -526,20 +530,15 @@ class TestStatsWidgetWithScatters(TestCaseQt):
         TestCaseQt.tearDown(self)
 
     def testStats(self):
-        columnsIndex = self.widget._columns_index
-        itemLegend = self.widget._lgdAndKindToItems[('scatter plot', 'scatter')]['legend']
-        itemMin = self.widget.item(itemLegend.row(), columnsIndex['min'])
-        itemMax = self.widget.item(itemLegend.row(), columnsIndex['max'])
-        itemDelta = self.widget.item(itemLegend.row(), columnsIndex['delta'])
-        itemCoordsMin = self.widget.item(itemLegend.row(),
-                                         columnsIndex['coords min'])
-        itemCoordsMax = self.widget.item(itemLegend.row(),
-                                         columnsIndex['coords max'])
-        self.assertTrue(itemMin.text() == '5')
-        self.assertTrue(itemMax.text() == '90')
-        self.assertTrue(itemDelta.text() == '85')
-        self.assertTrue(itemCoordsMin.text() == '0, 2')
-        self.assertTrue(itemCoordsMax.text() == '50, 69')
+        scatter = self.scatterPlot._getItem(
+            kind='scatter', legend=self.SCATTER_LEGEND)
+        tableItems = self.widget._itemToTableItems(scatter)
+        self.assertEqual(tableItems['legend'].text(), self.SCATTER_LEGEND)
+        self.assertEqual(tableItems['min'].text(), '5')
+        self.assertEqual(tableItems['coords min'].text(), '0, 2')
+        self.assertEqual(tableItems['max'].text(), '90')
+        self.assertEqual(tableItems['coords max'].text(), '50, 69')
+        self.assertEqual(tableItems['delta'].text(), '85')
 
 
 class TestEmptyStatsWidget(TestCaseQt):
