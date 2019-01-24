@@ -770,7 +770,7 @@ class StatsWidget(qt.QWidget):
         self._optSelectionChanged()
         self._optDataRangeChanged()
 
-    def getStatsTable(self):
+    def _getStatsTable(self):
         """Returns the :class:`StatsTable` used by this widget.
 
         :rtype: StatsTable
@@ -786,40 +786,40 @@ class StatsWidget(qt.QWidget):
         qt.QWidget.hideEvent(self, event)
 
     def _optSelectionChanged(self, action=None):
-        self.getStatsTable().setDisplayOnlyActiveItem(
+        self._getStatsTable().setDisplayOnlyActiveItem(
             self._options.isActiveItemMode())
 
     def _optDataRangeChanged(self, action=None):
-        self.getStatsTable().setStatsOnVisibleData(
+        self._getStatsTable().setStatsOnVisibleData(
             self._options.isVisibleDataRangeMode())
 
     # Proxy methods
 
     def setStats(self, statsHandler):
-        return self.getStatsTable().setStats(statsHandler=statsHandler)
+        return self._getStatsTable().setStats(statsHandler=statsHandler)
 
     setStats.__doc__ = StatsTable.setStats.__doc__
 
     def setPlot(self, plot):
         self._options.setVisibleDataRangeModeEnabled(
             plot is None or isinstance(plot, PlotWidget))
-        return self.getStatsTable().setPlot(plot=plot)
+        return self._getStatsTable().setPlot(plot=plot)
 
     setPlot.__doc__ = StatsTable.setPlot.__doc__
 
     def getPlot(self):
-        return self.getStatsTable().getPlot()
+        return self._getStatsTable().getPlot()
 
     getPlot.__doc__ = StatsTable.getPlot.__doc__
 
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
-        return self.getStatsTable().setDisplayOnlyActiveItem(
+        return self._getStatsTable().setDisplayOnlyActiveItem(
             displayOnlyActItem=displayOnlyActItem)
 
     setDisplayOnlyActiveItem.__doc__ = StatsTable.setDisplayOnlyActiveItem.__doc__
 
     def setStatsOnVisibleData(self, b):
-        return self.getStatsTable().setStatsOnVisibleData(b=b)
+        return self._getStatsTable().setStatsOnVisibleData(b=b)
 
     setStatsOnVisibleData.__doc__ = StatsTable.setStatsOnVisibleData.__doc__
 
