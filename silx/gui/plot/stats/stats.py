@@ -35,7 +35,6 @@ import logging
 
 import numpy
 
-from .. import PlotWidget
 from .. import items
 from ....math.combo import min_max
 
@@ -63,7 +62,7 @@ class Stats(OrderedDict):
 
     def calculate(self, item, plot, onlimits):
         """
-        Call all :class:`Stat` object registred and return the result of the
+        Call all :class:`Stat` object registered and return the result of the
         computation.
 
         :param item: the item for which we want statistics
@@ -73,23 +72,29 @@ class Stats(OrderedDict):
         :return dict: dictionary with :class:`Stat` name as ket and result
                       of the calculation as value
         """
-        from ...plot3d import items as items3d  # Lazy import
-
-        res = {}
+        context = None
+        # Check for PlotWidget items
         if isinstance(item, items.Curve):
             context = _CurveContext(item, plot, onlimits)
-        elif isinstance(item, (items.ImageData, items3d.ImageData)):
+        elif isinstance(item, items.ImageData):
             context = _ImageContext(item, plot, onlimits)
-        elif isinstance(item, (items.Scatter, items3d.Scatter2D)):
+        elif isinstance(item, items.Scatter):
             context = _ScatterContext(item, plot, onlimits)
         elif isinstance(item, items.Histogram):
             context = _HistogramContext(item, plot, onlimits)
-        elif isinstance(item, items3d.Scatter3D):
-            raise NotImplementedError()  # TODO
-        elif isinstance(item, items3d.ScalarField3D):
-            raise NotImplementedError()  # TODO
         else:
-            raise ValueError('Item type not managed')
+            # Check for SceneWidget items
+            from ...plot3d import items as items3d  # Lazy import
+
+            if isinstance(item, (items3d.Scatter2D, items3d.Scatter3D)):
+                context = _plot3DScatterContext(item, plot, onlimits)
+            elif isinstance(item, (items3d.ImageData, items3d.ScalarField3D)):
+                context = _plot3DArrayContext(item, plot, onlimits)
+
+        if context is None:
+                raise ValueError('Item type not managed')
+
+        res = {}
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
                 logger.debug('kind %s not managed by statistic %s'
@@ -194,10 +199,7 @@ class _CurveContext(_StatsContext):
         xData, yData = item.getData(copy=True)[0:2]
 
         if onlimits:
-            if isinstance(plot, PlotWidget):
-                minX, maxX = plot.getXAxis().getLimits()
-            else:
-                raise RuntimeError("Unsupported plot %s" % str(plot))
+            minX, maxX = plot.getXAxis().getLimits()
             mask = (minX <= xData) & (xData <= maxX)
             yData = yData[mask]
             xData = xData[mask]
@@ -215,7 +217,7 @@ class _CurveContext(_StatsContext):
 
 class _HistogramContext(_StatsContext):
     """
-    StatsContext for :class:`Curve`
+    StatsContext for :class:`Histogram`
 
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
@@ -230,10 +232,7 @@ class _HistogramContext(_StatsContext):
         xData, edges = item.getData(copy=True)[0:2]
         yData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
         if onlimits:
-            if isinstance(plot, PlotWidget):
-                minX, maxX = plot.getXAxis().getLimits()
-            else:
-                raise RuntimeError("Unsupported plot %s" % str(plot))
+            minX, maxX = plot.getXAxis().getLimits()
             mask = (minX <= xData) & (xData <= maxX)
             yData = yData[mask]
             xData = xData[mask]
@@ -252,8 +251,7 @@ class _HistogramContext(_StatsContext):
 class _ScatterContext(_StatsContext):
     """StatsContext scatter plots.
 
-    It supports :class:`~silx.gui.plot.items.Scatter` and
-    :class:`~silx.gui.plot3d.items.Scatter2D`.
+    It supports :class:`~silx.gui.plot.items.Scatter`.
 
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
@@ -270,11 +268,8 @@ class _ScatterContext(_StatsContext):
         yData = item.getYData()
 
         if onlimits:
-            if isinstance(plot, PlotWidget):
-                minX, maxX = plot.getXAxis().getLimits()
-                minY, maxY = plot.getYAxis().getLimits()
-            else:
-                raise RuntimeError("Unsupported plot %s" % str(plot))
+            minX, maxX = plot.getXAxis().getLimits()
+            minY, maxY = plot.getYAxis().getLimits()
 
             # filter on X axis
             valueData = valueData[(minX <= xData) & (xData <= maxX)]
@@ -297,9 +292,7 @@ class _ScatterContext(_StatsContext):
 class _ImageContext(_StatsContext):
     """StatsContext for images.
 
-    It supports :class:`~silx.gui.plot.items.ImageBase`,
-    :class:`~silx.gui.plot3d.items.ImageData` and
-    :class:`~silx.gui.plot3d.items.ImageRgba`.
+    It supports :class:`~silx.gui.plot.items.ImageData`.
 
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
@@ -311,22 +304,14 @@ class _ImageContext(_StatsContext):
                                plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        if isinstance(item, items.ImageBase):
-            self.origin = item.getOrigin()
-            self.scale = item.getScale()
-        else:
-            # TODO handle transformations for plot3d image
-            self.origin = 0., 0.
-            self.scale = 1., 1.
+        self.origin = item.getOrigin()
+        self.scale = item.getScale()
 
         self.data = item.getData()
 
         if onlimits:
-            if isinstance(plot, PlotWidget):
-                minX, maxX = plot.getXAxis().getLimits()
-                minY, maxY = plot.getYAxis().getLimits()
-            else:
-                raise RuntimeError("Unsupported plot %s" % str(plot))
+            minX, maxX = plot.getXAxis().getLimits()
+            minY, maxY = plot.getYAxis().getLimits()
 
             XMinBound = int((minX - self.origin[0]) / self.scale[0])
             YMinBound = int((minY - self.origin[1]) / self.scale[1])
@@ -350,6 +335,72 @@ class _ImageContext(_StatsContext):
         if self.values is not None:
             self.axes = (self.origin[1] + self.scale[1] * numpy.arange(self.data.shape[0]),
                          self.origin[0] + self.scale[0] * numpy.arange(self.data.shape[1]))
+
+
+class _plot3DScatterContext(_StatsContext):
+    """StatsContext for 3D scatter plots.
+
+    It supports :class:`~silx.gui.plot3d.items.Scatter2D` and
+    :class:`~silx.gui.plot3d.items.Scatter3D`.
+
+    :param item: the item for which we want to compute the context
+    :param plot: the plot containing the item
+    :param bool onlimits: True if we want to apply statistic only on
+                          visible data.
+    """
+    def __init__(self, item, plot, onlimits):
+        _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
+                               onlimits=onlimits)
+
+    def createContext(self, item, plot, onlimits):
+        if onlimits:
+            raise RuntimeError("Unsupported plot %s" % str(plot))
+
+        values = item.getValueData(copy=False)
+
+        if values is not None and len(values) > 0:
+            self.values = values
+            axes = [item.getXData(copy=False), item.getYData(copy=False)]
+            if self.values.ndim == 3:
+                axes.append(item.getZData(copy=False))
+            self.axes = tuple(axes)
+
+            self.min, self.max = min_max(self.values)
+        else:
+            self.values = None
+            self.axes = None
+            self.min, self.max = None, None
+
+
+class _plot3DArrayContext(_StatsContext):
+    """StatsContext for 3D scalar field and data image.
+
+    It supports :class:`~silx.gui.plot3d.items.ScalarField3D` and
+    :class:`~silx.gui.plot3d.items.ImageData`.
+
+    :param item: the item for which we want to compute the context
+    :param plot: the plot containing the item
+    :param bool onlimits: True if we want to apply statistic only on
+                          visible data.
+    """
+    def __init__(self, item, plot, onlimits):
+        _StatsContext.__init__(self, kind='image', item=item, plot=plot,
+                               onlimits=onlimits)
+
+    def createContext(self, item, plot, onlimits):
+        if onlimits:
+            raise RuntimeError("Unsupported plot %s" % str(plot))
+
+        values = item.getData(copy=False)
+
+        if values is not None and len(values) > 0:
+            self.values = values
+            self.axes = tuple([numpy.arange(size) for size in self.values.shape])
+            self.min, self.max = min_max(self.values)
+        else:
+            self.values = None
+            self.axes = None
+            self.min, self.max = None, None
 
 
 BASIC_COMPATIBLE_KINDS = 'curve', 'image', 'scatter', 'histogram'

@@ -230,7 +230,7 @@ class _SceneWidgetWrapper(_Wrapper):
 
     def getItems(self):
         plot = self.getPlot()
-        return () if plot is None else plot.getItems()
+        return () if plot is None else tuple(plot.getSceneGroup().visit())
 
     def getSelectedItems(self):
         plot = self.getPlot()
@@ -247,9 +247,11 @@ class _SceneWidgetWrapper(_Wrapper):
     def getKind(self, item):
         from ..plot3d import items as plot3ditems
 
-        if isinstance(item, plot3ditems.ImageData):
+        if isinstance(item, (plot3ditems.ImageData,
+                             plot3ditems.ScalarField3D)):
             return 'image'
-        elif isinstance(item, plot3ditems.Scatter2D):
+        elif isinstance(item, (plot3ditems.Scatter2D,
+                               plot3ditems.Scatter3D)):
             return 'scatter'
         else:
             return None
