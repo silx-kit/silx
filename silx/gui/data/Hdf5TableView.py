@@ -44,10 +44,7 @@ from silx.gui.widgets import HierarchicalTableView
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
 from ..hdf5._utils import htmlFromDict
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 
 _logger = logging.getLogger(__name__)
@@ -416,7 +413,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
             self.__data.addHeaderRow(headerLabel="Data info")
 
-            if h5py is not None and hasattr(obj, "id") and hasattr(obj.id, "get_type"):
+            if hasattr(obj, "id") and hasattr(obj.id, "get_type"):
                 # display the HDF5 type
                 self.__data.addHeaderValueRow("HDF5 type", self.__formatHdf5Type)
             self.__data.addHeaderValueRow("dtype", self.__formatDType)

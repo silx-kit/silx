@@ -36,10 +36,7 @@ from silx.gui import qt
 from silx.gui.data import ArrayTableWidget
 from silx.gui.utils.testutils import TestCaseQt
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 
 class TestArrayWidget(TestCaseQt):
@@ -190,7 +187,6 @@ class TestArrayWidget(TestCaseQt):
         self.assertIs(b0, b1)
 
 
-@unittest.skipIf(h5py is None, "Could not import h5py")
 class TestH5pyArrayWidget(TestCaseQt):
     """Basic test for ArrayTableWidget with a dataset.
 

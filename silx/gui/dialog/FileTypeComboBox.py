@@ -30,10 +30,7 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "17/01/2019"
 
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
 import silx.io
 from silx.gui import qt
 
@@ -82,7 +79,7 @@ class FileTypeComboBox(qt.QComboBox):
 
     def __initItems(self):
         self.clear()
-        if fabio is not None and self.__fabioUrlSupported:
+        if self.__fabioUrlSupported:
             self.__insertFabioFormats()
         self.__insertSilxFormats()
         self.__insertAllSupported()

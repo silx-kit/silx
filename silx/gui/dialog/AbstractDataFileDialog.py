@@ -45,10 +45,8 @@ from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
 from .FileTypeComboBox import FileTypeComboBox
-try:
-    import fabio
-except ImportError:
-    fabio = None
+
+import fabio
 
 
 _logger = logging.getLogger(__name__)
@@ -1078,8 +1076,6 @@ class AbstractDataFileDialog(qt.QDialog):
     def __openFabioFile(self, filename):
         self.__closeFile()
         try:
-            if fabio is None:
-                raise ImportError("Fabio module is not available")
             self.__fabio = fabio.open(filename)
             self.__openedFiles.append(self.__fabio)
             self.__selectedFile = filename
@@ -1125,10 +1121,10 @@ class AbstractDataFileDialog(qt.QDialog):
         if codec.is_autodetect():
             if self.__isSilxHavePriority(filename):
                 openners.append(self.__openSilxFile)
-                if fabio is not None and self._isFabioFilesSupported():
+                if self._isFabioFilesSupported():
                     openners.append(self.__openFabioFile)
             else:
-                if fabio is not None and self._isFabioFilesSupported():
+                if self._isFabioFilesSupported():
                     openners.append(self.__openFabioFile)
                 openners.append(self.__openSilxFile)
         elif codec.is_silx_codec():
@@ -1176,10 +1172,9 @@ class AbstractDataFileDialog(qt.QDialog):
                         is_fabio_have_priority = not codec.is_silx_codec() and not self.__isSilxHavePriority(path)
                         if is_fabio_decoder or is_fabio_have_priority:
                             # Then it's flat frame container
-                            if fabio is not None:
-                                self.__openFabioFile(path)
-                                if self.__fabio is not None:
-                                    selectedData = _FabioData(self.__fabio)
+                            self.__openFabioFile(path)
+                            if self.__fabio is not None:
+                                selectedData = _FabioData(self.__fabio)
             else:
                 assert(False)
 

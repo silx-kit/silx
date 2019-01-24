@@ -31,14 +31,7 @@ import logging
 import numpy
 import os.path
 import sys
-
-try:
-    import h5py
-except ImportError as e:
-    h5py_missing = True
-    h5py_import_error = e
-else:
-    h5py_missing = False
+import h5py
 
 from .configdict import ConfigDict
 from .utils import is_group
@@ -209,8 +202,6 @@ def dicttoh5(treedict, h5file, h5path='/',
         dicttoh5(city_area, "cities.h5", h5path="/area",
                  create_dataset_args=create_ds_args)
     """
-    if h5py_missing:
-        raise h5py_import_error
 
     if not h5path.endswith("/"):
         h5path += "/"
@@ -310,9 +301,6 @@ def h5todict(h5file, path="/", exclude_names=None):
         a string in this list will be ignored. Default is None (ignore nothing)
     :return: Nested dictionary
     """
-    if h5py_missing:
-        raise h5py_import_error
-
     with _SafeH5FileRead(h5file) as h5f:
         ddict = {}
         for key in h5f[path]:
@@ -395,9 +383,6 @@ def dump(ddict, ffile, mode="w", fmat=None):
     if fmat == "json":
         dicttojson(ddict, ffile, indent=2, mode=mode)
     elif fmat in ["hdf5", "h5"]:
-        if h5py_missing:
-            logger.error("Cannot dump to HDF5 format, missing h5py library")
-            raise h5py_import_error
         dicttoh5(ddict, ffile, mode=mode)
     elif fmat in ["ini", "cfg"]:
         dicttoini(ddict, ffile, mode=mode)
@@ -436,9 +421,6 @@ def load(ffile, fmat=None):
         if fmat == "json":
             return json.load(f, object_pairs_hook=OrderedDict)
         if fmat in ["hdf5", "h5"]:
-            if h5py_missing:
-                logger.error("Cannot load from HDF5 format, missing h5py library")
-                raise h5py_import_error
             return h5todict(fname)
         elif fmat in ["ini", "cfg"]:
             return ConfigDict(filelist=[fname])

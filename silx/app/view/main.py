@@ -82,17 +82,7 @@ def mainQt(options):
     except ImportError:
         _logger.debug("Backtrace", exc_info=True)
 
-    try:
-        import h5py
-    except ImportError:
-        _logger.debug("Backtrace", exc_info=True)
-        h5py = None
-
-    if h5py is None:
-        message = "Module 'h5py' is not installed but is mandatory."\
-            + " You can install it using \"pip install h5py\"."
-        _logger.error(message)
-        return -1
+    import h5py
 
     app = qt.QApplication([])
     qt.QLocale.setDefault(qt.QLocale.c())
