@@ -549,7 +549,7 @@ class TestLineWidget(TestCaseQt):
         TestCaseQt.setUp(self)
 
         mystats = statshandler.StatsHandler((
-            stats.StatMin(),
+            (stats.StatMin(), statshandler.StatFormatter()),
         ))
 
         self.plot = Plot1D()
