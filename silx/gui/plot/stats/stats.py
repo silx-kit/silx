@@ -229,8 +229,8 @@ class _HistogramContext(_StatsContext):
                                plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        xData, edges = item.getData(copy=True)[0:2]
-        yData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
+        yData, edges = item.getData(copy=True)[0:2]
+        xData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
             mask = (minX <= xData) & (xData <= maxX)
