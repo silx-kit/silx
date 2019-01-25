@@ -157,3 +157,26 @@ def calc_center_centroid(sino):
                       left_derivative=False,
                       max_iter=100)
     return popt[0]
+
+
+
+
+def compute_ramlak_filter(dwidth_padded, dtype=np.float32):
+    """
+    Compute the Ramachandran-Lakshminarayanan (Ram-Lak) filter, used in
+    filtered backprojection.
+
+    :param dwidth_padded: width of the 2D sinogram after padding
+    :param dtype: data type
+    """
+    #~ dwidth_padded = dwidth * 2
+    L = dwidth_padded
+    h = np.zeros(L, dtype=dtype)
+    L2 = L//2+1
+    h[0] = 1/4.
+    j = np.linspace(1, L2, L2//2, False, dtype=dtype)
+    # h[2::2] = 0
+    h[1:L2:2] = -1./(pi**2 * j**2)
+    #h[-1:L2-1:-2] = -1./(pi**2 * j**2)
+    h[L2:] = np.copy(h[1:L2-1][::-1])
+    return h
