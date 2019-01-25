@@ -189,8 +189,8 @@ class TestStats(TestCaseQt):
         self.assertEqual(_stats['mean'].calculate(self.scatterContext), numpy.mean(self.valuesScatterData))
 
         data = self.valuesScatterData.astype(numpy.float64)
-        comx = numpy.sum(self.xScatterData * self.valuesScatterData) / numpy.sum(self.valuesScatterData)
-        comy = numpy.sum(self.yScatterData * self.valuesScatterData) / numpy.sum(self.valuesScatterData)
+        comx = numpy.sum(self.xScatterData * data) / numpy.sum(data)
+        comy = numpy.sum(self.yScatterData * data) / numpy.sum(data)
         self.assertEqual(_stats['com'].calculate(self.scatterContext),
                          (comx, comy))
 
