@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,7 @@ class Mesh(DataItem3D):
                 color,
                 normal=None,
                 mode='triangles',
+                indices=None,
                 copy=True):
         """Set mesh geometry data.
 
@@ -67,8 +68,10 @@ class Mesh(DataItem3D):
         :param numpy.ndarray position:
             Position (x, y, z) of each vertex as a (N, 3) array
         :param numpy.ndarray color: Colors for each point or a single color
-        :param numpy.ndarray normal: Normals for each point or None (default)
+        :param Union[numpy.ndarray,None] normal: Normals for each point or None (default)
         :param str mode: The drawing mode.
+        :param Union[List[int],None] indices:
+            Array of vertex indices or None to use arrays directly.
         :param bool copy: True (default) to copy the data,
                           False to use as is (do not modify!).
         """
@@ -78,7 +81,7 @@ class Mesh(DataItem3D):
             self._mesh = None
         else:
             self._mesh = primitives.Mesh3D(
-                position, color, normal, mode=mode, copy=copy)
+                position, color, normal, mode=mode, indices=indices, copy=copy)
             self._getScenePrimitive().children.append(self._mesh)
 
         self.sigItemChanged.emit(ItemChangedType.DATA)
@@ -138,6 +141,20 @@ class Mesh(DataItem3D):
             return None
         else:
             return self._mesh.getAttribute('normal', copy=copy)
+
+    def getIndices(self, copy=True):
+        """Get the vertex indices.
+
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
+        :return: The vertex indices as an array or None.
+        :rtype: Union[numpy.ndarray,None]
+        """
+        if self._mesh is None:
+            return None
+        else:
+            return self._mesh.getIndices(copy=copy)
 
     def getDrawMode(self):
         """Get mesh rendering mode.
