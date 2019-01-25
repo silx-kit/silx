@@ -135,7 +135,7 @@ class Mesh(DataItem3D):
             True (default) to get a copy,
             False to get internal representation (do not modify!).
         :return: The normals as a (N, 3) array, a single normal or None
-        :rtype: numpy.ndarray or None
+        :rtype: Union[numpy.ndarray,None]
         """
         if self._mesh is None:
             return None
