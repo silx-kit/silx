@@ -36,23 +36,13 @@ import numpy
 
 from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
-from .utils import nextpower as nextpow2
 
 if pyopencl:
     mf = pyopencl.mem_flags
     import pyopencl.array as parray
 else:
-    raise ImportError("pyopencl is not installed")
+    raise ImportError("Please install pyopencl in order to use opencl backprojection")
 logger = logging.getLogger(__name__)
-
-# put in .common ?
-try:
-    from pyfft.cl import Plan as pyfft_Plan
-    _has_pyfft = True
-except ImportError:
-    _has_pyfft = False
-# For silx v0.6 we disable the use FFT on GPU.
-_has_pyfft = False
 
 
 def _sizeof(Type):
@@ -68,43 +58,6 @@ def _idivup(a, b):
     """
     return (a + (b - 1)) // b
 
-
-def fourier_filter(sino, filter_=None, fft_size=None):
-    """Simple numpy based implementation of fourier space filter
-    
-    :param sino: of shape shape = (num_projs, num_bins)
-    :param filter: filter function to apply in fourier space
-    :fft_size: size on which perform the fft. May be larger than the sino array 
-    :return: filtered sinogram
-    """
-    assert sino.ndim == 2
-    num_projs, num_bins = sino.shape
-    if fft_size is None:
-        fft_size = nextpow2(num_bins * 2 - 1)
-    else:
-        assert fft_size >= num_bins
-    if fft_size == num_bins:
-        sino_zeropadded = sino.astype(numpy.float32)
-    else:
-        sino_zeropadded = numpy.zeros((num_projs, fft_size),
-                                      dtype=numpy.complex64)
-        sino_zeropadded[:, :num_bins] = sino.astype(numpy.float32)
-
-    if filter_ is None:
-        h = numpy.zeros(fft_size, dtype=numpy.float32)
-        L2 = fft_size // 2 + 1
-        h[0] = 1 / 4.
-        j = numpy.linspace(1, L2, L2 // 2, False)
-        h[1:L2:2] = -1. / (numpy.pi ** 2 * j ** 2)
-        h[L2:] = numpy.copy(h[1:L2 - 1][::-1])
-        filter_ = numpy.fft.fft(h).astype(numpy.complex64)
-
-    # Linear convolution
-    sino_f = numpy.fft.fft(sino, fft_size)
-    sino_f = sino_f * filter_
-    sino_filtered = numpy.fft.ifft(sino_f)[:, :num_bins].real
-    # Send the filtered sinogram to device
-    return numpy.ascontiguousarray(sino_filtered.real, dtype=numpy.float32)
 
 
 class Backprojection(OpenclProcessing):
