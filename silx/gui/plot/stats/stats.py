@@ -454,11 +454,14 @@ class Stat(StatBase):
         self._fct = fct
 
     def calculate(self, context):
-        if context.kind in self.compatibleKinds:
-            return self._fct(context.values)
+        if context.values is not None:
+            if context.kind in self.compatibleKinds:
+                return self._fct(context.values)
+            else:
+                raise ValueError('Kind %s not managed by %s'
+                                 '' % (context.kind, self.name))
         else:
-            raise ValueError('Kind %s not managed by %s'
-                             '' % (context.kind, self.name))
+            return None
 
 
 class StatMin(StatBase):
