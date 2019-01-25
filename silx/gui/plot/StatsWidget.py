@@ -300,6 +300,20 @@ class _ScalarFieldViewWrapper(_Wrapper):
         return 'image'
 
 
+class _Container(object):
+    """Class to contain a plot item.
+
+    This is apparently needed for compatibility with PySide2,
+
+    :param QObject obj:
+    """
+    def __init__(self, obj):
+        self._obj = obj
+
+    def __call__(self):
+        return self._obj
+
+
 class StatsTable(TableWidget):
     """
     TableWidget displaying for each curves contained by the Plot some
@@ -480,6 +494,15 @@ class StatsTable(TableWidget):
         elif row != self.currentRow():
             self.setCurrentCell(row, 0)
 
+    def _tableItemToItem(self, tableItem):
+        """Find the plot item corresponding to a table item
+
+        :param QTableWidgetItem tableItem:
+        :rtype: QObject
+        """
+        container = tableItem.data(qt.Qt.UserRole)
+        return container()
+
     def _itemToRow(self, item):
         """Find the row corresponding to a plot item
 
@@ -489,7 +512,7 @@ class StatsTable(TableWidget):
         """
         for row in range(self.rowCount()):
             tableItem = self.item(row, 0)
-            if tableItem.data(qt.Qt.UserRole) == item:
+            if self._tableItemToItem(tableItem) == item:
                 return row
         return None
 
@@ -506,7 +529,7 @@ class StatsTable(TableWidget):
         if row is not None:
             for column in range(self.columnCount()):
                 tableItem = self.item(row, column)
-                if tableItem.data(qt.Qt.UserRole) != item:
+                if self._tableItemToItem(tableItem) != item:
                     _logger.error("Table item/plot item mismatch")
                 else:
                     header = self.horizontalHeaderItem(column)
@@ -570,7 +593,7 @@ class StatsTable(TableWidget):
             # Add table items to the last row
             row = self.rowCount() - 1
             for column, tableItem in enumerate(tableItems):
-                tableItem.setData(qt.Qt.UserRole, item)
+                tableItem.setData(qt.Qt.UserRole, _Container(item))
                 tableItem.setFlags(
                     qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
                 self.setItem(row, column, tableItem)
@@ -602,7 +625,7 @@ class StatsTable(TableWidget):
         """Remove content of the table"""
         for row in range(self.rowCount()):
             tableItem = self.item(row, 0)
-            item = tableItem.data(qt.Qt.UserRole)
+            item = self._tableItemToItem(tableItem)
             item.sigItemChanged.disconnect(self._plotItemChanged)
         self.clearContents()
         self.setRowCount(0)
@@ -649,7 +672,7 @@ class StatsTable(TableWidget):
         with self._disableSorting():
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
-                item = tableItem.data(qt.Qt.UserRole)
+                item = self._tableItemToItem(tableItem)
                 self._updateStats(item)
 
     def _currentItemChanged(self, current, previous):
@@ -659,7 +682,7 @@ class StatsTable(TableWidget):
         :param QTableWidgetItem previous:
         """
         if current and current.row() >= 0:
-            item = current.data(qt.Qt.UserRole)
+            item = self._tableItemToItem(current)
             self._plotWrapper.setCurrentItem(item)
 
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
