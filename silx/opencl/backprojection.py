@@ -188,15 +188,10 @@ class SinoFilter(OpenclProcessing):
         # return
         if output is None:
             res = np.zeros(self.sino_shape, dtype=np.float32)
-            # can't do memcpy2d D->H ? (self.d_sino_padded[:, w]) I have to get()
-            sino_ref = self.d_sino_padded.get()
+            res[:] = self.d_sino_padded.get()[:, :self.dwidth]
         else:
             res = output
-            sino_ref = self.d_sino_padded
-        if self.ndim == 2:
-            res[:] = sino_ref[:, :self.dwidth]
-        else:
-            res[:] = sino_ref[:, :, :self.dwidth]
+            self.copy2d(res, self.d_sino_padded, self.sino_shape[::-1])
         return res
 
     __call__ = filter_sino
