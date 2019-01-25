@@ -175,7 +175,7 @@ class TestScalarFieldView(TestCaseQt):
 
     def test(self):
         """Test StatsWidget with ScalarFieldView"""
-        data = numpy.arange(64**3).reshape(64, 64, 64)
+        data = numpy.arange(64**3, dtype=numpy.float64).reshape(64, 64, 64)
         self.scalarFieldView.setData(data)
 
         statsTable = self.statsWidget._getStatsTable()
