@@ -35,17 +35,18 @@ __date__ = "17/07/2018"
 import logging
 import numpy
 
-from ..scene import primitives, utils
+from ..scene import primitives, utils, function
 from ..scene.transform import Rotate
 from .core import DataItem3D, ItemChangedType
+from .mixins import ColormapMixIn
 from ._pick import PickingResult
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Mesh(DataItem3D):
-    """Description of mesh.
+class _MeshBase(DataItem3D):
+    """Base class for :class:`Mesh' and :class:`ColormapMesh`.
 
     :param parent: The View widget this item belongs to.
     """
@@ -54,51 +55,22 @@ class Mesh(DataItem3D):
         DataItem3D.__init__(self, parent=parent)
         self._mesh = None
 
-    def setData(self,
-                position,
-                color,
-                normal=None,
-                mode='triangles',
-                indices=None,
-                copy=True):
-        """Set mesh geometry data.
+    def _setMesh(self, mesh):
+        """Set mesh primitive
 
-        Supported drawing modes are: 'triangles', 'triangle_strip', 'fan'
-
-        :param numpy.ndarray position:
-            Position (x, y, z) of each vertex as a (N, 3) array
-        :param numpy.ndarray color: Colors for each point or a single color
-        :param Union[numpy.ndarray,None] normal: Normals for each point or None (default)
-        :param str mode: The drawing mode.
-        :param Union[List[int],None] indices:
-            Array of vertex indices or None to use arrays directly.
-        :param bool copy: True (default) to copy the data,
-                          False to use as is (do not modify!).
+        :param Union[None,Geometry] mesh: The scene primitive
         """
         self._getScenePrimitive().children = []  # Remove any previous mesh
 
-        if position is None or len(position) == 0:
-            self._mesh = None
-        else:
-            self._mesh = primitives.Mesh3D(
-                position, color, normal, mode=mode, indices=indices, copy=copy)
+        self._mesh = mesh
+        if self._mesh is not None:
             self._getScenePrimitive().children.append(self._mesh)
 
         self.sigItemChanged.emit(ItemChangedType.DATA)
 
-    def getData(self, copy=True):
-        """Get the mesh geometry.
-
-        :param bool copy:
-            True (default) to get a copy,
-            False to get internal representation (do not modify!).
-        :return: The positions, colors, normals and mode
-        :rtype: tuple of numpy.ndarray
-        """
-        return (self.getPositionData(copy=copy),
-                self.getColorData(copy=copy),
-                self.getNormalData(copy=copy),
-                self.getDrawMode())
+    def _getMesh(self):
+        """Returns the underlying Mesh scene primitive"""
+        return self._mesh
 
     def getPositionData(self, copy=True):
         """Get the mesh vertex positions.
@@ -109,24 +81,10 @@ class Mesh(DataItem3D):
         :return: The (x, y, z) positions as a (N, 3) array
         :rtype: numpy.ndarray
         """
-        if self._mesh is None:
+        if self._getMesh() is None:
             return numpy.empty((0, 3), dtype=numpy.float32)
         else:
-            return self._mesh.getAttribute('position', copy=copy)
-
-    def getColorData(self, copy=True):
-        """Get the mesh vertex colors.
-
-        :param bool copy:
-            True (default) to get a copy,
-            False to get internal representation (do not modify!).
-        :return: The RGBA colors as a (N, 4) array or a single color
-        :rtype: numpy.ndarray
-        """
-        if self._mesh is None:
-            return numpy.empty((0, 4), dtype=numpy.float32)
-        else:
-            return self._mesh.getAttribute('color', copy=copy)
+            return self._getMesh().getAttribute('position', copy=copy)
 
     def getNormalData(self, copy=True):
         """Get the mesh vertex normals.
@@ -137,10 +95,10 @@ class Mesh(DataItem3D):
         :return: The normals as a (N, 3) array, a single normal or None
         :rtype: Union[numpy.ndarray,None]
         """
-        if self._mesh is None:
+        if self._getMesh() is None:
             return None
         else:
-            return self._mesh.getAttribute('normal', copy=copy)
+            return self._getMesh().getAttribute('normal', copy=copy)
 
     def getIndices(self, copy=True):
         """Get the vertex indices.
@@ -151,10 +109,10 @@ class Mesh(DataItem3D):
         :return: The vertex indices as an array or None.
         :rtype: Union[numpy.ndarray,None]
         """
-        if self._mesh is None:
+        if self._getMesh() is None:
             return None
         else:
-            return self._mesh.getIndices(copy=copy)
+            return self._getMesh().getIndices(copy=copy)
 
     def getDrawMode(self):
         """Get mesh rendering mode.
@@ -162,9 +120,9 @@ class Mesh(DataItem3D):
         :return: The drawing mode of this primitive
         :rtype: str
         """
-        return self._mesh.drawMode
+        return self._getMesh().drawMode
 
-    def _pickFull(self, context):
+    def _pickFull(self, context):  # TODO add support of indices
         """Perform precise picking in this item at given widget position.
 
         :param PickContext context: Current picking context
@@ -229,6 +187,150 @@ class Mesh(DataItem3D):
                              positions=points,
                              indices=indices,
                              fetchdata=self.getPositionData)
+
+
+class Mesh(_MeshBase):
+    """Description of mesh.
+
+    :param parent: The View widget this item belongs to.
+    """
+
+    def __init__(self, parent=None):
+        _MeshBase.__init__(self, parent=parent)
+
+    def setData(self,
+                position,
+                color,
+                normal=None,
+                mode='triangles',
+                indices=None,
+                copy=True):
+        """Set mesh geometry data.
+
+        Supported drawing modes are: 'triangles', 'triangle_strip', 'fan'
+
+        :param numpy.ndarray position:
+            Position (x, y, z) of each vertex as a (N, 3) array
+        :param numpy.ndarray color: Colors for each point or a single color
+        :param Union[numpy.ndarray,None] normal: Normals for each point or None (default)
+        :param str mode: The drawing mode.
+        :param Union[List[int],None] indices:
+            Array of vertex indices or None to use arrays directly.
+        :param bool copy: True (default) to copy the data,
+                          False to use as is (do not modify!).
+        """
+        assert mode in ('triangles', 'triangle_strip', 'fan')
+        if position is None or len(position) == 0:
+            mesh = None
+        else:
+            mesh = primitives.Mesh3D(
+                position, color, normal, mode=mode, indices=indices, copy=copy)
+        self._setMesh(mesh)
+
+    def getData(self, copy=True):
+        """Get the mesh geometry.
+
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
+        :return: The positions, colors, normals and mode
+        :rtype: tuple of numpy.ndarray
+        """
+        return (self.getPositionData(copy=copy),
+                self.getColorData(copy=copy),
+                self.getNormalData(copy=copy),
+                self.getDrawMode())
+
+    def getColorData(self, copy=True):
+        """Get the mesh vertex colors.
+
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
+        :return: The RGBA colors as a (N, 4) array or a single color
+        :rtype: numpy.ndarray
+        """
+        if self._getMesh() is None:
+            return numpy.empty((0, 4), dtype=numpy.float32)
+        else:
+            return self._getMesh().getAttribute('color', copy=copy)
+
+
+class ColormapMesh(_MeshBase, ColormapMixIn):
+    """Description of mesh which color is defined by scalar and a colormap.
+
+    :param parent: The View widget this item belongs to.
+    """
+
+    def __init__(self, parent=None):
+        _MeshBase.__init__(self, parent=parent)
+        ColormapMixIn.__init__(self, function.Colormap())
+
+    def setData(self,
+                position,
+                value,
+                normal=None,
+                mode='triangles',
+                indices=None,
+                copy=True):
+        """Set mesh geometry data.
+
+        Supported drawing modes are: 'triangles', 'triangle_strip', 'fan'
+
+        :param numpy.ndarray position:
+            Position (x, y, z) of each vertex as a (N, 3) array
+        :param numpy.ndarray value: Data value for each vertex.
+        :param Union[numpy.ndarray,None] normal: Normals for each point or None (default)
+        :param str mode: The drawing mode.
+        :param Union[List[int],None] indices:
+            Array of vertex indices or None to use arrays directly.
+        :param bool copy: True (default) to copy the data,
+                          False to use as is (do not modify!).
+        """
+        assert mode in ('triangles', 'triangle_strip', 'fan')
+        if position is None or len(position) == 0:
+            mesh = None
+        else:
+            mesh = primitives.ColormapMesh3D(
+                position=position,
+                value=numpy.array(value, copy=False).reshape(-1, 1),  # Make it a 2D array
+                colormap=self._getSceneColormap(),
+                normal=normal,
+                mode=mode,
+                indices=indices,
+                copy=copy)
+        self._setMesh(mesh)
+
+        # Store data range info
+        ColormapMixIn._setRangeFromData(self, self.getValueData(copy=False))
+
+    def getData(self, copy=True):
+        """Get the mesh geometry.
+
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
+        :return: The positions, values, normals and mode
+        :rtype: tuple of numpy.ndarray
+        """
+        return (self.getPositionData(copy=copy),
+                self.getValueData(copy=copy),
+                self.getNormalData(copy=copy),
+                self.getDrawMode())
+
+    def getValueData(self, copy=True):
+        """Get the mesh vertex values.
+
+        :param bool copy:
+            True (default) to get a copy,
+            False to get internal representation (do not modify!).
+        :return: Array of data values
+        :rtype: numpy.ndarray
+        """
+        if self._getMesh() is None:
+            return numpy.empty((0,), dtype=numpy.float32)
+        else:
+            return self._getMesh().getAttribute('value', copy=copy)
 
 
 class _CylindricalVolume(DataItem3D):
