@@ -131,8 +131,8 @@ class TestStats(TestCaseQt):
         self.assertEqual(_stats['std'].calculate(self.imageContext), numpy.std(self.imageData))
         self.assertEqual(_stats['mean'].calculate(self.imageContext), numpy.mean(self.imageData))
 
-        yData = numpy.sum(self.imageData, axis=1)
-        xData = numpy.sum(self.imageData, axis=0)
+        yData = numpy.sum(self.imageData.astype(numpy.float64), axis=1)
+        xData = numpy.sum(self.imageData.astype(numpy.float64), axis=0)
         dataXRange = range(self.imageData.shape[1])
         dataYRange = range(self.imageData.shape[0])
 
@@ -168,8 +168,8 @@ class TestStats(TestCaseQt):
 
         yData = numpy.sum(self.imageData, axis=1)
         xData = numpy.sum(self.imageData, axis=0)
-        dataXRange = range(self.imageData.shape[1])
-        dataYRange = range(self.imageData.shape[0])
+        dataXRange = numpy.arange(self.imageData.shape[1], dtype=numpy.float64)
+        dataYRange = numpy.arange(self.imageData.shape[0], dtype=numpy.float64)
 
         ycom = numpy.sum(yData * dataYRange) / numpy.sum(yData)
         ycom = (ycom * 0.5) + 10
@@ -188,6 +188,7 @@ class TestStats(TestCaseQt):
         self.assertEqual(_stats['std'].calculate(self.scatterContext), numpy.std(self.valuesScatterData))
         self.assertEqual(_stats['mean'].calculate(self.scatterContext), numpy.mean(self.valuesScatterData))
 
+        data = self.valuesScatterData.astype(numpy.float64)
         comx = numpy.sum(self.xScatterData * self.valuesScatterData) / numpy.sum(self.valuesScatterData)
         comy = numpy.sum(self.yScatterData * self.valuesScatterData) / numpy.sum(self.valuesScatterData)
         self.assertEqual(_stats['com'].calculate(self.scatterContext),
