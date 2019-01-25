@@ -112,24 +112,24 @@ class TestStats(TestCaseQt):
         """Test result for simple stats on a curve"""
         _stats = self.getBasicStats()
         xData = yData = numpy.array(range(20))
-        self.assertTrue(_stats['min'].calculate(self.curveContext) == 0)
-        self.assertTrue(_stats['max'].calculate(self.curveContext) == 19)
-        self.assertTrue(_stats['minCoords'].calculate(self.curveContext) == [0])
-        self.assertTrue(_stats['maxCoords'].calculate(self.curveContext) == [19])
-        self.assertTrue(_stats['std'].calculate(self.curveContext) == numpy.std(yData))
-        self.assertTrue(_stats['mean'].calculate(self.curveContext) == numpy.mean(yData))
+        self.assertEqual(_stats['min'].calculate(self.curveContext), 0)
+        self.assertEqual(_stats['max'].calculate(self.curveContext), 19)
+        self.assertEqual(_stats['minCoords'].calculate(self.curveContext), [0])
+        self.assertEqual(_stats['maxCoords'].calculate(self.curveContext), [19])
+        self.assertEqual(_stats['std'].calculate(self.curveContext), numpy.std(yData))
+        self.assertEqual(_stats['mean'].calculate(self.curveContext), numpy.mean(yData))
         com = numpy.sum(xData * yData) / numpy.sum(yData)
-        self.assertTrue(_stats['com'].calculate(self.curveContext) == com)
+        self.assertEqual(_stats['com'].calculate(self.curveContext), com)
 
     def testBasicStatsImage(self):
         """Test result for simple stats on an image"""
         _stats = self.getBasicStats()
-        self.assertTrue(_stats['min'].calculate(self.imageContext) == 0)
-        self.assertTrue(_stats['max'].calculate(self.imageContext) == 128 * 32 - 1)
-        self.assertTrue(_stats['minCoords'].calculate(self.imageContext) == (0, 0))
-        self.assertTrue(_stats['maxCoords'].calculate(self.imageContext) == (127, 31))
-        self.assertTrue(_stats['std'].calculate(self.imageContext) == numpy.std(self.imageData))
-        self.assertTrue(_stats['mean'].calculate(self.imageContext) == numpy.mean(self.imageData))
+        self.assertEqual(_stats['min'].calculate(self.imageContext), 0)
+        self.assertEqual(_stats['max'].calculate(self.imageContext), 128 * 32 - 1)
+        self.assertEqual(_stats['minCoords'].calculate(self.imageContext), (0, 0))
+        self.assertEqual(_stats['maxCoords'].calculate(self.imageContext), (127, 31))
+        self.assertEqual(_stats['std'].calculate(self.imageContext), numpy.std(self.imageData))
+        self.assertEqual(_stats['mean'].calculate(self.imageContext), numpy.mean(self.imageData))
 
         yData = numpy.sum(self.imageData, axis=1)
         xData = numpy.sum(self.imageData, axis=0)
@@ -139,7 +139,7 @@ class TestStats(TestCaseQt):
         ycom = numpy.sum(yData*dataYRange) / numpy.sum(yData)
         xcom = numpy.sum(xData*dataXRange) / numpy.sum(xData)
 
-        self.assertTrue(_stats['com'].calculate(self.imageContext) == (xcom, ycom))
+        self.assertEqual(_stats['com'].calculate(self.imageContext), (xcom, ycom))
 
     def testStatsImageAdv(self):
         """Test that scale and origin are taking into account for images"""
@@ -153,21 +153,18 @@ class TestStats(TestCaseQt):
             onlimits=False
         )
         _stats = self.getBasicStats()
-        self.assertTrue(_stats['min'].calculate(image2Context) == 0)
-        self.assertTrue(
-            _stats['max'].calculate(image2Context) == 128 * 32 - 1)
-        self.assertTrue(
-            _stats['minCoords'].calculate(image2Context) == (100, 10))
-        self.assertTrue(
-            _stats['maxCoords'].calculate(image2Context) == (127*2. + 100,
-                                                             31 * 0.5 + 10)
-        )
-        self.assertTrue(
-            _stats['std'].calculate(image2Context) == numpy.std(
-                self.imageData))
-        self.assertTrue(
-            _stats['mean'].calculate(image2Context) == numpy.mean(
-                self.imageData))
+        self.assertEqual(_stats['min'].calculate(image2Context), 0)
+        self.assertEqual(
+            _stats['max'].calculate(image2Context), 128 * 32 - 1)
+        self.assertEqual(
+            _stats['minCoords'].calculate(image2Context), (100, 10))
+        self.assertEqual(
+            _stats['maxCoords'].calculate(image2Context), (127*2. + 100,
+                                                           31 * 0.5 + 10))
+        self.assertEqual(_stats['std'].calculate(image2Context),
+                         numpy.std(self.imageData))
+        self.assertEqual(_stats['mean'].calculate(image2Context),
+                         numpy.mean(self.imageData))
 
         yData = numpy.sum(self.imageData, axis=1)
         xData = numpy.sum(self.imageData, axis=0)
@@ -178,27 +175,23 @@ class TestStats(TestCaseQt):
         ycom = (ycom * 0.5) + 10
         xcom = numpy.sum(xData * dataXRange) / numpy.sum(xData)
         xcom = (xcom * 2.) + 100
-        self.assertTrue(
-            _stats['com'].calculate(image2Context) == (xcom, ycom))
+        self.assertTrue(numpy.allclose(
+            _stats['com'].calculate(image2Context), (xcom, ycom)))
 
     def testBasicStatsScatter(self):
         """Test result for simple stats on a scatter"""
         _stats = self.getBasicStats()
-        self.assertTrue(_stats['min'].calculate(self.scatterContext) == 5)
-        self.assertTrue(_stats['max'].calculate(self.scatterContext) == 90)
-        self.assertTrue(_stats['minCoords'].calculate(self.scatterContext) == (0, 2))
-        self.assertTrue(_stats['maxCoords'].calculate(self.scatterContext) == (50, 69))
-        self.assertTrue(_stats['std'].calculate(self.scatterContext) == numpy.std(self.valuesScatterData))
-        self.assertTrue(_stats['mean'].calculate(self.scatterContext) == numpy.mean(self.valuesScatterData))
+        self.assertEqual(_stats['min'].calculate(self.scatterContext), 5)
+        self.assertEqual(_stats['max'].calculate(self.scatterContext), 90)
+        self.assertEqual(_stats['minCoords'].calculate(self.scatterContext), (0, 2))
+        self.assertEqual(_stats['maxCoords'].calculate(self.scatterContext), (50, 69))
+        self.assertEqual(_stats['std'].calculate(self.scatterContext), numpy.std(self.valuesScatterData))
+        self.assertEqual(_stats['mean'].calculate(self.scatterContext), numpy.mean(self.valuesScatterData))
 
-        comx = numpy.sum(self.xScatterData * self.valuesScatterData).astype(numpy.float32) / numpy.sum(
-            self.valuesScatterData).astype(numpy.float32)
-        comy = numpy.sum(self.yScatterData * self.valuesScatterData).astype(numpy.float32) / numpy.sum(
-            self.valuesScatterData).astype(numpy.float32)
-        self.assertTrue(numpy.all(
-            numpy.equal(_stats['com'].calculate(self.scatterContext),
-                        (comx, comy)))
-        )
+        comx = numpy.sum(self.xScatterData * self.valuesScatterData) / numpy.sum(self.valuesScatterData)
+        comy = numpy.sum(self.yScatterData * self.valuesScatterData) / numpy.sum(self.valuesScatterData)
+        self.assertEqual(_stats['com'].calculate(self.scatterContext),
+                         (comx, comy))
 
     def testKindNotManagedByStat(self):
         """Make sure an exception is raised if we try to execute calculate
@@ -227,21 +220,21 @@ class TestStats(TestCaseQt):
             item=self.plot1d.getCurve('curve0'),
             plot=self.plot1d,
             onlimits=True)
-        self.assertTrue(stat.calculate(curveContextOnLimits) == 2)
+        self.assertEqual(stat.calculate(curveContextOnLimits), 2)
 
         self.plot2d.getXAxis().setLimitsConstraints(minPos=32)
         imageContextOnLimits = stats._ImageContext(
             item=self.plot2d.getImage('test image'),
             plot=self.plot2d,
             onlimits=True)
-        self.assertTrue(stat.calculate(imageContextOnLimits) == 32)
+        self.assertEqual(stat.calculate(imageContextOnLimits), 32)
 
         self.scatterPlot.getXAxis().setLimitsConstraints(minPos=40)
         scatterContextOnLimits = stats._ScatterContext(
             item=self.scatterPlot.getScatter('scatter plot'),
             plot=self.scatterPlot,
             onlimits=True)
-        self.assertTrue(stat.calculate(scatterContextOnLimits) == 20)
+        self.assertEqual(stat.calculate(scatterContextOnLimits), 20)
 
 
 class TestStatsFormatter(TestCaseQt):
@@ -267,15 +260,15 @@ class TestStatsFormatter(TestCaseQt):
         """Make sure a formatter with no formatter definition will return a
         simple cast to str"""
         emptyFormatter = statshandler.StatFormatter()
-        self.assertTrue(
-            emptyFormatter.format(self.stat.calculate(self.curveContext)) == '0.000')
+        self.assertEqual(
+            emptyFormatter.format(self.stat.calculate(self.curveContext)), '0.000')
 
     def testSettedFormatter(self):
         """Make sure a formatter with no formatter definition will return a
         simple cast to str"""
         formatter= statshandler.StatFormatter(formatter='{0:.3f}')
-        self.assertTrue(
-            formatter.format(self.stat.calculate(self.curveContext)) == '0.000')
+        self.assertEqual(
+            formatter.format(self.stat.calculate(self.curveContext)), '0.000')
 
 
 class TestStatsHandler(unittest.TestCase):
@@ -309,9 +302,9 @@ class TestStatsHandler(unittest.TestCase):
         res = handler0.calculate(item=self.curveItem, plot=self.plot1d,
                                  onlimits=False)
         self.assertTrue('min' in res)
-        self.assertTrue(res['min'] == '0')
+        self.assertEqual(res['min'], '0')
         self.assertTrue('max' in res)
-        self.assertTrue(res['max'] == '19')
+        self.assertEqual(res['max'], '19')
 
         handler1 = statshandler.StatsHandler(
             (
@@ -323,9 +316,9 @@ class TestStatsHandler(unittest.TestCase):
         res = handler1.calculate(item=self.curveItem, plot=self.plot1d,
                                  onlimits=False)
         self.assertTrue('min' in res)
-        self.assertTrue(res['min'] == '0')
+        self.assertEqual(res['min'], '0')
         self.assertTrue('max' in res)
-        self.assertTrue(res['max'] == '19.000')
+        self.assertEqual(res['max'], '19.000')
 
         handler2 = statshandler.StatsHandler(
             (
@@ -336,9 +329,9 @@ class TestStatsHandler(unittest.TestCase):
         res = handler2.calculate(item=self.curveItem, plot=self.plot1d,
                                  onlimits=False)
         self.assertTrue('min' in res)
-        self.assertTrue(res['min'] == '0')
+        self.assertEqual(res['min'], '0')
         self.assertTrue('max' in res)
-        self.assertTrue(res['max'] == '19.000')
+        self.assertEqual(res['max'], '19.000')
 
         handler3 = statshandler.StatsHandler((
             (('amin', numpy.argmin), statshandler.StatFormatter()),
@@ -348,9 +341,9 @@ class TestStatsHandler(unittest.TestCase):
         res = handler3.calculate(item=self.curveItem, plot=self.plot1d,
                                  onlimits=False)
         self.assertTrue('amin' in res)
-        self.assertTrue(res['amin'] == '0.000')
+        self.assertEqual(res['amin'], '0.000')
         self.assertTrue('amax' in res)
-        self.assertTrue(res['amax'] == '19')
+        self.assertEqual(res['amax'], '19')
 
         with self.assertRaises(ValueError):
             statshandler.StatsHandler(('name'))
@@ -395,32 +388,32 @@ class TestStatsWidgetWithCurves(TestCaseQt):
 
     def testInit(self):
         """Make sure all the curves are registred on initialization"""
-        self.assertTrue(self.widget.rowCount() is 3)
+        self.assertEqual(self.widget.rowCount(), 3)
 
     def testRemoveCurve(self):
         """Make sure the Curves stats take into account the curve removal from
         plot"""
         self.plot.removeCurve('curve2')
-        self.assertTrue(self.widget.rowCount() is 2)
+        self.assertEqual(self.widget.rowCount(), 2)
         for iRow in range(2):
             self.assertTrue(self.widget.item(iRow, 0).text() in ('curve0', 'curve1'))
 
         self.plot.removeCurve('curve0')
-        self.assertTrue(self.widget.rowCount() is 1)
+        self.assertEqual(self.widget.rowCount(), 1)
         self.plot.removeCurve('curve1')
-        self.assertTrue(self.widget.rowCount() is 0)
+        self.assertEqual(self.widget.rowCount(), 0)
 
     def testAddCurve(self):
         """Make sure the Curves stats take into account the add curve action"""
         self.plot.addCurve(legend='curve3', x=range(10), y=range(10))
-        self.assertTrue(self.widget.rowCount() is 4)
+        self.assertEqual(self.widget.rowCount(), 4)
 
     def testUpdateCurveFromAddCurve(self):
         """Make sure the stats of the cuve will be removed after updating a
         curve"""
         self.plot.addCurve(legend='curve0', x=range(10), y=range(10))
         self.qapp.processEvents()
-        self.assertTrue(self.widget.rowCount() is 3)
+        self.assertEqual(self.widget.rowCount(), 3)
         curve = self.plot._getItem(kind='curve', legend='curve0')
         tableItems = self.widget._itemToTableItems(curve)
         self.assertEqual(tableItems['max'].text(), '9')
@@ -428,7 +421,7 @@ class TestStatsWidgetWithCurves(TestCaseQt):
     def testUpdateCurveFromCurveObj(self):
         self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
         self.qapp.processEvents()
-        self.assertTrue(self.widget.rowCount() is 3)
+        self.assertEqual(self.widget.rowCount(), 3)
         curve = self.plot._getItem(kind='curve', legend='curve0')
         tableItems = self.widget._itemToTableItems(curve)
         self.assertEqual(tableItems['max'].text(), '3')
@@ -437,7 +430,7 @@ class TestStatsWidgetWithCurves(TestCaseQt):
         plot2 = Plot1D()
         plot2.addCurve(x=range(26), y=range(26), legend='new curve')
         self.widget.setPlot(plot2)
-        self.assertTrue(self.widget.rowCount() is 1)
+        self.assertEqual(self.widget.rowCount(), 1)
         self.qapp.processEvents()
         plot2.setAttribute(qt.Qt.WA_DeleteOnClose)
         plot2.close()
