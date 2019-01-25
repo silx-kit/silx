@@ -179,7 +179,10 @@ class _StatsContext(object):
         """
         if self.values is None or self.axes is None:
             return False
-        return len(self.axes) == self.values.ndim
+        if self.isStructuredData():
+            return len(self.axes) == self.values.ndim
+        else:
+            return self.values.ndim == 1
 
 
 class _CurveContext(_StatsContext):
