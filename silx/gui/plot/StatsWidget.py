@@ -207,7 +207,7 @@ class _PlotWidgetWrapper(_Wrapper):
 
 
 class _SceneWidgetWrapper(_Wrapper):
-    """Class handling PlotWidget specific calls and signal connections
+    """Class handling SceneWidget specific calls and signal connections
 
     See :class:`._Wrapper` for documentation
 
@@ -255,6 +255,49 @@ class _SceneWidgetWrapper(_Wrapper):
             return 'scatter'
         else:
             return None
+
+
+class _ScalarFieldViewWrapper(_Wrapper):
+    """Class handling ScalarFieldView specific calls and signal connections
+
+    See :class:`._Wrapper` for documentation
+
+    :param SceneWidget plot:
+    """
+
+    def __init__(self, plot):
+        # Lazy-import to avoid circular imports
+        from ..plot3d.ScalarFieldView import ScalarFieldView
+        from ..plot3d.items import ScalarField3D
+
+        assert isinstance(plot, ScalarFieldView)
+        super(_ScalarFieldViewWrapper, self).__init__(plot)
+        self._item = ScalarField3D()
+        self._dataChanged()
+        plot.sigDataChanged.connect(self._dataChanged)
+        # sigItemAdded, sigItemRemoved, sigVisibleDataChanged are never emitted
+
+    def _dataChanged(self):
+        plot = self.getPlot()
+        if plot is not None:
+            self._item.setData(plot.getData(copy=False), copy=False)
+            self.sigCurrentChanged.emit(self._item)
+
+    def getItems(self):
+        plot = self.getPlot()
+        return () if plot is None else (self._item,)
+
+    def getSelectedItems(self):
+        return self.getItems()
+
+    def setCurrentItem(self, item):
+        pass
+
+    def getLabel(self, item):
+        return 'Data'
+
+    def getKind(self, item):
+        return 'image'
 
 
 class StatsTable(TableWidget):
@@ -363,6 +406,8 @@ class StatsTable(TableWidget):
         :param Union[PlotWidget,SceneWidget,None] plot:
             The plot containing the items on which statistics are applied
         """
+        from ..plot3d.SceneWidget import SceneWidget  # Lazy import
+
         self._dealWithPlotConnection(create=False)
         self._removeAllItems()
 
@@ -370,9 +415,10 @@ class StatsTable(TableWidget):
             self._plotWrapper = _Wrapper()
         elif isinstance(plot, PlotWidget):
             self._plotWrapper = _PlotWidgetWrapper(plot)
-        else:  # Expect a SceneWidget
+        elif isinstance(plot, SceneWidget):
             self._plotWrapper = _SceneWidgetWrapper(plot)
-
+        else:  # Expect a ScalarFieldView
+            self._plotWrapper = _ScalarFieldViewWrapper(plot)
         self._dealWithPlotConnection(create=True)
         self._updateItemObserve()
 
