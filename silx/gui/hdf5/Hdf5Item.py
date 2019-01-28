@@ -25,13 +25,11 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2018"
+__date__ = "17/01/2019"
 
 
 import logging
 import collections
-
-import six
 
 from .. import qt
 from .. import icons
