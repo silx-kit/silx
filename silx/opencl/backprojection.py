@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "19/01/2018"
+__date__ = "25/01/2019"
 
 import logging
 import numpy as np
@@ -146,13 +146,10 @@ class SinoFilter(OpenclProcessing):
 
 
     def check_array(self, arr):
-        if not(isinstance(arr, parray.Array)):
-            raise ValueError("Expected a pyopencl.array.Array")
         if arr.dtype != np.float32:
             raise ValueError("Expected data type = numpy.float32")
         if arr.shape != self.sino_shape:
             raise ValueError("Expected sinogram shape %s, got %s" % (self.sino_shape, arr.shape))
-
 
 
     def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
@@ -195,28 +192,6 @@ class SinoFilter(OpenclProcessing):
         return res
 
     __call__ = filter_sino
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -408,6 +383,8 @@ class Backprojection(OpenclProcessing):
 
 
     def transfer_to_texture(self, sino):
+        if isinstance(sino, parray.Array):
+            return self.transfer_device_to_texture(sino)
         sino2 = sino
         if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
             sino2 = np.ascontiguousarray(sino, dtype=np.float32)
@@ -444,7 +421,7 @@ class Backprojection(OpenclProcessing):
             ev = pyopencl.enqueue_copy(
                                        self.queue,
                                        self.d_sino_tex,
-                                       d_sino,
+                                       d_sino.data,
                                        offset=0,
                                        origin=(0, 0),
                                        region=self.shape[::-1]
@@ -490,8 +467,7 @@ class Backprojection(OpenclProcessing):
         return res
 
 
-
-    def filtered_backprojection(self, sino):
+    def filtered_backprojection(self, sino, output=None):
         """
         Compute the filtered backprojection (FBP) on a sinogram.
 
@@ -499,8 +475,14 @@ class Backprojection(OpenclProcessing):
                      bins)
         """
 
-        self.filter_projections(sino)
-        res = self.backprojection()
+        # pyopencl does not support rectangular memcpy.
+        # A kernel was written for D->D rectangular copy, but we still have
+        # to do a copy H->D if the input data is on host.
+        self.sino_filter.check_array(sino)
+        if isinstance(sino, np.ndarray):
+            self.d_sino[:] = sino[:]
+        self.sino_filter(self.d_sino, output=self.d_sino)
+        res = self.backprojection(self.d_sino, output=output)
         return res
 
     __call__ = filtered_backprojection

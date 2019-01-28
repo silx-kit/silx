@@ -85,8 +85,6 @@ class TestFBP(unittest.TestCase):
     def setUp(self):
         if ocl is None:
             return
-        # ~ if sys.platform.startswith('darwin'):
-            # ~ self.skipTest("Backprojection is not implemented on CPU for OS X yet")
         self.getfiles()
         self.fbp = backprojection.Backprojection(self.sino.shape, profile=True)
         if self.fbp.compiletime_workgroup_size < 16 * 16:
@@ -124,7 +122,6 @@ class TestFBP(unittest.TestCase):
         ref_clipped = clip_circle(self.reference_rec)
         delta = abs(res_clipped - ref_clipped)
         bad = delta > 1
-#         numpy.save("/tmp/bad.npy", bad.astype(int))
         logger.debug("Absolute difference: %s with %s outlier pixels out of %s", delta.max(), bad.sum(), numpy.prod(bad.shape))
         return delta.max()
 
@@ -143,9 +140,11 @@ class TestFBP(unittest.TestCase):
             err = self.compare(res)
             msg = str("Max error = %e" % err)
             logger.info(msg)
-            # TODO: cannot do better than 1e0 ?
-            # The plain backprojection was much better, so it must be an issue in the filtering process
-            self.assertTrue(err < 1., "Max error is too high")
+            # Astra does not use the same backprojector implementation.
+            # Therefore, we cannot expect results to be the "same" (up to float32
+            # numerical error)
+            self.assertTrue(err < 5e-2, "Max error is too high")
+
         # Test multiple reconstructions
         # -----------------------------
         res0 = numpy.copy(res)
