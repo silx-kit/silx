@@ -150,6 +150,8 @@ class SinoFilter(OpenclProcessing):
             raise ValueError("Expected data type = numpy.float32")
         if arr.shape != self.sino_shape:
             raise ValueError("Expected sinogram shape %s, got %s" % (self.sino_shape, arr.shape))
+        if not(isinstance(arr, np.ndarray) or isinstance(arr, parray.Array)):
+            raise ValueError("Expected either numpy.ndarray or pyopencl.array.Array")
 
 
     def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
@@ -481,7 +483,12 @@ class Backprojection(OpenclProcessing):
         self.sino_filter.check_array(sino)
         if isinstance(sino, np.ndarray):
             self.d_sino[:] = sino[:]
-        self.sino_filter(self.d_sino, output=self.d_sino)
+            sino_in = self.d_sino
+        else:
+            sino_in = sino
+        # Filter
+        self.sino_filter(sino_in, output=self.d_sino)
+        # Backproject
         res = self.backprojection(self.d_sino, output=output)
         return res
 
