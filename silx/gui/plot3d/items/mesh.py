@@ -66,7 +66,7 @@ class _MeshBase(DataItem3D):
         if self._mesh is not None:
             self._getScenePrimitive().children.append(self._mesh)
 
-        self.sigItemChanged.emit(ItemChangedType.DATA)
+        self._updated(ItemChangedType.DATA)
 
     def _getMesh(self):
         """Returns the underlying Mesh scene primitive"""
@@ -122,7 +122,7 @@ class _MeshBase(DataItem3D):
         """
         return self._getMesh().drawMode
 
-    def _pickFull(self, context):  # TODO add support of indices
+    def _pickFull(self, context):
         """Perform precise picking in this item at given widget position.
 
         :param PickContext context: Current picking context
@@ -139,28 +139,34 @@ class _MeshBase(DataItem3D):
             return None
 
         mode = self.getDrawMode()
-        if mode == 'triangles':
+
+        vertexIndices = self.getIndices(copy=False)
+        if vertexIndices is not None:  # Expand indices
+            positions = utils.unindexArrays(mode, vertexIndices, positions)[0]
             triangles = positions.reshape(-1, 3, 3)
-
-        elif mode == 'triangle_strip':
-            # Expand strip
-            triangles = numpy.empty((len(positions) - 2, 3, 3),
-                                    dtype=positions.dtype)
-            triangles[:, 0] = positions[:-2]
-            triangles[:, 1] = positions[1:-1]
-            triangles[:, 2] = positions[2:]
-
-        elif mode == 'fan':
-            # Expand fan
-            triangles = numpy.empty((len(positions) - 2, 3, 3),
-                                    dtype=positions.dtype)
-            triangles[:, 0] = positions[0]
-            triangles[:, 1] = positions[1:-1]
-            triangles[:, 2] = positions[2:]
-
         else:
-            _logger.warning("Unsupported draw mode: %s" % mode)
-            return None
+            if mode == 'triangles':
+                triangles = positions.reshape(-1, 3, 3)
+
+            elif mode == 'triangle_strip':
+                # Expand strip
+                triangles = numpy.empty((len(positions) - 2, 3, 3),
+                                        dtype=positions.dtype)
+                triangles[:, 0] = positions[:-2]
+                triangles[:, 1] = positions[1:-1]
+                triangles[:, 2] = positions[2:]
+
+            elif mode == 'fan':
+                # Expand fan
+                triangles = numpy.empty((len(positions) - 2, 3, 3),
+                                        dtype=positions.dtype)
+                triangles[:, 0] = positions[0]
+                triangles[:, 1] = positions[1:-1]
+                triangles[:, 2] = positions[2:]
+
+            else:
+                _logger.warning("Unsupported draw mode: %s" % mode)
+                return None
 
         trianglesIndices, t, barycentric = utils.segmentTrianglesIntersection(
             rayObject, triangles)
@@ -182,6 +188,10 @@ class _MeshBase(DataItem3D):
         elif mode == 'fan':
             indices = trianglesIndices + closest  # For corners 1 and 2
             indices[closest == 0] = 0  # For first corner (common)
+
+        if vertexIndices is not None:
+            # Convert from indices in expanded triangles to input vertices
+            indices = vertexIndices[indices]
 
         return PickingResult(self,
                              positions=points,
@@ -464,7 +474,7 @@ class _CylindricalVolume(DataItem3D):
                 vertices, color, normals, mode='triangles', copy=False)
             self._getScenePrimitive().children.append(self._mesh)
 
-        self.sigItemChanged.emit(ItemChangedType.DATA)
+        self._updated(ItemChangedType.DATA)
 
     def _pickFull(self, context):
         """Perform precise picking in this item at given widget position.
