@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "30/11/2018"
+__date__ = "29/01/2019"
 
 import numpy
 import logging
@@ -438,11 +438,14 @@ class Colormap(qt.QObject):
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
             'viridis', 'magma', 'inferno', 'plasma'.
         """
+        name = str(name)
+        if self._name == name:
+            return
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
         if name not in self.getSupportedColormaps():
             raise ValueError("Colormap name '%s' is not supported" % name)
-        self._name = str(name)
+        self._name = name
         self._colors = _getColormap(self._name)
         self.sigChanged.emit()
 
