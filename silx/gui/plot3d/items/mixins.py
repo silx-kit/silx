@@ -114,12 +114,10 @@ class ColormapMixIn(_ColormapMixIn):
         self.__sceneColormap = sceneColormap
         self._syncSceneColormap()
 
-        self.sigItemChanged.connect(self.__colormapUpdated)
-
-    def __colormapUpdated(self, event):
+    def _colormapChanged(self):
         """Handle colormap updates"""
-        if event == ItemChangedType.COLORMAP:
-            self._syncSceneColormap()
+        self._syncSceneColormap()
+        super(ColormapMixIn, self)._colormapChanged()
 
     def _setRangeFromData(self, data=None):
         """Compute the data range the colormap should use from provided data.
