@@ -46,7 +46,7 @@ from silx.gui import qt
 from silx.gui.colors import Colormap
 from silx.gui.plot import Plot1D
 from silx.gui.plot.stats.stats import StatBase
-from silx.gui.plot.StatsLineWidget import BasicLineStatsWidget, BasicGridStatsWidget
+from silx.gui.plot.StatsWidget import BasicLineStatsWidget, BasicGridStatsWidget
 import numpy
 
 

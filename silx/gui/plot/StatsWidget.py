@@ -35,6 +35,7 @@ from collections import OrderedDict
 from contextlib import contextmanager
 import logging
 import weakref
+import functools
 
 import numpy
 
@@ -342,6 +343,7 @@ class _StatsWidgetBase(object):
             _statsHandler = StatsHandler(statFormatters=())
         if isinstance(_statsHandler, (list, tuple)):
             _statsHandler = StatsHandler(_statsHandler)
+        assert isinstance(_statsHandler, StatsHandler)
         return _statsHandler
 
     def setStats(self, statsHandler):
@@ -519,7 +521,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         self._statsHandler = self._getStatsHandlerInstance(statsHandler)
 
         self.setRowCount(0)
-        self.setColumnCount(len(statsHandler.stats) + 2)  # + legend and kind
+        self.setColumnCount(len(self._statsHandler) + 2)  # + legend and kind
 
         for index, stat in enumerate(self._statsHandler.stats.values()):
             headerItem = qt.QTableWidgetItem(stat.name.capitalize())
