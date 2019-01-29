@@ -583,6 +583,17 @@ class StatsTable(TableWidget):
             if tooltip is not None:
                 tableItem.setToolTip(tooltip)
 
+    # TODO: should be renamed _updateAllStatistic
+    def _updateCurrentStats(self):
+        for lgdAndKind in self._lgdAndKindToItems:
+            self._updateStats(lgdAndKind[0], lgdAndKind[1])
+
+    # TODO: should be renamed _updateStatistic
+    def _updateStats(self, legend, kind, event=None):
+        plot = self.getPlot()
+        if plot is None:
+            return
+
             tableItems.append(tableItem)
 
         # Disable sorting while adding table items
