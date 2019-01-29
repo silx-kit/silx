@@ -45,7 +45,14 @@ class _FloatItem(qt.QTableWidgetItem):
         qt.QTableWidgetItem.__init__(self, type=type)
 
     def __lt__(self, other):
-        return float(self.text()) < float(other.text())
+        self_values = self.text().lstrip('(').rstrip(')').split(',')
+        other_values = other.text().lstrip('(').rstrip(')').split(',')
+        for self_value, other_value in zip(self_values, other_values):
+            f_self_value = float(self_value)
+            f_other_value = float(other_value)
+            if f_self_value != f_other_value:
+                return f_self_value < f_other_value
+        return False
 
 
 class StatFormatter(object):

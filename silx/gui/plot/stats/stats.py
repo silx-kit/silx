@@ -266,9 +266,9 @@ class _ScatterContext(_StatsContext):
                                onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        valueData = item.getValueData()
-        xData = item.getXData()
-        yData = item.getYData()
+        valueData = item.getValueData(copy=True)
+        xData = item.getXData(copy=True)
+        yData = item.getYData(copy=True)
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
@@ -310,7 +310,7 @@ class _ImageContext(_StatsContext):
         self.origin = item.getOrigin()
         self.scale = item.getScale()
 
-        self.data = item.getData()
+        self.data = item.getData(copy=True)
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()

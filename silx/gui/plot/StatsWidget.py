@@ -616,7 +616,9 @@ class StatsTable(TableWidget):
         """
         row = self._itemToRow(item)
         if row is None:
-            _logger.error("Removing item that is not in table: %s", str(item))
+            kind = self._plotWrapper.getKind(item)
+            if kind in statsmdl.BASIC_COMPATIBLE_KINDS:
+                _logger.error("Removing item that is not in table: %s", str(item))
             return
         item.sigItemChanged.disconnect(self._plotItemChanged)
         self.removeRow(row)
