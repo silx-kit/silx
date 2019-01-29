@@ -194,3 +194,6 @@ class StatsHandler(object):
         for resName, resValue in list(res.items()):
             res[resName] = self.format(resName, res[resName])
         return res
+
+    def __len__(self):
+        return len(self.stats)
