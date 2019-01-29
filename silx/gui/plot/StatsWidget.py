@@ -944,6 +944,17 @@ class StatsWidget(qt.QWidget):
     setStatsOnVisibleData.__doc__ = StatsTable.setStatsOnVisibleData.__doc__
 
 
+DEFAULT_STATS = StatsHandler((
+    (statsmdl.StatMin(), StatFormatter()),
+    statsmdl.StatCoordMin(),
+    (statsmdl.StatMax(), StatFormatter()),
+    statsmdl.StatCoordMax(),
+    (('std', numpy.std), StatFormatter()),
+    (('mean', numpy.mean), StatFormatter()),
+    statsmdl.StatCOM()
+))
+
+
 class BasicStatsWidget(StatsWidget):
     """
     Widget defining a simple set of :class:`Stat` to be displayed on a
@@ -953,16 +964,6 @@ class BasicStatsWidget(StatsWidget):
     :param PlotWidget plot:
         The plot containing items on which we want statistics.
     """
-
-    STATS = StatsHandler((
-        (statsmdl.StatMin(), StatFormatter()),
-        statsmdl.StatCoordMin(),
-        (statsmdl.StatMax(), StatFormatter()),
-        statsmdl.StatCoordMax(),
-        (('std', numpy.std), StatFormatter()),
-        (('mean', numpy.mean), StatFormatter()),
-        statsmdl.StatCOM()
-    ))
-
     def __init__(self, parent=None, plot=None):
-        StatsWidget.__init__(self, parent=parent, plot=plot, stats=self.STATS)
+        StatsWidget.__init__(self, parent=parent, plot=plot,
+                             stats=DEFAULT_STATS)
