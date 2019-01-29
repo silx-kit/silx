@@ -43,7 +43,7 @@ from silx.gui import icons
 from silx.gui.plot import stats as statsmdl
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
-
+from silx.gui.widgets.FlowLayout import FlowLayout
 from . import PlotWidget
 from . import items as plotitems
 
@@ -976,3 +976,172 @@ class BasicStatsWidget(StatsWidget):
     def __init__(self, parent=None, plot=None):
         StatsWidget.__init__(self, parent=parent, plot=plot,
                              stats=DEFAULT_STATS)
+
+
+class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
+    """
+    Widget made to display stats into a QLayout with for all stat a couple
+     (QLabel, QLineEdit) created.
+     The the layout can be defined prior of adding any statistic.
+
+    :param QWidget parent: Qt parent
+    :param Union[PlotWidget,SceneWidget] plot:
+        The plot containing items on which we want statistics.
+    :param StatsHandler stats:
+        Set the statistics to be displayed and how to format them using
+    """
+
+    def __init__(self, parent=None, plot=None, kind='curve',
+                 statsOnVisibleData=False):
+        self._item_kind = kind
+        """The item displayed"""
+        self._statQlineEdit = {}
+        """list of legends actually displayed"""
+        self._n_statistics_per_row = 4
+        """number of statistics displayed per line in the grid layout"""
+        qt.QWidget.__init__(self, parent)
+
+        _StatsWidgetBase.__init__(self,
+                                  statsOnVisibleData=statsOnVisibleData,
+                                  displayOnlyActItem=True)
+        self.setPlot(plot)
+
+    def _addItemForStatistic(self, statistic):
+        assert isinstance(statistic, statsmdl.StatBase)
+        assert statistic.name in self._statsHandler.stats
+
+        if self.layout() is None:
+            self.setLayout(FlowLayout())
+
+        assert isinstance(self.layout(), (FlowLayout, qt.QGridLayout, qt.QBoxLayout))
+
+        self.layout().setSpacing(2)
+        self.layout().setContentsMargins(2, 2, 2, 2)
+
+        if isinstance(self.layout(), qt.QGridLayout):
+            parent = self
+        else:
+            widget = qt.QWidget(parent=self)
+            parent = widget
+
+        qLabel = qt.QLabel(statistic.name + ':', parent=parent)
+        qLineEdit = qt.QLineEdit('', parent=parent)
+        qLineEdit.setReadOnly(True)
+
+        if isinstance(self.layout(), qt.QGridLayout):
+            column = len(self._statQlineEdit) % self._n_statistics_per_row
+            row = len(self._statQlineEdit) // self._n_statistics_per_row
+            self.layout().addWidget(qLabel, row, column*2)
+            self.layout().addWidget(qLineEdit, row, column*2+1)
+        else:
+            # create a mother widget to make sure both will always be displayed
+            # side by side
+            widget = parent
+            widget.setLayout(qt.QHBoxLayout())
+            widget.layout().setSpacing(0)
+            widget.layout().setContentsMargins(0, 0, 0, 0)
+
+            widget.layout().addWidget(qLabel)
+            widget.layout().addWidget(qLineEdit)
+
+            self.layout().addWidget(widget)
+
+        self._statQlineEdit[statistic.name] = qLineEdit
+
+    def setStats(self, statsHandler):
+        """Set which stats to display and the associated formatting.
+        :param StatsHandler statsHandler:
+            Set the statistics to be displayed and how to format them using
+        """
+        _StatsWidgetBase.setStats(self, statsHandler)
+        for statName, stat in list(self._statsHandler.stats.items()):
+            self._addItemForStatistic(stat)
+        self._updateAllStats()
+
+    def setPlot(self, plot):
+        """Define the plot to interact with
+
+        :param Union[PlotWidget,None] plot:
+            The plot containing the items on which statistics are applied
+        """
+        self._dealWithPlotConnection(create=False)
+        _StatsWidgetBase.setPlot(self, plot)
+        self._dealWithPlotConnection(create=True)
+        self._updateAllStats()
+
+    def _activeItemChanged(self, kind, previous, current):
+        if kind == self._item_kind:
+            self._updateAllStats()
+
+    def _updateAllStats(self):
+        plot = self.getPlot()
+        if plot is not None:
+            items = self._plotWrapper.getSelectedItems(kind=self.getKind())
+            assert len(items) in (0, 1)
+            if len(items) is 1:
+                self._setItem(items[0])
+
+    def setKind(self, kind):
+        """Change the kind of active item to display
+        :param str kind: kind of item to display information for ('curve' ...)
+        """
+        if self._item_kind != kind:
+            self._item_kind = kind
+            self._updateItemObserve()
+
+    def getKind(self):
+        """
+        :return: kind of item we want to compute statistic for
+         :rtype: str
+        """
+        return self._item_kind
+
+    def _setItem(self, item):
+        if item is None:
+            for stat_name, stat_widget in self._statQlineEdit.items():
+                stat_widget.setText('')
+        elif (self._statsHandler is not None and len(
+                self._statsHandler.stats) > 0):
+            plot = self.getPlot()
+            if plot is not None:
+                statsValDict = self._statsHandler.calculate(item,
+                                                            plot,
+                                                            self._statsOnVisibleData)
+                for statName, statVal in list(statsValDict.items()):
+                    self._statQlineEdit[statName].setText(statVal)
+
+    def _updateItemObserve(self, *argv):
+        assert self._displayOnlyActItem
+        items = self._plotWrapper.getSelectedItems(kind=self.getKind())
+        assert len(items) in (0, 1)
+        _item = items[0] if len(items) is 1 else None
+        self._setItem(_item)
+
+
+class BasicLineStatsWidget(LineStatsWidget):
+    """
+    Widget defining a simple set of :class:`Stat` to be displayed on a
+    :class:`LineStatsWidget`.
+    """
+
+    def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
+                 kind='curve', statsOnVisibleData=False):
+        LineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
+                                 statsOnVisibleData=statsOnVisibleData)
+        if stats is not None:
+            self.setStats(stats)
+
+
+class BasicGridStatsWidget(LineStatsWidget):
+    """
+    pymca design like widget
+    """
+
+    def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
+                 kind='curve', statsOnVisibleData=False, width=4):
+        LineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
+                                 statsOnVisibleData=statsOnVisibleData)
+        self._n_statistics_per_line = width
+        self.setLayout(qt.QGridLayout())
+        if stats is not None:
+            self.setStats(stats)
