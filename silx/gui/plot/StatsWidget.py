@@ -969,6 +969,22 @@ class BasicStatsWidget(StatsWidget):
     Widget defining a simple set of :class:`Stat` to be displayed on a
     :class:`StatsWidget`.
 
+    .. snapshotqt:: img/BasicStatsWidget.png
+     :width: 100px
+     :align: center
+
+     from silx.gui.plot import Plot1D
+     from silx.gui.plot.StatsWidget import BasicStatsWidget
+     
+     plot = Plot1D()
+     x = range(100)
+     y = x
+     plot.addCurve(x, y, legend='curve_0')
+     plot.setActiveCurve('curve_0')
+     
+     widget = BasicStatsWidget(plot=plot)
+     widget.show()
+
     :param QWidget parent: Qt parent
     :param PlotWidget plot:
         The plot containing items on which we want statistics.
@@ -1135,6 +1151,22 @@ class BasicLineStatsWidget(LineStatsWidget):
 class BasicGridStatsWidget(LineStatsWidget):
     """
     pymca design like widget
+    
+    .. snapshotqt:: img/BasicGridStatsWidget.png
+     :width: 100px
+     :align: center
+
+     from silx.gui.plot import Plot1D
+     from silx.gui.plot.StatsWidget import BasicGridStatsWidget
+     
+     plot = Plot1D()
+     x = range(100)
+     y = x
+     plot.addCurve(x, y, legend='curve_0')
+     plot.setActiveCurve('curve_0')
+     
+     widget = BasicGridStatsWidget(plot=plot, kind='curve')
+     widget.show()
     """
 
     def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
