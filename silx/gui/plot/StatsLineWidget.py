@@ -44,13 +44,14 @@ from silx.gui.plot.items.scatter import Scatter as ScatterItem
 from silx.gui.plot.items.histogram import Histogram as HistogramItem
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
 from silx.gui.plot import stats as statsmdl
+from silx.gui.plot.StatsWidget import _StatsWidgetBase
 from silx.gui.widgets.FlowLayout import FlowLayout
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class LineStatsWidget(qt.QWidget):
+class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
     """
     Widget made to display stats into a QLayout with for all stat a couple
      (QLabel, QLineEdit) created.
@@ -68,20 +69,16 @@ class LineStatsWidget(qt.QWidget):
 
     def __init__(self, parent=None, plot=None, kind='curve',
                  statsOnVisibleData=False):
-        qt.QWidget.__init__(self, parent)
-        self._plotRef = None
-        self._statsOnVisibleData = statsOnVisibleData
         self._item_kind = kind
-        self.callbackImage = None
-        self.callbackScatter = None
-        self.callbackCurve = None
-        """Associate the curve legend to his first item"""
-        self._statsHandler = None
         self._statQlineEdit = {}
         """list of legends actually displayed"""
         self._n_statistics_per_row = 4
         """number of statistics displayed per line in the grid layout"""
-        self.setPlot(plot)
+        qt.QWidget.__init__(self, parent)
+
+        _StatsWidgetBase.__init__(self, plot=plot,
+                                  statsOnVisibleData=statsOnVisibleData,
+                                  displayOnlyActItem=True)
 
     def _addItemForStatistic(self, statistic):
         assert isinstance(statistic, StatBase)
@@ -125,23 +122,12 @@ class LineStatsWidget(qt.QWidget):
         :param StatsHandler statsHandler:
             Set the statistics to be displayed and how to format them using
         """
-        _statsHandler = statsHandler
-        if statsHandler is None:
-            _statsHandler = StatsHandler(statFormatters=())
-        if isinstance(_statsHandler, (list, tuple)):
-            _statsHandler = StatsHandler(_statsHandler)
+        _statsHandler = self._getStatsHandlerInstance(statsHandler)
         assert isinstance(_statsHandler, StatsHandler)
         self._statsHandler = _statsHandler
         for statName, stat in list(_statsHandler.stats.items()):
             self._addItemForStatistic(stat)
-        self._updateStats()
-
-    def getStatsHandler(self):
-        """Returns the :class:`StatsHandler` in use.
-
-        :rtype: StatsHandler
-        """
-        return self._statsHandler
+        self._updateAllStats()
 
     def setPlot(self, plot):
         """Define the plot to interact with
@@ -150,53 +136,15 @@ class LineStatsWidget(qt.QWidget):
             The plot containing the items on which statistics are applied
         """
         self._dealWithPlotConnection(create=False)
-        self._plotRef = None if plot is None else weakref.ref(plot)
+        _StatsWidgetBase.setPlot(self, plot)
         self._dealWithPlotConnection(create=True)
-        self._updateStats()
-
-    def getPlot(self):
-        """Returns the plot attached to this widget
-
-        :rtype: Union[PlotWidget,None]
-        """
-        return None if self._plotRef is None else self._plotRef()
-
-    def _dealWithPlotConnection(self, create=True):
-        """Manage connection to plot signals
-
-        Note: connection on Item are managed by the _removeItem function
-        """
-        plot = self.getPlot()
-        if plot is None:
-            return
-
-        if create is True:
-            if self.callbackImage is None:
-                self.callbackImage = functools.partial(self._activeItemChanged, 'image')
-                self.callbackScatter = functools.partial(self._activeItemChanged, 'scatter')
-                self.callbackCurve = functools.partial(self._activeItemChanged, 'curve')
-            plot.sigActiveImageChanged.connect(self.callbackImage)
-            plot.sigActiveScatterChanged.connect(self.callbackScatter)
-            plot.sigActiveCurveChanged.connect(self.callbackCurve)
-        else:
-            if self.callbackImage is not None:
-                plot.sigActiveImageChanged.disconnect(self.callbackImage)
-                plot.sigActiveScatterChanged.disconnect(self.callbackScatter)
-                plot.sigActiveCurveChanged.disconnect(self.callbackCurve)
-            self.callbackImage = None
-            self.callbackScatter = None
-            self.callbackCurve = None
-
-        if create is True:
-            plot.sigPlotSignal.connect(self._zoomPlotChanged)
-        else:
-            plot.sigPlotSignal.disconnect(self._zoomPlotChanged)
+        self._updateAllStats()
 
     def _activeItemChanged(self, kind, previous, current):
         if kind == self._item_kind:
-            self._updateStats()
+            self._updateAllStats()
 
-    def _updateStats(self):
+    def _updateAllStats(self):
         plot = self.getPlot()
         if plot is not None:
             item = plot._getActiveItem(kind=self._item_kind)
@@ -207,25 +155,6 @@ class LineStatsWidget(qt.QWidget):
                                                             self._statsOnVisibleData)
                 for statName, statVal in list(statsValDict.items()):
                     self._statQlineEdit[statName].setText(statVal)
-
-    def _zoomPlotChanged(self, event):
-        if self._statsOnVisibleData is True:
-            if 'event' in event and event['event'] == 'limitsChanged':
-                self._updateStats()
-
-    def setStatsOnVisibleData(self, b):
-        """Toggle computation of statistics on whole data or only visible ones.
-
-        .. warning:: When visible data is activated we will process to a simple
-                     filtering of visible data by the user. The filtering is a
-                     simple data sub-sampling. No interpolation is made to fit
-                     data to boundaries.
-
-        :param bool b: True if we want to apply statistics only on visible data
-        """
-        if self._statsOnVisibleData != b:
-            self._statsOnVisibleData = b
-            self._updateStats()
 
 
 class BasicLineStatsWidget(LineStatsWidget):

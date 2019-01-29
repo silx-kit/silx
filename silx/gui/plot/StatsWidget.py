@@ -314,7 +314,138 @@ class _Container(object):
         return self._obj
 
 
-class StatsTable(TableWidget):
+class _StatsWidgetBase(object):
+    """MixIn class for all the widgets displaying statistics
+    """
+    def __init__(self, plot=None, statsOnVisibleData=False,
+                 displayOnlyActItem=True):
+        self._plotRef = None
+        self._statsOnVisibleData = statsOnVisibleData
+        self.callbackImage = None
+        """callback function when the active image change"""
+        self.callbackScatter = None
+        """callback function when the active scatter change"""
+        self.callbackCurve = None
+        """callback function when the active curve change"""
+        self._statsHandler = None
+        self._displayOnlyActItem = displayOnlyActItem
+        self.setPlot(plot)
+
+    @staticmethod
+    def _getStatsHandlerInstance(statsHandler):
+        """Simple helper function to return a :class:`StatsHandler` from
+        'statsHandler' which can be a list of statistic, None or
+        :class:`StatsHandler`"""
+        _statsHandler = statsHandler
+        if statsHandler is None:
+            _statsHandler = StatsHandler(statFormatters=())
+        if isinstance(_statsHandler, (list, tuple)):
+            _statsHandler = StatsHandler(_statsHandler)
+        return _statsHandler
+
+    def setStats(self, statsHandler):
+        raise NotImplementedError('Pure virtual class')
+
+    def getStatsHandler(self):
+        """Returns the :class:`StatsHandler` in use.
+
+        :rtype: StatsHandler
+        """
+        return self._statsHandler
+
+    def setPlot(self, plot):
+        """Define the plot to interact with
+
+        :param Union[PlotWidget,None] plot:
+            The plot containing the items on which statistics are applied
+        """
+        self._plotRef = None if plot is None else weakref.ref(plot)
+
+    def getPlot(self):
+        """Returns the plot attached to this widget
+
+        :rtype: Union[PlotWidget,None]
+        """
+        return None if self._plotRef is None else self._plotRef()
+
+    def _dealWithPlotConnection(self, create=True):
+        """Manage connection to plot signals
+
+        Note: connection on Item are managed by the _removeItem function
+        """
+        plot = self.getPlot()
+        if plot is None:
+            return
+
+        if self._displayOnlyActItem:
+            if create is True:
+                if self.callbackImage is None:
+                    self.callbackImage = functools.partial(self._activeItemChanged, 'image')
+                    self.callbackScatter = functools.partial(self._activeItemChanged, 'scatter')
+                    self.callbackCurve = functools.partial(self._activeItemChanged, 'curve')
+                plot.sigActiveImageChanged.connect(self.callbackImage)
+                plot.sigActiveScatterChanged.connect(self.callbackScatter)
+                plot.sigActiveCurveChanged.connect(self.callbackCurve)
+            else:
+                if self.callbackImage is not None:
+                    plot.sigActiveImageChanged.disconnect(self.callbackImage)
+                    plot.sigActiveScatterChanged.disconnect(self.callbackScatter)
+                    plot.sigActiveCurveChanged.disconnect(self.callbackCurve)
+                self.callbackImage = None
+                self.callbackScatter = None
+                self.callbackCurve = None
+        else:
+            if create is True:
+                plot.sigContentChanged.connect(self._plotContentChanged)
+            else:
+                plot.sigContentChanged.disconnect(self._plotContentChanged)
+        if create is True:
+            plot.sigPlotSignal.connect(self._zoomPlotChanged)
+        else:
+            plot.sigPlotSignal.disconnect(self._zoomPlotChanged)
+
+    def setStatsOnVisibleData(self, b):
+        """Toggle computation of statistics on whole data or only visible ones.
+
+        .. warning:: When visible data is activated we will process to a simple
+                     filtering of visible data by the user. The filtering is a
+                     simple data sub-sampling. No interpolation is made to fit
+                     data to boundaries.
+
+        :param bool b: True if we want to apply statistics only on visible data
+        """
+        if self._statsOnVisibleData != b:
+            self._statsOnVisibleData = b
+            self._updateAllStats()
+
+    def _activeItemChanged(self, kind, previous, current):
+        """Callback used when plotting only the active item"""
+        raise NotImplementedError('Pure virtual class')
+
+    def _updateAllStats(self):
+        """Callback when all statistic are recalculate"""
+        raise NotImplementedError('Pure virtual class')
+
+    def setDisplayOnlyActiveItem(self, displayOnlyActItem):
+        """Toggle display off all items or only the active/selected one
+
+        :param bool displayOnlyActItem:
+            True if we want to only show active item
+        """
+        if self._displayOnlyActItem == displayOnlyActItem:
+            return
+        self._dealWithPlotConnection(create=False)
+        self._displayOnlyActItem = displayOnlyActItem
+        self._updateItemObserve()
+        self._dealWithPlotConnection(create=True)
+
+    def _zoomPlotChanged(self, event):
+        if self._statsOnVisibleData is True:
+            if 'event' in event and event['event'] == 'limitsChanged':
+                self._updateAllStats()
+
+
+class StatsTable(_StatsWidgetBase, TableWidget):
     """
     TableWidget displaying for each curves contained by the Plot some
     information:
@@ -332,7 +463,7 @@ class StatsTable(TableWidget):
     _LEGEND_HEADER_DATA = 'legend'
     _KIND_HEADER_DATA = 'kind'
 
-    def __init__(self, parent=None, plot=None):
+    def __init__(self, parent=None, plot=None, statsOnVisibleData=False):
         TableWidget.__init__(self, parent)
         self._displayOnlyActItem = False
         self._statsOnVisibleData = False
@@ -357,6 +488,9 @@ class StatsTable(TableWidget):
         headerItem.setData(qt.Qt.UserRole, self._KIND_HEADER_DATA)
         self.setHorizontalHeaderItem(1, headerItem)
 
+        _StatsWidgetBase.__init__(self, plot=plot,
+                                  statsOnVisibleData=statsOnVisibleData,
+                                  displayOnlyActItem=False)
         self.setSortingEnabled(True)
         self.setPlot(plot)
 
@@ -379,15 +513,9 @@ class StatsTable(TableWidget):
         :param StatsHandler statsHandler:
             Set the statistics to be displayed and how to format them using
         """
-        if statsHandler is None:
-            statsHandler = StatsHandler(statFormatters=())
-        elif isinstance(statsHandler, (list, tuple)):
-            statsHandler = StatsHandler(statsHandler)
-        assert isinstance(statsHandler, StatsHandler)
-
         self._removeAllItems()
 
-        self._statsHandler = statsHandler
+        self._statsHandler = self._getStatsHandlerInstance(statsHandler)
 
         self.setRowCount(0)
         self.setColumnCount(len(statsHandler.stats) + 2)  # + legend and kind
@@ -413,6 +541,23 @@ class StatsTable(TableWidget):
         :rtype: StatsHandler
         """
         return self._statsHandler
+
+    def _updateAllStats(self):
+        for (legend, kind) in self._lgdAndKindToItems:
+            self._updateStat(legend, kind)
+
+    @staticmethod
+    def _getKind(myItem):
+        if isinstance(myItem, CurveItem):
+            return 'curve'
+        elif isinstance(myItem, ImageItem):
+            return 'image'
+        elif isinstance(myItem, ScatterItem):
+            return 'scatter'
+        elif isinstance(myItem, HistogramItem):
+            return 'histogram'
+        else:
+            return None
 
     def setPlot(self, plot):
         """Define the plot to interact with
@@ -583,13 +728,8 @@ class StatsTable(TableWidget):
             if tooltip is not None:
                 tableItem.setToolTip(tooltip)
 
-    # TODO: should be renamed _updateAllStatistic
-    def _updateCurrentStats(self):
-        for lgdAndKind in self._lgdAndKindToItems:
-            self._updateStats(lgdAndKind[0], lgdAndKind[1])
-
     # TODO: should be renamed _updateStatistic
-    def _updateStats(self, legend, kind, event=None):
+    def _updateStat(self, legend, kind, event=None):
         plot = self.getPlot()
         if plot is None:
             return
