@@ -314,7 +314,129 @@ class _Container(object):
         return self._obj
 
 
-class StatsTable(TableWidget):
+class _StatsWidgetBase(object):
+    """
+    Base class for all widgets chich want to display statistics
+    """
+    def __init__(self, statsOnVisibleData, displayOnlyActItem):
+        self._displayOnlyActItem = displayOnlyActItem
+        self._statsOnVisibleData = statsOnVisibleData
+        self._statsHandler = None
+
+        self._plotWrapper = _Wrapper()
+        self._dealWithPlotConnection(create=True)
+
+    def setPlot(self, plot):
+        """Define the plot to interact with
+
+        :param Union[PlotWidget,SceneWidget,None] plot:
+            The plot containing the items on which statistics are applied
+        """
+        from ..plot3d.SceneWidget import SceneWidget  # Lazy import
+
+        if plot is None:
+            self._plotWrapper = _Wrapper()
+        elif isinstance(plot, PlotWidget):
+            self._plotWrapper = _PlotWidgetWrapper(plot)
+        elif isinstance(plot, SceneWidget):
+            self._plotWrapper = _SceneWidgetWrapper(plot)
+        else:  # Expect a ScalarFieldView
+            self._plotWrapper = _ScalarFieldViewWrapper(plot)
+
+    def setStats(self, statsHandler):
+        """Set which stats to display and the associated formatting.
+
+        :param StatsHandler statsHandler:
+            Set the statistics to be displayed and how to format them using
+        """
+        if statsHandler is None:
+            statsHandler = StatsHandler(statFormatters=())
+        elif isinstance(statsHandler, (list, tuple)):
+            statsHandler = StatsHandler(statsHandler)
+        assert isinstance(statsHandler, StatsHandler)
+
+        self._statsHandler = statsHandler
+
+    def getStatsHandler(self):
+        """Returns the :class:`StatsHandler` in use.
+
+        :rtype: StatsHandler
+        """
+        return self._statsHandler
+
+    def getPlot(self):
+        """Returns the plot attached to this widget
+
+        :rtype: Union[PlotWidget,SceneWidget,None]
+        """
+        return self._plotWrapper.getPlot()
+
+    def _dealWithPlotConnection(self, create=True):
+        """Manage connection to plot signals
+
+        Note: connection on Item are managed by _addItem and _removeItem methods
+        """
+        connections = []  # List of (signal, slot) to connect/disconnect
+        if self._statsOnVisibleData:
+            connections.append(
+                (self._plotWrapper.sigVisibleDataChanged, self._updateAllStats))
+
+        if self._displayOnlyActItem:
+            connections.append(
+                (self._plotWrapper.sigCurrentChanged, self._updateItemObserve))
+        else:
+            connections += [
+                (self._plotWrapper.sigItemAdded, self._addItem),
+                (self._plotWrapper.sigItemRemoved, self._removeItem),
+                (self._plotWrapper.sigCurrentChanged, self._plotCurrentChanged)]
+
+        for signal, slot in connections:
+            if create:
+                signal.connect(slot)
+            else:
+                signal.disconnect(slot)
+
+    def _updateItemObserve(self, *args):
+        """Reload table depending on mode"""
+        raise NotImplementedError('Base class')
+
+    def _updateStats(self, item):
+        """Update displayed information for given plot item
+
+        :param item: The plot item
+        """
+        raise NotImplementedError('Base class')
+
+    def _updateAllStats(self):
+        """Update stats for all rows in the table"""
+        raise NotImplementedError('Base class')
+
+    def setDisplayOnlyActiveItem(self, displayOnlyActItem):
+        """Toggle display off all items or only the active/selected one
+
+        :param bool displayOnlyActItem:
+            True if we want to only show active item
+        """
+        self._displayOnlyActItem = displayOnlyActItem
+
+    def setStatsOnVisibleData(self, b):
+        """Toggle computation of statistics on whole data or only visible ones.
+
+        .. warning:: When visible data is activated we will process to a simple
+                     filtering of visible data by the user. The filtering is a
+                     simple data sub-sampling. No interpolation is made to fit
+                     data to boundaries.
+
+        :param bool b: True if we want to apply statistics only on visible data
+        """
+        if self._statsOnVisibleData != b:
+            self._dealWithPlotConnection(create=False)
+            self._statsOnVisibleData = b
+            self._dealWithPlotConnection(create=True)
+            self._updateAllStats()
+
+
+class StatsTable(_StatsWidgetBase, TableWidget):
     """
     TableWidget displaying for each curves contained by the Plot some
     information:
@@ -334,14 +456,11 @@ class StatsTable(TableWidget):
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
-        self._displayOnlyActItem = False
-        self._statsOnVisibleData = False
-        self._statsHandler = None
-
-        self._plotWrapper = _Wrapper()
-        self._dealWithPlotConnection(create=True)
+        _StatsWidgetBase.__init__(self, statsOnVisibleData=False,
+                                  displayOnlyActItem=False)
 
         # Init for _displayOnlyActItem == False
+        assert self._displayOnlyActItem is False
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self.currentItemChanged.connect(self._currentItemChanged)
@@ -379,18 +498,11 @@ class StatsTable(TableWidget):
         :param StatsHandler statsHandler:
             Set the statistics to be displayed and how to format them using
         """
-        if statsHandler is None:
-            statsHandler = StatsHandler(statFormatters=())
-        elif isinstance(statsHandler, (list, tuple)):
-            statsHandler = StatsHandler(statsHandler)
-        assert isinstance(statsHandler, StatsHandler)
-
         self._removeAllItems()
-
-        self._statsHandler = statsHandler
+        _StatsWidgetBase.setStats(self, statsHandler)
 
         self.setRowCount(0)
-        self.setColumnCount(len(statsHandler.stats) + 2)  # + legend and kind
+        self.setColumnCount(len(self._statsHandler.stats) + 2)  # + legend and kind
 
         for index, stat in enumerate(self._statsHandler.stats.values()):
             headerItem = qt.QTableWidgetItem(stat.name.capitalize())
@@ -407,41 +519,17 @@ class StatsTable(TableWidget):
 
         self._updateItemObserve()
 
-    def getStatsHandler(self):
-        """Returns the :class:`StatsHandler` in use.
-
-        :rtype: StatsHandler
-        """
-        return self._statsHandler
-
     def setPlot(self, plot):
         """Define the plot to interact with
 
         :param Union[PlotWidget,SceneWidget,None] plot:
             The plot containing the items on which statistics are applied
         """
-        from ..plot3d.SceneWidget import SceneWidget  # Lazy import
-
         self._dealWithPlotConnection(create=False)
         self._removeAllItems()
-
-        if plot is None:
-            self._plotWrapper = _Wrapper()
-        elif isinstance(plot, PlotWidget):
-            self._plotWrapper = _PlotWidgetWrapper(plot)
-        elif isinstance(plot, SceneWidget):
-            self._plotWrapper = _SceneWidgetWrapper(plot)
-        else:  # Expect a ScalarFieldView
-            self._plotWrapper = _ScalarFieldViewWrapper(plot)
+        _StatsWidgetBase.setPlot(self, plot)
         self._dealWithPlotConnection(create=True)
         self._updateItemObserve()
-
-    def getPlot(self):
-        """Returns the plot attached to this widget
-
-        :rtype: Union[PlotWidget,SceneWidget,None]
-        """
-        return self._plotWrapper.getPlot()
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
@@ -456,31 +544,6 @@ class StatsTable(TableWidget):
         # Add items to the plot
         for item in items:
             self._addItem(item)
-
-    def _dealWithPlotConnection(self, create=True):
-        """Manage connection to plot signals
-
-        Note: connection on Item are managed by _addItem and _removeItem methods
-        """
-        connections = []  # List of (signal, slot) to connect/disconnect
-        if self._statsOnVisibleData:
-            connections.append(
-                (self._plotWrapper.sigVisibleDataChanged, self._updateAllStats))
-
-        if self._displayOnlyActItem:
-            connections.append(
-                (self._plotWrapper.sigCurrentChanged, self._updateItemObserve))
-        else:
-            connections += [
-                (self._plotWrapper.sigItemAdded, self._addItem),
-                (self._plotWrapper.sigItemRemoved, self._removeItem),
-                (self._plotWrapper.sigCurrentChanged, self._plotCurrentChanged)]
-
-        for signal, slot in connections:
-            if create:
-                signal.connect(slot)
-            else:
-                signal.disconnect(slot)
 
     def _plotCurrentChanged(self, current):
         """Handle change of current item and update selection in table
@@ -699,7 +762,7 @@ class StatsTable(TableWidget):
         if not self._displayOnlyActItem:
             self.currentItemChanged.disconnect(self._currentItemChanged)
 
-        self._displayOnlyActItem = displayOnlyActItem
+        _StatsWidgetBase.setDisplayOnlyActiveItem(self, displayOnlyActItem)
 
         self._updateItemObserve()
         self._dealWithPlotConnection(create=True)
@@ -709,22 +772,6 @@ class StatsTable(TableWidget):
             self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         else:
             self.setSelectionMode(qt.QAbstractItemView.NoSelection)
-
-    def setStatsOnVisibleData(self, b):
-        """Toggle computation of statistics on whole data or only visible ones.
-
-        .. warning:: When visible data is activated we will process to a simple
-                     filtering of visible data by the user. The filtering is a
-                     simple data sub-sampling. No interpolation is made to fit
-                     data to boundaries.
-
-        :param bool b: True if we want to apply statistics only on visible data
-        """
-        if self._statsOnVisibleData != b:
-            self._dealWithPlotConnection(create=False)
-            self._statsOnVisibleData = b
-            self._dealWithPlotConnection(create=True)
-            self._updateAllStats()
 
 
 class _OptionsWidget(qt.QToolBar):
