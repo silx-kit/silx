@@ -59,7 +59,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
     def _widgetCenter(self):
         """Returns widget center"""
         size = self.widget.size()
-        return size.width() // 2 - 20, size.height() // 2
+        return size.width() // 2, size.height() // 2
 
     def testPickImage(self):
         """Test picking of ImageData and ImageRgba items"""
