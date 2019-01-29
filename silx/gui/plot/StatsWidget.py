@@ -1081,10 +1081,10 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
     """
 
     COMPATIBLE_KINDS = {
-        'curve': CurveItem,
-        'image': ImageItem,
-        'scatter': ScatterItem,
-        'histogram': HistogramItem
+        'curve': plotitems.Curve,
+        'image': plotitems.ImageBase,
+        'scatter': plotitems.Scatter,
+        'histogram': plotitems.Histogram,
     }
 
     COMPATIBLE_ITEMS = tuple(COMPATIBLE_KINDS.values())
