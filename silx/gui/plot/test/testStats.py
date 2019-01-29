@@ -273,7 +273,7 @@ class TestStatsFormatter(TestCaseQt):
 
 
 class TestStatsHandler(unittest.TestCase):
-    """Make sure the StatHandler is correctly making the link between 
+    """Make sure the StatHandler is correctly making the link between
     :class:`StatBase` and :class:`StatFormatter` and checking the API is valid
     """
     def setUp(self):
@@ -291,7 +291,7 @@ class TestStatsHandler(unittest.TestCase):
 
     def testConstructor(self):
         """Make sure the constructor can deal will all possible arguments:
-        
+
         * tuple of :class:`StatBase` derivated classes
         * tuple of tuples (:class:`StatBase`, :class:`StatFormatter`)
         * tuple of tuples (str, pointer to function, kind)
@@ -322,10 +322,9 @@ class TestStatsHandler(unittest.TestCase):
         self.assertEqual(res['max'], '19.000')
 
         handler2 = statshandler.StatsHandler(
-            (
-                (stats.StatMin(), None),
-                (stats.StatMax(), statshandler.StatFormatter())
-        ))
+            ((stats.StatMin(), None),
+             (stats.StatMax(), statshandler.StatFormatter()))
+        )
 
         res = handler2.calculate(item=self.curveItem, plot=self.plot1d,
                                  onlimits=False)
@@ -544,7 +543,6 @@ class TestEmptyStatsWidget(TestCaseQt):
 class TestLineWidget(TestCaseQt):
     """Some test for the StatsLineWidget."""
     def setUp(self):
-
         TestCaseQt.setUp(self)
         self.plot = Plot1D()
         self.plot.show()
@@ -584,7 +582,8 @@ def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestStats, TestStatsHandler, TestStatsWidgetWithScatters,
                       TestStatsWidgetWithImages, TestStatsWidgetWithCurves,
-                      TestStatsFormatter, TestEmptyStatsWidget, TestLineWidget):
+                      TestStatsFormatter, TestEmptyStatsWidget,
+                      TestLineWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
