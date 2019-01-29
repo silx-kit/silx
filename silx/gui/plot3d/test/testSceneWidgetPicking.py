@@ -216,7 +216,6 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
                 self.assertEqual(len(picking), 0)
-                self.qWait(1*1000)
 
     def testPickMeshWithIndices(self):
         """Test picking of Mesh items defined by indices"""
