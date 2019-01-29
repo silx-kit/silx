@@ -86,7 +86,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
             self._setRangeFromData(
                 None if self._dataRange is None else numpy.array(self._dataRange))
 
-            self.sigItemChanged.emit(ItemChangedType.DATA)
+            self._updated(ItemChangedType.DATA)
 
     # Colormap
 
@@ -106,7 +106,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         display = bool(display)
         if display != self.getDisplayValuesBelowMin():
             self._getPlane().colormap.displayValuesBelowMin = display
-            self.sigItemChanged.emit(ItemChangedType.ALPHA)
+            self._updated(ItemChangedType.ALPHA)
 
     def getDataRange(self):
         """Return the range of the data as a 3-tuple of values.
