@@ -169,7 +169,6 @@ else:
                     os.mkdir(_dir)
 
             createNeededDirs(os.path.dirname(output_script))
-            assert os.path.exists(os.path.dirname(image_file_source_path))
 
             has_source_code = not (self.content is None or len(self.content) is 0)
             if has_source_code:
