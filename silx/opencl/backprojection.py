@@ -118,25 +118,34 @@ class SinoFilter(OpenclProcessing):
     def init_fft(self):
         if __have_clfft__:
             self.fft_backend = "opencl"
+            self.fft = FFT(
+                self.sino_padded_shape,
+                dtype=np.float32,
+                axes=(-1,),
+                backend="opencl",
+                ctx=self.ctx,
+            )
         else:
             self.fft_backend = "numpy"
             print("""The gpyfft module was not found. The Fourier transforms will
             be done on CPU. For more performances, it is advised to install gpyfft.""")
-        self.fft = FFT(
-            self.sino_padded_shape,
-            dtype=np.float32,
-            axes=(-1,),
-            backend=self.fft_backend,
-            ctx=self.ctx,
-        )
-
+            self.fft = FFT(
+                data=np.zeros(self.sino_padded_shape, "f"),
+                axes=(-1,),
+                backend="numpy",
+            )
 
 
     def allocate_memory(self):
-        # These are already allocated by FFT()
-        self.d_sino_padded = self.fft.data_in
-        self.d_sino_f = self.fft.data_out
-        # These are needed for rectangular memcpy (see below).
+        # These are already allocated by FFT() if using the opencl backend
+        if self.fft_backend == "opencl":
+            self.d_sino_padded = self.fft.data_in
+            self.d_sino_f = self.fft.data_out
+        else:
+            # When using the numpy backend, arrays are not pre-allocated
+            self.d_sino_padded = np.zeros(self.sino_padded_shape, "f")
+            self.d_sino_f = np.zeros(self.sino_f_shape, np.complex64)
+        # These are needed for rectangular memcpy in certain cases (see below).
         self.tmp_sino_device = parray.zeros(self.queue, self.sino_shape, "f")
         self.tmp_sino_host = np.zeros(self.sino_shape, "f")
 
@@ -255,6 +264,16 @@ class SinoFilter(OpenclProcessing):
         return res
 
 
+    def do_fft(self):
+        if self.fft_backend == "opencl":
+            self.fft.fft(self.d_sino_padded, output=self.d_sino_f)
+        else:
+            # numpy backend does not support "output=" argument,
+            # and rfft always return a complex128 result.
+            res = self.fft.fft(self.d_sino_padded).astype(np.complex64)
+            self.d_sino_f[:] = res[:]
+
+
     def multiply_fourier(self):
         if self.fft_backend == "opencl":
             # Everything is on device. Call the multiplication kernel.
@@ -263,18 +282,28 @@ class SinoFilter(OpenclProcessing):
             )
         else:
             # Everything is on host.
-            self.d_sino_f *= self.d_filter_f
+            self.d_sino_f *= self.filter_f
+
+
+    def do_ifft(self):
+        if self.fft_backend == "opencl":
+            self.fft.ifft(self.d_sino_f, output=self.d_sino_padded)
+        else:
+            # numpy backend does not support "output=" argument,
+            # and irfft always return a float64 result.
+            res = self.fft.ifft(self.d_sino_f).astype("f")
+            self.d_sino_padded[:] = res[:]
 
 
     def filter_sino(self, sino, output=None):
         # Handle input sinogram
         self.prepare_input_sino(sino)
         # FFT
-        self.fft.fft(self.d_sino_padded, output=self.d_sino_f)
+        self.do_fft()
         # multiply with filter in the Fourier domain
         self.multiply_fourier()
         # iFFT
-        self.fft.ifft(self.d_sino_f, output=self.d_sino_padded)
+        self.do_ifft()
         # return
         res = self.get_output_sino(output)
         return res
