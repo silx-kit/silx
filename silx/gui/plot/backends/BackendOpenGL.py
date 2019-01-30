@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "21/12/2018"
 
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
@@ -340,7 +340,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         BackendBase.BackendBase.__init__(self, plot, parent)
 
         self._backgroundColor = 1., 1., 1., 1.
-        self._dataBackgroundColor = None
+        self._dataBackgroundColor = 1., 1., 1., 1.
 
         self.matScreenProj = mat4Identity()
 
@@ -361,6 +361,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._glGarbageCollector = []
 
         self._plotFrame = GLPlotFrame2D(
+            foregroundColor=(0., 0., 0., 1.),
+            gridColor=(.7, .7, .7, 1.),
             margins={'left': 100, 'right': 50, 'top': 50, 'bottom': 50})
 
         # Make postRedisplay asynchronous using Qt signal
@@ -705,16 +707,16 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def _renderPlotAreaGL(self):
         plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
 
-        self._plotFrame.renderGrid()
-
         gl.glScissor(self._plotFrame.margins.left,
                      self._plotFrame.margins.bottom,
                      plotWidth, plotHeight)
         gl.glEnable(gl.GL_SCISSOR_TEST)
 
-        if self._dataBackgroundColor is not None:
+        if self._dataBackgroundColor != self._backgroundColor:
             gl.glClearColor(*self._dataBackgroundColor)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+
+        self._plotFrame.renderGrid()
 
         # Matrix
         trBounds = self._plotFrame.transformedDataRanges
@@ -748,12 +750,28 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 # Ignore items <= 0. on log axes
                 continue
 
-            points = numpy.array([
-                self.dataToPixel(x, y, axis='left', check=False)
-                for (x, y) in zip(item['x'], item['y'])])
+            if item['shape'] == 'hline':
+                width = self._plotFrame.size[0]
+                _, yPixel = self.dataToPixel(
+                    None, item['y'], axis='left', check=False)
+                points = numpy.array(((0., yPixel), (width, yPixel)),
+                                     dtype=numpy.float32)
+
+            elif item['shape'] == 'vline':
+                xPixel, _ = self.dataToPixel(
+                    item['x'], None, axis='left', check=False)
+                height = self._plotFrame.size[1]
+                points = numpy.array(((xPixel, 0), (xPixel, height)),
+                                     dtype=numpy.float32)
+
+            else:
+                points = numpy.array([
+                    self.dataToPixel(x, y, axis='left', check=False)
+                    for (x, y) in zip(item['x'], item['y'])])
 
             # Draw the fill
-            if item['fill'] is not None:
+            if (item['fill'] is not None and
+                    item['shape'] not in ('hline', 'vline')):
                 self._progBase.use()
                 gl.glUniformMatrix4fv(
                     self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
@@ -778,6 +796,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 lines = GLLines2D(points[:, 0], points[:, 1],
                                   style=item['linestyle'],
                                   color=item['color'],
+                                  dash2ndColor=item['linebgcolor'],
                                   width=item['linewidth'])
                 lines.render(self.matScreenProj)
 
@@ -1025,7 +1044,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return legend, 'image'
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
-                linestyle, linewidth):
+                linestyle, linewidth, linebgcolor):
         # TODO handle overlay
         if shape not in ('polygon', 'rectangle', 'line',
                          'vline', 'hline', 'polylines'):
@@ -1058,7 +1077,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'x': x,
             'y': y,
             'linestyle': linestyle,
-            'linewidth': linewidth
+            'linewidth': linewidth,
+            'linebgcolor': linebgcolor,
         }
 
         return legend, 'item'
@@ -1562,9 +1582,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         self._plotFrame.displayed = displayed
 
-    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
-        if backgroundColor is not None:
-            self._backgroundColor = backgroundColor
-        else:
-            self._backgroundColor = 1., 1., 1., 1.
+    def setForegroundColors(self, foregroundColor, gridColor):
+        self._plotFrame.foregroundColor = foregroundColor
+        self._plotFrame.gridColor = gridColor
+
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
+        self._backgroundColor = backgroundColor
         self._dataBackgroundColor = dataBackgroundColor

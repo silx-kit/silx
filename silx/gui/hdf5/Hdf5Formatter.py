@@ -35,10 +35,7 @@ import six
 from silx.gui import qt
 from silx.gui.data.TextFormatter import TextFormatter
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 
 class Hdf5Formatter(qt.QObject):
@@ -163,10 +160,9 @@ class Hdf5Formatter(qt.QObject):
                     compound = [self.humanReadableDType(d) for d in compound]
                     return "compound(%s)" % ", ".join(compound)
         elif numpy.issubdtype(dtype, numpy.integer):
-            if h5py is not None:
-                enumType = h5py.check_dtype(enum=dtype)
-                if enumType is not None:
-                    return "enum"
+            enumType = h5py.check_dtype(enum=dtype)
+            if enumType is not None:
+                return "enum"
 
         text = str(dtype.newbyteorder('N'))
         if numpy.issubdtype(dtype, numpy.floating):

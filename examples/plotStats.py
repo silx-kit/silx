@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ __date__ = "24/07/2018"
 
 
 from silx.gui import qt
+from silx.gui.colors import Colormap
 from silx.gui.plot import Plot1D
 from silx.gui.plot.stats.stats import StatBase
 import numpy
@@ -102,6 +103,7 @@ def main():
     plot.addScatter(x=[0, 2, 5, 5, 12, 20],
                     y=[2, 3, 4, 20, 15, 6],
                     value=[5, 6, 7, 10, 90, 20],
+                    colormap=Colormap('viridis'),
                     legend='myScatter')
 
     stats = [

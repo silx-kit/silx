@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -114,19 +114,17 @@ class ColormapMixIn(_ColormapMixIn):
         self.__sceneColormap = sceneColormap
         self._syncSceneColormap()
 
-        self.sigItemChanged.connect(self.__colormapUpdated)
-
-    def __colormapUpdated(self, event):
+    def _colormapChanged(self):
         """Handle colormap updates"""
-        if event == ItemChangedType.COLORMAP:
-            self._syncSceneColormap()
+        self._syncSceneColormap()
+        super(ColormapMixIn, self)._colormapChanged()
 
     def _setRangeFromData(self, data=None):
         """Compute the data range the colormap should use from provided data.
 
         :param data: Data set from which to compute the range or None
         """
-        if data is None or len(data) == 0:
+        if data is None or data.size == 0:
             dataRange = None
         else:
             dataRange = min_max(data, min_positive=True, finite=True)
@@ -143,6 +141,13 @@ class ColormapMixIn(_ColormapMixIn):
 
         if self.getColormap().isAutoscale():
             self._syncSceneColormap()
+
+    def _getDataRange(self):
+        """Returns the data range as used in the scene for colormap
+
+        :rtype: Union[List[float],None]
+        """
+        return self._dataRange
 
     def _setSceneColormap(self, sceneColormap):
         """Set the scene colormap to sync with Colormap object.

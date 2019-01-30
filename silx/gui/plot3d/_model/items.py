@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -573,7 +573,6 @@ class _ColormapBaseProxyRow(ProxyRow):
     """Signal used internally to notify colormap (or data) update"""
 
     def __init__(self, item, *args, **kwargs):
-        self._dataRange = None
         self._item = weakref.ref(item)
         self._colormap = item.getColormap()
 
@@ -592,19 +591,11 @@ class _ColormapBaseProxyRow(ProxyRow):
 
         :return: Colormap range (min, max)
         """
-        if self._dataRange is None:
-            item = self.item()
-            if item is not None and self._colormap is not None:
-                if hasattr(item, 'getDataRange'):
-                    data = item.getDataRange()
-                else:
-                    data = item.getData(copy=False)
-
-                self._dataRange = self._colormap.getColormapRange(data)
-
-            else:  # Fallback
-                self._dataRange = 1, 100
-        return self._dataRange
+        item = self.item()
+        if item is not None and self._colormap is not None:
+            return self._colormap.getColormapRange(item._getDataRange())
+        else:
+            return 1, 100  # Fallback
 
     def _modelUpdated(self, *args, **kwargs):
         """Emit dataChanged in the model"""
@@ -635,7 +626,6 @@ class _ColormapBaseProxyRow(ProxyRow):
                 self._colormap = None
 
         elif event == items.ItemChangedType.DATA:
-            self._dataRange = None
             self._sigColormapChanged.emit()
 
 

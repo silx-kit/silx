@@ -32,12 +32,7 @@ import numpy
 import os
 import tempfile
 import unittest
-
-try:
-    import h5py
-    h5py_missing = False
-except ImportError:
-    h5py_missing = True
+import h5py
 
 from collections import defaultdict
 
@@ -61,7 +56,6 @@ city_attrs["Europe"]["France"]["Grenoble"]["coordinates"] = [45.1830, 5.7196]
 city_attrs["Europe"]["France"]["Tourcoing"]["area"]
 
 
-@unittest.skipIf(h5py_missing, "Could not import h5py")
 class TestDictToH5(unittest.TestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
@@ -115,7 +109,6 @@ class TestDictToH5(unittest.TestCase):
         assert(res['t'] == False)
 
 
-@unittest.skipIf(h5py_missing, "Could not import h5py")
 class TestH5ToDict(unittest.TestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()

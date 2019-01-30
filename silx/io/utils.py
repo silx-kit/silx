@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,17 +41,12 @@ import six
 from silx.utils.proxy import Proxy
 import silx.io.url
 
-try:
-    import h5py
-except ImportError as e:
-    h5py = None
-    h5py_import_error = e
+import h5py
 
 try:
     import h5pyd
 except ImportError as e:
     h5pyd = None
-    h5py_import_error = e
 
 
 logger = logging.getLogger(__name__)
@@ -91,9 +86,8 @@ def supported_extensions(flat_formats=True):
     :rtype: Dict[str, Set[str]]
     """
     formats = {}
-    if h5py is not None:
-        formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
-        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
+    formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
+    formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
     formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
     if flat_formats:
         try:
@@ -407,10 +401,6 @@ def h5ls(h5group, lvl=0):
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
     """
-    if h5py is None:
-        logger.error("h5ls requires h5py")
-        raise h5py_import_error
-
     h5repr = ''
     if is_group(h5group):
         h5f = h5group
@@ -468,9 +458,8 @@ def _open_local_file(filename):
                 debugging_info.append((sys.exc_info(),
                                       "File '%s' can't be read as a numpy file." % filename))
 
-        if h5py is not None:
-            if h5py.is_hdf5(filename):
-                return h5py.File(filename, "r")
+        if h5py.is_hdf5(filename):
+            return h5py.File(filename, "r")
 
         try:
             from . import fabioh5
@@ -618,13 +607,12 @@ def _get_classes_type():
     _CLASSES_TYPE[commonh5.Group] = H5Type.GROUP
     _CLASSES_TYPE[commonh5.SoftLink] = H5Type.SOFT_LINK
 
-    if h5py is not None:
-        _CLASSES_TYPE[h5py.Dataset] = H5Type.DATASET
-        _CLASSES_TYPE[h5py.File] = H5Type.FILE
-        _CLASSES_TYPE[h5py.Group] = H5Type.GROUP
-        _CLASSES_TYPE[h5py.SoftLink] = H5Type.SOFT_LINK
-        _CLASSES_TYPE[h5py.HardLink] = H5Type.HARD_LINK
-        _CLASSES_TYPE[h5py.ExternalLink] = H5Type.EXTERNAL_LINK
+    _CLASSES_TYPE[h5py.Dataset] = H5Type.DATASET
+    _CLASSES_TYPE[h5py.File] = H5Type.FILE
+    _CLASSES_TYPE[h5py.Group] = H5Type.GROUP
+    _CLASSES_TYPE[h5py.SoftLink] = H5Type.SOFT_LINK
+    _CLASSES_TYPE[h5py.HardLink] = H5Type.HARD_LINK
+    _CLASSES_TYPE[h5py.ExternalLink] = H5Type.EXTERNAL_LINK
 
     if h5pyd is not None:
         _CLASSES_TYPE[h5pyd.Dataset] = H5Type.DATASET
@@ -697,9 +685,6 @@ def get_h5py_class(obj):
     :param obj: An object
     :return: An h5py object
     """
-    if h5py is None:
-        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
-        raise h5py_import_error
     if hasattr(obj, "h5py_class"):
         return obj.h5py_class
     type_ = get_h5_class(obj)

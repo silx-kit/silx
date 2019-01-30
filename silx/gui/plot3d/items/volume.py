@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -78,13 +78,15 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
     def _parentChanged(self, event):
         """Handle data change in the parent this plane belongs to"""
         if event == ItemChangedType.DATA:
-            self._getPlane().setData(self.sender().getData(copy=False),
-                                     copy=False)
+            data = self.sender().getData(copy=False)
+            self._getPlane().setData(data, copy=False)
 
             # Store data range info as 3-tuple of values
             self._dataRange = self.sender().getDataRange()
+            self._setRangeFromData(
+                None if self._dataRange is None else numpy.array(self._dataRange))
 
-            self.sigItemChanged.emit(ItemChangedType.DATA)
+            self._updated(ItemChangedType.DATA)
 
     # Colormap
 
@@ -104,7 +106,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         display = bool(display)
         if display != self.getDisplayValuesBelowMin():
             self._getPlane().colormap.displayValuesBelowMin = display
-            self.sigItemChanged.emit(ItemChangedType.ALPHA)
+            self._updated(ItemChangedType.ALPHA)
 
     def getDataRange(self):
         """Return the range of the data as a 3-tuple of values.

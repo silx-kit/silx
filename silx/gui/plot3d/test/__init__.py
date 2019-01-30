@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,7 @@ def suite():
     from .testGL import suite as testGLSuite
     from .testScalarFieldView import suite as testScalarFieldViewSuite
     from .testSceneWidgetPicking import suite as testSceneWidgetPickingSuite
+    from .testStatsWidget import suite as testStatsWidgetSuite
 
     testsuite = unittest.TestSuite()
     testsuite.addTest(testGLSuite())
@@ -66,4 +67,5 @@ def suite():
     testsuite.addTest(testScalarFieldViewSuite())
     testsuite.addTest(testSceneWidgetPickingSuite())
     testsuite.addTest(toolsTestSuite())
+    testsuite.addTest(testStatsWidgetSuite())
     return testsuite

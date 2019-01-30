@@ -35,10 +35,7 @@ import numpy
 import tempfile
 import shutil
 import os.path
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 from silx.gui import qt
 from silx.app.view.Viewer import Viewer
@@ -56,22 +53,21 @@ def setUpModule():
     global _tmpDirectory
     _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
 
-    if h5py is not None:
-        # create h5 data
-        filename = _tmpDirectory + "/data.h5"
-        f = h5py.File(filename, "w")
-        g = f.create_group("arrays")
-        g.create_dataset("scalar", data=10)
-        g.create_dataset("integers", data=numpy.array([10, 20, 30]))
-        f.close()
+    # create h5 data
+    filename = _tmpDirectory + "/data.h5"
+    f = h5py.File(filename, "w")
+    g = f.create_group("arrays")
+    g.create_dataset("scalar", data=10)
+    g.create_dataset("integers", data=numpy.array([10, 20, 30]))
+    f.close()
 
-        # create h5 data
-        filename = _tmpDirectory + "/data2.h5"
-        f = h5py.File(filename, "w")
-        g = f.create_group("arrays")
-        g.create_dataset("scalar", data=20)
-        g.create_dataset("integers", data=numpy.array([10, 20, 30]))
-        f.close()
+    # create h5 data
+    filename = _tmpDirectory + "/data2.h5"
+    f = h5py.File(filename, "w")
+    g = f.create_group("arrays")
+    g.create_dataset("scalar", data=20)
+    g.create_dataset("integers", data=numpy.array([10, 20, 30]))
+    f.close()
 
 
 def tearDownModule():
@@ -167,7 +163,6 @@ class TestDataPanel(TestCaseQt):
         self.assertIs(widget.getData(), None)
         self.assertIs(widget.getCustomNxdataItem(), data)
 
-    @unittest.skipIf(h5py is None, "Could not import h5py")
     def testRemoveDatasetsFrom(self):
         f = h5py.File(os.path.join(_tmpDirectory, "data.h5"))
         try:
@@ -179,7 +174,6 @@ class TestDataPanel(TestCaseQt):
             widget.setData(None)
             f.close()
 
-    @unittest.skipIf(h5py is None, "Could not import h5py")
     def testReplaceDatasetsFrom(self):
         f = h5py.File(os.path.join(_tmpDirectory, "data.h5"))
         f2 = h5py.File(os.path.join(_tmpDirectory, "data2.h5"))
@@ -248,7 +242,6 @@ class TestCustomNxdataWidget(TestCaseQt):
         self.assertIsNotNone(nxdata)
         self.assertFalse(item.isValid())
 
-    @unittest.skipIf(h5py is None, "Could not import h5py")
     def testRemoveDatasetsFrom(self):
         f = h5py.File(os.path.join(_tmpDirectory, "data.h5"))
         try:
@@ -261,7 +254,6 @@ class TestCustomNxdataWidget(TestCaseQt):
             model.clear()
             f.close()
 
-    @unittest.skipIf(h5py is None, "Could not import h5py")
     def testReplaceDatasetsFrom(self):
         f = h5py.File(os.path.join(_tmpDirectory, "data.h5"))
         f2 = h5py.File(os.path.join(_tmpDirectory, "data2.h5"))

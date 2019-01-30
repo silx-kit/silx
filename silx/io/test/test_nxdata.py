@@ -30,11 +30,7 @@ __date__ = "27/01/2018"
 
 import tempfile
 import unittest
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 import numpy
 import six
 
@@ -44,7 +40,6 @@ from .. import nxdata
 text_dtype = h5py.special_dtype(vlen=six.text_type)
 
 
-@unittest.skipIf(h5py is None, "silx.io.nxdata tests depend on h5py")
 class TestNXdata(unittest.TestCase):
     def setUp(self):
         tmp = tempfile.NamedTemporaryFile(prefix="nxdata_examples_", suffix=".h5", delete=True)
@@ -361,7 +356,6 @@ class TestNXdata(unittest.TestCase):
         self.assertIsNone(nxd.interpretation)
 
 
-@unittest.skipIf(h5py is None, "silx.io.nxdata tests depend on h5py")
 class TestLegacyNXdata(unittest.TestCase):
     def setUp(self):
         tmp = tempfile.NamedTemporaryFile(prefix="nxdata_legacy_examples_",

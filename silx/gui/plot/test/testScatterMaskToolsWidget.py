@@ -42,10 +42,7 @@ from silx.gui.utils.testutils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, ScatterMaskToolsWidget
 from .utils import PlotWidgetTestCase
 
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
 
 
 _logger = logging.getLogger(__name__)

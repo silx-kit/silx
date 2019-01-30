@@ -53,7 +53,7 @@ The following classes are items that describes the content of a :class:`SceneWid
 :class:`Scatter2D` inherits from :class:`.DataItem3D` and also provides its API.
 
 .. autoclass:: Scatter2D
-   :members: getData, setData, getXData, getYData, getValues,
+   :members: getData, setData, getXData, getYData, getValueData,
              supportedVisualizations, isPropertyEnabled,
              getVisualization, setVisualization,
              isHeightMap, setHeightMap,
@@ -67,7 +67,7 @@ The following classes are items that describes the content of a :class:`SceneWid
 :class:`Scatter3D` inherits from :class:`.DataItem3D` and also provides its API.
 
 .. autoclass:: Scatter3D
-   :members: getData, setData, getXData, getYData, getZData, getValues,
+   :members: getData, setData, getXData, getYData, getZData, getValueData,
              getColormap, setColormap,
              getSupportedSymbols, getSymbol, setSymbol
 

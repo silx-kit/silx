@@ -275,30 +275,7 @@ SfData( SpecFile *sf, long index, double ***retdata, long **retinfo, int *error 
      }
      ptr = from;
      dinfo[ROW] = dinfo[COL] = dinfo[REG] = 0;
-if(0){
-     /*
-      * first characters of buffer
-      */
-     while (*ptr == ' ') ptr++;  /* get rid of empty spaces */
 
-     if (*ptr == '@') {
-        /*
-         * read all mca block: go while in buffer ( ptr < to - 1 )
-         * and while a newline is preceded by a slash
-         */
-         for (    ptr = ptr + 2;
-               (*ptr != '\n' || (*(ptr-1) == MCA_CONT)) && ptr < to ;
-                  ptr++);
-     }
-     if ( *ptr == '#') {  /* Comment --> pass one line */
-              for (ptr = ptr + 1; *ptr != '\n';ptr++);
-     }
-
-    /*
-     * continue
-     */
-    ptr++;
-}
 #ifndef _GNU_SOURCE
 #ifdef PYMCA_POSIX
 	currentLocaleBuffer = setlocale(LC_NUMERIC, NULL);
@@ -317,7 +294,7 @@ if(0){
                 while(*ptr == '#'){
                     if (ptr >= to)
                         break;
-                    for (ptr = ptr; ptr < to;ptr++){
+                    for (; ptr < to; ptr++){
                         if (*ptr == '\n'){
                             break;
                         }
@@ -342,7 +319,7 @@ if(0){
                 while(*ptr == '#'){
                     if (ptr >= to)
                         break;
-                    for (ptr = ptr; ptr < to;ptr++){
+                    for (; ptr < to; ptr++){
                         if (*ptr == '\n'){
                             break;
                         }

@@ -37,10 +37,7 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.utils.testutils import SignalListener
 from ..TextFormatter import TextFormatter
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 
 class TestTextFormatter(TestCaseQt):
@@ -109,8 +106,6 @@ class TestTextFormatterWithH5py(TestCaseQt):
     @classmethod
     def setUpClass(cls):
         super(TestTextFormatterWithH5py, cls).setUpClass()
-        if h5py is None:
-            raise unittest.SkipTest("h5py is not available")
 
         cls.tmpDirectory = tempfile.mkdtemp()
         cls.h5File = h5py.File("%s/formatter.h5" % cls.tmpDirectory, mode="w")

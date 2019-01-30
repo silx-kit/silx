@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -502,7 +502,7 @@ class SaveAction(PlotAction):
                 axes_errors=[xerror, yerror],
                 title=plot.getGraphTitle())
 
-    def setFileFilter(self, dataKind, nameFilter, func):
+    def setFileFilter(self, dataKind, nameFilter, func, index=None):
         """Set a name filter to add/replace a file format support
 
         :param str dataKind:
@@ -513,10 +513,44 @@ class SaveAction(PlotAction):
         :param callable func: The function to call to perform saving.
             Expected signature is:
             bool func(PlotWidget plot, str filename, str nameFilter)
+        :param integer index: Index of the filter in the final list (or None)
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
 
+        # first append or replace the new filter to prevent colissions
         self._filters[dataKind][nameFilter] = func
+        if index is None:
+            # we are already done
+            return
+
+        # get the current ordered list of keys
+        keyList = list(self._filters[dataKind].keys())
+
+        # deal with negative indices
+        if index < 0:
+            index = len(keyList) + index
+            if index < 0:
+                index = 0
+
+        if index >= len(keyList):
+            # nothing to be done, already at the end
+            txt = 'Requested index %d impossible, already at the end' % index
+            _logger.info(txt)
+            return
+
+        # get the new ordered list
+        oldIndex = keyList.index(nameFilter)
+        del keyList[oldIndex]
+        keyList.insert(index, nameFilter)
+
+        # build the new filters
+        newFilters = OrderedDict()
+        for key in keyList:
+            newFilters[key] = self._filters[dataKind][key]
+
+        # and update the filters
+        self._filters[dataKind] = newFilters
+        return
 
     def getFileFilters(self, dataKind):
         """Returns the nameFilter and associated function for a kind of data.

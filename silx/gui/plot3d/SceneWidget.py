@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -230,6 +230,9 @@ class SceneSelection(qt.QObject):
         :raise ValueError: If the item is not the widget's scene
         """
         previous = self.getCurrentItem()
+        if item is previous:
+            return  # Fast path, nothing to do
+
         if previous is not None:
             previous.sigItemChanged.disconnect(self.__currentChanged)
 
@@ -253,9 +256,8 @@ class SceneSelection(qt.QObject):
                 'Not an Item3D: %s' % str(item))
 
         current = self.getCurrentItem()
-        if current is not previous:
-            self.sigCurrentChanged.emit(current, previous)
-            self.__updateSelectionModel()
+        self.sigCurrentChanged.emit(current, previous)
+        self.__updateSelectionModel()
 
     def __currentChanged(self, event):
         """Handle updates of the selected item"""

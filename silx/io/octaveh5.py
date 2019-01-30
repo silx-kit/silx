@@ -51,12 +51,7 @@ Here is an example of a simple read and write :
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-
-try:
-    import h5py
-except ImportError as e:
-    logger.error("Module " + __name__ + " requires h5py")
-    raise e
+import h5py
 
 __authors__ = ["C. Nemoz", "H. Payno"]
 __license__ = "MIT"
@@ -117,12 +112,12 @@ class Octaveh5(object):
             return None
 
         for key, val in iter(dict(gr_level2).items()):
-            data_dict[str(key)] = list(val.items())[1][1].value
+            data_dict[str(key)] = list(val.items())[1][1][()]
 
-            if list(val.items())[0][1].value != np.string_('sq_string'):
+            if list(val.items())[0][1][()] != np.string_('sq_string'):
                 data_dict[str(key)] = float(data_dict[str(key)])
             else:
-                if list(val.items())[0][1].value == np.string_('sq_string'):
+                if list(val.items())[0][1][()] == np.string_('sq_string'):
                     # in the case the string has been stored as an nd-array of char
                     if type(data_dict[str(key)]) is np.ndarray:
                         data_dict[str(key)] = "".join(chr(item) for item in data_dict[str(key)])

@@ -41,11 +41,7 @@ from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
 
 _logger = logging.getLogger(__name__)
 
-try:
-    import fabio
-except ImportError:
-    _logger.debug("Backtrace", exc_info=True)
-    fabio = None
+import fabio
 
 try:
     import PIL
@@ -135,14 +131,10 @@ def loadImage(filename):
     except Exception:
         _logger.debug("Error while loading image with silx.io", exc_info=True)
 
-    if fabio is None and PIL is None:
-        raise ImportError("fabio nor PIL are available")
-
-    if fabio is not None:
-        try:
-            return fabio.open(filename).data
-        except Exception:
-            _logger.debug("Error while loading image with fabio", exc_info=True)
+    try:
+        return fabio.open(filename).data
+    except Exception:
+        _logger.debug("Error while loading image with fabio", exc_info=True)
 
     if PIL is not None:
         try:

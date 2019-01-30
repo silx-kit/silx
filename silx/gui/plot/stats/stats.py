@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,14 @@ __license__ = "MIT"
 __date__ = "06/06/2018"
 
 
-import numpy
-from silx.gui.plot.items.curve import Curve as CurveItem
-from silx.gui.plot.items.image import ImageBase as ImageItem
-from silx.gui.plot.items.scatter import Scatter as ScatterItem
-from silx.gui.plot.items.histogram import Histogram as HistogramItem
-from silx.math.combo import min_max
 from collections import OrderedDict
 import logging
+
+import numpy
+
+from .. import items
+from ....math.combo import min_max
+
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ class Stats(OrderedDict):
 
     def calculate(self, item, plot, onlimits):
         """
-        Call all :class:`Stat` object registred and return the result of the
+        Call all :class:`Stat` object registered and return the result of the
         computation.
 
         :param item: the item for which we want statistics
@@ -72,17 +72,29 @@ class Stats(OrderedDict):
         :return dict: dictionary with :class:`Stat` name as ket and result
                       of the calculation as value
         """
-        res = {}
-        if isinstance(item, CurveItem):
+        context = None
+        # Check for PlotWidget items
+        if isinstance(item, items.Curve):
             context = _CurveContext(item, plot, onlimits)
-        elif isinstance(item, ImageItem):
+        elif isinstance(item, items.ImageData):
             context = _ImageContext(item, plot, onlimits)
-        elif isinstance(item, ScatterItem):
+        elif isinstance(item, items.Scatter):
             context = _ScatterContext(item, plot, onlimits)
-        elif isinstance(item, HistogramItem):
+        elif isinstance(item, items.Histogram):
             context = _HistogramContext(item, plot, onlimits)
         else:
-            raise ValueError('Item type not managed')
+            # Check for SceneWidget items
+            from ...plot3d import items as items3d  # Lazy import
+
+            if isinstance(item, (items3d.Scatter2D, items3d.Scatter3D)):
+                context = _plot3DScatterContext(item, plot, onlimits)
+            elif isinstance(item, (items3d.ImageData, items3d.ScalarField3D)):
+                context = _plot3DArrayContext(item, plot, onlimits)
+
+        if context is None:
+                raise ValueError('Item type not managed')
+
+        res = {}
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
                 logger.debug('kind %s not managed by statistic %s'
@@ -124,11 +136,53 @@ class _StatsContext(object):
         self.min = None
         self.max = None
         self.data = None
+
         self.values = None
+        """The array of data"""
+
+        self.axes = None
+        """A list of array of position on each axis.
+
+        If the signal is an array,
+        then each axis has the length of that dimension,
+        and the order is (z, y, x) (i.e., as the array shape).
+        If the signal is not an array,
+        then each axis has the same length as the signal,
+        and the order is (x, y, z).
+        """
+
         self.createContext(item, plot, onlimits)
 
     def createContext(self, item, plot, onlimits):
         raise NotImplementedError("Base class")
+
+    def isStructuredData(self):
+        """Returns True if data as an array-like structure.
+
+        :rtype: bool
+        """
+        if self.values is None or self.axes is None:
+            return False
+
+        if numpy.prod([len(axis) for axis in self.axes]) == self.values.size:
+            return True
+        else:
+            # Make sure there is the right number of value in axes
+            for axis in self.axes:
+                assert len(axis) == self.values.size
+            return False
+
+    def isScalarData(self):
+        """Returns True if data is a scalar.
+
+        :rtype: bool
+        """
+        if self.values is None or self.axes is None:
+            return False
+        if self.isStructuredData():
+            return len(self.axes) == self.values.ndim
+        else:
+            return self.values.ndim == 1
 
 
 class _CurveContext(_StatsContext):
@@ -149,8 +203,9 @@ class _CurveContext(_StatsContext):
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            yData = yData[(minX <= xData) & (xData <= maxX)]
-            xData = xData[(minX <= xData) & (xData <= maxX)]
+            mask = (minX <= xData) & (xData <= maxX)
+            yData = yData[mask]
+            xData = xData[mask]
 
         self.xData = xData
         self.yData = yData
@@ -160,11 +215,12 @@ class _CurveContext(_StatsContext):
             self.min, self.max = None, None
         self.data = (xData, yData)
         self.values = yData
+        self.axes = (xData,)
 
 
 class _HistogramContext(_StatsContext):
     """
-    StatsContext for :class:`Curve`
+    StatsContext for :class:`Histogram`
 
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
@@ -176,12 +232,13 @@ class _HistogramContext(_StatsContext):
                                plot=plot, onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        xData, edges = item.getData(copy=True)[0:2]
-        yData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
+        yData, edges = item.getData(copy=True)[0:2]
+        xData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            yData = yData[(minX <= xData) & (xData <= maxX)]
-            xData = xData[(minX <= xData) & (xData <= maxX)]
+            mask = (minX <= xData) & (xData <= maxX)
+            yData = yData[mask]
+            xData = xData[mask]
 
         self.xData = xData
         self.yData = yData
@@ -191,11 +248,13 @@ class _HistogramContext(_StatsContext):
             self.min, self.max = None, None
         self.data = (xData, yData)
         self.values = yData
+        self.axes = (xData,)
 
 
 class _ScatterContext(_StatsContext):
-    """
-    StatsContext for :class:`Scatter`
+    """StatsContext scatter plots.
+
+    It supports :class:`~silx.gui.plot.items.Scatter`.
 
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
@@ -207,11 +266,14 @@ class _ScatterContext(_StatsContext):
                                onlimits=onlimits)
 
     def createContext(self, item, plot, onlimits):
-        xData, yData, valueData, xerror, yerror = item.getData(copy=True)
-        assert plot
+        valueData = item.getValueData(copy=True)
+        xData = item.getXData(copy=True)
+        yData = item.getYData(copy=True)
+
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
             minY, maxY = plot.getYAxis().getLimits()
+
             # filter on X axis
             valueData = valueData[(minX <= xData) & (xData <= maxX)]
             yData = yData[(minX <= xData) & (xData <= maxX)]
@@ -220,17 +282,20 @@ class _ScatterContext(_StatsContext):
             valueData = valueData[(minY <= yData) & (yData <= maxY)]
             xData = xData[(minY <= yData) & (yData <= maxY)]
             yData = yData[(minY <= yData) & (yData <= maxY)]
+
         if len(valueData) > 0:
             self.min, self.max = min_max(valueData)
         else:
             self.min, self.max = None, None
         self.data = (xData, yData, valueData)
         self.values = valueData
+        self.axes = (xData, yData)
 
 
 class _ImageContext(_StatsContext):
-    """
-    StatsContext for :class:`ImageBase`
+    """StatsContext for images.
+
+    It supports :class:`~silx.gui.plot.items.ImageData`.
 
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
@@ -244,7 +309,8 @@ class _ImageContext(_StatsContext):
     def createContext(self, item, plot, onlimits):
         self.origin = item.getOrigin()
         self.scale = item.getScale()
-        self.data = item.getData()
+
+        self.data = item.getData(copy=True)
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
@@ -259,25 +325,88 @@ class _ImageContext(_StatsContext):
             YMinBound = max(YMinBound, 0)
 
             if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
-                return self.noDataSelected()
-            data = item.getData()
-            self.data = data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
-        else:
-            self.data = item.getData()
-
+                self.data = None
+            else:
+                self.data = self.data[YMinBound:YMaxBound + 1,
+                                      XMinBound:XMaxBound + 1]
         if self.data.size > 0:
             self.min, self.max = min_max(self.data)
         else:
             self.min, self.max = None, None
         self.values = self.data
 
+        if self.values is not None:
+            self.axes = (self.origin[1] + self.scale[1] * numpy.arange(self.data.shape[0]),
+                         self.origin[0] + self.scale[0] * numpy.arange(self.data.shape[1]))
 
-BASIC_COMPATIBLE_KINDS = {
-    'curve': CurveItem,
-    'image': ImageItem,
-    'scatter': ScatterItem,
-    'histogram': HistogramItem,
-}
+
+class _plot3DScatterContext(_StatsContext):
+    """StatsContext for 3D scatter plots.
+
+    It supports :class:`~silx.gui.plot3d.items.Scatter2D` and
+    :class:`~silx.gui.plot3d.items.Scatter3D`.
+
+    :param item: the item for which we want to compute the context
+    :param plot: the plot containing the item
+    :param bool onlimits: True if we want to apply statistic only on
+                          visible data.
+    """
+    def __init__(self, item, plot, onlimits):
+        _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
+                               onlimits=onlimits)
+
+    def createContext(self, item, plot, onlimits):
+        if onlimits:
+            raise RuntimeError("Unsupported plot %s" % str(plot))
+
+        values = item.getValueData(copy=False)
+
+        if values is not None and len(values) > 0:
+            self.values = values
+            axes = [item.getXData(copy=False), item.getYData(copy=False)]
+            if self.values.ndim == 3:
+                axes.append(item.getZData(copy=False))
+            self.axes = tuple(axes)
+
+            self.min, self.max = min_max(self.values)
+        else:
+            self.values = None
+            self.axes = None
+            self.min, self.max = None, None
+
+
+class _plot3DArrayContext(_StatsContext):
+    """StatsContext for 3D scalar field and data image.
+
+    It supports :class:`~silx.gui.plot3d.items.ScalarField3D` and
+    :class:`~silx.gui.plot3d.items.ImageData`.
+
+    :param item: the item for which we want to compute the context
+    :param plot: the plot containing the item
+    :param bool onlimits: True if we want to apply statistic only on
+                          visible data.
+    """
+    def __init__(self, item, plot, onlimits):
+        _StatsContext.__init__(self, kind='image', item=item, plot=plot,
+                               onlimits=onlimits)
+
+    def createContext(self, item, plot, onlimits):
+        if onlimits:
+            raise RuntimeError("Unsupported plot %s" % str(plot))
+
+        values = item.getData(copy=False)
+
+        if values is not None and len(values) > 0:
+            self.values = values
+            self.axes = tuple([numpy.arange(size) for size in self.values.shape])
+            self.min, self.max = min_max(self.values)
+        else:
+            self.values = None
+            self.axes = None
+            self.min, self.max = None, None
+
+
+BASIC_COMPATIBLE_KINDS = 'curve', 'image', 'scatter', 'histogram'
 
 
 class StatBase(object):
@@ -285,9 +414,8 @@ class StatBase(object):
     Base class for defining a statistic.
 
     :param str name: the name of the statistic. Must be unique.
-    :param compatibleKinds: the kind of items (curve, scatter...) for which
-                            the statistic apply.
-    :rtype: List or tuple
+    :param List[str] compatibleKinds:
+        The kind of items (curve, scatter...) for which the statistic apply.
     """
     def __init__(self, name, compatibleKinds=BASIC_COMPATIBLE_KINDS, description=None):
         self.name = name
@@ -298,7 +426,7 @@ class StatBase(object):
         """
         compute the statistic for the given :class:`StatsContext`
 
-        :param context:
+        :param _StatsContext context:
         :return dict: key is stat name, statistic computed is the dict value
         """
         raise NotImplementedError('Base class')
@@ -307,7 +435,7 @@ class StatBase(object):
         """
         If necessary add a tooltip for a stat kind
 
-        :param str kinf: the kind of item the statistic is compute for.
+        :param str kind: the kind of item the statistic is compute for.
         :return: tooltip or None if no tooltip
         """
         return None
@@ -329,17 +457,18 @@ class Stat(StatBase):
         self._fct = fct
 
     def calculate(self, context):
-        if context.kind in self.compatibleKinds:
-            return self._fct(context.values)
+        if context.values is not None:
+            if context.kind in self.compatibleKinds:
+                return self._fct(context.values)
+            else:
+                raise ValueError('Kind %s not managed by %s'
+                                 '' % (context.kind, self.name))
         else:
-            raise ValueError('Kind %s not managed by %s'
-                             '' % (context.kind, self.name))
+            return None
 
 
 class StatMin(StatBase):
-    """
-    Compute the minimal value on data
-    """
+    """Compute the minimal value on data"""
     def __init__(self):
         StatBase.__init__(self, name='min')
 
@@ -348,9 +477,7 @@ class StatMin(StatBase):
 
 
 class StatMax(StatBase):
-    """
-    Compute the maximal value on data
-    """
+    """Compute the maximal value on data"""
     def __init__(self):
         StatBase.__init__(self, name='max')
 
@@ -359,9 +486,7 @@ class StatMax(StatBase):
 
 
 class StatDelta(StatBase):
-    """
-    Compute the delta between minimal and maximal on data
-    """
+    """Compute the delta between minimal and maximal on data"""
     def __init__(self):
         StatBase.__init__(self, name='delta')
 
@@ -369,123 +494,84 @@ class StatDelta(StatBase):
         return context.max - context.min
 
 
-class StatCoordMin(StatBase):
-    """
-    Compute the first coordinates of the data minimal value
-    """
+class _StatCoord(StatBase):
+    """Base class for argmin and argmax stats"""
+
+    def _indexToCoordinates(self, context, index):
+        """Returns the coordinates of data point at given index
+
+        If data is an array, coordinates are in reverse order from data shape.
+
+        :param _StatsContext context:
+        :param int index: Index in the flattened data array
+        :rtype: List[int]
+        """
+        if context.isStructuredData():
+            coordinates = []
+            for axis in reversed(context.axes):
+                coordinates.append(axis[index % len(axis)])
+                index = index // len(axis)
+            return tuple(coordinates)
+        else:
+            return tuple(axis[index] for axis in context.axes)
+
+
+class StatCoordMin(_StatCoord):
+    """Compute the coordinates of the first minimum value of the data"""
     def __init__(self):
-        StatBase.__init__(self, name='coords min')
+        _StatCoord.__init__(self, name='coords min')
 
     def calculate(self, context):
-        if context.kind in ('curve', 'histogram'):
-            return context.xData[numpy.argmin(context.yData)]
-        elif context.kind == 'scatter':
-            xData, yData, valueData = context.data
-            return (xData[numpy.argmin(valueData)],
-                    yData[numpy.argmin(valueData)])
-        elif context.kind == 'image':
-            scaleX, scaleY = context.scale
-            originX, originY = context.origin
-            index1D = numpy.argmin(context.data)
-            ySize = (context.data.shape[1])
-            x = index1D % context.data.shape[1]
-            y = (index1D - x) / ySize
-            x = x * scaleX + originX
-            y = y * scaleY + originY
-            return (x, y)
-        else:
-            raise ValueError('kind not managed')
-
-    def getToolTip(self, kind):
-        if kind in ('scatter', 'image'):
-            return '(x, y)'
-        else:
+        if context.values is None or not context.isScalarData():
             return None
 
-class StatCoordMax(StatBase):
-    """
-    Compute the first coordinates of the data minimal value
-    """
+        index = numpy.argmin(context.values)
+        return self._indexToCoordinates(context, index)
+
+    def getToolTip(self, kind):
+        return "Coordinates of the first minimum value of the data"
+
+
+class StatCoordMax(_StatCoord):
+    """Compute the coordinates of the first maximum value of the data"""
     def __init__(self):
-        StatBase.__init__(self, name='coords max')
+        _StatCoord.__init__(self, name='coords max')
 
     def calculate(self, context):
-        if context.kind in ('curve', 'histogram'):
-            return context.xData[numpy.argmax(context.yData)]
-        elif context.kind == 'scatter':
-            xData, yData, valueData = context.data
-            return (xData[numpy.argmax(valueData)],
-                    yData[numpy.argmax(valueData)])
-        elif context.kind == 'image':
-            scaleX, scaleY = context.scale
-            originX, originY = context.origin
-            index1D = numpy.argmax(context.data)
-            ySize = (context.data.shape[1])
-            x = index1D % context.data.shape[1]
-            y = (index1D - x) / ySize
-            x = x * scaleX + originX
-            y = y * scaleY + originY
-            return (x, y)
-        else:
-            raise ValueError('kind not managed')
+        if context.values is None or not context.isScalarData():
+            return None
+
+        index = numpy.argmax(context.values)
+        return self._indexToCoordinates(context, index)
 
     def getToolTip(self, kind):
-        if kind in ('scatter', 'image'):
-            return '(x, y)'
-        else:
-            return None
+        return "Coordinates of the first maximum value of the data"
+
 
 class StatCOM(StatBase):
-    """
-    Compute data center of mass
-    """
+    """Compute data center of mass"""
     def __init__(self):
         StatBase.__init__(self, name='COM', description='Center of mass')
 
     def calculate(self, context):
-        if context.kind in ('curve', 'histogram'):
-            xData, yData = context.data
-            deno = numpy.sum(yData).astype(numpy.float32)
-            if deno == 0.:
-                return numpy.nan
-            else:
-                return numpy.sum(xData * yData).astype(numpy.float32) / deno
-        elif context.kind == 'scatter':
-            xData, yData, values = context.data
-            deno = numpy.sum(values).astype(numpy.float32)
-            if deno == 0.:
-                return numpy.nan, numpy.nan
-            else:
-                xcom = numpy.sum(xData * values).astype(numpy.float32) / deno
-                ycom = numpy.sum(yData * values).astype(numpy.float32) / deno
-                return (xcom, ycom)
-        elif context.kind == 'image':
-            yData = numpy.sum(context.data, axis=1)
-            xData = numpy.sum(context.data, axis=0)
-            dataXRange = range(context.data.shape[1])
-            dataYRange = range(context.data.shape[0])
-            xScale, yScale = context.scale
-            xOrigin, yOrigin = context.origin
+        if context.values is None or not context.isScalarData():
+            return None
 
-            denoY = numpy.sum(yData)
-            if denoY == 0.:
-                ycom = numpy.nan
-            else:
-                ycom = numpy.sum(yData * dataYRange) / denoY
-                ycom = ycom * yScale + yOrigin
+        values = numpy.array(context.values, dtype=numpy.float64)
+        sum_ = numpy.sum(values)
+        if sum_ == 0.:
+            return (numpy.nan,) * len(context.axes)
 
-            denoX = numpy.sum(xData)
-            if denoX == 0.:
-                xcom = numpy.nan
-            else:
-                xcom = numpy.sum(xData * dataXRange) / denoX
-                xcom = xcom * xScale + xOrigin
-            return (xcom, ycom)
+        if context.isStructuredData():
+            centerofmass = []
+            for index, axis in enumerate(context.axes):
+                axes = tuple([i for i in range(len(context.axes)) if i != index])
+                centerofmass.append(
+                    numpy.sum(axis * numpy.sum(values, axis=axes)) / sum_)
+            return tuple(reversed(centerofmass))
         else:
-            raise ValueError('kind not managed')
+            return tuple(
+                numpy.sum(axis * values) / sum_ for axis in context.axes)
 
     def getToolTip(self, kind):
-        if kind in ('scatter', 'image'):
-            return '(x, y)'
-        else:
-            return None
+        return "Compute the center of mass of the dataset"

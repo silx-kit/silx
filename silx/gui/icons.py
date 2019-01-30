@@ -213,11 +213,12 @@ class MultiImageAnimatedIcon(AbstractAnimatedIcon):
         self.__frames = []
         for i in range(100):
             try:
-                filename = getQFile("%s/%02d" % (filename, i))
+                frame_filename = os.sep.join((filename, ("%02d" %i)))
+                frame_file = getQFile(frame_filename)
             except ValueError:
                 break
             try:
-                icon = qt.QIcon(filename.fileName())
+                icon = qt.QIcon(frame_file.fileName())
             except ValueError:
                 break
             self.__frames.append(icon)

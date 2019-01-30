@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "09/11/2018"
+__date__ = "15/01/2019"
 
 
 import os
@@ -41,6 +41,7 @@ from .ApplicationContext import ApplicationContext
 from .CustomNxdataWidget import CustomNxdataWidget
 from .CustomNxdataWidget import CustomNxDataToolBar
 from . import utils
+from silx.gui.utils import projecturl
 from .DataPanel import DataPanel
 
 
@@ -60,6 +61,9 @@ class Viewer(qt.QMainWindow):
 
         qt.QMainWindow.__init__(self, parent)
         self.setWindowTitle("Silx viewer")
+
+        silxIcon = icons.getQIcon("silx")
+        self.setWindowIcon(silxIcon)
 
         self.__context = ApplicationContext(self, settings)
         self.__context.restoreLibrarySettings()
@@ -507,6 +511,11 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.about)
         self._aboutAction = action
 
+        action = qt.QAction("&Documentation", self)
+        action.setStatusTip("Show the Silx library's documentation")
+        action.triggered.connect(self.showDocumentation)
+        self._documentationAction = action
+
         # Plot backend
 
         action = qt.QAction("Plot rendering backend", self)
@@ -667,6 +676,7 @@ class Viewer(qt.QMainWindow):
 
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
+        helpMenu.addAction(self._documentationAction)
 
     def open(self):
         dialog = self.createFileDialog()
@@ -696,18 +706,11 @@ class Viewer(qt.QMainWindow):
         for description, ext in silx.io.supported_extensions().items():
             extensions[description] = " ".join(sorted(list(ext)))
 
-        try:
-            # NOTE: hdf5plugin have to be loaded before
-            import fabio
-        except Exception:
-            _logger.debug("Backtrace while loading fabio", exc_info=True)
-            fabio = None
-
-        if fabio is not None:
-            extensions["NeXus layout from EDF files"] = "*.edf"
-            extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
-            extensions["NeXus layout from CBF files"] = "*.cbf"
-            extensions["NeXus layout from MarCCD image files"] = "*.mccd"
+        # Add extensions supported by fabio
+        extensions["NeXus layout from EDF files"] = "*.edf"
+        extensions["NeXus layout from TIFF image files"] = "*.tif *.tiff"
+        extensions["NeXus layout from CBF files"] = "*.cbf"
+        extensions["NeXus layout from MarCCD image files"] = "*.mccd"
 
         all_supported_extensions = set()
         for name, exts in extensions.items():
@@ -728,6 +731,11 @@ class Viewer(qt.QMainWindow):
     def about(self):
         from .About import About
         About.about(self, "Silx viewer")
+
+    def showDocumentation(self):
+        subpath = "index.html"
+        url = projecturl.getDocumentationUrl(subpath)
+        qt.QDesktopServices.openUrl(qt.QUrl(url))
 
     def __forcePlotImageDownward(self):
         silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "downward"
