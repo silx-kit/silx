@@ -39,6 +39,8 @@ from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 from ..image.tomography import compute_ramlak_filter
 from ..math.fft import FFT
+from ..math.fft.clfft import __have_clfft__
+
 
 if pyopencl:
     mf = pyopencl.mem_flags
@@ -92,6 +94,7 @@ class SinoFilter(OpenclProcessing):
 
         self.calculate_shapes(sino_shape)
         self.init_fft()
+        self.allocate_memory()
         self.compute_filter()
         self.init_kernels()
 
@@ -113,15 +116,29 @@ class SinoFilter(OpenclProcessing):
 
 
     def init_fft(self):
+        if __have_clfft__:
+            self.fft_backend = "opencl"
+        else:
+            self.fft_backend = "numpy"
+            print("""The gpyfft module was not found. The Fourier transforms will
+            be done on CPU. For more performances, it is advised to install gpyfft.""")
         self.fft = FFT(
             self.sino_padded_shape,
             dtype=np.float32,
             axes=(-1,),
-            backend="opencl",
+            backend=self.fft_backend,
             ctx=self.ctx,
         )
+
+
+
+    def allocate_memory(self):
+        # These are already allocated by FFT()
         self.d_sino_padded = self.fft.data_in
         self.d_sino_f = self.fft.data_out
+        # These are needed for rectangular memcpy (see below).
+        self.tmp_sino_device = parray.zeros(self.queue, self.sino_shape, "f")
+        self.tmp_sino_host = np.zeros(self.sino_shape, "f")
 
 
     def compute_filter(self):
@@ -154,6 +171,14 @@ class SinoFilter(OpenclProcessing):
             raise ValueError("Expected either numpy.ndarray or pyopencl.array.Array")
 
 
+    @staticmethod
+    def check_same_array_types(arr1, arr2):
+        allowed_instances = [np.ndarray, parray.Array]
+        for inst in allowed_instances:
+            if isinstance(arr1, inst) and not(isinstance(arr2, inst)):
+                raise ValueError("Arrays must be of the same type")
+
+
     def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
         self.kernels.cpy2d(
             self.queue,
@@ -169,29 +194,91 @@ class SinoFilter(OpenclProcessing):
         )
 
 
-    def filter_sino(self, sino, output=None):
+    def copy2d_host(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
+        s = transfer_shape
+        do = dst_offset
+        so = src_offset
+        dst[do[0]:do[0]+s[0], do[1]:do[1]+s[1]] = src[so[0]:so[0]+s[0], so[1]:so[1]+s[1]]
+
+
+    def prepare_input_sino(self, sino):
         self.check_array(sino)
         self.d_sino_padded.fill(0)
-        self.copy2d(self.d_sino_padded, sino, self.sino_shape[::-1])
-        # FFT
-        self.fft.fft(self.d_sino_padded, output=self.d_sino_f)
+        if self.fft_backend == "opencl":
+            # OpenCL backend: FFT/mult/IFFT are done on device.
+            if isinstance(sino, np.ndarray):
+                # OpenCL backend + numpy input: copy H->D.
+                # As pyopencl does not support rectangular copies, we have to
+                # do a copy H->D in a temporary device buffer, and then call a
+                # kernel doing the rectangular D-D copy.
+                self.tmp_sino_device[:] = sino[:]
+                d_sino_ref = self.tmp_sino_device
+            else:
+                d_sino_ref = sino
+            # Rectangular copy D->D
+            self.copy2d(self.d_sino_padded, d_sino_ref, self.sino_shape[::-1])
+        else:
+            # Numpy backend: FFT/mult/IFFT are done on host.
+            if not(isinstance(sino, np.ndarray)):
+                # Numpy backend + pyopencl input: need to copy D->H
+                self.tmp_sino_host[:] = sino[:]
+                h_sino_ref = self.tmp_sino_host
+            else:
+                h_sino_ref = sino
+            # Rectangular copy H->H
+            self.copy2d_host(self.d_sino_padded, h_sino_ref, self.sino_shape[::-1])
 
-        # multiply padded sinogram with filter in the Fourier domain
-        self.kernels.inplace_complex_mul_2Dby1D(
-            *self.mult_kern_args
-        )
 
-        # iFFT
-        self.fft.ifft(self.d_sino_f, output=self.d_sino_padded)
-
-        # return
+    def get_output_sino(self, output):
         if output is None:
             res = np.zeros(self.sino_shape, dtype=np.float32)
-            res[:] = self.d_sino_padded.get()[:, :self.dwidth]
         else:
             res = output
-            self.copy2d(res, self.d_sino_padded, self.sino_shape[::-1])
+        if self.fft_backend == "opencl":
+            if isinstance(res, np.ndarray):
+                # OpenCL backend + numpy output: copy D->H
+                # As pyopencl does not support rectangular copies, we first have
+                # to call a kernel doing rectangular copy D->D, then do a copy
+                # D->H.
+                self.copy2d(self.tmp_sino_device, self.d_sino_padded, self.sino_shape[::-1])
+                res[:] = self.tmp_sino_device[:]
+            else:
+                self.copy2d(res, self.d_sino_padded, self.sino_shape[::-1])
+        else:
+            if not(isinstance(res, np.ndarray)):
+                # Numpy backend + pyopencl output: rect copy H->H + copy H->D
+                self.copy2d_host(self.tmp_sino_host, self.d_sino_padded, self.sino_shape[::-1])
+                res[:] = self.tmp_sino_host[:]
+            else:
+                # Numpy backend + numpy output: rect copy H->H
+                self.copy2d_host(res, self.d_sino_padded, self.sino_shape[::-1])
         return res
+
+
+    def multiply_fourier(self):
+        if self.fft_backend == "opencl":
+            # Everything is on device. Call the multiplication kernel.
+            self.kernels.inplace_complex_mul_2Dby1D(
+                *self.mult_kern_args
+            )
+        else:
+            # Everything is on host.
+            self.d_sino_f *= self.d_filter_f
+
+
+    def filter_sino(self, sino, output=None):
+        # Handle input sinogram
+        self.prepare_input_sino(sino)
+        # FFT
+        self.fft.fft(self.d_sino_padded, output=self.d_sino_f)
+        # multiply with filter in the Fourier domain
+        self.multiply_fourier()
+        # iFFT
+        self.fft.ifft(self.d_sino_f, output=self.d_sino_padded)
+        # return
+        res = self.get_output_sino(output)
+        return res
+
 
     __call__ = filter_sino
 
@@ -476,18 +563,8 @@ class Backprojection(OpenclProcessing):
         :param sino: sinogram (`np.ndarray`) in the format (projections,
                      bins)
         """
-
-        # pyopencl does not support rectangular memcpy.
-        # A kernel was written for D->D rectangular copy, but we still have
-        # to do a copy H->D if the input data is on host.
-        self.sino_filter.check_array(sino)
-        if isinstance(sino, np.ndarray):
-            self.d_sino[:] = sino[:]
-            sino_in = self.d_sino
-        else:
-            sino_in = sino
         # Filter
-        self.sino_filter(sino_in, output=self.d_sino)
+        self.sino_filter(sino, output=self.d_sino)
         # Backproject
         res = self.backprojection(self.d_sino, output=output)
         return res
