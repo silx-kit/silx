@@ -199,7 +199,7 @@ class SinoFilter(OpenclProcessing):
             np.int32(src.shape[1]),
             np.int32(dst_offset),
             np.int32(src_offset),
-            np.int32(transfer_shape)
+            np.int32(transfer_shape[::-1])
         )
 
 
@@ -225,7 +225,7 @@ class SinoFilter(OpenclProcessing):
             else:
                 d_sino_ref = sino
             # Rectangular copy D->D
-            self.copy2d(self.d_sino_padded, d_sino_ref, self.sino_shape[::-1])
+            self.copy2d(self.d_sino_padded, d_sino_ref, self.sino_shape)
         else:
             # Numpy backend: FFT/mult/IFFT are done on host.
             if not(isinstance(sino, np.ndarray)):
@@ -235,7 +235,7 @@ class SinoFilter(OpenclProcessing):
             else:
                 h_sino_ref = sino
             # Rectangular copy H->H
-            self.copy2d_host(self.d_sino_padded, h_sino_ref, self.sino_shape[::-1])
+            self.copy2d_host(self.d_sino_padded, h_sino_ref, self.sino_shape)
 
 
     def get_output_sino(self, output):
@@ -249,18 +249,18 @@ class SinoFilter(OpenclProcessing):
                 # As pyopencl does not support rectangular copies, we first have
                 # to call a kernel doing rectangular copy D->D, then do a copy
                 # D->H.
-                self.copy2d(self.tmp_sino_device, self.d_sino_padded, self.sino_shape[::-1])
+                self.copy2d(self.tmp_sino_device, self.d_sino_padded, self.sino_shape)
                 res[:] = self.tmp_sino_device[:]
             else:
-                self.copy2d(res, self.d_sino_padded, self.sino_shape[::-1])
+                self.copy2d(res, self.d_sino_padded, self.sino_shape)
         else:
             if not(isinstance(res, np.ndarray)):
                 # Numpy backend + pyopencl output: rect copy H->H + copy H->D
-                self.copy2d_host(self.tmp_sino_host, self.d_sino_padded, self.sino_shape[::-1])
+                self.copy2d_host(self.tmp_sino_host, self.d_sino_padded, self.sino_shape)
                 res[:] = self.tmp_sino_host[:]
             else:
                 # Numpy backend + numpy output: rect copy H->H
-                self.copy2d_host(res, self.d_sino_padded, self.sino_shape[::-1])
+                self.copy2d_host(res, self.d_sino_padded, self.sino_shape)
         return res
 
 
