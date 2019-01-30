@@ -969,8 +969,14 @@ class BasicStatsWidget(StatsWidget):
     Widget defining a simple set of :class:`Stat` to be displayed on a
     :class:`StatsWidget`.
 
+    :param QWidget parent: Qt parent
+    :param PlotWidget plot:
+        The plot containing items on which we want statistics.
+    :param StatsHandler stats:
+        Set the statistics to be displayed and how to format them using
+
     .. snapshotqt:: img/BasicStatsWidget.png
-     :width: 100px
+     :width: 300px
      :align: center
 
      from silx.gui.plot import Plot1D
@@ -984,10 +990,6 @@ class BasicStatsWidget(StatsWidget):
      
      widget = BasicStatsWidget(plot=plot)
      widget.show()
-
-    :param QWidget parent: Qt parent
-    :param PlotWidget plot:
-        The plot containing items on which we want statistics.
     """
     def __init__(self, parent=None, plot=None):
         StatsWidget.__init__(self, parent=parent, plot=plot,
@@ -1138,6 +1140,15 @@ class BasicLineStatsWidget(LineStatsWidget):
     """
     Widget defining a simple set of :class:`Stat` to be displayed on a
     :class:`LineStatsWidget`.
+
+    :param QWidget parent: Qt parent
+    :param Union[PlotWidget,SceneWidget] plot:
+        The plot containing items on which we want statistics.
+    :param StatsHandler stats:
+        Set the statistics to be displayed and how to format them using
+    :param str kind: the kind of plotitems we want to display
+    :param bool statsOnVisibleData: compute statistics for the whole data or
+                                    only visible ones.
     """
 
     def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
@@ -1152,8 +1163,17 @@ class BasicGridStatsWidget(LineStatsWidget):
     """
     pymca design like widget
     
+    :param QWidget parent: Qt parent
+    :param Union[PlotWidget,SceneWidget] plot:
+        The plot containing items on which we want statistics.
+    :param StatsHandler stats:
+        Set the statistics to be displayed and how to format them using
+    :param str kind: the kind of plotitems we want to display
+    :param bool statsOnVisibleData: compute statistics for the whole data or
+                                    only visible ones.
+
     .. snapshotqt:: img/BasicGridStatsWidget.png
-     :width: 100px
+     :width: 600px
      :align: center
 
      from silx.gui.plot import Plot1D
