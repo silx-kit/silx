@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1878,11 +1878,13 @@ class ColormapMesh3D(Geometry):
                  colormap=None,
                  normal=None,
                  mode='triangles',
-                 indices=None):
+                 indices=None,
+                 copy=True):
         super(ColormapMesh3D, self).__init__(mode, indices,
                                              position=position,
                                              normal=normal,
-                                             value=value)
+                                             value=value,
+                                             copy=copy)
 
         self._lineWidth = 1.0
         self._lineSmooth = True

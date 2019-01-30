@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,6 +38,6 @@ from .mixins import (ColormapMixIn, InterpolationMixIn,  # noqa
                      PlaneMixIn, SymbolMixIn)  # noqa
 from .clipplane import ClipPlane  # noqa
 from .image import ImageData, ImageRgba  # noqa
-from .mesh import Mesh, Box, Cylinder, Hexagon  # noqa
+from .mesh import Mesh, ColormapMesh, Box, Cylinder, Hexagon  # noqa
 from .scatter import Scatter2D, Scatter3D  # noqa
 from .volume import ScalarField3D  # noqa
