@@ -539,6 +539,7 @@ class TestEmptyStatsWidget(TestCaseQt):
     def test(self):
         widget = StatsWidget.StatsWidget()
         widget.show()
+        self.qWaitForWindowExposed(widget)
 
 
 def suite():
