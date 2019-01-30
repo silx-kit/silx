@@ -34,7 +34,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "11/01/2019"
+__date__ = "30/01/2019"
 
 
 import unittest
@@ -65,9 +65,9 @@ class TestKahan(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not test_options.WITH_OPENCL_TEST:
-            cls.skipTest("User request to skip OpenCL tests")
+            raise unittest.SkipTest("User request to skip OpenCL tests")
         if pyopencl is None or ocl is None:
-            cls.skipTest("OpenCL module (pyopencl) is not present or no device available")
+            raise unittest.SkipTest("OpenCL module (pyopencl) is not present or no device available")
 
         cls.ctx = ocl.create_context(devicetype="GPU")
         cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
