@@ -106,8 +106,6 @@ class TestFBP(unittest.TestCase):
         t1 = time.time()
         try:
             result = self.fbp.filtered_backprojection(self.sino)
-            numpy.save("/home/pierre/tmp/sino.npy", self.sino)
-            numpy.save("/home/pierre/tmp/fbp.npy", result)
         except RuntimeError as msg:
             logger.error(msg)
             return
