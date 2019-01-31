@@ -137,6 +137,7 @@ class SinoFilter(OpenclProcessing):
 
 
     def allocate_memory(self):
+        self.is_cpu = (self.device.type == "CPU")
         # These are already allocated by FFT() if using the opencl backend
         if self.fft_backend == "opencl":
             self.d_sino_padded = self.fft.data_in
@@ -180,14 +181,6 @@ class SinoFilter(OpenclProcessing):
             raise ValueError("Expected either numpy.ndarray or pyopencl.array.Array")
 
 
-    @staticmethod
-    def check_same_array_types(arr1, arr2):
-        allowed_instances = [np.ndarray, parray.Array]
-        for inst in allowed_instances:
-            if isinstance(arr1, inst) and not(isinstance(arr2, inst)):
-                raise ValueError("Arrays must be of the same type")
-
-
     def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
         self.kernels.cpy2d(
             self.queue,
@@ -221,11 +214,15 @@ class SinoFilter(OpenclProcessing):
                 # do a copy H->D in a temporary device buffer, and then call a
                 # kernel doing the rectangular D-D copy.
                 self.tmp_sino_device[:] = sino[:]
+                if self.is_cpu:
+                    self.tmp_sino_device.finish()
                 d_sino_ref = self.tmp_sino_device
             else:
                 d_sino_ref = sino
             # Rectangular copy D->D
             self.copy2d(self.d_sino_padded, d_sino_ref, self.sino_shape)
+            if self.is_cpu:
+                self.d_sino_padded.finish()
         else:
             # Numpy backend: FFT/mult/IFFT are done on host.
             if not(isinstance(sino, np.ndarray)):
@@ -250,9 +247,15 @@ class SinoFilter(OpenclProcessing):
                 # to call a kernel doing rectangular copy D->D, then do a copy
                 # D->H.
                 self.copy2d(self.tmp_sino_device, self.d_sino_padded, self.sino_shape)
+                if self.is_cpu:
+                    self.tmp_sino_device.finish()
                 res[:] = self.tmp_sino_device[:]
             else:
+                if self.is_cpu:
+                    self.d_sino_padded.finish()
                 self.copy2d(res, self.d_sino_padded, self.sino_shape)
+                if self.is_cpu:
+                    res.finish()
         else:
             if not(isinstance(res, np.ndarray)):
                 # Numpy backend + pyopencl output: rect copy H->H + copy H->D
@@ -267,6 +270,8 @@ class SinoFilter(OpenclProcessing):
     def do_fft(self):
         if self.fft_backend == "opencl":
             self.fft.fft(self.d_sino_padded, output=self.d_sino_f)
+            if self.is_cpu:
+                self.d_sino_f.finish()
         else:
             # numpy backend does not support "output=" argument,
             # and rfft always return a complex128 result.
@@ -280,6 +285,8 @@ class SinoFilter(OpenclProcessing):
             self.kernels.inplace_complex_mul_2Dby1D(
                 *self.mult_kern_args
             )
+            if self.is_cpu:
+                self.d_sino_f.finish()
         else:
             # Everything is on host.
             self.d_sino_f *= self.filter_f
@@ -287,7 +294,12 @@ class SinoFilter(OpenclProcessing):
 
     def do_ifft(self):
         if self.fft_backend == "opencl":
+            if self.is_cpu:
+                self.d_sino_padded.fill(0)
+                self.d_sino_padded.finish()
             self.fft.ifft(self.d_sino_f, output=self.d_sino_padded)
+            if self.is_cpu:
+                self.d_sino_padded.finish()
         else:
             # numpy backend does not support "output=" argument,
             # and irfft always return a float64 result.
@@ -307,6 +319,7 @@ class SinoFilter(OpenclProcessing):
         # return
         res = self.get_output_sino(output)
         return res
+        #~ return output
 
 
     __call__ = filter_sino
@@ -509,10 +522,11 @@ class Backprojection(OpenclProcessing):
         if self.is_cpu:
             ev = pyopencl.enqueue_copy(
                                         self.queue,
-                                        self.d_sino,
+                                        self.d_sino.data,
                                         sino2
                                         )
             what = "transfer filtered sino H->D buffer"
+            ev.wait()
         else:
             ev = pyopencl.enqueue_copy(
                                        self.queue,
@@ -531,10 +545,11 @@ class Backprojection(OpenclProcessing):
                 return
             ev = pyopencl.enqueue_copy(
                                        self.queue,
-                                       self.d_sino,
+                                       self.d_sino.data,
                                        d_sino
                                        )
             what = "transfer filtered sino D->D buffer"
+            ev.wait()
         else:
             ev = pyopencl.enqueue_copy(
                                        self.queue,
@@ -589,8 +604,10 @@ class Backprojection(OpenclProcessing):
         """
         Compute the filtered backprojection (FBP) on a sinogram.
 
-        :param sino: sinogram (`np.ndarray`) in the format (projections,
-                     bins)
+        :param sino: sinogram (`np.ndarray` or `pyopencl.array.Array`)
+            with the shape (n_projections, n_bins)
+        :param output: output (`np.ndarray` or `pyopencl.array.Array`).
+            If nothing is provided, a new numpy array is returned.
         """
         # Filter
         self.sino_filter(sino, output=self.d_sino)

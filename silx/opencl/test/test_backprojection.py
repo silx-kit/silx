@@ -89,6 +89,13 @@ class TestFBP(unittest.TestCase):
         self.fbp = backprojection.Backprojection(self.sino.shape, profile=True)
         if self.fbp.compiletime_workgroup_size < 16 * 16:
             self.skipTest("Current implementation of OpenCL backprojection is not supported on this platform yet")
+        # Astra does not use the same backprojector implementation.
+        # Therefore, we cannot expect results to be the "same" (up to float32
+        # numerical error)
+        self.tol = 5e-2
+        if self.fbp.is_cpu:
+            # Precision is less when using CPU
+            self.tol *= 2
 
     def tearDown(self):
         self.sino = None
@@ -140,9 +147,6 @@ class TestFBP(unittest.TestCase):
             err = self.compare(res)
             msg = str("Max error = %e" % err)
             logger.info(msg)
-            # Astra does not use the same backprojector implementation.
-            # Therefore, we cannot expect results to be the "same" (up to float32
-            # numerical error)
             self.assertTrue(err < 5e-2, "Max error is too high")
 
         # Test multiple reconstructions
