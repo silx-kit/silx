@@ -191,7 +191,7 @@ class SinoFilter(OpenclProcessing):
     def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
         self.kernels.cpy2d(
             self.queue,
-            np.int32(transfer_shape),
+            np.int32(transfer_shape[::-1]),
             None,
             dst.data,
             src.data,
