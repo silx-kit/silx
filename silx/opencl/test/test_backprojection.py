@@ -147,7 +147,7 @@ class TestFBP(unittest.TestCase):
             err = self.compare(res)
             msg = str("Max error = %e" % err)
             logger.info(msg)
-            self.assertTrue(err < 5e-2, "Max error is too high")
+            self.assertTrue(err < self.tol, "Max error is too high")
 
         # Test multiple reconstructions
         # -----------------------------
