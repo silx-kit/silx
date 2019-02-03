@@ -33,7 +33,9 @@
 import logging
 import sys
 import tempfile
+
 import numpy
+import six
 
 logging.basicConfig()
 _logger = logging.getLogger("hdf5widget")
@@ -50,15 +52,12 @@ import h5py
 
 import silx.gui.hdf5
 import silx.utils.html
-from silx.third_party import six
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
+
 
 _file_cache = {}
 
@@ -713,26 +712,25 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
         content.layout().addStretch(1)
 
-        if fabio is not None:
-            content = qt.QGroupBox("Create EDF", panel)
-            content.setLayout(qt.QVBoxLayout())
-            panel.layout().addWidget(content)
+        content = qt.QGroupBox("Create EDF", panel)
+        content.setLayout(qt.QVBoxLayout())
+        panel.layout().addWidget(content)
 
-            combo = qt.QComboBox()
-            combo.addItem("Containing all types", get_edf_with_all_types)
-            combo.addItem("Containing 100000 datasets", get_edf_with_100000_frames)
-            combo.activated.connect(self.__edfComboChanged)
-            content.layout().addWidget(combo)
+        combo = qt.QComboBox()
+        combo.addItem("Containing all types", get_edf_with_all_types)
+        combo.addItem("Containing 100000 datasets", get_edf_with_100000_frames)
+        combo.activated.connect(self.__edfComboChanged)
+        content.layout().addWidget(combo)
 
-            button = ThreadPoolPushButton(content, text="Create")
-            button.setCallable(combo.itemData(combo.currentIndex()))
-            button.succeeded.connect(self.__fileCreated)
-            content.layout().addWidget(button)
+        button = ThreadPoolPushButton(content, text="Create")
+        button.setCallable(combo.itemData(combo.currentIndex()))
+        button.succeeded.connect(self.__fileCreated)
+        content.layout().addWidget(button)
 
-            self.__edfCombo = combo
-            self.__createEdfButton = button
+        self.__edfCombo = combo
+        self.__createEdfButton = button
 
-            content.layout().addStretch(1)
+        content.layout().addStretch(1)
 
         option = qt.QGroupBox("Tree options", panel)
         option.setLayout(qt.QVBoxLayout())

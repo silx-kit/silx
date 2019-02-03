@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -106,12 +106,30 @@ class TestSaveActionExtension(PlotWidgetTestCase):
         self.assertEqual(saveAction.getFileFilters('all')[nameFilter],
                          self._dummySaveFunction)
 
+        # Add a new file filter at a particular position
+        nameFilter = 'Dummy file2 (*.dummy)'
+        saveAction.setFileFilter('all', nameFilter,
+                                 self._dummySaveFunction, index=3)
+        self.assertTrue(nameFilter in saveAction.getFileFilters('all'))
+        filters = saveAction.getFileFilters('all')
+        self.assertEqual(filters[nameFilter], self._dummySaveFunction)
+        self.assertEqual(list(filters.keys()).index(nameFilter),3)
+
         # Update an existing file filter
         nameFilter = SaveAction.IMAGE_FILTER_EDF
         saveAction.setFileFilter('image', nameFilter, self._dummySaveFunction)
         self.assertEqual(saveAction.getFileFilters('image')[nameFilter],
                          self._dummySaveFunction)
 
+        # Change the position of an existing file filter
+        nameFilter = 'Dummy file2 (*.dummy)'
+        oldIndex = list(saveAction.getFileFilters('all')).index(nameFilter)
+        newIndex = oldIndex - 1
+        saveAction.setFileFilter('all', nameFilter,
+                                 self._dummySaveFunction, index=newIndex)
+        filters = saveAction.getFileFilters('all')
+        self.assertEqual(filters[nameFilter], self._dummySaveFunction)
+        self.assertEqual(list(filters.keys()).index(nameFilter), newIndex)
 
 def suite():
     test_suite = unittest.TestSuite()

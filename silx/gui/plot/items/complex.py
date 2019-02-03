@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,9 +33,9 @@ __date__ = "14/06/2018"
 
 
 import logging
-import numpy
+import enum
 
-from silx.third_party import enum
+import numpy
 
 from ...colors import Colormap
 from .core import ColormapMixIn, ItemChangedType
@@ -137,7 +137,6 @@ class ImageComplexData(ImageBase, ColormapMixIn):
             name='hsv',
             vmin=-numpy.pi,
             vmax=numpy.pi)
-        phaseColormap.setEditable(False)
 
         self._colormaps = {  # Default colormaps for all modes
             self.Mode.ABSOLUTE: colormap,
@@ -179,7 +178,6 @@ class ImageComplexData(ImageBase, ColormapMixIn):
                                 draggable=self.isDraggable(),
                                 colormap=colormap,
                                 alpha=self.getAlpha())
-
 
     def setVisualizationMode(self, mode):
         """Set the visualization mode to use.

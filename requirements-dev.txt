@@ -1,7 +1,7 @@
 # List of silx development dependencies
 # Those ARE NOT required for installation, at runtime or to build from source (except for the doc)
 
-numpy >= 1.8
+-r requirements.txt
 setuptools        # Advanced packaging tools
 wheel             # To build wheels
 Cython >= 0.21.1  # To regenerate .c/.cpp files from .pyx
@@ -10,6 +10,7 @@ lxml              # For test coverage in run_test.py
 coverage          # For test coverage in run_test.py
 pillow            # For loading images in documentation generation
 nbsphinx          # For converting ipynb in documentation
+pandoc            # For documentation Qt snapshot updates
 
 # Use dev version of PyInstaller to keep hooks up-to-date
 https://github.com/pyinstaller/pyinstaller/archive/develop.zip; sys_platform == "win32"

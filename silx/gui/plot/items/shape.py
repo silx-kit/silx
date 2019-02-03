@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,16 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/05/2017"
+__date__ = "21/12/2018"
 
 
 import logging
 
 import numpy
+import six
 
-from .core import (Item, ColorMixIn, FillMixIn, ItemChangedType)
+from ... import colors
+from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn
 
 
 _logger = logging.getLogger(__name__)
@@ -42,7 +44,7 @@ _logger = logging.getLogger(__name__)
 
 # TODO probably make one class for each kind of shape
 # TODO check fill:polygon/polyline + fill = duplicated
-class Shape(Item, ColorMixIn, FillMixIn):
+class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
     """Description of a shape item
 
     :param str type_: The type of shape in:
@@ -53,10 +55,12 @@ class Shape(Item, ColorMixIn, FillMixIn):
         Item.__init__(self)
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
+        LineMixIn.__init__(self)
         self._overlay = False
         assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polylines')
         self._type = type_
         self._points = ()
+        self._lineBgColor = None
 
         self._handle = None
 
@@ -71,7 +75,10 @@ class Shape(Item, ColorMixIn, FillMixIn):
                                color=self.getColor(),
                                fill=self.isFill(),
                                overlay=self.isOverlay(),
-                               z=self.getZValue())
+                               z=self.getZValue(),
+                               linestyle=self.getLineStyle(),
+                               linewidth=self.getLineWidth(),
+                               linebgcolor=self.getLineBgColor())
 
     def isOverlay(self):
         """Return true if shape is drawn as an overlay
@@ -119,3 +126,31 @@ class Shape(Item, ColorMixIn, FillMixIn):
         """
         self._points = numpy.array(points, copy=copy)
         self._updated(ItemChangedType.DATA)
+
+    def getLineBgColor(self):
+        """Returns the RGBA color of the item
+        :rtype: 4-tuple of float in [0, 1] or array of colors
+        """
+        return self._lineBgColor
+
+    def setLineBgColor(self, color, copy=True):
+        """Set item color
+        :param color: color(s) to be used
+        :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
+                     one of the predefined color names defined in colors.py
+        :param bool copy: True (Default) to get a copy,
+                         False to use internal representation (do not modify!)
+        """
+        if color is not None:
+            if isinstance(color, six.string_types):
+                color = colors.rgba(color)
+            else:
+                color = numpy.array(color, copy=copy)
+                # TODO more checks + improve color array support
+                if color.ndim == 1:  # Single RGBA color
+                    color = colors.rgba(color)
+                else:  # Array of colors
+                    assert color.ndim == 2
+
+        self._lineBgColor = color
+        self._updated(ItemChangedType.LINE_BG_COLOR)

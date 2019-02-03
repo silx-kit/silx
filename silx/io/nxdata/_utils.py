@@ -25,12 +25,13 @@
 """Utility functions used by NXdata validation and parsing."""
 
 import copy
-import numpy
 import logging
+
+import numpy
+import six
 
 from silx.io import is_dataset
 from silx.utils.deprecation import deprecated
-from silx.third_party import six
 
 
 __authors__ = ["P. Knobel"]

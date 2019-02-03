@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +27,17 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "14/06/2018"
+__date__ = "29/01/2019"
 
 import collections
 from copy import deepcopy
 import logging
+import enum
 import warnings
 import weakref
+
 import numpy
-from silx.third_party import six, enum
+import six
 
 from ... import qt
 from ... import colors
@@ -81,6 +83,9 @@ class ItemChangedType(enum.Enum):
 
     COLOR = 'colorChanged'
     """Item's color changed flag."""
+
+    LINE_BG_COLOR = 'lineBgColorChanged'
+    """Item's line background color changed flag."""
 
     YAXIS = 'yAxisChanged'
     """Item's Y axis binding changed flag."""
@@ -415,6 +420,8 @@ class ColormapMixIn(ItemMixInBase):
 
         :param silx.gui.colors.Colormap colormap: colormap description
         """
+        if self._colormap is colormap:
+            return
         if isinstance(colormap, dict):
             colormap = Colormap._fromDict(colormap)
 
@@ -892,14 +899,14 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
             # use the getData class method because instance method can be
             # overloaded to return additional arrays
             data = Points.getData(self, copy=False,
-                                 displayed=True)
+                                  displayed=True)
             if len(data) == 5:
                 # hack to avoid duplicating caching mechanism in Scatter
                 # (happens when cached data is used, caching done using
                 # Scatter._logFilterData)
-                x, y, xerror, yerror = data[0], data[1], data[3], data[4]
+                x, y, _xerror, _yerror = data[0], data[1], data[3], data[4]
             else:
-                x, y, xerror, yerror = data
+                x, y, _xerror, _yerror = data
 
             self._boundsCache[(xPositive, yPositive)] = (
                 numpy.nanmin(x),

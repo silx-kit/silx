@@ -1,7 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-#
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,31 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-"""Wrapper module for the `enum` package.
+# ############################################################################*/
 
-The `enum` package is available in python>=3.4.
+from .test_fft import test_all
 
-Try to fill this module with the local copy of `enum` if it exists.
-Otherwise it expects to have the `enum` packaged installed in the Python path.
-
-It should be used like that:
-
-.. code-block::
-
-    from silx.third_party import enum
-
-"""
-
-from __future__ import absolute_import
-
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "22/05/2017"
-
-try:
-    # try to import the local version
-    from ._local.enum import *  # noqa
-except ImportError:
-    # else try to import it from the python path
-    from enum import *  # noqa
+def suite():
+    return test_all()

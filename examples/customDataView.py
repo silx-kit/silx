@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 """Qt data view example
 """
 
+import enum
 import logging
 import sys
 
@@ -36,7 +37,6 @@ _logger = logging.getLogger("customDataView")
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.data.DataViews import DataView
-from silx.third_party import enum
 
 
 class Color(enum.Enum):

@@ -36,7 +36,7 @@ from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
                    SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
                    AlphaMixIn, LineMixIn, ItemChangedType)  # noqa
 from .complex import ImageComplexData  # noqa
-from .curve import Curve  # noqa
+from .curve import Curve, CurveStyle  # noqa
 from .histogram import Histogram  # noqa
 from .image import ImageBase, ImageData, ImageRgba, MaskImageData  # noqa
 from .shape import Shape  # noqa

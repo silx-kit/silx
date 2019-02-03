@@ -5,64 +5,43 @@ Uploaders: Jerome Kieffer <jerome.kieffer@esrf.fr>,
 Section: science
 Priority: extra
 Build-Depends: cython,
-               cython-dbg,
                cython3,
-               cython3-dbg,
-               libstdc++6-4.9-dbg,
                libstdc++-4.9-dev,
                libstdc++6,
                debhelper (>=9.20150101+deb8u2),
                dh-python,
                python-all-dev,
-               python-all-dbg,
                python-numpy,
-               python-numpy-dbg,
                python-fabio,
-               python-fabio-dbg,
                python-h5py,
-               python-h5py-dbg,
                python-pyopencl,
-               python-pyopencl-dbg,
                python-mako,
                python-matplotlib,
-               python-matplotlib-dbg,
                python-dateutil,
                python-opengl,
                python-pyqt5,
-               python-pyqt5-dbg,
                python-pyqt5.qtsvg,
-               python-pyqt5.qtsvg-dbg,
                python-pyqt5.qtopengl,
-               python-pyqt5.qtopengl-dbg,
                python-scipy,
-               python-scipy-dbg,
+               python-six,
                python-sphinx,
                python-sphinxcontrib.programoutput,
                python-enum34,
                python-concurrent.futures,
                python3-all-dev,
-               python3-all-dbg,
                python3-numpy,
-               python3-numpy-dbg,
                python3-fabio,
-               python3-fabio-dbg,
                python3-h5py,
-               python3-h5py-dbg,
                python3-pyopencl,
-               python3-pyopencl-dbg,
                python3-mako,
                python3-matplotlib,
-               python3-matplotlib-dbg,
                python3-dateutil,
                python3-opengl,
                python3-pyqt5,
-               python3-pyqt5-dbg,
                python3-pyqt5.qtsvg,
-               python3-pyqt5.qtsvg-dbg,
                python3-pyqt5.qtopengl,
-               python3-pyqt5.qtopengl-dbg,
                python3-scipy,
-               python3-scipy-dbg,
+               python3-six,
                python3-sphinx,
                python3-sphinxcontrib.programoutput,
                help2man,
@@ -113,35 +92,6 @@ Description: Toolbox for X-Ray data analysis - Python2 library
  .
  This is the Python 2 version of the package.
 
-Package: python-silx-dbg
-Architecture: any
-Section: debug
-Depends: ${misc:Depends},
-         ${python:Depends},
-         ${shlibs:Depends},
-         python-silx (= ${binary:Version}),
-         libstdc++6-4.9-dbg,
-         python-dbg,
-         python-numpy-dbg,
-         python-fabio-dbg,
-         python-h5py-dbg,
-         python-pyopencl-dbg,
-         python-mako,
-         python-matplotlib-dbg,
-         python-dateutil,
-         python-opengl,
-         python-pyqt5-dbg,
-         python-pyqt5.qtsvg-dbg,
-         python-pyqt5.qtopengl-dbg,
-         python-scipy-dbg,
-         python-six,
-         python-enum34,
-         python-concurrent.futures,
-Description: Toolbox for X-Ray data analysis - python2 debug
- .
- This package contains the extension built for the Python 2 debug
- interpreter.
-
 Package: python3-silx
 Architecture: any
 Section: python
@@ -167,33 +117,6 @@ Depends: ${misc:Depends},
 Description: Toolbox for X-Ray data analysis - Python3
  .
  This is the Python 3 version of the package.
-
-Package: python3-silx-dbg
-Architecture: any
-Section: debug
-Depends: ${misc:Depends},
-         ${python3:Depends},
-         ${shlibs:Depends},
-         python3-silx (= ${binary:Version}),
-         libstdc++6-4.9-dbg,
-         python3-dbg,
-         python3-numpy-dbg,
-         python3-fabio-dbg,
-         python3-h5py-dbg,
-         python3-pyopencl-dbg,
-         python3-mako,
-         python3-matplotlib-dbg,
-         python3-dateutil,
-         python3-opengl,
-         python3-pyqt5-dbg,
-         python3-pyqt5.qtsvg-dbg,
-         python3-pyqt5.qtopengl-dbg,
-         python3-scipy-dbg,
-         python3-six,
-Description: Toolbox for X-Ray data analysis - Python3 debug
- .
- This package contains the extension built for the Python 3 debug
- interpreter.
 
 Package: python-silx-doc
 Architecture: all

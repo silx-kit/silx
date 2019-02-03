@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,16 +30,14 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "14/02/2018"
 
+import enum
 import logging
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 import silx.io
 from .AbstractDataFileDialog import AbstractDataFileDialog
-from silx.third_party import enum
-try:
-    import fabio
-except ImportError:
-    fabio = None
+
+import fabio
 
 
 _logger = logging.getLogger(__name__)

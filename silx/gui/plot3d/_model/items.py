@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,8 +38,7 @@ import logging
 import weakref
 
 import numpy
-
-from silx.third_party import six
+import six
 
 from ...utils.image import convertArrayToQImage
 from ...colors import preferredColormaps
@@ -202,7 +201,7 @@ class Settings(StaticRow):
         super(Settings, self).__init__(('Settings', None), children=children)
 
 
-class Item3DRow(StaticRow):
+class Item3DRow(BaseRow):
     """Represents an :class:`Item3D` with checkable visibility
 
     :param Item3D item: The scene item to represent.
@@ -210,9 +209,8 @@ class Item3DRow(StaticRow):
     """
 
     def __init__(self, item, name=None):
-        if name is None:
-            name = item.getLabel()
-        super(Item3DRow, self).__init__((name, None))
+        self.__name = None if name is None else six.text_type(name)
+        super(Item3DRow, self).__init__()
 
         self.setFlags(
             self.flags(0) | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsSelectable,
@@ -224,7 +222,8 @@ class Item3DRow(StaticRow):
 
     def _itemChanged(self, event):
         """Handle visibility change"""
-        if event == items.ItemChangedType.VISIBLE:
+        if event in (items.ItemChangedType.VISIBLE,
+                     items.Item3DChangedType.LABEL):
             model = self.model()
             if model is not None:
                 index = self.index(column=1)
@@ -235,16 +234,25 @@ class Item3DRow(StaticRow):
         return self._item()
 
     def data(self, column, role):
-        if column == 0 and role == qt.Qt.CheckStateRole:
-            item = self.item()
-            if item is not None and item.isVisible():
-                return qt.Qt.Checked
-            else:
-                return qt.Qt.Unchecked
-        elif column == 0 and role == qt.Qt.DecorationRole:
-            return icons.getQIcon('item-3dim')
-        else:
-            return super(Item3DRow, self).data(column, role)
+        if column == 0:
+            if role == qt.Qt.CheckStateRole:
+                item = self.item()
+                if item is not None and item.isVisible():
+                    return qt.Qt.Checked
+                else:
+                    return qt.Qt.Unchecked
+
+            elif role == qt.Qt.DecorationRole:
+                return icons.getQIcon('item-3dim')
+
+            elif role == qt.Qt.DisplayRole:
+                if self.__name is None:
+                    item = self.item()
+                    return '' if item is None else item.getLabel()
+                else:
+                    return self.__name
+
+        return super(Item3DRow, self).data(column, role)
 
     def setData(self, column, value, role):
         if column == 0 and role == qt.Qt.CheckStateRole:
@@ -255,6 +263,9 @@ class Item3DRow(StaticRow):
             else:
                 return False
         return super(Item3DRow, self).setData(column, value, role)
+
+    def columnCount(self):
+        return 2
 
 
 class DataItem3DBoundingBoxRow(ProxyRow):
@@ -562,7 +573,6 @@ class _ColormapBaseProxyRow(ProxyRow):
     """Signal used internally to notify colormap (or data) update"""
 
     def __init__(self, item, *args, **kwargs):
-        self._dataRange = None
         self._item = weakref.ref(item)
         self._colormap = item.getColormap()
 
@@ -581,19 +591,11 @@ class _ColormapBaseProxyRow(ProxyRow):
 
         :return: Colormap range (min, max)
         """
-        if self._dataRange is None:
-            item = self.item()
-            if item is not None and self._colormap is not None:
-                if hasattr(item, 'getDataRange'):
-                    data = item.getDataRange()
-                else:
-                    data = item.getData(copy=False)
-
-                self._dataRange = self._colormap.getColormapRange(data)
-
-            else:  # Fallback
-                self._dataRange = 1, 100
-        return self._dataRange
+        item = self.item()
+        if item is not None and self._colormap is not None:
+            return self._colormap.getColormapRange(item._getDataRange())
+        else:
+            return 1, 100  # Fallback
 
     def _modelUpdated(self, *args, **kwargs):
         """Emit dataChanged in the model"""
@@ -624,7 +626,6 @@ class _ColormapBaseProxyRow(ProxyRow):
                 self._colormap = None
 
         elif event == items.ItemChangedType.DATA:
-            self._dataRange = None
             self._sigColormapChanged.emit()
 
 

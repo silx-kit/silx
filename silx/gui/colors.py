@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "29/01/2019"
 
 import numpy
 import logging
@@ -161,6 +161,23 @@ def rgba(color, colorDict=None):
     b = int(color[5:7], 16) / 255.
     a = int(color[7:9], 16) / 255. if len(color) == 9 else 1.
     return r, g, b, a
+
+
+def greyed(color, colorDict=None):
+    """Convert color code '#RRGGBB' and '#RRGGBBAA' to a grey color
+    (R, G, B, A).
+
+    It also convert RGB(A) values from uint8 to float in [0, 1] and
+    accept a QColor as color argument.
+
+    :param str color: The color to convert
+    :param dict colorDict: A dictionary of color name conversion to color code
+    :returns: RGBA colors as floats in [0., 1.]
+    :rtype: tuple
+    """
+    r, g, b, a = rgba(color=color, colorDict=colorDict)
+    g = 0.21 * r + 0.72 * g + 0.07 * b
+    return g, g, g, a
 
 
 def cursorColorForColormap(colormapName):
@@ -421,10 +438,14 @@ class Colormap(qt.QObject):
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
             'viridis', 'magma', 'inferno', 'plasma'.
         """
+        name = str(name)
+        if self._name == name:
+            return
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
-        assert name in self.getSupportedColormaps()
-        self._name = str(name)
+        if name not in self.getSupportedColormaps():
+            raise ValueError("Colormap name '%s' is not supported" % name)
+        self._name = name
         self._colors = _getColormap(self._name)
         self.sigChanged.emit()
 
@@ -741,8 +762,10 @@ class Colormap(qt.QObject):
         """Get the supported colormap names as a tuple of str.
 
         The list should at least contain and start by:
-        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
+
+         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
          'viridis', 'magma', 'inferno', 'plasma')
+
         :rtype: tuple
         """
         colormaps = set()

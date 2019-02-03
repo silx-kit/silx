@@ -250,24 +250,24 @@ class ProfileOptionToolButton(PlotToolButton):
         self.STATE = {}
         # is down
         self.STATE['sum', "icon"] = icons.getQIcon('math-sigma')
-        self.STATE['sum', "state"] = "compute profile sum"
-        self.STATE['sum', "action"] = "compute profile sum"
+        self.STATE['sum', "state"] = "Compute profile sum"
+        self.STATE['sum', "action"] = "Compute profile sum"
         # keep ration
         self.STATE['mean', "icon"] = icons.getQIcon('math-mean')
-        self.STATE['mean', "state"] = "compute profile mean"
-        self.STATE['mean', "action"] = "compute profile mean"
+        self.STATE['mean', "state"] = "Compute profile mean"
+        self.STATE['mean', "action"] = "Compute profile mean"
 
-        sumAction = self._createAction('sum')
-        sumAction.triggered.connect(self.setSum)
-        sumAction.setIconVisibleInMenu(True)
+        self.sumAction = self._createAction('sum')
+        self.sumAction.triggered.connect(self.setSum)
+        self.sumAction.setIconVisibleInMenu(True)
 
-        meanAction = self._createAction('mean')
-        meanAction.triggered.connect(self.setMean)
-        meanAction.setIconVisibleInMenu(True)
+        self.meanAction = self._createAction('mean')
+        self.meanAction.triggered.connect(self.setMean)
+        self.meanAction.setIconVisibleInMenu(True)
 
         menu = qt.QMenu(self)
-        menu.addAction(sumAction)
-        menu.addAction(meanAction)
+        menu.addAction(self.sumAction)
+        menu.addAction(self.meanAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
         self.setMean()

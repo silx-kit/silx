@@ -57,10 +57,7 @@ from .. import qt
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
 
 
 _logger = logging.getLogger(__name__)
@@ -135,8 +132,6 @@ class ImageMask(BaseMask):
             self._saveToHdf5(filename, self.getMask(copy=False))
 
         elif kind == 'msk':
-            if fabio is None:
-                raise ImportError("Fit2d mask files can't be written: Fabio module is not available")
             try:
                 data = self.getMask(copy=False)
                 image = fabio.fabioimage.FabioImage(data=data)
@@ -299,6 +294,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if len(mask.shape) != 2:
             _logger.error('Not an image, shape: %d', len(mask.shape))
             return None
+
+        # Handle mask with single level
+        if self.multipleMasks() == 'single':
+            mask = numpy.array(mask != 0, dtype=numpy.uint8)
 
         # if mask has not changed, do nothing
         if numpy.array_equal(mask, self.getSelectionMask()):
@@ -501,8 +500,6 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 _logger.debug("Backtrace", exc_info=True)
                 raise e
         elif extension == "msk":
-            if fabio is None:
-                raise ImportError("Fit2d mask files can't be read: Fabio module is not available")
             try:
                 mask = fabio.open(filename).data
             except Exception as e:

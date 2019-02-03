@@ -36,10 +36,7 @@ from silx.gui import qt
 from silx.gui.plot.PlotWidget import PlotWidget
 from .AbstractDataFileDialog import AbstractDataFileDialog
 import silx.io
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
 
 
 _logger = logging.getLogger(__name__)

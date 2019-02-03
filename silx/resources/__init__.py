@@ -68,7 +68,10 @@ import logging
 import tempfile
 import unittest
 import importlib
-from silx.third_party import six
+
+import six
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -378,6 +381,10 @@ class ExternalResources(object):
                 logger.info("Image %s successfully downloaded.", filename)
             except six.moves.urllib.error.URLError:
                 raise unittest.SkipTest("network unreachable.")
+
+            if not os.path.isdir(os.path.dirname(fullfilename)):
+                # Create sub-directory if needed
+                os.makedirs(os.path.dirname(fullfilename))
 
             try:
                 with open(fullfilename, "wb") as outfile:

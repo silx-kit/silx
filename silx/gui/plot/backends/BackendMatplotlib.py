@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "21/12/2018"
 
 
 import logging
@@ -60,6 +60,22 @@ from ....third_party.modest_image import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
+
+
+_PATCH_LINESTYLE = {
+    "-": 'solid',
+    "--": 'dashed',
+    '-.': 'dashdot',
+    ':': 'dotted',
+    '': "solid",
+    None: "solid",
+}
+"""Patches do not uses the same matplotlib syntax"""
+
+
+def normalize_linestyle(linestyle):
+    """Normalize known old-style linestyle, else return the provided value."""
+    return _PATCH_LINESTYLE.get(linestyle, linestyle)
 
 
 class NiceDateLocator(Locator):
@@ -197,6 +213,44 @@ class _MarkerContainer(Container):
                     xmax = xmin
                 xmax -= 0.005 * delta
                 self.text.set_x(xmax)
+
+
+class _DoubleColoredLinePatch(matplotlib.patches.Patch):
+    """Matplotlib patch to display any patch using double color."""
+
+    def __init__(self, patch):
+        super(_DoubleColoredLinePatch, self).__init__()
+        self.__patch = patch
+        self.linebgcolor = None
+
+    def __getattr__(self, name):
+        return getattr(self.__patch, name)
+
+    def draw(self, renderer):
+        oldLineStype = self.__patch.get_linestyle()
+        if self.linebgcolor is not None and oldLineStype != "solid":
+            oldLineColor = self.__patch.get_edgecolor()
+            oldHatch = self.__patch.get_hatch()
+            self.__patch.set_linestyle("solid")
+            self.__patch.set_edgecolor(self.linebgcolor)
+            self.__patch.set_hatch(None)
+            self.__patch.draw(renderer)
+            self.__patch.set_linestyle(oldLineStype)
+            self.__patch.set_edgecolor(oldLineColor)
+            self.__patch.set_hatch(oldHatch)
+        self.__patch.draw(renderer)
+
+    def set_transform(self, transform):
+        self.__patch.set_transform(transform)
+
+    def get_path(self):
+        return self.__patch.get_path()
+
+    def contains(self, mouseevent, radius=None):
+        return self.__patch.contains(mouseevent, radius)
+
+    def contains_point(self, point, radius=None):
+        return self.__patch.contains_point(point, radius)
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -450,23 +504,34 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return image
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z):
+    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+                linestyle, linewidth, linebgcolor):
+        if (linebgcolor is not None and
+                shape not in ('rectangle', 'polygon', 'polylines')):
+            _logger.warning(
+                'linebgcolor not implemented for %s with matplotlib backend',
+                shape)
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
+        linestyle = normalize_linestyle(linestyle)
+
         if shape == "line":
             item = self.ax.plot(x, y, label=legend, color=color,
-                                linestyle='-', marker=None)[0]
+                                linestyle=linestyle, linewidth=linewidth,
+                                marker=None)[0]
 
         elif shape == "hline":
             if hasattr(y, "__len__"):
                 y = y[-1]
-            item = self.ax.axhline(y, label=legend, color=color)
+            item = self.ax.axhline(y, label=legend, color=color,
+                                   linestyle=linestyle, linewidth=linewidth)
 
         elif shape == "vline":
             if hasattr(x, "__len__"):
                 x = x[-1]
-            item = self.ax.axvline(x, label=legend, color=color)
+            item = self.ax.axvline(x, label=legend, color=color,
+                                   linestyle=linestyle, linewidth=linewidth)
 
         elif shape == 'rectangle':
             xMin = numpy.nanmin(xView)
@@ -479,9 +544,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
                              width=w,
                              height=h,
                              fill=False,
-                             color=color)
+                             color=color,
+                             linestyle=linestyle,
+                             linewidth=linewidth)
             if fill:
                 item.set_hatch('.')
+
+            if linestyle != "solid" and linebgcolor is not None:
+                item = _DoubleColoredLinePatch(item)
+                item.linebgcolor = linebgcolor
 
             self.ax.add_patch(item)
 
@@ -495,9 +566,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
                            closed=closed,
                            fill=False,
                            label=legend,
-                           color=color)
+                           color=color,
+                           linestyle=linestyle,
+                           linewidth=linewidth)
             if fill and shape == 'polygon':
                 item.set_hatch('/')
+
+            if linestyle != "solid" and linebgcolor is not None:
+                item = _DoubleColoredLinePatch(item)
+                item.linebgcolor = linebgcolor
 
             self.ax.add_patch(item)
 
@@ -903,7 +980,54 @@ class BackendMatplotlib(BackendBase.BackendBase):
             # remove external margins
             self.ax.set_position([0, 0, 1, 1])
             self.ax2.set_position([0, 0, 1, 1])
+        self._synchronizeBackgroundColors()
+        self._synchronizeForegroundColors()
         self._plot._setDirtyPlot()
+
+    def _synchronizeBackgroundColors(self):
+        backgroundColor = self._plot.getBackgroundColor().getRgbF()
+
+        dataBackgroundColor = self._plot.getDataBackgroundColor()
+        if dataBackgroundColor.isValid():
+            dataBackgroundColor = dataBackgroundColor.getRgbF()
+        else:
+            dataBackgroundColor = backgroundColor
+
+        if self.ax.axison:
+            self.fig.patch.set_facecolor(backgroundColor)
+            if self._matplotlibVersion < _parse_version('2'):
+                self.ax.set_axis_bgcolor(dataBackgroundColor)
+            else:
+                self.ax.set_facecolor(dataBackgroundColor)
+        else:
+            self.fig.patch.set_facecolor(dataBackgroundColor)
+
+    def _synchronizeForegroundColors(self):
+        foregroundColor = self._plot.getForegroundColor().getRgbF()
+
+        gridColor = self._plot.getGridColor()
+        if gridColor.isValid():
+            gridColor = gridColor.getRgbF()
+        else:
+            gridColor = foregroundColor
+
+        if self.ax.axison:
+            self.ax.spines['bottom'].set_color(foregroundColor)
+            self.ax.spines['top'].set_color(foregroundColor)
+            self.ax.spines['right'].set_color(foregroundColor)
+            self.ax.spines['left'].set_color(foregroundColor)
+            self.ax.tick_params(axis='x', colors=foregroundColor)
+            self.ax.tick_params(axis='y', colors=foregroundColor)
+            self.ax.yaxis.label.set_color(foregroundColor)
+            self.ax.xaxis.label.set_color(foregroundColor)
+            self.ax.title.set_color(foregroundColor)
+
+            for line in self.ax.get_xgridlines():
+                line.set_color(gridColor)
+
+            for line in self.ax.get_ygridlines():
+                line.set_color(gridColor)
+            # self.ax.grid().set_markeredgecolor(gridColor)
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
@@ -1133,14 +1257,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             cursor = self._QT_CURSORS[cursor]
             FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))
 
-    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
-        if backgroundColor is None:
-            backgroundColor = 'w'
-        self.fig.patch.set_facecolor(backgroundColor)
-        if dataBackgroundColor is None:
-            dataBackgroundColor = backgroundColor
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
+        self._synchronizeBackgroundColors()
 
-        if self._matplotlibVersion < _parse_version('2'):
-            self.ax.set_axis_bgcolor(dataBackgroundColor)
-        else:
-            self.ax.set_facecolor(dataBackgroundColor)
+    def setForegroundColors(self, foregroundColor, gridColor):
+        self._synchronizeForegroundColors()

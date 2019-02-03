@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -122,7 +122,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 self.assertEqual(nbPos, len(data))
                 self.assertTrue(numpy.array_equal(
                     data,
-                    item.getValues()[picking[0].getIndices()]))
+                    item.getValueData()[picking[0].getIndices()]))
 
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
@@ -191,6 +191,55 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
         triangleFan.setData(
             position=((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)),
             color=(0, 0, 1, 1),
+            mode='fan')
+
+        for item in (triangles, triangleStrip, triangleFan):
+            with self.subTest(mode=item.getDrawMode()):
+                # Add item
+                self.widget.clearItems()
+                self.widget.addItem(item)
+                self.widget.resetZoom('front')
+                self.qapp.processEvents()
+
+                # Picking on data (at widget center)
+                picking = list(self.widget.pickItems(*self._widgetCenter()))
+
+                self.assertEqual(len(picking), 1)
+                self.assertIs(picking[0].getItem(), item)
+                nbPos = len(picking[0].getPositions())
+                data = picking[0].getData()
+                self.assertEqual(nbPos, len(data))
+                self.assertTrue(numpy.array_equal(
+                    data,
+                    item.getPositionData()[picking[0].getIndices()]))
+
+                # Picking outside data
+                picking = list(self.widget.pickItems(1, 1))
+                self.assertEqual(len(picking), 0)
+
+    def testPickMeshWithIndices(self):
+        """Test picking of Mesh items defined by indices"""
+
+        triangles = items.Mesh()
+        triangles.setData(
+            position=((0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0)),
+            color=(1, 0, 0, 1),
+            indices=numpy.array(  # dummy triangles and square
+                (0, 0, 1, 0, 1, 2, 1, 2, 3), dtype=numpy.uint8),
+            mode='triangles')
+        triangleStrip = items.Mesh()
+        triangleStrip.setData(
+            position=((0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0)),
+            color=(0, 1, 0, 1),
+            indices=numpy.array(  # dummy triangles and square
+                (1, 0, 0, 1, 2, 3), dtype=numpy.uint8),
+            mode='triangle_strip')
+        triangleFan = items.Mesh()
+        triangleFan.setData(
+            position=((0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0)),
+            color=(0, 0, 1, 1),
+            indices=numpy.array(  # dummy triangle, square, dummy
+                (1, 1, 0, 2, 3, 3), dtype=numpy.uint8),
             mode='fan')
 
         for item in (triangles, triangleStrip, triangleFan):

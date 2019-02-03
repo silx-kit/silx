@@ -21,7 +21,7 @@
 #
 # ############################################################################*/
 
-#ifndef FITFILTERSH
+#ifndef FITFILTERS_H
 #define FITFILTERS_H
 
 /* Background functions */

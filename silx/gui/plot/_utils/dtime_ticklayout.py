@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ __date__ = "04/04/2018"
 
 
 import datetime as dt
+import enum
 import logging
 import math
 import time
@@ -40,7 +41,6 @@ import dateutil.tz
 
 from dateutil.relativedelta import relativedelta
 
-from silx.third_party import enum
 from .ticklayout import niceNumGeneric
 
 _logger = logging.getLogger(__name__)

@@ -27,13 +27,14 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/02/2018"
+__date__ = "20/11/2018"
 
 import functools
 import logging
 from contextlib import contextmanager
 import weakref
 import silx.utils.weakref as silxWeakref
+from silx.gui.plot.items.axis import Axis, XAxis, YAxis
 
 try:
     from ...qt.inspect import isValid as _isQObjectValid
@@ -61,7 +62,14 @@ class SyncAxes(object):
     .. versionadded:: 0.6
     """
 
-    def __init__(self, axes, syncLimits=True, syncScale=True, syncDirection=True):
+    def __init__(self, axes,
+                 syncLimits=True,
+                 syncScale=True,
+                 syncDirection=True,
+                 syncCenter=False,
+                 syncZoom=False,
+                 filterHiddenPlots=False
+                 ):
         """
         Constructor
 
@@ -69,17 +77,34 @@ class SyncAxes(object):
         :param bool syncLimits: Synchronize axes limits
         :param bool syncScale: Synchronize axes scale
         :param bool syncDirection: Synchronize axes direction
+        :param bool syncCenter: Synchronize the center of the axes in the center
+            of the plots
+        :param bool syncZoom: Synchronize the zoom of the plot
+        :param bool filterHiddenPlots: True to avoid updating hidden plots.
+            Default: False.
         """
         object.__init__(self)
+
+        def implies(x, y): return bool(y ** x)
+
+        assert(implies(syncZoom, not syncLimits))
+        assert(implies(syncCenter, not syncLimits))
+        assert(implies(syncLimits, not syncCenter))
+        assert(implies(syncLimits, not syncZoom))
+
+        self.__filterHiddenPlots = filterHiddenPlots
         self.__locked = False
         self.__axisRefs = []
         self.__syncLimits = syncLimits
         self.__syncScale = syncScale
         self.__syncDirection = syncDirection
+        self.__syncCenter = syncCenter
+        self.__syncZoom = syncZoom
         self.__callbacks = None
+        self.__lastMainAxis = None
 
         for axis in axes:
-            self.__axisRefs.append(weakref.ref(axis))
+            self.addAxis(axis)
 
         self.start()
 
@@ -90,47 +115,131 @@ class SyncAxes(object):
         After that, any changes to any axes will be used to synchronize other
         axes.
         """
-        if self.__callbacks is not None:
+        if self.isSynchronizing():
             raise RuntimeError("Axes already synchronized")
         self.__callbacks = {}
 
         axes = self.__getAxes()
-        if len(axes) == 0:
-            raise RuntimeError('No axis to synchronize')
 
         # register callback for further sync
         for axis in axes:
-            refAxis = weakref.ref(axis)
-            callbacks = []
-            if self.__syncLimits:
-                # the weakref is needed to be able ignore self references
-                callback = silxWeakref.WeakMethodProxy(self.__axisLimitsChanged)
-                callback = functools.partial(callback, refAxis)
-                sig = axis.sigLimitsChanged
-                sig.connect(callback)
-                callbacks.append(("sigLimitsChanged", callback))
-            if self.__syncScale:
-                # the weakref is needed to be able ignore self references
-                callback = silxWeakref.WeakMethodProxy(self.__axisScaleChanged)
-                callback = functools.partial(callback, refAxis)
-                sig = axis.sigScaleChanged
-                sig.connect(callback)
-                callbacks.append(("sigScaleChanged", callback))
-            if self.__syncDirection:
-                # the weakref is needed to be able ignore self references
-                callback = silxWeakref.WeakMethodProxy(self.__axisInvertedChanged)
-                callback = functools.partial(callback, refAxis)
-                sig = axis.sigInvertedChanged
-                sig.connect(callback)
-                callbacks.append(("sigInvertedChanged", callback))
+            self.__connectAxes(axis)
+        self.synchronize()
 
-            self.__callbacks[refAxis] = callbacks
+    def isSynchronizing(self):
+        """Returns true if events are connected to the axes to synchronize them
+        all together
 
+        :rtype: bool
+        """
+        return self.__callbacks is not None
+
+    def __connectAxes(self, axis):
+        refAxis = weakref.ref(axis)
+        callbacks = []
+        if self.__syncLimits:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisLimitsChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigLimitsChanged
+            sig.connect(callback)
+            callbacks.append(("sigLimitsChanged", callback))
+        elif self.__syncCenter and self.__syncZoom:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisCenterAndZoomChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigLimitsChanged
+            sig.connect(callback)
+            callbacks.append(("sigLimitsChanged", callback))
+        elif self.__syncZoom:
+            raise NotImplementedError()
+        elif self.__syncCenter:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisCenterChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigLimitsChanged
+            sig.connect(callback)
+            callbacks.append(("sigLimitsChanged", callback))
+        if self.__syncScale:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisScaleChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigScaleChanged
+            sig.connect(callback)
+            callbacks.append(("sigScaleChanged", callback))
+        if self.__syncDirection:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisInvertedChanged)
+            callback = functools.partial(callback, refAxis)
+            sig = axis.sigInvertedChanged
+            sig.connect(callback)
+            callbacks.append(("sigInvertedChanged", callback))
+
+        if self.__filterHiddenPlots:
+            # the weakref is needed to be able ignore self references
+            callback = silxWeakref.WeakMethodProxy(self.__axisVisibilityChanged)
+            callback = functools.partial(callback, refAxis)
+            plot = axis._getPlot()
+            plot.sigVisibilityChanged.connect(callback)
+            callbacks.append(("sigVisibilityChanged", callback))
+
+        self.__callbacks[refAxis] = callbacks
+
+    def __disconnectAxes(self, axis):
+        if axis is not None and _isQObjectValid(axis):
+            ref = weakref.ref(axis)
+            callbacks = self.__callbacks.pop(ref)
+            for sigName, callback in callbacks:
+                if sigName == "sigVisibilityChanged":
+                    obj = axis._getPlot()
+                else:
+                    obj = axis
+                if obj is not None:
+                    sig = getattr(obj, sigName)
+                    sig.disconnect(callback)
+
+    def addAxis(self, axis):
+        """Add a new axes to synchronize.
+
+        :param ~silx.gui.plot.items.Axis axis: The axis to synchronize
+        """
+        self.__axisRefs.append(weakref.ref(axis))
+        if self.isSynchronizing():
+            self.__connectAxes(axis)
+            # This could be done faster as only this axis have to be fixed
+            self.synchronize()
+
+    def removeAxis(self, axis):
+        """Remove an axis from the synchronized axes.
+
+        :param ~silx.gui.plot.items.Axis axis: The axis to remove
+        """
+        ref = weakref.ref(axis)
+        self.__axisRefs.remove(ref)
+        if self.isSynchronizing():
+            self.__disconnectAxes(axis)
+
+    def synchronize(self, mainAxis=None):
+        """Synchronize programatically all the axes.
+
+        :param ~silx.gui.plot.items.Axis mainAxis:
+            The axis to take as reference (Default: the first axis).
+        """
         # sync the current state
-        mainAxis = axes[0]
+        axes = self.__getAxes()
+        if len(axes) == 0:
+            return
+
+        if mainAxis is None:
+            mainAxis = axes[0]
+
         refMainAxis = weakref.ref(mainAxis)
         if self.__syncLimits:
             self.__axisLimitsChanged(refMainAxis, *mainAxis.getLimits())
+        elif self.__syncCenter and self.__syncZoom:
+            self.__axisCenterAndZoomChanged(refMainAxis, *mainAxis.getLimits())
+        elif self.__syncCenter:
+            self.__axisCenterChanged(refMainAxis, *mainAxis.getLimits())
         if self.__syncScale:
             self.__axisScaleChanged(refMainAxis, mainAxis.getScale())
         if self.__syncDirection:
@@ -138,14 +247,11 @@ class SyncAxes(object):
 
     def stop(self):
         """Stop the synchronization of the axes"""
-        if self.__callbacks is None:
+        if not self.isSynchronizing():
             raise RuntimeError("Axes not synchronized")
-        for ref, callbacks in self.__callbacks.items():
+        for ref in list(self.__callbacks.keys()):
             axis = ref()
-            if axis is not None and _isQObjectValid(axis):
-                for sigName, callback in callbacks:
-                    sig = getattr(axis, sigName)
-                    sig.disconnect(callback)
+            self.__disconnectAxes(axis)
         self.__callbacks = None
 
     def __del__(self):
@@ -168,32 +274,130 @@ class SyncAxes(object):
         yield
         self.__locked = False
 
-    def __otherAxes(self, changedAxis):
+    def __axesToUpdate(self, changedAxis):
         for axis in self.__getAxes():
             if axis is changedAxis:
                 continue
+            if self.__filterHiddenPlots:
+                plot = axis._getPlot()
+                if not plot.isVisible():
+                    continue
             yield axis
+
+    def __axisVisibilityChanged(self, changedAxis, isVisible):
+        if not isVisible:
+            return
+        if self.__locked:
+            return
+        changedAxis = changedAxis()
+        if self.__lastMainAxis is None:
+            self.__lastMainAxis = self.__axisRefs[0]
+        mainAxis = self.__lastMainAxis
+        mainAxis = mainAxis()
+        self.synchronize(mainAxis=mainAxis)
+        # force back the main axis
+        self.__lastMainAxis = weakref.ref(mainAxis)
+
+    def __getAxesCenter(self, axis, vmin, vmax):
+        """Returns the value displayed in the center of this axis range.
+
+        :rtype: float
+        """
+        scale = axis.getScale()
+        if scale == Axis.LINEAR:
+            center = (vmin + vmax) * 0.5
+        else:
+            raise NotImplementedError("Log scale not implemented")
+        return center
+
+    def __getRangeInPixel(self, axis):
+        """Returns the size of the axis in pixel"""
+        bounds = axis._getPlot().getPlotBoundsInPixels()
+        # bounds: left, top, width, height
+        if isinstance(axis, XAxis):
+            return bounds[2]
+        elif isinstance(axis, YAxis):
+            return bounds[3]
+        else:
+            assert(False)
+
+    def __getLimitsFromCenter(self, axis, pos, pixelSize=None):
+        """Returns the limits to apply to this axis to move the `pos` into the
+        center of this axis.
+
+        :param Axis axis:
+        :param float pos: Position in the center of the computed limits
+        :param Union[None,float] pixelSize: Pixel size to apply to compute the
+            limits. If `None` the current pixel size is applyed.
+        """
+        scale = axis.getScale()
+        if scale == Axis.LINEAR:
+            if pixelSize is None:
+                # Use the current pixel size of the axis
+                limits = axis.getLimits()
+                valueRange = limits[0] - limits[1]
+                a = pos - valueRange * 0.5
+                b = pos + valueRange * 0.5
+            else:
+                pixelRange = self.__getRangeInPixel(axis)
+                a = pos - pixelRange * 0.5 * pixelSize
+                b = pos + pixelRange * 0.5 * pixelSize
+
+        else:
+            raise NotImplementedError("Log scale not implemented")
+        if a > b:
+            return b, a
+        return a, b
 
     def __axisLimitsChanged(self, changedAxis, vmin, vmax):
         if self.__locked:
             return
+        self.__lastMainAxis = changedAxis
         changedAxis = changedAxis()
         with self.__inhibitSignals():
-            for axis in self.__otherAxes(changedAxis):
+            for axis in self.__axesToUpdate(changedAxis):
+                axis.setLimits(vmin, vmax)
+
+    def __axisCenterAndZoomChanged(self, changedAxis, vmin, vmax):
+        if self.__locked:
+            return
+        self.__lastMainAxis = changedAxis
+        changedAxis = changedAxis()
+        with self.__inhibitSignals():
+            center = self.__getAxesCenter(changedAxis, vmin, vmax)
+            pixelRange = self.__getRangeInPixel(changedAxis)
+            if pixelRange == 0:
+                return
+            pixelSize = (vmax - vmin) / pixelRange
+            for axis in self.__axesToUpdate(changedAxis):
+                vmin, vmax = self.__getLimitsFromCenter(axis, center, pixelSize)
+                axis.setLimits(vmin, vmax)
+
+    def __axisCenterChanged(self, changedAxis, vmin, vmax):
+        if self.__locked:
+            return
+        self.__lastMainAxis = changedAxis
+        changedAxis = changedAxis()
+        with self.__inhibitSignals():
+            center = self.__getAxesCenter(changedAxis, vmin, vmax)
+            for axis in self.__axesToUpdate(changedAxis):
+                vmin, vmax = self.__getLimitsFromCenter(axis, center)
                 axis.setLimits(vmin, vmax)
 
     def __axisScaleChanged(self, changedAxis, scale):
         if self.__locked:
             return
+        self.__lastMainAxis = changedAxis
         changedAxis = changedAxis()
         with self.__inhibitSignals():
-            for axis in self.__otherAxes(changedAxis):
+            for axis in self.__axesToUpdate(changedAxis):
                 axis.setScale(scale)
 
     def __axisInvertedChanged(self, changedAxis, isInverted):
         if self.__locked:
             return
+        self.__lastMainAxis = changedAxis
         changedAxis = changedAxis()
         with self.__inhibitSignals():
-            for axis in self.__otherAxes(changedAxis):
+            for axis in self.__axesToUpdate(changedAxis):
                 axis.setInverted(isInverted)

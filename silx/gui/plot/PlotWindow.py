@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/10/2018"
+__date__ = "21/12/2018"
 
 import collections
 import logging
@@ -217,10 +217,8 @@ class PlotWindow(PlotWidget):
 
         # Make colorbar background white
         self._colorbar.setAutoFillBackground(True)
-        palette = self._colorbar.palette()
-        palette.setColor(qt.QPalette.Background, qt.Qt.white)
-        palette.setColor(qt.QPalette.Window, qt.Qt.white)
-        self._colorbar.setPalette(palette)
+        self._sigAxesVisibilityChanged.connect(self._updateColorBarBackground)
+        self._updateColorBarBackground()
 
         gridLayout = qt.QGridLayout()
         gridLayout.setSpacing(0)
@@ -293,6 +291,43 @@ class PlotWindow(PlotWidget):
         for toolbar in (self._interactiveModeToolBar, self._outputToolBar):
             for action in toolbar.actions():
                 self.addAction(action)
+
+    def setBackgroundColor(self, color):
+        super(PlotWindow, self).setBackgroundColor(color)
+        self._updateColorBarBackground()
+
+    setBackgroundColor.__doc__ = PlotWidget.setBackgroundColor.__doc__
+
+    def setDataBackgroundColor(self, color):
+        super(PlotWindow, self).setDataBackgroundColor(color)
+        self._updateColorBarBackground()
+
+    setDataBackgroundColor.__doc__ = PlotWidget.setDataBackgroundColor.__doc__
+
+    def setForegroundColor(self, color):
+        super(PlotWindow, self).setForegroundColor(color)
+        self._updateColorBarBackground()
+
+    setForegroundColor.__doc__ = PlotWidget.setForegroundColor.__doc__
+
+    def _updateColorBarBackground(self):
+        """Update the colorbar background according to the state of the plot"""
+        if self._isAxesDisplayed():
+            color = self.getBackgroundColor()
+        else:
+            color = self.getDataBackgroundColor()
+            if not color.isValid():
+                # If no color defined, use the background one
+                color = self.getBackgroundColor()
+
+        foreground = self.getForegroundColor()
+
+        palette = self._colorbar.palette()
+        palette.setColor(qt.QPalette.Background, color)
+        palette.setColor(qt.QPalette.Window, color)
+        palette.setColor(qt.QPalette.WindowText, foreground)
+        palette.setColor(qt.QPalette.Text, foreground)
+        self._colorbar.setPalette(palette)
 
     def getInteractiveModeToolBar(self):
         """Returns QToolBar controlling interactive mode.

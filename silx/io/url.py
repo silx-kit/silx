@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,8 @@ __license__ = "MIT"
 __date__ = "29/01/2018"
 
 import logging
-from silx.third_party import six
+import six
+
 parse = six.moves.urllib.parse
 
 
@@ -350,7 +351,7 @@ class DataUrl(object):
         return self.__data_path
 
     def data_slice(self):
-        """Returns the slicing applyed to the data.
+        """Returns the slicing applied to the data.
 
         It is a tuple containing numbers, slice or ellipses.
 

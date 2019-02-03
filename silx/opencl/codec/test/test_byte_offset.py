@@ -45,16 +45,13 @@ import logging
 import numpy
 from silx.opencl.common import ocl, pyopencl
 from silx.opencl.codec import byte_offset
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
 import unittest
 logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(ocl and fabio and pyopencl,
-                     "PyOpenCl or fabio is missing")
+@unittest.skipUnless(ocl and pyopencl,
+                     "PyOpenCl is missing")
 class TestByteOffset(unittest.TestCase):
 
     @staticmethod

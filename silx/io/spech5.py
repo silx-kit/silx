@@ -186,15 +186,16 @@ You can test for existence of data or groups::
 
 import datetime
 import logging
-import numpy
 import re
 import io
+
 import h5py
+import numpy
+import six
 
 from silx import version as silx_version
 from .specfile import SpecFile
 from . import commonh5
-from silx.third_party import six
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"

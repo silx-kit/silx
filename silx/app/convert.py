@@ -23,29 +23,23 @@
 # ############################################################################*/
 """Convert silx supported data files into HDF5 files"""
 
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "12/09/2017"
+
 import ast
 import os
 import argparse
 from glob import glob
 import logging
-import numpy
 import re
 import time
+import numpy
+import six
 
 import silx.io
 from silx.io.specfile import is_specfile
-from silx.third_party import six
-
-try:
-    from silx.io import fabioh5
-except ImportError:
-    fabioh5 = None
-
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "12/09/2017"
-
+from silx.io import fabioh5
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
@@ -306,19 +300,13 @@ def main(argv):
         _logger.debug("Backtrace", exc_info=True)
         hdf5plugin = None
 
+    import h5py
+
     try:
-        import h5py
         from silx.io.convert import write_to_h5
     except ImportError:
         _logger.debug("Backtrace", exc_info=True)
-        h5py = None
         write_to_h5 = None
-
-    if h5py is None:
-        message = "Module 'h5py' is not installed but is mandatory."\
-            + " You can install it using \"pip install h5py\"."
-        _logger.error(message)
-        return -1
 
     if hdf5plugin is None:
         message = "Module 'hdf5plugin' is not installed. It supports additional hdf5"\
@@ -470,18 +458,6 @@ def main(argv):
             not contains_specfile(options.input_files) and
             not options.add_root_group) or options.file_pattern is not None:
         # File series -> stack of images
-        if fabioh5 is None:
-            # return a helpful error message if fabio is missing
-            try:
-                import fabio
-            except ImportError:
-                _logger.error("The fabio library is required to convert"
-                              " edf files. Please install it with 'pip "
-                              "install fabio` and try again.")
-            else:
-                # unexpected problem in silx.io.fabioh5
-                raise
-            return -1
         input_group = fabioh5.File(file_series=options.input_files)
         if hdf5_path != "/":
             # we want to append only data and headers to an existing file

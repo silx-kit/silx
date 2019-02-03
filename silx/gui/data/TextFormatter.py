@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +29,15 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "24/07/2018"
 
-import numpy
-import numbers
-from silx.third_party import six
-from silx.gui import qt
 import logging
+import numbers
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import numpy
+import six
+
+from silx.gui import qt
+
+import h5py
 
 
 _logger = logging.getLogger(__name__)
@@ -322,10 +321,9 @@ class TextFormatter(qt.QObject):
                 if dtype.kind == 'S':
                     return self.__formatCharString(data)
                 elif dtype.kind == 'O':
-                    if h5py is not None:
-                        text = self.__formatH5pyObject(data, dtype)
-                        if text is not None:
-                            return text
+                    text = self.__formatH5pyObject(data, dtype)
+                    if text is not None:
+                        return text
             try:
                 # Try ascii/utf-8
                 text = "%s" % data.decode("utf-8")
@@ -339,15 +337,14 @@ class TextFormatter(qt.QObject):
         elif isinstance(data, (numpy.integer)):
             if dtype is None:
                 dtype = data.dtype
-            if h5py is not None:
-                enumType = h5py.check_dtype(enum=dtype)
-                if enumType is not None:
-                    for key, value in enumType.items():
-                        if value == data:
-                            result = {}
-                            result["name"] = key
-                            result["value"] = data
-                            return self.__enumFormat % result
+            enumType = h5py.check_dtype(enum=dtype)
+            if enumType is not None:
+                for key, value in enumType.items():
+                    if value == data:
+                        result = {}
+                        result["name"] = key
+                        result["value"] = data
+                        return self.__enumFormat % result
             return self.__integerFormat % data
         elif isinstance(data, (numbers.Integral)):
             return self.__integerFormat % data
@@ -373,21 +370,20 @@ class TextFormatter(qt.QObject):
                     template = self.__floatFormat
                     params = (data.real)
             return template % params
-        elif h5py is not None and isinstance(data, h5py.h5r.Reference):
+        elif isinstance(data, h5py.h5r.Reference):
             dtype = h5py.special_dtype(ref=h5py.Reference)
             text = self.__formatH5pyObject(data, dtype)
             return text
-        elif h5py is not None and isinstance(data, h5py.h5r.RegionReference):
+        elif isinstance(data, h5py.h5r.RegionReference):
             dtype = h5py.special_dtype(ref=h5py.RegionReference)
             text = self.__formatH5pyObject(data, dtype)
             return text
         elif isinstance(data, numpy.object_) or dtype is not None:
             if dtype is None:
                 dtype = data.dtype
-            if h5py is not None:
-                text = self.__formatH5pyObject(data, dtype)
-                if text is not None:
-                    return text
+            text = self.__formatH5pyObject(data, dtype)
+            if text is not None:
+                return text
             # That's a numpy object
             return str(data)
         return str(data)

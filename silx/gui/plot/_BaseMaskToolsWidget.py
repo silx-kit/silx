@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/08/2018"
+__date__ = "26/11/2018"
 
 import os
 import weakref
@@ -141,7 +141,7 @@ class BaseMask(qt.QObject):
     def commit(self):
         """Append the current mask to history if changed"""
         if (not self._history or self._redo or
-                not numpy.all(numpy.equal(self._mask, self._history[-1]))):
+                not numpy.array_equal(self._mask, self._history[-1])):
             if self._redo:
                 self._redo = []  # Reset redo as a new action as been performed
                 self.sigRedoable[bool].emit(False)
@@ -881,6 +881,7 @@ class BaseMaskToolsWidget(qt.QWidget):
             The index of the mask for which we want to change the color.
             If none set this color for all the masks
         """
+        rgb = rgba(rgb)[0:3]
         if level is None:
             self._overlayColors[:] = rgb
             self._defaultColors[:] = False

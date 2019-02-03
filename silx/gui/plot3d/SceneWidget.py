@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,11 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/04/2018"
 
-import numpy
+import enum
 import weakref
 
-from silx.third_party import enum
+import numpy
+
 from .. import qt
 from ..colors import rgba
 
@@ -229,6 +230,9 @@ class SceneSelection(qt.QObject):
         :raise ValueError: If the item is not the widget's scene
         """
         previous = self.getCurrentItem()
+        if item is previous:
+            return  # Fast path, nothing to do
+
         if previous is not None:
             previous.sigItemChanged.disconnect(self.__currentChanged)
 
@@ -252,15 +256,18 @@ class SceneSelection(qt.QObject):
                 'Not an Item3D: %s' % str(item))
 
         current = self.getCurrentItem()
-        if current is not previous:
-            self.sigCurrentChanged.emit(current, previous)
-            self.__updateSelectionModel()
+        self.sigCurrentChanged.emit(current, previous)
+        self.__updateSelectionModel()
 
     def __currentChanged(self, event):
         """Handle updates of the selected item"""
         if event == items.Item3DChangedType.ROOT_ITEM:
             item = self.sender()
-            if item.root() != self.getSceneGroup():
+
+            parent = self.parent()
+            assert isinstance(parent, SceneWidget)
+
+            if item.root() != parent.getSceneGroup():
                 self.setSelectedItem(None)
 
     # Synchronization with QItemSelectionModel
@@ -488,7 +495,8 @@ class SceneWidget(Plot3DWidget):
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
         :return: The newly created scalar volume item
-        :rtype: items.ScalarField3D
+        :rtype: ~silx.gui.plot3d.items.volume.ScalarField3D
+
         """
         volume = items.ScalarField3D()
         volume.setData(data, copy=copy)
@@ -508,7 +516,7 @@ class SceneWidget(Plot3DWidget):
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
         :return: The newly created 3D scatter item
-        :rtype: items.Scatter3D
+        :rtype: ~silx.gui.plot3d.items.scatter.Scatter3D
         """
         scatter3d = items.Scatter3D()
         scatter3d.setData(x=x, y=y, z=z, value=value, copy=copy)
@@ -528,7 +536,7 @@ class SceneWidget(Plot3DWidget):
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
         :return: The newly created 2D scatter item
-        :rtype: items.Scatter2D
+        :rtype: ~silx.gui.plot3d.items.scatter.Scatter2D
         """
         scatter2d = items.Scatter2D()
         scatter2d.setData(x=x, y=y, value=value, copy=copy)
@@ -548,7 +556,7 @@ class SceneWidget(Plot3DWidget):
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
         :return: The newly created image item
-        :rtype: items.ImageData or items.ImageRgba
+        :rtype: ~silx.gui.plot3d.items.image.ImageData or ~silx.gui.plot3d.items.image.ImageRgba
         :raise ValueError: For arrays of unsupported dimensions
         """
         data = numpy.array(data, copy=False)

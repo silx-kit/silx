@@ -151,7 +151,6 @@ sfSetCurrent( SpecFile *sf, long index,int *error )
      }
 
      lseek(sf->fd,scan->offset,SEEK_SET);
-
      nbytes = read(sf->fd,sf->scanbuffer,scan->size);
      if ( nbytes == -1) {
          *error = SF_ERR_FILE_READ;
@@ -188,7 +187,7 @@ sfSetCurrent( SpecFile *sf, long index,int *error )
                 return(-1);
             }
             lseek(sf->fd,start,SEEK_SET);
-            read(sf->fd,sf->filebuffer,fileheadsize);
+            nbytes = read(sf->fd,sf->filebuffer,fileheadsize);
             if ( nbytes == -1) {
                *error = SF_ERR_FILE_READ;
                return(-1);

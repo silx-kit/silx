@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/02/2018"
+__date__ = "20/11/2018"
 
 
 import unittest
@@ -154,6 +154,53 @@ class TestAxisSync(TestCaseQt):
         self.assertEqual(self.plot1.getYAxis().isInverted(), True)
         self.assertEqual(self.plot2.getYAxis().isInverted(), True)
         self.assertEqual(self.plot3.getYAxis().isInverted(), True)
+
+    def testSyncCenter(self):
+        """Test direction change"""
+        # Not the same scale
+        self.plot1.getXAxis().setLimits(0, 200)
+        self.plot2.getXAxis().setLimits(0, 20)
+        self.plot3.getXAxis().setLimits(0, 2)
+        _sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()],
+                         syncLimits=False, syncCenter=True)
+
+        self.assertEqual(self.plot1.getXAxis().getLimits(), (0, 200))
+        self.assertEqual(self.plot2.getXAxis().getLimits(), (100 - 10, 100 + 10))
+        self.assertEqual(self.plot3.getXAxis().getLimits(), (100 - 1, 100 + 1))
+
+    def testSyncCenterAndZoom(self):
+        """Test direction change"""
+        # Not the same scale
+        self.plot1.getXAxis().setLimits(0, 200)
+        self.plot2.getXAxis().setLimits(0, 20)
+        self.plot3.getXAxis().setLimits(0, 2)
+        _sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()],
+                         syncLimits=False, syncCenter=True, syncZoom=True)
+
+        # Supposing all the plots use the same size
+        self.assertEqual(self.plot1.getXAxis().getLimits(), (0, 200))
+        self.assertEqual(self.plot2.getXAxis().getLimits(), (0, 200))
+        self.assertEqual(self.plot3.getXAxis().getLimits(), (0, 200))
+
+    def testAddAxis(self):
+        """Test synchronization after construction"""
+        sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis()])
+        sync.addAxis(self.plot3.getXAxis())
+
+        self.plot1.getXAxis().setLimits(10, 500)
+        self.assertEqual(self.plot1.getXAxis().getLimits(), (10, 500))
+        self.assertEqual(self.plot2.getXAxis().getLimits(), (10, 500))
+        self.assertEqual(self.plot3.getXAxis().getLimits(), (10, 500))
+
+    def testRemoveAxis(self):
+        """Test synchronization after construction"""
+        sync = SyncAxes([self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()])
+        sync.removeAxis(self.plot3.getXAxis())
+
+        self.plot1.getXAxis().setLimits(10, 500)
+        self.assertEqual(self.plot1.getXAxis().getLimits(), (10, 500))
+        self.assertEqual(self.plot2.getXAxis().getLimits(), (10, 500))
+        self.assertNotEqual(self.plot3.getXAxis().getLimits(), (10, 500))
 
 
 def suite():

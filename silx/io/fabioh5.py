@@ -40,16 +40,12 @@ import os
 
 import fabio.file_series
 import numpy
+import six
 
 from . import commonh5
-from silx.third_party import six
 from silx import version as silx_version
 import silx.utils.number
-
-try:
-    import h5py
-except ImportError as e:
-    h5py = None
+import h5py
 
 
 _logger = logging.getLogger(__name__)
@@ -197,7 +193,7 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
         else:
             dtype = numpy.string_
 
-        if dtype == numpy.unicode_ and h5py is not None:
+        if dtype == numpy.unicode_:
             # h5py only support vlen unicode
             dtype = h5py.special_dtype(vlen=six.text_type)
 

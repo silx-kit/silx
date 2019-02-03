@@ -30,6 +30,7 @@ __license__ = "MIT"
 __date__ = "23/07/2018"
 
 
+import enum
 import logging
 import numpy
 import weakref
@@ -42,7 +43,6 @@ from silx.gui import plot
 from silx.gui import icons
 from silx.gui.colors import Colormap
 from silx.gui.plot import tools
-from silx.third_party import enum
 
 _logger = logging.getLogger(__name__)
 

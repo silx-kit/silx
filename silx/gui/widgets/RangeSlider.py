@@ -31,13 +31,24 @@ from __future__ import absolute_import, division
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/08/2018"
+__date__ = "26/11/2018"
 
 
 import numpy as numpy
 
 from silx.gui import qt, icons, colors
 from silx.gui.utils.image import convertArrayToQImage
+
+
+class StyleOptionRangeSlider(qt.QStyleOption):
+    def __init__(self):
+        super(StyleOptionRangeSlider, self).__init__()
+        self.minimum = None
+        self.maximum = None
+        self.sliderPosition1 = None
+        self.sliderPosition2 = None
+        self.handlerRect1 = None
+        self.handlerRect2 = None
 
 
 class RangeSlider(qt.QWidget):
@@ -86,6 +97,8 @@ class RangeSlider(qt.QWidget):
         self.__secondValue = 1.
         self.__minValue = 0.
         self.__maxValue = 1.
+        self.__hoverRect = qt.QRect()
+        self.__hoverControl = None
 
         self.__focus = None
         self.__moving = None
@@ -100,12 +113,41 @@ class RangeSlider(qt.QWidget):
         super(RangeSlider, self).__init__(parent)
 
         self.setFocusPolicy(qt.Qt.ClickFocus)
+        self.setAttribute(qt.Qt.WA_Hover)
 
         self.setMinimumSize(qt.QSize(50, 20))
         self.setMaximumHeight(20)
 
         # Broadcast value changed signal
         self.sigValueChanged.connect(self.__emitPositionChanged)
+
+    def event(self, event):
+        t = event.type()
+        if t == qt.QEvent.HoverEnter or t == qt.QEvent.HoverLeave or t == qt.QEvent.HoverMove:
+            return self.__updateHoverControl(event.pos())
+        else:
+            return super(RangeSlider, self).event(event)
+
+    def __updateHoverControl(self, pos):
+        hoverControl, hoverRect = self.__findHoverControl(pos)
+        if hoverControl != self.__hoverControl:
+            self.update(self.__hoverRect)
+            self.update(hoverRect)
+            self.__hoverControl = hoverControl
+            self.__hoverRect = hoverRect
+            return True
+        return hoverControl is not None
+
+    def __findHoverControl(self, pos):
+        """Returns the control at the position and it's rect location"""
+        for name in ["first", "second"]:
+            rect = self.__sliderRect(name)
+            if rect.contains(pos):
+                return name, rect
+        rect = self.__drawArea()
+        if rect.contains(pos):
+            return "groove", rect
+        return None, qt.QRect()
 
     # Position <-> Value conversion
 
@@ -469,10 +511,12 @@ class RangeSlider(qt.QWidget):
         super(RangeSlider, self).mouseMoveEvent(event)
 
         if self.__moving is not None:
-            position = self.__xPixelToPosition(event.pos().x())
+            delta = self._SLIDER_WIDTH // 2
             if self.__moving == 'first':
+                position = self.__xPixelToPosition(event.pos().x() + delta)
                 self.setFirstPosition(position)
             else:
+                position = self.__xPixelToPosition(event.pos().x() - delta)
                 self.setSecondPosition(position)
 
     def mouseReleaseEvent(self, event):
@@ -564,13 +608,13 @@ class RangeSlider(qt.QWidget):
     def __sliderAreaRect(self):
         return self.__drawArea().adjusted(self._SLIDER_WIDTH / 2.,
                                           0,
-                                          -self._SLIDER_WIDTH / 2.,
+                                          -self._SLIDER_WIDTH / 2. + 1,
                                           0)
 
     def __pixMapRect(self):
         return self.__sliderAreaRect().adjusted(0,
                                                 self._PIXMAP_VOFFSET,
-                                                0,
+                                                -1,
                                                 -self._PIXMAP_VOFFSET)
 
     def paintEvent(self, event):
@@ -579,33 +623,55 @@ class RangeSlider(qt.QWidget):
         style = qt.QApplication.style()
 
         area = self.__drawArea()
-        pixmapRect = self.__pixMapRect()
+        if self.__pixmap is not None:
+            pixmapRect = self.__pixMapRect()
 
-        option = qt.QStyleOptionProgressBar()
-        option.initFrom(self)
-        option.rect = area
-        option.state = ((self.isEnabled() and qt.QStyle.State_Enabled)
-                        or qt.QStyle.State_None)
-        style.drawControl(qt.QStyle.CE_ProgressBarGroove,
-                          option,
-                          painter,
-                          self)
+            option = qt.QStyleOptionProgressBar()
+            option.initFrom(self)
+            option.rect = area
+            option.state = (qt.QStyle.State_Enabled if self.isEnabled()
+                            else qt.QStyle.State_None)
+            style.drawControl(qt.QStyle.CE_ProgressBarGroove,
+                              option,
+                              painter,
+                              self)
 
-        painter.save()
-        pen = painter.pen()
-        pen.setWidth(1)
-        pen.setColor(qt.Qt.black if self.isEnabled() else qt.Qt.gray)
-        painter.setPen(pen)
-        painter.drawRect(pixmapRect.adjusted(-1, -1, 1, 1))
-        painter.restore()
+            painter.save()
+            pen = painter.pen()
+            pen.setWidth(1)
+            pen.setColor(qt.Qt.black if self.isEnabled() else qt.Qt.gray)
+            painter.setPen(pen)
+            painter.drawRect(pixmapRect.adjusted(-1, -1, 0, 1))
+            painter.restore()
 
-        if self.isEnabled() and self.__pixmap is not None:
-            painter.drawPixmap(area.adjusted(self._SLIDER_WIDTH / 2,
-                                             self._PIXMAP_VOFFSET,
-                                             -self._SLIDER_WIDTH / 2 + 1,
-                                             -self._PIXMAP_VOFFSET + 1),
-                               self.__pixmap,
-                               self.__pixmap.rect())
+            if self.isEnabled():
+                rect = area.adjusted(self._SLIDER_WIDTH // 2,
+                                     self._PIXMAP_VOFFSET,
+                                     -self._SLIDER_WIDTH // 2,
+                                     -self._PIXMAP_VOFFSET + 1)
+                painter.drawPixmap(rect,
+                                   self.__pixmap,
+                                   self.__pixmap.rect())
+        else:
+            option = StyleOptionRangeSlider()
+            option.initFrom(self)
+            option.rect = area
+            option.sliderPosition1 = self.__firstValue
+            option.sliderPosition2 = self.__secondValue
+            option.handlerRect1 = self.__sliderRect("first")
+            option.handlerRect2 = self.__sliderRect("second")
+            option.minimum = self.__minValue
+            option.maximum = self.__maxValue
+            option.state = (qt.QStyle.State_Enabled if self.isEnabled()
+                            else qt.QStyle.State_None)
+            if self.__hoverControl == "groove":
+                option.state |= qt.QStyle.State_MouseOver
+            elif option.state & qt.QStyle.State_MouseOver:
+                option.state ^= qt.QStyle.State_MouseOver
+            self.drawRangeSliderBackground(painter, option, self)
+
+        # Avoid glitch when moving handles
+        hoverControl = self.__moving or self.__hoverControl
 
         for name in ('first', 'second'):
             rect = self.__sliderRect(name)
@@ -613,7 +679,9 @@ class RangeSlider(qt.QWidget):
             option.initFrom(self)
             option.icon = self.__icons[name]
             option.iconSize = rect.size() * 0.7
-            if option.state & qt.QStyle.State_MouseOver:
+            if hoverControl == name:
+                option.state |= qt.QStyle.State_MouseOver
+            elif option.state & qt.QStyle.State_MouseOver:
                 option.state ^= qt.QStyle.State_MouseOver
             if self.__focus == name:
                 option.state |= qt.QStyle.State_HasFocus
@@ -625,3 +693,73 @@ class RangeSlider(qt.QWidget):
 
     def sizeHint(self):
         return qt.QSize(200, self.minimumHeight())
+
+    @classmethod
+    def drawRangeSliderBackground(cls, painter, option, widget):
+        """Draw the background of the RangeSlider widget into the painter.
+
+        :param qt.QPainter painter: A painter
+        :param StyleOptionRangeSlider option: Options to draw the widget
+        :param qt.QWidget: The widget which have to be drawn
+        """
+        painter.save()
+        painter.translate(0.5, 0.5)
+
+        backgroundRect = qt.QRect(option.rect)
+        if backgroundRect.height() > 8:
+            center = backgroundRect.center()
+            backgroundRect.setHeight(8)
+            backgroundRect.moveCenter(center)
+
+        selectedRangeRect = qt.QRect(backgroundRect)
+        selectedRangeRect.setLeft(option.handlerRect1.center().x())
+        selectedRangeRect.setRight(option.handlerRect2.center().x())
+
+        highlight = option.palette.color(qt.QPalette.Highlight)
+        activeHighlight = highlight
+        selectedOutline = option.palette.color(qt.QPalette.Highlight)
+
+        buttonColor = option.palette.button().color()
+        val = qt.qGray(buttonColor.rgb())
+        buttonColor = buttonColor.lighter(100 + max(1, (180 - val) // 6))
+        buttonColor.setHsv(buttonColor.hue(), buttonColor.saturation() * 0.75, buttonColor.value())
+
+        grooveColor = qt.QColor()
+        grooveColor.setHsv(buttonColor.hue(),
+                           min(255, (int)(buttonColor.saturation())),
+                           min(255, (int)(buttonColor.value() * 0.9)))
+
+        selectedInnerContrastLine = qt.QColor(255, 255, 255, 30)
+
+        outline = option.palette.color(qt.QPalette.Background).darker(140)
+        if (option.state & qt.QStyle.State_HasFocus and option.state & qt.QStyle.State_KeyboardFocusChange):
+            outline = highlight.darker(125)
+            if outline.value() > 160:
+                outline.setHsl(highlight.hue(), highlight.saturation(), 160)
+
+        # Draw background groove
+        painter.setRenderHint(qt.QPainter.Antialiasing, True)
+        gradient = qt.QLinearGradient()
+        gradient.setStart(backgroundRect.center().x(), backgroundRect.top())
+        gradient.setFinalStop(backgroundRect.center().x(), backgroundRect.bottom())
+        painter.setPen(qt.QPen(outline))
+        gradient.setColorAt(0, grooveColor.darker(110))
+        gradient.setColorAt(1, grooveColor.lighter(110))
+        painter.setBrush(gradient)
+        painter.drawRoundedRect(backgroundRect.adjusted(1, 1, -2, -2), 1, 1)
+
+        # Draw slider background for the value
+        gradient = qt.QLinearGradient()
+        gradient.setStart(selectedRangeRect.center().x(), selectedRangeRect.top())
+        gradient.setFinalStop(selectedRangeRect.center().x(), selectedRangeRect.bottom())
+        painter.setRenderHint(qt.QPainter.Antialiasing, True)
+        painter.setPen(qt.QPen(selectedOutline))
+        gradient.setColorAt(0, activeHighlight)
+        gradient.setColorAt(1, activeHighlight.lighter(130))
+        painter.setBrush(gradient)
+        painter.drawRoundedRect(selectedRangeRect.adjusted(1, 1, -2, -2), 1, 1)
+        painter.setPen(selectedInnerContrastLine)
+        painter.setBrush(qt.Qt.NoBrush)
+        painter.drawRoundedRect(selectedRangeRect.adjusted(2, 2, -3, -3), 1, 1)
+
+        painter.restore()

@@ -28,12 +28,15 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "04/05/2018"
+__date__ = "17/01/2019"
 
 
 import logging
-from .. import qt
+import os.path
+
 import silx.io.utils
+import silx.io.url
+from .. import qt
 from silx.utils.html import escape
 
 _logger = logging.getLogger(__name__)
@@ -107,11 +110,22 @@ class Hdf5DatasetMimeData(qt.QMimeData):
 
     MIME_TYPE = "application/x-internal-h5py-dataset"
 
-    def __init__(self, node=None, dataset=None):
+    SILX_URI_TYPE = "application/x-silx-uri"
+
+    def __init__(self, node=None, dataset=None, isRoot=False):
         qt.QMimeData.__init__(self)
         self.__dataset = dataset
         self.__node = node
+        self.__isRoot = isRoot
         self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
+        if node is not None:
+            h5Node = H5Node(node)
+            silxUrl = h5Node.url
+            self.setText(silxUrl)
+            self.setData(self.SILX_URI_TYPE, silxUrl.encode(encoding='utf-8'))
+
+    def isRoot(self):
+        return self.__isRoot
 
     def node(self):
         return self.__node
@@ -120,20 +134,6 @@ class Hdf5DatasetMimeData(qt.QMimeData):
         if self.__node is not None:
             return self.__node.obj
         return self.__dataset
-
-
-class Hdf5NodeMimeData(qt.QMimeData):
-    """Mimedata class to identify an internal drag and drop of a Hdf5Node."""
-
-    MIME_TYPE = "application/x-internal-h5py-node"
-
-    def __init__(self, node=None):
-        qt.QMimeData.__init__(self)
-        self.__node = node
-        self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
-
-    def node(self):
-        return self.__node
 
 
 class H5Node(object):
@@ -419,3 +419,43 @@ class H5Node(object):
         :rtype: str
         """
         return self.physical_name.split("/")[-1]
+
+    @property
+    def data_url(self):
+        """Returns a :class:`silx.io.url.DataUrl` object identify this node in the file
+        system.
+
+        :rtype: ~silx.io.url.DataUrl
+        """
+        absolute_filename = os.path.abspath(self.local_filename)
+        return silx.io.url.DataUrl(scheme="silx",
+                                   file_path=absolute_filename,
+                                   data_path=self.local_name)
+
+    @property
+    def url(self):
+        """Returns an URL object identifying this node in the file
+        system.
+
+        This URL can be used in different ways.
+
+        .. code-block:: python
+
+            # Parsing the URL
+            import silx.io.url
+            dataurl = silx.io.url.DataUrl(item.url)
+            # dataurl provides access to URL fields
+
+            # Open a numpy array
+            import silx.io
+            dataset = silx.io.get_data(item.url)
+
+            # Open an hdf5 object (URL targetting a file or a group)
+            import silx.io
+            with silx.io.open(item.url) as h5:
+                ...your stuff...
+
+        :rtype: str
+        """
+        data_url = self.data_url
+        return data_url.path()

@@ -39,14 +39,14 @@ from silx.gui.plot import Plot2D
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
 from silx.gui.plot.items.roi import RectangleROI
+from silx.gui.plot.items import LineMixIn, SymbolMixIn
 
 
 def dummy_image():
     """Create a dummy image"""
     x = numpy.linspace(-1.5, 1.5, 1024)
     xv, yv = numpy.meshgrid(x, x)
-    signal = numpy.exp(- (xv ** 2 / 0.15 ** 2
-                          + yv ** 2 / 0.25 ** 2))
+    signal = numpy.exp(- (xv ** 2 / 0.15 ** 2 + yv ** 2 / 0.25 ** 2))
     # add noise
     signal += 0.3 * numpy.random.random(size=signal.shape)
     return signal
@@ -54,8 +54,12 @@ def dummy_image():
 
 app = qt.QApplication([])  # Start QApplication
 
+backend = "matplotlib"
+if "--opengl" in sys.argv:
+    backend = "opengl"
+
 # Create the plot widget and add an image
-plot = Plot2D()
+plot = Plot2D(backend=backend)
 plot.getDefaultColormap().setName('viridis')
 plot.addImage(dummy_image())
 
@@ -69,6 +73,12 @@ def updateAddedRegionOfInterest(roi):
     """Called for each added region of interest: set the name"""
     if roi.getLabel() == '':
         roi.setLabel('ROI %d' % len(roiManager.getRois()))
+    if isinstance(roi, LineMixIn):
+        roi.setLineWidth(2)
+        roi.setLineStyle('--')
+    if isinstance(roi, SymbolMixIn):
+        roi.setSymbol('o')
+        roi.setSymbolSize(5)
 
 
 roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)
@@ -99,6 +109,7 @@ widget.setLayout(layout)
 layout.addWidget(roiToolbar)
 layout.addWidget(roiTable)
 
+
 def roiDockVisibilityChanged(visible):
     """Handle change of visibility of the roi dock widget
 
@@ -106,6 +117,7 @@ def roiDockVisibilityChanged(visible):
     """
     if not visible:
         roiManager.stop()
+
 
 dock = qt.QDockWidget('Image ROI')
 dock.setWidget(widget)

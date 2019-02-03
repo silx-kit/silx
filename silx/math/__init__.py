@@ -37,3 +37,4 @@ __date__ = "11/05/2017"
 from .histogram import Histogramnd  # noqa
 from .histogram import HistogramndLut  # noqa
 from .medianfilter import medfilt, medfilt1d, medfilt2d
+from .fft import fft

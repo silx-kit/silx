@@ -35,11 +35,7 @@ import tempfile
 import unittest
 import io
 import gc
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 import silx
 from .. import convert
@@ -103,14 +99,6 @@ class TestConvertCommand(unittest.TestCase):
             result = e.args[0]
         self.assertEqual(result, 0)
 
-    @testutils.test_logging(convert._logger.name, error=1)
-    def testH5pyNotInstalled(self):
-        with testutils.EnsureImportError("h5py"):
-            result = convert.main(["convert", "foo.spec", "bar.edf"])
-            # we explicitly return -1 if h5py is not imported
-            self.assertNotEqual(result, 0)
-
-    @unittest.skipIf(h5py is None, "h5py is required to test convert")
     def testWrongOption(self):
         # presence of a wrong option must cause a SystemExit or a return
         # with a non-zero status
@@ -120,14 +108,12 @@ class TestConvertCommand(unittest.TestCase):
             result = e.args[0]
         self.assertNotEqual(result, 0)
 
-    @unittest.skipIf(h5py is None, "h5py is required to test convert")
     @testutils.test_logging(convert._logger.name, error=3)
     # one error log per missing file + one "Aborted" error log
     def testWrongFiles(self):
         result = convert.main(["convert", "foo.spec", "bar.edf"])
         self.assertNotEqual(result, 0)
 
-    @unittest.skipIf(h5py is None, "h5py is required to test convert")
     def testFile(self):
         # create a writable temp directory
         tempdir = tempfile.mkdtemp()

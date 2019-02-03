@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "21/12/2018"
 
 
 import math
@@ -96,10 +96,18 @@ class _PlotInteraction(object):
 
         fill = fill != 'none'  # TODO not very nice either
 
+        greyed = colors.greyed(color)[0]
+        if greyed < 0.5:
+            color2 = "white"
+        else:
+            color2 = "black"
+
         self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
                           replace=False,
-                          shape=shape, color=color, fill=fill,
+                          shape=shape, fill=fill,
+                          color=color, linebgcolor=color2, linestyle="--",
                           overlay=True)
+
         self._selectionAreas.add(legend)
 
     def resetSelectionArea(self):
@@ -274,6 +282,8 @@ class Zoom(_ZoomOnWheel):
     and zoom on mouse wheel.
     """
 
+    SURFACE_THRESHOLD = 5
+
     def __init__(self, plot, color):
         self.color = color
 
@@ -347,35 +357,44 @@ class Zoom(_ZoomOnWheel):
 
         self.setSelectionArea(corners, fill='none', color=self.color)
 
+    def _zoom(self, x0, y0, x1, y1):
+        """Zoom to the rectangle view x0,y0 x1,y1.
+        """
+        startPos = x0, y0
+        endPos = x1, y1
+
+        # Store current zoom state in stack
+        self.plot.getLimitsHistory().push()
+
+        if self.plot.isKeepDataAspectRatio():
+            x0, y0, x1, y1 = self._areaWithAspectRatio(x0, y0, x1, y1)
+
+        # Convert to data space and set limits
+        x0, y0 = self.plot.pixelToData(x0, y0, check=False)
+
+        dataPos = self.plot.pixelToData(
+            startPos[0], startPos[1], axis="right", check=False)
+        y2_0 = dataPos[1]
+
+        x1, y1 = self.plot.pixelToData(x1, y1, check=False)
+
+        dataPos = self.plot.pixelToData(
+            endPos[0], endPos[1], axis="right", check=False)
+        y2_1 = dataPos[1]
+
+        xMin, xMax = min(x0, x1), max(x0, x1)
+        yMin, yMax = min(y0, y1), max(y0, y1)
+        y2Min, y2Max = min(y2_0, y2_1), max(y2_0, y2_1)
+
+        self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+
     def endDrag(self, startPos, endPos):
         x0, y0 = startPos
         x1, y1 = endPos
 
-        if x0 != x1 or y0 != y1:  # Avoid empty zoom area
-            # Store current zoom state in stack
-            self.plot.getLimitsHistory().push()
-
-            if self.plot.isKeepDataAspectRatio():
-                x0, y0, x1, y1 = self._areaWithAspectRatio(x0, y0, x1, y1)
-
-            # Convert to data space and set limits
-            x0, y0 = self.plot.pixelToData(x0, y0, check=False)
-
-            dataPos = self.plot.pixelToData(
-                startPos[0], startPos[1], axis="right", check=False)
-            y2_0 = dataPos[1]
-
-            x1, y1 = self.plot.pixelToData(x1, y1, check=False)
-
-            dataPos = self.plot.pixelToData(
-                endPos[0], endPos[1], axis="right", check=False)
-            y2_1 = dataPos[1]
-
-            xMin, xMax = min(x0, x1), max(x0, x1)
-            yMin, yMax = min(y0, y1), max(y0, y1)
-            y2Min, y2Max = min(y2_0, y2_1), max(y2_0, y2_1)
-
-            self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+        if abs(x0 - x1) * abs(y0 - y1) >= self.SURFACE_THRESHOLD:
+            # Avoid empty zoom area
+            self._zoom(x0, y0, x1, y1)
 
         self.resetSelectionArea()
 
@@ -542,7 +561,6 @@ class SelectPolygon(Select):
         if qt.BINDING in ('PyQt5', 'PySide2'):
             ratio = self.plot.window().windowHandle().devicePixelRatio()
         return self.DRAG_THRESHOLD_DIST * ratio
-
 
 
 class Select2Points(Select):

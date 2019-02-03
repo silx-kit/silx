@@ -42,17 +42,18 @@ Other public functions:
 """
 
 import numpy
+import six
+
 from silx.io.utils import is_group, is_file, is_dataset
 
 from ._utils import get_attr_as_unicode, INTERPDIM, nxdata_logger, \
     get_uncertainties_names, get_signal_name, \
     get_auxiliary_signals_names, validate_auxiliary_signals, validate_number_of_axes
-from silx.third_party import six
 
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/11/2018"
+__date__ = "29/11/2018"
 
 
 class InvalidNXdataError(Exception):
@@ -152,6 +153,7 @@ class NXdata(object):
             raise TypeError("group must be a h5py-like group")
         if get_attr_as_unicode(self.group, "NX_class") != "NXdata":
             self.issues.append("Group has no attribute @NX_class='NXdata'")
+            return
 
         signal_name = get_signal_name(self.group)
         if signal_name is None:

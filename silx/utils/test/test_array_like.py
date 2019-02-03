@@ -28,11 +28,7 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "09/01/2017"
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
+import h5py
 import numpy
 import os
 import tempfile
@@ -43,8 +39,6 @@ from ..array_like import get_dtype, get_concatenated_dtype, get_shape,\
     is_array, is_nested_sequence, is_list_of_arrays
 
 
-@unittest.skipIf(h5py is None,
-                 "h5py is needed to test DatasetView")
 class TestTransposedDatasetView(unittest.TestCase):
 
     def setUp(self):
@@ -417,8 +411,6 @@ class TestFunctions(unittest.TestCase):
         self.assertTrue(is_array(a))
         self.assertFalse(is_list_of_arrays(a))
 
-    @unittest.skipIf(h5py is None,
-                     "h5py is needed for this test")
     def testH5pyDataset(self):
         a = numpy.array([[0, 1], [2, 3]])
 

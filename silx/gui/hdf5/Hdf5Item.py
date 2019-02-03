@@ -25,11 +25,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/09/2018"
+__date__ = "17/01/2019"
 
 
 import logging
 import collections
+
 from .. import qt
 from .. import icons
 from . import _utils
@@ -37,7 +38,6 @@ from .Hdf5Node import Hdf5Node
 import silx.io.utils
 from silx.gui.data.TextFormatter import TextFormatter
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
-from ...third_party import six
 _logger = logging.getLogger(__name__)
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
@@ -217,14 +217,32 @@ class Hdf5Item(Hdf5Node):
 
     def _populateChild(self, populateAll=False):
         if self.isGroupObj():
-            for name in self.obj:
+            keys = []
+            try:
+                for name in self.obj:
+                    keys.append(name)
+            except Exception:
+                lib_name = self.obj.__class__.__module__.split(".")[0]
+                _logger.error("Internal %s error. The file is corrupted.", lib_name)
+                _logger.debug("Backtrace", exc_info=True)
+                if keys == []:
+                    # If the file was open in READ_ONLY we still can reach something
+                    # https://github.com/silx-kit/silx/issues/2262
+                    try:
+                        for name in self.obj:
+                            keys.append(name)
+                    except Exception:
+                        lib_name = self.obj.__class__.__module__.split(".")[0]
+                        _logger.error("Internal %s error (second time). The file is corrupted.", lib_name)
+                        _logger.debug("Backtrace", exc_info=True)
+            for name in keys:
                 try:
                     class_ = self.obj.get(name, getclass=True)
                     link = self.obj.get(name, getclass=True, getlink=True)
                     link = silx.io.utils.get_h5_class(class_=link)
                 except Exception:
                     lib_name = self.obj.__class__.__module__.split(".")[0]
-                    _logger.warning("Internal %s error", lib_name, exc_info=True)
+                    _logger.error("Internal %s error", lib_name)
                     _logger.debug("Backtrace", exc_info=True)
                     class_ = None
                     try:
@@ -344,14 +362,12 @@ class Hdf5Item(Hdf5Node):
     def nexusClassName(self):
         """Returns the Nexus class name"""
         if self.__nx_class is None:
-            self.__nx_class = self.obj.attrs.get("NX_class", None)
-            if self.__nx_class is None:
-                self.__nx_class = ""
+            obj = self.obj.attrs.get("NX_class", None)
+            if obj is None:
+                text = ""
             else:
-                if six.PY2:
-                    self.__nx_class = self.__nx_class.decode()
-                elif not isinstance(self.__nx_class, str):
-                    self.__nx_class = str(self.__nx_class, "UTF-8")
+                text = self._getFormatter().textFormatter().toString(obj)
+            self.__nx_class = text.strip('"')
         return self.__nx_class
 
     def dataName(self, role):

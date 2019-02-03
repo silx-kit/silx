@@ -39,14 +39,27 @@ Widgets gallery
 
    * - Widget
      - Description
-   * - .. image:: data/img/ArrayTableWidget.png
+   * - .. snapshotqt:: data/img/ArrayTableWidget.png
          :height: 150px
          :align: center
+
+         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
+         import numpy.random
+         table = ArrayTableWidget()
+         table.setArrayData(numpy.random.random((100, 100, 100)))
+         table.resize(500, 300)
+         table.show()
      - :class:`ArrayTableWidget` is a table widget with browsers designed to
        display the content of multi-dimensional data arrays.
-   * - .. image:: data/img/DataViewer.png
+   * - .. snapshotqt:: data/img/DataViewer.png
          :height: 150px
          :align: center
+
+         import numpy.random
+         from silx.gui.data.DataViewer import DataViewer
+         viewer = DataViewer()
+         viewer.setData(numpy.random.random((100, 100, 100)))
+         viewer.show()
      - :class:`DataViewer` is a widget designed to display data using the most
        adapted view.
    * - .. image:: data/img/DataViewerFrame.png
@@ -208,14 +221,33 @@ Additional widgets:
           :align: center
      - :class:`.PlotTools.PositionInfo` is a widget displaying mouse position and
        information of a :class:`PlotWidget` associated to the mouse position.
-   * - .. image:: plot/img/LimitsToolBar.png
+   * - .. snapshotqt:: plot/img/LimitsToolBar.png
           :width: 300px
           :align: center
+
+          from silx.gui.plot import Plot2D
+          from silx.gui.plot.tools.LimitsToolBar import LimitsToolBar
+          plot = Plot2D()
+          toolbar = LimitsToolBar(plot=plot)
+          toolbar.resize(400, 30)
+          plot.show()
+          toolbar.show()
+          app.processEvents()
      - :class:`.PlotTools.LimitsToolBar` is a QToolBar displaying and
        controlling the limits of a :class:`PlotWidget`.
-   * - .. image:: plot/img/logColorbar.png
+   * - .. snapshotqt:: plot/img/logColorbar.png
           :height: 150px
           :align: center
+
+          from silx.gui.plot import Plot2D
+          from silx.gui.plot.ColorBar import ColorBarWidget
+          from silx.gui.plot.Colors import Colormap
+          import numpy
+          plot = Plot2D()
+          colorbar = ColorBarWidget(plot=plot, legend='Colormap Log scale')
+          colorbar.setColormap(Colormap(name='jet', normalization='log', vmin=1.0, vmax=10e3))
+          colorbar.show()
+          colorbar.resize(20, 500)
      - :class:`.ColorBar.ColorBarWidget` display colormap gradient and can be linked with a plot
        to display the colormap
    * - .. image:: plot/img/statsWidget.png
@@ -243,9 +275,10 @@ Additional widgets:
        and associated toolbars.
        It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
        See ``plot3dSceneWindow.py`` in :ref:`plot3d-sample-code`.
-   * - .. image:: plot3d/img/SceneWidget.png
+   * - .. snapshotqt:: plot3d/img/SceneWidget.png
           :height: 150px
           :align: center
+          :script: examples/plot3dSceneWindow.py
      - :class:`SceneWidget` is a :class:`Plot3DWidget` providing a 3D scene for visualizing different kind of data.
        It can display 2D images, 2D scatter data, 3D scatter data and 3D volumes with different visualizations.
        See ``plot3dSceneWindow.py`` in :ref:`plot3d-sample-code`.
@@ -303,49 +336,103 @@ Additional widgets:
 
    * - Widget
      - Description
-   * - .. image:: widgets/img/FrameBrowser.png
+   * - .. snapshotqt:: widgets/img/FrameBrowser.png
          :width: 110px
          :align: center
+
+         from silx.gui.widgets.FrameBrowser import FrameBrowser
+         widget = FrameBrowser()
+         widget.setRange(0, 10)
+         widget.show()
      - :class:`FrameBrowser.FrameBrowser` is a browser widget designed to
        browse through a sequence of integers (e.g. the indices of an array)
-   * - .. image:: widgets/img/HorizontalSliderWithBrowser.png
+   * - .. snapshotqt:: widgets/img/HorizontalSliderWithBrowser.png
          :width: 150px
          :align: center
+
+         from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
+         slider = HorizontalSliderWithBrowser()
+         slider.show()
      - :class:`FrameBrowser.HorizontalSliderWithBrowser` is a :class:`FrameBrowser`
        with an additional slider.
-   * - .. image:: widgets/img/RangeSlider.png
+   * - .. snapshotqt:: widgets/img/RangeSlider.png
           :width: 150px
           :align: center
+
+          from silx.gui.widgets.RangeSlider import RangeSlider
+          from silx.gui.plot.Colors import Colormap
+          import numpy
+          widget = RangeSlider()
+          widget.setRange(0, 500)
+          widget.setValues(100, 400)
+          background = numpy.sin(numpy.arange(250) / 250.0)
+          background[0], background[-1] = background[-1], background[0]
+          colormap = Colormap("viridis")
+          widget.setGroovePixmapFromProfile(background, colormap)
+          widget.show()
      - :class:`~silx.gui.widgets.RangeSlider.RangeSlider` is a slider with 2 thumbs dedicated
        to the interactive selection of an interval.
-   * - .. image:: widgets/img/PeriodicCombo.png
+   * - .. snapshotqt:: widgets/img/PeriodicCombo.png
          :width: 150px
          :align: center
+
+         from silx.gui.widgets.PeriodicTable import PeriodicCombo
+         widget = PeriodicCombo()
+         widget.setSelection('Yb')
+         widget.show()
      - :class:`PeriodicTable.PeriodicCombo` is a :class:`QComboBox` widget designed to
        select a single atomic element.
-   * - .. image:: widgets/img/PeriodicList.png
+   * - .. snapshotqt:: widgets/img/PeriodicList.png
          :height: 150px
          :align: center
+
+         from silx.gui.widgets.PeriodicTable import PeriodicList
+         widget = PeriodicList()
+         widget.setSelectedElements(('S', 'Cl'))
+         widget.resize(200, 400)
+         widget.show()
      - :class:`PeriodicTable.PeriodicList` is a :class:`QTreeWidget` designed to select one
        or more atomic elements.
-   * - .. image:: widgets/img/PeriodicTable.png
+   * - .. snapshotqt:: widgets/img/PeriodicTable.png
          :height: 150px
          :align: center
+
+         from silx.gui.widgets.PeriodicTable import PeriodicTable
+         widget = PeriodicTable()
+         widget.setSelection(('S', 'H', 'Zr'))
+         widget.show()
      - :class:`PeriodicTable.PeriodicTable` is a periodic table widget designed to select one
        or more atomic elements.
-   * - .. image:: widgets/img/TableWidget.png
+   * - .. snapshotqt:: widgets/img/TableWidget.png
          :height: 150px
          :align: center
+
+         from silx.gui.widgets.TableWidget import TableWidget
+         widget = TableWidget()
+         widget.setRowCount(8)
+         widget.setColumnCount(4)
+         widget.resize(300, 200)
+         widget.show()
      - :class:`TableWidget.TableWidget` and :class:`TableWidget.TableView` inherit respectively
        :class:`QTableWidget` and :class:`QTableView`, and add a context menu with *cut/copy/paste*
        actions.
-   * - .. image:: widgets/img/WaitingPushButton.png
+   * - .. snapshotqt:: widgets/img/WaitingPushButton.png
          :width: 60px
          :align: center
+
+         from silx.gui.widgets.WaitingPushButton import WaitingPushButton
+         from silx.gui import icons
+         animated_icon = icons.getWaitIcon()
+         button = WaitingPushButton(icon=animated_icon.currentIcon(), text='Run')
+         button.show()
      - :class:`WaitingPushButton` is a :class:`QPushButton` that can be graphically disabled,
        for example to wait for a callback function to finish computing.
-   * - .. image:: widgets/img/ThreadPoolPushButton.png
+   * - .. snapshotqt:: widgets/img/ThreadPoolPushButton.png
          :width: 100px
          :align: center
+
+         from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
+         button = ThreadPoolPushButton(text="Compute 2^16")
+         button.show()
      - :class:`ThreadPoolPushButton` is a :class:`WaitingPushButton` that executes a
        callback in a thread.

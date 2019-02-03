@@ -41,7 +41,6 @@ def configuration(parent_package='', top_path=None):
     if os.path.exists(local_path):
         config.add_subpackage('_local')
         config.add_subpackage('_local.scipy_spatial')
-        config.add_subpackage('_local.concurrent_futures')
     return config
 
 

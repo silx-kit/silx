@@ -43,10 +43,7 @@ from silx.gui.utils.testutils import SignalListener
 from silx.io import commonh5
 import weakref
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
+import h5py
 
 
 _tmpDirectory = None
@@ -56,14 +53,13 @@ def setUpModule():
     global _tmpDirectory
     _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
 
-    if h5py is not None:
-        filename = _tmpDirectory + "/data.h5"
+    filename = _tmpDirectory + "/data.h5"
 
-        # create h5 data
-        f = h5py.File(filename, "w")
-        g = f.create_group("arrays")
-        g.create_dataset("scalar", data=10)
-        f.close()
+    # create h5 data
+    f = h5py.File(filename, "w")
+    g = f.create_group("arrays")
+    g.create_dataset("scalar", data=10)
+    f.close()
 
 
 def tearDownModule():
@@ -91,8 +87,6 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def setUp(self):
         super(TestHdf5TreeModel, self).setUp()
-        if h5py is None:
-            self.skipTest("h5py is not available")
 
     def waitForPendingOperations(self, model):
         for _ in range(10):
@@ -571,8 +565,6 @@ class TestH5Node(TestCaseQt):
     @classmethod
     def setUpClass(cls):
         super(TestH5Node, cls).setUpClass()
-        if h5py is None:
-            raise unittest.SkipTest("h5py is not available")
 
         cls.tmpDirectory = tempfile.mkdtemp()
         cls.h5Filename = cls.createResource(cls.tmpDirectory)
@@ -809,8 +801,6 @@ class TestHdf5TreeView(TestCaseQt):
 
     def setUp(self):
         super(TestHdf5TreeView, self).setUp()
-        if h5py is None:
-            self.skipTest("h5py is not available")
 
     def testCreate(self):
         view = hdf5.Hdf5TreeView()

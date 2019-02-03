@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,28 +51,23 @@ Text strings are written to the HDF5 datasets as variable-length utf-8.
     to install it if you don't already have it.
 """
 
-import logging
-import numpy
-
-import silx.io
-from silx.io import is_dataset, is_group, is_softlink
-from silx.third_party import six
-try:
-    from silx.io import fabioh5
-except ImportError:
-    fabioh5 = None
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "17/07/2018"
 
-_logger = logging.getLogger(__name__)
 
-try:
-    import h5py
-except ImportError as e:
-    _logger.error("Module " + __name__ + " requires h5py")
-    raise e
+import logging
+
+import h5py
+import numpy
+import six
+
+import silx.io
+from silx.io import is_dataset, is_group, is_softlink
+from silx.io import fabioh5
+
+
+_logger = logging.getLogger(__name__)
 
 
 def _create_link(h5f, link_name, target_name,
@@ -216,9 +211,7 @@ class Hdf5Writer(object):
                 del self._h5f[h5_name]
 
             if self.overwrite_data or not member_initially_exists:
-                if fabioh5 is not None and \
-                        isinstance(obj, fabioh5.FrameData) and \
-                        len(obj.shape) > 2:
+                if isinstance(obj, fabioh5.FrameData) and len(obj.shape) > 2:
                     # special case of multiframe data
                     # write frame by frame to save memory usage low
                     ds = self._h5f.create_dataset(h5_name,

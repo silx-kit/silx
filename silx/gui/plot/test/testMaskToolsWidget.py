@@ -42,10 +42,7 @@ from silx.gui.utils.testutils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, MaskToolsWidget
 from .utils import PlotWidgetTestCase
 
-try:
-    import fabio
-except ImportError:
-    fabio = None
+import fabio
 
 
 _logger = logging.getLogger(__name__)
@@ -254,8 +251,6 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self.__loadSave("npy")
 
     def testLoadSaveFit2D(self):
-        if fabio is None:
-            self.skipTest("Fabio is missing")
         self.__loadSave("msk")
 
     def testSigMaskChangedEmitted(self):

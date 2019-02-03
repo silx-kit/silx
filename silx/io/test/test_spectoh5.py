@@ -29,14 +29,10 @@ import sys
 import tempfile
 import unittest
 
-try:
-    import h5py
-except ImportError:
-    h5py_missing = True
-else:
-    h5py_missing = False
-    from ..spech5 import SpecH5, SpecH5Group
-    from ..convert import convert, write_to_h5
+import h5py
+
+from ..spech5 import SpecH5, SpecH5Group
+from ..convert import convert, write_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -87,7 +83,6 @@ sftext = """#F /tmp/sf.dat
 """
 
 
-@unittest.skipIf(h5py_missing, "Could not import h5py")
 class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ __date__ = "28/06/2018"
 
 
 import collections
+import enum
 import functools
 import logging
 import time
@@ -38,7 +39,6 @@ import weakref
 
 import numpy
 
-from ....third_party import enum
 from ....utils.weakref import WeakMethodProxy
 from ... import qt, icons
 from .. import PlotWidget
@@ -806,11 +806,17 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
         self.itemChanged.connect(self.__itemChanged)
 
-    @staticmethod
-    def __itemChanged(item):
+    def __itemChanged(self, item):
         """Handle item updates"""
         column = item.column()
-        roi = item.data(qt.Qt.UserRole)
+        index = item.data(qt.Qt.UserRole)
+
+        if index is not None:
+            manager = self.getRegionOfInterestManager()
+            roi = manager.getRois()[index]
+        else:
+            roi = None
+
         if column == 0:
             roi.setLabel(item.text())
         elif column == 1:
@@ -882,13 +888,13 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             label = roi.getLabel()
             item = qt.QTableWidgetItem(label)
             item.setFlags(baseFlags | qt.Qt.ItemIsEditable)
-            item.setData(qt.Qt.UserRole, roi)
+            item.setData(qt.Qt.UserRole, index)
             self.setItem(index, 0, item)
 
             # Editable
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags | qt.Qt.ItemIsUserCheckable)
-            item.setData(qt.Qt.UserRole, roi)
+            item.setData(qt.Qt.UserRole, index)
             item.setCheckState(
                 qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
             self.setItem(index, 1, item)

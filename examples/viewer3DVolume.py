@@ -52,13 +52,7 @@ logging.basicConfig()
 
 _logger = logging.getLogger(__name__)
 
-
-try:
-    import h5py
-except ImportError:
-    _logger.warning('h5py is not installed: HDF5 not supported')
-    h5py = None
-
+import h5py
 
 def load(filename):
     """Load 3D scalar field from file.
@@ -72,7 +66,7 @@ def load(filename):
     if not os.path.isfile(filename.split('::')[0]):
         raise IOError('No input file: %s' % filename)
 
-    if h5py is not None and h5py.is_hdf5(filename.split('::')[0]):
+    if h5py.is_hdf5(filename.split('::')[0]):
         if '::' not in filename:
             raise ValueError(
                 'HDF5 path not provided: Use <filename>::<path> format')

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ This API is a simplified version of PyMca PlotBackend API.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/11/2018"
+__date__ = "21/12/2018"
 
 import weakref
 from ... import qt
@@ -170,7 +170,8 @@ class BackendBase(object):
         """
         return legend
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z):
+    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+                linestyle, linewidth, linebgcolor):
         """Add an item (i.e. a shape) to the plot.
 
         :param numpy.ndarray x: The X coords of the points of the shape
@@ -182,6 +183,19 @@ class BackendBase(object):
         :param bool fill: True to fill the shape
         :param bool overlay: True if item is an overlay, False otherwise
         :param int z: Layer on which to draw the item
+        :param str linestyle: Style of the line.
+            Only relevant for line markers where X or Y is None.
+            Value in:
+
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+        :param float linewidth: Width of the line.
+            Only relevant for line markers where X or Y is None.
+        :param str linebgcolor: Background color of the line, e.g., 'blue', 'b',
+            '#FF0000'. It is used to draw dotted line using a second color.
         :returns: The handle used by the backend to univocally access the item
         """
         return legend
@@ -547,20 +561,19 @@ class BackendBase(object):
         """
         return self._axesDisplayed
 
-    def setBackgroundColors(self, backgroundColor, dataBackgroundColor=None):
+    def setForegroundColors(self, foregroundColor, gridColor):
+        """Set foreground and grid colors used to display this widget.
+        
+        :param List[float] foregroundColor: RGBA foreground color of the widget
+        :param List[float] gridColor: RGBA grid color of the data view
         """
-        Set background colors used to display this widget.
+        pass
 
-        If a `backgroundColor` is set, it is used for all the background of the
-        widget, while no `dataBackgroundColor` is used.
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
+        """Set background colors used to display this widget.
 
-        If a `dataBackgroundColor` is set, it is used to set the background
-        of the view displayed the data only. The widget outside the axes will
-        still use the `backgroundColor` as background.
-
-        :param Union[Tuple[float],None] backgroundColor: Background of the
-            widget
-        :param Union[Tuple[float],None] dataBackgroundColor: Background of the
-            data view
+        :param List[float] backgroundColor: RGBA background color of the widget
+        :param Union[Tuple[float],None] dataBackgroundColor:
+            RGBA background color of the data view
         """
         pass

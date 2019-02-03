@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,29 +27,26 @@ __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
 __date__ = "18/04/2018"
 
-import numpy
+
+import enum
 import os.path
 import sys
 import time
 import logging
 import collections
 
+import numpy
+import six
+
 from silx.utils.proxy import Proxy
-from silx.third_party import six
-from silx.third_party import enum
 import silx.io.url
 
-try:
-    import h5py
-except ImportError as e:
-    h5py = None
-    h5py_import_error = e
+import h5py
 
 try:
     import h5pyd
 except ImportError as e:
     h5pyd = None
-    h5py_import_error = e
 
 
 logger = logging.getLogger(__name__)
@@ -89,9 +86,8 @@ def supported_extensions(flat_formats=True):
     :rtype: Dict[str, Set[str]]
     """
     formats = {}
-    if h5py is not None:
-        formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
-        formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
+    formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
+    formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
     formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
     if flat_formats:
         try:
@@ -405,10 +401,6 @@ def h5ls(h5group, lvl=0):
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
     """
-    if h5py is None:
-        logger.error("h5ls requires h5py")
-        raise h5py_import_error
-
     h5repr = ''
     if is_group(h5group):
         h5f = h5group
@@ -466,9 +458,8 @@ def _open_local_file(filename):
                 debugging_info.append((sys.exc_info(),
                                       "File '%s' can't be read as a numpy file." % filename))
 
-        if h5py is not None:
-            if h5py.is_hdf5(filename):
-                return h5py.File(filename, "r")
+        if h5py.is_hdf5(filename):
+            return h5py.File(filename, "r")
 
         try:
             from . import fabioh5
@@ -616,13 +607,12 @@ def _get_classes_type():
     _CLASSES_TYPE[commonh5.Group] = H5Type.GROUP
     _CLASSES_TYPE[commonh5.SoftLink] = H5Type.SOFT_LINK
 
-    if h5py is not None:
-        _CLASSES_TYPE[h5py.Dataset] = H5Type.DATASET
-        _CLASSES_TYPE[h5py.File] = H5Type.FILE
-        _CLASSES_TYPE[h5py.Group] = H5Type.GROUP
-        _CLASSES_TYPE[h5py.SoftLink] = H5Type.SOFT_LINK
-        _CLASSES_TYPE[h5py.HardLink] = H5Type.HARD_LINK
-        _CLASSES_TYPE[h5py.ExternalLink] = H5Type.EXTERNAL_LINK
+    _CLASSES_TYPE[h5py.Dataset] = H5Type.DATASET
+    _CLASSES_TYPE[h5py.File] = H5Type.FILE
+    _CLASSES_TYPE[h5py.Group] = H5Type.GROUP
+    _CLASSES_TYPE[h5py.SoftLink] = H5Type.SOFT_LINK
+    _CLASSES_TYPE[h5py.HardLink] = H5Type.HARD_LINK
+    _CLASSES_TYPE[h5py.ExternalLink] = H5Type.EXTERNAL_LINK
 
     if h5pyd is not None:
         _CLASSES_TYPE[h5pyd.Dataset] = H5Type.DATASET
@@ -695,9 +685,6 @@ def get_h5py_class(obj):
     :param obj: An object
     :return: An h5py object
     """
-    if h5py is None:
-        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
-        raise h5py_import_error
     if hasattr(obj, "h5py_class"):
         return obj.h5py_class
     type_ = get_h5_class(obj)
@@ -836,3 +823,91 @@ def get_data(url):
         raise ValueError("Scheme '%s' not supported" % url.scheme())
 
     return data
+
+
+def rawfile_to_h5_external_dataset(vol_file, output_url, shape, vol_dtype,
+                                   overwrite=False):
+    """
+    Create a HDF5 dataset at `output_url` pointing to the given vol_file.
+
+    Either `shape` or `info_file` must be provided.
+
+    :param str vol_file: Path to the .vol file
+    :param DataUrl output_url: HDF5 URL where to save the external dataset
+    :param tuple shape: Shape of the volume
+    :param numpy.dtype vol_dtype: Data type of the volume elements (default: float32)
+    :param bool overwrite: True to allow overwriting (default: False).
+    """
+    assert isinstance(output_url, silx.io.url.DataUrl)
+    assert isinstance(shape, (tuple, list))
+    v_majeur, v_mineur, v_micro = h5py.version.version.split('.')
+    if v_majeur <= '2' and v_mineur < '9':
+        raise Exception('h5py >= 2.9 should be installed to access the '
+                        'external feature.')
+
+    with h5py.File(output_url.file_path()) as _h5_file:
+        if output_url.data_path() in _h5_file:
+            if overwrite is False:
+                raise ValueError('data_path already exists')
+            else:
+                logger.warning('will overwrite path %s' % output_url.data_path())
+                del _h5_file[output_url.data_path()]
+        external = [(vol_file, 0, h5py.h5f.UNLIMITED)]
+        _h5_file.create_dataset(output_url.data_path(),
+                                shape,
+                                dtype=vol_dtype,
+                                external=external)
+
+
+def vol_to_h5_external_dataset(vol_file, output_url, info_file=None,
+                               vol_dtype=numpy.float32, overwrite=False):
+    """
+    Create a HDF5 dataset at `output_url` pointing to the given vol_file.
+
+    If the vol_file.info containing the shape is not on the same folder as the
+     vol-file then you should specify her location.
+
+    :param str vol_file: Path to the .vol file
+    :param DataUrl output_url: HDF5 URL where to save the external dataset
+    :param Union[str,None] info_file:
+        .vol.info file name written by pyhst and containing the shape information
+    :param numpy.dtype vol_dtype: Data type of the volume elements (default: float32)
+    :param bool overwrite: True to allow overwriting (default: False).
+    :raises ValueError: If fails to read shape from the .vol.info file
+    """
+    _info_file = info_file
+    if _info_file is None:
+        _info_file = vol_file + '.info'
+        if not os.path.exists(_info_file):
+            logger.error('info_file not given and %s does not exists, please'
+                         'specify .vol.info file' % _info_file)
+            return
+
+    def info_file_to_dict():
+        ddict = {}
+        with builtin_open(info_file, "r") as _file:
+            lines = _file.readlines()
+            for line in lines:
+                if not '=' in line:
+                    continue
+                l = line.rstrip().replace(' ', '')
+                l = l.split('#')[0]
+                key, value = l.split('=')
+                ddict[key.lower()] = value
+        return ddict
+
+    ddict = info_file_to_dict()
+    if 'num_x' not in ddict or 'num_y' not in ddict or 'num_z' not in ddict:
+        raise ValueError(
+            'Unable to retrieve volume shape from %s' % info_file)
+
+    dimX = int(ddict['num_x'])
+    dimY = int(ddict['num_y'])
+    dimZ = int(ddict['num_z'])
+    shape = (dimZ, dimY, dimX)
+
+    return rawfile_to_h5_external_dataset(vol_file=vol_file,
+                                          output_url=output_url,
+                                          shape=shape,
+                                          vol_dtype=vol_dtype,
+                                          overwrite=overwrite)
