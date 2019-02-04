@@ -217,6 +217,7 @@ class SinoFilter(OpenclProcessing):
 
 
     def allocate_memory(self):
+        self.d_filter_f = parray.zeros(self.queue, (self.sino_f_shape[-1],), np.complex64)
         self.is_cpu = (self.device.type == "CPU")
         # These are already allocated by FFT() if using the opencl backend
         if self.fft_backend == "opencl":
@@ -234,14 +235,38 @@ class SinoFilter(OpenclProcessing):
     def compute_filter(self, filter_name, extra_options):
         self.init_extra_options(extra_options)
         self.filter_name = filter_name or "ram-lak"
-        self.filter_f = compute_fourier_filter(
+        filter_f = compute_fourier_filter(
             self.dwidth_padded,
             filter_name,
             cutoff=self.extra_options["cutoff"],
-        )
-        self.filter_f *= pi/self.n_angles # normalization
+        )[:self.dwidth_padded//2+1] # R2C
+        self.set_filter(filter_f, normalize=True)
+
+
+    def set_filter(self, h_filt, normalize=True):
+        """
+        Set a filter for sinogram filtering.
+        :param h_filt: Filter. Each line of the sinogram will be filtered with
+            this filter. It has to be the Real-to-Complex Fourier Transform
+            of some real filter, padded to 2*sinogram_width.
+        :param normalize: Whether to normalize the filter with pi/num_angles.
+        """
+        if h_filt.size != self.sino_f_shape[-1]:
+            raise ValueError(
+                """
+                Invalid filter size: expected %d, got %d.
+                Please check that the filter is the Fourier R2C transform of
+                some real 1D filter.
+                """
+                % (self.sino_f_shape[-1], h_filt.size)
+            )
+        if not(np.iscomplexobj(h_filt)):
+            print("Warning: expected a complex Fourier filter")
+        self.filter_f = h_filt
+        if normalize:
+            self.filter_f *= pi/self.n_angles
         self.filter_f = self.filter_f.astype(np.complex64)
-        self.d_filter_f = parray.to_device(self.queue, self.filter_f)
+        self.d_filter_f[:] = self.filter_f[:]
 
 
     def init_kernels(self):
