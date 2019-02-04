@@ -31,6 +31,7 @@ try:
     import pyopencl.array as parray
     import gpyfft
     from gpyfft.fft import FFT as cl_fft
+    from ...opencl.common import ocl
     __have_clfft__ = True
 except ImportError:
     __have_clfft__ = False
@@ -55,6 +56,8 @@ class CLFFT(BaseFFT):
     :param bool fast_math:
         If set to True, computations will be done with "fast math" mode,
         i.e., more speed but less accuracy.
+    :param bool choose_best_device:
+        Whether to automatically choose the best available OpenCL device.
     """
     def __init__(
         self,
@@ -66,6 +69,7 @@ class CLFFT(BaseFFT):
         normalize="rescale",
         ctx=None,
         fast_math=False,
+        choose_best_device=True,
     ):
         if not(__have_clfft__) or not(__have_clfft__):
             raise ImportError("Please install pyopencl and gpyfft >= %s to use the OpenCL back-end" % __required_gpyfft_version__)
@@ -79,6 +83,7 @@ class CLFFT(BaseFFT):
             normalize=normalize,
         )
         self.ctx = ctx
+        self.choose_best_device = choose_best_device
         self.fast_math = fast_math
         self.backend = "clfft"
 
@@ -165,7 +170,10 @@ class CLFFT(BaseFFT):
 
     def init_context_queue(self):
         if self.ctx is None:
-            self.ctx = cl.create_some_context()
+            if self.choose_best_device:
+                self.ctx = ocl.create_context()
+            else:
+                self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
 
 
