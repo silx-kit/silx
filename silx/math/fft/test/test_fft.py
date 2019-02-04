@@ -89,8 +89,8 @@ class TestFFT(unittest.TestCase):
     def setUpClass(cls):
         super(TestFFT, cls).setUpClass()
         if __have_clfft__:
-            import pyopencl
-            cls.Ctx = pyopencl.create_some_context()
+            from silx.opencl.common import ocl
+            cls.Ctx = ocl.create_context()
 
 
     @classmethod
