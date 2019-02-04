@@ -87,7 +87,7 @@ def lanczos(N):
     Compute the Lanczos window (truncated sinc) of width N.
     """
     x = np.arange(N)/(N-1)
-    return sin(pi*(2*x-1))/(pi*(2*x-1))
+    return np.sin(pi*(2*x-1))/(pi*(2*x-1))
 
 
 def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
@@ -126,6 +126,10 @@ def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
         "tukey": np.fft.fftshift(tukey(dwidth_padded, alpha=d/2.))[1:Nf],
         "lanczos": np.fft.fftshift(lanczos(dwidth_padded))[1:Nf],
     }
+    if filter_name not in apodization:
+        raise ValueError("Unknown filter %s. Available filters are %s" %
+            (filter_name, str(apodization.keys()))
+        )
     filt_f[1:Nf] *= apodization[filter_name]
     return filt_f
 
@@ -140,11 +144,12 @@ class SinoFilter(OpenclProcessing):
     """
     kernel_files = ["array_utils.cl"]
 
-    def __init__(self, sino_shape, ctx=None, devicetype="all",
-                 platformid=None, deviceid=None, profile=False):
+    def __init__(self, sino_shape, filter_name=None, ctx=None, devicetype="all",
+                 platformid=None, deviceid=None, profile=False, extra_options=None):
         """Constructor of OpenCL FFT-Convolve.
 
         :param shape: shape of the sinogram.
+        :param filter_name: Name of the filter. Defaut is "ram-lak".
         :param ctx: actual working context, left to None for automatic
                     initialization from device type or platformid/deviceid
         :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
@@ -162,7 +167,7 @@ class SinoFilter(OpenclProcessing):
         self.calculate_shapes(sino_shape)
         self.init_fft()
         self.allocate_memory()
-        self.compute_filter()
+        self.compute_filter(filter_name, extra_options)
         self.init_kernels()
 
 
@@ -180,6 +185,14 @@ class SinoFilter(OpenclProcessing):
         sino_f_shape = list(self.sino_padded_shape)
         sino_f_shape[-1] = sino_f_shape[-1]//2+1
         self.sino_f_shape = tuple(sino_f_shape)
+
+
+    def init_extra_options(self, extra_options):
+        self.extra_options = {
+            "cutoff": 1.,
+        }
+        if extra_options is not None:
+            self.extra_options.update(extra_options)
 
 
     def init_fft(self):
@@ -218,10 +231,16 @@ class SinoFilter(OpenclProcessing):
         self.tmp_sino_host = np.zeros(self.sino_shape, "f")
 
 
-    def compute_filter(self):
-        filter_ = compute_ramlak_filter(self.dwidth_padded, dtype=np.float32)
-        filter_ *= pi/self.n_angles # normalization
-        self.filter_f = np.fft.rfft(filter_).astype(np.complex64)
+    def compute_filter(self, filter_name, extra_options):
+        self.init_extra_options(extra_options)
+        self.filter_name = filter_name or "ram-lak"
+        self.filter_f = compute_fourier_filter(
+            self.dwidth_padded,
+            filter_name,
+            cutoff=self.extra_options["cutoff"],
+        )
+        self.filter_f *= pi/self.n_angles # normalization
+        self.filter_f = self.filter_f.astype(np.complex64)
         self.d_filter_f = parray.to_device(self.queue, self.filter_f)
 
 

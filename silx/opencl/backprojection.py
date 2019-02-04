@@ -68,7 +68,8 @@ class Backprojection(OpenclProcessing):
 
     def __init__(self, sino_shape, slice_shape=None, axis_position=None,
                  angles=None, filter_name=None, ctx=None, devicetype="all",
-                 platformid=None, deviceid=None, profile=False):
+                 platformid=None, deviceid=None, profile=False,
+                 extra_options=None):
         """Constructor of the OpenCL (filtered) backprojection
 
         :param sino_shape: shape of the sinogram. The sinogram is in the format
@@ -92,6 +93,8 @@ class Backprojection(OpenclProcessing):
         :param profile: switch on profiling to be able to profile at the kernel
                         level, store profiling elements (makes code slightly
                         slower)
+        :param extra_options: Advanced extra options in the form of a dict.
+            Current options are: cutoff,
         """
         # OS X enforces a workgroup size of 1 when the kernel has
         # synchronization barriers if sys.platform.startswith('darwin'):
@@ -102,14 +105,14 @@ class Backprojection(OpenclProcessing):
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
 
-        self.init_geometry(sino_shape, slice_shape, angles, axis_position)
+        self.init_geometry(sino_shape, slice_shape, angles, axis_position, extra_options)
         self.allocate_memory()
         self.compute_angles()
         self.init_kernels()
         self.init_filter(filter_name)
 
 
-    def init_geometry(self, sino_shape, slice_shape, angles, axis_position):
+    def init_geometry(self, sino_shape, slice_shape, angles, axis_position, extra_options):
         self.shape = sino_shape
         self.num_bins = np.int32(sino_shape[1])
         self.num_projs = np.int32(sino_shape[0])
@@ -127,6 +130,15 @@ class Backprojection(OpenclProcessing):
         else:
             self.axis_pos = np.float32((sino_shape[1] - 1.) / 2)
         self.axis_array = None  # TODO: add axis correction front-end
+        self.init_extra_options(extra_options)
+
+
+    def init_extra_options(self, extra_options):
+        self.extra_options = {
+            "filter_name": "ram-lak",
+        }
+        if extra_options is not None:
+            self.extra_options.update(extra_options)
 
 
     def allocate_memory(self):
@@ -225,8 +237,13 @@ class Backprojection(OpenclProcessing):
 
 
     def init_filter(self, filter_name):
-        self.filter_name = filter_name or "Ram-Lak"
-        self.sino_filter = SinoFilter(self.shape, ctx=self.ctx)
+        self.filter_name = filter_name or "ram-lak"
+        self.sino_filter = SinoFilter(
+            self.shape,
+            ctx=self.ctx,
+            filter_name=self.filter_name,
+            extra_options=self.extra_options,
+        )
 
 
     def _get_local_mem(self):
