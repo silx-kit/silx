@@ -958,9 +958,9 @@ DEFAULT_STATS = StatsHandler((
     statsmdl.StatCoordMin(),
     (statsmdl.StatMax(), StatFormatter()),
     statsmdl.StatCoordMax(),
-    (('std', numpy.std), StatFormatter()),
+    statsmdl.StatCOM(),
     (('mean', numpy.mean), StatFormatter()),
-    statsmdl.StatCOM()
+    (('std', numpy.std), StatFormatter()),
 ))
 
 
