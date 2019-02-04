@@ -921,6 +921,12 @@ def get_project_configuration(dry_run):
         'full': full_requires,
     }
 
+    # Here for packaging purpose only
+    # Setting the SILX_FULL_INSTALL_REQUIRES environment variable
+    # put all dependencies as install_requires
+    if os.environ.get('SILX_FULL_INSTALL_REQUIRES') is not None:
+        install_requires += full_requires
+
     package_data = {
         # Resources files for silx
         'silx.resources': [
