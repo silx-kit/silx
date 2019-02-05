@@ -1370,8 +1370,8 @@ class _RoiMarkerHandler(object):
         self._roi = weakref.ref(roi)
         self._plot = weakref.ref(plot)
         self.draggable = False if roi.isICR() else True
-        self._color = 'blue' if roi.isICR() else 'black'
-        self._displayMidMarker = True
+        self._color = 'black' if roi.isICR() else 'blue'
+        self._displayMidMarker = False
         self._visible = True
 
     @property
