@@ -455,14 +455,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             ystep = 1 if scale[1] >= 0. else -1
             data = data[::ystep, ::xstep]
 
-        if self._matplotlibVersion < _parse_version('2.1'):
-            # matplotlib 1.4.2 do not support float128
-            dtype = data.dtype
-            if dtype.kind == "f" and dtype.itemsize >= 16:
-                _logger.warning("Your matplotlib version do not support "
-                                "float128. Data converted to float64.")
-                data = data.astype(numpy.float64)
-
         if data.ndim == 2:  # Data image, convert to RGBA image
             data = colormap.applyToData(data)
 
