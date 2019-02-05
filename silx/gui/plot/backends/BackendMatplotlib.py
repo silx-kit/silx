@@ -424,31 +424,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         picker = (selectable or draggable)
 
-        # Debian 7 specific support
-        # No transparent colormap with matplotlib < 1.2.0
-        # Add support for transparent colormap for uint8 data with
-        # colormap with 256 colors, linear norm, [0, 255] range
-        if self._matplotlibVersion < _parse_version('1.2.0'):
-            if (len(data.shape) == 2 and colormap.getName() is None and
-                    colormap.getColormapLUT() is not None):
-                colors = colormap.getColormapLUT()
-                if (colors.shape[-1] == 4 and
-                        not numpy.all(numpy.equal(colors[3], 255))):
-                    # This is a transparent colormap
-                    if (colors.shape == (256, 4) and
-                            colormap.getNormalization() == 'linear' and
-                            not colormap.isAutoscale() and
-                            colormap.getVMin() == 0 and
-                            colormap.getVMax() == 255 and
-                            data.dtype == numpy.uint8):
-                        # Supported case, convert data to RGBA
-                        data = colors[data.reshape(-1)].reshape(
-                            data.shape + (4,))
-                    else:
-                        _logger.warning(
-                            'matplotlib %s does not support transparent '
-                            'colormap.', matplotlib.__version__)
-
         # All image are shown as RGBA image
         image = AxesImage(self.ax,
                           label="__IMAGE__" + legend,
