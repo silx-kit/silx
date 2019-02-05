@@ -252,6 +252,19 @@ class _DoubleColoredLinePatch(matplotlib.patches.Patch):
         return self.__patch.contains_point(point, radius)
 
 
+class Image(AxesImage):
+    """An AxesImage with a fast path for uint8 RGBA images"""
+
+    def set_data(self, A):
+        A = numpy.array(A, copy=False)
+        if A.ndim != 3 or A.shape[2] != 4 or A.dtype != numpy.uint8:
+            super(Image, self).set_data(A)
+        else:
+            # Call AxesImage.set_data with small data to set attributes
+            super(Image, self).set_data(numpy.zeros((2, 2, 4), dtype=A.dtype))
+            self._A = A  # Override stored data
+
+
 class BackendMatplotlib(BackendBase.BackendBase):
     """Base class for Matplotlib backend without a FigureCanvas.
 
@@ -425,12 +438,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         picker = (selectable or draggable)
 
         # All image are shown as RGBA image
-        image = AxesImage(self.ax,
-                          label="__IMAGE__" + legend,
-                          interpolation='nearest',
-                          picker=picker,
-                          zorder=z,
-                          origin='lower')
+        image = Image(self.ax,
+                      label="__IMAGE__" + legend,
+                      interpolation='nearest',
+                      picker=picker,
+                      zorder=z,
+                      origin='lower')
 
         if alpha < 1:
             image.set_alpha(alpha)
@@ -459,9 +472,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             data = colormap.applyToData(data)
 
         image.set_data(data)
-
         self.ax.add_artist(image)
-
         return image
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
