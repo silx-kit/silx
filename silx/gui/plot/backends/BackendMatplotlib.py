@@ -56,7 +56,6 @@ from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, ScalarFormatter, Locator
 
 
-from ....third_party.modest_image import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
@@ -450,19 +449,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
                             'matplotlib %s does not support transparent '
                             'colormap.', matplotlib.__version__)
 
-        if ((height * width) > 5.0e5 and
-                origin == (0., 0.) and scale == (1., 1.)):
-            imageClass = ModestImage
-        else:
-            imageClass = AxesImage
-
         # All image are shown as RGBA image
-        image = imageClass(self.ax,
-                           label="__IMAGE__" + legend,
-                           interpolation='nearest',
-                           picker=picker,
-                           zorder=z,
-                           origin='lower')
+        image = AxesImage(self.ax,
+                          label="__IMAGE__" + legend,
+                          interpolation='nearest',
+                          picker=picker,
+                          zorder=z,
+                          origin='lower')
 
         if alpha < 1:
             image.set_alpha(alpha)
