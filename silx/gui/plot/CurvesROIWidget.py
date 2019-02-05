@@ -1369,10 +1369,14 @@ class _RoiMarkerHandler(object):
 
         self._roi = weakref.ref(roi)
         self._plot = weakref.ref(plot)
-        self.draggable = False if roi.isICR() else True
+        self._draggable = False if roi.isICR() else True
         self._color = 'black' if roi.isICR() else 'blue'
         self._displayMidMarker = False
         self._visible = True
+
+    @property
+    def draggable(self):
+        return self._draggable
 
     @property
     def plot(self):
@@ -1394,6 +1398,9 @@ class _RoiMarkerHandler(object):
             self.updateMarkers()
 
     def showMiddleMarker(self, visible):
+        if self.draggable is False and visible is True:
+            _logger.warning("ROI is not draggable. Won't display middle marker")
+            return
         self._displayMidMarker = visible
         self.getMarker('middle').setVisible(self._displayMidMarker)
 
