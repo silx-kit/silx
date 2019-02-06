@@ -97,11 +97,9 @@ class _Wrapper(qt.QObject):
         """
         return ()
 
-    def getSelectedItems(self, kind=None):
+    def getSelectedItems(self):
         """Returns the list of selected items in the plot
 
-        :param Union[str,None] kind: kind of selected items. If None no filter
-                                     apply
         :rtype: List[object]
         """
         return ()
@@ -174,12 +172,11 @@ class _PlotWidgetWrapper(_Wrapper):
         plot = self.getPlot()
         return () if plot is None else plot._getItems()
 
-    def getSelectedItems(self, kind):
+    def getSelectedItems(self):
         plot = self.getPlot()
         items = []
         if plot is not None:
-            item_kinds = plot._ACTIVE_ITEM_KINDS if kind is None else (kind, )
-            for kind in item_kinds:
+            for kind in plot._ACTIVE_ITEM_KINDS:
                 item = plot._getActiveItem(kind=kind)
                 if item is not None:
                     items.append(item)
@@ -235,11 +232,8 @@ class _SceneWidgetWrapper(_Wrapper):
         plot = self.getPlot()
         return () if plot is None else tuple(plot.getSceneGroup().visit())
 
-    def getSelectedItems(self, kind):
+    def getSelectedItems(self):
         plot = self.getPlot()
-        if kind is not None:
-            _logger.warning('kind parameter is skipped, there is not several '
-                            ' active items on a SceneWidget')
         return () if plot is None else (plot.selection().getCurrentItem(),)
 
     def setCurrentItem(self, item):
@@ -293,10 +287,7 @@ class _ScalarFieldViewWrapper(_Wrapper):
         plot = self.getPlot()
         return () if plot is None else (self._item,)
 
-    def getSelectedItems(self, kind):
-        if kind is not None:
-            _logger.warning('kind parameter is skipped, there is not'
-                            ' several active items on a ScalarFieldView')
+    def getSelectedItems(self):
         return self.getItems()
 
     def setCurrentItem(self, item):
@@ -546,7 +537,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
         # Get selected or all items from the plot
         if self._displayOnlyActItem:  # Only selected
-            items = self._plotWrapper.getSelectedItems(kind=None)
+            items = self._plotWrapper.getSelectedItems()
         else:  # All items
             items = self._plotWrapper.getItems()
 
