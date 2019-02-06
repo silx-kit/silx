@@ -160,7 +160,6 @@ class CurvesROIWidget(qt.QWidget):
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
 
-        self._middleROIMarkerFlag = False
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
 
@@ -471,7 +470,6 @@ class ROITable(TableWidget):
     def __init__(self, parent=None, plot=None, rois=None):
         super(ROITable, self).__init__(parent)
         self._showAllMarkers = False
-        self._middleROIMarkerFlag = False
         self._userIsEditingRoi = False
         """bool used to avoid conflict when editing the ROI object"""
         self._isConnected = False
@@ -923,7 +921,7 @@ class ROITable(TableWidget):
 
         :param bool flag: True to activate middle ROI marker
         """
-        self._middleROIMarkerFlag = flag
+        self._markersHandler._middleROIMarkerFlag = flag
 
     def _handleROIMarkerEvent(self, ddict):
         """Handle plot signals related to marker events."""
@@ -1321,6 +1319,7 @@ class _RoiMarkerManager(object):
         if roiID in self._roiMarkerHandlers:
             visible = ((self._activeRoi and self._activeRoi.getID() == roiID)
                        or self._showAllMarkers is True)
+            self._roiMarkerHandlers[roiID].showMiddleMarker(self._middleROIMarkerFlag)
             self._roiMarkerHandlers[roiID].setVisible(visible)
             self._roiMarkerHandlers[roiID].updateMarkers()
 
