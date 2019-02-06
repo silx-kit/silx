@@ -1032,12 +1032,15 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     :param QWidget parent: Qt parent
     :param Union[PlotWidget,SceneWidget] plot:
         The plot containing items on which we want statistics.
+    :param str kind: the kind of plotitems we want to display
+    :param bool statsOnVisibleData: compute statistics for the whole data or
+                                    only visible ones.
     :param StatsHandler stats:
         Set the statistics to be displayed and how to format them using
     """
 
     def __init__(self, parent=None, plot=None, kind='curve',
-                 statsOnVisibleData=False):
+                 statsOnVisibleData=False, stats=None):
         self._item_kind = kind
         """The item displayed"""
         self._statQlineEdit = {}
@@ -1050,6 +1053,8 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
                                   displayOnlyActItem=True)
         self.setLayout(self._createLayout())
         self.setPlot(plot)
+        if stats is not None:
+            self.setStats(stats)
 
     def _addItemForStatistic(self, statistic):
         assert isinstance(statistic, statsmdl.StatBase)
@@ -1171,9 +1176,8 @@ class BasicLineStatsWidget(_BaseLineStatsWidget):
     def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
                  kind='curve', statsOnVisibleData=False):
         _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
-                                      statsOnVisibleData=statsOnVisibleData)
-        if stats is not None:
-            self.setStats(stats)
+                                      statsOnVisibleData=statsOnVisibleData,
+                                      stats=stats)
 
     def _createLayout(self):
         return FlowLayout()
@@ -1225,10 +1229,9 @@ class BasicGridStatsWidget(_BaseLineStatsWidget):
     def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
                  kind='curve', statsOnVisibleData=False, statsPerLine=4):
         _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
-                                      statsOnVisibleData=statsOnVisibleData)
+                                      statsOnVisibleData=statsOnVisibleData,
+                                      stats=stats)
         self._n_statistics_per_line = statsPerLine
-        if stats is not None:
-            self.setStats(stats)
 
     def _addStatsWidgetsToLayout(self, qLabel, qLineEdit):
         column = len(self._statQlineEdit) % self._n_statistics_per_line
