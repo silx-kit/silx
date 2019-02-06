@@ -333,7 +333,8 @@ class _StatsWidgetBase(object):
             The plot containing the items on which statistics are applied
         """
         from ..plot3d.SceneWidget import SceneWidget  # Lazy import
-
+        self._dealWithPlotConnection(create=False)
+        self.clear()
         if plot is None:
             self._plotWrapper = _Wrapper()
         elif isinstance(plot, PlotWidget):
@@ -342,6 +343,7 @@ class _StatsWidgetBase(object):
             self._plotWrapper = _SceneWidgetWrapper(plot)
         else:  # Expect a ScalarFieldView
             self._plotWrapper = _ScalarFieldViewWrapper(plot)
+        self._dealWithPlotConnection(create=True)
 
     def setStats(self, statsHandler):
         """Set which stats to display and the associated formatting.
@@ -460,6 +462,10 @@ class _StatsWidgetBase(object):
         """
         raise NotImplementedError('Base class')
 
+    def clear(self):
+        """clear GUI"""
+        pass
+
 
 class StatsTable(_StatsWidgetBase, TableWidget):
     """
@@ -550,11 +556,16 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         :param Union[PlotWidget,SceneWidget,None] plot:
             The plot containing the items on which statistics are applied
         """
-        self._dealWithPlotConnection(create=False)
-        self._removeAllItems()
         _StatsWidgetBase.setPlot(self, plot)
-        self._dealWithPlotConnection(create=True)
         self._updateItemObserve()
+
+    def clear(self):
+        """Define the plot to interact with
+
+        :param Union[PlotWidget,SceneWidget,None] plot:
+            The plot containing the items on which statistics are applied
+        """
+        self._removeAllItems()
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
@@ -1082,6 +1093,15 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
 
         self._statQlineEdit[statistic.name] = qLineEdit
 
+    def setPlot(self, plot):
+        """Define the plot to interact with
+
+        :param Union[PlotWidget,SceneWidget,None] plot:
+            The plot containing the items on which statistics are applied
+        """
+        _StatsWidgetBase.setPlot(self, plot)
+        self._updateAllStats()
+
     def setStats(self, statsHandler):
         """Set which stats to display and the associated formatting.
         :param StatsHandler statsHandler:
@@ -1090,17 +1110,6 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         _StatsWidgetBase.setStats(self, statsHandler)
         for statName, stat in list(self._statsHandler.stats.items()):
             self._addItemForStatistic(stat)
-        self._updateAllStats()
-
-    def setPlot(self, plot):
-        """Define the plot to interact with
-
-        :param Union[PlotWidget,None] plot:
-            The plot containing the items on which statistics are applied
-        """
-        self._dealWithPlotConnection(create=False)
-        _StatsWidgetBase.setPlot(self, plot)
-        self._dealWithPlotConnection(create=True)
         self._updateAllStats()
 
     def _activeItemChanged(self, kind, previous, current):
