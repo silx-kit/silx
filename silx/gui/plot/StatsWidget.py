@@ -43,6 +43,7 @@ from silx.gui import icons
 from silx.gui.plot import stats as statsmdl
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.stats.statshandler import StatsHandler, StatFormatter
+from silx.gui.plot.items.core import ItemChangedType
 from silx.gui.widgets.FlowLayout import FlowLayout
 from . import PlotWidget
 from . import items as plotitems
@@ -323,6 +324,23 @@ class _StatsWidgetBase(object):
         self._statsOnVisibleData = statsOnVisibleData
         self._statsHandler = None
 
+        self.__default_skipped_events = (
+            ItemChangedType.ALPHA,
+            ItemChangedType.COLOR,
+            ItemChangedType.COLORMAP,
+            ItemChangedType.SYMBOL,
+            ItemChangedType.SYMBOL_SIZE,
+            ItemChangedType.LINE_WIDTH,
+            ItemChangedType.LINE_STYLE,
+            ItemChangedType.LINE_BG_COLOR,
+            ItemChangedType.FILL,
+            ItemChangedType.HIGHLIGHTED_COLOR,
+            ItemChangedType.HIGHLIGHTED_STYLE,
+            ItemChangedType.TEXT,
+            ItemChangedType.OVERLAY,
+            ItemChangedType.VISUALIZATION_MODE,
+        )
+
         self._plotWrapper = _Wrapper()
         self._dealWithPlotConnection(create=True)
 
@@ -465,6 +483,15 @@ class _StatsWidgetBase(object):
     def clear(self):
         """clear GUI"""
         pass
+
+    def _skipPlotItemChangedEvent(self, event):
+        """
+
+        :param ItemChangedtype event: event to filter or not
+        :return: True if we want to ignore this ItemChangedtype
+        :rtype: bool
+        """
+        return event in self.__default_skipped_events
 
 
 class StatsTable(_StatsWidgetBase, TableWidget):
@@ -641,8 +668,11 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
         :param event:
         """
-        item = self.sender()
-        self._updateStats(item)
+        if self._skipPlotItemChangedEvent(event) is True:
+            return
+        else:
+            item = self.sender()
+            self._updateStats(item)
 
     def _addItem(self, item):
         """Add a plot item to the table
