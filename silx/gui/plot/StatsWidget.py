@@ -736,6 +736,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
         :param item: The plot item
         """
+        if item is None:
+            return
         plot = self.getPlot()
         if plot is None:
             _logger.info("Plot not available")
