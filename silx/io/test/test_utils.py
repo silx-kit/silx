@@ -599,10 +599,10 @@ class TestRawFileToH5(unittest.TestCase):
 
     def test_h5_file_not_existing(self):
         """Test that can create a file with external dataset from scratch"""
-        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
                                              output_url=self._data_url,
                                              shape=(100, 20, 5),
-                                             vol_dtype=numpy.float32)
+                                             dtype=numpy.float32)
         self.assertTrue(self.check_dataset(h5_file=self.h5_file,
                                            data_path=self.external_dataset_path,
                                            shape=self._dataset_shape))
@@ -619,10 +619,10 @@ class TestRawFileToH5(unittest.TestCase):
         with h5py.File(self.h5_file, 'w') as _file:
             _file['/root/dataset1'] = numpy.zeros((100, 100))
             _file['/root/group/dataset2'] = numpy.ones((100, 100))
-        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
                                              output_url=self._data_url,
                                              shape=(100, 20, 5),
-                                             vol_dtype=numpy.float32)
+                                             dtype=numpy.float32)
         self.assertTrue(self.check_dataset(h5_file=self.h5_file,
                                            data_path=self.external_dataset_path,
                                            shape=self._dataset_shape))
@@ -630,10 +630,10 @@ class TestRawFileToH5(unittest.TestCase):
     def test_vol_file_not_existing(self):
         """Make sure error is raised if .vol file does not exists"""
         os.remove(self._vol_file)
-        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
                                              output_url=self._data_url,
                                              shape=(100, 20, 5),
-                                             vol_dtype=numpy.float32)
+                                             dtype=numpy.float32)
 
         self.assertTrue(self.check_dataset(h5_file=self.h5_file,
                                            data_path=self.external_dataset_path,
@@ -642,22 +642,22 @@ class TestRawFileToH5(unittest.TestCase):
     def test_conflicts(self):
         """Test several conflict cases"""
         # test if path already exists
-        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
                                              output_url=self._data_url,
                                              shape=(100, 20, 5),
-                                             vol_dtype=numpy.float32)
+                                             dtype=numpy.float32)
         with self.assertRaises(ValueError):
-            utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+            utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
                                                  output_url=self._data_url,
                                                  shape=(100, 20, 5),
                                                  overwrite=False,
-                                                 vol_dtype=numpy.float32)
+                                                 dtype=numpy.float32)
 
-        utils.rawfile_to_h5_external_dataset(vol_file=self._vol_file,
+        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
                                              output_url=self._data_url,
                                              shape=(100, 20, 5),
                                              overwrite=True,
-                                             vol_dtype=numpy.float32)
+                                             dtype=numpy.float32)
 
         self.assertTrue(self.check_dataset(h5_file=self.h5_file,
                                            data_path=self.external_dataset_path,

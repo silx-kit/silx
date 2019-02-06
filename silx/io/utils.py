@@ -825,17 +825,17 @@ def get_data(url):
     return data
 
 
-def rawfile_to_h5_external_dataset(vol_file, output_url, shape, vol_dtype,
+def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
                                    overwrite=False):
     """
     Create a HDF5 dataset at `output_url` pointing to the given vol_file.
 
     Either `shape` or `info_file` must be provided.
 
-    :param str vol_file: Path to the .vol file
+    :param str bin_file: Path to the .vol file
     :param DataUrl output_url: HDF5 URL where to save the external dataset
     :param tuple shape: Shape of the volume
-    :param numpy.dtype vol_dtype: Data type of the volume elements (default: float32)
+    :param numpy.dtype dtype: Data type of the volume elements (default: float32)
     :param bool overwrite: True to allow overwriting (default: False).
     """
     assert isinstance(output_url, silx.io.url.DataUrl)
@@ -852,10 +852,10 @@ def rawfile_to_h5_external_dataset(vol_file, output_url, shape, vol_dtype,
             else:
                 logger.warning('will overwrite path %s' % output_url.data_path())
                 del _h5_file[output_url.data_path()]
-        external = [(vol_file, 0, h5py.h5f.UNLIMITED)]
+        external = [(bin_file, 0, h5py.h5f.UNLIMITED)]
         _h5_file.create_dataset(output_url.data_path(),
                                 shape,
-                                dtype=vol_dtype,
+                                dtype=dtype,
                                 external=external)
 
 
@@ -906,8 +906,8 @@ def vol_to_h5_external_dataset(vol_file, output_url, info_file=None,
     dimZ = int(ddict['num_z'])
     shape = (dimZ, dimY, dimX)
 
-    return rawfile_to_h5_external_dataset(vol_file=vol_file,
+    return rawfile_to_h5_external_dataset(bin_file=vol_file,
                                           output_url=output_url,
                                           shape=shape,
-                                          vol_dtype=vol_dtype,
+                                          dtype=vol_dtype,
                                           overwrite=overwrite)
