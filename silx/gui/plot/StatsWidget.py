@@ -435,6 +435,31 @@ class _StatsWidgetBase(object):
             self._dealWithPlotConnection(create=True)
             self._updateAllStats()
 
+    def _addItem(self, item):
+        """Add a plot item to the table
+
+        If item is not supported, it is ignored.
+
+        :param item: The plot item
+        :returns: True if the item is added to the widget.
+        :rtype: bool
+        """
+        raise NotImplementedError('Base class')
+
+    def _removeItem(self, item):
+        """Remove table items corresponding to given plot item from the table.
+
+        :param item: The plot item
+        """
+        raise NotImplementedError('Base class')
+
+    def _plotCurrentChanged(self, current):
+        """Handle change of current item and update selection in table
+
+        :param current:
+        """
+        raise NotImplementedError('Base class')
+
 
 class StatsTable(_StatsWidgetBase, TableWidget):
     """
