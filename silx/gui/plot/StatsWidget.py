@@ -1033,14 +1033,14 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     :param Union[PlotWidget,SceneWidget] plot:
         The plot containing items on which we want statistics.
     :param str kind: the kind of plotitems we want to display
-    :param bool statsOnVisibleData: compute statistics for the whole data or
-                                    only visible ones.
     :param StatsHandler stats:
         Set the statistics to be displayed and how to format them using
+    :param bool statsOnVisibleData: compute statistics for the whole data or
+                                    only visible ones.
     """
 
-    def __init__(self, parent=None, plot=None, kind='curve',
-                 statsOnVisibleData=False, stats=None):
+    def __init__(self, parent=None, plot=None, kind='curve', stats=None,
+                 statsOnVisibleData=False):
         self._item_kind = kind
         """The item displayed"""
         self._statQlineEdit = {}
@@ -1166,25 +1166,25 @@ class BasicLineStatsWidget(_BaseLineStatsWidget):
     :param QWidget parent: Qt parent
     :param Union[PlotWidget,SceneWidget] plot:
         The plot containing items on which we want statistics.
+    :param str kind: the kind of plotitems we want to display
     :param StatsHandler stats:
         Set the statistics to be displayed and how to format them using
-    :param str kind: the kind of plotitems we want to display
     :param bool statsOnVisibleData: compute statistics for the whole data or
                                     only visible ones.
     """
 
-    def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
-                 kind='curve', statsOnVisibleData=False):
-        _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
-                                      statsOnVisibleData=statsOnVisibleData,
-                                      stats=stats)
+    def __init__(self, parent=None, plot=None, kind='curve',
+                 stats=DEFAULT_STATS, statsOnVisibleData=False):
+        _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind,
+                                      plot=plot, stats=stats,
+                                      statsOnVisibleData=statsOnVisibleData)
 
     def _createLayout(self):
         return FlowLayout()
 
     def _addStatsWidgetsToLayout(self, qLabel, qLineEdit):
-        # create a mother widget to make sure both will always be displayed
-        # side by side
+        # create a mother widget to make sure both qLabel & qLineEdit will
+        # always be displayed side by side
         widget = qt.QWidget(parent=self)
         widget.setLayout(qt.QHBoxLayout())
         widget.layout().setSpacing(0)
@@ -1208,6 +1208,7 @@ class BasicGridStatsWidget(_BaseLineStatsWidget):
     :param str kind: the kind of plotitems we want to display
     :param bool statsOnVisibleData: compute statistics for the whole data or
                                     only visible ones.
+    :param int statsPerLine: number of statistic to be displayed per line
 
     .. snapshotqt:: img/BasicGridStatsWidget.png
      :width: 600px
@@ -1226,11 +1227,12 @@ class BasicGridStatsWidget(_BaseLineStatsWidget):
      widget.show()
     """
 
-    def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
-                 kind='curve', statsOnVisibleData=False, statsPerLine=4):
-        _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
-                                      statsOnVisibleData=statsOnVisibleData,
-                                      stats=stats)
+    def __init__(self, parent=None, plot=None, kind='curve',
+                 stats=DEFAULT_STATS, statsOnVisibleData=False,
+                 statsPerLine=4):
+        _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind,
+                                      plot=plot, stats=stats,
+                                      statsOnVisibleData=statsOnVisibleData)
         self._n_statistics_per_line = statsPerLine
 
     def _addStatsWidgetsToLayout(self, qLabel, qLineEdit):
