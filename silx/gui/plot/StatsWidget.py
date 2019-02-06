@@ -1042,7 +1042,7 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         """The item displayed"""
         self._statQlineEdit = {}
         """list of legends actually displayed"""
-        self._n_statistics_per_row = 4
+        self._n_statistics_per_line = 4
         """number of statistics displayed per line in the grid layout"""
         qt.QWidget.__init__(self, parent)
 
@@ -1074,8 +1074,8 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         qLineEdit.setReadOnly(True)
 
         if isinstance(self.layout(), qt.QGridLayout):
-            column = len(self._statQlineEdit) % self._n_statistics_per_row
-            row = len(self._statQlineEdit) // self._n_statistics_per_row
+            column = len(self._statQlineEdit) % self._n_statistics_per_line
+            row = len(self._statQlineEdit) // self._n_statistics_per_line
             self.layout().addWidget(qLabel, row, column*2)
             self.layout().addWidget(qLineEdit, row, column*2+1)
         else:
@@ -1222,10 +1222,10 @@ class BasicGridStatsWidget(LineStatsWidget):
     """
 
     def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
-                 kind='curve', statsOnVisibleData=False, width=4):
+                 kind='curve', statsOnVisibleData=False, statsPerLine=4):
         LineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
                                  statsOnVisibleData=statsOnVisibleData)
-        self._n_statistics_per_line = width
+        self._n_statistics_per_line = statsPerLine
         self.setLayout(qt.QGridLayout())
         if stats is not None:
             self.setStats(stats)
