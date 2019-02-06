@@ -1189,6 +1189,15 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         """create an instance of the main QLayout"""
         raise NotImplementedError('Base class')
 
+    def _addItem(self, item):
+        raise NotImplementedError('Display only the active item')
+
+    def _removeItem(self, item):
+        raise NotImplementedError('Display only the active item')
+
+    def _plotCurrentChanged(selfself, current):
+        raise NotImplementedError('Display only the active item')
+
 
 class BasicLineStatsWidget(_BaseLineStatsWidget):
     """
