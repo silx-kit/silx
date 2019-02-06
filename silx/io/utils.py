@@ -85,7 +85,7 @@ def supported_extensions(flat_formats=True):
         extensions (an extension is a string like "\*.ext").
     :rtype: Dict[str, Set[str]]
     """
-    formats = {}
+    formats = collections.OrderedDict()
     formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
     formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
     formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
@@ -102,6 +102,7 @@ def supported_extensions(flat_formats=True):
         extensions.append("*.npy")
 
     formats["Numpy binary files"] = set(extensions)
+    formats["Coherent X-Ray Imaging files"] = set(["*.cxi"])
     return formats
 
 
