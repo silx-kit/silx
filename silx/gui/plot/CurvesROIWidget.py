@@ -1319,7 +1319,9 @@ class _RoiMarkerManager(object):
         if roiID in self._roiMarkerHandlers:
             visible = ((self._activeRoi and self._activeRoi.getID() == roiID)
                        or self._showAllMarkers is True)
-            self._roiMarkerHandlers[roiID].showMiddleMarker(self._middleROIMarkerFlag)
+            _roi = self._roiMarkerHandlers[roiID]._roi()
+            if _roi and not _roi.isICR():
+                self._roiMarkerHandlers[roiID].showMiddleMarker(self._middleROIMarkerFlag)
             self._roiMarkerHandlers[roiID].setVisible(visible)
             self._roiMarkerHandlers[roiID].updateMarkers()
 
