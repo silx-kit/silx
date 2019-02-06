@@ -994,11 +994,12 @@ class ROITable(TableWidget):
             self.hideColumn(self.COLUMNS_INDEX['Raw Area'])
             self.hideColumn(self.COLUMNS_INDEX['Net Area'])
 
-    @deprecation.deprecated(reason="API modification",
-                            replacement="setRois",
-                            since_version="0.10.0")
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
-        """Set the ROIs by providing a list of ROI names and a dictionary
+        """
+        This function API is kept for compatibility.
+        But `setRois` should be preferred.
+
+        Set the ROIs by providing a list of ROI names and a dictionary
         of ROI information for each ROI.
         The ROI names must match an existing dictionary key.
         The name list is used to provide an order for the ROIs.
@@ -1013,10 +1014,6 @@ class ROITable(TableWidget):
         :param currentroi: Name of the selected ROI or None (no selection)
         """
         if roidict is not None:
-            deprecation.deprecated_warning(name='roidict', type_='Parameter',
-                                           reason='Rois should now be a list '
-                                                  'of ROI object',
-                                           since_version="0.10.0")
             self.setRois(roidict)
         else:
             self.setRois(roilist)
