@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -180,7 +180,8 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
     :type scale: 2-tuple of float
     :param int lineWidth: width of the profile line
     :param str method: method to compute the profile. Can be 'mean' or 'sum'
-    :return: `profile, area, profileName, xLabel`, where:
+    :return: `coords, profile, area, profileName, xLabel`, where:
+        - coords is the X coordinate to use to display the profile
         - profile is a 2D array of the profiles of the stack of images.
           For a single image, the profile is a curve, so this parameter
           has a shape *(1, len(curve))*
@@ -188,10 +189,9 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
           the effective ROI area corners in plot coords.
         - profileName is a string describing the ROI, meant to be used as
           title of the profile plot
-        - xLabel is a string describing the meaning of the X axis on the
-          profile plot ("rows", "columns", "distance")
+        - xLabel the label for X in the profile window
 
-    :rtype: tuple(ndarray, (ndarray, ndarray), str, str)
+    :rtype: tuple(ndarray,ndarray,(ndarray,ndarray),str)
     """
     if currentData is None or roiInfo is None or lineWidth is None:
         raise ValueError("createProfile called with invalide arguments")
@@ -212,12 +212,15 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                                             axis=0,
                                             method=method)
 
+        coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+        coords = coords * scale[0] + origin[0]
+
         yMin, yMax = min(area[1]), max(area[1]) - 1
         if roiWidth <= 1:
             profileName = 'Y = %g' % yMin
         else:
             profileName = 'Y = [%g, %g]' % (yMin, yMax)
-        xLabel = 'Columns'
+        xLabel = 'X'
 
     elif lineProjectionMode == 'Y':  # Vertical profile on the whole image
         profile, area = _alignedFullProfile(currentData3D,
@@ -226,12 +229,15 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                                             axis=1,
                                             method=method)
 
+        coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+        coords = coords * scale[1] + origin[1]
+
         xMin, xMax = min(area[0]), max(area[0]) - 1
         if roiWidth <= 1:
             profileName = 'X = %g' % xMin
         else:
             profileName = 'X = [%g, %g]' % (xMin, xMax)
-        xLabel = 'Rows'
+        xLabel = 'Y'
 
     else:  # Free line profile
 
@@ -306,35 +312,52 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
             dCol = (endPt[1] - startPt[1]) / length
 
             # Extend ROI with half a pixel on each end
-            startPt = startPt[0] - 0.5 * dRow, startPt[1] - 0.5 * dCol
-            endPt = endPt[0] + 0.5 * dRow, endPt[1] + 0.5 * dCol
+            roiStartPt = startPt[0] - 0.5 * dRow, startPt[1] - 0.5 * dCol
+            roiEndPt = endPt[0] + 0.5 * dRow, endPt[1] + 0.5 * dCol
 
             # Rotate deltas by 90 degrees to apply line width
             dRow, dCol = dCol, -dRow
 
             area = (
-                numpy.array((startPt[1] - 0.5 * roiWidth * dCol,
-                             startPt[1] + 0.5 * roiWidth * dCol,
-                             endPt[1] + 0.5 * roiWidth * dCol,
-                             endPt[1] - 0.5 * roiWidth * dCol),
+                numpy.array((roiStartPt[1] - 0.5 * roiWidth * dCol,
+                             roiStartPt[1] + 0.5 * roiWidth * dCol,
+                             roiEndPt[1] + 0.5 * roiWidth * dCol,
+                             roiEndPt[1] - 0.5 * roiWidth * dCol),
                             dtype=numpy.float32) * scale[0] + origin[0],
-                numpy.array((startPt[0] - 0.5 * roiWidth * dRow,
-                             startPt[0] + 0.5 * roiWidth * dRow,
-                             endPt[0] + 0.5 * roiWidth * dRow,
-                             endPt[0] - 0.5 * roiWidth * dRow),
+                numpy.array((roiStartPt[0] - 0.5 * roiWidth * dRow,
+                             roiStartPt[0] + 0.5 * roiWidth * dRow,
+                             roiEndPt[0] + 0.5 * roiWidth * dRow,
+                             roiEndPt[0] - 0.5 * roiWidth * dRow),
                             dtype=numpy.float32) * scale[1] + origin[1])
 
-        y0, x0 = startPt
-        y1, x1 = endPt
-        if x1 == x0 or y1 == y0:
-            profileName = 'From (%g, %g) to (%g, %g)' % (x0, y0, x1, y1)
+        # Convert start and end points back to plot coords
+        y0 = startPt[0] * scale[1] + origin[1]
+        x0 = startPt[1] * scale[0] + origin[0]
+        y1 = endPt[0] * scale[1] + origin[1]
+        x1 = endPt[1] * scale[0] + origin[0]
+
+        if startPt[1] == endPt[1]:
+            profileName = 'X = %g; Y = [%g, %g]' % (x0, y0, y1)
+            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+            coords = coords * scale[1] + y0
+            xLabel = 'Y'
+
+        elif startPt[0] == endPt[0]:
+            profileName = 'Y = %g; X = [%g, %g]' % (y0, x0, x1)
+            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+            coords = coords * scale[0] + x0
+            xLabel = 'X'
+
         else:
             m = (y1 - y0) / (x1 - x0)
             b = y0 - m * x0
             profileName = 'y = %g * x %+g ; width=%d' % (m, b, roiWidth)
-        xLabel = 'Distance'
+            coords = numpy.linspace(x0, x1, len(profile[0]),
+                                    endpoint=True,
+                                    dtype=numpy.float32)
+            xLabel = 'X'
 
-    return profile, area, profileName, xLabel
+    return coords, profile, area, profileName, xLabel
 
 
 # ProfileToolBar ##############################################################
@@ -650,7 +673,7 @@ class ProfileToolBar(qt.QToolBar):
         if self._roiInfo is None:
             return
 
-        profile, area, profileName, xLabel = createProfile(
+        coords, profile, area, profileName, xLabel = createProfile(
             roiInfo=self._roiInfo,
             currentData=currentData,
             origin=origin,
@@ -658,28 +681,25 @@ class ProfileToolBar(qt.QToolBar):
             lineWidth=self.lineWidthSpinBox.value(),
             method=method)
 
-        self.getProfilePlot().setGraphTitle(profileName)
+        profilePlot = self.getProfilePlot()
+
+        profilePlot.setGraphTitle(profileName)
+        profilePlot.getXAxis().setLabel(xLabel)
 
         dataIs3D = len(currentData.shape) > 2
         if dataIs3D:
-            self.getProfilePlot().addImage(profile,
-                                           legend=profileName,
-                                           xlabel=xLabel,
-                                           ylabel="Frame index (depth)",
-                                           colormap=colormap)
+            profileScale = (coords[-1] - coords[0]) / profile.shape[1], 1
+            profilePlot.addImage(profile,
+                                 legend=profileName,
+                                 colormap=colormap,
+                                 origin=(coords[0], 0),
+                                 scale=profileScale)
+            profilePlot.getYAxis().setLabel("Frame index (depth)")
         else:
-            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
-            # Scale horizontal and vertical profile coordinates
-            if self._roiInfo[2] == 'X':
-                coords = coords * scale[0] + origin[0]
-            elif self._roiInfo[2] == 'Y':
-                coords = coords * scale[1] + origin[1]
-
-            self.getProfilePlot().addCurve(coords,
-                                           profile[0],
-                                           legend=profileName,
-                                           xlabel=xLabel,
-                                           color=self.overlayColor)
+            profilePlot.addCurve(coords,
+                                 profile[0],
+                                 legend=profileName,
+                                 color=self.overlayColor)
 
         self.plot.addItem(area[0], area[1],
                           legend=self._POLYGON_LEGEND,
