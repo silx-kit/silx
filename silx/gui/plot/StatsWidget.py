@@ -316,7 +316,7 @@ class _Container(object):
 
 class _StatsWidgetBase(object):
     """
-    Base class for all widgets chich want to display statistics
+    Base class for all widgets which want to display statistics
     """
     def __init__(self, statsOnVisibleData, displayOnlyActItem):
         self._displayOnlyActItem = displayOnlyActItem
