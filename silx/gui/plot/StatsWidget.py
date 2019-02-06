@@ -1085,7 +1085,11 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
     def _updateAllStats(self):
         plot = self.getPlot()
         if plot is not None:
-            items = self._plotWrapper.getSelectedItems(kind=self.getKind())
+            _items = self._plotWrapper.getSelectedItems()
+            def kind_filter(_item):
+                return self._plotWrapper.getKind(_item) == self.getKind()
+
+            items = list(filter(kind_filter, _items))
             assert len(items) in (0, 1)
             if len(items) is 1:
                 self._setItem(items[0])
@@ -1121,7 +1125,10 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
 
     def _updateItemObserve(self, *argv):
         assert self._displayOnlyActItem
-        items = self._plotWrapper.getSelectedItems(kind=self.getKind())
+        _items = self._plotWrapper.getSelectedItems()
+        def kind_filter(_item):
+            return self._plotWrapper.getKind(_item) == self.getKind()
+        items = list(filter(kind_filter, _items))
         assert len(items) in (0, 1)
         _item = items[0] if len(items) is 1 else None
         self._setItem(_item)
