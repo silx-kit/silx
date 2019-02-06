@@ -852,7 +852,7 @@ class ROITable(TableWidget):
             if markerHandler is not None:
                 markerHandler.updateMarkers()
 
-    def getRois(self, order, asDict=False):
+    def getRois(self, order):
         """
         Return the currently defined ROIs, as an ordered dict.
 
