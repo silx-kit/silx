@@ -542,11 +542,71 @@ class TestEmptyStatsWidget(TestCaseQt):
         self.qWaitForWindowExposed(widget)
 
 
+# skip unit test for pyqt4 because there is some unrealised widget without
+# apparent reason
+@unittest.skipIf(qt.qVersion().split('.')[0] == '4', reason='PyQt4 not tested')
+class TestLineWidget(TestCaseQt):
+    """Some test for the StatsLineWidget."""
+    def setUp(self):
+        TestCaseQt.setUp(self)
+
+        mystats = statshandler.StatsHandler((
+            (stats.StatMin(), statshandler.StatFormatter()),
+        ))
+
+        self.plot = Plot1D()
+        self.plot.show()
+        x = range(20)
+        y = range(20)
+        self.plot.addCurve(x, y, legend='curve0')
+        y = range(12, 32)
+        self.plot.addCurve(x, y, legend='curve1')
+        y = range(-2, 18)
+        self.plot.addCurve(x, y, legend='curve2')
+        self.widget = StatsWidget.BasicGridStatsWidget(plot=self.plot,
+                                                       kind='curve',
+                                                       stats=mystats)
+
+    def tearDown(self):
+        self.qapp.processEvents()
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.widget.setPlot(None)
+        self.widget._statQlineEdit.clear()
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        self.widget = None
+        self.plot = None
+        TestCaseQt.tearDown(self)
+
+    def test(self):
+        self.widget.setStatsOnVisibleData(False)
+        self.qapp.processEvents()
+        self.plot.setActiveCurve(legend='curve0')
+        self.assertTrue(self.widget._statQlineEdit['min'].text() == '0.000')
+        self.plot.setActiveCurve(legend='curve1')
+        self.assertTrue(self.widget._statQlineEdit['min'].text() == '12.000')
+        self.plot.getXAxis().setLimitsConstraints(minPos=2, maxPos=5)
+        self.widget.setStatsOnVisibleData(True)
+        self.qapp.processEvents()
+        self.assertTrue(self.widget._statQlineEdit['min'].text() == '14.000')
+        self.plot.setActiveCurve(None)
+        self.assertTrue(self.plot.getActiveCurve() is None)
+        self.widget.setStatsOnVisibleData(False)
+        self.qapp.processEvents()
+        self.assertFalse(self.widget._statQlineEdit['min'].text() == '14.000')
+        self.widget.setKind('image')
+        self.plot.addImage(numpy.arange(100*100).reshape(100, 100) + 0.312)
+        self.qapp.processEvents()
+        self.assertTrue(self.widget._statQlineEdit['min'].text() == '0.312')
+
+
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestStats, TestStatsHandler, TestStatsWidgetWithScatters,
                       TestStatsWidgetWithImages, TestStatsWidgetWithCurves,
-                      TestStatsFormatter, TestEmptyStatsWidget):
+                      TestStatsFormatter, TestEmptyStatsWidget,
+                      TestLineWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
