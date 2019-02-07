@@ -135,7 +135,7 @@ class Backprojection(OpenclProcessing):
 
     def init_extra_options(self, extra_options):
         self.extra_options = {
-            "cutoff": "1.",
+            "cutoff": 1.,
         }
         if extra_options is not None:
             self.extra_options.update(extra_options)
