@@ -402,9 +402,6 @@ class CurvesROIWidget(qt.QWidget):
                 self._add()
                 self.calculateRois()
 
-    @deprecation.deprecated(reason="API modification",
-                            replacement="setRois",
-                            since_version="0.10.0")
     def fillFromROIDict(self, *args, **kwargs):
         self.roiTable.fillFromROIDict(*args, **kwargs)
 
@@ -562,10 +559,6 @@ class ROITable(TableWidget):
 
         # backward compatibility since 0.10.0
         if isinstance(rois, dict):
-            deprecation.deprecated_warning(name='rois', type_='Parameter',
-                                           reason='Rois should now be a list '
-                                                  'of ROI object',
-                                           since_version="0.10.0")
             for roiName, roi in rois.items():
                 roi['name'] = roiName
                 _roi = ROI._fromDict(roi)
