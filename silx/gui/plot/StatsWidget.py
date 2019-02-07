@@ -1023,7 +1023,7 @@ class BasicStatsWidget(StatsWidget):
                              stats=DEFAULT_STATS)
 
 
-class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
+class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     """
     Widget made to display stats into a QLayout with for all stat a couple
      (QLabel, QLineEdit) created.
@@ -1045,20 +1045,15 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         self._n_statistics_per_line = 4
         """number of statistics displayed per line in the grid layout"""
         qt.QWidget.__init__(self, parent)
-
         _StatsWidgetBase.__init__(self,
                                   statsOnVisibleData=statsOnVisibleData,
                                   displayOnlyActItem=True)
+        self.setLayout(self._createLayout())
         self.setPlot(plot)
 
     def _addItemForStatistic(self, statistic):
         assert isinstance(statistic, statsmdl.StatBase)
         assert statistic.name in self._statsHandler.stats
-
-        if self.layout() is None:
-            self.setLayout(FlowLayout())
-
-        assert isinstance(self.layout(), (FlowLayout, qt.QGridLayout, qt.QBoxLayout))
 
         self.layout().setSpacing(2)
         self.layout().setContentsMargins(2, 2, 2, 2)
@@ -1073,24 +1068,7 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         qLineEdit = qt.QLineEdit('', parent=parent)
         qLineEdit.setReadOnly(True)
 
-        if isinstance(self.layout(), qt.QGridLayout):
-            column = len(self._statQlineEdit) % self._n_statistics_per_line
-            row = len(self._statQlineEdit) // self._n_statistics_per_line
-            self.layout().addWidget(qLabel, row, column*2)
-            self.layout().addWidget(qLineEdit, row, column*2+1)
-        else:
-            # create a mother widget to make sure both will always be displayed
-            # side by side
-            widget = parent
-            widget.setLayout(qt.QHBoxLayout())
-            widget.layout().setSpacing(0)
-            widget.layout().setContentsMargins(0, 0, 0, 0)
-
-            widget.layout().addWidget(qLabel)
-            widget.layout().addWidget(qLineEdit)
-
-            self.layout().addWidget(widget)
-
+        self._addStatsWidgetsToLayout(qLabel=qLabel, qLineEdit=qLineEdit)
         self._statQlineEdit[statistic.name] = qLineEdit
 
     def setPlot(self, plot):
@@ -1101,6 +1079,9 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         """
         _StatsWidgetBase.setPlot(self, plot)
         self._updateAllStats()
+
+    def _addStatsWidgetsToLayout(self, qLabel, qLineEdit):
+        raise NotImplementedError('Base class')
 
     def setStats(self, statsHandler):
         """Set which stats to display and the associated formatting.
@@ -1167,8 +1148,12 @@ class LineStatsWidget(_StatsWidgetBase, qt.QWidget):
         _item = items[0] if len(items) is 1 else None
         self._setItem(_item)
 
+    def _createLayout(self):
+        """create an instance of the main QLayout"""
+        raise NotImplementedError('Base class')
 
-class BasicLineStatsWidget(LineStatsWidget):
+
+class BasicLineStatsWidget(_BaseLineStatsWidget):
     """
     Widget defining a simple set of :class:`Stat` to be displayed on a
     :class:`LineStatsWidget`.
@@ -1185,13 +1170,29 @@ class BasicLineStatsWidget(LineStatsWidget):
 
     def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
                  kind='curve', statsOnVisibleData=False):
-        LineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
-                                 statsOnVisibleData=statsOnVisibleData)
+        _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
+                                      statsOnVisibleData=statsOnVisibleData)
         if stats is not None:
             self.setStats(stats)
 
+    def _createLayout(self):
+        return FlowLayout()
 
-class BasicGridStatsWidget(LineStatsWidget):
+    def _addStatsWidgetsToLayout(self, qLabel, qLineEdit):
+        # create a mother widget to make sure both will always be displayed
+        # side by side
+        widget = qt.QWidget(parent=self)
+        widget.setLayout(qt.QHBoxLayout())
+        widget.layout().setSpacing(0)
+        widget.layout().setContentsMargins(0, 0, 0, 0)
+
+        widget.layout().addWidget(qLabel)
+        widget.layout().addWidget(qLineEdit)
+
+        self.layout().addWidget(widget)
+
+
+class BasicGridStatsWidget(_BaseLineStatsWidget):
     """
     pymca design like widget
     
@@ -1223,9 +1224,17 @@ class BasicGridStatsWidget(LineStatsWidget):
 
     def __init__(self, parent=None, plot=None, stats=DEFAULT_STATS,
                  kind='curve', statsOnVisibleData=False, statsPerLine=4):
-        LineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
-                                 statsOnVisibleData=statsOnVisibleData)
+        _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind, plot=plot,
+                                      statsOnVisibleData=statsOnVisibleData)
         self._n_statistics_per_line = statsPerLine
-        self.setLayout(qt.QGridLayout())
         if stats is not None:
             self.setStats(stats)
+
+    def _addStatsWidgetsToLayout(self, qLabel, qLineEdit):
+        column = len(self._statQlineEdit) % self._n_statistics_per_line
+        row = len(self._statQlineEdit) // self._n_statistics_per_line
+        self.layout().addWidget(qLabel, row, column * 2)
+        self.layout().addWidget(qLineEdit, row, column * 2 + 1)
+
+    def _createLayout(self):
+        return qt.QGridLayout()
