@@ -10,6 +10,7 @@
 
    sift/index.rst
    fbp.rst
+   sinofilter.rst
    medfilt.rst
    codec_cbf.rst
 
