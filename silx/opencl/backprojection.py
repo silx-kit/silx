@@ -321,7 +321,7 @@ class Backprojection(OpenclProcessing):
                 kernel_to_call = self.kernels.backproj_cpu_kernel
             else:
                 kernel_to_call = self.kernels.backproj_kernel
-            event_bpj = kernel_to_call(
+            kernel_to_call(
                 self.queue,
                 self.ndrange,
                 self.wg,
