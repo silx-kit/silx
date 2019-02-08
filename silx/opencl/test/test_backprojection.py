@@ -90,7 +90,8 @@ class TestFBP(unittest.TestCase):
         self.getfiles()
         self.fbp = backprojection.Backprojection(self.sino.shape, profile=True)
         if self.fbp.compiletime_workgroup_size < 16 * 16:
-            self.skipTest("Current implementation of OpenCL backprojection is not supported on this platform yet")
+            self.skipTest("Current implementation of OpenCL backprojection is "
+                          "not supported on this platform yet")
         # Astra does not use the same backprojector implementation.
         # Therefore, we cannot expect results to be the "same" (up to float32
         # numerical error)
@@ -101,7 +102,7 @@ class TestFBP(unittest.TestCase):
 
     def tearDown(self):
         self.sino = None
-#         self.fbp.log_profile()
+        # self.fbp.log_profile()
         self.fbp = None
 
     def getfiles(self):
@@ -131,7 +132,8 @@ class TestFBP(unittest.TestCase):
         ref_clipped = clip_circle(self.reference_rec)
         delta = abs(res_clipped - ref_clipped)
         bad = delta > 1
-        logger.debug("Absolute difference: %s with %s outlier pixels out of %s", delta.max(), bad.sum(), np.prod(bad.shape))
+        logger.debug("Absolute difference: %s with %s outlier pixels out of %s"
+                     "", delta.max(), bad.sum(), np.prod(bad.shape))
         return delta.max()
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
@@ -159,8 +161,6 @@ class TestFBP(unittest.TestCase):
             errmax = np.max(np.abs(res - res0))
             self.assertTrue(errmax < 1.e-6, "Max error is too high")
 
-
-
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_fbp_filters(self):
         """
@@ -178,7 +178,7 @@ class TestFBP(unittest.TestCase):
         # test will also ensure that backprojection behaves well.
         dirac = np.zeros_like(self.sino)
         na, dw = dirac.shape
-        dirac[0, dw//2] = na /pi * 2
+        dirac[0, dw//2] = na / pi * 2
 
         for filter_name in avail_filters:
             B = backprojection.Backprojection(dirac.shape, filter_name=filter_name)
@@ -190,7 +190,7 @@ class TestFBP(unittest.TestCase):
                 "Something wrong with FBP(filter=%s)" % filter_name
             )
             # Check that the filter is retrieved
-            r_f = np.fft.fft(np.fft.fftshift(r[0])).real / 2. # filter factor
+            r_f = np.fft.fft(np.fft.fftshift(r[0])).real / 2.  # filter factor
             ref_filter_f = compute_fourier_filter(dw, filter_name)
             errmax = np.max(np.abs(r_f - ref_filter_f))
             logger.info("FBP filter %s: max error=%e" % (filter_name, errmax))
@@ -198,10 +198,6 @@ class TestFBP(unittest.TestCase):
                 errmax < 1.e-3,
                 "Something wrong with FBP(filter=%s)" % filter_name
             )
-
-
-
-
 
 
 def suite():

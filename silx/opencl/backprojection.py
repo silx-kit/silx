@@ -61,7 +61,6 @@ def _idivup(a, b):
     return (a + (b - 1)) // b
 
 
-
 class Backprojection(OpenclProcessing):
     """A class for performing the backprojection using OpenCL"""
     kernel_files = ["backproj.cl", "array_utils.cl"]
@@ -105,14 +104,28 @@ class Backprojection(OpenclProcessing):
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
 
-        self.init_geometry(sino_shape, slice_shape, angles, axis_position, extra_options)
+        self.init_geometry(sino_shape, slice_shape, angles, axis_position,
+                           extra_options)
         self.allocate_memory()
         self.compute_angles()
         self.init_kernels()
         self.init_filter(filter_name)
 
+    def init_geometry(self, sino_shape, slice_shape, angles, axis_position,
+                      extra_options):
+        """Geometry Initialization
 
-    def init_geometry(self, sino_shape, slice_shape, angles, axis_position, extra_options):
+        :param sino_shape: shape of the sinogram. The sinogram is in the format
+                           (n_b, n_a) where n_b is the number of detector bins
+                           and n_a is the number of angles.
+        :param slice_shape: shape of the reconstructed slice. By
+                            default, it is a square slice where the dimension
+                            is the "x dimension" of the sinogram (number of
+                            bins).
+        :param angles: list of projection angles in radian.
+        :param axis_position: axis position
+        :param dict extra_options: Advanced extra options
+        """
         self.shape = sino_shape
         self.num_bins = np.int32(sino_shape[1])
         self.num_projs = np.int32(sino_shape[0])
@@ -132,14 +145,16 @@ class Backprojection(OpenclProcessing):
         self.axis_array = None  # TODO: add axis correction front-end
         self.init_extra_options(extra_options)
 
-
     def init_extra_options(self, extra_options):
+        """Backprojection extra option initialization
+
+        :param dict extra_options: Advanced extra options
+        """
         self.extra_options = {
             "cutoff": 1.,
         }
         if extra_options is not None:
             self.extra_options.update(extra_options)
-
 
     def allocate_memory(self):
         # Host memory
@@ -166,7 +181,6 @@ class Backprojection(OpenclProcessing):
         # Local memory
         self.local_mem = 256 * 3 * _sizeof(np.float32)  # constant for all image sizes
 
-
     def compute_angles(self):
         if self.angles is None:
             self.angles = np.linspace(0, np.pi, self.num_projs, False)
@@ -178,7 +192,6 @@ class Backprojection(OpenclProcessing):
             self.cl_mem["d_axes"][:] = self.axis_array.astype(np.float32)[:]
         else:
             self.cl_mem["d_axes"][:] = np.ones(self.num_projs, dtype="f") * self.axis_pos
-
 
     def init_kernels(self):
         OpenclProcessing.compile_kernels(self, self.kernel_files)
@@ -220,7 +233,6 @@ class Backprojection(OpenclProcessing):
             self._get_local_mem()
         )
 
-
     def allocate_textures(self):
         """
         Allocate the texture for the sinogram.
@@ -235,8 +247,11 @@ class Backprojection(OpenclProcessing):
             hostbuf=np.zeros(self.shape[::-1], dtype=np.float32)
         )
 
-
     def init_filter(self, filter_name):
+        """Filter initialization
+
+        :param str filter_name: filter name
+        """
         self.filter_name = filter_name or "ram-lak"
         self.sino_filter = SinoFilter(
             self.shape,
@@ -245,10 +260,8 @@ class Backprojection(OpenclProcessing):
             extra_options=self.extra_options,
         )
 
-
     def _get_local_mem(self):
         return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
-
 
     def cpy2d_to_slice(self, dst):
         ndrange = (int(self.slice_shape[1]), int(self.slice_shape[0]))
@@ -264,7 +277,6 @@ class Backprojection(OpenclProcessing):
             slice_shape_ocl
         )
         return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
-
 
     def transfer_to_texture(self, sino):
         if isinstance(sino, parray.Array):
@@ -291,7 +303,6 @@ class Backprojection(OpenclProcessing):
             what = "transfer filtered sino H->D texture"
         return EventDescription(what, ev)
 
-
     def transfer_device_to_texture(self, d_sino):
         if self.is_cpu:
             if id(self.d_sino) == id(d_sino):
@@ -315,7 +326,6 @@ class Backprojection(OpenclProcessing):
             what = "transfer filtered sino D->D texture"
         return EventDescription(what, ev)
 
-
     def backprojection(self, sino, output=None):
         """Perform the backprojection on an input sinogram
 
@@ -332,7 +342,7 @@ class Backprojection(OpenclProcessing):
                 kernel_to_call = self.kernels.backproj_cpu_kernel
             else:
                 kernel_to_call = self.kernels.backproj_kernel
-            event_bpj = kernel_to_call(
+            kernel_to_call(
                 self.queue,
                 self.ndrange,
                 self.wg,
@@ -351,7 +361,6 @@ class Backprojection(OpenclProcessing):
             self.events += events
 
         return res
-
 
     def filtered_backprojection(self, sino, output=None):
         """
