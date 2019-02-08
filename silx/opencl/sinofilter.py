@@ -39,7 +39,14 @@ import pyopencl.array as parray
 from .processing import OpenclProcessing
 from ..math.fft import FFT
 from ..math.fft.clfft import __have_clfft__
+from ..utils.deprecation import deprecated
 
+
+def nextpow2(N):
+    p = 1
+    while p < N:
+        p *= 2
+    return p
 
 def compute_ramlak_filter(dwidth_padded, dtype=np.float32):
     """
@@ -164,13 +171,13 @@ class SinoFilter(OpenclProcessing):
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
 
-        self.calculate_shapes(sino_shape)
-        self.init_fft()
-        self.allocate_memory()
-        self.compute_filter(filter_name, extra_options)
-        self.init_kernels()
+        self._calculate_shapes(sino_shape)
+        self._init_fft()
+        self._allocate_memory()
+        self._compute_filter(filter_name, extra_options)
+        self._init_kernels()
 
-    def calculate_shapes(self, sino_shape):
+    def _calculate_shapes(self, sino_shape):
         """
 
         :param sino_shape: shape of the sinogram.
@@ -190,7 +197,7 @@ class SinoFilter(OpenclProcessing):
         sino_f_shape[-1] = sino_f_shape[-1]//2+1
         self.sino_f_shape = tuple(sino_f_shape)
 
-    def init_extra_options(self, extra_options):
+    def _init_extra_options(self, extra_options):
         """
 
         :param dict extra_options: Advanced extra options.
@@ -202,7 +209,7 @@ class SinoFilter(OpenclProcessing):
         if extra_options is not None:
             self.extra_options.update(extra_options)
 
-    def init_fft(self):
+    def _init_fft(self):
         if __have_clfft__:
             self.fft_backend = "opencl"
             self.fft = FFT(
@@ -223,7 +230,7 @@ class SinoFilter(OpenclProcessing):
                 backend="numpy",
             )
 
-    def allocate_memory(self):
+    def _allocate_memory(self):
         self.d_filter_f = parray.zeros(self.queue, (self.sino_f_shape[-1],), np.complex64)
         self.is_cpu = (self.device.type == "CPU")
         # These are already allocated by FFT() if using the opencl backend
@@ -238,13 +245,13 @@ class SinoFilter(OpenclProcessing):
         self.tmp_sino_device = parray.zeros(self.queue, self.sino_shape, "f")
         self.tmp_sino_host = np.zeros(self.sino_shape, "f")
 
-    def compute_filter(self, filter_name, extra_options):
+    def _compute_filter(self, filter_name, extra_options):
         """
 
         :param str filter_name: filter name
         :param dict extra_options: Advanced extra options.
         """
-        self.init_extra_options(extra_options)
+        self._init_extra_options(extra_options)
         self.filter_name = filter_name or "ram-lak"
         filter_f = compute_fourier_filter(
             self.dwidth_padded,
@@ -279,7 +286,7 @@ class SinoFilter(OpenclProcessing):
         self.filter_f = self.filter_f.astype(np.complex64)
         self.d_filter_f[:] = self.filter_f[:]
 
-    def init_kernels(self):
+    def _init_kernels(self):
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         h, w = self.d_sino_f.shape
         self.mult_kern_args = (
@@ -340,7 +347,7 @@ class SinoFilter(OpenclProcessing):
         so = src_offset
         dst[do[0]:do[0]+s[0], do[1]:do[1]+s[1]] = src[so[0]:so[0]+s[0], so[1]:so[1]+s[1]]
 
-    def prepare_input_sino(self, sino):
+    def _prepare_input_sino(self, sino):
         """
 
         :param sino: sinogram
@@ -375,7 +382,7 @@ class SinoFilter(OpenclProcessing):
             # Rectangular copy H->H
             self.copy2d_host(self.d_sino_padded, h_sino_ref, self.sino_shape)
 
-    def get_output_sino(self, output):
+    def _get_output_sino(self, output):
         """
 
         :param Union[numpy.dtype,None] output: sinogram output.
@@ -415,7 +422,7 @@ class SinoFilter(OpenclProcessing):
                 self.copy2d_host(res, self.d_sino_padded, self.sino_shape)
         return res
 
-    def do_fft(self):
+    def _do_fft(self):
         if self.fft_backend == "opencl":
             self.fft.fft(self.d_sino_padded, output=self.d_sino_f)
             if self.is_cpu:
@@ -426,7 +433,7 @@ class SinoFilter(OpenclProcessing):
             res = self.fft.fft(self.d_sino_padded).astype(np.complex64)
             self.d_sino_f[:] = res[:]
 
-    def multiply_fourier(self):
+    def _multiply_fourier(self):
         if self.fft_backend == "opencl":
             # Everything is on device. Call the multiplication kernel.
             self.kernels.inplace_complex_mul_2Dby1D(
@@ -438,7 +445,7 @@ class SinoFilter(OpenclProcessing):
             # Everything is on host.
             self.d_sino_f *= self.filter_f
 
-    def do_ifft(self):
+    def _do_ifft(self):
         if self.fft_backend == "opencl":
             if self.is_cpu:
                 self.d_sino_padded.fill(0)
@@ -460,16 +467,62 @@ class SinoFilter(OpenclProcessing):
         :return: filtered sinogram
         """
         # Handle input sinogram
-        self.prepare_input_sino(sino)
+        self._prepare_input_sino(sino)
         # FFT
-        self.do_fft()
+        self._do_fft()
         # multiply with filter in the Fourier domain
-        self.multiply_fourier()
+        self._multiply_fourier()
         # iFFT
-        self.do_ifft()
+        self._do_ifft()
         # return
-        res = self.get_output_sino(output)
+        res = self._get_output_sino(output)
         return res
         #~ return output
 
     __call__ = filter_sino
+
+
+
+
+# -------------------
+# - Compatibility  -
+# -------------------
+
+@deprecated(replacement="Backprojection.sino_filter", since_version="0.10")
+def fourier_filter(sino, filter_=None, fft_size=None):
+    """Simple np based implementation of fourier space filter.
+    This function is deprecated, please use silx.opencl.sinofilter.SinoFilter.
+
+    :param sino: of shape shape = (num_projs, num_bins)
+    :param filter: filter function to apply in fourier space
+    :fft_size: size on which perform the fft. May be larger than the sino array
+    :return: filtered sinogram
+    """
+    assert sino.ndim == 2
+    num_projs, num_bins = sino.shape
+    if fft_size is None:
+        fft_size = nextpow2(num_bins * 2 - 1)
+    else:
+        assert fft_size >= num_bins
+    if fft_size == num_bins:
+        sino_zeropadded = sino.astype(np.float32)
+    else:
+        sino_zeropadded = np.zeros((num_projs, fft_size),
+                                      dtype=np.complex64)
+        sino_zeropadded[:, :num_bins] = sino.astype(np.float32)
+
+    if filter_ is None:
+        h = np.zeros(fft_size, dtype=np.float32)
+        L2 = fft_size // 2 + 1
+        h[0] = 1 / 4.
+        j = np.linspace(1, L2, L2 // 2, False)
+        h[1:L2:2] = -1. / (np.pi ** 2 * j ** 2)
+        h[L2:] = np.copy(h[1:L2 - 1][::-1])
+        filter_ = np.fft.fft(h).astype(np.complex64)
+
+    # Linear convolution
+    sino_f = np.fft.fft(sino, fft_size)
+    sino_f = sino_f * filter_
+    sino_filtered = np.fft.ifft(sino_f)[:, :num_bins].real
+
+    return np.ascontiguousarray(sino_filtered.real, dtype=np.float32)
