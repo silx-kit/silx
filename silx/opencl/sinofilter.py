@@ -65,9 +65,9 @@ def compute_ramlak_filter(dwidth_padded, dtype=np.float32):
 def tukey(N, alpha=0.5):
     """
     Compute the Tukey apodization window.
-    :param N: Number of points.
-    :param Nf: Number of points in the Fourier domain.
-    :param r: Factor such that r percent of the window is equal to a cosine.
+
+    :param int N: Number of points.
+    :param float alpha:
     """
     apod = np.zeros(N)
     x = np.arange(N)/(N-1)
@@ -84,6 +84,8 @@ def tukey(N, alpha=0.5):
 def lanczos(N):
     """
     Compute the Lanczos window (truncated sinc) of width N.
+
+    :param int N: window width
     """
     x = np.arange(N)/(N-1)
     return np.sin(pi*(2*x-1))/(pi*(2*x-1))
@@ -98,8 +100,6 @@ def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
     :param filter_name: Name of the filter. Available filters are:
         Ram-Lak, Shepp-Logan, Cosine, Hamming, Hann, Tukey, Lanczos.
     :param cutoff: Cut-off frequency, if relevant.
-    :param R2C: If set to True, the filter is designed to to Real-to-Complex
-        Fourier Transforms, and has a size dwidth_padded//2+1.
     """
     Nf = dwidth_padded
     #~ filt_f = np.abs(np.fft.fftfreq(Nf))
@@ -146,7 +146,7 @@ class SinoFilter(OpenclProcessing):
                  profile=False, extra_options=None):
         """Constructor of OpenCL FFT-Convolve.
 
-        :param shape: shape of the sinogram.
+        :param sino_shape: shape of the sinogram.
         :param filter_name: Name of the filter. Defaut is "ram-lak".
         :param ctx: actual working context, left to None for automatic
                     initialization from device type or platformid/deviceid
@@ -157,6 +157,8 @@ class SinoFilter(OpenclProcessing):
         :param profile: switch on profiling to be able to profile at the kernel
                         level, store profiling elements (makes code slightly
                         slower)
+        :param dict extra_options: Advanced extra options.
+            Current options are: cutoff,
         """
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
@@ -169,6 +171,10 @@ class SinoFilter(OpenclProcessing):
         self.init_kernels()
 
     def calculate_shapes(self, sino_shape):
+        """
+
+        :param sino_shape: shape of the sinogram.
+        """
         self.ndim = len(sino_shape)
         if self.ndim == 2:
             n_angles, dwidth = sino_shape
@@ -185,6 +191,11 @@ class SinoFilter(OpenclProcessing):
         self.sino_f_shape = tuple(sino_f_shape)
 
     def init_extra_options(self, extra_options):
+        """
+
+        :param dict extra_options: Advanced extra options.
+            Current options are: cutoff,
+        """
         self.extra_options = {
             "cutoff": 1.,
         }
@@ -228,6 +239,11 @@ class SinoFilter(OpenclProcessing):
         self.tmp_sino_host = np.zeros(self.sino_shape, "f")
 
     def compute_filter(self, filter_name, extra_options):
+        """
+
+        :param str filter_name: filter name
+        :param dict extra_options: Advanced extra options.
+        """
         self.init_extra_options(extra_options)
         self.filter_name = filter_name or "ram-lak"
         filter_f = compute_fourier_filter(
@@ -240,6 +256,7 @@ class SinoFilter(OpenclProcessing):
     def set_filter(self, h_filt, normalize=True):
         """
         Set a filter for sinogram filtering.
+
         :param h_filt: Filter. Each line of the sinogram will be filtered with
             this filter. It has to be the Real-to-Complex Fourier Transform
             of some real filter, padded to 2*sinogram_width.
@@ -287,6 +304,14 @@ class SinoFilter(OpenclProcessing):
 
     def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0),
                src_offset=(0, 0)):
+        """
+
+        :param dst:
+        :param src:
+        :param transfer_shape:
+        :param dst_offset:
+        :param src_offset:
+        """
         self.kernels.cpy2d(
             self.queue,
             np.int32(transfer_shape[::-1]),
@@ -302,12 +327,24 @@ class SinoFilter(OpenclProcessing):
 
     def copy2d_host(self, dst, src, transfer_shape, dst_offset=(0, 0),
                     src_offset=(0, 0)):
+        """
+
+        :param dst:
+        :param src:
+        :param transfer_shape:
+        :param dst_offset:
+        :param src_offset:
+        """
         s = transfer_shape
         do = dst_offset
         so = src_offset
         dst[do[0]:do[0]+s[0], do[1]:do[1]+s[1]] = src[so[0]:so[0]+s[0], so[1]:so[1]+s[1]]
 
     def prepare_input_sino(self, sino):
+        """
+
+        :param sino: sinogram
+        """
         self.check_array(sino)
         self.d_sino_padded.fill(0)
         if self.fft_backend == "opencl":
@@ -339,6 +376,11 @@ class SinoFilter(OpenclProcessing):
             self.copy2d_host(self.d_sino_padded, h_sino_ref, self.sino_shape)
 
     def get_output_sino(self, output):
+        """
+
+        :param Union[numpy.dtype,None] output: sinogram output.
+        :return: sinogram
+        """
         if output is None:
             res = np.zeros(self.sino_shape, dtype=np.float32)
         else:
@@ -411,6 +453,12 @@ class SinoFilter(OpenclProcessing):
             self.d_sino_padded[:] = res[:]
 
     def filter_sino(self, sino, output=None):
+        """
+
+        :param sino: sinogram
+        :param output:
+        :return: filtered sinogram
+        """
         # Handle input sinogram
         self.prepare_input_sino(sino)
         # FFT
