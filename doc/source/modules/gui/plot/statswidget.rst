@@ -32,16 +32,8 @@
    :members:
 
 
-:class:`LineStatsWidget` class
--------------------------
-
-.. autoclass:: LineStatsWidget
-   :show-inheritance:
-   :members:
-
-
 :class:`BasicGridStatsWidget` class
--------------------------
+-----------------------------------
 
 .. autoclass:: BasicGridStatsWidget
    :show-inheritance:
@@ -49,7 +41,7 @@
 
 
 :class:`BasicLineStatsWidget` class
--------------------------
+-----------------------------------
 
 .. autoclass:: BasicLineStatsWidget
    :show-inheritance:
