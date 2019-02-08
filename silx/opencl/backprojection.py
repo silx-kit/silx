@@ -113,6 +113,19 @@ class Backprojection(OpenclProcessing):
 
     def init_geometry(self, sino_shape, slice_shape, angles, axis_position,
                       extra_options):
+        """Geometry Initialization
+
+        :param sino_shape: shape of the sinogram. The sinogram is in the format
+                           (n_b, n_a) where n_b is the number of detector bins
+                           and n_a is the number of angles.
+        :param slice_shape: shape of the reconstructed slice. By
+                            default, it is a square slice where the dimension
+                            is the "x dimension" of the sinogram (number of
+                            bins).
+        :param angles: list of projection angles in radian.
+        :param axis_position: axis position
+        :param dict extra_options: Advanced extra options
+        """
         self.shape = sino_shape
         self.num_bins = np.int32(sino_shape[1])
         self.num_projs = np.int32(sino_shape[0])
@@ -133,6 +146,10 @@ class Backprojection(OpenclProcessing):
         self.init_extra_options(extra_options)
 
     def init_extra_options(self, extra_options):
+        """Backprojection extra option initialization
+
+        :param dict extra_options: Advanced extra options
+        """
         self.extra_options = {
             "cutoff": 1.,
         }
@@ -231,6 +248,10 @@ class Backprojection(OpenclProcessing):
         )
 
     def init_filter(self, filter_name):
+        """Filter initialization
+
+        :param str filter_name: filter name
+        """
         self.filter_name = filter_name or "ram-lak"
         self.sino_filter = SinoFilter(
             self.shape,
