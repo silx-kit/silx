@@ -27,7 +27,6 @@ import numpy as np
 
 from .basefft import BaseFFT
 try:
-    import pycuda
     import pycuda.gpuarray as gpuarray
     from skcuda.fft import Plan
     from skcuda.fft import fft as cu_fft
