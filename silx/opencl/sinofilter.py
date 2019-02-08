@@ -488,7 +488,7 @@ class SinoFilter(OpenclProcessing):
 # - Compatibility  -
 # -------------------
 
-@deprecated(replacement="Backprojection.sino_filter", since_version="0.9")
+@deprecated(replacement="Backprojection.sino_filter", since_version="0.10")
 def fourier_filter(sino, filter_=None, fft_size=None):
     """Simple np based implementation of fourier space filter.
     This function is deprecated, please use silx.opencl.sinofilter.SinoFilter.

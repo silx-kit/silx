@@ -385,7 +385,7 @@ class Backprojection(OpenclProcessing):
     # - Compatibility  -
     # -------------------
 
-    @deprecated(replacement="Backprojection.sino_filter", since_version="0.9")
+    @deprecated(replacement="Backprojection.sino_filter", since_version="0.10")
     def filter_projections(self, sino, rescale=True):
         self.sino_filter(sino, output=self.d_sino)
 
