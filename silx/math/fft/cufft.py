@@ -84,10 +84,8 @@ class CUFFT(BaseFFT):
         }
         self.configure_normalization()
 
-
     def _allocate(self, shape, dtype):
         return gpuarray.zeros(shape, dtype)
-
 
     # TODO support batched transform where batch is other than dimension 0
     def configure_batched_transform(self):
@@ -118,7 +116,6 @@ class CUFFT(BaseFFT):
             if len(self.cufft_shape) == 1:
                 self.cufft_shape = self.cufft_shape[0]
 
-
     def configure_normalization(self):
         # TODO
         if self.normalize == "ortho":
@@ -127,17 +124,13 @@ class CUFFT(BaseFFT):
             )
         self.cufft_scale_inverse = (self.normalize == "rescale")
 
-
     def check_array(self, array, shape, dtype, copy=True):
         if array.shape != shape:
             raise ValueError("Invalid data shape: expected %s, got %s" %
-                (shape, array.shape)
-            )
+                             (shape, array.shape))
         if array.dtype != dtype:
             raise ValueError("Invalid data type: expected %s, got %s" %
-                (dtype, array.dtype)
-            )
-
+                             (dtype, array.dtype))
 
     def set_data(self, dst, src, shape, dtype, copy=True, name=None):
         """
@@ -161,7 +154,7 @@ class CUFFT(BaseFFT):
             if name is None:
                 # This should not happen
                 raise ValueError("Please provide either copy=True or name != None")
-            assert id(self.refs[name]) == id(dst) # DEBUG
+            assert id(self.refs[name]) == id(dst)  # DEBUG
             setattr(self, name, src)
             return src
         else:
@@ -171,11 +164,9 @@ class CUFFT(BaseFFT):
             )
         return dst
 
-
     def recover_array_references(self):
         self.data_in = self.refs["data_in"]
         self.data_out = self.refs["data_out"]
-
 
     def compute_forward_plan(self):
         self.plan_forward = Plan(
@@ -190,7 +181,6 @@ class CUFFT(BaseFFT):
             #~ auto_allocate=True # cufft extensible plan API
         )
 
-
     def compute_inverse_plan(self):
         self.plan_inverse = Plan(
             self.cufft_shape, # not shape_out
@@ -204,12 +194,10 @@ class CUFFT(BaseFFT):
             #~ auto_allocate=True
         )
 
-
     def copy_output_if_numpy(self, dst, src):
         if isinstance(dst, gpuarray.GPUArray):
             return
         dst[:] = src[:]
-
 
     def fft(self, array, output=None):
         """
@@ -238,7 +226,6 @@ class CUFFT(BaseFFT):
         self.recover_array_references()
         return res
 
-
     def ifft(self, array, output=None):
         """
         Perform a (inverse) Fast Fourier Transform.
@@ -265,4 +252,3 @@ class CUFFT(BaseFFT):
             res = self.data_in.get()
         self.recover_array_references()
         return res
-
