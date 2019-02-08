@@ -994,9 +994,11 @@ class ROITable(TableWidget):
         The name list is used to provide an order for the ROIs.
         The dictionary's values are sub-dictionaries containing 3
         mandatory fields:
-           - ``"from"``: x coordinate of the left limit, as a float
-           - ``"to"``: x coordinate of the right limit, as a float
-           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
+        - ``"from"``: x coordinate of the left limit, as a float
+        - ``"to"``: x coordinate of the right limit, as a float
+        - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
         :param roilist: List of ROI names (keys of roidict)
         :type roilist: List
         :param dict roidict: Dict of ROI information
@@ -1206,11 +1208,11 @@ class ROI(qt.QObject):
         - Raw area: integral of the curve between the min ROI point and the
            max ROI point to the y = 0 line.
 
-          .. image:: img/rawAreas.png
+          .. image:: img/rawArea.png
 
         - Net area: Raw counts minus background
 
-          .. image:: img/netAreas.png
+          .. image:: img/netArea.png
 
         :param CurveItem curve:
         :return tuple: rawArea, netArea

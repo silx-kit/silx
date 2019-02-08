@@ -92,6 +92,7 @@ The following modules are the modules used internally by the plot package.
 
 .. automodule:: silx.gui.plot.CurvesROIWidget
    :members:
+   :noindex:
 
 :mod:`Interaction`
 ++++++++++++++++++
