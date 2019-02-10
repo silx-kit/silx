@@ -140,7 +140,7 @@ script:
     - echo "QT_BINDING="$QT_BINDING
     - if [ -n "$QT_BINDING" ];
       then
-          export QT_DEBUG_PLUGINS=1
+          export QT_DEBUG_PLUGINS=1;
           python run_tests.py --installed -v --qt-binding=$QT_BINDING;
       else
           python run_tests.py --installed -v --no-gui;
