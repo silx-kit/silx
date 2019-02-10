@@ -85,15 +85,22 @@ class TestStatistics(unittest.TestCase):
         logger.info("Reference results: %s", self.ref)
         for pid, platform in enumerate(ocl.platforms):
             for did, device in enumerate(platform.devices):
-                s = Statistics(template=self.data, platformid=pid, deviceid=did)
-                t0 = time.time()
-                res = s(self.data)
-                t1 = time.time()
-                if not self.validate(res):
+                try:
+                    s = Statistics(template=self.data, platformid=pid, deviceid=did)
+                except Exception as err:
+                    failed_init = True
+                    res = StatResults(0,0,0,0,0,0,0)
+                else:
+                    failed_init = False
+                    t0 = time.time()
+                    res = s(self.data)
+                    t1 = time.time()
+                logger.warning("failed_init %s", failed_init)
+                if failed_init or not self.validate(res):
                     logger.error("Failed on platform %s device %s", platform, device)
                     logger.error("Reference results: %s", self.ref)
                     logger.error("Faulty results: %s", res)
-                    self.assert_(False, "Stat calculation failed on %s %s" % (platform, device))
+                    self.assertTrue(False, "Stat calculation failed on %s %s" % (platform, device))
                 logger.info("Runtime on %s/%s : %.3fms x%.1f", platform, device, 1000 * (t1 - t0), self.ref_time / (t1 - t0))
 
 
