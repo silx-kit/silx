@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "04/10/2018"
+__date__ = "11/01/2019"
 __status__ = "stable"
 
 
@@ -53,6 +53,7 @@ import numpy
 import threading
 from .common import ocl, pyopencl, release_cl_buffers, kernel_workgroup_size
 from .utils import concatenate_cl_kernel
+import platform
 
 
 BufferDescription = namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
@@ -124,6 +125,7 @@ class OpenclProcessing(object):
                          level, store profiling elements (makes code slightly slower)
         """
         self.sem = threading.Semaphore()
+        self._X87_VOLATILE = None
         self.profile = None
         self.events = []  # List with of EventDescription, kept for profiling
         self.cl_mem = {}  # dict with all buffer allocated
@@ -176,7 +178,6 @@ class OpenclProcessing(object):
         have a built-in way to check the actual free memory on a
         device, only the total memory.
         """
-
         if buffers is None:
             buffers = self.buffers
 
@@ -255,7 +256,7 @@ class OpenclProcessing(object):
         kernel_files = kernel_files or self.kernel_files
         kernel_src = concatenate_cl_kernel(kernel_files)
 
-        compile_options = compile_options or ""
+        compile_options = compile_options or self.get_compiler_options()
         logger.info("Compiling file %s with options %s", kernel_files, compile_options)
         try:
             self.program = pyopencl.Program(self.ctx, kernel_src).build(options=compile_options)
@@ -284,8 +285,8 @@ class OpenclProcessing(object):
             with self.sem:
                 self.profile = bool(value)
                 if self.profile:
-                    properties = pyopencl.command_queue_properties.PROFILING_ENABLE
-                    self.queue = pyopencl.CommandQueue(self.ctx, properties=properties)
+                    self.queue = pyopencl.CommandQueue(self.ctx,
+                        properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
                 else:
                     self.queue = pyopencl.CommandQueue(self.ctx)
 
@@ -297,14 +298,9 @@ class OpenclProcessing(object):
         if self.profile:
             for e in self.events:
                 if "__len__" in dir(e) and len(e) >= 2:
-                    try:
-                        et = 1e-6 * (e[1].profile.end - e[1].profile.start)
-                    except Exception as err:
-                        logger.warning("No profiling for %s (%s)", e[0], err)
-                        et = numpy.nan
-                    else:
-                        t += et
+                    et = 1e-6 * (e[1].profile.end - e[1].profile.start)
                     out.append("%50s:\t%.3fms" % (e[0], et))
+                    t += et
 
         out.append("_" * 80)
         out.append("%50s:\t%.3fms" % ("Total execution time", t))
@@ -317,8 +313,30 @@ class OpenclProcessing(object):
         """
         with self.sem:
             self.events = []
-    reset_profile = reset_log
-    
+
+    @property
+    def x87_volatile_option(self):
+        # this is running 32 bits OpenCL woth POCL
+        if self._X87_VOLATILE is None:
+            if (platform.machine() in ("i386", "i686", "x86_64", "AMD64") and
+                    (tuple.__itemsize__ == 4) and
+                    self.ctx.devices[0].platform.name == 'Portable Computing Language'):
+                self._X87_VOLATILE = "-DX87_VOLATILE=volatile"
+            else:
+                self._X87_VOLATILE = ""
+        return self._X87_VOLATILE
+
+    def get_compiler_options(self, x87_volatile=False):
+        """Provide the default OpenCL compiler options
+        
+        :param x87_volatile: needed for Kahan summation
+        :return: string with compiler option
+        """
+        option_list = []
+        if x87_volatile:
+            option_list.append(self.x87_volatile_option)
+        return " ".join(i for i in option_list if i)
+
 # This should be implemented by concrete class
 #     def __copy__(self):
 #         """Shallow copy of the object

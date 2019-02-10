@@ -157,3 +157,4 @@ def calc_center_centroid(sino):
                       left_derivative=False,
                       max_iter=100)
     return popt[0]
+

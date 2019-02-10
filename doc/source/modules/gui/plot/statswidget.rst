@@ -31,3 +31,19 @@
    :show-inheritance:
    :members:
 
+
+:class:`BasicGridStatsWidget` class
+-----------------------------------
+
+.. autoclass:: BasicGridStatsWidget
+   :show-inheritance:
+   :members:
+
+
+:class:`BasicLineStatsWidget` class
+-----------------------------------
+
+.. autoclass:: BasicLineStatsWidget
+   :show-inheritance:
+   :members:
+

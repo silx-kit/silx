@@ -56,7 +56,6 @@ from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, ScalarFormatter, Locator
 
 
-from ....third_party.modest_image import ModestImage
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
@@ -253,6 +252,19 @@ class _DoubleColoredLinePatch(matplotlib.patches.Patch):
         return self.__patch.contains_point(point, radius)
 
 
+class Image(AxesImage):
+    """An AxesImage with a fast path for uint8 RGBA images"""
+
+    def set_data(self, A):
+        A = numpy.array(A, copy=False)
+        if A.ndim != 3 or A.shape[2] != 4 or A.dtype != numpy.uint8:
+            super(Image, self).set_data(A)
+        else:
+            # Call AxesImage.set_data with small data to set attributes
+            super(Image, self).set_data(numpy.zeros((2, 2, 4), dtype=A.dtype))
+            self._A = A  # Override stored data
+
+
 class BackendMatplotlib(BackendBase.BackendBase):
     """Base class for Matplotlib backend without a FigureCanvas.
 
@@ -425,44 +437,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         picker = (selectable or draggable)
 
-        # Debian 7 specific support
-        # No transparent colormap with matplotlib < 1.2.0
-        # Add support for transparent colormap for uint8 data with
-        # colormap with 256 colors, linear norm, [0, 255] range
-        if self._matplotlibVersion < _parse_version('1.2.0'):
-            if (len(data.shape) == 2 and colormap.getName() is None and
-                    colormap.getColormapLUT() is not None):
-                colors = colormap.getColormapLUT()
-                if (colors.shape[-1] == 4 and
-                        not numpy.all(numpy.equal(colors[3], 255))):
-                    # This is a transparent colormap
-                    if (colors.shape == (256, 4) and
-                            colormap.getNormalization() == 'linear' and
-                            not colormap.isAutoscale() and
-                            colormap.getVMin() == 0 and
-                            colormap.getVMax() == 255 and
-                            data.dtype == numpy.uint8):
-                        # Supported case, convert data to RGBA
-                        data = colors[data.reshape(-1)].reshape(
-                            data.shape + (4,))
-                    else:
-                        _logger.warning(
-                            'matplotlib %s does not support transparent '
-                            'colormap.', matplotlib.__version__)
-
-        if ((height * width) > 5.0e5 and
-                origin == (0., 0.) and scale == (1., 1.)):
-            imageClass = ModestImage
-        else:
-            imageClass = AxesImage
-
         # All image are shown as RGBA image
-        image = imageClass(self.ax,
-                           label="__IMAGE__" + legend,
-                           interpolation='nearest',
-                           picker=picker,
-                           zorder=z,
-                           origin='lower')
+        image = Image(self.ax,
+                      label="__IMAGE__" + legend,
+                      interpolation='nearest',
+                      picker=picker,
+                      zorder=z,
+                      origin='lower')
 
         if alpha < 1:
             image.set_alpha(alpha)
@@ -487,21 +468,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
             ystep = 1 if scale[1] >= 0. else -1
             data = data[::ystep, ::xstep]
 
-        if self._matplotlibVersion < _parse_version('2.1'):
-            # matplotlib 1.4.2 do not support float128
-            dtype = data.dtype
-            if dtype.kind == "f" and dtype.itemsize >= 16:
-                _logger.warning("Your matplotlib version do not support "
-                                "float128. Data converted to float64.")
-                data = data.astype(numpy.float64)
-
         if data.ndim == 2:  # Data image, convert to RGBA image
             data = colormap.applyToData(data)
 
         image.set_data(data)
-
         self.ax.add_artist(image)
-
         return image
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -160,7 +160,6 @@ class CurvesROIWidget(qt.QWidget):
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
 
-        self._middleROIMarkerFlag = False
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
 
@@ -195,8 +194,6 @@ class CurvesROIWidget(qt.QWidget):
     def getRois(self, order=None):
         return self.roiTable.getRois(order)
 
-    @deprecation.deprecated(reason="Moved to ROITable",
-                            since_version="0.10.0")
     def setMiddleROIMarkerFlag(self, flag=True):
         return self.roiTable.setMiddleROIMarkerFlag(flag)
 
@@ -405,9 +402,6 @@ class CurvesROIWidget(qt.QWidget):
                 self._add()
                 self.calculateRois()
 
-    @deprecation.deprecated(reason="API modification",
-                            replacement="setRois",
-                            since_version="0.10.0")
     def fillFromROIDict(self, *args, **kwargs):
         self.roiTable.fillFromROIDict(*args, **kwargs)
 
@@ -473,7 +467,6 @@ class ROITable(TableWidget):
     def __init__(self, parent=None, plot=None, rois=None):
         super(ROITable, self).__init__(parent)
         self._showAllMarkers = False
-        self._middleROIMarkerFlag = False
         self._userIsEditingRoi = False
         """bool used to avoid conflict when editing the ROI object"""
         self._isConnected = False
@@ -566,10 +559,6 @@ class ROITable(TableWidget):
 
         # backward compatibility since 0.10.0
         if isinstance(rois, dict):
-            deprecation.deprecated_warning(name='rois', type_='Parameter',
-                                           reason='Rois should now be a list '
-                                                  'of ROI object',
-                                           since_version="0.10.0")
             for roiName, roi in rois.items():
                 roi['name'] = roiName
                 _roi = ROI._fromDict(roi)
@@ -852,7 +841,7 @@ class ROITable(TableWidget):
             if markerHandler is not None:
                 markerHandler.updateMarkers()
 
-    def getRois(self, order, asDict=False):
+    def getRois(self, order):
         """
         Return the currently defined ROIs, as an ordered dict.
 
@@ -925,7 +914,7 @@ class ROITable(TableWidget):
 
         :param bool flag: True to activate middle ROI marker
         """
-        self._middleROIMarkerFlag = flag
+        self._markersHandler._middleROIMarkerFlag = flag
 
     def _handleROIMarkerEvent(self, ddict):
         """Handle plot signals related to marker events."""
@@ -994,29 +983,28 @@ class ROITable(TableWidget):
             self.hideColumn(self.COLUMNS_INDEX['Raw Area'])
             self.hideColumn(self.COLUMNS_INDEX['Net Area'])
 
-    @deprecation.deprecated(reason="API modification",
-                            replacement="setRois",
-                            since_version="0.10.0")
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
-        """Set the ROIs by providing a list of ROI names and a dictionary
+        """
+        This function API is kept for compatibility.
+        But `setRois` should be preferred.
+
+        Set the ROIs by providing a list of ROI names and a dictionary
         of ROI information for each ROI.
         The ROI names must match an existing dictionary key.
         The name list is used to provide an order for the ROIs.
         The dictionary's values are sub-dictionaries containing 3
         mandatory fields:
-           - ``"from"``: x coordinate of the left limit, as a float
-           - ``"to"``: x coordinate of the right limit, as a float
-           - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
+        - ``"from"``: x coordinate of the left limit, as a float
+        - ``"to"``: x coordinate of the right limit, as a float
+        - ``"type"``: type of ROI, as a string (e.g "channels", "energy")
+
         :param roilist: List of ROI names (keys of roidict)
         :type roilist: List
         :param dict roidict: Dict of ROI information
         :param currentroi: Name of the selected ROI or None (no selection)
         """
         if roidict is not None:
-            deprecation.deprecated_warning(name='roidict', type_='Parameter',
-                                           reason='Rois should now be a list '
-                                                  'of ROI object',
-                                           since_version="0.10.0")
             self.setRois(roidict)
         else:
             self.setRois(roilist)
@@ -1220,11 +1208,11 @@ class ROI(qt.QObject):
         - Raw area: integral of the curve between the min ROI point and the
            max ROI point to the y = 0 line.
 
-          .. image:: img/rawAreas.png
+          .. image:: img/rawArea.png
 
         - Net area: Raw counts minus background
 
-          .. image:: img/netAreas.png
+          .. image:: img/netArea.png
 
         :param CurveItem curve:
         :return tuple: rawArea, netArea
@@ -1323,6 +1311,9 @@ class _RoiMarkerManager(object):
         if roiID in self._roiMarkerHandlers:
             visible = ((self._activeRoi and self._activeRoi.getID() == roiID)
                        or self._showAllMarkers is True)
+            _roi = self._roiMarkerHandlers[roiID]._roi()
+            if _roi and not _roi.isICR():
+                self._roiMarkerHandlers[roiID].showMiddleMarker(self._middleROIMarkerFlag)
             self._roiMarkerHandlers[roiID].setVisible(visible)
             self._roiMarkerHandlers[roiID].updateMarkers()
 
@@ -1371,10 +1362,14 @@ class _RoiMarkerHandler(object):
 
         self._roi = weakref.ref(roi)
         self._plot = weakref.ref(plot)
-        self.draggable = False if roi.isICR() else True
-        self._color = 'blue' if roi.isICR() else 'black'
-        self._displayMidMarker = True
+        self._draggable = False if roi.isICR() else True
+        self._color = 'black' if roi.isICR() else 'blue'
+        self._displayMidMarker = False
         self._visible = True
+
+    @property
+    def draggable(self):
+        return self._draggable
 
     @property
     def plot(self):
@@ -1396,6 +1391,9 @@ class _RoiMarkerHandler(object):
             self.updateMarkers()
 
     def showMiddleMarker(self, visible):
+        if self.draggable is False and visible is True:
+            _logger.warning("ROI is not draggable. Won't display middle marker")
+            return
         self._displayMidMarker = visible
         self.getMarker('middle').setVisible(self._displayMidMarker)
 
