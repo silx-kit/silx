@@ -84,6 +84,8 @@ export LC_ALL=en_US.utf-8
 
 def get_version():
     """Returns current version number from version.py file"""
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    sys.path.append(dirname)
     import version
     return version.strictversion
 
