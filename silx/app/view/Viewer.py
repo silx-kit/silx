@@ -155,7 +155,7 @@ class Viewer(qt.QMainWindow):
         action.setText("Refresh")
         action.setToolTip("Refresh all selected items")
         action.triggered.connect(self.__refreshSelected)
-        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_Plus))
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_F5))
         toolbar.addAction(action)
         treeView.addAction(action)
         self.__refreshAction = action
@@ -577,7 +577,7 @@ class Viewer(qt.QMainWindow):
         action = qt.QAction("Show custom NXdata selector", self)
         action.setStatusTip("Show a widget which allow to create plot by selecting data and axes")
         action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_F5))
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_F6))
         action.toggled.connect(self.__toggleCustomNxdataWindow)
         self._displayCustomNxdataWindow = action
 
