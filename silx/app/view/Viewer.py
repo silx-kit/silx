@@ -166,6 +166,15 @@ class Viewer(qt.QMainWindow):
         treeView.addAction(action)
         action.triggered.connect(self.__refreshSelected)
 
+        action = qt.QAction(toolbar)
+        # action.setIcon(icons.getQIcon("view-refresh"))
+        action.setText("Close")
+        action.setToolTip("Close selected item")
+        action.triggered.connect(self.__removeSelected)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_Delete))
+        treeView.addAction(action)
+        self.__closeAction = action
+
         toolbar.addSeparator()
 
         action = qt.QAction(toolbar)
@@ -195,6 +204,37 @@ class Viewer(qt.QMainWindow):
         layout.addWidget(toolbar)
         layout.addWidget(treeView)
         return widget
+
+    def __removeSelected(self):
+        """Close selected items"""
+        qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+
+        selection = self.__treeview.selectionModel()
+        indexes = selection.selectedIndexes()
+        selectedItems = []
+        model = self.__treeview.model()
+        h5files = set([])
+        while len(indexes) > 0:
+            index = indexes.pop(0)
+            if index.column() != 0:
+                continue
+            h5 = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            rootIndex = index
+            # Reach the root of the tree
+            while rootIndex.parent().isValid():
+                rootIndex = rootIndex.parent()
+            rootRow = rootIndex.row()
+            relativePath = self.__getRelativePath(model, rootIndex, index)
+            selectedItems.append((rootRow, relativePath))
+            h5files.add(h5.file)
+
+        if len(h5files) != 0:
+            model = self.__treeview.findHdf5TreeModel()
+            for h5 in h5files:
+                row = model.h5pyObjectRow(h5)
+                model.removeH5pyObject(h5)
+
+        qt.QApplication.restoreOverrideCursor()
 
     def __refreshSelected(self):
         """Refresh all selected items
