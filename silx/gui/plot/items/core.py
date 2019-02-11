@@ -43,6 +43,7 @@ from ... import qt
 from ... import colors
 from ...colors import Colormap
 
+from silx import config
 
 _logger = logging.getLogger(__name__)
 
@@ -440,10 +441,10 @@ class ColormapMixIn(ItemMixInBase):
 class SymbolMixIn(ItemMixInBase):
     """Mix-in class for items with symbol type"""
 
-    _DEFAULT_SYMBOL = ''
+    _DEFAULT_SYMBOL = config.DEFAULT_PLOT_SYMBOL
     """Default marker of the item"""
 
-    _DEFAULT_SYMBOL_SIZE = 6.0
+    _DEFAULT_SYMBOL_SIZE = config.DEFAULT_PLOT_SYMBOL_SIZE
     """Default marker size of the item"""
 
     _SUPPORTED_SYMBOLS = collections.OrderedDict((
