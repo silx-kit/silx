@@ -160,6 +160,12 @@ class Viewer(qt.QMainWindow):
         treeView.addAction(action)
         self.__refreshAction = action
 
+        # Another shortcut for refresh
+        action = qt.QAction(toolbar)
+        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_R))
+        treeView.addAction(action)
+        action.triggered.connect(self.__refreshSelected)
+
         toolbar.addSeparator()
 
         action = qt.QAction(toolbar)
