@@ -32,7 +32,6 @@ from silx.gui.data.DataViews import _normalizeData
 import logging
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.utils.property import classproperty
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
