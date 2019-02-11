@@ -1,7 +1,7 @@
 How to contribute to *silx*
 ---------------------------
 
-This document describes hot to contribute to the *silx* project. 
+This document describes how to contribute to the *silx* project. 
 The process is similar to many other open-source project like *numpy*, just lighter as the project is smaller, so you won't be surprized with the pipeline.
 *scikit-image* provides a nice tutorial `https://github.com/scikit-image/scikit-image/blob/master/CONTRIBUTING.txt` 
 
@@ -19,18 +19,18 @@ The process is similar to many other open-source project like *numpy*, just ligh
    You may install the dependencies defined in *requirement.txt*
 
 5. Open an issue in `https://github.com/silx-kit/silx/issues` to inform the 
-   maintainer your intentions.
+   maintainer of your intentions.
 
 6. Create a local branch to start working on your issue **git branch my_feature**
 
 7. Code, enjoy, but ensure the new code is tested and does not break 
    the current test-suite.
 
-8. Push our local branch to your github account: **git push origin my_feature**
+8. Push your local branch to your github account: **git push origin my_feature**
 
 9. Create a pull request (PR) from your feature-branch on github to trigger 
    the review process. Indicate this PR is related to the issue you opened in 5.
 
 10. Discuss with the maintainer who is reviewing your code using the github interface.
 
-If you encounter any problem or have question on how , you can also ask in the issue page. 
+If you encounter any problem or have question on how, you can also ask in the issue page. 
