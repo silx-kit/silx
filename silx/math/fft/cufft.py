@@ -52,7 +52,7 @@ class CUFFT(BaseFFT):
         self,
         shape=None,
         dtype=None,
-        data=None,
+        template=None,
         shape_out=None,
         axes=None,
         normalize="rescale",
@@ -64,7 +64,7 @@ class CUFFT(BaseFFT):
         super(CUFFT, self).__init__(
             shape=shape,
             dtype=dtype,
-            data=data,
+            template=template,
             shape_out=shape_out,
             axes=axes,
             normalize=normalize,
