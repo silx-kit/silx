@@ -124,6 +124,7 @@ def mainQt(options):
     options.files = silx.utils.files.expand_filenames(options.files)
 
     for filename in options.files:
+        # TODO: Would be nice to add a process widget and a cancel button
         try:
             window.appendFile(filename)
         except IOError as e:
