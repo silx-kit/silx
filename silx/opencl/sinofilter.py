@@ -225,7 +225,7 @@ class SinoFilter(OpenclProcessing):
                   "will be done on CPU. For more performances, it is advised "
                   "to install gpyfft.""")
             self.fft = FFT(
-                data=np.zeros(self.sino_padded_shape, "f"),
+                template=np.zeros(self.sino_padded_shape, "f"),
                 axes=(-1,),
                 backend="numpy",
             )
