@@ -479,7 +479,7 @@ class SelectOneDataView(_CompositeDataView):
     def getMatchingViews(self, data, info):
         view = self.__getBestView(data, info)
         if isinstance(view, SelectManyDataView):
-            return [view.getMatchingViews()]
+            return view.getMatchingViews(data, info)
         else:
             return [self]
 
