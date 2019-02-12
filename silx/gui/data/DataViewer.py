@@ -424,6 +424,17 @@ class DataViewer(qt.QFrame):
         """
         return self.__currentAvailableViews
 
+    def getReachableViews(self):
+        """Returns the list of reachable views from the registred available
+        views.
+
+        :rtype: List[DataView]
+        """
+        views = []
+        for v in self.availableViews():
+            views.extend(v.getMatchableViews())
+        return views
+
     def availableViews(self):
         """Returns the list of registered views
 
