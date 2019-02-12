@@ -467,7 +467,10 @@ class SelectOneDataView(_CompositeDataView):
         views = []
         addSelf = False
         for v in self.__views:
-            addSelf = True
+            if isinstance(v, SelectManyDataView):
+                views.extend(v.getMatchableViews())
+            else:
+                addSelf = True
         if addSelf:
             # Single views are hidden by this view
             views.insert(0, self)
@@ -475,7 +478,11 @@ class SelectOneDataView(_CompositeDataView):
 
     def getMatchingViews(self, data, info):
         view = self.__getBestView(data, info)
-        return view
+        if isinstance(view, SelectManyDataView):
+            return [view.getMatchingViews()]
+        else:
+            return [self]
+
     def getSubViews(self):
         """Returns the list of registered views
 
@@ -590,6 +597,125 @@ class SelectOneDataView(_CompositeDataView):
 
 # NOTE: Introduced with silx 0.10
 CompositeDataView = SelectOneDataView
+
+
+class SelectManyDataView(_CompositeDataView):
+    """Data view which can select a set of sub views according to
+    the kind of the data.
+
+    This view itself is abstract and is not exposed.
+    """
+
+    def __init__(self, parent, views=None):
+        """Constructor
+
+        :param qt.QWidget parent: Parent of the hold widget
+        """
+        super(SelectManyDataView, self).__init__(parent, modeId=None, icon=None, label=None)
+        if views is None:
+            views = []
+        self.__views = views
+
+    def setHooks(self, hooks):
+        """Set the data context to use with this view.
+
+        :param DataViewHooks hooks: The data view hooks to use
+        """
+        super(SelectManyDataView, self).setHooks(hooks)
+        if hooks is not None:
+            for v in self.__views:
+                v.setHooks(hooks)
+
+    def addView(self, dataView):
+        """Add a new dataview to the available list."""
+        hooks = self.getHooks()
+        if hooks is not None:
+            dataView.setHooks(hooks)
+        self.__views.append(dataView)
+
+    def getSubViews(self):
+        """Returns the list of registered views
+
+        :rtype: List[DataView]
+        """
+        return list(self.__views)
+
+    def getMatchableViews(self):
+        views = self.__view
+        views = [v.getMatchableViews() for v in views]
+        return views
+
+    def getMatchingViews(self, data, info):
+        """Returns the views according to data and info from the data.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        """
+        views = [v for v in self.__views if v.getCachedDataPriority(data, info) != DataView.UNSUPPORTED]
+        return views
+
+    def customAxisNames(self):
+        raise RuntimeError("Abstract view")
+
+    def setCustomAxisValue(self, name, value):
+        raise RuntimeError("Abstract view")
+
+    def select(self):
+        raise RuntimeError("Abstract view")
+
+    def createWidget(self, parent):
+        raise RuntimeError("Abstract view")
+
+    def clear(self):
+        for v in self.__views:
+            v.clear()
+
+    def setData(self, data):
+        raise RuntimeError("Abstract view")
+
+    def axesNames(self, data, info):
+        raise RuntimeError("Abstract view")
+
+    def getDataPriority(self, data, info):
+        priorities = [v.getCachedDataPriority(data, info) for v in self.__views]
+        priorities = [v for v in priorities if v != DataView.UNSUPPORTED]
+        priorities = sorted(priorities)
+        if len(priorities) == 0:
+            return DataView.UNSUPPORTED
+        return priorities[-1]
+
+    def replaceView(self, modeId, newView):
+        """Replace a data view with a custom view.
+        Return True in case of success, False in case of failure.
+
+        .. note::
+
+            This method must be called just after instantiation, before
+            the viewer is used.
+
+        :param int modeId: Unique mode ID identifying the DataView to
+            be replaced.
+        :param DataViews.DataView newView: New data view
+        :return: True if replacement was successful, else False
+        """
+        oldView = None
+        for iview, view in enumerate(self.__views):
+            if view.modeId() == modeId:
+                oldView = view
+                break
+            elif isinstance(view, CompositeDataView):
+                # recurse
+                hooks = self.getHooks()
+                if hooks is not None:
+                    newView.setHooks(hooks)
+                if view.replaceView(modeId, newView):
+                    return True
+
+        if oldView is None:
+            return False
+
+        # replace oldView with new view in dict
+        self.__views[iview] = newView
 
 
 class _EmptyView(DataView):
