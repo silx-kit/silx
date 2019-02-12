@@ -35,7 +35,7 @@ from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "12/02/2019"
 
 
 _logger = logging.getLogger(__name__)
@@ -344,18 +344,16 @@ class DataViewer(qt.QFrame):
         data = self.__data
         info = self._getInfo()
         # sort available views according to priority
-        priorities = [v.getDataPriority(data, info) for v in self.__views]
-        views = zip(priorities, self.__views)
+        views = []
+        for v in self.__views:
+            views.extend(v.getMatchingViews(data, info))
+        views = [(v.getCachedDataPriority(data, info), v) for v in views]
         views = filter(lambda t: t[0] > DataViews.DataView.UNSUPPORTED, views)
         views = sorted(views, reverse=True)
+        views = [v[1] for v in views]
 
         # store available views
-        if len(views) == 0:
-            self.__setCurrentAvailableViews([])
-            available = []
-        else:
-            available = [v[1] for v in views]
-            self.__setCurrentAvailableViews(available)
+        self.__setCurrentAvailableViews(views)
 
     def __updateView(self):
         """Display the data using the widget which fit the best"""
