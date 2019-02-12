@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/09/2017"
+__date__ = "05/02/2019"
 
 import ast
 import os
@@ -443,7 +443,11 @@ def main(argv):
                 create_dataset_args["chunks"] = chunks
 
     if options.compression is not None:
-        create_dataset_args["compression"] = options.compression
+        try:
+            compression = int(options.compression)
+        except ValueError:
+            compression = options.compression
+        create_dataset_args["compression"] = compression
 
     if options.compression_opts is not None:
         create_dataset_args["compression_opts"] = options.compression_opts
