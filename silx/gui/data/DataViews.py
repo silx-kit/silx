@@ -41,7 +41,7 @@ from silx.gui.dialog.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "12/02/2019"
 
 _logger = logging.getLogger(__name__)
 
@@ -377,7 +377,7 @@ class DataView(object):
         return str(self) < str(other)
 
 
-class CompositeDataView(DataView):
+class SelectOneDataView(DataView):
     """Data view which can display a data using different view according to
     the kind of the data."""
 
@@ -386,7 +386,7 @@ class CompositeDataView(DataView):
 
         :param qt.QWidget parent: Parent of the hold widget
         """
-        super(CompositeDataView, self).__init__(parent, modeId, icon, label)
+        super(SelectOneDataView, self).__init__(parent, modeId, icon, label)
         self.__views = OrderedDict()
         self.__currentView = None
 
@@ -395,7 +395,7 @@ class CompositeDataView(DataView):
 
         :param DataViewHooks hooks: The data view hooks to use
         """
-        super(CompositeDataView, self).setHooks(hooks)
+        super(SelectOneDataView, self).setHooks(hooks)
         if hooks is not None:
             for v in self.__views:
                 v.setHooks(hooks)
@@ -502,7 +502,7 @@ class CompositeDataView(DataView):
             if view.modeId() == modeId:
                 oldView = view
                 break
-            elif isinstance(view, CompositeDataView):
+            elif isinstance(view, SelectOneDataView):
                 # recurse
                 hooks = self.getHooks()
                 if hooks is not None:
@@ -517,6 +517,10 @@ class CompositeDataView(DataView):
                 (newView, None) if view is oldView else (view, idx) for
                 view, idx in self.__views.items())
         return True
+
+
+# NOTE: Introduced with silx 0.10
+CompositeDataView = SelectOneDataView
 
 
 class _EmptyView(DataView):
