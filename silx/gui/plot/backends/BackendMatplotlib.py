@@ -964,12 +964,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             dataBackgroundColor = backgroundColor
 
-        if self.ax.axison:
+        if self.ax2.axison:
             self.fig.patch.set_facecolor(backgroundColor)
             if self._matplotlibVersion < _parse_version('2'):
-                self.ax.set_axis_bgcolor(dataBackgroundColor)
+                self.ax2.set_axis_bgcolor(dataBackgroundColor)
             else:
-                self.ax.set_facecolor(dataBackgroundColor)
+                self.ax2.set_facecolor(dataBackgroundColor)
         else:
             self.fig.patch.set_facecolor(dataBackgroundColor)
 
@@ -982,23 +982,24 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             gridColor = foregroundColor
 
-        if self.ax.axison:
-            self.ax.spines['bottom'].set_color(foregroundColor)
-            self.ax.spines['top'].set_color(foregroundColor)
-            self.ax.spines['right'].set_color(foregroundColor)
-            self.ax.spines['left'].set_color(foregroundColor)
-            self.ax.tick_params(axis='x', colors=foregroundColor)
-            self.ax.tick_params(axis='y', colors=foregroundColor)
-            self.ax.yaxis.label.set_color(foregroundColor)
-            self.ax.xaxis.label.set_color(foregroundColor)
-            self.ax.title.set_color(foregroundColor)
+        for axes in (self.ax, self.ax2):
+            if axes.axison:
+                axes.spines['bottom'].set_color(foregroundColor)
+                axes.spines['top'].set_color(foregroundColor)
+                axes.spines['right'].set_color(foregroundColor)
+                axes.spines['left'].set_color(foregroundColor)
+                axes.tick_params(axis='x', colors=foregroundColor)
+                axes.tick_params(axis='y', colors=foregroundColor)
+                axes.yaxis.label.set_color(foregroundColor)
+                axes.xaxis.label.set_color(foregroundColor)
+                axes.title.set_color(foregroundColor)
 
-            for line in self.ax.get_xgridlines():
-                line.set_color(gridColor)
+                for line in axes.get_xgridlines():
+                    line.set_color(gridColor)
 
-            for line in self.ax.get_ygridlines():
-                line.set_color(gridColor)
-            # self.ax.grid().set_markeredgecolor(gridColor)
+                for line in axes.get_ygridlines():
+                    line.set_color(gridColor)
+                # axes.grid().set_markeredgecolor(gridColor)
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
