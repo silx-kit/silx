@@ -24,14 +24,17 @@
 
 
 // Get the lower and upper bound for the summation part of convolution.
-#define GET_SUM_BOUNDS_X int jx1 = c - gidx, jx2 = Nx - 1 - gidx + c;
-#define GET_SUM_BOUNDS_Y int jy1 = c - gidy, jy2 = Ny - 1 - gidy + c;
-#define GET_SUM_BOUNDS_Z int jz1 = c - gidz, jz2 = Nz - 1 - gidz + c;
+//~ #define GET_SUM_BOUNDS_X int jx1 = c - gidx, jx2 = Nx - 1 - gidx + c;
+//~ #define GET_SUM_BOUNDS_Y int jy1 = c - gidy, jy2 = Ny - 1 - gidy + c;
+//~ #define GET_SUM_BOUNDS_Z int jz1 = c - gidz, jz2 = Nz - 1 - gidz + c;
 
 // Get the moving convolution index for periodic boundary extension.
-#define CONV_PERIODIC_IDX_X int idx_x = gidx - c + jx; if (jx < jx1) idx_x = jx1-jx-1; if (jx > jx2) idx_x = Nx - (jx-jx2);
-#define CONV_PERIODIC_IDX_Y int idx_y = gidy - c + jy; if (jy < jy1) idx_y = jy1-jy-1; if (jy > jy2) idx_y = Ny - (jy-jy2);
-#define CONV_PERIODIC_IDX_Z int idx_z = gidz - c + jz; if (jz < jz1) idx_z = jz1-jz-1; if (jz > jz2) idx_z = Nz - (jz-jz2);
+//~ #define CONV_PERIODIC_IDX_X int idx_x = gidx - c + jx; if (jx < jx1) idx_x = jx1-jx-1; if (jx > jx2) idx_x = Nx - (jx-jx2);
+//~ #define CONV_PERIODIC_IDX_Y int idx_y = gidy - c + jy; if (jy < jy1) idx_y = jy1-jy-1; if (jy > jy2) idx_y = Ny - (jy-jy2);
+//~ #define CONV_PERIODIC_IDX_Z int idx_z = gidz - c + jz; if (jz < jz1) idx_z = jz1-jz-1; if (jz > jz2) idx_z = Nz - (jz-jz2);
+#define CONV_PERIODIC_IDX_X int idx_x = gidx - c + jx; if (idx_x < 0) idx_x += Nx; if (idx_x >= Nx) idx_x -= Nx;
+#define CONV_PERIODIC_IDX_Y int idx_y = gidy - c + jy; if (idx_y < 0) idx_y += Ny; if (idx_y >= Ny) idx_y -= Ny;
+#define CONV_PERIODIC_IDX_Z int idx_z = gidz - c + jz; if (idx_z < 0) idx_z += Nz; if (idx_z >= Nz) idx_z -= Nz;
 
 
 
@@ -61,7 +64,6 @@ __kernel void convol_1D_X(
     GET_CENTER_HL(L);
 
     float sum = 0.0f;
-    GET_SUM_BOUNDS_X;
 
     for (int jx = 0; jx <= hR+hL; jx++) {
         CONV_PERIODIC_IDX_X; // Get index "x"
