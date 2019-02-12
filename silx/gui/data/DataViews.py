@@ -100,6 +100,7 @@ class DataInfo(object):
     """Store extracted information from a data"""
 
     def __init__(self, data):
+        self.__priorities = {}
         data = self.normalizeData(data)
         self.isArray = False
         self.interpretation = None
@@ -200,6 +201,12 @@ class DataInfo(object):
         """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
         return _normalizeData(data)
+
+    def cachePriority(self, view, priority):
+        self.__priorities[view] = priority
+
+    def getPriority(self, view):
+        return self.__priorities[view]
 
 
 class DataViewHooks(object):
@@ -357,6 +364,14 @@ class DataView(object):
         """
         return []
 
+    def getCachedDataPriority(self, data, info):
+        try:
+            priority = info.getPriority(self)
+        except KeyError:
+            priority = self.getDataPriority(data, info)
+            info.cachePriority(self, priority)
+        return priority
+
     def getDataPriority(self, data, info):
         """
         Returns the priority of using this view according to a data.
@@ -416,7 +431,7 @@ class SelectOneDataView(DataView):
 
     def __getBestView(self, data, info):
         """Returns the best view according to priorities."""
-        views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
+        views = [(v.getCachedDataPriority(data, info), v) for v in self.__views.keys()]
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, key=lambda t: t[0], reverse=True)
 
@@ -481,7 +496,7 @@ class SelectOneDataView(DataView):
         if view is None:
             return DataView.UNSUPPORTED
         else:
-            return view.getDataPriority(data, info)
+            return view.getCachedDataPriority(data, info)
 
     def replaceView(self, modeId, newView):
         """Replace a data view with a custom view.
