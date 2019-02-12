@@ -38,7 +38,7 @@ import pyopencl.array as parray
 from .processing import OpenclProcessing
 
 
-class Convolution(OpenCLProcessing):
+class Convolution(OpenclProcessing):
     """
     A class for performing convolution on CPU/GPU with OpenCL.
     It supports:
@@ -73,30 +73,66 @@ class Convolution(OpenCLProcessing):
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
 
-        self._configure_axes(shape, kernel, axes)
         self._configure_extra_options(extra_options)
+        self._configure_axes(shape, kernel, axes)
         self._allocate_memory()
         self._init_kernels()
 
 
+    @staticmethod
+    def _check_dimensions(arr=None, shape=None, name="", dim_min=1, dim_max=3):
+        if shape is not None:
+            ndim = len(shape)
+        elif arr is not None:
+            ndim = arr.ndim
+        else:
+            raise ValueError("Please provide either arr= or shape=")
+        if ndim < dim_min or ndim > dim_max:
+            raise ValueError("%s dimensions should be between %d and %d"
+                % (name, dim_min, dim_max)
+            )
+        return ndim
+
+
+
+    def _get_dimensions(self, shape, kernel):
+        self.shape = shape
+        self.data_ndim = self._check_dimensions(shape=shape, name="Data")
+        self.kernel_ndim = self._check_dimensions(arr=kernel, name="Kernel")
+        Nx = shape[-1]
+        if self.data_ndim >= 2:
+            Ny = shape[-2]
+        else:
+            Ny = 1
+        if self.data_ndim >= 3:
+            Nz = shape[-3]
+        else:
+            Nz = 1
+        self.Nx = np.int32(Nx)
+        self.Ny = np.int32(Ny)
+        self.Nz = np.int32(Nz)
+
 
     # This function might also be useful in other processings
     def _configure_axes(self, shape, kernel, axes):
-        data_ndim = len(shape)
-        kernel_ndim = kernel.ndim
+        self._get_dimensions(shape, kernel)
+        data_ndim = self.data_ndim
+        kernel_ndim = self.kernel_ndim
+        self.kernel = kernel.astype("f")
         if axes is None:
             # By default, convolve along all axes (as for FFT)
             axes = tuple(np.arange(kernel_ndim))
         axes_ndim = len(axes)
+
         # Handle negative values of axes
         axes = tuple(np.array(axes) % data_ndim)
 
-        if kernel_ndim > data_ndim:
+        if self.kernel_ndim > self.data_ndim:
             raise ValueError("Kernel dimensions cannot exceed data dimensions")
-        if kernel_ndim == data_ndim:
+        if self.kernel_ndim == self.data_ndim:
             # "Regular" non-separable case
             tr_name = str("nonseparable_%dD" % data_ndim)
-        if kernel_ndim < data_ndim:
+        if self.kernel_ndim < self.data_ndim:
             # Separable/batched case
             if axes_ndim > data_ndim:
                 raise ValueError("Axes dimensions cannot exceed data dimensions")
@@ -132,26 +168,22 @@ class Convolution(OpenCLProcessing):
                     (3, 2): [(0,), (1,), (2,)],
                 }
                 tr_name = str("batched_%dD" % data_ndim)
-        k = (data_ndim, kernel_ndim)
-        if k not in allowed_axes:
-            raise ValueError(
-                "Could not find valid axes for %dD convolution on %dD data with axes=%s"
-                % (kernel_ndim, data_ndim, str(axes)),
-            )
-        if axes not in allowed_axes[k]:
-            raise ValueError(
-                "Allowed axes for %dD convolution on %dD data are %s"
-                % (kernel_ndim, data_ndim, str(allowed_axes[k]))
-            )
+            k = (data_ndim, kernel_ndim)
+            if k not in allowed_axes:
+                raise ValueError(
+                    "Could not find valid axes for %dD convolution on %dD data with axes=%s"
+                    % (kernel_ndim, data_ndim, str(axes)),
+                )
+            if axes not in allowed_axes[k]:
+                raise ValueError(
+                    "Allowed axes for %dD convolution on %dD data are %s"
+                    % (kernel_ndim, data_ndim, str(allowed_axes[k]))
+                )
         self.axes = axes
-        self.data_ndim = data_ndim
-        self.kernel_ndim = kernel_ndim
-        self.shape = shape
-        self.kernel = kernel
         self.transform_name = tr_name
 
 
-    def _configure_extra_options(extra_options):
+    def _configure_extra_options(self, extra_options):
         self.extra_options = {
             "allocate_input_array": True,
             "allocate_output_array": True,
@@ -163,23 +195,54 @@ class Convolution(OpenCLProcessing):
     def _allocate_memory(self):
         options = self.extra_options
         if options["allocate_input_array"]:
-           self.data_in = parray.zeros(self.shape, "f")
-        else
+           self.data_in = parray.zeros(self.queue, self.shape, "f")
+        else:
             self.data_in = None
         if options["allocate_output_array"]:
-            self.data_out = parray.zeros(self.shape, "f")
+            self.data_out = parray.zeros(self.queue, self.shape, "f")
         else:
             self.data_out = None
+        if isinstance(self.kernel, np.ndarray):
+            self.d_kernel = parray.to_device(self.queue, self.kernel)
+        else:
+            if not(isinstance(self.kernel, parray.Array)):
+                raise ValueError("kernel must be either numpy array or pyopencl array")
+            self.d_kernel = self.kernel
 
 
     def _init_kernels(self):
-        # Determine which kernel have to be compiled, depending on case
-
         compile_options = None
         self.compile_kernels(
             kernel_files=None,
             compile_options=compile_options
         )
+
+
+
+    def convolve(self, array, output=None):
+
+        # todo check array (shape, dtype)
+
+        self.ndrange = np.int32(self.shape)[::-1]
+        self.wg = None
+
+        ####
+        kern = self.kernels.convol_1D_X
+        kern(
+            self.queue,
+            self.ndrange,
+            self.wg,
+            self.data_in.data,
+            self.data_out.data,
+            self.d_kernel.data,
+            np.int32(self.kernel.shape[0]),
+            self.Nx,
+            self.Ny,
+            self.Nz
+        )
+        return self.data_out.get()
+        ####
+
 
 
 
