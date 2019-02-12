@@ -119,16 +119,23 @@ class Convolution(OpenclProcessing):
         data_ndim = self.data_ndim
         kernel_ndim = self.kernel_ndim
         self.kernel = kernel.astype("f")
+        if self.kernel_ndim > self.data_ndim:
+            raise ValueError("Kernel dimensions cannot exceed data dimensions")
         if axes is None:
             # By default, convolve along all axes (as for FFT)
-            axes = tuple(np.arange(kernel_ndim))
+            default_separable_axes = {
+                (1, 1): None,
+                (2, 1): (1, 0),
+                (2, 2): None,
+                (3, 1): (2, 1, 0),
+                (3, 2): (1, 0),
+                (3, 3): None,
+            }
+            axes = default_separable_axes[(data_ndim, kernel_ndim)]
         axes_ndim = len(axes)
-
         # Handle negative values of axes
         axes = tuple(np.array(axes) % data_ndim)
 
-        if self.kernel_ndim > self.data_ndim:
-            raise ValueError("Kernel dimensions cannot exceed data dimensions")
         if self.kernel_ndim == self.data_ndim:
             # "Regular" non-separable case
             tr_name = str("nonseparable_%dD" % data_ndim)
@@ -183,25 +190,31 @@ class Convolution(OpenclProcessing):
         self.transform_name = tr_name
 
 
+    # TODO for separable transform, "allocate_tmp_array"
+    # for swapping references instead of copying data_out to data_in
     def _configure_extra_options(self, extra_options):
         self.extra_options = {
             "allocate_input_array": True,
             "allocate_output_array": True,
+            "allocate_tmp_array": True,
         }
         extra_opts = extra_options or {}
         self.extra_options.update(extra_opts)
 
 
     def _allocate_memory(self):
-        options = self.extra_options
-        if options["allocate_input_array"]:
-           self.data_in = parray.zeros(self.queue, self.shape, "f")
-        else:
-            self.data_in = None
-        if options["allocate_output_array"]:
-            self.data_out = parray.zeros(self.queue, self.shape, "f")
-        else:
-            self.data_out = None
+        option_array_names = {
+            "allocate_input_array": "data_in",
+            "allocate_output_array": "data_out",
+            "allocate_tmp_array": "data_tmp",
+        }
+        for option_name, array_name in option_array_names.items():
+            if self.extra_options[option_name]:
+                value = parray.zeros(self.queue, self.shape, "f")
+            else:
+                value = None
+            setattr(self, array_name, value)
+
         if isinstance(self.kernel, np.ndarray):
             self.d_kernel = parray.to_device(self.queue, self.kernel)
         else:
@@ -216,6 +229,22 @@ class Convolution(OpenclProcessing):
             kernel_files=None,
             compile_options=compile_options
         )
+        self.ndrange = np.int32(self.shape)[::-1]
+        self.wg = None
+        self.kernel_args = {
+            "1D": (
+                self.queue,
+                self.ndrange,
+                self.wg,
+                self.data_in.data,
+                self.data_out.data,
+                self.d_kernel.data,
+                np.int32(self.kernel.shape[0]),
+                self.Nx,
+                self.Ny,
+                self.Nz
+            )
+        }
 
 
 
@@ -223,23 +252,15 @@ class Convolution(OpenclProcessing):
 
         # todo check array (shape, dtype)
 
-        self.ndrange = np.int32(self.shape)[::-1]
-        self.wg = None
-
         ####
         kern = self.kernels.convol_1D_X
-        kern(
-            self.queue,
-            self.ndrange,
-            self.wg,
-            self.data_in.data,
-            self.data_out.data,
-            self.d_kernel.data,
-            np.int32(self.kernel.shape[0]),
-            self.Nx,
-            self.Ny,
-            self.Nz
-        )
+        kern(*self.kernel_args["1D"])
+
+        self.data_in[:] = self.data_out[:]
+        self.data_out.fill(0)
+        kern = self.kernels.convol_1D_Y
+        kern(*self.kernel_args["1D"])
+
         return self.data_out.get()
         ####
 

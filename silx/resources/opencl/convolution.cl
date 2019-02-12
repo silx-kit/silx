@@ -62,15 +62,46 @@ __kernel void convol_1D_X(
 
     int c, hL, hR;
     GET_CENTER_HL(L);
-
     float sum = 0.0f;
 
     for (int jx = 0; jx <= hR+hL; jx++) {
         CONV_PERIODIC_IDX_X; // Get index "x"
         sum += input[(gidz*Ny + gidy)*Nx + idx_x] * filter[L-1 - jx];
     }
-    output[(gidz*Ny + gidy)*Nx + gidx] =  sum;
+    output[(gidz*Ny + gidy)*Nx + gidx] = sum;
 }
+
+
+// Convolution with 1D kernel along axis "Y"
+// Works for batched 1D on 2D and batched 2D on 3D, along axis "Y".
+__kernel void convol_1D_Y(
+    const __global float * input,
+    __global float * output,
+    __global float * filter,
+    int L, // filter size
+    int Nx, // input/output number of columns
+    int Ny, // input/output number of rows
+    int Nz  // input/output depth
+)
+{
+    uint gidx = get_global_id(0);
+    uint gidy = get_global_id(1);
+    uint gidz = get_global_id(2);
+    if ((gidx >= Nx) || (gidy >= Ny) || (gidz >= Nz)) return;
+
+    int c, hL, hR;
+    GET_CENTER_HL(L);
+    float sum = 0.0f;
+
+    for (int jy = 0; jy <= hR+hL; jy++) {
+        CONV_PERIODIC_IDX_Y; // Get index "y"
+        sum += input[(gidz*Ny + idx_y)*Nx + gidx] * filter[L-1 - jy];
+    }
+    output[(gidz*Ny + gidy)*Nx + gidx] = sum;
+}
+
+
+
 
 
 
