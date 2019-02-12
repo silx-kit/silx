@@ -143,10 +143,6 @@ script:
     - echo "QT_BINDING="$QT_BINDING
     - if [ -n "$QT_BINDING" ];
       then
-          export QT_DEBUG_PLUGINS=1;
-          XCD_SO=$(python -c "import ${QT_BINDING},os; print(os.path.join(os.path.dirname(${QT_BINDING}.__file__), 'Qt', 'plugins', 'platforms', 'libqxcb.so'))");
-          echo $XCD_SO;
-          ldd $XCD_SO;
           python run_tests.py --installed -v --qt-binding=$QT_BINDING;
       else
           python run_tests.py --installed -v --no-gui;
