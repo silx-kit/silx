@@ -417,7 +417,7 @@ class DataView(object):
 class _CompositeDataView(DataView):
     """Contains sub views"""
 
-    def getSubViews(self):
+    def getViews(self):
         """Returns the direct sub views registered in this view.
 
         :rtype: List[DataView]
@@ -430,7 +430,7 @@ class _CompositeDataView(DataView):
 
     @deprecation.deprecated(replacement="getRegisteredViews", since_version="0.10")
     def availableViews(self):
-        return self.getSubViews()
+        return self.getViews()
 
 
 class SelectOneDataView(_CompositeDataView):
@@ -483,7 +483,7 @@ class SelectOneDataView(_CompositeDataView):
         else:
             return [self]
 
-    def getSubViews(self):
+    def getViews(self):
         """Returns the list of registered views
 
         :rtype: List[DataView]
@@ -633,7 +633,7 @@ class SelectManyDataView(_CompositeDataView):
             dataView.setHooks(hooks)
         self.__views.append(dataView)
 
-    def getSubViews(self):
+    def getViews(self):
         """Returns the list of registered views
 
         :rtype: List[DataView]
