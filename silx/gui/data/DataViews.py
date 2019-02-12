@@ -432,6 +432,17 @@ class _CompositeDataView(DataView):
     def availableViews(self):
         return self.getViews()
 
+    def isSupportedData(self, data, info):
+        """If true, the composite view allow sub views to access to this data.
+        Else this this data is considered as not supported by any of sub views
+        (incliding this composite view).
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: bool
+        """
+        return True
+
 
 class SelectOneDataView(_CompositeDataView):
     """Data view which can display a data using different view according to
@@ -477,6 +488,8 @@ class SelectOneDataView(_CompositeDataView):
         return views
 
     def getMatchingViews(self, data, info):
+        if not self.isSupportedData(data, info):
+            return []
         view = self.__getBestView(data, info)
         if isinstance(view, SelectManyDataView):
             return view.getMatchingViews(data, info)
@@ -492,6 +505,8 @@ class SelectOneDataView(_CompositeDataView):
 
     def __getBestView(self, data, info):
         """Returns the best view according to priorities."""
+        if not self.isSupportedData(data, info):
+            return None
         views = [(v.getCachedDataPriority(data, info), v) for v in self.__views.keys()]
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, key=lambda t: t[0], reverse=True)
@@ -652,6 +667,8 @@ class SelectManyDataView(_CompositeDataView):
         :param object data: Any object to be displayed
         :param DataInfo info: Information cached about this data
         """
+        if not self.isSupportedData(data, info):
+            return []
         views = [v for v in self.__views if v.getCachedDataPriority(data, info) != DataView.UNSUPPORTED]
         return views
 
@@ -678,6 +695,8 @@ class SelectManyDataView(_CompositeDataView):
         raise RuntimeError("Abstract view")
 
     def getDataPriority(self, data, info):
+        if not self.isSupportedData(data, info):
+            return DataView.UNSUPPORTED
         priorities = [v.getCachedDataPriority(data, info) for v in self.__views]
         priorities = [v for v in priorities if v != DataView.UNSUPPORTED]
         priorities = sorted(priorities)
