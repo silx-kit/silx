@@ -1,5 +1,65 @@
 #define MAX_CONST_SIZE 16384
 
+A FINIR
+
+// Get the center index of the filter,
+// and the "half-Left" and "half-Right" lengths.
+// In the case of an even-sized filter, the center is shifted to the left.
+#define GET_CENTER_HL(hlen){\
+        if (hlen & 1) {\
+            c = hlen/2;\
+            hL = c;\
+            hR = c;\
+        }\
+        else {\
+            c = hlen/2 - 1;\
+            hL = c;\
+            hR = c+1;\
+        }\
+}\
+
+// S
+#define GET_SUM_BOUNDS(N, gid, c){\
+    jx1 = c - gidx;
+    jx2 = Nx - 1 - gidx + c;
+
+
+
+__kernel void convol_1D(
+    const __global float * input,
+    __global float * output,
+    __global float * filter,
+    int filter_len, // filter size
+    int signal_len, // input/output size
+)
+{
+    int gidx = (int) get_global_id(0);
+    if (gidx >= filter_len) return;
+    int c, hL, hR;
+    GET_CENTER_HL(filter_len);
+
+
+        int jx1 = c - gidx;
+        int jx2 = IMAGE_W - 1 - gidx + c;
+        float sum = 0.0f;
+
+        // Convolution with boundaries extension
+        for (int jx = 0; jx <= hR+hL; jx++) {
+            int idx_x = gidx - c + jx;
+            if (jx < jx1) idx_x = jx1-jx-1;
+            if (jx > jx2) idx_x = IMAGE_W - (jx-jx2);
+
+            sum += input[(gidz*IMAGE_H + gidy)*IMAGE_W + idx_x] * filter[hlen-1 - jx];
+        }
+        output[(gidz*IMAGE_H + gidy)*IMAGE_W + gidx] =  sum;
+    }
+}
+
+
+
+
+
+
 
 ///
 /// Horizontal convolution (along fast dim)
