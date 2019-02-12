@@ -641,8 +641,9 @@ class SelectManyDataView(_CompositeDataView):
         return list(self.__views)
 
     def getMatchableViews(self):
-        views = self.__view
-        views = [v.getMatchableViews() for v in views]
+        views = []
+        for v in self.__views:
+            views.extend(v.getMatchableViews())
         return views
 
     def getMatchingViews(self, data, info):
