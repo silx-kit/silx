@@ -432,7 +432,7 @@ class DataViewer(qt.QFrame):
         """
         views = []
         for v in self.availableViews():
-            views.extend(v.getMatchableViews())
+            views.extend(v.getReachableViews())
         return views
 
     def availableViews(self):

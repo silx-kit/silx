@@ -365,7 +365,7 @@ class DataView(object):
         """
         return []
 
-    def getMatchableViews(self):
+    def getReachableViews(self):
         """Returns the views that can be returned by `getMatchingViews`.
 
         :param object data: Any object to be displayed
@@ -474,12 +474,12 @@ class SelectOneDataView(_CompositeDataView):
             dataView.setHooks(hooks)
         self.__views[dataView] = None
 
-    def getMatchableViews(self):
+    def getReachableViews(self):
         views = []
         addSelf = False
         for v in self.__views:
             if isinstance(v, SelectManyDataView):
-                views.extend(v.getMatchableViews())
+                views.extend(v.getReachableViews())
             else:
                 addSelf = True
         if addSelf:
@@ -655,10 +655,10 @@ class SelectManyDataView(_CompositeDataView):
         """
         return list(self.__views)
 
-    def getMatchableViews(self):
+    def getReachableViews(self):
         views = []
         for v in self.__views:
-            views.extend(v.getMatchableViews())
+            views.extend(v.getReachableViews())
         return views
 
     def getMatchingViews(self, data, info):
