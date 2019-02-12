@@ -31,6 +31,7 @@ import numbers
 import numpy
 
 import silx.io
+from silx.utils import deprecation
 from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
@@ -364,6 +365,27 @@ class DataView(object):
         """
         return []
 
+    def getMatchableViews(self):
+        """Returns the views that can be returned by `getMatchingViews`.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
+        return [self]
+
+    def getMatchingViews(self, data, info):
+        """Returns the views according to data and info from the data.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
+        priority = self.getCachedDataPriority(data, info)
+        if priority == DataView.UNSUPPORTED:
+            return []
+        return [self]
+
     def getCachedDataPriority(self, data, info):
         try:
             priority = info.getPriority(self)
@@ -392,7 +414,26 @@ class DataView(object):
         return str(self) < str(other)
 
 
-class SelectOneDataView(DataView):
+class _CompositeDataView(DataView):
+    """Contains sub views"""
+
+    def getSubViews(self):
+        """Returns the direct sub views registered in this view.
+
+        :rtype: List[DataView]
+        """
+        raise NotImplementedError()
+
+    def getDisplayableViews(self):
+        """Returns all view that can possibly be displayed."""
+        raise NotImplementedError()
+
+    @deprecation.deprecated(replacement="getRegisteredViews", since_version="0.10")
+    def availableViews(self):
+        return self.getSubViews()
+
+
+class SelectOneDataView(_CompositeDataView):
     """Data view which can display a data using different view according to
     the kind of the data."""
 
@@ -422,7 +463,20 @@ class SelectOneDataView(DataView):
             dataView.setHooks(hooks)
         self.__views[dataView] = None
 
-    def availableViews(self):
+    def getMatchableViews(self):
+        views = []
+        addSelf = False
+        for v in self.__views:
+            addSelf = True
+        if addSelf:
+            # Single views are hidden by this view
+            views.insert(0, self)
+        return views
+
+    def getMatchingViews(self, data, info):
+        view = self.__getBestView(data, info)
+        return view
+    def getSubViews(self):
         """Returns the list of registered views
 
         :rtype: List[DataView]
@@ -517,7 +571,7 @@ class SelectOneDataView(DataView):
             if view.modeId() == modeId:
                 oldView = view
                 break
-            elif isinstance(view, SelectOneDataView):
+            elif isinstance(view, _CompositeDataView):
                 # recurse
                 hooks = self.getHooks()
                 if hooks is not None:
