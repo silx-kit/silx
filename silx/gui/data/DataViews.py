@@ -595,7 +595,7 @@ class SelectOneDataView(_CompositeDataView):
         return True
 
 
-# NOTE: Introduced with silx 0.10
+# NOTE: SelectOneDataView was introduced with silx 0.10
 CompositeDataView = SelectOneDataView
 
 
