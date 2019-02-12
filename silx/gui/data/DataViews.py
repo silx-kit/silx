@@ -414,7 +414,7 @@ class CompositeDataView(DataView):
         """
         return list(self.__views.keys())
 
-    def getBestView(self, data, info):
+    def __getBestView(self, data, info):
         """Returns the best view according to priorities."""
         views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
@@ -471,12 +471,12 @@ class CompositeDataView(DataView):
         self.__currentView.setData(data)
 
     def axesNames(self, data, info):
-        view = self.getBestView(data, info)
+        view = self.__getBestView(data, info)
         self.__currentView = view
         return view.axesNames(data, info)
 
     def getDataPriority(self, data, info):
-        view = self.getBestView(data, info)
+        view = self.__getBestView(data, info)
         self.__currentView = view
         if view is None:
             return DataView.UNSUPPORTED
