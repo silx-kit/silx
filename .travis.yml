@@ -59,7 +59,9 @@ addons:
             - ocl-icd-opencl-dev  # OpenCL headers, lib and icd loader
             - libgl1-mesa-glx  # For OpenGL
             - xserver-xorg-video-dummy  # For OpenGL
-            - libxkbcommon-x11-0 # needed for Qt plugins  
+            - libxkbcommon-x11-0 # needed for Qt plugins
+            - libxkbcommon0
+            - libxkbcommon-dev
 
 before_install:
     # On Linux: install OpenCL
@@ -142,6 +144,7 @@ script:
     - if [ -n "$QT_BINDING" ];
       then
           export QT_DEBUG_PLUGINS=1;
+          ldd `python -c "import PyQt5,os; print(os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'plugins', 'platforms', 'libqxcb.so'))"`;
           python run_tests.py --installed -v --qt-binding=$QT_BINDING;
       else
           python run_tests.py --installed -v --no-gui;
