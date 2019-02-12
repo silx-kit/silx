@@ -424,8 +424,24 @@ class _CompositeDataView(DataView):
         """
         raise NotImplementedError()
 
-    def getDisplayableViews(self):
-        """Returns all view that can possibly be displayed."""
+    def getReachableViews(self):
+        """Returns all views that can be reachable at on point.
+
+        This method return any sub view provided (recursivly).
+
+        :rtype: List[DataView]
+        """
+        raise NotImplementedError()
+
+    def getMatchingViews(self, data, info):
+        """Returns sub views matching this data and info.
+
+        This method return any sub view provided (recursivly).
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
         raise NotImplementedError()
 
     @deprecation.deprecated(replacement="getRegisteredViews", since_version="0.10")
