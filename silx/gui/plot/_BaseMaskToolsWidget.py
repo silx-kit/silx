@@ -767,6 +767,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         layout.addWidget(container)
 
         form = qt.QFormLayout()
+        form.setContentsMargins(0, 0, 0, 0)
 
         self.minLineLabel = qt.QLabel("Min:", self)
         self.minLineEdit = FloatEdit(self, value=0)
@@ -788,8 +789,6 @@ class BaseMaskToolsWidget(qt.QWidget):
         thresholdWidget = qt.QWidget()
         thresholdWidget.setLayout(form)
         layout.addWidget(thresholdWidget)
-
-        layout.addStretch(1)
 
         self.thresholdGroup = qt.QGroupBox('Threshold')
         self.thresholdGroup.setLayout(layout)
