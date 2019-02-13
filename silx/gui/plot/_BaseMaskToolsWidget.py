@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/11/2018"
+__date__ = "13/02/2019"
 
 import os
 import weakref
@@ -718,27 +718,22 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.belowThresholdAction.setToolTip(
                 'Mask image where values are below given threshold')
         self.belowThresholdAction.setCheckable(True)
-        self.belowThresholdAction.triggered[bool].connect(
-                self._belowThresholdActionTriggered)
+        self.belowThresholdAction.setChecked(True)
 
         self.betweenThresholdAction = qt.QAction(
                 icons.getQIcon('plot-roi-between'), 'Mask within range', None)
         self.betweenThresholdAction.setToolTip(
                 'Mask image where values are within given range')
         self.betweenThresholdAction.setCheckable(True)
-        self.betweenThresholdAction.triggered[bool].connect(
-                self._betweenThresholdActionTriggered)
 
         self.aboveThresholdAction = qt.QAction(
                 icons.getQIcon('plot-roi-above'), 'Mask above threshold', None)
         self.aboveThresholdAction.setToolTip(
                 'Mask image where values are above given threshold')
         self.aboveThresholdAction.setCheckable(True)
-        self.aboveThresholdAction.triggered[bool].connect(
-                self._aboveThresholdActionTriggered)
 
         self.thresholdActionGroup = qt.QActionGroup(self)
-        self.thresholdActionGroup.setExclusive(False)
+        self.thresholdActionGroup.setExclusive(True)
         self.thresholdActionGroup.addAction(self.belowThresholdAction)
         self.thresholdActionGroup.addAction(self.betweenThresholdAction)
         self.thresholdActionGroup.addAction(self.aboveThresholdAction)
@@ -799,6 +794,9 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         self.thresholdGroup = qt.QGroupBox('Threshold')
         self.thresholdGroup.setLayout(layout)
+
+        # Init widget state
+        self._thresholdActionGroupTriggered(self.belowThresholdAction)
         return self.thresholdGroup
 
         # track widget visibility and plot active image changes
@@ -1015,36 +1013,21 @@ class BaseMaskToolsWidget(qt.QWidget):
         return doMask
 
     # Handle threshold UI events
-    def _belowThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _betweenThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _aboveThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(False)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
 
     def _thresholdActionGroupTriggered(self, triggeredAction):
         """Threshold action group listener."""
-        if triggeredAction.isChecked():
-            # Uncheck other actions
-            for action in self.thresholdActionGroup.actions():
-                if action is not triggeredAction and action.isChecked():
-                    action.setChecked(False)
-        else:
-            # Disable min/max edit
-            self.minLineEdit.setEnabled(False)
+        if triggeredAction is self.belowThresholdAction:
+            self.minLineEdit.setEnabled(True)
             self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(False)
+            self.applyMaskBtn.setEnabled(True)
+        elif triggeredAction is self.betweenThresholdAction:
+            self.minLineEdit.setEnabled(True)
+            self.maxLineEdit.setEnabled(True)
+            self.applyMaskBtn.setEnabled(True)
+        elif triggeredAction is self.aboveThresholdAction:
+            self.minLineEdit.setEnabled(False)
+            self.maxLineEdit.setEnabled(True)
+            self.applyMaskBtn.setEnabled(True)
 
     def _maskBtnClicked(self):
         if self.belowThresholdAction.isChecked():
