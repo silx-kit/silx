@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -353,3 +353,13 @@ class ScatterView(qt.QMainWindow):
         return self.getPlotWidget().resetZoom(*args, **kwargs)
 
     resetZoom.__doc__ = PlotWidget.resetZoom.__doc__
+
+    def getSelectionMask(self, *args, **kwargs):
+        return self.getMaskToolsWidget().getSelectionMask(*args, **kwargs)
+
+    getSelectionMask.__doc__ = ScatterMaskToolsWidget.getSelectionMask.__doc__
+
+    def setSelectionMask(self, *args, **kwargs):
+        return self.getMaskToolsWidget().setSelectionMask(*args, **kwargs)
+
+    setSelectionMask.__doc__ = ScatterMaskToolsWidget.setSelectionMask.__doc__
