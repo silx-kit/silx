@@ -56,14 +56,13 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "13/02/2019"
 
 
 import os
 import sys
 import threading
 import json
-import getpass
 import logging
 import tempfile
 import unittest
@@ -315,7 +314,8 @@ class ExternalResources(object):
         self.project = project
         self._initialized = False
         self.sem = threading.Semaphore()
-        self.env_key = env_key or (self.project.upper() + "_DATA")
+
+        self.env_key = env_key or (self.project.upper() + "_TESTDATA")
         self.url_base = url_base
         self.all_data = set()
         self.timeout = timeout
@@ -329,8 +329,19 @@ class ExternalResources(object):
 
                     self.data_home = os.environ.get(self.env_key)
                     if self.data_home is None:
+                        try:
+                            import getpass
+                            name = getpass.getuser()
+                        except Exception:
+                            if "getlogin" in dir(os):
+                                name = os.getlogin()
+                            elif "USER" in os.environ:
+                                name = os.environ["USER"]
+                            else:
+                                name = os.environ.get("USERNAME", "unknown")
+
                         self.data_home = os.path.join(tempfile.gettempdir(),
-                                                      "%s_testdata_%s" % (self.project, getpass.getuser()))
+                                                      "%s_testdata_%s" % (self.project, name))
                     if not os.path.exists(self.data_home):
                         os.makedirs(self.data_home)
                     self.testdata = os.path.join(self.data_home, "all_testdata.json")
