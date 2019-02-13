@@ -292,6 +292,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
+        # Make sure background of Axes is displayed
+        self.ax2.patch.set_visible(True)
 
         # disable the use of offsets
         try:
