@@ -768,17 +768,16 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         form = qt.QFormLayout()
 
+        self.minLineLabel = qt.QLabel("Min:", self)
         self.minLineEdit = FloatEdit(self, value=0)
-        self.minLineEdit.setEnabled(False)
-        form.addRow('Min:', self.minLineEdit)
+        form.addRow(self.minLineLabel, self.minLineEdit)
 
+        self.maxLineLabel = qt.QLabel("Max:", self)
         self.maxLineEdit = FloatEdit(self, value=0)
-        self.maxLineEdit.setEnabled(False)
-        form.addRow('Max:', self.maxLineEdit)
+        form.addRow(self.maxLineLabel, self.maxLineEdit)
 
         self.applyMaskBtn = qt.QPushButton('Apply mask')
         self.applyMaskBtn.clicked.connect(self._maskBtnClicked)
-        self.applyMaskBtn.setEnabled(False)
         form.addRow(self.applyMaskBtn)
 
         self.maskNanBtn = qt.QPushButton('Mask not finite values')
@@ -1017,17 +1016,24 @@ class BaseMaskToolsWidget(qt.QWidget):
     def _thresholdActionGroupTriggered(self, triggeredAction):
         """Threshold action group listener."""
         if triggeredAction is self.belowThresholdAction:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(True)
+            self.minLineLabel.setVisible(True)
+            self.maxLineLabel.setVisible(False)
+            self.minLineEdit.setVisible(True)
+            self.maxLineEdit.setVisible(False)
+            self.applyMaskBtn.setText("Mask bellow")
         elif triggeredAction is self.betweenThresholdAction:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
+            self.minLineLabel.setVisible(True)
+            self.maxLineLabel.setVisible(True)
+            self.minLineEdit.setVisible(True)
+            self.maxLineEdit.setVisible(True)
+            self.applyMaskBtn.setText("Mask between")
         elif triggeredAction is self.aboveThresholdAction:
-            self.minLineEdit.setEnabled(False)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
+            self.minLineLabel.setVisible(False)
+            self.maxLineLabel.setVisible(True)
+            self.minLineEdit.setVisible(False)
+            self.maxLineEdit.setVisible(True)
+            self.applyMaskBtn.setText("Mask above")
+        self.applyMaskBtn.setToolTip(triggeredAction.toolTip())
 
     def _maskBtnClicked(self):
         if self.belowThresholdAction.isChecked():
