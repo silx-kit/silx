@@ -710,9 +710,6 @@ class BaseMaskToolsWidget(qt.QWidget):
 
     def _initThresholdGroupBox(self):
         """Init thresholding widgets"""
-        layout = qt.QVBoxLayout()
-
-        # Thresholing
 
         self.belowThresholdAction = qt.QAction(
                 icons.getQIcon('plot-roi-below'), 'Mask below threshold', None)
@@ -764,27 +761,28 @@ class BaseMaskToolsWidget(qt.QWidget):
         loadColormapRangeBtn.setDefaultAction(self.loadColormapRangeAction)
         widgets.append(loadColormapRangeBtn)
 
-        container = self._hboxWidget(*widgets, stretch=False)
-        layout.addWidget(container)
+        toolBar = self._hboxWidget(*widgets, stretch=False)
 
-        form = qt.QFormLayout()
-        form.setContentsMargins(0, 0, 0, 0)
+        config = qt.QGridLayout()
+        config.setContentsMargins(0, 0, 0, 0)
 
         self.minLineLabel = qt.QLabel("Min:", self)
         self.minLineEdit = FloatEdit(self, value=0)
-        form.addRow(self.minLineLabel, self.minLineEdit)
+        config.addWidget(self.minLineLabel, 0, 0)
+        config.addWidget(self.minLineEdit, 0, 1)
 
         self.maxLineLabel = qt.QLabel("Max:", self)
         self.maxLineEdit = FloatEdit(self, value=0)
-        form.addRow(self.maxLineLabel, self.maxLineEdit)
+        config.addWidget(self.maxLineLabel, 1, 0)
+        config.addWidget(self.maxLineEdit, 1, 1)
 
         self.applyMaskBtn = qt.QPushButton('Apply mask')
         self.applyMaskBtn.clicked.connect(self._maskBtnClicked)
-        form.addRow(self.applyMaskBtn)
 
-        thresholdWidget = qt.QWidget()
-        thresholdWidget.setLayout(form)
-        layout.addWidget(thresholdWidget)
+        layout = qt.QVBoxLayout()
+        layout.addWidget(toolBar)
+        layout.addLayout(config)
+        layout.addWidget(self.applyMaskBtn)
 
         self.thresholdGroup = qt.QGroupBox('Threshold')
         self.thresholdGroup.setLayout(layout)
