@@ -59,6 +59,9 @@ addons:
             - ocl-icd-opencl-dev  # OpenCL headers, lib and icd loader
             - libgl1-mesa-glx  # For OpenGL
             - xserver-xorg-video-dummy  # For OpenGL
+            - libxkbcommon-x11-0 # needed for Qt plugins
+            - libxkbcommon0
+            - libxkbcommon-dev
 
 before_install:
     # On Linux: install OpenCL
