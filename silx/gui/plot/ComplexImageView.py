@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -365,7 +365,7 @@ class ComplexImageView(qt.QWidget):
         - log10_amplitude_phase:
           Color-coded phase with log10(amplitude) as alpha.
 
-        :rtype: tuple of str
+        :rtype: List[Mode]
         """
         return tuple(ImageComplexData.Mode)
 
@@ -375,7 +375,12 @@ class ComplexImageView(qt.QWidget):
         See :meth:`getSupportedVisualizationModes` for the list of
         supported modes.
 
-        :param str mode: The mode to use.
+        How-to change visualization mode::
+
+           widget = ComplexImageView()
+           widget.setVisualizationMode(ComplexImageView.Mode.PHASE)
+
+        :param Mode mode: The mode to use.
         """
         self._plotImage.setVisualizationMode(mode)
 
