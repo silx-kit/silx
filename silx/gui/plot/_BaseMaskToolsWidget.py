@@ -480,6 +480,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         layout.addWidget(self._initMaskGroupBox())
         layout.addWidget(self._initDrawGroupBox())
         layout.addWidget(self._initThresholdGroupBox())
+        layout.addWidget(self._initOtherToolsGroupBox())
         layout.addStretch(1)
         self.setLayout(layout)
 
@@ -781,11 +782,6 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.applyMaskBtn.clicked.connect(self._maskBtnClicked)
         form.addRow(self.applyMaskBtn)
 
-        self.maskNanBtn = qt.QPushButton('Mask not finite values')
-        self.maskNanBtn.setToolTip('Mask Not a Number and infinite values')
-        self.maskNanBtn.clicked.connect(self._maskNotFiniteBtnClicked)
-        form.addRow(self.maskNanBtn)
-
         thresholdWidget = qt.QWidget()
         thresholdWidget.setLayout(form)
         layout.addWidget(thresholdWidget)
@@ -798,6 +794,18 @@ class BaseMaskToolsWidget(qt.QWidget):
         return self.thresholdGroup
 
         # track widget visibility and plot active image changes
+
+    def _initOtherToolsGroupBox(self):
+        layout = qt.QVBoxLayout()
+
+        self.maskNanBtn = qt.QPushButton('Mask not finite values')
+        self.maskNanBtn.setToolTip('Mask Not a Number and infinite values')
+        self.maskNanBtn.clicked.connect(self._maskNotFiniteBtnClicked)
+        layout.addWidget(self.maskNanBtn)
+
+        self.otherToolGroup = qt.QGroupBox('Other tools')
+        self.otherToolGroup.setLayout(layout)
+        return self.otherToolGroup
 
     def changeEvent(self, event):
         """Reset drawing action when disabling widget"""
