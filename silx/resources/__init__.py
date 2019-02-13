@@ -338,8 +338,10 @@ class ExternalResources(object):
                     name = os.getlogin()
                 elif "USER" in os.environ:
                     name = os.environ["USER"]
+                elif "USERNAME" in os.environ:
+                    name = os.environ["USERNAME"]
                 else:
-                    name = os.environ.get("USERNAME", "unknown")
+                    name = "uid" + str(os.getuid())
 
             basename = "%s_testdata_%s" % (self.project, name)
             data_home = os.path.join(tempfile.gettempdir(), basename)
