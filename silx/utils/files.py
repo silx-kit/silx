@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,8 @@ def expand_filenames(filenames):
     """
     Takes a list of paths and expand it into a list of files.
 
-    :param Liat[str] filenames: list of filenames or path with wildcards
-    :rtype: Liat[str]
+    :param List[str] filenames: list of filenames or path with wildcards
+    :rtype: List[str]
     :return: list of existing filenames or non-existing files
         (which was provided as input)
     """
