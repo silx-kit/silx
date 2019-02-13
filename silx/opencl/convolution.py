@@ -38,6 +38,92 @@ import pyopencl.array as parray
 from .processing import OpenclProcessing
 
 
+class ConvolutionInfos(object):
+    allowed_axes = {
+        "1D": [None],
+        "separable_2D_1D_2D": [None, (1, 0), (0, 1)],
+        "batched_1D_2D": [(0,), (1,)],
+        "separable_3D_1D_3D": [
+            None,
+            (0, 1, 2),
+            (1, 2, 0),
+            (2, 0, 1),
+            (2, 1, 0),
+            (1, 0, 2),
+            (0, 2, 1)
+        ],
+        "batched_1D_3D": [(0,), (1,), (2,)],
+        "batched_separable_2D_1D_3D": [(0,), (1,), (2,)], # unsupported (?)
+        "2D": [None],
+        "batched_2D_3D": [(0,), (1,), (2,)],
+        "separable_3D_2D_3D": [
+            (1, 0),
+            (0, 1),
+            (2, 0),
+            (0, 2),
+            (1, 2),
+            (2, 1),
+        ],
+        "3D": [None],
+    }
+    use_cases = {
+        (1, 1): {
+            "1D": {
+                "name": "1D convolution on 1D data",
+                "kernels": ["convol_1D_X"],
+            },
+        },
+        (2, 2): {
+            "2D": {
+                "name": "2D convolution on 2D data",
+                "kernels": ["convol_2D_XY"],
+            },
+        },
+        (3, 3): {
+            "3D": {
+                "name": "3D convolution on 3D data",
+                "kernels": ["convol_3D_XYZ"],
+            },
+        },
+        (2, 1): {
+            "separable_2D_1D_2D": {
+                "name": "Separable (2D->1D) convolution on 2D data",
+                "kernels": ["convol_1D_X", "convol_1D_Y"],
+            },
+            "batched_1D_2D": {
+                "name": "Batched 1D convolution on 2D data",
+                "kernels": ["convol_1D_X", "convol_1D_Y"],
+            },
+        },
+        (3, 1): {
+            "separable_3D_1D_3D": {
+                "name": "Separable (3D->1D) convolution on 3D data",
+                "kernels": ["convol_1D_X", "convol_1D_Y", "convol_1D_Z"],
+            },
+            "batched_1D_3D": {
+                "name": "Batched 1D convolution on 3D data",
+                "kernels": ["convol_1D_X", "convol_1D_Y", "convol_1D_Z"],
+            },
+            "batched_separable_2D_1D_3D": {
+                "name": "Batched separable (2D->1D) convolution on 3D data",
+                "kernels": ["convol_1D_X", "convol_1D_Y", "convol_1D_Z"],
+            },
+        },
+        (3, 2): {
+            "separable_3D_2D_3D": {
+                "name": "Separable (3D->2D) convolution on 3D data",
+                "kernels": ["convol_2D_XY", "convol_2D_XZ", "convol_2D_YZ"],
+            },
+            "batched_2D_3D": {
+                "name": "Batched 2D convolution on 3D data",
+                "kernels": ["convol_2D_XY", "convol_2D_XZ", "convol_2D_YZ"],
+            },
+        },
+    }
+
+
+
+
 class Convolution(OpenclProcessing):
     """
     A class for performing convolution on CPU/GPU with OpenCL.
@@ -288,40 +374,39 @@ It should be possible to make one class for all these use cases
   - Input strides and output strides ? This implies a big modification in the code
 
 
-data 1D
-  kernel 1D
-    axis=0 [not relevant]
-data 2D
-  kernel 1D
-    axis=0, axis=1, axis=(0, 1) [2c], axis=(1, 0) [2c]
-    [used for separable 2D convol]
-  kernel 2D
-    axis=(1,0), axis=(0,1)  [not relevant]
-data 3D
-  kernel 1D
-    1c: axis={0, 1, 2}
-    2c: axis=
-        1 0
-        0 1
-        2 0
-        0 2
-        1 2
-        2 1
-    3c: axis=
-        0 1 2
-        1 2 0
-        2 0 1
-        2 1 0
-        1 0 2
-        0 2 1
-    [used for separable 3D convol]
+Use case name                       Kernel name
+------------------------------------------------------------------
+1D convol on 1D data                  convol_1D_X
+batched 1D convol on 2D data          convol_1D_X or convol_1D_Y
+separable (2,1)D convol on 2D data    convol_1D_X and convol_1D_X
+
+batched 1D convol on 3D data          convol_1D_X or convol_1D_Y or convol_1D_Z
+separable (3,1) 1D convol on 3D data  convol_1D_X and convol_1D_Y and convol_1D_Z
+[batched separable 2D on 3D data]     convol_1D_X and convol_1D_Y and convol_1D_Z
+
+2D convol on 2D data                  convol_2D_XY
+batched 2D convol on 3D data          convol_2D_XY or convol_2D_XZ or convol_2D_YZ
+separable (3, 2)D convol on 3D data   convol_2D_XY and convol_2D_XZ and convol_2D_YZ
+
+3D convol on 3D data                  convol_3D_XYZ
 
 
 
+(1, 1)
+(2, 1), axes in [None, (1, 0), (0, 1)] => separable (2D->1D) on 2D data
+(2, 1), axes in [(0,), (1,)]   => batched 1D on 2D data
 
+(3, 1), axes in [None, valid 3-tuple] => separable (3D->1D) on 3D data
+(3, 1), axes in [1-tuple] => batched 1D on 3D
+(3, 1), axes in [valid 2-tuple] => batched (along 1 axis) separable (2D->1D) [same as (2, 1, axes=None) if Nz==1]
+
+(2, 2) => (nonseparable) 2D on 2D data
+(3, 2), axes in [None, valid 2-tuple] => separable (3D->2D) on 3D data   (along y then z  or  along x then z   or   along x then y)
+(3, 2), axes in [1-tuple] => batched 2D convol on 3D data
+
+(3, 3) => (nonseparable) 3D convol
 
 """
-
 
 
 
