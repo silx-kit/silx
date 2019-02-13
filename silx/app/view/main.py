@@ -74,6 +74,7 @@ def mainQt(options):
     #
 
     import silx
+    import silx.utils.files
     from silx.gui import qt
     # Make sure matplotlib is configured
     # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
@@ -119,7 +120,11 @@ def mainQt(options):
         # It have to be done after the settings (after the Viewer creation)
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
+    # NOTE: under Windows, cmd does not convert `*.tif` into existing files
+    options.files = silx.utils.files.expand_filenames(options.files)
+
     for filename in options.files:
+        # TODO: Would be nice to add a process widget and a cancel button
         try:
             window.appendFile(filename)
         except IOError as e:
