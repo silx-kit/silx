@@ -666,9 +666,10 @@ class SelectEllipse(Select2Points):
         width, height = self._getCircleSize(dataPos)
 
         # Circle used for circle preview
-        angle = numpy.arange(13.) * numpy.pi * 2.0 / 13.
-        circleShape = numpy.array((numpy.cos(angle) * width,
-                                   numpy.sin(angle) * height)).T
+        nbpoints = 27.
+        angles = numpy.arange(nbpoints) * numpy.pi * 2.0 / nbpoints
+        circleShape = numpy.array((numpy.cos(angles) * width,
+                                   numpy.sin(angles) * height)).T
         circleShape += numpy.array(self.center)
 
         self.setSelectionArea(circleShape,
