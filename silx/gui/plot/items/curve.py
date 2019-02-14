@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -159,6 +159,9 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
 
     _DEFAULT_SELECTABLE = True
     """Default selectable state for curves"""
+
+    _DEFAULT_SYMBOL = ''
+    """Default symbol of the curve"""
 
     _DEFAULT_LINEWIDTH = 1.
     """Default line width of the curve"""
