@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/08/2018"
+__date__ = "14/02/2019"
 
 
 import os
@@ -679,41 +679,41 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
         level = self.levelSpinBox.value()
 
-        if (self._drawingMode == 'rectangle' and
-                event['event'] == 'drawingFinished'):
-            # Convert from plot to array coords
-            doMask = self._isMasking()
-            ox, oy = self._origin
-            sx, sy = self._scale
+        if self._drawingMode == 'rectangle':
+            if event['event'] == 'drawingFinished':
+                # Convert from plot to array coords
+                doMask = self._isMasking()
+                ox, oy = self._origin
+                sx, sy = self._scale
 
-            height = int(abs(event['height'] / sy))
-            width = int(abs(event['width'] / sx))
+                height = int(abs(event['height'] / sy))
+                width = int(abs(event['width'] / sx))
 
-            row = int((event['y'] - oy) / sy)
-            if sy < 0:
-                row -= height
+                row = int((event['y'] - oy) / sy)
+                if sy < 0:
+                    row -= height
 
-            col = int((event['x'] - ox) / sx)
-            if sx < 0:
-                col -= width
+                col = int((event['x'] - ox) / sx)
+                if sx < 0:
+                    col -= width
 
-            self._mask.updateRectangle(
-                level,
-                row=row,
-                col=col,
-                height=height,
-                width=width,
-                mask=doMask)
-            self._mask.commit()
+                self._mask.updateRectangle(
+                    level,
+                    row=row,
+                    col=col,
+                    height=height,
+                    width=width,
+                    mask=doMask)
+                self._mask.commit()
 
-        elif (self._drawingMode == 'polygon' and
-                event['event'] == 'drawingFinished'):
-            doMask = self._isMasking()
-            # Convert from plot to array coords
-            vertices = (event['points'] - self._origin) / self._scale
-            vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
-            self._mask.updatePolygon(level, vertices, doMask)
-            self._mask.commit()
+        elif self._drawingMode == 'polygon':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
+                # Convert from plot to array coords
+                vertices = (event['points'] - self._origin) / self._scale
+                vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
+                self._mask.updatePolygon(level, vertices, doMask)
+                self._mask.commit()
 
         elif self._drawingMode == 'pencil':
             doMask = self._isMasking()
