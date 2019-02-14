@@ -627,7 +627,7 @@ class SelectEllipse(Select2Points):
         self.center = self.plot.pixelToData(x, y)
         assert self.center is not None
 
-    def _getCircleSize(self, pointInEllipse):
+    def _getEllipseBoundingBox(self, pointInEllipse):
         """
         Returns the bounding box size of the ellipse from the known center
         and this point in the ellipse.
@@ -663,7 +663,7 @@ class SelectEllipse(Select2Points):
     def select(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-        width, height = self._getCircleSize(dataPos)
+        width, height = self._getEllipseBoundingBox(dataPos)
 
         # Circle used for circle preview
         nbpoints = 27.
@@ -688,7 +688,7 @@ class SelectEllipse(Select2Points):
 
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-        width, height = self._getCircleSize(dataPos)
+        width, height = self._getEllipseBoundingBox(dataPos)
 
         eventDict = prepareDrawingSignal('drawingFinished',
                                          'ellipse',
