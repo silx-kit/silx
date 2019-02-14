@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/12/2018"
+__date__ = "14/02/2019"
 
 
 import math
@@ -619,6 +619,58 @@ class Select2Points(Select):
     def cancel(self):
         if isinstance(self.state, self.states['select']):
             self.cancelSelect()
+
+
+class SelectEllipse(Select2Points):
+    """Drawing ellipse selection area state machine."""
+    def beginSelect(self, x, y):
+        self.center = self.plot.pixelToData(x, y)
+        assert self.center is not None
+
+    def _getCircleSize(self, endPoint):
+        # FIXME: endPoint must be on the ellipse
+        # equation of width/height have to be fixed
+        width = abs(self.center[0] - endPoint[0])
+        height = abs(self.center[1] - endPoint[1])
+        return width, height
+
+    def select(self, x, y):
+        dataPos = self.plot.pixelToData(x, y)
+        assert dataPos is not None
+        width, height = self._getCircleSize(dataPos)
+
+        # Circle used for circle preview
+        angle = numpy.arange(13.) * numpy.pi * 2.0 / 13.
+        circleShape = numpy.array((numpy.cos(angle) * width,
+                                   numpy.sin(angle) * height)).T
+        circleShape += numpy.array(self.center)
+
+        self.setSelectionArea(circleShape,
+                              shape="polygon",
+                              fill='hatch',
+                              color=self.color)
+
+        eventDict = prepareDrawingSignal('drawingProgress',
+                                         'ellipse',
+                                         (self.center, (width, height)),
+                                         self.parameters)
+        self.plot.notify(**eventDict)
+
+    def endSelect(self, x, y):
+        self.resetSelectionArea()
+
+        dataPos = self.plot.pixelToData(x, y)
+        assert dataPos is not None
+        width, height = self._getCircleSize(dataPos)
+
+        eventDict = prepareDrawingSignal('drawingFinished',
+                                         'ellipse',
+                                         (self.center, (width, height)),
+                                         self.parameters)
+        self.plot.notify(**eventDict)
+
+    def cancelSelect(self):
+        self.resetSelectionArea()
 
 
 class SelectRectangle(Select2Points):
@@ -1506,6 +1558,7 @@ class PlotInteraction(object):
     _DRAW_MODES = {
         'polygon': SelectPolygon,
         'rectangle': SelectRectangle,
+        'ellipse': SelectEllipse,
         'line': SelectLine,
         'vline': SelectVLine,
         'hline': SelectHLine,

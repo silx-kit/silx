@@ -706,6 +706,18 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                     mask=doMask)
                 self._mask.commit()
 
+        elif self._drawingMode == 'ellipse':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
+                # Convert from plot to array coords
+                center = (event['points'][0] - self._origin) / self._scale
+                size = event['points'][1] / self._scale
+                col, row = center.astype(numpy.int)  # (row, col)
+                # FIXME: updateEllipse have to be created
+                closeCircleSize = (size[0] + size[1]) / 2
+                self._mask.updateDisk(level, row, col, closeCircleSize, doMask)
+                self._mask.commit()
+
         elif self._drawingMode == 'polygon':
             if event['event'] == 'drawingFinished':
                 doMask = self._isMasking()

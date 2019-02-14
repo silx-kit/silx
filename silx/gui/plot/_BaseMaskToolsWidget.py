@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/02/2019"
+__date__ = "14/02/2019"
 
 import os
 import weakref
@@ -616,6 +616,15 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.rectAction.triggered.connect(self._activeRectMode)
         self.addAction(self.rectAction)
 
+        self.ellipseAction = qt.QAction(
+                icons.getQIcon('shape-ellipse'), 'Circle selection', None)
+        self.ellipseAction.setToolTip(
+                'Rectangle selection tool: (Un)Mask a circle region <b>R</b>')
+        self.ellipseAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
+        self.ellipseAction.setCheckable(True)
+        self.ellipseAction.triggered.connect(self._activeEllipseMode)
+        self.addAction(self.ellipseAction)
+
         self.polygonAction = qt.QAction(
                 icons.getQIcon('shape-polygon'), 'Polygon selection', None)
         self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
@@ -639,10 +648,11 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.drawActionGroup = qt.QActionGroup(self)
         self.drawActionGroup.setExclusive(True)
         self.drawActionGroup.addAction(self.rectAction)
+        self.drawActionGroup.addAction(self.ellipseAction)
         self.drawActionGroup.addAction(self.polygonAction)
         self.drawActionGroup.addAction(self.pencilAction)
 
-        actions = (self.browseAction, self.rectAction,
+        actions = (self.browseAction, self.rectAction, self.ellipseAction,
                    self.polygonAction, self.pencilAction)
         drawButtons = []
         for action in actions:
@@ -926,6 +936,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         """
         if self._drawingMode == 'rectangle':
             self._activeRectMode()
+        elif self._drawingMode == 'ellipse':
+            self._activeEllipseMode()
         elif self._drawingMode == 'polygon':
             self._activePolygonMode()
         elif self._drawingMode == 'pencil':
@@ -970,6 +982,16 @@ class BaseMaskToolsWidget(qt.QWidget):
         color = self.getCurrentMaskColor()
         self.plot.setInteractiveMode(
             'draw', shape='rectangle', source=self, color=color)
+        self._updateDrawingModeWidgets()
+
+    def _activeEllipseMode(self):
+        """Handle circle action mode triggering"""
+        self._releaseDrawingMode()
+        self._drawingMode = 'ellipse'
+        self.plot.sigPlotSignal.connect(self._plotDrawEvent)
+        color = self.getCurrentMaskColor()
+        self.plot.setInteractiveMode(
+            'draw', shape='ellipse', source=self, color=color)
         self._updateDrawingModeWidgets()
 
     def _activePolygonMode(self):
