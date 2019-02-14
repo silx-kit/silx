@@ -319,31 +319,42 @@ class ExternalResources(object):
         self.url_base = url_base
         self.all_data = set()
         self.timeout = timeout
-        self.data_home = None
+        self._data_home = None
+
+    @property
+    def data_home(self):
+        """Returns the data_home path and make sure it exists in the file
+        system."""
+        if self._data_home is not None:
+            return self._data_home
+
+        data_home = os.environ.get(self.env_key)
+        if data_home is None:
+            try:
+                import getpass
+                name = getpass.getuser()
+            except Exception:
+                if "getlogin" in dir(os):
+                    name = os.getlogin()
+                elif "USER" in os.environ:
+                    name = os.environ["USER"]
+                elif "USERNAME" in os.environ:
+                    name = os.environ["USERNAME"]
+                else:
+                    name = "uid" + str(os.getuid())
+
+            basename = "%s_testdata_%s" % (self.project, name)
+            data_home = os.path.join(tempfile.gettempdir(), basename)
+        if not os.path.exists(data_home):
+            os.makedirs(data_home)
+        self._data_home = data_home
+        return data_home
 
     def _initialize_data(self):
         """Initialize for downloading test data"""
         if not self._initialized:
             with self.sem:
                 if not self._initialized:
-
-                    self.data_home = os.environ.get(self.env_key)
-                    if self.data_home is None:
-                        try:
-                            import getpass
-                            name = getpass.getuser()
-                        except Exception:
-                            if "getlogin" in dir(os):
-                                name = os.getlogin()
-                            elif "USER" in os.environ:
-                                name = os.environ["USER"]
-                            else:
-                                name = os.environ.get("USERNAME", "unknown")
-
-                        self.data_home = os.path.join(tempfile.gettempdir(),
-                                                      "%s_testdata_%s" % (self.project, name))
-                    if not os.path.exists(self.data_home):
-                        os.makedirs(self.data_home)
                     self.testdata = os.path.join(self.data_home, "all_testdata.json")
                     if os.path.exists(self.testdata):
                         with open(self.testdata) as f:
@@ -364,9 +375,6 @@ class ExternalResources(object):
 
         if not self._initialized:
             self._initialize_data()
-
-        if not os.path.exists(self.data_home):
-            os.makedirs(self.data_home)
 
         fullfilename = os.path.abspath(os.path.join(self.data_home, filename))
 
