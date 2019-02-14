@@ -160,7 +160,7 @@ class Convolution(OpenclProcessing):
                                   profile=profile)
 
         self._configure_extra_options(extra_options)
-        self._configure_axes(shape, kernel, axes)
+        self._determine_use_case(shape, kernel, axes)
         self._allocate_memory()
         self._init_kernels()
 
@@ -199,81 +199,38 @@ class Convolution(OpenclProcessing):
         self.Nz = np.int32(Nz)
 
 
-    # This function might also be useful in other processings
-    def _configure_axes(self, shape, kernel, axes):
+    def _determine_use_case(self, shape, kernel, axes):
+        """
+        Determine the convolution use case from the input/kernel shape, and axes.
+        """
         self._get_dimensions(shape, kernel)
+        if self.kernel_ndim > self.data_ndim:
+            raise ValueError("Kernel dimensions cannot exceed data dimensions")
         data_ndim = self.data_ndim
         kernel_ndim = self.kernel_ndim
         self.kernel = kernel.astype("f")
-        if self.kernel_ndim > self.data_ndim:
-            raise ValueError("Kernel dimensions cannot exceed data dimensions")
-        if axes is None:
-            # By default, convolve along all axes (as for FFT)
-            default_separable_axes = {
-                (1, 1): None,
-                (2, 1): (1, 0),
-                (2, 2): None,
-                (3, 1): (2, 1, 0),
-                (3, 2): (1, 0),
-                (3, 3): None,
-            }
-            axes = default_separable_axes[(data_ndim, kernel_ndim)]
-        axes_ndim = len(axes)
-        # Handle negative values of axes
-        axes = tuple(np.array(axes) % data_ndim)
 
-        if self.kernel_ndim == self.data_ndim:
-            # "Regular" non-separable case
-            tr_name = str("nonseparable_%dD" % data_ndim)
-        if self.kernel_ndim < self.data_ndim:
-            # Separable/batched case
-            if axes_ndim > data_ndim:
-                raise ValueError("Axes dimensions cannot exceed data dimensions")
-            if axes_ndim == data_ndim:
-                # Separable case
-                allowed_axes = {
-                    # 2D data, 1D kernel (separable 2D)
-                    (2, 1): [(1, 0), (0, 1)],
-                    # 3D data, 1D kernel (separable 3D)
-                    (3, 1): [
-                        (0, 1, 2),
-                        (1, 2, 0),
-                        (2, 0, 1),
-                        (2, 1, 0),
-                        (1, 0, 2),
-                        (0, 2, 1)
-                    ],
-                }
-                tr_name = str("separable_%dD" % data_ndim)
-            if axes_ndim < data_ndim:
-                # Batched case
-                allowed_axes = {
-                    # 2D data, 1D kernel
-                    (2, 1): [(0,), (1,)],
-                    # 3D data, 1D kernel
-                    (3, 1): [
-                        # batched 1D on 3D data
-                        (0,), (1,), (2,),
-                        # batched separable 2D on 3D data
-                        (1, 0), (0, 1), (2, 0), (0, 2), (1, 2), (2, 1),
-                    ],
-                    # 3D data, 2D kernel
-                    (3, 2): [(0,), (1,), (2,)],
-                }
-                tr_name = str("batched_%dD" % data_ndim)
-            k = (data_ndim, kernel_ndim)
-            if k not in allowed_axes:
-                raise ValueError(
-                    "Could not find valid axes for %dD convolution on %dD data with axes=%s"
-                    % (kernel_ndim, data_ndim, str(axes)),
-                )
-            if axes not in allowed_axes[k]:
-                raise ValueError(
-                    "Allowed axes for %dD convolution on %dD data are %s"
-                    % (kernel_ndim, data_ndim, str(allowed_axes[k]))
-                )
-        self.axes = axes
-        self.transform_name = tr_name
+        convol_infos = ConvolutionInfos()
+        k = (data_ndim, kernel_ndim)
+        if k not in convol_infos.use_cases:
+            raise ValueError(
+                "Cannot find a use case for data ndim = %d and kernel ndim = %d"
+                % (data_ndim, kernel_ndim)
+            )
+        possible_use_cases = convol_infos.use_cases[k]
+
+        self.use_case_name = None
+        for uc_name, uc_params in possible_use_cases.items():
+            if axes in convol_infos.allowed_axes[uc_name]:
+                self.use_case_name = uc_name
+                self.use_case_desc = uc_params["name"]
+                self.use_case_kernels = uc_params["kernels"]
+        if self.use_case_name is None:
+            raise ValueError(
+                "Cannot find a use case for data ndim = %d, kernel ndim = %d and axes=%s"
+                % (data_ndim, kernel_ndim, str(axes))
+            )
+
 
 
     # TODO for separable transform, "allocate_tmp_array"
