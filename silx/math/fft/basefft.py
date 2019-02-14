@@ -50,12 +50,12 @@ class BaseFFT(object):
     def __init__(self, **kwargs):
         self.__get_args(**kwargs)
 
-        if self.shape is None and self.dtype is None and self.data is None:
-            raise ValueError("Please provide either (shape and dtype) or data")
-        if self.data is not None:
-            self.shape = self.data.shape
-            self.dtype = self.data.dtype
-        self.user_data = self.data
+        if self.shape is None and self.dtype is None and self.template is None:
+            raise ValueError("Please provide either (shape and dtype) or template")
+        if self.template is not None:
+            self.shape = self.template.shape
+            self.dtype = self.template.dtype
+        self.user_data = self.template
         self.data_allocated = False
         self.__calc_axes()
         self.__set_dtypes()
@@ -66,7 +66,7 @@ class BaseFFT(object):
         expected_args = {
             "shape": None,
             "dtype": None,
-            "data": None,
+            "template": None,
             "shape_out": None,
             "axes": None,
             "normalize": "rescale",

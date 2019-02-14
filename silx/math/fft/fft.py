@@ -32,7 +32,7 @@ from .cufft import CUFFT
 def FFT(
     shape=None,
     dtype=None,
-    data=None,
+    template=None,
     shape_out=None,
     axes=None,
     normalize="rescale",
@@ -46,10 +46,10 @@ def FFT(
         Shape of the input data.
     :param numpy.dtype dtype:
         Data type of the input data.
-    :param numpy.ndarray data:
-        Optional input data.
+    :param numpy.ndarray template:
+        Optional data, replacement for "shape" and "dtype".
         If provided, the arguments "shape" and "dtype" are ignored,
-        and are instead inferred from "data".
+        and are instead inferred from it.
     :param List[int] shape_out:
         Optional shape of output data.
         By default, the data has the same shape as the input
@@ -87,7 +87,7 @@ def FFT(
     F = backends[backend](
         shape=shape,
         dtype=dtype,
-        data=data,
+        template=template,
         shape_out=shape_out,
         axes=axes,
         normalize=normalize,
