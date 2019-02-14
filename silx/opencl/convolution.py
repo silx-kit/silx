@@ -41,7 +41,7 @@ from .processing import OpenclProcessing
 class ConvolutionInfos(object):
     allowed_axes = {
         "1D": [None],
-        "separable_2D_1D_2D": [None, (1, 0), (0, 1)],
+        "separable_2D_1D_2D": [None, (0, 1), (1, 0)],
         "batched_1D_2D": [(0,), (1,)],
         "separable_3D_1D_3D": [
             None,
@@ -165,20 +165,16 @@ class Convolution(OpenclProcessing):
         self._init_kernels()
 
 
-    @staticmethod
-    def _check_dimensions(arr=None, shape=None, name="", dim_min=1, dim_max=3):
-        if shape is not None:
-            ndim = len(shape)
-        elif arr is not None:
-            ndim = arr.ndim
-        else:
-            raise ValueError("Please provide either arr= or shape=")
-        if ndim < dim_min or ndim > dim_max:
-            raise ValueError("%s dimensions should be between %d and %d"
-                % (name, dim_min, dim_max)
-            )
-        return ndim
-
+    # TODO for separable transform, "allocate_tmp_array"
+    # for swapping references instead of copying data_out to data_in
+    def _configure_extra_options(self, extra_options):
+        self.extra_options = {
+            "allocate_input_array": True,
+            "allocate_output_array": True,
+            "allocate_tmp_array": True,
+        }
+        extra_opts = extra_options or {}
+        self.extra_options.update(extra_opts)
 
 
     def _get_dimensions(self, shape, kernel):
@@ -230,19 +226,17 @@ class Convolution(OpenclProcessing):
                 "Cannot find a use case for data ndim = %d, kernel ndim = %d and axes=%s"
                 % (data_ndim, kernel_ndim, str(axes))
             )
-
-
-
-    # TODO for separable transform, "allocate_tmp_array"
-    # for swapping references instead of copying data_out to data_in
-    def _configure_extra_options(self, extra_options):
-        self.extra_options = {
-            "allocate_input_array": True,
-            "allocate_output_array": True,
-            "allocate_tmp_array": True,
-        }
-        extra_opts = extra_options or {}
-        self.extra_options.update(extra_opts)
+        #
+        if uc_name == "batched_separable_2D_1D_3D":
+            raise NotImplementedError("The use case %s is not implemented" % uc_name)
+        #
+        self.axes = axes
+        # Replace "axes=None" with an actual value (except for ND-ND)
+        allowed_axes = convol_infos.allowed_axes[uc_name]
+        if len(allowed_axes) > 1:
+            self.axes = allowed_axes[1] # The default choice might impact perfs
+        self.separable = self.use_case_name.startswith("separable")
+        self.batched = self.use_case_name.startswith("batched")
 
 
     def _allocate_memory(self):
@@ -264,6 +258,8 @@ class Convolution(OpenclProcessing):
             if not(isinstance(self.kernel, parray.Array)):
                 raise ValueError("kernel must be either numpy array or pyopencl array")
             self.d_kernel = self.kernel
+        self._old_input_ref = None
+        self._old_output_ref = None
 
 
     def _init_kernels(self):
@@ -275,7 +271,7 @@ class Convolution(OpenclProcessing):
         self.ndrange = np.int32(self.shape)[::-1]
         self.wg = None
         self.kernel_args = {
-            "1D": (
+            1: (
                 self.queue,
                 self.ndrange,
                 self.wg,
@@ -290,25 +286,109 @@ class Convolution(OpenclProcessing):
         }
 
 
+    @staticmethod
+    def _check_dimensions(arr=None, shape=None, name="", dim_min=1, dim_max=3):
+        if shape is not None:
+            ndim = len(shape)
+        elif arr is not None:
+            ndim = arr.ndim
+        else:
+            raise ValueError("Please provide either arr= or shape=")
+        if ndim < dim_min or ndim > dim_max:
+            raise ValueError("%s dimensions should be between %d and %d"
+                % (name, dim_min, dim_max)
+            )
+        return ndim
 
+
+
+
+    def _check_array(self, arr):
+        # TODO allow cl.Buffer ?
+        if not(isinstance(arr, parray.Array) or isinstance(arr, np.ndarray)):
+            raise TypeError("Expected either pyopencl.array.Array or numpy.ndarray")
+        # TODO composition with ImageProcessing/cast ?
+        if arr.dtype != np.float32:
+            raise TypeError("Data must be float32")
+        if arr.shape != self.shape:
+            raise ValueError("Expected data shape = %s" % str(self.shape))
+
+
+
+    def _set_arrays(self, array, output=None):
+        if isinstance(array, np.ndarray):
+            self.data_in[:] = array[:]
+        else:
+            self._old_input_ref = self.data_in
+            self.data_in = array
+        if output is not None:
+            if isinstance(output, np.ndarray):
+                self.data_out.fill(0)
+            else:
+                self._old_output_ref = self.data_out
+                self.data_out = output
+
+
+
+    def _separable_convolution(self):
+        assert len(self.axes) == len(self.use_case_kernels)
+        # Separable: one kernel call per data dimension
+        for i, axis in enumerate(self.axes):
+            self._batched_convolution(axis)
+
+
+    def _batched_convolution(self, axis):
+        # Batched: one kernel call in total
+        print("Doing batched %s along axis %d" % (self.use_case_kernels[axis], axis)) # DEBUG
+        opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[axis])
+        opencl_kernel_args = self.kernel_args[self.kernel_ndim]
+        opencl_kernel(*opencl_kernel_args) # TODO event
+
+
+    def _recover_arrays_references(self):
+        if self._old_input_ref is not None:
+            self.data_in = self._old_input_ref
+            self._old_input_ref = None
+        if self._old_output_ref is not None:
+            self.data_out = self._old_output_ref
+            self._old_output_ref = None
+
+
+
+    def _get_output(self, output):
+        if output is None:
+            res = self.data_out.get()
+        else:
+            res = output
+            if isinstance(output, np.ndarray):
+                output[:] = self.data_out[:]
+        self._recover_arrays_references()
+        return res
+
+
+    # TODO
+    #  - Modify kernel on the fly
+    #  - Modify axes on the fly
     def convolve(self, array, output=None):
+        self._check_array(array)
+        self._set_arrays(array, output=output)
 
-        # todo check array (shape, dtype)
+        if self.axes is not None:
+            if self.separable:
+                self._separable_convolution()
+            elif self.batched:
+                assert len(self.axes) == 1 #
+                self._batched_convolution(self.axes[0])
+            # else: ND-ND convol
+        else:
+            # ND-ND convol
+            raise NotImplementedError()
 
-        ####
-        kern = self.kernels.convol_1D_X
-        kern(*self.kernel_args["1D"])
-
-        self.data_in[:] = self.data_out[:]
-        self.data_out.fill(0)
-        kern = self.kernels.convol_1D_Y
-        kern(*self.kernel_args["1D"])
-
-        return self.data_out.get()
-        ####
+        res = self._get_output(output)
+        return res
 
 
-
+    __call__ = convolve
 
 
 """
