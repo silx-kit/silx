@@ -61,7 +61,7 @@ def compute_ramlak_filter(dwidth_padded, dtype=np.float32):
     h = np.zeros(L, dtype=dtype)
     L2 = L//2+1
     h[0] = 1/4.
-    j = np.linspace(1, L2, L2//2, False, dtype=dtype)
+    j = np.linspace(1, L2, L2//2, False).astype(dtype) # np < 1.9.0
     # h[2::2] = 0
     h[1:L2:2] = -1./(pi**2 * j**2)
     # h[-1:L2-1:-2] = -1./(pi**2 * j**2)
