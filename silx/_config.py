@@ -109,3 +109,30 @@ class Config(object):
 
     .. versionadded:: 0.9
     """
+
+    DEFAULT_PLOT_SYMBOL = ''
+    """Default marker the item.
+
+    It will have an influence on PlotWidget items
+
+    Supported symbols:
+    
+        - 'o', 'Circle'
+        - 'd', 'Diamond'
+        - 's', 'Square'
+        - '+', 'Plus'
+        - 'x', 'Cross'
+        - '.', 'Point'
+        - ',', 'Pixel'
+        - '',  'None'
+
+    .. versionadded:: 0.10
+    """
+
+    DEFAULT_PLOT_SYMBOL_SIZE = 6.0
+    """Default marker size of the item.
+
+    It will have an influence on PlotWidget items
+
+    .. versionadded:: 0.10
+    """
