@@ -176,8 +176,6 @@ class ColormapMixIn(_ColormapMixIn):
 class SymbolMixIn(_SymbolMixIn):
     """Mix-in class for symbol and symbolSize properties for Item3D"""
 
-    _DEFAULT_SYMBOL = 'o'
-    _DEFAULT_SYMBOL_SIZE = 7.0
     _SUPPORTED_SYMBOLS = collections.OrderedDict((
         ('o', 'Circle'),
         ('d', 'Diamond'),
