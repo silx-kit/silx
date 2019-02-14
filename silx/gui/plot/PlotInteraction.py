@@ -627,12 +627,38 @@ class SelectEllipse(Select2Points):
         self.center = self.plot.pixelToData(x, y)
         assert self.center is not None
 
-    def _getCircleSize(self, endPoint):
-        # FIXME: endPoint must be on the ellipse
-        # equation of width/height have to be fixed
-        width = abs(self.center[0] - endPoint[0])
-        height = abs(self.center[1] - endPoint[1])
-        return width, height
+    def _getCircleSize(self, pointInEllipse):
+        """
+        Returns the bounding box size of the ellipse from the known center
+        and this point in the ellipse.
+        """
+        x = abs(self.center[0] - pointInEllipse[0])
+        y = abs(self.center[1] - pointInEllipse[1])
+        if x == 0 or y == 0:
+            return x, y
+        # Ellipse definitions
+        # e: eccentricity
+        # a: bounding box width
+        # b: bounding box height
+        # Equations
+        # (1) b < a
+        # (2) For x,y a point in the ellipse: x^2/a^2 + y^2/b^2 = 1
+        # (3) b = a * sqrt(1-e^2)
+        # (4) e = sqrt(a^2 - b^2) / a
+
+        # The eccentricity of the ellipse defined by a,b=x,y is the same
+        # as the one we are searching for.
+        swap = x < y
+        if swap:
+            x, y = y, x
+        e = math.sqrt(x**2 - y**2) / x
+        # From (2) using (3) to replace b
+        # a^2 = x^2 + y^2 / (1-e^2)
+        a = math.sqrt(x**2 + y**2 / (1.0 - e**2))
+        b = a * math.sqrt(1 - e**2)
+        if swap:
+            a, b = b, a
+        return a, b
 
     def select(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
