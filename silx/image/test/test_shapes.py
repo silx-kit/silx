@@ -320,9 +320,43 @@ class TestCircleFill(ParametricTestCase):
                 self.assertTrue(is_equal)
 
 
+class TestEllipseFill(unittest.TestCase):
+    """Tests for ellipse filling"""
+
+    def testPoint(self):
+        args = [1, 1, 1, 1]
+        result = shapes.ellipse_fill(*args)
+        expected = numpy.array(([1], [1]))
+        numpy.testing.assert_array_equal(result, expected)
+
+    def testTranslatedPoint(self):
+        args = [10, 10, 1, 1]
+        result = shapes.ellipse_fill(*args)
+        expected = numpy.array(([10], [10]))
+        numpy.testing.assert_array_equal(result, expected)
+
+    def testEllipse(self):
+        args = [0, 0, 20, 10]
+        rows, cols = shapes.ellipse_fill(*args)
+        self.assertEqual(len(rows), 617)
+        self.assertEqual(rows.mean(), 0)
+        self.assertAlmostEqual(rows.std(), 10.025575, places=3)
+        self.assertEqual(len(cols), 617)
+        self.assertEqual(cols.mean(), 0)
+        self.assertAlmostEqual(cols.std(), 4.897325, places=3)
+
+    def testTranslatedEllipse(self):
+        args = [0, 0, 20, 10]
+        expected_rows, expected_cols = shapes.ellipse_fill(*args)
+        args = [10, 50, 20, 10]
+        rows, cols = shapes.ellipse_fill(*args)
+        numpy.testing.assert_allclose(rows, expected_rows + 10)
+        numpy.testing.assert_allclose(cols, expected_cols + 50)
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    for testClass in (TestPolygonFill, TestDrawLine, TestCircleFill):
+    for testClass in (TestPolygonFill, TestDrawLine, TestCircleFill, TestEllipseFill):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(testClass))
     return test_suite
