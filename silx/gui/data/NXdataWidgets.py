@@ -424,6 +424,7 @@ class ArrayImagePlot(qt.QWidget):
         self._auxSigSlider.setValue(0)
 
         self._updateImage()
+        self._plot.resetZoom()
 
         self._selector.selectionChanged.connect(self._updateImage)
         self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
@@ -491,7 +492,6 @@ class ArrayImagePlot(qt.QWidget):
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
-        self._plot.resetZoom()
 
     def clear(self):
         old = self._selector.blockSignals(True)
@@ -617,6 +617,7 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._auxSigSlider.setValue(0)
 
         self._updateImage()
+        self._plot.getPlot().resetZoom()
 
         self._selector.selectionChanged.connect(self._updateImage)
         self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
@@ -679,7 +680,6 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
-        self._plot.getPlot().resetZoom()
 
     def clear(self):
         old = self._selector.blockSignals(True)
