@@ -68,6 +68,7 @@ NXDATA_CURVE_MODE = 73
 NXDATA_XYVSCATTER_MODE = 74
 NXDATA_IMAGE_MODE = 75
 NXDATA_STACK_MODE = 76
+NXDATA_PLOT3D_MODE = 77
 
 
 def _normalizeData(data):
@@ -1650,6 +1651,58 @@ class _NXdataStackView(DataView):
         return DataView.UNSUPPORTED
 
 
+class _NXdataVolumeView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_PLOT3D_MODE)
+        try:
+            import silx.gui.plot3d  # noqa
+        except ImportError:
+            _logger.warning("Plot3dView is not available")
+            _logger.debug("Backtrace", exc_info=True)
+            raise
+
+    def normalizeData(self, data):
+        data = DataView.normalizeData(self, data)
+        data = _normalizeComplex(data)
+        return data
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayVolumePlot
+        widget = ArrayVolumePlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        signal_name = nxd.signal_name
+        z_axis, y_axis, x_axis = nxd.axes[-3:]
+        z_label, y_label, x_label = nxd.axes_names[-3:]
+        title = nxd.title or signal_name
+
+        widget = self.getWidget()
+        widget.setData(
+            nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
+            signal_name=signal_name,
+            xlabel=x_label, ylabel=y_label, zlabel=z_label,
+            title=title)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_stack:
+                return 100
+
+        return DataView.UNSUPPORTED
+
+
 class _NXdataView(CompositeDataView):
     """Composite view displaying NXdata groups using the most adequate
     widget depending on the dimensionality."""
@@ -1667,3 +1720,4 @@ class _NXdataView(CompositeDataView):
         self.addView(_NXdataComplexImageView(parent))
         self.addView(_NXdataImageView(parent))
         self.addView(_NXdataStackView(parent))
+        self.addView(_NXdataVolumeView(parent))
