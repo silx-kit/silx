@@ -227,14 +227,18 @@ class Convolution(OpenclProcessing):
                 % (data_ndim, kernel_ndim, str(axes))
             )
         #
-        if uc_name == "batched_separable_2D_1D_3D":
-            raise NotImplementedError("The use case %s is not implemented" % uc_name)
+        if self.use_case_name == "batched_separable_2D_1D_3D":
+            raise NotImplementedError(
+                "The use case %s is not implemented"
+                % self.use_case_name
+            )
         #
         self.axes = axes
         # Replace "axes=None" with an actual value (except for ND-ND)
-        allowed_axes = convol_infos.allowed_axes[uc_name]
+        allowed_axes = convol_infos.allowed_axes[self.use_case_name]
         if len(allowed_axes) > 1:
-            self.axes = allowed_axes[1] # The default choice might impact perfs
+            # The default choice might impact perfs
+            self.axes = allowed_axes[0] or allowed_axes[1]
         self.separable = self.use_case_name.startswith("separable")
         self.batched = self.use_case_name.startswith("batched")
 
@@ -284,6 +288,23 @@ class Convolution(OpenclProcessing):
                 self.Nz
             )
         }
+        # If self.data_tmp is allocated, separable transforms can be performed
+        # by a series of batched transforms, without any copy, by swapping refs.
+        self.swap_pattern = None
+        if self.data_tmp is not None:
+            self.swap_pattern = {
+                2: [
+                    (self.data_in, self.data_tmp),
+                    (self.data_tmp, self.data_out)
+                ],
+                3: [
+                    (self.data_in, self.data_out),
+                    (self.data_out, self.data_tmp),
+                    (self.data_tmp, self.data_out),
+                ],
+            }
+        else: # TODO
+            raise NotImplementedError("For now, data_tmp has to be allocated")
 
 
     @staticmethod
@@ -301,8 +322,6 @@ class Convolution(OpenclProcessing):
         return ndim
 
 
-
-
     def _check_array(self, arr):
         # TODO allow cl.Buffer ?
         if not(isinstance(arr, parray.Array) or isinstance(arr, np.ndarray)):
@@ -312,7 +331,6 @@ class Convolution(OpenclProcessing):
             raise TypeError("Data must be float32")
         if arr.shape != self.shape:
             raise ValueError("Expected data shape = %s" % str(self.shape))
-
 
 
     def _set_arrays(self, array, output=None):
@@ -330,18 +348,38 @@ class Convolution(OpenclProcessing):
 
 
 
+    def _configure_kernel_args(self, opencl_kernel_args, input_ref, output_ref):
+        if input_ref is not None or output_ref is not None:
+            opencl_kernel_args = list(opencl_kernel_args)
+            if input_ref is not None:
+                opencl_kernel_args[3] = input_ref.data
+            if output_ref is not None:
+                opencl_kernel_args[4] = output_ref.data
+            opencl_kernel_args = tuple(opencl_kernel_args)
+        return opencl_kernel_args
+
+
     def _separable_convolution(self):
+        print("Separable axes=%s , kernels = %s" % (str(self.axes), str(self.use_case_kernels))) # DEBUG
         assert len(self.axes) == len(self.use_case_kernels)
+        n_batchs = len(self.axes)
+        swap_pattern = self.swap_pattern[n_batchs]
         # Separable: one kernel call per data dimension
         for i, axis in enumerate(self.axes):
-            self._batched_convolution(axis)
+            in_ref, out_ref = swap_pattern[i]
+            self._batched_convolution(axis, input_ref=in_ref, output_ref=out_ref)
 
 
-    def _batched_convolution(self, axis):
+    def _batched_convolution(self, axis, input_ref=None, output_ref=None):
         # Batched: one kernel call in total
         print("Doing batched %s along axis %d" % (self.use_case_kernels[axis], axis)) # DEBUG
+
         opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[axis])
-        opencl_kernel_args = self.kernel_args[self.kernel_ndim]
+        opencl_kernel_args = self._configure_kernel_args(
+            self.kernel_args[self.kernel_ndim],
+            input_ref,
+            output_ref
+        )
         opencl_kernel(*opencl_kernel_args) # TODO event
 
 
@@ -352,7 +390,6 @@ class Convolution(OpenclProcessing):
         if self._old_output_ref is not None:
             self.data_out = self._old_output_ref
             self._old_output_ref = None
-
 
 
     def _get_output(self, output):
@@ -382,7 +419,7 @@ class Convolution(OpenclProcessing):
             # else: ND-ND convol
         else:
             # ND-ND convol
-            raise NotImplementedError()
+            self._nd_convolution()
 
         res = self._get_output(output)
         return res
@@ -410,45 +447,4 @@ It should be possible to make one class for all these use cases
 
   - Input strides and output strides ? This implies a big modification in the code
 
-
-Use case name                       Kernel name
-------------------------------------------------------------------
-1D convol on 1D data                  convol_1D_X
-batched 1D convol on 2D data          convol_1D_X or convol_1D_Y
-separable (2,1)D convol on 2D data    convol_1D_X and convol_1D_X
-
-batched 1D convol on 3D data          convol_1D_X or convol_1D_Y or convol_1D_Z
-separable (3,1) 1D convol on 3D data  convol_1D_X and convol_1D_Y and convol_1D_Z
-[batched separable 2D on 3D data]     convol_1D_X and convol_1D_Y and convol_1D_Z
-
-2D convol on 2D data                  convol_2D_XY
-batched 2D convol on 3D data          convol_2D_XY or convol_2D_XZ or convol_2D_YZ
-separable (3, 2)D convol on 3D data   convol_2D_XY and convol_2D_XZ and convol_2D_YZ
-
-3D convol on 3D data                  convol_3D_XYZ
-
-
-
-(1, 1)
-(2, 1), axes in [None, (1, 0), (0, 1)] => separable (2D->1D) on 2D data
-(2, 1), axes in [(0,), (1,)]   => batched 1D on 2D data
-
-(3, 1), axes in [None, valid 3-tuple] => separable (3D->1D) on 3D data
-(3, 1), axes in [1-tuple] => batched 1D on 3D
-(3, 1), axes in [valid 2-tuple] => batched (along 1 axis) separable (2D->1D) [same as (2, 1, axes=None) if Nz==1]
-
-(2, 2) => (nonseparable) 2D on 2D data
-(3, 2), axes in [None, valid 2-tuple] => separable (3D->2D) on 3D data   (along y then z  or  along x then z   or   along x then y)
-(3, 2), axes in [1-tuple] => batched 2D convol on 3D data
-
-(3, 3) => (nonseparable) 3D convol
-
 """
-
-
-
-
-
-
-
-
