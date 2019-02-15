@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "14/02/2019"
+__date__ = "15/02/2019"
 
 
 import math
@@ -627,10 +627,12 @@ class SelectEllipse(Select2Points):
         self.center = self.plot.pixelToData(x, y)
         assert self.center is not None
 
-    def _getEllipseBoundingBox(self, pointInEllipse):
+    def _getEllipseSize(self, pointInEllipse):
         """
-        Returns the bounding box size of the ellipse from the known center
-        and this point in the ellipse.
+        Returns the size from the center to the bounding box of the ellipse.
+
+        :param Tuple[float,float] pointInEllipse: A point of the ellipse
+        :rtype: Tuple[float,float]
         """
         x = abs(self.center[0] - pointInEllipse[0])
         y = abs(self.center[1] - pointInEllipse[1])
@@ -638,8 +640,8 @@ class SelectEllipse(Select2Points):
             return x, y
         # Ellipse definitions
         # e: eccentricity
-        # a: bounding box width
-        # b: bounding box height
+        # a: length fron center to bounding box width
+        # b: length fron center to bounding box height
         # Equations
         # (1) b < a
         # (2) For x,y a point in the ellipse: x^2/a^2 + y^2/b^2 = 1
@@ -663,7 +665,7 @@ class SelectEllipse(Select2Points):
     def select(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-        width, height = self._getEllipseBoundingBox(dataPos)
+        width, height = self._getEllipseSize(dataPos)
 
         # Circle used for circle preview
         nbpoints = 27.
@@ -688,7 +690,7 @@ class SelectEllipse(Select2Points):
 
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-        width, height = self._getEllipseBoundingBox(dataPos)
+        width, height = self._getEllipseSize(dataPos)
 
         eventDict = prepareDrawingSignal('drawingFinished',
                                          'ellipse',
