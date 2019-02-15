@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "12/02/2019"
 
 from silx.gui import qt
 from .DataViewer import DataViewer
@@ -119,6 +119,9 @@ class DataViewerFrame(qt.QWidget):
         :param DataViewHooks context: The hooks to use
         """
         self.__dataViewer.setGlobalHooks(hooks)
+
+    def getReachableViews(self):
+        return self.__dataViewer.getReachableViews()
 
     def availableViews(self):
         """Returns the list of registered views

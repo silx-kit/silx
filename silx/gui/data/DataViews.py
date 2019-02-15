@@ -31,6 +31,7 @@ import numbers
 import numpy
 
 import silx.io
+from silx.utils import deprecation
 from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
@@ -41,7 +42,7 @@ from silx.gui.dialog.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "12/02/2019"
 
 _logger = logging.getLogger(__name__)
 
@@ -100,6 +101,7 @@ class DataInfo(object):
     """Store extracted information from a data"""
 
     def __init__(self, data):
+        self.__priorities = {}
         data = self.normalizeData(data)
         self.isArray = False
         self.interpretation = None
@@ -200,6 +202,12 @@ class DataInfo(object):
         """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
         return _normalizeData(data)
+
+    def cachePriority(self, view, priority):
+        self.__priorities[view] = priority
+
+    def getPriority(self, view):
+        return self.__priorities[view]
 
 
 class DataViewHooks(object):
@@ -357,6 +365,35 @@ class DataView(object):
         """
         return []
 
+    def getReachableViews(self):
+        """Returns the views that can be returned by `getMatchingViews`.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
+        return [self]
+
+    def getMatchingViews(self, data, info):
+        """Returns the views according to data and info from the data.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
+        priority = self.getCachedDataPriority(data, info)
+        if priority == DataView.UNSUPPORTED:
+            return []
+        return [self]
+
+    def getCachedDataPriority(self, data, info):
+        try:
+            priority = info.getPriority(self)
+        except KeyError:
+            priority = self.getDataPriority(data, info)
+            info.cachePriority(self, priority)
+        return priority
+
     def getDataPriority(self, data, info):
         """
         Returns the priority of using this view according to a data.
@@ -377,7 +414,53 @@ class DataView(object):
         return str(self) < str(other)
 
 
-class CompositeDataView(DataView):
+class _CompositeDataView(DataView):
+    """Contains sub views"""
+
+    def getViews(self):
+        """Returns the direct sub views registered in this view.
+
+        :rtype: List[DataView]
+        """
+        raise NotImplementedError()
+
+    def getReachableViews(self):
+        """Returns all views that can be reachable at on point.
+
+        This method return any sub view provided (recursivly).
+
+        :rtype: List[DataView]
+        """
+        raise NotImplementedError()
+
+    def getMatchingViews(self, data, info):
+        """Returns sub views matching this data and info.
+
+        This method return any sub view provided (recursivly).
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
+        raise NotImplementedError()
+
+    @deprecation.deprecated(replacement="getRegisteredViews", since_version="0.10")
+    def availableViews(self):
+        return self.getViews()
+
+    def isSupportedData(self, data, info):
+        """If true, the composite view allow sub views to access to this data.
+        Else this this data is considered as not supported by any of sub views
+        (incliding this composite view).
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: bool
+        """
+        return True
+
+
+class SelectOneDataView(_CompositeDataView):
     """Data view which can display a data using different view according to
     the kind of the data."""
 
@@ -386,7 +469,7 @@ class CompositeDataView(DataView):
 
         :param qt.QWidget parent: Parent of the hold widget
         """
-        super(CompositeDataView, self).__init__(parent, modeId, icon, label)
+        super(SelectOneDataView, self).__init__(parent, modeId, icon, label)
         self.__views = OrderedDict()
         self.__currentView = None
 
@@ -395,7 +478,7 @@ class CompositeDataView(DataView):
 
         :param DataViewHooks hooks: The data view hooks to use
         """
-        super(CompositeDataView, self).setHooks(hooks)
+        super(SelectOneDataView, self).setHooks(hooks)
         if hooks is not None:
             for v in self.__views:
                 v.setHooks(hooks)
@@ -407,16 +490,40 @@ class CompositeDataView(DataView):
             dataView.setHooks(hooks)
         self.__views[dataView] = None
 
-    def availableViews(self):
+    def getReachableViews(self):
+        views = []
+        addSelf = False
+        for v in self.__views:
+            if isinstance(v, SelectManyDataView):
+                views.extend(v.getReachableViews())
+            else:
+                addSelf = True
+        if addSelf:
+            # Single views are hidden by this view
+            views.insert(0, self)
+        return views
+
+    def getMatchingViews(self, data, info):
+        if not self.isSupportedData(data, info):
+            return []
+        view = self.__getBestView(data, info)
+        if isinstance(view, SelectManyDataView):
+            return view.getMatchingViews(data, info)
+        else:
+            return [self]
+
+    def getViews(self):
         """Returns the list of registered views
 
         :rtype: List[DataView]
         """
         return list(self.__views.keys())
 
-    def getBestView(self, data, info):
+    def __getBestView(self, data, info):
         """Returns the best view according to priorities."""
-        views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
+        if not self.isSupportedData(data, info):
+            return None
+        views = [(v.getCachedDataPriority(data, info), v) for v in self.__views.keys()]
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, key=lambda t: t[0], reverse=True)
 
@@ -471,17 +578,17 @@ class CompositeDataView(DataView):
         self.__currentView.setData(data)
 
     def axesNames(self, data, info):
-        view = self.getBestView(data, info)
+        view = self.__getBestView(data, info)
         self.__currentView = view
         return view.axesNames(data, info)
 
     def getDataPriority(self, data, info):
-        view = self.getBestView(data, info)
+        view = self.__getBestView(data, info)
         self.__currentView = view
         if view is None:
             return DataView.UNSUPPORTED
         else:
-            return view.getDataPriority(data, info)
+            return view.getCachedDataPriority(data, info)
 
     def replaceView(self, modeId, newView):
         """Replace a data view with a custom view.
@@ -502,7 +609,7 @@ class CompositeDataView(DataView):
             if view.modeId() == modeId:
                 oldView = view
                 break
-            elif isinstance(view, CompositeDataView):
+            elif isinstance(view, _CompositeDataView):
                 # recurse
                 hooks = self.getHooks()
                 if hooks is not None:
@@ -517,6 +624,134 @@ class CompositeDataView(DataView):
                 (newView, None) if view is oldView else (view, idx) for
                 view, idx in self.__views.items())
         return True
+
+
+# NOTE: SelectOneDataView was introduced with silx 0.10
+CompositeDataView = SelectOneDataView
+
+
+class SelectManyDataView(_CompositeDataView):
+    """Data view which can select a set of sub views according to
+    the kind of the data.
+
+    This view itself is abstract and is not exposed.
+    """
+
+    def __init__(self, parent, views=None):
+        """Constructor
+
+        :param qt.QWidget parent: Parent of the hold widget
+        """
+        super(SelectManyDataView, self).__init__(parent, modeId=None, icon=None, label=None)
+        if views is None:
+            views = []
+        self.__views = views
+
+    def setHooks(self, hooks):
+        """Set the data context to use with this view.
+
+        :param DataViewHooks hooks: The data view hooks to use
+        """
+        super(SelectManyDataView, self).setHooks(hooks)
+        if hooks is not None:
+            for v in self.__views:
+                v.setHooks(hooks)
+
+    def addView(self, dataView):
+        """Add a new dataview to the available list."""
+        hooks = self.getHooks()
+        if hooks is not None:
+            dataView.setHooks(hooks)
+        self.__views.append(dataView)
+
+    def getViews(self):
+        """Returns the list of registered views
+
+        :rtype: List[DataView]
+        """
+        return list(self.__views)
+
+    def getReachableViews(self):
+        views = []
+        for v in self.__views:
+            views.extend(v.getReachableViews())
+        return views
+
+    def getMatchingViews(self, data, info):
+        """Returns the views according to data and info from the data.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        """
+        if not self.isSupportedData(data, info):
+            return []
+        views = [v for v in self.__views if v.getCachedDataPriority(data, info) != DataView.UNSUPPORTED]
+        return views
+
+    def customAxisNames(self):
+        raise RuntimeError("Abstract view")
+
+    def setCustomAxisValue(self, name, value):
+        raise RuntimeError("Abstract view")
+
+    def select(self):
+        raise RuntimeError("Abstract view")
+
+    def createWidget(self, parent):
+        raise RuntimeError("Abstract view")
+
+    def clear(self):
+        for v in self.__views:
+            v.clear()
+
+    def setData(self, data):
+        raise RuntimeError("Abstract view")
+
+    def axesNames(self, data, info):
+        raise RuntimeError("Abstract view")
+
+    def getDataPriority(self, data, info):
+        if not self.isSupportedData(data, info):
+            return DataView.UNSUPPORTED
+        priorities = [v.getCachedDataPriority(data, info) for v in self.__views]
+        priorities = [v for v in priorities if v != DataView.UNSUPPORTED]
+        priorities = sorted(priorities)
+        if len(priorities) == 0:
+            return DataView.UNSUPPORTED
+        return priorities[-1]
+
+    def replaceView(self, modeId, newView):
+        """Replace a data view with a custom view.
+        Return True in case of success, False in case of failure.
+
+        .. note::
+
+            This method must be called just after instantiation, before
+            the viewer is used.
+
+        :param int modeId: Unique mode ID identifying the DataView to
+            be replaced.
+        :param DataViews.DataView newView: New data view
+        :return: True if replacement was successful, else False
+        """
+        oldView = None
+        for iview, view in enumerate(self.__views):
+            if view.modeId() == modeId:
+                oldView = view
+                break
+            elif isinstance(view, CompositeDataView):
+                # recurse
+                hooks = self.getHooks()
+                if hooks is not None:
+                    newView.setHooks(hooks)
+                if view.replaceView(modeId, newView):
+                    return True
+
+        if oldView is None:
+            return False
+
+        # replace oldView with new view in dict
+        self.__views[iview] = newView
 
 
 class _EmptyView(DataView):
