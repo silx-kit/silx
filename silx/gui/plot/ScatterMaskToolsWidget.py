@@ -490,26 +490,26 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
         level = self.levelSpinBox.value()
 
-        if (self._drawingMode == 'rectangle' and
-                event['event'] == 'drawingFinished'):
-            doMask = self._isMasking()
+        if self._drawingMode == 'rectangle':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
 
-            self._mask.updateRectangle(
-                level,
-                y=event['y'],
-                x=event['x'],
-                height=abs(event['height']),
-                width=abs(event['width']),
-                mask=doMask)
-            self._mask.commit()
+                self._mask.updateRectangle(
+                    level,
+                    y=event['y'],
+                    x=event['x'],
+                    height=abs(event['height']),
+                    width=abs(event['width']),
+                    mask=doMask)
+                self._mask.commit()
 
-        elif (self._drawingMode == 'polygon' and
-                event['event'] == 'drawingFinished'):
-            doMask = self._isMasking()
-            vertices = event['points']
-            vertices = vertices[:, (1, 0)]  # (y, x)
-            self._mask.updatePolygon(level, vertices, doMask)
-            self._mask.commit()
+        elif self._drawingMode == 'polygon':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
+                vertices = event['points']
+                vertices = vertices[:, (1, 0)]  # (y, x)
+                self._mask.updatePolygon(level, vertices, doMask)
+                self._mask.commit()
 
         elif self._drawingMode == 'pencil':
             doMask = self._isMasking()
@@ -536,6 +536,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                 self._lastPencilPos = None
             else:
                 self._lastPencilPos = y, x
+        else:
+            _logger.error("Drawing mode %s unsupported", self._drawingMode)
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active scatter colormap range"""

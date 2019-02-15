@@ -765,6 +765,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 self._lastPencilPos = None
             else:
                 self._lastPencilPos = row, col
+        else:
+            _logger.error("Drawing mode %s unsupported", self._drawingMode)
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""
