@@ -2372,7 +2372,7 @@ class PlotWidget(qt.QMainWindow):
     # Defaults
 
     def isDefaultPlotPoints(self):
-        """Return True if default Curve symbol is not, False for no symbol."""
+        """Return True if the default Curve symbol is set and False if not."""
         return self._defaultPlotPoints == silx.config.DEFAULT_PLOT_CURVE_SYMBOL
 
     def setDefaultPlotPoints(self, flag):
