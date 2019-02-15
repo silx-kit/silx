@@ -69,6 +69,7 @@ NXDATA_XYVSCATTER_MODE = 74
 NXDATA_IMAGE_MODE = 75
 NXDATA_STACK_MODE = 76
 NXDATA_VOLUME_MODE = 77
+NXDATA_VOLUME_AS_STACK_MODE = 78
 
 
 def _normalizeData(data):
@@ -1654,6 +1655,8 @@ class _NXdataStackView(DataView):
 class _NXdataVolumeView(DataView):
     def __init__(self, parent):
         DataView.__init__(self, parent,
+                          label="NXdata (3D)",
+                          icon=icons.getQIcon("view-nexus"),
                           modeId=NXDATA_VOLUME_MODE)
         try:
             import silx.gui.plot3d  # noqa
@@ -1697,8 +1700,55 @@ class _NXdataVolumeView(DataView):
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
         if info.hasNXdata and not info.isInvalidNXdata:
-            if nxdata.get_default(data, validate=False).is_stack:
-                return 100
+            if nxdata.get_default(data, validate=False).is_volume:
+                return 150
+
+        return DataView.UNSUPPORTED
+
+
+class _NXdataVolumeAsStackView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent,
+                          label="NXdata (2D)",
+                          icon=icons.getQIcon("view-nexus"),
+                          modeId=NXDATA_VOLUME_AS_STACK_MODE)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayStackPlot
+        widget = ArrayStackPlot(parent)
+        widget.getStackView().setColormap(self.defaultColormap())
+        widget.getStackView().getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        signal_name = nxd.signal_name
+        z_axis, y_axis, x_axis = nxd.axes[-3:]
+        z_label, y_label, x_label = nxd.axes_names[-3:]
+        title = nxd.title or signal_name
+
+        widget = self.getWidget()
+        widget.setStackData(
+                     nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
+                     signal_name=signal_name,
+                     xlabel=x_label, ylabel=y_label, zlabel=z_label,
+                     title=title)
+        # Override the colormap, while setStack overwrite it
+        widget.getStackView().setColormap(self.defaultColormap())
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_volume:
+                return 200
 
         return DataView.UNSUPPORTED
 
@@ -1720,4 +1770,9 @@ class _NXdataView(CompositeDataView):
         self.addView(_NXdataComplexImageView(parent))
         self.addView(_NXdataImageView(parent))
         self.addView(_NXdataStackView(parent))
-        self.addView(_NXdataVolumeView(parent))
+
+        # The 3D view can be displayed using 2 ways
+        nx3dViews = SelectManyDataView(parent)
+        nx3dViews.addView(_NXdataVolumeAsStackView(parent))
+        nx3dViews.addView(_NXdataVolumeView(parent))
+        self.addView(nx3dViews)
