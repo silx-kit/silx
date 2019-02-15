@@ -160,9 +160,6 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
     _DEFAULT_SELECTABLE = True
     """Default selectable state for curves"""
 
-    _DEFAULT_SYMBOL = ''
-    """Default symbol of the curve"""
-
     _DEFAULT_LINEWIDTH = 1.
     """Default line width of the curve"""
 
