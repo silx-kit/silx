@@ -38,6 +38,7 @@ from ..codec import test as test_codec
 from . import test_image
 from . import test_kahan
 from . import test_stats
+from . import test_convolution
 
 
 def suite():
