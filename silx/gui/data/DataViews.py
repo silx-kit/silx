@@ -445,7 +445,7 @@ class _CompositeDataView(DataView):
         """
         raise NotImplementedError()
 
-    @deprecation.deprecated(replacement="getRegisteredViews", since_version="0.10")
+    @deprecation.deprecated(replacement="getReachableViews", since_version="0.10")
     def availableViews(self):
         return self.getViews()
 
