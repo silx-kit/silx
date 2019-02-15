@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,15 +28,20 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "12/11/2018"
 
+import logging
 import numpy
 
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView, ScatterView
+from silx.gui.plot.ComplexImageView import ComplexImageView
 from silx.gui.colors import Colormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
+
+
+_logger = logging.getLogger(__name__)
 
 
 class ArrayCurvePlot(qt.QWidget):
@@ -419,6 +424,7 @@ class ArrayImagePlot(qt.QWidget):
         self._auxSigSlider.setValue(0)
 
         self._updateImage()
+        self._plot.resetZoom()
 
         self._selector.selectionChanged.connect(self._updateImage)
         self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
@@ -486,13 +492,200 @@ class ArrayImagePlot(qt.QWidget):
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
-        self._plot.resetZoom()
 
     def clear(self):
         old = self._selector.blockSignals(True)
         self._selector.clear()
         self._selector.blockSignals(old)
         self._plot.clear()
+
+
+class ArrayComplexImagePlot(qt.QWidget):
+    """
+    Widget for plotting an image of complex from a multi-dimensional signal array
+    and two 1D axes array.
+
+    The signal array can have an arbitrary number of dimensions, the only
+    limitation being that the last two dimensions must have the same length as
+    the axes arrays.
+
+    Sliders are provided to select indices on the first (n - 2) dimensions of
+    the signal array, and the plot is updated to show the image corresponding
+    to the selection.
+
+    If one or both of the axes does not have regularly spaced values, the
+    the image is plotted as a coloured scatter plot.
+    """
+    def __init__(self, parent=None, colormap=None):
+        """
+
+        :param parent: Parent QWidget
+        """
+        super(ArrayComplexImagePlot, self).__init__(parent)
+
+        self.__signals = None
+        self.__signals_names = None
+        self.__x_axis = None
+        self.__x_axis_name = None
+        self.__y_axis = None
+        self.__y_axis_name = None
+
+        self._plot = ComplexImageView(self)
+        if colormap is not None:
+            for mode in (ComplexImageView.Mode.ABSOLUTE,
+                         ComplexImageView.Mode.SQUARE_AMPLITUDE,
+                         ComplexImageView.Mode.REAL,
+                         ComplexImageView.Mode.IMAGINARY):
+                self._plot.setColormap(colormap, mode)
+
+        self._plot.getPlot().getIntensityHistogramAction().setVisible(True)
+        self._plot.setKeepDataAspectRatio(True)
+
+        # not closable
+        self._selector = NumpyAxesSelector(self)
+        self._selector.setNamedAxesSelectorVisibility(False)
+        self._selector.selectionChanged.connect(self._updateImage)
+
+        self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
+        self._auxSigSlider.setMinimum(0)
+        self._auxSigSlider.setValue(0)
+        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
+        self._auxSigSlider.setToolTip("Select auxiliary signals")
+
+        layout = qt.QVBoxLayout()
+        layout.addWidget(self._plot)
+        layout.addWidget(self._selector)
+        layout.addWidget(self._auxSigSlider)
+
+        self.setLayout(layout)
+
+    def _sliderIdxChanged(self, value):
+        self._updateImage()
+
+    def getPlot(self):
+        """Returns the plot used for the display
+
+        :rtype: PlotWidget
+        """
+        return self._plot.getPlot()
+
+    def setImageData(self, signals,
+                     x_axis=None, y_axis=None,
+                     signals_names=None,
+                     xlabel=None, ylabel=None,
+                     title=None):
+        """
+
+        :param signals: list of n-D datasets, whose last 2 dimensions are used as the
+            image's values, or list of 3D datasets interpreted as RGBA image.
+        :param x_axis: 1-D dataset used as the image's x coordinates. If
+            provided, its lengths must be equal to the length of the last
+            dimension of ``signal``.
+        :param y_axis: 1-D dataset used as the image's y. If provided,
+            its lengths must be equal to the length of the 2nd to last
+            dimension of ``signal``.
+        :param signals_names: Names for each image, used as subtitle and legend.
+        :param xlabel: Label for X axis
+        :param ylabel: Label for Y axis
+        :param title: Graph title
+        """
+        self._selector.selectionChanged.disconnect(self._updateImage)
+        self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
+
+        self.__signals = signals
+        self.__signals_names = signals_names
+        self.__x_axis = x_axis
+        self.__x_axis_name = xlabel
+        self.__y_axis = y_axis
+        self.__y_axis_name = ylabel
+        self.__title = title
+
+        self._selector.clear()
+        self._selector.setAxisNames(["Y", "X"])
+        self._selector.setData(signals[0])
+
+        if len(signals[0].shape) <= 2:
+            self._selector.hide()
+        else:
+            self._selector.show()
+
+        self._auxSigSlider.setMaximum(len(signals) - 1)
+        if len(signals) > 1:
+            self._auxSigSlider.show()
+        else:
+            self._auxSigSlider.hide()
+        self._auxSigSlider.setValue(0)
+
+        self._updateImage()
+        self._plot.getPlot().resetZoom()
+
+        self._selector.selectionChanged.connect(self._updateImage)
+        self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
+
+    def _updateImage(self):
+        selection = self._selector.selection()
+        auxSigIdx = self._auxSigSlider.value()
+
+        images = [img[selection] for img in self.__signals]
+        image = images[auxSigIdx]
+
+        x_axis = self.__x_axis
+        y_axis = self.__y_axis
+
+        if x_axis is None and y_axis is None:
+            xcalib = NoCalibration()
+            ycalib = NoCalibration()
+        else:
+            if x_axis is None:
+                # no calibration
+                x_axis = numpy.arange(image.shape[1])
+            elif numpy.isscalar(x_axis) or len(x_axis) == 1:
+                # constant axis
+                x_axis = x_axis * numpy.ones((image.shape[1], ))
+            elif len(x_axis) == 2:
+                # linear calibration
+                x_axis = x_axis[0] * numpy.arange(image.shape[1]) + x_axis[1]
+
+            if y_axis is None:
+                y_axis = numpy.arange(image.shape[0])
+            elif numpy.isscalar(y_axis) or len(y_axis) == 1:
+                y_axis = y_axis * numpy.ones((image.shape[0], ))
+            elif len(y_axis) == 2:
+                y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
+
+            xcalib = ArrayCalibration(x_axis)
+            ycalib = ArrayCalibration(y_axis)
+
+        self._plot.setData(image)
+        if xcalib.is_affine():
+            xorigin, xscale = xcalib(0), xcalib.get_slope()
+        else:
+            _logger.warning("Unsupported complex image X axis calibration")
+            xorigin, xscale = 0., 1.
+
+        if ycalib.is_affine():
+            yorigin, yscale = ycalib(0), ycalib.get_slope()
+        else:
+            _logger.warning("Unsupported complex image Y axis calibration")
+            yorigin, yscale = 0., 1.
+
+        self._plot.setOrigin((xorigin, yorigin))
+        self._plot.setScale((xscale, yscale))
+
+        title = ""
+        if self.__title:
+            title += self.__title
+        if not title.strip().endswith(self.__signals_names[auxSigIdx]):
+            title += "\n" + self.__signals_names[auxSigIdx]
+        self._plot.setGraphTitle(title)
+        self._plot.getXAxis().setLabel(self.__x_axis_name)
+        self._plot.getYAxis().setLabel(self.__y_axis_name)
+
+    def clear(self):
+        old = self._selector.blockSignals(True)
+        self._selector.clear()
+        self._selector.blockSignals(old)
+        self._plot.setData(None)
 
 
 class ArrayStackPlot(qt.QWidget):

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1277,7 +1277,7 @@ class _NXdataXYVScatterView(DataView):
 
 class _NXdataImageView(DataView):
     """DataView using a Plot2D for displaying NXdata images:
-    2-D signal or n-D signals with *@interpretation=spectrum*."""
+    2-D signal or n-D signals with *@interpretation=image*."""
     def __init__(self, parent):
         DataView.__init__(self, parent,
                           modeId=NXDATA_IMAGE_MODE)
@@ -1318,6 +1318,53 @@ class _NXdataImageView(DataView):
 
         if info.hasNXdata and not info.isInvalidNXdata:
             if nxdata.get_default(data, validate=False).is_image:
+                return 100
+
+        return DataView.UNSUPPORTED
+
+
+class _NXdataComplexImageView(DataView):
+    """DataView using a ComplexImageView for displaying NXdata complex images:
+    2-D signal or n-D signals with *@interpretation=image*."""
+    def __init__(self, parent):
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_IMAGE_MODE)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
+        widget = ArrayComplexImagePlot(parent, colormap=self.defaultColormap())
+        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        return widget
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+
+        # last two axes are Y & X
+        img_slicing = slice(-2, None)
+        y_axis, x_axis = nxd.axes[img_slicing]
+        y_label, x_label = nxd.axes_names[img_slicing]
+
+        self.getWidget().setImageData(
+            [nxd.signal] + nxd.auxiliary_signals,
+            x_axis=x_axis, y_axis=y_axis,
+            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            xlabel=x_label, ylabel=y_label,
+            title=nxd.title)
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+
+        if info.hasNXdata and not info.isInvalidNXdata:
+            nxd = nxdata.get_default(data, validate=False)
+            if nxd.is_image and numpy.iscomplexobj(nxd.signal):
                 return 100
 
         return DataView.UNSUPPORTED
@@ -1382,5 +1429,6 @@ class _NXdataView(CompositeDataView):
         self.addView(_NXdataScalarView(parent))
         self.addView(_NXdataCurveView(parent))
         self.addView(_NXdataXYVScatterView(parent))
+        self.addView(_NXdataComplexImageView(parent))
         self.addView(_NXdataImageView(parent))
         self.addView(_NXdataStackView(parent))
