@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/02/2019"
+__date__ = "15/02/2019"
 
 
 import os
@@ -243,6 +243,21 @@ class ImageMask(BaseMask):
         :param bool mask: True to mask (default), False to unmask.
         """
         rows, cols = shapes.circle_fill(crow, ccol, radius)
+        self.updatePoints(level, rows, cols, mask)
+
+    def updateEllipse(self, level, crow, ccol, radius_r, radius_c, mask=True):
+        """Mask/Unmask an ellipse of the given mask level.
+
+        :param int level: Mask level to update.
+        :param int crow: Row of the center of the ellipse
+        :param int ccol: Column of the center of the ellipse
+        :param float radius_r: Radius of the ellipse in the row
+        :param float radius_c: Radius of the ellipse in the column
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        rows, cols = shapes.ellipse_fill(crow, ccol, radius_r, radius_c)
+        # FIXME: Why it have to be swapped here?
+        rows, cols = cols, rows
         self.updatePoints(level, rows, cols, mask)
 
     def updateLine(self, level, row0, col0, row1, col1, width, mask=True):
@@ -712,10 +727,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 # Convert from plot to array coords
                 center = (event['points'][0] - self._origin) / self._scale
                 size = event['points'][1] / self._scale
-                col, row = center.astype(numpy.int)  # (row, col)
-                # FIXME: updateEllipse have to be created
-                closeCircleSize = (size[0] + size[1]) / 2
-                self._mask.updateDisk(level, row, col, closeCircleSize, doMask)
+                center = center.astype(numpy.int)  # (row, col)
+                self._mask.updateEllipse(level, center[0], center[1], size[0], size[1], doMask)
                 self._mask.commit()
 
         elif self._drawingMode == 'polygon':
