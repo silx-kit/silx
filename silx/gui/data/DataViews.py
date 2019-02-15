@@ -42,7 +42,7 @@ from silx.gui.dialog.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/02/2019"
+__date__ = "15/02/2019"
 
 _logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ NXDATA_CURVE_MODE = 73
 NXDATA_XYVSCATTER_MODE = 74
 NXDATA_IMAGE_MODE = 75
 NXDATA_STACK_MODE = 76
-NXDATA_PLOT3D_MODE = 77
+NXDATA_VOLUME_MODE = 77
 
 
 def _normalizeData(data):
@@ -1654,7 +1654,7 @@ class _NXdataStackView(DataView):
 class _NXdataVolumeView(DataView):
     def __init__(self, parent):
         DataView.__init__(self, parent,
-                          modeId=NXDATA_PLOT3D_MODE)
+                          modeId=NXDATA_VOLUME_MODE)
         try:
             import silx.gui.plot3d  # noqa
         except ImportError:
