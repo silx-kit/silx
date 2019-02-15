@@ -122,14 +122,9 @@ class ConvolutionInfos(object):
     }
 
 
-
-
 class Convolution(OpenclProcessing):
     """
     A class for performing convolution on CPU/GPU with OpenCL.
-    It supports:
-      - 1D, 2D, 3D convolutions
-      - batched 1D and 2D
     """
     kernel_files = ["convolution.cl"]#, "convolution_batched.cl"]
 
@@ -267,7 +262,6 @@ class Convolution(OpenclProcessing):
 
 
     def _init_kernels(self):
-        # TODO
         if self.kernel_ndim > 1:
             if np.abs(np.diff(self.kernel.shape)).max() > 0:
                 raise NotImplementedError(
@@ -298,8 +292,6 @@ class Convolution(OpenclProcessing):
             kernel_args.insert(6, np.int32(self.kernel.shape[2]))
             kernel_args.insert(7, np.int32(self.kernel.shape[1]))
         self.kernel_args = tuple(kernel_args)
-
-
         # If self.data_tmp is allocated, separable transforms can be performed
         # by a series of batched transforms, without any copy, by swapping refs.
         self.swap_pattern = None
@@ -315,7 +307,8 @@ class Convolution(OpenclProcessing):
                     (self.data_tmp, self.data_out),
                 ],
             }
-        else: # TODO
+        else:
+            # TODO
             raise NotImplementedError("For now, data_tmp has to be allocated")
 
 
@@ -335,10 +328,10 @@ class Convolution(OpenclProcessing):
 
 
     def _check_array(self, arr):
-        # TODO allow cl.Buffer ?
+        # TODO allow cl.Buffer
         if not(isinstance(arr, parray.Array) or isinstance(arr, np.ndarray)):
             raise TypeError("Expected either pyopencl.array.Array or numpy.ndarray")
-        # TODO composition with ImageProcessing/cast ?
+        # TODO composition with ImageProcessing/cast
         if arr.dtype != np.float32:
             raise TypeError("Data must be float32")
         if arr.shape != self.shape:
@@ -357,7 +350,6 @@ class Convolution(OpenclProcessing):
             else:
                 self._old_output_ref = self.data_out
                 self.data_out = output
-
 
 
     def _configure_kernel_args(self, opencl_kernel_args, input_ref, output_ref):
@@ -383,7 +375,6 @@ class Convolution(OpenclProcessing):
 
     def _batched_convolution(self, axis, input_ref=None, output_ref=None):
         # Batched: one kernel call in total
-
         opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[axis])
         opencl_kernel_args = self._configure_kernel_args(
             self.kernel_args,
@@ -425,7 +416,6 @@ class Convolution(OpenclProcessing):
     def convolve(self, array, output=None):
         self._check_array(array)
         self._set_arrays(array, output=output)
-
         if self.axes is not None:
             if self.separable:
                 self._separable_convolution()
@@ -444,23 +434,3 @@ class Convolution(OpenclProcessing):
     __call__ = convolve
 
 
-"""
-Wanted:
- - 1D, 2D, 3D convol => one kernel for each dimension
- - batched 2D and 3D => other kernels...
- - Use textures when possible => still other kernels
-It should be possible to make one class for all these use cases
-
- - compose with "ImageProcessing" ?
-   if template= or dtype=   in the constructor => instantiate an ImageProcessing
-   and do casts under the hood
-
- - Gaussian convolution => class inheriting from Convolution
-  (used for blurring, ex. in sift)
-
- - [Bonus] utility for 3D on "big" volume, with
-   H<->D transfers performed under the hood, + necessary overlap
-
-  - Input strides and output strides ? This implies a big modification in the code
-
-"""
