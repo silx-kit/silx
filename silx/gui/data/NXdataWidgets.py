@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -666,3 +666,189 @@ class ArrayStackPlot(qt.QWidget):
         self._selector.clear()
         self._selector.blockSignals(old)
         self._stack_view.clear()
+
+
+class ArrayVolumePlot(qt.QWidget):
+    """
+    Widget for plotting a n-D array (n >= 3) as a 3D scalar field.
+    Three axis arrays can be provided to calibrate the axes.
+
+    The signal array can have an arbitrary number of dimensions, the only
+    limitation being that the last 3 dimensions must have the same length as
+    the axes arrays.
+
+    Sliders are provided to select indices on the first (n - 3) dimensions of
+    the signal array, and the plot is updated to load the stack corresponding
+    to the selection.
+    """
+    def __init__(self, parent=None):
+        """
+
+        :param parent: Parent QWidget
+        """
+        super(ArrayVolumePlot, self).__init__(parent)
+
+        self.__signal = None
+        self.__signal_name = None
+        # the Z, Y, X axes apply to the last three dimensions of the signal
+        # (in that order)
+        self.__z_axis = None
+        self.__z_axis_name = None
+        self.__y_axis = None
+        self.__y_axis_name = None
+        self.__x_axis = None
+        self.__x_axis_name = None
+
+        from silx.gui.plot3d.ScalarFieldView import ScalarFieldView
+        from silx.gui.plot3d import SFViewParamTree
+
+        self._view = ScalarFieldView(self)
+
+        def computeIsolevel(data):
+            data = data[numpy.isfinite(data)]
+            if len(data) == 0:
+                return 0
+            else:
+                return numpy.mean(data) + numpy.std(data)
+
+        self._view.addIsosurface(computeIsolevel, '#FF0000FF')
+
+        # Create a parameter tree for the scalar field view
+        options = SFViewParamTree.TreeView(self._view)
+        options.setSfView(self._view)
+
+        # Add the parameter tree to the main window in a dock widget
+        dock = qt.QDockWidget()
+        dock.setWidget(options)
+        self._view.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
+
+        self._hline = qt.QFrame(self)
+        self._hline.setFrameStyle(qt.QFrame.HLine)
+        self._hline.setFrameShadow(qt.QFrame.Sunken)
+        self._legend = qt.QLabel(self)
+        self._selector = NumpyAxesSelector(self)
+        self._selector.setNamedAxesSelectorVisibility(False)
+        self.__selector_is_connected = False
+
+        layout = qt.QVBoxLayout()
+        layout.addWidget(self._view)
+        layout.addWidget(self._hline)
+        layout.addWidget(self._legend)
+        layout.addWidget(self._selector)
+
+        self.setLayout(layout)
+
+    def getVolumeView(self):
+        """Returns the plot used for the display
+
+        :rtype: ScalarFieldView
+        """
+        return self._view
+
+    def setData(self, signal,
+                x_axis=None, y_axis=None, z_axis=None,
+                signal_name=None,
+                xlabel=None, ylabel=None, zlabel=None,
+                title=None):
+        """
+
+        :param signal: n-D dataset, whose last 3 dimensions are used as the
+            3D stack values.
+        :param x_axis: 1-D dataset used as the image's x coordinates. If
+            provided, its lengths must be equal to the length of the last
+            dimension of ``signal``.
+        :param y_axis: 1-D dataset used as the image's y. If provided,
+            its lengths must be equal to the length of the 2nd to last
+            dimension of ``signal``.
+        :param z_axis: 1-D dataset used as the image's z. If provided,
+            its lengths must be equal to the length of the 3rd to last
+            dimension of ``signal``.
+        :param signal_name: Label used in the legend
+        :param xlabel: Label for X axis
+        :param ylabel: Label for Y axis
+        :param zlabel: Label for Z axis
+        :param title: Graph title
+        """
+        if self.__selector_is_connected:
+            self._selector.selectionChanged.disconnect(self._updateVolume)
+            self.__selector_is_connected = False
+
+        self.__signal = signal
+        self.__signal_name = signal_name or ""
+        self.__x_axis = x_axis
+        self.__x_axis_name = xlabel
+        self.__y_axis = y_axis
+        self.__y_axis_name = ylabel
+        self.__z_axis = z_axis
+        self.__z_axis_name = zlabel
+
+        self._selector.setData(signal)
+        self._selector.setAxisNames(["Y", "X", "Z"])
+
+        self._view.setAxesLabels(self.__x_axis_name or 'X',
+                                 self.__y_axis_name or 'Y',
+                                 self.__z_axis_name or 'Z')
+        self._updateVolume()
+
+        # the legend label shows the selection slice producing the volume
+        # (only interesting for ndim > 3)
+        if signal.ndim > 3:
+            self._selector.setVisible(True)
+            self._legend.setVisible(True)
+            self._hline.setVisible(True)
+        else:
+            self._selector.setVisible(False)
+            self._legend.setVisible(False)
+            self._hline.setVisible(False)
+
+        if not self.__selector_is_connected:
+            self._selector.selectionChanged.connect(self._updateVolume)
+            self.__selector_is_connected = True
+
+    def _updateVolume(self):
+        """Update displayed stack according to the current axes selector
+        data."""
+        data = self._selector.selectedData()
+        x_axis = self.__x_axis
+        y_axis = self.__y_axis
+        z_axis = self.__z_axis
+
+        offset = []
+        scale = []
+        for axis in [x_axis, y_axis, z_axis]:
+            if axis is None:
+                calibration = NoCalibration()
+            elif len(axis) == 2:
+                calibration = LinearCalibration(
+                    y_intercept=axis[0], slope=axis[1])
+            else:
+                calibration = ArrayCalibration(axis)
+            if not calibration.is_affine():
+                _logger.warning("Axis has not linear values, ignored")
+                offset.append(0.)
+                scale.append(1.)
+            else:
+                offset.append(calibration(0))
+                scale.append(calibration.get_slope())
+
+        legend = self.__signal_name + "["
+        for sl in self._selector.selection():
+            if sl == slice(None):
+                legend += ":, "
+            else:
+                legend += str(sl) + ", "
+        legend = legend[:-2] + "]"
+        self._legend.setText("Displayed data: " + legend)
+
+        self._view.setData(data, copy=False)
+        self._view.setScale(*scale)
+        self._view.setTranslation(*offset)
+        self._view.setAxesLabels(self.__x_axis_name,
+                                 self.__y_axis_name,
+                                 self.__z_axis_name)
+
+    def clear(self):
+        old = self._selector.blockSignals(True)
+        self._selector.clear()
+        self._selector.blockSignals(old)
+        self._view.setData(None)
