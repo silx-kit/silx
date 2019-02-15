@@ -252,7 +252,7 @@ class PlotWidget(qt.QMainWindow):
 
         self.setDefaultColormap()  # Init default colormap
 
-        self.setDefaultPlotPoints(False)
+        self.setDefaultPlotPoints(silx.config.DEFAULT_PLOT_CURVE_SYMBOL != '')
         self.setDefaultPlotLines(True)
 
         self._limitsHistory = LimitsHistory(self)
@@ -2372,8 +2372,8 @@ class PlotWidget(qt.QMainWindow):
     # Defaults
 
     def isDefaultPlotPoints(self):
-        """Return True if default Curve symbol is 'o', False for no symbol."""
-        return self._defaultPlotPoints == 'o'
+        """Return True if the default Curve symbol is set and False if not."""
+        return self._defaultPlotPoints == silx.config.DEFAULT_PLOT_CURVE_SYMBOL
 
     def setDefaultPlotPoints(self, flag):
         """Set the default symbol of all curves.
@@ -2383,7 +2383,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True to use 'o' as the default curve symbol,
                           False to use no symbol.
         """
-        self._defaultPlotPoints = 'o' if flag else ''
+        self._defaultPlotPoints = silx.config.DEFAULT_PLOT_CURVE_SYMBOL if flag else ''
 
         # Reset symbol of all curves
         curves = self.getAllCurves(just_legend=False, withhidden=True)

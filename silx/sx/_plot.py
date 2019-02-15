@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -299,7 +299,7 @@ def imshow(data=None, cmap=None, norm=colors.Colormap.LINEAR,
 
 
 def scatter(x=None, y=None, value=None, size=None,
-            marker='o',
+            marker=None,
             cmap=None, norm=colors.Colormap.LINEAR,
             vmin=None, vmax=None):
     """
@@ -333,8 +333,8 @@ def scatter(x=None, y=None, value=None, size=None,
     :param numpy.ndarray y: 1D array-like of y coordinates
     :param numpy.ndarray value: 1D array-like of data values
     :param float size: Size^2 of the markers
-    :param str marker: Symbol used to represent the points (default: 'o')
-    :param str cmap: The name of the colormap to use for the plot.
+    :param str marker: Symbol used to represent the points
+    :param str cmap: The name of the colormap to use for the plot
     :param str norm: The normalization of the colormap:
                      'linear' (default) or 'log'
     :param float vmin: The value to use for the min of the colormap
@@ -371,7 +371,8 @@ def scatter(x=None, y=None, value=None, size=None,
 
         plt.setData(x, y, value)
         item = plt.getScatterItem()
-        item.setSymbol(marker)
+        if marker is not None:
+            item.setSymbol(marker)
         if size is not None:
             item.setSymbolSize(numpy.sqrt(size))
 

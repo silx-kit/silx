@@ -441,7 +441,7 @@ class ColormapMixIn(ItemMixInBase):
 class SymbolMixIn(ItemMixInBase):
     """Mix-in class for items with symbol type"""
 
-    _DEFAULT_SYMBOL = config.DEFAULT_PLOT_SYMBOL
+    _DEFAULT_SYMBOL = None
     """Default marker of the item"""
 
     _DEFAULT_SYMBOL_SIZE = config.DEFAULT_PLOT_SYMBOL_SIZE
@@ -459,8 +459,15 @@ class SymbolMixIn(ItemMixInBase):
     """Dict of supported symbols"""
 
     def __init__(self):
-        self._symbol = self._DEFAULT_SYMBOL
-        self._symbol_size = self._DEFAULT_SYMBOL_SIZE
+        if self._DEFAULT_SYMBOL is None:  # Use default from config
+            self._symbol = config.DEFAULT_PLOT_SYMBOL
+        else:
+            self._symbol = self._DEFAULT_SYMBOL
+
+        if self._DEFAULT_SYMBOL_SIZE is None:  # Use default from config
+            self._symbol_size = config.DEFAULT_PLOT_SYMBOL_SIZE
+        else:
+            self._symbol_size = self._DEFAULT_SYMBOL_SIZE
 
     @classmethod
     def getSupportedSymbols(cls):
