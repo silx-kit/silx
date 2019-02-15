@@ -293,12 +293,10 @@ class Convolution(OpenclProcessing):
             self.Nz
         ]
         if self.kernel_ndim == 2:
-            kernel_args.insert(6, self.kernel.shape[1])
-            kernel_args.insert(7, self.kernel.shape[0])
+            kernel_args.insert(6, np.int32(self.kernel.shape[1]))
         if self.kernel_ndim == 3:
-            kernel_args.insert(6, self.kernel.shape[2])
-            kernel_args.insert(7, self.kernel.shape[1])
-            kernel_args.insert(8, self.kernel.shape[0])
+            kernel_args.insert(6, np.int32(self.kernel.shape[2]))
+            kernel_args.insert(7, np.int32(self.kernel.shape[1]))
         self.kernel_args = tuple(kernel_args)
 
 

@@ -75,7 +75,10 @@ class TestConvolution(unittest.TestCase):
         cls.image = ascent().astype("f")
         cls.kernel = gaussian_kernel(1.)
         cls.ctx = ocl.create_context()
-        cls.tol = 1e-4
+        cls.tol = {
+            "1D": 1e-4,
+            "2D": 1e-3,
+        }
 
 
     @classmethod
@@ -95,7 +98,7 @@ class TestConvolution(unittest.TestCase):
         ref = scipy_convolve1d(data, self.kernel, mode="wrap")
         metric = self.compare(res, ref)
         logger.info("test_1D: max error = %.2e" % metric)
-        self.assertLess(metric, self.tol, "Something wrong with 1D convolution")
+        self.assertLess(metric, self.tol["1D"], "Something wrong with 1D convolution")
 
 
     def test_separable_2D(self):
@@ -108,9 +111,28 @@ class TestConvolution(unittest.TestCase):
         logger.info("test_separable_2D: max error = %.2e" % metric)
         self.assertLess(
             metric,
-            self.tol,
+            self.tol["1D"],
             "Something wrong with separable 2D convolution"
         )
+
+
+    def test_nonseparable_2D(self):
+        data = self.image
+        kernel = np.outer(self.kernel, self.kernel) # "non-separable" kernel
+        conv = Convolution(data.shape, kernel, ctx=self.ctx)
+        res = conv(data)
+        ref = scipy_convolve(data, kernel, mode="wrap")
+        metric = self.compare(res, ref)
+        logger.info("test_nonseparable_2D: max error = %.2e" % metric)
+        self.assertLess(
+            metric,
+            self.tol["2D"],
+            "Something wrong with nonseparable 2D convolution"
+        )
+
+
+
+
 
 
 
@@ -118,6 +140,7 @@ def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestConvolution("test_1D"))
     testSuite.addTest(TestConvolution("test_separable_2D"))
+    testSuite.addTest(TestConvolution("test_nonseparable_2D"))
     return testSuite
 
 
