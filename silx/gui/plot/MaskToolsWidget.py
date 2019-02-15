@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/08/2018"
+__date__ = "15/02/2019"
 
 
 import os
@@ -243,6 +243,19 @@ class ImageMask(BaseMask):
         :param bool mask: True to mask (default), False to unmask.
         """
         rows, cols = shapes.circle_fill(crow, ccol, radius)
+        self.updatePoints(level, rows, cols, mask)
+
+    def updateEllipse(self, level, crow, ccol, radius_r, radius_c, mask=True):
+        """Mask/Unmask an ellipse of the given mask level.
+
+        :param int level: Mask level to update.
+        :param int crow: Row of the center of the ellipse
+        :param int ccol: Column of the center of the ellipse
+        :param float radius_r: Radius of the ellipse in the row
+        :param float radius_c: Radius of the ellipse in the column
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        rows, cols = shapes.ellipse_fill(crow, ccol, radius_r, radius_c)
         self.updatePoints(level, rows, cols, mask)
 
     def updateLine(self, level, row0, col0, row1, col1, width, mask=True):
@@ -679,41 +692,51 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
         level = self.levelSpinBox.value()
 
-        if (self._drawingMode == 'rectangle' and
-                event['event'] == 'drawingFinished'):
-            # Convert from plot to array coords
-            doMask = self._isMasking()
-            ox, oy = self._origin
-            sx, sy = self._scale
+        if self._drawingMode == 'rectangle':
+            if event['event'] == 'drawingFinished':
+                # Convert from plot to array coords
+                doMask = self._isMasking()
+                ox, oy = self._origin
+                sx, sy = self._scale
 
-            height = int(abs(event['height'] / sy))
-            width = int(abs(event['width'] / sx))
+                height = int(abs(event['height'] / sy))
+                width = int(abs(event['width'] / sx))
 
-            row = int((event['y'] - oy) / sy)
-            if sy < 0:
-                row -= height
+                row = int((event['y'] - oy) / sy)
+                if sy < 0:
+                    row -= height
 
-            col = int((event['x'] - ox) / sx)
-            if sx < 0:
-                col -= width
+                col = int((event['x'] - ox) / sx)
+                if sx < 0:
+                    col -= width
 
-            self._mask.updateRectangle(
-                level,
-                row=row,
-                col=col,
-                height=height,
-                width=width,
-                mask=doMask)
-            self._mask.commit()
+                self._mask.updateRectangle(
+                    level,
+                    row=row,
+                    col=col,
+                    height=height,
+                    width=width,
+                    mask=doMask)
+                self._mask.commit()
 
-        elif (self._drawingMode == 'polygon' and
-                event['event'] == 'drawingFinished'):
-            doMask = self._isMasking()
-            # Convert from plot to array coords
-            vertices = (event['points'] - self._origin) / self._scale
-            vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
-            self._mask.updatePolygon(level, vertices, doMask)
-            self._mask.commit()
+        elif self._drawingMode == 'ellipse':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
+                # Convert from plot to array coords
+                center = (event['points'][0] - self._origin) / self._scale
+                size = event['points'][1] / self._scale
+                center = center.astype(numpy.int)  # (row, col)
+                self._mask.updateEllipse(level, center[1], center[0], size[1], size[0], doMask)
+                self._mask.commit()
+
+        elif self._drawingMode == 'polygon':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
+                # Convert from plot to array coords
+                vertices = (event['points'] - self._origin) / self._scale
+                vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
+                self._mask.updatePolygon(level, vertices, doMask)
+                self._mask.commit()
 
         elif self._drawingMode == 'pencil':
             doMask = self._isMasking()
@@ -740,6 +763,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 self._lastPencilPos = None
             else:
                 self._lastPencilPos = row, col
+        else:
+            _logger.error("Drawing mode %s unsupported", self._drawingMode)
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""

@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "15/02/2019"
 
 
 import logging
@@ -206,7 +206,7 @@ class TestDrawLine(ParametricTestCase):
             [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5)])
 
         # Build lines for the 8 octants from this coordinantes
-        lines = { # name: (drow, dcol, ref_coords)
+        lines = {  # name: (drow, dcol, ref_coords)
             '1st octant': (dy, dx, ref_coords),
             '2nd octant': (dx, dy, ref_coords[:, (1, 0)]),  # invert x and y
             '3rd octant': (dx, -dy, ref_coords[:, (1, 0)] * (1, -1)),
@@ -233,7 +233,7 @@ class TestDrawLine(ParametricTestCase):
     def test_width(self):
         """Test of line width"""
 
-        lines = { # test_name: row0, col0, row1, col1, width, ref
+        lines = {  # test_name: row0, col0, row1, col1, width, ref
             'horizontal w=2':
                 (0, 0, 0, 1, 2, ((0, 1, 0, 1),
                                  (0, 0, 1, 1))),
@@ -288,7 +288,7 @@ class TestCircleFill(ParametricTestCase):
                                  (-1, 0, 1, -1, 0, 1, -1, 0, 1)))
 
         tests = [
-            #crow, ccol, radius, ref_coords = (ref_rows, ref_cols)
+            # crow, ccol, radius, ref_coords = (ref_rows, ref_cols)
             (0, 0, 1, ((0,), (0,))),
             (10, 15, 1, ((10,), (15,))),
             (0, 0, 1.5, square3x3),
@@ -320,9 +320,43 @@ class TestCircleFill(ParametricTestCase):
                 self.assertTrue(is_equal)
 
 
+class TestEllipseFill(unittest.TestCase):
+    """Tests for ellipse filling"""
+
+    def testPoint(self):
+        args = [1, 1, 1, 1]
+        result = shapes.ellipse_fill(*args)
+        expected = numpy.array(([1], [1]))
+        numpy.testing.assert_array_equal(result, expected)
+
+    def testTranslatedPoint(self):
+        args = [10, 10, 1, 1]
+        result = shapes.ellipse_fill(*args)
+        expected = numpy.array(([10], [10]))
+        numpy.testing.assert_array_equal(result, expected)
+
+    def testEllipse(self):
+        args = [0, 0, 20, 10]
+        rows, cols = shapes.ellipse_fill(*args)
+        self.assertEqual(len(rows), 617)
+        self.assertEqual(rows.mean(), 0)
+        self.assertAlmostEqual(rows.std(), 10.025575, places=3)
+        self.assertEqual(len(cols), 617)
+        self.assertEqual(cols.mean(), 0)
+        self.assertAlmostEqual(cols.std(), 4.897325, places=3)
+
+    def testTranslatedEllipse(self):
+        args = [0, 0, 20, 10]
+        expected_rows, expected_cols = shapes.ellipse_fill(*args)
+        args = [10, 50, 20, 10]
+        rows, cols = shapes.ellipse_fill(*args)
+        numpy.testing.assert_allclose(rows, expected_rows + 10)
+        numpy.testing.assert_allclose(cols, expected_cols + 50)
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    for testClass in (TestPolygonFill, TestDrawLine, TestCircleFill):
+    for testClass in (TestPolygonFill, TestDrawLine, TestCircleFill, TestEllipseFill):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(testClass))
     return test_suite
