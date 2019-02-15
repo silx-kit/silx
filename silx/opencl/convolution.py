@@ -267,6 +267,12 @@ class Convolution(OpenclProcessing):
 
 
     def _init_kernels(self):
+        # TODO
+        if self.kernel_ndim > 1:
+            if np.abs(np.diff(self.kernel.shape)).max() > 0:
+                raise NotImplementedError(
+                    "Non-separable convolution with non-square kernels is not implemented yet"
+                )
         compile_options = None
         self.compile_kernels(
             kernel_files=None,
@@ -274,8 +280,8 @@ class Convolution(OpenclProcessing):
         )
         self.ndrange = np.int32(self.shape)[::-1]
         self.wg = None
-        self.kernel_args = {
-            1: (
+        if self.kernel_ndim == 1:
+            self.kernel_args = (
                 self.queue,
                 self.ndrange,
                 self.wg,
@@ -287,7 +293,37 @@ class Convolution(OpenclProcessing):
                 self.Ny,
                 self.Nz
             )
-        }
+        elif self.kernel_ndim == 2:
+            self.kernel_args = (
+                self.queue,
+                self.ndrange,
+                self.wg,
+                self.data_in.data,
+                self.data_out.data,
+                self.d_kernel.data,
+                np.int32(self.kernel.shape[1]),
+                np.int32(self.kernel.shape[0]),
+                self.Nx,
+                self.Ny,
+                self.Nz
+            )
+        else:
+            self.kernel_args = (
+                self.queue,
+                self.ndrange,
+                self.wg,
+                self.data_in.data,
+                self.data_out.data,
+                self.d_kernel.data,
+                np.int32(self.kernel.shape[2]),
+                np.int32(self.kernel.shape[1]),
+                np.int32(self.kernel.shape[0]),
+                self.Nx,
+                self.Ny,
+                self.Nz
+            )
+
+
         # If self.data_tmp is allocated, separable transforms can be performed
         # by a series of batched transforms, without any copy, by swapping refs.
         self.swap_pattern = None
@@ -360,7 +396,6 @@ class Convolution(OpenclProcessing):
 
 
     def _separable_convolution(self):
-        print("Separable axes=%s , kernels = %s" % (str(self.axes), str(self.use_case_kernels))) # DEBUG
         assert len(self.axes) == len(self.use_case_kernels)
         n_batchs = len(self.axes)
         swap_pattern = self.swap_pattern[n_batchs]
@@ -372,15 +407,20 @@ class Convolution(OpenclProcessing):
 
     def _batched_convolution(self, axis, input_ref=None, output_ref=None):
         # Batched: one kernel call in total
-        print("Doing batched %s along axis %d" % (self.use_case_kernels[axis], axis)) # DEBUG
 
         opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[axis])
         opencl_kernel_args = self._configure_kernel_args(
-            self.kernel_args[self.kernel_ndim],
+            self.kernel_args,
             input_ref,
             output_ref
         )
         opencl_kernel(*opencl_kernel_args) # TODO event
+
+
+    def _nd_convolution(self):
+        assert len(self.use_case_kernels) == 1
+        opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[0])
+        opencl_kernel(*self.kernel_args) # TODO event
 
 
     def _recover_arrays_references(self):
