@@ -138,7 +138,7 @@ class NXdata(object):
 
             self.axes_names = []
             # check if axis dataset defines @long_name
-            for i, dsname in enumerate(self.axes_dataset_names):
+            for _, dsname in enumerate(self.axes_dataset_names):
                 if dsname is not None and "long_name" in self.group[dsname].attrs:
                     self.axes_names.append(get_attr_as_unicode(self.group[dsname], "long_name"))
                 else:
