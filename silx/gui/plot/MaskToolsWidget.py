@@ -256,8 +256,6 @@ class ImageMask(BaseMask):
         :param bool mask: True to mask (default), False to unmask.
         """
         rows, cols = shapes.ellipse_fill(crow, ccol, radius_r, radius_c)
-        # FIXME: Why it have to be swapped here?
-        rows, cols = cols, rows
         self.updatePoints(level, rows, cols, mask)
 
     def updateLine(self, level, row0, col0, row1, col1, width, mask=True):
@@ -728,7 +726,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 center = (event['points'][0] - self._origin) / self._scale
                 size = event['points'][1] / self._scale
                 center = center.astype(numpy.int)  # (row, col)
-                self._mask.updateEllipse(level, center[0], center[1], size[0], size[1], doMask)
+                self._mask.updateEllipse(level, center[1], center[0], size[1], size[0], doMask)
                 self._mask.commit()
 
         elif self._drawingMode == 'polygon':

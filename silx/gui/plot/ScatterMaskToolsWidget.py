@@ -163,7 +163,7 @@ class ScatterMask(BaseMask):
         :param bool mask: True to mask (default), False to unmask.
         """
         def is_inside(px, py):
-            return (py - ccol)**2 / radius_c**2 + (px - crow)**2 / radius_r**2 <= 1.0
+            return (px - ccol)**2 / radius_c**2 + (py - crow)**2 / radius_r**2 <= 1.0
         x, y = self._getXY()
         indices_inside = [idx for idx in range(len(x)) if is_inside(x[idx], y[idx])]
         self.updatePoints(level, indices_inside, mask)
@@ -524,8 +524,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                 doMask = self._isMasking()
                 center = event['points'][0]
                 size = event['points'][1]
-                self._mask.updateEllipse(level, center[0], center[1],
-                                         size[0], size[1], doMask)
+                self._mask.updateEllipse(level, center[1], center[0],
+                                         size[1], size[0], doMask)
                 self._mask.commit()
 
         elif self._drawingMode == 'polygon':
