@@ -52,6 +52,7 @@ def suite():
     test_suite.addTests(test_image.suite())
     test_suite.addTests(test_kahan.suite())
     test_suite.addTests(test_stats.suite())
+    test_suite.addTests(test_convolution.suite())
     # Allow to remove sift from the project
     test_base_dir = os.path.dirname(__file__)
     sift_dir = os.path.join(test_base_dir, "..", "sift")

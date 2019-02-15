@@ -280,48 +280,26 @@ class Convolution(OpenclProcessing):
         )
         self.ndrange = np.int32(self.shape)[::-1]
         self.wg = None
-        if self.kernel_ndim == 1:
-            self.kernel_args = (
-                self.queue,
-                self.ndrange,
-                self.wg,
-                self.data_in.data,
-                self.data_out.data,
-                self.d_kernel.data,
-                np.int32(self.kernel.shape[0]),
-                self.Nx,
-                self.Ny,
-                self.Nz
-            )
-        elif self.kernel_ndim == 2:
-            self.kernel_args = (
-                self.queue,
-                self.ndrange,
-                self.wg,
-                self.data_in.data,
-                self.data_out.data,
-                self.d_kernel.data,
-                np.int32(self.kernel.shape[1]),
-                np.int32(self.kernel.shape[0]),
-                self.Nx,
-                self.Ny,
-                self.Nz
-            )
-        else:
-            self.kernel_args = (
-                self.queue,
-                self.ndrange,
-                self.wg,
-                self.data_in.data,
-                self.data_out.data,
-                self.d_kernel.data,
-                np.int32(self.kernel.shape[2]),
-                np.int32(self.kernel.shape[1]),
-                np.int32(self.kernel.shape[0]),
-                self.Nx,
-                self.Ny,
-                self.Nz
-            )
+        kernel_args = [
+            self.queue,
+            self.ndrange,
+            self.wg,
+            self.data_in.data,
+            self.data_out.data,
+            self.d_kernel.data,
+            np.int32(self.kernel.shape[0]),
+            self.Nx,
+            self.Ny,
+            self.Nz
+        ]
+        if self.kernel_ndim == 2:
+            kernel_args.insert(6, self.kernel.shape[1])
+            kernel_args.insert(7, self.kernel.shape[0])
+        if self.kernel_ndim == 3:
+            kernel_args.insert(6, self.kernel.shape[2])
+            kernel_args.insert(7, self.kernel.shape[1])
+            kernel_args.insert(8, self.kernel.shape[0])
+        self.kernel_args = tuple(kernel_args)
 
 
         # If self.data_tmp is allocated, separable transforms can be performed
