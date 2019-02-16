@@ -759,8 +759,8 @@ class NXdata(object):
 
         if self.signal_ndim != 3:
             return False
-        if self.interpretation not in [None, "scalar", "scaler", "vertex"]:
-            # Should 'scaler' and 'scalar' be accepted for a volume view ?
+        if self.interpretation not in [None, "scalar", "scaler"]:
+            # 'scaler' and 'scalar' for a three dimensional array indicate a scalar field in 3D
             return False
         volume_shape = self.signal.shape[-3:]
         for i, axis in enumerate(self.axes[-3:]):
