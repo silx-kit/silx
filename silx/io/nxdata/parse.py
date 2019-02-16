@@ -373,7 +373,7 @@ class NXdata(object):
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        allowed_interpretations = [None, "scalar", "spectrum", "image",
+        allowed_interpretations = [None, "scaler", "scalar", "spectrum", "image",
                                    "rgba-image",  # "hsla-image", "cmyk-image"
                                    "vertex"]
 
@@ -383,7 +383,7 @@ class NXdata(object):
 
         if interpretation not in allowed_interpretations:
             nxdata_logger.warning("Interpretation %s is not valid." % interpretation +
-                                  " Valid values: " + ", ".join(allowed_interpretations))
+                                  " Valid values: " + ", ".join(str(s) for s in allowed_interpretations))
         return interpretation
 
     @property
@@ -759,7 +759,8 @@ class NXdata(object):
 
         if self.signal_ndim != 3:
             return False
-        if self.interpretation not in [None, "scalar", "scaler"]:
+        if self.interpretation not in [None, "scalar", "scaler", "vertex"]:
+            # Should 'scaler' and 'scalar' be accepted for a volume view ?
             return False
         volume_shape = self.signal.shape[-3:]
         for i, axis in enumerate(self.axes[-3:]):
