@@ -350,17 +350,27 @@ class _StatsWidgetBase(object):
         :param Union[PlotWidget,SceneWidget,None] plot:
             The plot containing the items on which statistics are applied
         """
-        from ..plot3d.SceneWidget import SceneWidget  # Lazy import
+        try:
+            import OpenGL
+        except ImportError:
+            has_opengl = False
+        else:
+            has_opengl = True
+            from ..plot3d.SceneWidget import SceneWidget  # Lazy import
         self._dealWithPlotConnection(create=False)
         self.clear()
         if plot is None:
             self._plotWrapper = _Wrapper()
         elif isinstance(plot, PlotWidget):
             self._plotWrapper = _PlotWidgetWrapper(plot)
-        elif isinstance(plot, SceneWidget):
-            self._plotWrapper = _SceneWidgetWrapper(plot)
-        else:  # Expect a ScalarFieldView
-            self._plotWrapper = _ScalarFieldViewWrapper(plot)
+        else:
+            if has_opengl is True:
+                if isinstance(plot, SceneWidget):
+                    self._plotWrapper = _SceneWidgetWrapper(plot)
+                else:  # Expect a ScalarFieldView
+                    self._plotWrapper = _ScalarFieldViewWrapper(plot)
+            else:
+                _logger.warning('OpenGL not installed, %s not managed' % ('SceneWidget qnd ScalarFieldView'))
         self._dealWithPlotConnection(create=True)
 
     def setStats(self, statsHandler):
