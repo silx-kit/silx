@@ -73,6 +73,7 @@ class TestConvolution(unittest.TestCase):
     def setUpClass(cls):
         super(TestConvolution, cls).setUpClass()
         cls.image = np.ascontiguousarray(ascent()[:, :511], dtype="f")
+        cls.data3d = np.tile(cls.image[224:-224, 224:-224], (62, 1, 1))
         cls.kernel = gaussian_kernel(1.)
         cls.kernel2d = np.outer(cls.kernel, cls.kernel)
         cls.kernel3d = np.multiply.outer(cls.kernel2d, cls.kernel)
@@ -86,7 +87,7 @@ class TestConvolution(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.image = None
+        cls.image = cls.data3d = cls.kernel = cls.kernel2d = cls.kernel3d = None
 
 
     @staticmethod
@@ -101,7 +102,11 @@ class TestConvolution(unittest.TestCase):
         ref = scipy_convolve1d(data, self.kernel, mode="wrap")
         metric = self.compare(res, ref)
         logger.info("test_1D: max error = %.2e" % metric)
-        self.assertLess(metric, self.tol["1D"], "Something wrong with 1D convolution")
+        self.assertLess(
+            metric,
+            self.tol["1D"],
+            "Something wrong with %s" % conv.use_case_desc
+        )
 
 
     def test_separable_2D(self):
@@ -115,7 +120,7 @@ class TestConvolution(unittest.TestCase):
         self.assertLess(
             metric,
             self.tol["1D"],
-            "Something wrong with separable 2D convolution"
+            "Something wrong with %s" % conv.use_case_desc
         )
 
 
@@ -131,7 +136,7 @@ class TestConvolution(unittest.TestCase):
         self.assertLess(
             metric,
             self.tol["1D"],
-            "Something wrong with separable 3D convolution"
+            "Something wrong with %s" % conv.use_case_desc
         )
 
 
@@ -146,12 +151,12 @@ class TestConvolution(unittest.TestCase):
         self.assertLess(
             metric,
             self.tol["2D"],
-            "Something wrong with nonseparable 2D convolution"
+            "Something wrong with %s" % conv.use_case_desc
         )
 
 
     def test_nonseparable_3D(self):
-        data = np.tile(self.image[224:-224, 224:-224], (62, 1, 1))
+        data = self.data3d
         kernel = self.kernel3d
         conv = Convolution(data.shape, kernel, ctx=self.ctx)
         res = conv(data)
@@ -161,9 +166,36 @@ class TestConvolution(unittest.TestCase):
         self.assertLess(
             metric,
             self.tol["3D"],
-            "Something wrong with nonseparable 3D convolution"
+            "Something wrong with %s" % conv.use_case_desc
         )
 
+
+    def test_batched_2D(self):
+        """
+        Test batched (nonseparable) 2D convolution on 3D data.
+        In this test: batch along "z" (axis 0)
+        """
+        data = self.data3d
+        kernel = self.kernel2d
+        conv = Convolution(data.shape, kernel, ctx=self.ctx, axes=(0,))
+        res = conv(data) # 3D
+        ref = scipy_convolve(data[0], kernel, mode="wrap") # 2D
+
+        std = np.std(res, axis=0)
+        std_max = np.max(np.abs(std))
+        self.assertLess(
+            std_max,
+            self.tol["2D"],
+            "Something wrong with %s" % conv.use_case_desc
+        )
+
+        metric = self.compare(res[0], ref)
+        logger.info("test_nonseparable_3D: max error = %.2e" % metric)
+        self.assertLess(
+            metric,
+            self.tol["2D"],
+            "Something wrong with %s" % conv.use_case_desc
+        )
 
 
 def suite():
@@ -173,6 +205,7 @@ def suite():
     testSuite.addTest(TestConvolution("test_separable_3D"))
     testSuite.addTest(TestConvolution("test_nonseparable_2D"))
     testSuite.addTest(TestConvolution("test_nonseparable_3D"))
+    testSuite.addTest(TestConvolution("test_batched_2D"))
     return testSuite
 
 
