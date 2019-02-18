@@ -29,6 +29,7 @@ __license__ = "MIT"
 __date__ = "12/11/2018"
 
 import logging
+import numbers
 import numpy
 
 from silx.gui import qt
@@ -938,6 +939,20 @@ class ArrayVolumePlot(qt.QWidget):
         """
         return self._view
 
+    def normalizeComplexData(self, data):
+        """
+        Converts a complex data array to its amplitude, if necessary.
+        :param data: the data to normalize
+        :return:
+        """
+        if hasattr(data, "dtype"):
+            isComplex = numpy.issubdtype(data.dtype, numpy.complexfloating)
+        else:
+            isComplex = isinstance(data, numbers.Complex)
+        if isComplex:
+            data = numpy.absolute(data)
+        return data
+
     def setData(self, signal,
                 x_axis=None, y_axis=None, z_axis=None,
                 signal_name=None,
@@ -962,6 +977,7 @@ class ArrayVolumePlot(qt.QWidget):
         :param zlabel: Label for Z axis
         :param title: Graph title
         """
+        signal = self.normalizeComplexData(signal)
         if self.__selector_is_connected:
             self._selector.selectionChanged.disconnect(self._updateVolume)
             self.__selector_is_connected = False

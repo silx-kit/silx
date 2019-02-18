@@ -1746,6 +1746,53 @@ class _NXdataVolumeAsStackView(DataView):
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
+        if info.isComplex:
+            return DataView.UNSUPPORTED
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_volume:
+                return 200
+
+        return DataView.UNSUPPORTED
+
+class _NXdataComplexVolumeAsStackView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent,
+                          label="NXdata (2D)",
+                          icon=icons.getQIcon("view-nexus"),
+                          modeId=NXDATA_VOLUME_AS_STACK_MODE)
+        self._is_complex_data = False
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
+        widget = ArrayComplexImagePlot(parent, colormap=self.defaultColormap())
+        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        signal_name = nxd.signal_name
+        z_axis, y_axis, x_axis = nxd.axes[-3:]
+        z_label, y_label, x_label = nxd.axes_names[-3:]
+        title = nxd.title or signal_name
+
+        self.getWidget().setImageData(
+            [nxd.signal] + nxd.auxiliary_signals,
+            x_axis=x_axis, y_axis=y_axis,
+            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            xlabel=x_label, ylabel=y_label, title=nxd.title)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if not info.isComplex:
+            return DataView.UNSUPPORTED
         if info.hasNXdata and not info.isInvalidNXdata:
             if nxdata.get_default(data, validate=False).is_volume:
                 return 200
@@ -1774,5 +1821,6 @@ class _NXdataView(CompositeDataView):
         # The 3D view can be displayed using 2 ways
         nx3dViews = SelectManyDataView(parent)
         nx3dViews.addView(_NXdataVolumeAsStackView(parent))
+        nx3dViews.addView(_NXdataComplexVolumeAsStackView(parent))
         nx3dViews.addView(_NXdataVolumeView(parent))
         self.addView(nx3dViews)
