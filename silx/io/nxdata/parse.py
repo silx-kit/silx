@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ from ._utils import get_attr_as_unicode, INTERPDIM, nxdata_logger, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/11/2018"
+__date__ = "15/02/2019"
 
 
 class InvalidNXdataError(Exception):
@@ -138,7 +138,7 @@ class NXdata(object):
 
             self.axes_names = []
             # check if axis dataset defines @long_name
-            for i, dsname in enumerate(self.axes_dataset_names):
+            for _, dsname in enumerate(self.axes_dataset_names):
                 if dsname is not None and "long_name" in self.group[dsname].attrs:
                     self.axes_names.append(get_attr_as_unicode(self.group[dsname], "long_name"))
                 else:
@@ -743,6 +743,27 @@ class NXdata(object):
         stack_shape = self.signal.shape[-3:]
         for i, axis in enumerate(self.axes[-3:]):
             if axis is not None and len(axis) not in [stack_shape[i], 2]:
+                return False
+        return True
+
+    @property
+    def is_volume(self):
+        """True in the signal is exactly 3D and interpretation
+            "scalar", or nothing.
+
+        The axes length must also be consistent with the 3 dimensions
+        of the signal.
+        """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
+        if self.signal_ndim != 3:
+            return False
+        if self.interpretation not in [None, "scalar", "scaler"]:
+            return False
+        volume_shape = self.signal.shape[-3:]
+        for i, axis in enumerate(self.axes[-3:]):
+            if axis is not None and len(axis) not in [volume_shape[i], 2]:
                 return False
         return True
 
