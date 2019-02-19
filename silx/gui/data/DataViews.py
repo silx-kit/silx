@@ -42,7 +42,7 @@ from silx.gui.dialog.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/02/2019"
+__date__ = "19/02/2019"
 
 _logger = logging.getLogger(__name__)
 
@@ -754,6 +754,7 @@ class SelectManyDataView(_CompositeDataView):
 
         # replace oldView with new view in dict
         self.__views[iview] = newView
+        return True
 
 
 class _EmptyView(DataView):
@@ -1822,5 +1823,9 @@ class _NXdataView(CompositeDataView):
         nx3dViews = SelectManyDataView(parent)
         nx3dViews.addView(_NXdataVolumeAsStackView(parent))
         nx3dViews.addView(_NXdataComplexVolumeAsStackView(parent))
-        nx3dViews.addView(_NXdataVolumeView(parent))
+        try:
+            nx3dViews.addView(_NXdataVolumeView(parent))
+        except Exception:
+            _logger.warning("NXdataVolumeView is not available")
+            _logger.debug("Backtrace", exc_info=True)
         self.addView(nx3dViews)
