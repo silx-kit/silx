@@ -1823,5 +1823,9 @@ class _NXdataView(CompositeDataView):
         nx3dViews = SelectManyDataView(parent)
         nx3dViews.addView(_NXdataVolumeAsStackView(parent))
         nx3dViews.addView(_NXdataComplexVolumeAsStackView(parent))
-        nx3dViews.addView(_NXdataVolumeView(parent))
+        try:
+            nx3dViews.addView(_NXdataVolumeView(parent))
+        except Exception:
+            _logger.warning("NXdataVolumeView is not available")
+            _logger.debug("Backtrace", exc_info=True)
         self.addView(nx3dViews)
