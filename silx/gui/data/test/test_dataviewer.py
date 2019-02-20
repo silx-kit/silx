@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/04/2018"
+__date__ = "19/02/2019"
 
 import os
 import tempfile
@@ -237,8 +237,9 @@ class AbstractDataViewerTests(TestCaseQt):
         # replace a view that is a child of a composite view
         widget = self.create_widget()
         view = _DataViewMock(widget)
-        widget.replaceView(DataViews.NXDATA_INVALID_MODE,
-                           view)
+        replaced = widget.replaceView(DataViews.NXDATA_INVALID_MODE,
+                                      view)
+        self.assertTrue(replaced)
         nxdata_view = widget.getViewFromModeId(DataViews.NXDATA_MODE)
         self.assertNotIn(DataViews.NXDATA_INVALID_MODE,
                          [v.modeId() for v in nxdata_view.availableViews()])
