@@ -35,7 +35,7 @@ import numpy as np
 
 from .common import pyopencl as cl
 import pyopencl.array as parray
-from .processing import OpenclProcessing
+from .processing import OpenclProcessing, EventDescription
 
 
 class ConvolutionInfos(object):
@@ -160,8 +160,6 @@ class Convolution(OpenclProcessing):
         self._init_kernels()
 
 
-    # TODO for separable transform, "allocate_tmp_array"
-    # for swapping references instead of copying data_out to data_in
     def _configure_extra_options(self, extra_options):
         self.extra_options = {
             "allocate_input_array": True,
@@ -298,18 +296,37 @@ class Convolution(OpenclProcessing):
         if self.data_tmp is not None:
             self.swap_pattern = {
                 2: [
-                    (self.data_in, self.data_tmp),
-                    (self.data_tmp, self.data_out)
+                    ("data_in", "data_tmp"),
+                    ("data_tmp", "data_out")
                 ],
                 3: [
-                    (self.data_in, self.data_out),
-                    (self.data_out, self.data_tmp),
-                    (self.data_tmp, self.data_out),
+                    ("data_in", "data_out"),
+                    ("data_out", "data_tmp"),
+                    ("data_tmp", "data_out"),
                 ],
             }
         else:
             # TODO
             raise NotImplementedError("For now, data_tmp has to be allocated")
+
+
+    def _get_swapped_arrays(self, i):
+        n_batchs = len(self.axes)
+        in_ref, out_ref = self.swap_pattern[n_batchs][i]
+        d_in = getattr(self, in_ref)
+        d_out = getattr(self, out_ref)
+        return d_in, d_out
+
+
+    def _configure_kernel_args(self, opencl_kernel_args, input_ref, output_ref):
+        if input_ref is not None or output_ref is not None:
+            opencl_kernel_args = list(opencl_kernel_args)
+            if input_ref is not None:
+                opencl_kernel_args[3] = input_ref.data
+            if output_ref is not None:
+                opencl_kernel_args[4] = output_ref.data
+            opencl_kernel_args = tuple(opencl_kernel_args)
+        return opencl_kernel_args
 
 
     @staticmethod
@@ -345,31 +362,22 @@ class Convolution(OpenclProcessing):
             self._old_input_ref = self.data_in
             self.data_in = array
         if output is not None:
-            if isinstance(output, np.ndarray):
-                self.data_out.fill(0)
-            else:
+            if not(isinstance(output, np.ndarray)):
                 self._old_output_ref = self.data_out
                 self.data_out = output
-
-
-    def _configure_kernel_args(self, opencl_kernel_args, input_ref, output_ref):
-        if input_ref is not None or output_ref is not None:
-            opencl_kernel_args = list(opencl_kernel_args)
-            if input_ref is not None:
-                opencl_kernel_args[3] = input_ref.data
-            if output_ref is not None:
-                opencl_kernel_args[4] = output_ref.data
-            opencl_kernel_args = tuple(opencl_kernel_args)
-        return opencl_kernel_args
+        # Update OpenCL kernel arguments with new array references
+        self.kernel_args = self._configure_kernel_args(
+            self.kernel_args,
+            self.data_in,
+            self.data_out
+        )
 
 
     def _separable_convolution(self):
         assert len(self.axes) == len(self.use_case_kernels)
-        n_batchs = len(self.axes)
-        swap_pattern = self.swap_pattern[n_batchs]
         # Separable: one kernel call per data dimension
         for i, axis in enumerate(self.axes):
-            in_ref, out_ref = swap_pattern[i]
+            in_ref, out_ref = self._get_swapped_arrays(i)
             self._batched_convolution(axis, input_ref=in_ref, output_ref=out_ref)
 
 
@@ -381,13 +389,17 @@ class Convolution(OpenclProcessing):
             input_ref,
             output_ref
         )
-        opencl_kernel(*opencl_kernel_args) # TODO event
+        ev = opencl_kernel(*opencl_kernel_args)
+        if self.profile:
+            self.events.append(EventDescription("batched convolution", ev))
 
 
     def _nd_convolution(self):
         assert len(self.use_case_kernels) == 1
         opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[0])
-        opencl_kernel(*self.kernel_args) # TODO event
+        ev = opencl_kernel(*self.kernel_args)
+        if self.profile:
+            self.events.append(EventDescription("ND convolution", ev))
 
 
     def _recover_arrays_references(self):
@@ -397,6 +409,11 @@ class Convolution(OpenclProcessing):
         if self._old_output_ref is not None:
             self.data_out = self._old_output_ref
             self._old_output_ref = None
+        self.kernel_args = self._configure_kernel_args(
+            self.kernel_args,
+            self.data_in,
+            self.data_out
+        )
 
 
     def _get_output(self, output):
@@ -410,10 +427,13 @@ class Convolution(OpenclProcessing):
         return res
 
 
-    # TODO
-    #  - Modify kernel on the fly
-    #  - Modify axes on the fly
     def convolve(self, array, output=None):
+        """
+        Convolve an array with the class kernel.
+
+        :param array: Input array. Can be numpy.ndarray or pyopencl.array.Array.
+        :param output: Output array. Can be numpy.ndarray or pyopencl.array.Array.
+        """
         self._check_array(array)
         self._set_arrays(array, output=output)
         if self.axes is not None:
