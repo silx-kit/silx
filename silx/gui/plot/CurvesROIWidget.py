@@ -1067,8 +1067,9 @@ class ROI(qt.QObject):
 
         :param str type_:
         """
-        self._type = type_
-        self.sigChanged.emit()
+        if self._type != type_:
+            self._type = type_
+            self.sigChanged.emit()
 
     def getType(self):
         """
@@ -1083,8 +1084,9 @@ class ROI(qt.QObject):
 
         :param str name:
         """
-        self._name = name
-        self.sigChanged.emit()
+        if self._name != name:
+            self._name = name
+            self.sigChanged.emit()
 
     def getName(self):
         """
@@ -1098,8 +1100,9 @@ class ROI(qt.QObject):
 
         :param frm: set x coordinate of the left limit
         """
-        self._fromdata = frm
-        self.sigChanged.emit()
+        if self._fromdata != frm:
+            self._fromdata = frm
+            self.sigChanged.emit()
 
     def getFrom(self):
         """
@@ -1113,8 +1116,9 @@ class ROI(qt.QObject):
 
         :param to: x coordinate of the right limit
         """
-        self._todata = to
-        self.sigChanged.emit()
+        if self._todata != to:
+            self._todata = to
+            self.sigChanged.emit()
 
     def getTo(self):
         """
