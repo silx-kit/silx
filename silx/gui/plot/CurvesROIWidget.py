@@ -165,6 +165,7 @@ class CurvesROIWidget(qt.QWidget):
 
         # expose API
         self.getROIListAndDict = self.roiTable.getROIListAndDict
+
     def getPlotWidget(self):
         """Returns the associated PlotWidget or None
 
