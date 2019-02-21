@@ -153,12 +153,15 @@ class CurvesROIWidget(qt.QWidget):
 
         layout.addWidget(hbox)
 
+        # Signal / Slot connections
         self.addButton.clicked.connect(self._add)
         self.delButton.clicked.connect(self._del)
         self.resetButton.clicked.connect(self._reset)
 
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
+
+        self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
 
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
@@ -176,7 +179,6 @@ class CurvesROIWidget(qt.QWidget):
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
         qt.QWidget.showEvent(self, event)
-        self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
 
     @property
     def roiFileDir(self):
