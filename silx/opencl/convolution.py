@@ -126,7 +126,7 @@ class Convolution(OpenclProcessing):
     """
     A class for performing convolution on CPU/GPU with OpenCL.
     """
-    kernel_files = ["convolution.cl"]#, "convolution_batched.cl"]
+    kernel_files = ["convolution.cl"]
 
     def __init__(self, shape, kernel, axes=None, ctx=None,
                  devicetype="all", platformid=None, deviceid=None,
@@ -165,9 +165,13 @@ class Convolution(OpenclProcessing):
             "allocate_input_array": True,
             "allocate_output_array": True,
             "allocate_tmp_array": True,
+            "dont_use_textures": False,
         }
         extra_opts = extra_options or {}
         self.extra_options.update(extra_opts)
+        self.is_cpu = (self.device.type == "CPU")
+        self.use_textures = not(self.extra_options["dont_use_textures"])
+        self.use_textures *= not(self.is_cpu)
 
 
     def _get_dimensions(self, shape, kernel):
@@ -257,6 +261,28 @@ class Convolution(OpenclProcessing):
             self.d_kernel = self.kernel
         self._old_input_ref = None
         self._old_output_ref = None
+        if self.use_textures:
+            self._allocate_textures()
+
+
+    def _allocate_tex(self, shape):
+        return cl.Image(
+            self.ctx,
+            cl.mem_flags.READ_ONLY | cl.mem_flags.USE_HOST_PTR,
+            cl.ImageFormat(
+                cl.channel_order.INTENSITY,
+                cl.channel_type.FLOAT
+            ),
+            hostbuf=np.zeros(shape[::-1], dtype=np.float32)
+        )
+
+
+    def _allocate_textures(self):
+        self.data_in_tex = self._allocate_tex(self.shape)
+        self.d_kernel_tex = self._allocate_tex(self.kernel.shape)
+        self._transfer_to_texture(self.d_kernel, self.d_kernel_tex)
+        if self.data_tmp is not None:
+            self.data_tmp_tex = self._allocate_tex(self.shape)
 
 
     def _init_kernels(self):
@@ -266,8 +292,17 @@ class Convolution(OpenclProcessing):
                     "Non-separable convolution with non-square kernels is not implemented yet"
                 )
         compile_options = None
+        if self.use_textures:
+            kernel_files = self.kernel_files
+            kernel_files.append("convolution_textures.cl")
+            data_in_ref = self.data_in_tex
+            d_kernel_ref = self.d_kernel_tex
+        else:
+            kernel_files = None
+            data_in_ref = self.data_in.data
+            d_kernel_ref = self.d_kernel.data
         self.compile_kernels(
-            kernel_files=None,
+            kernel_files=kernel_files,
             compile_options=compile_options
         )
         self.ndrange = np.int32(self.shape)[::-1]
@@ -276,9 +311,9 @@ class Convolution(OpenclProcessing):
             self.queue,
             self.ndrange,
             self.wg,
-            self.data_in.data,
+            data_in_ref,
             self.data_out.data,
-            self.d_kernel.data,
+            d_kernel_ref,
             np.int32(self.kernel.shape[0]),
             self.Nx,
             self.Ny,
@@ -319,12 +354,17 @@ class Convolution(OpenclProcessing):
 
 
     def _configure_kernel_args(self, opencl_kernel_args, input_ref, output_ref):
+        # TODO more elegant
+        if isinstance(input_ref, parray.Array):
+            input_ref = input_ref.data
+        if isinstance(output_ref, parray.Array):
+            output_ref = output_ref.data
         if input_ref is not None or output_ref is not None:
             opencl_kernel_args = list(opencl_kernel_args)
             if input_ref is not None:
-                opencl_kernel_args[3] = input_ref.data
+                opencl_kernel_args[3] = input_ref
             if output_ref is not None:
-                opencl_kernel_args[4] = output_ref.data
+                opencl_kernel_args[4] = output_ref
             opencl_kernel_args = tuple(opencl_kernel_args)
         return opencl_kernel_args
 
@@ -356,6 +396,11 @@ class Convolution(OpenclProcessing):
 
 
     def _set_arrays(self, array, output=None):
+        # When using textures: copy
+        if self.use_textures:
+            self._transfer_to_texture(array, self.data_in_tex)
+            # No need to update kernel arguments as a copy was done.
+            return
         if isinstance(array, np.ndarray):
             self.data_in[:] = array[:]
         else:
@@ -397,6 +442,12 @@ class Convolution(OpenclProcessing):
     def _nd_convolution(self):
         assert len(self.use_case_kernels) == 1
         opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[0])
+        # DEBUG - put this in set_arrays
+        if self.use_textures:
+            self._transfer_to_texture(self.data_in, self.data_in_tex)
+            opencl_kernel = self.kernels.get_kernel("convol_2D_XY_tex")
+            self.kernel_args = self._configure_kernel_args(self.kernel_args, self.data_in_tex, None)
+        # ---
         ev = opencl_kernel(*self.kernel_args)
         if self.profile:
             self.events.append(EventDescription("ND convolution", ev))

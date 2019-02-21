@@ -168,7 +168,7 @@ class OpenclProcessing(object):
                         paramatrized buffers.
         :param use_array: allocate memory as pyopencl.array.Array
                             instead of pyopencl.Buffer
-        
+
         Note that an OpenCL context also requires some memory, as well
         as Event and other OpenCL functionalities which cannot and are
         not taken into account here.  The memory required by a context
@@ -290,6 +290,32 @@ class OpenclProcessing(object):
                 else:
                     self.queue = pyopencl.CommandQueue(self.ctx)
 
+    def profile_add(self, event):
+        """
+        Add an OpenCL event to the events lists, if profiling is enabled.
+
+        :param event: can be a pyopencl._cl.Event or
+            silx.opencl.processing.EventDescription.
+        """
+        if self.profile:
+            self.events.append(event)
+
+    def transfer_to_texture(self, arr, tex_ref):
+        """
+        Transfer an array to a texture.
+
+        :param arr: Input array. Can be a numpy array or a pyopencl array.
+        :param tex_ref: texture reference (pyopencl._cl.Image).
+        """
+        copy_args = [self.queue, tex_ref, arr]
+        copy_kwargs = {"origin":(0, 0), "region": arr.shape[::-1]}
+        if not(isinstance(arr, np.ndarray)): # assuming pyopencl.array.Array
+            # D->D copy
+            copy_args[2] = arr.data
+            copy_kwargs["offset"] = 0
+        ev = pyopencl.enqueue_copy(*copy_args, **copy_kwargs)
+        self.profile_add(ev)
+
     def log_profile(self):
         """If we are in profiling mode, prints out all timing for every single OpenCL call
         """
@@ -328,7 +354,7 @@ class OpenclProcessing(object):
 
     def get_compiler_options(self, x87_volatile=False):
         """Provide the default OpenCL compiler options
-        
+
         :param x87_volatile: needed for Kahan summation
         :return: string with compiler option
         """
