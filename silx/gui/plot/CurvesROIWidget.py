@@ -658,19 +658,26 @@ class ROITable(TableWidget):
                     value = float(item.text())
                 except ValueError:
                     value = 0
+                changed = False
                 if item.column() == self.COLUMNS_INDEX['To']:
-                    roi.setTo(value)
+                    if value != roi.getTo():
+                        roi.setTo(value)
+                        changed = True
                 else:
                     assert(item.column() == self.COLUMNS_INDEX['From'])
-                    roi.setFrom(value)
-                self._updateMarker(roi.getName())
-                signalChanged(roi)
+                    if value != roi.getFrom():
+                        roi.setFrom(value)
+                        changed = True
+                if changed:
+                    self._updateMarker(roi.getName())
+                    signalChanged(roi)
 
         if item.column() is self.COLUMNS_INDEX['ROI']:
             roi = getRoi()
-            roi.setName(item.text())
-            self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
-            signalChanged(roi)
+            if roi.getName() != item.text():
+                roi.setName(item.text())
+                self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
+                signalChanged(roi)
 
         self._userIsEditingRoi = False
 
