@@ -309,7 +309,7 @@ class OpenclProcessing(object):
         """
         copy_args = [self.queue, tex_ref, arr]
         copy_kwargs = {"origin":(0, 0), "region": arr.shape[::-1]}
-        if not(isinstance(arr, np.ndarray)): # assuming pyopencl.array.Array
+        if not(isinstance(arr, numpy.ndarray)): # assuming pyopencl.array.Array
             # D->D copy
             copy_args[2] = arr.data
             copy_kwargs["offset"] = 0
