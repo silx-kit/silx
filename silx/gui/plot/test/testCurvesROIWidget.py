@@ -36,7 +36,7 @@ from collections import OrderedDict
 import numpy
 from silx.gui import qt
 from silx.test.utils import temp_dir
-from silx.gui.utils.testutils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow, CurvesROIWidget
 
 
@@ -129,6 +129,7 @@ class TestCurvesROIWidget(TestCaseQt):
             self.assertAlmostEqual(xMiddleMarker, thValue)
 
     def testAreaCalculation(self):
+        """Test result of area calculation"""
         x = numpy.arange(100.)
         y = numpy.arange(100.)
 
@@ -161,6 +162,7 @@ class TestCurvesROIWidget(TestCaseQt):
                          ((-150.0), 0.0))
 
     def testCountsCalculation(self):
+        """Test result of count calculation"""
         x = numpy.arange(100.)
         y = numpy.arange(100.)
 
@@ -192,6 +194,7 @@ class TestCurvesROIWidget(TestCaseQt):
                          (y[10:21].sum(), 0.0))
 
     def testDeferedInit(self):
+        """Test behavior of the deferedInit"""
         x = numpy.arange(100.)
         y = numpy.arange(100.)
         self.plot.addCurve(x=x, y=y, legend="name", replace="True")
@@ -216,6 +219,7 @@ class TestCurvesROIWidget(TestCaseQt):
         self.assertTrue(roi.toDict() == roiDict)
 
     def testShowAllROI(self):
+        """Test the show allROI action"""
         x = numpy.arange(100.)
         y = numpy.arange(100.)
         self.plot.addCurve(x=x, y=y, legend="name", replace="True")
@@ -292,6 +296,7 @@ class TestCurvesROIWidget(TestCaseQt):
         self.assertTrue(itemRawArea.text() == '2.0')
 
     def testRemoveActiveROI(self):
+        """Test widget behavior when removing the active ROI"""
         roi = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
         self.widget.roiWidget.setRois((roi,))
 
@@ -300,6 +305,23 @@ class TestCurvesROIWidget(TestCaseQt):
         self.widget.roiWidget.setRois((roi,))
         self.plot.setActiveCurve(legend='linearCurve')
         self.widget.calculateROIs()
+
+    def testEmitCurrentROI(self):
+        """Test behavior of the CurvesROIWidget.sigROISignal"""
+        roi = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
+        self.widget.roiWidget.setRois((roi,))
+        signalListener = SignalListener()
+        self.widget.roiWidget.sigROISignal.connect(signalListener.partial())
+        self.widget.show()
+        self.qapp.processEvents()
+        self.assertTrue(signalListener.callCount() is 0)
+        self.assertTrue(self.widget.roiWidget.roiTable.activeRoi is roi)
+        roi.setFrom(0.0)
+        self.qapp.processEvents()
+        self.assertTrue(signalListener.callCount() is 0)
+        roi.setFrom(0.3)
+        self.qapp.processEvents()
+        self.assertTrue(signalListener.callCount() is 1)
 
 
 def suite():
