@@ -290,15 +290,35 @@ class OpenclProcessing(object):
                 else:
                     self.queue = pyopencl.CommandQueue(self.ctx)
 
-    def profile_add(self, event):
+    def profile_add(self, event, desc):
         """
         Add an OpenCL event to the events lists, if profiling is enabled.
 
-        :param event: can be a pyopencl._cl.Event or
-            silx.opencl.processing.EventDescription.
+        :param event: silx.opencl.processing.EventDescription.
+        :param desc: event description
         """
         if self.profile:
-            self.events.append(event)
+            self.events.append(EventDescription(desc, event))
+
+    def allocate_texture(self, shape, hostbuf=None, support_1D=False):
+        """
+        Allocate an OpenCL image ("texture").
+
+        :param shape: Shape of the image. Note that pyopencl and OpenCL < 1.2
+            do not support 1D images, so 1D images are handled as 2D with one row
+        :param support_1D: force the image to be 1D if the shape has only one dim
+        """
+        if len(shape) == 1 and not(support_1D):
+            shape = (1,) + shape
+        return pyopencl.Image(
+            self.ctx,
+            pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.USE_HOST_PTR,
+            pyopencl.ImageFormat(
+                pyopencl.channel_order.INTENSITY,
+                pyopencl.channel_type.FLOAT
+            ),
+            hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32)
+        )
 
     def transfer_to_texture(self, arr, tex_ref):
         """
@@ -308,13 +328,20 @@ class OpenclProcessing(object):
         :param tex_ref: texture reference (pyopencl._cl.Image).
         """
         copy_args = [self.queue, tex_ref, arr]
-        copy_kwargs = {"origin":(0, 0), "region": arr.shape[::-1]}
+        shp = arr.shape
+        ndim = arr.ndim
+        if ndim == 1:
+            # pyopencl and OpenCL < 1.2 do not support image1d_t
+            # force 2D with one row in this case
+            #~ ndim = 2
+            shp = (1,) + shp
+        copy_kwargs = {"origin":(0,) * ndim, "region": shp[::-1]}
         if not(isinstance(arr, numpy.ndarray)): # assuming pyopencl.array.Array
             # D->D copy
             copy_args[2] = arr.data
             copy_kwargs["offset"] = 0
         ev = pyopencl.enqueue_copy(*copy_args, **copy_kwargs)
-        self.profile_add(ev)
+        self.profile_add(ev, "Transfer to texture")
 
     def log_profile(self):
         """If we are in profiling mode, prints out all timing for every single OpenCL call

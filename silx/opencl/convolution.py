@@ -268,22 +268,11 @@ class Convolution(OpenclProcessing):
             self._allocate_textures()
 
 
-    def _allocate_tex(self, shape):
-        return cl.Image(
-            self.ctx,
-            cl.mem_flags.READ_ONLY | cl.mem_flags.USE_HOST_PTR,
-            cl.ImageFormat(
-                cl.channel_order.INTENSITY,
-                cl.channel_type.FLOAT
-            ),
-            hostbuf=np.zeros(shape[::-1], dtype=np.float32)
-        )
-
-
     def _allocate_textures(self):
-        self.data_in_tex = self._allocate_tex(self.shape)
-        self.d_kernel_tex = self._allocate_tex(self.kernel.shape)
+        self.data_in_tex = self.allocate_texture(self.shape)
+        self.d_kernel_tex = self.allocate_texture(self.kernel.shape)
         self.transfer_to_texture(self.d_kernel, self.d_kernel_tex)
+        #~ self.transfer_to_texture(self.kernel, self.d_kernel_tex)
 
 
     def _init_kernels(self):
@@ -292,13 +281,17 @@ class Convolution(OpenclProcessing):
                 raise NotImplementedError(
                     "Non-separable convolution with non-square kernels is not implemented yet"
                 )
-        compile_options = None
         if self.use_textures:
             kernel_files = ["convolution_textures.cl"]
+            compile_options = [
+                str("-DIMAGE_DIMS=%d" % self.data_ndim),
+                str("-DFILTER_DIMS=%d" % self.kernel_ndim),
+            ]
             data_in_ref = self.data_in_tex
             d_kernel_ref = self.d_kernel_tex
         else:
             kernel_files = ["convolution.cl"]
+            compile_options = None
             data_in_ref = self.data_in.data
             d_kernel_ref = self.d_kernel.data
         self.compile_kernels(
@@ -343,6 +336,20 @@ class Convolution(OpenclProcessing):
 
 
     def _get_swapped_arrays(self, i):
+        """
+        Get the input and output arrays to use when using a "swap pattern".
+        Swapping refs enables to avoid copies between temp. array and output.
+        For example, a separable 2D->1D convolution on 2D data reads:
+          data_tmp = convol(data_input, kernel, axis=1) # step i=0
+          data_out = convol(data_tmp, kernel, axis=0) # step i=1
+
+        :param i: current step number of the separable convolution
+        """
+        if self.use_textures:
+            # copy is needed when using texture, as data_out is a Buffer
+            if i > 0:
+                self.transfer_to_texture(self.data_out, self.data_in_tex)
+            return self.data_in_tex, self.data_out
         n_batchs = len(self.axes)
         in_ref, out_ref = self.swap_pattern[n_batchs][i]
         d_in = getattr(self, in_ref)

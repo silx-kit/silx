@@ -2,6 +2,18 @@
 /**************************** Macros ******************************************/
 /******************************************************************************/
 
+// Error handling
+#ifndef IMAGE_DIMS
+    #error "IMAGE_DIMS must be defined"
+#endif
+#ifndef FILTER_DIMS
+    #error "FILTER_DIMS must be defined"
+#endif
+#if FILTER_DIMS > IMAGE_DIMS
+    #error "Filter cannot have more dimensions than image"
+#endif
+
+
 // Convolution index for filter (+0.5f for texture access)
 #define FILTER_INDEX(j) (Lx-1-j+0.5f)
 // Convolution index for image (+0.5f for texture access)
@@ -10,12 +22,12 @@
 #define IMAGE_INDEX_Z (gidz - c + jz + 0.5f)
 
 // Filter access patterns
-#define READ_FILTER_1D(j) read_imagef(filter, sampler, (float) FILTER_INDEX(j)).x;
+#define READ_FILTER_1D(j) read_imagef(filter, sampler, (float2) (FILTER_INDEX(j), 0.0f)).x;
 #define READ_FILTER_2D(jx, jy) read_imagef(filter, sampler, (float2) (FILTER_INDEX(jx), FILTER_INDEX(jy))).x;
 #define READ_FILTER_3D(jx, jy, jz) read_imagef(filter, sampler, (float4) (FILTER_INDEX(jx), FILTER_INDEX(jy), FILTER_INDEX(jz), 0.0f)).x;
 
 // Image access patterns
-#define READ_IMAGE_1D read_imagef(input, sampler, (float) IMAGE_INDEX_X).x
+#define READ_IMAGE_1D read_imagef(input, sampler, (float2) (IMAGE_INDEX_X, 0.0f)).x
 
 #define READ_IMAGE_2D_X read_imagef(input, sampler, (float2) (IMAGE_INDEX_X , gidy + 0.5f)).x
 #define READ_IMAGE_2D_Y read_imagef(input, sampler, (float2) (gidx + 0.5f , IMAGE_INDEX_Y)).x
@@ -29,8 +41,9 @@
 #define READ_IMAGE_3D_YZ read_imagef(input, sampler, (float4) (gidx+0.5f, IMAGE_INDEX_Y, IMAGE_INDEX_Z, 0.0f)).x
 #define READ_IMAGE_3D_XYZ read_imagef(input, sampler, (float4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, IMAGE_INDEX_Z, 0.0f)).x
 
+// NOTE: pyopencl and OpenCL < 1.2 do not support image1d_t
 #if FILTER_DIMS == 1
-    #define FILTER_TYPE image1d_t
+    #define FILTER_TYPE image2d_t
     #define READ_FILTER_VAL(j) READ_FILTER_1D(j)
 #elif FILTER_DIMS == 2
     #define FILTER_TYPE image2d_t
@@ -41,7 +54,7 @@
 #endif
 
 #if IMAGE_DIMS == 1
-    #define IMAGE_TYPE image1d_t
+    #define IMAGE_TYPE image2d_t
     #define READ_IMAGE_X READ_IMAGE_1D
 #elif IMAGE_DIMS == 2
     #define IMAGE_TYPE image2d_t
@@ -59,9 +72,6 @@
     #define READ_IMAGE_XYZ READ_IMAGE_3D_XYZ
 #endif
 
-#if FILTER_DIMS > IMAGE_DIMS
-    #error "Filter cannot have more dimensions than image"
-#endif
 
 // Get the center index of the filter,
 // and the "half-Left" and "half-Right" lengths.
