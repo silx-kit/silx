@@ -164,7 +164,7 @@ class Convolution(OpenclProcessing):
             "allocate_input_array": True,
             "allocate_output_array": True,
             "allocate_tmp_array": True,
-            "dont_use_textures": False,
+            "dont_use_textures": True,
         }
         extra_opts = extra_options or {}
         self.extra_options.update(extra_opts)
