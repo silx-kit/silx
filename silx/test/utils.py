@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -96,6 +96,15 @@ class _TestOptions(object):
         elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
             self.WITH_GL_TEST = False
             self.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
+        elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+            self.WITH_GL_TEST = False
+            self.WITH_GL_TEST_REASON = "DISPLAY env variable not set"
+        else:
+            try:
+                import OpenGL
+            except ImportError:
+                self.WITH_GL_TEST = False
+                self.WITH_GL_TEST_REASON = "OpenGL package not available"
 
         if (parsed_options is not None and parsed_options.low_mem) or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
             self.TEST_LOW_MEM = True
