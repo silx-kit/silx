@@ -37,8 +37,10 @@ __copyright__ = "2019 European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "15/02/2019"
 
 import logging
+from itertools import product
 import numpy as np
 from math import ceil
+from silx.utils.testutils import parameterize
 try:
     from scipy.ndimage import convolve, convolve1d
     from scipy.misc import ascent
@@ -84,16 +86,17 @@ class TestConvolution(unittest.TestCase):
             "3D": 1e-3,
         }
 
-
     @classmethod
     def tearDownClass(cls):
         cls.image = cls.data3d = cls.kernel = cls.kernel2d = cls.kernel3d = None
-
 
     @staticmethod
     def compare(arr1, arr2):
         return np.max(np.abs(arr1 - arr2))
 
+    def __init__(self, methodName='runTest', param=None):
+        unittest.TestCase.__init__(self, methodName)
+        self.param = param
 
     def test_1D(self):
         data = self.image[0]
@@ -198,14 +201,59 @@ class TestConvolution(unittest.TestCase):
         )
 
 
-def suite():
+
+# - image samples per dimension
+# - kernel size (odd/even)
+# - boundary handling methods
+# - use textures or not
+# - imput/output are on GPU
+def test_convolution():
+    test_case_params = {
+        "boundary_handling": ["periodic"],
+        "use_textures": [True, False],
+        "input_gpu": [True, False],
+        "output_gpu": [True, False],
+    }
     testSuite = unittest.TestSuite()
-    testSuite.addTest(TestConvolution("test_1D"))
-    testSuite.addTest(TestConvolution("test_separable_2D"))
-    testSuite.addTest(TestConvolution("test_separable_3D"))
-    testSuite.addTest(TestConvolution("test_nonseparable_2D"))
-    testSuite.addTest(TestConvolution("test_nonseparable_3D"))
-    testSuite.addTest(TestConvolution("test_batched_2D"))
+
+    param_vals = list(product(*test_case_params.values()))
+    for boundary_handling, use_textures, input_gpu, output_gpu in param_vals:
+        logger.debug(
+            """
+            Testing convolution with boundary_handling=%s,
+            use_textures=%s, input_gpu=%s, output_gpu=%s
+            """
+            % (boundary_handling, use_textures, input_gpu, output_gpu)
+        )
+        testcase = parameterize(
+            TestConvolution,
+            param={
+                "boundary_handling": boundary_handling,
+                "input_gpu": input_gpu,
+                "output_gpu": output_gpu,
+                "use_textures": use_textures,
+            }
+        )
+        #~ testSuite.addTest(testcase)
+        testSuite.addTest(testcase("test_1D"))
+        testSuite.addTest(testcase("test_separable_2D"))
+        testSuite.addTest(testcase("test_separable_3D"))
+        testSuite.addTest(testcase("test_nonseparable_2D"))
+        testSuite.addTest(testcase("test_nonseparable_3D"))
+        testSuite.addTest(testcase("test_batched_2D"))
+    return testSuite
+
+
+
+def suite():
+    testSuite = test_convolution()
+    #~ testSuite = unittest.TestSuite()
+    #~ testSuite.addTest(TestConvolution("test_1D"))
+    #~ testSuite.addTest(TestConvolution("test_separable_2D"))
+    #~ testSuite.addTest(TestConvolution("test_separable_3D"))
+    #~ testSuite.addTest(TestConvolution("test_nonseparable_2D"))
+    #~ testSuite.addTest(TestConvolution("test_nonseparable_3D"))
+    #~ testSuite.addTest(TestConvolution("test_batched_2D"))
     return testSuite
 
 

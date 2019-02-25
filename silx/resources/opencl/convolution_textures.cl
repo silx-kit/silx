@@ -13,33 +13,40 @@
     #error "Filter cannot have more dimensions than image"
 #endif
 
+/*
+// Boundary handling modes
+#define BOUNDARY_MODE_PERIODIC 0
+#define BOUNDARY_MODE_REFLECT CLK_ADDRESS_MIRRORED_REPEAT
+#define BOUNDARY_MODE_WRAP BOUNDARY_MODE_PERIODIC
 
-// Convolution index for filter (+0.5f for texture access)
-#define FILTER_INDEX(j) (Lx-1-j+0.5f)
-// Convolution index for image (+0.5f for texture access)
-#define IMAGE_INDEX_X (gidx - c + jx + 0.5f)
-#define IMAGE_INDEX_Y (gidy - c + jy + 0.5f)
-#define IMAGE_INDEX_Z (gidz - c + jz + 0.5f)
+*/
+
+// Convolution index for filter (+0.5f*0 for texture access)
+#define FILTER_INDEX(j) (Lx - 1 - j)
+// Convolution index for image (+0.5f*0 for texture access)
+#define IMAGE_INDEX_X (gidx - c + jx)
+#define IMAGE_INDEX_Y (gidy - c + jy)
+#define IMAGE_INDEX_Z (gidz - c + jz)
 
 // Filter access patterns
-#define READ_FILTER_1D(j) read_imagef(filter, sampler, (float2) (FILTER_INDEX(j), 0.0f)).x;
-#define READ_FILTER_2D(jx, jy) read_imagef(filter, sampler, (float2) (FILTER_INDEX(jx), FILTER_INDEX(jy))).x;
-#define READ_FILTER_3D(jx, jy, jz) read_imagef(filter, sampler, (float4) (FILTER_INDEX(jx), FILTER_INDEX(jy), FILTER_INDEX(jz), 0.0f)).x;
+#define READ_FILTER_1D(j) read_imagef(filter, sampler, (int2) (FILTER_INDEX(j), 0)).x;
+#define READ_FILTER_2D(jx, jy) read_imagef(filter, sampler, (int2) (FILTER_INDEX(jx), FILTER_INDEX(jy))).x;
+#define READ_FILTER_3D(jx, jy, jz) read_imagef(filter, sampler, (int4) (FILTER_INDEX(jx), FILTER_INDEX(jy), FILTER_INDEX(jz), 0)).x;
 
 // Image access patterns
-#define READ_IMAGE_1D read_imagef(input, sampler, (float2) (IMAGE_INDEX_X, 0.0f)).x
+#define READ_IMAGE_1D read_imagef(input, sampler, (int2) (IMAGE_INDEX_X, 0)).x
 
-#define READ_IMAGE_2D_X read_imagef(input, sampler, (float2) (IMAGE_INDEX_X , gidy + 0.5f)).x
-#define READ_IMAGE_2D_Y read_imagef(input, sampler, (float2) (gidx + 0.5f , IMAGE_INDEX_Y)).x
-#define READ_IMAGE_2D_XY read_imagef(input, sampler, (float2) (IMAGE_INDEX_X, IMAGE_INDEX_Y)).x
+#define READ_IMAGE_2D_X read_imagef(input, sampler, (int2) (IMAGE_INDEX_X , gidy)).x
+#define READ_IMAGE_2D_Y read_imagef(input, sampler, (int2) (gidx, IMAGE_INDEX_Y)).x
+#define READ_IMAGE_2D_XY read_imagef(input, sampler, (int2) (IMAGE_INDEX_X, IMAGE_INDEX_Y)).x
 
-#define READ_IMAGE_3D_X read_imagef(input, sampler, (float4) (IMAGE_INDEX_X, gidy+0.5f, gidz+0.5f, 0.0f)).x
-#define READ_IMAGE_3D_Y read_imagef(input, sampler, (float4) (gidx+0.5f, IMAGE_INDEX_Y, gidz+0.5f, 0.0f)).x
-#define READ_IMAGE_3D_Z read_imagef(input, sampler, (float4) (gidx+0.5f, gidy+0.5f, IMAGE_INDEX_Z, 0.0f)).x
-#define READ_IMAGE_3D_XY read_imagef(input, sampler, (float4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, gidz+0.5f, 0.0f)).x
-#define READ_IMAGE_3D_XZ read_imagef(input, sampler, (float4) (IMAGE_INDEX_X, gidy+0.5f, IMAGE_INDEX_Z, 0.0f)).x
-#define READ_IMAGE_3D_YZ read_imagef(input, sampler, (float4) (gidx+0.5f, IMAGE_INDEX_Y, IMAGE_INDEX_Z, 0.0f)).x
-#define READ_IMAGE_3D_XYZ read_imagef(input, sampler, (float4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, IMAGE_INDEX_Z, 0.0f)).x
+#define READ_IMAGE_3D_X read_imagef(input, sampler, (int4) (IMAGE_INDEX_X, gidy, gidz, 0)).x
+#define READ_IMAGE_3D_Y read_imagef(input, sampler, (int4) (gidx, IMAGE_INDEX_Y, gidz, 0)).x
+#define READ_IMAGE_3D_Z read_imagef(input, sampler, (int4) (gidx, gidy, IMAGE_INDEX_Z, 0)).x
+#define READ_IMAGE_3D_XY read_imagef(input, sampler, (int4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, gidz, 0)).x
+#define READ_IMAGE_3D_XZ read_imagef(input, sampler, (int4) (IMAGE_INDEX_X, gidy, IMAGE_INDEX_Z, 0)).x
+#define READ_IMAGE_3D_YZ read_imagef(input, sampler, (int4) (gidx, IMAGE_INDEX_Y, IMAGE_INDEX_Z, 0)).x
+#define READ_IMAGE_3D_XYZ read_imagef(input, sampler, (int4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, IMAGE_INDEX_Z, 0)).x
 
 // NOTE: pyopencl and OpenCL < 1.2 do not support image1d_t
 #if FILTER_DIMS == 1

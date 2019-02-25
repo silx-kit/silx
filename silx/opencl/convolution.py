@@ -127,7 +127,7 @@ class Convolution(OpenclProcessing):
     A class for performing convolution on CPU/GPU with OpenCL.
     """
 
-    def __init__(self, shape, kernel, axes=None, ctx=None,
+    def __init__(self, shape, kernel, axes=None, mode=None, ctx=None,
                  devicetype="all", platformid=None, deviceid=None,
                  profile=False, extra_options=None):
         """Constructor of OpenCL Convolution.
@@ -136,6 +136,7 @@ class Convolution(OpenclProcessing):
         :param kernel: convolution kernel (1D, 2D or 3D).
         :param axes: axes along which the convolution is performed,
             for batched convolutions.
+        :param mode: Boundary handling mode. Default is ??
         :param ctx: actual working context, left to None for automatic
                     initialization from device type or platformid/deviceid
         :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
