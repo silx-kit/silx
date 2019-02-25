@@ -13,40 +13,82 @@
     #error "Filter cannot have more dimensions than image"
 #endif
 
-/*
 // Boundary handling modes
-#define BOUNDARY_MODE_PERIODIC 0
-#define BOUNDARY_MODE_REFLECT CLK_ADDRESS_MIRRORED_REPEAT
-#define BOUNDARY_MODE_WRAP BOUNDARY_MODE_PERIODIC
+#define CONV_MODE_REFLECT 0 // CLK_ADDRESS_MIRRORED_REPEAT
+#define CONV_MODE_NEAREST 1 // CLK_ADDRESS_CLAMP_TO_EDGE
+#define CONV_MODE_WRAP 2 // CLK_ADDRESS_REPEAT
+#define CONV_MODE_CONSTANT 3 // CLK_ADDRESS_CLAMP
+#ifndef CONV_MODE
+    #define CONV_MODE CONV_MODE_NEAREST
+#endif
+#if CONV_MODE == CONV_MODE_REFLECT
+    #define CLK_BOUNDARY CLK_ADDRESS_MIRRORED_REPEAT
+    #define CLK_COORDS CLK_NORMALIZED_COORDS_TRUE
+#elif CONV_MODE == CONV_MODE_NEAREST
+    #define CLK_BOUNDARY CLK_ADDRESS_CLAMP_TO_EDGE
+    #define CLK_COORDS CLK_NORMALIZED_COORDS_FALSE
+#elif CONV_MODE == CONV_MODE_WRAP
+    #define CLK_BOUNDARY  CLK_ADDRESS_REPEAT
+    #define CLK_COORDS CLK_NORMALIZED_COORDS_TRUE
+#elif CONV_MODE == CONV_MODE_CONSTANT
+    #define CLK_BOUNDARY CLK_ADDRESS_CLAMP
+    #define CLK_COORDS CLK_NORMALIZED_COORDS_FALSE
+#else
+    #error "Unknown convolution mode"
+#endif
 
-*/
 
-// Convolution index for filter (+0.5f*0 for texture access)
+static const sampler_t sampler = CLK_COORDS | CLK_BOUNDARY | CLK_FILTER_NEAREST;
+static const sampler_t filter_sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+
+
+// Convolution index for filter
 #define FILTER_INDEX(j) (Lx - 1 - j)
-// Convolution index for image (+0.5f*0 for texture access)
-#define IMAGE_INDEX_X (gidx - c + jx)
-#define IMAGE_INDEX_Y (gidy - c + jy)
-#define IMAGE_INDEX_Z (gidz - c + jz)
+// Convolution index for image
+#if CLK_COORDS == CLK_NORMALIZED_COORDS_FALSE
+    #define IMAGE_INDEX_X (gidx - c + jx)
+    #define IMAGE_INDEX_Y (gidy - c + jy)
+    #define IMAGE_INDEX_Z (gidz - c + jz)
+    #define RET_TYPE_1 int
+    #define RET_TYPE_2 int2
+    #define RET_TYPE_4 int4
+    #define C_ZERO 0
+    #define GIDX gidx
+    #define GIDY gidy
+    #define GIDZ gidz
+#else
+    #define IMAGE_INDEX_X (gidx - c + jx*1.0f)/Nx
+    #define IMAGE_INDEX_Y (gidy - c + jy*1.0f)/Ny
+    #define IMAGE_INDEX_Z (gidz - c + jz*1.0f)/Nz
+    #define RET_TYPE_1 float
+    #define RET_TYPE_2 float2
+    #define RET_TYPE_4 float4
+    #define C_ZERO 0.0f
+    #define GIDX gidx*1.0f/Nx
+    #define GIDY gidy*1.0f/Ny
+    #define GIDZ gidz*1.0f/Nz
+#endif
 
 // Filter access patterns
-#define READ_FILTER_1D(j) read_imagef(filter, sampler, (int2) (FILTER_INDEX(j), 0)).x;
-#define READ_FILTER_2D(jx, jy) read_imagef(filter, sampler, (int2) (FILTER_INDEX(jx), FILTER_INDEX(jy))).x;
-#define READ_FILTER_3D(jx, jy, jz) read_imagef(filter, sampler, (int4) (FILTER_INDEX(jx), FILTER_INDEX(jy), FILTER_INDEX(jz), 0)).x;
+#define READ_FILTER_1D(j) read_imagef(filter, filter_sampler, (RET_TYPE_2) (FILTER_INDEX(j), C_ZERO)).x;
+#define READ_FILTER_2D(jx, jy) read_imagef(filter, filter_sampler, (RET_TYPE_2) (FILTER_INDEX(jx), FILTER_INDEX(jy))).x;
+#define READ_FILTER_3D(jx, jy, jz) read_imagef(filter, filter_sampler, (RET_TYPE_4) (FILTER_INDEX(jx), FILTER_INDEX(jy), FILTER_INDEX(jz), C_ZERO)).x;
 
 // Image access patterns
-#define READ_IMAGE_1D read_imagef(input, sampler, (int2) (IMAGE_INDEX_X, 0)).x
+#define READ_IMAGE_1D read_imagef(input, sampler, (RET_TYPE_2) (IMAGE_INDEX_X, C_ZERO)).x
 
-#define READ_IMAGE_2D_X read_imagef(input, sampler, (int2) (IMAGE_INDEX_X , gidy)).x
-#define READ_IMAGE_2D_Y read_imagef(input, sampler, (int2) (gidx, IMAGE_INDEX_Y)).x
-#define READ_IMAGE_2D_XY read_imagef(input, sampler, (int2) (IMAGE_INDEX_X, IMAGE_INDEX_Y)).x
+#define READ_IMAGE_2D_X read_imagef(input, sampler, (RET_TYPE_2) (IMAGE_INDEX_X , GIDY)).x
+#define READ_IMAGE_2D_Y read_imagef(input, sampler, (RET_TYPE_2) (GIDX, IMAGE_INDEX_Y)).x
+#define READ_IMAGE_2D_XY read_imagef(input, sampler, (RET_TYPE_2) (IMAGE_INDEX_X, IMAGE_INDEX_Y)).x
 
-#define READ_IMAGE_3D_X read_imagef(input, sampler, (int4) (IMAGE_INDEX_X, gidy, gidz, 0)).x
-#define READ_IMAGE_3D_Y read_imagef(input, sampler, (int4) (gidx, IMAGE_INDEX_Y, gidz, 0)).x
-#define READ_IMAGE_3D_Z read_imagef(input, sampler, (int4) (gidx, gidy, IMAGE_INDEX_Z, 0)).x
-#define READ_IMAGE_3D_XY read_imagef(input, sampler, (int4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, gidz, 0)).x
-#define READ_IMAGE_3D_XZ read_imagef(input, sampler, (int4) (IMAGE_INDEX_X, gidy, IMAGE_INDEX_Z, 0)).x
-#define READ_IMAGE_3D_YZ read_imagef(input, sampler, (int4) (gidx, IMAGE_INDEX_Y, IMAGE_INDEX_Z, 0)).x
-#define READ_IMAGE_3D_XYZ read_imagef(input, sampler, (int4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, IMAGE_INDEX_Z, 0)).x
+#define READ_IMAGE_3D_X read_imagef(input, sampler, (RET_TYPE_4) (IMAGE_INDEX_X, GIDY, GIDZ, C_ZERO)).x
+#define READ_IMAGE_3D_Y read_imagef(input, sampler, (RET_TYPE_4) (GIDX, IMAGE_INDEX_Y, GIDZ, C_ZERO)).x
+#define READ_IMAGE_3D_Z read_imagef(input, sampler, (RET_TYPE_4) (GIDX, GIDY, IMAGE_INDEX_Z, C_ZERO)).x
+#define READ_IMAGE_3D_XY read_imagef(input, sampler, (RET_TYPE_4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, GIDZ, C_ZERO)).x
+#define READ_IMAGE_3D_XZ read_imagef(input, sampler, (RET_TYPE_4) (IMAGE_INDEX_X, GIDY, IMAGE_INDEX_Z, C_ZERO)).x
+#define READ_IMAGE_3D_YZ read_imagef(input, sampler, (RET_TYPE_4) (GIDX, IMAGE_INDEX_Y, IMAGE_INDEX_Z, C_ZERO)).x
+#define READ_IMAGE_3D_XYZ read_imagef(input, sampler, (RET_TYPE_4) (IMAGE_INDEX_X, IMAGE_INDEX_Y, IMAGE_INDEX_Z, C_ZERO)).x
+
 
 // NOTE: pyopencl and OpenCL < 1.2 do not support image1d_t
 #if FILTER_DIMS == 1
@@ -97,6 +139,7 @@
 }\
 
 
+
 /******************************************************************************/
 /**************************** 1D Convolution **********************************/
 /******************************************************************************/
@@ -118,7 +161,6 @@ __kernel void convol_1D_X_tex(
     uint gidy = get_global_id(1);
     uint gidz = get_global_id(2);
     if ((gidx >= Nx) || (gidy >= Ny) || (gidz >= Nz)) return;
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
     int c, hL, hR;
     GET_CENTER_HL(Lx);
@@ -148,7 +190,6 @@ __kernel void convol_1D_Y_tex(
     uint gidy = get_global_id(1);
     uint gidz = get_global_id(2);
     if ((gidx >= Nx) || (gidy >= Ny) || (gidz >= Nz)) return;
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
     int c, hL, hR;
     GET_CENTER_HL(Lx);
@@ -178,7 +219,6 @@ __kernel void convol_1D_Z_tex(
     uint gidy = get_global_id(1);
     uint gidz = get_global_id(2);
     if ((gidx >= Nx) || (gidy >= Ny) || (gidz >= Nz)) return;
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
     int c, hL, hR;
     GET_CENTER_HL(Lx);
@@ -214,7 +254,6 @@ __kernel void convol_2D_XY_tex(
     uint gidy = get_global_id(1);
     uint gidz = get_global_id(2);
     if ((gidx >= Nx) || (gidy >= Ny) || (gidz >= Nz)) return;
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
     int c, hL, hR;
     GET_CENTER_HL(Lx);
@@ -247,7 +286,6 @@ __kernel void convol_2D_XZ_tex(
     uint gidy = get_global_id(1);
     uint gidz = get_global_id(2);
     if ((gidx >= Nx) || (gidy >= Ny) || (gidz >= Nz)) return;
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
     int c, hL, hR;
     GET_CENTER_HL(Lx);
@@ -279,7 +317,6 @@ __kernel void convol_2D_YZ_tex(
     uint gidy = get_global_id(1);
     uint gidz = get_global_id(2);
     if ((gidx >= Nx) || (gidy >= Ny) || (gidz >= Nz)) return;
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
     int c, hL, hR;
     GET_CENTER_HL(Lx);
@@ -317,7 +354,6 @@ __kernel void convol_3D_XYZ_tex(
     uint gidy = get_global_id(1);
     uint gidz = get_global_id(2);
     if ((gidx >= Nx) || (gidy >= Ny) || (gidz >= Nz)) return;
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
     int c, hL, hR;
     GET_CENTER_HL(Lx);

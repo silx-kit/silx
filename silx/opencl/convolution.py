@@ -156,7 +156,7 @@ class Convolution(OpenclProcessing):
 
         self._configure_extra_options(extra_options)
         self._determine_use_case(shape, kernel, axes)
-        self._allocate_memory()
+        self._allocate_memory(mode)
         self._init_kernels()
 
 
@@ -244,7 +244,8 @@ class Convolution(OpenclProcessing):
                 self.use_case_kernels[i] = kern_name + "_tex"
 
 
-    def _allocate_memory(self):
+    def _allocate_memory(self, mode):
+        self.mode = mode or "reflect"
         option_array_names = {
             "allocate_input_array": "data_in",
             "allocate_output_array": "data_out",
@@ -273,7 +274,17 @@ class Convolution(OpenclProcessing):
         self.data_in_tex = self.allocate_texture(self.shape)
         self.d_kernel_tex = self.allocate_texture(self.kernel.shape)
         self.transfer_to_texture(self.d_kernel, self.d_kernel_tex)
-        #~ self.transfer_to_texture(self.kernel, self.d_kernel_tex)
+        self.textures_modes_mapping = {
+            "periodic": 2,
+            "wrap": 2,
+            "nearest": 1,
+            "replicate": 1,
+            "reflect": 0,
+            "constant": 3,
+        }
+        if self.mode.lower() not in self.textures_modes_mapping:
+            raise ValueError("Mode %s is not available for textures" % self.mode)
+        self._c_conv_mode = self.textures_modes_mapping[self.mode]
 
 
     def _init_kernels(self):
@@ -287,6 +298,7 @@ class Convolution(OpenclProcessing):
             compile_options = [
                 str("-DIMAGE_DIMS=%d" % self.data_ndim),
                 str("-DFILTER_DIMS=%d" % self.kernel_ndim),
+                str("-DCONV_MODE=%d" % self._c_conv_mode),
             ]
             data_in_ref = self.data_in_tex
             d_kernel_ref = self.d_kernel_tex
