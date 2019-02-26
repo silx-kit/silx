@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,13 +40,6 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import rgba
 from silx.gui.colors import Colormap
 from silx import sx
-
-try:
-    import OpenGL
-except ImportError:
-    has_opengl = False
-else:
-    has_opengl = True
 
 
 _logger = logging.getLogger(__name__)
@@ -200,7 +193,6 @@ class SXTest(TestCaseQt, ParametricTestCase):
                 plt.setAttribute(qt.Qt.WA_DeleteOnClose)
                 plt.close()
 
-    @unittest.skipUnless(has_opengl, 'OpenGL not installed')
     @unittest.skipUnless(test_options.WITH_GL_TEST,
                          test_options.WITH_GL_TEST_REASON)
     def test_contour3d(self):
@@ -252,7 +244,6 @@ class SXTest(TestCaseQt, ParametricTestCase):
         self.assertEqual(rgba(isosurfaces[0].getColor()),
                          (0., 0., 0., 0.4))
 
-    @unittest.skipUnless(has_opengl, 'OpenGL not installed')
     @unittest.skipUnless(test_options.WITH_GL_TEST,
                          test_options.WITH_GL_TEST_REASON)
     def test_points3d(self):
