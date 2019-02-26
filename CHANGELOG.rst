@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+0.11.0:
+-------
+
+ * Miscellaneous:
+
+    * Requires numpy version >= 1.12
+
+
 0.10.0: 2019/02/19
 ------------------
 
