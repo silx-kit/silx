@@ -268,13 +268,7 @@ class Convolution(OpenclProcessing):
         self._old_output_ref = None
         if self.use_textures:
             self._allocate_textures()
-
-
-    def _allocate_textures(self):
-        self.data_in_tex = self.allocate_texture(self.shape)
-        self.d_kernel_tex = self.allocate_texture(self.kernel.shape)
-        self.transfer_to_texture(self.d_kernel, self.d_kernel_tex)
-        self.textures_modes_mapping = {
+        self._c_modes_mapping = {
             "periodic": 2,
             "wrap": 2,
             "nearest": 1,
@@ -282,7 +276,7 @@ class Convolution(OpenclProcessing):
             "reflect": 0,
             "constant": 3,
         }
-        mp = self.textures_modes_mapping
+        mp = self._c_modes_mapping
         if self.mode.lower() not in mp:
             raise ValueError(
                 """
@@ -291,7 +285,19 @@ class Convolution(OpenclProcessing):
                 """
                 % (self.mode, str(mp.keys()))
             )
+        # TODO
+        if not(self.use_textures) and self.mode.lower() == "constant":
+            raise NotImplementedError(
+                "mode='constant' is not implemented without textures yet"
+            )
+        #
         self._c_conv_mode = mp[self.mode]
+
+
+    def _allocate_textures(self):
+        self.data_in_tex = self.allocate_texture(self.shape)
+        self.d_kernel_tex = self.allocate_texture(self.kernel.shape)
+        self.transfer_to_texture(self.d_kernel, self.d_kernel_tex)
 
 
     def _init_kernels(self):
@@ -300,18 +306,17 @@ class Convolution(OpenclProcessing):
                 raise NotImplementedError(
                     "Non-separable convolution with non-square kernels is not implemented yet"
                 )
+        compile_options = [str("-DUSED_CONV_MODE=%d" % self._c_conv_mode)]
         if self.use_textures:
             kernel_files = ["convolution_textures.cl"]
-            compile_options = [
+            compile_options.extend([
                 str("-DIMAGE_DIMS=%d" % self.data_ndim),
                 str("-DFILTER_DIMS=%d" % self.kernel_ndim),
-                str("-DUSED_CONV_MODE=%d" % self._c_conv_mode),
-            ]
+            ])
             data_in_ref = self.data_in_tex
             d_kernel_ref = self.d_kernel_tex
         else:
             kernel_files = ["convolution.cl"]
-            compile_options = None
             data_in_ref = self.data_in.data
             d_kernel_ref = self.d_kernel.data
         self.compile_kernels(

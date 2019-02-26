@@ -135,19 +135,10 @@ class TestConvolution(unittest.TestCase):
 
     def test_1D(self):
         data = self.image[0]
-        self.kernel = np.array([0, 1, 0], dtype="f")# DEBUG
         conv = self.instantiate_convol(data.shape, self.kernel)
         res = conv(data)
         ref = scipy_convolve1d(data, self.kernel, mode=self.mode)
         metric = self.compare(res, ref)
-        #
-        #~ import matplotlib.pyplot as plt
-        #~ plt.figure()
-        #~ plt.plot(res)
-        #~ plt.plot(ref)
-        #~ plt.title(str("%s/%s - %s" % (conv.mode, self.mode, conv.use_textures)))
-        #~ plt.show()
-        #
         logger.info("test_1D: max error = %.2e" % metric)
         self.assertLess(metric, self.tol["1D"], self.print_err(conv))
 
@@ -223,10 +214,9 @@ class TestConvolution(unittest.TestCase):
 
 
 def test_convolution():
-    #~ boundary_handling_ = ["reflect"]
     boundary_handling_ = ["reflect", "nearest", "wrap", "constant"]
-    #~ use_textures_ = [True, False]
-    use_textures_ = [True] # DEBUG
+    use_textures_ = [True, False]
+    #~ use_textures_ = [True] # DEBUG
     #~ input_gpu_ = [True, False]
     input_gpu_ = [False] # DEBUG
     #~ output_gpu_ = [True, False]
@@ -240,6 +230,8 @@ def test_convolution():
         output_gpu_
     ))
     for boundary_handling, use_textures, input_gpu, output_gpu in param_vals:
+        if not(use_textures) and boundary_handling == "constant":
+            continue # NIY
         testcase = parameterize(
             TestConvolution,
             param={
