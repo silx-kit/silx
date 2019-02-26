@@ -550,6 +550,7 @@ class CompareImages(qt.QMainWindow):
 
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent)
+        self._resetZoomActive = True
 
         if parent is None:
             self.setWindowTitle('Compare images')
@@ -846,7 +847,8 @@ class CompareImages(qt.QMainWindow):
         self.__raw1 = image1
         self.__raw2 = image2
         self.__updateData()
-        self.__plot.resetZoom()
+        if self.isAutoResetZoomActivated():
+            self.__plot.resetZoom()
 
     def setImage1(self, image1):
         """Set image1 to be compared.
@@ -861,7 +863,8 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw1 = image1
         self.__updateData()
-        self.__plot.resetZoom()
+        if self.isAutoResetZoomActivated():
+            self.__plot.resetZoom()
 
     def setImage2(self, image2):
         """Set image2 to be compared.
@@ -876,7 +879,8 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw2 = image2
         self.__updateData()
-        self.__plot.resetZoom()
+        if self.isAutoResetZoomActivated():
+            self.__plot.resetZoom()
 
     def __updateKeyPoints(self):
         """Update the displayed keypoints using cached keypoints.
@@ -1210,3 +1214,19 @@ class CompareImages(qt.QMainWindow):
         data2 = result["result"]
         self.__transformation = self.__toAffineTransformation(result)
         return data1, data2
+
+    def activateAutoResetZoom(self, activate=True):
+        """
+
+        :param bool activate: True if we want to activate the automatic
+                              plot reset zoom when setting images.
+        """
+        self._resetZoomActive = activate
+
+    def isAutoResetZoomActivated(self):
+        """
+
+        :return: True if the automatic call to resetzoom is activated
+        :rtype: bool
+        """
+        return self._resetZoomActive
