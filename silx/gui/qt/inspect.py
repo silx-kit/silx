@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -63,13 +63,13 @@ if qt.BINDING in ('PyQt4', 'PyQt5'):
 
 elif qt.BINDING == 'PySide2':
     try:
-        from shiboken2 import isValid  # noqa
-        from shiboken2 import createdByPython  # noqa
-        from shiboken2 import ownedByPython  # noqa
-    except ImportError:
         from PySide2.shiboken2 import isValid  # noqa
         from PySide2.shiboken2 import createdByPython  # noqa
         from PySide2.shiboken2 import ownedByPython  # noqa
+    except ImportError:
+        from shiboken2 import isValid  # noqa
+        from shiboken2 import createdByPython  # noqa
+        from shiboken2 import ownedByPython  # noqa
 
 elif qt.BINDING == 'PySide':
     try:  # Available through PySide
