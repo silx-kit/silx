@@ -62,6 +62,7 @@ class VisualizationMode(enum.Enum):
     HORIZONTAL_LINE = 'hline'
     COMPOSITE_RED_BLUE_GRAY = "rbgchannel"
     COMPOSITE_RED_BLUE_GRAY_NEG = "rbgnegchannel"
+    COMPOSITE_A_MINUS_B = "aminusb"
 
 
 @enum.unique
@@ -157,6 +158,16 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
         action.setProperty("mode", VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG)
+        menu.addAction(action)
+        self.__ycChannelModeAction = action
+        self.__visualizationGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-a-minus-b")
+        action = qt.QAction(icon, "Raw A minus B compare mode", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        action.setProperty("mode", VisualizationMode.COMPOSITE_A_MINUS_B)
         menu.addAction(action)
         self.__ycChannelModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -943,6 +954,10 @@ class CompareImages(qt.QMainWindow):
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
+        elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
+            print(' on the correct mode')
+            data1 = self.__composeImage(data1, data2, mode)
+            data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_A:
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_B:
@@ -1025,6 +1040,13 @@ class CompareImages(qt.QMainWindow):
         :rtype: numpy.ndarray
         """
         assert(data1.shape[0:2] == data2.shape[0:2])
+        if mode == VisualizationMode.COMPOSITE_A_MINUS_B:
+            # TODO: this calculation has no interest of generating a 'composed'
+            # rgb image, this could be moved in an other function or doc
+            # should be modified
+            _type = data1.dtype
+            result = data1.astype(numpy.float64) - data2.astype(numpy.float64)
+            return result
         mode1 = self.__getImageMode(data1)
         if mode1 in ["rgb", "rgba"]:
             intensity1 = self.__luminosityImage(data1)
