@@ -50,10 +50,12 @@ except ImportError:
     scipy_convolve = None
 import unittest
 from ..common import ocl
+#~ from silx.opencl.common import ocl
 if ocl:
     import pyopencl
     import pyopencl.array
     from ..convolution import Convolution
+    #~ from silx.opencl.convolution import Convolution
 logger = logging.getLogger(__name__)
 
 
@@ -94,85 +96,112 @@ class TestConvolution(unittest.TestCase):
     def compare(arr1, arr2):
         return np.max(np.abs(arr1 - arr2))
 
+    @staticmethod
+    def print_err(conv):
+        errmsg = str(
+            """
+            Something wrong with %s
+            mode=%s, texture=%s
+            """
+            % (conv.use_case_desc, conv.mode, conv.use_textures)
+        )
+        return errmsg
+
     def __init__(self, methodName='runTest', param=None):
         unittest.TestCase.__init__(self, methodName)
         self.param = param
+        self.mode = param["boundary_handling"]
+        logger.debug(
+            """
+            Testing convolution with boundary_handling=%s,
+            use_textures=%s, input_gpu=%s, output_gpu=%s
+            """
+            % (
+                self.mode, param["use_textures"],
+                param["input_gpu"], param["output_gpu"]
+            )
+        )
+
+    def instantiate_convol(self, shape, kernel, axes=None):
+        C = Convolution(
+            shape, kernel,
+            mode=self.mode,
+            ctx=self.ctx,
+            axes=axes,
+            extra_options={"dont_use_textures": not(self.param["use_textures"])}
+        )
+        return C
+
 
     def test_1D(self):
         data = self.image[0]
-        conv = Convolution(data.shape, self.kernel, ctx=self.ctx)
+        self.kernel = np.array([0, 1, 0], dtype="f")# DEBUG
+        conv = self.instantiate_convol(data.shape, self.kernel)
         res = conv(data)
-        ref = scipy_convolve1d(data, self.kernel, mode="wrap")
+        ref = scipy_convolve1d(data, self.kernel, mode=self.mode)
         metric = self.compare(res, ref)
+        #
+        #~ import matplotlib.pyplot as plt
+        #~ plt.figure()
+        #~ plt.plot(res)
+        #~ plt.plot(ref)
+        #~ plt.title(str("%s/%s - %s" % (conv.mode, self.mode, conv.use_textures)))
+        #~ plt.show()
+        #
         logger.info("test_1D: max error = %.2e" % metric)
-        self.assertLess(
-            metric,
-            self.tol["1D"],
-            "Something wrong with %s" % conv.use_case_desc
-        )
+        self.assertLess(metric, self.tol["1D"], self.print_err(conv))
 
 
+    #~ @unittest.skipUnless(False, "WIP")
     def test_separable_2D(self):
         data = self.image
-        conv = Convolution(data.shape, self.kernel, ctx=self.ctx)
+        conv = self.instantiate_convol(data.shape, self.kernel)
         res = conv(data)
-        ref1 = scipy_convolve1d(data, self.kernel, mode="wrap", axis=1)
-        ref = scipy_convolve1d(ref1, self.kernel, mode="wrap", axis=0)
+        ref1 = scipy_convolve1d(data, self.kernel, mode=self.mode, axis=1)
+        ref = scipy_convolve1d(ref1, self.kernel, mode=self.mode, axis=0)
         metric = self.compare(res, ref)
         logger.info("test_separable_2D: max error = %.2e" % metric)
-        self.assertLess(
-            metric,
-            self.tol["1D"],
-            "Something wrong with %s" % conv.use_case_desc
-        )
+        self.assertLess(metric, self.tol["1D"], self.print_err(conv))
 
 
+    #~ @unittest.skipUnless(False, "WIP")
     def test_separable_3D(self):
         data = np.tile(self.image, (64, 1, 1))
-        conv = Convolution(data.shape, self.kernel, ctx=self.ctx)
+        conv = self.instantiate_convol(data.shape, self.kernel)
         res = conv(data)
-        ref1 = scipy_convolve1d(data, self.kernel, mode="wrap", axis=2)
-        ref2 = scipy_convolve1d(ref1, self.kernel, mode="wrap", axis=1)
-        ref = scipy_convolve1d(ref2, self.kernel, mode="wrap", axis=0)
+        ref1 = scipy_convolve1d(data, self.kernel, mode=self.mode, axis=2)
+        ref2 = scipy_convolve1d(ref1, self.kernel, mode=self.mode, axis=1)
+        ref = scipy_convolve1d(ref2, self.kernel, mode=self.mode, axis=0)
         metric = self.compare(res, ref)
         logger.info("test_separable_3D: max error = %.2e" % metric)
-        self.assertLess(
-            metric,
-            self.tol["1D"],
-            "Something wrong with %s" % conv.use_case_desc
-        )
+        self.assertLess(metric, self.tol["1D"], self.print_err(conv))
 
 
+    #~ @unittest.skipUnless(False, "WIP")
     def test_nonseparable_2D(self):
         data = self.image
         kernel = np.outer(self.kernel, self.kernel) # "non-separable" kernel
-        conv = Convolution(data.shape, kernel, ctx=self.ctx)
+        conv = self.instantiate_convol(data.shape, kernel)
         res = conv(data)
-        ref = scipy_convolve(data, kernel, mode="wrap")
+        ref = scipy_convolve(data, kernel, mode=self.mode)
         metric = self.compare(res, ref)
         logger.info("test_nonseparable_2D: max error = %.2e" % metric)
-        self.assertLess(
-            metric,
-            self.tol["2D"],
-            "Something wrong with %s" % conv.use_case_desc
-        )
+        self.assertLess(metric, self.tol["2D"], self.print_err(conv))
 
 
+    #~ @unittest.skipUnless(False, "WIP")
     def test_nonseparable_3D(self):
         data = self.data3d
         kernel = self.kernel3d
-        conv = Convolution(data.shape, kernel, ctx=self.ctx)
+        conv = self.instantiate_convol(data.shape, kernel)
         res = conv(data)
-        ref = scipy_convolve(data, kernel, mode="wrap")
+        ref = scipy_convolve(data, kernel, mode=self.mode)
         metric = self.compare(res, ref)
         logger.info("test_nonseparable_3D: max error = %.2e" % metric)
-        self.assertLess(
-            metric,
-            self.tol["3D"],
-            "Something wrong with %s" % conv.use_case_desc
-        )
+        self.assertLess(metric, self.tol["3D"], self.print_err(conv))
 
 
+    #~ @unittest.skipUnless(False, "WIP")
     def test_batched_2D(self):
         """
         Test batched (nonseparable) 2D convolution on 3D data.
@@ -180,51 +209,37 @@ class TestConvolution(unittest.TestCase):
         """
         data = self.data3d
         kernel = self.kernel2d
-        conv = Convolution(data.shape, kernel, ctx=self.ctx, axes=(0,))
+        conv = self.instantiate_convol(data.shape, kernel, axes=(0,))
         res = conv(data) # 3D
-        ref = scipy_convolve(data[0], kernel, mode="wrap") # 2D
+        ref = scipy_convolve(data[0], kernel, mode=self.mode) # 2D
 
         std = np.std(res, axis=0)
         std_max = np.max(np.abs(std))
-        self.assertLess(
-            std_max,
-            self.tol["2D"],
-            "Something wrong with %s" % conv.use_case_desc
-        )
-
+        self.assertLess(std_max, self.tol["2D"], self.print_err(conv))
         metric = self.compare(res[0], ref)
         logger.info("test_nonseparable_3D: max error = %.2e" % metric)
-        self.assertLess(
-            metric,
-            self.tol["2D"],
-            "Something wrong with %s" % conv.use_case_desc
-        )
+        self.assertLess(metric, self.tol["2D"], self.print_err(conv))
 
 
 
-# - image samples per dimension
-# - kernel size (odd/even)
-# - boundary handling methods
-# - use textures or not
-# - imput/output are on GPU
 def test_convolution():
-    test_case_params = {
-        "boundary_handling": ["periodic"],
-        "use_textures": [True, False],
-        "input_gpu": [True, False],
-        "output_gpu": [True, False],
-    }
+    #~ boundary_handling_ = ["reflect"]
+    boundary_handling_ = ["reflect", "nearest", "wrap", "constant"]
+    #~ use_textures_ = [True, False]
+    use_textures_ = [True] # DEBUG
+    #~ input_gpu_ = [True, False]
+    input_gpu_ = [False] # DEBUG
+    #~ output_gpu_ = [True, False]
+    output_gpu_ = [False] # DEBUG
     testSuite = unittest.TestSuite()
 
-    param_vals = list(product(*test_case_params.values()))
+    param_vals = list(product(
+        boundary_handling_,
+        use_textures_,
+        input_gpu_,
+        output_gpu_
+    ))
     for boundary_handling, use_textures, input_gpu, output_gpu in param_vals:
-        logger.debug(
-            """
-            Testing convolution with boundary_handling=%s,
-            use_textures=%s, input_gpu=%s, output_gpu=%s
-            """
-            % (boundary_handling, use_textures, input_gpu, output_gpu)
-        )
         testcase = parameterize(
             TestConvolution,
             param={
@@ -234,26 +249,13 @@ def test_convolution():
                 "use_textures": use_textures,
             }
         )
-        #~ testSuite.addTest(testcase)
-        testSuite.addTest(testcase("test_1D"))
-        testSuite.addTest(testcase("test_separable_2D"))
-        testSuite.addTest(testcase("test_separable_3D"))
-        testSuite.addTest(testcase("test_nonseparable_2D"))
-        testSuite.addTest(testcase("test_nonseparable_3D"))
-        testSuite.addTest(testcase("test_batched_2D"))
+        testSuite.addTest(testcase)
     return testSuite
 
 
 
 def suite():
     testSuite = test_convolution()
-    #~ testSuite = unittest.TestSuite()
-    #~ testSuite.addTest(TestConvolution("test_1D"))
-    #~ testSuite.addTest(TestConvolution("test_separable_2D"))
-    #~ testSuite.addTest(TestConvolution("test_separable_3D"))
-    #~ testSuite.addTest(TestConvolution("test_nonseparable_2D"))
-    #~ testSuite.addTest(TestConvolution("test_nonseparable_3D"))
-    #~ testSuite.addTest(TestConvolution("test_batched_2D"))
     return testSuite
 
 

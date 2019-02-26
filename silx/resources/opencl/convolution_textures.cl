@@ -14,23 +14,25 @@
 #endif
 
 // Boundary handling modes
-#define CONV_MODE_REFLECT 0 // CLK_ADDRESS_MIRRORED_REPEAT
-#define CONV_MODE_NEAREST 1 // CLK_ADDRESS_CLAMP_TO_EDGE
-#define CONV_MODE_WRAP 2 // CLK_ADDRESS_REPEAT
-#define CONV_MODE_CONSTANT 3 // CLK_ADDRESS_CLAMP
-#ifndef CONV_MODE
-    #define CONV_MODE CONV_MODE_NEAREST
+#define CONV_MODE_REFLECT 0 // CLK_ADDRESS_MIRRORED_REPEAT : cba|abcd|dcb
+#define CONV_MODE_NEAREST 1 // CLK_ADDRESS_CLAMP_TO_EDGE : aaa|abcd|ddd
+#define CONV_MODE_WRAP 2 // CLK_ADDRESS_REPEAT : bcd|abcd|abc
+#define CONV_MODE_CONSTANT 3 // CLK_ADDRESS_CLAMP : 000|abcd|000
+#ifndef USED_CONV_MODE
+    #define USED_CONV_MODE CONV_MODE_NEAREST
 #endif
-#if CONV_MODE == CONV_MODE_REFLECT
+#if USED_CONV_MODE == CONV_MODE_REFLECT
     #define CLK_BOUNDARY CLK_ADDRESS_MIRRORED_REPEAT
     #define CLK_COORDS CLK_NORMALIZED_COORDS_TRUE
-#elif CONV_MODE == CONV_MODE_NEAREST
+    #define USE_NORM_COORDS
+#elif USED_CONV_MODE == CONV_MODE_NEAREST
     #define CLK_BOUNDARY CLK_ADDRESS_CLAMP_TO_EDGE
     #define CLK_COORDS CLK_NORMALIZED_COORDS_FALSE
-#elif CONV_MODE == CONV_MODE_WRAP
-    #define CLK_BOUNDARY  CLK_ADDRESS_REPEAT
+#elif USED_CONV_MODE == CONV_MODE_WRAP
+    #define CLK_BOUNDARY CLK_ADDRESS_REPEAT
     #define CLK_COORDS CLK_NORMALIZED_COORDS_TRUE
-#elif CONV_MODE == CONV_MODE_CONSTANT
+    #define USE_NORM_COORDS
+#elif USED_CONV_MODE == CONV_MODE_CONSTANT
     #define CLK_BOUNDARY CLK_ADDRESS_CLAMP
     #define CLK_COORDS CLK_NORMALIZED_COORDS_FALSE
 #else
@@ -38,14 +40,29 @@
 #endif
 
 
-static const sampler_t sampler = CLK_COORDS | CLK_BOUNDARY | CLK_FILTER_NEAREST;
-static const sampler_t filter_sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
-
 
 // Convolution index for filter
 #define FILTER_INDEX(j) (Lx - 1 - j)
+
+// Filter access patterns
+#define READ_FILTER_1D(j) read_imagef(filter, (int2) (FILTER_INDEX(j), 0)).x;
+#define READ_FILTER_2D(jx, jy) read_imagef(filter, (int2) (FILTER_INDEX(jx), FILTER_INDEX(jy))).x;
+#define READ_FILTER_3D(jx, jy, jz) read_imagef(filter, (int4) (FILTER_INDEX(jx), FILTER_INDEX(jy), FILTER_INDEX(jz), 0)).x;
+
+
 // Convolution index for image
-#if CLK_COORDS == CLK_NORMALIZED_COORDS_FALSE
+#ifdef USE_NORM_COORDS
+    #define IMAGE_INDEX_X (gidx*1.0f +0.5f - c + jx)/Nx
+    #define IMAGE_INDEX_Y (gidy*1.0f +0.5f - c + jy)/Ny
+    #define IMAGE_INDEX_Z (gidz*1.0f +0.5f - c + jz)/Nz
+    #define RET_TYPE_1 float
+    #define RET_TYPE_2 float2
+    #define RET_TYPE_4 float4
+    #define C_ZERO 0.5f
+    #define GIDX (gidx*1.0f + 0.5f)/Nx
+    #define GIDY (gidy*1.0f + 0.5f)/Ny
+    #define GIDZ (gidz*1.0f + 0.5f)/Nz
+#else
     #define IMAGE_INDEX_X (gidx - c + jx)
     #define IMAGE_INDEX_Y (gidy - c + jy)
     #define IMAGE_INDEX_Z (gidz - c + jz)
@@ -56,23 +73,10 @@ static const sampler_t filter_sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRES
     #define GIDX gidx
     #define GIDY gidy
     #define GIDZ gidz
-#else
-    #define IMAGE_INDEX_X (gidx - c + jx*1.0f)/Nx
-    #define IMAGE_INDEX_Y (gidy - c + jy*1.0f)/Ny
-    #define IMAGE_INDEX_Z (gidz - c + jz*1.0f)/Nz
-    #define RET_TYPE_1 float
-    #define RET_TYPE_2 float2
-    #define RET_TYPE_4 float4
-    #define C_ZERO 0.0f
-    #define GIDX gidx*1.0f/Nx
-    #define GIDY gidy*1.0f/Ny
-    #define GIDZ gidz*1.0f/Nz
 #endif
 
-// Filter access patterns
-#define READ_FILTER_1D(j) read_imagef(filter, filter_sampler, (RET_TYPE_2) (FILTER_INDEX(j), C_ZERO)).x;
-#define READ_FILTER_2D(jx, jy) read_imagef(filter, filter_sampler, (RET_TYPE_2) (FILTER_INDEX(jx), FILTER_INDEX(jy))).x;
-#define READ_FILTER_3D(jx, jy, jz) read_imagef(filter, filter_sampler, (RET_TYPE_4) (FILTER_INDEX(jx), FILTER_INDEX(jy), FILTER_INDEX(jz), C_ZERO)).x;
+//~ static const sampler_t filter_sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
+static const sampler_t sampler = CLK_COORDS | CLK_BOUNDARY | CLK_FILTER_NEAREST;
 
 // Image access patterns
 #define READ_IMAGE_1D read_imagef(input, sampler, (RET_TYPE_2) (IMAGE_INDEX_X, C_ZERO)).x

@@ -282,9 +282,16 @@ class Convolution(OpenclProcessing):
             "reflect": 0,
             "constant": 3,
         }
-        if self.mode.lower() not in self.textures_modes_mapping:
-            raise ValueError("Mode %s is not available for textures" % self.mode)
-        self._c_conv_mode = self.textures_modes_mapping[self.mode]
+        mp = self.textures_modes_mapping
+        if self.mode.lower() not in mp:
+            raise ValueError(
+                """
+                Mode %s is not available for textures. Available modes are:
+                %s
+                """
+                % (self.mode, str(mp.keys()))
+            )
+        self._c_conv_mode = mp[self.mode]
 
 
     def _init_kernels(self):
@@ -298,7 +305,7 @@ class Convolution(OpenclProcessing):
             compile_options = [
                 str("-DIMAGE_DIMS=%d" % self.data_ndim),
                 str("-DFILTER_DIMS=%d" % self.kernel_ndim),
-                str("-DCONV_MODE=%d" % self._c_conv_mode),
+                str("-DUSED_CONV_MODE=%d" % self._c_conv_mode),
             ]
             data_in_ref = self.data_in_tex
             d_kernel_ref = self.d_kernel_tex
