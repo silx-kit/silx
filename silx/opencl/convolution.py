@@ -259,6 +259,10 @@ class Convolution(OpenclProcessing):
             "allocate_output_array": "data_out",
             "allocate_tmp_array": "data_tmp",
         }
+        # Nonseparable transforms do not need tmp array
+        if not(self.separable):
+            self.extra_options["allocate_tmp_array"] = False
+        # Allocate arrays
         for option_name, array_name in option_array_names.items():
             if self.extra_options[option_name]:
                 value = parray.zeros(self.queue, self.shape, "f")
@@ -351,21 +355,22 @@ class Convolution(OpenclProcessing):
         # If self.data_tmp is allocated, separable transforms can be performed
         # by a series of batched transforms, without any copy, by swapping refs.
         self.swap_pattern = None
-        if self.data_tmp is not None:
-            self.swap_pattern = {
-                2: [
-                    ("data_in", "data_tmp"),
-                    ("data_tmp", "data_out")
-                ],
-                3: [
-                    ("data_in", "data_out"),
-                    ("data_out", "data_tmp"),
-                    ("data_tmp", "data_out"),
-                ],
-            }
-        else:
-            # TODO
-            raise NotImplementedError("For now, data_tmp has to be allocated")
+        if self.separable:
+            if self.data_tmp is not None:
+                self.swap_pattern = {
+                    2: [
+                        ("data_in", "data_tmp"),
+                        ("data_tmp", "data_out")
+                    ],
+                    3: [
+                        ("data_in", "data_out"),
+                        ("data_out", "data_tmp"),
+                        ("data_tmp", "data_out"),
+                    ],
+                }
+            else:
+                # TODO
+                raise NotImplementedError("For now, data_tmp has to be allocated")
 
 
     def _get_swapped_arrays(self, i):
