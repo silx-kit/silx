@@ -52,7 +52,7 @@ import unittest
 from ..common import ocl
 #~ from silx.opencl.common import ocl
 if ocl:
-    import pyopencl
+    import pyopencl as cl
     import pyopencl.array
     from ..convolution import Convolution
     #~ from silx.opencl.convolution import Convolution
@@ -123,6 +123,11 @@ class TestConvolution(unittest.TestCase):
         )
 
     def instantiate_convol(self, shape, kernel, axes=None):
+        if (self.mode == "constant") and (
+            not(self.param["use_textures"])
+                or (self.ctx.devices[0].type == cl._cl.device_type.CPU)
+            ):
+                self.skipTest("mode=constant not implemented without textures")
         C = Convolution(
             shape, kernel,
             mode=self.mode,
@@ -212,7 +217,7 @@ class TestConvolution(unittest.TestCase):
         self.assertLess(metric, self.tol["2D"], self.print_err(conv))
 
 
-
+# TODO replace X_gpu with X_device
 def test_convolution():
     boundary_handling_ = ["reflect", "nearest", "wrap", "constant"]
     use_textures_ = [True, False]
@@ -230,8 +235,6 @@ def test_convolution():
         output_gpu_
     ))
     for boundary_handling, use_textures, input_gpu, output_gpu in param_vals:
-        if not(use_textures) and boundary_handling == "constant":
-            continue # NIY
         testcase = parameterize(
             TestConvolution,
             param={
