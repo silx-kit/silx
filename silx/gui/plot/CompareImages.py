@@ -551,6 +551,10 @@ class CompareImages(qt.QMainWindow):
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent)
         self._resetZoomActive = True
+        self._colormap = Colormap()
+        """Colormap shared by all modes, except the compose images (rgb image)"""
+        self._colormapKeyPoints = Colormap('spring')
+        """Colormap used for sift keypoints"""
 
         if parent is None:
             self.setWindowTitle('Compare images')
@@ -565,6 +569,7 @@ class CompareImages(qt.QMainWindow):
         self.__previousSeparatorPosition = None
 
         self.__plot = plot.PlotWidget(parent=self, backend=backend)
+        self.__plot.setDefaultColormap(self._colormap)
         self.__plot.getXAxis().setLabel('Columns')
         self.__plot.getYAxis().setLabel('Rows')
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
@@ -641,6 +646,14 @@ class CompareImages(qt.QMainWindow):
         :rtype: silx.gui.plot.PlotWidget
         """
         return self.__plot
+
+    def getColormap(self):
+        """
+
+        :return: colormap used for compare image
+        :rtype: silx.gui.colors.Colormap
+        """
+        return self._colormap
 
     def getRawPixelData(self, x, y):
         """Return the raw pixel of each image data from axes positions.
@@ -893,11 +906,11 @@ class CompareImages(qt.QMainWindow):
                                y=data[1],
                                z=1,
                                value=data[2],
-                               legend="keypoints",
-                               colormap=Colormap("spring"))
+                               colormap=self._colormapKeyPoints,
+                               legend="keypoints")
 
     def __updateData(self):
-        """Compute aligned image when the alignement mode changes.
+        """Compute aligned image when the alignment mode changes.
 
         This function cache input images which are used when
         vertical/horizontal separators moves.
@@ -959,7 +972,6 @@ class CompareImages(qt.QMainWindow):
             data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
-            print(' on the correct mode')
             data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_A:
@@ -996,7 +1008,8 @@ class CompareImages(qt.QMainWindow):
             else:
                 vmin = min(self.__data1.min(), self.__data2.min())
                 vmax = max(self.__data1.max(), self.__data2.max())
-            colormap = Colormap(vmin=vmin, vmax=vmax)
+            colormap = self.getColormap()
+            colormap.setVRange(vmin=vmin, vmax=vmax)
             self.__image1.setColormap(colormap)
             self.__image2.setColormap(colormap)
 
