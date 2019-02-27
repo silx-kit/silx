@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,8 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "02/10/2017"
 
+
+import functools
 import six
 
 
@@ -202,3 +204,38 @@ class Proxy(object):
         __irepeat__ = property(lambda self: self.__obj.__irepeat__)
 
     __call__ = property(lambda self: self.__obj.__call__)
+
+
+def _docstring(func, origin):
+    """Implementation of docstring decorator.
+
+    It patches func.__doc__.
+    """
+    if isinstance(origin, type):
+        # This is a class, get the method with the same name
+        try:
+            origin = getattr(origin, func.__name__)
+        except AttributeError:
+            raise ValueError(
+                "origin class has no %s method" % func.__name__)
+
+    func.__doc__ = origin.__doc__
+    return func
+
+
+def docstring(origin):
+    """Decorator to initialize the docstring from another source.
+
+    This is useful to duplicate a docstring for inheritance and composition.
+
+    If origin is a method or a function, it copies its docstring.
+    If origin is a class, the docstring is copied from the method
+    of that class which has the same name as the method/function
+    being decorated.
+
+    :param origin:
+        The method, function or class from which to get the docstring
+    :raises ValueError:
+        If the origin class has not method n case the
+    """
+    return functools.partial(_docstring, origin=origin)
