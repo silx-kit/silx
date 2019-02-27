@@ -456,7 +456,7 @@ class PlotWidget(qt.QMainWindow):
             return qt.QColor.fromRgbF(*self._dataBackgroundColor)
 
     def setDataBackgroundColor(self, color):
-        """Set the background color of this widget.
+        """Set the background color of the plot area.
 
         Set to None or an invalid QColor to use the background color.
 
