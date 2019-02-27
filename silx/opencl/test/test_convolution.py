@@ -39,7 +39,6 @@ __date__ = "15/02/2019"
 import logging
 from itertools import product
 import numpy as np
-from math import ceil
 from silx.utils.testutils import parameterize
 try:
     from scipy.ndimage import convolve, convolve1d
@@ -50,24 +49,11 @@ except ImportError:
     scipy_convolve = None
 import unittest
 from ..common import ocl
-#~ from silx.opencl.common import ocl
 if ocl:
     import pyopencl as cl
     import pyopencl.array as parray
-    from ..convolution import Convolution
-    #~ from silx.opencl.convolution import Convolution
+    from ..convolution import Convolution, gaussian_kernel
 logger = logging.getLogger(__name__)
-
-
-# TODO move elsewhere
-def gaussian_kernel(sigma, cutoff=4, force_odd_size=False):
-    size = int(ceil(2 * cutoff * sigma + 1))
-    if force_odd_size and size % 2 == 0:
-        size += 1
-    x = np.arange(size) - (size - 1.0) / 2.0
-    g = np.exp(-(x / sigma) ** 2 / 2.0)
-    g /= g.sum()
-    return g
 
 
 @unittest.skipUnless(ocl and scipy_convolve, "PyOpenCl/scipy is missing")
