@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ __date__ = "06/09/2017"
 
 import logging
 
+from silx.utils.proxy import docstring
 from silx.gui.icons import getQIcon
 from .Plot3DAction import Plot3DAction
 
@@ -69,6 +70,7 @@ class InteractiveModeAction(Plot3DAction):
             plot3d.setInteractiveMode(self._interaction)
             self.setChecked(True)
 
+    @docstring(Plot3DAction)
     def setPlot3DWidget(self, widget):
         # Disconnect from previous Plot3DWidget
         plot3d = self.getPlot3DWidget()
@@ -85,9 +87,6 @@ class InteractiveModeAction(Plot3DAction):
             self.setChecked(widget.getInteractiveMode() == self._interaction)
             widget.sigInteractiveModeChanged.connect(
                 self._interactiveModeChanged)
-
-    # Reuse docstring from super class
-    setPlot3DWidget.__doc__ = Plot3DAction.setPlot3DWidget.__doc__
 
     def _interactiveModeChanged(self):
         plot3d = self.getPlot3DWidget()

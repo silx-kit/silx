@@ -38,6 +38,7 @@ import weakref
 
 import numpy
 
+from silx.utils.proxy import docstring
 from silx.gui import qt
 from silx.gui import icons
 from silx.gui.plot import stats as statsmdl
@@ -993,33 +994,28 @@ class StatsWidget(qt.QWidget):
 
     # Proxy methods
 
+    @docstring(StatsTable)
     def setStats(self, statsHandler):
         return self._getStatsTable().setStats(statsHandler=statsHandler)
 
-    setStats.__doc__ = StatsTable.setStats.__doc__
-
+    @docstring(StatsTable)
     def setPlot(self, plot):
         self._options.setVisibleDataRangeModeEnabled(
             plot is None or isinstance(plot, PlotWidget))
         return self._getStatsTable().setPlot(plot=plot)
 
-    setPlot.__doc__ = StatsTable.setPlot.__doc__
-
+    @docstring(StatsTable)
     def getPlot(self):
         return self._getStatsTable().getPlot()
 
-    getPlot.__doc__ = StatsTable.getPlot.__doc__
-
+    @docstring(StatsTable)
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
         return self._getStatsTable().setDisplayOnlyActiveItem(
             displayOnlyActItem=displayOnlyActItem)
 
-    setDisplayOnlyActiveItem.__doc__ = StatsTable.setDisplayOnlyActiveItem.__doc__
-
+    @docstring(StatsTable)
     def setStatsOnVisibleData(self, b):
         return self._getStatsTable().setStatsOnVisibleData(b=b)
-
-    setStatsOnVisibleData.__doc__ = StatsTable.setStatsOnVisibleData.__doc__
 
 
 DEFAULT_STATS = StatsHandler((

@@ -38,6 +38,7 @@ import weakref
 import silx
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.deprecation import deprecated
+from silx.utils.proxy import docstring
 
 from . import PlotWidget
 from . import actions
@@ -292,23 +293,20 @@ class PlotWindow(PlotWidget):
             for action in toolbar.actions():
                 self.addAction(action)
 
+    @docstring(PlotWidget)
     def setBackgroundColor(self, color):
         super(PlotWindow, self).setBackgroundColor(color)
         self._updateColorBarBackground()
 
-    setBackgroundColor.__doc__ = PlotWidget.setBackgroundColor.__doc__
-
+    @docstring(PlotWidget)
     def setDataBackgroundColor(self, color):
         super(PlotWindow, self).setDataBackgroundColor(color)
         self._updateColorBarBackground()
 
-    setDataBackgroundColor.__doc__ = PlotWidget.setDataBackgroundColor.__doc__
-
+    @docstring(PlotWidget)
     def setForegroundColor(self, color):
         super(PlotWindow, self).setForegroundColor(color)
         self._updateColorBarBackground()
-
-    setForegroundColor.__doc__ = PlotWidget.setForegroundColor.__doc__
 
     def _updateColorBarBackground(self):
         """Update the colorbar background according to the state of the plot"""
