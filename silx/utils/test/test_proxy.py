@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ __date__ = "02/10/2017"
 import unittest
 import pickle
 import numpy
-from ..proxy import Proxy
+from silx.utils.proxy import Proxy, docstring
 
 
 class Thing(object):
@@ -282,12 +282,61 @@ class TestPickle(unittest.TestCase):
         self.assertEqual(obj.value, obj2.value)
 
 
+class TestDocstring(unittest.TestCase):
+    """Test docstring decorator"""
+
+    class Base(object):
+        def method(self):
+            """Docstring"""
+            pass
+
+    def test_inheritance(self):
+        class Derived(TestDocstring.Base):
+            @docstring(TestDocstring.Base)
+            def method(self):
+                pass
+
+        self.assertEqual(Derived.method.__doc__,
+                         TestDocstring.Base.method.__doc__)
+
+    def test_composition(self):
+        class Composed(object):
+            def __init__(self):
+                self._base = TestDocstring.Base()
+
+            @docstring(TestDocstring.Base)
+            def method(self):
+                return self._base.method()
+
+            @docstring(TestDocstring.Base.method)
+            def renamed(self):
+                return self._base.method()
+
+        self.assertEqual(Composed.method.__doc__,
+                         TestDocstring.Base.method.__doc__)
+
+        self.assertEqual(Composed.renamed.__doc__,
+                         TestDocstring.Base.method.__doc__)
+
+    def test_function(self):
+        def f():
+            """Docstring"""
+            pass
+
+        @docstring(f)
+        def g():
+            pass
+
+        self.assertEqual(f.__doc__, g.__doc__)
+
+
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
     test_suite.addTest(loadTests(TestProxy))
     test_suite.addTest(loadTests(TestPickle))
     test_suite.addTest(loadTests(TestInheritedProxy))
+    test_suite.addTest(loadTests(TestDocstring))
     return test_suite
 
 
