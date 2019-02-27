@@ -32,7 +32,7 @@ __license__ = "MIT"
 __date__ = "11/02/2019"
 
 import numpy as np
-
+from copy import copy
 from .common import pyopencl as cl
 import pyopencl.array as parray
 from .processing import OpenclProcessing, EventDescription
@@ -136,7 +136,12 @@ class Convolution(OpenclProcessing):
         :param kernel: convolution kernel (1D, 2D or 3D).
         :param axes: axes along which the convolution is performed,
             for batched convolutions.
-        :param mode: Boundary handling mode. Default is ??
+        :param mode: Boundary handling mode. Available modes are:
+            "reflect": cba|abcd|dcb
+            "nearest": aaa|abcd|ddd
+            "wrap": bcd|abcd|abc
+            "constant": 000|abcd|000
+            Default is "reflect".
         :param ctx: actual working context, left to None for automatic
                     initialization from device type or platformid/deviceid
         :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
@@ -149,6 +154,8 @@ class Convolution(OpenclProcessing):
         :param extra_options: Advanced options (dict). Current options are:
             "allocate_input_array": True,
             "allocate_output_array": True,
+            "allocate_tmp_array": True,
+            "dont_use_textures": False,
         """
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
@@ -165,7 +172,7 @@ class Convolution(OpenclProcessing):
             "allocate_input_array": True,
             "allocate_output_array": True,
             "allocate_tmp_array": True,
-            "dont_use_textures": True,
+            "dont_use_textures": False,
         }
         extra_opts = extra_options or {}
         self.extra_options.update(extra_opts)
@@ -217,7 +224,8 @@ class Convolution(OpenclProcessing):
             if axes in convol_infos.allowed_axes[uc_name]:
                 self.use_case_name = uc_name
                 self.use_case_desc = uc_params["name"]
-                self.use_case_kernels = uc_params["kernels"].copy()
+                #~ self.use_case_kernels = uc_params["kernels"].copy()
+                self.use_case_kernels = copy(uc_params["kernels"]) # TODO use the above line once we get rid of python2
         if self.use_case_name is None:
             raise ValueError(
                 "Cannot find a use case for data ndim = %d, kernel ndim = %d and axes=%s"

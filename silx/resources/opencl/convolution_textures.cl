@@ -75,7 +75,6 @@
     #define GIDZ gidz
 #endif
 
-//~ static const sampler_t filter_sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 static const sampler_t sampler = CLK_COORDS | CLK_BOUNDARY | CLK_FILTER_NEAREST;
 
 // Image access patterns

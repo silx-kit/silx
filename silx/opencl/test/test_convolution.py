@@ -53,7 +53,7 @@ from ..common import ocl
 #~ from silx.opencl.common import ocl
 if ocl:
     import pyopencl as cl
-    import pyopencl.array
+    import pyopencl.array as parray
     from ..convolution import Convolution
     #~ from silx.opencl.convolution import Convolution
 logger = logging.getLogger(__name__)
@@ -117,11 +117,11 @@ class TestConvolution(unittest.TestCase):
         logger.debug(
             """
             Testing convolution with boundary_handling=%s,
-            use_textures=%s, input_gpu=%s, output_gpu=%s
+            use_textures=%s, input_device=%s, output_device=%s
             """
             % (
                 self.mode, param["use_textures"],
-                param["input_gpu"], param["output_gpu"]
+                param["input_on_device"], param["output_on_device"]
             )
         )
 
@@ -187,7 +187,18 @@ class TestConvolution(unittest.TestCase):
     def template_test(self, test_name):
         data, kernel = self.get_data_and_kernel(test_name)
         conv = self.instantiate_convol(data.shape, kernel)
-        res = conv(data)
+        if self.param["input_on_device"]:
+            data_ref = parray.to_device(conv.queue, data)
+        else:
+            data_ref = data
+        if self.param["output_on_device"]:
+            d_res = parray.zeros_like(conv.data_out)
+            res = d_res
+        else:
+            res = None
+        res = conv(data_ref, output=res)
+        if self.param["output_on_device"]:
+            res = res.get()
         ref_func = self.get_reference_function(test_name)
         ref = ref_func(data, kernel)
         metric = self.compare(res, ref)
@@ -229,30 +240,26 @@ class TestConvolution(unittest.TestCase):
         self.assertLess(metric, self.tol["2D"], self.print_err(conv))
 
 
-# TODO replace X_gpu with X_device
 def test_convolution():
     boundary_handling_ = ["reflect", "nearest", "wrap", "constant"]
     use_textures_ = [True, False]
-    #~ use_textures_ = [True] # DEBUG
-    #~ input_gpu_ = [True, False]
-    input_gpu_ = [False] # DEBUG
-    #~ output_gpu_ = [True, False]
-    output_gpu_ = [False] # DEBUG
+    input_on_device_ = [True, False]
+    output_on_device_ = [True, False]
     testSuite = unittest.TestSuite()
 
     param_vals = list(product(
         boundary_handling_,
         use_textures_,
-        input_gpu_,
-        output_gpu_
+        input_on_device_,
+        output_on_device_
     ))
-    for boundary_handling, use_textures, input_gpu, output_gpu in param_vals:
+    for boundary_handling, use_textures, input_dev, output_dev in param_vals:
         testcase = parameterize(
             TestConvolution,
             param={
                 "boundary_handling": boundary_handling,
-                "input_gpu": input_gpu,
-                "output_gpu": output_gpu,
+                "input_on_device": input_dev,
+                "output_on_device": output_dev,
                 "use_textures": use_textures,
             }
         )
