@@ -860,7 +860,7 @@ class CompareImages(qt.QMainWindow):
         self.__raw1 = image1
         self.__raw2 = image2
         self.__updateData()
-        if self.isAutoResetZoomActivated():
+        if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
     def setImage1(self, image1):
@@ -876,7 +876,7 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw1 = image1
         self.__updateData()
-        if self.isAutoResetZoomActivated():
+        if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
     def setImage2(self, image2):
@@ -892,7 +892,7 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw2 = image2
         self.__updateData()
-        if self.isAutoResetZoomActivated():
+        if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
     def __updateKeyPoints(self):
@@ -1236,7 +1236,7 @@ class CompareImages(qt.QMainWindow):
         """
         self._resetZoomActive = activate
 
-    def isAutoResetZoomActivated(self):
+    def isAutoResetZoom(self):
         """
 
         :return: True if the automatic call to resetzoom is activated
