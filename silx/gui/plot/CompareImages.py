@@ -1228,7 +1228,7 @@ class CompareImages(qt.QMainWindow):
         self.__transformation = self.__toAffineTransformation(result)
         return data1, data2
 
-    def activateAutoResetZoom(self, activate=True):
+    def setAutoResetZoom(self, activate=True):
         """
 
         :param bool activate: True if we want to activate the automatic
