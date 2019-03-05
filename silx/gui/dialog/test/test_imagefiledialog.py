@@ -371,7 +371,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/singleimage.edf"
         path = filename
         dialog.selectUrl(path)
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         self.assertSamePath(dialog.selectedUrl(), path)
@@ -394,7 +394,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -409,8 +409,8 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.selectUrl(path)
         # test
         image = dialog.selectedImage()
-        self.assertTrue(image.shape, (100, 100))
-        self.assertTrue(image[0, 0], 1)
+        self.assertEqual(image.shape, (100, 100))
+        self.assertEqual(image[0, 0], 1)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -424,7 +424,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -438,7 +438,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
+        self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -472,8 +472,10 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/cube", data_slice=(1, )).path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog.selectedImage().shape, (100, 100))
-        self.assertTrue(dialog.selectedImage()[0, 0], 1)
+        self.assertEqual(dialog.selectedImage().shape, (100, 100))
+        self.assertEqual(dialog.selectedImage()[0, 0], 1)
+        self.assertSamePath(dialog.selectedFile(), filename)
+        self.assertSamePath(dialog.selectedUrl(), path)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -487,11 +489,12 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/badformat.edf"
-        index = browser.rootIndex().model().index(filename)
+        index = browser.model().index(filename)
+        browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertTrue(dialog.selectedUrl(), filename)
+        self.assertEqual(dialog.selectedUrl(), filename)
 
     def _countSelectableItems(self, model, rootIndex):
         selectable = 0
@@ -547,7 +550,7 @@ class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         result = dialog2.restoreState(state)
         self.qWaitForPendingActions(dialog2)
         self.assertTrue(result)
-        self.assertTrue(dialog2.colormap().getNormalization(), "log")
+        self.assertEqual(dialog2.colormap().getNormalization(), "log")
 
     def printState(self):
         """
@@ -644,7 +647,7 @@ class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         result = dialog.restoreState(state)
         self.assertTrue(result)
         colormap = dialog.colormap()
-        self.assertTrue(colormap.getNormalization(), "log")
+        self.assertEqual(colormap.getNormalization(), "log")
 
     def testRestoreRobusness(self):
         """What's happen if you try to open a config file with a different
