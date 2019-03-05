@@ -279,7 +279,9 @@ class Plot3DWidget(glu.OpenGLWidget):
         :raise ValueError: If mode is not supported
         """
         mode = self.FogMode.asMember(mode)
-        self.viewport.fog.isOn = mode is self.FogMode.LINEAR
+        if mode != self.getFogMode():
+            self.viewport.fog.isOn = mode is self.FogMode.LINEAR
+            self.sigStyleChanged.emit('fogMode')
 
     def getFogMode(self):
         """Returns the kind of fog in use
