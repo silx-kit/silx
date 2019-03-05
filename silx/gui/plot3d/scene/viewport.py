@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 
+import string
 import numpy
 
 from silx.gui.colors import rgba
@@ -45,7 +46,7 @@ from ..._glutils import gl
 from . import camera
 from . import event
 from . import transform
-from .function import DirectionalLight, ClippingPlane
+from .function import DirectionalLight, ClippingPlane, Fog
 
 
 class RenderContext(object):
@@ -61,11 +62,19 @@ class RenderContext(object):
     :param Context glContext: The operating system OpenGL context in use.
     """
 
+    _FRAGMENT_SHADER_SRC = string.Template("""
+        void scene_post(vec4 cameraPosition) {
+            gl_FragColor = $fogCall(gl_FragColor, cameraPosition);
+        }
+        """)
+
     def __init__(self, viewport, glContext):
         self._viewport = viewport
         self._glContext = glContext
         self._transformStack = [viewport.camera.extrinsic]
         self._clipPlane = ClippingPlane(normal=(0., 0., 0.))
+        self._fog = Fog()
+        self._fog.isOn = False
 
     @property
     def viewport(self):
@@ -127,8 +136,7 @@ class RenderContext(object):
 
     @property
     def clipper(self):
-        """The current clipping plane
-        """
+        """The current clipping plane (ClippingPlane)"""
         return self._clipPlane
 
     def setClipPlane(self, point=(0., 0., 0.), normal=(0., 0., 0.)):
@@ -142,6 +150,44 @@ class RenderContext(object):
         :type normal: 3-tuple of float
         """
         self._clipPlane = ClippingPlane(point, normal)
+
+    @property
+    def fog(self):
+        """The fog function to use for the whole scene (Fog)"""
+        return self._fog
+
+    def setupProgram(self, program):
+        """Sets-up uniforms of a program using the context shader functions.
+
+        :param GLProgram program: The program to set-up.
+                                  It MUST be in use and using the context function.
+        """
+        self.clipper.setupProgram(self, program)
+        self.fog.setupProgram(self, program)
+
+    @property
+    def fragDecl(self):
+        """Fragment shader declaration for scene shader functions"""
+        return '\n'.join((
+            self.clipper.fragDecl,
+            self.fog.fragDecl,
+            self._FRAGMENT_SHADER_SRC.substitute(fogCall=self.fog.fragCall)))
+
+    @property
+    def fragCallPre(self):
+        """Fragment shader call for scene shader functions (to do first)
+
+        It takes the camera position (vec4) as argument.
+        """
+        return self.clipper.fragCall
+
+    @property
+    def fragCallPost(self):
+        """Fragment shader call for scene shader functions (to do last)
+
+        It takes the camera position (vec4) as argument.
+        """
+        return "scene_post"
 
 
 class Viewport(event.Notifier):
