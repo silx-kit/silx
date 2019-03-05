@@ -135,7 +135,7 @@ class _UtilsMixin(object):
         path2_ = os.path.normcase(path2)
         if path1_ == path2_:
             # Use the unittest API to log and display error
-            self.assertNotEquals(path1, path2)
+            self.assertNotEqual(path1, path2)
 
 
 class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
@@ -670,7 +670,7 @@ class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         dialog2 = self.createDialog()
         result = dialog2.restoreState(state)
         self.assertTrue(result)
-        self.assertNotEquals(dialog2.directory(), directory)
+        self.assertNotEqual(dialog2.directory(), directory)
 
     def testHistory(self):
         dialog = self.createDialog()
