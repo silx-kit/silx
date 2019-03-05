@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "05/03/2019"
 
 
 import unittest
@@ -70,24 +70,22 @@ def setUpModule():
     image.write(filename)
 
     filename = _tmpDirectory + "/data.h5"
-    f = h5py.File(filename, "w")
-    f["scalar"] = 10
-    f["image"] = data
-    f["cube"] = [data, data + 1, data + 2]
-    f["complex_image"] = data * 1j
-    f["group/image"] = data
-    f.close()
+    with h5py.File(filename, "w") as f:
+        f["scalar"] = 10
+        f["image"] = data
+        f["cube"] = [data, data + 1, data + 2]
+        f["complex_image"] = data * 1j
+        f["group/image"] = data
 
     directory = os.path.join(_tmpDirectory, "data")
     os.mkdir(directory)
     filename = os.path.join(directory, "data.h5")
-    f = h5py.File(filename, "w")
-    f["scalar"] = 10
-    f["image"] = data
-    f["cube"] = [data, data + 1, data + 2]
-    f["complex_image"] = data * 1j
-    f["group/image"] = data
-    f.close()
+    with h5py.File(filename, "w") as f:
+        f["scalar"] = 10
+        f["image"] = data
+        f["cube"] = [data, data + 1, data + 2]
+        f["complex_image"] = data * 1j
+        f["group/image"] = data
 
     filename = _tmpDirectory + "/badformat.edf"
     with io.open(filename, "wb") as f:
