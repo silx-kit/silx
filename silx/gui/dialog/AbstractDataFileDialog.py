@@ -546,6 +546,10 @@ class AbstractDataFileDialog(qt.QDialog):
     def _init(self):
         self.setWindowTitle("Open")
 
+        self.__openedFiles = []
+        """Store the list of files opened by the model itself."""
+        # FIXME: It should be managed one by one by Hdf5Item itself
+
         self.__directory = None
         self.__directoryLoadedFilter = None
         self.__errorWhileLoadingFile = None
@@ -594,10 +598,6 @@ class AbstractDataFileDialog(qt.QDialog):
         # Update the file model filter
         self.__fileTypeCombo.setCurrentIndex(0)
         self.__filterSelected(0)
-
-        self.__openedFiles = []
-        """Store the list of files opened by the model itself."""
-        # FIXME: It should be managed one by one by Hdf5Item itself
 
         # It is not possible to override the QObject destructor nor
         # to access to the content of the Python object with the `destroyed`
