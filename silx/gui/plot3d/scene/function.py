@@ -60,7 +60,7 @@ class ProgramFunction(object):
         pass
 
 
-class Fog(ProgramFunction):
+class Fog(event.Notifier, ProgramFunction):
     """Linear fog over the whole scene content.
 
     The background of the viewport is used as fog color,
@@ -91,6 +91,7 @@ class Fog(ProgramFunction):
     """
 
     def __init__(self):
+        super(Fog, self).__init__()
         self._isOn = True
 
     @property
@@ -100,7 +101,10 @@ class Fog(ProgramFunction):
 
     @isOn.setter
     def isOn(self, isOn):
-        self._isOn = bool(isOn)
+        isOn = bool(isOn)
+        if self._isOn != isOn:
+            self._isOn = bool(isOn)
+            self.notify()
 
     @property
     def fragDecl(self):

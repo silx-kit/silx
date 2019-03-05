@@ -73,8 +73,6 @@ class RenderContext(object):
         self._glContext = glContext
         self._transformStack = [viewport.camera.extrinsic]
         self._clipPlane = ClippingPlane(normal=(0., 0., 0.))
-        self._fog = Fog()
-        self._fog.isOn = False
 
         # cache
         self.__cache = {}
@@ -166,11 +164,6 @@ class RenderContext(object):
         """
         self._clipPlane = ClippingPlane(point, normal)
 
-    @property
-    def fog(self):
-        """The fog function to use for the whole scene (Fog)"""
-        return self._fog
-
     def setupProgram(self, program):
         """Sets-up uniforms of a program using the context shader functions.
 
@@ -178,15 +171,16 @@ class RenderContext(object):
                                   It MUST be in use and using the context function.
         """
         self.clipper.setupProgram(self, program)
-        self.fog.setupProgram(self, program)
+        self.viewport.fog.setupProgram(self, program)
 
     @property
     def fragDecl(self):
         """Fragment shader declaration for scene shader functions"""
         return '\n'.join((
             self.clipper.fragDecl,
-            self.fog.fragDecl,
-            self._FRAGMENT_SHADER_SRC.substitute(fogCall=self.fog.fragCall)))
+            self.viewport.fog.fragDecl,
+            self._FRAGMENT_SHADER_SRC.substitute(
+                fogCall=self.viewport.fog.fragCall)))
 
     @property
     def fragCallPre(self):
@@ -231,6 +225,9 @@ class Viewport(event.Notifier):
                                        ambient=(0.3, 0.3, 0.3),
                                        diffuse=(0.7, 0.7, 0.7))
         self._light.addListener(self._changed)
+        self._fog = Fog()
+        self._fog.isOn = False
+        self._fog.addListener(self._changed)
 
     @property
     def transforms(self):
@@ -283,6 +280,11 @@ class Viewport(event.Notifier):
     def light(self):
         """The light used to render the scene."""
         return self._light
+
+    @property
+    def fog(self):
+        """The fog function used to render the scene"""
+        return self._fog
 
     @property
     def origin(self):
