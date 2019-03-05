@@ -74,6 +74,7 @@ def setUpModule():
         f["scalar"] = 10
         f["image"] = data
         f["cube"] = [data, data + 1, data + 2]
+        f["single_frame"] = [data + 5]
         f["complex_image"] = data * 1j
         f["group/image"] = data
 
@@ -84,6 +85,7 @@ def setUpModule():
         f["scalar"] = 10
         f["image"] = data
         f["cube"] = [data, data + 1, data + 2]
+        f["single_frame"] = [data + 5]
         f["complex_image"] = data * 1j
         f["group/image"] = data
 
@@ -476,6 +478,21 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.selectedImage()[0, 0], 1)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
+
+    def testSelectSingleFrameFromH5(self):
+        dialog = self.createDialog()
+        dialog.show()
+        self.qWaitForWindowExposed(dialog)
+
+        # init state
+        filename = _tmpDirectory + "/data.h5"
+        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/single_frame", data_slice=(0, )).path()
+        dialog.selectUrl(path)
+        # test
+        print(dialog.selectedImage().shape)
+        print(dialog.selectedImage()[0, 0])
+        self.assertEqual(dialog.selectedImage().shape, (100, 100))
+        self.assertEqual(dialog.selectedImage()[0, 0], 5)
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
