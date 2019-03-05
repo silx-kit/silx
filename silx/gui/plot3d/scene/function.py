@@ -110,14 +110,25 @@ class Fog(ProgramFunction):
     def fragCall(self):
         return "fog"
 
+    @staticmethod
+    def _zExtentCamera(viewport):
+        """Return (far, near) planes Z in camera coordinates.
+
+        :param Viewport viewport:
+        :return: (far, near) position in camera coords (from 0 to -inf)
+        """
+        # Provide scene z extent in camera coords
+        bounds = viewport.camera.extrinsic.transformBounds(
+            viewport.scene.bounds(transformed=True, dataBounds=True))
+        return bounds[:, 2]
+
     def setupProgram(self, context, program):
         if not self.isOn:
             return
 
-        # Provide scene z extent in camera coords
-        bounds = context.viewport.camera.extrinsic.transformBounds(
-            context.viewport.scene.bounds(transformed=True, dataBounds=True))
-        far, near = bounds[:, 2]
+        far, near = context.cache(key='zExtentCamera',
+                                  factory=self._zExtentCamera,
+                                  viewport=context.viewport)
         extent = far - near
         gl.glUniform2f(program.uniforms['fogExtentInfo'],
                        0.9/extent if extent != 0. else 0.,

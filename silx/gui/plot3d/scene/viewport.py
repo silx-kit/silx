@@ -76,6 +76,21 @@ class RenderContext(object):
         self._fog = Fog()
         self._fog.isOn = False
 
+        # cache
+        self.__cache = {}
+
+    def cache(self, key, factory, *args, **kwargs):
+        """Lazy-loading cache to store values in the context for rendering
+
+        :param key: The key to retrieve
+        :param factory: A callback taking args and kwargs as arguments
+            and returning the value to store.
+        :return: The stored or newly allocated value
+        """
+        if key not in self.__cache:
+            self.__cache[key] = factory(*args, **kwargs)
+        return self.__cache[key]
+
     @property
     def viewport(self):
         """Viewport doing the current rendering"""
