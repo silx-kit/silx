@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -58,6 +58,76 @@ class ProgramFunction(object):
                                   It MUST be in use and using this function.
         """
         pass
+
+
+class Fog(ProgramFunction):
+    """Linear fog over the whole scene content.
+
+    The background of the viewport is used as fog color,
+    otherwise it defaults to white.
+    """
+    # TODO: add more controls (set fog range), add more fog modes
+
+    _fragDecl = """
+    /* (1/(far - near) or 0, near) z in [0 (camera), -inf[ */
+    uniform vec2 fogExtentInfo;
+
+    /* Color to use as fog color */
+    uniform vec3 fogColor;
+
+    vec4 fog(vec4 color, vec4 cameraPosition) {
+        /* d = (pos - near) / (far - near) */
+        float distance = fogExtentInfo.x * (cameraPosition.z/cameraPosition.w - fogExtentInfo.y);
+        float fogFactor = clamp(distance, 0.0, 1.0);
+        vec3 rgb = mix(color.rgb, fogColor, fogFactor);
+        return vec4(rgb.r, rgb.g, rgb.b, color.a);
+    }
+    """
+
+    _fragDeclNoop = """
+    vec4 fog(vec4 color, vec4 cameraPosition) {
+        return color;
+    }
+    """
+
+    def __init__(self):
+        self._isOn = True
+
+    @property
+    def isOn(self):
+        """True to enable fog, False to disable (bool)"""
+        return self._isOn
+
+    @isOn.setter
+    def isOn(self, isOn):
+        self._isOn = bool(isOn)
+
+    @property
+    def fragDecl(self):
+        return self._fragDecl if self.isOn else self._fragDeclNoop
+
+    @property
+    def fragCall(self):
+        return "fog"
+
+    def setupProgram(self, context, program):
+        if not self.isOn:
+            return
+
+        # Provide scene z extent in camera coords
+        bounds = context.viewport.camera.extrinsic.transformBounds(
+            context.viewport.scene.bounds(transformed=True, dataBounds=True))
+        far, near = bounds[:, 2]
+        extent = far - near
+        gl.glUniform2f(program.uniforms['fogExtentInfo'],
+                       0.9/extent if extent != 0. else 0.,
+                       near)
+
+        # Use background color as fog color
+        bgColor = context.viewport.background
+        if bgColor is None:
+            bgColor = 1., 1., 1.
+        gl.glUniform3f(program.uniforms['fogColor'], *bgColor[:3])
 
 
 class ClippingPlane(ProgramFunction):
