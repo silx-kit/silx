@@ -1044,13 +1044,12 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__processing += 1
         index = self.__fileModel.setRootPath(path)
         if not index.isValid():
+            # There is a problem with this path
+            # No asynchronous process will be waked up
             self.__processing -= 1
             self.__browser.setRootIndex(index, model=self.__fileModel)
             self.__clearData()
             self.__updatePath()
-        else:
-            # asynchronous process
-            pass
 
     def __directoryLoaded(self, path):
         if self.__directoryLoadedFilter is not None:
