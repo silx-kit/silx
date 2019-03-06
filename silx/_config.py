@@ -110,7 +110,7 @@ class Config(object):
     .. versionadded:: 0.9
     """
 
-    DEFAULT_PLOT_CURVE_SYMBOL = ''
+    DEFAULT_PLOT_CURVE_SYMBOL = 'o'
     """Default marker of the curve item of the plot.
 
     It will have an influence on PlotWidget curve items
