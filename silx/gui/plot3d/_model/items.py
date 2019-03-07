@@ -45,6 +45,7 @@ from ...colors import preferredColormaps
 from ... import qt, icons
 from .. import items
 from ..items.volume import Isosurface, CutPlane
+from ..Plot3DWidget import Plot3DWidget
 
 
 from .core import AngleDegreeRow, BaseRow, ColorProxyRow, ProxyRow, StaticRow
@@ -195,9 +196,18 @@ class Settings(StaticRow):
         lightDirection = StaticRow(('Light Direction', None),
                                    children=(azimuthNode, altitudeNode))
 
+        # Fog
+        fog = ProxyRow(
+            name='Fog',
+            fget=sceneWidget.getFogMode,
+            fset=sceneWidget.setFogMode,
+            notify=sceneWidget.sigStyleChanged,
+            toModelData=lambda mode: mode is Plot3DWidget.FogMode.LINEAR,
+            fromModelData=lambda mode: Plot3DWidget.FogMode.LINEAR if mode else Plot3DWidget.FogMode.NONE)
+
         # Settings row
         children = (background, foreground, text, highlight,
-                    axesIndicator, lightDirection)
+                    axesIndicator, lightDirection, fog)
         super(Settings, self).__init__(('Settings', None), children=children)
 
 

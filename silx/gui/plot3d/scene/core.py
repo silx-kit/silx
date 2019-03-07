@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -110,6 +110,15 @@ class Base(event.Notifier):
         """The viewport this node is attached to or None."""
         root = self.path[0]
         return root if isinstance(root, Viewport) else None
+
+    @property
+    def root(self):
+        """The root node of the scene.
+
+        If attached to a :class:`Viewport`, this is the item right under it
+        """
+        path = self.path
+        return path[1] if isinstance(path[0], Viewport) else path[0]
 
     @property
     def objectToNDCTransform(self):
