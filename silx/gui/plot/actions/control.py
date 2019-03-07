@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -303,9 +303,12 @@ class CurveStyleAction(PlotAction):
         currentState = (self.plot.isDefaultPlotLines(),
                         self.plot.isDefaultPlotPoints())
 
-        # line only, line and symbol, symbol only
-        states = (True, False), (True, True), (False, True)
-        newState = states[(states.index(currentState) + 1) % 3]
+        if currentState == (False, False):
+            newState = True, False
+        else:
+            # line only, line and symbol, symbol only
+            states = (True, False), (True, True), (False, True)
+            newState = states[(states.index(currentState) + 1) % 3]
 
         self.plot.setDefaultPlotLines(newState[0])
         self.plot.setDefaultPlotPoints(newState[1])
