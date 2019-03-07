@@ -110,7 +110,7 @@ class Config(object):
     .. versionadded:: 0.9
     """
 
-    DEFAULT_PLOT_CURVE_SYMBOL = False
+    DEFAULT_PLOT_CURVE_SYMBOL_MODE = False
     """Whether to display curves with markers or not by default in PlotWidget.
 
     It will have an influence on PlotWidget curve items.

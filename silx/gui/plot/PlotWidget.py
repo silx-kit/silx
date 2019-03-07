@@ -252,7 +252,7 @@ class PlotWidget(qt.QMainWindow):
 
         self.setDefaultColormap()  # Init default colormap
 
-        self.setDefaultPlotPoints(silx.config.DEFAULT_PLOT_CURVE_SYMBOL)
+        self.setDefaultPlotPoints(silx.config.DEFAULT_PLOT_CURVE_SYMBOL_MODE)
         self.setDefaultPlotLines(True)
 
         self._limitsHistory = LimitsHistory(self)
