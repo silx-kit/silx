@@ -110,21 +110,10 @@ class Config(object):
     .. versionadded:: 0.9
     """
 
-    DEFAULT_PLOT_CURVE_SYMBOL = ''
-    """Default marker of the curve item of the plot.
+    DEFAULT_PLOT_CURVE_SYMBOL_MODE = False
+    """Whether to display curves with markers or not by default in PlotWidget.
 
-    It will have an influence on PlotWidget curve items
-
-    Supported symbols:
-
-        - 'o', 'Circle'
-        - 'd', 'Diamond'
-        - 's', 'Square'
-        - '+', 'Plus'
-        - 'x', 'Cross'
-        - '.', 'Point'
-        - ',', 'Pixel'
-        - '',  'None'
+    It will have an influence on PlotWidget curve items.
 
     .. versionadded:: 0.10
     """
