@@ -113,7 +113,7 @@ class Base(event.Notifier):
 
     @property
     def root(self):
-        """The root not of the scene.
+        """The root node of the scene.
 
         If attached to a :class:`Viewport`, this is the item right under it
         """
