@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/03/2019"
+__date__ = "08/03/2019"
 
 
 import unittest
@@ -511,7 +511,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertEqual(dialog.selectedUrl(), filename)
+        self.assertSamePath(dialog.selectedUrl(), filename)
 
     def _countSelectableItems(self, model, rootIndex):
         selectable = 0
