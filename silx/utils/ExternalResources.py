@@ -216,6 +216,94 @@ class ExternalResources(object):
                 result = [os.path.join(output, i) for i in fd.getnames()]
         return result
 
+    def get_file_and_repack(self, filename):
+        """
+        Download the requested file, decompress and repack it to bz2 and gz.
+
+        :param str filename: name of the image.
+        :rtype: str
+        :return: full path of the locally saved file
+        """
+        if not self._initialized:
+            self._initialize_data()
+        if filename not in self.all_data:
+            self.all_data.add(filename)
+            image_list = list(self.all_data)
+            image_list.sort()
+            try:
+                with open(self.testdata, "w") as fp:
+                    json.dump(image_list, fp, indent=4)
+            except IOError:
+                logger.debug("Unable to save JSON list")
+        baseimage = os.path.basename(filename)
+        logger.info("UtilsTest.getimage('%s')" % baseimage)
+
+        if not os.path.exists(self.data_home):
+            os.makedirs(self.data_home)
+        fullimagename = os.path.abspath(os.path.join(self.data_home, baseimage))
+
+        if baseimage.endswith(".bz2"):
+            bzip2name = baseimage
+            basename = baseimage[:-4]
+            gzipname = basename + ".gz"
+        elif baseimage.endswith(".gz"):
+            gzipname = baseimage
+            basename = baseimage[:-3]
+            bzip2name = basename + ".bz2"
+        else:
+            basename = baseimage
+            gzipname = baseimage + "gz2"
+            bzip2name = basename + ".bz2"
+
+        fullimagename_gz = os.path.abspath(os.path.join(self.data_home, gzipname))
+        fullimagename_raw = os.path.abspath(os.path.join(self.data_home, basename))
+        fullimagename_bz2 = os.path.abspath(os.path.join(self.data_home, bzip2name))
+
+        # The files are recreated from the bz2 file
+        if not os.path.isfile(fullimagename_bz2):
+            self.getfile(bzip2name)
+            if not os.path.isfile(fullimagename_bz2):
+                raise RuntimeError("Could not automatically \
+                download test images %s!\n \ If you are behind a firewall, \
+                please set the environment variable http_proxy.\n \
+                Otherwise please try to download the images manually from \n \
+                %s" % (self.url_base, filename))
+
+        try:
+            import bz2
+        except ImportError:
+            raise RuntimeError("bz2 library is needed to decompress data")
+        try:
+            import gzip
+        except ImportError:
+            gzip = None
+
+        raw_file_exists = os.path.isfile(fullimagename_raw)
+        gz_file_exists = os.path.isfile(fullimagename_gz)
+        if not raw_file_exists or not gz_file_exists:
+            with open(fullimagename_bz2, "rb") as f:
+                data = f.read()
+            decompressed = bz2.decompress(data)
+
+            if not raw_file_exists:
+                try:
+                    with open(fullimagename_raw, "wb") as fullimage:
+                        fullimage.write(decompressed)
+                except IOError:
+                    raise IOError("unable to write decompressed \
+                    data to disk at %s" % self.data_home)
+
+            if not gz_file_exists:
+                if gzip is None:
+                    raise RuntimeError("gzip library is expected to recompress data")
+                try:
+                    gzip.open(fullimagename_gz, "wb").write(decompressed)
+                except IOError:
+                    raise IOError("unable to write gzipped \
+                    data to disk at %s" % self.data_home)
+
+        return fullimagename
+
     def download_all(self, imgs=None):
         """Download all data needed for the test/benchmarks
 
