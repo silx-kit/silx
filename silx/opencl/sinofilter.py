@@ -33,6 +33,8 @@ __date__ = "01/02/2019"
 
 import numpy as np
 from math import pi
+from itertools import product
+from bisect import bisect
 
 from .common import pyopencl as cl
 import pyopencl.array as parray
@@ -139,6 +141,24 @@ def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
     return filt_f
 
 
+def generate_powers():
+    """
+    Generate a list of powers of [2, 3, 5, 7],
+    up to (2**15)*(3**9)*(5**6)*(7**5).
+    """
+    primes = [2, 3, 5, 7]
+    maxpow = {2: 15, 3: 9, 5: 6, 7: 5}
+    valuations = []
+    for prime in primes:
+        valuations.append(range(maxpow[prime]+1))
+    powers = product(*valuations)
+    res = []
+    for pw in powers:
+        res.append(np.prod(list(map(lambda x : x[0]**x[1], zip(primes, pw)))))
+    return np.unique(res)
+
+
+
 class SinoFilter(OpenclProcessing):
     """
     A class for performing sinogram filtering on GPU using OpenCL.
@@ -147,6 +167,7 @@ class SinoFilter(OpenclProcessing):
       - In 3D: (n_z, n_a, d_x): n_z*n_a filterings (1D FFT of size d_x)
     """
     kernel_files = ["array_utils.cl"]
+    powers = generate_powers()
 
     def __init__(self, sino_shape, filter_name=None, ctx=None,
                  devicetype="all", platformid=None, deviceid=None,
@@ -165,16 +186,17 @@ class SinoFilter(OpenclProcessing):
                         level, store profiling elements (makes code slightly
                         slower)
         :param dict extra_options: Advanced extra options.
-            Current options are: cutoff,
+            Current options are: cutoff, use_numpy_fft
         """
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
 
+        self._init_extra_options(extra_options)
         self._calculate_shapes(sino_shape)
         self._init_fft()
         self._allocate_memory()
-        self._compute_filter(filter_name, extra_options)
+        self._compute_filter(filter_name)
         self._init_kernels()
 
     def _calculate_shapes(self, sino_shape):
@@ -191,7 +213,7 @@ class SinoFilter(OpenclProcessing):
         self.sino_shape = sino_shape
         self.n_angles = n_angles
         self.dwidth = dwidth
-        self.dwidth_padded = 2*self.dwidth  # TODO nextpow2 ?
+        self.dwidth_padded = self.get_next_power(2*self.dwidth)
         self.sino_padded_shape = (n_angles, self.dwidth_padded)
         sino_f_shape = list(self.sino_padded_shape)
         sino_f_shape[-1] = sino_f_shape[-1]//2+1
@@ -205,12 +227,13 @@ class SinoFilter(OpenclProcessing):
         """
         self.extra_options = {
             "cutoff": 1.,
+            "use_numpy_fft": False,
         }
         if extra_options is not None:
             self.extra_options.update(extra_options)
 
     def _init_fft(self):
-        if __have_clfft__:
+        if __have_clfft__ and not(self.extra_options["use_numpy_fft"]):
             self.fft_backend = "opencl"
             self.fft = FFT(
                 self.sino_padded_shape,
@@ -245,13 +268,21 @@ class SinoFilter(OpenclProcessing):
         self.tmp_sino_device = parray.zeros(self.queue, self.sino_shape, "f")
         self.tmp_sino_host = np.zeros(self.sino_shape, "f")
 
-    def _compute_filter(self, filter_name, extra_options):
+    def get_next_power(self, n):
+        """
+        Given a number, get the closest (upper) number p such that
+        p is a power of 2, 3, 5 and 7.
+        """
+        idx = bisect(self.powers, n)
+        if self.powers[idx-1] == n:
+            return n
+        return self.powers[idx]
+
+    def _compute_filter(self, filter_name):
         """
 
         :param str filter_name: filter name
-        :param dict extra_options: Advanced extra options.
         """
-        self._init_extra_options(extra_options)
         self.filter_name = filter_name or "ram-lak"
         filter_f = compute_fourier_filter(
             self.dwidth_padded,

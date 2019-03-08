@@ -94,7 +94,7 @@ class Backprojection(OpenclProcessing):
                         level, store profiling elements (makes code slightly
                         slower)
         :param extra_options: Advanced extra options in the form of a dict.
-            Current options are: cutoff,
+            Current options are: cutoff, use_numpy_fft
         """
         # OS X enforces a workgroup size of 1 when the kernel has
         # synchronization barriers if sys.platform.startswith('darwin'):
@@ -153,6 +153,7 @@ class Backprojection(OpenclProcessing):
         """
         self.extra_options = {
             "cutoff": 1.,
+            "use_numpy_fft": False,
         }
         if extra_options is not None:
             self.extra_options.update(extra_options)
