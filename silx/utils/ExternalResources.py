@@ -207,13 +207,13 @@ class ExternalResources(object):
             raise RuntimeError("Unsupported archive format. Only tar and zip "
                                "are currently supported")
         full_path = self.getfile(dirname)
-        root = os.path.dirname(full_path)
         with engine(full_path, mode="r") as fd:
-            fd.extractall(self.data_home)
+            output = os.path.join(self.data_home, dirname + "__content")
+            fd.extractall(output)
             if lodn.endswith("zip"):
-                result = [os.path.join(root, i) for i in fd.namelist()]
+                result = [os.path.join(output, i) for i in fd.namelist()]
             else:
-                result = [os.path.join(root, i) for i in fd.getnames()]
+                result = [os.path.join(output, i) for i in fd.getnames()]
         return result
 
     def download_all(self, imgs=None):
