@@ -361,9 +361,11 @@ class Geometry(core.Elem):
                 if attribute.ndim == 1:  # Single value
                     min_ = attribute
                     max_ = attribute
-                else:  # Array of values, compute min/max
+                elif len(attribute) > 0:  # Array of values, compute min/max
                     min_ = numpy.nanmin(attribute, axis=0)
                     max_ = numpy.nanmax(attribute, axis=0)
+                else:
+                     min_, max_ = numpy.zeros((2, attribute.shape[1]), dtype=numpy.float32)
 
                 toCopy = min(len(min_), 3-index)
                 if toCopy != len(min_):
