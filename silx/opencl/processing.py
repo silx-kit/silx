@@ -320,7 +320,7 @@ class OpenclProcessing(object):
             hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32)
         )
 
-    def transfer_to_texture(self, arr, tex_ref):
+    def transfer_to_texture(self, arr, tex_ref, append_event=True):
         """
         Transfer an array to a texture.
 
@@ -341,7 +341,9 @@ class OpenclProcessing(object):
             copy_args[2] = arr.data
             copy_kwargs["offset"] = 0
         ev = pyopencl.enqueue_copy(*copy_args, **copy_kwargs)
-        self.profile_add(ev, "Transfer to texture")
+        if append_event:
+            self.profile_add(ev, "Transfer to texture")
+        return ev
 
     def log_profile(self):
         """If we are in profiling mode, prints out all timing for every single OpenCL call

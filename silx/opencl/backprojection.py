@@ -34,14 +34,14 @@ __date__ = "25/01/2019"
 import logging
 import numpy as np
 
-from .common import pyopencl
+from .common import pyopencl as cl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 from .sinofilter import SinoFilter
 from .sinofilter import fourier_filter as fourier_filter_
 from ..utils.deprecation import deprecated
 
-if pyopencl:
-    mf = pyopencl.mem_flags
+if cl:
+    mf = cl.mem_flags
     import pyopencl.array as parray
 else:
     raise ImportError("Please install pyopencl in order to use opencl backprojection")
@@ -177,7 +177,7 @@ class Backprojection(OpenclProcessing):
 
         # Texture memory (if relevant)
         if not(self.is_cpu):
-            self._allocate_textures()
+            self.d_sino_tex = self.allocate_texture(self.shape)
 
         # Local memory
         self.local_mem = 256 * 3 * _sizeof(np.float32)  # constant for all image sizes
@@ -234,20 +234,6 @@ class Backprojection(OpenclProcessing):
             self._get_local_mem()
         )
 
-    def _allocate_textures(self):
-        """
-        Allocate the texture for the sinogram.
-        """
-        self.d_sino_tex = pyopencl.Image(
-            self.ctx,
-            mf.READ_ONLY | mf.USE_HOST_PTR,
-            pyopencl.ImageFormat(
-                pyopencl.channel_order.INTENSITY,
-                pyopencl.channel_type.FLOAT
-            ),
-            hostbuf=np.zeros(self.shape[::-1], dtype=np.float32)
-        )
-
     def _init_filter(self, filter_name):
         """Filter initialization
 
@@ -262,7 +248,7 @@ class Backprojection(OpenclProcessing):
         )
 
     def _get_local_mem(self):
-        return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
+        return cl.LocalMemory(self.local_mem)  # constant for all image sizes
 
     def _cpy2d_to_slice(self, dst):
         ndrange = (int(self.slice_shape[1]), int(self.slice_shape[0]))
@@ -286,21 +272,11 @@ class Backprojection(OpenclProcessing):
         if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
             sino2 = np.ascontiguousarray(sino, dtype=np.float32)
         if self.is_cpu:
-            ev = pyopencl.enqueue_copy(
-                                        self.queue,
-                                        self.d_sino.data,
-                                        sino2
-                                        )
+            ev = cl.enqueue_copy(self.queue, self.d_sino.data, sino2)
             what = "transfer filtered sino H->D buffer"
             ev.wait()
         else:
-            ev = pyopencl.enqueue_copy(
-                                       self.queue,
-                                       self.d_sino_tex,
-                                       sino2,
-                                       origin=(0, 0),
-                                       region=self.shape[::-1]
-                                       )
+            ev = self.transfer_to_texture(sino2, self.d_sino_tex, append_event=False)
             what = "transfer filtered sino H->D texture"
         return EventDescription(what, ev)
 
@@ -308,22 +284,11 @@ class Backprojection(OpenclProcessing):
         if self.is_cpu:
             if id(self.d_sino) == id(d_sino):
                 return
-            ev = pyopencl.enqueue_copy(
-                                       self.queue,
-                                       self.d_sino.data,
-                                       d_sino
-                                       )
+            ev = cl.enqueue_copy(self.queue, self.d_sino.data, d_sino)
             what = "transfer filtered sino D->D buffer"
             ev.wait()
         else:
-            ev = pyopencl.enqueue_copy(
-                                       self.queue,
-                                       self.d_sino_tex,
-                                       d_sino.data,
-                                       offset=0,
-                                       origin=(0, 0),
-                                       region=self.shape[::-1]
-                                       )
+            ev = self.transfer_to_texture(d_sino, self.d_sino_tex, append_event=False)
             what = "transfer filtered sino D->D texture"
         return EventDescription(what, ev)
 
