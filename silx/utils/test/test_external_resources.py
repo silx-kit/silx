@@ -81,9 +81,9 @@ class TestExternalResources(unittest.TestCase):
         # download file and remove it to create a json mapping file
         os.remove(filename)
         directory_path = os.path.commonprefix(filelist)
+        # Make sure we will rmtree a dangerous path like "/"
+        self.assertIn(self.resources.data_home, directory_path)
         shutil.rmtree(directory_path)
-        directory_path = os.path.join(self.resources.data_home, directory)
-        os.remove(directory_path)
         filelist = self.resources.download_all()
         self.assertGreater(len(filelist), 1, "At least 2 items were downloaded")
 
