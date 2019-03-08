@@ -359,6 +359,21 @@ Sample code that adds specific tools or functions to plot widgets.
        - 3D scatter plot
        - 3D scalar field with iso-surface and cutting plane.
        - A clipping plane.
+   * - :download:`plot3dUpdateScatterFromThread.py <../../../examples/plot3dUpdateScatterFromThread.py>`
+     - .. image:: img/plot3dUpdateScatterFromThread.png
+         :height: 150px
+         :align: center
+     - This script illustrates the update of a
+       :class:`~silx.gui.plot3d.SceneWindow.SceneWindow` widget from a thread.
+
+       The problem is that GUI methods should be called from the main thread.
+       To safely update the scene from another thread, one need to execute the update
+       asynchronously in the main thread.
+       In this example, this is achieved with
+       :func:`~silx.gui.utils.concurrent.submitToQtMainThread`.
+
+       In this example a thread calls submitToQtMainThread to append data to a 3D scatter.
+
 
 :mod:`silx.io` sample code
 ++++++++++++++++++++++++++

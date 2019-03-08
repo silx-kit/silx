@@ -31,7 +31,7 @@ asynchronously in the main thread.
 In this example, this is achieved with
 :func:`~silx.gui.utils.concurrent.submitToQtMainThread`.
 
-In this example a thread calls submitToQtMainThread to update the 3D scatter.
+In this example a thread calls submitToQtMainThread to append data to a 3D scatter.
 """
 
 __authors__ = ["T. Vincent"]
