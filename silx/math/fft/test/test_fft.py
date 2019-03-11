@@ -88,15 +88,16 @@ class TestFFT(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestFFT, cls).setUpClass()
+        cls.Ctx = None
         if __have_clfft__:
             from silx.opencl.common import ocl
-            cls.Ctx = ocl.create_context()
-
+            if ocl is not None:
+                cls.Ctx = ocl.create_context()
 
     @classmethod
     def tearDownClass(cls):
         super(TestFFT, cls).tearDownClass()
-        if __have_clfft__:
+        if cls.Ctx is not None:
             del cls.Ctx
 
 
@@ -120,6 +121,8 @@ class TestFFT(unittest.TestCase):
         self.test_data = self.param["test_data"]
         self.configure_backends()
         self.configure_extra_args()
+        if self.backend == "opencl" and self.Ctx is None:
+            self.skipTest("PyopenCL is missing")
 
 
     def tearDown(self):
