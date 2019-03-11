@@ -148,7 +148,7 @@ class PickingModeAction(Plot3DAction):
 
     def __init__(self, parent, plot3d=None):
         super(PickingModeAction, self).__init__(parent, plot3d)
-        # TODO self.setIcon()
+        self.setIcon(getQIcon('pick'))
         self.setText('Picking')
         self.setToolTip(
             'Toggle object/position selection/picking with a left button click.')
