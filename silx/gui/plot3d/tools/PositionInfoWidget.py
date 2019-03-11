@@ -67,7 +67,18 @@ class PositionInfoWidget(qt.QWidget):
         layout.addStretch(1)
 
         self._action = actions.mode.PickingModeAction(parent=self)
+        self._action.setText('Selection')
+        self._action.setToolTip(
+            'Toggle selection information update with left button click')
         self._action.sigSceneClicked.connect(self.pick)
+        self._action.changed.connect(self.__actionChanged)
+        self._action.setChecked(False)  # Disabled by default
+        self.__actionChanged()  # Sync action/widget
+
+    def __actionChanged(self):
+        """Handle toggle action change signal"""
+        if self.toggleAction().isChecked() != self.isEnabled():
+            self.setEnabled(self.toggleAction().isChecked())
 
     def toggleAction(self):
         """The action to toggle the picking mode.
