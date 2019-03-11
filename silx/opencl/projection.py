@@ -97,7 +97,7 @@ class Projection(OpenclProcessing):
         self.normalize = normalize
         self._configure_kernel_args()
         self._allocate_memory()
-        self.compute_angles()
+        self._compute_angles()
         self._proj_precomputations()
         self._compile_kernels()
 
@@ -214,7 +214,7 @@ class Projection(OpenclProcessing):
             np.int32(self.normalize)
         )
 
-    def compute_angles(self):
+    def _compute_angles(self):
         angles2 = np.zeros(self._dimrecy, dtype=np.float32)  # dimrecy != num_projs
         angles2[:self.nprojs] = np.copy(self.angles)
         angles2[self.nprojs:] = angles2[self.nprojs - 1]
@@ -298,24 +298,6 @@ class Projection(OpenclProcessing):
         )
         return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
-    #~ def cpy2d_to_slice(self, src):
-        #~ """
-        #~ copy a Nx * Ny slice to self.d_slice which is (Nx+2)*(Ny+2)
-        #~ """
-        #~ ndrange = (int(self.shape[1]), int(self.shape[0]))
-        #~ wg = None
-        #~ slice_shape_ocl = np.int32(ndrange)
-        #~ kernel_args = (
-            #~ self.d_slice.data,
-            #~ src,
-            #~ np.int32(self.shape[1] + 2),
-            #~ np.int32(self.shape[1]),
-            #~ np.int32((1, 1)),
-            #~ np.int32((0, 0)),
-            #~ slice_shape_ocl
-        #~ )
-        #~ return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
-
     def set_image(self, image):
         if not(self.is_cpu):
             self.transfer_to_texture(image, self.d_image_tex, origin=(1, 1))
@@ -336,7 +318,6 @@ class Projection(OpenclProcessing):
 
         event_pj = self._projection_kernel(*self.kernel_args)
         events.append(EventDescription("projection", event_pj))
-
 
         if output is None:
             res = self.d_sino.get()
