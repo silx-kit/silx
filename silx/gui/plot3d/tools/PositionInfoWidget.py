@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ import logging
 import weakref
 
 from ... import qt
+from .. import actions
 from .. import items
 from ..items import volume
 from ..SceneWidget import SceneWidget
@@ -64,6 +65,16 @@ class PositionInfoWidget(qt.QWidget):
         self._itemLabel = self._addInfoField('Item')
 
         layout.addStretch(1)
+
+        self._action = actions.mode.PickingModeAction(parent=self)
+        self._action.sigSceneClicked.connect(self.pick)
+
+    def toggleAction(self):
+        """The action to toggle the picking mode.
+
+        :rtype: QAction
+        """
+        return self._action
 
     def _addInfoField(self, label):
         """Add a description: info widget to this widget
@@ -108,23 +119,9 @@ class PositionInfoWidget(qt.QWidget):
         if widget is not None and not isinstance(widget, SceneWidget):
             raise ValueError("widget must be a SceneWidget or None")
 
-        previous = self.getSceneWidget()
-        if previous is not None:
-            previous.removeEventFilter(self)
+        self._sceneWidgetRef = None if widget is None else weakref.ref(widget)
 
-        if widget is None:
-            self._sceneWidgetRef = None
-        else:
-            widget.installEventFilter(self)
-            self._sceneWidgetRef = weakref.ref(widget)
-
-    def eventFilter(self, watched, event):
-        # Filter events of SceneWidget to react on mouse events.
-        if (event.type() == qt.QEvent.MouseButtonDblClick and
-                event.button() == qt.Qt.LeftButton):
-            self.pick(event.x(), event.y())
-
-        return super(PositionInfoWidget, self).eventFilter(watched, event)
+        self.action().setPlot3DWidget(widget)
 
     def clear(self):
         """Clean-up displayed values"""
