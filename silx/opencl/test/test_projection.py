@@ -33,10 +33,10 @@ __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, Fr
 __date__ = "19/01/2018"
 
 
-import time
 import logging
 import numpy as np
 import unittest
+from time import time
 try:
     import mako
 except ImportError:
@@ -55,13 +55,13 @@ class TestProj(unittest.TestCase):
     def setUp(self):
         if ocl is None:
             return
-        # ~ if sys.platform.startswith('darwin'):
-            # ~ self.skipTest("Projection is not implemented on CPU for OS X yet")
         self.getfiles()
         n_angles = self.sino.shape[0]
         self.proj = projection.Projection(self.phantom.shape, n_angles)
+        logger.debug("Using device %s" % self.proj.device)
         if self.proj.compiletime_workgroup_size < 16 * 16:
             self.skipTest("Current implementation of OpenCL projection is not supported on this platform yet")
+        self.rtol = 1e-3
 
     def tearDown(self):
         self.phantom = None
@@ -74,16 +74,6 @@ class TestProj(unittest.TestCase):
         # load sinogram computed with PyHST
         self.sino = np.load(utilstest.getfile("sino500_pyhst.npz"))["data"]
 
-    def measure(self):
-        "Common measurement of timings"
-        t1 = time.time()
-        try:
-            result = self.proj.projection(self.phantom)
-        except RuntimeError as msg:
-            logger.error(msg)
-            return
-        t2 = time.time()
-        return t2 - t1, result
 
     def compare(self, res):
         """
@@ -93,7 +83,7 @@ class TestProj(unittest.TestCase):
         # Compare with the original phantom.
         # TODO: compare a standard projection
         ref = self.sino
-        return np.max(np.abs(res - ref))
+        return np.max(np.abs(res - ref)/ref.max())
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_proj(self):
@@ -102,17 +92,16 @@ class TestProj(unittest.TestCase):
         """
         # Test single reconstruction
         # --------------------------
-        t, res = self.measure()
-        if t is None:
-            logger.info("test_proj: skipped")
-        else:
-            logger.info("test_proj: time = %.3fs" % t)
-            err = self.compare(res)
-            msg = str("Max error = %e" % err)
-            logger.info(msg)
-            # Interpolation differs at some lines, giving relative error of 10/50000
-            self.assertTrue(err < 20., "Max error is too high")
-        # Test multiple reconstructions
+        t0 = time()
+        res = self.proj.projection(self.phantom)
+        el_ms = (time() - t0)*1e3
+        logger.info("test_proj: time = %.3fs" % el_ms)
+        err = self.compare(res)
+        msg = str("Max error = %e" % err)
+        logger.info(msg)
+        self.assertTrue(err < self.rtol, "Max error is too high")
+
+        # Test multiple projections
         # -----------------------------
         res0 = np.copy(res)
         for i in range(10):
