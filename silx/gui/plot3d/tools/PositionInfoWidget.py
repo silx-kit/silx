@@ -121,7 +121,7 @@ class PositionInfoWidget(qt.QWidget):
 
         self._sceneWidgetRef = None if widget is None else weakref.ref(widget)
 
-        self.action().setPlot3DWidget(widget)
+        self.toggleAction().setPlot3DWidget(widget)
 
     def clear(self):
         """Clean-up displayed values"""
