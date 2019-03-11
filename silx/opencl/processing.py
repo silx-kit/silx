@@ -320,7 +320,7 @@ class OpenclProcessing(object):
             hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32)
         )
 
-    def transfer_to_texture(self, arr, tex_ref, append_event=True):
+    def transfer_to_texture(self, arr, tex_ref, append_event=True, origin=None):
         """
         Transfer an array to a texture.
 
@@ -335,7 +335,8 @@ class OpenclProcessing(object):
             # force 2D with one row in this case
             #~ ndim = 2
             shp = (1,) + shp
-        copy_kwargs = {"origin":(0,) * ndim, "region": shp[::-1]}
+        origin = origin or (0,) * ndim
+        copy_kwargs = {"origin": origin, "region": shp[::-1]}
         if not(isinstance(arr, numpy.ndarray)): # assuming pyopencl.array.Array
             # D->D copy
             copy_args[2] = arr.data
