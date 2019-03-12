@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/05/2018"
+__date__ = "12/03/2019"
 
 
 import time
@@ -121,8 +121,6 @@ class TestHdf5TreeModel(TestCaseQt):
         model.appendFile(filename)
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         # clean up
-        index = model.index(0, 0, qt.QModelIndex())
-        h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
         ref = weakref.ref(model)
         model = None
         self.qWaitForDestroy(ref)
