@@ -661,8 +661,7 @@ class ColormapDialog(qt.QDialog):
             dataRange = None
 
         if dataRange is not None:
-            min_positive = dataRange.min_positive
-            dataRange = dataRange.minimum, min_positive, dataRange.maximum
+            dataRange = dataRange.minimum, dataRange.min_positive, dataRange.maximum
 
         if dataRange is None or len(dataRange) != 3:
             qt.QMessageBox.warning(
