@@ -489,8 +489,6 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/single_frame", data_slice=(0, )).path()
         dialog.selectUrl(path)
         # test
-        print(dialog.selectedImage().shape)
-        print(dialog.selectedImage()[0, 0])
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertEqual(dialog.selectedImage()[0, 0], 5)
         self.assertSamePath(dialog.selectedFile(), filename)
