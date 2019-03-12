@@ -73,13 +73,6 @@ def mainQt(options):
     # Import most of the things here to be sure to use the right logging level
     #
 
-    import silx
-    import silx.utils.files
-    from silx.gui import qt
-    # Make sure matplotlib is configured
-    # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
-    from silx.gui.plot import matplotlib
-
     try:
         # it should be loaded before h5py
         import hdf5plugin  # noqa
@@ -87,6 +80,13 @@ def mainQt(options):
         _logger.debug("Backtrace", exc_info=True)
 
     import h5py
+
+    import silx
+    import silx.utils.files
+    from silx.gui import qt
+    # Make sure matplotlib is configured
+    # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
+    from silx.gui.plot import matplotlib
 
     app = qt.QApplication([])
     qt.QLocale.setDefault(qt.QLocale.c())
