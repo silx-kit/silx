@@ -238,6 +238,37 @@ class TestHdf5TreeModel(TestCaseQt):
         model.setFileDropEnabled(False)
         self.assertNotEquals(model.supportedDropActions(), 0)
 
+    def testCloseFile(self):
+        """A file inserted as a filename is open and closed internally."""
+        filename = _tmpDirectory + "/data.h5"
+        model = hdf5.Hdf5TreeModel()
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
+        model.insertFile(filename)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
+        index = model.index(0, 0)
+        h5File = model.data(index, role=hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+        model.removeIndex(index)
+        self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
+        self.assertFalse(bool(h5File.id.valid), "The HDF5 file was not closed")
+
+    def testNotCloseFile(self):
+        """A file inserted as an h5py object is not open (then not closed)
+        internally."""
+        filename = _tmpDirectory + "/data.h5"
+        try:
+            h5File = h5py.File(filename)
+            model = hdf5.Hdf5TreeModel()
+            self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
+            model.insertH5pyObject(h5File)
+            self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
+            index = model.index(0, 0)
+            h5File = model.data(index, role=hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            model.removeIndex(index)
+            self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
+            self.assertTrue(bool(h5File.id.valid), "The HDF5 file was unexpetedly closed")
+        finally:
+            h5File.close()
+
     def testDropExternalFile(self):
         filename = _tmpDirectory + "/data.h5"
         model = hdf5.Hdf5TreeModel()
