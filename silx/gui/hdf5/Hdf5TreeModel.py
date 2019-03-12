@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/01/2019"
+__date__ = "12/03/2019"
 
 
 import os
@@ -570,7 +570,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         drag-and-drop"""
         obj = node.obj
         for f in self.__openedFiles:
-            if f in obj:
+            if f is obj:
                 _logger.debug("Close file %s", obj.filename)
                 obj.close()
                 self.__openedFiles.remove(obj)
