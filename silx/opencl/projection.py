@@ -34,12 +34,12 @@ __date__ = "28/02/2018"
 import logging
 import numpy as np
 
-from .common import pyopencl
+from .common import pyopencl as cl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 from .backprojection import _sizeof, _idivup
 
-if pyopencl:
-    mf = pyopencl.mem_flags
+if cl:
+    mf = cl.mem_flags
     import pyopencl.array as parray
 else:
     raise ImportError("pyopencl is not installed")
@@ -52,7 +52,6 @@ class Projection(OpenclProcessing):
     OpenCL
     """
     kernel_files = ["proj.cl", "array_utils.cl"]
-    logger.warning("Forward Projecter is untested and unsuported for now")
 
     def __init__(self, slice_shape, angles, axis_position=None,
                  detector_width=None, normalize=False, ctx=None,
@@ -83,6 +82,7 @@ class Projection(OpenclProcessing):
                         slower)
         :param extra_options: dict containing advanced options.
             Current allowed options:
+                offset_x, offset_y, axis_corrections, dont_use_textures
         """
         # OS X enforces a workgroup size of 1 when the kernel has synchronization barriers
         # if sys.platform.startswith('darwin'): # assuming no discrete GPU
@@ -95,7 +95,7 @@ class Projection(OpenclProcessing):
         self._configure_extra_options(extra_options)
         self._init_geometry(slice_shape, axis_position, angles, detector_width)
         self.normalize = normalize
-        self._configure_kernel_args()
+        self._prepare_kernel_args()
         self._allocate_memory()
         self._compute_angles()
         self._proj_precomputations()
@@ -134,8 +134,9 @@ class Projection(OpenclProcessing):
         self.offset_y = self.extra_options["offset_y"] or \
             -np.float32((self.shape[0] - 1) / 2. - self.axis_pos)
         self.axis_pos0 = np.float((self.shape[1] - 1) / 2.)
+        self.sino_shape = (self.nprojs, self.dwidth)
 
-    def _configure_kernel_args(self):
+    def _prepare_kernel_args(self):
         self.dimgrid_x = _idivup(self.dwidth, 16)
         self.dimgrid_y = _idivup(self.nprojs, 16)
         self._dimrecx = np.int32(self.dimgrid_x * 16)
@@ -189,7 +190,7 @@ class Projection(OpenclProcessing):
             slice_ref = self.d_image_tex
             self._projection_kernel = self.kernels.forward_kernel
         else:
-            slice_ref = self.cl_mem["d_slice"].data
+            slice_ref = self.d_slice.data
             self._projection_kernel = self.kernels.forward_kernel_cpu
         self.kernel_args = (
             self.queue,
@@ -213,6 +214,33 @@ class Projection(OpenclProcessing):
             np.int32(1),  # josephnoclip, 1 by default
             np.int32(self.normalize)
         )
+        ndrange = (int(self.dwidth), int(self.nprojs))
+        self.cpy2d_sino_kernel_args = [
+            self.queue,
+            ndrange,
+            None,
+            False, # placeholder
+            self.d_sino.data,
+            np.int32(self.dwidth),
+            np.int32(self._dimrecx),
+            np.int32((0, 0)),
+            np.int32((0, 0)),
+            np.int32(ndrange)
+        ]
+        ndrange = (int(self.shape[1]), int(self.shape[0]))
+        if self.is_cpu:
+            self.cpy2d_slice_kernel_args = [
+                self.queue,
+                ndrange,
+                None,
+                self.d_slice.data,
+                False, # placeholder
+                np.int32(self.shape[1] + 2),
+                np.int32(self.shape[1]),
+                np.int32((1, 1)),
+                np.int32((0, 0)),
+                np.int32(ndrange),
+            ]
 
     def _compute_angles(self):
         angles2 = np.zeros(self._dimrecy, dtype=np.float32)  # dimrecy != num_projs
@@ -266,39 +294,47 @@ class Projection(OpenclProcessing):
         strideLine[0][case4] = 1
         strideLine[1][case4] = 0
 
-        pyopencl.enqueue_copy(self.queue, self._d_beginPos.data, beginPos)
-        pyopencl.enqueue_copy(self.queue, self._d_strideJoseph.data, strideJoseph)
-        pyopencl.enqueue_copy(self.queue, self._d_strideLine.data, strideLine)
+        cl.enqueue_copy(self.queue, self._d_beginPos.data, beginPos)
+        cl.enqueue_copy(self.queue, self._d_strideJoseph.data, strideJoseph)
+        cl.enqueue_copy(self.queue, self._d_strideLine.data, strideLine)
 
     def _get_local_mem(self):
-        return pyopencl.LocalMemory(self.local_mem)  # constant for all image sizes
+        return cl.LocalMemory(self.local_mem)  # constant for all image sizes
 
-    def transfer_to_slice(self, image):
-        # pyopencl does not support rectangular copies, so we use this workaround
-        # Another way would be to (1) transfer image to a tmp device array, and
-        # (2) shift the array of (1, 1) pixel
-        self.tmp_image[1:-1, 1:-1] = image.astype(np.float32)
-        self.cl_mem["d_slice"][:] = self.tmp_image[:]
+    def cpy2d_to_slice(self, src):
+        """
+        copy a Nx * Ny slice to self.d_slice which is (Nx+2)*(Ny+2)
+        """
+        self.cpy2d_slice_kernel_args[4] = src.data
+        return self.kernels.cpy2d(*self.cpy2d_slice_kernel_args)
 
     def cpy2d_to_sino(self, dst):
         """
         copy a sinogram to self.d_sino which is dimrecx * dimrecy
         """
-        ndrange = (int(self.dwidth), int(self.nprojs))
-        sino_shape_ocl = np.int32(ndrange)
-        wg = None
-        kernel_args = (
-            dst.data,
-            self.d_sino.data,
-            np.int32(self.dwidth),
-            np.int32(self._dimrecx),
-            np.int32((0, 0)),
-            np.int32((0, 0)),
-            sino_shape_ocl
-        )
-        return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
+        self.cpy2d_sino_kernel_args[3] = dst.data
+        return self.kernels.cpy2d(*self.cpy2d_sino_kernel_args)
+
+    def _check_input_array(self, image):
+        if image.shape != self.shape:
+            raise ValueError(
+                "Expected slice shape = %s, got %s"
+                % (str(self.shape), str(image.shape))
+            )
+        if image.dtype != np.dtype("f"):
+            raise ValueError("Expected float32 data type, got %s" % str(image.dtype))
+        if not(isinstance(image, np.ndarray) or isinstance(image, cl.array.Array)):
+            raise ValueError("Expected either numpy.ndarray or pyopencl.array.Array")
+
+    def transfer_to_slice(self, image):
+        if isinstance(image, np.ndarray):
+            self.tmp_image[1:-1, 1:-1] = image
+            self.d_slice[:] = self.tmp_image[:]
+        else: # assuming pyopencl.array
+            self.cpy2d_to_slice(image)
 
     def set_image(self, image):
+        self._check_input_array(image)
         if not(self.is_cpu):
             self.transfer_to_texture(image, self.d_image_tex, origin=(1, 1))
         else:
@@ -315,10 +351,8 @@ class Projection(OpenclProcessing):
         self.sem.acquire()
 
         self.set_image(image)
-
         event_pj = self._projection_kernel(*self.kernel_args)
         events.append(EventDescription("projection", event_pj))
-
         if output is None:
             res = self.d_sino.get()
             res = res[:self.nprojs, :self.dwidth] # copy ?
@@ -327,6 +361,7 @@ class Projection(OpenclProcessing):
             events.append(EventDescription("copy D->D result", ev))
             ev.wait()
             res = output
+
         self.sem.release()
         if self.profile:
             self.events += events

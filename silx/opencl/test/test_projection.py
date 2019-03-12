@@ -44,6 +44,7 @@ except ImportError:
 from ..common import ocl
 if ocl:
     from .. import projection
+    import pyopencl.array as parray
 from silx.test.utils import utilstest
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ class TestProj(unittest.TestCase):
         if ocl is None:
             return
         self.getfiles()
-        n_angles = self.sino.shape[0]
+        n_angles = self.sino_ref.shape[0]
         self.proj = projection.Projection(self.phantom.shape, n_angles)
         logger.debug("Using device %s" % self.proj.device)
         if self.proj.compiletime_workgroup_size < 16 * 16:
@@ -65,49 +66,59 @@ class TestProj(unittest.TestCase):
 
     def tearDown(self):
         self.phantom = None
-        self.sino = None
+        self.sino_ref = None
         self.proj = None
 
     def getfiles(self):
         # load 512x512 MRI phantom
         self.phantom = np.load(utilstest.getfile("Brain512.npz"))["data"]
         # load sinogram computed with PyHST
-        self.sino = np.load(utilstest.getfile("sino500_pyhst.npz"))["data"]
+        self.sino_ref = np.load(utilstest.getfile("sino500_pyhst.npz"))["data"]
 
 
-    def compare(self, res):
-        """
-        Compare a result with the reference reconstruction.
-        Only the valid reconstruction zone (inscribed circle) is taken into account
-        """
-        # Compare with the original phantom.
-        # TODO: compare a standard projection
-        ref = self.sino
-        return np.max(np.abs(res - ref)/ref.max())
+    @staticmethod
+    def compare(arr1, arr2):
+        return np.max(np.abs(arr1 - arr2)/arr1.max())
+
+    def check_result(self, res):
+        errmax = self.compare(res, self.sino_ref)
+        msg = str("Max error = %e" % errmax)
+        logger.info(msg)
+        self.assertTrue(errmax < self.rtol, "Max error is too high")
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_proj(self):
         """
         tests Projection
         """
+        P = self.proj
         # Test single reconstruction
         # --------------------------
         t0 = time()
-        res = self.proj.projection(self.phantom)
+        res = P.projection(self.phantom)
         el_ms = (time() - t0)*1e3
-        logger.info("test_proj: time = %.3fs" % el_ms)
-        err = self.compare(res)
-        msg = str("Max error = %e" % err)
-        logger.info(msg)
-        self.assertTrue(err < self.rtol, "Max error is too high")
+        logger.info("test_proj: time = %.3f ms" % el_ms)
+        self.check_result(res)
 
         # Test multiple projections
         # -----------------------------
         res0 = np.copy(res)
         for i in range(10):
-            res = self.proj.projection(self.phantom)
+            res = P.projection(self.phantom)
             errmax = np.max(np.abs(res - res0))
             self.assertTrue(errmax < 1.e-6, "Max error is too high")
+
+        # Test projection with input and/or output on device
+        # --------------------------------------------------
+        d_input = parray.to_device(P.queue, self.phantom)
+        d_output = parray.zeros(P.queue, P.sino_shape, "f")
+        res = P.projection(d_input)
+        self.check_result(res)
+        P.projection(self.phantom, output=d_output)
+        self.check_result(d_output.get())
+        P.projection(d_input, output=d_output)
+        self.check_result(d_output.get())
+
 
 
 def suite():
