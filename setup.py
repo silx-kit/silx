@@ -40,6 +40,7 @@ import glob
 # The silx.io module seems to be loaded instead.
 import io
 
+
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("silx.setup")
@@ -489,7 +490,7 @@ class Build(_build):
                 # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
                 osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])
                 if osx >= (10, 8):
-                    logger.warning("OpenMP support ignored. Your platform do not support it")
+                    logger.warning("OpenMP support ignored. Your platform does not support it.")
                     use_openmp = False
 
         # Remove attributes used by distutils parsing
@@ -556,7 +557,7 @@ class BuildExt(build_ext):
 
     LINK_ARGS_CONVERTER = {'-fopenmp': ''}
 
-    description = 'Build silx extensions'
+    description = 'Build extensions'
 
     def finalize_options(self):
         build_ext.finalize_options(self)
@@ -707,6 +708,7 @@ class BuildExt(build_ext):
             self.patch_extension(ext)
         build_ext.build_extensions(self)
 
+
 ################################################################################
 # Clean command
 ################################################################################
@@ -785,7 +787,7 @@ class SourceDistWithCython(sdist):
     without suppport of OpenMP.
     """
 
-    description = "Create a source distribution including cythonozed files (tarball, zip file, etc.)"
+    description = "Create a source distribution including cythonized files (tarball, zip file, etc.)"
 
     def finalize_options(self):
         sdist.finalize_options(self)
