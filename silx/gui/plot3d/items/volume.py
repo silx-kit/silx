@@ -66,6 +66,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         PlaneMixIn.__init__(self, plane=plane)
 
         self._dataRange = None
+        self._data = None
 
         self._getScenePrimitive().children = [plane]
 
@@ -75,18 +76,43 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
 
         parent.sigItemChanged.connect(self._parentChanged)
 
+    def _updateData(self, data, range_):
+        """Update used dataset
+
+        No copy is made.
+
+        :param Union[numpy.ndarray[float],None] data: The dataset
+        :param Union[List[float],None] range_:
+            (min, min positive, max) values
+        """
+        self._data = None if data is None else numpy.array(data, copy=False)
+        self._getPlane().setData(self._data, copy=False)
+
+        # Store data range info as 3-tuple of values
+        self._dataRange = range_
+        self._setRangeFromData(
+            None if self._dataRange is None else numpy.array(self._dataRange))
+
+        self._updated(ItemChangedType.DATA)
+
+    def _syncDataWithParent(self):
+        """Synchronize this instance data with that of its parent"""
+        parent = self.parent()
+        if parent is None:
+            data, range_ = None, None
+        else:
+            data = parent.getData(copy=False)
+            range_ = parent.getDataRange()
+        self._updateData(data, range_)
+
+    def setParent(self, parent):
+        super(CutPlane, self).setParent(parent)
+        self._syncDataWithParent()
+
     def _parentChanged(self, event):
         """Handle data change in the parent this plane belongs to"""
         if event == ItemChangedType.DATA:
-            data = self.sender().getData(copy=False)
-            self._getPlane().setData(data, copy=False)
-
-            # Store data range info as 3-tuple of values
-            self._dataRange = self.sender().getDataRange()
-            self._setRangeFromData(
-                None if self._dataRange is None else numpy.array(self._dataRange))
-
-            self._updated(ItemChangedType.DATA)
+            self._syncDataWithParent()
 
     # Colormap
 
@@ -114,8 +140,9 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         positive min is NaN if no data is positive.
 
         :return: (min, positive min, max) or None.
+        :rtype: Union[List[float],None]
         """
-        return self._dataRange
+        return None if self._dataRange is None else tuple(self._dataRange)
 
     def getData(self, copy=True):
         """Return 3D dataset.
@@ -125,8 +152,10 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
            False to get the internal data (DO NOT modify!)
         :return: The data set (or None if not set)
         """
-        parent = self.parent()
-        return None if parent is None else parent.getData(copy=copy)
+        if self._data is None:
+            return None
+        else:
+            return numpy.array(self._data, copy=copy)
 
     def _pickFull(self, context):
         """Perform picking in this item at given widget position.
