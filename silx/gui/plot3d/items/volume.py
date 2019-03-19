@@ -60,7 +60,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
     def __init__(self, parent):
         plane = cutplane.CutPlane(normal=(0, 1, 0))
 
-        Item3D.__init__(self, parent=parent)
+        Item3D.__init__(self, parent=None)
         ColormapMixIn.__init__(self)
         InterpolationMixIn.__init__(self)
         PlaneMixIn.__init__(self, plane=plane)
@@ -74,7 +74,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         ColormapMixIn._setSceneColormap(self, plane.colormap)
         InterpolationMixIn._setPrimitive(self, plane)
 
-        parent.sigItemChanged.connect(self._parentChanged)
+        self.setParent(parent)
 
     def _updateData(self, data, range_):
         """Update used dataset
@@ -105,14 +105,22 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
             range_ = parent.getDataRange()
         self._updateData(data, range_)
 
-    def setParent(self, parent):
-        super(CutPlane, self).setParent(parent)
-        self._syncDataWithParent()
-
     def _parentChanged(self, event):
         """Handle data change in the parent this plane belongs to"""
         if event == ItemChangedType.DATA:
             self._syncDataWithParent()
+
+    def setParent(self, parent):
+        oldParent = self.parent()
+        if isinstance(oldParent, Item3D):
+            oldParent.sigItemChanged.disconnect(self._parentChanged)
+
+        super(CutPlane, self).setParent(parent)
+
+        if isinstance(parent, Item3D):
+            parent.sigItemChanged.connect(self._parentChanged)
+
+        self._syncDataWithParent()
 
     # Colormap
 
@@ -201,18 +209,38 @@ class Isosurface(Item3D):
     """
 
     def __init__(self, parent):
-        Item3D.__init__(self, parent=parent)
-        assert isinstance(parent, ScalarField3D)
-        parent.sigItemChanged.connect(self._scalarField3DChanged)
+        Item3D.__init__(self, parent=None)
+        self._data = None
         self._level = float('nan')
         self._autoLevelFunction = None
         self._color = rgba('#FFD700FF')
+        self.setParent(parent)
+
+    def _syncDataWithParent(self):
+        """Synchronize this instance data with that of its parent"""
+        parent = self.parent()
+        if parent is None:
+            self._data = None
+        else:
+            self._data = parent.getData(copy=False)
         self._updateScenePrimitive()
 
-    def _scalarField3DChanged(self, event):
-        """Handle parent's ScalarField3D sigItemChanged"""
+    def _parentChanged(self, event):
+        """Handle data change in the parent this isosurface belongs to"""
         if event == ItemChangedType.DATA:
-            self._updateScenePrimitive()
+            self._syncDataWithParent()
+
+    def setParent(self, parent):
+        oldParent = self.parent()
+        if isinstance(oldParent, Item3D):
+            oldParent.sigItemChanged.disconnect(self._parentChanged)
+
+        super(Isosurface, self).setParent(parent)
+
+        if isinstance(parent, Item3D):
+            parent.sigItemChanged.connect(self._parentChanged)
+
+        self._syncDataWithParent()
 
     def getData(self, copy=True):
         """Return 3D dataset.
@@ -222,8 +250,10 @@ class Isosurface(Item3D):
            False to get the internal data (DO NOT modify!)
         :return: The data set (or None if not set)
         """
-        parent = self.parent()
-        return None if parent is None else parent.getData(copy=copy)
+        if self._data is None:
+            return None
+        else:
+            return numpy.array(self._data, copy=copy)
 
     def getLevel(self):
         """Return the level of this iso-surface (float)"""
@@ -590,7 +620,7 @@ class ScalarField3D(BaseNodeItem):
     # BaseNodeItem
 
     def getItems(self):
-        """Returns the list of items currently present in the ScalarField3D.
+        """Returns the list of items currently present in this item.
 
         :rtype: tuple
         """
