@@ -140,7 +140,7 @@ class ColormapMixIn(_ColormapMixIn):
         self._dataRange = dataRange
 
         if self.getColormap().isAutoscale():
-            self._syncSceneColormap()
+            self._colormapChanged()
 
     def _getDataRange(self):
         """Returns the data range as used in the scene for colormap
