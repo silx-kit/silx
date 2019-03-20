@@ -988,7 +988,10 @@ class IsosurfaceRow(Item3DRow):
                 dataRange = scalarField3D.getDataRange()
                 if dataRange is not None:
                     dataMin, dataMax = dataRange[0], dataRange[-1]
-                    offset = (item.getLevel() - dataMin) / (dataMax - dataMin)
+                    if dataMax != dataMin:
+                        offset = (item.getLevel() - dataMin) / (dataMax - dataMin)
+                    else:
+                        offset = 0.
 
                     sliderMin, sliderMax = self._LEVEL_SLIDER_RANGE
                     value = sliderMin + (sliderMax - sliderMin) * offset
