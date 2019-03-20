@@ -31,6 +31,7 @@ __date__ = "24/04/2018"
 
 
 import collections
+import enum
 import numpy
 
 from silx.math.combo import min_max
@@ -172,6 +173,102 @@ class ColormapMixIn(_ColormapMixIn):
             self.__sceneColormap.norm = colormap.getNormalization()
             range_ = colormap.getColormapRange(data=self._dataRange)
             self.__sceneColormap.range_ = range_
+
+
+class ComplexMixIn(ItemMixInBase):
+    """Mix-in class for converting complex data to scalar value"""
+
+    class Mode(enum.Enum):
+        """Identify available display mode for complex"""
+        ABSOLUTE = 'absolute'
+        PHASE = 'phase'
+        REAL = 'real'
+        IMAGINARY = 'imaginary'
+        AMPLITUDE_PHASE = 'amplitude_phase'
+        LOG10_AMPLITUDE_PHASE = 'log10_amplitude_phase'
+        SQUARE_AMPLITUDE = 'square_amplitude'
+
+        @classmethod
+        def asMember(cls, value):
+            """Convert a str to corresponding enum member
+
+            :param Union[str,Mode] value: The value to convert
+            :return: The corresponding enum member
+            :rtype: Mode
+            :raise ValueError: In case the conversion is not possible
+            """
+            if isinstance(value, cls):
+                return value
+            value = str(value)
+            for member in cls:
+                if value == member.value:
+                    return member
+            raise ValueError("Cannot convert: %s" % value)
+
+    def __init__(self):
+        self._mode = self.Mode.REAL
+
+    def getComplexMode(self):
+        """Returns the current complex visualization mode.
+
+        :rtype: Mode
+        """
+        return self._mode
+
+    def setComplexMode(self, mode):
+        """Set the complex visualization mode.
+
+        :param Mode mode: The visualization mode in:
+            'real', 'imaginary', 'phase', 'amplitude'
+        """
+        mode = self.Mode.asMember(mode)
+        assert mode in self.supportedComplexModes()
+
+        if mode != self._mode:
+            self._mode = mode
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+
+    def _convertComplexData(self, data, mode=None):
+        """Convert complex data to the specific mode.
+
+        :param Union[Mode,None] mode:
+            The kind of value to compute.
+            If None (the default), the current complex mode is used.
+        :return: The converted dataset
+        :rtype: Union[numpy.ndarray[float],None]
+        """
+        if data is None:
+            return None
+
+        if mode is None:
+            mode = self.getComplexMode()
+
+        if mode is self.Mode.REAL:
+            return numpy.real(data)
+        elif mode is self.Mode.IMAGINARY:
+            return numpy.imag(data)
+        elif mode is self.Mode.ABSOLUTE:
+            return numpy.absolute(data)
+        elif mode is self.Mode.PHASE:
+            return numpy.angle(data)
+        elif mode is self.Mode.SQUARE_AMPLITUDE:
+            return numpy.absolute(data) ** 2
+        else:
+            raise ValueError('Unsupported conversion mode: %s', str(mode))
+
+    @classmethod
+    def supportedComplexModes(cls):
+        """Returns the list of supported complex visualization modes.
+
+        See :meth:`setComplexMode`.
+
+        :rtype: List[Mode]
+        """
+        return (cls.Mode.REAL,
+                cls.Mode.IMAGINARY,
+                cls.Mode.ABSOLUTE,
+                cls.Mode.PHASE,
+                cls.Mode.SQUARE_AMPLITUDE)
 
 
 class SymbolMixIn(_SymbolMixIn):
