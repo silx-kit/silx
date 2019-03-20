@@ -1209,7 +1209,9 @@ class VolumeIsoSurfacesRow(StaticRow):
         if volume is None:
             return
 
-        row = volume.getIsosurfaces().index(item) + 1
+        row = volume.getIsosurfaces().index(item)
+        if isinstance(volume, items.ComplexMixIn):
+            row += 1  # Offset for the ComplexModeRow
         self.addRow(nodeFromItem(item), row)
 
     def _isosurfaceRemoved(self, item):
