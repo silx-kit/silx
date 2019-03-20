@@ -139,7 +139,8 @@ class ColormapMixIn(_ColormapMixIn):
 
         self._dataRange = dataRange
 
-        if self.getColormap().isAutoscale():
+        colormap = self.getColormap()
+        if None in (colormap.getVMin(), colormap.getVMax()):
             self._colormapChanged()
 
     def _getDataRange(self):
