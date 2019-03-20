@@ -894,7 +894,7 @@ class ComplexModeRow(ProxyRow):
         names = [m.value.replace('_', ' ').title()
                  for m in item.supportedComplexModes()]
         super(ComplexModeRow, self).__init__(
-            name='Display',
+            name='Mode',
             fget=item.getComplexMode,
             fset=item.setComplexMode,
             notify=item.sigItemChanged,
