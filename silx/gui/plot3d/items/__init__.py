@@ -37,8 +37,7 @@ from .core import ItemChangedType, Item3DChangedType  # noqa
 from .mixins import (ColormapMixIn, ComplexMixIn, InterpolationMixIn,  # noqa
                      PlaneMixIn, SymbolMixIn)  # noqa
 from .clipplane import ClipPlane  # noqa
-from .complexvolume import ComplexField3D  # noqa
 from .image import ImageData, ImageRgba  # noqa
 from .mesh import Mesh, ColormapMesh, Box, Cylinder, Hexagon  # noqa
 from .scatter import Scatter2D, Scatter3D  # noqa
-from .volume import ScalarField3D  # noqa
+from .volume import ComplexField3D, ScalarField3D  # noqa
