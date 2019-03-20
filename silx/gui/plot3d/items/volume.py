@@ -464,6 +464,26 @@ class ScalarField3D(BaseNodeItem):
             self._cutPlane._getScenePrimitive(),
             self._isogroup]
 
+    @staticmethod
+    def _computeRangeFromData(data):
+        """Compute range info (min, min positive, max) from data
+
+        :param Union[numpy.ndarray,None] data:
+        :return: Union[List[float],None]
+        """
+        if data is None:
+            return None
+
+        dataRange = min_max(data, min_positive=True, finite=True)
+        if dataRange.minimum is None:  # Only non-finite data
+            return None
+
+        if dataRange is not None:
+            min_positive = dataRange.min_positive
+            if min_positive is None:
+                min_positive = float('nan')
+            return dataRange.minimum, min_positive, dataRange.maximum
+
     def setData(self, data, copy=True):
         """Set the 3D scalar data represented by this item.
 
@@ -477,7 +497,6 @@ class ScalarField3D(BaseNodeItem):
         """
         if data is None:
             self._data = None
-            self._dataRange = None
             self._boundedGroup.shape = None
 
         else:
@@ -486,21 +505,9 @@ class ScalarField3D(BaseNodeItem):
             assert min(data.shape) >= 2
 
             self._data = data
-
-            # Store data range info
-            dataRange = min_max(self._data, min_positive=True, finite=True)
-            if dataRange.minimum is None:  # Only non-finite data
-                dataRange = None
-
-            if dataRange is not None:
-                min_positive = dataRange.min_positive
-                if min_positive is None:
-                    min_positive = float('nan')
-                dataRange = dataRange.minimum, min_positive, dataRange.maximum
-            self._dataRange = dataRange
-
             self._boundedGroup.shape = self._data.shape
 
+        self._dataRange = self._computeRangeFromData(self._data)
         self._updated(ItemChangedType.DATA)
 
     def getData(self, copy=True):
