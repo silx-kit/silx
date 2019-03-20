@@ -34,9 +34,10 @@ __date__ = "15/11/2017"
 
 from .core import DataItem3D, Item3D, GroupItem, GroupWithAxesItem  # noqa
 from .core import ItemChangedType, Item3DChangedType  # noqa
-from .mixins import (ColormapMixIn, InterpolationMixIn,  # noqa
+from .mixins import (ColormapMixIn, ComplexMixIn, InterpolationMixIn,  # noqa
                      PlaneMixIn, SymbolMixIn)  # noqa
 from .clipplane import ClipPlane  # noqa
+from .complexvolume import ComplexField3D  # noqa
 from .image import ImageData, ImageRgba  # noqa
 from .mesh import Mesh, ColormapMesh, Box, Cylinder, Hexagon  # noqa
 from .scatter import Scatter2D, Scatter3D  # noqa
