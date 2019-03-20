@@ -267,7 +267,7 @@ class SceneSelection(qt.QObject):
             assert isinstance(parent, SceneWidget)
 
             if item.root() != parent.getSceneGroup():
-                self.setSelectedItem(None)
+                self.setCurrentItem(None)
 
     # Synchronization with QItemSelectionModel
 
