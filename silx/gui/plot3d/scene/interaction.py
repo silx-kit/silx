@@ -43,11 +43,11 @@ from . import transform
 _logger = logging.getLogger(__name__)
 
 
-# ClickOrDrag #################################################################
-
-# TODO merge with silx.gui.plot.Interaction.ClickOrDrag
 class ClickOrDrag(StateMachine):
-    """Click or drag interaction for a given button."""
+    """Click or drag interaction for a given button.
+
+    """
+    #TODO: merge this class with silx.gui.plot.Interaction.ClickOrDrag
 
     DRAG_THRESHOLD_SQUARE_DIST = 5 ** 2
 
@@ -125,8 +125,6 @@ class ClickOrDrag(StateMachine):
         """
         pass
 
-
-# CameraSelectRotate ##########################################################
 
 class CameraSelectRotate(ClickOrDrag):
     """Camera rotation using an arcball-like interaction."""
@@ -213,8 +211,6 @@ class CameraSelectRotate(ClickOrDrag):
         self._reset()
 
 
-# CameraSelectPan #############################################################
-
 class CameraSelectPan(ClickOrDrag):
     """Picking on click and pan camera on drag."""
 
@@ -266,8 +262,6 @@ class CameraSelectPan(ClickOrDrag):
     def endDrag(self, x, y):
         self._lastPosNdc = None
 
-
-# CameraWheel #################################################################
 
 class CameraWheel(object):
     """StateMachine like class, just handling wheel events."""
@@ -379,8 +373,6 @@ class CameraWheel(object):
         return True
 
 
-# FocusManager ################################################################
-
 class FocusManager(StateMachine):
     """Manages focus across multiple event handlers
 
@@ -457,8 +449,6 @@ class FocusManager(StateMachine):
             handler.cancel()
 
 
-# CameraControl ###############################################################
-
 class RotateCameraControl(FocusManager):
     """Combine wheel and rotate state machine for left button
     and pan when ctrl is pressed
@@ -502,8 +492,6 @@ class CameraControl(FocusManager):
                         viewport, orbitAroundCenter, RIGHT_BTN, selectCB))
         super(CameraControl, self).__init__(handlers)
 
-
-# PlaneRotate #################################################################
 
 class PlaneRotate(ClickOrDrag):
     """Plane rotation using arcball interaction.
@@ -614,8 +602,6 @@ class PlaneRotate(ClickOrDrag):
         self._reset()
 
 
-# PlanePan ###################################################################
-
 class PlanePan(ClickOrDrag):
     """Pan a plane along its normal on drag."""
 
@@ -678,8 +664,6 @@ class PlanePan(ClickOrDrag):
     def endDrag(self, x, y):
         self._beginPlanePoint = None
 
-
-# PlaneControl ################################################################
 
 class PlaneControl(FocusManager):
     """Combine wheel, selectPan and rotate state machine for plane control."""
