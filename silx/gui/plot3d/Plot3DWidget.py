@@ -107,6 +107,12 @@ class Plot3DWidget(glu.OpenGLWidget):
     It provides the updated property.
     """
 
+    sigSceneClicked = qt.Signal(float, float)
+    """Signal emitted when the scene is clicked with the left mouse button.
+
+    It provides the (x, y) clicked mouse position
+    """
+
     @enum.unique
     class FogMode(enum.Enum):
         """Different mode to render the scene with fog"""
@@ -174,6 +180,11 @@ class Plot3DWidget(glu.OpenGLWidget):
         self.eventHandler = None
         self.setInteractiveMode('rotate')
 
+    def __clickHandler(self, *args):
+        """Handle interaction state machine click"""
+        x, y = args[0][:2]
+        self.sigSceneClicked.emit(x, y)
+
     def setInteractiveMode(self, mode):
         """Set the interactive mode.
 
@@ -191,7 +202,7 @@ class Plot3DWidget(glu.OpenGLWidget):
                 orbitAroundCenter=False,
                 mode='position',
                 scaleTransform=self._sceneScale,
-                selectCB=None)
+                selectCB=self.__clickHandler)
 
         elif mode == 'pan':
             self.eventHandler = interaction.PanCameraControl(
@@ -199,7 +210,7 @@ class Plot3DWidget(glu.OpenGLWidget):
                 orbitAroundCenter=False,
                 mode='position',
                 scaleTransform=self._sceneScale,
-                selectCB=None)
+                selectCB=self.__clickHandler)
 
         elif isinstance(mode, interaction.StateMachine):
             self.eventHandler = mode

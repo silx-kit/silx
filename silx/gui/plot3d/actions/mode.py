@@ -24,7 +24,8 @@
 # ###########################################################################*/
 """This module provides Plot3DAction related to interaction modes.
 
-It provides QAction to rotate or pan a Plot3DWidget.
+It provides QAction to rotate or pan a Plot3DWidget
+as well as toggle a picking mode.
 """
 
 from __future__ import absolute_import, division
@@ -36,8 +37,9 @@ __date__ = "06/09/2017"
 
 import logging
 
-from silx.utils.proxy import docstring
-from silx.gui.icons import getQIcon
+from ....utils.proxy import docstring
+from ... import qt
+from ...icons import getQIcon
 from .Plot3DAction import Plot3DAction
 
 
@@ -126,3 +128,51 @@ class PanAction(InteractiveModeAction):
         self.setIcon(getQIcon('pan'))
         self.setText('Pan')
         self.setToolTip('Pan the view. Press <b>Ctrl</b> to rotate.')
+
+
+class PickingModeAction(Plot3DAction):
+    """QAction to toggle picking moe on a Plot3DWidget
+
+    :param parent: See :class:`QAction`
+    :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
+        Plot3DWidget the action is associated with
+    """
+
+    sigSceneClicked = qt.Signal(float, float)
+    """Signal emitted when the scene is clicked with the left mouse button.
+
+    This signal is only emitted when the action is checked.
+
+    It provides the (x, y) clicked mouse position
+    """
+
+    def __init__(self, parent, plot3d=None):
+        super(PickingModeAction, self).__init__(parent, plot3d)
+        self.setIcon(getQIcon('pick'))
+        self.setText('Picking')
+        self.setToolTip('Toggle picking with left button click')
+        self.setCheckable(True)
+        self.triggered[bool].connect(self._triggered)
+
+    def _triggered(self, checked=False):
+        plot3d = self.getPlot3DWidget()
+        if plot3d is not None:
+            if checked:
+                plot3d.sigSceneClicked.connect(self.sigSceneClicked)
+            else:
+                plot3d.sigSceneClicked.disconnect(self.sigSceneClicked)
+
+    @docstring(Plot3DAction)
+    def setPlot3DWidget(self, widget):
+        # Disconnect from previous Plot3DWidget
+        plot3d = self.getPlot3DWidget()
+        if plot3d is not None and self.isChecked():
+            plot3d.sigSceneClicked.disconnect(self.sigSceneClicked)
+
+        super(PickingModeAction, self).setPlot3DWidget(widget)
+
+        # Connect to new Plot3DWidget
+        if widget is None:
+            self.setChecked(False)
+        elif self.isChecked():
+            widget.sigSceneClicked.connect(self.sigSceneClicked)
