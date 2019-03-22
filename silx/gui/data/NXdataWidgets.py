@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "12/11/2018"
 
 import logging
-import numbers
 import numpy
 
 from silx.gui import qt
@@ -893,28 +892,9 @@ class ArrayVolumePlot(qt.QWidget):
         self.__x_axis = None
         self.__x_axis_name = None
 
-        from silx.gui.plot3d.ScalarFieldView import ScalarFieldView
-        from silx.gui.plot3d import SFViewParamTree
+        from ._VolumeWindow import VolumeWindow
 
-        self._view = ScalarFieldView(self)
-
-        def computeIsolevel(data):
-            data = data[numpy.isfinite(data)]
-            if len(data) == 0:
-                return 0
-            else:
-                return numpy.mean(data) + numpy.std(data)
-
-        self._view.addIsosurface(computeIsolevel, '#FF0000FF')
-
-        # Create a parameter tree for the scalar field view
-        options = SFViewParamTree.TreeView(self._view)
-        options.setSfView(self._view)
-
-        # Add the parameter tree to the main window in a dock widget
-        dock = qt.QDockWidget()
-        dock.setWidget(options)
-        self._view.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
+        self._view = VolumeWindow(self)
 
         self._hline = qt.QFrame(self)
         self._hline.setFrameStyle(qt.QFrame.HLine)
@@ -935,23 +915,9 @@ class ArrayVolumePlot(qt.QWidget):
     def getVolumeView(self):
         """Returns the plot used for the display
 
-        :rtype: ScalarFieldView
+        :rtype: SceneWindow
         """
         return self._view
-
-    def normalizeComplexData(self, data):
-        """
-        Converts a complex data array to its amplitude, if necessary.
-        :param data: the data to normalize
-        :return:
-        """
-        if hasattr(data, "dtype"):
-            isComplex = numpy.issubdtype(data.dtype, numpy.complexfloating)
-        else:
-            isComplex = isinstance(data, numbers.Complex)
-        if isComplex:
-            data = numpy.absolute(data)
-        return data
 
     def setData(self, signal,
                 x_axis=None, y_axis=None, z_axis=None,
@@ -977,7 +943,6 @@ class ArrayVolumePlot(qt.QWidget):
         :param zlabel: Label for Z axis
         :param title: Graph title
         """
-        signal = self.normalizeComplexData(signal)
         if self.__selector_is_connected:
             self._selector.selectionChanged.disconnect(self._updateVolume)
             self.__selector_is_connected = False
@@ -994,9 +959,6 @@ class ArrayVolumePlot(qt.QWidget):
         self._selector.setData(signal)
         self._selector.setAxisNames(["Y", "X", "Z"])
 
-        self._view.setAxesLabels(self.__x_axis_name or 'X',
-                                 self.__y_axis_name or 'Y',
-                                 self.__z_axis_name or 'Z')
         self._updateVolume()
 
         # the legend label shows the selection slice producing the volume
@@ -1017,7 +979,6 @@ class ArrayVolumePlot(qt.QWidget):
     def _updateVolume(self):
         """Update displayed stack according to the current axes selector
         data."""
-        data = self._selector.selectedData()
         x_axis = self.__x_axis
         y_axis = self.__y_axis
         z_axis = self.__z_axis
@@ -1049,15 +1010,16 @@ class ArrayVolumePlot(qt.QWidget):
         legend = legend[:-2] + "]"
         self._legend.setText("Displayed data: " + legend)
 
-        self._view.setData(data, copy=False)
-        self._view.setScale(*scale)
-        self._view.setTranslation(*offset)
-        self._view.setAxesLabels(self.__x_axis_name,
-                                 self.__y_axis_name,
-                                 self.__z_axis_name)
+        # Update SceneWidget
+        data = self._selector.selectedData()
+
+        volumeView = self.getVolumeView()
+        volumeView.setData(data, offset=offset, scale=scale)
+        volumeView.setAxesLabels(
+            self.__x_axis_name, self.__y_axis_name, self.__z_axis_name)
 
     def clear(self):
         old = self._selector.blockSignals(True)
         self._selector.clear()
         self._selector.blockSignals(old)
-        self._view.setData(None)
+        self.getVolumeView().clear()
