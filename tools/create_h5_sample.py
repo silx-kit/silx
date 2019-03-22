@@ -40,25 +40,42 @@ logging.basicConfig()
 logger = logging.getLogger("create_h5file")
 
 
-def store_subdimentions(group, data, dtype):
+def store_subdimensions(group, data, dtype, prefix=None):
+    """Creates datasets in given group with data
+
+    :param h5py.Group group: Group where to add the datasets
+    :param numpy.ndarray data: The data to use
+    :param Union[numpy.dtype,str] dtype:
+    :param Union[str,None] prefix: String to use as datasets name prefix
+    """
+    try:
+        dtype = numpy.dtype(dtype)
+    except TypeError as e:
+        logger.error("Cannot create datasets for dtype: %s", str(dtype))
+        logger.error(e)
+        return
+
+    if prefix is None:
+        prefix = str(dtype)
 
     if hasattr(h5py, "Empty"):
-        basename = str(dtype) + "_empty"
+        basename = prefix + "_empty"
         try:
             group[basename] = h5py.Empty(dtype=numpy.dtype(dtype))
         except (RuntimeError, ValueError) as e:
-            logger.error("Error while creating %s" % basename)
+            logger.error(
+                "Error while creating %s in %s" % (basename, str(group)))
             logger.error(e)
     else:
         logger.warning("h5py.Empty not available")
 
     data = data.astype(dtype)
     data.shape = -1
-    basename = str(dtype) + "_d0"
+    basename = prefix + "_d0"
     try:
         group[basename] = data[0]
     except RuntimeError as e:
-        logger.error("Error while creating %s" % basename)
+        logger.error("Error while creating %s in %s" % (basename, str(group)))
         logger.error(e)
 
     shapes = [10, 4, 4, 4]
@@ -68,11 +85,11 @@ def store_subdimentions(group, data, dtype):
         reversed(shape)
         shape = tuple(shape)
         data.shape = shape
-        basename = str(dtype) + "_d%d" % i
+        basename = prefix + "_d%d" % i
         try:
             group[basename] = data
         except RuntimeError as e:
-            logger.error("Error while creating %s" % basename)
+            logger.error("Error while creating %s in %s" % (basename, str(group)))
             logger.error(e)
 
 
@@ -85,30 +102,35 @@ def create_hdf5_types(group):
 
     int_data = numpy.random.randint(-100, 100, size=10 * 4 * 4 * 4)
     uint_data = numpy.random.randint(0, 100, size=10 * 4 * 4 * 4)
-    group = main_group.create_group("integer")
 
-    store_subdimentions(group, int_data, "int8")
-    store_subdimentions(group, int_data, "int16")
-    store_subdimentions(group, int_data, "int32")
-    store_subdimentions(group, int_data, "int64")
-    store_subdimentions(group, uint_data, "uint8")
-    store_subdimentions(group, uint_data, "uint16")
-    store_subdimentions(group, uint_data, "uint32")
-    store_subdimentions(group, uint_data, "uint64")
-    store_subdimentions(group, int_data, numpy.dtype(">i4"))
-    store_subdimentions(group, int_data, numpy.dtype("<i4"))
+    group = main_group.create_group("integer_little_endian")
+    for size in (1, 2, 4, 8):
+        store_subdimensions(group, int_data, '<i' + str(size),
+                            prefix='int' + str(size*8))
+        store_subdimensions(group, uint_data, '<u' + str(size),
+                            prefix='uint' + str(size*8))
+
+    group = main_group.create_group("integer_big_endian")
+    for size in (1, 2, 4, 8):
+        store_subdimensions(group, int_data, '>i' + str(size),
+                            prefix='int' + str(size*8))
+        store_subdimensions(group, uint_data, '>u' + str(size),
+                            prefix='uint' + str(size*8))
 
     # H5T_FLOAT
 
     float_data = numpy.random.rand(10 * 4 * 4 * 4)
-    group = main_group.create_group("float")
+    group = main_group.create_group("float_little_endian")
 
-    store_subdimentions(group, float_data, "float16")
-    store_subdimentions(group, float_data, "float32")
-    store_subdimentions(group, float_data, "float64")
-    store_subdimentions(group, float_data, "float128")
-    store_subdimentions(group, float_data, ">f4")
-    store_subdimentions(group, float_data, "<f4")
+    for size in (2, 4, 8):
+        store_subdimensions(group, float_data, '<f' + str(size),
+                            prefix='float' + str(size*8))
+
+    group = main_group.create_group("float_big_endian")
+
+    for size in (2, 4, 8):
+        store_subdimensions(group, float_data, '>f' + str(size),
+                            prefix='float' + str(size*8))
 
     # H5T_TIME
 
@@ -135,7 +157,7 @@ def create_hdf5_types(group):
 
     data = numpy.void(b"\x10\x20\x30\x40\xFF" * 20)
     data = numpy.array([data] * 10 * 4 * 4 * 4, numpy.void)
-    store_subdimentions(group, data, "void")
+    store_subdimensions(group, data, "void")
 
     # H5T_COMPOUND
 
@@ -169,17 +191,19 @@ def create_hdf5_types(group):
 
     # numpy complex is a H5T_COMPOUND
 
-    complex_group = main_group.create_group("compound/numpy_complex")
-
     real_data = numpy.random.rand(10 * 4 * 4 * 4)
     imaginary_data = numpy.random.rand(10 * 4 * 4 * 4)
     complex_data = real_data + imaginary_data * 1j
 
-    store_subdimentions(complex_group, complex_data, "complex64")
-    store_subdimentions(complex_group, complex_data, "complex128")
-    store_subdimentions(complex_group, complex_data, "complex256")
-    store_subdimentions(complex_group, complex_data, ">c8")
-    store_subdimentions(complex_group, complex_data, "<c8")
+    group = main_group.create_group("compound/numpy_complex_little_endian")
+    for size in (8, 16, 32):
+        store_subdimensions(group, complex_data, '<c' + str(size),
+                            prefix='complex' + str(size*8))
+
+    group = main_group.create_group("compound/numpy_complex_big_endian")
+    for size in (8, 16, 32):
+        store_subdimensions(group, complex_data, '>c' + str(size),
+                            prefix='complex' + str(size*8))
 
     # H5T_REFERENCE
 
@@ -207,7 +231,7 @@ def create_hdf5_types(group):
 
     bool_data = uint_data < 50
     bool_group = main_group.create_group("enum/numpy_boolean")
-    store_subdimentions(bool_group, bool_data, "bool")
+    store_subdimensions(bool_group, bool_data, "bool")
 
     # H5T_VLEN
 
