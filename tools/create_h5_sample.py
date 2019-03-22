@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # coding: utf-8
 # /*##########################################################################
 #
@@ -31,34 +31,65 @@ __license__ = "MIT"
 __date__ = "22/03/2019"
 
 
-import numpy
-import h5py
-import six
 import logging
+import sys
+
+import h5py
+import numpy
 
 logging.basicConfig()
 logger = logging.getLogger("create_h5file")
 
 
-def store_subdimentions(group, data, dtype):
+if sys.version_info.major < 3:
+    raise RuntimeError('Python 2 is not supported')
+
+
+def str_to_utf8(text):
+    """Convert str or sequence of str to type compatible with h5py
+
+    :param Union[str,List[str]] text:
+    :rtype: numpy.ndarray
+    """
+    return numpy.array(text, dtype=h5py.special_dtype(vlen=str))
+
+
+def store_subdimensions(group, data, dtype, prefix=None):
+    """Creates datasets in given group with data
+
+    :param h5py.Group group: Group where to add the datasets
+    :param numpy.ndarray data: The data to use
+    :param Union[numpy.dtype,str] dtype:
+    :param Union[str,None] prefix: String to use as datasets name prefix
+    """
+    try:
+        dtype = numpy.dtype(dtype)
+    except TypeError as e:
+        logger.error("Cannot create datasets for dtype: %s", str(dtype))
+        logger.error(e)
+        return
+
+    if prefix is None:
+        prefix = str(dtype)
 
     if hasattr(h5py, "Empty"):
-        basename = str(dtype) + "_empty"
+        basename = prefix + "_empty"
         try:
             group[basename] = h5py.Empty(dtype=numpy.dtype(dtype))
         except (RuntimeError, ValueError) as e:
-            logger.error("Error while creating %s" % basename)
+            logger.error(
+                "Error while creating %s in %s" % (basename, str(group)))
             logger.error(e)
     else:
         logger.warning("h5py.Empty not available")
 
     data = data.astype(dtype)
     data.shape = -1
-    basename = str(dtype) + "_d0"
+    basename = prefix + "_d0"
     try:
         group[basename] = data[0]
     except RuntimeError as e:
-        logger.error("Error while creating %s" % basename)
+        logger.error("Error while creating %s in %s" % (basename, str(group)))
         logger.error(e)
 
     shapes = [10, 4, 4, 4]
@@ -68,11 +99,11 @@ def store_subdimentions(group, data, dtype):
         reversed(shape)
         shape = tuple(shape)
         data.shape = shape
-        basename = str(dtype) + "_d%d" % i
+        basename = prefix + "_d%d" % i
         try:
             group[basename] = data
         except RuntimeError as e:
-            logger.error("Error while creating %s" % basename)
+            logger.error("Error while creating %s in %s" % (basename, str(group)))
             logger.error(e)
 
 
@@ -85,30 +116,35 @@ def create_hdf5_types(group):
 
     int_data = numpy.random.randint(-100, 100, size=10 * 4 * 4 * 4)
     uint_data = numpy.random.randint(0, 100, size=10 * 4 * 4 * 4)
-    group = main_group.create_group("integer")
 
-    store_subdimentions(group, int_data, "int8")
-    store_subdimentions(group, int_data, "int16")
-    store_subdimentions(group, int_data, "int32")
-    store_subdimentions(group, int_data, "int64")
-    store_subdimentions(group, uint_data, "uint8")
-    store_subdimentions(group, uint_data, "uint16")
-    store_subdimentions(group, uint_data, "uint32")
-    store_subdimentions(group, uint_data, "uint64")
-    store_subdimentions(group, int_data, numpy.dtype(">i4"))
-    store_subdimentions(group, int_data, numpy.dtype("<i4"))
+    group = main_group.create_group("integer_little_endian")
+    for size in (1, 2, 4, 8):
+        store_subdimensions(group, int_data, '<i' + str(size),
+                            prefix='int' + str(size*8))
+        store_subdimensions(group, uint_data, '<u' + str(size),
+                            prefix='uint' + str(size*8))
+
+    group = main_group.create_group("integer_big_endian")
+    for size in (1, 2, 4, 8):
+        store_subdimensions(group, int_data, '>i' + str(size),
+                            prefix='int' + str(size*8))
+        store_subdimensions(group, uint_data, '>u' + str(size),
+                            prefix='uint' + str(size*8))
 
     # H5T_FLOAT
 
     float_data = numpy.random.rand(10 * 4 * 4 * 4)
-    group = main_group.create_group("float")
+    group = main_group.create_group("float_little_endian")
 
-    store_subdimentions(group, float_data, "float16")
-    store_subdimentions(group, float_data, "float32")
-    store_subdimentions(group, float_data, "float64")
-    store_subdimentions(group, float_data, "float128")
-    store_subdimentions(group, float_data, ">f4")
-    store_subdimentions(group, float_data, "<f4")
+    for size in (2, 4, 8):
+        store_subdimensions(group, float_data, '<f' + str(size),
+                            prefix='float' + str(size*8))
+
+    group = main_group.create_group("float_big_endian")
+
+    for size in (2, 4, 8):
+        store_subdimensions(group, float_data, '>f' + str(size),
+                            prefix='float' + str(size*8))
 
     # H5T_TIME
 
@@ -135,7 +171,7 @@ def create_hdf5_types(group):
 
     data = numpy.void(b"\x10\x20\x30\x40\xFF" * 20)
     data = numpy.array([data] * 10 * 4 * 4 * 4, numpy.void)
-    store_subdimentions(group, data, "void")
+    store_subdimensions(group, data, "void")
 
     # H5T_COMPOUND
 
@@ -169,17 +205,19 @@ def create_hdf5_types(group):
 
     # numpy complex is a H5T_COMPOUND
 
-    complex_group = main_group.create_group("compound/numpy_complex")
-
     real_data = numpy.random.rand(10 * 4 * 4 * 4)
     imaginary_data = numpy.random.rand(10 * 4 * 4 * 4)
     complex_data = real_data + imaginary_data * 1j
 
-    store_subdimentions(complex_group, complex_data, "complex64")
-    store_subdimentions(complex_group, complex_data, "complex128")
-    store_subdimentions(complex_group, complex_data, "complex256")
-    store_subdimentions(complex_group, complex_data, ">c8")
-    store_subdimentions(complex_group, complex_data, "<c8")
+    group = main_group.create_group("compound/numpy_complex_little_endian")
+    for size in (8, 16, 32):
+        store_subdimensions(group, complex_data, '<c' + str(size),
+                            prefix='complex' + str(size*8))
+
+    group = main_group.create_group("compound/numpy_complex_big_endian")
+    for size in (8, 16, 32):
+        store_subdimensions(group, complex_data, '>c' + str(size),
+                            prefix='complex' + str(size*8))
 
     # H5T_REFERENCE
 
@@ -207,14 +245,14 @@ def create_hdf5_types(group):
 
     bool_data = uint_data < 50
     bool_group = main_group.create_group("enum/numpy_boolean")
-    store_subdimentions(bool_group, bool_data, "bool")
+    store_subdimensions(bool_group, bool_data, "bool")
 
     # H5T_VLEN
 
     group = main_group.create_group("vlen")
     text = u"i \u2661 my dad"
 
-    unicode_vlen_dt = h5py.special_dtype(vlen=six.text_type)
+    unicode_vlen_dt = h5py.special_dtype(vlen=str)
     group.create_dataset("unicode", data=numpy.array(text, dtype=unicode_vlen_dt))
     group.create_dataset("unicode_1d", data=numpy.array([text], dtype=unicode_vlen_dt))
 
@@ -251,7 +289,7 @@ def create_nxdata_group(group):
     g1d0.attrs["NX_class"] = "NXdata"
     g1d0.attrs["signal"] = "count"
     g1d0.attrs["axes"] = "energy_calib"
-    g1d0.attrs["uncertainties"] = b"energy_errors",
+    g1d0.attrs["uncertainties"] = str_to_utf8(("energy_errors",))
     g1d0.create_dataset("count", data=numpy.arange(10))
     g1d0.create_dataset("energy_calib", data=(10, 5))     # 10 * idx + 5
     g1d0.create_dataset("energy_errors", data=3.14 * numpy.random.rand(10))
@@ -265,7 +303,7 @@ def create_nxdata_group(group):
     g1d2 = g1d.create_group("4D_spectra")
     g1d2.attrs["NX_class"] = "NXdata"
     g1d2.attrs["signal"] = "counts"
-    g1d2.attrs["axes"] = b"energy",
+    g1d2.attrs["axes"] = str_to_utf8(("energy",))
     ds = g1d2.create_dataset("counts", data=numpy.arange(2 * 2 * 3 * 10).reshape((2, 2, 3, 10)))
     ds.attrs["interpretation"] = "spectrum"
     ds = g1d2.create_dataset("errors", data=4.5 * numpy.random.rand(2, 2, 3, 10))
@@ -282,7 +320,7 @@ def create_nxdata_group(group):
     g2d0 = g2d.create_group("2D_regular_image")
     g2d0.attrs["NX_class"] = "NXdata"
     g2d0.attrs["signal"] = "image"
-    g2d0.attrs["axes"] = b"rows_calib", b"columns_coordinates"
+    g2d0.attrs["axes"] = str_to_utf8(("rows_calib", "columns_coordinates"))
     g2d0.create_dataset("image", data=numpy.arange(4 * 6).reshape((4, 6)))
     ds = g2d0.create_dataset("rows_calib", data=(10, 5))
     ds.attrs["long_name"] = "Calibrated Y"
@@ -291,7 +329,7 @@ def create_nxdata_group(group):
     g2d1 = g2d.create_group("2D_irregular_data")
     g2d1.attrs["NX_class"] = "NXdata"
     g2d1.attrs["signal"] = "data"
-    g2d1.attrs["axes"] = b"rows_coordinates", b"columns_coordinates"
+    g2d1.attrs["axes"] = str_to_utf8(("rows_coordinates", "columns_coordinates"))
     g2d1.create_dataset("data", data=numpy.arange(64 * 128).reshape((64, 128)))
     g2d1.create_dataset("rows_coordinates", data=numpy.arange(64) + numpy.random.rand(64))
     g2d1.create_dataset("columns_coordinates", data=numpy.arange(128) + 2.5 * numpy.random.rand(128))
@@ -305,7 +343,7 @@ def create_nxdata_group(group):
     g2d3 = g2d.create_group("5D_images")
     g2d3.attrs["NX_class"] = "NXdata"
     g2d3.attrs["signal"] = "images"
-    g2d3.attrs["axes"] = b"rows_coordinates", b"columns_coordinates"
+    g2d3.attrs["axes"] = str_to_utf8(("rows_coordinates", "columns_coordinates"))
     ds = g2d3.create_dataset("images", data=numpy.arange(2 * 2 * 2 * 4 * 6).reshape((2, 2, 2, 4, 6)))
     ds.attrs["interpretation"] = "image"
     g2d3.create_dataset("rows_coordinates", data=5 + 10 * numpy.arange(4))
@@ -319,7 +357,7 @@ def create_nxdata_group(group):
     g2d3 = g2d.create_group("2D_complex_image")
     g2d3.attrs["NX_class"] = "NXdata"
     g2d3.attrs["signal"] = "image"
-    g2d3.attrs["axes"] = b"rows", b"columns"
+    g2d3.attrs["axes"] = str_to_utf8(("rows", "columns"))
     g2d3.create_dataset("image", data=data)
     g2d3.create_dataset("rows", data=0.5 + 0.02 * numpy.arange(data.shape[0]))
     g2d3.create_dataset("columns", data=0.5 + 0.02 * numpy.arange(data.shape[1]))
@@ -330,7 +368,7 @@ def create_nxdata_group(group):
     gd0 = g.create_group("x_y_scatter")
     gd0.attrs["NX_class"] = "NXdata"
     gd0.attrs["signal"] = "y"
-    gd0.attrs["axes"] = b"x",
+    gd0.attrs["axes"] = str_to_utf8(("x",))
     gd0.create_dataset("y", data=numpy.random.rand(128) - 0.5)
     gd0.create_dataset("x", data=2 * numpy.random.rand(128))
     gd0.create_dataset("x_errors", data=0.05 * numpy.random.rand(128))
@@ -339,7 +377,7 @@ def create_nxdata_group(group):
     gd1 = g.create_group("x_y_value_scatter")
     gd1.attrs["NX_class"] = "NXdata"
     gd1.attrs["signal"] = "values"
-    gd1.attrs["axes"] = b"x", b"y"
+    gd1.attrs["axes"] = str_to_utf8(("x", "y"))
     gd1.create_dataset("values", data=3.14 * numpy.random.rand(128))
     gd1.create_dataset("y", data=numpy.random.rand(128))
     gd1.create_dataset("y_errors", data=0.02 * numpy.random.rand(128))
@@ -352,7 +390,7 @@ def create_nxdata_group(group):
     gd0 = g.create_group("3D_cube")
     gd0.attrs["NX_class"] = "NXdata"
     gd0.attrs["signal"] = "cube"
-    gd0.attrs["axes"] = b"img_idx", b"rows_coordinates", b"cols_coordinates"
+    gd0.attrs["axes"] = str_to_utf8(("img_idx", "rows_coordinates", "cols_coordinates"))
     gd0.create_dataset("cube", data=numpy.arange(4 * 5 * 6).reshape((4, 5, 6)))
     gd0.create_dataset("img_idx", data=numpy.arange(4))
     gd0.create_dataset("rows_coordinates", data=0.1 * numpy.arange(5))
