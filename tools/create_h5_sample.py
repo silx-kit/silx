@@ -31,13 +31,18 @@ __license__ = "MIT"
 __date__ = "22/03/2019"
 
 
-import numpy
-import h5py
-import six
 import logging
+import sys
+
+import h5py
+import numpy
 
 logging.basicConfig()
 logger = logging.getLogger("create_h5file")
+
+
+if sys.version_info.major < 3:
+    raise RuntimeError('Python 2 is not supported')
 
 
 def store_subdimensions(group, data, dtype, prefix=None):
@@ -238,7 +243,7 @@ def create_hdf5_types(group):
     group = main_group.create_group("vlen")
     text = u"i \u2661 my dad"
 
-    unicode_vlen_dt = h5py.special_dtype(vlen=six.text_type)
+    unicode_vlen_dt = h5py.special_dtype(vlen=str)
     group.create_dataset("unicode", data=numpy.array(text, dtype=unicode_vlen_dt))
     group.create_dataset("unicode_1d", data=numpy.array([text], dtype=unicode_vlen_dt))
 
