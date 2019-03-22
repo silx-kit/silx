@@ -893,67 +893,27 @@ class _Plot3dView(DataView):
             label="Cube",
             icon=icons.getQIcon("view-3d"))
         try:
-            import silx.gui.plot3d  #noqa
+            from ._VolumeWindow import VolumeWindow  # noqa
         except ImportError:
-            _logger.warning("Plot3dView is not available")
+            _logger.warning("3D visualization is not available")
             _logger.debug("Backtrace", exc_info=True)
             raise
         self.__resetZoomNextTime = True
 
     def createWidget(self, parent):
-        from silx.gui.plot3d import SceneWindow
+        from ._VolumeWindow import VolumeWindow
 
-        plot = SceneWindow.SceneWindow(parent)
-        # Hide global parameter dock
-        plot.getGroupResetWidget().parent().setVisible(False)
-        sceneWidget = plot.getSceneWidget()
-        sceneWidget.getSceneGroup().setAxesLabels(
-            *reversed(self.axesNames(None, None)))
-
+        plot = VolumeWindow(parent)
+        plot.setAxesNames(*reversed(self.axesNames(None, None)))
         return plot
 
-    @staticmethod
-    def __computeIsolevel(data):
-        data = data[numpy.isfinite(data)]
-        if len(data) == 0:
-            return 0
-        else:
-            return numpy.mean(data) + numpy.std(data)
-
     def clear(self):
-        from silx.gui.plot3d.items import ScalarField3D, ComplexField3D
-
-        sceneWidget = self.getWidget().getSceneWidget()
-        items = sceneWidget.getItems()
-        if (len(items) == 1 and
-                isinstance(items[0], (ScalarField3D, ComplexField3D))):
-            items[0].setData(None)
-        else:  # Safety net
-            sceneWidget.clearItems()
+        self.getWidget().clear()
         self.__resetZoomNextTime = True
 
     def setData(self, data):
-        from silx.gui.plot3d.items import ScalarField3D, ComplexField3D
-
         data = self.normalizeData(data)
-        plot = self.getWidget()
-        sceneWidget = plot.getSceneWidget()
-
-        previousItems = sceneWidget.getItems()
-        if (len(previousItems) == 1 and
-                isinstance(previousItems[0], (ScalarField3D, ComplexField3D)) and
-                numpy.iscomplexobj(data) == isinstance(previousItems[0], ComplexField3D)):
-            # Reuse existing volume item
-            volume = sceneWidget.getItems()[0]
-            volume.setData(data, copy=False)
-        else:
-            # Add a new volume
-            volume = sceneWidget.addVolume(data, copy=False)
-            volume.setLabel('Volume')
-            for plane in volume.getCutPlanes():
-                plane.setVisible(False)
-            volume.addIsosurface(self.__computeIsolevel, '#FF0000FF')
-
+        self.getWidget().setData(data)
         self.__resetZoomNextTime = False
 
     def axesNames(self, data, info):
