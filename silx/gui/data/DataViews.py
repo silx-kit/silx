@@ -904,7 +904,7 @@ class _Plot3dView(DataView):
         from ._VolumeWindow import VolumeWindow
 
         plot = VolumeWindow(parent)
-        plot.setAxesNames(*reversed(self.axesNames(None, None)))
+        plot.setAxesLabels(*reversed(self.axesNames(None, None)))
         return plot
 
     def clear(self):

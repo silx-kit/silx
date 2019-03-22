@@ -46,7 +46,7 @@ class VolumeWindow(SceneWindow):
         # Hide global parameter dock
         self.getGroupResetWidget().parent().setVisible(False)
 
-    def setAxesNames(self, xlabel=None, ylabel=None, zlabel=None):
+    def setAxesLabels(self, xlabel=None, ylabel=None, zlabel=None):
         """Set the text labels of the axes.
 
         :param Union[str,None] xlabel: Label of the X axis
