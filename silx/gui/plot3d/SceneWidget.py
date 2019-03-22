@@ -45,7 +45,6 @@ from .scene import interaction
 from ._model import SceneModel, visitQAbstractItemModel
 from ._model.items import Item3DRow
 
-
 __all__ = ['items', 'SceneWidget']
 
 
@@ -268,7 +267,7 @@ class SceneSelection(qt.QObject):
             assert isinstance(parent, SceneWidget)
 
             if item.root() != parent.getSceneGroup():
-                self.setSelectedItem(None)
+                self.setCurrentItem(None)
 
     # Synchronization with QItemSelectionModel
 
@@ -482,26 +481,36 @@ class SceneWidget(Plot3DWidget):
 
     # Add/remove items
 
-    def add3DScalarField(self, data, copy=True, index=None):
-        """Add 3D scalar data volume to :class:`SceneWidget` content.
+    def addVolume(self, data, copy=True, index=None):
+        """Add 3D data volume of scalar or complex to :class:`SceneWidget` content.
 
         Dataset order is zyx (i.e., first dimension is z).
 
-        :param data: 3D array
-        :type data: 3D numpy.ndarray of float32 with shape at least (2, 2, 2)
+        :param data: 3D array of complex with shape at least (2, 2, 2)
+        :type data: numpy.ndarray[Union[numpy.complex64,numpy.float32]]
         :param bool copy:
             True (default) to make a copy,
             False to avoid copy (DO NOT MODIFY data afterwards)
         :param int index: The index at which to place the item.
                           By default it is appended to the end of the list.
-        :return: The newly created scalar volume item
-        :rtype: ~silx.gui.plot3d.items.volume.ScalarField3D
+        :return: The newly created 3D volume item
+        :rtype: Union[ScalarField3D,ComplexField3D]
 
         """
-        volume = items.ScalarField3D()
+        if data is not None:
+            data = numpy.array(data, copy=False)
+
+        if numpy.iscomplexobj(data):
+            volume = items.ComplexField3D()
+        else:
+            volume = items.ScalarField3D()
         volume.setData(data, copy=copy)
         self.addItem(volume, index)
         return volume
+
+    def add3DScalarField(self, data, copy=True, index=None):
+        # TODO deprecate in the future
+        return self.addVolume(data, copy=copy, index=index)
 
     def add3DScatter(self, x, y, z, value, copy=True, index=None):
         """Add 3D scatter data to :class:`SceneWidget` content.

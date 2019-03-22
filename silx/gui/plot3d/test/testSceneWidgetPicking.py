@@ -128,50 +128,60 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 picking = list(self.widget.pickItems(1, 1))
                 self.assertEqual(len(picking), 0)
 
-    def testPickScalarField3D(self):
+    def testPickVolume(self):
         """Test picking of volume CutPlane and Isosurface items"""
-        volume = self.widget.add3DScalarField(
-            numpy.arange(10**3, dtype=numpy.float32).reshape(10, 10, 10))
-        self.widget.resetZoom('front')
+        for dtype in (numpy.float32, numpy.complex64):
+            with self.subTest(dtype=dtype):
+                refData = numpy.arange(10**3, dtype=dtype).reshape(10, 10, 10)
+                volume = self.widget.addVolume(refData)
+                if dtype == numpy.complex64:
+                    volume.setComplexMode(volume.Mode.REAL)
+                    refData = numpy.real(refData)
+                self.widget.resetZoom('front')
 
-        cutplane = volume.getCutPlanes()[0]
-        cutplane.getColormap().setVRange(0, 100)
-        cutplane.setNormal((0, 0, 1))
+                cutplane = volume.getCutPlanes()[0]
+                if dtype == numpy.complex64:
+                    cutplane.setComplexMode(volume.Mode.REAL)
+                cutplane.getColormap().setVRange(0, 100)
+                cutplane.setNormal((0, 0, 1))
 
-        # Picking on data without anything displayed
-        cutplane.setVisible(False)
-        picking = list(self.widget.pickItems(*self._widgetCenter()))
-        self.assertEqual(len(picking), 0)
+                # Picking on data without anything displayed
+                cutplane.setVisible(False)
+                picking = list(self.widget.pickItems(*self._widgetCenter()))
+                self.assertEqual(len(picking), 0)
 
-        # Picking on data with the cut plane
-        cutplane.setVisible(True)
-        picking = list(self.widget.pickItems(*self._widgetCenter()))
+                # Picking on data with the cut plane
+                cutplane.setVisible(True)
+                picking = list(self.widget.pickItems(*self._widgetCenter()))
 
-        self.assertEqual(len(picking), 1)
-        self.assertIs(picking[0].getItem(), cutplane)
-        data = picking[0].getData()
-        self.assertEqual(len(data), 1)
-        self.assertEqual(picking[0].getPositions().shape, (1, 3))
-        self.assertTrue(numpy.array_equal(
-            data,
-            volume.getData(copy=False)[picking[0].getIndices()]))
+                self.assertEqual(len(picking), 1)
+                self.assertIs(picking[0].getItem(), cutplane)
+                data = picking[0].getData()
+                self.assertEqual(len(data), 1)
+                self.assertEqual(picking[0].getPositions().shape, (1, 3))
+                self.assertTrue(numpy.array_equal(
+                    data,
+                    refData[picking[0].getIndices()]))
 
-        # Picking on data with an isosurface
-        isosurface = volume.addIsosurface(level=500, color=(1., 0., 0., .5))
-        picking = list(self.widget.pickItems(*self._widgetCenter()))
-        self.assertEqual(len(picking), 2)
-        self.assertIs(picking[0].getItem(), cutplane)
-        self.assertIs(picking[1].getItem(), isosurface)
-        self.assertEqual(picking[1].getPositions().shape, (1, 3))
-        data = picking[1].getData()
-        self.assertEqual(len(data), 1)
-        self.assertTrue(numpy.array_equal(
-            data,
-            volume.getData(copy=False)[picking[1].getIndices()]))
+                # Picking on data with an isosurface
+                isosurface = volume.addIsosurface(
+                    level=500, color=(1., 0., 0., .5))
+                picking = list(self.widget.pickItems(*self._widgetCenter()))
+                self.assertEqual(len(picking), 2)
+                self.assertIs(picking[0].getItem(), cutplane)
+                self.assertIs(picking[1].getItem(), isosurface)
+                self.assertEqual(picking[1].getPositions().shape, (1, 3))
+                data = picking[1].getData()
+                self.assertEqual(len(data), 1)
+                self.assertTrue(numpy.array_equal(
+                    data,
+                    refData[picking[1].getIndices()]))
 
-        # Picking outside data
-        picking = list(self.widget.pickItems(1, 1))
-        self.assertEqual(len(picking), 0)
+                # Picking outside data
+                picking = list(self.widget.pickItems(1, 1))
+                self.assertEqual(len(picking), 0)
+
+                self.widget.clearItems()
 
     def testPickMesh(self):
         """Test picking of Mesh items"""

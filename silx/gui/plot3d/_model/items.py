@@ -884,6 +884,25 @@ class PlaneRow(ProxyRow):
         return super(PlaneRow, self).data(column, role)
 
 
+class ComplexModeRow(ProxyRow):
+    """Represents :class:`items.ComplexMixIn` symbol property.
+
+    :param Item3D item: Scene item with symbol property
+    """
+
+    def __init__(self, item):
+        names = [m.value.replace('_', ' ').title()
+                 for m in item.supportedComplexModes()]
+        super(ComplexModeRow, self).__init__(
+            name='Mode',
+            fget=item.getComplexMode,
+            fset=item.setComplexMode,
+            notify=item.sigItemChanged,
+            toModelData=lambda data: data.value.replace('_', ' ').title(),
+            fromModelData=lambda data: data.lower().replace(' ', '_'),
+            editorHint=names)
+
+
 class RemoveIsosurfaceRow(BaseRow):
     """Class for Isosurface Delete button
 
@@ -933,9 +952,9 @@ class RemoveIsosurfaceRow(BaseRow):
         """Handle Delete button clicked"""
         isosurface = self.isosurface()
         if isosurface is not None:
-            scalarField3D = isosurface.parent()
-            if scalarField3D is not None:
-                scalarField3D.removeIsosurface(isosurface)
+            volume = isosurface.parent()
+            if volume is not None:
+                volume.removeIsosurface(isosurface)
 
 
 class IsosurfaceRow(Item3DRow):
@@ -983,12 +1002,15 @@ class IsosurfaceRow(Item3DRow):
         """
         item = self.item()
         if item is not None:
-            scalarField3D = item.parent()
-            if scalarField3D is not None:
-                dataRange = scalarField3D.getDataRange()
+            volume = item.parent()
+            if volume is not None:
+                dataRange = volume.getDataRange()
                 if dataRange is not None:
                     dataMin, dataMax = dataRange[0], dataRange[-1]
-                    offset = (item.getLevel() - dataMin) / (dataMax - dataMin)
+                    if dataMax != dataMin:
+                        offset = (item.getLevel() - dataMin) / (dataMax - dataMin)
+                    else:
+                        offset = 0.
 
                     sliderMin, sliderMax = self._LEVEL_SLIDER_RANGE
                     value = sliderMin + (sliderMax - sliderMin) * offset
@@ -1002,9 +1024,9 @@ class IsosurfaceRow(Item3DRow):
         """
         item = self.item()
         if item is not None:
-            scalarField3D = item.parent()
-            if scalarField3D is not None:
-                dataRange = scalarField3D.getDataRange()
+            volume = item.parent()
+            if volume is not None:
+                dataRange = volume.getDataRange()
                 if dataRange is not None:
                     sliderMin, sliderMax = self._LEVEL_SLIDER_RANGE
                     offset = (value - sliderMin) / (sliderMax - sliderMin)
@@ -1092,13 +1114,13 @@ class IsosurfaceRow(Item3DRow):
 class AddIsosurfaceRow(BaseRow):
     """Class for Isosurface create button
 
-    :param ScalarField3D scalarField3D:
-        The ScalarField3D item to attach the button to.
+    :param Union[ScalarField3D,ComplexField3D] volume:
+        The volume item to attach the button to.
     """
 
-    def __init__(self, scalarField3D):
+    def __init__(self, volume):
         super(AddIsosurfaceRow, self).__init__()
-        self._scalarField3D = weakref.ref(scalarField3D)
+        self._volume = weakref.ref(volume)
 
     def createEditor(self):
         """Specific editor factory provided to the model"""
@@ -1116,12 +1138,12 @@ class AddIsosurfaceRow(BaseRow):
         layout.addStretch(1)
         return editor
 
-    def scalarField3D(self):
-        """Returns the controlled ScalarField3D
+    def volume(self):
+        """Returns the controlled volume item
 
-        :rtype: ScalarField3D
+        :rtype: Union[ScalarField3D,ComplexField3D]
         """
-        return self._scalarField3D()
+        return self._volume()
 
     def data(self, column, role):
         if column == 0 and role == qt.Qt.UserRole:  # editor hint
@@ -1137,53 +1159,59 @@ class AddIsosurfaceRow(BaseRow):
 
     def _addClicked(self):
         """Handle Delete button clicked"""
-        scalarField3D = self.scalarField3D()
-        if scalarField3D is not None:
-            dataRange = scalarField3D.getDataRange()
+        volume = self.volume()
+        if volume is not None:
+            dataRange = volume.getDataRange()
             if dataRange is None:
                 dataRange = 0., 1.
 
-            scalarField3D.addIsosurface(
+            volume.addIsosurface(
                 numpy.mean((dataRange[0], dataRange[-1])),
                 '#0000FF')
 
 
-class ScalarField3DIsoSurfacesRow(StaticRow):
+class VolumeIsoSurfacesRow(StaticRow):
     """Represents  :class:`ScalarFieldView`'s isosurfaces
 
-    :param ScalarFieldView scalarField3D: ScalarFieldView to control
+    :param Union[ScalarField3D,ComplexField3D] volume:
+        Volume item to control
     """
 
-    def __init__(self, scalarField3D):
-        super(ScalarField3DIsoSurfacesRow, self).__init__(
+    def __init__(self, volume):
+        super(VolumeIsoSurfacesRow, self).__init__(
             ('Isosurfaces', None))
-        self._scalarField3D = weakref.ref(scalarField3D)
+        self._volume = weakref.ref(volume)
 
-        scalarField3D.sigIsosurfaceAdded.connect(self._isosurfaceAdded)
-        scalarField3D.sigIsosurfaceRemoved.connect(self._isosurfaceRemoved)
+        volume.sigIsosurfaceAdded.connect(self._isosurfaceAdded)
+        volume.sigIsosurfaceRemoved.connect(self._isosurfaceRemoved)
 
-        for item in scalarField3D.getIsosurfaces():
+        if isinstance(volume, items.ComplexMixIn):
+            self.addRow(ComplexModeRow(volume))
+
+        for item in volume.getIsosurfaces():
             self.addRow(nodeFromItem(item))
 
-        self.addRow(AddIsosurfaceRow(scalarField3D))
+        self.addRow(AddIsosurfaceRow(volume))
 
-    def scalarField3D(self):
-        """Returns the controlled ScalarField3D
+    def volume(self):
+        """Returns the controlled volume item
 
-        :rtype: ScalarField3D
+        :rtype: Union[ScalarField3D,ComplexField3D]
         """
-        return self._scalarField3D()
+        return self._volume()
 
     def _isosurfaceAdded(self, item):
         """Handle isosurface addition
 
         :param Isosurface item: added isosurface
         """
-        scalarField3D = self.scalarField3D()
-        if scalarField3D is None:
+        volume = self.volume()
+        if volume is None:
             return
 
-        row = scalarField3D.getIsosurfaces().index(item)
+        row = volume.getIsosurfaces().index(item)
+        if isinstance(volume, items.ComplexMixIn):
+            row += 1  # Offset for the ComplexModeRow
         self.addRow(nodeFromItem(item), row)
 
     def _isosurfaceRemoved(self, item):
@@ -1191,13 +1219,13 @@ class ScalarField3DIsoSurfacesRow(StaticRow):
 
         :param Isosurface item: removed isosurface
         """
-        scalarField3D = self.scalarField3D()
-        if scalarField3D is None:
+        volume = self.volume()
+        if volume is None:
             return
 
         # Find item
         for row in self.children():
-            if row.item() is item:
+            if isinstance(row, IsosurfaceRow) and row.item() is item:
                 self.removeRow(row)
                 break  # Got it
         else:
@@ -1325,22 +1353,26 @@ def initScatter2DNode(node, item):
     node.addRow(Scatter2DLineWidth(item))
 
 
-def initScalarField3DNode(node, item):
-    """Specific node init for ScalarField3D
+def initVolumeNode(node, item):
+    """Specific node init for volume items
 
     :param Item3DRow node: The model node to setup
-    :param ScalarField3D item: The ScalarField3D the node is representing
+    :param Union[ScalarField3D,ComplexField3D] item:
+        The volume item represented by the node
     """
     node.addRow(nodeFromItem(item.getCutPlanes()[0]))  # Add cut plane
-    node.addRow(ScalarField3DIsoSurfacesRow(item))
+    node.addRow(VolumeIsoSurfacesRow(item))
 
 
-def initScalarField3DCutPlaneNode(node, item):
-    """Specific node init for ScalarField3D CutPlane
+def initVolumeCutPlaneNode(node, item):
+    """Specific node init for volume CutPlane
 
     :param Item3DRow node: The model node to setup
     :param CutPlane item: The CutPlane the node is representing
     """
+    if isinstance(item, items.ComplexMixIn):
+        node.addRow(ComplexModeRow(item))
+
     node.addRow(PlaneRow(item))
 
     node.addRow(ColormapRow(item))
@@ -1356,8 +1388,8 @@ def initScalarField3DCutPlaneNode(node, item):
 
 NODE_SPECIFIC_INIT = [  # class, init(node, item)
     (items.Scatter2D, initScatter2DNode),
-    (items.ScalarField3D, initScalarField3DNode),
-    (CutPlane, initScalarField3DCutPlaneNode),
+    (items.ScalarField3D, initVolumeNode),
+    (CutPlane, initVolumeCutPlaneNode),
 ]
 """List of specific node init for different item class"""
 

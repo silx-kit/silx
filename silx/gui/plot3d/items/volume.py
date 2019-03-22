@@ -38,13 +38,14 @@ import numpy
 from silx.math.combo import min_max
 from silx.math.marchingcubes import MarchingCubes
 
+from ....utils.proxy import docstring
 from ... import qt
 from ...colors import rgba
 
 from ..scene import cutplane, primitives, transform, utils
 
 from .core import BaseNodeItem, Item3D, ItemChangedType, Item3DChangedType
-from .mixins import ColormapMixIn, InterpolationMixIn, PlaneMixIn
+from .mixins import ColormapMixIn, ComplexMixIn, InterpolationMixIn, PlaneMixIn
 from ._pick import PickingResult
 
 
@@ -60,12 +61,13 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
     def __init__(self, parent):
         plane = cutplane.CutPlane(normal=(0, 1, 0))
 
-        Item3D.__init__(self, parent=parent)
+        Item3D.__init__(self, parent=None)
         ColormapMixIn.__init__(self)
         InterpolationMixIn.__init__(self)
         PlaneMixIn.__init__(self, plane=plane)
 
         self._dataRange = None
+        self._data = None
 
         self._getScenePrimitive().children = [plane]
 
@@ -73,20 +75,53 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         ColormapMixIn._setSceneColormap(self, plane.colormap)
         InterpolationMixIn._setPrimitive(self, plane)
 
-        parent.sigItemChanged.connect(self._parentChanged)
+        self.setParent(parent)
+
+    def _updateData(self, data, range_):
+        """Update used dataset
+
+        No copy is made.
+
+        :param Union[numpy.ndarray[float],None] data: The dataset
+        :param Union[List[float],None] range_:
+            (min, min positive, max) values
+        """
+        self._data = None if data is None else numpy.array(data, copy=False)
+        self._getPlane().setData(self._data, copy=False)
+
+        # Store data range info as 3-tuple of values
+        self._dataRange = range_
+        self._setRangeFromData(
+            None if self._dataRange is None else numpy.array(self._dataRange))
+
+        self._updated(ItemChangedType.DATA)
+
+    def _syncDataWithParent(self):
+        """Synchronize this instance data with that of its parent"""
+        parent = self.parent()
+        if parent is None:
+            data, range_ = None, None
+        else:
+            data = parent.getData(copy=False)
+            range_ = parent.getDataRange()
+        self._updateData(data, range_)
 
     def _parentChanged(self, event):
         """Handle data change in the parent this plane belongs to"""
         if event == ItemChangedType.DATA:
-            data = self.sender().getData(copy=False)
-            self._getPlane().setData(data, copy=False)
+            self._syncDataWithParent()
 
-            # Store data range info as 3-tuple of values
-            self._dataRange = self.sender().getDataRange()
-            self._setRangeFromData(
-                None if self._dataRange is None else numpy.array(self._dataRange))
+    def setParent(self, parent):
+        oldParent = self.parent()
+        if isinstance(oldParent, Item3D):
+            oldParent.sigItemChanged.disconnect(self._parentChanged)
 
-            self._updated(ItemChangedType.DATA)
+        super(CutPlane, self).setParent(parent)
+
+        if isinstance(parent, Item3D):
+            parent.sigItemChanged.connect(self._parentChanged)
+
+        self._syncDataWithParent()
 
     # Colormap
 
@@ -114,8 +149,9 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         positive min is NaN if no data is positive.
 
         :return: (min, positive min, max) or None.
+        :rtype: Union[List[float],None]
         """
-        return self._dataRange
+        return None if self._dataRange is None else tuple(self._dataRange)
 
     def getData(self, copy=True):
         """Return 3D dataset.
@@ -125,8 +161,10 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
            False to get the internal data (DO NOT modify!)
         :return: The data set (or None if not set)
         """
-        parent = self.parent()
-        return None if parent is None else parent.getData(copy=copy)
+        if self._data is None:
+            return None
+        else:
+            return numpy.array(self._data, copy=copy)
 
     def _pickFull(self, context):
         """Perform picking in this item at given widget position.
@@ -172,18 +210,38 @@ class Isosurface(Item3D):
     """
 
     def __init__(self, parent):
-        Item3D.__init__(self, parent=parent)
-        assert isinstance(parent, ScalarField3D)
-        parent.sigItemChanged.connect(self._scalarField3DChanged)
+        Item3D.__init__(self, parent=None)
+        self._data = None
         self._level = float('nan')
         self._autoLevelFunction = None
         self._color = rgba('#FFD700FF')
+        self.setParent(parent)
+
+    def _syncDataWithParent(self):
+        """Synchronize this instance data with that of its parent"""
+        parent = self.parent()
+        if parent is None:
+            self._data = None
+        else:
+            self._data = parent.getData(copy=False)
         self._updateScenePrimitive()
 
-    def _scalarField3DChanged(self, event):
-        """Handle parent's ScalarField3D sigItemChanged"""
+    def _parentChanged(self, event):
+        """Handle data change in the parent this isosurface belongs to"""
         if event == ItemChangedType.DATA:
-            self._updateScenePrimitive()
+            self._syncDataWithParent()
+
+    def setParent(self, parent):
+        oldParent = self.parent()
+        if isinstance(oldParent, Item3D):
+            oldParent.sigItemChanged.disconnect(self._parentChanged)
+
+        super(Isosurface, self).setParent(parent)
+
+        if isinstance(parent, Item3D):
+            parent.sigItemChanged.connect(self._parentChanged)
+
+        self._syncDataWithParent()
 
     def getData(self, copy=True):
         """Return 3D dataset.
@@ -193,8 +251,10 @@ class Isosurface(Item3D):
            False to get the internal data (DO NOT modify!)
         :return: The data set (or None if not set)
         """
-        parent = self.parent()
-        return None if parent is None else parent.getData(copy=copy)
+        if self._data is None:
+            return None
+        else:
+            return numpy.array(self._data, copy=copy)
 
     def getLevel(self):
         """Return the level of this iso-surface (float)"""
@@ -372,6 +432,12 @@ class ScalarField3D(BaseNodeItem):
     :param parent: The View widget this item belongs to.
     """
 
+    _CutPlane = CutPlane
+    """CutPlane class associated to this class"""
+
+    _Isosurface = Isosurface
+    """Isosurface classe associated to this class"""
+
     def __init__(self, parent=None):
         BaseNodeItem.__init__(self, parent=parent)
 
@@ -385,7 +451,7 @@ class ScalarField3D(BaseNodeItem):
         self._data = None
         self._dataRange = None
 
-        self._cutPlane = CutPlane(parent=self)
+        self._cutPlane = self._CutPlane(parent=self)
         self._cutPlane.setVisible(False)
 
         self._isogroup = primitives.GroupDepthOffset()
@@ -405,6 +471,26 @@ class ScalarField3D(BaseNodeItem):
             self._cutPlane._getScenePrimitive(),
             self._isogroup]
 
+    @staticmethod
+    def _computeRangeFromData(data):
+        """Compute range info (min, min positive, max) from data
+
+        :param Union[numpy.ndarray,None] data:
+        :return: Union[List[float],None]
+        """
+        if data is None:
+            return None
+
+        dataRange = min_max(data, min_positive=True, finite=True)
+        if dataRange.minimum is None:  # Only non-finite data
+            return None
+
+        if dataRange is not None:
+            min_positive = dataRange.min_positive
+            if min_positive is None:
+                min_positive = float('nan')
+            return dataRange.minimum, min_positive, dataRange.maximum
+
     def setData(self, data, copy=True):
         """Set the 3D scalar data represented by this item.
 
@@ -418,7 +504,6 @@ class ScalarField3D(BaseNodeItem):
         """
         if data is None:
             self._data = None
-            self._dataRange = None
             self._boundedGroup.shape = None
 
         else:
@@ -427,21 +512,9 @@ class ScalarField3D(BaseNodeItem):
             assert min(data.shape) >= 2
 
             self._data = data
-
-            # Store data range info
-            dataRange = min_max(self._data, min_positive=True, finite=True)
-            if dataRange.minimum is None:  # Only non-finite data
-                dataRange = None
-
-            if dataRange is not None:
-                min_positive = dataRange.min_positive
-                if min_positive is None:
-                    min_positive = float('nan')
-                dataRange = dataRange.minimum, min_positive, dataRange.maximum
-            self._dataRange = dataRange
-
             self._boundedGroup.shape = self._data.shape
 
+        self._dataRange = self._computeRangeFromData(self._data)
         self._updated(ItemChangedType.DATA)
 
     def getData(self, copy=True):
@@ -506,7 +579,7 @@ class ScalarField3D(BaseNodeItem):
         :return: isosurface object
         :rtype: ~silx.gui.plot3d.items.volume.Isosurface
         """
-        isosurface = Isosurface(parent=self)
+        isosurface = self._Isosurface(parent=self)
         isosurface.setColor(color)
         if callable(level):
             isosurface.setAutoLevelFunction(level)
@@ -561,8 +634,164 @@ class ScalarField3D(BaseNodeItem):
     # BaseNodeItem
 
     def getItems(self):
-        """Returns the list of items currently present in the ScalarField3D.
+        """Returns the list of items currently present in this item.
 
         :rtype: tuple
         """
         return self.getCutPlanes() + self.getIsosurfaces()
+
+
+##################
+# ComplexField3D #
+##################
+
+class ComplexCutPlane(CutPlane, ComplexMixIn):
+    """Class representing a cutting plane in a :class:`ComplexField3D` item.
+
+    :param parent: 3D Data set in which the cut plane is applied.
+    """
+
+    def __init__(self, parent):
+        ComplexMixIn.__init__(self)
+        CutPlane.__init__(self, parent=parent)
+
+    def _syncDataWithParent(self):
+        """Synchronize this instance data with that of its parent"""
+        parent = self.parent()
+        if parent is None:
+            data, range_ = None, None
+        else:
+            mode = self.getComplexMode()
+            data = parent.getData(mode=mode, copy=False)
+            range_ = parent.getDataRange(mode=mode)
+        self._updateData(data, range_)
+
+    def _updated(self, event=None):
+        """Handle update of the cut plane (and take care of mode change
+
+        :param Union[None,ItemChangedType] event: The kind of update
+        """
+        if event == ItemChangedType.VISUALIZATION_MODE:
+            self._syncDataWithParent()
+        super(ComplexCutPlane, self)._updated(event)
+
+
+class ComplexIsosurface(Isosurface):
+    """Class representing an iso-surface in a :class:`ComplexField3D` item.
+
+    :param parent: The DataItem3D this iso-surface belongs to
+    """
+
+    def __init__(self, parent):
+        super(ComplexIsosurface, self).__init__(parent)
+
+    def _syncDataWithParent(self):
+        """Synchronize this instance data with that of its parent"""
+        parent = self.parent()
+        if parent is None:
+            self._data = None
+        else:
+            self._data = parent.getData(
+                mode=parent.getComplexMode(), copy=False)
+        self._updateScenePrimitive()
+
+    def _parentChanged(self, event):
+        """Handle data change in the parent this isosurface belongs to"""
+        if event == ItemChangedType.VISUALIZATION_MODE:
+            self._syncDataWithParent()
+        super(ComplexIsosurface, self)._parentChanged(event)
+
+
+class ComplexField3D(ScalarField3D, ComplexMixIn):
+    """3D complex field on a regular grid.
+
+    :param parent: The View widget this item belongs to.
+    """
+
+    _CutPlane = ComplexCutPlane
+    _Isosurface = ComplexIsosurface
+
+    def __init__(self, parent=None):
+        self._dataRangeCache = None
+
+        ComplexMixIn.__init__(self)
+        ScalarField3D.__init__(self, parent=parent)
+
+    @docstring(ComplexMixIn)
+    def setComplexMode(self, mode):
+        if mode != self.getComplexMode():
+            self.clearIsosurfaces()  # Reset isosurfaces
+        ComplexMixIn.setComplexMode(self, mode)
+
+    def setData(self, data, copy=True):
+        """Set the 3D complex data represented by this item.
+
+        Dataset order is zyx (i.e., first dimension is z).
+
+        :param data: 3D array
+        :type data: 3D numpy.ndarray of float32 with shape at least (2, 2, 2)
+        :param bool copy:
+            True (default) to make a copy,
+            False to avoid copy (DO NOT MODIFY data afterwards)
+        """
+        if data is None:
+            self._data = None
+            self._dataRangeCache = None
+            self._boundedGroup.shape = None
+
+        else:
+            data = numpy.array(data, copy=copy, dtype=numpy.complex64, order='C')
+            assert data.ndim == 3
+            assert min(data.shape) >= 2
+
+            self._data = data
+            self._dataRangeCache = {}
+            self._boundedGroup.shape = self._data.shape
+
+        self._updated(ItemChangedType.DATA)
+
+    def getData(self, copy=True, mode=None):
+        """Return 3D dataset.
+
+        This method does not cache data converted to a specific mode,
+        it computes it for each request.
+
+        :param bool copy:
+            True (default) to get a copy,
+            False to get the internal data (DO NOT modify!)
+        :param Union[None,Mode] mode:
+            The kind of data to retrieve.
+            If None (the default), it returns the complex data,
+            else it computes the requested scalar data.
+        :return: The data set (or None if not set)
+        :rtype: Union[numpy.ndarray,None]
+        """
+        if mode is None:
+            return super(ComplexField3D, self).getData(copy=copy)
+        else:
+            return self._convertComplexData(self._data, mode)
+
+    def getDataRange(self, mode=None):
+        """Return the range of the requested data as a 3-tuple of values.
+
+        Positive min is NaN if no data is positive.
+
+        :param Union[None,Mode] mode:
+            The kind of data for which to get the range information.
+            If None (the default), it returns the data range for the current mode,
+            else it returns the data range for the requested mode.
+        :return: (min, positive min, max) or None.
+        :rtype: Union[None,List[float]]
+        """
+        if self._dataRangeCache is None:
+            return None
+
+        if mode is None:
+            mode = self.getComplexMode()
+
+        if mode not in self._dataRangeCache:
+            # Compute it and store it in cache
+            data = self.getData(copy=False, mode=mode)
+            self._dataRangeCache[mode] = self._computeRangeFromData(data)
+
+        return self._dataRangeCache[mode]
