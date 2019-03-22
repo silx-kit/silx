@@ -893,53 +893,27 @@ class _Plot3dView(DataView):
             label="Cube",
             icon=icons.getQIcon("view-3d"))
         try:
-            import silx.gui.plot3d  #noqa
+            from ._VolumeWindow import VolumeWindow  # noqa
         except ImportError:
-            _logger.warning("Plot3dView is not available")
+            _logger.warning("3D visualization is not available")
             _logger.debug("Backtrace", exc_info=True)
             raise
         self.__resetZoomNextTime = True
 
     def createWidget(self, parent):
-        from silx.gui.plot3d import ScalarFieldView
-        from silx.gui.plot3d import SFViewParamTree
+        from ._VolumeWindow import VolumeWindow
 
-        plot = ScalarFieldView.ScalarFieldView(parent)
+        plot = VolumeWindow(parent)
         plot.setAxesLabels(*reversed(self.axesNames(None, None)))
-
-        def computeIsolevel(data):
-            data = data[numpy.isfinite(data)]
-            if len(data) == 0:
-                return 0
-            else:
-                return numpy.mean(data) + numpy.std(data)
-
-        plot.addIsosurface(computeIsolevel, '#FF0000FF')
-
-        # Create a parameter tree for the scalar field view
-        options = SFViewParamTree.TreeView(plot)
-        options.setSfView(plot)
-
-        # Add the parameter tree to the main window in a dock widget
-        dock = qt.QDockWidget()
-        dock.setWidget(options)
-        plot.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
-
         return plot
 
     def clear(self):
-        self.getWidget().setData(None)
+        self.getWidget().clear()
         self.__resetZoomNextTime = True
-
-    def normalizeData(self, data):
-        data = DataView.normalizeData(self, data)
-        data = _normalizeComplex(data)
-        return data
 
     def setData(self, data):
         data = self.normalizeData(data)
-        plot = self.getWidget()
-        plot.setData(data)
+        self.getWidget().setData(data)
         self.__resetZoomNextTime = False
 
     def axesNames(self, data, info):
