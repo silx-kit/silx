@@ -34,11 +34,17 @@ __date__ = "25/03/2019"
 import logging
 import sys
 
-import h5py
-import numpy
-
 logging.basicConfig()
 logger = logging.getLogger("create_h5file")
+
+
+try:
+    import hdf5plugin
+except ImportError:
+    logger.error("Backtrace", exc_info=True)
+
+import h5py
+import numpy
 
 
 if sys.version_info.major < 3:
@@ -403,12 +409,136 @@ def create_nxdata_group(group):
     gd1.create_dataset("hypercube", data=data)
 
 
+FILTER_LZF = 32000
+FILTER_LZ4 = 32004
+FILTER_CBF = 32006
+FILTER_BITSHUFFLE = 32008
+FILTER_BITSHUFFLE_COMPRESS_LZ4 = 2
+
+encoded_data = [
+    ("lzf", {"compression": FILTER_LZF},
+     b'\x01\x00\x00\x80\x00\x00\x01\x80\x06\x01\x00\x02\xa0\x07\x00\x03\xa0\x07'
+     b'\x00\x04\xa0\x07\x00\x05\xa0\x07\x00\x06\xa0\x07\x00\x07\xa0\x07\x00\x08'
+     b'\xa0\x07\x00\t\xa0\x07\x00\n\xa0\x07\x00\x0b\xa0\x07\x00\x0c\xa0\x07\x00'
+     b'\r\xa0\x07\x00\x0e\xa0\x07\x00\x0f`\x07\x01\x00\x00'),
+    ("bitshuffle+lz4", {"compression": FILTER_BITSHUFFLE, "compression_opts": (0, FILTER_BITSHUFFLE_COMPRESS_LZ4)},
+     b'\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00 \x00\x00\x00\x00\x13\x9f\xaa\xaa'
+     b'\xcc\xcc\xf0\xf0\x00\xff\x00\x01\x00_P\x00\x00\x00\x00\x00'),
+    ("cbf", {"compression": FILTER_CBF}, None),
+    ("lz4", {"compression": FILTER_LZ4},
+     b'\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00\x80\x00\x00\x00E\x13\x00\x01'
+     b'\x00\x13\x01\x08\x00\x13\x02\x08\x00\x13\x03\x08\x00\x13\x04\x08\x00\x13'
+     b'\x05\x08\x00\x13\x06\x08\x00\x13\x07\x08\x00\x13\x08\x08\x00\x13\t\x08'
+     b'\x00\x13\n\x08\x00\x13\x0b\x08\x00\x13\x0c\x08\x00\x13\r\x08\x00\x13\x0e'
+     b'\x08\x00\x80\x0f\x00\x00\x00\x00\x00\x00\x00'),
+    ("corrupted_datasets/bitshuffle+lz4", {"compression": FILTER_BITSHUFFLE, "compression_opts": (0, FILTER_BITSHUFFLE_COMPRESS_LZ4)},
+     b'\xFF\x01\x00\x01' * 10),
+    # ("corrupted_datasets/unknown_filter", {"compression": 0x0FFF},
+    #  b'\x00\x01\x00\x01'),
+]
+
+
+def display_encoded_data():
+    reference = numpy.arange(16, dtype=int).reshape(4, 4)
+
+    import os
+    import tempfile
+    tempdir = tempfile.mkdtemp()
+    filename = os.path.join(tempdir, "encode.h5")
+    for info in encoded_data:
+        name, compression_args, stored_data = info
+        print("m" * 20)
+        print(name)
+        try:
+            with h5py.File(filename, "a") as h5:
+                dataset = h5.create_dataset(name,
+                                            data=reference,
+                                            chunks=reference.shape,
+                                            **compression_args)
+                dataset2 = h5.create_dataset(name + " @",
+                                             shape=reference.shape,
+                                             dtype=reference.dtype,
+                                             maxshape=reference.shape,
+                                             chunks=reference.shape,
+                                             **compression_args)
+
+            with h5py.File(filename, "a") as h5:
+                dataset = h5[name]
+                dataset2 = h5[name + " @"]
+                offsets = (0,) * len(reference.shape)
+                filter_mask = [0xFFFF]
+                data = dataset.id.read_direct_chunk(offsets=offsets, filter_mask=filter_mask)
+                dataset2.id.write_direct_chunk(data=data, offsets=offsets, filter_mask=filter_mask[0])
+
+            with h5py.File(filename, "a") as h5:
+                dataset = h5[name]
+                dataset2 = h5[name + " @"]
+                print(dataset[...])
+                print(dataset2[...])
+                if not (dataset2[...] == dataset[...]).all():
+                    print("- Data corrupted")
+            if data != stored_data:
+                print("- Data changed")
+            print("- Data:")
+            print(data)
+        except Exception:
+            logger.error("Backtrace", exc_info=True)
+
+
+def create_encoded_data(parent_group):
+    print("- Creating encoded data...")
+
+    group = parent_group.create_group("encoded")
+
+    reference = numpy.arange(16).reshape(4, 4)
+    group["uncompressed"] = reference
+
+    group.create_dataset("zipped",
+                         data=reference,
+                         compression="gzip")
+    group.create_dataset("zipped_max",
+                         data=reference,
+                         compression="gzip")
+
+    compressions = ["szip"]
+    for compression in compressions:
+        try:
+            group.create_dataset(compression, data=reference, compression=compression)
+        except Exception:
+            logger.warning("Filter '%s' is not available. Dataset skipped.", compression)
+
+    group.create_dataset("shuffle_filter",
+                         data=reference,
+                         shuffle=True)
+    group.create_dataset("fletcher32_filter",
+                         data=reference,
+                         fletcher32=True)
+
+    for info in encoded_data:
+        name, compression_args, data = info
+        if data is None:
+            logger.warning("No compressed data for dataset '%s'. Dataset skipped.", name)
+            continue
+        dataset = group.create_dataset(name,
+                                       shape=reference.shape,
+                                       maxshape=reference.shape,
+                                       dtype=reference.dtype,
+                                       chunks=reference.shape,
+                                       **compression_args)
+        try:
+            offsets = (0,) * len(reference.shape)
+            dataset.id.write_direct_chunk(offsets=offsets, data=data, filter_mask=0x0000)
+        except Exception:
+            logger.error("Error while creating %s", name)
+
+
 def create_file():
     filename = "all_types.h5"
     print("Creating file '%s'..." % filename)
     with h5py.File(filename, "w") as h5:
         create_hdf5_types(h5)
         create_nxdata_group(h5)
+        create_encoded_data(h5)
         # create_all_links()
         # create_recursive_links()
         # create_external_recursive_links()
@@ -468,6 +598,7 @@ def create_external_recursive_links():
 def main():
     print("Begin")
     create_file()
+    # display_encoded_data()
     print("End")
 
 
