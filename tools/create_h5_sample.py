@@ -28,7 +28,7 @@ the format.
 """
 
 __license__ = "MIT"
-__date__ = "22/03/2019"
+__date__ = "25/03/2019"
 
 
 import logging
@@ -120,16 +120,16 @@ def create_hdf5_types(group):
     group = main_group.create_group("integer_little_endian")
     for size in (1, 2, 4, 8):
         store_subdimensions(group, int_data, '<i' + str(size),
-                            prefix='int' + str(size*8))
+                            prefix='int' + str(size * 8))
         store_subdimensions(group, uint_data, '<u' + str(size),
-                            prefix='uint' + str(size*8))
+                            prefix='uint' + str(size * 8))
 
     group = main_group.create_group("integer_big_endian")
     for size in (1, 2, 4, 8):
         store_subdimensions(group, int_data, '>i' + str(size),
-                            prefix='int' + str(size*8))
+                            prefix='int' + str(size * 8))
         store_subdimensions(group, uint_data, '>u' + str(size),
-                            prefix='uint' + str(size*8))
+                            prefix='uint' + str(size * 8))
 
     # H5T_FLOAT
 
@@ -138,13 +138,13 @@ def create_hdf5_types(group):
 
     for size in (2, 4, 8):
         store_subdimensions(group, float_data, '<f' + str(size),
-                            prefix='float' + str(size*8))
+                            prefix='float' + str(size * 8))
 
     group = main_group.create_group("float_big_endian")
 
     for size in (2, 4, 8):
         store_subdimensions(group, float_data, '>f' + str(size),
-                            prefix='float' + str(size*8))
+                            prefix='float' + str(size * 8))
 
     # H5T_TIME
 
@@ -212,12 +212,12 @@ def create_hdf5_types(group):
     group = main_group.create_group("compound/numpy_complex_little_endian")
     for size in (8, 16, 32):
         store_subdimensions(group, complex_data, '<c' + str(size),
-                            prefix='complex' + str(size*8))
+                            prefix='complex' + str(size * 8))
 
     group = main_group.create_group("compound/numpy_complex_big_endian")
     for size in (8, 16, 32):
         store_subdimensions(group, complex_data, '>c' + str(size),
-                            prefix='complex' + str(size*8))
+                            prefix='complex' + str(size * 8))
 
     # H5T_REFERENCE
 
