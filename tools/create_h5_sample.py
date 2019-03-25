@@ -403,32 +403,15 @@ def create_nxdata_group(group):
     gd1.create_dataset("hypercube", data=data)
 
 
-def create_all_types2():
+def create_file():
     filename = "all_types.h5"
     print("Creating file '%s'..." % filename)
     with h5py.File(filename, "w") as h5:
         create_hdf5_types(h5)
         create_nxdata_group(h5)
-
-
-def create_all_types():
-    with h5py.File("../types.h5", "w") as h5:
-        g = h5.create_group("arrays")
-        g.create_dataset("scalar", data=10)
-        g.create_dataset("list", data=[10])
-        g.create_dataset("image", data=[[10]])
-        g.create_dataset("cube", data=[[[10]]])
-        g.create_dataset("hypercube", data=[[[[10]]]])
-
-        g = h5.create_group("dtypes")
-        g.create_dataset("int32", data=numpy.int32(10))
-        g.create_dataset("int64", data=numpy.int64(10))
-        g.create_dataset("float32", data=numpy.float32(10))
-        g.create_dataset("float64", data=numpy.float64(10))
-        g.create_dataset("string_", data=numpy.string_("Hi!"))
-        # g.create_dataset("string0",data=numpy.string0("Hi!\x00"))
-        g.create_dataset("bool", data=True)
-        g.create_dataset("bool2", data=False)
+        # create_all_links()
+        # create_recursive_links()
+        # create_external_recursive_links()
 
 
 def create_all_links():
@@ -484,11 +467,7 @@ def create_external_recursive_links():
 
 def main():
     print("Begin")
-    # create_all_types()
-    # create_all_links()
-    # create_recursive_links()
-    # create_external_recursive_links()
-    create_all_types2()
+    create_file()
     print("End")
 
 
