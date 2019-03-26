@@ -522,6 +522,42 @@ def create_encoded_data(parent_group):
             continue
 
 
+def create_links(h5):
+    print("- Creating links...")
+
+    main_group = h5.create_group("links")
+    dataset = main_group.create_dataset("dataset", data=numpy.int64(10))
+    group = main_group.create_group("group")
+    group["something_inside"] = numpy.int64(20)
+
+    main_group["hard_link_to_group"] = main_group["group"]
+    main_group["hard_link_to_dataset"] = main_group["dataset"]
+
+    main_group.create_group("hard_recursive_link")
+    main_group.create_group("hard_recursive_link2")
+    main_group["hard_recursive_link/link"] = main_group["hard_recursive_link2"]
+    main_group["hard_recursive_link2/link"] = main_group["hard_recursive_link"]
+
+    main_group["soft_link_to_group"] = h5py.SoftLink(group.name)
+    main_group["soft_link_to_dataset"] = h5py.SoftLink(dataset.name)
+    main_group["soft_link_to_nothing"] = h5py.SoftLink("/foo/bar/2000")
+    main_group["soft_link_to_group_link"] = h5py.SoftLink(main_group.name + "/soft_link_to_group")
+    main_group["soft_link_to_dataset_link"] = h5py.SoftLink(main_group.name + "/soft_link_to_dataset")
+    main_group["soft_link_to_itself"] = h5py.SoftLink(main_group.name + "/soft_link_to_itself")
+
+    # External links to self file
+    main_group["external_link_to_group"] = h5py.ExternalLink(h5.file.filename, group.name)
+    main_group["external_link_to_dataset"] = h5py.ExternalLink(h5.file.filename, dataset.name)
+    main_group["external_link_to_nothing"] = h5py.ExternalLink(h5.file.filename, "/foo/bar/2000")
+    main_group["external_link_to_missing_file"] = h5py.ExternalLink(h5.file.filename + "_unknown", "/")
+    main_group["external_link_to_group_link"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/soft_link_to_group")
+    main_group["external_link_to_dataset_link"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/soft_link_to_dataset")
+    main_group["external_link_to_itself"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/external_link_to_itself")
+    main_group["external_link_to_recursive_link2"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/external_link_to_recursive_link3")
+    main_group["external_link_to_recursive_link3"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/external_link_to_recursive_link2")
+    main_group["external_link_to_soft_recursive"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/soft_link_to_itself")
+
+
 def create_file():
     filename = "all_types.h5"
     print("Creating file '%s'..." % filename)
@@ -529,60 +565,7 @@ def create_file():
         create_hdf5_types(h5)
         create_nxdata_group(h5)
         create_encoded_data(h5)
-        # create_all_links()
-        # create_recursive_links()
-        # create_external_recursive_links()
-
-
-def create_all_links():
-    with h5py.File("../links.h5", "w") as h5:
-        g = h5.create_group("group")
-        g.create_dataset("dataset", data=numpy.int64(10))
-        h5.create_dataset("dataset", data=numpy.int64(10))
-
-        h5["hard_link_to_group"] = h5["/group"]
-        h5["hard_link_to_dataset"] = h5["/dataset"]
-
-        h5["soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["soft_link_to_dataset"] = h5py.SoftLink("/dataset")
-        h5["soft_link_to_nothing"] = h5py.SoftLink("/foo/bar/2000")
-
-        h5["external_link_to_group"] = h5py.ExternalLink("types.h5", "/arrays")
-        h5["external_link_to_dataset"] = h5py.ExternalLink("types.h5", "/arrays/cube")
-        h5["external_link_to_nothing"] = h5py.ExternalLink("types.h5", "/foo/bar/2000")
-        h5["external_link_to_missing_file"] = h5py.ExternalLink("missing_file.h5", "/")
-
-
-def create_recursive_links():
-    with h5py.File("../links_recursive.h5", "w") as h5:
-        g = h5.create_group("group")
-        g.create_dataset("dataset", data=numpy.int64(10))
-        h5.create_dataset("dataset", data=numpy.int64(10))
-
-        h5["hard_recursive_link"] = h5["/group"]
-        g["recursive"] = h5["hard_recursive_link"]
-        h5["hard_link_to_dataset"] = h5["/dataset"]
-
-        h5["soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["soft_link_to_link"] = h5py.SoftLink("/soft_link_to_group")
-        h5["soft_link_to_itself"] = h5py.SoftLink("/soft_link_to_itself")
-
-
-def create_external_recursive_links():
-
-    with h5py.File("../links_external_recursive.h5", "w") as h5:
-        g = h5.create_group("group")
-        g.create_dataset("dataset", data=numpy.int64(10))
-        h5["soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["external_link_to_link"] = h5py.ExternalLink("links_external_recursive_2.h5", "/soft_link_to_group")
-        h5["external_link_to_recursive_link"] = h5py.ExternalLink("links_external_recursive_2.h5", "/external_link_to_recursive_link")
-
-    with h5py.File("../links_external_recursive_2.h5", "w") as h5:
-        g = h5.create_group("group")
-        g.create_dataset("dataset", data=numpy.int64(10))
-        h5["soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["external_link_to_link"] = h5py.ExternalLink("links_external_recursive.h5", "/soft_link_to_group")
-        h5["external_link_to_recursive_link"] = h5py.ExternalLink("links_external_recursive.h5", "/external_link_to_recursive_link")
+        create_links(h5)
 
 
 def main():
