@@ -28,7 +28,7 @@ the format.
 """
 
 __license__ = "MIT"
-__date__ = "25/03/2019"
+__date__ = "26/03/2019"
 
 
 import logging
@@ -414,6 +414,8 @@ FILTER_LZ4 = 32004
 FILTER_CBF = 32006
 FILTER_BITSHUFFLE = 32008
 FILTER_BITSHUFFLE_COMPRESS_LZ4 = 2
+FILTER_USER = 32768
+"""First id for non-distributed filter"""
 
 encoded_data = [
     ("lzf", {"compression": FILTER_LZF},
@@ -433,8 +435,8 @@ encoded_data = [
      b'\x08\x00\x80\x0f\x00\x00\x00\x00\x00\x00\x00'),
     ("corrupted_datasets/bitshuffle+lz4", {"compression": FILTER_BITSHUFFLE, "compression_opts": (0, FILTER_BITSHUFFLE_COMPRESS_LZ4)},
      b'\xFF\x01\x00\x01' * 10),
-    # ("corrupted_datasets/unknown_filter", {"compression": 0x0FFF},
-    #  b'\x00\x01\x00\x01'),
+    ("corrupted_datasets/unavailable_filter", {"compression": FILTER_USER + 100},
+     b'\xFF\x01\x00\x01' * 10),
 ]
 
 
