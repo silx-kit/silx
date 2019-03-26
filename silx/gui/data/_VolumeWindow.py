@@ -31,6 +31,7 @@ __date__ = "22/03/2019"
 
 import numpy
 
+from .. import qt
 from ..plot3d.SceneWindow import SceneWindow
 from ..plot3d.items import ScalarField3D, ComplexField3D, ItemChangedType
 
@@ -115,6 +116,19 @@ class VolumeWindow(SceneWindow):
                 plane.setVisible(False)
                 plane.sigItemChanged.connect(self.__cutPlaneUpdated)
             volume.addIsosurface(self.__computeIsolevel, '#FF0000FF')
+
+            # Expand the parameter tree
+            model = self.getParamTreeView().model()
+            index = qt.QModelIndex()  # Invalid index for top level
+            while 1:
+                rowCount = model.rowCount(parent=index)
+                if rowCount == 0:
+                    break
+                index = model.index(rowCount - 1, 0, parent=index)
+                self.getParamTreeView().setExpanded(index, True)
+                if not index.isValid():
+                    break
+
 
         volume.setTranslation(*offset)
         volume.setScale(*scale)
