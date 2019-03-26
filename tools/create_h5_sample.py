@@ -457,28 +457,9 @@ def display_encoded_data():
                                             data=reference,
                                             chunks=reference.shape,
                                             **compression_args)
-                dataset2 = h5.create_dataset(name + " @",
-                                             shape=reference.shape,
-                                             dtype=reference.dtype,
-                                             maxshape=reference.shape,
-                                             chunks=reference.shape,
-                                             **compression_args)
-
-            with h5py.File(filename, "a") as h5:
-                dataset = h5[name]
-                dataset2 = h5[name + " @"]
                 offsets = (0,) * len(reference.shape)
                 filter_mask = [0xFFFF]
                 data = dataset.id.read_direct_chunk(offsets=offsets, filter_mask=filter_mask)
-                dataset2.id.write_direct_chunk(data=data, offsets=offsets, filter_mask=filter_mask[0])
-
-            with h5py.File(filename, "a") as h5:
-                dataset = h5[name]
-                dataset2 = h5[name + " @"]
-                print(dataset[...])
-                print(dataset2[...])
-                if not (dataset2[...] == dataset[...]).all():
-                    print("- Data corrupted")
             if data != stored_data:
                 print("- Data changed")
             print("- Data:")
