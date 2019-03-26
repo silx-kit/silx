@@ -28,17 +28,23 @@ the format.
 """
 
 __license__ = "MIT"
-__date__ = "22/03/2019"
+__date__ = "26/03/2019"
 
 
 import logging
 import sys
 
-import h5py
-import numpy
-
 logging.basicConfig()
 logger = logging.getLogger("create_h5file")
+
+
+try:
+    import hdf5plugin
+except ImportError:
+    logger.error("Backtrace", exc_info=True)
+
+import h5py
+import numpy
 
 
 if sys.version_info.major < 3:
@@ -120,16 +126,16 @@ def create_hdf5_types(group):
     group = main_group.create_group("integer_little_endian")
     for size in (1, 2, 4, 8):
         store_subdimensions(group, int_data, '<i' + str(size),
-                            prefix='int' + str(size*8))
+                            prefix='int' + str(size * 8))
         store_subdimensions(group, uint_data, '<u' + str(size),
-                            prefix='uint' + str(size*8))
+                            prefix='uint' + str(size * 8))
 
     group = main_group.create_group("integer_big_endian")
     for size in (1, 2, 4, 8):
         store_subdimensions(group, int_data, '>i' + str(size),
-                            prefix='int' + str(size*8))
+                            prefix='int' + str(size * 8))
         store_subdimensions(group, uint_data, '>u' + str(size),
-                            prefix='uint' + str(size*8))
+                            prefix='uint' + str(size * 8))
 
     # H5T_FLOAT
 
@@ -138,13 +144,13 @@ def create_hdf5_types(group):
 
     for size in (2, 4, 8):
         store_subdimensions(group, float_data, '<f' + str(size),
-                            prefix='float' + str(size*8))
+                            prefix='float' + str(size * 8))
 
     group = main_group.create_group("float_big_endian")
 
     for size in (2, 4, 8):
         store_subdimensions(group, float_data, '>f' + str(size),
-                            prefix='float' + str(size*8))
+                            prefix='float' + str(size * 8))
 
     # H5T_TIME
 
@@ -212,12 +218,12 @@ def create_hdf5_types(group):
     group = main_group.create_group("compound/numpy_complex_little_endian")
     for size in (8, 16, 32):
         store_subdimensions(group, complex_data, '<c' + str(size),
-                            prefix='complex' + str(size*8))
+                            prefix='complex' + str(size * 8))
 
     group = main_group.create_group("compound/numpy_complex_big_endian")
     for size in (8, 16, 32):
         store_subdimensions(group, complex_data, '>c' + str(size),
-                            prefix='complex' + str(size*8))
+                            prefix='complex' + str(size * 8))
 
     # H5T_REFERENCE
 
@@ -403,92 +409,169 @@ def create_nxdata_group(group):
     gd1.create_dataset("hypercube", data=data)
 
 
-def create_all_types2():
+FILTER_LZF = 32000
+FILTER_LZ4 = 32004
+FILTER_CBF = 32006
+FILTER_BITSHUFFLE = 32008
+FILTER_BITSHUFFLE_COMPRESS_LZ4 = 2
+FILTER_USER = 32768
+"""First id for non-distributed filter"""
+
+encoded_data = [
+    ("lzf", {"compression": FILTER_LZF},
+     b'\x01\x00\x00\x80\x00\x00\x01\x80\x06\x01\x00\x02\xa0\x07\x00\x03\xa0\x07'
+     b'\x00\x04\xa0\x07\x00\x05\xa0\x07\x00\x06\xa0\x07\x00\x07\xa0\x07\x00\x08'
+     b'\xa0\x07\x00\t\xa0\x07\x00\n\xa0\x07\x00\x0b\xa0\x07\x00\x0c\xa0\x07\x00'
+     b'\r\xa0\x07\x00\x0e\xa0\x07\x00\x0f`\x07\x01\x00\x00'),
+    ("bitshuffle+lz4", {"compression": FILTER_BITSHUFFLE, "compression_opts": (0, FILTER_BITSHUFFLE_COMPRESS_LZ4)},
+     b'\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00 \x00\x00\x00\x00\x13\x9f\xaa\xaa'
+     b'\xcc\xcc\xf0\xf0\x00\xff\x00\x01\x00_P\x00\x00\x00\x00\x00'),
+    ("cbf", {"compression": FILTER_CBF}, None),
+    ("lz4", {"compression": FILTER_LZ4},
+     b'\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00\x80\x00\x00\x00E\x13\x00\x01'
+     b'\x00\x13\x01\x08\x00\x13\x02\x08\x00\x13\x03\x08\x00\x13\x04\x08\x00\x13'
+     b'\x05\x08\x00\x13\x06\x08\x00\x13\x07\x08\x00\x13\x08\x08\x00\x13\t\x08'
+     b'\x00\x13\n\x08\x00\x13\x0b\x08\x00\x13\x0c\x08\x00\x13\r\x08\x00\x13\x0e'
+     b'\x08\x00\x80\x0f\x00\x00\x00\x00\x00\x00\x00'),
+    ("corrupted_datasets/bitshuffle+lz4", {"compression": FILTER_BITSHUFFLE, "compression_opts": (0, FILTER_BITSHUFFLE_COMPRESS_LZ4)},
+     b'\xFF\x01\x00\x01' * 10),
+    ("corrupted_datasets/unavailable_filter", {"compression": FILTER_USER + 100},
+     b'\xFF\x01\x00\x01' * 10),
+]
+
+
+def display_encoded_data():
+    reference = numpy.arange(16, dtype=int).reshape(4, 4)
+
+    import os
+    import tempfile
+    tempdir = tempfile.mkdtemp()
+    filename = os.path.join(tempdir, "encode.h5")
+    for info in encoded_data:
+        name, compression_args, stored_data = info
+        print("m" * 20)
+        print(name)
+        try:
+            with h5py.File(filename, "a") as h5:
+                dataset = h5.create_dataset(name,
+                                            data=reference,
+                                            chunks=reference.shape,
+                                            **compression_args)
+                offsets = (0,) * len(reference.shape)
+                filter_mask = [0xFFFF]
+                data = dataset.id.read_direct_chunk(offsets=offsets, filter_mask=filter_mask)
+            if data != stored_data:
+                print("- Data changed")
+            print("- Data:")
+            print(data)
+        except Exception:
+            logger.error("Backtrace", exc_info=True)
+
+
+def create_encoded_data(parent_group):
+    print("- Creating encoded data...")
+
+    group = parent_group.create_group("encoded")
+
+    reference = numpy.arange(16).reshape(4, 4)
+    group["uncompressed"] = reference
+
+    group.create_dataset("zipped",
+                         data=reference,
+                         compression="gzip")
+    group.create_dataset("zipped_max",
+                         data=reference,
+                         compression="gzip")
+
+    compressions = ["szip"]
+    for compression in compressions:
+        try:
+            group.create_dataset(compression, data=reference, compression=compression)
+        except Exception:
+            logger.warning("Filter '%s' is not available. Dataset skipped.", compression)
+
+    group.create_dataset("shuffle_filter",
+                         data=reference,
+                         shuffle=True)
+    group.create_dataset("fletcher32_filter",
+                         data=reference,
+                         fletcher32=True)
+
+    for info in encoded_data:
+        name, compression_args, data = info
+        if data is None:
+            logger.warning("No compressed data for dataset '%s'. Dataset skipped.", name)
+            continue
+        try:
+            dataset = group.create_dataset(name,
+                                           shape=reference.shape,
+                                           maxshape=reference.shape,
+                                           dtype=reference.dtype,
+                                           chunks=reference.shape,
+                                           **compression_args)
+        except Exception:
+            logger.debug("Backtrace", exc_info=True)
+            logger.error("Error while creating dataset '%s'", name)
+            continue
+        try:
+            offsets = (0,) * len(reference.shape)
+            dataset.id.write_direct_chunk(offsets=offsets, data=data, filter_mask=0x0000)
+        except Exception:
+            logger.debug("Backtrace", exc_info=True)
+            logger.error("Error filling dataset '%s'", name)
+            continue
+
+
+def create_links(h5):
+    print("- Creating links...")
+
+    main_group = h5.create_group("links")
+    dataset = main_group.create_dataset("dataset", data=numpy.int64(10))
+    group = main_group.create_group("group")
+    group["something_inside"] = numpy.int64(20)
+
+    main_group["hard_link_to_group"] = main_group["group"]
+    main_group["hard_link_to_dataset"] = main_group["dataset"]
+
+    main_group.create_group("hard_recursive_link")
+    main_group.create_group("hard_recursive_link2")
+    main_group["hard_recursive_link/link"] = main_group["hard_recursive_link2"]
+    main_group["hard_recursive_link2/link"] = main_group["hard_recursive_link"]
+
+    main_group["soft_link_to_group"] = h5py.SoftLink(group.name)
+    main_group["soft_link_to_dataset"] = h5py.SoftLink(dataset.name)
+    main_group["soft_link_to_nothing"] = h5py.SoftLink("/foo/bar/2000")
+    main_group["soft_link_to_group_link"] = h5py.SoftLink(main_group.name + "/soft_link_to_group")
+    main_group["soft_link_to_dataset_link"] = h5py.SoftLink(main_group.name + "/soft_link_to_dataset")
+    main_group["soft_link_to_itself"] = h5py.SoftLink(main_group.name + "/soft_link_to_itself")
+
+    # External links to self file
+    main_group["external_link_to_group"] = h5py.ExternalLink(h5.file.filename, group.name)
+    main_group["external_link_to_dataset"] = h5py.ExternalLink(h5.file.filename, dataset.name)
+    main_group["external_link_to_nothing"] = h5py.ExternalLink(h5.file.filename, "/foo/bar/2000")
+    main_group["external_link_to_missing_file"] = h5py.ExternalLink(h5.file.filename + "_unknown", "/")
+    main_group["external_link_to_group_link"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/soft_link_to_group")
+    main_group["external_link_to_dataset_link"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/soft_link_to_dataset")
+    main_group["external_link_to_itself"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/external_link_to_itself")
+    main_group["external_link_to_recursive_link2"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/external_link_to_recursive_link3")
+    main_group["external_link_to_recursive_link3"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/external_link_to_recursive_link2")
+    main_group["external_link_to_soft_recursive"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/soft_link_to_itself")
+
+
+def create_file():
     filename = "all_types.h5"
     print("Creating file '%s'..." % filename)
     with h5py.File(filename, "w") as h5:
         create_hdf5_types(h5)
         create_nxdata_group(h5)
-
-
-def create_all_types():
-    with h5py.File("../types.h5", "w") as h5:
-        g = h5.create_group("arrays")
-        g.create_dataset("scalar", data=10)
-        g.create_dataset("list", data=[10])
-        g.create_dataset("image", data=[[10]])
-        g.create_dataset("cube", data=[[[10]]])
-        g.create_dataset("hypercube", data=[[[[10]]]])
-
-        g = h5.create_group("dtypes")
-        g.create_dataset("int32", data=numpy.int32(10))
-        g.create_dataset("int64", data=numpy.int64(10))
-        g.create_dataset("float32", data=numpy.float32(10))
-        g.create_dataset("float64", data=numpy.float64(10))
-        g.create_dataset("string_", data=numpy.string_("Hi!"))
-        # g.create_dataset("string0",data=numpy.string0("Hi!\x00"))
-        g.create_dataset("bool", data=True)
-        g.create_dataset("bool2", data=False)
-
-
-def create_all_links():
-    with h5py.File("../links.h5", "w") as h5:
-        g = h5.create_group("group")
-        g.create_dataset("dataset", data=numpy.int64(10))
-        h5.create_dataset("dataset", data=numpy.int64(10))
-
-        h5["hard_link_to_group"] = h5["/group"]
-        h5["hard_link_to_dataset"] = h5["/dataset"]
-
-        h5["soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["soft_link_to_dataset"] = h5py.SoftLink("/dataset")
-        h5["soft_link_to_nothing"] = h5py.SoftLink("/foo/bar/2000")
-
-        h5["external_link_to_group"] = h5py.ExternalLink("types.h5", "/arrays")
-        h5["external_link_to_dataset"] = h5py.ExternalLink("types.h5", "/arrays/cube")
-        h5["external_link_to_nothing"] = h5py.ExternalLink("types.h5", "/foo/bar/2000")
-        h5["external_link_to_missing_file"] = h5py.ExternalLink("missing_file.h5", "/")
-
-
-def create_recursive_links():
-    with h5py.File("../links_recursive.h5", "w") as h5:
-        g = h5.create_group("group")
-        g.create_dataset("dataset", data=numpy.int64(10))
-        h5.create_dataset("dataset", data=numpy.int64(10))
-
-        h5["hard_recursive_link"] = h5["/group"]
-        g["recursive"] = h5["hard_recursive_link"]
-        h5["hard_link_to_dataset"] = h5["/dataset"]
-
-        h5["soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["soft_link_to_link"] = h5py.SoftLink("/soft_link_to_group")
-        h5["soft_link_to_itself"] = h5py.SoftLink("/soft_link_to_itself")
-
-
-def create_external_recursive_links():
-
-    with h5py.File("../links_external_recursive.h5", "w") as h5:
-        g = h5.create_group("group")
-        g.create_dataset("dataset", data=numpy.int64(10))
-        h5["soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["external_link_to_link"] = h5py.ExternalLink("links_external_recursive_2.h5", "/soft_link_to_group")
-        h5["external_link_to_recursive_link"] = h5py.ExternalLink("links_external_recursive_2.h5", "/external_link_to_recursive_link")
-
-    with h5py.File("../links_external_recursive_2.h5", "w") as h5:
-        g = h5.create_group("group")
-        g.create_dataset("dataset", data=numpy.int64(10))
-        h5["soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["external_link_to_link"] = h5py.ExternalLink("links_external_recursive.h5", "/soft_link_to_group")
-        h5["external_link_to_recursive_link"] = h5py.ExternalLink("links_external_recursive.h5", "/external_link_to_recursive_link")
+        create_encoded_data(h5)
+        create_links(h5)
 
 
 def main():
     print("Begin")
-    # create_all_types()
-    # create_all_links()
-    # create_recursive_links()
-    # create_external_recursive_links()
-    create_all_types2()
+    create_file()
+    # display_encoded_data()
     print("End")
 
 
