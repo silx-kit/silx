@@ -35,6 +35,7 @@ from collections import OrderedDict
 from contextlib import contextmanager
 import logging
 import weakref
+import enum
 
 import numpy
 
@@ -1290,3 +1291,99 @@ class BasicGridStatsWidget(_BaseLineStatsWidget):
 
     def _createLayout(self):
         return qt.QGridLayout()
+
+
+@enum.unique
+class UpdateMode(enum.Enum):
+    auto = 0
+    manual = 1
+
+
+class UpdateModeWidget(qt.QWidget):
+    """Widget used to select the mode of update"""
+    sigUpdateModeChanged = qt.Signal(UpdateMode)
+    """signal emitted when the mode for update changed"""
+    sigUpdateRequested = qt.Signal()
+    """signal emitted when an manual request for example is activate"""
+
+    def __init__(self, parent=None):
+        qt.QWidget.__init__(self, parent)
+        self.setLayout(qt.QGridLayout())
+        self._buttonGrp = qt.QButtonGroup(parent=self)
+        self._buttonGrp.setExclusive(True)
+
+        self._autoRB = qt.QRadioButton('auto', parent=self)
+        self.layout().addWidget(self._autoRB, 0, 0)
+        self._buttonGrp.addButton(self._autoRB, UpdateMode.auto.value)
+
+        self._manualRB = qt.QRadioButton('manual', parent=self)
+        self.layout().addWidget(self._manualRB, 1, 0)
+        self._buttonGrp.addButton(self._manualRB, UpdateMode.manual.value)
+
+        refresh_icon = icons.getQIcon('view-refresh')
+        self._updatePB = qt.QPushButton(refresh_icon, 'update', parent=self)
+        self.layout().addWidget(self._updatePB, 1, 1)
+
+        # connect signal / SLOT
+        self._updatePB.clicked.connect(self._updateRequested)
+        self._manualRB.toggled.connect(self._callUpdateRequest)
+        self._autoRB.toggled.connect(self._callUpdateRequest)
+        self._buttonGrp.buttonClicked.connect(self._modeChanged)
+
+    def _callUpdateRequest(self, update):
+        if update is True:
+            self._modeChanged(mode=self.getUpdateMode())
+
+    def _updateRequested(self):
+        if self.getUpdateMode() is UpdateMode.manual:
+            self.sigUpdateRequested.emit()
+
+    def _modeChanged(self, mode):
+        assert mode in UpdateMode
+        self.sigUpdateModeChanged.emit(mode)
+
+    def setUpdateMode(self, mode):
+        """
+
+        :param mode: mode requested for update
+        :type mode: Union[str, `.UpdateMode`]
+        """
+        assert isinstance(mode, (UpdateMode, str))
+        _mode = mode
+        if type(mode) is str:
+            if mode.lower() in ('auto', 'automatic'):
+                _mode = UpdateMode.auto
+            elif mode.lower() == 'manual':
+                _mode = UpdateMode.manual
+            else:
+                raise ValueError('mode', mode, 'is not recognized')
+
+        if _mode is UpdateMode.auto:
+            if not self._autoRB.isChecked():
+                self._autoRB.setChecked(True)
+        elif _mode is UpdateMode.manual:
+            if not self._manualRB.isChecked():
+                self._manualRB.setChecked(True)
+        else:
+            raise ValueError('mode', mode, 'is not recognized')
+
+    def getUpdateMode(self):
+        """
+
+        :return: the active update mode
+        :rtype: `.UpdateMode`
+        """
+        if self._manualRB.isChecked():
+            return UpdateMode.manual
+        elif self._autoRB.isChecked():
+            return UpdateMode.auto
+        else:
+            return None
+
+    def showGroupButtons(self, show):
+        """show / hide the QRadioButtons
+
+        :param bool show: if True make RadioButton visible
+        """
+        self._autoRB.setVisible(show)
+        self._manualRB.setVisible(show)

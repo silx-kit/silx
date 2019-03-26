@@ -33,8 +33,9 @@ from silx.gui import qt
 from silx.gui.plot.stats import stats
 from silx.gui.plot import StatsWidget
 from silx.gui.plot.stats import statshandler
-from silx.gui.utils.testutils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import Plot1D, Plot2D
+from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 import unittest
 import logging
 import numpy
@@ -601,12 +602,56 @@ class TestLineWidget(TestCaseQt):
         self.assertTrue(self.widget._statQlineEdit['min'].text() == '0.312')
 
 
+class TestUpdateModes(TestCaseQt):
+    """Test the different updtate mode: manual, automatic..."""
+    pass
+
+
+class TestUpdateModeWidget(TestCaseQt):
+    """Test UpdateModeWidget"""
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.widget = UpdateModeWidget(parent=None)
+
+    def tearDown(self):
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        self.widget = None
+        TestCaseQt.tearDown(self)
+
+    def testSignals(self):
+        """Test the signal emission of the widget"""
+        self.widget.setUpdateMode(UpdateMode.auto)
+        modeChangedListener = SignalListener()
+        manualUpdateListener = SignalListener()
+        self.widget.sigUpdateModeChanged.connect(modeChangedListener)
+        self.widget.sigUpdateRequested.connect(manualUpdateListener)
+        self.widget.setUpdateMode(UpdateMode.auto)
+        self.assertTrue(self.widget.getUpdateMode() is UpdateMode.auto)
+        self.assertTrue(modeChangedListener.callCount() is 0)
+        self.qapp.processEvents()
+
+        self.widget.setUpdateMode(UpdateMode.manual)
+        self.assertTrue(self.widget.getUpdateMode() is UpdateMode.manual)
+        self.qapp.processEvents()
+        self.assertTrue(modeChangedListener.callCount() is 1)
+        self.assertTrue(manualUpdateListener.callCount() is 0)
+        self.widget._updatePB.click()
+        self.widget._updatePB.click()
+        self.assertTrue(manualUpdateListener.callCount() is 2)
+
+        self.widget._autoRB.setChecked(True)
+        self.assertTrue(modeChangedListener.callCount() is 2)
+        self.widget._updatePB.click()
+        self.assertTrue(manualUpdateListener.callCount() is 2)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestStats, TestStatsHandler, TestStatsWidgetWithScatters,
                       TestStatsWidgetWithImages, TestStatsWidgetWithCurves,
                       TestStatsFormatter, TestEmptyStatsWidget,
-                      TestLineWidget):
+                      TestLineWidget, TestUpdateModes, TestUpdateModeWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
