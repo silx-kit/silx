@@ -180,7 +180,7 @@ class ComplexMixIn(ItemMixInBase):
 
     class Mode(enum.Enum):
         """Identify available display mode for complex"""
-        ABSOLUTE = 'absolute'
+        ABSOLUTE = 'amplitude'
         PHASE = 'phase'
         REAL = 'real'
         IMAGINARY = 'imaginary'
@@ -206,7 +206,7 @@ class ComplexMixIn(ItemMixInBase):
             raise ValueError("Cannot convert: %s" % value)
 
     def __init__(self):
-        self._mode = self.Mode.REAL
+        self._mode = self.Mode.ABSOLUTE
 
     def getComplexMode(self):
         """Returns the current complex visualization mode.
