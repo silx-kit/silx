@@ -502,17 +502,24 @@ def create_encoded_data(parent_group):
         if data is None:
             logger.warning("No compressed data for dataset '%s'. Dataset skipped.", name)
             continue
-        dataset = group.create_dataset(name,
-                                       shape=reference.shape,
-                                       maxshape=reference.shape,
-                                       dtype=reference.dtype,
-                                       chunks=reference.shape,
-                                       **compression_args)
+        try:
+            dataset = group.create_dataset(name,
+                                           shape=reference.shape,
+                                           maxshape=reference.shape,
+                                           dtype=reference.dtype,
+                                           chunks=reference.shape,
+                                           **compression_args)
+        except Exception:
+            logger.debug("Backtrace", exc_info=True)
+            logger.error("Error while creating dataset '%s'", name)
+            continue
         try:
             offsets = (0,) * len(reference.shape)
             dataset.id.write_direct_chunk(offsets=offsets, data=data, filter_mask=0x0000)
         except Exception:
-            logger.error("Error while creating %s", name)
+            logger.debug("Backtrace", exc_info=True)
+            logger.error("Error filling dataset '%s'", name)
+            continue
 
 
 def create_file():
