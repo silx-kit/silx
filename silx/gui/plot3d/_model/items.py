@@ -1378,7 +1378,7 @@ def initVolumeCutPlaneNode(node, item):
     node.addRow(ColormapRow(item))
 
     node.addRow(ProxyRow(
-        name='Values<=Min',
+        name='Show <=Min',
         fget=item.getDisplayValuesBelowMin,
         fset=item.setDisplayValuesBelowMin,
         notify=item.sigItemChanged))
