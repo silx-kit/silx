@@ -90,6 +90,7 @@ class VolumeWindow(SceneWindow):
         :param List[float] scale: (sx, sy, sz) scale for each dimension
         """
         sceneWidget = self.getSceneWidget()
+        dataMaxCoords = numpy.array(list(reversed(data.shape))) - 1
 
         previousItems = sceneWidget.getItems()
         if (len(previousItems) == 1 and
@@ -98,12 +99,19 @@ class VolumeWindow(SceneWindow):
             # Reuse existing volume item
             volume = sceneWidget.getItems()[0]
             volume.setData(data, copy=False)
+            # Make sure the plane goes through the dataset
+            for plane in volume.getCutPlanes():
+                point = numpy.array(plane.getPoint())
+                if numpy.any(point < (0, 0, 0)) or numpy.any(point > dataMaxCoords):
+                    plane.setPoint(dataMaxCoords // 2)
         else:
             # Add a new volume
             sceneWidget.clearItems()
             volume = sceneWidget.addVolume(data, copy=False)
             volume.setLabel('Volume')
             for plane in volume.getCutPlanes():
+                # Make plane going through the center of the data
+                plane.setPoint(dataMaxCoords // 2)
                 plane.setVisible(False)
                 plane.sigItemChanged.connect(self.__cutPlaneUpdated)
             volume.addIsosurface(self.__computeIsolevel, '#FF0000FF')
