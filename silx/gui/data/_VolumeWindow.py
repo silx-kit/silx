@@ -32,7 +32,7 @@ __date__ = "22/03/2019"
 import numpy
 
 from ..plot3d.SceneWindow import SceneWindow
-from ..plot3d.items import ScalarField3D, ComplexField3D
+from ..plot3d.items import ScalarField3D, ComplexField3D, ItemChangedType
 
 
 class VolumeWindow(SceneWindow):
@@ -100,11 +100,23 @@ class VolumeWindow(SceneWindow):
             volume.setData(data, copy=False)
         else:
             # Add a new volume
+            sceneWidget.clearItems()
             volume = sceneWidget.addVolume(data, copy=False)
             volume.setLabel('Volume')
             for plane in volume.getCutPlanes():
                 plane.setVisible(False)
+                plane.sigItemChanged.connect(self.__cutPlaneUpdated)
             volume.addIsosurface(self.__computeIsolevel, '#FF0000FF')
 
         volume.setTranslation(*offset)
         volume.setScale(*scale)
+
+    def __cutPlaneUpdated(self, event):
+        """Handle the change of visibility of the cut plane
+
+        :param event: Kind of update
+        """
+        if event == ItemChangedType.VISIBLE:
+            plane = self.sender()
+            if plane.isVisible():
+                self.getSceneWidget().selection().setCurrentItem(plane)
