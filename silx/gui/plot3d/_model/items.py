@@ -896,10 +896,10 @@ class PlaneRow(ProxyRow):
                '-': None}
     """Mapping of plane names to normals"""
 
-    _PLANE_ICONS = {'Plane 0': icons.getQIcon('3d-plane-normal-x'),
-                    'Plane 1': icons.getQIcon('3d-plane-normal-y'),
-                    'Plane 2': icons.getQIcon('3d-plane-normal-z'),
-                    '-': icons.getQIcon('3d-plane')}
+    _PLANE_ICONS = {'Plane 0': '3d-plane-normal-x',
+                    'Plane 1': '3d-plane-normal-y',
+                    'Plane 2': '3d-plane-normal-z',
+                    '-': '3d-plane'}
     """Mapping of plane names to normals"""
 
     def __init__(self, item):
@@ -939,7 +939,7 @@ class PlaneRow(ProxyRow):
 
     def data(self, column, role):
         if column == 1 and role == qt.Qt.DecorationRole:
-            return self._PLANE_ICONS[self.__getPlaneName()]
+            return icons.getQIcon(self._PLANE_ICONS[self.__getPlaneName()])
         return super(PlaneRow, self).data(column, role)
 
 
