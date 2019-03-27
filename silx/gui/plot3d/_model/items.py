@@ -289,6 +289,9 @@ class Item3DRow(BaseRow):
     :param str name: The optional name of the item
     """
 
+    _EVENTS = items.ItemChangedType.VISIBLE, items.Item3DChangedType.LABEL
+    """Events for which to update the first column in the tree"""
+
     def __init__(self, item, name=None):
         self.__name = None if name is None else six.text_type(name)
         super(Item3DRow, self).__init__()
@@ -302,9 +305,8 @@ class Item3DRow(BaseRow):
         item.sigItemChanged.connect(self._itemChanged)
 
     def _itemChanged(self, event):
-        """Handle visibility change"""
-        if event in (items.ItemChangedType.VISIBLE,
-                     items.Item3DChangedType.LABEL):
+        """Handle model update upon change"""
+        if event in self._EVENTS:
             model = self.model()
             if model is not None:
                 index = self.index(column=0)
@@ -1126,6 +1128,9 @@ class IsosurfaceRow(Item3DRow):
 
     _LEVEL_SLIDER_RANGE = 0, 1000
     """Range given as editor hint"""
+
+    _EVENTS = items.ItemChangedType.VISIBLE, items.ItemChangedType.COLOR
+    """Events for which to update the first column in the tree"""
 
     def __init__(self, item):
         super(IsosurfaceRow, self).__init__(item, name=item.getLevel())
