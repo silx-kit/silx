@@ -139,8 +139,8 @@ class _DirectionalLightProxy(qt.QObject):
         super(_DirectionalLightProxy, self).__init__()
         self._light = light
         light.addListener(self._directionUpdated)
-        self._azimuth = 0.
-        self._altitude = 0.
+        self._azimuth = 0
+        self._altitude = 0
 
     def getAzimuthAngle(self):
         """Returns the signed angle in the horizontal plane.
@@ -148,7 +148,7 @@ class _DirectionalLightProxy(qt.QObject):
          Unit: degrees.
         The 0 angle corresponds to the axis perpendicular to the screen.
 
-        :rtype: float
+        :rtype: int
         """
         return self._azimuth
 
@@ -158,15 +158,16 @@ class _DirectionalLightProxy(qt.QObject):
         Unit: degrees.
         Range: [-90, +90]
 
-        :rtype: float
+        :rtype: int
         """
         return self._altitude
 
     def setAzimuthAngle(self, angle):
         """Set the horizontal angle.
 
-        :param float angle: Angle from -z axis in zx plane in degrees.
+        :param int angle: Angle from -z axis in zx plane in degrees.
         """
+        angle = int(round(angle))
         if angle != self._azimuth:
             self._azimuth = angle
             self._updateLight()
@@ -175,8 +176,9 @@ class _DirectionalLightProxy(qt.QObject):
     def setAltitudeAngle(self, angle):
         """Set the horizontal angle.
 
-        :param float angle: Angle from -z axis in zy plane in degrees.
+        :param int angle: Angle from -z axis in zy plane in degrees.
         """
+        angle = int(round(angle))
         if angle != self._altitude:
             self._altitude = angle
             self._updateLight()
@@ -189,20 +191,21 @@ class _DirectionalLightProxy(qt.QObject):
         x, y, z = - self._light.direction
 
         # Horizontal plane is plane xz
-        azimuth = numpy.degrees(numpy.arctan2(x, z))
-        altitude = numpy.degrees(numpy.pi/2. - numpy.arccos(y))
+        azimuth = int(round(numpy.degrees(numpy.arctan2(x, z))))
+        altitude = int(round(numpy.degrees(numpy.pi/2. - numpy.arccos(y))))
 
-        if (abs(azimuth - self.getAzimuthAngle()) > 0.01 and
-                abs(abs(altitude) - 90.) >= 0.001):  # Do not update when at zenith
+        if azimuth != self.getAzimuthAngle():
             self.setAzimuthAngle(azimuth)
 
-        if abs(altitude - self.getAltitudeAngle()) > 0.01:
+        if altitude != self.getAltitudeAngle():
             self.setAltitudeAngle(altitude)
 
     def _updateLight(self):
         """Update light direction in the scene"""
         azimuth = numpy.radians(self._azimuth)
         delta = numpy.pi/2. - numpy.radians(self._altitude)
+        if delta == 0.:  # Avoids zenith position
+            delta = 0.0001
         z = - numpy.sin(delta) * numpy.cos(azimuth)
         x = - numpy.sin(delta) * numpy.sin(azimuth)
         y = - numpy.cos(delta)
