@@ -307,7 +307,7 @@ class Item3DRow(BaseRow):
                      items.Item3DChangedType.LABEL):
             model = self.model()
             if model is not None:
-                index = self.index(column=1)
+                index = self.index(column=0)
                 model.dataChanged.emit(index, index)
 
     def item(self):
