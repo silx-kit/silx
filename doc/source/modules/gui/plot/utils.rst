@@ -4,9 +4,9 @@
 :mod:`axis`: utilities for plots
 ================================
 
-SyncAxis
+SyncAxes
 --------
 
-.. autoclass:: silx.gui.plot.utils.axis.SyncAxis
+.. autoclass:: silx.gui.plot.utils.axis.SyncAxes
    :members:
 
