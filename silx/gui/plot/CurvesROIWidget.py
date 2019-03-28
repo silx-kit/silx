@@ -75,9 +75,6 @@ class CurvesROIWidget(qt.QWidget):
     """
 
     sigROISignal = qt.Signal(object)
-    """Deprecated signal for backward compatibility with silx < 0.7.
-    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
-    """
 
     def __init__(self, parent=None, name=None, plot=None):
         super(CurvesROIWidget, self).__init__(parent)
