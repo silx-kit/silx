@@ -58,17 +58,15 @@ def compute_ramlak_filter(dwidth_padded, dtype=np.float32):
     :param dwidth_padded: width of the 2D sinogram after padding
     :param dtype: data type
     """
-    #~ dwidth_padded = dwidth * 2
     L = dwidth_padded
     h = np.zeros(L, dtype=dtype)
     L2 = L//2+1
     h[0] = 1/4.
     j = np.linspace(1, L2, L2//2, False).astype(dtype) # np < 1.9.0
-    # h[2::2] = 0
     h[1:L2:2] = -1./(pi**2 * j**2)
-    # h[-1:L2-1:-2] = -1./(pi**2 * j**2)
     h[L2:] = np.copy(h[1:L2-1][::-1])
     return h
+
 
 
 def tukey(N, alpha=0.5):
@@ -150,7 +148,8 @@ def generate_powers():
     maxpow = {2: 15, 3: 9, 5: 6, 7: 5}
     valuations = []
     for prime in primes:
-        valuations.append(range(maxpow[prime]+1))
+        minval = 1 if prime == 2 else 0 # disallow any odd number
+        valuations.append(range(minval, maxpow[prime]+1))
     powers = product(*valuations)
     res = []
     for pw in powers:
