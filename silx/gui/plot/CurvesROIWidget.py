@@ -213,7 +213,6 @@ class CurvesROIWidget(qt.QWidget):
                     i += 1
                     newroi = "newroi %d" % i
                 return newroi
-
         roi = ROI(name=getNextRoiName())
 
         if roi.getName() == "ICR":
@@ -228,7 +227,6 @@ class CurvesROIWidget(qt.QWidget):
             fromdata, dummy0, todata, dummy1 = self._getAllLimits()
         roi.setFrom(fromdata)
         roi.setTo(todata)
-
         self.roiTable.addRoi(roi)
 
         # back compatibility pymca roi signals
@@ -254,7 +252,9 @@ class CurvesROIWidget(qt.QWidget):
     def _reset(self):
         """Reset button clicked handler"""
         self.roiTable.clear()
+        old = self.blockSignals(True)  # avoid several sigROISignal emission
         self._add()
+        self.blockSignals(old)
 
         # back compatibility pymca roi signals
         ddict = {}
@@ -399,7 +399,9 @@ class CurvesROIWidget(qt.QWidget):
         if visible:
             # if no ROI existing yet, add the default one
             if self.roiTable.rowCount() is 0:
+                old = self.blockSignals(True)  # avoid several sigROISignal emission
                 self._add()
+                self.blockSignals(old)
                 self.calculateRois()
 
     def fillFromROIDict(self, *args, **kwargs):
@@ -685,12 +687,14 @@ class ROITable(TableWidget):
         activeItems = self.selectedItems()
         if len(activeItems) is 0:
             return
+        old = self.blockSignals(True)  # avoid several emission of sigROISignal
         roiToRm = set()
         for item in activeItems:
             row = item.row()
             itemID = self.item(row, self.COLUMNS_INDEX['ID'])
             roiToRm.add(self._roiDict[int(itemID.text())])
         [self.removeROI(roi) for roi in roiToRm]
+        self.blockSignals(old)
         self.setActiveRoi(None)
 
     def removeROI(self, roi):
@@ -727,7 +731,10 @@ class ROITable(TableWidget):
         else:
             assert isinstance(roi, ROI)
             if roi and roi.getID() in self._roiToItems.keys():
+                # avoid several call back to setActiveROI
+                old = self.blockSignals(True)
                 self.selectRow(self._roiToItems[roi.getID()].row())
+                self.blockSignals(old)
                 self._markersHandler.setActiveRoi(roi)
                 self.activeROIChanged.emit()
 

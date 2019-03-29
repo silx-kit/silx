@@ -34,11 +34,13 @@ import os.path
 import unittest
 from collections import OrderedDict
 import numpy
+
 from silx.gui import qt
+from silx.gui.plot import Plot1D
 from silx.test.utils import temp_dir
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow, CurvesROIWidget
-
+from silx.gui.utils.testutils import getQToolButtonFromAction
 
 _logger = logging.getLogger(__name__)
 
@@ -322,6 +324,72 @@ class TestCurvesROIWidget(TestCaseQt):
         roi.setFrom(0.3)
         self.qapp.processEvents()
         self.assertTrue(signalListener.callCount() is 1)
+
+
+class TestRoiWidgetSignals(TestCaseQt):
+    """Test Signals emitted by the RoiWidgetSignals"""
+
+    def setUp(self):
+        self.plot = Plot1D()
+        x = range(20)
+        y = range(20)
+        self.plot.addCurve(x, y, legend='curve0')
+
+    def tearDown(self):
+        pass
+
+    def testSigROISignal(self):
+        listener = SignalListener()
+        curves_roi_widget = self.plot.getCurvesRoiWidget()
+        curves_roi_widget.sigROISignal.connect(listener)
+        self.assertTrue(curves_roi_widget.isVisible() is False)
+        self.assertTrue(listener.callCount() is 0)
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+        toolButton = getQToolButtonFromAction(self.plot.getRoiAction())
+        self.mouseClick(widget=toolButton, button=qt.Qt.LeftButton)
+
+        curves_roi_widget.show()
+        self.qWaitForWindowExposed(curves_roi_widget)
+        self.assertTrue(listener.callCount() is 1)
+        listener.clear()
+
+        roi1 = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
+        curves_roi_widget.roiTable.addRoi(roi1)
+        self.assertTrue(listener.callCount() is 1)
+        self.assertTrue(listener.arguments()[0][0]['current'] == 'linear')
+        listener.clear()
+
+        roi2 = CurvesROIWidget.ROI(name='linear2', fromdata=0, todata=5)
+        curves_roi_widget.roiTable.addRoi(roi2)
+        self.assertTrue(listener.callCount() is 1)
+        self.assertTrue(listener.arguments()[0][0]['current'] == 'linear2')
+        listener.clear()
+
+        curves_roi_widget.roiTable.removeROI(roi2)
+        self.assertTrue(listener.callCount() is 1)
+        self.assertTrue(curves_roi_widget.roiTable.activeRoi == roi1)
+        self.assertTrue(listener.arguments()[0][0]['current'] == 'linear')
+        listener.clear()
+
+        curves_roi_widget.roiTable.deleteActiveRoi()
+        self.assertTrue(listener.callCount() is 1)
+        self.assertTrue(curves_roi_widget.roiTable.activeRoi is None)
+        self.assertTrue(listener.arguments()[0][0]['current'] is None)
+        listener.clear()
+
+        curves_roi_widget.roiTable.addRoi(roi1)
+        self.assertTrue(listener.callCount() is 1)
+        self.assertTrue(listener.arguments()[0][0]['current'] == 'linear')
+        self.assertTrue(curves_roi_widget.roiTable.activeRoi == roi1)
+        listener.clear()
+        self.qapp.processEvents()
+
+        curves_roi_widget.roiTable.removeROI(roi1)
+        self.qapp.processEvents()
+        self.assertTrue(listener.callCount() is 1)
+        self.assertTrue(listener.arguments()[0][0]['current'] == 'ICR')
+        listener.clear()
 
 
 def suite():
