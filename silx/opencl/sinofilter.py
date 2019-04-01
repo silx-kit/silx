@@ -149,6 +149,7 @@ def generate_powers():
     valuations = []
     for prime in primes:
         minval = 1 if prime == 2 else 0 # disallow any odd number
+        #~ minval = 0 # DEBUG
         valuations.append(range(minval, maxpow[prime]+1))
     powers = product(*valuations)
     res = []

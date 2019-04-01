@@ -199,11 +199,26 @@ class TestFBP(unittest.TestCase):
                 "Something wrong with FBP(filter=%s)" % filter_name
             )
 
+    @unittest.skipUnless(ocl and mako, "pyopencl is missing")
+    def test_fbp_oddsize(self):
+        # Generate a 513-sinogram.
+        # The padded width will be nextpow(513*2).
+        # silx [0.10, 0.10.1] will give 1029, which makes R2C transform fail.
+        sino = np.pad(self.sino, ((0, 0), (1, 0)), mode='edge')
+        B = backprojection.Backprojection(sino.shape, axis_position=self.fbp.axis_pos+1)
+        res = B(sino)
+        # res should be compared with self.reference_rec[1:, 1:],
+        # but the backprojector is not fully shift-invariant in practice
+
+
+
+
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestFBP("test_fbp"))
     testSuite.addTest(TestFBP("test_fbp_filters"))
+    testSuite.addTest(TestFBP("test_fbp_oddsize"))
     return testSuite
 
 
