@@ -207,9 +207,13 @@ class TestFBP(unittest.TestCase):
         sino = np.pad(self.sino, ((0, 0), (1, 0)), mode='edge')
         B = backprojection.Backprojection(sino.shape, axis_position=self.fbp.axis_pos+1)
         res = B(sino)
-        # res should be compared with self.reference_rec[1:, 1:],
-        # but the backprojector is not fully shift-invariant in practice
-
+        # Compare with self.reference_rec. Tolerance is high as backprojector
+        # is not fully shift-invariant.
+        errmax = np.max(np.abs(clip_circle(res[1:, 1:] - self.reference_rec)))
+        self.assertLess(
+            errmax, 1.e-1,
+            "Something wrong with FBP on odd-sized sinogram"
+        )
 
 
 
