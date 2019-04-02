@@ -154,6 +154,9 @@ class Backprojection(OpenclProcessing):
         self.extra_options = {
             "cutoff": 1.,
             "use_numpy_fft": False,
+            # It is  axis_pos - (num_bins-1)/2  in PyHST
+            "gpu_offset_x": 0., #self.axis_pos - (self.num_bins - 1) / 2.,
+            "gpu_offset_y": 0., #self.axis_pos - (self.num_bins - 1) / 2.
         }
         if extra_options is not None:
             self.extra_options.update(extra_options)
@@ -221,10 +224,10 @@ class Backprojection(OpenclProcessing):
             self.cl_mem["_d_slice"].data,
             # d_sino (__read_only image2d_t or float*)
             d_sino_ref,
-            # gpu_offset_x (float32) # TODO custom ?
-            -np.float32((self.num_bins - 1) / 2. - self.axis_pos),
-            # gpu_offset_y (float32) # TODO custom ?
-            -np.float32((self.num_bins - 1) / 2. - self.axis_pos),
+            # gpu_offset_x (float32) 
+            np.float32(self.extra_options["gpu_offset_x"]),
+            # gpu_offset_y (float32)
+            np.float32(self.extra_options["gpu_offset_y"]),
             # d_cos (__global float32*)
             self.cl_mem["d_cos"].data,
             # d_sin (__global float32*)
