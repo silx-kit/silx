@@ -148,8 +148,10 @@ def generate_powers():
     maxpow = {2: 15, 3: 9, 5: 6, 7: 5}
     valuations = []
     for prime in primes:
-        minval = 1 if prime == 2 else 0 # disallow any odd number
-        #~ minval = 0 # DEBUG
+        # disallow any odd number (for R2C transform), and any number
+        # not multiple of 4 (Ram-Lak filter behaves strangely when
+        # dwidth_padded/2 is not even)
+        minval = 2 if prime == 2 else 0
         valuations.append(range(minval, maxpow[prime]+1))
     powers = product(*valuations)
     res = []
