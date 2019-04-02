@@ -352,7 +352,7 @@ class SinoFilter(OpenclProcessing):
         :param dst_offset:
         :param src_offset:
         """
-        self.kernels.cpy2d(
+        ev = self.kernels.cpy2d(
             self.queue,
             np.int32(transfer_shape[::-1]),
             None,
@@ -364,6 +364,7 @@ class SinoFilter(OpenclProcessing):
             np.int32(src_offset),
             np.int32(transfer_shape[::-1])
         )
+        ev.wait()
 
     def copy2d_host(self, dst, src, transfer_shape, dst_offset=(0, 0),
                     src_offset=(0, 0)):
@@ -382,7 +383,6 @@ class SinoFilter(OpenclProcessing):
 
     def _prepare_input_sino(self, sino):
         """
-
         :param sino: sinogram
         """
         self.check_array(sino)
@@ -403,7 +403,7 @@ class SinoFilter(OpenclProcessing):
             # Rectangular copy D->D
             self.copy2d(self.d_sino_padded, d_sino_ref, self.sino_shape)
             if self.is_cpu:
-                self.d_sino_padded.finish()
+                self.d_sino_padded.finish() # should not be required here
         else:
             # Numpy backend: FFT/mult/IFFT are done on host.
             if not(isinstance(sino, np.ndarray)):
@@ -417,7 +417,6 @@ class SinoFilter(OpenclProcessing):
 
     def _get_output_sino(self, output):
         """
-
         :param Union[numpy.dtype,None] output: sinogram output.
         :return: sinogram
         """
@@ -435,14 +434,14 @@ class SinoFilter(OpenclProcessing):
                             src=self.d_sino_padded,
                             transfer_shape=self.sino_shape)
                 if self.is_cpu:
-                    self.tmp_sino_device.finish()
-                res[:] = self.tmp_sino_device[:]
+                    self.tmp_sino_device.finish() # should not be required here
+                res[:] = self.tmp_sino_device.get()[:]
             else:
                 if self.is_cpu:
                     self.d_sino_padded.finish()
                 self.copy2d(res, self.d_sino_padded, self.sino_shape)
                 if self.is_cpu:
-                    res.finish()
+                    res.finish() # should not be required here
         else:
             if not(isinstance(res, np.ndarray)):
                 # Numpy backend + pyopencl output: rect copy H->H + copy H->D
@@ -469,11 +468,12 @@ class SinoFilter(OpenclProcessing):
     def _multiply_fourier(self):
         if self.fft_backend == "opencl":
             # Everything is on device. Call the multiplication kernel.
-            self.kernels.inplace_complex_mul_2Dby1D(
+            ev = self.kernels.inplace_complex_mul_2Dby1D(
                 *self.mult_kern_args
             )
+            ev.wait()
             if self.is_cpu:
-                self.d_sino_f.finish()
+                self.d_sino_f.finish() # should not be required here
         else:
             # Everything is on host.
             self.d_sino_f *= self.filter_f
