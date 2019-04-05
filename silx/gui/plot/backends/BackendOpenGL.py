@@ -547,7 +547,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # self._paintDirectGL()
         self._paintFBOGL()
 
-        glu.setCurrentGetter()
+        glu.Context.setCurrentGetter()
         _current_context = None
 
     def _renderMarkersGL(self):

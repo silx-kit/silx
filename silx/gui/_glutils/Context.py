@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ def _defaultGLContextGetter():
 _glContextGetter = _defaultGLContextGetter
 
 
-def getGLContext():
+def getCurrent():
     """Returns platform dependent object of current OpenGL context.
 
     This is useful to associate OpenGL resources with the context they are
@@ -53,7 +53,7 @@ def getGLContext():
     return _glContextGetter()
 
 
-def setGLContextGetter(getter=_defaultGLContextGetter):
+def setCurrentGetter(getter=_defaultGLContextGetter):
     """Set a platform dependent function to retrieve the current OpenGL context
 
     :param getter: Platform dependent GL context getter
