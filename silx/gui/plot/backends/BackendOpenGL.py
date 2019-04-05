@@ -462,7 +462,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderOverlayGL()
 
     def _paintFBOGL(self):
-        context = glu.getGLContext()
+        context = glu.Context.getCurrent()
         plotFBOTex = self._plotFBOs.get(context)
         if (self._plot._getDirtyPlot() or self._plotFrame.isDirty or
                 plotFBOTex is None):
@@ -529,7 +529,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         global _current_context
         _current_context = self.context()
 
-        glu.setGLContextGetter(_getContext)
+        glu.Context.setCurrentGetter(_getContext)
 
         # Release OpenGL resources
         for item in self._glGarbageCollector:
@@ -547,7 +547,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # self._paintDirectGL()
         self._paintFBOGL()
 
-        glu.setGLContextGetter()
+        glu.setCurrentGetter()
         _current_context = None
 
     def _renderMarkersGL(self):

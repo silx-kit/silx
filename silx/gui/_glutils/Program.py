@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,7 @@ import logging
 
 import numpy
 
-from . import gl
-from .Context import getGLContext
+from . import Context, gl
 
 _logger = logging.getLogger(__name__)
 
@@ -106,7 +105,7 @@ class Program(object):
         return program, attributes, uniforms
 
     def _getProgramInfo(self):
-        glcontext = getGLContext()
+        glcontext = Context.getCurrent()
         if glcontext not in self._programs:
             raise RuntimeError(
                 "Program was not compiled for current OpenGL context.")
@@ -149,7 +148,7 @@ class Program(object):
 
     def use(self):
         """Make use of the program, compiling it if necessary"""
-        glcontext = getGLContext()
+        glcontext = Context.getCurrent()
 
         if glcontext not in self._programs:
             self._programs[glcontext] = self._compileGL(

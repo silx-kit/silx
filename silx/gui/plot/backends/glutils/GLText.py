@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ __date__ = "03/04/2017"
 from collections import OrderedDict
 import numpy
 
-from ...._glutils import font, gl, getGLContext, Program, Texture
+from ...._glutils import font, gl, Context, Program, Texture
 from .GLSupport import mat4Translate
 
 
@@ -159,7 +159,7 @@ class Text2D(object):
         self._rotate = numpy.radians(rotate)
 
     def _getTexture(self, text):
-        key = getGLContext(), text
+        key = Context.getCurrent(), text
 
         if key not in self._textures:
             image, offset = font.rasterText(text,
