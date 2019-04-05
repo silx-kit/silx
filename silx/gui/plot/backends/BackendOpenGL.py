@@ -33,6 +33,7 @@ __date__ = "21/12/2018"
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
 import logging
+import weakref
 
 import numpy
 
@@ -348,7 +349,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             _baseVertShd, _baseFragShd, attrib0='position')
         self._progTex = glu.Program(
             _texVertShd, _texFragShd, attrib0='position')
-        self._plotFBOs = {}
+        self._plotFBOs = weakref.WeakKeyDictionary()
 
         self._keepDataAspectRatio = False
 

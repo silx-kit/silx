@@ -33,6 +33,8 @@ __date__ = "03/04/2017"
 
 
 from collections import OrderedDict
+import weakref
+
 import numpy
 
 from ...._glutils import font, gl, Context, Program, Texture
@@ -128,7 +130,7 @@ class Text2D(object):
                        attrib0='position')
 
     # Discard texture objects when removed from the cache
-    _textures = _Cache(callback=lambda key, value: value[0].discard())
+    _textures = weakref.WeakKeyDictionary()
     """Cache already created textures"""
 
     _sizes = _Cache()
@@ -159,15 +161,20 @@ class Text2D(object):
         self._rotate = numpy.radians(rotate)
 
     def _getTexture(self, text):
-        key = Context.getCurrent(), text
+        # Retrieve/initialize texture cache for current context
+        context = Context.getCurrent()
+        if context not in self._textures:
+            self._textures[context] = _Cache(
+                callback=lambda key, value: value[0].discard())
+        textures = self._textures[context]
 
-        if key not in self._textures:
+        if text not in textures:
             image, offset = font.rasterText(text,
                                             font.getDefaultFontFamily())
             if text not in self._sizes:
                 self._sizes[text] = image.shape[1], image.shape[0]
 
-            self._textures[key] = (
+            textures[text] = (
                 Texture(gl.GL_RED,
                         data=image,
                         minFilter=gl.GL_NEAREST,
@@ -176,7 +183,7 @@ class Text2D(object):
                               gl.GL_CLAMP_TO_EDGE)),
                 offset)
 
-        return self._textures[key]
+        return textures[text]
 
     @property
     def text(self):

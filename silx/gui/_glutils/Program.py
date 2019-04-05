@@ -30,6 +30,7 @@ __date__ = "25/07/2016"
 
 
 import logging
+import weakref
 
 import numpy
 
@@ -60,7 +61,7 @@ class Program(object):
         self._vertexShader = vertexShader
         self._fragmentShader = fragmentShader
         self._attrib0 = attrib0
-        self._programs = {}
+        self._programs = weakref.WeakKeyDictionary()
 
     @staticmethod
     def _compileGL(vertexShader, fragmentShader, attrib0):
