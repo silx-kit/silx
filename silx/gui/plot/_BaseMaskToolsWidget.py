@@ -1059,7 +1059,7 @@ class BaseMaskToolsWidget(qt.QWidget):
             self.maxLineLabel.setVisible(False)
             self.minLineEdit.setVisible(True)
             self.maxLineEdit.setVisible(False)
-            self.applyMaskBtn.setText("Mask bellow")
+            self.applyMaskBtn.setText("Mask below")
         elif triggeredAction is self.betweenThresholdAction:
             self.minLineLabel.setVisible(True)
             self.maxLineLabel.setVisible(True)
