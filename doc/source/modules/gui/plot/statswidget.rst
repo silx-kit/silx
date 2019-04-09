@@ -32,18 +32,18 @@
    :members:
 
 
-:class:`BasicGridStatsWidget` class
+:class:`_BasicGridStatsWidget` class
 -----------------------------------
 
-.. autoclass:: BasicGridStatsWidget
+.. autoclass:: _BasicGridStatsWidget
    :show-inheritance:
    :members:
 
 
-:class:`BasicLineStatsWidget` class
+:class:`_BasicLineStatsWidget` class
 -----------------------------------
 
-.. autoclass:: BasicLineStatsWidget
+.. autoclass:: _BasicLineStatsWidget
    :show-inheritance:
    :members:
 
