@@ -35,8 +35,15 @@ __date__ = "21/02/2017"
 class ProfileMainWindow(qt.QMainWindow):
     """QMainWindow providing 2 plot widgets specialized in
     1D and 2D plotting, with different toolbars.
+
     Only one of the plots is visible at any given time.
+
+    :param qt.QWidget parent: The parent of this widget or None (default).
+    :param Union[str,Class] backend: The backend to use, in:
+                    'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
+                    or a :class:`BackendBase.BackendBase` class
     """
+
     sigProfileDimensionsChanged = qt.Signal(int)
     """This signal is emitted when :meth:`setProfileDimensions` is called.
     It carries the number of dimensions for the profile data (1 or 2).
