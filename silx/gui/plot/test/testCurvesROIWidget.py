@@ -338,7 +338,8 @@ class TestRoiWidgetSignals(TestCaseQt):
     def tearDown(self):
         pass
 
-    def testSigROISignal(self):
+    def testSigROISignalAddRmRois(self):
+        """Test SigROISignal when adding and removing ROIS"""
         listener = SignalListener()
         curves_roi_widget = self.plot.getCurvesRoiWidget()
         curves_roi_widget.sigROISignal.connect(listener)
