@@ -40,7 +40,9 @@ from silx.gui.plot import Plot1D
 from silx.test.utils import temp_dir
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow, CurvesROIWidget
+from silx.gui.plot.CurvesROIWidget import ROITable
 from silx.gui.utils.testutils import getQToolButtonFromAction
+from silx.gui.plot.PlotInteraction import ItemsInteraction
 
 _logger = logging.getLogger(__name__)
 
@@ -334,63 +336,101 @@ class TestRoiWidgetSignals(TestCaseQt):
         x = range(20)
         y = range(20)
         self.plot.addCurve(x, y, legend='curve0')
-
-    def tearDown(self):
-        pass
-
-    def testSigROISignalAddRmRois(self):
-        """Test SigROISignal when adding and removing ROIS"""
-        listener = SignalListener()
-        curves_roi_widget = self.plot.getCurvesRoiWidget()
-        curves_roi_widget.sigROISignal.connect(listener)
-        self.assertTrue(curves_roi_widget.isVisible() is False)
-        self.assertTrue(listener.callCount() is 0)
+        self.listener = SignalListener()
+        self.curves_roi_widget = self.plot.getCurvesRoiWidget()
+        self.curves_roi_widget.sigROISignal.connect(self.listener)
+        assert self.curves_roi_widget.isVisible() is False
+        assert self.listener.callCount() is 0
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
+
         toolButton = getQToolButtonFromAction(self.plot.getRoiAction())
         self.mouseClick(widget=toolButton, button=qt.Qt.LeftButton)
 
-        curves_roi_widget.show()
-        self.qWaitForWindowExposed(curves_roi_widget)
-        self.assertTrue(listener.callCount() is 1)
-        listener.clear()
+        self.curves_roi_widget.show()
+        self.qWaitForWindowExposed(self.curves_roi_widget)
+
+    def tearDown(self):
+        self.plot = None
+
+    def testSigROISignalAddRmRois(self):
+        """Test SigROISignal when adding and removing ROIS"""
+        print(self.listener.callCount())
+        self.assertTrue(self.listener.callCount() is 1)
+        self.listener.clear()
 
         roi1 = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
-        curves_roi_widget.roiTable.addRoi(roi1)
-        self.assertTrue(listener.callCount() is 1)
-        self.assertTrue(listener.arguments()[0][0]['current'] == 'linear')
-        listener.clear()
+        self.curves_roi_widget.roiTable.addRoi(roi1)
+        self.assertTrue(self.listener.callCount() is 1)
+        self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear')
+        self.listener.clear()
 
         roi2 = CurvesROIWidget.ROI(name='linear2', fromdata=0, todata=5)
-        curves_roi_widget.roiTable.addRoi(roi2)
-        self.assertTrue(listener.callCount() is 1)
-        self.assertTrue(listener.arguments()[0][0]['current'] == 'linear2')
-        listener.clear()
+        self.curves_roi_widget.roiTable.addRoi(roi2)
+        self.assertTrue(self.listener.callCount() is 1)
+        self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear2')
+        self.listener.clear()
 
-        curves_roi_widget.roiTable.removeROI(roi2)
-        self.assertTrue(listener.callCount() is 1)
-        self.assertTrue(curves_roi_widget.roiTable.activeRoi == roi1)
-        self.assertTrue(listener.arguments()[0][0]['current'] == 'linear')
-        listener.clear()
+        self.curves_roi_widget.roiTable.removeROI(roi2)
+        self.assertTrue(self.listener.callCount() is 1)
+        self.assertTrue(self.curves_roi_widget.roiTable.activeRoi == roi1)
+        self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear')
+        self.listener.clear()
 
-        curves_roi_widget.roiTable.deleteActiveRoi()
-        self.assertTrue(listener.callCount() is 1)
-        self.assertTrue(curves_roi_widget.roiTable.activeRoi is None)
-        self.assertTrue(listener.arguments()[0][0]['current'] is None)
-        listener.clear()
+        self.curves_roi_widget.roiTable.deleteActiveRoi()
+        self.assertTrue(self.listener.callCount() is 1)
+        self.assertTrue(self.curves_roi_widget.roiTable.activeRoi is None)
+        self.assertTrue(self.listener.arguments()[0][0]['current'] is None)
+        self.listener.clear()
 
-        curves_roi_widget.roiTable.addRoi(roi1)
-        self.assertTrue(listener.callCount() is 1)
-        self.assertTrue(listener.arguments()[0][0]['current'] == 'linear')
-        self.assertTrue(curves_roi_widget.roiTable.activeRoi == roi1)
-        listener.clear()
+        self.curves_roi_widget.roiTable.addRoi(roi1)
+        self.assertTrue(self.listener.callCount() is 1)
+        self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear')
+        self.assertTrue(self.curves_roi_widget.roiTable.activeRoi == roi1)
+        self.listener.clear()
         self.qapp.processEvents()
 
-        curves_roi_widget.roiTable.removeROI(roi1)
+        self.curves_roi_widget.roiTable.removeROI(roi1)
         self.qapp.processEvents()
-        self.assertTrue(listener.callCount() is 1)
-        self.assertTrue(listener.arguments()[0][0]['current'] == 'ICR')
-        listener.clear()
+        self.assertTrue(self.listener.callCount() is 1)
+        self.assertTrue(self.listener.arguments()[0][0]['current'] == 'ICR')
+        self.listener.clear()
+
+    def testSigROISignalModifyROI(self):
+        """Test SigROISignal when modifying it"""
+        self.curves_roi_widget.roiTable.setMiddleROIMarkerFlag(True)
+        roi1 = CurvesROIWidget.ROI(name='linear', fromdata=2, todata=5)
+        self.curves_roi_widget.roiTable.addRoi(roi1)
+        self.curves_roi_widget.roiTable.setActiveRoi(roi1)
+
+        # test modify the roi2 object
+        self.listener.clear()
+        roi1.setFrom(0.56)
+        self.assertTrue(self.listener.callCount() is 1)
+        self.listener.clear()
+        roi1.setTo(2.56)
+        self.assertTrue(self.listener.callCount() is 1)
+        self.listener.clear()
+        roi1.setName('linear2')
+        self.assertTrue(self.listener.callCount() is 1)
+        self.listener.clear()
+        roi1.setType('new type')
+        self.assertTrue(self.listener.callCount() is 1)
+
+        # modify roi limits (from the gui)
+        roi_marker_handler = self.curves_roi_widget.roiTable._markersHandler.getMarkerHandler(roi1.getID())
+        for marker_type in ('min', 'max', 'middle'):
+            with self.subTest(marker_type=marker_type):
+                self.listener.clear()
+                marker = roi_marker_handler.getMarker(marker_type)
+                self.qapp.processEvents()
+                items_interaction = ItemsInteraction(plot=self.plot)
+                x_pix, y_pix = self.plot.dataToPixel(marker.getXPosition(), 1)
+                items_interaction.beginDrag(x_pix, y_pix)
+                self.qapp.processEvents()
+                items_interaction.endDrag(x_pix+10, y_pix)
+                self.qapp.processEvents()
+                self.assertTrue(self.listener.callCount() is 1)
 
 
 def suite():

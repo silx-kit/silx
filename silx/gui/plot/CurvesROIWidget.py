@@ -936,8 +936,11 @@ class ROITable(TableWidget):
             label = ddict['label']
             roiID = self._markersHandler.getRoiID(markerID=label)
             if roiID:
+                # avoid several emission of sigROISignal
+                old = self.blockSignals(True)
                 self._markersHandler.changePosition(markerID=label,
                                                     x=ddict['x'])
+                self.blockSignals(old)
                 self._updateRoiInfo(roiID)
 
     def showEvent(self, event):
