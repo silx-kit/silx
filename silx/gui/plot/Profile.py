@@ -419,7 +419,8 @@ class ProfileToolBar(qt.QToolBar):
         """
 
         if self._profileWindow is None:
-            self._profileMainWindow = ProfileMainWindow(self)
+            backend = type(plot._backend)
+            self._profileMainWindow = ProfileMainWindow(self, backend=backend)
 
         # Actions
         self._browseAction = actions.mode.ZoomModeAction(self.plot, parent=self)
