@@ -31,8 +31,9 @@ __date__ = "22/03/2019"
 
 import numpy
 
+from .. import qt
 from ..plot3d.SceneWindow import SceneWindow
-from ..plot3d.items import ScalarField3D, ComplexField3D
+from ..plot3d.items import ScalarField3D, ComplexField3D, ItemChangedType
 
 
 class VolumeWindow(SceneWindow):
@@ -90,6 +91,7 @@ class VolumeWindow(SceneWindow):
         :param List[float] scale: (sx, sy, sz) scale for each dimension
         """
         sceneWidget = self.getSceneWidget()
+        dataMaxCoords = numpy.array(list(reversed(data.shape))) - 1
 
         previousItems = sceneWidget.getItems()
         if (len(previousItems) == 1 and
@@ -98,13 +100,45 @@ class VolumeWindow(SceneWindow):
             # Reuse existing volume item
             volume = sceneWidget.getItems()[0]
             volume.setData(data, copy=False)
+            # Make sure the plane goes through the dataset
+            for plane in volume.getCutPlanes():
+                point = numpy.array(plane.getPoint())
+                if numpy.any(point < (0, 0, 0)) or numpy.any(point > dataMaxCoords):
+                    plane.setPoint(dataMaxCoords // 2)
         else:
             # Add a new volume
+            sceneWidget.clearItems()
             volume = sceneWidget.addVolume(data, copy=False)
             volume.setLabel('Volume')
             for plane in volume.getCutPlanes():
+                # Make plane going through the center of the data
+                plane.setPoint(dataMaxCoords // 2)
                 plane.setVisible(False)
+                plane.sigItemChanged.connect(self.__cutPlaneUpdated)
             volume.addIsosurface(self.__computeIsolevel, '#FF0000FF')
+
+            # Expand the parameter tree
+            model = self.getParamTreeView().model()
+            index = qt.QModelIndex()  # Invalid index for top level
+            while 1:
+                rowCount = model.rowCount(parent=index)
+                if rowCount == 0:
+                    break
+                index = model.index(rowCount - 1, 0, parent=index)
+                self.getParamTreeView().setExpanded(index, True)
+                if not index.isValid():
+                    break
+
 
         volume.setTranslation(*offset)
         volume.setScale(*scale)
+
+    def __cutPlaneUpdated(self, event):
+        """Handle the change of visibility of the cut plane
+
+        :param event: Kind of update
+        """
+        if event == ItemChangedType.VISIBLE:
+            plane = self.sender()
+            if plane.isVisible():
+                self.getSceneWidget().selection().setCurrentItem(plane)

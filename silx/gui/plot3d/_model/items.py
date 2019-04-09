@@ -858,14 +858,14 @@ class SymbolSizeRow(ProxyRow):
             editorHint=(1, 20))  # TODO link with OpenGL max point size
 
 
-class PlaneRow(ProxyRow):
-    """Represents :class:`PlaneMixIn` property.
+class PlaneEquationRow(ProxyRow):
+    """Represents :class:`PlaneMixIn` as plane equation.
 
     :param Item3D item: Scene item with plane equation property
     """
 
     def __init__(self, item):
-        super(PlaneRow, self).__init__(
+        super(PlaneEquationRow, self).__init__(
             name='Equation',
             fget=item.getParameters,
             fset=item.setParameters,
@@ -881,6 +881,65 @@ class PlaneRow(ProxyRow):
                 params = item.getParameters()
                 return ('%gx %+gy %+gz %+g = 0' %
                         (params[0], params[1], params[2], params[3]))
+        return super(PlaneEquationRow, self).data(column, role)
+
+
+class PlaneRow(ProxyRow):
+    """Represents :class:`PlaneMixIn` property.
+
+    :param Item3D item: Scene item with plane equation property
+    """
+
+    _PLANES = {'Plane 0': (1., 0., 0.),
+               'Plane 1': (0., 1., 0.),
+               'Plane 2': (0., 0., 1.),
+               '-': None}
+    """Mapping of plane names to normals"""
+
+    _PLANE_ICONS = {'Plane 0': '3d-plane-normal-x',
+                    'Plane 1': '3d-plane-normal-y',
+                    'Plane 2': '3d-plane-normal-z',
+                    '-': '3d-plane'}
+    """Mapping of plane names to normals"""
+
+    def __init__(self, item):
+        super(PlaneRow, self).__init__(
+            name='Plane',
+            fget=self.__getPlaneName,
+            fset=self.__setPlaneName,
+            notify=item.sigItemChanged,
+            editorHint=tuple(self._PLANES.keys()))
+        self._item = weakref.ref(item)
+
+        self.addRow(PlaneEquationRow(item))
+
+    def __getPlaneName(self):
+        """Returns name of plane // to axes or '-'
+
+        :rtype: str
+        """
+        item = self._item()
+        planeNormal = item.getNormal() if item is not None else None
+
+        for name, normal in self._PLANES.items():
+            if numpy.array_equal(planeNormal, normal):
+                return name
+        return '-'
+
+    def __setPlaneName(self, data):
+        """Set plane normal according to given plane name
+
+        :param str data: Selected plane name
+        """
+        item = self._item()
+        if item is not None:
+            for name, normal in self._PLANES.items():
+                if data == name and normal is not None:
+                    item.setNormal(normal)
+
+    def data(self, column, role):
+        if column == 1 and role == qt.Qt.DecorationRole:
+            return icons.getQIcon(self._PLANE_ICONS[self.__getPlaneName()])
         return super(PlaneRow, self).data(column, role)
 
 
@@ -1378,7 +1437,7 @@ def initVolumeCutPlaneNode(node, item):
     node.addRow(ColormapRow(item))
 
     node.addRow(ProxyRow(
-        name='Values<=Min',
+        name='Show <=Min',
         fget=item.getDisplayValuesBelowMin,
         fset=item.setDisplayValuesBelowMin,
         notify=item.sigItemChanged))
