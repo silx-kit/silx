@@ -432,6 +432,15 @@ class TestRoiWidgetSignals(TestCaseQt):
                 self.qapp.processEvents()
                 self.assertTrue(self.listener.callCount() is 1)
 
+    def testSetActiveCurve(self):
+        """Test sigRoiSignal when set an active curve"""
+        roi1 = CurvesROIWidget.ROI(name='linear', fromdata=2, todata=5)
+        self.curves_roi_widget.roiTable.addRoi(roi1)
+        self.curves_roi_widget.roiTable.setActiveRoi(roi1)
+        self.listener.clear()
+        self.plot.setActiveCurve('curve0')
+        self.assertTrue(self.listener.callCount() is 0)
+
 
 def suite():
     test_suite = unittest.TestSuite()

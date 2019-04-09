@@ -80,6 +80,14 @@ class CurvesROIWidget(qt.QWidget):
         super(CurvesROIWidget, self).__init__(parent)
         if name is not None:
             self.setWindowTitle(name)
+        self.__lastSigROISignal = None
+        """Store the last value emitted for the sigRoiSignal. In the case the
+        active curve change we need to add this extra step in order to make
+        sure we won't send twice the sigROISignal.
+        This come from the fact sigROISignal is connected to the 
+        activeROIChanged signal which is emitted when raw and net counts
+        values are changing but are not embed in the sigROISignal.
+        """
         assert plot is not None
         self._plotRef = weakref.ref(plot)
         self._showAllMarkers = False
@@ -415,7 +423,10 @@ class CurvesROIWidget(qt.QWidget):
             ddict['current'] = self.roiTable.activeRoi.getName()
         else:
             ddict['current'] = None
-        self.sigROISignal.emit(ddict)
+
+        if self.__lastSigROISignal != ddict:
+            self.__lastSigROISignal = ddict
+            self.sigROISignal.emit(ddict)
 
     @property
     def currentRoi(self):
