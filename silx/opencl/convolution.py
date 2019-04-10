@@ -33,7 +33,7 @@ __date__ = "11/02/2019"
 
 import numpy as np
 from math import ceil
-from copy import copy # python2
+from copy import copy  # python2
 from .common import pyopencl as cl
 import pyopencl.array as parray
 from .processing import OpenclProcessing, EventDescription
@@ -167,7 +167,6 @@ class Convolution(OpenclProcessing):
         self._allocate_memory(mode)
         self._init_kernels()
 
-
     def _configure_extra_options(self, extra_options):
         self.extra_options = {
             "allocate_input_array": True,
@@ -180,7 +179,6 @@ class Convolution(OpenclProcessing):
         self.is_cpu = (self.device.type == "CPU")
         self.use_textures = not(self.extra_options["dont_use_textures"])
         self.use_textures *= not(self.is_cpu)
-
 
     def _get_dimensions(self, shape, kernel):
         self.shape = shape
@@ -198,7 +196,6 @@ class Convolution(OpenclProcessing):
         self.Nx = np.int32(Nx)
         self.Ny = np.int32(Ny)
         self.Nz = np.int32(Nz)
-
 
     def _determine_use_case(self, shape, kernel, axes):
         """
@@ -251,7 +248,6 @@ class Convolution(OpenclProcessing):
         if self.use_textures:
             for i, kern_name in enumerate(self.use_case_kernels):
                 self.use_case_kernels[i] = kern_name + "_tex"
-
 
     def _allocate_memory(self, mode):
         self.mode = mode or "reflect"
@@ -306,12 +302,10 @@ class Convolution(OpenclProcessing):
         #
         self._c_conv_mode = mp[self.mode]
 
-
     def _allocate_textures(self):
         self.data_in_tex = self.allocate_texture(self.shape)
         self.d_kernel_tex = self.allocate_texture(self.kernel.shape)
         self.transfer_to_texture(self.d_kernel, self.d_kernel_tex)
-
 
     def _init_kernels(self):
         if self.kernel_ndim > 1:
@@ -373,7 +367,6 @@ class Convolution(OpenclProcessing):
                 # TODO
                 raise NotImplementedError("For now, data_tmp has to be allocated")
 
-
     def _get_swapped_arrays(self, i):
         """
         Get the input and output arrays to use when using a "swap pattern".
@@ -395,7 +388,6 @@ class Convolution(OpenclProcessing):
         d_out = getattr(self, out_ref)
         return d_in, d_out
 
-
     def _configure_kernel_args(self, opencl_kernel_args, input_ref, output_ref):
         # TODO more elegant
         if isinstance(input_ref, parray.Array):
@@ -411,7 +403,6 @@ class Convolution(OpenclProcessing):
             opencl_kernel_args = tuple(opencl_kernel_args)
         return opencl_kernel_args
 
-
     @staticmethod
     def _check_dimensions(arr=None, shape=None, name="", dim_min=1, dim_max=3):
         if shape is not None:
@@ -426,7 +417,6 @@ class Convolution(OpenclProcessing):
             )
         return ndim
 
-
     def _check_array(self, arr):
         # TODO allow cl.Buffer
         if not(isinstance(arr, parray.Array) or isinstance(arr, np.ndarray)):
@@ -436,7 +426,6 @@ class Convolution(OpenclProcessing):
             raise TypeError("Data must be float32")
         if arr.shape != self.shape:
             raise ValueError("Expected data shape = %s" % str(self.shape))
-
 
     def _set_arrays(self, array, output=None):
         # When using textures: copy
@@ -462,14 +451,12 @@ class Convolution(OpenclProcessing):
             self.data_out
         )
 
-
     def _separable_convolution(self):
         assert len(self.axes) == len(self.use_case_kernels)
         # Separable: one kernel call per data dimension
         for i, axis in enumerate(self.axes):
             in_ref, out_ref = self._get_swapped_arrays(i)
             self._batched_convolution(axis, input_ref=in_ref, output_ref=out_ref)
-
 
     def _batched_convolution(self, axis, input_ref=None, output_ref=None):
         # Batched: one kernel call in total
@@ -483,14 +470,12 @@ class Convolution(OpenclProcessing):
         if self.profile:
             self.events.append(EventDescription("batched convolution", ev))
 
-
     def _nd_convolution(self):
         assert len(self.use_case_kernels) == 1
         opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[0])
         ev = opencl_kernel(*self.kernel_args)
         if self.profile:
             self.events.append(EventDescription("ND convolution", ev))
-
 
     def _recover_arrays_references(self):
         if self._old_input_ref is not None:
@@ -505,7 +490,6 @@ class Convolution(OpenclProcessing):
             self.data_out
         )
 
-
     def _get_output(self, output):
         if output is None:
             res = self.data_out.get()
@@ -515,7 +499,6 @@ class Convolution(OpenclProcessing):
                 output[:] = self.data_out[:]
         self._recover_arrays_references()
         return res
-
 
     def convolve(self, array, output=None):
         """
@@ -530,7 +513,7 @@ class Convolution(OpenclProcessing):
             if self.separable:
                 self._separable_convolution()
             elif self.batched:
-                assert len(self.axes) == 1 #
+                assert len(self.axes) == 1
                 self._batched_convolution(self.axes[0])
             # else: ND-ND convol
         else:
@@ -542,7 +525,6 @@ class Convolution(OpenclProcessing):
 
 
     __call__ = convolve
-
 
 
 def gaussian_kernel(sigma, cutoff=4, force_odd_size=False):
