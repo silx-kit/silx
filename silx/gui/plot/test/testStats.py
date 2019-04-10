@@ -715,7 +715,7 @@ class TestUpdateModeWidget(TestCaseQt):
     """Test UpdateModeWidget"""
     def setUp(self):
         TestCaseQt.setUp(self)
-        self.widget = UpdateModeWidget(parent=None)
+        self.widget = StatsWidget.UpdateModeWidget(parent=None)
 
     def tearDown(self):
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
@@ -725,18 +725,18 @@ class TestUpdateModeWidget(TestCaseQt):
 
     def testSignals(self):
         """Test the signal emission of the widget"""
-        self.widget.setUpdateMode(UpdateMode.auto)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.auto)
         modeChangedListener = SignalListener()
         manualUpdateListener = SignalListener()
         self.widget.sigUpdateModeChanged.connect(modeChangedListener)
         self.widget.sigUpdateRequested.connect(manualUpdateListener)
-        self.widget.setUpdateMode(UpdateMode.auto)
-        self.assertTrue(self.widget.getUpdateMode() is UpdateMode.auto)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.auto)
+        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.auto)
         self.assertTrue(modeChangedListener.callCount() is 0)
         self.qapp.processEvents()
 
-        self.widget.setUpdateMode(UpdateMode.manual)
-        self.assertTrue(self.widget.getUpdateMode() is UpdateMode.manual)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.manual)
+        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.manual)
         self.qapp.processEvents()
         self.assertTrue(modeChangedListener.callCount() is 1)
         self.assertTrue(manualUpdateListener.callCount() is 0)
@@ -755,7 +755,7 @@ def suite():
     for TestClass in (TestStats, TestStatsHandler, TestStatsWidgetWithScatters,
                       TestStatsWidgetWithImages, TestStatsWidgetWithCurves,
                       TestStatsFormatter, TestEmptyStatsWidget,
-                      TestLineWidget, TestUpdateModes, TestUpdateModeWidget):
+                      TestLineWidget, TestUpdateModeWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite

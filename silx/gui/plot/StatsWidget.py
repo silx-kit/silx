@@ -1357,13 +1357,11 @@ class BasicLineStatsWidget(qt.QWidget):
         self._options.showRadioButtons(False)
         self.layout().addWidget(self._options)
 
-        # expose API: TODO
         # connect Signal ? SLOT
         self._lineStatsWidget.sigUpdateModeChanged.connect(self._options.setUpdateMode)
         self._options.sigUpdateModeChanged.connect(self._lineStatsWidget.setUpdateMode)
         self._options.sigUpdateRequested.connect(self._lineStatsWidget._updateAllStats)
 
-        # expose API: TODO
         self.setUpdateMode = self._lineStatsWidget.setUpdateMode
         self.getUpdateMode = self._lineStatsWidget.getUpdateMode
         self.setPlot = self._lineStatsWidget.setPlot
@@ -1450,7 +1448,6 @@ class BasicGridStatsWidget(qt.QWidget):
         self._options.sigUpdateModeChanged.connect(self._lineStatsWidget.setUpdateMode)
         self._options.sigUpdateRequested.connect(self._lineStatsWidget._updateAllStats)
 
-        # expose API: TODO
         self.setUpdateMode = self._lineStatsWidget.setUpdateMode
         self.getUpdateMode = self._lineStatsWidget.getUpdateMode
         self.setPlot = self._lineStatsWidget.setPlot
