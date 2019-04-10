@@ -383,12 +383,38 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
     def tearDown(self):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
-        self.statsTable.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.statsTable.close()
         self.statsTable = None
-        self.plot = None
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
         self.widget = None
+        self.plot = None
         TestCaseQt.tearDown(self)
+
+    def testDisplayActiveItemsSyncOptions(self):
+        """
+        Test that the several option of the sync options are well
+        synchronized between the different object"""
+        widget = StatsWidget.StatsWidget(plot=self.plot)
+        table = StatsWidget.StatsTable(plot=self.plot)
+
+        def check_display_only_active_item(only_active):
+            # check internal value
+            self.assertTrue(widget._statsTable._displayOnlyActItem is only_active)
+            # self.assertTrue(table._displayOnlyActItem is only_active)
+            # check gui display
+            self.assertTrue(widget._options.isActiveItemMode() is only_active)
+
+        for displayOnlyActiveItems in (True, False):
+            with self.subTest(displayOnlyActiveItems=displayOnlyActiveItems):
+                widget.setDisplayOnlyActiveItem(displayOnlyActiveItems)
+                # table.setDisplayOnlyActiveItem(displayOnlyActiveItems)
+                check_display_only_active_item(displayOnlyActiveItems)
+
+        check_display_only_active_item(only_active=False)
+        widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        table.setAttribute(qt.Qt.WA_DeleteOnClose)
+        widget.close()
+        table.close()
 
     def testInit(self):
         """Make sure all the curves are registred on initialization"""

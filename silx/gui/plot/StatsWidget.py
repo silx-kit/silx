@@ -901,7 +901,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
 class _OptionsWidget(qt.QToolBar):
 
-    def __init__(self, parent=None, updateMode=None):
+    def __init__(self, parent=None, updateMode=None, displayOnlyActItem=False):
         assert updateMode is not None
         qt.QToolBar.__init__(self, parent)
         self.setIconSize(qt.QSize(16, 16))
@@ -911,7 +911,7 @@ class _OptionsWidget(qt.QToolBar):
         action.setText("Active items only")
         action.setToolTip("Display stats for active items only.")
         action.setCheckable(True)
-        action.setChecked(True)
+        action.setChecked(displayOnlyActItem)
         self.__displayActiveItems = action
 
         action = qt.QAction(self)
@@ -973,6 +973,10 @@ class _OptionsWidget(qt.QToolBar):
     def isActiveItemMode(self):
         return self.itemSelection.checkedAction() is self.__displayActiveItems
 
+    def setDisplayActiveItems(self, only_active):
+        self.__displayActiveItems.setChecked(only_active)
+        self.__displayWholeItems.setChecked(not only_active)
+
     def isVisibleDataRangeMode(self):
         return self.dataRangeSelection.checkedAction() is self.__useVisibleData
 
@@ -1030,17 +1034,19 @@ class StatsWidget(qt.QWidget):
         self._options = _OptionsWidget(parent=self, updateMode=UpdateMode.manual)
         self.layout().addWidget(self._options)
         self._statsTable = StatsTable(parent=self, plot=plot)
+        self._statsTable.setDisplayOnlyActiveItem(self._options.isActiveItemMode())
         self._options._setUpdateMode(mode=self._statsTable.getUpdateMode())
         self.setStats(stats)
 
         self.layout().addWidget(self._statsTable)
 
+        old = self._statsTable.blockSignals(True)
         self._options.itemSelection.triggered.connect(
             self._optSelectionChanged)
         self._options.dataRangeSelection.triggered.connect(
             self._optDataRangeChanged)
-        self._optSelectionChanged()
         self._optDataRangeChanged()
+        self._statsTable.blockSignals(old)
 
         self._statsTable.sigUpdateModeChanged.connect(self._options._setUpdateMode)
         callback = functools.partial(self._getStatsTable()._updateAllStats, is_request=True)
@@ -1091,6 +1097,10 @@ class StatsWidget(qt.QWidget):
 
     @docstring(StatsTable)
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
+        old = self._options.blockSignals(True)
+        # update the options
+        self._options.setDisplayActiveItems(displayOnlyActItem)
+        self._options.blockSignals(old)
         return self._getStatsTable().setDisplayOnlyActiveItem(
             displayOnlyActItem=displayOnlyActItem)
 
