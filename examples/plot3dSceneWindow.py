@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,8 +51,6 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot3d.SceneWindow import SceneWindow, items
-from silx.gui.plot3d.tools.PositionInfoWidget import PositionInfoWidget
-from silx.gui.widgets.BoxLayoutDockWidget import BoxLayoutDockWidget
 
 SIZE = 1024
 
@@ -68,14 +66,6 @@ sceneWidget.setBackgroundColor((0.8, 0.8, 0.8, 1.))
 sceneWidget.setForegroundColor((1., 1., 1., 1.))
 sceneWidget.setTextColor((0.1, 0.1, 0.1, 1.))
 
-
-# Add PositionInfoWidget to display picking info
-positionInfo = PositionInfoWidget()
-positionInfo.setSceneWidget(sceneWidget)
-dock = BoxLayoutDockWidget()
-dock.setWindowTitle("Selection Info")
-dock.setWidget(positionInfo)
-window.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
 
 # 2D Image ###
 

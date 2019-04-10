@@ -35,7 +35,7 @@ from __future__ import division
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "15/02/2019"
 
 
 import math
@@ -151,6 +151,22 @@ class ScatterMask(BaseMask):
         x, y = self._getXY()
         stencil = (y - cy)**2 + (x - cx)**2 < radius**2
         self.updateStencil(level, stencil, mask)
+
+    def updateEllipse(self, level, crow, ccol, radius_r, radius_c, mask=True):
+        """Mask/Unmask an ellipse of the given mask level.
+
+        :param int level: Mask level to update.
+        :param int crow: Row of the center of the ellipse
+        :param int ccol: Column of the center of the ellipse
+        :param float radius_r: Radius of the ellipse in the row
+        :param float radius_c: Radius of the ellipse in the column
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        def is_inside(px, py):
+            return (px - ccol)**2 / radius_c**2 + (py - crow)**2 / radius_r**2 <= 1.0
+        x, y = self._getXY()
+        indices_inside = [idx for idx in range(len(x)) if is_inside(x[idx], y[idx])]
+        self.updatePoints(level, indices_inside, mask)
 
     def updateLine(self, level, y0, x0, y1, x1, width, mask=True):
         """Mask/Unmask points inside a rectangle defined by a line (two
@@ -490,26 +506,35 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
         level = self.levelSpinBox.value()
 
-        if (self._drawingMode == 'rectangle' and
-                event['event'] == 'drawingFinished'):
-            doMask = self._isMasking()
+        if self._drawingMode == 'rectangle':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
 
-            self._mask.updateRectangle(
-                level,
-                y=event['y'],
-                x=event['x'],
-                height=abs(event['height']),
-                width=abs(event['width']),
-                mask=doMask)
-            self._mask.commit()
+                self._mask.updateRectangle(
+                    level,
+                    y=event['y'],
+                    x=event['x'],
+                    height=abs(event['height']),
+                    width=abs(event['width']),
+                    mask=doMask)
+                self._mask.commit()
 
-        elif (self._drawingMode == 'polygon' and
-                event['event'] == 'drawingFinished'):
-            doMask = self._isMasking()
-            vertices = event['points']
-            vertices = vertices[:, (1, 0)]  # (y, x)
-            self._mask.updatePolygon(level, vertices, doMask)
-            self._mask.commit()
+        elif self._drawingMode == 'ellipse':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
+                center = event['points'][0]
+                size = event['points'][1]
+                self._mask.updateEllipse(level, center[1], center[0],
+                                         size[1], size[0], doMask)
+                self._mask.commit()
+
+        elif self._drawingMode == 'polygon':
+            if event['event'] == 'drawingFinished':
+                doMask = self._isMasking()
+                vertices = event['points']
+                vertices = vertices[:, (1, 0)]  # (y, x)
+                self._mask.updatePolygon(level, vertices, doMask)
+                self._mask.commit()
 
         elif self._drawingMode == 'pencil':
             doMask = self._isMasking()
@@ -536,6 +561,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                 self._lastPencilPos = None
             else:
                 self._lastPencilPos = y, x
+        else:
+            _logger.error("Drawing mode %s unsupported", self._drawingMode)
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active scatter colormap range"""

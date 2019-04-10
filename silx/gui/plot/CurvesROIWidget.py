@@ -75,9 +75,6 @@ class CurvesROIWidget(qt.QWidget):
     """
 
     sigROISignal = qt.Signal(object)
-    """Deprecated signal for backward compatibility with silx < 0.7.
-    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
-    """
 
     def __init__(self, parent=None, name=None, plot=None):
         super(CurvesROIWidget, self).__init__(parent)
@@ -153,6 +150,7 @@ class CurvesROIWidget(qt.QWidget):
 
         layout.addWidget(hbox)
 
+        # Signal / Slot connections
         self.addButton.clicked.connect(self._add)
         self.delButton.clicked.connect(self._del)
         self.resetButton.clicked.connect(self._reset)
@@ -160,11 +158,14 @@ class CurvesROIWidget(qt.QWidget):
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
 
+        self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
+
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
 
         # expose API
         self.getROIListAndDict = self.roiTable.getROIListAndDict
+
     def getPlotWidget(self):
         """Returns the associated PlotWidget or None
 
@@ -175,7 +176,6 @@ class CurvesROIWidget(qt.QWidget):
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
         qt.QWidget.showEvent(self, event)
-        self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
 
     @property
     def roiFileDir(self):
@@ -655,19 +655,26 @@ class ROITable(TableWidget):
                     value = float(item.text())
                 except ValueError:
                     value = 0
+                changed = False
                 if item.column() == self.COLUMNS_INDEX['To']:
-                    roi.setTo(value)
+                    if value != roi.getTo():
+                        roi.setTo(value)
+                        changed = True
                 else:
                     assert(item.column() == self.COLUMNS_INDEX['From'])
-                    roi.setFrom(value)
-                self._updateMarker(roi.getName())
-                signalChanged(roi)
+                    if value != roi.getFrom():
+                        roi.setFrom(value)
+                        changed = True
+                if changed:
+                    self._updateMarker(roi.getName())
+                    signalChanged(roi)
 
         if item.column() is self.COLUMNS_INDEX['ROI']:
             roi = getRoi()
-            roi.setName(item.text())
-            self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
-            signalChanged(roi)
+            if roi.getName() != item.text():
+                roi.setName(item.text())
+                self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
+                signalChanged(roi)
 
         self._userIsEditingRoi = False
 
@@ -1057,8 +1064,9 @@ class ROI(qt.QObject):
 
         :param str type_:
         """
-        self._type = type_
-        self.sigChanged.emit()
+        if self._type != type_:
+            self._type = type_
+            self.sigChanged.emit()
 
     def getType(self):
         """
@@ -1073,8 +1081,9 @@ class ROI(qt.QObject):
 
         :param str name:
         """
-        self._name = name
-        self.sigChanged.emit()
+        if self._name != name:
+            self._name = name
+            self.sigChanged.emit()
 
     def getName(self):
         """
@@ -1088,8 +1097,9 @@ class ROI(qt.QObject):
 
         :param frm: set x coordinate of the left limit
         """
-        self._fromdata = frm
-        self.sigChanged.emit()
+        if self._fromdata != frm:
+            self._fromdata = frm
+            self.sigChanged.emit()
 
     def getFrom(self):
         """
@@ -1103,8 +1113,9 @@ class ROI(qt.QObject):
 
         :param to: x coordinate of the right limit
         """
-        self._todata = to
-        self.sigChanged.emit()
+        if self._todata != to:
+            self._todata = to
+            self.sigChanged.emit()
 
     def getTo(self):
         """

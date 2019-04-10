@@ -650,7 +650,7 @@ class ColormapDialog(qt.QDialog):
         """Compute the data range as used by :meth:`setDataRange`.
 
         :param data: The data to process
-        :rtype: Tuple(float, float, float)
+        :rtype: List[Union[None,float]]
         """
         if data is None or len(data) == 0:
             return None, None, None
@@ -661,10 +661,7 @@ class ColormapDialog(qt.QDialog):
             dataRange = None
 
         if dataRange is not None:
-            min_positive = dataRange.min_positive
-            if min_positive is None:
-                min_positive = float('nan')
-            dataRange = dataRange.minimum, min_positive, dataRange.maximum
+            dataRange = dataRange.minimum, dataRange.min_positive, dataRange.maximum
 
         if dataRange is None or len(dataRange) != 3:
             qt.QMessageBox.warning(

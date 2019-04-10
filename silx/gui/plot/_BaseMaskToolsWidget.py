@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/11/2018"
+__date__ = "15/02/2019"
 
 import os
 import weakref
@@ -325,12 +325,24 @@ class BaseMask(qt.QObject):
         raise NotImplementedError("To be implemented in subclass")
 
     def updateDisk(self, level, crow, ccol, radius, mask=True):
-        """Mask/Unmask data located inside a disk of the given mask level.
+        """Mask/Unmask data located inside a dick of the given mask level.
 
         :param int level: Mask level to update.
         :param crow: Disk center row/ordinate (y).
         :param ccol: Disk center column/abscissa.
         :param float radius: Radius of the disk in mask array unit
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        raise NotImplementedError("To be implemented in subclass")
+
+    def updateEllipse(self, level, crow, ccol, radius_r, radius_c, mask=True):
+        """Mask/Unmask a disk of the given mask level.
+
+        :param int level: Mask level to update.
+        :param int crow: Row of the center of the ellipse
+        :param int ccol: Column of the center of the ellipse
+        :param float radius_r: Radius of the ellipse in the row
+        :param float radius_c: Radius of the ellipse in the column
         :param bool mask: True to mask (default), False to unmask.
         """
         raise NotImplementedError("To be implemented in subclass")
@@ -480,6 +492,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         layout.addWidget(self._initMaskGroupBox())
         layout.addWidget(self._initDrawGroupBox())
         layout.addWidget(self._initThresholdGroupBox())
+        layout.addWidget(self._initOtherToolsGroupBox())
         layout.addStretch(1)
         self.setLayout(layout)
 
@@ -615,6 +628,15 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.rectAction.triggered.connect(self._activeRectMode)
         self.addAction(self.rectAction)
 
+        self.ellipseAction = qt.QAction(
+                icons.getQIcon('shape-ellipse'), 'Circle selection', None)
+        self.ellipseAction.setToolTip(
+                'Rectangle selection tool: (Un)Mask a circle region <b>R</b>')
+        self.ellipseAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
+        self.ellipseAction.setCheckable(True)
+        self.ellipseAction.triggered.connect(self._activeEllipseMode)
+        self.addAction(self.ellipseAction)
+
         self.polygonAction = qt.QAction(
                 icons.getQIcon('shape-polygon'), 'Polygon selection', None)
         self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
@@ -638,10 +660,11 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.drawActionGroup = qt.QActionGroup(self)
         self.drawActionGroup.setExclusive(True)
         self.drawActionGroup.addAction(self.rectAction)
+        self.drawActionGroup.addAction(self.ellipseAction)
         self.drawActionGroup.addAction(self.polygonAction)
         self.drawActionGroup.addAction(self.pencilAction)
 
-        actions = (self.browseAction, self.rectAction,
+        actions = (self.browseAction, self.rectAction, self.ellipseAction,
                    self.polygonAction, self.pencilAction)
         drawButtons = []
         for action in actions:
@@ -709,36 +732,28 @@ class BaseMaskToolsWidget(qt.QWidget):
 
     def _initThresholdGroupBox(self):
         """Init thresholding widgets"""
-        layout = qt.QVBoxLayout()
-
-        # Thresholing
 
         self.belowThresholdAction = qt.QAction(
                 icons.getQIcon('plot-roi-below'), 'Mask below threshold', None)
         self.belowThresholdAction.setToolTip(
                 'Mask image where values are below given threshold')
         self.belowThresholdAction.setCheckable(True)
-        self.belowThresholdAction.triggered[bool].connect(
-                self._belowThresholdActionTriggered)
+        self.belowThresholdAction.setChecked(True)
 
         self.betweenThresholdAction = qt.QAction(
                 icons.getQIcon('plot-roi-between'), 'Mask within range', None)
         self.betweenThresholdAction.setToolTip(
                 'Mask image where values are within given range')
         self.betweenThresholdAction.setCheckable(True)
-        self.betweenThresholdAction.triggered[bool].connect(
-                self._betweenThresholdActionTriggered)
 
         self.aboveThresholdAction = qt.QAction(
                 icons.getQIcon('plot-roi-above'), 'Mask above threshold', None)
         self.aboveThresholdAction.setToolTip(
                 'Mask image where values are above given threshold')
         self.aboveThresholdAction.setCheckable(True)
-        self.aboveThresholdAction.triggered[bool].connect(
-                self._aboveThresholdActionTriggered)
 
         self.thresholdActionGroup = qt.QActionGroup(self)
-        self.thresholdActionGroup.setExclusive(False)
+        self.thresholdActionGroup.setExclusive(True)
         self.thresholdActionGroup.addAction(self.belowThresholdAction)
         self.thresholdActionGroup.addAction(self.betweenThresholdAction)
         self.thresholdActionGroup.addAction(self.aboveThresholdAction)
@@ -768,40 +783,49 @@ class BaseMaskToolsWidget(qt.QWidget):
         loadColormapRangeBtn.setDefaultAction(self.loadColormapRangeAction)
         widgets.append(loadColormapRangeBtn)
 
-        container = self._hboxWidget(*widgets, stretch=False)
-        layout.addWidget(container)
+        toolBar = self._hboxWidget(*widgets, stretch=False)
 
-        form = qt.QFormLayout()
+        config = qt.QGridLayout()
+        config.setContentsMargins(0, 0, 0, 0)
 
+        self.minLineLabel = qt.QLabel("Min:", self)
         self.minLineEdit = FloatEdit(self, value=0)
-        self.minLineEdit.setEnabled(False)
-        form.addRow('Min:', self.minLineEdit)
+        config.addWidget(self.minLineLabel, 0, 0)
+        config.addWidget(self.minLineEdit, 0, 1)
 
+        self.maxLineLabel = qt.QLabel("Max:", self)
         self.maxLineEdit = FloatEdit(self, value=0)
-        self.maxLineEdit.setEnabled(False)
-        form.addRow('Max:', self.maxLineEdit)
+        config.addWidget(self.maxLineLabel, 1, 0)
+        config.addWidget(self.maxLineEdit, 1, 1)
 
         self.applyMaskBtn = qt.QPushButton('Apply mask')
         self.applyMaskBtn.clicked.connect(self._maskBtnClicked)
-        self.applyMaskBtn.setEnabled(False)
-        form.addRow(self.applyMaskBtn)
+
+        layout = qt.QVBoxLayout()
+        layout.addWidget(toolBar)
+        layout.addLayout(config)
+        layout.addWidget(self.applyMaskBtn)
+
+        self.thresholdGroup = qt.QGroupBox('Threshold')
+        self.thresholdGroup.setLayout(layout)
+
+        # Init widget state
+        self._thresholdActionGroupTriggered(self.belowThresholdAction)
+        return self.thresholdGroup
+
+        # track widget visibility and plot active image changes
+
+    def _initOtherToolsGroupBox(self):
+        layout = qt.QVBoxLayout()
 
         self.maskNanBtn = qt.QPushButton('Mask not finite values')
         self.maskNanBtn.setToolTip('Mask Not a Number and infinite values')
         self.maskNanBtn.clicked.connect(self._maskNotFiniteBtnClicked)
-        form.addRow(self.maskNanBtn)
+        layout.addWidget(self.maskNanBtn)
 
-        thresholdWidget = qt.QWidget()
-        thresholdWidget.setLayout(form)
-        layout.addWidget(thresholdWidget)
-
-        layout.addStretch(1)
-
-        self.thresholdGroup = qt.QGroupBox('Threshold')
-        self.thresholdGroup.setLayout(layout)
-        return self.thresholdGroup
-
-        # track widget visibility and plot active image changes
+        self.otherToolGroup = qt.QGroupBox('Other tools')
+        self.otherToolGroup.setLayout(layout)
+        return self.otherToolGroup
 
     def changeEvent(self, event):
         """Reset drawing action when disabling widget"""
@@ -924,6 +948,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         """
         if self._drawingMode == 'rectangle':
             self._activeRectMode()
+        elif self._drawingMode == 'ellipse':
+            self._activeEllipseMode()
         elif self._drawingMode == 'polygon':
             self._activePolygonMode()
         elif self._drawingMode == 'pencil':
@@ -968,6 +994,16 @@ class BaseMaskToolsWidget(qt.QWidget):
         color = self.getCurrentMaskColor()
         self.plot.setInteractiveMode(
             'draw', shape='rectangle', source=self, color=color)
+        self._updateDrawingModeWidgets()
+
+    def _activeEllipseMode(self):
+        """Handle circle action mode triggering"""
+        self._releaseDrawingMode()
+        self._drawingMode = 'ellipse'
+        self.plot.sigPlotSignal.connect(self._plotDrawEvent)
+        color = self.getCurrentMaskColor()
+        self.plot.setInteractiveMode(
+            'draw', shape='ellipse', source=self, color=color)
         self._updateDrawingModeWidgets()
 
     def _activePolygonMode(self):
@@ -1015,36 +1051,28 @@ class BaseMaskToolsWidget(qt.QWidget):
         return doMask
 
     # Handle threshold UI events
-    def _belowThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _betweenThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(True)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
-
-    def _aboveThresholdActionTriggered(self, triggered):
-        if triggered:
-            self.minLineEdit.setEnabled(False)
-            self.maxLineEdit.setEnabled(True)
-            self.applyMaskBtn.setEnabled(True)
 
     def _thresholdActionGroupTriggered(self, triggeredAction):
         """Threshold action group listener."""
-        if triggeredAction.isChecked():
-            # Uncheck other actions
-            for action in self.thresholdActionGroup.actions():
-                if action is not triggeredAction and action.isChecked():
-                    action.setChecked(False)
-        else:
-            # Disable min/max edit
-            self.minLineEdit.setEnabled(False)
-            self.maxLineEdit.setEnabled(False)
-            self.applyMaskBtn.setEnabled(False)
+        if triggeredAction is self.belowThresholdAction:
+            self.minLineLabel.setVisible(True)
+            self.maxLineLabel.setVisible(False)
+            self.minLineEdit.setVisible(True)
+            self.maxLineEdit.setVisible(False)
+            self.applyMaskBtn.setText("Mask below")
+        elif triggeredAction is self.betweenThresholdAction:
+            self.minLineLabel.setVisible(True)
+            self.maxLineLabel.setVisible(True)
+            self.minLineEdit.setVisible(True)
+            self.maxLineEdit.setVisible(True)
+            self.applyMaskBtn.setText("Mask between")
+        elif triggeredAction is self.aboveThresholdAction:
+            self.minLineLabel.setVisible(False)
+            self.maxLineLabel.setVisible(True)
+            self.minLineEdit.setVisible(False)
+            self.maxLineEdit.setVisible(True)
+            self.applyMaskBtn.setText("Mask above")
+        self.applyMaskBtn.setToolTip(triggeredAction.toolTip())
 
     def _maskBtnClicked(self):
         if self.belowThresholdAction.isChecked():

@@ -47,7 +47,7 @@ from . import event
 from . import core
 from . import transform
 from . import utils
-from .function import Colormap
+from .function import Colormap, Fog
 
 _logger = logging.getLogger(__name__)
 
@@ -361,9 +361,11 @@ class Geometry(core.Elem):
                 if attribute.ndim == 1:  # Single value
                     min_ = attribute
                     max_ = attribute
-                else:  # Array of values, compute min/max
+                elif len(attribute) > 0:  # Array of values, compute min/max
                     min_ = numpy.nanmin(attribute, axis=0)
                     max_ = numpy.nanmax(attribute, axis=0)
+                else:
+                     min_, max_ = numpy.zeros((2, attribute.shape[1]), dtype=numpy.float32)
 
                 toCopy = min(len(min_), 3-index)
                 if toCopy != len(min_):
@@ -451,13 +453,14 @@ class Lines(Geometry):
     varying vec3 vNormal;
     varying vec4 vColor;
 
-    $clippingDecl
+    $sceneDecl
     $lightingFunction
 
     void main(void)
     {
-        $clippingCall(vCameraPosition);
+        $scenePreCall(vCameraPosition);
         gl_FragColor = $lightingCall(vColor, vPosition, vNormal);
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -492,8 +495,9 @@ class Lines(Geometry):
             fraglightfunction = ctx.viewport.light.fragmentShaderFunctionNoop
 
         fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall,
+            sceneDecl=ctx.fragDecl,
+            scenePreCall=ctx.fragCallPre,
+            scenePostCall=ctx.fragCallPost,
             lightingFunction=fraglightfunction,
             lightingCall=ctx.viewport.light.fragmentCall)
         prog = ctx.glCtx.prog(self._shaders[0], fragment)
@@ -509,7 +513,7 @@ class Lines(Geometry):
                               ctx.objectToCamera.matrix,
                               safe=True)
 
-        ctx.clipper.setupProgram(ctx, prog)
+        ctx.setupProgram(prog)
 
         with gl.enabled(gl.GL_LINE_SMOOTH, self._smooth):
             self._draw(prog)
@@ -560,18 +564,21 @@ class DashedLines(Lines):
 
     uniform vec2 dash;
 
-    $clippingDecl
+    $sceneDecl
     $lightingFunction
 
     void main(void)
     {
+        $scenePreCall(vCameraPosition);
+
         /* Discard off dash fragments */
         float lineDist = distance(vOriginFragCoord, gl_FragCoord.xy);
         if (mod(lineDist, dash.x + dash.y) > dash.x) {
             discard;
         }
-        $clippingCall(vCameraPosition);
         gl_FragColor = $lightingCall(vColor, vPosition, vNormal);
+
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -627,8 +634,9 @@ class DashedLines(Lines):
                 context.viewport.light.fragmentShaderFunctionNoop
 
         fragment = self._shaders[1].substitute(
-            clippingDecl=context.clipper.fragDecl,
-            clippingCall=context.clipper.fragCall,
+            sceneDecl=context.fragDecl,
+            scenePreCall=context.fragCallPre,
+            scenePostCall=context.fragCallPost,
             lightingFunction=fraglightfunction,
             lightingCall=context.viewport.light.fragmentCall)
         program = context.glCtx.prog(self._shaders[0], fragment)
@@ -648,7 +656,7 @@ class DashedLines(Lines):
             program.uniforms['viewportSize'], *context.viewport.size)
         gl.glUniform2f(program.uniforms['dash'], *self.dash)
 
-        context.clipper.setupProgram(context, program)
+        context.setupProgram(program)
 
         self._draw(program)
 
@@ -1236,14 +1244,12 @@ class _Points(Geometry):
     varying $valueType vValue;
 
     $valueToColorDecl
-
-    $clippingDecl
-
+    $sceneDecl
     $alphaSymbolDecl
 
     void main(void)
     {
-        $clippingCall(vCameraPosition);
+        $scenePreCall(vCameraPosition);
 
         float alpha = alphaSymbol(gl_PointCoord, vSize);
 
@@ -1252,6 +1258,8 @@ class _Points(Geometry):
         if (gl_FragColor.a == 0.0) {
             discard;
         }
+
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -1305,8 +1313,9 @@ class _Points(Geometry):
         vertexShader = self._shaders[0].substitute(
             valueType=valueType)
         fragmentShader = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall,
+            sceneDecl=ctx.fragDecl,
+            scenePreCall=ctx.fragCallPre,
+            scenePostCall=ctx.fragCallPost,
             valueType=valueType,
             valueToColorDecl=valueToColorDecl,
             valueToColorCall=valueToColorCall,
@@ -1324,7 +1333,7 @@ class _Points(Geometry):
                                  ctx.objectToCamera.matrix,
                                  safe=True)
 
-        ctx.clipper.setupProgram(ctx, program)
+        ctx.setupProgram(program)
 
         self._renderGL2PreDrawHook(ctx, program)
 
@@ -1475,15 +1484,17 @@ class GridPoints(Geometry):
 
     in vec4 vCameraPosition;
     in float vNormValue;
-    out vec4 fragColor;
+    out vec4 gl_FragColor;
 
-    $clippingDecl
+    $sceneDecl
 
     void main(void)
     {
-        $clippingCall(vCameraPosition);
+        $scenePreCall(vCameraPosition);
 
-        fragColor = vec4(0.5 * vNormValue + 0.5, 0.0, 0.0, 1.0);
+        gl_FragColor = vec4(0.5 * vNormValue + 0.5, 0.0, 0.0, 1.0);
+
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -1532,8 +1543,9 @@ class GridPoints(Geometry):
 
     def renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall)
+            sceneDecl=ctx.fragDecl,
+            scenePreCall=ctx.fragCallPre,
+            scenePostCall=ctx.fragCallPost)
         prog = ctx.glCtx.prog(self._shaders[0], fragment)
         prog.use()
 
@@ -1546,7 +1558,7 @@ class GridPoints(Geometry):
                               ctx.objectToCamera.matrix,
                               safe=True)
 
-        ctx.clipper.setupProgram(ctx, prog)
+        ctx.setupProgram(prog)
 
         gl.glUniform3i(prog.uniforms['gridDims'],
                        self._shape[2] if len(self._shape) == 3 else 1,
@@ -1632,12 +1644,12 @@ class Spheres(Geometry):
     varying float vViewDepth;
     varying float vViewRadius;
 
-    $clippingDecl
+    $sceneDecl
     $lightingFunction
 
     void main(void)
     {
-        $clippingCall(vCameraPosition);
+        $scenePreCall(vCameraPosition);
 
         /* Get normal from point coords */
         vec3 normal;
@@ -1658,6 +1670,8 @@ class Spheres(Geometry):
         float viewDepth = vViewDepth + vViewRadius * normal.z;
         vec2 clipZW = viewDepth * projMat[2].zw + projMat[3].zw;
         gl_FragDepth = 0.5 * (clipZW.x / clipZW.y) + 0.5;
+
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -1676,8 +1690,9 @@ class Spheres(Geometry):
 
     def renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall,
+            sceneDecl=ctx.fragDecl,
+            scenePreCall=ctx.fragCallPre,
+            scenePostCall=ctx.fragCallPost,
             lightingFunction=ctx.viewport.light.fragmentDef,
             lightingCall=ctx.viewport.light.fragmentCall)
         prog = ctx.glCtx.prog(self._shaders[0], fragment)
@@ -1694,7 +1709,7 @@ class Spheres(Geometry):
                               ctx.objectToCamera.matrix,
                               safe=True)
 
-        ctx.clipper.setupProgram(ctx, prog)
+        ctx.setupProgram(prog)
 
         gl.glUniform2f(prog.uniforms['screenSize'], *ctx.viewport.size)
 
@@ -1748,14 +1763,16 @@ class Mesh3D(Geometry):
     varying vec3 vNormal;
     varying vec4 vColor;
 
-    $clippingDecl
+    $sceneDecl
     $lightingFunction
 
     void main(void)
     {
-        $clippingCall(vCameraPosition);
+        $scenePreCall(vCameraPosition);
 
         gl_FragColor = $lightingCall(vColor, vPosition, vNormal);
+
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -1798,8 +1815,9 @@ class Mesh3D(Geometry):
             fragLightFunction = ctx.viewport.light.fragmentShaderFunctionNoop
 
         fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall,
+            sceneDecl=ctx.fragDecl,
+            scenePreCall=ctx.fragCallPre,
+            scenePostCall=ctx.fragCallPost,
             lightingFunction=fragLightFunction,
             lightingCall=ctx.viewport.light.fragmentCall)
         prog = ctx.glCtx.prog(self._shaders[0], fragment)
@@ -1818,7 +1836,7 @@ class Mesh3D(Geometry):
                               ctx.objectToCamera.matrix,
                               safe=True)
 
-        ctx.clipper.setupProgram(ctx, prog)
+        ctx.setupProgram(prog)
 
         self._draw(prog)
 
@@ -1860,15 +1878,17 @@ class ColormapMesh3D(Geometry):
     varying float vValue;
 
     $colormapDecl
-    $clippingDecl
+    $sceneDecl
     $lightingFunction
 
     void main(void)
     {
-        $clippingCall(vCameraPosition);
+        $scenePreCall(vCameraPosition);
 
         vec4 color = $colormapCall(vValue);
         gl_FragColor = $lightingCall(color, vPosition, vNormal);
+
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -1933,8 +1953,9 @@ class ColormapMesh3D(Geometry):
 
     def _renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall,
+            sceneDecl=ctx.fragDecl,
+            scenePreCall=ctx.fragCallPre,
+            scenePostCall=ctx.fragCallPost,
             lightingFunction=ctx.viewport.light.fragmentDef,
             lightingCall=ctx.viewport.light.fragmentCall,
             colormapDecl=self.colormap.decl,
@@ -1943,7 +1964,7 @@ class ColormapMesh3D(Geometry):
         program.use()
 
         ctx.viewport.light.setupProgram(ctx, program)
-        ctx.clipper.setupProgram(ctx, program)
+        ctx.setupProgram(program)
         self.colormap.setupProgram(ctx, program)
 
         if self.culling is not None:
@@ -2001,20 +2022,20 @@ class _Image(Geometry):
     uniform float alpha;
 
     $imageDecl
-
-    $clippingDecl
-
+    $sceneDecl
     $lightingFunction
 
     void main(void)
     {
+        $scenePreCall(vCameraPosition);
+
         vec4 color = imageColor(data, vTexCoords);
         color.a = alpha;
 
-        $clippingCall(vCameraPosition);
-
         vec3 normal = vec3(0.0, 0.0, 1.0);
         gl_FragColor = $lightingCall(color, vPosition, normal);
+
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -2133,8 +2154,9 @@ class _Image(Geometry):
 
     def _renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall,
+            sceneDecl=ctx.fragDecl,
+            scenePreCall=ctx.fragCallPre,
+            scenePostCall=ctx.fragCallPost,
             lightingFunction=ctx.viewport.light.fragmentDef,
             lightingCall=ctx.viewport.light.fragmentCall,
             imageDecl=self._shaderImageColorDecl()
@@ -2159,7 +2181,7 @@ class _Image(Geometry):
 
         gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
 
-        ctx.clipper.setupProgram(ctx, program)
+        ctx.setupProgram(program)
 
         self._texture.bind()
 

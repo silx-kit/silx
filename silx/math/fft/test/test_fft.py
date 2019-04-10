@@ -176,7 +176,7 @@ class TestFFT(unittest.TestCase):
 
         # Python < 3.5 does not want to mix **extra_args with existing kwargs
         fft_args = {
-            "data": input_data,
+            "template": input_data,
             "axes": self.transform_infos.axes[self.trdim],
             "backend": self.backend,
         }
@@ -185,7 +185,7 @@ class TestFFT(unittest.TestCase):
             **fft_args
         )
         F_np = FFT(
-            data=input_data,
+            template=input_data,
             axes=self.transform_infos.axes[self.trdim],
             backend="numpy"
         )
@@ -249,7 +249,7 @@ class TestNumpyFFT(unittest.TestCase):
         np_fft, np_ifft = self.transforms[trdim][np.isrealobj(input_data)]
 
         F = FFT(
-            data=input_data,
+            template=input_data,
             axes=trinfos.axes[trdim],
             backend="numpy"
         )

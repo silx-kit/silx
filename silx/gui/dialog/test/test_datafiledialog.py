@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "08/03/2019"
 
 
 import unittest
@@ -130,7 +130,7 @@ class _UtilsMixin(object):
         path2_ = os.path.normcase(path2)
         if path1_ == path2_:
             # Use the unittest API to log and display error
-            self.assertNotEquals(path1, path2)
+            self.assertNotEqual(path1, path2)
 
 
 class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
@@ -385,7 +385,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/singleimage.edf"
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/scan_0/instrument/detector_0/data")
         dialog.selectUrl(url.path())
-        self.assertTrue(dialog._selectedData().shape, (100, 100))
+        self.assertEqual(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), url.path())
 
@@ -399,7 +399,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
         dialog.selectUrl(path)
         # test
-        self.assertTrue(dialog._selectedData().shape, (100, 100))
+        self.assertEqual(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
         self.assertSamePath(dialog.selectedUrl(), path)
 
@@ -479,11 +479,12 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/badformat.h5"
-        index = browser.rootIndex().model().index(filename)
+        index = browser.model().index(filename)
+        browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertTrue(dialog.selectedUrl(), filename)
+        self.assertSamePath(dialog.selectedUrl(), filename)
 
     def _countSelectableItems(self, model, rootIndex):
         selectable = 0
@@ -853,7 +854,7 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         dialog2 = self.createDialog()
         result = dialog2.restoreState(state)
         self.assertTrue(result)
-        self.assertNotEquals(dialog2.directory(), directory)
+        self.assertNotEqual(dialog2.directory(), directory)
 
     def testHistory(self):
         dialog = self.createDialog()

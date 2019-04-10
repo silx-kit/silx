@@ -56,20 +56,13 @@ of this modules to ensure access across different distribution schemes:
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "15/02/2018"
+__date__ = "08/03/2019"
 
 
 import os
 import sys
-import threading
-import json
-import getpass
 import logging
-import tempfile
-import unittest
 import importlib
-
-import six
 
 
 logger = logging.getLogger(__name__)
@@ -289,173 +282,5 @@ def _resource_filename(resource, default_directory=None):
         return pkg_resources.resource_filename(package_name, resource_name)
 
 
-class ExternalResources(object):
-    """Utility class which allows to download test-data from www.silx.org
-    and manage the temporary data during the tests.
-
-    """
-
-    def __init__(self, project,
-                 url_base,
-                 env_key=None,
-                 timeout=60):
-        """Constructor of the class
-
-        :param str project: name of the project, like "silx"
-        :param str url_base: base URL for the data, like "http://www.silx.org/pub"
-        :param str env_key: name of the environment variable which contains the
-                            test_data directory, like "SILX_DATA".
-                            If None (default), then the name of the
-                            environment variable is built from the project argument:
-                            "<PROJECT>_DATA".
-                            The environment variable is optional: in case it is not set,
-                            a directory in the temporary folder is used.
-        :param timeout: time in seconds before it breaks
-        """
-        self.project = project
-        self._initialized = False
-        self.sem = threading.Semaphore()
-        self.env_key = env_key or (self.project.upper() + "_DATA")
-        self.url_base = url_base
-        self.all_data = set()
-        self.timeout = timeout
-        self.data_home = None
-
-    def _initialize_data(self):
-        """Initialize for downloading test data"""
-        if not self._initialized:
-            with self.sem:
-                if not self._initialized:
-
-                    self.data_home = os.environ.get(self.env_key)
-                    if self.data_home is None:
-                        self.data_home = os.path.join(tempfile.gettempdir(),
-                                                      "%s_testdata_%s" % (self.project, getpass.getuser()))
-                    if not os.path.exists(self.data_home):
-                        os.makedirs(self.data_home)
-                    self.testdata = os.path.join(self.data_home, "all_testdata.json")
-                    if os.path.exists(self.testdata):
-                        with open(self.testdata) as f:
-                            self.all_data = set(json.load(f))
-                    self._initialized = True
-
-    def clean_up(self):
-        pass
-
-    def getfile(self, filename):
-        """Downloads the requested file from web-server available
-        at https://www.silx.org/pub/silx/
-
-        :param: relative name of the image.
-        :return: full path of the locally saved file.
-        """
-        logger.debug("ExternalResources.getfile('%s')", filename)
-
-        if not self._initialized:
-            self._initialize_data()
-
-        if not os.path.exists(self.data_home):
-            os.makedirs(self.data_home)
-
-        fullfilename = os.path.abspath(os.path.join(self.data_home, filename))
-
-        if not os.path.isfile(fullfilename):
-            logger.debug("Trying to download image %s, timeout set to %ss",
-                         filename, self.timeout)
-            dictProxies = {}
-            if "http_proxy" in os.environ:
-                dictProxies['http'] = os.environ["http_proxy"]
-                dictProxies['https'] = os.environ["http_proxy"]
-            if "https_proxy" in os.environ:
-                dictProxies['https'] = os.environ["https_proxy"]
-            if dictProxies:
-                proxy_handler = six.moves.urllib.request.ProxyHandler(dictProxies)
-                opener = six.moves.urllib.request.build_opener(proxy_handler).open
-            else:
-                opener = six.moves.urllib.request.urlopen
-
-            logger.debug("wget %s/%s", self.url_base, filename)
-            try:
-                data = opener("%s/%s" % (self.url_base, filename),
-                              data=None, timeout=self.timeout).read()
-                logger.info("Image %s successfully downloaded.", filename)
-            except six.moves.urllib.error.URLError:
-                raise unittest.SkipTest("network unreachable.")
-
-            if not os.path.isdir(os.path.dirname(fullfilename)):
-                # Create sub-directory if needed
-                os.makedirs(os.path.dirname(fullfilename))
-
-            try:
-                with open(fullfilename, "wb") as outfile:
-                    outfile.write(data)
-            except IOError:
-                raise IOError("unable to write downloaded \
-                    data to disk at %s" % self.data_home)
-
-            if not os.path.isfile(fullfilename):
-                raise RuntimeError(
-                    "Could not automatically \
-                    download test images %s!\n \ If you are behind a firewall, \
-                    please set both environment variable http_proxy and https_proxy.\
-                    This even works under windows ! \n \
-                    Otherwise please try to download the images manually from \n%s/%s"
-                    % (filename, self.url_base, filename))
-
-        if filename not in self.all_data:
-            self.all_data.add(filename)
-            image_list = list(self.all_data)
-            image_list.sort()
-            try:
-                with open(self.testdata, "w") as fp:
-                    json.dump(image_list, fp, indent=4)
-            except IOError:
-                logger.debug("Unable to save JSON list")
-
-        return fullfilename
-
-    def getdir(self, dirname):
-        """Downloads the requested tarball from the server
-        https://www.silx.org/pub/silx/
-        and unzips it into the data directory
-
-        :param: relative name of the image.
-        :return: list of files with their full path.
-        """
-        lodn = dirname.lower()
-        if (lodn.endswith("tar") or lodn.endswith("tgz") or
-            lodn.endswith("tbz2") or lodn.endswith("tar.gz") or
-                lodn.endswith("tar.bz2")):
-            import tarfile
-            engine = tarfile.TarFile.open
-        elif lodn.endswith("zip"):
-            import zipfile
-            engine = zipfile.ZipFile
-        else:
-            raise RuntimeError("Unsupported archive format. Only tar and zip "
-                               "are currently supported")
-        full_path = self.getfile(dirname)
-        root = os.path.dirname(full_path)
-        with engine(full_path, mode="r") as fd:
-            fd.extractall(self.data_home)
-            if lodn.endswith("zip"):
-                result = [os.path.join(root, i) for i in fd.namelist()]
-            else:
-                result = [os.path.join(root, i) for i in fd.getnames()]
-        return result
-
-    def download_all(self, imgs=None):
-        """Download all data needed for the test/benchmarks
-
-        :param imgs: list of files to download, by default all
-        :return: list of path with all files
-        """
-        if not self._initialized:
-            self._initialize_data()
-        if not imgs:
-            imgs = self.all_data
-        res = []
-        for fn in imgs:
-            logger.info("Downloading from silx.org: %s", fn)
-            res.append(self.getfile(fn))
-        return res
+# Expose ExternalResources for compatibility (since silx 0.11)
+from ..utils.ExternalResources import ExternalResources

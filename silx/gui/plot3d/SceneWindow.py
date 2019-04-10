@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,13 @@ __date__ = "29/11/2017"
 
 
 from ...gui import qt, icons
+from ...gui.widgets.BoxLayoutDockWidget import BoxLayoutDockWidget
 
 from .actions.mode import InteractiveModeAction
 from .SceneWidget import SceneWidget
 from .tools import OutputToolBar, InteractiveModeToolBar, ViewpointToolBar
 from .tools.GroupPropertiesWidget import GroupPropertiesWidget
+from .tools.PositionInfoWidget import PositionInfoWidget
 
 from .ParamTreeView import ParamTreeView
 
@@ -118,8 +120,19 @@ class SceneWindow(qt.QMainWindow):
         self._sceneWidget = SceneWidget()
         self.setCentralWidget(self._sceneWidget)
 
+        # Add PositionInfoWidget to display picking info
+        self._positionInfo = PositionInfoWidget()
+        self._positionInfo.setSceneWidget(self._sceneWidget)
+
+        dock = BoxLayoutDockWidget()
+        dock.setWindowTitle("Selection Info")
+        dock.setWidget(self._positionInfo)
+        self.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
+
         self._interactiveModeToolBar = InteractiveModeToolBar(parent=self)
         panPlaneAction = _PanPlaneAction(self, plot3d=self._sceneWidget)
+        self._interactiveModeToolBar.addAction(
+            self._positionInfo.toggleAction())
         self._interactiveModeToolBar.addAction(panPlaneAction)
 
         self._viewpointToolBar = ViewpointToolBar(parent=self)
@@ -197,3 +210,10 @@ class SceneWindow(qt.QMainWindow):
         :rtype: ~silx.gui.plot3d.tools.OutputToolBar
         """
         return self._outputToolBar
+
+    def getPositionInfoWidget(self):
+        """Returns the widget displaying selected position information.
+
+        :rtype: ~silx.gui.plot3d.tools.PositionInfoWidget.PositionInfoWidget
+        """
+        return self._positionInfo

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,11 +43,11 @@ from . import transform
 _logger = logging.getLogger(__name__)
 
 
-# ClickOrDrag #################################################################
-
-# TODO merge with silx.gui.plot.Interaction.ClickOrDrag
 class ClickOrDrag(StateMachine):
-    """Click or drag interaction for a given button."""
+    """Click or drag interaction for a given button.
+
+    """
+    #TODO: merge this class with silx.gui.plot.Interaction.ClickOrDrag
 
     DRAG_THRESHOLD_SQUARE_DIST = 5 ** 2
 
@@ -126,23 +126,29 @@ class ClickOrDrag(StateMachine):
         pass
 
 
-# CameraRotate ################################################################
-
-class CameraRotate(ClickOrDrag):
+class CameraSelectRotate(ClickOrDrag):
     """Camera rotation using an arcball-like interaction."""
 
-    def __init__(self, viewport, orbitAroundCenter=True, button=RIGHT_BTN):
+    def __init__(self, viewport, orbitAroundCenter=True, button=RIGHT_BTN,
+                 selectCB=None):
         self._viewport = viewport
         self._orbitAroundCenter = orbitAroundCenter
+        self._selectCB = selectCB
         self._reset()
-        super(CameraRotate, self).__init__(button)
+        super(CameraSelectRotate, self).__init__(button)
 
     def _reset(self):
         self._origin, self._center = None, None
         self._startExtrinsic = None
 
     def click(self, x, y):
-        pass  # No interaction yet
+        if self._selectCB is not None:
+            ndcZ = self._viewport._pickNdcZGL(x, y)
+            position = self._viewport._getXZYGL(x, y)
+            # This assume no object lie on the far plane
+            # Alternative, change the depth range so that far is < 1
+            if ndcZ != 1. and position is not None:
+                self._selectCB((x, y, ndcZ), position)
 
     def beginDrag(self, x, y):
         centerPos = None
@@ -205,8 +211,6 @@ class CameraRotate(ClickOrDrag):
         self._reset()
 
 
-# CameraSelectPan #############################################################
-
 class CameraSelectPan(ClickOrDrag):
     """Picking on click and pan camera on drag."""
 
@@ -258,8 +262,6 @@ class CameraSelectPan(ClickOrDrag):
     def endDrag(self, x, y):
         self._lastPosNdc = None
 
-
-# CameraWheel #################################################################
 
 class CameraWheel(object):
     """StateMachine like class, just handling wheel events."""
@@ -371,8 +373,6 @@ class CameraWheel(object):
         return True
 
 
-# FocusManager ################################################################
-
 class FocusManager(StateMachine):
     """Manages focus across multiple event handlers
 
@@ -449,8 +449,6 @@ class FocusManager(StateMachine):
             handler.cancel()
 
 
-# CameraControl ###############################################################
-
 class RotateCameraControl(FocusManager):
     """Combine wheel and rotate state machine for left button
     and pan when ctrl is pressed
@@ -460,7 +458,8 @@ class RotateCameraControl(FocusManager):
                  mode='center', scaleTransform=None,
                  selectCB=None):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
-                    CameraRotate(viewport, orbitAroundCenter, LEFT_BTN))
+                    CameraSelectRotate(
+                        viewport, orbitAroundCenter, LEFT_BTN, selectCB))
         ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
                         CameraSelectPan(viewport, LEFT_BTN, selectCB))
         super(RotateCameraControl, self).__init__(handlers, ctrlHandlers)
@@ -476,7 +475,8 @@ class PanCameraControl(FocusManager):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     CameraSelectPan(viewport, LEFT_BTN, selectCB))
         ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
-                        CameraRotate(viewport, orbitAroundCenter, LEFT_BTN))
+                        CameraSelectRotate(
+                            viewport, orbitAroundCenter, LEFT_BTN, selectCB))
         super(PanCameraControl, self).__init__(handlers, ctrlHandlers)
 
 
@@ -488,11 +488,10 @@ class CameraControl(FocusManager):
                  selectCB=None):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     CameraSelectPan(viewport, LEFT_BTN, selectCB),
-                    CameraRotate(viewport, orbitAroundCenter, RIGHT_BTN))
+                    CameraSelectRotate(
+                        viewport, orbitAroundCenter, RIGHT_BTN, selectCB))
         super(CameraControl, self).__init__(handlers)
 
-
-# PlaneRotate #################################################################
 
 class PlaneRotate(ClickOrDrag):
     """Plane rotation using arcball interaction.
@@ -603,8 +602,6 @@ class PlaneRotate(ClickOrDrag):
         self._reset()
 
 
-# PlanePan ###################################################################
-
 class PlanePan(ClickOrDrag):
     """Pan a plane along its normal on drag."""
 
@@ -668,8 +665,6 @@ class PlanePan(ClickOrDrag):
         self._beginPlanePoint = None
 
 
-# PlaneControl ################################################################
-
 class PlaneControl(FocusManager):
     """Combine wheel, selectPan and rotate state machine for plane control."""
     def __init__(self, viewport, plane,
@@ -686,9 +681,9 @@ class PanPlaneRotateCameraControl(FocusManager):
                  mode='center', scaleTransform=None):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     PlanePan(viewport, plane, LEFT_BTN),
-                    CameraRotate(viewport,
-                                 orbitAroundCenter=False,
-                                 button=RIGHT_BTN))
+                    CameraSelectRotate(viewport,
+                                       orbitAroundCenter=False,
+                                       button=RIGHT_BTN))
         super(PanPlaneRotateCameraControl, self).__init__(handlers)
 
 
@@ -701,5 +696,6 @@ class PanPlaneZoomOnWheelControl(FocusManager):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     PlanePan(viewport, plane, LEFT_BTN))
         ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
-                        CameraRotate(viewport, orbitAroundCenter, LEFT_BTN))
+                        CameraSelectRotate(
+                            viewport, orbitAroundCenter, LEFT_BTN))
         super(PanPlaneZoomOnWheelControl, self).__init__(handlers, ctrlHandlers)

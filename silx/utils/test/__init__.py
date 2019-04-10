@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2018"
+__date__ = "08/03/2019"
 
 
 import unittest
@@ -36,6 +36,7 @@ from . import test_deprecation
 from . import test_proxy
 from . import test_debug
 from . import test_number
+from . import test_external_resources
 
 
 def suite():
@@ -48,4 +49,5 @@ def suite():
     test_suite.addTest(test_proxy.suite())
     test_suite.addTest(test_debug.suite())
     test_suite.addTest(test_number.suite())
+    test_suite.addTest(test_external_resources.suite())
     return test_suite

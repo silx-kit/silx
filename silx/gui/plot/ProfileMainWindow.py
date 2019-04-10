@@ -35,8 +35,15 @@ __date__ = "21/02/2017"
 class ProfileMainWindow(qt.QMainWindow):
     """QMainWindow providing 2 plot widgets specialized in
     1D and 2D plotting, with different toolbars.
+
     Only one of the plots is visible at any given time.
+
+    :param qt.QWidget parent: The parent of this widget or None (default).
+    :param Union[str,Class] backend: The backend to use, in:
+                    'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
+                    or a :class:`BackendBase.BackendBase` class
     """
+
     sigProfileDimensionsChanged = qt.Signal(int)
     """This signal is emitted when :meth:`setProfileDimensions` is called.
     It carries the number of dimensions for the profile data (1 or 2).
@@ -51,13 +58,14 @@ class ProfileMainWindow(qt.QMainWindow):
     """Emitted when the method to compute the profile changed (for now can be
     sum or mean)"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent=parent)
 
         self.setWindowTitle('Profile window')
         # plots are created on demand, in self.setProfileDimensions()
         self._plot1D = None
         self._plot2D = None
+        self._backend = backend
         # by default, profile is assumed to be a 1D curve
         self._profileType = None
         self.setProfileType("1D")
@@ -76,7 +84,7 @@ class ProfileMainWindow(qt.QMainWindow):
             if self._plot2D is not None:
                 self._plot2D.setParent(None)   # necessary to avoid widget destruction
             if self._plot1D is None:
-                self._plot1D = Plot1D()
+                self._plot1D = Plot1D(backend=self._backend)
                 self._plot1D.setGraphYLabel('Profile')
                 self._plot1D.setGraphXLabel('')
             self.setCentralWidget(self._plot1D)
@@ -84,7 +92,7 @@ class ProfileMainWindow(qt.QMainWindow):
             if self._plot1D is not None:
                 self._plot1D.setParent(None)   # necessary to avoid widget destruction
             if self._plot2D is None:
-                self._plot2D = Plot2D()
+                self._plot2D = Plot2D(backend=self._backend)
             self.setCentralWidget(self._plot2D)
         else:
             raise ValueError("Profile type must be '1D' or '2D'")

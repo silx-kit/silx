@@ -33,6 +33,7 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 
+from collections import OrderedDict
 import functools
 import logging
 import weakref
@@ -45,12 +46,83 @@ from ...colors import preferredColormaps
 from ... import qt, icons
 from .. import items
 from ..items.volume import Isosurface, CutPlane
+from ..Plot3DWidget import Plot3DWidget
 
 
 from .core import AngleDegreeRow, BaseRow, ColorProxyRow, ProxyRow, StaticRow
 
 
 _logger = logging.getLogger(__name__)
+
+
+class ItemProxyRow(ProxyRow):
+    """Provides a node to proxy a data accessible through functions.
+
+    It listens on sigItemChanged to trigger the update.
+
+    Warning: Only weak reference are kept on fget and fset.
+
+    :param Item3D item: The item to
+    :param str name: The name of this node
+    :param callable fget: A callable returning the data
+    :param callable fset:
+        An optional callable setting the data with data as a single argument.
+    :param events:
+        An optional event kind or list of event kinds to react upon.
+    :param callable toModelData:
+        An optional callable to convert from fget
+        callable to data returned by the model.
+    :param callable fromModelData:
+        An optional callable converting data provided to the model to
+        data for fset.
+    :param editorHint: Data to provide as UserRole for editor selection/setup
+    """
+
+    def __init__(self,
+                 item,
+                 name='',
+                 fget=None,
+                 fset=None,
+                 events=None,
+                 toModelData=None,
+                 fromModelData=None,
+                 editorHint=None):
+        super(ItemProxyRow, self).__init__(
+            name=name,
+            fget=fget,
+            fset=fset,
+            notify=None,
+            toModelData=toModelData,
+            fromModelData=fromModelData,
+            editorHint=editorHint)
+
+        if isinstance(events, (items.ItemChangedType,
+                               items.Item3DChangedType)):
+            events = (events,)
+        self.__events = events
+        item.sigItemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        """Handle item changed
+
+        :param Union[ItemChangedType,Item3DChangedType] event:
+        """
+        if self.__events is None or event in self.__events:
+            self._notified()
+
+
+class ItemColorProxyRow(ColorProxyRow, ItemProxyRow):
+    """Combines :class:`ColorProxyRow` and :class:`ItemProxyRow`"""
+
+    def __init__(self, *args, **kwargs):
+        ItemProxyRow.__init__(self, *args, **kwargs)
+
+
+class ItemAngleDegreeRow(AngleDegreeRow, ItemProxyRow):
+    """Combines :class:`AngleDegreeRow` and :class:`ItemProxyRow`"""
+
+    def __init__(self, *args, **kwargs):
+        ItemProxyRow.__init__(self, *args, **kwargs)
 
 
 class _DirectionalLightProxy(qt.QObject):
@@ -67,8 +139,8 @@ class _DirectionalLightProxy(qt.QObject):
         super(_DirectionalLightProxy, self).__init__()
         self._light = light
         light.addListener(self._directionUpdated)
-        self._azimuth = 0.
-        self._altitude = 0.
+        self._azimuth = 0
+        self._altitude = 0
 
     def getAzimuthAngle(self):
         """Returns the signed angle in the horizontal plane.
@@ -76,7 +148,7 @@ class _DirectionalLightProxy(qt.QObject):
          Unit: degrees.
         The 0 angle corresponds to the axis perpendicular to the screen.
 
-        :rtype: float
+        :rtype: int
         """
         return self._azimuth
 
@@ -86,15 +158,16 @@ class _DirectionalLightProxy(qt.QObject):
         Unit: degrees.
         Range: [-90, +90]
 
-        :rtype: float
+        :rtype: int
         """
         return self._altitude
 
     def setAzimuthAngle(self, angle):
         """Set the horizontal angle.
 
-        :param float angle: Angle from -z axis in zx plane in degrees.
+        :param int angle: Angle from -z axis in zx plane in degrees.
         """
+        angle = int(round(angle))
         if angle != self._azimuth:
             self._azimuth = angle
             self._updateLight()
@@ -103,8 +176,9 @@ class _DirectionalLightProxy(qt.QObject):
     def setAltitudeAngle(self, angle):
         """Set the horizontal angle.
 
-        :param float angle: Angle from -z axis in zy plane in degrees.
+        :param int angle: Angle from -z axis in zy plane in degrees.
         """
+        angle = int(round(angle))
         if angle != self._altitude:
             self._altitude = angle
             self._updateLight()
@@ -117,20 +191,21 @@ class _DirectionalLightProxy(qt.QObject):
         x, y, z = - self._light.direction
 
         # Horizontal plane is plane xz
-        azimuth = numpy.degrees(numpy.arctan2(x, z))
-        altitude = numpy.degrees(numpy.pi/2. - numpy.arccos(y))
+        azimuth = int(round(numpy.degrees(numpy.arctan2(x, z))))
+        altitude = int(round(numpy.degrees(numpy.pi/2. - numpy.arccos(y))))
 
-        if (abs(azimuth - self.getAzimuthAngle()) > 0.01 and
-                abs(abs(altitude) - 90.) >= 0.001):  # Do not update when at zenith
+        if azimuth != self.getAzimuthAngle():
             self.setAzimuthAngle(azimuth)
 
-        if abs(altitude - self.getAltitudeAngle()) > 0.01:
+        if altitude != self.getAltitudeAngle():
             self.setAltitudeAngle(altitude)
 
     def _updateLight(self):
         """Update light direction in the scene"""
         azimuth = numpy.radians(self._azimuth)
         delta = numpy.pi/2. - numpy.radians(self._altitude)
+        if delta == 0.:  # Avoids zenith position
+            delta = 0.0001
         z = - numpy.sin(delta) * numpy.cos(azimuth)
         x = - numpy.sin(delta) * numpy.sin(azimuth)
         y = - numpy.cos(delta)
@@ -195,9 +270,18 @@ class Settings(StaticRow):
         lightDirection = StaticRow(('Light Direction', None),
                                    children=(azimuthNode, altitudeNode))
 
+        # Fog
+        fog = ProxyRow(
+            name='Fog',
+            fget=sceneWidget.getFogMode,
+            fset=sceneWidget.setFogMode,
+            notify=sceneWidget.sigStyleChanged,
+            toModelData=lambda mode: mode is Plot3DWidget.FogMode.LINEAR,
+            fromModelData=lambda mode: Plot3DWidget.FogMode.LINEAR if mode else Plot3DWidget.FogMode.NONE)
+
         # Settings row
         children = (background, foreground, text, highlight,
-                    axesIndicator, lightDirection)
+                    axesIndicator, lightDirection, fog)
         super(Settings, self).__init__(('Settings', None), children=children)
 
 
@@ -207,6 +291,9 @@ class Item3DRow(BaseRow):
     :param Item3D item: The scene item to represent.
     :param str name: The optional name of the item
     """
+
+    _EVENTS = items.ItemChangedType.VISIBLE, items.Item3DChangedType.LABEL
+    """Events for which to update the first column in the tree"""
 
     def __init__(self, item, name=None):
         self.__name = None if name is None else six.text_type(name)
@@ -221,12 +308,11 @@ class Item3DRow(BaseRow):
         item.sigItemChanged.connect(self._itemChanged)
 
     def _itemChanged(self, event):
-        """Handle visibility change"""
-        if event in (items.ItemChangedType.VISIBLE,
-                     items.Item3DChangedType.LABEL):
+        """Handle model update upon change"""
+        if event in self._EVENTS:
             model = self.model()
             if model is not None:
-                index = self.index(column=1)
+                index = self.index(column=0)
                 model.dataChanged.emit(index, index)
 
     def item(self):
@@ -268,7 +354,7 @@ class Item3DRow(BaseRow):
         return 2
 
 
-class DataItem3DBoundingBoxRow(ProxyRow):
+class DataItem3DBoundingBoxRow(ItemProxyRow):
     """Represents :class:`DataItem3D` bounding box visibility
 
     :param DataItem3D item: The item for which to display/control bounding box
@@ -276,13 +362,14 @@ class DataItem3DBoundingBoxRow(ProxyRow):
 
     def __init__(self, item):
         super(DataItem3DBoundingBoxRow, self).__init__(
+            item=item,
             name='Bounding box',
             fget=item.isBoundingBoxVisible,
             fset=item.setBoundingBoxVisible,
-            notify=item.sigItemChanged)
+            events=items.Item3DChangedType.BOUNDING_BOX_VISIBLE)
 
 
-class MatrixProxyRow(ProxyRow):
+class MatrixProxyRow(ItemProxyRow):
     """Proxy for a row of a DataItem3D 3x3 matrix transform
 
     :param DataItem3D item:
@@ -294,10 +381,11 @@ class MatrixProxyRow(ProxyRow):
         self._index = index
 
         super(MatrixProxyRow, self).__init__(
+            item=item,
             name='',
             fget=self._getMatrixRow,
             fset=self._setMatrixRow,
-            notify=item.sigItemChanged)
+            events=items.Item3DChangedType.TRANSFORM)
 
     def _getMatrixRow(self):
         """Returns the matrix row.
@@ -344,11 +432,13 @@ class DataItem3DTransformRow(StaticRow):
         super(DataItem3DTransformRow, self).__init__(('Transform', None))
         self._item = weakref.ref(item)
 
-        translation = ProxyRow(name='Translation',
-                               fget=item.getTranslation,
-                               fset=self._setTranslation,
-                               notify=item.sigItemChanged,
-                               toModelData=lambda data: qt.QVector3D(*data))
+        translation = ItemProxyRow(
+            item=item,
+            name='Translation',
+            fget=item.getTranslation,
+            fset=self._setTranslation,
+            events=items.Item3DChangedType.TRANSFORM,
+            toModelData=lambda data: qt.QVector3D(*data))
         self.addRow(translation)
 
         # Here to keep a reference
@@ -359,51 +449,60 @@ class DataItem3DTransformRow(StaticRow):
         rotateCenter = StaticRow(
             ('Center', None),
             children=(
-                ProxyRow(name='X axis',
-                         fget=item.getRotationCenter,
-                         fset=self._xSetCenter,
-                         notify=item.sigItemChanged,
-                         toModelData=functools.partial(
-                             self._centerToModelData, index=0),
-                         editorHint=self._ROTATION_CENTER_OPTIONS),
-                ProxyRow(name='Y axis',
-                         fget=item.getRotationCenter,
-                         fset=self._ySetCenter,
-                         notify=item.sigItemChanged,
-                         toModelData=functools.partial(
-                             self._centerToModelData, index=1),
-                         editorHint=self._ROTATION_CENTER_OPTIONS),
-                ProxyRow(name='Z axis',
-                         fget=item.getRotationCenter,
-                         fset=self._zSetCenter,
-                         notify=item.sigItemChanged,
-                         toModelData=functools.partial(
-                             self._centerToModelData, index=2),
-                         editorHint=self._ROTATION_CENTER_OPTIONS),
+                ItemProxyRow(item=item,
+                             name='X axis',
+                             fget=item.getRotationCenter,
+                             fset=self._xSetCenter,
+                             events=items.Item3DChangedType.TRANSFORM,
+                             toModelData=functools.partial(
+                                 self._centerToModelData, index=0),
+                             editorHint=self._ROTATION_CENTER_OPTIONS),
+                ItemProxyRow(item=item,
+                             name='Y axis',
+                             fget=item.getRotationCenter,
+                             fset=self._ySetCenter,
+                             events=items.Item3DChangedType.TRANSFORM,
+                             toModelData=functools.partial(
+                                 self._centerToModelData, index=1),
+                             editorHint=self._ROTATION_CENTER_OPTIONS),
+                ItemProxyRow(item=item,
+                             name='Z axis',
+                             fget=item.getRotationCenter,
+                             fset=self._zSetCenter,
+                             events=items.Item3DChangedType.TRANSFORM,
+                             toModelData=functools.partial(
+                                 self._centerToModelData, index=2),
+                             editorHint=self._ROTATION_CENTER_OPTIONS),
             ))
 
         rotate = StaticRow(
             ('Rotation', None),
             children=(
-                AngleDegreeRow(name='Angle',
-                               fget=item.getRotation,
-                               fset=self._setAngle,
-                               notify=item.sigItemChanged,
-                               toModelData=lambda data: data[0]),
-                ProxyRow(name='Axis',
-                         fget=item.getRotation,
-                         fset=self._setAxis,
-                         notify=item.sigItemChanged,
-                         toModelData=lambda data: qt.QVector3D(*data[1])),
+                ItemAngleDegreeRow(
+                    item=item,
+                    name='Angle',
+                    fget=item.getRotation,
+                    fset=self._setAngle,
+                    events=items.Item3DChangedType.TRANSFORM,
+                    toModelData=lambda data: data[0]),
+                ItemProxyRow(
+                    item=item,
+                    name='Axis',
+                    fget=item.getRotation,
+                    fset=self._setAxis,
+                    events=items.Item3DChangedType.TRANSFORM,
+                    toModelData=lambda data: qt.QVector3D(*data[1])),
                 rotateCenter
             ))
         self.addRow(rotate)
 
-        scale = ProxyRow(name='Scale',
-                         fget=item.getScale,
-                         fset=self._setScale,
-                         notify=item.sigItemChanged,
-                         toModelData=lambda data: qt.QVector3D(*data))
+        scale = ItemProxyRow(
+            item=item,
+            name='Scale',
+            fget=item.getScale,
+            fset=self._setScale,
+            events=items.Item3DChangedType.TRANSFORM,
+            toModelData=lambda data: qt.QVector3D(*data))
         self.addRow(scale)
 
         matrix = StaticRow(
@@ -545,7 +644,7 @@ class GroupItemRow(Item3DRow):
             raise RuntimeError("Model does not correspond to scene content")
 
 
-class InterpolationRow(ProxyRow):
+class InterpolationRow(ItemProxyRow):
     """Represents :class:`InterpolationMixIn` property.
 
     :param Item3D item: Scene item with interpolation property
@@ -554,10 +653,11 @@ class InterpolationRow(ProxyRow):
     def __init__(self, item):
         modes = [mode.title() for mode in item.INTERPOLATION_MODES]
         super(InterpolationRow, self).__init__(
+            item=item,
             name='Interpolation',
             fget=item.getInterpolation,
             fset=item.setInterpolation,
-            notify=item.sigItemChanged,
+            events=items.Item3DChangedType.INTERPOLATION,
             toModelData=lambda mode: mode.title(),
             fromModelData=lambda mode: mode.lower(),
             editorHint=modes)
@@ -817,7 +917,7 @@ class ColormapRow(_ColormapBaseProxyRow):
         return super(ColormapRow, self).data(column, role)
 
 
-class SymbolRow(ProxyRow):
+class SymbolRow(ItemProxyRow):
     """Represents :class:`SymbolMixIn` symbol property.
 
     :param Item3D item: Scene item with symbol property
@@ -826,14 +926,15 @@ class SymbolRow(ProxyRow):
     def __init__(self, item):
         names = [item.getSymbolName(s) for s in item.getSupportedSymbols()]
         super(SymbolRow, self).__init__(
-             name='Marker',
-             fget=item.getSymbolName,
-             fset=item.setSymbol,
-             notify=item.sigItemChanged,
-             editorHint=names)
+            item=item,
+            name='Marker',
+            fget=item.getSymbolName,
+            fset=item.setSymbol,
+            events=items.ItemChangedType.SYMBOL,
+            editorHint=names)
 
 
-class SymbolSizeRow(ProxyRow):
+class SymbolSizeRow(ItemProxyRow):
     """Represents :class:`SymbolMixIn` symbol size property.
 
     :param Item3D item: Scene item with symbol size property
@@ -841,25 +942,27 @@ class SymbolSizeRow(ProxyRow):
 
     def __init__(self, item):
         super(SymbolSizeRow, self).__init__(
+            item=item,
             name='Marker size',
             fget=item.getSymbolSize,
             fset=item.setSymbolSize,
-            notify=item.sigItemChanged,
+            events=items.ItemChangedType.SYMBOL_SIZE,
             editorHint=(1, 20))  # TODO link with OpenGL max point size
 
 
-class PlaneRow(ProxyRow):
-    """Represents :class:`PlaneMixIn` property.
+class PlaneEquationRow(ItemProxyRow):
+    """Represents :class:`PlaneMixIn` as plane equation.
 
     :param Item3D item: Scene item with plane equation property
     """
 
     def __init__(self, item):
-        super(PlaneRow, self).__init__(
+        super(PlaneEquationRow, self).__init__(
+            item=item,
             name='Equation',
             fget=item.getParameters,
             fset=item.setParameters,
-            notify=item.sigItemChanged,
+            events=items.ItemChangedType.POSITION,
             toModelData=lambda data: qt.QVector4D(*data),
             fromModelData=lambda data: (data.x(), data.y(), data.z(), data.w()))
         self._item = weakref.ref(item)
@@ -871,7 +974,99 @@ class PlaneRow(ProxyRow):
                 params = item.getParameters()
                 return ('%gx %+gy %+gz %+g = 0' %
                         (params[0], params[1], params[2], params[3]))
-        return super(PlaneRow, self).data(column, role)
+        return super(PlaneEquationRow, self).data(column, role)
+
+
+class PlaneRow(ItemProxyRow):
+    """Represents :class:`PlaneMixIn` property.
+
+    :param Item3D item: Scene item with plane equation property
+    """
+
+    _PLANES = OrderedDict((('Plane 0', (1., 0., 0.)),
+                           ('Plane 1', (0., 1., 0.)),
+                           ('Plane 2', (0., 0., 1.)),
+                           ('-', None)))
+    """Mapping of plane names to normals"""
+
+    _PLANE_ICONS = {'Plane 0': '3d-plane-normal-x',
+                    'Plane 1': '3d-plane-normal-y',
+                    'Plane 2': '3d-plane-normal-z',
+                    '-': '3d-plane'}
+    """Mapping of plane names to normals"""
+
+    def __init__(self, item):
+        super(PlaneRow, self).__init__(
+            item=item,
+            name='Plane',
+            fget=self.__getPlaneName,
+            fset=self.__setPlaneName,
+            events=items.ItemChangedType.POSITION,
+            editorHint=tuple(self._PLANES.keys()))
+        self._item = weakref.ref(item)
+        self._lastName = None
+
+        self.addRow(PlaneEquationRow(item))
+
+    def _notified(self, *args, **kwargs):
+        """Handle notification of modification
+
+        Here only send if plane name actually changed
+        """
+        if self._lastName != self.__getPlaneName():
+            super(PlaneRow, self)._notified()
+
+    def __getPlaneName(self):
+        """Returns name of plane // to axes or '-'
+
+        :rtype: str
+        """
+        item = self._item()
+        planeNormal = item.getNormal() if item is not None else None
+
+        for name, normal in self._PLANES.items():
+            if numpy.array_equal(planeNormal, normal):
+                return name
+        return '-'
+
+    def __setPlaneName(self, data):
+        """Set plane normal according to given plane name
+
+        :param str data: Selected plane name
+        """
+        item = self._item()
+        if item is not None:
+            for name, normal in self._PLANES.items():
+                if data == name and normal is not None:
+                    item.setNormal(normal)
+
+    def data(self, column, role):
+        if column == 1 and role == qt.Qt.DecorationRole:
+            return icons.getQIcon(self._PLANE_ICONS[self.__getPlaneName()])
+        data = super(PlaneRow, self).data(column, role)
+        if column == 1 and role == qt.Qt.DisplayRole:
+            self._lastName = data
+        return data
+
+
+class ComplexModeRow(ItemProxyRow):
+    """Represents :class:`items.ComplexMixIn` symbol property.
+
+    :param Item3D item: Scene item with symbol property
+    """
+
+    def __init__(self, item):
+        names = [m.value.replace('_', ' ').title()
+                 for m in item.supportedComplexModes()]
+        super(ComplexModeRow, self).__init__(
+            item=item,
+            name='Mode',
+            fget=item.getComplexMode,
+            fset=item.setComplexMode,
+            events=items.ItemChangedType.VISUALIZATION_MODE,
+            toModelData=lambda data: data.value.replace('_', ' ').title(),
+            fromModelData=lambda data: data.lower().replace(' ', '_'),
+            editorHint=names)
 
 
 class RemoveIsosurfaceRow(BaseRow):
@@ -923,9 +1118,9 @@ class RemoveIsosurfaceRow(BaseRow):
         """Handle Delete button clicked"""
         isosurface = self.isosurface()
         if isosurface is not None:
-            scalarField3D = isosurface.parent()
-            if scalarField3D is not None:
-                scalarField3D.removeIsosurface(isosurface)
+            volume = isosurface.parent()
+            if volume is not None:
+                volume.removeIsosurface(isosurface)
 
 
 class IsosurfaceRow(Item3DRow):
@@ -937,6 +1132,9 @@ class IsosurfaceRow(Item3DRow):
     _LEVEL_SLIDER_RANGE = 0, 1000
     """Range given as editor hint"""
 
+    _EVENTS = items.ItemChangedType.VISIBLE, items.ItemChangedType.COLOR
+    """Events for which to update the first column in the tree"""
+
     def __init__(self, item):
         super(IsosurfaceRow, self).__init__(item, name=item.getLevel())
 
@@ -944,24 +1142,27 @@ class IsosurfaceRow(Item3DRow):
 
         item.sigItemChanged.connect(self._levelChanged)
 
-        self.addRow(ProxyRow(
+        self.addRow(ItemProxyRow(
+            item=item,
             name='Level',
             fget=self._getValueForLevelSlider,
             fset=self._setLevelFromSliderValue,
-            notify=item.sigItemChanged,
+            events=items.Item3DChangedType.ISO_LEVEL,
             editorHint=self._LEVEL_SLIDER_RANGE))
 
-        self.addRow(ColorProxyRow(
+        self.addRow(ItemColorProxyRow(
+            item=item,
             name='Color',
             fget=self._rgbColor,
             fset=self._setRgbColor,
-            notify=item.sigItemChanged))
+            events=items.ItemChangedType.COLOR))
 
-        self.addRow(ProxyRow(
+        self.addRow(ItemProxyRow(
+            item=item,
             name='Opacity',
             fget=self._opacity,
             fset=self._setOpacity,
-            notify=item.sigItemChanged,
+            events=items.ItemChangedType.COLOR,
             editorHint=(0, 255)))
 
         self.addRow(RemoveIsosurfaceRow(item))
@@ -973,12 +1174,15 @@ class IsosurfaceRow(Item3DRow):
         """
         item = self.item()
         if item is not None:
-            scalarField3D = item.parent()
-            if scalarField3D is not None:
-                dataRange = scalarField3D.getDataRange()
+            volume = item.parent()
+            if volume is not None:
+                dataRange = volume.getDataRange()
                 if dataRange is not None:
                     dataMin, dataMax = dataRange[0], dataRange[-1]
-                    offset = (item.getLevel() - dataMin) / (dataMax - dataMin)
+                    if dataMax != dataMin:
+                        offset = (item.getLevel() - dataMin) / (dataMax - dataMin)
+                    else:
+                        offset = 0.
 
                     sliderMin, sliderMax = self._LEVEL_SLIDER_RANGE
                     value = sliderMin + (sliderMax - sliderMin) * offset
@@ -992,9 +1196,9 @@ class IsosurfaceRow(Item3DRow):
         """
         item = self.item()
         if item is not None:
-            scalarField3D = item.parent()
-            if scalarField3D is not None:
-                dataRange = scalarField3D.getDataRange()
+            volume = item.parent()
+            if volume is not None:
+                dataRange = volume.getDataRange()
                 if dataRange is not None:
                     sliderMin, sliderMax = self._LEVEL_SLIDER_RANGE
                     offset = (value - sliderMin) / (sliderMax - sliderMin)
@@ -1082,13 +1286,13 @@ class IsosurfaceRow(Item3DRow):
 class AddIsosurfaceRow(BaseRow):
     """Class for Isosurface create button
 
-    :param ScalarField3D scalarField3D:
-        The ScalarField3D item to attach the button to.
+    :param Union[ScalarField3D,ComplexField3D] volume:
+        The volume item to attach the button to.
     """
 
-    def __init__(self, scalarField3D):
+    def __init__(self, volume):
         super(AddIsosurfaceRow, self).__init__()
-        self._scalarField3D = weakref.ref(scalarField3D)
+        self._volume = weakref.ref(volume)
 
     def createEditor(self):
         """Specific editor factory provided to the model"""
@@ -1106,12 +1310,12 @@ class AddIsosurfaceRow(BaseRow):
         layout.addStretch(1)
         return editor
 
-    def scalarField3D(self):
-        """Returns the controlled ScalarField3D
+    def volume(self):
+        """Returns the controlled volume item
 
-        :rtype: ScalarField3D
+        :rtype: Union[ScalarField3D,ComplexField3D]
         """
-        return self._scalarField3D()
+        return self._volume()
 
     def data(self, column, role):
         if column == 0 and role == qt.Qt.UserRole:  # editor hint
@@ -1127,53 +1331,59 @@ class AddIsosurfaceRow(BaseRow):
 
     def _addClicked(self):
         """Handle Delete button clicked"""
-        scalarField3D = self.scalarField3D()
-        if scalarField3D is not None:
-            dataRange = scalarField3D.getDataRange()
+        volume = self.volume()
+        if volume is not None:
+            dataRange = volume.getDataRange()
             if dataRange is None:
                 dataRange = 0., 1.
 
-            scalarField3D.addIsosurface(
+            volume.addIsosurface(
                 numpy.mean((dataRange[0], dataRange[-1])),
                 '#0000FF')
 
 
-class ScalarField3DIsoSurfacesRow(StaticRow):
+class VolumeIsoSurfacesRow(StaticRow):
     """Represents  :class:`ScalarFieldView`'s isosurfaces
 
-    :param ScalarFieldView scalarField3D: ScalarFieldView to control
+    :param Union[ScalarField3D,ComplexField3D] volume:
+        Volume item to control
     """
 
-    def __init__(self, scalarField3D):
-        super(ScalarField3DIsoSurfacesRow, self).__init__(
+    def __init__(self, volume):
+        super(VolumeIsoSurfacesRow, self).__init__(
             ('Isosurfaces', None))
-        self._scalarField3D = weakref.ref(scalarField3D)
+        self._volume = weakref.ref(volume)
 
-        scalarField3D.sigIsosurfaceAdded.connect(self._isosurfaceAdded)
-        scalarField3D.sigIsosurfaceRemoved.connect(self._isosurfaceRemoved)
+        volume.sigIsosurfaceAdded.connect(self._isosurfaceAdded)
+        volume.sigIsosurfaceRemoved.connect(self._isosurfaceRemoved)
 
-        for item in scalarField3D.getIsosurfaces():
+        if isinstance(volume, items.ComplexMixIn):
+            self.addRow(ComplexModeRow(volume))
+
+        for item in volume.getIsosurfaces():
             self.addRow(nodeFromItem(item))
 
-        self.addRow(AddIsosurfaceRow(scalarField3D))
+        self.addRow(AddIsosurfaceRow(volume))
 
-    def scalarField3D(self):
-        """Returns the controlled ScalarField3D
+    def volume(self):
+        """Returns the controlled volume item
 
-        :rtype: ScalarField3D
+        :rtype: Union[ScalarField3D,ComplexField3D]
         """
-        return self._scalarField3D()
+        return self._volume()
 
     def _isosurfaceAdded(self, item):
         """Handle isosurface addition
 
         :param Isosurface item: added isosurface
         """
-        scalarField3D = self.scalarField3D()
-        if scalarField3D is None:
+        volume = self.volume()
+        if volume is None:
             return
 
-        row = scalarField3D.getIsosurfaces().index(item)
+        row = volume.getIsosurfaces().index(item)
+        if isinstance(volume, items.ComplexMixIn):
+            row += 1  # Offset for the ComplexModeRow
         self.addRow(nodeFromItem(item), row)
 
     def _isosurfaceRemoved(self, item):
@@ -1181,13 +1391,13 @@ class ScalarField3DIsoSurfacesRow(StaticRow):
 
         :param Isosurface item: removed isosurface
         """
-        scalarField3D = self.scalarField3D()
-        if scalarField3D is None:
+        volume = self.volume()
+        if volume is None:
             return
 
         # Find item
         for row in self.children():
-            if row.item() is item:
+            if isinstance(row, IsosurfaceRow) and row.item() is item:
                 self.removeRow(row)
                 break  # Got it
         else:
@@ -1267,7 +1477,7 @@ class Scatter2DSymbolSizeRow(Scatter2DPropertyMixInRow, SymbolSizeRow):
         Scatter2DPropertyMixInRow.__init__(self, item, 'symbolSize')
 
 
-class Scatter2DLineWidth(Scatter2DPropertyMixInRow, ProxyRow):
+class Scatter2DLineWidth(Scatter2DPropertyMixInRow, ItemProxyRow):
     """Specific class for Scatter2D symbol size.
 
     It is enabled/disabled according to visualization mode.
@@ -1277,12 +1487,13 @@ class Scatter2DLineWidth(Scatter2DPropertyMixInRow, ProxyRow):
 
     def __init__(self, item):
         # TODO link editorHint with OpenGL max line width
-        ProxyRow.__init__(self,
-                          name='Line width',
-                          fget=item.getLineWidth,
-                          fset=item.setLineWidth,
-                          notify=item.sigItemChanged,
-                          editorHint=(1, 10))
+        ItemProxyRow.__init__(self,
+                              item=item,
+                              name='Line width',
+                              fget=item.getLineWidth,
+                              fset=item.setLineWidth,
+                              events=items.ItemChangedType.LINE_WIDTH,
+                              editorHint=(1, 10))
         Scatter2DPropertyMixInRow.__init__(self, item, 'lineWidth')
 
 
@@ -1292,20 +1503,22 @@ def initScatter2DNode(node, item):
     :param Item3DRow node: The model node to setup
     :param Scatter2D item: The Scatter2D the node is representing
     """
-    node.addRow(ProxyRow(
+    node.addRow(ItemProxyRow(
+        item=item,
         name='Mode',
         fget=item.getVisualization,
         fset=item.setVisualization,
-        notify=item.sigItemChanged,
+        events=items.ItemChangedType.VISUALIZATION_MODE,
         editorHint=[m.title() for m in item.supportedVisualizations()],
         toModelData=lambda data: data.title(),
         fromModelData=lambda data: data.lower()))
 
-    node.addRow(ProxyRow(
+    node.addRow(ItemProxyRow(
+        item=item,
         name='Height map',
         fget=item.isHeightMap,
         fset=item.setHeightMap,
-        notify=item.sigItemChanged))
+        events=items.Item3DChangedType.HEIGHT_MAP))
 
     node.addRow(ColormapRow(item))
 
@@ -1315,39 +1528,44 @@ def initScatter2DNode(node, item):
     node.addRow(Scatter2DLineWidth(item))
 
 
-def initScalarField3DNode(node, item):
-    """Specific node init for ScalarField3D
+def initVolumeNode(node, item):
+    """Specific node init for volume items
 
     :param Item3DRow node: The model node to setup
-    :param ScalarField3D item: The ScalarField3D the node is representing
+    :param Union[ScalarField3D,ComplexField3D] item:
+        The volume item represented by the node
     """
     node.addRow(nodeFromItem(item.getCutPlanes()[0]))  # Add cut plane
-    node.addRow(ScalarField3DIsoSurfacesRow(item))
+    node.addRow(VolumeIsoSurfacesRow(item))
 
 
-def initScalarField3DCutPlaneNode(node, item):
-    """Specific node init for ScalarField3D CutPlane
+def initVolumeCutPlaneNode(node, item):
+    """Specific node init for volume CutPlane
 
     :param Item3DRow node: The model node to setup
     :param CutPlane item: The CutPlane the node is representing
     """
+    if isinstance(item, items.ComplexMixIn):
+        node.addRow(ComplexModeRow(item))
+
     node.addRow(PlaneRow(item))
 
     node.addRow(ColormapRow(item))
 
-    node.addRow(ProxyRow(
-        name='Values<=Min',
+    node.addRow(ItemProxyRow(
+        item=item,
+        name='Show <=Min',
         fget=item.getDisplayValuesBelowMin,
         fset=item.setDisplayValuesBelowMin,
-        notify=item.sigItemChanged))
+        events=items.ItemChangedType.ALPHA))
 
     node.addRow(InterpolationRow(item))
 
 
 NODE_SPECIFIC_INIT = [  # class, init(node, item)
     (items.Scatter2D, initScatter2DNode),
-    (items.ScalarField3D, initScalarField3DNode),
-    (CutPlane, initScalarField3DCutPlaneNode),
+    (items.ScalarField3D, initVolumeNode),
+    (CutPlane, initVolumeCutPlaneNode),
 ]
 """List of specific node init for different item class"""
 

@@ -6,7 +6,7 @@
 --only-binary numpy,h5py,scipy,PyQt4,PyQt5
 
 # Required dependencies (from setup.py install_requires)
-numpy >= 1.8
+numpy >= 1.12
 setuptools
 h5py
 fabio >= 0.7

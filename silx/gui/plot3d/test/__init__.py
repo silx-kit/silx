@@ -58,14 +58,18 @@ def suite():
     from ..tools.test import suite as toolsTestSuite
     from .testGL import suite as testGLSuite
     from .testScalarFieldView import suite as testScalarFieldViewSuite
+    from .testSceneWidget import suite as testSceneWidgetSuite
     from .testSceneWidgetPicking import suite as testSceneWidgetPickingSuite
+    from .testSceneWindow import suite as testSceneWindowSuite
     from .testStatsWidget import suite as testStatsWidgetSuite
 
     testsuite = unittest.TestSuite()
     testsuite.addTest(testGLSuite())
     testsuite.addTest(sceneTestSuite())
     testsuite.addTest(testScalarFieldViewSuite())
+    testsuite.addTest(testSceneWidgetSuite())
     testsuite.addTest(testSceneWidgetPickingSuite())
+    testsuite.addTest(testSceneWindowSuite())
     testsuite.addTest(toolsTestSuite())
     testsuite.addTest(testStatsWidgetSuite())
     return testsuite

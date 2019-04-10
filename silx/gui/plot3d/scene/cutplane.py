@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -79,19 +79,20 @@ class ColormapMesh3D(Geometry):
     uniform float alpha;
 
     $colormapDecl
-
-    $clippingDecl
+    $sceneDecl
     $lightingFunction
 
     void main(void)
     {
+        $scenePreCall(vCameraPosition);
+
         float value = texture3D(data, vTexCoords).r;
         vec4 color = $colormapCall(value);
         color.a = alpha;
 
-        $clippingCall(vCameraPosition);
-
         gl_FragColor = $lightingCall(color, vPosition, vNormal);
+
+        $scenePostCall(vCameraPosition);
     }
     """))
 
@@ -186,8 +187,9 @@ class ColormapMesh3D(Geometry):
 
     def renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
-            clippingDecl=ctx.clipper.fragDecl,
-            clippingCall=ctx.clipper.fragCall,
+            sceneDecl=ctx.fragDecl,
+            scenePreCall=ctx.fragCallPre,
+            scenePostCall=ctx.fragCallPost,
             lightingFunction=ctx.viewport.light.fragmentDef,
             lightingCall=ctx.viewport.light.fragmentCall,
             colormapDecl=self.colormap.decl,
@@ -216,7 +218,7 @@ class ColormapMesh3D(Geometry):
 
         gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
 
-        ctx.clipper.setupProgram(ctx, program)
+        ctx.setupProgram(program)
 
         self._texture.bind()
         self._draw(program)

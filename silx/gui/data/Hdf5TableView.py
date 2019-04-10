@@ -30,12 +30,14 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/07/2018"
+__date__ = "12/02/2019"
 
 import collections
 import functools
 import os.path
 import logging
+import h5py
+
 from silx.gui import qt
 import silx.io
 from .TextFormatter import TextFormatter
@@ -43,8 +45,6 @@ import silx.gui.hdf5
 from silx.gui.widgets import HierarchicalTableView
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
 from ..hdf5._utils import htmlFromDict
-
-import h5py
 
 
 _logger = logging.getLogger(__name__)
@@ -195,11 +195,9 @@ class _CellFilterAvailableData(_CellData):
     }
 
     def __init__(self, filterId):
-        import h5py.version
         if h5py.version.hdf5_version_tuple >= (1, 10, 2):
             # Previous versions only returns True if the filter was first used
             # to decode a dataset
-            import h5py.h5z
             self.__availability = h5py.h5z.filter_avail(filterId)
         else:
             self.__availability = "na"

@@ -1,6 +1,97 @@
 Change Log
 ==========
 
+0.11.0:
+-------
+
+ * Miscellaneous:
+
+    * Requires numpy version >= 1.12
+
+
+0.10.0: 2019/02/19
+------------------
+
+ * Graphical user interface:
+
+   * Plot:
+
+    * Add support of foreground color
+    * Fix plot background colors
+    * Add tool to mask ellipse
+    * StatsWidget:
+
+     * Add support for plot3D widgets
+     * Add a PyMca like widget
+
+    * `Colormap`: Phase colormap is now editable
+    * `ImageView`: Add ColorBarWidget
+    * `PrintPreview`:
+
+     * Add API to define 'comment' and 'title'
+     * Fix resizing in PyQt5
+
+    * Selection: Allow style definition
+    * `ColormapDialog`: display 'values' plot in log if colormap uses log
+    * Synchronize ColorBar with plot background colors
+    * `CurvesROIWidget`: ROI is now an object.
+
+   * Plot3D:
+
+    * `SceneWidget`: add ColormapMesh item
+    * Add compatibility with the StatsWidget to display statistic on 3D volumes.
+    * Add `ScalarFieldView.get|setOuterScale`
+    * Fix label update in param tree
+    * Add `ColormapMesh` item to the `SceneWidget`
+
+   * HDF5 tree:
+
+    * Allow URI drop
+    * Robustness of hdf5 tree with corrupted files
+
+   * `silx.gui.widgets`:
+
+    * Add URL selection table
+
+ * Input/output:
+
+   * Support compressed Fabio extensions
+   * Add a function to create external dataset for .vol file
+
+ * `silx view`:
+
+    * Support 2D view for 3D NXData
+    * Add a NXdata for complex images
+    * Add a 3d scalar field view to the NXdata views zoo
+    * Improve shortcuts, view loading
+    * Improve silx view loading, shortcuts and sliders ergonomy
+    * Support default attribute pointing to an NXdata at any group level
+
+ * `silx convert`
+
+    * Allow to use a filter id for compression
+
+ * Math:
+
+    * fft: multibackend fft
+
+ * OpenCL:
+
+    * Compute statistics on a numpy.ndarray
+    * Backprojection:
+
+     * Add sinogram filters (SinoFilter)
+     * Input and/or output can be device arrays.
+
+ * Miscellaneous:
+
+    * End of PySide support (use PyQt5)
+    * Last version supporting numpy 1.8.0. Next version will drop support for numpy < 1.12
+    * Python 2.7 support will be dropped before end 2019. From version 0.11, a deprecation warning will be issued.
+    * Remove some old deprecated methods/arguments
+    * Set Cython language_level to 3
+
+
 0.9.0: 2018/10/23
 -----------------
 

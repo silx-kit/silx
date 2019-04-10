@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ class Config(object):
     DEFAULT_COLORMAP_NAME = 'gray'
     """Default LUT for the plot widgets.
 
-    The available list of names are availaible in the module
+    The available list of names are available in the module
     :module:`silx.gui.colors`.
 
     .. versionadded:: 0.8
@@ -108,4 +108,39 @@ class Config(object):
     - :class:`silx.gui.plot.PlotWidget`
 
     .. versionadded:: 0.9
+    """
+
+    DEFAULT_PLOT_CURVE_SYMBOL_MODE = False
+    """Whether to display curves with markers or not by default in PlotWidget.
+
+    It will have an influence on PlotWidget curve items.
+
+    .. versionadded:: 0.10
+    """
+
+    DEFAULT_PLOT_SYMBOL = 'o'
+    """Default marker of the item.
+
+    It will have an influence on PlotWidget items
+
+    Supported symbols:
+    
+        - 'o', 'Circle'
+        - 'd', 'Diamond'
+        - 's', 'Square'
+        - '+', 'Plus'
+        - 'x', 'Cross'
+        - '.', 'Point'
+        - ',', 'Pixel'
+        - '',  'None'
+
+    .. versionadded:: 0.10
+    """
+
+    DEFAULT_PLOT_SYMBOL_SIZE = 6.0
+    """Default marker size of the item.
+
+    It will have an influence on PlotWidget items
+
+    .. versionadded:: 0.10
     """

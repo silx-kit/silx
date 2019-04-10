@@ -26,19 +26,15 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "08/03/2019"
 
 
 import os
 import unittest
 import shutil
-import socket
 import tempfile
 
-import six
-
 import silx.resources
-from .utils import utilstest
 
 
 class TestResources(unittest.TestCase):
@@ -191,63 +187,12 @@ class TestResourcesWithCustomDirectory(TestResources):
         super(TestResourcesWithCustomDirectory, cls).tearDownClass()
 
 
-def isSilxWebsiteAvailable():
-    try:
-        six.moves.urllib.request.urlopen('http://www.silx.org', timeout=1)
-        return True
-    except six.moves.urllib.error.URLError:
-        return False
-    except socket.timeout:
-        # This exception is still received in Python 2.7
-        return False
-
-
-class TestExternalResources(unittest.TestCase):
-    """This is a test for the ExternalResources"""
-
-    @classmethod
-    def setUpClass(cls):
-        if not isSilxWebsiteAvailable():
-            raise unittest.SkipTest("Network or silx website not available")
-
-    def setUp(self):
-        self.utilstest = silx.resources.ExternalResources("toto", "http://www.silx.org/pub/silx/")
-
-    def tearDown(self):
-        if self.utilstest.data_home:
-            shutil.rmtree(self.utilstest.data_home)
-        self.utilstest = None
-
-    def test_download(self):
-        "test the download from silx.org"
-        f = self.utilstest.getfile("lena.png")
-        self.assertTrue(os.path.exists(f))
-        di = utilstest.getdir("source.tar.gz")
-        for fi in di:
-            self.assertTrue(os.path.exists(fi))
-
-    def test_download_all(self):
-        "test the download of all files from silx.org"
-        filename = self.utilstest.getfile("lena.png")
-        directory = "source.tar.gz"
-        _filelist = self.utilstest.getdir(directory)
-        # download file and remove it to create a json mapping file
-        os.remove(filename)
-        directory_path = os.path.join(self.utilstest.data_home, "source")
-        shutil.rmtree(directory_path)
-        directory_path = os.path.join(self.utilstest.data_home, directory)
-        os.remove(directory_path)
-        filelist = self.utilstest.download_all()
-        self.assertGreater(len(filelist), 1, "At least 2 items were downloaded")
-
-
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
     test_suite.addTest(loadTests(TestResources))
     test_suite.addTest(loadTests(TestResourcesWithoutPkgResources))
     test_suite.addTest(loadTests(TestResourcesWithCustomDirectory))
-    test_suite.addTest(loadTests(TestExternalResources))
     return test_suite
 
 

@@ -75,6 +75,8 @@ Available icons
      - compare-align-stretch
    * - |compare-keypoints|
      - compare-keypoints
+   * - |compare-mode-a-minus-b|
+     - compare-mode-a-minus-b
    * - |compare-mode-a|
      - compare-mode-a
    * - |compare-mode-b|
@@ -215,6 +217,8 @@ Available icons
      - nxdata-remove
    * - |pan|
      - pan
+   * - |pick|
+     - pick
    * - |pixel-intensities|
      - pixel-intensities
    * - |plot-grid|
@@ -370,6 +374,7 @@ Available icons
 .. |compare-align-origin| image:: ../../../../silx/resources/gui/icons/compare-align-origin.png
 .. |compare-align-stretch| image:: ../../../../silx/resources/gui/icons/compare-align-stretch.png
 .. |compare-keypoints| image:: ../../../../silx/resources/gui/icons/compare-keypoints.png
+.. |compare-mode-a-minus-b| image:: ../../../../silx/resources/gui/icons/compare-mode-a-minus-b.png
 .. |compare-mode-a| image:: ../../../../silx/resources/gui/icons/compare-mode-a.png
 .. |compare-mode-b| image:: ../../../../silx/resources/gui/icons/compare-mode-b.png
 .. |compare-mode-hline| image:: ../../../../silx/resources/gui/icons/compare-mode-hline.png
@@ -440,6 +445,7 @@ Available icons
 .. |nxdata-create| image:: ../../../../silx/resources/gui/icons/nxdata-create.png
 .. |nxdata-remove| image:: ../../../../silx/resources/gui/icons/nxdata-remove.png
 .. |pan| image:: ../../../../silx/resources/gui/icons/pan.png
+.. |pick| image:: ../../../../silx/resources/gui/icons/pick.png
 .. |pixel-intensities| image:: ../../../../silx/resources/gui/icons/pixel-intensities.png
 .. |plot-grid| image:: ../../../../silx/resources/gui/icons/plot-grid.png
 .. |plot-roi-above| image:: ../../../../silx/resources/gui/icons/plot-roi-above.png

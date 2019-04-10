@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,7 @@ from .ScatterMaskToolsWidget import ScatterMaskToolsWidget
 
 from ..widgets.BoxLayoutDockWidget import BoxLayoutDockWidget
 from .. import qt, icons
+from ...utils.proxy import docstring
 
 
 _logger = logging.getLogger(__name__)
@@ -307,10 +308,9 @@ class ScatterView(qt.QMainWindow):
         self.getScatterItem().setData(
             x=x, y=y, value=value, xerror=xerror, yerror=yerror, alpha=alpha, copy=copy)
 
+    @docstring(items.Scatter)
     def getData(self, *args, **kwargs):
         return self.getScatterItem().getData(*args, **kwargs)
-
-    getData.__doc__ = items.Scatter.getData.__doc__
 
     def getScatterItem(self):
         """Returns the plot item displaying the scatter data.
@@ -329,27 +329,30 @@ class ScatterView(qt.QMainWindow):
 
     # Convenient proxies
 
+    @docstring(PlotWidget)
     def getXAxis(self, *args, **kwargs):
         return self.getPlotWidget().getXAxis(*args, **kwargs)
 
-    getXAxis.__doc__ = PlotWidget.getXAxis.__doc__
-
+    @docstring(PlotWidget)
     def getYAxis(self, *args, **kwargs):
         return self.getPlotWidget().getYAxis(*args, **kwargs)
 
-    getYAxis.__doc__ = PlotWidget.getYAxis.__doc__
-
+    @docstring(PlotWidget)
     def setGraphTitle(self, *args, **kwargs):
         return self.getPlotWidget().setGraphTitle(*args, **kwargs)
 
-    setGraphTitle.__doc__ = PlotWidget.setGraphTitle.__doc__
-
+    @docstring(PlotWidget)
     def getGraphTitle(self, *args, **kwargs):
         return self.getPlotWidget().getGraphTitle(*args, **kwargs)
 
-    getGraphTitle.__doc__ = PlotWidget.getGraphTitle.__doc__
-
+    @docstring(PlotWidget)
     def resetZoom(self, *args, **kwargs):
         return self.getPlotWidget().resetZoom(*args, **kwargs)
 
-    resetZoom.__doc__ = PlotWidget.resetZoom.__doc__
+    @docstring(ScatterMaskToolsWidget)
+    def getSelectionMask(self, *args, **kwargs):
+        return self.getMaskToolsWidget().getSelectionMask(*args, **kwargs)
+
+    @docstring(ScatterMaskToolsWidget)
+    def setSelectionMask(self, *args, **kwargs):
+        return self.getMaskToolsWidget().setSelectionMask(*args, **kwargs)

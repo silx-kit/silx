@@ -28,7 +28,7 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/12/2018"
+__date__ = "05/03/2019"
 
 
 import sys
@@ -468,9 +468,13 @@ class _FabioData(object):
     def shape(self):
         if self.__fabioFile.nframes == 0:
             return None
+        if self.__fabioFile.nframes == 1:
+            return [slice(None), slice(None)]
         return [self.__fabioFile.nframes, slice(None), slice(None)]
 
     def __getitem__(self, selector):
+        if self.__fabioFile.nframes == 1 and selector == tuple():
+            return self.__fabioFile.data
         if isinstance(selector, tuple) and len(selector) == 1:
             selector = selector[0]
 
@@ -542,6 +546,10 @@ class AbstractDataFileDialog(qt.QDialog):
     def _init(self):
         self.setWindowTitle("Open")
 
+        self.__openedFiles = []
+        """Store the list of files opened by the model itself."""
+        # FIXME: It should be managed one by one by Hdf5Item itself
+
         self.__directory = None
         self.__directoryLoadedFilter = None
         self.__errorWhileLoadingFile = None
@@ -590,10 +598,6 @@ class AbstractDataFileDialog(qt.QDialog):
         # Update the file model filter
         self.__fileTypeCombo.setCurrentIndex(0)
         self.__filterSelected(0)
-
-        self.__openedFiles = []
-        """Store the list of files opened by the model itself."""
-        # FIXME: It should be managed one by one by Hdf5Item itself
 
         # It is not possible to override the QObject destructor nor
         # to access to the content of the Python object with the `destroyed`
@@ -1040,13 +1044,12 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__processing += 1
         index = self.__fileModel.setRootPath(path)
         if not index.isValid():
+            # There is a problem with this path
+            # No asynchronous process will be waked up
             self.__processing -= 1
             self.__browser.setRootIndex(index, model=self.__fileModel)
             self.__clearData()
             self.__updatePath()
-        else:
-            # asynchronous process
-            pass
 
     def __directoryLoaded(self, path):
         if self.__directoryLoadedFilter is not None:
@@ -1233,6 +1236,7 @@ class AbstractDataFileDialog(qt.QDialog):
         if self.__previewWidget is not None:
             self.__previewWidget.setData(None)
         if self.__selectorWidget is not None:
+            self.__selectorWidget.setData(None)
             self.__selectorWidget.hide()
         self.__selectedData = None
         self.__data = None
@@ -1250,6 +1254,8 @@ class AbstractDataFileDialog(qt.QDialog):
         If :meth:`_isDataSupported` returns false, this function will be
         inhibited and no data will be selected.
         """
+        if isinstance(data, _FabioData):
+            data = data[()]
         if self.__previewWidget is not None:
             fromDataSelector = self.__selectedData is not None
             self.__previewWidget.setData(data, fromDataSelector=fromDataSelector)
@@ -1317,8 +1323,10 @@ class AbstractDataFileDialog(qt.QDialog):
             filename = ""
             dataPath = None
 
-        if useSelectorWidget and self.__selectorWidget is not None and self.__selectorWidget.isVisible():
+        if useSelectorWidget and self.__selectorWidget is not None and self.__selectorWidget.isUsed():
             slicing = self.__selectorWidget.slicing()
+            if slicing == tuple():
+                slicing = None
         else:
             slicing = None
 
@@ -1483,9 +1491,7 @@ class AbstractDataFileDialog(qt.QDialog):
                     self.__clearData()
 
                 if self.__selectorWidget is not None:
-                    self.__selectorWidget.setVisible(url.data_slice() is not None)
-                    if url.data_slice() is not None:
-                        self.__selectorWidget.setSlicing(url.data_slice())
+                    self.__selectorWidget.selectSlicing(url.data_slice())
             else:
                 self.__errorWhileLoadingFile = (url.file_path(), "File not found")
                 self.__clearData()

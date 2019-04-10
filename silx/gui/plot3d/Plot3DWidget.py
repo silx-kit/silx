@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 
+import enum
 import logging
 
 from silx.gui import qt
@@ -106,6 +107,39 @@ class Plot3DWidget(glu.OpenGLWidget):
     It provides the updated property.
     """
 
+    sigSceneClicked = qt.Signal(float, float)
+    """Signal emitted when the scene is clicked with the left mouse button.
+
+    It provides the (x, y) clicked mouse position
+    """
+
+    @enum.unique
+    class FogMode(enum.Enum):
+        """Different mode to render the scene with fog"""
+
+        NONE = 'none'
+        """No fog effect"""
+
+        LINEAR = 'linear'
+        """Linear fog through the whole scene"""
+
+        @classmethod
+        def asMember(cls, value):
+            """Convert a str to corresponding enum member
+
+            :param Union[str,FogMode] value: The value to convert
+            :return: The corresponding enum member
+            :rtype: FogMode
+            :raise ValueError: In case the conversion is not possible
+            """
+            if isinstance(value, cls):
+                return value
+            value = str(value)
+            for member in cls:
+                if value == member.value:
+                    return member
+            raise ValueError("Cannot convert: %s" % value)
+
     def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
         self._firstRender = True
 
@@ -146,6 +180,11 @@ class Plot3DWidget(glu.OpenGLWidget):
         self.eventHandler = None
         self.setInteractiveMode('rotate')
 
+    def __clickHandler(self, *args):
+        """Handle interaction state machine click"""
+        x, y = args[0][:2]
+        self.sigSceneClicked.emit(x, y)
+
     def setInteractiveMode(self, mode):
         """Set the interactive mode.
 
@@ -163,7 +202,7 @@ class Plot3DWidget(glu.OpenGLWidget):
                 orbitAroundCenter=False,
                 mode='position',
                 scaleTransform=self._sceneScale,
-                selectCB=None)
+                selectCB=self.__clickHandler)
 
         elif mode == 'pan':
             self.eventHandler = interaction.PanCameraControl(
@@ -171,7 +210,7 @@ class Plot3DWidget(glu.OpenGLWidget):
                 orbitAroundCenter=False,
                 mode='position',
                 scaleTransform=self._sceneScale,
-                selectCB=None)
+                selectCB=self.__clickHandler)
 
         elif isinstance(mode, interaction.StateMachine):
             self.eventHandler = mode
@@ -243,6 +282,28 @@ class Plot3DWidget(glu.OpenGLWidget):
     def getBackgroundColor(self):
         """Returns the RGBA background color (QColor)."""
         return qt.QColor.fromRgbF(*self.viewport.background)
+
+    def setFogMode(self, mode):
+        """Set the kind of fog to use for the whole scene.
+
+        :param Union[str,FogMode] mode: The mode to use
+        :raise ValueError: If mode is not supported
+        """
+        mode = self.FogMode.asMember(mode)
+        if mode != self.getFogMode():
+            self.viewport.fog.isOn = mode is self.FogMode.LINEAR
+            self.sigStyleChanged.emit('fogMode')
+
+    def getFogMode(self):
+        """Returns the kind of fog in use
+
+        :return: The kind of fog in use
+        :rtype: FogMode
+        """
+        if self.viewport.fog.isOn:
+            return self.FogMode.LINEAR
+        else:
+            return self.FogMode.NONE
 
     def isOrientationIndicatorVisible(self):
         """Returns True if the orientation indicator is displayed.
