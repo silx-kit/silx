@@ -60,6 +60,9 @@ class UpdateMode(enum.Enum):
     auto = 0
     manual = 1
 
+    @classmethod
+    def list(cls):
+        return list(map(lambda c: c.name, cls))
 
 # Helper class to handle specific calls to PlotWidget and SceneWidget
 
@@ -521,12 +524,19 @@ class _StatsWidgetBase(object):
         """
 
         :param mode: mode requested for update
-        :type mode: `.UpdateMode`
+        :type mode: Union[str, `.UpdateMode`]
         """
-        assert mode in UpdateMode
-        if mode != self._updateMode:
-            self._updateMode = mode
-            self.sigUpdateModeChanged.emit(mode)
+        _mode = mode
+        if type(mode) is str:
+            try:
+                _mode = getattr(UpdateMode, _mode)
+            except:
+                raise ValueError('Unrecognized update mode', mode,
+                                 'valid update mode are', UpdateMode.list())
+        assert _mode in UpdateMode
+        if _mode != self._updateMode:
+            self._updateMode = _mode
+            self.sigUpdateModeChanged.emit(_mode)
 
     def getUpdateMode(self):
         return self._updateMode

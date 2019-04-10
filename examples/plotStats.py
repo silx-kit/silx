@@ -46,7 +46,47 @@ from silx.gui import qt
 from silx.gui.colors import Colormap
 from silx.gui.plot import Plot1D
 from silx.gui.plot.stats.stats import StatBase
+from silx.gui.plot.StatsWidget import UpdateMode
+from silx.gui.utils import concurrent
+import random
+import threading
+import argparse
 import numpy
+import time
+
+
+class UpdateThread(threading.Thread):
+    """Thread updating the curve of a :class:`~silx.gui.plot.Plot1D`
+
+    :param plot1d: The Plot1D to update."""
+
+    def __init__(self, plot1d):
+        self.plot1d = plot1d
+        self.running = False
+        super(UpdateThread, self).__init__()
+
+    def start(self):
+        """Start the update thread"""
+        self.running = True
+        super(UpdateThread, self).start()
+
+    def run(self):
+        """Method implementing thread loop that updates the plot"""
+        while self.running:
+            time.sleep(1)
+            # Run plot update asynchronously
+            concurrent.submitToQtMainThread(
+                self.plot1d.addCurve,
+                numpy.arange(1000),
+                numpy.random.random(1000),
+                resetzoom=False,
+                legend=random.choice(('mycurve0', 'mycurve1'))
+            )
+
+    def stop(self):
+        """Stop the update thread"""
+        self.running = False
+        self.join(2)
 
 
 class Integral(StatBase):
@@ -88,17 +128,22 @@ class COM(StatBase):
                 return comX, comY
 
 
-def main():
+def main(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--update-mode',
+        default='manual',
+        help='update mode to display (manual or automatic)')
+
+    options = parser.parse_args(argv[1:])
+
     app = qt.QApplication([])
 
     plot = Plot1D()
 
-    x = numpy.arange(21)
-    y = numpy.arange(21)
-    plot.addCurve(x=x, y=y, legend='myCurve')
-    plot.addCurve(x=x, y=(y + 5), legend='myCurve2')
-
-    plot.setActiveCurve('myCurve')
+    # Create the thread that calls submitToQtMainThread
+    updateThread = UpdateThread(plot)
+    updateThread.start()  # Start updating the plot
 
     plot.addScatter(x=[0, 2, 5, 5, 12, 20],
                     y=[2, 3, 4, 20, 15, 6],
@@ -113,11 +158,14 @@ def main():
     ]
 
     plot.getStatsWidget().setStats(stats)
+    plot.getStatsWidget().setUpdateMode(options.update_mode)
+    plot.getStatsWidget().setDisplayOnlyActiveItem(False)
     plot.getStatsWidget().parent().setVisible(True)
 
     plot.show()
     app.exec_()
+    updateThread.stop()  # Stop updating the plot
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
