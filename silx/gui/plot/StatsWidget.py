@@ -36,6 +36,7 @@ from contextlib import contextmanager
 import logging
 import weakref
 import enum
+import functools
 
 import numpy
 
@@ -52,6 +53,12 @@ from . import items as plotitems
 
 
 _logger = logging.getLogger(__name__)
+
+
+@enum.unique
+class UpdateMode(enum.Enum):
+    auto = 0
+    manual = 1
 
 
 # Helper class to handle specific calls to PlotWidget and SceneWidget
@@ -321,10 +328,15 @@ class _StatsWidgetBase(object):
     """
     Base class for all widgets which want to display statistics
     """
+
+    sigUpdateModeChanged = qt.Signal(UpdateMode)
+    """Signal emitted when the update mode changed"""
+
     def __init__(self, statsOnVisibleData, displayOnlyActItem):
         self._displayOnlyActItem = displayOnlyActItem
         self._statsOnVisibleData = statsOnVisibleData
         self._statsHandler = None
+        self._updateMode = UpdateMode.auto
 
         self.__default_skipped_events = (
             ItemChangedType.ALPHA,
@@ -505,6 +517,20 @@ class _StatsWidgetBase(object):
         """
         return event in self.__default_skipped_events
 
+    def setUpdateMode(self, mode):
+        """
+
+        :param mode: mode requested for update
+        :type mode: `.UpdateMode`
+        """
+        assert mode in UpdateMode
+        if mode != self._updateMode:
+            self._updateMode = mode
+            self.sigUpdateModeChanged.emit(mode)
+
+    def getUpdateMode(self):
+        return self._updateMode
+
 
 class StatsTable(_StatsWidgetBase, TableWidget):
     """
@@ -608,6 +634,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
+        if self.getUpdateMode() is UpdateMode.manual:
+            return
         self._removeAllItems()
 
         # Get selected or all items from the plot
@@ -680,6 +708,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
         :param event:
         """
+        if self.getUpdateMode() is UpdateMode.manual:
+            return
         if self._skipPlotItemChangedEvent(event) is True:
             return
         else:
@@ -812,8 +842,13 @@ class StatsTable(_StatsWidgetBase, TableWidget):
                     else:
                         tableItem.setText(str(value))
 
-    def _updateAllStats(self):
-        """Update stats for all rows in the table"""
+    def _updateAllStats(self, is_request=False):
+        """Update stats for all rows in the table
+
+        :param bool is_request: True if come from a manual request
+        """
+        if self.getUpdateMode() is UpdateMode.manual and not is_request:
+            return
         with self._disableSorting():
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
@@ -856,7 +891,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
 class _OptionsWidget(qt.QToolBar):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, updateMode=None):
+        assert updateMode is not None
         qt.QToolBar.__init__(self, parent)
         self.setIconSize(qt.QSize(16, 16))
 
@@ -911,6 +947,19 @@ class _OptionsWidget(qt.QToolBar):
         self.dataRangeSelection.addAction(self.__useWholeData)
         self.dataRangeSelection.addAction(self.__useVisibleData)
 
+        self.__updateStatsAction = qt.QAction(self)
+        self.__updateStatsAction.setIcon(icons.getQIcon("view-refresh"))
+        self.__updateStatsAction.setText("update statistics")
+        self.__updateStatsAction.setToolTip("update statistics")
+        self.__updateStatsAction.setCheckable(False)
+        self._updateStatsSep = self.addSeparator()
+        self.addAction(self.__updateStatsAction)
+
+        self._setUpdateMode(mode=updateMode)
+
+        # expose API
+        self.sigUpdateStats = self.__updateStatsAction.triggered
+
     def isActiveItemMode(self):
         return self.itemSelection.checkedAction() is self.__displayActiveItems
 
@@ -926,6 +975,18 @@ class _OptionsWidget(qt.QToolBar):
         self.__useVisibleData.setEnabled(enabled)
         if not enabled:
             self.__useWholeData.setChecked(True)
+
+    def _setUpdateMode(self, mode):
+        self.__updateStatsAction.setVisible(mode == UpdateMode.manual)
+        self._updateStatsSep.setVisible(mode == UpdateMode.manual)
+
+    def getUpdateStatsAction(self):
+        """
+
+        :return: the action for the automatic mode
+        :rtype: QAction
+        """
+        return self.__updateStatsAction
 
 
 class StatsWidget(qt.QWidget):
@@ -956,9 +1017,10 @@ class StatsWidget(qt.QWidget):
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self._options = _OptionsWidget(parent=self)
+        self._options = _OptionsWidget(parent=self, updateMode=UpdateMode.manual)
         self.layout().addWidget(self._options)
         self._statsTable = StatsTable(parent=self, plot=plot)
+        self._options._setUpdateMode(mode=self._statsTable.getUpdateMode())
         self.setStats(stats)
 
         self.layout().addWidget(self._statsTable)
@@ -969,6 +1031,14 @@ class StatsWidget(qt.QWidget):
             self._optDataRangeChanged)
         self._optSelectionChanged()
         self._optDataRangeChanged()
+
+        self._statsTable.sigUpdateModeChanged.connect(self._options._setUpdateMode)
+        callback = functools.partial(self._getStatsTable()._updateAllStats, is_request=True)
+        self._options.sigUpdateStats.connect(callback)
+
+        # expose API
+        self.getUpdateMode = self._statsTable.getUpdateMode
+        self.setUpdateMode = self._statsTable.setUpdateMode
 
     def _getStatsTable(self):
         """Returns the :class:`StatsTable` used by this widget.
@@ -1138,6 +1208,8 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         self._updateAllStats()
 
     def _activeItemChanged(self, kind, previous, current):
+        if self.getUpdateMode() is UpdateMode.manual:
+            return
         if kind == self._item_kind:
             self._updateAllStats()
 
@@ -1183,6 +1255,8 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
                     self._statQlineEdit[statName].setText(statVal)
 
     def _updateItemObserve(self, *argv):
+        if self.getUpdateMode() is UpdateMode.manual:
+            return
         assert self._displayOnlyActItem
         _items = self._plotWrapper.getSelectedItems()
         def kind_filter(_item):
@@ -1206,21 +1280,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         raise NotImplementedError('Display only the active item')
 
 
-class BasicLineStatsWidget(_BaseLineStatsWidget):
-    """
-    Widget defining a simple set of :class:`Stat` to be displayed on a
-    :class:`LineStatsWidget`.
-
-    :param QWidget parent: Qt parent
-    :param Union[PlotWidget,SceneWidget] plot:
-        The plot containing items on which we want statistics.
-    :param str kind: the kind of plotitems we want to display
-    :param StatsHandler stats:
-        Set the statistics to be displayed and how to format them using
-    :param bool statsOnVisibleData: compute statistics for the whole data or
-                                    only visible ones.
-    """
-
+class _BasicLineStatsWidget(_BaseLineStatsWidget):
     def __init__(self, parent=None, plot=None, kind='curve',
                  stats=DEFAULT_STATS, statsOnVisibleData=False):
         _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind,
@@ -1243,38 +1303,60 @@ class BasicLineStatsWidget(_BaseLineStatsWidget):
 
         self.layout().addWidget(widget)
 
+    def _addOptionsWidget(self, widget):
+        self.layout().addWidget(widget)
 
-class BasicGridStatsWidget(_BaseLineStatsWidget):
+
+class BasicLineStatsWidget(qt.QWidget):
     """
-    pymca design like widget
-    
+    Widget defining a simple set of :class:`Stat` to be displayed on a
+    :class:`LineStatsWidget`.
+
     :param QWidget parent: Qt parent
     :param Union[PlotWidget,SceneWidget] plot:
         The plot containing items on which we want statistics.
+    :param str kind: the kind of plotitems we want to display
     :param StatsHandler stats:
         Set the statistics to be displayed and how to format them using
-    :param str kind: the kind of plotitems we want to display
     :param bool statsOnVisibleData: compute statistics for the whole data or
                                     only visible ones.
-    :param int statsPerLine: number of statistic to be displayed per line
-
-    .. snapshotqt:: img/BasicGridStatsWidget.png
-     :width: 600px
-     :align: center
-
-     from silx.gui.plot import Plot1D
-     from silx.gui.plot.StatsWidget import BasicGridStatsWidget
-     
-     plot = Plot1D()
-     x = range(100)
-     y = x
-     plot.addCurve(x, y, legend='curve_0')
-     plot.setActiveCurve('curve_0')
-     
-     widget = BasicGridStatsWidget(plot=plot, kind='curve')
-     widget.show()
     """
+    def __init__(self, parent=None, plot=None, kind='curve',
+                 stats=DEFAULT_STATS, statsOnVisibleData=False):
+        qt.QWidget.__init__(self, parent)
+        self.setLayout(qt.QHBoxLayout())
+        self.layout().setSpacing(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self._lineStatsWidget = _BasicLineStatsWidget(parent=self, plot=plot,
+                                                      kind=kind, stats=stats,
+                                                      statsOnVisibleData=statsOnVisibleData)
+        self.layout().addWidget(self._lineStatsWidget)
 
+        self._options = UpdateModeWidget()
+        self._options.setUpdateMode(self._lineStatsWidget.getUpdateMode)
+        self._options.showRadioButtons(False)
+        self.layout().addWidget(self._options)
+
+        # expose API: TODO
+        # connect Signal ? SLOT
+        self._lineStatsWidget.sigUpdateModeChanged.connect(self._options.setUpdateMode)
+        self._options.sigUpdateModeChanged.connect(self._lineStatsWidget.setUpdateMode)
+        self._options.sigUpdateRequested.connect(self._lineStatsWidget._updateAllStats)
+
+        # expose API: TODO
+        self.setUpdateMode = self._lineStatsWidget.setUpdateMode
+        self.getUpdateMode = self._lineStatsWidget.getUpdateMode
+        self.setPlot = self._lineStatsWidget.setPlot
+        self.setStats = self._lineStatsWidget.setStats
+        self.setKind = self._lineStatsWidget.setKind
+        self.getKind = self._lineStatsWidget.getKind
+        self.showRadioButtons = self._options.showRadioButtons
+
+    def showControl(self, visible):
+        self._options.setVisible(visible)
+
+
+class _BasicGridStatsWidget(_BaseLineStatsWidget):
     def __init__(self, parent=None, plot=None, kind='curve',
                  stats=DEFAULT_STATS, statsOnVisibleData=False,
                  statsPerLine=4):
@@ -1293,10 +1375,73 @@ class BasicGridStatsWidget(_BaseLineStatsWidget):
         return qt.QGridLayout()
 
 
-@enum.unique
-class UpdateMode(enum.Enum):
-    auto = 0
-    manual = 1
+class BasicGridStatsWidget(qt.QWidget):
+    """
+    pymca design like widget
+
+    :param QWidget parent: Qt parent
+    :param Union[PlotWidget,SceneWidget] plot:
+        The plot containing items on which we want statistics.
+    :param StatsHandler stats:
+        Set the statistics to be displayed and how to format them using
+    :param str kind: the kind of plotitems we want to display
+    :param bool statsOnVisibleData: compute statistics for the whole data or
+                                    only visible ones.
+    :param int statsPerLine: number of statistic to be displayed per line
+
+    .. snapshotqt:: img/_BasicGridStatsWidget.png
+     :width: 600px
+     :align: center
+
+     from silx.gui.plot import Plot1D
+     from silx.gui.plot.StatsWidget import _BasicGridStatsWidget
+
+     plot = Plot1D()
+     x = range(100)
+     y = x
+     plot.addCurve(x, y, legend='curve_0')
+     plot.setActiveCurve('curve_0')
+
+     widget = _BasicGridStatsWidget(plot=plot, kind='curve')
+     widget.show()
+    """
+
+    def __init__(self, parent=None, plot=None, kind='curve',
+                 stats=DEFAULT_STATS, statsOnVisibleData=False):
+        qt.QWidget.__init__(self, parent)
+        self.setLayout(qt.QVBoxLayout())
+        self.layout().setSpacing(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        self._options = UpdateModeWidget()
+        self._options.showRadioButtons(False)
+        self.layout().addWidget(self._options)
+
+        self._lineStatsWidget = _BasicGridStatsWidget(parent=self, plot=plot,
+                                                      kind=kind, stats=stats,
+                                                      statsOnVisibleData=statsOnVisibleData)
+        self.layout().addWidget(self._lineStatsWidget)
+
+        # tune options
+        self._options.setUpdateMode(self._lineStatsWidget.getUpdateMode())
+
+        # connect Signal ? SLOT
+        self._lineStatsWidget.sigUpdateModeChanged.connect(self._options.setUpdateMode)
+        self._options.sigUpdateModeChanged.connect(self._lineStatsWidget.setUpdateMode)
+        self._options.sigUpdateRequested.connect(self._lineStatsWidget._updateAllStats)
+
+        # expose API: TODO
+        self.setUpdateMode = self._lineStatsWidget.setUpdateMode
+        self.getUpdateMode = self._lineStatsWidget.getUpdateMode
+        self.setPlot = self._lineStatsWidget.setPlot
+        self.setStats = self._lineStatsWidget.setStats
+        self.setStatsOnVisibleData = self._lineStatsWidget.setStatsOnVisibleData
+        self.setKind = self._lineStatsWidget.setKind
+        self.getKind = self._lineStatsWidget.getKind
+        self.showRadioButtons = self._options.showRadioButtons
+
+    def showControl(self, visible):
+        self._options.setVisible(visible)
 
 
 class UpdateModeWidget(qt.QWidget):
@@ -1308,21 +1453,26 @@ class UpdateModeWidget(qt.QWidget):
 
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
-        self.setLayout(qt.QGridLayout())
+        self.setLayout(qt.QHBoxLayout())
         self._buttonGrp = qt.QButtonGroup(parent=self)
         self._buttonGrp.setExclusive(True)
 
+        spacer = qt.QSpacerItem(20, 20,
+                                qt.QSizePolicy.Expanding,
+                                qt.QSizePolicy.Minimum)
+        self.layout().addItem(spacer)
+
         self._autoRB = qt.QRadioButton('auto', parent=self)
-        self.layout().addWidget(self._autoRB, 0, 0)
+        self.layout().addWidget(self._autoRB)
         self._buttonGrp.addButton(self._autoRB, UpdateMode.auto.value)
 
         self._manualRB = qt.QRadioButton('manual', parent=self)
-        self.layout().addWidget(self._manualRB, 1, 0)
+        self.layout().addWidget(self._manualRB)
         self._buttonGrp.addButton(self._manualRB, UpdateMode.manual.value)
 
         refresh_icon = icons.getQIcon('view-refresh')
-        self._updatePB = qt.QPushButton(refresh_icon, 'update', parent=self)
-        self.layout().addWidget(self._updatePB, 1, 1)
+        self._updatePB = qt.QPushButton(refresh_icon, '', parent=self)
+        self.layout().addWidget(self._updatePB)
 
         # connect signal / SLOT
         self._updatePB.clicked.connect(self._updateRequested)
@@ -1380,7 +1530,7 @@ class UpdateModeWidget(qt.QWidget):
         else:
             return None
 
-    def showGroupButtons(self, show):
+    def showRadioButtons(self, show):
         """show / hide the QRadioButtons
 
         :param bool show: if True make RadioButton visible
