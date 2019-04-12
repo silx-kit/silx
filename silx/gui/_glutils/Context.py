@@ -37,7 +37,7 @@ __date__ = "25/07/2016"
 
 
 def _defaultGLContextGetter():
-    return None
+    return 'none'
 
 _glContextGetter = _defaultGLContextGetter
 
@@ -49,7 +49,7 @@ def getCurrent():
     created in.
 
     :return: Platform specific OpenGL context
-    :rtype: None by default or a platform dependent object"""
+    :rtype: 'none' by default or a platform dependent object"""
     return _glContextGetter()
 
 
