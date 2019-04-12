@@ -33,6 +33,7 @@ __date__ = "21/12/2018"
 from collections import OrderedDict, namedtuple
 from ctypes import c_void_p
 import logging
+import weakref
 
 import numpy
 
@@ -304,15 +305,7 @@ _texFragShd = """
     }
     """
 
-
 # BackendOpenGL ###############################################################
-
-_current_context = None
-
-
-def _getContext():
-    assert _current_context is not None
-    return _current_context
 
 
 class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
@@ -348,7 +341,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             _baseVertShd, _baseFragShd, attrib0='position')
         self._progTex = glu.Program(
             _texVertShd, _texFragShd, attrib0='position')
-        self._plotFBOs = {}
+        self._plotFBOs = weakref.WeakKeyDictionary()
 
         self._keepDataAspectRatio = False
 
@@ -462,15 +455,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderOverlayGL()
 
     def _paintFBOGL(self):
-        context = glu.getGLContext()
+        context = glu.Context.getCurrent()
         plotFBOTex = self._plotFBOs.get(context)
         if (self._plot._getDirtyPlot() or self._plotFrame.isDirty or
                 plotFBOTex is None):
-            self._plotVertices = numpy.array(((-1., -1., 0., 0.),
-                                             (1., -1., 1., 0.),
-                                             (-1., 1., 0., 1.),
-                                             (1., 1., 1., 1.)),
-                                             dtype=numpy.float32)
+            self._plotVertices = (
+                # Vertex coordinates
+                numpy.array(((-1., -1.), (1., -1.), (-1., 1.), (1., 1.)),
+                             dtype=numpy.float32),
+                 # Texture coordinates
+                 numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
+                             dtype=numpy.float32))
             if plotFBOTex is None or \
                plotFBOTex.shape[1] != self._plotFrame.size[0] or \
                plotFBOTex.shape[0] != self._plotFrame.size[1]:
@@ -502,53 +497,45 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glUniformMatrix4fv(self._progTex.uniforms['matrix'], 1, gl.GL_TRUE,
                               mat4Identity().astype(numpy.float32))
 
-        stride = self._plotVertices.shape[-1] * self._plotVertices.itemsize
         gl.glEnableVertexAttribArray(self._progTex.attributes['position'])
         gl.glVertexAttribPointer(self._progTex.attributes['position'],
                                  2,
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
-                                 stride, self._plotVertices)
+                                 0,
+                                 self._plotVertices[0])
 
-        texCoordsPtr = c_void_p(self._plotVertices.ctypes.data +
-                                2 * self._plotVertices.itemsize)  # Better way?
         gl.glEnableVertexAttribArray(self._progTex.attributes['texCoords'])
         gl.glVertexAttribPointer(self._progTex.attributes['texCoords'],
                                  2,
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
-                                 stride, texCoordsPtr)
+                                 0,
+                                 self._plotVertices[1])
 
         with plotFBOTex.texture:
-            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices))
+            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices[0]))
 
         self._renderMarkersGL()
         self._renderOverlayGL()
 
     def paintGL(self):
-        global _current_context
-        _current_context = self.context()
+        with glu.Context.current(self.context()):
+            # Release OpenGL resources
+            for item in self._glGarbageCollector:
+                item.discard()
+            self._glGarbageCollector = []
 
-        glu.setGLContextGetter(_getContext)
+            gl.glClearColor(*self._backgroundColor)
+            gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
 
-        # Release OpenGL resources
-        for item in self._glGarbageCollector:
-            item.discard()
-        self._glGarbageCollector = []
+            # Check if window is large enough
+            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+            if plotWidth <= 2 or plotHeight <= 2:
+                return
 
-        gl.glClearColor(*self._backgroundColor)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
-
-        # Check if window is large enough
-        plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-        if plotWidth <= 2 or plotHeight <= 2:
-            return
-
-        # self._paintDirectGL()
-        self._paintFBOGL()
-
-        glu.setGLContextGetter()
-        _current_context = None
+            # self._paintDirectGL()
+            self._paintFBOGL()
 
     def _renderMarkersGL(self):
         if len(self._markers) == 0:

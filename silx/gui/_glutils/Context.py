@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,32 +32,44 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "25/07/2016"
 
-
-# context #####################################################################
-
-
-def _defaultGLContextGetter():
-    return None
-
-_glContextGetter = _defaultGLContextGetter
+import contextlib
 
 
-def getGLContext():
+class _DEFAULT_CONTEXT(object):
+    """The default value for OpenGL context"""
+    pass
+
+_context = _DEFAULT_CONTEXT
+"""The current OpenGL context"""
+
+
+def getCurrent():
     """Returns platform dependent object of current OpenGL context.
 
     This is useful to associate OpenGL resources with the context they are
     created in.
 
     :return: Platform specific OpenGL context
-    :rtype: None by default or a platform dependent object"""
-    return _glContextGetter()
-
-
-def setGLContextGetter(getter=_defaultGLContextGetter):
-    """Set a platform dependent function to retrieve the current OpenGL context
-
-    :param getter: Platform dependent GL context getter
-    :type getter: Function with no args returning the current OpenGL context
     """
-    global _glContextGetter
-    _glContextGetter = getter
+    return _context
+
+
+def setCurrent(context=_DEFAULT_CONTEXT):
+    """Set a platform dependent OpenGL context
+
+    :param context: Platform dependent GL context
+    """
+    global _context
+    _context = context
+
+
+@contextlib.contextmanager
+def current(context):
+    """Context manager setting the platform-dependent GL context
+
+    :param context: Platform dependent GL context
+    """
+    previous_context = getCurrent()
+    setCurrent(context)
+    yield
+    setCurrent(previous_context)
