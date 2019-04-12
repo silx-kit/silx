@@ -96,12 +96,12 @@ class CurvesROIWidget(qt.QWidget):
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        ##############
+
         self.headerLabel = qt.QLabel(self)
         self.headerLabel.setAlignment(qt.Qt.AlignHCenter)
         self.setHeader()
         layout.addWidget(self.headerLabel)
-        ##############
+
         widgetAllCheckbox = qt.QWidget(parent=self)
         self._showAllCheckBox = qt.QCheckBox("show all ROI",
                                              parent=widgetAllCheckbox)
@@ -111,14 +111,13 @@ class CurvesROIWidget(qt.QWidget):
         widgetAllCheckbox.layout().addWidget(spacer)
         widgetAllCheckbox.layout().addWidget(self._showAllCheckBox)
         layout.addWidget(widgetAllCheckbox)
-        ##############
+
         self.roiTable = ROITable(self, plot=plot)
         rheight = self.roiTable.horizontalHeader().sizeHint().height()
         self.roiTable.setMinimumHeight(4 * rheight)
         layout.addWidget(self.roiTable)
         self._roiFileDir = qt.QDir.home().absolutePath()
         self._showAllCheckBox.toggled.connect(self.roiTable.showAllMarkers)
-        #################
 
         hbox = qt.QWidget(self)
         hboxlayout = qt.QHBoxLayout(hbox)
