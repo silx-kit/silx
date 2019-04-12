@@ -148,7 +148,7 @@ class PickingModeAction(Plot3DAction):
 
     def __init__(self, parent, plot3d=None):
         super(PickingModeAction, self).__init__(parent, plot3d)
-        self.setIcon(getQIcon('pick'))
+        self.setIcon(getQIcon('pointing-hand'))
         self.setText('Picking')
         self.setToolTip('Toggle picking with left button click')
         self.setCheckable(True)
