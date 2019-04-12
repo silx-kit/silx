@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/12/2018"
+__date__ = "12/04/2019"
 
 import collections
 import logging
@@ -129,53 +129,53 @@ class PlotWindow(PlotWidget):
         self.group.setExclusive(False)
 
         self.resetZoomAction = self.group.addAction(
-            actions.control.ResetZoomAction(self))
+            actions.control.ResetZoomAction(self, parent=self))
         self.resetZoomAction.setVisible(resetzoom)
         self.addAction(self.resetZoomAction)
 
-        self.zoomInAction = actions.control.ZoomInAction(self)
+        self.zoomInAction = actions.control.ZoomInAction(self, parent=self)
         self.addAction(self.zoomInAction)
 
-        self.zoomOutAction = actions.control.ZoomOutAction(self)
+        self.zoomOutAction = actions.control.ZoomOutAction(self, parent=self)
         self.addAction(self.zoomOutAction)
 
         self.xAxisAutoScaleAction = self.group.addAction(
-            actions.control.XAxisAutoScaleAction(self))
+            actions.control.XAxisAutoScaleAction(self, parent=self))
         self.xAxisAutoScaleAction.setVisible(autoScale)
         self.addAction(self.xAxisAutoScaleAction)
 
         self.yAxisAutoScaleAction = self.group.addAction(
-            actions.control.YAxisAutoScaleAction(self))
+            actions.control.YAxisAutoScaleAction(self, parent=self))
         self.yAxisAutoScaleAction.setVisible(autoScale)
         self.addAction(self.yAxisAutoScaleAction)
 
         self.xAxisLogarithmicAction = self.group.addAction(
-            actions.control.XAxisLogarithmicAction(self))
+            actions.control.XAxisLogarithmicAction(self, parent=self))
         self.xAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.xAxisLogarithmicAction)
 
         self.yAxisLogarithmicAction = self.group.addAction(
-            actions.control.YAxisLogarithmicAction(self))
+            actions.control.YAxisLogarithmicAction(self, parent=self))
         self.yAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.yAxisLogarithmicAction)
 
         self.gridAction = self.group.addAction(
-            actions.control.GridAction(self, gridMode='both'))
+            actions.control.GridAction(self, gridMode='both', parent=self))
         self.gridAction.setVisible(grid)
         self.addAction(self.gridAction)
 
         self.curveStyleAction = self.group.addAction(
-            actions.control.CurveStyleAction(self))
+            actions.control.CurveStyleAction(self, parent=self))
         self.curveStyleAction.setVisible(curveStyle)
         self.addAction(self.curveStyleAction)
 
         self.colormapAction = self.group.addAction(
-            actions.control.ColormapAction(self))
+            actions.control.ColormapAction(self, parent=self))
         self.colormapAction.setVisible(colormap)
         self.addAction(self.colormapAction)
 
         self.colorbarAction = self.group.addAction(
-            actions_control.ColorBarAction(self, self))
+            actions_control.ColorBarAction(self, parent=self))
         self.colorbarAction.setVisible(False)
         self.addAction(self.colorbarAction)
         self._colorbar.setVisible(False)
@@ -195,18 +195,18 @@ class PlotWindow(PlotWidget):
         self.getMaskAction().setVisible(mask)
 
         self._intensityHistoAction = self.group.addAction(
-            actions_histogram.PixelIntensitiesHistoAction(self))
+            actions_histogram.PixelIntensitiesHistoAction(self, parent=self))
         self._intensityHistoAction.setVisible(False)
 
         self._medianFilter2DAction = self.group.addAction(
-            actions_medfilt.MedianFilter2DAction(self))
+            actions_medfilt.MedianFilter2DAction(self, parent=self))
         self._medianFilter2DAction.setVisible(False)
 
         self._medianFilter1DAction = self.group.addAction(
-            actions_medfilt.MedianFilter1DAction(self))
+            actions_medfilt.MedianFilter1DAction(self, parent=self))
         self._medianFilter1DAction.setVisible(False)
 
-        self.fitAction = self.group.addAction(actions_fit.FitAction(self))
+        self.fitAction = self.group.addAction(actions_fit.FitAction(self, parent=self))
         self.fitAction.setVisible(fit)
         self.addAction(self.fitAction)
 
@@ -279,7 +279,7 @@ class PlotWindow(PlotWidget):
             parent=self, plot=self)
         self.addToolBar(self._interactiveModeToolBar)
 
-        self._toolbar = self._createToolBar(title='Plot', parent=None)
+        self._toolbar = self._createToolBar(title='Plot', parent=self)
         self.addToolBar(self._toolbar)
 
         self._outputToolBar = tools.OutputToolBar(parent=self, plot=self)
