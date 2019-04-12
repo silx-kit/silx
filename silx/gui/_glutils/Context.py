@@ -50,7 +50,7 @@ def getCurrent():
     created in.
 
     :return: Platform specific OpenGL context
-    :rtype: 'none' by default or a platform dependent object"""
+    """
     return _context
 
 
