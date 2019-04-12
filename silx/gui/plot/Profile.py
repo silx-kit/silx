@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "24/07/2018"
+__date__ = "12/04/2019"
 
 
 import weakref
@@ -426,33 +426,33 @@ class ProfileToolBar(qt.QToolBar):
         self._browseAction = actions.mode.ZoomModeAction(self.plot, parent=self)
         self._browseAction.setVisible(False)
 
-        self.hLineAction = qt.QAction(
-            icons.getQIcon('shape-horizontal'),
-            'Horizontal Profile Mode', None)
+        self.hLineAction = qt.QAction(icons.getQIcon('shape-horizontal'),
+                                      'Horizontal Profile Mode',
+                                      parent=self)
         self.hLineAction.setToolTip(
             'Enables horizontal profile selection mode')
         self.hLineAction.setCheckable(True)
         self.hLineAction.toggled[bool].connect(self._hLineActionToggled)
 
-        self.vLineAction = qt.QAction(
-            icons.getQIcon('shape-vertical'),
-            'Vertical Profile Mode', None)
+        self.vLineAction = qt.QAction(icons.getQIcon('shape-vertical'),
+                                      'Vertical Profile Mode',
+                                      parent=self)
         self.vLineAction.setToolTip(
             'Enables vertical profile selection mode')
         self.vLineAction.setCheckable(True)
         self.vLineAction.toggled[bool].connect(self._vLineActionToggled)
 
-        self.lineAction = qt.QAction(
-            icons.getQIcon('shape-diagonal'),
-            'Free Line Profile Mode', None)
+        self.lineAction = qt.QAction(icons.getQIcon('shape-diagonal'),
+                                     'Free Line Profile Mode',
+                                     parent=self)
         self.lineAction.setToolTip(
             'Enables line profile selection mode')
         self.lineAction.setCheckable(True)
         self.lineAction.toggled[bool].connect(self._lineActionToggled)
 
-        self.clearAction = qt.QAction(
-            icons.getQIcon('profile-clear'),
-            'Clear Profile', None)
+        self.clearAction = qt.QAction(icons.getQIcon('profile-clear'),
+                                      'Clear Profile',
+                                      parent=self)
         self.clearAction.setToolTip(
             'Clear the profile Region of interest')
         self.clearAction.setCheckable(False)
