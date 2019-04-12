@@ -217,8 +217,6 @@ Available icons
      - nxdata-remove
    * - |pan|
      - pan
-   * - |pick|
-     - pick
    * - |pixel-intensities|
      - pixel-intensities
    * - |plot-grid|
@@ -255,6 +253,8 @@ Available icons
      - plot-ylog
    * - |plot-yup|
      - plot-yup
+   * - |pointing-hand|
+     - pointing-hand
    * - |previous|
      - previous
    * - |profile-clear|
@@ -445,7 +445,6 @@ Available icons
 .. |nxdata-create| image:: ../../../../silx/resources/gui/icons/nxdata-create.png
 .. |nxdata-remove| image:: ../../../../silx/resources/gui/icons/nxdata-remove.png
 .. |pan| image:: ../../../../silx/resources/gui/icons/pan.png
-.. |pick| image:: ../../../../silx/resources/gui/icons/pick.png
 .. |pixel-intensities| image:: ../../../../silx/resources/gui/icons/pixel-intensities.png
 .. |plot-grid| image:: ../../../../silx/resources/gui/icons/plot-grid.png
 .. |plot-roi-above| image:: ../../../../silx/resources/gui/icons/plot-roi-above.png
@@ -464,6 +463,7 @@ Available icons
 .. |plot-ydown| image:: ../../../../silx/resources/gui/icons/plot-ydown.png
 .. |plot-ylog| image:: ../../../../silx/resources/gui/icons/plot-ylog.png
 .. |plot-yup| image:: ../../../../silx/resources/gui/icons/plot-yup.png
+.. |pointing-hand| image:: ../../../../silx/resources/gui/icons/pointing-hand.png
 .. |previous| image:: ../../../../silx/resources/gui/icons/previous.png
 .. |profile-clear| image:: ../../../../silx/resources/gui/icons/profile-clear.png
 .. |profile1D| image:: ../../../../silx/resources/gui/icons/profile1D.png
