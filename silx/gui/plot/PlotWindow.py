@@ -279,7 +279,7 @@ class PlotWindow(PlotWidget):
             parent=self, plot=self)
         self.addToolBar(self._interactiveModeToolBar)
 
-        self._toolbar = self._createToolBar(title='Plot', parent=None)
+        self._toolbar = self._createToolBar(title='Plot', parent=self)
         self.addToolBar(self._toolbar)
 
         self._outputToolBar = tools.OutputToolBar(parent=self, plot=self)
