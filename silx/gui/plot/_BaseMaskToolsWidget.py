@@ -621,7 +621,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         # Draw tools
         self.rectAction = qt.QAction(icons.getQIcon('shape-rectangle'),
                                      'Rectangle selection',
-                                     parent=self)
+                                     self)
         self.rectAction.setToolTip(
                 'Rectangle selection tool: (Un)Mask a rectangular region <b>R</b>')
         self.rectAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
@@ -631,7 +631,7 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         self.ellipseAction = qt.QAction(icons.getQIcon('shape-ellipse'),
                                         'Circle selection',
-                                        parent=self)
+                                        self)
         self.ellipseAction.setToolTip(
                 'Rectangle selection tool: (Un)Mask a circle region <b>R</b>')
         self.ellipseAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
@@ -641,7 +641,7 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         self.polygonAction = qt.QAction(icons.getQIcon('shape-polygon'),
                                         'Polygon selection',
-                                        parent=self)
+                                        self)
         self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
         self.polygonAction.setToolTip(
                 'Polygon selection tool: (Un)Mask a polygonal region <b>S</b><br>'
@@ -653,7 +653,7 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         self.pencilAction = qt.QAction(icons.getQIcon('draw-pencil'),
                                        'Pencil tool',
-                                       parent=self)
+                                       self)
         self.pencilAction.setShortcut(qt.QKeySequence(qt.Qt.Key_P))
         self.pencilAction.setToolTip(
                 'Pencil tool: (Un)Mask using a pencil <b>P</b>')
@@ -739,7 +739,7 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         self.belowThresholdAction = qt.QAction(icons.getQIcon('plot-roi-below'),
                                                'Mask below threshold',
-                                               parent=self)
+                                               self)
         self.belowThresholdAction.setToolTip(
                 'Mask image where values are below given threshold')
         self.belowThresholdAction.setCheckable(True)
@@ -747,14 +747,14 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         self.betweenThresholdAction = qt.QAction(icons.getQIcon('plot-roi-between'),
                                                  'Mask within range',
-                                                 parent=self)
+                                                 self)
         self.betweenThresholdAction.setToolTip(
                 'Mask image where values are within given range')
         self.betweenThresholdAction.setCheckable(True)
 
         self.aboveThresholdAction = qt.QAction(icons.getQIcon('plot-roi-above'),
                                                'Mask above threshold',
-                                               parent=self)
+                                               self)
         self.aboveThresholdAction.setToolTip(
                 'Mask image where values are above given threshold')
         self.aboveThresholdAction.setCheckable(True)
@@ -769,7 +769,7 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         self.loadColormapRangeAction = qt.QAction(icons.getQIcon('view-refresh'),
                                                   'Set min-max from colormap',
-                                                  parent=self)
+                                                  self)
         self.loadColormapRangeAction.setToolTip(
                 'Set min and max values from current colormap range')
         self.loadColormapRangeAction.setCheckable(False)

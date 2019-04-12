@@ -428,7 +428,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self.hLineAction = qt.QAction(icons.getQIcon('shape-horizontal'),
                                       'Horizontal Profile Mode',
-                                      parent=self)
+                                      self)
         self.hLineAction.setToolTip(
             'Enables horizontal profile selection mode')
         self.hLineAction.setCheckable(True)
@@ -436,7 +436,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self.vLineAction = qt.QAction(icons.getQIcon('shape-vertical'),
                                       'Vertical Profile Mode',
-                                      parent=self)
+                                      self)
         self.vLineAction.setToolTip(
             'Enables vertical profile selection mode')
         self.vLineAction.setCheckable(True)
@@ -444,7 +444,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self.lineAction = qt.QAction(icons.getQIcon('shape-diagonal'),
                                      'Free Line Profile Mode',
-                                     parent=self)
+                                     self)
         self.lineAction.setToolTip(
             'Enables line profile selection mode')
         self.lineAction.setCheckable(True)
@@ -452,7 +452,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self.clearAction = qt.QAction(icons.getQIcon('profile-clear'),
                                       'Clear Profile',
-                                      parent=self)
+                                      self)
         self.clearAction.setToolTip(
             'Clear the profile Region of interest')
         self.clearAction.setCheckable(False)
