@@ -459,11 +459,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         plotFBOTex = self._plotFBOs.get(context)
         if (self._plot._getDirtyPlot() or self._plotFrame.isDirty or
                 plotFBOTex is None):
-            self._plotVertices = numpy.array(((-1., -1., 0., 0.),
-                                             (1., -1., 1., 0.),
-                                             (-1., 1., 0., 1.),
-                                             (1., 1., 1., 1.)),
-                                             dtype=numpy.float32)
+            self._plotVertices = (
+                # Vertex coordinates
+                numpy.array(((-1., -1.), (1., -1.), (-1., 1.), (1., 1.)),
+                             dtype=numpy.float32),
+                 # Texture coordinates
+                 numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
+                             dtype=numpy.float32))
             if plotFBOTex is None or \
                plotFBOTex.shape[1] != self._plotFrame.size[0] or \
                plotFBOTex.shape[0] != self._plotFrame.size[1]:
@@ -495,25 +497,24 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glUniformMatrix4fv(self._progTex.uniforms['matrix'], 1, gl.GL_TRUE,
                               mat4Identity().astype(numpy.float32))
 
-        stride = self._plotVertices.shape[-1] * self._plotVertices.itemsize
         gl.glEnableVertexAttribArray(self._progTex.attributes['position'])
         gl.glVertexAttribPointer(self._progTex.attributes['position'],
                                  2,
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
-                                 stride, self._plotVertices)
+                                 0,
+                                 self._plotVertices[0])
 
-        texCoordsPtr = c_void_p(self._plotVertices.ctypes.data +
-                                2 * self._plotVertices.itemsize)  # Better way?
         gl.glEnableVertexAttribArray(self._progTex.attributes['texCoords'])
         gl.glVertexAttribPointer(self._progTex.attributes['texCoords'],
                                  2,
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
-                                 stride, texCoordsPtr)
+                                 0,
+                                 self._plotVertices[1])
 
         with plotFBOTex.texture:
-            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices))
+            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices[0]))
 
         self._renderMarkersGL()
         self._renderOverlayGL()
