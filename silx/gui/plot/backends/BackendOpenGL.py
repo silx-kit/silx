@@ -305,15 +305,7 @@ _texFragShd = """
     }
     """
 
-
 # BackendOpenGL ###############################################################
-
-_current_context = None
-
-
-def _getContext():
-    assert _current_context is not None
-    return _current_context
 
 
 class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
@@ -527,29 +519,22 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderOverlayGL()
 
     def paintGL(self):
-        global _current_context
-        _current_context = self.context()
+        with glu.Context.current(self.context()):
+            # Release OpenGL resources
+            for item in self._glGarbageCollector:
+                item.discard()
+            self._glGarbageCollector = []
 
-        glu.Context.setCurrentGetter(_getContext)
+            gl.glClearColor(*self._backgroundColor)
+            gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
 
-        # Release OpenGL resources
-        for item in self._glGarbageCollector:
-            item.discard()
-        self._glGarbageCollector = []
+            # Check if window is large enough
+            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+            if plotWidth <= 2 or plotHeight <= 2:
+                return
 
-        gl.glClearColor(*self._backgroundColor)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
-
-        # Check if window is large enough
-        plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-        if plotWidth <= 2 or plotHeight <= 2:
-            return
-
-        # self._paintDirectGL()
-        self._paintFBOGL()
-
-        glu.Context.setCurrentGetter()
-        _current_context = None
+            # self._paintDirectGL()
+            self._paintFBOGL()
 
     def _renderMarkersGL(self):
         if len(self._markers) == 0:
