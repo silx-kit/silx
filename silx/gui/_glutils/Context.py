@@ -32,14 +32,15 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "25/07/2016"
 
+import contextlib
 
-# context #####################################################################
 
+class _DEFAULT_CONTEXT(object):
+    """The default value for OpenGL context"""
+    pass
 
-def _defaultGLContextGetter():
-    return 'none'
-
-_glContextGetter = _defaultGLContextGetter
+_context = _DEFAULT_CONTEXT
+"""The current OpenGL context"""
 
 
 def getCurrent():
@@ -50,14 +51,25 @@ def getCurrent():
 
     :return: Platform specific OpenGL context
     :rtype: 'none' by default or a platform dependent object"""
-    return _glContextGetter()
+    return _context
 
 
-def setCurrentGetter(getter=_defaultGLContextGetter):
-    """Set a platform dependent function to retrieve the current OpenGL context
+def setCurrent(context=_DEFAULT_CONTEXT):
+    """Set a platform dependent OpenGL context
 
-    :param getter: Platform dependent GL context getter
-    :type getter: Function with no args returning the current OpenGL context
+    :param context: Platform dependent GL context
     """
-    global _glContextGetter
-    _glContextGetter = getter
+    global _context
+    _context = context
+
+
+@contextlib.contextmanager
+def current(context):
+    """Context manager setting the platform-dependent GL context
+
+    :param context: Platform dependent GL context
+    """
+    previous_context = getCurrent()
+    setCurrent(context)
+    yield
+    setCurrent(previous_context)
