@@ -66,6 +66,7 @@ class UpdateMode(enum.Enum):
 
 # Helper class to handle specific calls to PlotWidget and SceneWidget
 
+
 class _Wrapper(qt.QObject):
     """Base class for connection with PlotWidget and SceneWidget.
 
@@ -1144,13 +1145,13 @@ class BasicStatsWidget(StatsWidget):
 
      from silx.gui.plot import Plot1D
      from silx.gui.plot.StatsWidget import BasicStatsWidget
-     
+
      plot = Plot1D()
      x = range(100)
      y = x
      plot.addCurve(x, y, legend='curve_0')
      plot.setActiveCurve('curve_0')
-     
+
      widget = BasicStatsWidget(plot=plot)
      widget.show()
     """
@@ -1247,9 +1248,9 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         plot = self.getPlot()
         if plot is not None:
             _items = self._plotWrapper.getSelectedItems()
+
             def kind_filter(_item):
                 return self._plotWrapper.getKind(_item) == self.getKind()
-
             items = list(filter(kind_filter, _items))
             assert len(items) in (0, 1)
             if len(items) is 1:
@@ -1289,6 +1290,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
             return
         assert self._displayOnlyActItem
         _items = self._plotWrapper.getSelectedItems()
+
         def kind_filter(_item):
             return self._plotWrapper.getKind(_item) == self.getKind()
         items = list(filter(kind_filter, _items))
