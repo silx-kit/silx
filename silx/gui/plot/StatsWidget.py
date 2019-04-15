@@ -332,9 +332,6 @@ class _StatsWidgetBase(object):
     Base class for all widgets which want to display statistics
     """
 
-    sigUpdateModeChanged = qt.Signal(UpdateMode)
-    """Signal emitted when the update mode changed"""
-
     def __init__(self, statsOnVisibleData, displayOnlyActItem):
         self._displayOnlyActItem = displayOnlyActItem
         self._statsOnVisibleData = statsOnVisibleData
@@ -536,10 +533,14 @@ class _StatsWidgetBase(object):
         assert _mode in UpdateMode
         if _mode != self._updateMode:
             self._updateMode = _mode
-            self.sigUpdateModeChanged.emit(_mode)
+            self._updateModeHasChanged()
 
     def getUpdateMode(self):
         return self._updateMode
+
+    def _updateModeHasChanged(self):
+        """callback when the update mode has changed"""
+        pass
 
 
 class StatsTable(_StatsWidgetBase, TableWidget):
@@ -559,6 +560,9 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
     _LEGEND_HEADER_DATA = 'legend'
     _KIND_HEADER_DATA = 'kind'
+
+    sigUpdateModeChanged = qt.Signal(UpdateMode)
+    """Signal emitted when the update mode changed"""
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
@@ -898,6 +902,9 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         else:
             self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
+    def _updateModeHasChanged(self):
+        self.sigUpdateModeChanged.emit(self._updateMode)
+
 
 class _OptionsWidget(qt.QToolBar):
 
@@ -1168,6 +1175,9 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
                                     only visible ones.
     """
 
+    sigUpdateModeChanged = qt.Signal(UpdateMode)
+    """Signal emitted when the update mode changed"""
+
     def __init__(self, parent=None, plot=None, kind='curve', stats=None,
                  statsOnVisibleData=False):
         self._item_kind = kind
@@ -1298,6 +1308,9 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
 
     def _plotCurrentChanged(selfself, current):
         raise NotImplementedError('Display only the active item')
+
+    def _updateModeHasChanged(self):
+        self.sigUpdateModeChanged.emit(self._updateMode)
 
 
 class _BasicLineStatsWidget(_BaseLineStatsWidget):
