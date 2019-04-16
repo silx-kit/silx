@@ -52,7 +52,7 @@ except ImportError as e:
 logger = logging.getLogger(__name__)
 
 
-NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs",  ".hdf", ".hdf5", ".cxi"]
+NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs", ".hdf", ".hdf5", ".cxi"]
 """List of possible extensions for HDF5 file formats."""
 
 
