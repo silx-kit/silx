@@ -477,6 +477,53 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.add_artist(image)
         return image
 
+    def addTriangles(self, x, y, triangles, legend,
+                 color, linewidth, linestyle,
+                 z, selectable,
+                 alpha, visualization):
+        for parameter in (x, y, triangles, legend, color, linewidth, linestyle,
+                          z, selectable, alpha):
+            assert parameter is not None
+
+        picker = 3 if selectable else None
+
+        color = numpy.array(color, copy=False)
+        assert color.ndim == 2 and len(color) == len(x)
+
+        if color.dtype not in [numpy.float32, numpy.float]:
+            color = color.astype(numpy.float32) / 255.
+
+        if visualization == 'edges':
+            artist = Container(self.ax.triplot(
+                x, y, triangles,
+                label=legend,
+                color=color[0],  # TODO line with multiple colors
+                alpha=alpha,
+                linewidth=linewidth,
+                linestyle=linestyle,
+                picker=picker,
+                marker=None,
+                zorder=z))
+
+        elif visualization == 'fill':
+            artist = self.ax.tripcolor(
+                x, y, triangles,
+                color,
+                shading='gouraud',
+                label=legend,
+                alpha=alpha,
+                picker=picker,
+                zorder=z)
+            # Workaround issue in matplotlib
+            # TODO investiguate
+            artist.set_array(None)
+            artist.set_color(color)
+
+        else:
+            raise ValueError("Unsupported visualization: %s" % visualization)
+
+        return artist
+
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
         if (linebgcolor is not None and

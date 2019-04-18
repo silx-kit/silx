@@ -170,6 +170,36 @@ class BackendBase(object):
         """
         return legend
 
+    def addTriangles(self, x, y, triangles, legend,
+                 color, linewidth, linestyle,
+                 z, selectable,
+                 alpha, visualization):
+        """Add a set of triangles.
+
+        :param numpy.ndarray x: The data corresponding to the x axis
+        :param numpy.ndarray y: The data corresponding to the y axis
+        :param numpy.ndarray triangles: The indices to make triangles
+            as a (Ntriangle, 3) array
+        :param str legend: The legend to be associated to the curve
+        :param numpy.ndarray color: color(s) as (npoints, 4) array
+        :param float linewidth: The width of the curve in pixels
+        :param str linestyle: Type of line::
+
+            - ' ' or ''  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+
+        :param int z: Layer on which to draw the cuve
+        :param bool selectable: indicate if the curve can be selected
+        :param float alpha: Curve opacity, as a float in [0., 1.]
+        :param str visualization: The way to display the triangles,
+            either 'edges' or 'fill'
+        :returns: The triangles' unique identifier used by the backend
+        """
+        return legend
+
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
         """Add an item (i.e. a shape) to the plot.
