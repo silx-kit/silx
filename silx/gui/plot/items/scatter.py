@@ -31,16 +31,17 @@ __date__ = "29/03/2017"
 
 
 import logging
+import sys
 
 import numpy
 
-from .core import Points, ColormapMixIn
+from .core import Points, ColormapMixIn, LineMixIn, ItemChangedType
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Scatter(Points, ColormapMixIn):
+class Scatter(Points, ColormapMixIn, LineMixIn):
     """Description of a scatter"""
 
     _DEFAULT_SELECTABLE = True
@@ -49,6 +50,8 @@ class Scatter(Points, ColormapMixIn):
     def __init__(self):
         Points.__init__(self)
         ColormapMixIn.__init__(self)
+        LineMixIn.__init__(self)
+        self.__mode = 'points'
         self._value = ()
         self.__alpha = None
         
@@ -67,19 +70,88 @@ class Scatter(Points, ColormapMixIn):
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
 
-        return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
-                                color=rgbacolors,
-                                symbol=self.getSymbol(),
-                                linewidth=0,
-                                linestyle="",
-                                yaxis='left',
-                                xerror=xerror,
-                                yerror=yerror,
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                fill=False,
-                                alpha=self.getAlpha(),
-                                symbolsize=self.getSymbolSize())
+        mode = self.getVisualization()
+        if mode == 'points':
+            return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
+                                    color=rgbacolors,
+                                    symbol=self.getSymbol(),
+                                    linewidth=0,
+                                    linestyle="",
+                                    yaxis='left',
+                                    xerror=xerror,
+                                    yerror=yerror,
+                                    z=self.getZValue(),
+                                    selectable=self.isSelectable(),
+                                    fill=False,
+                                    alpha=self.getAlpha(),
+                                    symbolsize=self.getSymbolSize())
+        else:  # 'lines', 'solid'
+            # TODO cache + avoid duplicate with plot3d + fallback to matplotlib?
+            coordinates = numpy.array((xFiltered, yFiltered)).T
+
+            if len(coordinates) > 3:
+                # Enough points to try a Delaunay tesselation
+
+                # Lazy loading of Delaunay
+                from silx.third_party.scipy_spatial import Delaunay as _Delaunay
+
+                try:
+                    tri = _Delaunay(coordinates)
+                except RuntimeError:
+                    _logger.error("Delaunay tesselation failed: %s",
+                                  sys.exc_info()[1])
+                    return None
+
+                triangles = tri.simplices
+
+            else:
+                # 3 or less points: Draw one triangle
+                triangles = numpy.array(
+                    [[0, 1, 2]], dtype=numpy.int32) % len(coordinates)
+
+            visualization = 'edges' if mode == 'lines' else 'fill'
+            return backend.addTriangles(xFiltered, yFiltered, triangles,
+                                        legend=self.getLegend(),
+                                        color=rgbacolors,
+                                        linewidth=self.getLineWidth(),
+                                        linestyle=self.getLineStyle(),
+                                        z=self.getZValue(),
+                                        selectable=self.isSelectable(),
+                                        alpha=self.getAlpha(),
+                                        visualization=visualization)
+
+    # TODO visualization mix-in??
+    # TODO use enum for visualization mode + str compatibility
+
+    @staticmethod
+    def supportedVisualization():
+        """Returns the list of supported visualization modes.
+
+        See :meth:`setVisualization`
+
+        :rtype: tuple of str
+        """
+        return 'points', 'lines', 'solid'
+
+    def setVisualization(self, mode):
+        """Set the visualization mode to use.
+
+        :param str mode:
+        """
+        mode = str(mode)
+        assert mode in self.supportedVisualizationMode()
+
+        if mode != self.__mode:
+            self.__mode = mode
+
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+
+    def getVisualization(self):
+        """Returns the visualization mode in use.
+
+        :rtype: str
+        """
+        return self.__mode
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
