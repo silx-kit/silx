@@ -330,7 +330,7 @@ class Convolution(OpenclProcessing):
             kernel_files=kernel_files,
             compile_options=compile_options
         )
-        self.ndrange = np.int32(self.shape)[::-1]
+        self.ndrange = self.shape[::-1]
         self.wg = None
         kernel_args = [
             self.queue,
