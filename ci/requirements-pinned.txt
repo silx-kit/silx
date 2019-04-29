@@ -8,6 +8,3 @@ pybind11  # Required to build pyopencl
 # on https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl
 # Anyway, we don't test OpenCL on appveyor
 pyopencl == 2018.1.1; sys_platform == 'win32'
-
-# PyQt5.12 breaks CI, it needs to be investiguated
-PyQt5 == 5.11.3; python_version >= '3.5'
