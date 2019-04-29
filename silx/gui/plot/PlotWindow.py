@@ -31,7 +31,10 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "12/04/2019"
 
-import collections
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import logging
 import weakref
 
@@ -251,7 +254,7 @@ class PlotWindow(PlotWidget):
                 hbox.addWidget(self.controlButton)
 
             if position:  # Add PositionInfo widget to the bottom of the plot
-                if isinstance(position, collections.Iterable):
+                if isinstance(position, abc.Iterable):
                     # Use position as a set of converters
                     converters = position
                 else:
