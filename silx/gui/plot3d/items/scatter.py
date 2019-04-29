@@ -31,7 +31,10 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/11/2017"
 
-import collections
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import logging
 import sys
 import numpy
@@ -374,7 +377,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             y, copy=copy, dtype=numpy.float32, order='C').reshape(-1)
         assert len(x) == len(y)
 
-        if isinstance(value, collections.Iterable):
+        if isinstance(value, abc.Iterable):
             value = numpy.array(
                 value, copy=copy, dtype=numpy.float32, order='C').reshape(-1)
             assert len(value) == len(x)
