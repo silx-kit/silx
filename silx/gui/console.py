@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,17 +87,21 @@ else:
     msg = "Module " + __name__ + " cannot be used within an IPython shell"
     raise ImportError(msg)
 
-
 try:
-    from qtconsole.rich_ipython_widget import RichJupyterWidget as \
-        RichIPythonWidget
+    from qtconsole.rich_jupyter_widget import RichJupyterWidget as \
+        _RichJupyterWidget
 except ImportError:
-    from qtconsole.rich_ipython_widget import RichIPythonWidget
+    try:
+        from qtconsole.rich_ipython_widget import RichJupyterWidget as \
+            _RichJupyterWidget
+    except ImportError:
+        from qtconsole.rich_ipython_widget import RichIPythonWidget as \
+            _RichJupyterWidget
 
 from qtconsole.inprocess import QtInProcessKernelManager
 
 
-class IPythonWidget(RichIPythonWidget):
+class IPythonWidget(_RichJupyterWidget):
     """Live IPython console widget.
 
     .. image:: img/IPythonWidget.png
@@ -177,6 +181,7 @@ def main():
     widget = IPythonDockWidget()
     widget.show()
     app.exec_()
+
 
 if __name__ == '__main__':
     main()
