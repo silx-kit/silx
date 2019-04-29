@@ -35,7 +35,7 @@ import numpy
 
 from silx.math.combo import min_max
 
-from .....utils.enum import Enum as _Enum
+from ....utils.enum import Enum as _Enum
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
 from ...plot.items.core import SymbolMixIn as _SymbolMixIn

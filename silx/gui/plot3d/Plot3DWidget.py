@@ -36,8 +36,9 @@ import logging
 
 from silx.gui import qt
 from silx.gui.colors import rgba
-from ....utils.enum import Enum as _Enum
 from . import actions
+
+from ...utils.enum import Enum as _Enum
 from ..utils.image import convertArrayToQImage
 
 from .. import _glutils as glu
