@@ -31,11 +31,11 @@ __date__ = "24/04/2018"
 
 
 import collections
-import enum
 import numpy
 
 from silx.math.combo import min_max
 
+from .....utils.enum import Enum as _Enum
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
 from ...plot.items.core import SymbolMixIn as _SymbolMixIn
@@ -178,7 +178,7 @@ class ColormapMixIn(_ColormapMixIn):
 class ComplexMixIn(ItemMixInBase):
     """Mix-in class for converting complex data to scalar value"""
 
-    class Mode(enum.Enum):
+    class Mode(_Enum):
         """Identify available display mode for complex"""
         ABSOLUTE = 'amplitude'
         PHASE = 'phase'
@@ -187,23 +187,6 @@ class ComplexMixIn(ItemMixInBase):
         AMPLITUDE_PHASE = 'amplitude_phase'
         LOG10_AMPLITUDE_PHASE = 'log10_amplitude_phase'
         SQUARE_AMPLITUDE = 'square_amplitude'
-
-        @classmethod
-        def asMember(cls, value):
-            """Convert a str to corresponding enum member
-
-            :param Union[str,Mode] value: The value to convert
-            :return: The corresponding enum member
-            :rtype: Mode
-            :raise ValueError: In case the conversion is not possible
-            """
-            if isinstance(value, cls):
-                return value
-            value = str(value)
-            for member in cls:
-                if value == member.value:
-                    return member
-            raise ValueError("Cannot convert: %s" % value)
 
     def __init__(self):
         self._mode = self.Mode.ABSOLUTE
@@ -221,7 +204,7 @@ class ComplexMixIn(ItemMixInBase):
         :param Mode mode: The visualization mode in:
             'real', 'imaginary', 'phase', 'amplitude'
         """
-        mode = self.Mode.asMember(mode)
+        mode = self.Mode.asmember(str(mode))
         assert mode in self.supportedComplexModes()
 
         if mode != self._mode:
