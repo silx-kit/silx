@@ -139,7 +139,7 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
         :param str mode:
         """
         mode = str(mode)
-        assert mode in self.supportedVisualizationMode()
+        assert mode in self.supportedVisualization()
 
         if mode != self.__mode:
             self.__mode = mode
