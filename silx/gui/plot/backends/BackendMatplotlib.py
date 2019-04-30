@@ -54,7 +54,8 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, ScalarFormatter, Locator
-
+from matplotlib.tri import Triangulation
+from matplotlib.collections import TriMesh
 
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
@@ -480,7 +481,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def addTriangles(self, x, y, triangles, legend,
                  color, linewidth, linestyle,
                  z, selectable,
-                 alpha, visualization):
+                 alpha):
         for parameter in (x, y, triangles, legend, color, linewidth, linestyle,
                           z, selectable, alpha):
             assert parameter is not None
@@ -493,36 +494,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if color.dtype not in [numpy.float32, numpy.float]:
             color = color.astype(numpy.float32) / 255.
 
-        if visualization == 'edges':
-            artist = Container(self.ax.triplot(
-                x, y, triangles,
-                label=legend,
-                color=color[0],  # TODO line with multiple colors
-                alpha=alpha,
-                linewidth=linewidth,
-                linestyle=linestyle,
-                picker=picker,
-                marker=None,
-                zorder=z))
+        collection = TriMesh(
+            Triangulation(x, y, triangles),
+            label=legend,
+            alpha=alpha,
+            picker=picker,
+            zorder=z)
+        collection.set_color(color)
+        self.ax.add_collection(collection)
 
-        elif visualization == 'fill':
-            artist = self.ax.tripcolor(
-                x, y, triangles,
-                x,  # Pass x as color-mapped values, color is provided afterwards
-                vmin=1, vmax=2,  # Avoids autoscaling
-                shading='gouraud',
-                label=legend,
-                alpha=alpha,
-                picker=picker,
-                zorder=z)
-            # Remove color-mapped values and use colors instead.
-            artist.set_array(None)
-            artist.set_color(color)
-
-        else:
-            raise ValueError("Unsupported visualization: %s" % visualization)
-
-        return artist
+        return collection
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):

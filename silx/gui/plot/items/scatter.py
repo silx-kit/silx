@@ -85,7 +85,7 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
                                     fill=False,
                                     alpha=self.getAlpha(),
                                     symbolsize=self.getSymbolSize())
-        else:  # 'lines', 'solid'
+        else:  # 'solid'
             # TODO cache + avoid duplicate with plot3d + fallback to matplotlib?
             coordinates = numpy.array((xFiltered, yFiltered)).T
 
@@ -109,7 +109,6 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
                 triangles = numpy.array(
                     [[0, 1, 2]], dtype=numpy.int32) % len(coordinates)
 
-            visualization = 'edges' if mode == 'lines' else 'fill'
             return backend.addTriangles(xFiltered, yFiltered, triangles,
                                         legend=self.getLegend(),
                                         color=rgbacolors,
@@ -117,10 +116,9 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
                                         linestyle=self.getLineStyle(),
                                         z=self.getZValue(),
                                         selectable=self.isSelectable(),
-                                        alpha=self.getAlpha(),
-                                        visualization=visualization)
+                                        alpha=self.getAlpha())
 
-    # TODO visualization mix-in??
+    # TODO scatter visualization mix-in
     # TODO use enum for visualization mode + str compatibility
 
     @staticmethod
@@ -131,7 +129,7 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
 
         :rtype: tuple of str
         """
-        return 'points', 'lines', 'solid'
+        return 'points', 'solid'
 
     def setVisualization(self, mode):
         """Set the visualization mode to use.

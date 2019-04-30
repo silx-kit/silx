@@ -173,7 +173,7 @@ class BackendBase(object):
     def addTriangles(self, x, y, triangles, legend,
                  color, linewidth, linestyle,
                  z, selectable,
-                 alpha, visualization):
+                 alpha):
         """Add a set of triangles.
 
         :param numpy.ndarray x: The data corresponding to the x axis
@@ -194,8 +194,6 @@ class BackendBase(object):
         :param int z: Layer on which to draw the cuve
         :param bool selectable: indicate if the curve can be selected
         :param float alpha: Curve opacity, as a float in [0., 1.]
-        :param str visualization: The way to display the triangles,
-            either 'edges' or 'fill'
         :returns: The triangles' unique identifier used by the backend
         """
         return legend
