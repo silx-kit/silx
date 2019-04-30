@@ -508,14 +508,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
         elif visualization == 'fill':
             artist = self.ax.tripcolor(
                 x, y, triangles,
-                color,
+                x,  # Pass x as color-mapped values, color is provided afterwards
+                vmin=1, vmax=2,  # Avoids autoscaling
                 shading='gouraud',
                 label=legend,
                 alpha=alpha,
                 picker=picker,
                 zorder=z)
-            # Workaround issue in matplotlib
-            # TODO investiguate
+            # Remove color-mapped values and use colors instead.
             artist.set_array(None)
             artist.set_color(color)
 
