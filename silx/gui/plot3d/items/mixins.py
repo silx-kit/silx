@@ -204,7 +204,7 @@ class ComplexMixIn(ItemMixInBase):
         :param Mode mode: The visualization mode in:
             'real', 'imaginary', 'phase', 'amplitude'
         """
-        mode = self.Mode.asmember(str(mode))
+        mode = self.Mode.asmember(mode)
         assert mode in self.supportedComplexModes()
 
         if mode != self._mode:
