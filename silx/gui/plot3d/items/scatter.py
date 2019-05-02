@@ -40,6 +40,7 @@ import sys
 import numpy
 
 from ....utils.deprecation import deprecated
+from ...plot._utils.delaunay import triangulation
 from ..scene import function, primitives, utils
 
 from .core import DataItem3D, Item3DChangedType, ItemChangedType
@@ -585,28 +586,10 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             # TODO run delaunay in a thread
             # Compute lines/triangles indices if not cached
             if self._cachedTrianglesIndices is None:
-                coordinates = numpy.array((x, y)).T
-
-                if len(coordinates) > 3:
-                    # Enough points to try a Delaunay tesselation
-
-                    # Lazy loading of Delaunay
-                    from silx.third_party.scipy_spatial import Delaunay as _Delaunay
-
-                    try:
-                        tri = _Delaunay(coordinates)
-                    except RuntimeError:
-                        _logger.error("Delaunay tesselation failed: %s",
-                                      sys.exc_info()[1])
-                        return None
-
-                    self._cachedTrianglesIndices = numpy.ravel(
-                        tri.simplices.astype(numpy.uint32))
-
-                else:
-                    # 3 or less points: Draw one triangle
-                    self._cachedTrianglesIndices = \
-                        numpy.arange(3, dtype=numpy.uint32) % len(coordinates)
+                triangles = triangulation(x, y, dtype=numpy.uint32)
+                if triangles is None:
+                    return None
+                self._cachedTrianglesIndices = triangles
 
             if mode == 'lines' and self._cachedLinesIndices is None:
                 # Compute line indices

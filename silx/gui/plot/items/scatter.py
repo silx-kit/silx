@@ -35,6 +35,7 @@ import sys
 
 import numpy
 
+from .._utils.delaunay import triangulation
 from .core import Points, ColormapMixIn, LineMixIn, ItemChangedType
 
 
@@ -86,37 +87,19 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
                                     alpha=self.getAlpha(),
                                     symbolsize=self.getSymbolSize())
         else:  # 'solid'
-            # TODO cache + avoid duplicate with plot3d + fallback to matplotlib?
-            coordinates = numpy.array((xFiltered, yFiltered)).T
-
-            if len(coordinates) > 3:
-                # Enough points to try a Delaunay tesselation
-
-                # Lazy loading of Delaunay
-                from silx.third_party.scipy_spatial import Delaunay as _Delaunay
-
-                try:
-                    tri = _Delaunay(coordinates)
-                except RuntimeError:
-                    _logger.error("Delaunay tesselation failed: %s",
-                                  sys.exc_info()[1])
-                    return None
-
-                triangles = tri.simplices
-
+            # TODO cache
+            triangles = triangulation(xFiltered, yFiltered, dtype=numpy.int32)
+            if triangles is None:
+                return None
             else:
-                # 3 or less points: Draw one triangle
-                triangles = numpy.array(
-                    [[0, 1, 2]], dtype=numpy.int32) % len(coordinates)
-
-            return backend.addTriangles(xFiltered, yFiltered, triangles,
-                                        legend=self.getLegend(),
-                                        color=rgbacolors,
-                                        linewidth=self.getLineWidth(),
-                                        linestyle=self.getLineStyle(),
-                                        z=self.getZValue(),
-                                        selectable=self.isSelectable(),
-                                        alpha=self.getAlpha())
+                return backend.addTriangles(xFiltered, yFiltered, triangles,
+                                            legend=self.getLegend(),
+                                            color=rgbacolors,
+                                            linewidth=self.getLineWidth(),
+                                            linestyle=self.getLineStyle(),
+                                            z=self.getZValue(),
+                                            selectable=self.isSelectable(),
+                                            alpha=self.getAlpha())
 
     # TODO scatter visualization mix-in
     # TODO use enum for visualization mode + str compatibility
