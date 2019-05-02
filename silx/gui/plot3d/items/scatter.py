@@ -589,7 +589,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
                 triangles = triangulation(x, y, dtype=numpy.uint32)
                 if triangles is None:
                     return None
-                self._cachedTrianglesIndices = triangles
+                self._cachedTrianglesIndices = numpy.ravel(triangles)
 
             if mode == 'lines' and self._cachedLinesIndices is None:
                 # Compute line indices
