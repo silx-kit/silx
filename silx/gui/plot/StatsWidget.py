@@ -1060,10 +1060,6 @@ class StatsWidget(qt.QWidget):
         callback = functools.partial(self._getStatsTable()._updateAllStats, is_request=True)
         self._options.sigUpdateStats.connect(callback)
 
-        # expose API
-        self.getUpdateMode = self._statsTable.getUpdateMode
-        self.setUpdateMode = self._statsTable.setUpdateMode
-
     def _getStatsTable(self):
         """Returns the :class:`StatsTable` used by this widget.
 
@@ -1115,6 +1111,14 @@ class StatsWidget(qt.QWidget):
     @docstring(StatsTable)
     def setStatsOnVisibleData(self, b):
         return self._getStatsTable().setStatsOnVisibleData(b=b)
+
+    @docstring(StatsTable)
+    def getUpdateMode(self):
+        return self._statsTable.getUpdateMode()
+
+    @docstring(StatsTable)
+    def setUpdateMode(self, mode):
+        self._statsTable.setUpdateMode(mode)
 
 
 DEFAULT_STATS = StatsHandler((
