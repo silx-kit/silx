@@ -38,7 +38,7 @@ class Enum(enum.Enum):
     """Enum with additional class methods."""
 
     @classmethod
-    def asmember(cls, value):
+    def from_value(cls, value):
         """Convert a value to corresponding Enum member
 
         :param value: The value to compare to Enum members

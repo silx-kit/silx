@@ -79,10 +79,10 @@ class TestEnum(unittest.TestCase):
         self.assertEqual(enum_.names(), ('A', 'B'))
         self.assertEqual(enum_.values(), (1, 'B'))
 
-        self.assertEqual(enum_.asmember(1), enum_.A)
-        self.assertEqual(enum_.asmember('B'), enum_.B)
+        self.assertEqual(enum_.from_value(1), enum_.A)
+        self.assertEqual(enum_.from_value('B'), enum_.B)
         with self.assertRaises(ValueError):
-            enum_.asmember(3)
+            enum_.from_value(3)
 
 
 def suite():
