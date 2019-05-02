@@ -35,12 +35,11 @@ from collections import OrderedDict
 from contextlib import contextmanager
 import logging
 import weakref
-import enum
 import functools
-
 import numpy
-
+import enum
 from silx.utils.proxy import docstring
+from silx.utils.enum import Enum as _Enum
 from silx.gui import qt
 from silx.gui import icons
 from silx.gui.plot import stats as statsmdl
@@ -56,13 +55,10 @@ _logger = logging.getLogger(__name__)
 
 
 @enum.unique
-class UpdateMode(enum.Enum):
+class UpdateMode(_Enum):
     AUTO = 0
     MANUAL = 1
 
-    @classmethod
-    def list(cls):
-        return list(map(lambda c: c.name, cls))
 
 # Helper class to handle specific calls to PlotWidget and SceneWidget
 
@@ -530,7 +526,7 @@ class _StatsWidgetBase(object):
                 _mode = getattr(UpdateMode, _mode)
             except:
                 raise ValueError('Unrecognized update mode', mode,
-                                 'valid update mode are', UpdateMode.list())
+                                 'valid update mode are', UpdateMode.members())
         assert _mode in UpdateMode
         if _mode != self._updateMode:
             self._updateMode = _mode
