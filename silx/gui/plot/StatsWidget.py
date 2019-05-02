@@ -57,8 +57,8 @@ _logger = logging.getLogger(__name__)
 
 @enum.unique
 class UpdateMode(enum.Enum):
-    auto = 0
-    manual = 1
+    AUTO = 0
+    MANUAL = 1
 
     @classmethod
     def list(cls):
@@ -337,7 +337,7 @@ class _StatsWidgetBase(object):
         self._displayOnlyActItem = displayOnlyActItem
         self._statsOnVisibleData = statsOnVisibleData
         self._statsHandler = None
-        self._updateMode = UpdateMode.auto
+        self._updateMode = UpdateMode.AUTO
 
         self.__default_skipped_events = (
             ItemChangedType.ALPHA,
@@ -649,7 +649,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
-        if self.getUpdateMode() is UpdateMode.manual:
+        if self.getUpdateMode() is UpdateMode.MANUAL:
             return
         self._removeAllItems()
 
@@ -723,7 +723,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
         :param event:
         """
-        if self.getUpdateMode() is UpdateMode.manual:
+        if self.getUpdateMode() is UpdateMode.MANUAL:
             return
         if self._skipPlotItemChangedEvent(event) is True:
             return
@@ -862,7 +862,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
         :param bool is_request: True if come from a manual request
         """
-        if self.getUpdateMode() is UpdateMode.manual and not is_request:
+        if self.getUpdateMode() is UpdateMode.MANUAL and not is_request:
             return
         with self._disableSorting():
             for row in range(self.rowCount()):
@@ -999,8 +999,8 @@ class _OptionsWidget(qt.QToolBar):
             self.__useWholeData.setChecked(True)
 
     def _setUpdateMode(self, mode):
-        self.__updateStatsAction.setVisible(mode == UpdateMode.manual)
-        self._updateStatsSep.setVisible(mode == UpdateMode.manual)
+        self.__updateStatsAction.setVisible(mode == UpdateMode.MANUAL)
+        self._updateStatsSep.setVisible(mode == UpdateMode.MANUAL)
 
     def getUpdateStatsAction(self):
         """
@@ -1039,7 +1039,7 @@ class StatsWidget(qt.QWidget):
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self._options = _OptionsWidget(parent=self, updateMode=UpdateMode.manual)
+        self._options = _OptionsWidget(parent=self, updateMode=UpdateMode.MANUAL)
         self.layout().addWidget(self._options)
         self._statsTable = StatsTable(parent=self, plot=plot)
         self._statsTable.setDisplayOnlyActiveItem(self._options.isActiveItemMode())
@@ -1239,7 +1239,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         self._updateAllStats()
 
     def _activeItemChanged(self, kind, previous, current):
-        if self.getUpdateMode() is UpdateMode.manual:
+        if self.getUpdateMode() is UpdateMode.MANUAL:
             return
         if kind == self._item_kind:
             self._updateAllStats()
@@ -1286,7 +1286,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
                     self._statQlineEdit[statName].setText(statVal)
 
     def _updateItemObserve(self, *argv):
-        if self.getUpdateMode() is UpdateMode.manual:
+        if self.getUpdateMode() is UpdateMode.MANUAL:
             return
         assert self._displayOnlyActItem
         _items = self._plotWrapper.getSelectedItems()
@@ -1496,11 +1496,11 @@ class UpdateModeWidget(qt.QWidget):
 
         self._autoRB = qt.QRadioButton('auto', parent=self)
         self.layout().addWidget(self._autoRB)
-        self._buttonGrp.addButton(self._autoRB, UpdateMode.auto.value)
+        self._buttonGrp.addButton(self._autoRB, UpdateMode.AUTO.value)
 
         self._manualRB = qt.QRadioButton('manual', parent=self)
         self.layout().addWidget(self._manualRB)
-        self._buttonGrp.addButton(self._manualRB, UpdateMode.manual.value)
+        self._buttonGrp.addButton(self._manualRB, UpdateMode.MANUAL.value)
 
         refresh_icon = icons.getQIcon('view-refresh')
         self._updatePB = qt.QPushButton(refresh_icon, '', parent=self)
@@ -1517,7 +1517,7 @@ class UpdateModeWidget(qt.QWidget):
             self._modeChanged(mode=self.getUpdateMode())
 
     def _updateRequested(self):
-        if self.getUpdateMode() is UpdateMode.manual:
+        if self.getUpdateMode() is UpdateMode.MANUAL:
             self.sigUpdateRequested.emit()
 
     def _modeChanged(self, mode):
@@ -1534,16 +1534,16 @@ class UpdateModeWidget(qt.QWidget):
         _mode = mode
         if type(mode) is str:
             if mode.lower() in ('auto', 'automatic'):
-                _mode = UpdateMode.auto
+                _mode = UpdateMode.AUTO
             elif mode.lower() == 'manual':
-                _mode = UpdateMode.manual
+                _mode = UpdateMode.MANUAL
             else:
                 raise ValueError('mode', mode, 'is not recognized')
 
-        if _mode is UpdateMode.auto:
+        if _mode is UpdateMode.AUTO:
             if not self._autoRB.isChecked():
                 self._autoRB.setChecked(True)
-        elif _mode is UpdateMode.manual:
+        elif _mode is UpdateMode.MANUAL:
             if not self._manualRB.isChecked():
                 self._manualRB.setChecked(True)
         else:
@@ -1556,9 +1556,9 @@ class UpdateModeWidget(qt.QWidget):
         :rtype: `.UpdateMode`
         """
         if self._manualRB.isChecked():
-            return UpdateMode.manual
+            return UpdateMode.MANUAL
         elif self._autoRB.isChecked():
-            return UpdateMode.auto
+            return UpdateMode.AUTO
         else:
             return None
 

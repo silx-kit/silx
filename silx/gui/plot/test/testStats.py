@@ -473,10 +473,10 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
             with self.subTest(display_only_active=display_only_active):
                 self.widget.setDisplayOnlyActiveItem(display_only_active)
                 self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
-                self.widget.setUpdateMode(StatsWidget.UpdateMode.auto)
+                self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
                 update_stats_action = self.widget._options.getUpdateStatsAction()
                 # test from api
-                self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.auto)
+                self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.AUTO)
                 self.widget.show()
                 # check stats change in auto mode
                 self.plot.getCurve('curve0').setData(x=range(4), y=range(-1, 3))
@@ -493,8 +493,8 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
                 self.assertTrue(float(curve0_min) == 1.)
 
                 # check stats change in manual mode only if requested
-                self.widget.setUpdateMode(StatsWidget.UpdateMode.manual)
-                self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.manual)
+                self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
+                self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.MANUAL)
 
                 self.plot.getCurve('curve0').setData(x=range(4), y=range(2, 6))
                 self.qapp.processEvents()
@@ -676,7 +676,7 @@ class TestLineWidget(TestCaseQt):
         _autoRB = self.widget._options._autoRB
         _manualRB = self.widget._options._manualRB
         # test from api
-        self.widget.setUpdateMode(StatsWidget.UpdateMode.auto)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
         self.assertTrue(_autoRB.isChecked())
         self.assertFalse(_manualRB.isChecked())
 
@@ -688,7 +688,7 @@ class TestLineWidget(TestCaseQt):
         self.assertTrue(curve0_min != curve0_min2)
 
         # check stats change in manual mode only if requested
-        self.widget.setUpdateMode(StatsWidget.UpdateMode.manual)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
         self.assertFalse(_autoRB.isChecked())
         self.assertTrue(_manualRB.isChecked())
 
@@ -725,18 +725,18 @@ class TestUpdateModeWidget(TestCaseQt):
 
     def testSignals(self):
         """Test the signal emission of the widget"""
-        self.widget.setUpdateMode(StatsWidget.UpdateMode.auto)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
         modeChangedListener = SignalListener()
         manualUpdateListener = SignalListener()
         self.widget.sigUpdateModeChanged.connect(modeChangedListener)
         self.widget.sigUpdateRequested.connect(manualUpdateListener)
-        self.widget.setUpdateMode(StatsWidget.UpdateMode.auto)
-        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.auto)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
+        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.AUTO)
         self.assertTrue(modeChangedListener.callCount() is 0)
         self.qapp.processEvents()
 
-        self.widget.setUpdateMode(StatsWidget.UpdateMode.manual)
-        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.manual)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
+        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.MANUAL)
         self.qapp.processEvents()
         self.assertTrue(modeChangedListener.callCount() is 1)
         self.assertTrue(manualUpdateListener.callCount() is 0)
