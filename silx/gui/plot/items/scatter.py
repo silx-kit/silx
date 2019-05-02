@@ -54,6 +54,8 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
         self.__mode = 'points'
         self._value = ()
         self.__alpha = None
+        # Cache triangles: x, y, indices
+        self.__cacheTriangles = None, None, None
         
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -76,7 +78,7 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
 
-        # Apply mask to colrs
+        # Apply mask to colors
         rgbacolors = rgbacolors[mask]
 
         mode = self.getVisualization()
@@ -94,13 +96,15 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
                                     fill=False,
                                     alpha=self.getAlpha(),
                                     symbolsize=self.getSymbolSize())
+
         else:  # 'solid'
-            # TODO cache
-            triangles = triangulation(xFiltered, yFiltered, dtype=numpy.int32)
+            triangles = self.__getTriangleIndices(xFiltered, yFiltered)
             if triangles is None:
                 return None
             else:
-                return backend.addTriangles(xFiltered, yFiltered, triangles,
+                return backend.addTriangles(xFiltered,
+                                            yFiltered,
+                                            triangles,
                                             legend=self.getLegend(),
                                             color=rgbacolors,
                                             linewidth=self.getLineWidth(),
@@ -109,8 +113,24 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
                                             selectable=self.isSelectable(),
                                             alpha=self.getAlpha())
 
-    # TODO scatter visualization mix-in
-    # TODO use enum for visualization mode + str compatibility
+    def __getTriangleIndices(self, x, y):
+        """Returns list of triangle indices.
+
+        Arrays are not copied, so should not be modified.
+
+        :param numpy.ndarray x: X coordinates
+        :param numpy.ndarray y: Y coordinates
+        :return: Triangle indices as a (N, 3) array of indices
+        :rtype: numpy.ndarray
+        """
+        if not (numpy.array_equal(self.__cacheTriangles[0], x) and
+                numpy.array_equal(self.__cacheTriangles[1], y)):
+            # Update cache
+            self.__cacheTriangles = (
+                x, y, triangulation(x, y, dtype=numpy.int32))
+        else:
+            print('reuse cache')
+        return self.__cacheTriangles[2]
 
     @staticmethod
     def supportedVisualization():
@@ -244,7 +264,7 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
             if numpy.any(numpy.logical_or(alpha < 0., alpha > 1.)):
                 alpha = numpy.clip(alpha, 0., 1.)
         self.__alpha = alpha
-        
+
         # set x, y, xerror, yerror
 
         # call self._updated + plot._invalidateDataRange()
