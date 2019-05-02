@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,10 @@ __license__ = "MIT"
 __date__ = "20/10/2017"
 
 
-from collections import Sequence
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import logging
 
 import numpy
@@ -199,7 +202,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         :param origin: (ox, oy) Offset from origin
         :type origin: float or 2-tuple of float
         """
-        if isinstance(origin, Sequence):
+        if isinstance(origin, abc.Sequence):
             origin = float(origin[0]), float(origin[1])
         else:  # single value origin
             origin = float(origin), float(origin)
@@ -227,7 +230,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         :param scale: (sx, sy) Scale of the image
         :type scale: float or 2-tuple of float
         """
-        if isinstance(scale, Sequence):
+        if isinstance(scale, abc.Sequence):
             scale = float(scale[0]), float(scale[1])
         else:  # single value scale
             scale = float(scale), float(scale)

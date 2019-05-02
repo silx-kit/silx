@@ -29,8 +29,10 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/04/2018"
 
-
-import collections
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import ctypes
 from functools import reduce
 import logging
@@ -146,7 +148,7 @@ class Geometry(core.Elem):
         :param bool copy: True to make a copy of the array, False to use as is
         """
         # Convert single value (int, float, numpy types) to tuple
-        if not isinstance(array, collections.Iterable):
+        if not isinstance(array, abc.Iterable):
             array = (array, )
 
         # Makes sure it is an array
@@ -1508,7 +1510,7 @@ class GridPoints(Geometry):
 
     def __init__(self, values=0., shape=None, sizes=1., indices=None,
                  minValue=None, maxValue=None):
-        if isinstance(values, collections.Iterable):
+        if isinstance(values, abc.Iterable):
             values = numpy.array(values, copy=False)
 
             # Test if gl_VertexID will overflow

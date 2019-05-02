@@ -30,7 +30,10 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 
-from collections import Iterable
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import logging
 import numpy
 
@@ -111,7 +114,7 @@ def contour3d(scalars,
     elif isinstance(contours, float):
         contours = [contours]
 
-    assert isinstance(contours, Iterable)
+    assert isinstance(contours, abc.Iterable)
 
     # Prepare colors
     if color is not None:

@@ -30,6 +30,10 @@ __license__ = "MIT"
 __date__ = "29/01/2019"
 
 import collections
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 from copy import deepcopy
 import logging
 import enum
@@ -1026,12 +1030,12 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         assert x.ndim == y.ndim == 1
 
         if xerror is not None:
-            if isinstance(xerror, collections.Iterable):
+            if isinstance(xerror, abc.Iterable):
                 xerror = numpy.array(xerror, copy=copy)
             else:
                 xerror = float(xerror)
         if yerror is not None:
-            if isinstance(yerror, collections.Iterable):
+            if isinstance(yerror, abc.Iterable):
                 yerror = numpy.array(yerror, copy=copy)
             else:
                 yerror = float(yerror)

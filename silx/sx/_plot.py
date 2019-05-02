@@ -31,6 +31,10 @@ __date__ = "06/11/2018"
 
 
 import collections
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import logging
 import weakref
 
@@ -362,7 +366,7 @@ def scatter(x=None, y=None, value=None, size=None,
         if value is None:
             value = numpy.ones(len(x), dtype=numpy.float32)
 
-        elif isinstance(value, collections.Iterable):
+        elif isinstance(value, abc.Iterable):
             value = numpy.array(value, copy=True).reshape(-1)
             assert len(x) == len(value)
 
@@ -400,7 +404,7 @@ class _GInputResult(tuple):
     def __init__(self, position, item, indices, data):
         self._itemRef = weakref.ref(item) if item is not None else None
         self._indices = numpy.array(indices, copy=True)
-        if isinstance(data, collections.Iterable):
+        if isinstance(data, abc.Iterable):
             self._data = numpy.array(data, copy=True)
         else:
             self._data = data
