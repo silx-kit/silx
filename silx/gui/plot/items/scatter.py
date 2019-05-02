@@ -31,7 +31,6 @@ __date__ = "29/03/2017"
 
 
 import logging
-import sys
 
 import numpy
 
@@ -62,14 +61,23 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
         xFiltered, yFiltered, valueFiltered, xerror, yerror = self.getData(
             copy=False, displayed=True)
 
+        # Remove not finite numbers (this includes filtered out x, y <= 0)
+        mask = numpy.logical_and(numpy.isfinite(xFiltered), numpy.isfinite(yFiltered))
+        xFiltered = xFiltered[mask]
+        yFiltered = yFiltered[mask]
+
         if len(xFiltered) == 0:
             return None  # No data to display, do not add renderer to backend
 
+        # Compute colors
         cmap = self.getColormap()
         rgbacolors = cmap.applyToData(self._value)
 
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
+
+        # Apply mask to colrs
+        rgbacolors = rgbacolors[mask]
 
         mode = self.getVisualization()
         if mode == 'points':
