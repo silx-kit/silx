@@ -1382,16 +1382,42 @@ class BasicLineStatsWidget(qt.QWidget):
         self._options.sigUpdateModeChanged.connect(self._lineStatsWidget.setUpdateMode)
         self._options.sigUpdateRequested.connect(self._lineStatsWidget._updateAllStats)
 
-        self.setUpdateMode = self._lineStatsWidget.setUpdateMode
-        self.getUpdateMode = self._lineStatsWidget.getUpdateMode
-        self.setPlot = self._lineStatsWidget.setPlot
-        self.setStats = self._lineStatsWidget.setStats
-        self.setKind = self._lineStatsWidget.setKind
-        self.getKind = self._lineStatsWidget.getKind
-        self.showRadioButtons = self._options.showRadioButtons
-
     def showControl(self, visible):
         self._options.setVisible(visible)
+
+    # Proxy methods
+
+    @docstring(_BasicLineStatsWidget)
+    def setUpdateMode(self, mode):
+        self._lineStatsWidget.setUpdateMode(mode=mode)
+
+    @docstring(_BasicLineStatsWidget)
+    def getUpdateMode(self):
+        return self._lineStatsWidget.getUpdateMode()
+
+    @docstring(_BasicLineStatsWidget)
+    def setPlot(self, plot):
+        self._lineStatsWidget.setPlot(plot=plot)
+
+    @docstring(_BasicLineStatsWidget)
+    def setStats(self, statsHandler):
+        self._lineStatsWidget.setStats(statsHandler=statsHandler)
+
+    @docstring(_BasicLineStatsWidget)
+    def setKind(self, kind):
+        self._lineStatsWidget.setKind(kind=kind)
+
+    @docstring(_BasicLineStatsWidget)
+    def getKind(self):
+        return self._lineStatsWidget.getKind()
+
+    @docstring(_BasicLineStatsWidget)
+    def setStatsOnVisibleData(self, b):
+        self._lineStatsWidget.setStatsOnVisibleData(b)
+
+    @docstring(UpdateModeWidget)
+    def showRadioButtons(self, show):
+        self._options.showRadioButtons(show=show)
 
 
 class _BasicGridStatsWidget(_BaseLineStatsWidget):
