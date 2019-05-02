@@ -37,6 +37,8 @@ import logging
 from silx.gui import qt
 from silx.gui.colors import rgba
 from . import actions
+
+from ...utils.enum import Enum as _Enum
 from ..utils.image import convertArrayToQImage
 
 from .. import _glutils as glu
@@ -114,7 +116,7 @@ class Plot3DWidget(glu.OpenGLWidget):
     """
 
     @enum.unique
-    class FogMode(enum.Enum):
+    class FogMode(_Enum):
         """Different mode to render the scene with fog"""
 
         NONE = 'none'
@@ -122,23 +124,6 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         LINEAR = 'linear'
         """Linear fog through the whole scene"""
-
-        @classmethod
-        def asMember(cls, value):
-            """Convert a str to corresponding enum member
-
-            :param Union[str,FogMode] value: The value to convert
-            :return: The corresponding enum member
-            :rtype: FogMode
-            :raise ValueError: In case the conversion is not possible
-            """
-            if isinstance(value, cls):
-                return value
-            value = str(value)
-            for member in cls:
-                if value == member.value:
-                    return member
-            raise ValueError("Cannot convert: %s" % value)
 
     def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
         self._firstRender = True
@@ -289,7 +274,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         :param Union[str,FogMode] mode: The mode to use
         :raise ValueError: If mode is not supported
         """
-        mode = self.FogMode.asMember(mode)
+        mode = self.FogMode.from_value(mode)
         if mode != self.getFogMode():
             self.viewport.fog.isOn = mode is self.FogMode.LINEAR
             self.sigStyleChanged.emit('fogMode')

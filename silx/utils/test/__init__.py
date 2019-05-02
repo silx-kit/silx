@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ from . import test_proxy
 from . import test_debug
 from . import test_number
 from . import test_external_resources
+from . import test_enum
 
 
 def suite():
@@ -50,4 +51,5 @@ def suite():
     test_suite.addTest(test_debug.suite())
     test_suite.addTest(test_number.suite())
     test_suite.addTest(test_external_resources.suite())
+    test_suite.addTest(test_enum.suite())
     return test_suite
