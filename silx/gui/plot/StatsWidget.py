@@ -533,6 +533,11 @@ class _StatsWidgetBase(object):
             self._updateModeHasChanged()
 
     def getUpdateMode(self):
+        """
+
+        :return: update mode
+        :rtype: `.UpdateMode`
+        """
         return self._updateMode
 
     def _updateModeHasChanged(self):
