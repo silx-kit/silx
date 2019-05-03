@@ -104,6 +104,16 @@ class GLPlotTriangles(object):
         self.__vbos = None
         self.__indicesVbo = None
 
+    def pick(self, x, y):
+        """Perform picking
+
+        :param float x: X coordinates in plot data frame
+        :param float y: Y coordinates in plot data frame
+        :return: List of picked point indices
+        :rtype: List[int]
+        """
+        return ()
+
     def discard(self):
         """Release resources on the GPU"""
         if self.__vbos is not None:

@@ -1188,6 +1188,60 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._plotFrame.size[1] - self._plotFrame.margins.bottom - 1)
         return xPlot, yPlot
 
+    def __pickCurves(self, item, x, y):
+        """Perform picking on a curve item.
+
+        :param GLPlotCurve2D item:
+        :param float x: X position of the mouse in widget coordinates
+        :param float y: Y position of the mouse in widget coordinates
+        :return: List of indices of picked points
+        :rtype: List[int]
+        """
+        offset = self._PICK_OFFSET
+        if item.marker is not None:
+            offset = max(item.markerSize / 2., offset)
+        if item.lineStyle is not None:
+            offset = max(item.lineWidth / 2., offset)
+
+        yAxis = item.info['yAxis']
+
+        inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
+        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
+                                   axis=yAxis, check=True)
+        if dataPos is None:
+            return []
+        xPick0, yPick0 = dataPos
+
+        inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
+        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
+                                   axis=yAxis, check=True)
+        if dataPos is None:
+            return []
+        xPick1, yPick1 = dataPos
+
+        if xPick0 < xPick1:
+            xPickMin, xPickMax = xPick0, xPick1
+        else:
+            xPickMin, xPickMax = xPick1, xPick0
+
+        if yPick0 < yPick1:
+            yPickMin, yPickMax = yPick0, yPick1
+        else:
+            yPickMin, yPickMax = yPick1, yPick0
+
+        # Apply log scale if axis is log
+        if self._plotFrame.xAxis.isLog:
+            xPickMin = numpy.log10(xPickMin)
+            xPickMax = numpy.log10(xPickMax)
+
+        if (yAxis == 'left' and self._plotFrame.yAxis.isLog) or (
+                yAxis == 'right' and self._plotFrame.y2Axis.isLog):
+            yPickMin = numpy.log10(yPickMin)
+            yPickMax = numpy.log10(yPickMax)
+
+        return item.pick(xPickMin, yPickMin,
+                         xPickMax, yPickMax)
+
     def pickItems(self, x, y, kinds):
         picked = []
 
@@ -1236,56 +1290,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             picked.append(dict(kind='image',
                                                legend=item.info['legend']))
 
-                    elif 'curve' in kinds and isinstance(item, GLPlotCurve2D):
-                        offset = self._PICK_OFFSET
-                        if item.marker is not None:
-                            offset = max(item.markerSize / 2., offset)
-                        if item.lineStyle is not None:
-                            offset = max(item.lineWidth / 2., offset)
+                    elif 'curve' in kinds:
+                        if isinstance(item, GLPlotCurve2D):
+                            pickedIndices = self.__pickCurves(item, x, y)
+                            if pickedIndices:
+                                picked.append(dict(kind='curve',
+                                                   legend=item.info['legend'],
+                                                   indices=pickedIndices))
 
-                        yAxis = item.info['yAxis']
-
-                        inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
-                        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                                   axis=yAxis, check=True)
-                        if dataPos is None:
-                            continue
-                        xPick0, yPick0 = dataPos
-
-                        inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
-                        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                                   axis=yAxis, check=True)
-                        if dataPos is None:
-                            continue
-                        xPick1, yPick1 = dataPos
-
-                        if xPick0 < xPick1:
-                            xPickMin, xPickMax = xPick0, xPick1
-                        else:
-                            xPickMin, xPickMax = xPick1, xPick0
-
-                        if yPick0 < yPick1:
-                            yPickMin, yPickMax = yPick0, yPick1
-                        else:
-                            yPickMin, yPickMax = yPick1, yPick0
-
-                        # Apply log scale if axis is log
-                        if self._plotFrame.xAxis.isLog:
-                            xPickMin = numpy.log10(xPickMin)
-                            xPickMax = numpy.log10(xPickMax)
-
-                        if (yAxis == 'left' and self._plotFrame.yAxis.isLog) or (
-                                yAxis == 'right' and self._plotFrame.y2Axis.isLog):
-                            yPickMin = numpy.log10(yPickMin)
-                            yPickMax = numpy.log10(yPickMax)
-
-                        pickedIndices = item.pick(xPickMin, yPickMin,
-                                                  xPickMax, yPickMax)
-                        if pickedIndices:
-                            picked.append(dict(kind='curve',
-                                               legend=item.info['legend'],
-                                               indices=pickedIndices))
-
+                        elif isinstance(item, GLPlotTriangles):
+                            pickedIndices = item.pick(*dataPos)
+                            if pickedIndices:
+                                picked.append(dict(kind='curve',
+                                                   legend=item.info['legend'],
+                                                   indices=pickedIndices))
         return picked
 
     # Update curve
