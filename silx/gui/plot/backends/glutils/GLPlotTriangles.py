@@ -115,7 +115,6 @@ class GLPlotTriangles(object):
     def prepare(self):
         """Allocate resources on the GPU"""
         if self.__vbos is None:
-            x, y, color = self.__x_y_color
             self.__vbos = glutils.vertexBuffer(self.__x_y_color)
             # Normalization is need for color
             self.__vbos[-1].normalization = True
