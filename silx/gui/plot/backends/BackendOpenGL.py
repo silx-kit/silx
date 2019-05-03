@@ -31,7 +31,6 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 from collections import OrderedDict, namedtuple
-from ctypes import c_void_p
 import logging
 import weakref
 
@@ -45,7 +44,7 @@ from ... import qt
 from ..._glutils import gl
 from ... import _glutils as glu
 from .glutils import (
-    GLLines2D,
+    GLLines2D, GLPlotTriangles
     GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D,
     mat4Ortho, mat4Identity,
     LEFT, RIGHT, BOTTOM, TOP,
@@ -1029,6 +1028,34 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError("Unsupported data shape {0}".format(data.shape))
 
         return legend, 'image'
+
+    def addTriangles(self, x, y, triangles, legend,
+                     color, linewidth, linestyle,
+                     z, selectable,
+                     alpha):
+
+        # Check and convert input data
+        x = numpy.ravel(x)
+        y = numpy.ravel(y)
+        color = numpy.array(color, copy=False)
+
+        assert x.size == y.size
+        assert x.size == len(color)
+        assert color.ndim == 2 and color.shape[1] in (3, 4)
+        if numpy.issubdtype(color.dtype, numpy.floating):
+            color = numpy.array(color, dtype=numpy.float32, copy=False)
+        elif numpy.issubdtype(color.dtype, numpy.integer):
+            color = numpy.array(color, dtype=numpy.uint8, copy=False)
+        else:
+            raise ValueError('Unsupported color type')
+
+        triangles = GLPlotTriangles(x, y, triangles, color)
+        triangles.info = {
+            'legend': legend,
+            'zOrder': z,
+            'behaviors': set(['selectable']) if selectable else set(),
+        }
+        return legend, 'triangles'  # TODO curve?
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
