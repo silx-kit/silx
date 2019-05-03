@@ -23,8 +23,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script is an example to illustrate how to use axis synchronization
-tool.
+"""This script is an example to illustrate how to set range constraints on
+plot axes.
 """
 
 from silx.gui import qt
@@ -37,7 +37,7 @@ class ConstrainedViewPlot(qt.QMainWindow):
 
     def __init__(self):
         qt.QMainWindow.__init__(self)
-        self.setWindowTitle("Plot with synchronized axes")
+        self.setWindowTitle("Plot with constrained axes")
         widget = qt.QWidget(self)
         self.setCentralWidget(widget)
 
