@@ -33,12 +33,15 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 from collections import OrderedDict, namedtuple
 from contextlib import contextmanager
 import datetime as dt
 import itertools
-import logging
 
 import numpy
 
@@ -46,8 +49,12 @@ import silx
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated
-# Import matplotlib backend here to init matplotlib our way
-from .backends.BackendMatplotlib import BackendMatplotlibQt
+try:
+    # Import matplotlib backend here to init matplotlib our way
+    from . import matplotlib
+except ImportError:
+    _logger.warning(
+        "matplotlib not available: matplotlib backend not available")
 
 from ..colors import Colormap
 from .. import colors
@@ -64,7 +71,6 @@ from .. import qt
 from ._utils.panzoom import ViewConstraints
 from ...gui.plot._utils.dtime_ticklayout import timestamp
 
-_logger = logging.getLogger(__name__)
 
 
 _COLORDICT = colors.COLORDICT
@@ -300,6 +306,7 @@ class PlotWidget(qt.QMainWindow):
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
             if lowerCaseString in ("matplotlib", "mpl"):
+                from .backends.BackendMatplotlib import BackendMatplotlibQt
                 backendClass = BackendMatplotlibQt
             elif lowerCaseString in ('gl', 'opengl'):
                 from .backends.BackendOpenGL import BackendOpenGL
