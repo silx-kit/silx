@@ -31,15 +31,18 @@ __license__ = "MIT"
 __date__ = "03/04/2017"
 
 
+import ctypes
+
 import numpy
 
-
-from ...._glutils import gl, Program, vertexBuffer
+from .... import _glutils as glutils
+from ...._glutils import gl
 
 
 class GLPlotTriangles(object):
+    """Handle rendering of a set of colored triangles"""
 
-    _PROGRAM = Program(
+    _PROGRAM = glutils.Program(
         vertexShader="""
         #version 120
 
@@ -58,26 +61,65 @@ class GLPlotTriangles(object):
         fragmentShader="""
         #version 120
 
-        varying vColor;
+        uniform float alpha;
+        varying vec4 vColor;
 
         void main(void) {
             gl_FragColor = vColor;
+            gl_FragColor.a *= alpha;
         }
         """,
         attrib0='xPos')
 
-    def __init__(self, xData=None, yData=None, color=None):
-        self.__x_y_color = xData, yData, color
+    def __init__(self, x, y, color, triangles, alpha=1.):
+        """
+
+        :param numpy.ndarray x: X coordinates of triangle corners
+        :param numpy.ndarray y: Y coordinates of triangle corners
+        :param numpy.ndarray color: color for each point
+        :param numpy.ndarray triangles: (N, 3) array of indices of triangles
+        :param float alpha: Opacity in [0, 1]
+        """
+        # Check and convert input data
+        x = numpy.ravel(x)
+        y = numpy.ravel(y)
+        color = numpy.array(color, copy=False)
+        triangles = numpy.array(triangles, copy=False)
+
+        assert x.size == y.size
+        assert x.size == len(color)
+        assert color.ndim == 2 and color.shape[1] in (3, 4)
+        if numpy.issubdtype(color.dtype, numpy.floating):
+            color = numpy.array(color, dtype=numpy.float32, copy=False)
+        elif numpy.issubdtype(color.dtype, numpy.integer):
+            color = numpy.array(color, dtype=numpy.uint8, copy=False)
+        else:
+            raise ValueError('Unsupported color type')
+        assert triangles.ndim == 2 and triangles.shape[1] == 3
+
+        self.__x_y_color = x, y, color
+        self.__indices = numpy.ravel(triangles)
+        self.__alpha = numpy.clip(float(alpha), 0., 1.)
         self.__vbos = None
+        self.__indicesVbo = None
 
     def discard(self):
+        """Release resources on the GPU"""
         if self.__vbos is not None:
             self.__vbos[0].vbo.discard()
             self.__vbos = None
+            self.__indicesVbo.discard()
+            self.__indicesVbo = None
 
     def prepare(self):
-        if self.__vbos is None and None not in self.__x_y_color:
-            self.__vbos = vertexBuffer(self.__x_y_color)
+        """Allocate resources on the GPU"""
+        if self.__vbos is None:
+            self.__vbos = glutils.vertexBuffer(self.__x_y_color)
+        if self.__indicesVbo is None:
+            self.__indicesVbo = glutils.VertexBuffer(
+                self.__indices,
+                usage=gl.GL_STATIC_DRAW,
+                target=gl.GL_ELEMENT_ARRAY_BUFFER)
 
     def render(self, matrix):
         """Perform rendering
@@ -86,18 +128,25 @@ class GLPlotTriangles(object):
         """
         self.prepare()
 
-        if self.__vbos is None:
+        if self.__vbos is None or self.__indicesVbo is None:
             return  # Nothing to display
 
         self._PROGRAM.use()
 
-        gl.glUniformMatrix4fv(
-            self._PROGRAM.uniforms['matrix'], 1, gl.GL_TRUE,
-            matrix.astype(numpy.float32))
+        gl.glUniformMatrix4fv(self._PROGRAM.uniforms['matrix'],
+                              1,
+                              gl.GL_TRUE,
+                              matrix.astype(numpy.float32))
+
+        gl.glUniform1f(self._PROGRAM.uniforms['alpha'], self.__alpha)
 
         for index, name in enumerate(('xPos', 'yPos', 'color')):
             attr = self._PROGRAM.attributes[name]
             gl.glEnableVertexAttribArray(attr)
             self.__vbos[index].setVertexAttrib(attr)
 
-        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, self.__vbos[0].size)
+        with self.__indicesVbo:
+            gl.glDrawElements(gl.GL_TRIANGLES,
+                              self.__indices.size,
+                              glutils.numpyToGLType(self.__indices.dtype),
+                              ctypes.c_void_p(0))
