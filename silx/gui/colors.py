@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -887,7 +887,11 @@ def preferredColormaps():
     global _PREFERRED_COLORMAPS
     if _PREFERRED_COLORMAPS is None:
         # Initialize preferred colormaps
-        default_preferred = [k for k in _AVAILABLE_LUTS.keys() if _AVAILABLE_LUTS[k].preferred]
+        default_preferred = []
+        for name, info in _AVAILABLE_LUTS.items():
+            if (info.preferred and
+                    (info.source != 'matplotlib' or _matplotlib_cm is not None)):
+                default_preferred.append(name)
         setPreferredColormaps(default_preferred)
     return tuple(_PREFERRED_COLORMAPS)
 
