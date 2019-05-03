@@ -171,7 +171,7 @@ class BackendBase(object):
         return legend
 
     def addTriangles(self, x, y, triangles, legend,
-                 color, z, selectable, alpha):
+                     color, z, selectable, alpha):
         """Add a set of triangles.
 
         :param numpy.ndarray x: The data corresponding to the x axis
