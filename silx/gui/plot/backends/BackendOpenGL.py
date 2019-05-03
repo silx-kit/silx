@@ -44,7 +44,7 @@ from ... import qt
 from ..._glutils import gl
 from ... import _glutils as glu
 from .glutils import (
-    GLLines2D, GLPlotTriangles
+    GLLines2D, GLPlotTriangles,
     GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D,
     mat4Ortho, mat4Identity,
     LEFT, RIGHT, BOTTOM, TOP,
@@ -124,6 +124,8 @@ class PlotDataContent(object):
             primitiveType = 'curve'
         elif isinstance(primitive, (GLPlotColormap, GLPlotRGBAImage)):
             primitiveType = 'image'
+        elif isinstance(primitive, GLPlotTriangles):
+            primitiveType = 'triangles'
         else:
             raise RuntimeError('Unsupported object type: %s', primitive)
 
