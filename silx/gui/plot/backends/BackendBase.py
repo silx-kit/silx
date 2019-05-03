@@ -182,7 +182,7 @@ class BackendBase(object):
         :param numpy.ndarray color: color(s) as (npoints, 4) array
         :param int z: Layer on which to draw the cuve
         :param bool selectable: indicate if the curve can be selected
-        :param float alpha: Curve opacity, as a float in [0., 1.]
+        :param float alpha: Opacity as a float in [0., 1.]
         :returns: The triangles' unique identifier used by the backend
         """
         return legend
