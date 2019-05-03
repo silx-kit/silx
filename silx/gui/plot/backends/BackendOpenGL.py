@@ -1033,6 +1033,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addTriangles(self, x, y, triangles, legend,
                      color, z, selectable, alpha):
+
+        # Handle axes log scale: convert data
+        if self._plotFrame.xAxis.isLog:
+            x = numpy.log10(x)
+        if self._plotFrame.yAxis.isLog:
+            y = numpy.log10(y)
+
         triangles = GLPlotTriangles(x, y, color, triangles, alpha)
         triangles.info = {
             'legend': legend,
