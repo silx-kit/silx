@@ -50,7 +50,7 @@ from silx.utils.weakref import WeakMethodProxy
 from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated
 try:
-    # Import matplotlib backend here to init matplotlib our way
+    # Import matplotlib now to init matplotlib our way
     from . import matplotlib
 except ImportError:
     _logger.warning(
