@@ -35,13 +35,13 @@ import logging
 import numpy
 
 from .._utils.delaunay import triangulation
-from .core import Points, ColormapMixIn, LineMixIn, ItemChangedType
+from .core import Points, ColormapMixIn, ItemChangedType
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Scatter(Points, ColormapMixIn, LineMixIn):
+class Scatter(Points, ColormapMixIn):
     """Description of a scatter"""
 
     _DEFAULT_SELECTABLE = True
@@ -50,7 +50,6 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
     def __init__(self):
         Points.__init__(self)
         ColormapMixIn.__init__(self)
-        LineMixIn.__init__(self)
         self.__mode = 'points'
         self._value = ()
         self.__alpha = None
@@ -107,8 +106,6 @@ class Scatter(Points, ColormapMixIn, LineMixIn):
                                             triangles,
                                             legend=self.getLegend(),
                                             color=rgbacolors,
-                                            linewidth=self.getLineWidth(),
-                                            linestyle=self.getLineStyle(),
                                             z=self.getZValue(),
                                             selectable=self.isSelectable(),
                                             alpha=self.getAlpha())

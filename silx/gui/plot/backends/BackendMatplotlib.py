@@ -479,10 +479,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return image
 
     def addTriangles(self, x, y, triangles, legend,
-                 color, linewidth, linestyle,
-                 z, selectable,
-                 alpha):
-        for parameter in (x, y, triangles, legend, color, linewidth, linestyle,
+                     color, z, selectable, alpha):
+        for parameter in (x, y, triangles, legend, color,
                           z, selectable, alpha):
             assert parameter is not None
 
