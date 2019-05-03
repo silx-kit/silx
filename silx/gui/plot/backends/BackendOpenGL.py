@@ -106,7 +106,7 @@ class PlotDataContent(object):
     This class is only meant to work with _OpenGLPlotCanvas.
     """
 
-    _PRIMITIVE_TYPES = 'curve', 'image'
+    _PRIMITIVE_TYPES = 'curve', 'image', 'triangles'
 
     def __init__(self):
         self._primitives = OrderedDict()  # For images and curves
@@ -1041,7 +1041,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         }
         self._plotContent.add(triangles)
 
-        return legend, 'triangles'  # TODO curve?
+        return legend, 'triangles'
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
@@ -1132,10 +1132,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 self._glGarbageCollector.append(curve)
 
-        elif kind == 'image':
-            image = self._plotContent.pop('image', legend)
-            if image is not None:
-                self._glGarbageCollector.append(image)
+        elif kind in ('image', 'triangles'):
+            item = self._plotContent.pop(kind, legend)
+            if item is not None:
+                self._glGarbageCollector.append(item)
 
         elif kind == 'marker':
             self._markers.pop(legend, False)
