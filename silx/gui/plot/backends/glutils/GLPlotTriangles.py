@@ -81,10 +81,11 @@ class GLPlotTriangles(object):
         :param float alpha: Opacity in [0, 1]
         """
         # Check and convert input data
-        x = numpy.ravel(x)
-        y = numpy.ravel(y)
+        x = numpy.ravel(numpy.array(x, dtype=numpy.float32))
+        y = numpy.ravel(numpy.array(y, dtype=numpy.float32))
         color = numpy.array(color, copy=False)
-        triangles = numpy.array(triangles, copy=False)
+        # Cast to uint32
+        triangles = numpy.array(triangles, copy=False, dtype=numpy.uint32)
 
         assert x.size == y.size
         assert x.size == len(color)
@@ -114,17 +115,23 @@ class GLPlotTriangles(object):
     def prepare(self):
         """Allocate resources on the GPU"""
         if self.__vbos is None:
+            x, y, color = self.__x_y_color
             self.__vbos = glutils.vertexBuffer(self.__x_y_color)
+            # Normalization is need for color
+            self.__vbos[-1].normalization = True
+
         if self.__indicesVbo is None:
             self.__indicesVbo = glutils.VertexBuffer(
                 self.__indices,
                 usage=gl.GL_STATIC_DRAW,
                 target=gl.GL_ELEMENT_ARRAY_BUFFER)
 
-    def render(self, matrix):
+    def render(self, matrix, isXLog, isYLog):
         """Perform rendering
 
         :param numpy.ndarray matrix: 4x4 transform matrix to use
+        :param bool isXLog:
+        :param bool isYLog:
         """
         self.prepare()
 
