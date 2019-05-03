@@ -1030,31 +1030,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return legend, 'image'
 
     def addTriangles(self, x, y, triangles, legend,
-                     color, linewidth, linestyle,
-                     z, selectable,
-                     alpha):
-
-        # Check and convert input data
-        x = numpy.ravel(x)
-        y = numpy.ravel(y)
-        color = numpy.array(color, copy=False)
-
-        assert x.size == y.size
-        assert x.size == len(color)
-        assert color.ndim == 2 and color.shape[1] in (3, 4)
-        if numpy.issubdtype(color.dtype, numpy.floating):
-            color = numpy.array(color, dtype=numpy.float32, copy=False)
-        elif numpy.issubdtype(color.dtype, numpy.integer):
-            color = numpy.array(color, dtype=numpy.uint8, copy=False)
-        else:
-            raise ValueError('Unsupported color type')
-
-        triangles = GLPlotTriangles(x, y, triangles, color)
+                     color, z, selectable, alpha):
+        triangles = GLPlotTriangles(x, y, color, triangles, alpha)
         triangles.info = {
             'legend': legend,
             'zOrder': z,
             'behaviors': set(['selectable']) if selectable else set(),
         }
+        self._plotContent.add(triangles)
+
         return legend, 'triangles'  # TODO curve?
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
