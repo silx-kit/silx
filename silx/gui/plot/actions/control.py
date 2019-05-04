@@ -35,6 +35,7 @@ The following QAction are available:
 - :class:`KeepAspectRatioAction`
 - :class:`PanWithArrowKeysAction`
 - :class:`ResetZoomAction`
+- :class:`ShowAxisAction`
 - :class:`XAxisLogarithmicAction`
 - :class:`XAxisAutoScaleAction`
 - :class:`YAxisInvertedAction`
@@ -43,7 +44,6 @@ The following QAction are available:
 - :class:`ZoomBackAction`
 - :class:`ZoomInAction`
 - :class:`ZoomOutAction`
-- :class:'ShowAxisAction'
 """
 
 from __future__ import division
