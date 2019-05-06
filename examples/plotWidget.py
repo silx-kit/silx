@@ -36,7 +36,7 @@ as its central widget and adds toolbars and a colorbar by using pluggable widget
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/09/2017"
+__date__ = "06/05/2019"
 
 import numpy
 
@@ -68,15 +68,29 @@ class MyPlotWindow(qt.QMainWindow):
         palette.setColor(qt.QPalette.Window, qt.Qt.white)
         colorBar.setPalette(palette)
 
+        options = qt.QWidget(self)
+        layout = qt.QVBoxLayout(options)
+        button = qt.QPushButton("Show image", self)
+        button.clicked.connect(self.showImage)
+        layout.addWidget(button)
+        button = qt.QPushButton("Show scatter", self)
+        button.clicked.connect(self.showScatter)
+        layout.addWidget(button)
+        button = qt.QPushButton("Show delaunay", self)
+        button.clicked.connect(self.showDelaunay)
+        layout.addWidget(button)
+        layout.addStretch()
+
         # Combine the ColorBarWidget and the PlotWidget as
         # this QMainWindow's central widget
         gridLayout = qt.QGridLayout()
         gridLayout.setSpacing(0)
         gridLayout.setContentsMargins(0, 0, 0, 0)
-        gridLayout.addWidget(self._plot, 0, 0)
-        gridLayout.addWidget(colorBar, 0, 1)
+        gridLayout.addWidget(options, 0, 0)
+        gridLayout.addWidget(self._plot, 0, 1)
+        gridLayout.addWidget(colorBar, 0, 2)
         gridLayout.setRowStretch(0, 1)
-        gridLayout.setColumnStretch(0, 1)
+        gridLayout.setColumnStretch(1, 1)
         centralWidget = qt.QWidget(self)
         centralWidget.setLayout(gridLayout)
         self.setCentralWidget(centralWidget)
@@ -116,6 +130,44 @@ class MyPlotWindow(qt.QMainWindow):
         """Returns the PlotWidget contains in this window"""
         return self._plot
 
+    def showImage(self):
+        plot = self.getPlotWidget()
+        plot.clear()
+        plot.getDefaultColormap().setName('viridis')
+
+        # Add an image to the plot
+        x = numpy.outer(
+            numpy.linspace(-10, 10, 200), numpy.linspace(-10, 5, 150))
+        image = numpy.sin(x) / x
+        plot.addImage(image)
+        plot.resetZoom()
+
+    def showScatter(self):
+        plot = self.getPlotWidget()
+        plot.clear()
+        plot.getDefaultColormap().setName('viridis')
+
+        nbPoints = 50
+        x = numpy.random.rand(nbPoints)
+        y = numpy.random.rand(nbPoints)
+        value = numpy.random.rand(nbPoints)
+        plot.addScatter(x=x, y=y, value=value)
+        plot.resetZoom()
+
+    def showDelaunay(self):
+        plot = self.getPlotWidget()
+        plot.clear()
+        plot.getDefaultColormap().setName('viridis')
+
+        nbPoints = 50
+        x = numpy.random.rand(nbPoints)
+        y = numpy.random.rand(nbPoints)
+        value = numpy.random.rand(nbPoints)
+        legend = plot.addScatter(x=x, y=y, value=value)
+        scatter = plot.getScatter(legend)
+        scatter.setVisualization("solid")
+        plot.resetZoom()
+
 
 def main():
     global app
@@ -125,17 +177,7 @@ def main():
     window = MyPlotWindow()
     window.setAttribute(qt.Qt.WA_DeleteOnClose)
     window.show()
-
-    # Change the default colormap
-    plot = window.getPlotWidget()
-    plot.getDefaultColormap().setName('viridis')
-
-    # Add an image to the plot
-    x = numpy.outer(
-        numpy.linspace(-10, 10, 200), numpy.linspace(-10, 5, 150))
-    image = numpy.sin(x) / x
-    plot.addImage(image)
-
+    window.showImage()
     app.exec_()
 
 
