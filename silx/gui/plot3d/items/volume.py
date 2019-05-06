@@ -39,6 +39,7 @@ from silx.math.combo import min_max
 from silx.math.marchingcubes import MarchingCubes
 
 from ....utils.proxy import docstring
+from ... import _glutils as glu
 from ... import qt
 from ...colors import rgba
 
@@ -409,7 +410,7 @@ class Isosurface(Item3D):
             mc = MarchingCubes(data.reshape(2, 2, 2), isolevel=level)
             points = mc.get_vertices() + currentBin
             triangles = points[mc.get_indices()]
-            t = utils.segmentTrianglesIntersection(rayObject, triangles)[1]
+            t = glu.segmentTrianglesIntersection(rayObject, triangles)[1]
             t = numpy.unique(t)  # Duplicates happen on triangle edges
             if len(t) != 0:
                 # Compute intersection points and get closest data point

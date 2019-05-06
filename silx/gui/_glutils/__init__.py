@@ -40,3 +40,4 @@ from .Program import Program  # noqa
 from .Texture import Texture  # noqa
 from .VertexBuffer import VertexBuffer, VertexBufferAttrib, vertexBuffer  # noqa
 from .utils import sizeofGLType, isSupportedGLType, numpyToGLType  # noqa
+from .utils import segmentTrianglesIntersection  # noqa
