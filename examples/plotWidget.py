@@ -116,6 +116,18 @@ class MyPlotWindow(qt.QMainWindow):
         """Returns the PlotWidget contains in this window"""
         return self._plot
 
+    def showImage(self):
+        plot = self.getPlotWidget()
+        plot.clear()
+        plot.getDefaultColormap().setName('viridis')
+
+        # Add an image to the plot
+        x = numpy.outer(
+            numpy.linspace(-10, 10, 200), numpy.linspace(-10, 5, 150))
+        image = numpy.sin(x) / x
+        plot.addImage(image)
+        plot.resetZoom()
+
 
 def main():
     global app
@@ -125,17 +137,7 @@ def main():
     window = MyPlotWindow()
     window.setAttribute(qt.Qt.WA_DeleteOnClose)
     window.show()
-
-    # Change the default colormap
-    plot = window.getPlotWidget()
-    plot.getDefaultColormap().setName('viridis')
-
-    # Add an image to the plot
-    x = numpy.outer(
-        numpy.linspace(-10, 10, 200), numpy.linspace(-10, 5, 150))
-    image = numpy.sin(x) / x
-    plot.addImage(image)
-
+    window.showImage()
     app.exec_()
 
 
