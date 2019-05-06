@@ -35,6 +35,7 @@ import ctypes
 
 import numpy
 
+from .....math.combo import min_max
 from .... import _glutils as glutils
 from ...._glutils import gl
 
@@ -99,6 +100,8 @@ class GLPlotTriangles(object):
         assert triangles.ndim == 2 and triangles.shape[1] == 3
 
         self.__x_y_color = x, y, color
+        self.__xBounds = min_max(x, finite=True)
+        self.__yBounds = min_max(y, finite=True)
         self.__triangles = triangles
         self.__alpha = numpy.clip(float(alpha), 0., 1.)
         self.__vbos = None
@@ -113,6 +116,9 @@ class GLPlotTriangles(object):
         :return: List of picked data point indices
         :rtype: numpy.ndarray
         """
+        if (x < self.__xBounds.minimum or x > self.__xBounds.maximum or
+                y < self.__yBounds.minimum or y > self.__yBounds.maximum):
+            return ()
         xPts, yPts = self.__x_y_color[:2]
         if self.__picking_triangles is None:
             self.__picking_triangles = numpy.zeros(
@@ -140,7 +146,6 @@ class GLPlotTriangles(object):
             self.__vbos = None
             self.__indicesVbo.discard()
             self.__indicesVbo = None
-            self.__picking_triangles = None
 
     def prepare(self):
         """Allocate resources on the GPU"""
