@@ -127,6 +127,7 @@ class GLPlotTriangles(object):
         # Point indices
         indices = numpy.unique(numpy.ravel(self.__triangles[indices]))
 
+        # Sorted from furthest to closest point
         dists = (xPts[indices] - x) ** 2 + (yPts[indices] - y) ** 2
         indices = indices[numpy.flip(numpy.argsort(dists))]
 
