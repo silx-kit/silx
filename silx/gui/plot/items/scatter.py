@@ -34,7 +34,8 @@ import logging
 
 import numpy
 
-from .core import Points, ColormapMixIn
+from .._utils.delaunay import triangulation
+from .core import Points, ColormapMixIn, ItemChangedType
 
 
 _logger = logging.getLogger(__name__)
@@ -49,8 +50,11 @@ class Scatter(Points, ColormapMixIn):
     def __init__(self):
         Points.__init__(self)
         ColormapMixIn.__init__(self)
+        self.__mode = 'points'
         self._value = ()
         self.__alpha = None
+        # Cache triangles: x, y, indices
+        self.__cacheTriangles = None, None, None
         
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -58,28 +62,102 @@ class Scatter(Points, ColormapMixIn):
         xFiltered, yFiltered, valueFiltered, xerror, yerror = self.getData(
             copy=False, displayed=True)
 
+        # Remove not finite numbers (this includes filtered out x, y <= 0)
+        mask = numpy.logical_and(numpy.isfinite(xFiltered), numpy.isfinite(yFiltered))
+        xFiltered = xFiltered[mask]
+        yFiltered = yFiltered[mask]
+
         if len(xFiltered) == 0:
             return None  # No data to display, do not add renderer to backend
 
+        # Compute colors
         cmap = self.getColormap()
         rgbacolors = cmap.applyToData(self._value)
 
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
 
-        return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
-                                color=rgbacolors,
-                                symbol=self.getSymbol(),
-                                linewidth=0,
-                                linestyle="",
-                                yaxis='left',
-                                xerror=xerror,
-                                yerror=yerror,
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                fill=False,
-                                alpha=self.getAlpha(),
-                                symbolsize=self.getSymbolSize())
+        # Apply mask to colors
+        rgbacolors = rgbacolors[mask]
+
+        mode = self.getVisualization()
+        if mode == 'points':
+            return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
+                                    color=rgbacolors,
+                                    symbol=self.getSymbol(),
+                                    linewidth=0,
+                                    linestyle="",
+                                    yaxis='left',
+                                    xerror=xerror,
+                                    yerror=yerror,
+                                    z=self.getZValue(),
+                                    selectable=self.isSelectable(),
+                                    fill=False,
+                                    alpha=self.getAlpha(),
+                                    symbolsize=self.getSymbolSize())
+
+        else:  # 'solid'
+            triangles = self.__getTriangleIndices(xFiltered, yFiltered)
+            if triangles is None:
+                return None
+            else:
+                return backend.addTriangles(xFiltered,
+                                            yFiltered,
+                                            triangles,
+                                            legend=self.getLegend(),
+                                            color=rgbacolors,
+                                            z=self.getZValue(),
+                                            selectable=self.isSelectable(),
+                                            alpha=self.getAlpha())
+
+    def __getTriangleIndices(self, x, y):
+        """Returns list of triangle indices.
+
+        Arrays are not copied, so should not be modified.
+
+        :param numpy.ndarray x: X coordinates
+        :param numpy.ndarray y: Y coordinates
+        :return: Triangle indices as a (N, 3) array of indices
+        :rtype: numpy.ndarray
+        """
+        if not (numpy.array_equal(self.__cacheTriangles[0], x) and
+                numpy.array_equal(self.__cacheTriangles[1], y)):
+            # Update cache
+            self.__cacheTriangles = (
+                x, y, triangulation(x, y, dtype=numpy.int32))
+        else:
+            print('reuse cache')
+        return self.__cacheTriangles[2]
+
+    @staticmethod
+    def supportedVisualization():
+        """Returns the list of supported visualization modes.
+
+        See :meth:`setVisualization`
+
+        :rtype: tuple of str
+        """
+        return 'points', 'solid'
+
+    def setVisualization(self, mode):
+        """Set the visualization mode to use.
+
+        :param str mode:
+        """
+        mode = str(mode)
+        assert mode in self.supportedVisualization()
+
+        if mode != self.__mode:
+            self.__mode = mode
+
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+
+    def getVisualization(self):
+        """Returns the visualization mode in use.
+
+        :rtype: str
+        """
+        return self.__mode
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
@@ -183,7 +261,7 @@ class Scatter(Points, ColormapMixIn):
             if numpy.any(numpy.logical_or(alpha < 0., alpha > 1.)):
                 alpha = numpy.clip(alpha, 0., 1.)
         self.__alpha = alpha
-        
+
         # set x, y, xerror, yerror
 
         # call self._updated + plot._invalidateDataRange()

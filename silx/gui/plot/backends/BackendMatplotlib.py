@@ -54,7 +54,8 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, ScalarFormatter, Locator
-
+from matplotlib.tri import Triangulation
+from matplotlib.collections import TriMesh
 
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
@@ -476,6 +477,32 @@ class BackendMatplotlib(BackendBase.BackendBase):
         image.set_data(data)
         self.ax.add_artist(image)
         return image
+
+    def addTriangles(self, x, y, triangles, legend,
+                     color, z, selectable, alpha):
+        for parameter in (x, y, triangles, legend, color,
+                          z, selectable, alpha):
+            assert parameter is not None
+
+        # 0 enables picking on filled triangle
+        picker = 0 if selectable else None
+
+        color = numpy.array(color, copy=False)
+        assert color.ndim == 2 and len(color) == len(x)
+
+        if color.dtype not in [numpy.float32, numpy.float]:
+            color = color.astype(numpy.float32) / 255.
+
+        collection = TriMesh(
+            Triangulation(x, y, triangles),
+            label=legend,
+            alpha=alpha,
+            picker=picker,
+            zorder=z)
+        collection.set_color(color)
+        self.ax.add_collection(collection)
+
+        return collection
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
@@ -1099,6 +1126,22 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         elif label.startswith('__IMAGE__'):
             self._picked.append({'kind': 'image', 'legend': label[9:]})
+
+        elif isinstance(event.artist, TriMesh):
+            # Convert selected triangle to data point indices
+            triangulation = event.artist._triangulation
+            indices = triangulation.get_masked_triangles()[event.ind[0]]
+
+            # Sort picked triangle points by distance to mouse
+            # from furthest to closest to put closest point last
+            # This is to be somewhat consistent with last scatter point
+            # being the top one.
+            dists = ((triangulation.x[indices] - event.mouseevent.xdata) ** 2 +
+                     (triangulation.y[indices] - event.mouseevent.ydata) ** 2)
+            indices = indices[numpy.flip(numpy.argsort(dists))]
+
+            self._picked.append({'kind': 'curve', 'legend': label,
+                                 'indices': indices})
 
         else:  # it's a curve, item have no picker for now
             if not isinstance(event.artist, (PathCollection, Line2D)):
