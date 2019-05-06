@@ -99,20 +99,38 @@ class GLPlotTriangles(object):
         assert triangles.ndim == 2 and triangles.shape[1] == 3
 
         self.__x_y_color = x, y, color
-        self.__indices = numpy.ravel(triangles)
+        self.__triangles = triangles
         self.__alpha = numpy.clip(float(alpha), 0., 1.)
         self.__vbos = None
         self.__indicesVbo = None
+        self.__picking_triangles = None
 
     def pick(self, x, y):
         """Perform picking
 
         :param float x: X coordinates in plot data frame
         :param float y: Y coordinates in plot data frame
-        :return: List of picked point indices
-        :rtype: List[int]
+        :return: List of picked data point indices
+        :rtype: numpy.ndarray
         """
-        return ()
+        xPts, yPts = self.__x_y_color[:2]
+        if self.__picking_triangles is None:
+            self.__picking_triangles = numpy.zeros(
+                self.__triangles.shape + (3,), dtype=numpy.float32)
+            self.__picking_triangles[:, :, 0] = xPts[self.__triangles]
+            self.__picking_triangles[:, :, 1] = yPts[self.__triangles]
+
+        segment = numpy.array(((x, y, -1), (x, y, 1)), dtype=numpy.float32)
+        # Picked triangle indices
+        indices = glutils.segmentTrianglesIntersection(
+            segment, self.__picking_triangles)[0]
+        # Point indices
+        indices = numpy.unique(numpy.ravel(self.__triangles[indices]))
+
+        dists = (xPts[indices] - x) ** 2 + (yPts[indices] - y) ** 2
+        indices = indices[numpy.flip(numpy.argsort(dists))]
+
+        return tuple(indices)
 
     def discard(self):
         """Release resources on the GPU"""
@@ -121,6 +139,7 @@ class GLPlotTriangles(object):
             self.__vbos = None
             self.__indicesVbo.discard()
             self.__indicesVbo = None
+            self.__picking_triangles = None
 
     def prepare(self):
         """Allocate resources on the GPU"""
@@ -131,7 +150,7 @@ class GLPlotTriangles(object):
 
         if self.__indicesVbo is None:
             self.__indicesVbo = glutils.VertexBuffer(
-                self.__indices,
+                numpy.ravel(self.__triangles),
                 usage=gl.GL_STATIC_DRAW,
                 target=gl.GL_ELEMENT_ARRAY_BUFFER)
 
@@ -163,6 +182,6 @@ class GLPlotTriangles(object):
 
         with self.__indicesVbo:
             gl.glDrawElements(gl.GL_TRIANGLES,
-                              self.__indices.size,
-                              glutils.numpyToGLType(self.__indices.dtype),
+                              self.__triangles.size,
+                              glutils.numpyToGLType(self.__triangles.dtype),
                               ctypes.c_void_p(0))
