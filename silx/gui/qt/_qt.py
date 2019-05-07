@@ -66,17 +66,25 @@ elif 'PyQt4.QtCore' in sys.modules:
 
 else:  # Then try Qt bindings
     try:
-        import PyQt5  # noqa
+        import PyQt5.QtCore  # noqa
     except ImportError:
+        if PyQt5 in sys.modules:
+            del sys.modules["PyQt5"]
         try:
-            import PyQt4  # noqa
+            import PyQt4.QtCore  # noqa
         except ImportError:
+            if PyQt4 in sys.modules:
+                del sys.modules["PyQt4"]
             try:
-                import PySide2  # noqa
+                import PySide2.QtCore  # noqa
             except ImportError:
+                if PySide2 in sys.modules:
+                    del sys.modules["PySide2"]
                 try:
-                    import PySide  # noqa
+                    import PySide.QtCore  # noqa
                 except ImportError:
+                    if PySide in sys.modules:
+                        del sys.modules["PySide"]
                     raise ImportError(
                         'No Qt wrapper found. Install PyQt5, PyQt4 or PySide2.')
                 else:
