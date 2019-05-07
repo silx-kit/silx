@@ -921,11 +921,12 @@ class UpdateModeWidget(qt.QWidget):
 
         self._autoRB = qt.QRadioButton('auto', parent=self)
         self.layout().addWidget(self._autoRB)
-        self._buttonGrp.addButton(self._autoRB, UpdateMode.AUTO.value)
+        self._buttonGrp.addButton(self._autoRB)
 
         self._manualRB = qt.QRadioButton('manual', parent=self)
         self.layout().addWidget(self._manualRB)
-        self._buttonGrp.addButton(self._manualRB, UpdateMode.MANUAL.value)
+        self._buttonGrp.addButton(self._manualRB)
+        self._manualRB.setChecked(True)
 
         refresh_icon = icons.getQIcon('view-refresh')
         self._updatePB = qt.QPushButton(refresh_icon, '', parent=self)
@@ -933,21 +934,22 @@ class UpdateModeWidget(qt.QWidget):
 
         # connect signal / SLOT
         self._updatePB.clicked.connect(self._updateRequested)
-        self._manualRB.toggled.connect(self._callUpdateRequest)
-        self._autoRB.toggled.connect(self._callUpdateRequest)
-        self._buttonGrp.buttonClicked.connect(self._modeChanged)
+        self._manualRB.toggled.connect(self._manualButtonToggled)
+        self._autoRB.toggled.connect(self._autoButtonToggled)
 
-    def _callUpdateRequest(self, update):
-        if update is True:
-            self._modeChanged(mode=self.getUpdateMode())
+    def _manualButtonToggled(self, checked):
+        if checked:
+            self.setUpdateMode(UpdateMode.MANUAL)
+            self.sigUpdateModeChanged.emit(self.getUpdateMode())
+
+    def _autoButtonToggled(self, checked):
+        if checked:
+            self.setUpdateMode(UpdateMode.AUTO)
+            self.sigUpdateModeChanged.emit(self.getUpdateMode())
 
     def _updateRequested(self):
         if self.getUpdateMode() is UpdateMode.MANUAL:
             self.sigUpdateRequested.emit()
-
-    def _modeChanged(self, mode):
-        assert mode in UpdateMode
-        self.sigUpdateModeChanged.emit(mode)
 
     def setUpdateMode(self, mode):
         """Set the way to update the displayed statistics.
@@ -977,7 +979,7 @@ class UpdateModeWidget(qt.QWidget):
         elif self._autoRB.isChecked():
             return UpdateMode.AUTO
         else:
-            return None
+            raise RuntimeError("No mode selected")
 
     def showRadioButtons(self, show):
         """show / hide the QRadioButtons
