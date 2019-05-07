@@ -46,7 +46,6 @@ from silx.gui import qt
 from silx.gui.colors import Colormap
 from silx.gui.plot import Plot1D
 from silx.gui.plot.stats.stats import StatBase
-from silx.gui.plot.StatsWidget import UpdateMode
 from silx.gui.utils import concurrent
 import random
 import threading
@@ -133,7 +132,7 @@ def main(argv):
     parser.add_argument(
         '--update-mode',
         default='manual',
-        help='update mode to display (manual or automatic)')
+        help='update mode to display (manual or auto)')
 
     options = parser.parse_args(argv[1:])
 

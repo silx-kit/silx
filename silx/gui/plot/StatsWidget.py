@@ -56,8 +56,8 @@ _logger = logging.getLogger(__name__)
 
 @enum.unique
 class UpdateMode(_Enum):
-    AUTO = 0
-    MANUAL = 1
+    AUTO = 'auto'
+    MANUAL = 'manual'
 
 
 # Helper class to handle specific calls to PlotWidget and SceneWidget
@@ -515,28 +515,21 @@ class _StatsWidgetBase(object):
         return event in self.__default_skipped_events
 
     def setUpdateMode(self, mode):
-        """
+        """Set the way to update the displayed statistics.
 
         :param mode: mode requested for update
-        :type mode: Union[str, `.UpdateMode`]
+        :type mode: Union[str,UpdateMode]
         """
-        _mode = mode
-        if type(mode) is str:
-            try:
-                _mode = getattr(UpdateMode, _mode)
-            except:
-                raise ValueError('Unrecognized update mode', mode,
-                                 'valid update mode are', UpdateMode.members())
-        assert _mode in UpdateMode
-        if _mode != self._updateMode:
-            self._updateMode = _mode
+        mode = UpdateMode.from_value(mode)
+        if mode != self._updateMode:
+            self._updateMode = mode
             self._updateModeHasChanged()
 
     def getUpdateMode(self):
-        """
+        """Returns update mode (See :meth:`setUpdateMode`).
 
         :return: update mode
-        :rtype: `.UpdateMode`
+        :rtype: UpdateMode
         """
         return self._updateMode
 
@@ -957,35 +950,27 @@ class UpdateModeWidget(qt.QWidget):
         self.sigUpdateModeChanged.emit(mode)
 
     def setUpdateMode(self, mode):
-        """
+        """Set the way to update the displayed statistics.
 
         :param mode: mode requested for update
-        :type mode: Union[str, `.UpdateMode`]
+        :type mode: Union[str,UpdateMode]
         """
-        assert isinstance(mode, (UpdateMode, str))
-        _mode = mode
-        if type(mode) is str:
-            if mode.lower() in ('auto', 'automatic'):
-                _mode = UpdateMode.AUTO
-            elif mode.lower() == 'manual':
-                _mode = UpdateMode.MANUAL
-            else:
-                raise ValueError('mode', mode, 'is not recognized')
+        mode = UpdateMode.from_value(mode)
 
-        if _mode is UpdateMode.AUTO:
+        if mode is UpdateMode.AUTO:
             if not self._autoRB.isChecked():
                 self._autoRB.setChecked(True)
-        elif _mode is UpdateMode.MANUAL:
+        elif mode is UpdateMode.MANUAL:
             if not self._manualRB.isChecked():
                 self._manualRB.setChecked(True)
         else:
             raise ValueError('mode', mode, 'is not recognized')
 
     def getUpdateMode(self):
-        """
+        """Returns update mode (See :meth:`setUpdateMode`).
 
         :return: the active update mode
-        :rtype: `.UpdateMode`
+        :rtype: UpdateMode
         """
         if self._manualRB.isChecked():
             return UpdateMode.MANUAL
