@@ -36,10 +36,10 @@ try:
 except ImportError:  # Python2 support
     import collections as abc
 import logging
-import sys
 import numpy
 
 from ....utils.deprecation import deprecated
+from ... import _glutils as glu
 from ...plot._utils.delaunay import triangulation
 from ..scene import function, primitives, utils
 
@@ -507,7 +507,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
         trianglesIndices = self._cachedTrianglesIndices.reshape(-1, 3)
         triangles = points[trianglesIndices, :3]
-        selectedIndices, t, barycentric = utils.segmentTrianglesIntersection(
+        selectedIndices, t, barycentric = glu.segmentTrianglesIntersection(
             rayObject, triangles)
         closest = numpy.argmax(barycentric, axis=1)
 

@@ -125,8 +125,6 @@ class Scatter(Points, ColormapMixIn):
             # Update cache
             self.__cacheTriangles = (
                 x, y, triangulation(x, y, dtype=numpy.int32))
-        else:
-            print('reuse cache')
         return self.__cacheTriangles[2]
 
     @staticmethod
