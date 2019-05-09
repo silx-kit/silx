@@ -317,6 +317,7 @@ class PlotWidget(qt.QMainWindow):
                     from .backends.BackendMatplotlib import \
                         BackendMatplotlibQt as backendClass
                 except ImportError:
+                    _logger.debug("Backtrace", exc_info=True)
                     raise ImportError("matplotlib backend is not available")
 
             elif backend in ('gl', 'opengl'):
@@ -324,6 +325,7 @@ class PlotWidget(qt.QMainWindow):
                     from .backends.BackendOpenGL import \
                         BackendOpenGL as backendClass
                 except ImportError:
+                    _logger.debug("Backtrace", exc_info=True)
                     raise ImportError("OpenGL backend is not available")
 
             elif backend == 'none':
