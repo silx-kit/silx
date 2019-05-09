@@ -793,6 +793,8 @@ class ComplexMixIn(ItemMixInBase):
 
         :param ComplexMode mode: The visualization mode in:
             'real', 'imaginary', 'phase', 'amplitude'
+        :return: True if value was set, False if is was already set
+        :rtype: bool
         """
         mode = self.ComplexMode.from_value(mode)
         assert mode in self.supportedComplexModes()
@@ -800,6 +802,9 @@ class ComplexMixIn(ItemMixInBase):
         if mode != self._mode:
             self._mode = mode
             self._updated(ItemChangedType.COMPLEX_MODE)
+            return True
+        else:
+            return False
 
     def _convertComplexData(self, data, mode=None):
         """Convert complex data to the specific mode.
