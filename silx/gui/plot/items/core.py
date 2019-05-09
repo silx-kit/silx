@@ -43,6 +43,7 @@ import weakref
 import numpy
 import six
 
+from ....utils.enum import Enum as _Enum
 from ... import qt
 from ... import colors
 from ...colors import Colormap
@@ -759,6 +760,81 @@ class AlphaMixIn(ItemMixInBase):
         if alpha != self._alpha:
             self._alpha = alpha
             self._updated(ItemChangedType.ALPHA)
+
+
+class ComplexMixIn(ItemMixInBase):
+    """Mix-in class for converting complex data to scalar value"""
+
+    class ComplexMode(_Enum):
+        """Identify available display mode for complex"""
+        ABSOLUTE = 'amplitude'
+        PHASE = 'phase'
+        REAL = 'real'
+        IMAGINARY = 'imaginary'
+        AMPLITUDE_PHASE = 'amplitude_phase'
+        LOG10_AMPLITUDE_PHASE = 'log10_amplitude_phase'
+        SQUARE_AMPLITUDE = 'square_amplitude'
+
+    def __init__(self):
+        self._mode = self.ComplexMode.ABSOLUTE
+
+    def getComplexMode(self):
+        """Returns the current complex visualization mode.
+
+        :rtype: ComplexMode
+        """
+        return self._mode
+
+    def setComplexMode(self, mode):
+        """Set the complex visualization mode.
+
+        :param ComplexMode mode: The visualization mode in:
+            'real', 'imaginary', 'phase', 'amplitude'
+        """
+        mode = self.ComplexMode.from_value(mode)
+        assert mode in self.supportedComplexModes()
+
+        if mode != self._mode:
+            self._mode = mode
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+
+    def _convertComplexData(self, data, mode=None):
+        """Convert complex data to the specific mode.
+
+        :param Union[ComplexMode,None] mode:
+            The kind of value to compute.
+            If None (the default), the current complex mode is used.
+        :return: The converted dataset
+        :rtype: Union[numpy.ndarray[float],None]
+        """
+        if data is None:
+            return None
+
+        if mode is None:
+            mode = self.getComplexMode()
+
+        if mode is self.ComplexMode.REAL:
+            return numpy.real(data)
+        elif mode is self.ComplexMode.IMAGINARY:
+            return numpy.imag(data)
+        elif mode is self.ComplexMode.ABSOLUTE:
+            return numpy.absolute(data)
+        elif mode is self.ComplexMode.PHASE:
+            return numpy.angle(data)
+        elif mode is self.ComplexMode.SQUARE_AMPLITUDE:
+            return numpy.absolute(data) ** 2
+        else:
+            raise ValueError('Unsupported conversion mode: %s', str(mode))
+
+    @classmethod
+    def supportedComplexModes(cls):
+        """Returns the list of supported complex visualization modes.
+
+        See :meth:`setComplexMode`.
+
+        :rtype: List[ComplexMode]
+        """
+        return cls.ComplexMode.members()
 
 
 class Points(Item, SymbolMixIn, AlphaMixIn):
