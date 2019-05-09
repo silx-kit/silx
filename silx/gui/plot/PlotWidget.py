@@ -305,6 +305,7 @@ class PlotWidget(qt.QMainWindow):
             The name of the backend or its class or an iterable of those.
         :rtype: BackendBase
         :raise ValueError: In case the backend is not supported
+        :raise RuntimeError: If a backend is not available
         """
         if callable(backend):
             return backend
@@ -316,14 +317,14 @@ class PlotWidget(qt.QMainWindow):
                     from .backends.BackendMatplotlib import \
                         BackendMatplotlibQt as backendClass
                 except ImportError:
-                    raise ValueError("matplotlib backend is not available")
+                    raise RuntimeError("matplotlib backend is not available")
 
             elif backend in ('gl', 'opengl'):
                 try:
                     from .backends.BackendOpenGL import \
                         BackendOpenGL as backendClass
                 except ImportError:
-                    raise ValueError("OpenGL backend is not available")
+                    raise RuntimeError("OpenGL backend is not available")
 
             elif backend == 'none':
                 from .backends.BackendBase import BackendBase as backendClass
