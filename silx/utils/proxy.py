@@ -206,21 +206,21 @@ class Proxy(object):
     __call__ = property(lambda self: self.__obj.__call__)
 
 
-def _docstring(func, origin):
+def _docstring(dest, origin):
     """Implementation of docstring decorator.
 
-    It patches func.__doc__.
+    It patches dest.__doc__.
     """
-    if isinstance(origin, type):
-        # This is a class, get the method with the same name
+    if not isinstance(dest, type) and isinstance(origin, type):
+        # func is not a class, but origin is, get the method with the same name
         try:
-            origin = getattr(origin, func.__name__)
+            origin = getattr(origin, dest.__name__)
         except AttributeError:
             raise ValueError(
-                "origin class has no %s method" % func.__name__)
+                "origin class has no %s method" % dest.__name__)
 
-    func.__doc__ = origin.__doc__
-    return func
+    dest.__doc__ = origin.__doc__
+    return dest
 
 
 def docstring(origin):
