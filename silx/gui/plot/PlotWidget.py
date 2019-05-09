@@ -39,6 +39,10 @@ _logger = logging.getLogger(__name__)
 
 
 from collections import OrderedDict, namedtuple
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 from contextlib import contextmanager
 import datetime as dt
 import itertools
@@ -53,8 +57,7 @@ try:
     # Import matplotlib now to init matplotlib our way
     from . import matplotlib
 except ImportError:
-    _logger.warning(
-        "matplotlib not available: matplotlib backend not available")
+    _logger.debug("matplotlib not available")
 
 from ..colors import Colormap
 from .. import colors
@@ -293,34 +296,65 @@ class PlotWidget(qt.QMainWindow):
         self._foregroundColorsUpdated()
         self._backgroundColorsUpdated()
 
+    def __getBackendClass(self, backend):
+        """Returns backend class corresponding to backend.
+
+        If multiple backends are provided, the first available one is used.
+
+        :param Union[str,BackendBase,Iterable] backend:
+            The name of the backend or its class or an iterable of those.
+        :rtype: BackendBase
+        :raise ValueError: In case the backend is not supported
+        """
+        if callable(backend):
+            return backend
+
+        elif isinstance(backend, str):
+            backend = backend.lower()
+            if backend in ('matplotlib', 'mpl'):
+                try:
+                    from .backends.BackendMatplotlib import \
+                        BackendMatplotlibQt as backendClass
+                except ImportError:
+                    raise ValueError("matplotlib backend is not available")
+
+            elif backend in ('gl', 'opengl'):
+                try:
+                    from .backends.BackendOpenGL import \
+                        BackendOpenGL as backendClass
+                except ImportError:
+                    raise ValueError("OpenGL backend is not available")
+
+            elif backend == 'none':
+                from .backends.BackendBase import BackendBase as backendClass
+
+            else:
+                raise ValueError("Backend not supported %s" % backend)
+
+            return backendClass
+
+        elif isinstance(backend, abc.Iterable):
+            for b in backend:
+                try:
+                    return self.__getBackendClass(b)
+                except ValueError:
+                    pass
+            else:  # No backend was found
+                raise ValueError("No backends supported: " % str(backend))
+
+        raise ValueError("Backend not supported %s" % str(backend))
+
     def _setBackend(self, backend):
-        """Setup a new backend"""
+        """Setup a new backend
+
+        :param backend: Either a str defining the backend to use
+        """
         assert(self._backend is None)
 
         if backend is None:
             backend = silx.config.DEFAULT_PLOT_BACKEND
 
-        if hasattr(backend, "__call__"):
-            backend = backend(self, self)
-
-        elif hasattr(backend, "lower"):
-            lowerCaseString = backend.lower()
-            if lowerCaseString in ("matplotlib", "mpl"):
-                from .backends.BackendMatplotlib import BackendMatplotlibQt
-                backendClass = BackendMatplotlibQt
-            elif lowerCaseString in ('gl', 'opengl'):
-                from .backends.BackendOpenGL import BackendOpenGL
-                backendClass = BackendOpenGL
-            elif lowerCaseString == 'none':
-                from .backends.BackendBase import BackendBase as backendClass
-            else:
-                raise ValueError("Backend not supported %s" % backend)
-            backend = backendClass(self, self)
-
-        else:
-            raise ValueError("Backend not supported %s" % str(backend))
-
-        self._backend = backend
+        self._backend = self.__getBackendClass(backend)(self, self)
 
     # TODO: Can be removed for silx 0.10
     @staticmethod
