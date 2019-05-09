@@ -782,14 +782,14 @@ class ComplexMixIn(ItemMixInBase):
         SQUARE_AMPLITUDE = 'square_amplitude'
 
     def __init__(self):
-        self._mode = self.ComplexMode.ABSOLUTE
+        self.__complex_mode = self.ComplexMode.ABSOLUTE
 
     def getComplexMode(self):
         """Returns the current complex visualization mode.
 
         :rtype: ComplexMode
         """
-        return self._mode
+        return self.__complex_mode
 
     def setComplexMode(self, mode):
         """Set the complex visualization mode.
@@ -802,8 +802,8 @@ class ComplexMixIn(ItemMixInBase):
         mode = self.ComplexMode.from_value(mode)
         assert mode in self.supportedComplexModes()
 
-        if mode != self._mode:
-            self._mode = mode
+        if mode != self.__complex_mode:
+            self.__complex_mode = mode
             self._updated(ItemChangedType.COMPLEX_MODE)
             return True
         else:
