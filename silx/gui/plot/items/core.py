@@ -133,6 +133,9 @@ class ItemChangedType(enum.Enum):
     VISUALIZATION_MODE = 'visualizationModeChanged'
     """Item's visualization mode changed flag."""
 
+    COMPLEX_MODE = 'complexModeChanged'
+    """Item's complex data visualization mode changed flag."""
+
 
 class Item(qt.QObject):
     """Description of an item of the plot"""
@@ -796,7 +799,7 @@ class ComplexMixIn(ItemMixInBase):
 
         if mode != self._mode:
             self._mode = mode
-            self._updated(ItemChangedType.VISUALIZATION_MODE)
+            self._updated(ItemChangedType.COMPLEX_MODE)
 
     def _convertComplexData(self, data, mode=None):
         """Convert complex data to the specific mode.
