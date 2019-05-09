@@ -400,8 +400,10 @@ class ComplexImageView(qt.QWidget):
 
            widget = ComplexImageView()
            widget.setComplexMode(ComplexImageView.ComplexMode.PHASE)
+           # or
+           widget.setComplexMode('phase')
 
-        :param ComplexMode mode: The mode to use.
+        :param Unions[ComplexMode,str] mode: The mode to use.
         """
         self._plotImage.setComplexMode(mode)
 
