@@ -38,7 +38,7 @@ class Config(object):
     .. versionadded:: 0.8
     """
 
-    DEFAULT_PLOT_BACKEND = "matplotlib"
+    DEFAULT_PLOT_BACKEND = "matplotlib", "opengl"
     """Default plot backend.
 
     It will be used as default backend for all the next created PlotWidget.
@@ -50,6 +50,8 @@ class Config(object):
     - 'none'
     - A :class:`silx.gui.plot.backend.BackendBase.BackendBase` class
     - A callable returning backend class or binding name
+
+    If multiple backends are provided, the first available one is used.
 
     .. versionadded:: 0.8
     """
