@@ -2665,9 +2665,11 @@ class PlotWidget(qt.QMainWindow):
         xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
         ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
         if ranges.yright is None:
-            ymin2, ymax2 = None, None
+            ymin2, ymax2 = ymin, ymax
         else:
             ymin2, ymax2 = ranges.yright
+            if ranges.y is None:
+                ymin, ymax = ranges.yright
 
         # Add margins around data inside the plot area
         newLimits = list(_utils.addMarginsToLimits(
