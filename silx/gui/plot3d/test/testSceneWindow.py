@@ -106,7 +106,7 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
             numpy.arange(10**3).reshape(10, 10, 10).astype(numpy.complex64))
         volume.setTranslation(10, 0, 10)
         volume.setRotation(45, (0, 0, 1))
-        volume.setComplexMode(volume.Mode.REAL)
+        volume.setComplexMode(volume.ComplexMode.REAL)
         volume.addIsosurface(500, (1., 0., 0., .5))
         items.append(volume)
         self.assertEqual(sceneWidget.getItems(), tuple(items))
