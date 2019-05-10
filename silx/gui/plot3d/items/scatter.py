@@ -561,12 +561,13 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
                     return None
                 self._cachedTrianglesIndices = numpy.ravel(triangles)
 
-            if mode == 'lines' and self._cachedLinesIndices is None:
+            if (mode is self.Visualization.LINES and
+                    self._cachedLinesIndices is None):
                 # Compute line indices
                 self._cachedLinesIndices = utils.triangleToLineIndices(
                     self._cachedTrianglesIndices, unicity=True)
 
-            if mode == 'lines':
+            if mode is self.Visualization.LINES:
                 indices = self._cachedLinesIndices
                 renderMode = 'lines'
             else:
@@ -583,7 +584,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
 
             # TODO option to enable/disable light, cache normals
             # TODO smooth surface
-            if mode == 'solid':
+            if mode is self.Visualization.SOLID:
                 if heightMap:
                     coordinates = coordinates[indices]
                     if len(value) > 1:
