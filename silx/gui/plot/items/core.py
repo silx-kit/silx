@@ -895,7 +895,11 @@ class ScatterVisualizationMixIn(ItemMixInBase):
     def setVisualization(self, mode):
         """Set the scatter plot visualization mode to use.
 
+        See :class:`Visualization` for all possible values,
+        and :meth:`supportedVisualizations` for supported ones.
+
         :param Union[str,Visualization] mode:
+            The visualization mode to use.
         :return: True if value was set, False if is was already set
         :rtype: bool
         """
