@@ -768,6 +768,9 @@ class AlphaMixIn(ItemMixInBase):
 class ComplexMixIn(ItemMixInBase):
     """Mix-in class for converting complex data to scalar value"""
 
+    _SUPPORTED_COMPLEX_MODES = None
+    """Override to only support a subset of all ComplexMode"""
+
     class ComplexMode(_Enum):
         """Identify available display mode for complex"""
         ABSOLUTE = 'amplitude'
@@ -838,11 +841,14 @@ class ComplexMixIn(ItemMixInBase):
     def supportedComplexModes(cls):
         """Returns the list of supported complex visualization modes.
 
-        See :meth:`setComplexMode`.
+        See :class:`ComplexMode` and :meth:`setComplexMode`.
 
         :rtype: List[ComplexMode]
         """
-        return cls.ComplexMode.members()
+        if cls._SUPPORTED_COMPLEX_MODES is None:
+            return cls.ComplexMode.members()
+        else:
+            return cls._SUPPORTED_COMPLEX_MODES
 
 
 class Points(Item, SymbolMixIn, AlphaMixIn):

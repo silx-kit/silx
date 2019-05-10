@@ -179,14 +179,13 @@ class ColormapMixIn(_ColormapMixIn):
 @docstring(_ComplexMixIn)
 class ComplexMixIn(_ComplexMixIn):
 
-    @classmethod
-    @docstring(_ComplexMixIn)
-    def supportedComplexModes(cls):
-        return (cls.ComplexMode.REAL,
-                cls.ComplexMode.IMAGINARY,
-                cls.ComplexMode.ABSOLUTE,
-                cls.ComplexMode.PHASE,
-                cls.ComplexMode.SQUARE_AMPLITUDE)
+    _SUPPORTED_COMPLEX_MODES = (
+        _ComplexMixIn.ComplexMode.REAL,
+        _ComplexMixIn.ComplexMode.IMAGINARY,
+        _ComplexMixIn.ComplexMode.ABSOLUTE,
+        _ComplexMixIn.ComplexMode.PHASE,
+        _ComplexMixIn.ComplexMode.SQUARE_AMPLITUDE)
+    """Overrides supported ComplexMode"""
 
 
 class SymbolMixIn(_SymbolMixIn):
