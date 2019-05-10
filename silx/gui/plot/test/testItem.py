@@ -199,7 +199,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         scatter.setData((0, 1, 2), (1, 0, 2), (0, 1, 2))
 
         # Visualization mode changed
-        scatter.setVisualization('solid')
+        scatter.setVisualization(scatter.Visualization.SURFACE)
 
         self.assertEqual(listener.arguments(),
                          [(ItemChangedType.COLORMAP,),

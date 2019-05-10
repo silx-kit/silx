@@ -466,7 +466,7 @@ class TestPlotCurve(PlotWidgetTestCase):
                            color=color, symbol='o')
 
 
-class TestPlotScatter(PlotWidgetTestCase):
+class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addScatter"""
 
     def testScatter(self):
@@ -482,8 +482,14 @@ class TestPlotScatter(PlotWidgetTestCase):
         self.qapp.processEvents()
 
         scatter = self.plot.getItems()[0]
-        scatter.setVisualization('solid')
-        self.qapp.processEvents()
+
+        for visualization in ('surface',
+                              'points',
+                              scatter.Visualization.SURFACE,
+                              scatter.Visualization.POINTS):
+            with self.subTest(visualization=visualization):
+                scatter.setVisualization(visualization)
+                self.qapp.processEvents()
 
 
 class TestPlotMarker(PlotWidgetTestCase):
