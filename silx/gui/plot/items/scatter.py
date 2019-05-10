@@ -49,7 +49,7 @@ class Scatter(Points, ColormapMixIn, ScatterVisualizationMixIn):
 
     _SUPPORTED_SCATTER_VISUALIZATION = (
         ScatterVisualizationMixIn.Visualization.POINTS,
-        ScatterVisualizationMixIn.Visualization.SURFACE)
+        ScatterVisualizationMixIn.Visualization.SOLID)
     """Overrides supported Visualizations"""
 
     def __init__(self):
