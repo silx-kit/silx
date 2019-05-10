@@ -240,7 +240,6 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         SymbolMixIn.__init__(self)
         ScatterVisualizationMixIn.__init__(self)
 
-        self._visualizationMode = 'points'
         self._heightMap = False
         self._lineWidth = 1.
 
