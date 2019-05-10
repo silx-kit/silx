@@ -870,7 +870,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         This is based on Delaunay triangulation
         """
 
-        SURFACE = 'surface'
+        SOLID = 'solid'
         """Display scatter plot as a set of filled triangles.
 
         This is based on Delaunay triangulation

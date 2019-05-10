@@ -1509,8 +1509,8 @@ def initScatter2DNode(node, item):
         fget=item.getVisualization,
         fset=item.setVisualization,
         events=items.ItemChangedType.VISUALIZATION_MODE,
-        editorHint=[m.title() for m in item.supportedVisualizations()],
-        toModelData=lambda data: data.title(),
+        editorHint=[m.value.title() for m in item.supportedVisualizations()],
+        toModelData=lambda data: data.value.title(),
         fromModelData=lambda data: data.lower()))
 
     node.addRow(ItemProxyRow(
