@@ -483,9 +483,9 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
 
         scatter = self.plot.getItems()[0]
 
-        for visualization in ('surface',
+        for visualization in ('solid',
                               'points',
-                              scatter.Visualization.SURFACE,
+                              scatter.Visualization.SOLID,
                               scatter.Visualization.POINTS):
             with self.subTest(visualization=visualization):
                 scatter.setVisualization(visualization)
