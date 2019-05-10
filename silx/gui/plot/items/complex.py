@@ -181,7 +181,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             self._updated(ItemChangedType.DATA)
 
             # Update ColormapMixIn colormap
-            colormap = self._colormaps[self._mode]
+            colormap = self._colormaps[self.getComplexMode()]
             if colormap is not super(ImageComplexData, self).getColormap():
                 super(ImageComplexData, self).setColormap(colormap)
         return changed
