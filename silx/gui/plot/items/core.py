@@ -766,7 +766,7 @@ class AlphaMixIn(ItemMixInBase):
 
 
 class ComplexMixIn(ItemMixInBase):
-    """Mix-in class for converting complex data to scalar value"""
+    """Mix-in class for complex data mode"""
 
     _SUPPORTED_COMPLEX_MODES = None
     """Override to only support a subset of all ComplexMode"""
@@ -782,14 +782,14 @@ class ComplexMixIn(ItemMixInBase):
         SQUARE_AMPLITUDE = 'square_amplitude'
 
     def __init__(self):
-        self._mode = self.ComplexMode.ABSOLUTE
+        self.__complex_mode = self.ComplexMode.ABSOLUTE
 
     def getComplexMode(self):
         """Returns the current complex visualization mode.
 
         :rtype: ComplexMode
         """
-        return self._mode
+        return self.__complex_mode
 
     def setComplexMode(self, mode):
         """Set the complex visualization mode.
@@ -802,8 +802,8 @@ class ComplexMixIn(ItemMixInBase):
         mode = self.ComplexMode.from_value(mode)
         assert mode in self.supportedComplexModes()
 
-        if mode != self._mode:
-            self._mode = mode
+        if mode != self.__complex_mode:
+            self.__complex_mode = mode
             self._updated(ItemChangedType.COMPLEX_MODE)
             return True
         else:
@@ -849,6 +849,77 @@ class ComplexMixIn(ItemMixInBase):
             return cls.ComplexMode.members()
         else:
             return cls._SUPPORTED_COMPLEX_MODES
+
+
+class ScatterVisualizationMixIn(ItemMixInBase):
+    """Mix-in class for scatter plot visualization modes"""
+
+    _SUPPORTED_SCATTER_VISUALIZATION = None
+    """Allows to override supported Visualizations"""
+
+    @enum.unique
+    class Visualization(_Enum):
+        """Different modes of scatter plot visualizations"""
+
+        POINTS = 'points'
+        """Display scatter plot as a point cloud"""
+
+        LINES = 'lines'
+        """Display scatter plot as a wireframe.
+
+        This is based on Delaunay triangulation
+        """
+
+        SOLID = 'solid'
+        """Display scatter plot as a set of filled triangles.
+
+        This is based on Delaunay triangulation
+        """
+
+    def __init__(self):
+        self.__visualization = self.Visualization.POINTS
+
+    @classmethod
+    def supportedVisualizations(cls):
+        """Returns the list of supported scatter visualization modes.
+
+        See :meth:`setVisualization`
+
+        :rtype: List[Visualization]
+        """
+        if cls._SUPPORTED_SCATTER_VISUALIZATION is None:
+            return cls.Visualization.members()
+        else:
+            return cls._SUPPORTED_SCATTER_VISUALIZATION
+
+    def setVisualization(self, mode):
+        """Set the scatter plot visualization mode to use.
+
+        See :class:`Visualization` for all possible values,
+        and :meth:`supportedVisualizations` for supported ones.
+
+        :param Union[str,Visualization] mode:
+            The visualization mode to use.
+        :return: True if value was set, False if is was already set
+        :rtype: bool
+        """
+        mode = self.Visualization.from_value(mode)
+        assert mode in self.supportedVisualizations()
+
+        if mode != self.__visualization:
+            self.__visualization = mode
+
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+            return True
+        else:
+            return False
+
+    def getVisualization(self):
+        """Returns the scatter plot visualization mode in use.
+
+        :rtype: Visualization
+        """
+        return self.__visualization
 
 
 class Points(Item, SymbolMixIn, AlphaMixIn):
