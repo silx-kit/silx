@@ -230,7 +230,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
             ('symbol', 'symbolSize'),
         ScatterVisualizationMixIn.Visualization.LINES:
             ('lineWidth',),
-        ScatterVisualizationMixIn.Visualization.SURFACE: (),
+        ScatterVisualizationMixIn.Visualization.SOLID: (),
     }
     """Dict {visualization mode: property names used in this mode}"""
 
