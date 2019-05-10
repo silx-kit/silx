@@ -35,22 +35,27 @@ import logging
 import numpy
 
 from .._utils.delaunay import triangulation
-from .core import Points, ColormapMixIn, ItemChangedType
+from .core import Points, ColormapMixIn, ScatterVisualizationMixIn
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Scatter(Points, ColormapMixIn):
+class Scatter(Points, ColormapMixIn, ScatterVisualizationMixIn):
     """Description of a scatter"""
 
     _DEFAULT_SELECTABLE = True
     """Default selectable state for scatter plots"""
 
+    _SUPPORTED_SCATTER_VISUALIZATION = (
+        ScatterVisualizationMixIn.Visualization.POINTS,
+        ScatterVisualizationMixIn.Visualization.SURFACE)
+    """Overrides supported Visualizations"""
+
     def __init__(self):
         Points.__init__(self)
         ColormapMixIn.__init__(self)
-        self.__mode = 'points'
+        ScatterVisualizationMixIn.__init__(self)
         self._value = ()
         self.__alpha = None
         # Cache triangles: x, y, indices
@@ -80,8 +85,7 @@ class Scatter(Points, ColormapMixIn):
         # Apply mask to colors
         rgbacolors = rgbacolors[mask]
 
-        mode = self.getVisualization()
-        if mode == 'points':
+        if self.getVisualization() is self.Visualization.POINTS:
             return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
                                     color=rgbacolors,
                                     symbol=self.getSymbol(),
@@ -126,36 +130,6 @@ class Scatter(Points, ColormapMixIn):
             self.__cacheTriangles = (
                 x, y, triangulation(x, y, dtype=numpy.int32))
         return self.__cacheTriangles[2]
-
-    @staticmethod
-    def supportedVisualization():
-        """Returns the list of supported visualization modes.
-
-        See :meth:`setVisualization`
-
-        :rtype: tuple of str
-        """
-        return 'points', 'solid'
-
-    def setVisualization(self, mode):
-        """Set the visualization mode to use.
-
-        :param str mode:
-        """
-        mode = str(mode)
-        assert mode in self.supportedVisualization()
-
-        if mode != self.__mode:
-            self.__mode = mode
-
-            self._updated(ItemChangedType.VISUALIZATION_MODE)
-
-    def getVisualization(self):
-        """Returns the visualization mode in use.
-
-        :rtype: str
-        """
-        return self.__mode
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
