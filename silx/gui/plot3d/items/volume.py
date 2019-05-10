@@ -672,7 +672,7 @@ class ComplexCutPlane(CutPlane, ComplexMixIn):
 
         :param Union[None,ItemChangedType] event: The kind of update
         """
-        if event == ItemChangedType.VISUALIZATION_MODE:
+        if event == ItemChangedType.COMPLEX_MODE:
             self._syncDataWithParent()
         super(ComplexCutPlane, self)._updated(event)
 
@@ -698,7 +698,7 @@ class ComplexIsosurface(Isosurface):
 
     def _parentChanged(self, event):
         """Handle data change in the parent this isosurface belongs to"""
-        if event == ItemChangedType.VISUALIZATION_MODE:
+        if event == ItemChangedType.COMPLEX_MODE:
             self._syncDataWithParent()
         super(ComplexIsosurface, self)._parentChanged(event)
 

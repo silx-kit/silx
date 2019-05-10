@@ -33,12 +33,13 @@ __date__ = "14/06/2018"
 
 
 import logging
-import enum
 
 import numpy
 
+from ....utils.proxy import docstring
+from ....utils.deprecation import deprecated
 from ...colors import Colormap
-from .core import ColormapMixIn, ItemChangedType
+from .core import ColormapMixIn, ComplexMixIn, ItemChangedType
 from .image import ImageBase
 
 
@@ -105,29 +106,19 @@ def _complex2rgbalin(phaseColormap, data, gamma=1.0, smax=None):
     return rgba
 
 
-class ImageComplexData(ImageBase, ColormapMixIn):
+class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
     """Specific plot item to force colormap when using complex colormap.
 
     This is returning the specific colormap when displaying
     colored phase + amplitude.
     """
 
-    class Mode(enum.Enum):
-        """Identify available display mode for complex"""
-        ABSOLUTE = 'absolute'
-        PHASE = 'phase'
-        REAL = 'real'
-        IMAGINARY = 'imaginary'
-        AMPLITUDE_PHASE = 'amplitude_phase'
-        LOG10_AMPLITUDE_PHASE = 'log10_amplitude_phase'
-        SQUARE_AMPLITUDE = 'square_amplitude'
-
     def __init__(self):
         ImageBase.__init__(self)
         ColormapMixIn.__init__(self)
+        ComplexMixIn.__init__(self)
         self._data = numpy.zeros((0, 0), dtype=numpy.complex64)
         self._dataByModesCache = {}
-        self._mode = self.Mode.ABSOLUTE
         self._amplitudeRangeInfo = None, 2
 
         # Use default from ColormapMixIn
@@ -139,13 +130,13 @@ class ImageComplexData(ImageBase, ColormapMixIn):
             vmax=numpy.pi)
 
         self._colormaps = {  # Default colormaps for all modes
-            self.Mode.ABSOLUTE: colormap,
-            self.Mode.PHASE: phaseColormap,
-            self.Mode.REAL: colormap,
-            self.Mode.IMAGINARY: colormap,
-            self.Mode.AMPLITUDE_PHASE: phaseColormap,
-            self.Mode.LOG10_AMPLITUDE_PHASE: phaseColormap,
-            self.Mode.SQUARE_AMPLITUDE: colormap,
+            self.ComplexMode.ABSOLUTE: colormap,
+            self.ComplexMode.PHASE: phaseColormap,
+            self.ComplexMode.REAL: colormap,
+            self.ComplexMode.IMAGINARY: colormap,
+            self.ComplexMode.AMPLITUDE_PHASE: phaseColormap,
+            self.ComplexMode.LOG10_AMPLITUDE_PHASE: phaseColormap,
+            self.ComplexMode.SQUARE_AMPLITUDE: colormap,
         }
 
     def _addBackendRenderer(self, backend):
@@ -156,9 +147,9 @@ class ImageComplexData(ImageBase, ColormapMixIn):
             # Do not render with non linear scales
             return None
 
-        mode = self.getVisualizationMode()
-        if mode in (self.Mode.AMPLITUDE_PHASE,
-                    self.Mode.LOG10_AMPLITUDE_PHASE):
+        mode = self.getComplexMode()
+        if mode in (self.ComplexMode.AMPLITUDE_PHASE,
+                    self.ComplexMode.LOG10_AMPLITUDE_PHASE):
             # For those modes, compute RGBA image here
             colormap = None
             data = self.getRgbaImageData(copy=False)
@@ -179,33 +170,21 @@ class ImageComplexData(ImageBase, ColormapMixIn):
                                 colormap=colormap,
                                 alpha=self.getAlpha())
 
-    def setVisualizationMode(self, mode):
-        """Set the visualization mode to use.
-
-        :param Mode mode:
-        """
-        assert isinstance(mode, self.Mode)
-        assert mode in self._colormaps
-
-        if mode != self._mode:
-            self._mode = mode
-
+    @docstring(ComplexMixIn)
+    def setComplexMode(self, mode):
+        changed = super(ImageComplexData, self).setComplexMode(mode)
+        if changed:
+            # Backward compatibility
             self._updated(ItemChangedType.VISUALIZATION_MODE)
 
             # Send data updated as value returned by getData has changed
             self._updated(ItemChangedType.DATA)
 
             # Update ColormapMixIn colormap
-            colormap = self._colormaps[self._mode]
+            colormap = self._colormaps[self.getComplexMode()]
             if colormap is not super(ImageComplexData, self).getColormap():
                 super(ImageComplexData, self).setColormap(colormap)
-
-    def getVisualizationMode(self):
-        """Returns the visualization mode in use.
-
-        :rtype: Mode
-        """
-        return self._mode
+        return changed
 
     def _setAmplitudeRangeInfo(self, max_=None, delta=2):
         """Set the amplitude range to display for 'log10_amplitude_phase' mode.
@@ -228,15 +207,17 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         """Set the colormap for this specific mode.
 
         :param ~silx.gui.colors.Colormap colormap: The colormap
-        :param Mode mode:
+        :param Union[ComplexMode,str] mode:
             If specified, set the colormap of this specific mode.
             Default: current mode.
         """
         if mode is None:
-            mode = self.getVisualizationMode()
+            mode = self.getComplexMode()
+        else:
+            mode = self.ComplexMode.from_value(mode)
 
         self._colormaps[mode] = colormap
-        if mode is self.getVisualizationMode():
+        if mode is self.getComplexMode():
             super(ImageComplexData, self).setColormap(colormap)
         else:
             self._updated(ItemChangedType.COLORMAP)
@@ -244,13 +225,15 @@ class ImageComplexData(ImageBase, ColormapMixIn):
     def getColormap(self, mode=None):
         """Get the colormap for the (current) mode.
 
-        :param Mode mode:
+        :param Union[ComplexMode,str] mode:
             If specified, get the colormap of this specific mode.
             Default: current mode.
         :rtype: ~silx.gui.colors.Colormap
         """
         if mode is None:
-            mode = self.getVisualizationMode()
+            mode = self.getComplexMode()
+        else:
+            mode = self.ComplexMode.from_value(mode)
 
         return self._colormaps[mode]
 
@@ -296,28 +279,30 @@ class ImageComplexData(ImageBase, ColormapMixIn):
 
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
-        :param Mode mode:
+        :param Union[ComplexMode,str] mode:
             If specified, get data corresponding to the mode.
             Default: Current mode.
         :rtype: numpy.ndarray of float
         """
         if mode is None:
-            mode = self.getVisualizationMode()
+            mode = self.getComplexMode()
+        else:
+            mode = self.ComplexMode.from_value(mode)
 
         if mode not in self._dataByModesCache:
             # Compute data for mode and store it in cache
             complexData = self.getComplexData(copy=False)
-            if mode is self.Mode.PHASE:
+            if mode is self.ComplexMode.PHASE:
                 data = numpy.angle(complexData)
-            elif mode is self.Mode.REAL:
+            elif mode is self.ComplexMode.REAL:
                 data = numpy.real(complexData)
-            elif mode is self.Mode.IMAGINARY:
+            elif mode is self.ComplexMode.IMAGINARY:
                 data = numpy.imag(complexData)
-            elif mode in (self.Mode.ABSOLUTE,
-                          self.Mode.LOG10_AMPLITUDE_PHASE,
-                          self.Mode.AMPLITUDE_PHASE):
+            elif mode in (self.ComplexMode.ABSOLUTE,
+                          self.ComplexMode.LOG10_AMPLITUDE_PHASE,
+                          self.ComplexMode.AMPLITUDE_PHASE):
                 data = numpy.absolute(complexData)
-            elif mode is self.Mode.SQUARE_AMPLITUDE:
+            elif mode is self.ComplexMode.SQUARE_AMPLITUDE:
                 data = numpy.absolute(complexData) ** 2
             else:
                 _logger.error(
@@ -333,22 +318,36 @@ class ImageComplexData(ImageBase, ColormapMixIn):
         """Get the displayed RGB(A) image for (current) mode
 
         :param bool copy: Ignored for this class
-        :param Mode mode:
+        :param Union[ComplexMode,str] mode:
             If specified, get data corresponding to the mode.
             Default: Current mode.
         :rtype: numpy.ndarray of uint8 of shape (height, width, 4)
         """
         if mode is None:
-            mode = self.getVisualizationMode()
+            mode = self.getComplexMode()
+        else:
+            mode = self.ComplexMode.from_value(mode)
 
         colormap = self.getColormap(mode=mode)
-        if mode is self.Mode.AMPLITUDE_PHASE:
+        if mode is self.ComplexMode.AMPLITUDE_PHASE:
             data = self.getComplexData(copy=False)
             return _complex2rgbalin(colormap, data)
-        elif mode is self.Mode.LOG10_AMPLITUDE_PHASE:
+        elif mode is self.ComplexMode.LOG10_AMPLITUDE_PHASE:
             data = self.getComplexData(copy=False)
             max_, delta = self._getAmplitudeRangeInfo()
             return _complex2rgbalog(colormap, data, dlogs=delta, smax=max_)
         else:
             data = self.getData(copy=False, mode=mode)
             return colormap.applyToData(data)
+
+    # Backward compatibility
+
+    Mode = ComplexMixIn.ComplexMode
+
+    @deprecated(replacement='setComplexMode', since_version='0.11.0')
+    def setVisualizationMode(self, mode):
+        return self.setComplexMode(mode)
+
+    @deprecated(replacement='getComplexMode', since_version='0.11.0')
+    def getVisualizationMode(self):
+        return self.getComplexMode()

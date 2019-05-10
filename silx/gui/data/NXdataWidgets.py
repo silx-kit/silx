@@ -532,10 +532,10 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         self._plot = ComplexImageView(self)
         if colormap is not None:
-            for mode in (ComplexImageView.Mode.ABSOLUTE,
-                         ComplexImageView.Mode.SQUARE_AMPLITUDE,
-                         ComplexImageView.Mode.REAL,
-                         ComplexImageView.Mode.IMAGINARY):
+            for mode in (ComplexImageView.ComplexMode.ABSOLUTE,
+                         ComplexImageView.ComplexMode.SQUARE_AMPLITUDE,
+                         ComplexImageView.ComplexMode.REAL,
+                         ComplexImageView.ComplexMode.IMAGINARY):
                 self._plot.setColormap(colormap, mode)
 
         self._plot.getPlot().getIntensityHistogramAction().setVisible(True)

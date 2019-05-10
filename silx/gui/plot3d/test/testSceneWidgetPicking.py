@@ -135,13 +135,13 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 refData = numpy.arange(10**3, dtype=dtype).reshape(10, 10, 10)
                 volume = self.widget.addVolume(refData)
                 if dtype == numpy.complex64:
-                    volume.setComplexMode(volume.Mode.REAL)
+                    volume.setComplexMode(volume.ComplexMode.REAL)
                     refData = numpy.real(refData)
                 self.widget.resetZoom('front')
 
                 cutplane = volume.getCutPlanes()[0]
                 if dtype == numpy.complex64:
-                    cutplane.setComplexMode(volume.Mode.REAL)
+                    cutplane.setComplexMode(volume.ComplexMode.REAL)
                 cutplane.getColormap().setVRange(0, 100)
                 cutplane.setNormal((0, 0, 1))
 

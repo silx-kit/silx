@@ -947,10 +947,10 @@ class _ComplexImageView(DataView):
     def createWidget(self, parent):
         from silx.gui.plot.ComplexImageView import ComplexImageView
         widget = ComplexImageView(parent=parent)
-        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.ABSOLUTE)
-        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.SQUARE_AMPLITUDE)
-        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.REAL)
-        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.IMAGINARY)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.ABSOLUTE)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.SQUARE_AMPLITUDE)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.REAL)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.IMAGINARY)
         widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
         widget.getPlot().getIntensityHistogramAction().setVisible(True)
         widget.getPlot().setKeepDataAspectRatio(True)

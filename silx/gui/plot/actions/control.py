@@ -377,11 +377,11 @@ class ColormapAction(PlotAction):
             # Specific init for complex images
             colormap = image.getColormap()
 
-            mode = image.getVisualizationMode()
-            if mode in (items.ImageComplexData.Mode.AMPLITUDE_PHASE,
-                        items.ImageComplexData.Mode.LOG10_AMPLITUDE_PHASE):
+            mode = image.getComplexMode()
+            if mode in (items.ImageComplexData.ComplexMode.AMPLITUDE_PHASE,
+                        items.ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE):
                 data = image.getData(
-                    copy=False, mode=items.ImageComplexData.Mode.PHASE)
+                    copy=False, mode=items.ImageComplexData.ComplexMode.PHASE)
             else:
                 data = image.getData(copy=False)
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -63,10 +63,10 @@ class TestComplexImageView(PlotWidgetTestCase, ParametricTestCase):
         self.qWait(100)
 
         # Test all modes
-        modes = self.plot.getSupportedVisualizationModes()
+        modes = self.plot.supportedComplexModes()
         for mode in modes:
             with self.subTest(mode=mode):
-                self.plot.setVisualizationMode(mode)
+                self.plot.setComplexMode(mode)
                 self.qWait(100)
 
         # Test origin and scale API

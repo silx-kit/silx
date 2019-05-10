@@ -1063,7 +1063,7 @@ class ComplexModeRow(ItemProxyRow):
             name='Mode',
             fget=item.getComplexMode,
             fset=item.setComplexMode,
-            events=items.ItemChangedType.VISUALIZATION_MODE,
+            events=items.ItemChangedType.COMPLEX_MODE,
             toModelData=lambda data: data.value.replace('_', ' ').title(),
             fromModelData=lambda data: data.lower().replace(' ', '_'),
             editorHint=names)
