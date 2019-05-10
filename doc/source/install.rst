@@ -110,7 +110,7 @@ Linux
 
 Packages are available for a few distributions:
 
-- Debian 8: see `Installing a Debian package`_.
+- Debian 9: see `Installing a Debian package`_.
 - `CentOS 7 RPM packages <http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/>`_ provided by the Max IV institute at Lund, Sweden.
 - `Fedora 23 rpm packages <http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/>`_ provided by the Max IV institute at Lund, Sweden.
 - `Arch Linux (AUR) package <https://aur.archlinux.org/packages/python-silx>`_ provided by Leonid Bloch.
@@ -125,7 +125,7 @@ You can also follow one of those installation procedures:
 Installing a Debian package
 +++++++++++++++++++++++++++
 
-Debian 8 (Jessie) packages are available on http://www.silx.org/pub/debian/ for amd64 computers.
+Debian 9 (Stretch) packages are available on http://www.silx.org/pub/debian/ for amd64 computers.
 To install it, you need to download this file :
 
 .. code-block:: bash 
