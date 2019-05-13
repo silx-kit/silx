@@ -100,6 +100,11 @@ except ImportError:
 
 from qtconsole.inprocess import QtInProcessKernelManager
 
+try:
+    from ipykernel import version_info as _ipykernel_version_info
+except ImportError:
+    _ipykernel_version_info = None
+
 
 class IPythonWidget(_RichJupyterWidget):
     """Live IPython console widget.
@@ -119,6 +124,16 @@ class IPythonWidget(_RichJupyterWidget):
         self.setWindowTitle(self.banner)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()
         kernel_manager.start_kernel()
+
+        # Monkey-patch to workaround issue:
+        # https://github.com/ipython/ipykernel/issues/370
+        if (_ipykernel_version_info is not None and
+                _ipykernel_version_info[0] > 4 and
+                _ipykernel_version_info[:3] <= (5, 1, 0)):
+            def _abort_queues(*args, **kwargs):
+                pass
+            kernel_manager.kernel._abort_queues = _abort_queues
+
         self.kernel_client = kernel_client = self._kernel_manager.client()
         kernel_client.start_channels()
 
