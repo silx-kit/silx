@@ -73,6 +73,7 @@ class RegionOfInterest(qt.QObject):
         self._label = ''
         self._labelItem = None
         self._editable = False
+        self._visible = True
 
     def __del__(self):
         # Clean-up plot items
@@ -175,6 +176,34 @@ class RegionOfInterest(qt.QObject):
             # Recreate plot items
             # This can be avoided once marker.setDraggable is public
             self._createPlotItems()
+
+    def isVisible(self):
+        """Returns whether the ROI is visible in the plot.
+
+        .. note::
+            This does not take into account whether or not the plot
+            widget itself is visible (unlike :meth:`QWidget.isVisible` which
+            checks the visibility of all its parent widgets up to the window)
+
+        :rtype: bool
+        """
+        return self._visible
+
+    def setVisible(self, visible):
+        """Set whether the plot items associated with this ROI are
+        visible in the plot.
+
+        :param bool visible: True to show the ROI in the plot, False to
+            hide it.
+        """
+        visible = bool(visible)
+        if self._visible == visible:
+            return
+        self._visible = visible
+        if self._labelItem is not None:
+            self._labelItem.setVisible(visible)
+        for item in self._items + self._editAnchors:
+            item.setVisible(visible)
 
     def _getControlPoints(self):
         """Returns the current ROI control points.
@@ -512,10 +541,10 @@ class LineROI(RegionOfInterest, items.LineMixIn):
         return controlPoints
 
     def setEndPoints(self, startPoint, endPoint):
-        """Set this line location using the endding points
+        """Set this line location using the ending points
 
         :param numpy.ndarray startPoint: Staring bounding point of the line
-        :param numpy.ndarray endPoint: Endding bounding point of the line
+        :param numpy.ndarray endPoint: Ending bounding point of the line
         """
         assert(startPoint.shape == (2,) and endPoint.shape == (2,))
         shapePoints = numpy.array([startPoint, endPoint])
@@ -1261,13 +1290,13 @@ class ArcROI(RegionOfInterest, items.LineMixIn):
     def getGeometry(self):
         """Returns a tuple containing the geometry of this ROI
 
-        It is a symetric fonction of :meth:`setGeometry`.
+        It is a symmetric function of :meth:`setGeometry`.
 
         If `startAngle` is smaller than `endAngle` the rotation is clockwise,
         else the rotation is anticlockwise.
 
         :rtype: Tuple[numpy.ndarray,float,float,float,float]
-        :raise ValueError: In case the ROI can't be representaed as section of
+        :raise ValueError: In case the ROI can't be represented as section of
             a circle
         """
         geometry = self._getInternalGeometry()
