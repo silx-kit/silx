@@ -781,9 +781,9 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         super(RegionOfInterestTableWidget, self).__init__(parent)
         self._roiManagerRef = None
 
-        self.setColumnCount(5)
-        self.setHorizontalHeaderLabels(
-            ['Label', 'Edit', 'Kind', 'Coordinates', ''])
+        headers = ['Label', 'Edit', 'Kind', 'Coordinates', '']
+        self.setColumnCount(len(headers))
+        self.setHorizontalHeaderLabels(headers)
 
         horizontalHeader = self.horizontalHeader()
         horizontalHeader.setDefaultAlignment(qt.Qt.AlignLeft)
@@ -815,9 +815,10 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             manager = self.getRegionOfInterestManager()
             roi = manager.getRois()[index]
         else:
-            roi = None
+            return
 
         if column == 0:
+            roi.setVisible(item.checkState() == qt.Qt.Checked)
             roi.setLabel(item.text())
         elif column == 1:
             roi.setEditable(
@@ -884,11 +885,13 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         for index, roi in enumerate(rois):
             baseFlags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
 
-            # Label
+            # Label and visible
             label = roi.getLabel()
             item = qt.QTableWidgetItem(label)
-            item.setFlags(baseFlags | qt.Qt.ItemIsEditable)
+            item.setFlags(baseFlags | qt.Qt.ItemIsEditable | qt.Qt.ItemIsUserCheckable)
             item.setData(qt.Qt.UserRole, index)
+            item.setCheckState(
+                qt.Qt.Checked if roi.isVisible() else qt.Qt.Unchecked)
             self.setItem(index, 0, item)
 
             # Editable
