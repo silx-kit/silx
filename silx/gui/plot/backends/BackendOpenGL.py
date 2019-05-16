@@ -369,8 +369,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # QWidget
 
-    _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle',
-                   8: 'back', 16: 'forward', 32: 'task'}
+    _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
 
     def contextMenuEvent(self, event):
         """Override QWidget.contextMenuEvent to implement the context menu"""

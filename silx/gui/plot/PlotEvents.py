@@ -59,7 +59,7 @@ def prepareDrawingSignal(event, type_, points, parameters=None):
 def prepareMouseSignal(eventType, button, xData, yData, xPixel, yPixel):
     """See Plot documentation for content of events"""
     assert eventType in ('mouseMoved', 'mouseClicked', 'mouseDoubleClicked')
-    assert button in (None, 'left', 'middle', 'right', 'back', 'forward', 'task')
+    assert button in (None, 'left', 'middle', 'right')
 
     return {'event': eventType,
             'x': xData,

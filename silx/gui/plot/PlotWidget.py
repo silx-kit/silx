@@ -2999,8 +2999,7 @@ class PlotWidget(qt.QMainWindow):
 
         :param float xPixel: X mouse position in pixels
         :param float yPixel: Y mouse position in pixels
-        :param str btn: Mouse button in 'left', 'middle', 'right',
-            'back', 'forward', 'task'
+        :param str btn: Mouse button in 'left', 'middle', 'right'
         """
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
             self._pressedButtons.append(btn)
@@ -3039,8 +3038,7 @@ class PlotWidget(qt.QMainWindow):
 
         :param float xPixel: X mouse position in pixels
         :param float yPixel: Y mouse position in pixels
-        :param str btn: Mouse button in 'left', 'middle', 'right',
-            'back', 'forward', 'task'
+        :param str btn: Mouse button in 'left', 'middle', 'right'
         """
         try:
             self._pressedButtons.remove(btn)
