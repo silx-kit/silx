@@ -321,12 +321,14 @@ class RegionOfInterest(qt.QObject):
             if self._labelItem is not None:
                 self._labelItem._setLegend(legendPrefix + "label")
                 plot._add(self._labelItem)
+                self._labelItem.setVisible(self.isVisible())
 
         self._items = WeakList()
         plotItems = self._createShapeItems(controlPoints)
         for item in plotItems:
             item._setLegend(legendPrefix + str(itemIndex))
             plot._add(item)
+            item.setVisible(self.isVisible())
             self._items.append(item)
             itemIndex += 1
 
@@ -338,6 +340,7 @@ class RegionOfInterest(qt.QObject):
             for index, item in enumerate(plotItems):
                 item._setLegend(legendPrefix + str(itemIndex))
                 item.setColor(color)
+                item.setVisible(self.isVisible())
                 plot._add(item)
                 item.sigItemChanged.connect(functools.partial(
                     self._controlPointAnchorChanged, index))
