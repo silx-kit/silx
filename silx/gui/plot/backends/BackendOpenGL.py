@@ -380,6 +380,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return qt.QSize(8 * 80, 6 * 80)  # Mimic MatplotlibBackend
 
     def mousePressEvent(self, event):
+        if event.button() not in self._MOUSE_BTNS:
+            return super(BackendOpenGL, self).mousePressEvent(event)
         xPixel = event.x() * self.getDevicePixelRatio()
         yPixel = event.y() * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
@@ -405,6 +407,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         event.accept()
 
     def mouseReleaseEvent(self, event):
+        if event.button() not in self._MOUSE_BTNS:
+            return super(BackendOpenGL, self).mouseReleaseEvent(event)
         xPixel = event.x() * self.getDevicePixelRatio()
         yPixel = event.y() * self.getDevicePixelRatio()
 
