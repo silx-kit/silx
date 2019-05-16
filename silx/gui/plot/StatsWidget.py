@@ -1249,9 +1249,9 @@ class BasicStatsWidget(StatsWidget):
 
 class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     """
-    Widget made to display stats into a QLayout with for all stat a couple
-     (QLabel, QLineEdit) created.
-     The the layout can be defined prior of adding any statistic.
+    Widget made to display stats into a QLayout with couple (QLabel, QLineEdit)
+    created for each stats.
+    The layout can be defined prior of adding any statistic.
 
     :param QWidget parent: Qt parent
     :param Union[PlotWidget,SceneWidget] plot:
