@@ -52,9 +52,11 @@ def _matplotlib_use(backend, warn, force):
     # This is kept for compatibility with matplotlib < 2.2
     if parse_version(matplotlib.__version__) < parse_version('2.2'):
         if qt.BINDING == 'PySide':
-            matplotlib.rcParams['backend.qt4'] = 'PySide'
+            if 'backend.qt4' in matplotlib.rcParams:
+                matplotlib.rcParams['backend.qt4'] = 'PySide'
         if qt.BINDING == 'PySide2':
-            matplotlib.rcParams['backend.qt5'] = 'PySide2'
+            if 'backend.qt5' in matplotlib.rcParams:
+                matplotlib.rcParams['backend.qt5'] = 'PySide2'
 
     matplotlib.use(backend, warn=warn, force=force)
 
