@@ -710,6 +710,18 @@ class TestLineWidget(TestCaseQt):
         self.assertFalse(_autoRB.isChecked())
         self.assertTrue(_manualRB.isChecked())
 
+    def testManualBehavior(self):
+        """Some specific test for the `manual` mode:
+        - check that if the active curve change, the statistic will be
+          updated.
+        """
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
+        curve0_min = self.widget._lineStatsWidget._statQlineEdit['min'].text()
+        self.assertTrue(curve0_min == '')
+        self.plot.setActiveCurve(self.curve0)
+        curve0_min = self.widget._lineStatsWidget._statQlineEdit['min'].text()
+        self.assertTrue(curve0_min != '')
+
 
 class TestUpdateModeWidget(TestCaseQt):
     """Test UpdateModeWidget"""

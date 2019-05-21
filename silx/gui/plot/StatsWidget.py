@@ -83,10 +83,11 @@ class _Wrapper(qt.QObject):
     It provides the removed item.
     """
 
-    sigCurrentChanged = qt.Signal(object)
+    sigCurrentChanged = qt.Signal(object, bool)
     """Signal emitted when the current item has changed.
 
-    It provides the current item.
+    It provides the current item and a boolean to know if the current item
+    was already active or not.
     """
 
     sigVisibleDataChanged = qt.Signal()
@@ -156,22 +157,25 @@ class _PlotWidgetWrapper(_Wrapper):
         plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
         plot.sigPlotSignal.connect(self._limitsChanged)
 
-    def _activeChanged(self, kind):
-        """Handle change of active curve/image/scatter"""
+    def _activeChanged(self, kind, id_changed):
+        """Handle change of active curve/image/scatter
+
+        :param bool id_changed: True if the item id changed.
+        """
         plot = self.getPlot()
         if plot is not None:
             item = plot._getActiveItem(kind=kind)
             if item is None or self.getKind(item) is not None:
-                self.sigCurrentChanged.emit(item)
+                self.sigCurrentChanged.emit(item, id_changed)
 
     def _activeCurveChanged(self, previous, current):
-        self._activeChanged(kind='curve')
+        self._activeChanged(kind='curve', id_changed=(previous != current))
 
     def _activeImageChanged(self, previous, current):
-        self._activeChanged(kind='image')
+        self._activeChanged(kind='image', id_changed=(previous != current))
 
     def _activeScatterChanged(self, previous, current):
-        self._activeChanged(kind='scatter')
+        self._activeChanged(kind='scatter', id_changed=(previous != current))
 
     def _limitsChanged(self, event):
         """Handle change of plot area limits."""
@@ -437,8 +441,8 @@ class _StatsWidgetBase(object):
             else:
                 signal.disconnect(slot)
 
-    def _updateItemObserve(self, *args):
-        """Reload table depending on mode"""
+    def _updateItemObserve(self, kind=None, active_changed=True):
+        """Reload table"""
         raise NotImplementedError('Base class')
 
     def _updateStats(self, item):
@@ -641,9 +645,9 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         """
         self._removeAllItems()
 
-    def _updateItemObserve(self, *args):
-        """Reload table depending on mode"""
-        if self.getUpdateMode() is UpdateMode.MANUAL:
+    def _updateItemObserve(self, kind=None, active_changed=True):
+        """Reload table"""
+        if not active_changed and self.getUpdateMode() is UpdateMode.MANUAL:
             return
         self._removeAllItems()
 
@@ -1326,6 +1330,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         self._updateAllStats()
 
     def _activeItemChanged(self, kind, previous, current):
+        print('active item changed call')
         if self.getUpdateMode() is UpdateMode.MANUAL:
             return
         if kind == self._item_kind:
@@ -1372,8 +1377,9 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
                 for statName, statVal in list(statsValDict.items()):
                     self._statQlineEdit[statName].setText(statVal)
 
-    def _updateItemObserve(self, *argv):
-        if self.getUpdateMode() is UpdateMode.MANUAL:
+    def _updateItemObserve(self, kind=None, active_changed=True):
+        """Update the item observe"""
+        if not active_changed and self.getUpdateMode() is UpdateMode.MANUAL:
             return
         assert self._displayOnlyActItem
         _items = self._plotWrapper.getSelectedItems()
