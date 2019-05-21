@@ -1455,7 +1455,7 @@ class BasicLineStatsWidget(qt.QWidget):
         self.layout().addWidget(self._lineStatsWidget)
 
         self._options = UpdateModeWidget()
-        self._options.setUpdateMode(self._lineStatsWidget.getUpdateMode)
+        self._options.setUpdateMode(self._lineStatsWidget.getUpdateMode())
         self._options.showRadioButtons(False)
         self.layout().addWidget(self._options)
 
