@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,10 +39,6 @@ from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.PlotWindow import PlotWindow
 
 import numpy.random
-
-
-# Makes sure a QApplication exists
-_qapp = qt.QApplication.instance() or qt.QApplication([])
 
 
 class TestColormapDialog(TestCaseQt, ParametricTestCase):
