@@ -556,7 +556,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
     _LEGEND_HEADER_DATA = 'legend'
     _KIND_HEADER_DATA = 'kind'
 
-    sigUpdateModeChanged = qt.Signal(UpdateMode)
+    sigUpdateModeChanged = qt.Signal(object)
     """Signal emitted when the update mode changed"""
 
     def __init__(self, parent=None, plot=None):
@@ -903,7 +903,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
 class UpdateModeWidget(qt.QWidget):
     """Widget used to select the mode of update"""
-    sigUpdateModeChanged = qt.Signal(UpdateMode)
+    sigUpdateModeChanged = qt.Signal(object)
     """signal emitted when the mode for update changed"""
     sigUpdateRequested = qt.Signal()
     """signal emitted when an manual request for example is activate"""
@@ -1263,7 +1263,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
                                     only visible ones.
     """
 
-    sigUpdateModeChanged = qt.Signal(UpdateMode)
+    sigUpdateModeChanged = qt.Signal(object)
     """Signal emitted when the update mode changed"""
 
     def __init__(self, parent=None, plot=None, kind='curve', stats=None,
