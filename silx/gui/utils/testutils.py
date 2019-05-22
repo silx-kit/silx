@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,10 +87,6 @@ def qWaitForWindowExposedAndActivate(window, timeout=None):
     return result
 
 
-# Placeholder for QApplication
-_qapp = None
-
-
 class TestCaseQt(unittest.TestCase):
     """Base class to write test for Qt stuff.
 
@@ -122,6 +118,9 @@ class TestCaseQt(unittest.TestCase):
     allow to view the tested widgets.
     """
 
+    _qapp = None
+    """Placeholder for QApplication"""
+
     @classmethod
     def exceptionHandler(cls, exceptionClass, exception, stack):
         import traceback
@@ -136,14 +135,15 @@ class TestCaseQt(unittest.TestCase):
         cls._oldExceptionHook = sys.excepthook
         sys.excepthook = cls.exceptionHandler
 
-        global _qapp
-        if _qapp is None:
-            # Makes sure a QApplication exists and do it once for all
-            _qapp = qt.QApplication.instance() or qt.QApplication([])
+        # Makes sure a QApplication exists and do it once for all
+        if not qt.QApplication.instance():
+            cls._qapp = qt.QApplication([])
 
     @classmethod
     def tearDownClass(cls):
         sys.excepthook = cls._oldExceptionHook
+        if cls._qapp is not None:
+            cls._qapp = None
 
     def setUp(self):
         """Get the list of existing widgets."""
@@ -330,9 +330,10 @@ class TestCaseQt(unittest.TestCase):
             # PySide has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
+            qapp = qt.QApplication.instance()
             while timeout > 0:
-                _qapp.processEvents(qt.QEventLoop.AllEvents,
-                                        maxtime=timeout)
+                qapp.processEvents(qt.QEventLoop.AllEvents,
+                                   maxtime=timeout)
                 timeout = endTimeMS - int(time.time() * 1000)
         else:
             QTest.qWait(ms + cls.TIMEOUT_WAIT)
