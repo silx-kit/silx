@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -108,7 +108,6 @@ class BenchmarkMedianFilter(object):
         return res
 
 
-global app  # QApplication must be global to avoid seg fault on quit
 app = qt.QApplication([])
 kernels = [3, 5, 7, 11, 15]
 benchmark = BenchmarkMedianFilter(imageWidth=1000, kernels=kernels)
@@ -120,3 +119,4 @@ if pymca is not None:
     plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("pymca"), legend='pymca')
 plot.show()
 app.exec_()
+del app
