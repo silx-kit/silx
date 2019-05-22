@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,6 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('opencl')
     config.add_subpackage('resources')
     config.add_subpackage('sx')
-    config.add_subpackage('sx.test')
     config.add_subpackage('test')
     config.add_subpackage('third_party')
     config.add_subpackage('utils')

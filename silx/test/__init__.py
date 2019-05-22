@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ def suite():
             suite.addTest(SkipSXTest())
             return suite
     else:
-        from ..sx.test import suite as test_sx_suite
+        from .test_sx import suite as test_sx_suite
 
     from . import test_version
     from . import test_resources
