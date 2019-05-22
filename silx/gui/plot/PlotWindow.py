@@ -58,7 +58,6 @@ from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
 from .StatsWidget import BasicStatsWidget
 from .ColorBar import ColorBarWidget
-from .ImageInformation import BaseImageInformation
 try:
     from ..console import IPythonDockWidget
 except ImportError:
@@ -278,11 +277,6 @@ class PlotWindow(PlotWidget):
 
             gridLayout.addWidget(bottomBar, 1, 0, 1, -1)
 
-        # create the widget to qdd image information
-        self._imageWidgetContainer = qt.QStackedWidget(parent=self)
-        self._imageWidgetContainer.layout().setContentsMargins(0, 0, 0, 0)
-        centralWidget.layout().addWidget(self._imageWidgetContainer, 2, 0, -1, -1)
-
         # Creating the toolbar also create actions for toolbuttons
         self._interactiveModeToolBar = tools.InteractiveModeToolBar(
             parent=self, plot=self)
@@ -361,26 +355,6 @@ class PlotWindow(PlotWidget):
         :rtype: ~silx.gui.plot.tools.PositionInfo
         """
         return self._positionWidget
-
-    def setImageInfoWidget(self, widget):
-        """
-
-        :return:
-        """
-        assert isinstance(widget, BaseImageInformation)
-        self._imageWidgetContainer.removeWidget(self._imageWidgetContainer.widget(0))
-        widget.setPlot(plot=self)
-        self._imageWidgetContainer.addWidget(widget)
-
-    def getImageInfoWidget(self):
-        """
-
-        :return:
-        """
-        if self._imageWidgetContainer.count() is 0:
-            return None
-        else:
-            return self._imageWidgetContainer.currentWidget()
 
     def getSelectionMask(self):
         """Return the current mask handled by :attr:`maskToolsDockWidget`.
