@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -82,18 +82,19 @@ def enable_gui():
             'Not loading silx.gui features: No DISPLAY available')
         return
 
-    global qt, qapp
+    global qt, _qapp
 
     if _IS_NOTEBOOK:
         _get_ipython().enable_pylab(gui='qt', import_all=False)
 
     from silx.gui import qt
-    qapp = qt.QApplication.instance() or qt.QApplication([])
+    # Create QApplication and keep reference only if needed
+    _qapp = None if qt.QApplication.instance() else qt.QApplication([])
 
     if hasattr(_sys, 'ps1'):  # If from console, change windows icon
         # Change windows default icon
         from silx.gui import icons
-        qapp.setWindowIcon(icons.getQIcon('silx'))
+        _qapp.setWindowIcon(icons.getQIcon('silx'))
 
     global ImageView, PlotWidget, PlotWindow, Plot1D
     global Plot2D, StackView, ScatterView, TickMode
