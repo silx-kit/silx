@@ -825,7 +825,9 @@ class Plot2D(PlotWindow):
         posInfo = [
             ('X', lambda x, y: x),
             ('Y', lambda x, y: y),
-            ('Data', WeakMethodProxy(self._getImageValue))]
+            ('Data', WeakMethodProxy(self._getImageValue)),
+            ('Dims', WeakMethodProxy(self._getImageDims)),
+        ]
 
         super(Plot2D, self).__init__(parent=parent, backend=backend,
                                      resetzoom=True, autoScale=False,
@@ -924,6 +926,14 @@ class Plot2D(PlotWindow):
         if maskZ > valueZ and mask > 0:
             return value, "Masked"
         return value
+
+    def _getImageDims(self, *args):
+        activeImage = self.getActiveImage()
+        if activeImage.getData() is not None:
+            dims = activeImage.getData(copy=False).shape[::-1]
+            return 'x'.join(str(dim) for dim in dims)
+        else:
+            return '-'
 
     def getProfileToolbar(self):
         """Profile tools attached to this plot
