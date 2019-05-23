@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,34 +39,6 @@ from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.plot import tools
 from silx.gui.plot.test.utils import PlotWidgetTestCase
-
-
-# Makes sure a QApplication exists
-_qapp = qt.QApplication.instance() or qt.QApplication([])
-
-
-def _tearDownDocTest(docTest):
-    """Tear down to use for test from docstring.
-
-    Checks that plot widget is displayed
-    """
-    plot = docTest.globs['plot']
-    qWaitForWindowExposedAndActivate(plot)
-    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-    plot.close()
-    del plot
-
-# Disable doctest because of
-# "NameError: name 'numpy' is not defined"
-#
-# import doctest
-# positionInfoTestSuite = doctest.DocTestSuite(
-#     PlotTools, tearDown=_tearDownDocTest,
-#     optionflags=doctest.ELLIPSIS)
-# """Test suite of tests from PlotTools docstrings.
-#
-# Test PositionInfo and ProfileToolBar docstrings.
-# """
 
 
 class TestPositionInfo(PlotWidgetTestCase):

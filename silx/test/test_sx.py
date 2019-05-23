@@ -39,7 +39,6 @@ from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import rgba
 from silx.gui.colors import Colormap
-from silx import sx
 
 
 _logger = logging.getLogger(__name__)
@@ -56,6 +55,8 @@ class SXTest(TestCaseQt, ParametricTestCase):
 
     def test_plot(self):
         """Test plot function"""
+        from silx import sx  # Lazy loading to avoid it to create QApplication
+
         y = numpy.random.random(100)
         x = numpy.arange(len(y)) * 0.5
 
@@ -100,6 +101,8 @@ class SXTest(TestCaseQt, ParametricTestCase):
 
     def test_imshow(self):
         """Test imshow function"""
+        from silx import sx  # Lazy loading to avoid it to create QApplication
+
         img = numpy.arange(100.).reshape(10, 10) + 1
 
         # Nothing
@@ -143,6 +146,8 @@ class SXTest(TestCaseQt, ParametricTestCase):
 
     def test_scatter(self):
         """Test scatter function"""
+        from silx import sx  # Lazy loading to avoid it to create QApplication
+
         x = numpy.arange(100)
         y = numpy.arange(100)
         values = numpy.arange(100)
@@ -180,6 +185,7 @@ class SXTest(TestCaseQt, ParametricTestCase):
 
         This does NOT perform interactive tests
         """
+        from silx import sx  # Lazy loading to avoid it to create QApplication
 
         for create_plot in (sx.plot, sx.imshow, sx.scatter):
             with self.subTest(create_plot.__name__):
@@ -197,6 +203,8 @@ class SXTest(TestCaseQt, ParametricTestCase):
                          test_options.WITH_GL_TEST_REASON)
     def test_contour3d(self):
         """Test contour3d function"""
+        from silx import sx  # Lazy loading to avoid it to create QApplication
+
         coords = numpy.linspace(-10, 10, 64)
         z = coords.reshape(-1, 1, 1)
         y = coords.reshape(1, -1, 1)
@@ -248,6 +256,8 @@ class SXTest(TestCaseQt, ParametricTestCase):
                          test_options.WITH_GL_TEST_REASON)
     def test_points3d(self):
         """Test points3d function"""
+        from silx import sx  # Lazy loading to avoid it to create QApplication
+
         x = numpy.random.random(1024)
         y = numpy.random.random(1024)
         z = numpy.random.random(1024)
