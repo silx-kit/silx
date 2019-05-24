@@ -39,6 +39,7 @@ import logging
 
 import numpy
 
+from ....utils.proxy import docstring
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
 
@@ -172,6 +173,12 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             return None
         else:
             return xmin, xmax, ymin, ymax
+
+    @docstring(DraggableMixIn)
+    def drag(self, from_, to):
+        origin = self.getOrigin()
+        self.setOrigin((origin[0] + to[0] - from_[0],
+                        origin[1] + to[1] - from_[1]))
 
     def getData(self, copy=True):
         """Returns the image data

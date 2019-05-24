@@ -32,6 +32,7 @@ __date__ = "06/03/2017"
 
 import logging
 
+from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
                    ItemChangedType)
 
@@ -74,6 +75,10 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
         raise NotImplementedError()
+
+    @docstring(DraggableMixIn)
+    def drag(self, from_, to):
+        self.setPosition(to[0], to[1])
 
     def isOverlay(self):
         """Return true if marker is drawn as an overlay.
