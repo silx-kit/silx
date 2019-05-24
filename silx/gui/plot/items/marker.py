@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
 _logger = logging.getLogger(__name__)
 
 
-class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
+class MarkerBase(Item, DraggableMixIn, ColorMixIn):
     """Base class for markers"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
@@ -166,14 +166,14 @@ class _BaseMarker(Item, DraggableMixIn, ColorMixIn):
         return args
 
 
-class Marker(_BaseMarker, SymbolMixIn):
+class Marker(MarkerBase, SymbolMixIn):
     """Description of a marker"""
 
     _DEFAULT_SYMBOL = '+'
     """Default symbol of the marker"""
 
     def __init__(self):
-        _BaseMarker.__init__(self)
+        MarkerBase.__init__(self)
         SymbolMixIn.__init__(self)
 
         self._x = 0.
@@ -204,11 +204,11 @@ class Marker(_BaseMarker, SymbolMixIn):
         return x, self.getYPosition()
 
 
-class _LineMarker(_BaseMarker, LineMixIn):
+class _LineMarker(MarkerBase, LineMixIn):
     """Base class for line markers"""
 
     def __init__(self):
-        _BaseMarker.__init__(self)
+        MarkerBase.__init__(self)
         LineMixIn.__init__(self)
 
     def _addBackendRenderer(self, backend):
