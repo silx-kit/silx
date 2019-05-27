@@ -142,6 +142,25 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                 plot._invalidateDataRange()
         super(ImageBase, self).setVisible(visible)
 
+    @docstring(Item)
+    def pick(self, x, y):
+        if super(ImageBase, self).pick(x, y) is not None:
+            plot = self.getPlot()
+            if plot is None:
+                return None
+
+            dataPos = plot.pixelToData(x, y)
+            if dataPos is None:
+                return None
+
+            origin = self.getOrigin()
+            scale = self.getScale()
+            column = int((dataPos[0] - origin[0]) / float(scale[0]))
+            row = int((dataPos[1] - origin[1]) / float(scale[1]))
+            return ((row, column),)
+
+        return None
+
     def _isPlotLinear(self, plot):
         """Return True if plot only uses linear scale for both of x and y
         axes."""

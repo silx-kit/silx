@@ -330,6 +330,20 @@ class Item(qt.QObject):
             backend.remove(self._backendRenderer)
             self._backendRenderer = None
 
+    def pick(self, x, y):
+        """Run picking test on this item
+
+        :param float x: The x pixel coord where to pick.
+        :param float y: The y pixel coord where to pick.
+        :return: None if not picked, else picked indices
+        """
+        if not self.isVisible() or self._backendRenderer is None:
+            return None
+        plot = self.getPlot()
+        if plot is None:
+            return None
+        return plot._backend.pickItem(x, y, self._backendRenderer)
+
 
 # Mix-in classes ##############################################################
 
