@@ -1263,7 +1263,6 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         assert dataPos is not None
 
         item = None if self.draggedItemRef is None else self.draggedItemRef()
-        print('drag', item, self.draggedItemRef, self._lastPos, dataPos)
         if item is not None:
             item.drag(self._lastPos, dataPos)
 
