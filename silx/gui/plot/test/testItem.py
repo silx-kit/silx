@@ -54,7 +54,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         curve.setVisible(True)
         curve.setZValue(100)
 
-        # Test for signals in Points class
+        # Test for signals in PointsBase class
         curve.setData(numpy.arange(100), numpy.arange(100))
 
         # SymbolMixIn
