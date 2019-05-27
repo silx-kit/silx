@@ -42,7 +42,7 @@ from .histogram import Histogram  # noqa
 from .image import ImageBase, ImageData, ImageRgba, MaskImageData  # noqa
 from .shape import Shape  # noqa
 from .scatter import Scatter  # noqa
-from .marker import Marker, XMarker, YMarker  # noqa
+from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa
 from .axis import Axis, XAxis, YAxis, YRightAxis
 
 DATA_ITEMS = ImageComplexData, Curve, Histogram, ImageBase, Scatter
