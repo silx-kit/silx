@@ -35,13 +35,13 @@ import logging
 import numpy
 
 from .._utils.delaunay import triangulation
-from .core import Points, ColormapMixIn, ScatterVisualizationMixIn
+from .core import PointsBase, ColormapMixIn, ScatterVisualizationMixIn
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Scatter(Points, ColormapMixIn, ScatterVisualizationMixIn):
+class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     """Description of a scatter"""
 
     _DEFAULT_SELECTABLE = True
@@ -53,7 +53,7 @@ class Scatter(Points, ColormapMixIn, ScatterVisualizationMixIn):
     """Overrides supported Visualizations"""
 
     def __init__(self):
-        Points.__init__(self)
+        PointsBase.__init__(self)
         ColormapMixIn.__init__(self)
         ScatterVisualizationMixIn.__init__(self)
         self._value = ()
@@ -139,7 +139,7 @@ class Scatter(Points, ColormapMixIn, ScatterVisualizationMixIn):
         :return: The filtered arrays or unchanged object if not filtering needed
         :rtype: (x, y, value, xerror, yerror)
         """
-        # overloaded from Points to filter also value.
+        # overloaded from PointsBase to filter also value.
         value = self.getValueData(copy=False)
 
         if xPositive or yPositive:
@@ -150,7 +150,7 @@ class Scatter(Points, ColormapMixIn, ScatterVisualizationMixIn):
                 value = numpy.array(value, copy=True, dtype=numpy.float)
                 value[clipped] = numpy.nan
 
-        x, y, xerror, yerror = Points._logFilterData(self, xPositive, yPositive)
+        x, y, xerror, yerror = PointsBase._logFilterData(self, xPositive, yPositive)
 
         return x, y, value, xerror, yerror
 
@@ -196,7 +196,7 @@ class Scatter(Points, ColormapMixIn, ScatterVisualizationMixIn):
                 self.getXErrorData(copy),
                 self.getYErrorData(copy))
 
-    # reimplemented from Points to handle `value`
+    # reimplemented from PointsBase to handle `value`
     def setData(self, x, y, value, xerror=None, yerror=None, alpha=None, copy=True):
         """Set the data of the scatter.
 
@@ -237,4 +237,4 @@ class Scatter(Points, ColormapMixIn, ScatterVisualizationMixIn):
         # set x, y, xerror, yerror
 
         # call self._updated + plot._invalidateDataRange()
-        Points.setData(self, x, y, xerror, yerror, copy)
+        PointsBase.setData(self, x, y, xerror, yerror, copy)
