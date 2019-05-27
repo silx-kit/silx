@@ -72,6 +72,18 @@ class TestCurvesROIWidget(TestCaseQt):
 
         super(TestCurvesROIWidget, self).tearDown()
 
+    def testDummyAPI(self):
+        """Simple test of the getRois and setRois API"""
+        roi_neg = CurvesROIWidget.ROI(name='negative', fromdata=-20,
+                                      todata=-10, type_='X')
+        roi_pos = CurvesROIWidget.ROI(name='positive', fromdata=10,
+                                      todata=20, type_='X')
+
+        self.widget.roiWidget.setRois((roi_pos, roi_neg))
+
+        rois_defs = self.widget.roiWidget.getRois()
+        self.widget.roiWidget.setRois(rois=rois_defs)
+
     def testWithCurves(self):
         """Plot with curves: test all ROI widget buttons"""
         for offset in range(2):
