@@ -572,8 +572,11 @@ class ROITable(TableWidget):
         # backward compatibility since 0.10.0
         if isinstance(rois, dict):
             for roiName, roi in rois.items():
-                roi['name'] = roiName
-                _roi = ROI._fromDict(roi)
+                if isinstance(roi, ROI):
+                    _roi = roi
+                else:
+                    roi['name'] = roiName
+                    _roi = ROI._fromDict(roi)
                 self.addRoi(_roi)
         else:
             for roi in rois:
