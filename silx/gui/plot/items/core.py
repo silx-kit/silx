@@ -930,7 +930,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         return self.__visualization
 
 
-class Points(Item, SymbolMixIn, AlphaMixIn):
+class PointsBase(Item, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature
@@ -1079,8 +1079,7 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         if (xPositive, yPositive) not in self._boundsCache:
             # use the getData class method because instance method can be
             # overloaded to return additional arrays
-            data = Points.getData(self, copy=False,
-                                  displayed=True)
+            data = PointsBase.getData(self, copy=False, displayed=True)
             if len(data) == 5:
                 # hack to avoid duplicating caching mechanism in Scatter
                 # (happens when cached data is used, caching done using

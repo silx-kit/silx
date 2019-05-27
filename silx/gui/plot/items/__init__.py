@@ -35,7 +35,7 @@ __date__ = "22/06/2017"
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
                    SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
                    AlphaMixIn, LineMixIn, ScatterVisualizationMixIn,  # noqa
-                   ComplexMixIn, ItemChangedType)  # noqa
+                   ComplexMixIn, ItemChangedType, PointsBase)  # noqa
 from .complex import ImageComplexData  # noqa
 from .curve import Curve, CurveStyle  # noqa
 from .histogram import Histogram  # noqa
