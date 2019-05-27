@@ -929,7 +929,8 @@ class Plot2D(PlotWindow):
 
     def _getImageDims(self, *args):
         activeImage = self.getActiveImage()
-        if activeImage.getData() is not None:
+        if (activeImage.getData() is not None and
+                    activeImage.getData(copy=False) is not None):
             dims = activeImage.getData(copy=False).shape[-2:][::-1]
             return 'x'.join(str(dim) for dim in dims)
         else:
