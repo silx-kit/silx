@@ -945,7 +945,7 @@ class ROITable(TableWidget):
         if ddict['event'] == 'markerMoved':
             label = ddict['label']
             roiID = self._markersHandler.getRoiID(markerID=label)
-            if roiID:
+            if roiID is not None:
                 # avoid several emission of sigROISignal
                 old = self.blockSignals(True)
                 self._markersHandler.changePosition(markerID=label,
