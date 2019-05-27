@@ -1129,7 +1129,7 @@ class GLPlotCurve2D(object):
         and the segment [i-1, i] is not tested for picking.
 
         :return: The indices of the picked data
-        :rtype: list of int
+        :rtype: Union[List[int],None]
         """
         if (self.marker is None and self.lineStyle is None) or \
                 self.xMin > xPickMax or xPickMin > self.xMax or \
@@ -1209,4 +1209,4 @@ class GLPlotCurve2D(object):
                                         (self.yData >= yPickMin) &
                                         (self.yData <= yPickMax))[0].tolist()
 
-        return indices
+        return tuple(indices) if len(indices) > 0 else None
