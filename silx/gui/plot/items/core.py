@@ -412,6 +412,14 @@ class DraggableMixIn(ItemMixInBase):
         """
         self._draggable = bool(draggable)
 
+    def drag(self, from_, to):
+        """Perform a drag of the item.
+
+        :param List[float] from_: (x, y) previous position in data coordinates
+        :param List[float] to: (x, y) current position in data coordinates
+        """
+        raise NotImplementedError("Must be implemented in subclass")
+
 
 class ColormapMixIn(ItemMixInBase):
     """Mix-in class for items with colormap"""
