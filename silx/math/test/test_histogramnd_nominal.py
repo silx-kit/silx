@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -113,6 +113,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
             def fill_histo(h, v, dim, op=None):
                 idx = [self.other_axes_index]*len(h.shape)
                 idx[dim] = slice(0, None)
+                idx = tuple(idx)
                 if op:
                     h[idx] = op(h[idx], v)
                 else:
@@ -366,9 +367,9 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
-            idx = [slice(0, None)]
+            idx = (slice(0, None),)
         else:
-            idx = [slice(0, None), self.tested_dim]
+            idx = slice(0, None), self.tested_dim
 
         sample_2[idx] += 2
 
@@ -402,9 +403,9 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
-            idx = [slice(0, None)]
+            idx = (slice(0, None),)
         else:
-            idx = [slice(0, None), self.tested_dim]
+            idx = slice(0, None), self.tested_dim
 
         sample_2[idx] += 2
 
@@ -443,9 +444,9 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
-            idx = [slice(0, None)]
+            idx = (slice(0, None),)
         else:
-            idx = [slice(0, None), self.tested_dim]
+            idx = slice(0, None), self.tested_dim
 
         sample_2[idx] += 2
 
@@ -787,9 +788,9 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
-            idx = [slice(0, None)]
+            idx = (slice(0, None),)
         else:
-            idx = [slice(0, None), self.tested_dim]
+            idx = slice(0, None), self.tested_dim
 
         sample_2[idx] += 2
 
@@ -824,9 +825,9 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
-            idx = [slice(0, None)]
+            idx = (slice(0, None),)
         else:
-            idx = [slice(0, None), self.tested_dim]
+            idx = slice(0, None), self.tested_dim
 
         sample_2[idx] += 2
 
@@ -863,9 +864,9 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
-            idx = [slice(0, None)]
+            idx = (slice(0, None),)
         else:
-            idx = [slice(0, None), self.tested_dim]
+            idx = slice(0, None), self.tested_dim
 
         sample_2[idx] += 2
 
