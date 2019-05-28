@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -224,7 +224,7 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testSupportedDrop(self):
         model = hdf5.Hdf5TreeModel()
-        self.assertNotEquals(model.supportedDropActions(), 0)
+        self.assertNotEqual(model.supportedDropActions(), 0)
 
         model.setFileMoveEnabled(False)
         model.setFileDropEnabled(False)
@@ -232,11 +232,11 @@ class TestHdf5TreeModel(TestCaseQt):
 
         model.setFileMoveEnabled(False)
         model.setFileDropEnabled(True)
-        self.assertNotEquals(model.supportedDropActions(), 0)
+        self.assertNotEqual(model.supportedDropActions(), 0)
 
         model.setFileMoveEnabled(True)
         model.setFileDropEnabled(False)
-        self.assertNotEquals(model.supportedDropActions(), 0)
+        self.assertNotEqual(model.supportedDropActions(), 0)
 
     def testCloseFile(self):
         """A file inserted as a filename is open and closed internally."""

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -304,10 +304,10 @@ class TestWeakList(unittest.TestCase):
         self.assertEqual(len(new_list), 1)
 
     def testStr(self):
-        self.assertNotEquals(self.list.__str__(), "[]")
+        self.assertNotEqual(self.list.__str__(), "[]")
 
     def testRepr(self):
-        self.assertNotEquals(self.list.__repr__(), "[]")
+        self.assertNotEqual(self.list.__repr__(), "[]")
 
     def testSort(self):
         # only a coverage
