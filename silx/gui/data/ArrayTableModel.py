@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -245,8 +245,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if index.isValid() and role == qt.Qt.EditRole:
             try:
                 # cast value to same type as array
-                v = numpy.asscalar(
-                        numpy.array(value, dtype=self._array.dtype))
+                v = numpy.array(value, dtype=self._array.dtype).item()
             except ValueError:
                 return False
 
