@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,41 +39,14 @@ __date__ = "07/12/2018"
 
 import os
 import logging
-import subprocess
 import sys
-import distutils
-import shutil
 from docutils.parsers.rst.directives.images import Image
 from docutils.parsers.rst import directives
-from docutils.parsers.rst import Directive
-from docutils.nodes import fully_normalize_name
-from docutils import nodes
 
 # from docutils.par
 # note: conf.py is patching the PATH so this will be the 'current' qt version
 
-
-def _distutils_dir_name(dname="lib"):
-    """
-    Returns the name of a distutils build directory
-    """
-    platform = distutils.util.get_platform()
-    architecture = "%s.%s-%i.%i" % (dname, platform,
-                                    sys.version_info[0], sys.version_info[1])
-    return architecture
-
 home = os.path.abspath(os.path.join(__file__, "..", "..", "..", '..'))
-home = os.path.abspath(home)
-LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
-
-if not os.path.exists(LIBPATH):
-    raise RuntimeError("%s is not on the path. Fix your PYTHONPATH and restart sphinx." % project)
-
-sys.path.append(LIBPATH)
-env = os.environ.copy()
-env.update(
-    {"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
-     "PATH": os.environ.get("PATH", "")})
 
 
 if not os.environ.get('DIRECTIVE_SNAPSHOT_QT') == 'True':
