@@ -1,6 +1,6 @@
 /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -126,6 +126,21 @@ inline int mirror(int index, int length_max){
     return res;
 }
 
+/* Provide a way to access NaN that also works for integers*/
+
+template<typename T>
+inline T NotANumber(void) {
+    assert(false);  //This should never be called
+    return 0;
+}
+
+template<>
+inline float NotANumber<float>(void) { return NAN; }
+
+template<>
+inline double NotANumber<double>(void) { return NAN; }
+
+
 // Browse the column of pixel_x
 template<typename T>
 void median_filter(
@@ -244,8 +259,7 @@ void median_filter(
 
         if (window_size == 0) {
             // Window is empty, this is the case when all values are NaNs
-            output[image_dim[1]*y_pixel + x_pixel] = NAN;
-
+            output[image_dim[1]*y_pixel + x_pixel] = NotANumber<T>();
         } else {
             // apply the median value if needed for this pixel
             const T currentPixelValue = input[image_dim[1]*y_pixel + x_pixel];
