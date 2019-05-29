@@ -185,7 +185,7 @@ class TestFFT(ParametricTestCase):
         )
 
 
-class TestNumpyFFT(unittest.TestCase):
+class TestNumpyFFT(ParametricTestCase):
     """
     Test the Numpy backend individually.
     """
