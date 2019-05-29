@@ -162,7 +162,7 @@ class SinoFilter(OpenclProcessing):
         self.filter_name = filter_name or "ram-lak"
         filter_f = compute_fourier_filter(
             self.dwidth_padded,
-            filter_name,
+            self.filter_name,
             cutoff=self.extra_options["cutoff"],
         )[:self.dwidth_padded//2+1]  # R2C
         self.set_filter(filter_f, normalize=True)
