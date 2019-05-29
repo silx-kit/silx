@@ -1,7 +1,7 @@
 # coding: utf-8
 #/*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -163,7 +163,7 @@ def strip_bg(x, y0, width, niter):
     # same parameters
     if not parameters_changed:
         # same data
-        if numpy.sum(_BG_STRIP_OLDY == y0) == len(y0):
+        if numpy.array_equal(_BG_STRIP_OLDY, y0):
             # same result
             return _BG_STRIP_OLDBG
 
