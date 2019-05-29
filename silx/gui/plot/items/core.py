@@ -1088,12 +1088,15 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
             else:
                 x, y, _xerror, _yerror = data
 
-            self._boundsCache[(xPositive, yPositive)] = (
-                numpy.nanmin(x),
-                numpy.nanmax(x),
-                numpy.nanmin(y),
-                numpy.nanmax(y)
-            )
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', category=RuntimeWarning)
+                # Ignore All-NaN slice encountered
+                self._boundsCache[(xPositive, yPositive)] = (
+                    numpy.nanmin(x),
+                    numpy.nanmax(x),
+                    numpy.nanmin(y),
+                    numpy.nanmax(y)
+                )
         return self._boundsCache[(xPositive, yPositive)]
 
     def _getCachedData(self):
