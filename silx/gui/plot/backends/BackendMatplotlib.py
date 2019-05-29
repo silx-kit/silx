@@ -360,9 +360,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
             else:
                 errorbarColor = color
 
-            # On Debian 7 at least, Nx1 array yerr does not seems supported
+            # Nx1 error array deprecated in matplotlib >=3.1 (removed in 3.3)
+            if (isinstance(xerror, numpy.ndarray) and xerror.ndim == 2 and
+                        xerror.shape[1] == 1):
+                xerror = numpy.ravel(xerror)
             if (isinstance(yerror, numpy.ndarray) and yerror.ndim == 2 and
-                    yerror.shape[1] == 1 and len(x) != 1):
+                    yerror.shape[1] == 1):
                 yerror = numpy.ravel(yerror)
 
             errorbars = axes.errorbar(x, y, label=legend,
