@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ __date__ = "16/05/2018"
 import logging
 import sys
 import unittest
+import warnings
 
 import numpy
 
@@ -66,7 +67,10 @@ class TestColormap(ParametricTestCase):
                           'sqrt': numpy.sqrt}
 
         norm_function = norm_functions[normalization]
-        norm_data, vmin, vmax = map(norm_function, (data, vmin, vmax))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            # Ignore divide by zero and invalid value encountered in log10, sqrt
+            norm_data, vmin, vmax = map(norm_function, (data, vmin, vmax))
 
         if normalization == 'arcsinh' and sys.platform == 'win32':
             # There is a difference of behavior of numpy.arcsinh
