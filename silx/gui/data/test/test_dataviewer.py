@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -242,8 +242,8 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertTrue(replaced)
         nxdata_view = widget.getViewFromModeId(DataViews.NXDATA_MODE)
         self.assertNotIn(DataViews.NXDATA_INVALID_MODE,
-                         [v.modeId() for v in nxdata_view.availableViews()])
-        self.assertTrue(view in nxdata_view.availableViews())
+                         [v.modeId() for v in nxdata_view.getViews()])
+        self.assertTrue(view in nxdata_view.getViews())
 
 
 class TestDataViewer(AbstractDataViewerTests):
