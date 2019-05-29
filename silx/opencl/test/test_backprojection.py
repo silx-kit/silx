@@ -45,7 +45,7 @@ except ImportError:
 from ..common import ocl
 if ocl:
     from .. import backprojection
-    from ..sinofilter import compute_fourier_filter
+    from ...image.tomography import compute_fourier_filter
 from silx.test.utils import utilstest
 
 logger = logging.getLogger(__name__)
