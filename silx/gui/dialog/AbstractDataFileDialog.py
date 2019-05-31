@@ -1042,6 +1042,8 @@ class AbstractDataFileDialog(qt.QDialog):
                 return
         self.__directoryLoadedFilter = path
         self.__processing += 1
+        if self.__fileModel is None:
+            return
         index = self.__fileModel.setRootPath(path)
         if not index.isValid():
             # There is a problem with this path
@@ -1058,6 +1060,8 @@ class AbstractDataFileDialog(qt.QDialog):
                 # The first click on the sidebar sent 2 events
                 self.__processing -= 1
                 return
+        if self.__fileModel is None:
+            return
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index, model=self.__fileModel)
         self.__updatePath()
