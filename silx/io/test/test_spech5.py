@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -272,6 +272,13 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(self.sfh5["25.1/start_time"],
                          u"2015-03-14T03:53:50")
 
+    def assertRaisesRegex(self, *args, **kwargs):
+        # Python 2 compatibility
+        if sys.version_info.major >= 3:
+            return super(TestSpecH5, self).assertRaisesRegex(*args, **kwargs)
+        else:
+            return self.assertRaisesRegexp(*args, **kwargs)
+
     def testDatasetInstanceAttr(self):
         """The SpecH5Dataset objects must implement some dummy attributes
         to improve compatibility with widgets dealing with h5py datasets."""
@@ -279,7 +286,7 @@ class TestSpecH5(unittest.TestCase):
         self.assertIsNone(self.sfh5["1.1"]["measurement"]["MRTSlit UP"].chunks)
 
         # error message must be explicit
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
                 AttributeError,
                 "SpecH5Dataset has no attribute tOTo"):
             dummy = self.sfh5["/1.1/start_time"].tOTo

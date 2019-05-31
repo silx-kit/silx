@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ class TestTextFormatter(TestCaseQt):
         self.assertIsNot(formatter, copy)
         copy.setFloatFormat("%.3f")
         self.assertEqual(formatter.integerFormat(), copy.integerFormat())
-        self.assertNotEquals(formatter.floatFormat(), copy.floatFormat())
+        self.assertNotEqual(formatter.floatFormat(), copy.floatFormat())
         self.assertEqual(formatter.useQuoteForText(), copy.useQuoteForText())
         self.assertEqual(formatter.imaginaryUnit(), copy.imaginaryUnit())
 

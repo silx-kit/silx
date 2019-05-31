@@ -445,7 +445,7 @@ class TestRegisteredLut(unittest.TestCase):
     def testLut(self):
         colormap = Colormap("test_8")
         colors = colormap.getNColors(8)
-        self.assertEquals(len(colors), 8)
+        self.assertEqual(len(colors), 8)
 
     def testUint8(self):
         lut = numpy.array([[255, 0, 0], [200, 0, 0], [150, 0, 0]], dtype="uint")

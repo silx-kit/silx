@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -474,7 +474,7 @@ class FabioReader(object):
             while len(location) < max_dim:
                 location.append(0)
             normalized_image = numpy.zeros(max_shape, dtype=image.dtype)
-            normalized_image[location] = image
+            normalized_image[tuple(location)] = image
             images[index] = normalized_image
 
         # create a cube

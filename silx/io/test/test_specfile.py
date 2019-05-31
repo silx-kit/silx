@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -224,14 +224,21 @@ class TestSpecFile(unittest.TestCase):
         with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(99)
 
+    def assertRaisesRegex(self, *args, **kwargs):
+        # Python 2 compatibility
+        if sys.version_info.major >= 3:
+            return super(TestSpecFile, self).assertRaisesRegex(*args, **kwargs)
+        else:
+            return self.assertRaisesRegexp(*args, **kwargs)
+
     def test_getitem(self):
         self.assertIsInstance(self.sf[2], Scan)
         self.assertIsInstance(self.sf["1.2"], Scan)
         # int out of range
-        with self.assertRaisesRegexp(IndexError, 'Scan index must be in ran'):
+        with self.assertRaisesRegex(IndexError, 'Scan index must be in ran'):
             self.sf[107]
         # float indexing not allowed
-        with self.assertRaisesRegexp(TypeError, 'The scan identification k'):
+        with self.assertRaisesRegex(TypeError, 'The scan identification k'):
             self.sf[1.2]
         # non existant scan with "N.M" indexing
         with self.assertRaises(KeyError):
