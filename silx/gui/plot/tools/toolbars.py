@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -306,6 +306,10 @@ class ScatterToolBar(qt.QToolBar):
             parent=self, plot=plot)
         self.addWidget(self._symbolToolButton)
 
+        self._visualizationToolButton = \
+            PlotToolButtons.ScatterVisualizationToolButton(parent=self, plot=plot)
+        self.addWidget(self._visualizationToolButton)
+
     def getResetZoomAction(self):
         """Returns the QAction to reset the zoom.
 
@@ -354,3 +358,10 @@ class ScatterToolBar(qt.QToolBar):
         :rtype: QToolButton
         """
         return self._keepDataAspectRatioButton
+
+    def getVisualizationToolButton(self):
+        """Returns the QToolButton controlling the visualization mode.
+
+        :rtype: ScatterVisualizationToolButton
+        """
+        return self._visualizationToolButton
