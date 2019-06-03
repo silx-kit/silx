@@ -32,6 +32,7 @@ __date__ = "21/12/2018"
 
 from collections import OrderedDict, namedtuple
 import logging
+import warnings
 import weakref
 
 import numpy
@@ -884,7 +885,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     xErrorMinus, xErrorPlus = xerror[0], xerror[1]
                 else:
                     xErrorMinus, xErrorPlus = xerror, xerror
-                xErrorMinus = logX - numpy.log10(x - xErrorMinus)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    # Ignore divide by zero, invalid value encountered in log10
+                    xErrorMinus = logX - numpy.log10(x - xErrorMinus)
                 xErrorPlus = numpy.log10(x + xErrorPlus) - logX
                 xerror = numpy.array((xErrorMinus, xErrorPlus),
                                      dtype=numpy.float32)
@@ -904,7 +908,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     yErrorMinus, yErrorPlus = yerror[0], yerror[1]
                 else:
                     yErrorMinus, yErrorPlus = yerror, yerror
-                yErrorMinus = logY - numpy.log10(y - yErrorMinus)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    # Ignore divide by zero, invalid value encountered in log10
+                    yErrorMinus = logY - numpy.log10(y - yErrorMinus)
                 yErrorPlus = numpy.log10(y + yErrorPlus) - logY
                 yerror = numpy.array((yErrorMinus, yErrorPlus),
                                      dtype=numpy.float32)

@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ __date__ = "17/01/2018"
 
 
 import unittest
+import warnings
 
 import numpy
 
@@ -73,22 +74,24 @@ class TestMinMax(ParametricTestCase):
             filtered_data = data
 
         if filtered_data.size > 0:
-            minimum = numpy.nanmin(filtered_data)
-            if numpy.isnan(minimum):
+            if numpy.all(numpy.isnan(filtered_data)):
+                minimum = numpy.nan
                 argmin = 0
-            else:
-                # nanargmin equivalent
-                argmin = numpy.where(data == minimum)[0][0]
-
-            maximum = numpy.nanmax(filtered_data)
-            if numpy.isnan(maximum):
+                maximum = numpy.nan
                 argmax = 0
             else:
+                minimum = numpy.nanmin(filtered_data)
+                # nanargmin equivalent
+                argmin = numpy.where(data == minimum)[0][0]
+                maximum = numpy.nanmax(filtered_data)
                 # nanargmax equivalent
                 argmax = numpy.where(data == maximum)[0][0]
 
             if min_positive:
-                pos_data = filtered_data[filtered_data > 0]
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    # Ignore invalid value encountered in greater
+                    pos_data = filtered_data[filtered_data > 0]
                 if pos_data.size > 0:
                     min_pos = numpy.min(pos_data)
                     argmin_pos = numpy.where(data == min_pos)[0][0]

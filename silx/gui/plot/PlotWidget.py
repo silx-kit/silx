@@ -46,6 +46,7 @@ except ImportError:  # Python2 support
 from contextlib import contextmanager
 import datetime as dt
 import itertools
+import warnings
 
 import numpy
 
@@ -543,16 +544,25 @@ class PlotWidget(qt.QMainWindow):
             if item.isVisible():
                 bounds = item.getBounds()
                 if bounds is not None:
-                    xMin = numpy.nanmin([xMin, bounds[0]])
-                    xMax = numpy.nanmax([xMax, bounds[1]])
+                    with warnings.catch_warnings():
+                        warnings.simplefilter('ignore', category=RuntimeWarning)
+                        # Ignore All-NaN slice encountered
+                        xMin = numpy.nanmin([xMin, bounds[0]])
+                        xMax = numpy.nanmax([xMax, bounds[1]])
                     # Take care of right axis
                     if (isinstance(item, items.YAxisMixIn) and
                             item.getYAxis() == 'right'):
-                        yMinRight = numpy.nanmin([yMinRight, bounds[2]])
-                        yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore', category=RuntimeWarning)
+                            # Ignore All-NaN slice encountered
+                            yMinRight = numpy.nanmin([yMinRight, bounds[2]])
+                            yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
                     else:
-                        yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
-                        yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore', category=RuntimeWarning)
+                            # Ignore All-NaN slice encountered
+                            yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
+                            yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
 
         def lGetRange(x, y):
             return None if numpy.isnan(x) and numpy.isnan(y) else (x, y)
