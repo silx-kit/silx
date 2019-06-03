@@ -352,23 +352,22 @@ class ProfileToolButton(PlotToolButton):
         self._profileDimensionChanged(2)
 
 
-class SymbolToolButton(PlotToolButton):
-    """A tool button with a drop-down menu to control symbol size and marker.
+
+class _SymbolToolButtonBase(PlotToolButton):
+    """Base class for PlotToolButton setting marker and size.
 
     :param parent: See QWidget
     :param plot: The `~silx.gui.plot.PlotWidget` to control
     """
 
     def __init__(self, parent=None, plot=None):
-        super(SymbolToolButton, self).__init__(parent=parent, plot=plot)
+        super(_SymbolToolButtonBase, self).__init__(parent=parent, plot=plot)
 
-        self.setToolTip('Set symbol size and marker')
-        self.setIcon(icons.getQIcon('plot-symbols'))
+    def _addSizeSliderToMenu(self, menu):
+        """Add a slider to set size to the given menu
 
-        menu = qt.QMenu(self)
-
-        # Size slider
-
+        :param QMenu menu:
+        """
         slider = qt.QSlider(qt.Qt.Horizontal)
         slider.setRange(1, 20)
         slider.setValue(config.DEFAULT_PLOT_SYMBOL_SIZE)
@@ -378,10 +377,11 @@ class SymbolToolButton(PlotToolButton):
         widgetAction.setDefaultWidget(slider)
         menu.addAction(widgetAction)
 
-        menu.addSeparator()
+    def _addSymbolsToMenu(self, menu):
+        """Add symbols to the given menu
 
-        # Marker actions
-
+        :param QMenu menu:
+        """
         for marker, name in zip(SymbolMixIn.getSupportedSymbols(),
                                 SymbolMixIn.getSupportedSymbolNames()):
             action = qt.QAction(name, menu)
@@ -389,9 +389,6 @@ class SymbolToolButton(PlotToolButton):
             action.triggered.connect(
                 functools.partial(self._markerChanged, marker))
             menu.addAction(action)
-
-        self.setMenu(menu)
-        self.setPopupMode(qt.QToolButton.InstantPopup)
 
     def _sizeChanged(self, value):
         """Manage slider value changed
@@ -420,17 +417,46 @@ class SymbolToolButton(PlotToolButton):
                 item.setSymbol(marker)
 
 
-class ScatterVisualizationToolButton(PlotToolButton):
-    """QToolButton to select the visualization mode of scatter plot"""
+class SymbolToolButton(_SymbolToolButtonBase):
+    """A tool button with a drop-down menu to control symbol size and marker.
+
+    :param parent: See QWidget
+    :param plot: The `~silx.gui.plot.PlotWidget` to control
+    """
+
+    def __init__(self, parent=None, plot=None):
+        super(SymbolToolButton, self).__init__(parent=parent, plot=plot)
+
+        self.setToolTip('Set symbol size and marker')
+        self.setIcon(icons.getQIcon('plot-symbols'))
+
+        menu = qt.QMenu(self)
+        self._addSizeSliderToMenu(menu)
+        menu.addSeparator()
+        self._addSymbolsToMenu(menu)
+
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+
+
+class ScatterVisualizationToolButton(_SymbolToolButtonBase):
+    """QToolButton to select the visualization mode of scatter plot
+
+    :param parent: See QWidget
+    :param plot: The `~silx.gui.plot.PlotWidget` to control
+    """
 
     def __init__(self, parent=None, plot=None):
         super(ScatterVisualizationToolButton, self).__init__(
             parent=parent, plot=plot)
 
-        self.setToolTip('Set scatter data visualization mode')
-        self.setIcon(icons.getQIcon('view-text'))
+        self.setToolTip(
+            'Set scatter visualization mode, symbol marker and size')
+        self.setIcon(icons.getQIcon('eye'))
 
         menu = qt.QMenu(self)
+
+        # Add visualization modes
 
         for mode in Scatter.supportedVisualizations():
             name = mode.value.capitalize()
@@ -439,6 +465,14 @@ class ScatterVisualizationToolButton(PlotToolButton):
             action.triggered.connect(
                 functools.partial(self._visualizationChanged, mode))
             menu.addAction(action)
+
+        menu.addSeparator()
+
+        submenu = menu.addMenu(icons.getQIcon('plot-symbols'), "Symbol")
+        self._addSymbolsToMenu(submenu)
+
+        submenu = menu.addMenu(icons.getQIcon('plot-symbols'), "Symbol Size")
+        self._addSizeSliderToMenu(submenu)
 
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
