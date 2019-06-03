@@ -47,7 +47,7 @@ from .. import icons
 from .. import qt
 from ... import config
 
-from .items import SymbolMixIn
+from .items import SymbolMixIn, Scatter
 
 
 _logger = logging.getLogger(__name__)
@@ -418,3 +418,41 @@ class SymbolToolButton(PlotToolButton):
         for item in plot._getItems(withhidden=True):
             if isinstance(item, SymbolMixIn):
                 item.setSymbol(marker)
+
+
+class ScatterVisualizationToolButton(PlotToolButton):
+    """QToolButton to select the visualization mode of scatter plot"""
+
+    def __init__(self, parent=None, plot=None):
+        super(ScatterVisualizationToolButton, self).__init__(
+            parent=parent, plot=plot)
+
+        self.setToolTip('Set scatter data visualization mode')
+        self.setIcon(icons.getQIcon('view-text'))
+
+        menu = qt.QMenu(self)
+
+        for mode in Scatter.supportedVisualizations():
+            name = mode.value.capitalize()
+            action = qt.QAction(name, menu)
+            action.setCheckable(False)
+            action.triggered.connect(
+                functools.partial(self._visualizationChanged, mode))
+            menu.addAction(action)
+
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+
+    def _visualizationChanged(self, mode):
+        """Handle change of visualization mode.
+
+        :param ScatterVisualizationMixIn.Visualization mode:
+            The visualization mode to use for scatter
+        """
+        plot = self.plot()
+        if plot is None:
+            return
+
+        for item in plot._getItems(withhidden=True):
+            if isinstance(item, Scatter):
+                item.setVisualization(mode)
