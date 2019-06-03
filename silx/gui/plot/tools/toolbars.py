@@ -34,6 +34,7 @@ from ... import qt
 from .. import actions
 from ..PlotWidget import PlotWidget
 from .. import PlotToolButtons
+from ....utils.deprecation import deprecated
 
 
 class InteractiveModeToolBar(qt.QToolBar):
@@ -302,10 +303,6 @@ class ScatterToolBar(qt.QToolBar):
             parent=self, plot=plot)
         self.addAction(self._colormapAction)
 
-        self._symbolToolButton = PlotToolButtons.SymbolToolButton(
-            parent=self, plot=plot)
-        self.addWidget(self._symbolToolButton)
-
         self._visualizationToolButton = \
             PlotToolButtons.ScatterVisualizationToolButton(parent=self, plot=plot)
         self.addWidget(self._visualizationToolButton)
@@ -345,13 +342,6 @@ class ScatterToolBar(qt.QToolBar):
         """
         return self._colormapAction
 
-    def getSymbolToolButton(self):
-        """Returns the QToolButton controlling symbol size and marker.
-
-        :rtype: SymbolToolButton
-        """
-        return self._symbolToolButton
-
     def getKeepDataAspectRatioButton(self):
         """Returns the QToolButton controlling data aspect ratio.
 
@@ -359,9 +349,14 @@ class ScatterToolBar(qt.QToolBar):
         """
         return self._keepDataAspectRatioButton
 
-    def getVisualizationToolButton(self):
+    def getScatterVisualizationToolButton(self):
         """Returns the QToolButton controlling the visualization mode.
 
         :rtype: ScatterVisualizationToolButton
         """
         return self._visualizationToolButton
+
+    @deprecated(replacement='getScatterVisualizationToolButton',
+                since_version='0.11.0')
+    def getSymbolToolButton(self):
+        return self.getScatterVisualizationToolButton()
