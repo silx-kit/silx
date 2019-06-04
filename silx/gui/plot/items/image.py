@@ -378,7 +378,8 @@ class ImageData(ImageBase, ColormapMixIn):
         self._alternativeImage = alternative
 
         if alpha is not None:
-            alpha = numpy.array(alpha, copy=copy)
+            alpha = numpy.array(alpha, copy=False, dtype=numpy.float32)
+            alpha = numpy.clip(alpha, 0, 1)  # This makes a copy
             assert alpha.shape == data.shape
         self._alphaImage = alpha
 
