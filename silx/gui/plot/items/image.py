@@ -262,6 +262,7 @@ class ImageData(ImageBase, ColormapMixIn):
         ColormapMixIn.__init__(self)
         self._data = numpy.zeros((0, 0), dtype=numpy.float32)
         self._alternativeImage = None
+        self._alphaImage = None
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -271,8 +272,9 @@ class ImageData(ImageBase, ColormapMixIn):
             # Do not render with non linear scales
             return None
 
-        if self.getAlternativeImageData(copy=False) is not None:
-            dataToUse = self.getAlternativeImageData(copy=False)
+        if (self.getAlternativeImageData(copy=False) is not None or
+                self.getAlphaImage(copy=False) is not None):
+            dataToUse = self.getRgbaImageData(copy=False)
         else:
             dataToUse = self.getData(copy=False)
 
@@ -303,37 +305,56 @@ class ImageData(ImageBase, ColormapMixIn):
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
 
-        :returns: numpy.ndarray of uint8 of shape (height, width, 4)
+        :returns: Array of uint8 of shape (height, width, 4)
+        :rtype: numpy.ndarray
         """
-        if self._alternativeImage is not None:
-            return _convertImageToRgba32(
-                self.getAlternativeImageData(copy=False), copy=copy)
+        alternative = self.getAlternativeImageData(copy=False)
+        if alternative is not None:
+            return _convertImageToRgba32(alternative, copy=copy)
         else:
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
             image = colormap.applyToData(self.getData(copy=False))
+            alphaImage = self.getAlphaImage(copy=False)
+            if alphaImage is not None:
+                # Apply transparency
+                image[:, :, 3] = image[:, :, 3] * alphaImage
             return image
 
     def getAlternativeImageData(self, copy=True):
         """Get the optional RGBA image that is displayed instead of the data
 
-        :param copy: True (Default) to get a copy,
-                     False to use internal representation (do not modify!)
-        :returns: None or numpy.ndarray
-        :rtype: numpy.ndarray or None
+        :param bool copy: True (Default) to get a copy,
+            False to use internal representation (do not modify!)
+        :rtype: Union[None,numpy.ndarray]
         """
         if self._alternativeImage is None:
             return None
         else:
             return numpy.array(self._alternativeImage, copy=copy)
 
-    def setData(self, data, alternative=None, copy=True):
+    def getAlphaImage(self, copy=True):
+        """Get the optional transparency image applied on the data
+
+        :param bool copy: True (Default) to get a copy,
+            False to use internal representation (do not modify!)
+        :rtype: Union[None,numpy.ndarray]
+        """
+        if self._alphaImage is None:
+            return None
+        else:
+            return numpy.array(self._alphaImage, copy=copy)
+
+    def setData(self, data, alternative=None, alpha=None, copy=True):
         """"Set the image data and optionally an alternative RGB(A) representation
 
         :param numpy.ndarray data: Data array with 2 dimensions (h, w)
         :param alternative: RGB(A) image to display instead of data,
                             shape: (h, w, 3 or 4)
-        :type alternative: None or numpy.ndarray
+        :type alternative: Union[None,numpy.ndarray]
+        :param alpha: An array of transparency value in [0, 1] to use for
+                      display with shape: (h, w)
+        :type alpha: Union[None,numpy.ndarray]
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
         """
@@ -355,6 +376,11 @@ class ImageData(ImageBase, ColormapMixIn):
             assert alternative.shape[2] in (3, 4)
             assert alternative.shape[:2] == data.shape[:2]
         self._alternativeImage = alternative
+
+        if alpha is not None:
+            alpha = numpy.array(alpha, copy=copy)
+            assert alpha.shape == data.shape
+        self._alphaImage = alpha
 
         # TODO hackish data range implementation
         if self.isVisible():
