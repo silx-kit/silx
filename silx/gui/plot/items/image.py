@@ -273,7 +273,7 @@ class ImageData(ImageBase, ColormapMixIn):
             return None
 
         if (self.getAlternativeImageData(copy=False) is not None or
-                self.getAlphaImage(copy=False) is not None):
+                self.getAlphaData(copy=False) is not None):
             dataToUse = self.getRgbaImageData(copy=False)
         else:
             dataToUse = self.getData(copy=False)
@@ -315,7 +315,7 @@ class ImageData(ImageBase, ColormapMixIn):
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
             image = colormap.applyToData(self.getData(copy=False))
-            alphaImage = self.getAlphaImage(copy=False)
+            alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
                 image[:, :, 3] = image[:, :, 3] * alphaImage
