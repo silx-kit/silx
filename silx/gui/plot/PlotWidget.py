@@ -2918,39 +2918,39 @@ class PlotWidget(qt.QMainWindow):
         for item in reversed(list((self._content.values()))):
             yield item
 
-    def _pick(self, x, y, prefilter=None):
+    def pickItems(self, x, y, condition=None):
         """Generator of picked items in the plot at given position.
 
         Items are returned from front to back.
 
         :param float x: X position in pixels
         :param float y: Y position in pixels
-        :param callable prefilter:
+        :param callable condition:
            Callable taking an item as input and returning False for items
            to skip during picking. If None (default) no item is skipped.
         :return: Iterable of (plot item, indices) at picked position.
             Items are ordered from front to back.
         """
         for item in self._itemsFrontToBack():
-            if prefilter is None or prefilter(item):
+            if condition is None or condition(item):
                 indices = item.pick(x, y)
                 if indices is not None:
                     yield item, indices
 
-    def _pickTopMost(self, x, y, prefilter=None):
+    def _pickTopMost(self, x, y, condition=None):
         """Returns top-most picked item in the plot at given position.
 
         Items are checked from front to back.
 
         :param float x: X position in pixels
         :param float y: Y position in pixels
-        :param callable prefilter:
+        :param callable condition:
            Callable taking an item as input and returning False for items
            to skip during picking. If None (default) no item is skipped.
         :return: (plot item, indices) at picked position or
            If no item is picked, it returns (None, None)
         """
-        for item, indices in self._pick(x, y, prefilter):
+        for item, indices in self.pickItems(x, y, condition):
             return item, indices
         return None, None
 
