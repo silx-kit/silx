@@ -262,7 +262,7 @@ class ImageData(ImageBase, ColormapMixIn):
         ColormapMixIn.__init__(self)
         self._data = numpy.zeros((0, 0), dtype=numpy.float32)
         self._alternativeImage = None
-        self._alphaImage = None
+        self.__alpha = None
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -333,17 +333,17 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             return numpy.array(self._alternativeImage, copy=copy)
 
-    def getAlphaImage(self, copy=True):
+    def getAlphaData(self, copy=True):
         """Get the optional transparency image applied on the data
 
         :param bool copy: True (Default) to get a copy,
             False to use internal representation (do not modify!)
         :rtype: Union[None,numpy.ndarray]
         """
-        if self._alphaImage is None:
+        if self.__alpha is None:
             return None
         else:
-            return numpy.array(self._alphaImage, copy=copy)
+            return numpy.array(self.__alpha, copy=copy)
 
     def setData(self, data, alternative=None, alpha=None, copy=True):
         """"Set the image data and optionally an alternative RGB(A) representation
@@ -378,10 +378,13 @@ class ImageData(ImageBase, ColormapMixIn):
         self._alternativeImage = alternative
 
         if alpha is not None:
-            alpha = numpy.array(alpha, copy=False, dtype=numpy.float32)
-            alpha = numpy.clip(alpha, 0, 1)  # This makes a copy
+            alpha = numpy.array(alpha, copy=copy)
             assert alpha.shape == data.shape
-        self._alphaImage = alpha
+            if alpha.dtype.kind != 'f':
+                alpha = alpha.astype(numpy.float32)
+            if numpy.any(numpy.logical_or(alpha < 0., alpha > 1.)):
+                alpha = numpy.clip(alpha, 0., 1.)
+        self.__alpha = alpha
 
         # TODO hackish data range implementation
         if self.isVisible():
