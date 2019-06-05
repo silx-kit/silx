@@ -507,6 +507,41 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
                 curve0_min = tableItems['min'].text()
                 self.assertTrue(float(curve0_min) == 2.)
 
+    def testItemHidden(self):
+        """Test if an item is hide, then the associated stats item is also
+        hide"""
+        curve0 = self.plot.getCurve('curve0')
+        curve1 = self.plot.getCurve('curve1')
+        curve2 = self.plot.getCurve('curve2')
+
+        self.plot.show()
+        self.widget.show()
+        self.qWaitForWindowExposed(self.widget)
+        self.assertFalse(self.statsTable.isRowHidden(0))
+        self.assertFalse(self.statsTable.isRowHidden(1))
+        self.assertFalse(self.statsTable.isRowHidden(2))
+
+        curve0.setVisible(False)
+        self.qapp.processEvents()
+        self.assertTrue(self.statsTable.isRowHidden(0))
+        curve0.setVisible(True)
+        self.qapp.processEvents()
+        self.assertFalse(self.statsTable.isRowHidden(0))
+        curve1.setVisible(False)
+        self.qapp.processEvents()
+        self.assertTrue(self.statsTable.isRowHidden(1))
+        tableItems = self.statsTable._itemToTableItems(curve2)
+        curve2_min = tableItems['min'].text()
+        self.assertTrue(float(curve2_min) == -2.)
+
+        curve0.setVisible(False)
+        curve1.setVisible(False)
+        curve2.setVisible(False)
+        self.qapp.processEvents()
+        self.assertTrue(self.statsTable.isRowHidden(0))
+        self.assertTrue(self.statsTable.isRowHidden(1))
+        self.assertTrue(self.statsTable.isRowHidden(2))
+
 
 class TestStatsWidgetWithImages(TestCaseQt):
     """Basic test for StatsWidget with images"""
@@ -556,6 +591,17 @@ class TestStatsWidgetWithImages(TestCaseQt):
         self.assertEqual(tableItems['delta'].text(), maxText)
         self.assertEqual(tableItems['coords min'].text(), '0.0, 0.0')
         self.assertEqual(tableItems['coords max'].text(), '127.0, 127.0')
+
+    def testItemHidden(self):
+        """Test if an item is hide, then the associated stats item is also
+        hide"""
+        self.widget.show()
+        self.plot.show()
+        self.qWaitForWindowExposed(self.widget)
+        self.assertFalse(self.widget.isRowHidden(0))
+        self.plot.getImage(self.IMAGE_LEGEND).setVisible(False)
+        self.qapp.processEvents()
+        self.assertTrue(self.widget.isRowHidden(0))
 
 
 class TestStatsWidgetWithScatters(TestCaseQt):
