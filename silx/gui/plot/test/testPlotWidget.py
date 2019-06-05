@@ -386,6 +386,16 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
         self.assertTrue(numpy.all(numpy.equal(retrievedData, data)))
         self.assertIs(retrievedData.dtype.type, numpy.int8)
 
+    def testPlotAlphaImage(self):
+        """Test with an alpha image layer"""
+        data = numpy.random.random((10, 10))
+        alpha = numpy.linspace(0, 1, 100).reshape(10, 10)
+        self.plot.addImage(data, legend='image')
+        image = self.plot.getActiveImage()
+        image.setData(data, alpha=alpha)
+        self.qapp.processEvents()
+        self.assertTrue(numpy.array_equal(alpha, image.getAlphaData()))
+
 
 class TestPlotCurve(PlotWidgetTestCase):
     """Basic tests for addCurve."""
