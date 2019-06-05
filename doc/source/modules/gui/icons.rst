@@ -123,6 +123,8 @@ Available icons
      - draw-rubber
    * - |edit-copy|
      - edit-copy
+   * - |eye|
+     - eye
    * - |first|
      - first
    * - |folder|
@@ -398,6 +400,7 @@ Available icons
 .. |draw-pencil| image:: ../../../../silx/resources/gui/icons/draw-pencil.png
 .. |draw-rubber| image:: ../../../../silx/resources/gui/icons/draw-rubber.png
 .. |edit-copy| image:: ../../../../silx/resources/gui/icons/edit-copy.png
+.. |eye| image:: ../../../../silx/resources/gui/icons/eye.png
 .. |first| image:: ../../../../silx/resources/gui/icons/first.png
 .. |folder| image:: ../../../../silx/resources/gui/icons/folder.png
 .. |image-mask| image:: ../../../../silx/resources/gui/icons/image-mask.png
