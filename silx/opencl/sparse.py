@@ -42,6 +42,24 @@ mf = cl.mem_flags
 # only float32 arrays are supported for now
 
 class CSR(OpenclProcessing):
+    """
+    Compute Compressed Sparse Row format of an image (2D matrix).
+    It is designed to be compatible with scipy.sparse.csr_matrix.
+
+    :param shape: tuple
+        Matrix shape.
+    :param max_nnz: int, optional
+        Maximum number of non-zero elements. By default, the arrays "data" and
+        "indices" are allocated with prod(shape) elements, but in practice
+        a much lesser space is needed.
+        The number of non-zero items cannot be known in advance, but one can
+        estimate an upper-bound with this parameter to save memory.
+
+    Opencl processing parameters
+    -----------------------------
+    Please refer to the documentation of silx.opencl.processing.OpenclProcessing
+    for information on the other parameters.
+    """
     def __init__(self, shape, max_nnz=None, ctx=None, devicetype="all",
                  platformid=None, deviceid=None, block_size=None, memory=None,
                  profile=False):
@@ -67,7 +85,6 @@ class CSR(OpenclProcessing):
 
     def _allocate_memory(self):
         self.is_cpu = (self.device.type == "CPU") # move to OpenclProcessing ?
-
         self.buffers = [
             BufferDescription("array", (self.size,), np.float32, mf.READ_ONLY),
             BufferDescription("data", (self.max_nnz,), np.float32, mf.READ_WRITE),
@@ -133,6 +150,14 @@ class CSR(OpenclProcessing):
 
 
     def get_output(self, output):
+        """
+        Get the output array of the previous processing.
+
+        :param output: tuple or None
+            tuple in the form (data, indices, indptr). The content of these
+            arrays will be overwritten with the result of the previous
+            computation.
+        """
         self.array = self._old_array
         numels = self.max_nnz
         if output is None:
@@ -149,6 +174,15 @@ class CSR(OpenclProcessing):
 
 
     def sparsify(self, arr, output=None):
+        """
+        Convert an image (2D matrix) into a CSR representation.
+
+        :param arr: numpy.ndarray or pyopencl.array.Array
+            Input array.
+        :param output: tuple of pyopencl.array.Array, optional
+            If provided, this must be a tuple of 3 arrays (data, indices, indptr).
+            The content of each array is overwritten by the computation result.
+        """
         self.set_array(arr)
         self.scan_kernel(
             self.array,
