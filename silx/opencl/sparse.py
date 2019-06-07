@@ -72,53 +72,80 @@ class CSR(OpenclProcessing):
             BufferDescription("array", (self.size,), np.float32, mf.READ_ONLY),
             BufferDescription("data", (self.max_nnz,), np.float32, mf.READ_WRITE),
             BufferDescription("indices", (self.max_nnz,), self.indice_dtype, mf.READ_WRITE),
-            BufferDescription("indptr", (self.max_nnz,), self.indice_dtype, mf.READ_WRITE),
+            BufferDescription("indptr", (self.shape[0]+1,), self.indice_dtype, mf.READ_WRITE),
         ]
         self.allocate_buffers(use_array=True)
         for arr_name in ["array", "data", "indices", "indptr"]:
             setattr(self, arr_name, self.cl_mem[arr_name])
-
-
+        self._old_array = self.array
 
 
     def _setup_kernels(self):
         self.scan_kernel = GenericScanKernel(
             self.ctx, self.indice_dtype,
-            arguments="__global float* data, __global float *data_compacted, __global int *indices",
+            arguments="__global float* data, __global float *data_compacted, __global int *indices, __global int* indptr",
             input_expr="(fabs(data[i]) > 0.0f) ? 1 : 0",
             scan_expr="a+b", neutral="0",
             output_statement="""
+                // item is the running sum of input_expr(i), i.e the cumsum of "nonzero"
                 if (prev_item != item) {
                     data_compacted[item-1] = data[i];
                     indices[item-1] = GET_INDEX(i);
                 }
+                // The last cumsum element of each line of "nonzero" goes to inptr[i]
+                if ((i+1) % IMAGE_WIDTH == 0) {
+                    indptr[(i/IMAGE_WIDTH)+1] = item;
+                }
                 """,
             options="-DIMAGE_WIDTH=%d" % self.shape[1],
-            preamble="""
-            // Make it work with natively 1D data
-            #if IMAGE_WIDTH <= 1
-                #define GET_INDEX(i) i
-            #else
-                #define GET_INDEX(i) (i % IMAGE_WIDTH)
-            #endif
-            """
+            preamble="#define GET_INDEX(i) (i % IMAGE_WIDTH)",
         )
 
 
-    def check_array(self, arr):
+    def check_input(self, arr):
         assert arr.shape == self.shape
         assert arr.dtype == np.float32
 
+    # TODO handle pyopencl Buffer
+    def check_output(self, output):
+        assert len(output) == 3
+        data, ind, indptr = output
+        for arr in [data, ind, indptr]:
+            assert arr.ndim == 1
+        assert data.size == self.nnz_max
+        assert ind.size == self.nnz_max
+        assert iptr.size == self.shape[0]+1
+        assert data.dtype == np.float32
+        assert ind.dtype == np.indice_dtype
+        assert indptr.dtype == np.indice_dtype
+
 
     def set_array(self, arr):
-        self.check_array(arr)
+        self.check_input(arr)
+        # GenericScanKernel only supports 1D data
         if isinstance(arr, parray.Array):
-            self._old_data = data
+            self._old_array = arr
             self.array = arr
         elif isinstance(arr, np.ndarray):
             self.array[:] = arr.ravel()[:]
         else:
             raise ValueError("Expected pyopencl array or numpy array")
+
+
+    def get_output(self, output):
+        self.array = self._old_array
+        numels = self.max_nnz
+        if output is None:
+            data = self.data.get()[:numels]
+            ind = self.indices.get()[:numels]
+            indptr = self.indptr.get()
+        else:
+            self.check_output(output)
+            data, ind, indptr = output
+            data[:] = self.data[:]
+            ind[:] = self.indices[:]
+            indptr[:] = self.indptr[:]
+        return (data, ind, indptr)
 
 
     def sparsify(self, arr, output=None):
@@ -127,6 +154,7 @@ class CSR(OpenclProcessing):
             self.array,
             self.data,
             self.indices,
+            self.indptr,
         )
-
+        return self.get_output(output)
 

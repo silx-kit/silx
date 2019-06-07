@@ -79,37 +79,30 @@ class TestCSR(unittest.TestCase):
     """Test CSR format"""
 
     def setUp(self):
-        self.tol = 1e-7
         self.array = generate_sparse_random_data(shape=(512, 511))
 
 
     def test_sparsification(self):
+        # Sparsify on device
         csr = CSR(self.array.shape)
-        csr.sparsify(self.array)
-
-
-        array_sparse = sp.csr_matrix(self.array)
-
-        #
-        data = csr.data.get()
-        indices = csr.indices.get()
-        indptr = csr.indptr.get()
-        #
-
-
-        # test "data"
-        nnz = array_sparse.nnz
-        import matplotlib.pyplot as plt
-        plt.figure()
-        plt.plot(data[:nnz] - array_sparse.data)
-        plt.show()
-        plt.figure()
-        plt.plot(indices[:nnz] - array_sparse.indices)
-        plt.show()
-        #
-
-        self.assertTrue(True)
-
+        data, ind, indptr = csr.sparsify(self.array)
+        # Compute reference sparsification
+        a_s = sp.csr_matrix(self.array)
+        data_ref, ind_ref, indptr_ref = a_s.data, a_s.indices, a_s.indptr
+        # Compare
+        nnz = a_s.nnz
+        self.assertTrue(
+            np.allclose(data[:nnz], data_ref),
+            "something wrong with sparsified data"
+        )
+        self.assertTrue(
+            np.allclose(ind[:nnz], ind_ref),
+            "something wrong with sparsified indices"
+        )
+        self.assertTrue(
+            np.allclose(indptr, indptr_ref),
+            "something wrong with sparsified indices pointers (indptr)"
+        )
 
 
 
