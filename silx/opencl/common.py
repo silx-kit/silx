@@ -450,6 +450,7 @@ class OpenCL(object):
             ids = ocl.select_device(type=devicetype, extensions=extensions)
             if ids:
                 platformid, deviceid = ids
+        ctx = None
         if (platformid is not None) and (deviceid is not None):
             if (platformid, deviceid) in self.context_cache:
                 ctx = self.context_cache[(platformid, deviceid)]
