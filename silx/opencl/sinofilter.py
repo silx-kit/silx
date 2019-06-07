@@ -196,7 +196,7 @@ class SinoFilter(OpenclProcessing):
     def _init_kernels(self):
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         h, w = self.d_sino_f.shape
-        self.mult_kern_args = (self.queue, tuple(int(i) for i in self.d_sino_f.shape[::-1]), None,
+        self.mult_kern_args = (self.queue, (int(w), (int(h))), None,
                                self.d_sino_f.data,
                                self.d_filter_f.data,
                                np.int32(w),
