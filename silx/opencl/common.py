@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/09/2018"
+__date__ = "07/06/2019"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -158,6 +158,11 @@ class Device(object):
                "Available\t:\t%s" % self.available]
         return os.linesep.join(lst)
 
+    def set_unavailable(self):
+        """Use this method to flag a faulty device
+        """
+        self.available = False
+
 
 class Platform(object):
     """
@@ -220,8 +225,16 @@ def _measure_workgroup_size(device_or_context, fast=False):
     :return: maximum size for the workgroup
     """
     if isinstance(device_or_context, pyopencl.Device):
-        ctx = pyopencl.Context(devices=[device_or_context])
-        device = device_or_context
+        try:
+            ctx = pyopencl.Context(devices=[device_or_context])
+        except pyopencl._cl.LogicError as error:
+            platform = device_or_context.platform
+            platformid = pyopencl.get_platforms().index(platform)
+            deviceid = platform.get_devices().index(device_or_context)
+            ocl.platforms[platformid].devices[deviceid].set_unavailable()
+            raise RuntimeError("Unable to create context on %s/%s: %s" % (platform, device_or_context, error))
+        else:
+            device = device_or_context
     elif isinstance(device_or_context, pyopencl.Context):
         ctx = device_or_context
         device = device_or_context.devices[0]
@@ -379,6 +392,8 @@ class OpenCL(object):
         best_found = None
         for platformid, platform in enumerate(self.platforms):
             for deviceid, device in enumerate(platform.devices):
+                if not device.available:
+                    continue
                 if (dtype in ["ALL", "DEF"]) or (device.type == dtype):
                     if (memory is None) or (memory <= device.memory):
                         found = True
@@ -400,7 +415,7 @@ class OpenCL(object):
         return None
 
     def create_context(self, devicetype="ALL", useFp64=False, platformid=None,
-                       deviceid=None, cached=True, memory=None):
+                       deviceid=None, cached=True, memory=None, extensions=None):
         """
         Choose a device and initiate a context.
 
@@ -410,13 +425,20 @@ class OpenCL(object):
         E.g.: If Nvidia driver is installed, GPU will succeed but CPU will fail.
               The AMD SDK kit is required for CPU via OpenCL.
         :param devicetype: string in ["cpu","gpu", "all", "acc"]
-        :param useFp64: boolean specifying if double precision will be used
+        :param useFp64: boolean specifying if double precision will be used: deprecated use extensions=["cl_khr_fp64"]
         :param platformid: integer
         :param deviceid: integer
         :param cached: True if we want to cache the context
         :param memory: minimum amount of memory of the device
+        :param extensions: list of extensions to be present
         :return: OpenCL context on the selected device
         """
+        if extensions is None:
+            extensions = []
+        if useFp64:
+            logger.warning("Deprecation: please select your device using the extension name!, i.e. extensions=['cl_khr_fp64']")
+            extensions.append('cl_khr_fp64')
+
         if (platformid is not None) and (deviceid is not None):
             platformid = int(platformid)
             deviceid = int(deviceid)
@@ -425,20 +447,23 @@ class OpenCL(object):
             pyopencl_ctx += [0] * (2 - len(pyopencl_ctx))  # pad with 0
             platformid, deviceid = pyopencl_ctx
         else:
-            if useFp64:
-                ids = ocl.select_device(type=devicetype, extensions=["cl_khr_int64_base_atomics"])
-            else:
-                ids = ocl.select_device(dtype=devicetype)
+            ids = ocl.select_device(type=devicetype, extensions=extensions)
             if ids:
                 platformid, deviceid = ids
         if (platformid is not None) and (deviceid is not None):
             if (platformid, deviceid) in self.context_cache:
                 ctx = self.context_cache[(platformid, deviceid)]
             else:
-                ctx = pyopencl.Context(devices=[pyopencl.get_platforms()[platformid].get_devices()[deviceid]])
-                if cached:
-                    self.context_cache[(platformid, deviceid)] = ctx
-        else:
+                try:
+                    ctx = pyopencl.Context(devices=[pyopencl.get_platforms()[platformid].get_devices()[deviceid]])
+                except pyopencl._cl.LogicError as error:
+                    self.platforms[platformid].devices[deviceid].set_unavailable()
+                    logger.warning("Unable to create context on %s/%s: %s", platformid, deviceid, error)
+                    ctx = None
+                else:
+                    if cached:
+                        self.context_cache[(platformid, deviceid)] = ctx
+        if ctx is None:
             logger.warning("Last chance to get an OpenCL device ... probably not the one requested")
             ctx = pyopencl.create_some_context(interactive=False)
         return ctx
