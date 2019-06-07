@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
-__date__ = "01/02/2019"
+__date__ = "07/06/2019"
 
 import numpy as np
 from math import pi
@@ -99,10 +99,10 @@ class SinoFilter(OpenclProcessing):
         self.sino_shape = sino_shape
         self.n_angles = n_angles
         self.dwidth = dwidth
-        self.dwidth_padded = get_next_power(2*self.dwidth, powers=self.powers)
+        self.dwidth_padded = get_next_power(2 * self.dwidth, powers=self.powers)
         self.sino_padded_shape = (n_angles, self.dwidth_padded)
         sino_f_shape = list(self.sino_padded_shape)
-        sino_f_shape[-1] = sino_f_shape[-1]//2+1
+        sino_f_shape[-1] = sino_f_shape[-1] // 2 + 1
         self.sino_f_shape = tuple(sino_f_shape)
 
     def _init_extra_options(self, extra_options):
@@ -164,7 +164,7 @@ class SinoFilter(OpenclProcessing):
             self.dwidth_padded,
             self.filter_name,
             cutoff=self.extra_options["cutoff"],
-        )[:self.dwidth_padded//2+1]  # R2C
+        )[:self.dwidth_padded // 2 + 1]  # R2C
         self.set_filter(filter_f, normalize=True)
 
     def set_filter(self, h_filt, normalize=True):
@@ -189,22 +189,18 @@ class SinoFilter(OpenclProcessing):
             print("Warning: expected a complex Fourier filter")
         self.filter_f = h_filt
         if normalize:
-            self.filter_f *= pi/self.n_angles
+            self.filter_f *= pi / self.n_angles
         self.filter_f = self.filter_f.astype(np.complex64)
         self.d_filter_f[:] = self.filter_f[:]
 
     def _init_kernels(self):
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         h, w = self.d_sino_f.shape
-        self.mult_kern_args = (
-            self.queue,
-            np.int32(self.d_sino_f.shape[::-1]),
-            None,
-            self.d_sino_f.data,
-            self.d_filter_f.data,
-            np.int32(w),
-            np.int32(h)
-        )
+        self.mult_kern_args = (self.queue, (int(w), (int(h))), None,
+                               self.d_sino_f.data,
+                               self.d_filter_f.data,
+                               np.int32(w),
+                               np.int32(h))
 
     def check_array(self, arr):
         if arr.dtype != np.float32:
@@ -226,18 +222,15 @@ class SinoFilter(OpenclProcessing):
         :param dst_offset:
         :param src_offset:
         """
-        ev = self.kernels.cpy2d(
-            self.queue,
-            np.int32(transfer_shape[::-1]),
-            None,
-            dst.data,
-            src.data,
-            np.int32(dst.shape[1]),
-            np.int32(src.shape[1]),
-            np.int32(dst_offset),
-            np.int32(src_offset),
-            np.int32(transfer_shape[::-1])
-        )
+        shape = tuple(int(i) for i in transfer_shape[::-1])
+        ev = self.kernels.cpy2d(self.queue, shape, None,
+                                dst.data,
+                                src.data,
+                                np.int32(dst.shape[1]),
+                                np.int32(src.shape[1]),
+                                np.int32(dst_offset),
+                                np.int32(src_offset),
+                                np.int32(transfer_shape[::-1]))
         ev.wait()
 
     def copy2d_host(self, dst, src, transfer_shape, dst_offset=(0, 0),
@@ -253,7 +246,7 @@ class SinoFilter(OpenclProcessing):
         s = transfer_shape
         do = dst_offset
         so = src_offset
-        dst[do[0]:do[0]+s[0], do[1]:do[1]+s[1]] = src[so[0]:so[0]+s[0], so[1]:so[1]+s[1]]
+        dst[do[0]:do[0] + s[0], do[1]:do[1] + s[1]] = src[so[0]:so[0] + s[0], so[1]:so[1] + s[1]]
 
     def _prepare_input_sino(self, sino):
         """
@@ -277,7 +270,7 @@ class SinoFilter(OpenclProcessing):
             # Rectangular copy D->D
             self.copy2d(self.d_sino_padded, d_sino_ref, self.sino_shape)
             if self.is_cpu:
-                self.d_sino_padded.finish() # should not be required here
+                self.d_sino_padded.finish()  # should not be required here
         else:
             # Numpy backend: FFT/mult/IFFT are done on host.
             if not(isinstance(sino, np.ndarray)):
@@ -308,14 +301,14 @@ class SinoFilter(OpenclProcessing):
                             src=self.d_sino_padded,
                             transfer_shape=self.sino_shape)
                 if self.is_cpu:
-                    self.tmp_sino_device.finish() # should not be required here
+                    self.tmp_sino_device.finish()  # should not be required here
                 res[:] = self.tmp_sino_device.get()[:]
             else:
                 if self.is_cpu:
                     self.d_sino_padded.finish()
                 self.copy2d(res, self.d_sino_padded, self.sino_shape)
                 if self.is_cpu:
-                    res.finish() # should not be required here
+                    res.finish()  # should not be required here
         else:
             if not(isinstance(res, np.ndarray)):
                 # Numpy backend + pyopencl output: rect copy H->H + copy H->D
@@ -347,7 +340,7 @@ class SinoFilter(OpenclProcessing):
             )
             ev.wait()
             if self.is_cpu:
-                self.d_sino_f.finish() # should not be required here
+                self.d_sino_f.finish()  # should not be required here
         else:
             # Everything is on host.
             self.d_sino_f *= self.filter_f
@@ -384,7 +377,7 @@ class SinoFilter(OpenclProcessing):
         # return
         res = self._get_output_sino(output)
         return res
-        #~ return output
+        # ~ return output
 
     __call__ = filter_sino
 
