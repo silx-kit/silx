@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+# coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2019 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
+"""Module for data sparsification on CPU/GPU."""
+
+from __future__ import absolute_import, print_function, with_statement, division
+
+__authors__ = ["P. Paleo"]
+__license__ = "MIT"
+__date__ = "07/06/2019"
+
+import numpy as np
+import pyopencl.array as parray
+from pyopencl.algorithm import GenericScanKernel
+from .common import pyopencl as cl
+from .processing import OpenclProcessing, EventDescription, BufferDescription
+mf = cl.mem_flags
+
+
+# only float32 arrays are supported for now
+
+class CSR(OpenclProcessing):
+    def __init__(self, shape, max_nnz=None, ctx=None, devicetype="all",
+                 platformid=None, deviceid=None, block_size=None, memory=None,
+                 profile=False):
+
+        OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
+                                  platformid=platformid, deviceid=deviceid,
+                                  profile=profile)
+        self._set_parameters(shape, max_nnz)
+        self._allocate_memory()
+        self._setup_kernels()
+
+
+    def _set_parameters(self, shape, max_nnz):
+        self.shape = shape
+        self.size = np.prod(shape)
+        self.indice_dtype = np.int32 #
+        assert len(shape) == 2 #
+        if max_nnz is None:
+            self.max_nnz = np.prod(shape) # worst case
+        else:
+            self.max_nnz = int(max_nnz)
+
+
+    def _allocate_memory(self):
+        self.is_cpu = (self.device.type == "CPU") # move to OpenclProcessing ?
+
+        self.buffers = [
+            BufferDescription("array", (self.size,), np.float32, mf.READ_ONLY),
+            BufferDescription("data", (self.max_nnz,), np.float32, mf.READ_WRITE),
+            BufferDescription("indices", (self.max_nnz,), self.indice_dtype, mf.READ_WRITE),
+            BufferDescription("indptr", (self.max_nnz,), self.indice_dtype, mf.READ_WRITE),
+        ]
+        self.allocate_buffers(use_array=True)
+        for arr_name in ["array", "data", "indices", "indptr"]:
+            setattr(self, arr_name, self.cl_mem[arr_name])
+
+
+
+
+    def _setup_kernels(self):
+        self.scan_kernel = GenericScanKernel(
+            self.ctx, self.indice_dtype,
+            arguments="__global float* data, __global float *data_compacted, __global int *indices",
+            input_expr="(fabs(data[i]) > 0.0f) ? 1 : 0",
+            scan_expr="a+b", neutral="0",
+            output_statement="""
+                if (prev_item != item) {
+                    data_compacted[item-1] = data[i];
+                    indices[item-1] = GET_INDEX(i);
+                }
+                """,
+            options="-DIMAGE_WIDTH=%d" % self.shape[1],
+            preamble="""
+            // Make it work with natively 1D data
+            #if IMAGE_WIDTH <= 1
+                #define GET_INDEX(i) i
+            #else
+                #define GET_INDEX(i) (i % IMAGE_WIDTH)
+            #endif
+            """
+        )
+
+
+    def check_array(self, arr):
+        assert arr.shape == self.shape
+        assert arr.dtype == np.float32
+
+
+    def set_array(self, arr):
+        self.check_array(arr)
+        if isinstance(arr, parray.Array):
+            self._old_data = data
+            self.array = arr
+        elif isinstance(arr, np.ndarray):
+            self.array[:] = arr.ravel()[:]
+        else:
+            raise ValueError("Expected pyopencl array or numpy array")
+
+
+    def sparsify(self, arr, output=None):
+        self.set_array(arr)
+        self.scan_kernel(
+            self.array,
+            self.data,
+            self.indices,
+        )
+
+
