@@ -724,6 +724,12 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         else:
             item = self.sender()
             self._updateStats(item)
+            # deal with stat items visibility
+            if event is ItemChangedType.VISIBLE:
+                if len(self._itemToTableItems(item).items()) > 0:
+                    item_0 = list(self._itemToTableItems(item).values())[0]
+                    row_index = item_0.row()
+                    self.setRowHidden(row_index, not item.isVisible())
 
     def _addItem(self, item):
         """Add a plot item to the table
