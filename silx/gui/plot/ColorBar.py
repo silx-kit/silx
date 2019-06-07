@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -251,10 +251,13 @@ class ColorBarWidget(qt.QWidget):
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
-        if (event['event'] == 'defaultColormapChanged' and
-                self.getPlot().getActiveImage() is None):
-            # No active image, take default colormap update into account
-            self._syncWithDefaultColormap()
+        if event['event'] == 'defaultColormapChanged':
+            plot = self.getPlot()
+            if (plot is not None and
+                    plot.getActiveImage() is None and
+                    plot._getActiveItem(kind='scatter') is None):
+                # No active item, take default colormap update into account
+                self._syncWithDefaultColormap()
 
     def _syncWithDefaultColormap(self, data=None):
         """Update colorbar according to plot default colormap"""

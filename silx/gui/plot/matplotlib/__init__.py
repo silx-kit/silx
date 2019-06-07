@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 from __future__ import absolute_import
 
-"""This module inits matplotlib and setups the backend to use.
+"""This module initializes matplotlib and sets-up the backend to use.
 
 It MUST be imported prior to any other import of matplotlib.
 
@@ -38,64 +38,34 @@ __license__ = "MIT"
 __date__ = "02/05/2018"
 
 
-import sys
-import logging
-
-
-_logger = logging.getLogger(__name__)
-
-_matplotlib_already_loaded = 'matplotlib' in sys.modules
-"""If true, matplotlib was already loaded"""
-
+from pkg_resources import parse_version
 import matplotlib
+
 from ... import qt
 
 
-def _configure(backend, backend_qt4=None, backend_qt5=None, check=False):
-    """Configure matplotlib using a specific backend.
+def _matplotlib_use(backend, warn, force):
+    """Wrapper of `matplotlib.use` to set-up backend.
 
-    It initialize `matplotlib.rcParams` using the requested backend, or check
-    if it is already configured as requested.
-
-    :param bool check: If true, the function only check that matplotlib
-        is already initialized as request. If not a warning is emitted.
-        If `check` is false, matplotlib is initialized.
+     It adds extra initialization for PySide and PySide2 with matplotlib < 2.2.
     """
-    if check:
-        valid = matplotlib.rcParams['backend'] == backend
-        if backend_qt4 is not None:
-            valid = valid and matplotlib.rcParams['backend.qt4'] == backend_qt4
-        if backend_qt5 is not None:
-            valid = valid and matplotlib.rcParams['backend.qt5'] == backend_qt5
+    # This is kept for compatibility with matplotlib < 2.2
+    if parse_version(matplotlib.__version__) < parse_version('2.2'):
+        if qt.BINDING == 'PySide':
+            matplotlib.rcParams['backend.qt4'] = 'PySide'
+        if qt.BINDING == 'PySide2':
+            matplotlib.rcParams['backend.qt5'] = 'PySide2'
 
-        if not valid:
-            _logger.warning('matplotlib already loaded, setting its backend may not work')
-    else:
-        matplotlib.rcParams['backend'] = backend
-        if backend_qt4 is not None:
-            matplotlib.rcParams['backend.qt4'] = backend_qt4
-        if backend_qt5 is not None:
-            matplotlib.rcParams['backend.qt5'] = backend_qt5
+    matplotlib.use(backend, warn=warn, force=force)
 
 
-if qt.BINDING == 'PySide':
-    _configure('Qt4Agg', backend_qt4='PySide', check=_matplotlib_already_loaded)
-    import matplotlib.backends.backend_qt4agg as backend
+if qt.BINDING in ('PyQt4', 'PySide'):
+    _matplotlib_use('Qt4Agg', warn=True, force=False)
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg  # noqa
 
-elif qt.BINDING == 'PyQt4':
-    _configure('Qt4Agg', check=_matplotlib_already_loaded)
-    import matplotlib.backends.backend_qt4agg as backend
-
-elif qt.BINDING == 'PySide2':
-    _configure('Qt5Agg', backend_qt5="PySide2", check=_matplotlib_already_loaded)
-    import matplotlib.backends.backend_qt5agg as backend
-
-elif qt.BINDING == 'PyQt5':
-    _configure('Qt5Agg', check=_matplotlib_already_loaded)
-    import matplotlib.backends.backend_qt5agg as backend
+elif qt.BINDING in ('PyQt5', 'PySide2'):
+    _matplotlib_use('Qt5Agg', warn=True, force=False)
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
 
 else:
-    backend = None
-
-if backend is not None:
-    FigureCanvasQTAgg = backend.FigureCanvasQTAgg  # noqa
+    raise ImportError("Unsupported Qt binding: %s" % qt.BINDING)

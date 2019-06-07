@@ -54,7 +54,8 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, ScalarFormatter, Locator
-
+from matplotlib.tri import Triangulation
+from matplotlib.collections import TriMesh
 
 from . import BackendBase
 from .._utils import FLOAT32_MINPOS
@@ -292,6 +293,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
+        # Make sure background of Axes is displayed
+        self.ax2.patch.set_visible(True)
 
         # disable the use of offsets
         try:
@@ -357,9 +360,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
             else:
                 errorbarColor = color
 
-            # On Debian 7 at least, Nx1 array yerr does not seems supported
+            # Nx1 error array deprecated in matplotlib >=3.1 (removed in 3.3)
+            if (isinstance(xerror, numpy.ndarray) and xerror.ndim == 2 and
+                        xerror.shape[1] == 1):
+                xerror = numpy.ravel(xerror)
             if (isinstance(yerror, numpy.ndarray) and yerror.ndim == 2 and
-                    yerror.shape[1] == 1 and len(x) != 1):
+                    yerror.shape[1] == 1):
                 yerror = numpy.ravel(yerror)
 
             errorbars = axes.errorbar(x, y, label=legend,
@@ -474,6 +480,32 @@ class BackendMatplotlib(BackendBase.BackendBase):
         image.set_data(data)
         self.ax.add_artist(image)
         return image
+
+    def addTriangles(self, x, y, triangles, legend,
+                     color, z, selectable, alpha):
+        for parameter in (x, y, triangles, legend, color,
+                          z, selectable, alpha):
+            assert parameter is not None
+
+        # 0 enables picking on filled triangle
+        picker = 0 if selectable else None
+
+        color = numpy.array(color, copy=False)
+        assert color.ndim == 2 and len(color) == len(x)
+
+        if color.dtype not in [numpy.float32, numpy.float]:
+            color = color.astype(numpy.float32) / 255.
+
+        collection = TriMesh(
+            Triangulation(x, y, triangles),
+            label=legend,
+            alpha=alpha,
+            picker=picker,
+            zorder=z)
+        collection.set_color(color)
+        self.ax.add_collection(collection)
+
+        return collection
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
@@ -964,12 +996,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             dataBackgroundColor = backgroundColor
 
-        if self.ax.axison:
+        if self.ax2.axison:
             self.fig.patch.set_facecolor(backgroundColor)
             if self._matplotlibVersion < _parse_version('2'):
-                self.ax.set_axis_bgcolor(dataBackgroundColor)
+                self.ax2.set_axis_bgcolor(dataBackgroundColor)
             else:
-                self.ax.set_facecolor(dataBackgroundColor)
+                self.ax2.set_facecolor(dataBackgroundColor)
         else:
             self.fig.patch.set_facecolor(dataBackgroundColor)
 
@@ -982,23 +1014,24 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             gridColor = foregroundColor
 
-        if self.ax.axison:
-            self.ax.spines['bottom'].set_color(foregroundColor)
-            self.ax.spines['top'].set_color(foregroundColor)
-            self.ax.spines['right'].set_color(foregroundColor)
-            self.ax.spines['left'].set_color(foregroundColor)
-            self.ax.tick_params(axis='x', colors=foregroundColor)
-            self.ax.tick_params(axis='y', colors=foregroundColor)
-            self.ax.yaxis.label.set_color(foregroundColor)
-            self.ax.xaxis.label.set_color(foregroundColor)
-            self.ax.title.set_color(foregroundColor)
+        for axes in (self.ax, self.ax2):
+            if axes.axison:
+                axes.spines['bottom'].set_color(foregroundColor)
+                axes.spines['top'].set_color(foregroundColor)
+                axes.spines['right'].set_color(foregroundColor)
+                axes.spines['left'].set_color(foregroundColor)
+                axes.tick_params(axis='x', colors=foregroundColor)
+                axes.tick_params(axis='y', colors=foregroundColor)
+                axes.yaxis.label.set_color(foregroundColor)
+                axes.xaxis.label.set_color(foregroundColor)
+                axes.title.set_color(foregroundColor)
 
-            for line in self.ax.get_xgridlines():
-                line.set_color(gridColor)
+                for line in axes.get_xgridlines():
+                    line.set_color(gridColor)
 
-            for line in self.ax.get_ygridlines():
-                line.set_color(gridColor)
-            # self.ax.grid().set_markeredgecolor(gridColor)
+                for line in axes.get_ygridlines():
+                    line.set_color(gridColor)
+                # axes.grid().set_markeredgecolor(gridColor)
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
@@ -1096,6 +1129,22 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         elif label.startswith('__IMAGE__'):
             self._picked.append({'kind': 'image', 'legend': label[9:]})
+
+        elif isinstance(event.artist, TriMesh):
+            # Convert selected triangle to data point indices
+            triangulation = event.artist._triangulation
+            indices = triangulation.get_masked_triangles()[event.ind[0]]
+
+            # Sort picked triangle points by distance to mouse
+            # from furthest to closest to put closest point last
+            # This is to be somewhat consistent with last scatter point
+            # being the top one.
+            dists = ((triangulation.x[indices] - event.mouseevent.xdata) ** 2 +
+                     (triangulation.y[indices] - event.mouseevent.ydata) ** 2)
+            indices = indices[numpy.flip(numpy.argsort(dists))]
+
+            self._picked.append({'kind': 'curve', 'legend': label,
+                                 'indices': indices})
 
         else:  # it's a curve, item have no picker for now
             if not isinstance(event.artist, (PathCollection, Line2D)):

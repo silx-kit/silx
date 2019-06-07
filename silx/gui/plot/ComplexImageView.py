@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,7 @@ import logging
 import collections
 import numpy
 
+from ...utils.deprecation import deprecated
 from .. import qt, icons
 from .PlotWindow import Plot2D
 from . import items
@@ -170,16 +171,16 @@ class _ComplexDataToolButton(qt.QToolButton):
     """
 
     _MODES = collections.OrderedDict([
-        (ImageComplexData.Mode.ABSOLUTE, ('math-amplitude', 'Amplitude')),
-        (ImageComplexData.Mode.SQUARE_AMPLITUDE,
+        (ImageComplexData.ComplexMode.ABSOLUTE, ('math-amplitude', 'Amplitude')),
+        (ImageComplexData.ComplexMode.SQUARE_AMPLITUDE,
          ('math-square-amplitude', 'Square amplitude')),
-        (ImageComplexData.Mode.PHASE, ('math-phase', 'Phase')),
-        (ImageComplexData.Mode.REAL, ('math-real', 'Real part')),
-        (ImageComplexData.Mode.IMAGINARY,
+        (ImageComplexData.ComplexMode.PHASE, ('math-phase', 'Phase')),
+        (ImageComplexData.ComplexMode.REAL, ('math-real', 'Real part')),
+        (ImageComplexData.ComplexMode.IMAGINARY,
          ('math-imaginary', 'Imaginary part')),
-        (ImageComplexData.Mode.AMPLITUDE_PHASE,
+        (ImageComplexData.ComplexMode.AMPLITUDE_PHASE,
          ('math-phase-color', 'Amplitude and Phase')),
-        (ImageComplexData.Mode.LOG10_AMPLITUDE_PHASE,
+        (ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE,
          ('math-phase-color-log', 'Log10(Amp.) and Phase'))
     ])
 
@@ -208,7 +209,7 @@ class _ComplexDataToolButton(qt.QToolButton):
 
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
-        self._modeChanged(self._plot2DComplex.getVisualizationMode())
+        self._modeChanged(self._plot2DComplex.getComplexMode())
         self._plot2DComplex.sigVisualizationModeChanged.connect(
             self._modeChanged)
 
@@ -217,7 +218,8 @@ class _ComplexDataToolButton(qt.QToolButton):
         icon, text = self._MODES[mode]
         self.setIcon(icons.getQIcon(icon))
         self.setToolTip('Display the ' + text.lower())
-        self._rangeDialogAction.setEnabled(mode == ImageComplexData.Mode.LOG10_AMPLITUDE_PHASE)
+        self._rangeDialogAction.setEnabled(
+            mode == ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE)
 
     def _triggered(self, action):
         """Handle triggering of menu actions"""
@@ -244,8 +246,8 @@ class _ComplexDataToolButton(qt.QToolButton):
 
         else:  # update mode
             mode = action.data()
-            if isinstance(mode, ImageComplexData.Mode):
-                self._plot2DComplex.setVisualizationMode(mode)
+            if isinstance(mode, ImageComplexData.ComplexMode):
+                self._plot2DComplex.setComplexMode(mode)
 
     def _rangeChanged(self, range_):
         """Handle updates of range in the dialog"""
@@ -258,8 +260,8 @@ class ComplexImageView(qt.QWidget):
     :param parent: See :class:`QMainWindow`
     """
 
-    Mode = ImageComplexData.Mode
-    """Also expose the modes inside the class"""
+    ComplexMode = ImageComplexData.ComplexMode
+    """Complex Modes enumeration"""
 
     sigDataChanged = qt.Signal()
     """Signal emitted when data has changed."""
@@ -301,7 +303,7 @@ class ComplexImageView(qt.QWidget):
         if event is items.ItemChangedType.DATA:
             self.sigDataChanged.emit()
         elif event is items.ItemChangedType.VISUALIZATION_MODE:
-            mode = self.getVisualizationMode()
+            mode = self.getComplexMode()
             self.sigVisualizationModeChanged.emit(mode)
 
     def getPlot(self):
@@ -344,15 +346,34 @@ class ComplexImageView(qt.QWidget):
                           False to return internal data (do not modify!)
         :rtype: numpy.ndarray of float with 2 dims or RGBA image (uint8).
         """
-        mode = self.getVisualizationMode()
-        if mode in (self.Mode.AMPLITUDE_PHASE,
-                    self.Mode.LOG10_AMPLITUDE_PHASE):
+        mode = self.getComplexMode()
+        if mode in (self.ComplexMode.AMPLITUDE_PHASE,
+                    self.ComplexMode.LOG10_AMPLITUDE_PHASE):
             return self._plotImage.getRgbaImageData(copy=copy)
         else:
             return self._plotImage.getData(copy=copy)
 
+    # Backward compatibility
+
+    Mode = ComplexMode
+
+    @classmethod
+    @deprecated(replacement='supportedComplexModes', since_version='0.11.0')
+    def getSupportedVisualizationModes(cls):
+        return cls.supportedComplexModes()
+
+    @deprecated(replacement='setComplexMode', since_version='0.11.0')
+    def setVisualizationMode(self, mode):
+        return self.setComplexMode(mode)
+
+    @deprecated(replacement='getComplexMode', since_version='0.11.0')
+    def getVisualizationMode(self):
+        return self.getComplexMode()
+
+    # Image item proxy
+
     @staticmethod
-    def getSupportedVisualizationModes():
+    def supportedComplexModes():
         """Returns the supported visualization modes.
 
         Supported visualization modes are:
@@ -365,26 +386,33 @@ class ComplexImageView(qt.QWidget):
         - log10_amplitude_phase:
           Color-coded phase with log10(amplitude) as alpha.
 
-        :rtype: tuple of str
+        :rtype: List[ComplexMode]
         """
-        return tuple(ImageComplexData.Mode)
+        return ImageComplexData.supportedComplexModes()
 
-    def setVisualizationMode(self, mode):
+    def setComplexMode(self, mode):
         """Set the mode of visualization of the complex data.
 
-        See :meth:`getSupportedVisualizationModes` for the list of
+        See :meth:`supportedComplexModes` for the list of
         supported modes.
 
-        :param str mode: The mode to use.
-        """
-        self._plotImage.setVisualizationMode(mode)
+        How-to change visualization mode::
 
-    def getVisualizationMode(self):
+           widget = ComplexImageView()
+           widget.setComplexMode(ComplexImageView.ComplexMode.PHASE)
+           # or
+           widget.setComplexMode('phase')
+
+        :param Unions[ComplexMode,str] mode: The mode to use.
+        """
+        self._plotImage.setComplexMode(mode)
+
+    def getComplexMode(self):
         """Get the current visualization mode of the complex data.
 
-        :rtype: Mode
+        :rtype: ComplexMode
         """
-        return self._plotImage.getVisualizationMode()
+        return self._plotImage.getComplexMode()
 
     def _setAmplitudeRangeInfo(self, max_=None, delta=2):
         """Set the amplitude range to display for 'log10_amplitude_phase' mode.
@@ -402,8 +430,6 @@ class ComplexImageView(qt.QWidget):
         :rtype: 2-tuple"""
         return self._plotImage._getAmplitudeRangeInfo()
 
-    # Image item proxy
-
     def setColormap(self, colormap, mode=None):
         """Set the colormap to use for amplitude, phase, real or imaginary.
 
@@ -411,14 +437,14 @@ class ComplexImageView(qt.QWidget):
         amplitude and phase.
 
         :param ~silx.gui.colors.Colormap colormap: The colormap
-        :param Mode mode: If specified, set the colormap of this specific mode
+        :param ComplexMode mode: If specified, set the colormap of this specific mode
         """
         self._plotImage.setColormap(colormap, mode)
 
     def getColormap(self, mode=None):
         """Returns the colormap used to display the data.
 
-        :param Mode mode: If specified, set the colormap of this specific mode
+        :param ComplexMode mode: If specified, set the colormap of this specific mode
         :rtype: ~silx.gui.colors.Colormap
         """
         return self._plotImage.getColormap(mode=mode)

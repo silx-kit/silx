@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,20 +23,22 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Test of the MFFT module"""
+"""Test of the FFT module"""
 
 import numpy as np
 import unittest
 import logging
 from scipy.misc import ascent
-from silx.utils.testutils import parameterize
+from silx.utils.testutils import ParametricTestCase
 from silx.math.fft.fft import FFT
 from silx.math.fft.clfft import __have_clfft__
 from silx.math.fft.cufft import __have_cufft__
 from silx.math.fft.fftw import __have_fftw__
 
 from silx.test.utils import test_options
+
 logger = logging.getLogger(__name__)
+
 
 class TransformInfos(object):
     def __init__(self):
@@ -73,7 +75,7 @@ class TransformInfos(object):
 class TestData(object):
     def __init__(self):
         self.data = ascent().astype("float32")
-        self.data1d = self.data[:, 0] # non-contiguous data
+        self.data1d = self.data[:, 0]  # non-contiguous data
         self.data3d = np.tile(self.data[:128, :128], (128, 1, 1))
         self.data_refs = {
             1: self.data1d,
@@ -82,28 +84,8 @@ class TestData(object):
         }
 
 
-
-class TestFFT(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super(TestFFT, cls).setUpClass()
-        if __have_clfft__:
-            from silx.opencl.common import ocl
-            cls.Ctx = ocl.create_context()
-
-
-    @classmethod
-    def tearDownClass(cls):
-        super(TestFFT, cls).tearDownClass()
-        if __have_clfft__:
-            del cls.Ctx
-
-
-    def __init__(self, methodName='runTest', param=None):
-        unittest.TestCase.__init__(self, methodName)
-        self.param = param
-
+class TestFFT(ParametricTestCase):
+    """Test cuda/opencl/fftw backends of FFT"""
 
     def setUp(self):
         self.tol = {
@@ -112,46 +94,8 @@ class TestFFT(unittest.TestCase):
             np.dtype("complex64"): 1e-3,
             np.dtype("complex128"): 1e-9,
         }
-        self.backend = self.param["backend"]
-        self.trdim = self.param["trdim"]
-        self.mode = self.param["mode"]
-        self.size = self.param["size"]
-        self.transform_infos = self.param["transform_infos"]
-        self.test_data = self.param["test_data"]
-        self.configure_backends()
-        self.configure_extra_args()
-
-
-    def tearDown(self):
-        pass
-
-
-    def configure_backends(self):
-        self.__have_clfft__ = __have_clfft__
-        self.__have_cufft__ = __have_cufft__
-        self.__have_fftw__ = __have_fftw__
-
-        if self.backend in ["cuda", "cufft"] and __have_cufft__:
-            import pycuda.autoinit
-            # Error is higher when using cuda. fast_math mode ?
-            self.tol[np.dtype("float32")] *= 2
-
-
-    def configure_extra_args(self):
-        self.extra_args = {}
-        if __have_clfft__ and self.backend in ["opencl", "clfft"]:
-            self.extra_args["ctx"] = self.Ctx
-
-
-    def check_current_backend(self):
-        if self.backend in ["cuda", "cufft"] and not(self.__have_cufft__):
-            return "cuda back-end requires pycuda and scikit-cuda"
-        if self.backend in ["opencl", "clfft"] and not(self.__have_clfft__):
-            return "opencl back-end requires pyopencl and gpyfft"
-        if self.backend == "fftw" and not(self.__have_fftw__):
-            return "fftw back-end requires pyfftw"
-        return None
-
+        self.transform_infos = TransformInfos()
+        self.test_data = TestData()
 
     @staticmethod
     def calc_mae(arr1, arr2):
@@ -160,33 +104,66 @@ class TestFFT(unittest.TestCase):
         """
         return np.max(np.abs(arr1 - arr2))
 
+    @unittest.skipIf(not __have_cufft__,
+                     "cuda back-end requires pycuda and scikit-cuda")
+    def test_cuda(self):
+        import pycuda.autoinit
 
-    def test_fft(self):
-        err = self.check_current_backend()
-        if err is not None:
-            self.skipTest(err)
-        if self.size == "3D" and test_options.TEST_LOW_MEM:
+        # Error is higher when using cuda. fast_math mode ?
+        self.tol[np.dtype("float32")] *= 2
+
+        self.__run_tests(backend="cuda")
+
+    @unittest.skipIf(not __have_clfft__,
+                     "opencl back-end requires pyopencl and gpyfft")
+    def test_opencl(self):
+        from silx.opencl.common import ocl
+        self.__run_tests(backend="opencl", ctx=ocl.create_context())
+
+    @unittest.skipIf(not __have_fftw__,
+                     "fftw back-end requires pyfftw")
+    def test_fftw(self):
+        self.__run_tests(backend="fftw")
+
+    def __run_tests(self, backend, **extra_args):
+        """Run all tests with the given backend
+
+        :param str backend:
+        :param dict extra_args: Additional arguments to provide to FFT
+        """
+        for trdim in self.transform_infos.dimensions:
+            for mode in self.transform_infos.modes:
+                for size in self.transform_infos.sizes[trdim]:
+                    with self.subTest(trdim=trdim, mode=mode, size=size):
+                        self.__test(backend, trdim, mode, size, **extra_args)
+
+    def __test(self, backend, trdim, mode, size, **extra_args):
+        """Compare given backend with numpy for given conditions"""
+        logger.debug("backend: %s, trdim: %s, mode: %s, size: %s",
+                     backend, trdim, mode, str(size))
+        if size == "3D" and test_options.TEST_LOW_MEM:
             self.skipTest("low mem")
 
-        ndim = len(self.size)
-        input_data = self.test_data.data_refs[ndim].astype(self.transform_infos.modes[self.mode])
+        ndim = len(size)
+        input_data = self.test_data.data_refs[ndim].astype(
+            self.transform_infos.modes[mode])
         tol = self.tol[np.dtype(input_data.dtype)]
-        if self.trdim == "3D":
-            tol *= 10 # Error is relatively high in high dimensions
+        if trdim == "3D":
+            tol *= 10  # Error is relatively high in high dimensions
 
         # Python < 3.5 does not want to mix **extra_args with existing kwargs
         fft_args = {
-            "data": input_data,
-            "axes": self.transform_infos.axes[self.trdim],
-            "backend": self.backend,
+            "template": input_data,
+            "axes": self.transform_infos.axes[trdim],
+            "backend": backend,
         }
-        fft_args.update(self.extra_args)
+        fft_args.update(extra_args)
         F = FFT(
             **fft_args
         )
         F_np = FFT(
-            data=input_data,
-            axes=self.transform_infos.axes[self.trdim],
+            template=input_data,
+            axes=self.transform_infos.axes[trdim],
             backend="numpy"
         )
 
@@ -196,7 +173,7 @@ class TestFFT(unittest.TestCase):
         mae = self.calc_mae(res, res_np)
         self.assertTrue(
             mae < np.abs(input_data.max()) * tol,
-            "FFT %s:%s, MAE(%s, numpy) = %f" % (self.mode, self.trdim, self.backend, mae)
+            "FFT %s:%s, MAE(%s, numpy) = %f" % (mode, trdim, backend, mae)
         )
 
         # Inverse FFT
@@ -204,18 +181,14 @@ class TestFFT(unittest.TestCase):
         mae = self.calc_mae(res2, input_data)
         self.assertTrue(
             mae < tol,
-            "IFFT %s:%s, MAE(%s, numpy) = %f" % (self.mode, self.trdim, self.backend, mae)
+            "IFFT %s:%s, MAE(%s, numpy) = %f" % (mode, trdim, backend, mae)
         )
 
 
-class TestNumpyFFT(unittest.TestCase):
+class TestNumpyFFT(ParametricTestCase):
     """
     Test the Numpy backend individually.
     """
-
-    def __init__(self, methodName='runTest', param=None):
-        unittest.TestCase.__init__(self, methodName)
-        self.param = param
 
     def setUp(self):
         transforms = {
@@ -235,22 +208,30 @@ class TestNumpyFFT(unittest.TestCase):
         transforms["batched_1D"] = transforms["1D"]
         transforms["batched_2D"] = transforms["2D"]
         self.transforms = transforms
+        self.transform_infos = TransformInfos()
+        self.test_data = TestData()
 
+    def test(self):
+        """Test the numpy backend against native fft.
 
-    def test_numpy_fft(self):
-        """
-        Test the numpy backend against native fft.
         Results should be exactly the same.
         """
-        trinfos = self.param["transform_infos"]
-        trdim = self.param["trdim"]
-        ndim = len(self.param["size"])
-        input_data = self.param["test_data"].data_refs[ndim].astype(trinfos.modes[self.param["mode"]])
+        for trdim in self.transform_infos.dimensions:
+            for mode in self.transform_infos.modes:
+                for size in self.transform_infos.sizes[trdim]:
+                    with self.subTest(trdim=trdim, mode=mode, size=size):
+                        self.__test(trdim, mode, size)
+
+    def __test(self, trdim, mode, size):
+        logger.debug("trdim: %s, mode: %s, size: %s", trdim, mode, str(size))
+        ndim = len(size)
+        input_data = self.test_data.data_refs[ndim].astype(
+            self.transform_infos.modes[mode])
         np_fft, np_ifft = self.transforms[trdim][np.isrealobj(input_data)]
 
         F = FFT(
-            data=input_data,
-            axes=trinfos.axes[trdim],
+            template=input_data,
+            axes=self.transform_infos.axes[trdim],
             backend="numpy"
         )
         # Test FFT
@@ -264,72 +245,15 @@ class TestNumpyFFT(unittest.TestCase):
         self.assertTrue(np.allclose(res2, ref2))
 
 
-def test_numpy_backend(dimensions=None):
-    testSuite = unittest.TestSuite()
-    transform_infos = TransformInfos()
-    test_data = TestData()
-    dimensions = dimensions or transform_infos.dimensions
-
-    for trdim in dimensions:
-        logger.debug("   testing %s" % trdim)
-        for mode in transform_infos.modes:
-            logger.debug("   testing %s:%s" % (trdim, mode))
-            for size in transform_infos.sizes[trdim]:
-                logger.debug("      size: %s" % str(size))
-                testcase = parameterize(
-                    TestNumpyFFT,
-                    param={
-                        "transform_infos": transform_infos,
-                        "test_data": test_data,
-                        "trdim": trdim,
-                        "mode": mode,
-                        "size": size,
-                    }
-                )
-                testSuite.addTest(testcase)
-    return testSuite
-
-
-def test_fft(backend, dimensions=None):
-    testSuite = unittest.TestSuite()
-    transform_infos = TransformInfos()
-    test_data = TestData()
-    dimensions = dimensions or transform_infos.dimensions
-
-    logger.info("Testing backend: %s" % backend)
-    for trdim in dimensions:
-        logger.debug("   testing %s" % trdim)
-        for mode in transform_infos.modes:
-            logger.debug("   testing %s:%s" % (trdim, mode))
-            for size in transform_infos.sizes[trdim]:
-                logger.debug("      size: %s" % str(size))
-                testcase = parameterize(
-                    TestFFT,
-                    param={
-                        "transform_infos": transform_infos,
-                        "test_data": test_data,
-                        "backend": backend,
-                        "trdim": trdim,
-                        "mode": mode,
-                        "size": size,
-                    }
-                )
-                testSuite.addTest(testcase)
-    return testSuite
-
-
-def test_all():
+def suite():
     suite = unittest.TestSuite()
-
-    suite.addTest(test_numpy_backend())
-
-    suite.addTest(test_fft("fftw"))
-    suite.addTest(test_fft("opencl"))
-    suite.addTest(test_fft("cuda"))
+    for cls in (TestNumpyFFT, TestFFT):
+        suite.addTest(
+            unittest.defaultTestLoader.loadTestsFromTestCase(cls))
     return suite
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest="test_all")
+    unittest.main(defaultTest="suite")
 
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ import numbers
 import numpy
 
 import silx.io
+from silx.utils import deprecation
 from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
@@ -41,7 +42,7 @@ from silx.gui.dialog.ColormapDialog import ColormapDialog
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "19/02/2019"
 
 _logger = logging.getLogger(__name__)
 
@@ -67,6 +68,8 @@ NXDATA_CURVE_MODE = 73
 NXDATA_XYVSCATTER_MODE = 74
 NXDATA_IMAGE_MODE = 75
 NXDATA_STACK_MODE = 76
+NXDATA_VOLUME_MODE = 77
+NXDATA_VOLUME_AS_STACK_MODE = 78
 
 
 def _normalizeData(data):
@@ -100,6 +103,7 @@ class DataInfo(object):
     """Store extracted information from a data"""
 
     def __init__(self, data):
+        self.__priorities = {}
         data = self.normalizeData(data)
         self.isArray = False
         self.interpretation = None
@@ -200,6 +204,12 @@ class DataInfo(object):
         """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
         return _normalizeData(data)
+
+    def cachePriority(self, view, priority):
+        self.__priorities[view] = priority
+
+    def getPriority(self, view):
+        return self.__priorities[view]
 
 
 class DataViewHooks(object):
@@ -357,6 +367,35 @@ class DataView(object):
         """
         return []
 
+    def getReachableViews(self):
+        """Returns the views that can be returned by `getMatchingViews`.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
+        return [self]
+
+    def getMatchingViews(self, data, info):
+        """Returns the views according to data and info from the data.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
+        priority = self.getCachedDataPriority(data, info)
+        if priority == DataView.UNSUPPORTED:
+            return []
+        return [self]
+
+    def getCachedDataPriority(self, data, info):
+        try:
+            priority = info.getPriority(self)
+        except KeyError:
+            priority = self.getDataPriority(data, info)
+            info.cachePriority(self, priority)
+        return priority
+
     def getDataPriority(self, data, info):
         """
         Returns the priority of using this view according to a data.
@@ -377,7 +416,53 @@ class DataView(object):
         return str(self) < str(other)
 
 
-class CompositeDataView(DataView):
+class _CompositeDataView(DataView):
+    """Contains sub views"""
+
+    def getViews(self):
+        """Returns the direct sub views registered in this view.
+
+        :rtype: List[DataView]
+        """
+        raise NotImplementedError()
+
+    def getReachableViews(self):
+        """Returns all views that can be reachable at on point.
+
+        This method return any sub view provided (recursivly).
+
+        :rtype: List[DataView]
+        """
+        raise NotImplementedError()
+
+    def getMatchingViews(self, data, info):
+        """Returns sub views matching this data and info.
+
+        This method return any sub view provided (recursivly).
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: List[DataView]
+        """
+        raise NotImplementedError()
+
+    @deprecation.deprecated(replacement="getReachableViews", since_version="0.10")
+    def availableViews(self):
+        return self.getViews()
+
+    def isSupportedData(self, data, info):
+        """If true, the composite view allow sub views to access to this data.
+        Else this this data is considered as not supported by any of sub views
+        (incliding this composite view).
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        :rtype: bool
+        """
+        return True
+
+
+class SelectOneDataView(_CompositeDataView):
     """Data view which can display a data using different view according to
     the kind of the data."""
 
@@ -386,7 +471,7 @@ class CompositeDataView(DataView):
 
         :param qt.QWidget parent: Parent of the hold widget
         """
-        super(CompositeDataView, self).__init__(parent, modeId, icon, label)
+        super(SelectOneDataView, self).__init__(parent, modeId, icon, label)
         self.__views = OrderedDict()
         self.__currentView = None
 
@@ -395,7 +480,7 @@ class CompositeDataView(DataView):
 
         :param DataViewHooks hooks: The data view hooks to use
         """
-        super(CompositeDataView, self).setHooks(hooks)
+        super(SelectOneDataView, self).setHooks(hooks)
         if hooks is not None:
             for v in self.__views:
                 v.setHooks(hooks)
@@ -407,16 +492,40 @@ class CompositeDataView(DataView):
             dataView.setHooks(hooks)
         self.__views[dataView] = None
 
-    def availableViews(self):
+    def getReachableViews(self):
+        views = []
+        addSelf = False
+        for v in self.__views:
+            if isinstance(v, SelectManyDataView):
+                views.extend(v.getReachableViews())
+            else:
+                addSelf = True
+        if addSelf:
+            # Single views are hidden by this view
+            views.insert(0, self)
+        return views
+
+    def getMatchingViews(self, data, info):
+        if not self.isSupportedData(data, info):
+            return []
+        view = self.__getBestView(data, info)
+        if isinstance(view, SelectManyDataView):
+            return view.getMatchingViews(data, info)
+        else:
+            return [self]
+
+    def getViews(self):
         """Returns the list of registered views
 
         :rtype: List[DataView]
         """
         return list(self.__views.keys())
 
-    def getBestView(self, data, info):
+    def __getBestView(self, data, info):
         """Returns the best view according to priorities."""
-        views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
+        if not self.isSupportedData(data, info):
+            return None
+        views = [(v.getCachedDataPriority(data, info), v) for v in self.__views.keys()]
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, key=lambda t: t[0], reverse=True)
 
@@ -471,17 +580,17 @@ class CompositeDataView(DataView):
         self.__currentView.setData(data)
 
     def axesNames(self, data, info):
-        view = self.getBestView(data, info)
+        view = self.__getBestView(data, info)
         self.__currentView = view
         return view.axesNames(data, info)
 
     def getDataPriority(self, data, info):
-        view = self.getBestView(data, info)
+        view = self.__getBestView(data, info)
         self.__currentView = view
         if view is None:
             return DataView.UNSUPPORTED
         else:
-            return view.getDataPriority(data, info)
+            return view.getCachedDataPriority(data, info)
 
     def replaceView(self, modeId, newView):
         """Replace a data view with a custom view.
@@ -502,7 +611,7 @@ class CompositeDataView(DataView):
             if view.modeId() == modeId:
                 oldView = view
                 break
-            elif isinstance(view, CompositeDataView):
+            elif isinstance(view, _CompositeDataView):
                 # recurse
                 hooks = self.getHooks()
                 if hooks is not None:
@@ -516,6 +625,135 @@ class CompositeDataView(DataView):
         self.__views = OrderedDict(
                 (newView, None) if view is oldView else (view, idx) for
                 view, idx in self.__views.items())
+        return True
+
+
+# NOTE: SelectOneDataView was introduced with silx 0.10
+CompositeDataView = SelectOneDataView
+
+
+class SelectManyDataView(_CompositeDataView):
+    """Data view which can select a set of sub views according to
+    the kind of the data.
+
+    This view itself is abstract and is not exposed.
+    """
+
+    def __init__(self, parent, views=None):
+        """Constructor
+
+        :param qt.QWidget parent: Parent of the hold widget
+        """
+        super(SelectManyDataView, self).__init__(parent, modeId=None, icon=None, label=None)
+        if views is None:
+            views = []
+        self.__views = views
+
+    def setHooks(self, hooks):
+        """Set the data context to use with this view.
+
+        :param DataViewHooks hooks: The data view hooks to use
+        """
+        super(SelectManyDataView, self).setHooks(hooks)
+        if hooks is not None:
+            for v in self.__views:
+                v.setHooks(hooks)
+
+    def addView(self, dataView):
+        """Add a new dataview to the available list."""
+        hooks = self.getHooks()
+        if hooks is not None:
+            dataView.setHooks(hooks)
+        self.__views.append(dataView)
+
+    def getViews(self):
+        """Returns the list of registered views
+
+        :rtype: List[DataView]
+        """
+        return list(self.__views)
+
+    def getReachableViews(self):
+        views = []
+        for v in self.__views:
+            views.extend(v.getReachableViews())
+        return views
+
+    def getMatchingViews(self, data, info):
+        """Returns the views according to data and info from the data.
+
+        :param object data: Any object to be displayed
+        :param DataInfo info: Information cached about this data
+        """
+        if not self.isSupportedData(data, info):
+            return []
+        views = [v for v in self.__views if v.getCachedDataPriority(data, info) != DataView.UNSUPPORTED]
+        return views
+
+    def customAxisNames(self):
+        raise RuntimeError("Abstract view")
+
+    def setCustomAxisValue(self, name, value):
+        raise RuntimeError("Abstract view")
+
+    def select(self):
+        raise RuntimeError("Abstract view")
+
+    def createWidget(self, parent):
+        raise RuntimeError("Abstract view")
+
+    def clear(self):
+        for v in self.__views:
+            v.clear()
+
+    def setData(self, data):
+        raise RuntimeError("Abstract view")
+
+    def axesNames(self, data, info):
+        raise RuntimeError("Abstract view")
+
+    def getDataPriority(self, data, info):
+        if not self.isSupportedData(data, info):
+            return DataView.UNSUPPORTED
+        priorities = [v.getCachedDataPriority(data, info) for v in self.__views]
+        priorities = [v for v in priorities if v != DataView.UNSUPPORTED]
+        priorities = sorted(priorities)
+        if len(priorities) == 0:
+            return DataView.UNSUPPORTED
+        return priorities[-1]
+
+    def replaceView(self, modeId, newView):
+        """Replace a data view with a custom view.
+        Return True in case of success, False in case of failure.
+
+        .. note::
+
+            This method must be called just after instantiation, before
+            the viewer is used.
+
+        :param int modeId: Unique mode ID identifying the DataView to
+            be replaced.
+        :param DataViews.DataView newView: New data view
+        :return: True if replacement was successful, else False
+        """
+        oldView = None
+        for iview, view in enumerate(self.__views):
+            if view.modeId() == modeId:
+                oldView = view
+                break
+            elif isinstance(view, CompositeDataView):
+                # recurse
+                hooks = self.getHooks()
+                if hooks is not None:
+                    newView.setHooks(hooks)
+                if view.replaceView(modeId, newView):
+                    return True
+
+        if oldView is None:
+            return False
+
+        # replace oldView with new view in dict
+        self.__views[iview] = newView
         return True
 
 
@@ -655,53 +893,27 @@ class _Plot3dView(DataView):
             label="Cube",
             icon=icons.getQIcon("view-3d"))
         try:
-            import silx.gui.plot3d  #noqa
+            from ._VolumeWindow import VolumeWindow  # noqa
         except ImportError:
-            _logger.warning("Plot3dView is not available")
+            _logger.warning("3D visualization is not available")
             _logger.debug("Backtrace", exc_info=True)
             raise
         self.__resetZoomNextTime = True
 
     def createWidget(self, parent):
-        from silx.gui.plot3d import ScalarFieldView
-        from silx.gui.plot3d import SFViewParamTree
+        from ._VolumeWindow import VolumeWindow
 
-        plot = ScalarFieldView.ScalarFieldView(parent)
+        plot = VolumeWindow(parent)
         plot.setAxesLabels(*reversed(self.axesNames(None, None)))
-
-        def computeIsolevel(data):
-            data = data[numpy.isfinite(data)]
-            if len(data) == 0:
-                return 0
-            else:
-                return numpy.mean(data) + numpy.std(data)
-
-        plot.addIsosurface(computeIsolevel, '#FF0000FF')
-
-        # Create a parameter tree for the scalar field view
-        options = SFViewParamTree.TreeView(plot)
-        options.setSfView(plot)
-
-        # Add the parameter tree to the main window in a dock widget
-        dock = qt.QDockWidget()
-        dock.setWidget(options)
-        plot.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
-
         return plot
 
     def clear(self):
-        self.getWidget().setData(None)
+        self.getWidget().clear()
         self.__resetZoomNextTime = True
-
-    def normalizeData(self, data):
-        data = DataView.normalizeData(self, data)
-        data = _normalizeComplex(data)
-        return data
 
     def setData(self, data):
         data = self.normalizeData(data)
-        plot = self.getWidget()
-        plot.setData(data)
+        self.getWidget().setData(data)
         self.__resetZoomNextTime = False
 
     def axesNames(self, data, info):
@@ -735,10 +947,10 @@ class _ComplexImageView(DataView):
     def createWidget(self, parent):
         from silx.gui.plot.ComplexImageView import ComplexImageView
         widget = ComplexImageView(parent=parent)
-        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.ABSOLUTE)
-        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.SQUARE_AMPLITUDE)
-        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.REAL)
-        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.Mode.IMAGINARY)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.ABSOLUTE)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.SQUARE_AMPLITUDE)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.REAL)
+        widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.IMAGINARY)
         widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
         widget.getPlot().getIntensityHistogramAction().setVisible(True)
         widget.getPlot().setKeepDataAspectRatio(True)
@@ -1277,7 +1489,7 @@ class _NXdataXYVScatterView(DataView):
 
 class _NXdataImageView(DataView):
     """DataView using a Plot2D for displaying NXdata images:
-    2-D signal or n-D signals with *@interpretation=spectrum*."""
+    2-D signal or n-D signals with *@interpretation=image*."""
     def __init__(self, parent):
         DataView.__init__(self, parent,
                           modeId=NXDATA_IMAGE_MODE)
@@ -1318,6 +1530,53 @@ class _NXdataImageView(DataView):
 
         if info.hasNXdata and not info.isInvalidNXdata:
             if nxdata.get_default(data, validate=False).is_image:
+                return 100
+
+        return DataView.UNSUPPORTED
+
+
+class _NXdataComplexImageView(DataView):
+    """DataView using a ComplexImageView for displaying NXdata complex images:
+    2-D signal or n-D signals with *@interpretation=image*."""
+    def __init__(self, parent):
+        DataView.__init__(self, parent,
+                          modeId=NXDATA_IMAGE_MODE)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
+        widget = ArrayComplexImagePlot(parent, colormap=self.defaultColormap())
+        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        return widget
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+
+        # last two axes are Y & X
+        img_slicing = slice(-2, None)
+        y_axis, x_axis = nxd.axes[img_slicing]
+        y_label, x_label = nxd.axes_names[img_slicing]
+
+        self.getWidget().setImageData(
+            [nxd.signal] + nxd.auxiliary_signals,
+            x_axis=x_axis, y_axis=y_axis,
+            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            xlabel=x_label, ylabel=y_label,
+            title=nxd.title)
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+
+        if info.hasNXdata and not info.isInvalidNXdata:
+            nxd = nxdata.get_default(data, validate=False)
+            if nxd.is_image and numpy.iscomplexobj(nxd.signal):
                 return 100
 
         return DataView.UNSUPPORTED
@@ -1368,6 +1627,154 @@ class _NXdataStackView(DataView):
         return DataView.UNSUPPORTED
 
 
+class _NXdataVolumeView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent,
+                          label="NXdata (3D)",
+                          icon=icons.getQIcon("view-nexus"),
+                          modeId=NXDATA_VOLUME_MODE)
+        try:
+            import silx.gui.plot3d  # noqa
+        except ImportError:
+            _logger.warning("Plot3dView is not available")
+            _logger.debug("Backtrace", exc_info=True)
+            raise
+
+    def normalizeData(self, data):
+        data = DataView.normalizeData(self, data)
+        data = _normalizeComplex(data)
+        return data
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayVolumePlot
+        widget = ArrayVolumePlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        signal_name = nxd.signal_name
+        z_axis, y_axis, x_axis = nxd.axes[-3:]
+        z_label, y_label, x_label = nxd.axes_names[-3:]
+        title = nxd.title or signal_name
+
+        widget = self.getWidget()
+        widget.setData(
+            nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
+            signal_name=signal_name,
+            xlabel=x_label, ylabel=y_label, zlabel=z_label,
+            title=title)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_volume:
+                return 150
+
+        return DataView.UNSUPPORTED
+
+
+class _NXdataVolumeAsStackView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent,
+                          label="NXdata (2D)",
+                          icon=icons.getQIcon("view-nexus"),
+                          modeId=NXDATA_VOLUME_AS_STACK_MODE)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayStackPlot
+        widget = ArrayStackPlot(parent)
+        widget.getStackView().setColormap(self.defaultColormap())
+        widget.getStackView().getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        signal_name = nxd.signal_name
+        z_axis, y_axis, x_axis = nxd.axes[-3:]
+        z_label, y_label, x_label = nxd.axes_names[-3:]
+        title = nxd.title or signal_name
+
+        widget = self.getWidget()
+        widget.setStackData(
+                     nxd.signal, x_axis=x_axis, y_axis=y_axis, z_axis=z_axis,
+                     signal_name=signal_name,
+                     xlabel=x_label, ylabel=y_label, zlabel=z_label,
+                     title=title)
+        # Override the colormap, while setStack overwrite it
+        widget.getStackView().setColormap(self.defaultColormap())
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if info.isComplex:
+            return DataView.UNSUPPORTED
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_volume:
+                return 200
+
+        return DataView.UNSUPPORTED
+
+class _NXdataComplexVolumeAsStackView(DataView):
+    def __init__(self, parent):
+        DataView.__init__(self, parent,
+                          label="NXdata (2D)",
+                          icon=icons.getQIcon("view-nexus"),
+                          modeId=NXDATA_VOLUME_AS_STACK_MODE)
+        self._is_complex_data = False
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
+        widget = ArrayComplexImagePlot(parent, colormap=self.defaultColormap())
+        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        signal_name = nxd.signal_name
+        z_axis, y_axis, x_axis = nxd.axes[-3:]
+        z_label, y_label, x_label = nxd.axes_names[-3:]
+        title = nxd.title or signal_name
+
+        self.getWidget().setImageData(
+            [nxd.signal] + nxd.auxiliary_signals,
+            x_axis=x_axis, y_axis=y_axis,
+            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            xlabel=x_label, ylabel=y_label, title=nxd.title)
+
+    def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
+        if not info.isComplex:
+            return DataView.UNSUPPORTED
+        if info.hasNXdata and not info.isInvalidNXdata:
+            if nxdata.get_default(data, validate=False).is_volume:
+                return 200
+
+        return DataView.UNSUPPORTED
+
+
 class _NXdataView(CompositeDataView):
     """Composite view displaying NXdata groups using the most adequate
     widget depending on the dimensionality."""
@@ -1382,5 +1789,17 @@ class _NXdataView(CompositeDataView):
         self.addView(_NXdataScalarView(parent))
         self.addView(_NXdataCurveView(parent))
         self.addView(_NXdataXYVScatterView(parent))
+        self.addView(_NXdataComplexImageView(parent))
         self.addView(_NXdataImageView(parent))
         self.addView(_NXdataStackView(parent))
+
+        # The 3D view can be displayed using 2 ways
+        nx3dViews = SelectManyDataView(parent)
+        nx3dViews.addView(_NXdataVolumeAsStackView(parent))
+        nx3dViews.addView(_NXdataComplexVolumeAsStackView(parent))
+        try:
+            nx3dViews.addView(_NXdataVolumeView(parent))
+        except Exception:
+            _logger.warning("NXdataVolumeView is not available")
+            _logger.debug("Backtrace", exc_info=True)
+        self.addView(nx3dViews)

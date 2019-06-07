@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,26 +34,32 @@ import logging
 
 import numpy
 
-from .core import Points, ColormapMixIn
+from .._utils.delaunay import triangulation
+from .core import PointsBase, ColormapMixIn, ScatterVisualizationMixIn
 
 
 _logger = logging.getLogger(__name__)
 
 
-class Scatter(Points, ColormapMixIn):
+class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     """Description of a scatter"""
 
     _DEFAULT_SELECTABLE = True
     """Default selectable state for scatter plots"""
 
-    _DEFAULT_SYMBOL = 'o'
-    """Default symbol of the scatter plots"""
+    _SUPPORTED_SCATTER_VISUALIZATION = (
+        ScatterVisualizationMixIn.Visualization.POINTS,
+        ScatterVisualizationMixIn.Visualization.SOLID)
+    """Overrides supported Visualizations"""
 
     def __init__(self):
-        Points.__init__(self)
+        PointsBase.__init__(self)
         ColormapMixIn.__init__(self)
+        ScatterVisualizationMixIn.__init__(self)
         self._value = ()
         self.__alpha = None
+        # Cache triangles: x, y, indices
+        self.__cacheTriangles = None, None, None
         
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -61,28 +67,69 @@ class Scatter(Points, ColormapMixIn):
         xFiltered, yFiltered, valueFiltered, xerror, yerror = self.getData(
             copy=False, displayed=True)
 
+        # Remove not finite numbers (this includes filtered out x, y <= 0)
+        mask = numpy.logical_and(numpy.isfinite(xFiltered), numpy.isfinite(yFiltered))
+        xFiltered = xFiltered[mask]
+        yFiltered = yFiltered[mask]
+
         if len(xFiltered) == 0:
             return None  # No data to display, do not add renderer to backend
 
+        # Compute colors
         cmap = self.getColormap()
         rgbacolors = cmap.applyToData(self._value)
 
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
 
-        return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
-                                color=rgbacolors,
-                                symbol=self.getSymbol(),
-                                linewidth=0,
-                                linestyle="",
-                                yaxis='left',
-                                xerror=xerror,
-                                yerror=yerror,
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                fill=False,
-                                alpha=self.getAlpha(),
-                                symbolsize=self.getSymbolSize())
+        # Apply mask to colors
+        rgbacolors = rgbacolors[mask]
+
+        if self.getVisualization() is self.Visualization.POINTS:
+            return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
+                                    color=rgbacolors,
+                                    symbol=self.getSymbol(),
+                                    linewidth=0,
+                                    linestyle="",
+                                    yaxis='left',
+                                    xerror=xerror,
+                                    yerror=yerror,
+                                    z=self.getZValue(),
+                                    selectable=self.isSelectable(),
+                                    fill=False,
+                                    alpha=self.getAlpha(),
+                                    symbolsize=self.getSymbolSize())
+
+        else:  # 'solid'
+            triangles = self.__getTriangleIndices(xFiltered, yFiltered)
+            if triangles is None:
+                return None
+            else:
+                return backend.addTriangles(xFiltered,
+                                            yFiltered,
+                                            triangles,
+                                            legend=self.getLegend(),
+                                            color=rgbacolors,
+                                            z=self.getZValue(),
+                                            selectable=self.isSelectable(),
+                                            alpha=self.getAlpha())
+
+    def __getTriangleIndices(self, x, y):
+        """Returns list of triangle indices.
+
+        Arrays are not copied, so should not be modified.
+
+        :param numpy.ndarray x: X coordinates
+        :param numpy.ndarray y: Y coordinates
+        :return: Triangle indices as a (N, 3) array of indices
+        :rtype: numpy.ndarray
+        """
+        if not (numpy.array_equal(self.__cacheTriangles[0], x) and
+                numpy.array_equal(self.__cacheTriangles[1], y)):
+            # Update cache
+            self.__cacheTriangles = (
+                x, y, triangulation(x, y, dtype=numpy.int32))
+        return self.__cacheTriangles[2]
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
@@ -92,7 +139,7 @@ class Scatter(Points, ColormapMixIn):
         :return: The filtered arrays or unchanged object if not filtering needed
         :rtype: (x, y, value, xerror, yerror)
         """
-        # overloaded from Points to filter also value.
+        # overloaded from PointsBase to filter also value.
         value = self.getValueData(copy=False)
 
         if xPositive or yPositive:
@@ -103,7 +150,7 @@ class Scatter(Points, ColormapMixIn):
                 value = numpy.array(value, copy=True, dtype=numpy.float)
                 value[clipped] = numpy.nan
 
-        x, y, xerror, yerror = Points._logFilterData(self, xPositive, yPositive)
+        x, y, xerror, yerror = PointsBase._logFilterData(self, xPositive, yPositive)
 
         return x, y, value, xerror, yerror
 
@@ -149,7 +196,7 @@ class Scatter(Points, ColormapMixIn):
                 self.getXErrorData(copy),
                 self.getYErrorData(copy))
 
-    # reimplemented from Points to handle `value`
+    # reimplemented from PointsBase to handle `value`
     def setData(self, x, y, value, xerror=None, yerror=None, alpha=None, copy=True):
         """Set the data of the scatter.
 
@@ -186,8 +233,8 @@ class Scatter(Points, ColormapMixIn):
             if numpy.any(numpy.logical_or(alpha < 0., alpha > 1.)):
                 alpha = numpy.clip(alpha, 0., 1.)
         self.__alpha = alpha
-        
+
         # set x, y, xerror, yerror
 
         # call self._updated + plot._invalidateDataRange()
-        Points.setData(self, x, y, xerror, yerror, copy)
+        PointsBase.setData(self, x, y, xerror, yerror, copy)

@@ -386,6 +386,16 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
         self.assertTrue(numpy.all(numpy.equal(retrievedData, data)))
         self.assertIs(retrievedData.dtype.type, numpy.int8)
 
+    def testPlotAlphaImage(self):
+        """Test with an alpha image layer"""
+        data = numpy.random.random((10, 10))
+        alpha = numpy.linspace(0, 1, 100).reshape(10, 10)
+        self.plot.addImage(data, legend='image')
+        image = self.plot.getActiveImage()
+        image.setData(data, alpha=alpha)
+        self.qapp.processEvents()
+        self.assertTrue(numpy.array_equal(alpha, image.getAlphaData()))
+
 
 class TestPlotCurve(PlotWidgetTestCase):
     """Basic tests for addCurve."""
@@ -463,7 +473,34 @@ class TestPlotCurve(PlotWidgetTestCase):
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve 2",
                            replace=False, resetzoom=False,
-                           color=color, symbol='o')        
+                           color=color, symbol='o')
+
+
+class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
+    """Basic tests for addScatter"""
+
+    def testScatter(self):
+        x = numpy.arange(100)
+        y = numpy.arange(100)
+        value = numpy.arange(100)
+        self.plot.addScatter(x, y, value)
+        self.plot.resetZoom()
+
+    def testScatterVisualization(self):
+        self.plot.addScatter((0, 1, 2, 3), (2, 0, 2, 1), (0, 1, 2, 3))
+        self.plot.resetZoom()
+        self.qapp.processEvents()
+
+        scatter = self.plot.getItems()[0]
+
+        for visualization in ('solid',
+                              'points',
+                              scatter.Visualization.SOLID,
+                              scatter.Visualization.POINTS):
+            with self.subTest(visualization=visualization):
+                scatter.setVisualization(visualization)
+                self.qapp.processEvents()
+
 
 class TestPlotMarker(PlotWidgetTestCase):
     """Basic tests for add*Marker"""
@@ -1524,11 +1561,19 @@ class TestPlotItemLog(PlotWidgetTestCase):
 
 
 def suite():
-    testClasses = (TestPlotWidget, TestPlotImage, TestPlotCurve,
-                   TestPlotMarker, TestPlotItem, TestPlotAxes,
+    testClasses = (TestPlotWidget,
+                   TestPlotImage,
+                   TestPlotCurve,
+                   TestPlotScatter,
+                   TestPlotMarker,
+                   TestPlotItem,
+                   TestPlotAxes,
                    TestPlotActiveCurveImage,
-                   TestPlotEmptyLog, TestPlotCurveLog, TestPlotImageLog,
-                   TestPlotMarkerLog, TestPlotItemLog)
+                   TestPlotEmptyLog,
+                   TestPlotCurveLog,
+                   TestPlotImageLog,
+                   TestPlotMarkerLog,
+                   TestPlotItemLog)
 
     test_suite = unittest.TestSuite()
 

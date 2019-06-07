@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "05/07/2018"
 
+import os
 import sys
 
 from silx.gui import qt
@@ -208,7 +209,7 @@ class About(qt.QDialog):
             pass
 
         # Access to the logo in SVG or PNG
-        logo = icons.getQFile("../logo/silx")
+        logo = icons.getQFile("silx:" + os.path.join("gui", "logo", "silx"))
 
         info = dict(
             application_name=self.__applicationName,

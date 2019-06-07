@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/12/2018"
+__date__ = "15/02/2019"
 
 
 import math
@@ -619,6 +619,87 @@ class Select2Points(Select):
     def cancel(self):
         if isinstance(self.state, self.states['select']):
             self.cancelSelect()
+
+
+class SelectEllipse(Select2Points):
+    """Drawing ellipse selection area state machine."""
+    def beginSelect(self, x, y):
+        self.center = self.plot.pixelToData(x, y)
+        assert self.center is not None
+
+    def _getEllipseSize(self, pointInEllipse):
+        """
+        Returns the size from the center to the bounding box of the ellipse.
+
+        :param Tuple[float,float] pointInEllipse: A point of the ellipse
+        :rtype: Tuple[float,float]
+        """
+        x = abs(self.center[0] - pointInEllipse[0])
+        y = abs(self.center[1] - pointInEllipse[1])
+        if x == 0 or y == 0:
+            return x, y
+        # Ellipse definitions
+        # e: eccentricity
+        # a: length fron center to bounding box width
+        # b: length fron center to bounding box height
+        # Equations
+        # (1) b < a
+        # (2) For x,y a point in the ellipse: x^2/a^2 + y^2/b^2 = 1
+        # (3) b = a * sqrt(1-e^2)
+        # (4) e = sqrt(a^2 - b^2) / a
+
+        # The eccentricity of the ellipse defined by a,b=x,y is the same
+        # as the one we are searching for.
+        swap = x < y
+        if swap:
+            x, y = y, x
+        e = math.sqrt(x**2 - y**2) / x
+        # From (2) using (3) to replace b
+        # a^2 = x^2 + y^2 / (1-e^2)
+        a = math.sqrt(x**2 + y**2 / (1.0 - e**2))
+        b = a * math.sqrt(1 - e**2)
+        if swap:
+            a, b = b, a
+        return a, b
+
+    def select(self, x, y):
+        dataPos = self.plot.pixelToData(x, y)
+        assert dataPos is not None
+        width, height = self._getEllipseSize(dataPos)
+
+        # Circle used for circle preview
+        nbpoints = 27.
+        angles = numpy.arange(nbpoints) * numpy.pi * 2.0 / nbpoints
+        circleShape = numpy.array((numpy.cos(angles) * width,
+                                   numpy.sin(angles) * height)).T
+        circleShape += numpy.array(self.center)
+
+        self.setSelectionArea(circleShape,
+                              shape="polygon",
+                              fill='hatch',
+                              color=self.color)
+
+        eventDict = prepareDrawingSignal('drawingProgress',
+                                         'ellipse',
+                                         (self.center, (width, height)),
+                                         self.parameters)
+        self.plot.notify(**eventDict)
+
+    def endSelect(self, x, y):
+        self.resetSelectionArea()
+
+        dataPos = self.plot.pixelToData(x, y)
+        assert dataPos is not None
+        width, height = self._getEllipseSize(dataPos)
+
+        eventDict = prepareDrawingSignal('drawingFinished',
+                                         'ellipse',
+                                         (self.center, (width, height)),
+                                         self.parameters)
+        self.plot.notify(**eventDict)
+
+    def cancelSelect(self):
+        self.resetSelectionArea()
 
 
 class SelectRectangle(Select2Points):
@@ -1506,6 +1587,7 @@ class PlotInteraction(object):
     _DRAW_MODES = {
         'polygon': SelectPolygon,
         'rectangle': SelectRectangle,
+        'ellipse': SelectEllipse,
         'line': SelectLine,
         'vline': SelectVLine,
         'hline': SelectHLine,

@@ -28,7 +28,7 @@ This module contains an :class:`ImageFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/02/2018"
+__date__ = "05/03/2019"
 
 import logging
 from silx.gui.plot import actions
@@ -36,7 +36,6 @@ from silx.gui import qt
 from silx.gui.plot.PlotWidget import PlotWidget
 from .AbstractDataFileDialog import AbstractDataFileDialog
 import silx.io
-import fabio
 
 
 _logger = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ class _ImageSelection(qt.QWidget):
 
     def isUsed(self):
         if self.__shape is None:
-            return None
+            return False
         return len(self.__shape) > 2
 
     def getSelectedData(self, data):
@@ -70,6 +69,10 @@ class _ImageSelection(qt.QWidget):
         return image
 
     def setData(self, data):
+        if data is None:
+            self.__visibleSliders = 0
+            return
+
         shape = data.shape
         if self.__shape is not None:
             # clean up
@@ -113,6 +116,22 @@ class _ImageSelection(qt.QWidget):
             if i > len(self.__axis):
                 break
             self.__axis[i].setValue(value)
+
+    def selectSlicing(self, slicing):
+        """Select a slicing.
+
+        The provided value could be unconsistent and therefore is not supposed
+        to be retrivable with a getter.
+
+        :param Union[None,Tuple[int]] slicing:
+        """
+        if slicing is None:
+            # Create a default slicing
+            needed = self.__visibleSliders
+            slicing = (0,) * needed
+        if len(slicing) < self.__visibleSliders:
+            slicing = slicing + (0,) * (self.__visibleSliders - len(slicing))
+        self.setSlicing(slicing)
 
 
 class _ImagePreview(qt.QWidget):

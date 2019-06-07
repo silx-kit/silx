@@ -61,6 +61,13 @@ Additionnal plot tool widgets:
    statswidget.rst
    stats/index.rst
 
+Utilities
+
+.. toctree::
+   :maxdepth: 2
+
+   utils.rst
+
 Internals
 ---------
 

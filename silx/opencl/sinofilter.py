@@ -34,109 +34,15 @@ __date__ = "01/02/2019"
 import numpy as np
 from math import pi
 
-from .common import pyopencl as cl
+
 import pyopencl.array as parray
+from .common import pyopencl as cl
 from .processing import OpenclProcessing
 from ..math.fft import FFT
 from ..math.fft.clfft import __have_clfft__
+from ..image.tomography import generate_powers, get_next_power, compute_fourier_filter
 from ..utils.deprecation import deprecated
 
-
-def nextpow2(N):
-    p = 1
-    while p < N:
-        p *= 2
-    return p
-
-def compute_ramlak_filter(dwidth_padded, dtype=np.float32):
-    """
-    Compute the Ramachandran-Lakshminarayanan (Ram-Lak) filter, used in
-    filtered backprojection.
-
-    :param dwidth_padded: width of the 2D sinogram after padding
-    :param dtype: data type
-    """
-    #~ dwidth_padded = dwidth * 2
-    L = dwidth_padded
-    h = np.zeros(L, dtype=dtype)
-    L2 = L//2+1
-    h[0] = 1/4.
-    j = np.linspace(1, L2, L2//2, False, dtype=dtype)
-    # h[2::2] = 0
-    h[1:L2:2] = -1./(pi**2 * j**2)
-    # h[-1:L2-1:-2] = -1./(pi**2 * j**2)
-    h[L2:] = np.copy(h[1:L2-1][::-1])
-    return h
-
-
-def tukey(N, alpha=0.5):
-    """
-    Compute the Tukey apodization window.
-
-    :param int N: Number of points.
-    :param float alpha:
-    """
-    apod = np.zeros(N)
-    x = np.arange(N)/(N-1)
-    r = alpha
-    M1 = (0 <= x) * (x < r/2)
-    M2 = (r/2 <= x) * (x <= 1 - r/2)
-    M3 = (1 - r/2 < x) * (x <= 1)
-    apod[M1] = (1 + np.cos(2*pi/r * (x[M1] - r/2)))/2.
-    apod[M2] = 1.
-    apod[M3] = (1 + np.cos(2*pi/r * (x[M3] - 1 + r/2)))/2.
-    return apod
-
-
-def lanczos(N):
-    """
-    Compute the Lanczos window (truncated sinc) of width N.
-
-    :param int N: window width
-    """
-    x = np.arange(N)/(N-1)
-    return np.sin(pi*(2*x-1))/(pi*(2*x-1))
-
-
-def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
-    """
-    Compute the filter used for FBP.
-
-    :param dwidth_padded: padded detector width. As the filtering is done by the
-        Fourier convolution theorem, dwidth_padded should be at least 2*dwidth.
-    :param filter_name: Name of the filter. Available filters are:
-        Ram-Lak, Shepp-Logan, Cosine, Hamming, Hann, Tukey, Lanczos.
-    :param cutoff: Cut-off frequency, if relevant.
-    """
-    Nf = dwidth_padded
-    #~ filt_f = np.abs(np.fft.fftfreq(Nf))
-    rl = compute_ramlak_filter(Nf, dtype=np.float64)
-    filt_f = np.fft.fft(rl)
-
-    filter_name = filter_name.lower()
-    if filter_name in ["ram-lak", "ramlak"]:
-        return filt_f
-
-    w = 2 * pi * np.fft.fftfreq(dwidth_padded)
-    d = cutoff
-    apodization = {
-        # ~OK
-        "shepp-logan": np.sin(w[1:Nf]/(2*d))/(w[1:Nf]/(2*d)),
-        # ~OK
-        "cosine": np.cos(w[1:Nf]/(2*d)),
-        # OK
-        "hamming": 0.54*np.ones_like(filt_f)[1:Nf] + .46 * np.cos(w[1:Nf]/d),
-        # OK
-        "hann": (np.ones_like(filt_f)[1:Nf] + np.cos(w[1:Nf]/d))/2.,
-        # These one is not compatible with Astra - TODO investigate why
-        "tukey": np.fft.fftshift(tukey(dwidth_padded, alpha=d/2.))[1:Nf],
-        "lanczos": np.fft.fftshift(lanczos(dwidth_padded))[1:Nf],
-    }
-    if filter_name not in apodization:
-        raise ValueError("Unknown filter %s. Available filters are %s" %
-                         (filter_name, str(apodization.keys())))
-    filt_f[1:Nf] *= apodization[filter_name]
-    return filt_f
 
 
 class SinoFilter(OpenclProcessing):
@@ -147,6 +53,7 @@ class SinoFilter(OpenclProcessing):
       - In 3D: (n_z, n_a, d_x): n_z*n_a filterings (1D FFT of size d_x)
     """
     kernel_files = ["array_utils.cl"]
+    powers = generate_powers()
 
     def __init__(self, sino_shape, filter_name=None, ctx=None,
                  devicetype="all", platformid=None, deviceid=None,
@@ -165,16 +72,17 @@ class SinoFilter(OpenclProcessing):
                         level, store profiling elements (makes code slightly
                         slower)
         :param dict extra_options: Advanced extra options.
-            Current options are: cutoff,
+            Current options are: cutoff, use_numpy_fft
         """
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
 
+        self._init_extra_options(extra_options)
         self._calculate_shapes(sino_shape)
         self._init_fft()
         self._allocate_memory()
-        self._compute_filter(filter_name, extra_options)
+        self._compute_filter(filter_name)
         self._init_kernels()
 
     def _calculate_shapes(self, sino_shape):
@@ -191,7 +99,7 @@ class SinoFilter(OpenclProcessing):
         self.sino_shape = sino_shape
         self.n_angles = n_angles
         self.dwidth = dwidth
-        self.dwidth_padded = 2*self.dwidth  # TODO nextpow2 ?
+        self.dwidth_padded = get_next_power(2*self.dwidth, powers=self.powers)
         self.sino_padded_shape = (n_angles, self.dwidth_padded)
         sino_f_shape = list(self.sino_padded_shape)
         sino_f_shape[-1] = sino_f_shape[-1]//2+1
@@ -205,12 +113,13 @@ class SinoFilter(OpenclProcessing):
         """
         self.extra_options = {
             "cutoff": 1.,
+            "use_numpy_fft": False,
         }
         if extra_options is not None:
             self.extra_options.update(extra_options)
 
     def _init_fft(self):
-        if __have_clfft__:
+        if __have_clfft__ and not(self.extra_options["use_numpy_fft"]):
             self.fft_backend = "opencl"
             self.fft = FFT(
                 self.sino_padded_shape,
@@ -225,7 +134,7 @@ class SinoFilter(OpenclProcessing):
                   "will be done on CPU. For more performances, it is advised "
                   "to install gpyfft.""")
             self.fft = FFT(
-                data=np.zeros(self.sino_padded_shape, "f"),
+                template=np.zeros(self.sino_padded_shape, "f"),
                 axes=(-1,),
                 backend="numpy",
             )
@@ -245,17 +154,15 @@ class SinoFilter(OpenclProcessing):
         self.tmp_sino_device = parray.zeros(self.queue, self.sino_shape, "f")
         self.tmp_sino_host = np.zeros(self.sino_shape, "f")
 
-    def _compute_filter(self, filter_name, extra_options):
+    def _compute_filter(self, filter_name):
         """
 
         :param str filter_name: filter name
-        :param dict extra_options: Advanced extra options.
         """
-        self._init_extra_options(extra_options)
         self.filter_name = filter_name or "ram-lak"
         filter_f = compute_fourier_filter(
             self.dwidth_padded,
-            filter_name,
+            self.filter_name,
             cutoff=self.extra_options["cutoff"],
         )[:self.dwidth_padded//2+1]  # R2C
         self.set_filter(filter_f, normalize=True)
@@ -319,7 +226,7 @@ class SinoFilter(OpenclProcessing):
         :param dst_offset:
         :param src_offset:
         """
-        self.kernels.cpy2d(
+        ev = self.kernels.cpy2d(
             self.queue,
             np.int32(transfer_shape[::-1]),
             None,
@@ -331,6 +238,7 @@ class SinoFilter(OpenclProcessing):
             np.int32(src_offset),
             np.int32(transfer_shape[::-1])
         )
+        ev.wait()
 
     def copy2d_host(self, dst, src, transfer_shape, dst_offset=(0, 0),
                     src_offset=(0, 0)):
@@ -349,7 +257,6 @@ class SinoFilter(OpenclProcessing):
 
     def _prepare_input_sino(self, sino):
         """
-
         :param sino: sinogram
         """
         self.check_array(sino)
@@ -370,7 +277,7 @@ class SinoFilter(OpenclProcessing):
             # Rectangular copy D->D
             self.copy2d(self.d_sino_padded, d_sino_ref, self.sino_shape)
             if self.is_cpu:
-                self.d_sino_padded.finish()
+                self.d_sino_padded.finish() # should not be required here
         else:
             # Numpy backend: FFT/mult/IFFT are done on host.
             if not(isinstance(sino, np.ndarray)):
@@ -384,7 +291,6 @@ class SinoFilter(OpenclProcessing):
 
     def _get_output_sino(self, output):
         """
-
         :param Union[numpy.dtype,None] output: sinogram output.
         :return: sinogram
         """
@@ -402,14 +308,14 @@ class SinoFilter(OpenclProcessing):
                             src=self.d_sino_padded,
                             transfer_shape=self.sino_shape)
                 if self.is_cpu:
-                    self.tmp_sino_device.finish()
-                res[:] = self.tmp_sino_device[:]
+                    self.tmp_sino_device.finish() # should not be required here
+                res[:] = self.tmp_sino_device.get()[:]
             else:
                 if self.is_cpu:
                     self.d_sino_padded.finish()
                 self.copy2d(res, self.d_sino_padded, self.sino_shape)
                 if self.is_cpu:
-                    res.finish()
+                    res.finish() # should not be required here
         else:
             if not(isinstance(res, np.ndarray)):
                 # Numpy backend + pyopencl output: rect copy H->H + copy H->D
@@ -436,11 +342,12 @@ class SinoFilter(OpenclProcessing):
     def _multiply_fourier(self):
         if self.fft_backend == "opencl":
             # Everything is on device. Call the multiplication kernel.
-            self.kernels.inplace_complex_mul_2Dby1D(
+            ev = self.kernels.inplace_complex_mul_2Dby1D(
                 *self.mult_kern_args
             )
+            ev.wait()
             if self.is_cpu:
-                self.d_sino_f.finish()
+                self.d_sino_f.finish() # should not be required here
         else:
             # Everything is on host.
             self.d_sino_f *= self.filter_f
@@ -487,6 +394,14 @@ class SinoFilter(OpenclProcessing):
 # -------------------
 # - Compatibility  -
 # -------------------
+
+
+def nextpow2(N):
+    p = 1
+    while p < N:
+        p *= 2
+    return p
+
 
 @deprecated(replacement="Backprojection.sino_filter", since_version="0.10")
 def fourier_filter(sino, filter_=None, fft_size=None):

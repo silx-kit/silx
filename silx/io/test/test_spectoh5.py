@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -132,7 +132,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
 
     def testTitle(self):
         """Test the value of a dataset"""
-        title12 = self.h5f["/1.2/title"].value
+        title12 = self.h5f["/1.2/title"][()]
         self.assertEqual(title12,
                          u"aaaaaa")
 

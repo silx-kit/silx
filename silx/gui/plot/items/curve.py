@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ import six
 
 from ....utils.deprecation import deprecated
 from ... import colors
-from .core import (Points, LabelsMixIn, ColorMixIn, YAxisMixIn,
+from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
                    FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType)
 
 
@@ -151,7 +151,7 @@ class CurveStyle(object):
             return False
 
 
-class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
+class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -170,7 +170,7 @@ class Curve(Points, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
     """Default highlight style of the item"""
 
     def __init__(self):
-        Points.__init__(self)
+        PointsBase.__init__(self)
         ColorMixIn.__init__(self)
         YAxisMixIn.__init__(self)
         FillMixIn.__init__(self)

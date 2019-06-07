@@ -33,12 +33,20 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 from collections import OrderedDict, namedtuple
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 from contextlib import contextmanager
 import datetime as dt
 import itertools
-import logging
+import warnings
 
 import numpy
 
@@ -46,8 +54,11 @@ import silx
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated
-# Import matplotlib backend here to init matplotlib our way
-from .backends.BackendMatplotlib import BackendMatplotlibQt
+try:
+    # Import matplotlib now to init matplotlib our way
+    from . import matplotlib
+except ImportError:
+    _logger.debug("matplotlib not available")
 
 from ..colors import Colormap
 from .. import colors
@@ -64,7 +75,6 @@ from .. import qt
 from ._utils.panzoom import ViewConstraints
 from ...gui.plot._utils.dtime_ticklayout import timestamp
 
-_logger = logging.getLogger(__name__)
 
 
 _COLORDICT = colors.COLORDICT
@@ -252,7 +262,7 @@ class PlotWidget(qt.QMainWindow):
 
         self.setDefaultColormap()  # Init default colormap
 
-        self.setDefaultPlotPoints(False)
+        self.setDefaultPlotPoints(silx.config.DEFAULT_PLOT_CURVE_SYMBOL_MODE)
         self.setDefaultPlotLines(True)
 
         self._limitsHistory = LimitsHistory(self)
@@ -287,33 +297,68 @@ class PlotWidget(qt.QMainWindow):
         self._foregroundColorsUpdated()
         self._backgroundColorsUpdated()
 
+    def __getBackendClass(self, backend):
+        """Returns backend class corresponding to backend.
+
+        If multiple backends are provided, the first available one is used.
+
+        :param Union[str,BackendBase,Iterable] backend:
+            The name of the backend or its class or an iterable of those.
+        :rtype: BackendBase
+        :raise ValueError: In case the backend is not supported
+        :raise RuntimeError: If a backend is not available
+        """
+        if callable(backend):
+            return backend
+
+        elif isinstance(backend, str):
+            backend = backend.lower()
+            if backend in ('matplotlib', 'mpl'):
+                try:
+                    from .backends.BackendMatplotlib import \
+                        BackendMatplotlibQt as backendClass
+                except ImportError:
+                    _logger.debug("Backtrace", exc_info=True)
+                    raise ImportError("matplotlib backend is not available")
+
+            elif backend in ('gl', 'opengl'):
+                try:
+                    from .backends.BackendOpenGL import \
+                        BackendOpenGL as backendClass
+                except ImportError:
+                    _logger.debug("Backtrace", exc_info=True)
+                    raise ImportError("OpenGL backend is not available")
+
+            elif backend == 'none':
+                from .backends.BackendBase import BackendBase as backendClass
+
+            else:
+                raise ValueError("Backend not supported %s" % backend)
+
+            return backendClass
+
+        elif isinstance(backend, abc.Iterable):
+            for b in backend:
+                try:
+                    return self.__getBackendClass(b)
+                except ImportError:
+                    pass
+            else:  # No backend was found
+                raise ValueError("No backends supported: " % str(backend))
+
+        raise ValueError("Backend not supported %s" % str(backend))
+
     def _setBackend(self, backend):
-        """Setup a new backend"""
+        """Setup a new backend
+
+        :param backend: Either a str defining the backend to use
+        """
         assert(self._backend is None)
 
         if backend is None:
             backend = silx.config.DEFAULT_PLOT_BACKEND
 
-        if hasattr(backend, "__call__"):
-            backend = backend(self, self)
-
-        elif hasattr(backend, "lower"):
-            lowerCaseString = backend.lower()
-            if lowerCaseString in ("matplotlib", "mpl"):
-                backendClass = BackendMatplotlibQt
-            elif lowerCaseString in ('gl', 'opengl'):
-                from .backends.BackendOpenGL import BackendOpenGL
-                backendClass = BackendOpenGL
-            elif lowerCaseString == 'none':
-                from .backends.BackendBase import BackendBase as backendClass
-            else:
-                raise ValueError("Backend not supported %s" % backend)
-            backend = backendClass(self, self)
-
-        else:
-            raise ValueError("Backend not supported %s" % str(backend))
-
-        self._backend = backend
+        self._backend = self.__getBackendClass(backend)(self, self)
 
     # TODO: Can be removed for silx 0.10
     @staticmethod
@@ -456,7 +501,7 @@ class PlotWidget(qt.QMainWindow):
             return qt.QColor.fromRgbF(*self._dataBackgroundColor)
 
     def setDataBackgroundColor(self, color):
-        """Set the background color of this widget.
+        """Set the background color of the plot area.
 
         Set to None or an invalid QColor to use the background color.
 
@@ -499,16 +544,25 @@ class PlotWidget(qt.QMainWindow):
             if item.isVisible():
                 bounds = item.getBounds()
                 if bounds is not None:
-                    xMin = numpy.nanmin([xMin, bounds[0]])
-                    xMax = numpy.nanmax([xMax, bounds[1]])
+                    with warnings.catch_warnings():
+                        warnings.simplefilter('ignore', category=RuntimeWarning)
+                        # Ignore All-NaN slice encountered
+                        xMin = numpy.nanmin([xMin, bounds[0]])
+                        xMax = numpy.nanmax([xMax, bounds[1]])
                     # Take care of right axis
                     if (isinstance(item, items.YAxisMixIn) and
                             item.getYAxis() == 'right'):
-                        yMinRight = numpy.nanmin([yMinRight, bounds[2]])
-                        yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore', category=RuntimeWarning)
+                            # Ignore All-NaN slice encountered
+                            yMinRight = numpy.nanmin([yMinRight, bounds[2]])
+                            yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
                     else:
-                        yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
-                        yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore', category=RuntimeWarning)
+                            # Ignore All-NaN slice encountered
+                            yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
+                            yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
 
         def lGetRange(x, y):
             return None if numpy.isnan(x) and numpy.isnan(y) else (x, y)
@@ -2372,8 +2426,8 @@ class PlotWidget(qt.QMainWindow):
     # Defaults
 
     def isDefaultPlotPoints(self):
-        """Return True if default Curve symbol is 'o', False for no symbol."""
-        return self._defaultPlotPoints == 'o'
+        """Return True if the default Curve symbol is set and False if not."""
+        return self._defaultPlotPoints == silx.config.DEFAULT_PLOT_SYMBOL
 
     def setDefaultPlotPoints(self, flag):
         """Set the default symbol of all curves.
@@ -2383,7 +2437,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True to use 'o' as the default curve symbol,
                           False to use no symbol.
         """
-        self._defaultPlotPoints = 'o' if flag else ''
+        self._defaultPlotPoints = silx.config.DEFAULT_PLOT_SYMBOL if flag else ''
 
         # Reset symbol of all curves
         curves = self.getAllCurves(just_legend=False, withhidden=True)
@@ -2665,9 +2719,11 @@ class PlotWidget(qt.QMainWindow):
         xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
         ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
         if ranges.yright is None:
-            ymin2, ymax2 = None, None
+            ymin2, ymax2 = ymin, ymax
         else:
             ymin2, ymax2 = ranges.yright
+            if ranges.y is None:
+                ymin, ymax = ranges.yright
 
         # Add margins around data inside the plot area
         newLimits = list(_utils.addMarginsToLimits(

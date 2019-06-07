@@ -75,14 +75,19 @@ class CurvesROIWidget(qt.QWidget):
     """
 
     sigROISignal = qt.Signal(object)
-    """Deprecated signal for backward compatibility with silx < 0.7.
-    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
-    """
 
     def __init__(self, parent=None, name=None, plot=None):
         super(CurvesROIWidget, self).__init__(parent)
         if name is not None:
             self.setWindowTitle(name)
+        self.__lastSigROISignal = None
+        """Store the last value emitted for the sigRoiSignal. In the case the
+        active curve change we need to add this extra step in order to make
+        sure we won't send twice the sigROISignal.
+        This come from the fact sigROISignal is connected to the 
+        activeROIChanged signal which is emitted when raw and net counts
+        values are changing but are not embed in the sigROISignal.
+        """
         assert plot is not None
         self._plotRef = weakref.ref(plot)
         self._showAllMarkers = False
@@ -91,12 +96,12 @@ class CurvesROIWidget(qt.QWidget):
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        ##############
+
         self.headerLabel = qt.QLabel(self)
         self.headerLabel.setAlignment(qt.Qt.AlignHCenter)
         self.setHeader()
         layout.addWidget(self.headerLabel)
-        ##############
+
         widgetAllCheckbox = qt.QWidget(parent=self)
         self._showAllCheckBox = qt.QCheckBox("show all ROI",
                                              parent=widgetAllCheckbox)
@@ -106,14 +111,13 @@ class CurvesROIWidget(qt.QWidget):
         widgetAllCheckbox.layout().addWidget(spacer)
         widgetAllCheckbox.layout().addWidget(self._showAllCheckBox)
         layout.addWidget(widgetAllCheckbox)
-        ##############
+
         self.roiTable = ROITable(self, plot=plot)
         rheight = self.roiTable.horizontalHeader().sizeHint().height()
         self.roiTable.setMinimumHeight(4 * rheight)
         layout.addWidget(self.roiTable)
         self._roiFileDir = qt.QDir.home().absolutePath()
         self._showAllCheckBox.toggled.connect(self.roiTable.showAllMarkers)
-        #################
 
         hbox = qt.QWidget(self)
         hboxlayout = qt.QHBoxLayout(hbox)
@@ -153,6 +157,7 @@ class CurvesROIWidget(qt.QWidget):
 
         layout.addWidget(hbox)
 
+        # Signal / Slot connections
         self.addButton.clicked.connect(self._add)
         self.delButton.clicked.connect(self._del)
         self.resetButton.clicked.connect(self._reset)
@@ -160,11 +165,14 @@ class CurvesROIWidget(qt.QWidget):
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
 
+        self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
+
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
 
         # expose API
         self.getROIListAndDict = self.roiTable.getROIListAndDict
+
     def getPlotWidget(self):
         """Returns the associated PlotWidget or None
 
@@ -175,7 +183,6 @@ class CurvesROIWidget(qt.QWidget):
     def showEvent(self, event):
         self._visibilityChangedHandler(visible=True)
         qt.QWidget.showEvent(self, event)
-        self.roiTable.activeROIChanged.connect(self._emitCurrentROISignal)
 
     @property
     def roiFileDir(self):
@@ -213,7 +220,6 @@ class CurvesROIWidget(qt.QWidget):
                     i += 1
                     newroi = "newroi %d" % i
                 return newroi
-
         roi = ROI(name=getNextRoiName())
 
         if roi.getName() == "ICR":
@@ -228,7 +234,6 @@ class CurvesROIWidget(qt.QWidget):
             fromdata, dummy0, todata, dummy1 = self._getAllLimits()
         roi.setFrom(fromdata)
         roi.setTo(todata)
-
         self.roiTable.addRoi(roi)
 
         # back compatibility pymca roi signals
@@ -254,7 +259,9 @@ class CurvesROIWidget(qt.QWidget):
     def _reset(self):
         """Reset button clicked handler"""
         self.roiTable.clear()
+        old = self.blockSignals(True)  # avoid several sigROISignal emission
         self._add()
+        self.blockSignals(old)
 
         # back compatibility pymca roi signals
         ddict = {}
@@ -399,7 +406,9 @@ class CurvesROIWidget(qt.QWidget):
         if visible:
             # if no ROI existing yet, add the default one
             if self.roiTable.rowCount() is 0:
+                old = self.blockSignals(True)  # avoid several sigROISignal emission
                 self._add()
+                self.blockSignals(old)
                 self.calculateRois()
 
     def fillFromROIDict(self, *args, **kwargs):
@@ -413,7 +422,10 @@ class CurvesROIWidget(qt.QWidget):
             ddict['current'] = self.roiTable.activeRoi.getName()
         else:
             ddict['current'] = None
-        self.sigROISignal.emit(ddict)
+
+        if self.__lastSigROISignal != ddict:
+            self.__lastSigROISignal = ddict
+            self.sigROISignal.emit(ddict)
 
     @property
     def currentRoi(self):
@@ -560,8 +572,11 @@ class ROITable(TableWidget):
         # backward compatibility since 0.10.0
         if isinstance(rois, dict):
             for roiName, roi in rois.items():
-                roi['name'] = roiName
-                _roi = ROI._fromDict(roi)
+                if isinstance(roi, ROI):
+                    _roi = roi
+                else:
+                    roi['name'] = roiName
+                    _roi = ROI._fromDict(roi)
                 self.addRoi(_roi)
         else:
             for roi in rois:
@@ -655,19 +670,26 @@ class ROITable(TableWidget):
                     value = float(item.text())
                 except ValueError:
                     value = 0
+                changed = False
                 if item.column() == self.COLUMNS_INDEX['To']:
-                    roi.setTo(value)
+                    if value != roi.getTo():
+                        roi.setTo(value)
+                        changed = True
                 else:
                     assert(item.column() == self.COLUMNS_INDEX['From'])
-                    roi.setFrom(value)
-                self._updateMarker(roi.getName())
-                signalChanged(roi)
+                    if value != roi.getFrom():
+                        roi.setFrom(value)
+                        changed = True
+                if changed:
+                    self._updateMarker(roi.getName())
+                    signalChanged(roi)
 
         if item.column() is self.COLUMNS_INDEX['ROI']:
             roi = getRoi()
-            roi.setName(item.text())
-            self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
-            signalChanged(roi)
+            if roi.getName() != item.text():
+                roi.setName(item.text())
+                self._markersHandler.getMarkerHandler(roi.getID()).updateTexts()
+                signalChanged(roi)
 
         self._userIsEditingRoi = False
 
@@ -678,12 +700,14 @@ class ROITable(TableWidget):
         activeItems = self.selectedItems()
         if len(activeItems) is 0:
             return
+        old = self.blockSignals(True)  # avoid several emission of sigROISignal
         roiToRm = set()
         for item in activeItems:
             row = item.row()
             itemID = self.item(row, self.COLUMNS_INDEX['ID'])
             roiToRm.add(self._roiDict[int(itemID.text())])
         [self.removeROI(roi) for roi in roiToRm]
+        self.blockSignals(old)
         self.setActiveRoi(None)
 
     def removeROI(self, roi):
@@ -720,7 +744,10 @@ class ROITable(TableWidget):
         else:
             assert isinstance(roi, ROI)
             if roi and roi.getID() in self._roiToItems.keys():
+                # avoid several call back to setActiveROI
+                old = self.blockSignals(True)
                 self.selectRow(self._roiToItems[roi.getID()].row())
+                self.blockSignals(old)
                 self._markersHandler.setActiveRoi(roi)
                 self.activeROIChanged.emit()
 
@@ -921,9 +948,12 @@ class ROITable(TableWidget):
         if ddict['event'] == 'markerMoved':
             label = ddict['label']
             roiID = self._markersHandler.getRoiID(markerID=label)
-            if roiID:
+            if roiID is not None:
+                # avoid several emission of sigROISignal
+                old = self.blockSignals(True)
                 self._markersHandler.changePosition(markerID=label,
                                                     x=ddict['x'])
+                self.blockSignals(old)
                 self._updateRoiInfo(roiID)
 
     def showEvent(self, event):
@@ -1057,8 +1087,9 @@ class ROI(qt.QObject):
 
         :param str type_:
         """
-        self._type = type_
-        self.sigChanged.emit()
+        if self._type != type_:
+            self._type = type_
+            self.sigChanged.emit()
 
     def getType(self):
         """
@@ -1073,8 +1104,9 @@ class ROI(qt.QObject):
 
         :param str name:
         """
-        self._name = name
-        self.sigChanged.emit()
+        if self._name != name:
+            self._name = name
+            self.sigChanged.emit()
 
     def getName(self):
         """
@@ -1088,8 +1120,9 @@ class ROI(qt.QObject):
 
         :param frm: set x coordinate of the left limit
         """
-        self._fromdata = frm
-        self.sigChanged.emit()
+        if self._fromdata != frm:
+            self._fromdata = frm
+            self.sigChanged.emit()
 
     def getFrom(self):
         """
@@ -1103,8 +1136,9 @@ class ROI(qt.QObject):
 
         :param to: x coordinate of the right limit
         """
-        self._todata = to
-        self.sigChanged.emit()
+        if self._todata != to:
+            self._todata = to
+            self.sigChanged.emit()
 
     def getTo(self):
         """

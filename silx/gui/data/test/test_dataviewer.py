@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/04/2018"
+__date__ = "19/02/2019"
 
 import os
 import tempfile
@@ -237,12 +237,13 @@ class AbstractDataViewerTests(TestCaseQt):
         # replace a view that is a child of a composite view
         widget = self.create_widget()
         view = _DataViewMock(widget)
-        widget.replaceView(DataViews.NXDATA_INVALID_MODE,
-                           view)
+        replaced = widget.replaceView(DataViews.NXDATA_INVALID_MODE,
+                                      view)
+        self.assertTrue(replaced)
         nxdata_view = widget.getViewFromModeId(DataViews.NXDATA_MODE)
         self.assertNotIn(DataViews.NXDATA_INVALID_MODE,
-                         [v.modeId() for v in nxdata_view.availableViews()])
-        self.assertTrue(view in nxdata_view.availableViews())
+                         [v.modeId() for v in nxdata_view.getViews()])
+        self.assertTrue(view in nxdata_view.getViews())
 
 
 class TestDataViewer(AbstractDataViewerTests):

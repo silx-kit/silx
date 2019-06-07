@@ -37,7 +37,7 @@ for 2D coordinates.
 
 __authors__ = ["Jérôme Kieffer", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "03/06/2016"
+__date__ = "15/02/2019"
 __status__ = "dev"
 
 
@@ -293,3 +293,27 @@ def circle_fill(int crow, int ccol, float radius):
     rows, cols = numpy.where(coords.reshape(1, len_coords) +
                              coords.reshape(len_coords, 1) < radius ** 2)
     return rows + crow - i_radius, cols + ccol - i_radius
+
+
+def ellipse_fill(int crow, int ccol, float radius_r, float radius_c):
+    """Generates coordinate of image points lying in a ellipse.
+
+    :param int crow: Row of the center of the ellipse
+    :param int ccol: Column of the center of the ellipse
+    :param float radius_r: Radius of the ellipse in the row
+    :param float radius_c: Radius of the ellipse in the column
+    :return: Array coordinates of points inside the ellipse (might be negative)
+    :rtype: 2-tuple of numpy.ndarray (rows, cols)
+    """
+    cdef int i_radius_r
+    cdef int i_radius_c
+
+    i_radius_r = <int>fabs(radius_r)
+    i_radius_c = <int>fabs(radius_c)
+
+    x_coords = numpy.arange(-i_radius_r, ceil(radius_r) + 1, dtype=numpy.float32).reshape(-1, 1)
+    y_coords = numpy.arange(-i_radius_c, ceil(radius_c) + 1, dtype=numpy.float32).reshape(1, -1)
+
+    # rows, cols = where(x**2 + col**2 < 1)
+    rows, cols = numpy.where(x_coords**2 / radius_r**2 + y_coords**2 / radius_c**2 < 1.0)
+    return rows + crow - i_radius_r, cols + ccol - i_radius_c

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -66,17 +66,25 @@ elif 'PyQt4.QtCore' in sys.modules:
 
 else:  # Then try Qt bindings
     try:
-        import PyQt5  # noqa
+        import PyQt5.QtCore  # noqa
     except ImportError:
+        if 'PyQt5' in sys.modules:
+            del sys.modules["PyQt5"]
         try:
-            import PyQt4  # noqa
+            import PyQt4.QtCore  # noqa
         except ImportError:
+            if 'PyQt4' in sys.modules:
+                del sys.modules["PyQt4"]
             try:
-                import PySide2  # noqa
+                import PySide2.QtCore  # noqa
             except ImportError:
+                if 'PySide2' in sys.modules:
+                    del sys.modules["PySide2"]
                 try:
-                    import PySide  # noqa
+                    import PySide.QtCore  # noqa
                 except ImportError:
+                    if 'PySide' in sys.modules:
+                        del sys.modules["PySide"]
                     raise ImportError(
                         'No Qt wrapper found. Install PyQt5, PyQt4 or PySide2.')
                 else:
@@ -210,8 +218,6 @@ elif BINDING == 'PyQt5':
 
 elif BINDING == 'PySide2':
     _logger.debug('Using PySide2 bindings')
-    _logger.warning(
-        'Using PySide2 Qt binding: PySide2 support in silx is experimental!')
 
     import PySide2 as QtBinding  # noqa
 

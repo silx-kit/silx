@@ -1,6 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2018 European Synchrotron Radiation Facility
+#
+# Copyright (c) 2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +21,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+# ###########################################################################*/
+"""Utils function relative to files
+"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/03/2018"
+__date__ = "19/09/2016"
 
-import unittest
+import os.path
+import glob
 
+def expand_filenames(filenames):
+    """
+    Takes a list of paths and expand it into a list of files.
 
-from . import test_sx
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_sx.suite())
-    return test_suite
+    :param List[str] filenames: list of filenames or path with wildcards
+    :rtype: List[str]
+    :return: list of existing filenames or non-existing files
+        (which was provided as input)
+    """
+    result = []
+    for filename in filenames:
+        if os.path.exists(filename):
+            result.append(filename)
+        elif glob.has_magic(filename):
+            result += glob.glob(filename)
+        else:
+            result.append(filename)
+    return result

@@ -37,7 +37,7 @@ class NPFFT(BaseFFT):
         self,
         shape=None,
         dtype=None,
-        data=None,
+        template=None,
         shape_out=None,
         axes=None,
         normalize="rescale",
@@ -45,14 +45,14 @@ class NPFFT(BaseFFT):
         super(NPFFT, self).__init__(
             shape=shape,
             dtype=dtype,
-            data=data,
+            template=template,
             shape_out=shape_out,
             axes=axes,
             normalize=normalize,
         )
         self.backend = "numpy"
         self.real_transform = False
-        if data is not None and np.isrealobj(data):
+        if template is not None and np.isrealobj(template):
             self.real_transform = True
         # For numpy functions.
         # TODO Issue warning if user wants ifft(fft(data)) = N*data ?

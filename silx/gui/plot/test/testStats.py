@@ -33,8 +33,9 @@ from silx.gui import qt
 from silx.gui.plot.stats import stats
 from silx.gui.plot import StatsWidget
 from silx.gui.plot.stats import statshandler
-from silx.gui.utils.testutils import TestCaseQt
+from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import Plot1D, Plot2D
+from silx.utils.testutils import ParametricTestCase
 import unittest
 import logging
 import numpy
@@ -350,7 +351,7 @@ class TestStatsHandler(unittest.TestCase):
             statshandler.StatsHandler(('name'))
 
 
-class TestStatsWidgetWithCurves(TestCaseQt):
+class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
     """Basic test for StatsWidget with curves"""
     def setUp(self):
         TestCaseQt.setUp(self)
@@ -363,7 +364,8 @@ class TestStatsWidgetWithCurves(TestCaseQt):
         self.plot.addCurve(x, y, legend='curve1')
         y = range(-2, 18)
         self.plot.addCurve(x, y, legend='curve2')
-        self.widget = StatsWidget.StatsTable(plot=self.plot)
+        self.widget = StatsWidget.StatsWidget(plot=self.plot)
+        self.statsTable = self.widget._statsTable
 
         mystats = statshandler.StatsHandler((
             stats.StatMin(),
@@ -376,66 +378,134 @@ class TestStatsWidgetWithCurves(TestCaseQt):
             stats.StatCOM()
         ))
 
-        self.widget.setStats(mystats)
+        self.statsTable.setStats(mystats)
 
     def tearDown(self):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
+        self.statsTable = None
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.widget.close()
         self.widget = None
         self.plot = None
         TestCaseQt.tearDown(self)
 
+    def testDisplayActiveItemsSyncOptions(self):
+        """
+        Test that the several option of the sync options are well
+        synchronized between the different object"""
+        widget = StatsWidget.StatsWidget(plot=self.plot)
+        table = StatsWidget.StatsTable(plot=self.plot)
+
+        def check_display_only_active_item(only_active):
+            # check internal value
+            self.assertTrue(widget._statsTable._displayOnlyActItem is only_active)
+            # self.assertTrue(table._displayOnlyActItem is only_active)
+            # check gui display
+            self.assertTrue(widget._options.isActiveItemMode() is only_active)
+
+        for displayOnlyActiveItems in (True, False):
+            with self.subTest(displayOnlyActiveItems=displayOnlyActiveItems):
+                widget.setDisplayOnlyActiveItem(displayOnlyActiveItems)
+                # table.setDisplayOnlyActiveItem(displayOnlyActiveItems)
+                check_display_only_active_item(displayOnlyActiveItems)
+
+        check_display_only_active_item(only_active=False)
+        widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        table.setAttribute(qt.Qt.WA_DeleteOnClose)
+        widget.close()
+        table.close()
+
     def testInit(self):
         """Make sure all the curves are registred on initialization"""
-        self.assertEqual(self.widget.rowCount(), 3)
+        self.assertEqual(self.statsTable.rowCount(), 3)
 
     def testRemoveCurve(self):
         """Make sure the Curves stats take into account the curve removal from
         plot"""
         self.plot.removeCurve('curve2')
-        self.assertEqual(self.widget.rowCount(), 2)
+        self.assertEqual(self.statsTable.rowCount(), 2)
         for iRow in range(2):
-            self.assertTrue(self.widget.item(iRow, 0).text() in ('curve0', 'curve1'))
+            self.assertTrue(self.statsTable.item(iRow, 0).text() in ('curve0', 'curve1'))
 
         self.plot.removeCurve('curve0')
-        self.assertEqual(self.widget.rowCount(), 1)
+        self.assertEqual(self.statsTable.rowCount(), 1)
         self.plot.removeCurve('curve1')
-        self.assertEqual(self.widget.rowCount(), 0)
+        self.assertEqual(self.statsTable.rowCount(), 0)
 
     def testAddCurve(self):
         """Make sure the Curves stats take into account the add curve action"""
         self.plot.addCurve(legend='curve3', x=range(10), y=range(10))
-        self.assertEqual(self.widget.rowCount(), 4)
+        self.assertEqual(self.statsTable.rowCount(), 4)
 
     def testUpdateCurveFromAddCurve(self):
         """Make sure the stats of the cuve will be removed after updating a
         curve"""
         self.plot.addCurve(legend='curve0', x=range(10), y=range(10))
         self.qapp.processEvents()
-        self.assertEqual(self.widget.rowCount(), 3)
+        self.assertEqual(self.statsTable.rowCount(), 3)
         curve = self.plot._getItem(kind='curve', legend='curve0')
-        tableItems = self.widget._itemToTableItems(curve)
+        tableItems = self.statsTable._itemToTableItems(curve)
         self.assertEqual(tableItems['max'].text(), '9')
 
     def testUpdateCurveFromCurveObj(self):
         self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
         self.qapp.processEvents()
-        self.assertEqual(self.widget.rowCount(), 3)
+        self.assertEqual(self.statsTable.rowCount(), 3)
         curve = self.plot._getItem(kind='curve', legend='curve0')
-        tableItems = self.widget._itemToTableItems(curve)
+        tableItems = self.statsTable._itemToTableItems(curve)
         self.assertEqual(tableItems['max'].text(), '3')
 
     def testSetAnotherPlot(self):
         plot2 = Plot1D()
         plot2.addCurve(x=range(26), y=range(26), legend='new curve')
-        self.widget.setPlot(plot2)
-        self.assertEqual(self.widget.rowCount(), 1)
+        self.statsTable.setPlot(plot2)
+        self.assertEqual(self.statsTable.rowCount(), 1)
         self.qapp.processEvents()
         plot2.setAttribute(qt.Qt.WA_DeleteOnClose)
         plot2.close()
         plot2 = None
+
+    def testUpdateMode(self):
+        """Make sure the update modes are well take into account"""
+        self.plot.setActiveCurve('curve0')
+        for display_only_active in (True, False):
+            with self.subTest(display_only_active=display_only_active):
+                self.widget.setDisplayOnlyActiveItem(display_only_active)
+                self.plot.getCurve('curve0').setData(x=range(4), y=range(4))
+                self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
+                update_stats_action = self.widget._options.getUpdateStatsAction()
+                # test from api
+                self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.AUTO)
+                self.widget.show()
+                # check stats change in auto mode
+                self.plot.getCurve('curve0').setData(x=range(4), y=range(-1, 3))
+                self.qapp.processEvents()
+                tableItems = self.statsTable._itemToTableItems(self.plot.getCurve('curve0'))
+                curve0_min = tableItems['min'].text()
+                print(curve0_min)
+                self.assertTrue(float(curve0_min) == -1.)
+
+                self.plot.getCurve('curve0').setData(x=range(4), y=range(1, 5))
+                self.qapp.processEvents()
+                tableItems = self.statsTable._itemToTableItems(self.plot.getCurve('curve0'))
+                curve0_min = tableItems['min'].text()
+                self.assertTrue(float(curve0_min) == 1.)
+
+                # check stats change in manual mode only if requested
+                self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
+                self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.MANUAL)
+
+                self.plot.getCurve('curve0').setData(x=range(4), y=range(2, 6))
+                self.qapp.processEvents()
+                tableItems = self.statsTable._itemToTableItems(self.plot.getCurve('curve0'))
+                curve0_min = tableItems['min'].text()
+                self.assertTrue(float(curve0_min) == 1.)
+
+                update_stats_action.trigger()
+                tableItems = self.statsTable._itemToTableItems(self.plot.getCurve('curve0'))
+                curve0_min = tableItems['min'].text()
+                self.assertTrue(float(curve0_min) == 2.)
 
 
 class TestStatsWidgetWithImages(TestCaseQt):
@@ -556,13 +626,13 @@ class TestLineWidget(TestCaseQt):
 
         self.plot = Plot1D()
         self.plot.show()
-        x = range(20)
-        y = range(20)
-        self.plot.addCurve(x, y, legend='curve0')
-        y = range(12, 32)
-        self.plot.addCurve(x, y, legend='curve1')
-        y = range(-2, 18)
-        self.plot.addCurve(x, y, legend='curve2')
+        self.x = range(20)
+        self.y0 = range(20)
+        self.curve0 = self.plot.addCurve(self.x, self.y0, legend='curve0')
+        self.y1 = range(12, 32)
+        self.plot.addCurve(self.x, self.y1, legend='curve1')
+        self.y2 = range(-2, 18)
+        self.plot.addCurve(self.x, self.y2, legend='curve2')
         self.widget = StatsWidget.BasicGridStatsWidget(plot=self.plot,
                                                        kind='curve',
                                                        stats=mystats)
@@ -572,33 +642,112 @@ class TestLineWidget(TestCaseQt):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         self.widget.setPlot(None)
-        self.widget._statQlineEdit.clear()
+        self.widget._lineStatsWidget._statQlineEdit.clear()
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.widget.close()
         self.widget = None
         self.plot = None
         TestCaseQt.tearDown(self)
 
-    def test(self):
-        self.widget.setStatsOnVisibleData(False)
+    def testProcessing(self):
+        self.widget._lineStatsWidget.setStatsOnVisibleData(False)
         self.qapp.processEvents()
         self.plot.setActiveCurve(legend='curve0')
-        self.assertTrue(self.widget._statQlineEdit['min'].text() == '0.000')
+        self.assertTrue(self.widget._lineStatsWidget._statQlineEdit['min'].text() == '0.000')
         self.plot.setActiveCurve(legend='curve1')
-        self.assertTrue(self.widget._statQlineEdit['min'].text() == '12.000')
+        self.assertTrue(self.widget._lineStatsWidget._statQlineEdit['min'].text() == '12.000')
         self.plot.getXAxis().setLimitsConstraints(minPos=2, maxPos=5)
         self.widget.setStatsOnVisibleData(True)
         self.qapp.processEvents()
-        self.assertTrue(self.widget._statQlineEdit['min'].text() == '14.000')
+        self.assertTrue(self.widget._lineStatsWidget._statQlineEdit['min'].text() == '14.000')
         self.plot.setActiveCurve(None)
         self.assertTrue(self.plot.getActiveCurve() is None)
         self.widget.setStatsOnVisibleData(False)
         self.qapp.processEvents()
-        self.assertFalse(self.widget._statQlineEdit['min'].text() == '14.000')
+        self.assertFalse(self.widget._lineStatsWidget._statQlineEdit['min'].text() == '14.000')
         self.widget.setKind('image')
         self.plot.addImage(numpy.arange(100*100).reshape(100, 100) + 0.312)
         self.qapp.processEvents()
-        self.assertTrue(self.widget._statQlineEdit['min'].text() == '0.312')
+        self.assertTrue(self.widget._lineStatsWidget._statQlineEdit['min'].text() == '0.312')
+
+    def testUpdateMode(self):
+        """Make sure the update modes are well take into account"""
+        self.plot.setActiveCurve(self.curve0)
+        _autoRB = self.widget._options._autoRB
+        _manualRB = self.widget._options._manualRB
+        # test from api
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
+        self.assertTrue(_autoRB.isChecked())
+        self.assertFalse(_manualRB.isChecked())
+
+        # check stats change in auto mode
+        curve0_min = self.widget._lineStatsWidget._statQlineEdit['min'].text()
+        new_y = numpy.array(self.y0) - 2.56
+        self.plot.addCurve(x=self.x, y=new_y, legend=self.curve0)
+        curve0_min2 = self.widget._lineStatsWidget._statQlineEdit['min'].text()
+        self.assertTrue(curve0_min != curve0_min2)
+
+        # check stats change in manual mode only if requested
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
+        self.assertFalse(_autoRB.isChecked())
+        self.assertTrue(_manualRB.isChecked())
+
+        new_y = numpy.array(self.y0) - 1.2
+        self.plot.addCurve(x=self.x, y=new_y, legend=self.curve0)
+        curve0_min3 = self.widget._lineStatsWidget._statQlineEdit['min'].text()
+        self.assertTrue(curve0_min3 == curve0_min2)
+        self.widget._options._updateRequested()
+        curve0_min3 = self.widget._lineStatsWidget._statQlineEdit['min'].text()
+        self.assertTrue(curve0_min3 != curve0_min2)
+
+        # test from gui
+        self.widget.showRadioButtons(True)
+        self.widget._options._autoRB.toggle()
+        self.assertTrue(_autoRB.isChecked())
+        self.assertFalse(_manualRB.isChecked())
+
+        self.widget._options._manualRB.toggle()
+        self.assertFalse(_autoRB.isChecked())
+        self.assertTrue(_manualRB.isChecked())
+
+
+class TestUpdateModeWidget(TestCaseQt):
+    """Test UpdateModeWidget"""
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.widget = StatsWidget.UpdateModeWidget(parent=None)
+
+    def tearDown(self):
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        self.widget = None
+        TestCaseQt.tearDown(self)
+
+    def testSignals(self):
+        """Test the signal emission of the widget"""
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
+        modeChangedListener = SignalListener()
+        manualUpdateListener = SignalListener()
+        self.widget.sigUpdateModeChanged.connect(modeChangedListener)
+        self.widget.sigUpdateRequested.connect(manualUpdateListener)
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
+        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.AUTO)
+        self.assertTrue(modeChangedListener.callCount() is 0)
+        self.qapp.processEvents()
+
+        self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
+        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.MANUAL)
+        self.qapp.processEvents()
+        self.assertTrue(modeChangedListener.callCount() is 1)
+        self.assertTrue(manualUpdateListener.callCount() is 0)
+        self.widget._updatePB.click()
+        self.widget._updatePB.click()
+        self.assertTrue(manualUpdateListener.callCount() is 2)
+
+        self.widget._autoRB.setChecked(True)
+        self.assertTrue(modeChangedListener.callCount() is 2)
+        self.widget._updatePB.click()
+        self.assertTrue(manualUpdateListener.callCount() is 2)
 
 
 def suite():
@@ -606,7 +755,7 @@ def suite():
     for TestClass in (TestStats, TestStatsHandler, TestStatsWidgetWithScatters,
                       TestStatsWidgetWithImages, TestStatsWidgetWithCurves,
                       TestStatsFormatter, TestEmptyStatsWidget,
-                      TestLineWidget):
+                      TestLineWidget, TestUpdateModeWidget):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite

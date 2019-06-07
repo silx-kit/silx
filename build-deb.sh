@@ -57,7 +57,7 @@ then
                 debian_version=9
                 ;;
             buster)
-                debian_version=9
+                debian_version=10
                 ;;
         esac
     fi

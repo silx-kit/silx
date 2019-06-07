@@ -13,13 +13,17 @@
 Utility functions
 -----------------
 
-.. currentmodule:: silx.gui._glutils
+.. currentmodule:: silx.gui._glutils.Context
 
 For OpenGL context management:
 
-.. autofunction:: getGLContext
+.. autofunction:: getCurrent
 
-.. autofunction:: setGLContextGetter
+.. autofunction:: setCurrent
+
+.. autofunction:: current
+
+.. currentmodule:: silx.gui._glutils
 
 For type checking and conversion:
 

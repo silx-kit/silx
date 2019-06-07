@@ -11,6 +11,9 @@
    sift/index.rst
    fbp.rst
    sinofilter.rst
+   processing.rst
+   convolution.rst
+   statistics.rst
    medfilt.rst
    codec_cbf.rst
 

@@ -30,6 +30,10 @@ __license__ = "MIT"
 __date__ = "29/01/2019"
 
 import collections
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 from copy import deepcopy
 import logging
 import enum
@@ -39,10 +43,12 @@ import weakref
 import numpy
 import six
 
+from ....utils.enum import Enum as _Enum
 from ... import qt
 from ... import colors
 from ...colors import Colormap
 
+from silx import config
 
 _logger = logging.getLogger(__name__)
 
@@ -126,6 +132,9 @@ class ItemChangedType(enum.Enum):
 
     VISUALIZATION_MODE = 'visualizationModeChanged'
     """Item's visualization mode changed flag."""
+
+    COMPLEX_MODE = 'complexModeChanged'
+    """Item's complex data visualization mode changed flag."""
 
 
 class Item(qt.QObject):
@@ -403,6 +412,14 @@ class DraggableMixIn(ItemMixInBase):
         """
         self._draggable = bool(draggable)
 
+    def drag(self, from_, to):
+        """Perform a drag of the item.
+
+        :param List[float] from_: (x, y) previous position in data coordinates
+        :param List[float] to: (x, y) current position in data coordinates
+        """
+        raise NotImplementedError("Must be implemented in subclass")
+
 
 class ColormapMixIn(ItemMixInBase):
     """Mix-in class for items with colormap"""
@@ -440,10 +457,10 @@ class ColormapMixIn(ItemMixInBase):
 class SymbolMixIn(ItemMixInBase):
     """Mix-in class for items with symbol type"""
 
-    _DEFAULT_SYMBOL = ''
+    _DEFAULT_SYMBOL = None
     """Default marker of the item"""
 
-    _DEFAULT_SYMBOL_SIZE = 6.0
+    _DEFAULT_SYMBOL_SIZE = config.DEFAULT_PLOT_SYMBOL_SIZE
     """Default marker size of the item"""
 
     _SUPPORTED_SYMBOLS = collections.OrderedDict((
@@ -458,8 +475,15 @@ class SymbolMixIn(ItemMixInBase):
     """Dict of supported symbols"""
 
     def __init__(self):
-        self._symbol = self._DEFAULT_SYMBOL
-        self._symbol_size = self._DEFAULT_SYMBOL_SIZE
+        if self._DEFAULT_SYMBOL is None:  # Use default from config
+            self._symbol = config.DEFAULT_PLOT_SYMBOL
+        else:
+            self._symbol = self._DEFAULT_SYMBOL
+
+        if self._DEFAULT_SYMBOL_SIZE is None:  # Use default from config
+            self._symbol_size = config.DEFAULT_PLOT_SYMBOL_SIZE
+        else:
+            self._symbol_size = self._DEFAULT_SYMBOL_SIZE
 
     @classmethod
     def getSupportedSymbols(cls):
@@ -749,7 +773,164 @@ class AlphaMixIn(ItemMixInBase):
             self._updated(ItemChangedType.ALPHA)
 
 
-class Points(Item, SymbolMixIn, AlphaMixIn):
+class ComplexMixIn(ItemMixInBase):
+    """Mix-in class for complex data mode"""
+
+    _SUPPORTED_COMPLEX_MODES = None
+    """Override to only support a subset of all ComplexMode"""
+
+    class ComplexMode(_Enum):
+        """Identify available display mode for complex"""
+        ABSOLUTE = 'amplitude'
+        PHASE = 'phase'
+        REAL = 'real'
+        IMAGINARY = 'imaginary'
+        AMPLITUDE_PHASE = 'amplitude_phase'
+        LOG10_AMPLITUDE_PHASE = 'log10_amplitude_phase'
+        SQUARE_AMPLITUDE = 'square_amplitude'
+
+    def __init__(self):
+        self.__complex_mode = self.ComplexMode.ABSOLUTE
+
+    def getComplexMode(self):
+        """Returns the current complex visualization mode.
+
+        :rtype: ComplexMode
+        """
+        return self.__complex_mode
+
+    def setComplexMode(self, mode):
+        """Set the complex visualization mode.
+
+        :param ComplexMode mode: The visualization mode in:
+            'real', 'imaginary', 'phase', 'amplitude'
+        :return: True if value was set, False if is was already set
+        :rtype: bool
+        """
+        mode = self.ComplexMode.from_value(mode)
+        assert mode in self.supportedComplexModes()
+
+        if mode != self.__complex_mode:
+            self.__complex_mode = mode
+            self._updated(ItemChangedType.COMPLEX_MODE)
+            return True
+        else:
+            return False
+
+    def _convertComplexData(self, data, mode=None):
+        """Convert complex data to the specific mode.
+
+        :param Union[ComplexMode,None] mode:
+            The kind of value to compute.
+            If None (the default), the current complex mode is used.
+        :return: The converted dataset
+        :rtype: Union[numpy.ndarray[float],None]
+        """
+        if data is None:
+            return None
+
+        if mode is None:
+            mode = self.getComplexMode()
+
+        if mode is self.ComplexMode.REAL:
+            return numpy.real(data)
+        elif mode is self.ComplexMode.IMAGINARY:
+            return numpy.imag(data)
+        elif mode is self.ComplexMode.ABSOLUTE:
+            return numpy.absolute(data)
+        elif mode is self.ComplexMode.PHASE:
+            return numpy.angle(data)
+        elif mode is self.ComplexMode.SQUARE_AMPLITUDE:
+            return numpy.absolute(data) ** 2
+        else:
+            raise ValueError('Unsupported conversion mode: %s', str(mode))
+
+    @classmethod
+    def supportedComplexModes(cls):
+        """Returns the list of supported complex visualization modes.
+
+        See :class:`ComplexMode` and :meth:`setComplexMode`.
+
+        :rtype: List[ComplexMode]
+        """
+        if cls._SUPPORTED_COMPLEX_MODES is None:
+            return cls.ComplexMode.members()
+        else:
+            return cls._SUPPORTED_COMPLEX_MODES
+
+
+class ScatterVisualizationMixIn(ItemMixInBase):
+    """Mix-in class for scatter plot visualization modes"""
+
+    _SUPPORTED_SCATTER_VISUALIZATION = None
+    """Allows to override supported Visualizations"""
+
+    @enum.unique
+    class Visualization(_Enum):
+        """Different modes of scatter plot visualizations"""
+
+        POINTS = 'points'
+        """Display scatter plot as a point cloud"""
+
+        LINES = 'lines'
+        """Display scatter plot as a wireframe.
+
+        This is based on Delaunay triangulation
+        """
+
+        SOLID = 'solid'
+        """Display scatter plot as a set of filled triangles.
+
+        This is based on Delaunay triangulation
+        """
+
+    def __init__(self):
+        self.__visualization = self.Visualization.POINTS
+
+    @classmethod
+    def supportedVisualizations(cls):
+        """Returns the list of supported scatter visualization modes.
+
+        See :meth:`setVisualization`
+
+        :rtype: List[Visualization]
+        """
+        if cls._SUPPORTED_SCATTER_VISUALIZATION is None:
+            return cls.Visualization.members()
+        else:
+            return cls._SUPPORTED_SCATTER_VISUALIZATION
+
+    def setVisualization(self, mode):
+        """Set the scatter plot visualization mode to use.
+
+        See :class:`Visualization` for all possible values,
+        and :meth:`supportedVisualizations` for supported ones.
+
+        :param Union[str,Visualization] mode:
+            The visualization mode to use.
+        :return: True if value was set, False if is was already set
+        :rtype: bool
+        """
+        mode = self.Visualization.from_value(mode)
+        assert mode in self.supportedVisualizations()
+
+        if mode != self.__visualization:
+            self.__visualization = mode
+
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+            return True
+        else:
+            return False
+
+    def getVisualization(self):
+        """Returns the scatter plot visualization mode in use.
+
+        :rtype: Visualization
+        """
+        return self.__visualization
+
+
+class PointsBase(Item, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature
@@ -898,8 +1079,7 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         if (xPositive, yPositive) not in self._boundsCache:
             # use the getData class method because instance method can be
             # overloaded to return additional arrays
-            data = Points.getData(self, copy=False,
-                                  displayed=True)
+            data = PointsBase.getData(self, copy=False, displayed=True)
             if len(data) == 5:
                 # hack to avoid duplicating caching mechanism in Scatter
                 # (happens when cached data is used, caching done using
@@ -908,12 +1088,15 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
             else:
                 x, y, _xerror, _yerror = data
 
-            self._boundsCache[(xPositive, yPositive)] = (
-                numpy.nanmin(x),
-                numpy.nanmax(x),
-                numpy.nanmin(y),
-                numpy.nanmax(y)
-            )
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', category=RuntimeWarning)
+                # Ignore All-NaN slice encountered
+                self._boundsCache[(xPositive, yPositive)] = (
+                    numpy.nanmin(x),
+                    numpy.nanmax(x),
+                    numpy.nanmin(y),
+                    numpy.nanmax(y)
+                )
         return self._boundsCache[(xPositive, yPositive)]
 
     def _getCachedData(self):
@@ -1018,12 +1201,12 @@ class Points(Item, SymbolMixIn, AlphaMixIn):
         assert x.ndim == y.ndim == 1
 
         if xerror is not None:
-            if isinstance(xerror, collections.Iterable):
+            if isinstance(xerror, abc.Iterable):
                 xerror = numpy.array(xerror, copy=copy)
             else:
                 xerror = float(xerror)
         if yerror is not None:
-            if isinstance(yerror, collections.Iterable):
+            if isinstance(yerror, abc.Iterable):
                 yerror = numpy.array(yerror, copy=copy)
             else:
                 yerror = float(yerror)

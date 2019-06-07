@@ -31,14 +31,19 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/11/2017"
 
-import collections
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import logging
-import sys
 import numpy
 
 from ....utils.deprecation import deprecated
+from ... import _glutils as glu
+from ...plot._utils.delaunay import triangulation
 from ..scene import function, primitives, utils
 
+from ...plot.items import ScatterVisualizationMixIn
 from .core import DataItem3D, Item3DChangedType, ItemChangedType
 from .mixins import ColormapMixIn, SymbolMixIn
 from ._pick import PickingResult
@@ -213,16 +218,19 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             return None
 
 
-class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
+class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
+                ScatterVisualizationMixIn):
     """2D scatter data with settable visualization mode.
 
     :param parent: The View widget this item belongs to.
     """
 
     _VISUALIZATION_PROPERTIES = {
-        'points': ('symbol', 'symbolSize'),
-        'lines':  ('lineWidth',),
-        'solid': (),
+        ScatterVisualizationMixIn.Visualization.POINTS:
+            ('symbol', 'symbolSize'),
+        ScatterVisualizationMixIn.Visualization.LINES:
+            ('lineWidth',),
+        ScatterVisualizationMixIn.Visualization.SOLID: (),
     }
     """Dict {visualization mode: property names used in this mode}"""
 
@@ -230,8 +238,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         DataItem3D.__init__(self, parent=parent)
         ColormapMixIn.__init__(self)
         SymbolMixIn.__init__(self)
+        ScatterVisualizationMixIn.__init__(self)
 
-        self._visualizationMode = 'points'
         self._heightMap = False
         self._lineWidth = 1.
 
@@ -254,48 +262,14 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
                     child.marker = symbol
                     child.setAttribute('size', size, copy=True)
 
-        elif event == ItemChangedType.VISIBLE:
+        elif event is ItemChangedType.VISIBLE:
             # TODO smart update?, need dirty flags
             self._updateScene()
 
-        super(Scatter2D, self)._updated(event)
-
-    def supportedVisualizations(self):
-        """Returns the list of supported visualization modes.
-
-        See :meth:`setVisualizationModes`
-
-        :rtype: tuple of str
-        """
-        return tuple(self._VISUALIZATION_PROPERTIES.keys())
-
-    def setVisualization(self, mode):
-        """Set the visualization mode of the data.
-
-        Supported visualization modes are:
-
-        - 'points': For scatter plot representation
-        - 'lines': For Delaunay tessellation-based wireframe representation
-        - 'solid': For Delaunay tessellation-based solid surface representation
-
-        :param str mode: Mode of representation to use
-        """
-        mode = str(mode)
-        assert mode in self.supportedVisualizations()
-
-        if mode != self.getVisualization():
-            self._visualizationMode = mode
+        elif event is ItemChangedType.VISUALIZATION_MODE:
             self._updateScene()
-            self._updated(ItemChangedType.VISUALIZATION_MODE)
 
-    def getVisualization(self):
-        """Returns the current visualization mode.
-
-         See :meth:`setVisualization`
-
-        :rtype: str
-        """
-        return self._visualizationMode
+        super(Scatter2D, self)._updated(event)
 
     def isPropertyEnabled(self, name, visualization=None):
         """Returns true if the property is used with visualization mode.
@@ -374,7 +348,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             y, copy=copy, dtype=numpy.float32, order='C').reshape(-1)
         assert len(x) == len(y)
 
-        if isinstance(value, collections.Iterable):
+        if isinstance(value, abc.Iterable):
             value = numpy.array(
                 value, copy=copy, dtype=numpy.float32, order='C').reshape(-1)
             assert len(value) == len(x)
@@ -503,7 +477,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
         trianglesIndices = self._cachedTrianglesIndices.reshape(-1, 3)
         triangles = points[trianglesIndices, :3]
-        selectedIndices, t, barycentric = utils.segmentTrianglesIntersection(
+        selectedIndices, t, barycentric = glu.segmentTrianglesIntersection(
             rayObject, triangles)
         closest = numpy.argmax(barycentric, axis=1)
 
@@ -542,14 +516,14 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
                                   numpy.ones_like(xData)))
 
         mode = self.getVisualization()
-        if mode == 'points':
+        if mode is self.Visualization.POINTS:
             # TODO issue with symbol size: using pixel instead of points
             # Get "corrected" symbol size
             _, threshold = self._getSceneSymbol()
             return self._pickPoints(
                 context, points, threshold=max(3., threshold))
 
-        elif mode == 'lines':
+        elif mode is self.Visualization.LINES:
             # Picking only at point
             return self._pickPoints(context, points, threshold=5.)
 
@@ -569,7 +543,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
         mode = self.getVisualization()
         heightMap = self.isHeightMap()
 
-        if mode == 'points':
+        if mode is self.Visualization.POINTS:
             z = value if heightMap else 0.
             symbol, size = self._getSceneSymbol()
             primitive = primitives.Points(
@@ -582,35 +556,18 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
             # TODO run delaunay in a thread
             # Compute lines/triangles indices if not cached
             if self._cachedTrianglesIndices is None:
-                coordinates = numpy.array((x, y)).T
+                triangles = triangulation(x, y, dtype=numpy.uint32)
+                if triangles is None:
+                    return None
+                self._cachedTrianglesIndices = numpy.ravel(triangles)
 
-                if len(coordinates) > 3:
-                    # Enough points to try a Delaunay tesselation
-
-                    # Lazy loading of Delaunay
-                    from silx.third_party.scipy_spatial import Delaunay as _Delaunay
-
-                    try:
-                        tri = _Delaunay(coordinates)
-                    except RuntimeError:
-                        _logger.error("Delaunay tesselation failed: %s",
-                                      sys.exc_info()[1])
-                        return None
-
-                    self._cachedTrianglesIndices = numpy.ravel(
-                        tri.simplices.astype(numpy.uint32))
-
-                else:
-                    # 3 or less points: Draw one triangle
-                    self._cachedTrianglesIndices = \
-                        numpy.arange(3, dtype=numpy.uint32) % len(coordinates)
-
-            if mode == 'lines' and self._cachedLinesIndices is None:
+            if (mode is self.Visualization.LINES and
+                    self._cachedLinesIndices is None):
                 # Compute line indices
                 self._cachedLinesIndices = utils.triangleToLineIndices(
                     self._cachedTrianglesIndices, unicity=True)
 
-            if mode == 'lines':
+            if mode is self.Visualization.LINES:
                 indices = self._cachedLinesIndices
                 renderMode = 'lines'
             else:
@@ -627,7 +584,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
             # TODO option to enable/disable light, cache normals
             # TODO smooth surface
-            if mode == 'solid':
+            if mode is self.Visualization.SOLID:
                 if heightMap:
                     coordinates = coordinates[indices]
                     if len(value) > 1:

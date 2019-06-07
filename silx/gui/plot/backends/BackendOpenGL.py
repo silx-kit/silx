@@ -31,8 +31,9 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 from collections import OrderedDict, namedtuple
-from ctypes import c_void_p
 import logging
+import warnings
+import weakref
 
 import numpy
 
@@ -44,7 +45,7 @@ from ... import qt
 from ..._glutils import gl
 from ... import _glutils as glu
 from .glutils import (
-    GLLines2D,
+    GLLines2D, GLPlotTriangles,
     GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D,
     mat4Ortho, mat4Identity,
     LEFT, RIGHT, BOTTOM, TOP,
@@ -106,7 +107,7 @@ class PlotDataContent(object):
     This class is only meant to work with _OpenGLPlotCanvas.
     """
 
-    _PRIMITIVE_TYPES = 'curve', 'image'
+    _PRIMITIVE_TYPES = 'curve', 'image', 'triangles'
 
     def __init__(self):
         self._primitives = OrderedDict()  # For images and curves
@@ -124,6 +125,8 @@ class PlotDataContent(object):
             primitiveType = 'curve'
         elif isinstance(primitive, (GLPlotColormap, GLPlotRGBAImage)):
             primitiveType = 'image'
+        elif isinstance(primitive, GLPlotTriangles):
+            primitiveType = 'triangles'
         else:
             raise RuntimeError('Unsupported object type: %s', primitive)
 
@@ -304,15 +307,7 @@ _texFragShd = """
     }
     """
 
-
 # BackendOpenGL ###############################################################
-
-_current_context = None
-
-
-def _getContext():
-    assert _current_context is not None
-    return _current_context
 
 
 class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
@@ -348,7 +343,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             _baseVertShd, _baseFragShd, attrib0='position')
         self._progTex = glu.Program(
             _texVertShd, _texFragShd, attrib0='position')
-        self._plotFBOs = {}
+        self._plotFBOs = weakref.WeakKeyDictionary()
 
         self._keepDataAspectRatio = False
 
@@ -386,6 +381,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return qt.QSize(8 * 80, 6 * 80)  # Mimic MatplotlibBackend
 
     def mousePressEvent(self, event):
+        if event.button() not in self._MOUSE_BTNS:
+            return super(BackendOpenGL, self).mousePressEvent(event)
         xPixel = event.x() * self.getDevicePixelRatio()
         yPixel = event.y() * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
@@ -411,6 +408,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         event.accept()
 
     def mouseReleaseEvent(self, event):
+        if event.button() not in self._MOUSE_BTNS:
+            return super(BackendOpenGL, self).mouseReleaseEvent(event)
         xPixel = event.x() * self.getDevicePixelRatio()
         yPixel = event.y() * self.getDevicePixelRatio()
 
@@ -462,15 +461,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderOverlayGL()
 
     def _paintFBOGL(self):
-        context = glu.getGLContext()
+        context = glu.Context.getCurrent()
         plotFBOTex = self._plotFBOs.get(context)
         if (self._plot._getDirtyPlot() or self._plotFrame.isDirty or
                 plotFBOTex is None):
-            self._plotVertices = numpy.array(((-1., -1., 0., 0.),
-                                             (1., -1., 1., 0.),
-                                             (-1., 1., 0., 1.),
-                                             (1., 1., 1., 1.)),
-                                             dtype=numpy.float32)
+            self._plotVertices = (
+                # Vertex coordinates
+                numpy.array(((-1., -1.), (1., -1.), (-1., 1.), (1., 1.)),
+                             dtype=numpy.float32),
+                 # Texture coordinates
+                 numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
+                             dtype=numpy.float32))
             if plotFBOTex is None or \
                plotFBOTex.shape[1] != self._plotFrame.size[0] or \
                plotFBOTex.shape[0] != self._plotFrame.size[1]:
@@ -502,53 +503,45 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         gl.glUniformMatrix4fv(self._progTex.uniforms['matrix'], 1, gl.GL_TRUE,
                               mat4Identity().astype(numpy.float32))
 
-        stride = self._plotVertices.shape[-1] * self._plotVertices.itemsize
         gl.glEnableVertexAttribArray(self._progTex.attributes['position'])
         gl.glVertexAttribPointer(self._progTex.attributes['position'],
                                  2,
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
-                                 stride, self._plotVertices)
+                                 0,
+                                 self._plotVertices[0])
 
-        texCoordsPtr = c_void_p(self._plotVertices.ctypes.data +
-                                2 * self._plotVertices.itemsize)  # Better way?
         gl.glEnableVertexAttribArray(self._progTex.attributes['texCoords'])
         gl.glVertexAttribPointer(self._progTex.attributes['texCoords'],
                                  2,
                                  gl.GL_FLOAT,
                                  gl.GL_FALSE,
-                                 stride, texCoordsPtr)
+                                 0,
+                                 self._plotVertices[1])
 
         with plotFBOTex.texture:
-            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices))
+            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices[0]))
 
         self._renderMarkersGL()
         self._renderOverlayGL()
 
     def paintGL(self):
-        global _current_context
-        _current_context = self.context()
+        with glu.Context.current(self.context()):
+            # Release OpenGL resources
+            for item in self._glGarbageCollector:
+                item.discard()
+            self._glGarbageCollector = []
 
-        glu.setGLContextGetter(_getContext)
+            gl.glClearColor(*self._backgroundColor)
+            gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
 
-        # Release OpenGL resources
-        for item in self._glGarbageCollector:
-            item.discard()
-        self._glGarbageCollector = []
+            # Check if window is large enough
+            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+            if plotWidth <= 2 or plotHeight <= 2:
+                return
 
-        gl.glClearColor(*self._backgroundColor)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
-
-        # Check if window is large enough
-        plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-        if plotWidth <= 2 or plotHeight <= 2:
-            return
-
-        # self._paintDirectGL()
-        self._paintFBOGL()
-
-        glu.setGLContextGetter()
-        _current_context = None
+            # self._paintDirectGL()
+            self._paintFBOGL()
 
     def _renderMarkersGL(self):
         if len(self._markers) == 0:
@@ -892,7 +885,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     xErrorMinus, xErrorPlus = xerror[0], xerror[1]
                 else:
                     xErrorMinus, xErrorPlus = xerror, xerror
-                xErrorMinus = logX - numpy.log10(x - xErrorMinus)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    # Ignore divide by zero, invalid value encountered in log10
+                    xErrorMinus = logX - numpy.log10(x - xErrorMinus)
                 xErrorPlus = numpy.log10(x + xErrorPlus) - logX
                 xerror = numpy.array((xErrorMinus, xErrorPlus),
                                      dtype=numpy.float32)
@@ -912,7 +908,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     yErrorMinus, yErrorPlus = yerror[0], yerror[1]
                 else:
                     yErrorMinus, yErrorPlus = yerror, yerror
-                yErrorMinus = logY - numpy.log10(y - yErrorMinus)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    # Ignore divide by zero, invalid value encountered in log10
+                    yErrorMinus = logY - numpy.log10(y - yErrorMinus)
                 yErrorPlus = numpy.log10(y + yErrorPlus) - logY
                 yerror = numpy.array((yErrorMinus, yErrorPlus),
                                      dtype=numpy.float32)
@@ -1043,6 +1042,25 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return legend, 'image'
 
+    def addTriangles(self, x, y, triangles, legend,
+                     color, z, selectable, alpha):
+
+        # Handle axes log scale: convert data
+        if self._plotFrame.xAxis.isLog:
+            x = numpy.log10(x)
+        if self._plotFrame.yAxis.isLog:
+            y = numpy.log10(y)
+
+        triangles = GLPlotTriangles(x, y, color, triangles, alpha)
+        triangles.info = {
+            'legend': legend,
+            'zOrder': z,
+            'behaviors': set(['selectable']) if selectable else set(),
+        }
+        self._plotContent.add(triangles)
+
+        return legend, 'triangles'
+
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
         # TODO handle overlay
@@ -1132,10 +1150,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 self._glGarbageCollector.append(curve)
 
-        elif kind == 'image':
-            image = self._plotContent.pop('image', legend)
-            if image is not None:
-                self._glGarbageCollector.append(image)
+        elif kind in ('image', 'triangles'):
+            item = self._plotContent.pop(kind, legend)
+            if item is not None:
+                self._glGarbageCollector.append(item)
 
         elif kind == 'marker':
             self._markers.pop(legend, False)
@@ -1188,6 +1206,60 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._plotFrame.size[1] - self._plotFrame.margins.bottom - 1)
         return xPlot, yPlot
 
+    def __pickCurves(self, item, x, y):
+        """Perform picking on a curve item.
+
+        :param GLPlotCurve2D item:
+        :param float x: X position of the mouse in widget coordinates
+        :param float y: Y position of the mouse in widget coordinates
+        :return: List of indices of picked points
+        :rtype: List[int]
+        """
+        offset = self._PICK_OFFSET
+        if item.marker is not None:
+            offset = max(item.markerSize / 2., offset)
+        if item.lineStyle is not None:
+            offset = max(item.lineWidth / 2., offset)
+
+        yAxis = item.info['yAxis']
+
+        inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
+        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
+                                   axis=yAxis, check=True)
+        if dataPos is None:
+            return []
+        xPick0, yPick0 = dataPos
+
+        inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
+        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
+                                   axis=yAxis, check=True)
+        if dataPos is None:
+            return []
+        xPick1, yPick1 = dataPos
+
+        if xPick0 < xPick1:
+            xPickMin, xPickMax = xPick0, xPick1
+        else:
+            xPickMin, xPickMax = xPick1, xPick0
+
+        if yPick0 < yPick1:
+            yPickMin, yPickMax = yPick0, yPick1
+        else:
+            yPickMin, yPickMax = yPick1, yPick0
+
+        # Apply log scale if axis is log
+        if self._plotFrame.xAxis.isLog:
+            xPickMin = numpy.log10(xPickMin)
+            xPickMax = numpy.log10(xPickMax)
+
+        if (yAxis == 'left' and self._plotFrame.yAxis.isLog) or (
+                yAxis == 'right' and self._plotFrame.y2Axis.isLog):
+            yPickMin = numpy.log10(yPickMin)
+            yPickMax = numpy.log10(yPickMax)
+
+        return item.pick(xPickMin, yPickMin,
+                         xPickMax, yPickMax)
+
     def pickItems(self, x, y, kinds):
         picked = []
 
@@ -1236,56 +1308,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             picked.append(dict(kind='image',
                                                legend=item.info['legend']))
 
-                    elif 'curve' in kinds and isinstance(item, GLPlotCurve2D):
-                        offset = self._PICK_OFFSET
-                        if item.marker is not None:
-                            offset = max(item.markerSize / 2., offset)
-                        if item.lineStyle is not None:
-                            offset = max(item.lineWidth / 2., offset)
+                    elif 'curve' in kinds:
+                        if isinstance(item, GLPlotCurve2D):
+                            pickedIndices = self.__pickCurves(item, x, y)
+                            if pickedIndices:
+                                picked.append(dict(kind='curve',
+                                                   legend=item.info['legend'],
+                                                   indices=pickedIndices))
 
-                        yAxis = item.info['yAxis']
-
-                        inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
-                        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                                   axis=yAxis, check=True)
-                        if dataPos is None:
-                            continue
-                        xPick0, yPick0 = dataPos
-
-                        inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
-                        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                                   axis=yAxis, check=True)
-                        if dataPos is None:
-                            continue
-                        xPick1, yPick1 = dataPos
-
-                        if xPick0 < xPick1:
-                            xPickMin, xPickMax = xPick0, xPick1
-                        else:
-                            xPickMin, xPickMax = xPick1, xPick0
-
-                        if yPick0 < yPick1:
-                            yPickMin, yPickMax = yPick0, yPick1
-                        else:
-                            yPickMin, yPickMax = yPick1, yPick0
-
-                        # Apply log scale if axis is log
-                        if self._plotFrame.xAxis.isLog:
-                            xPickMin = numpy.log10(xPickMin)
-                            xPickMax = numpy.log10(xPickMax)
-
-                        if (yAxis == 'left' and self._plotFrame.yAxis.isLog) or (
-                                yAxis == 'right' and self._plotFrame.y2Axis.isLog):
-                            yPickMin = numpy.log10(yPickMin)
-                            yPickMax = numpy.log10(yPickMax)
-
-                        pickedIndices = item.pick(xPickMin, yPickMin,
-                                                  xPickMax, yPickMax)
-                        if pickedIndices:
-                            picked.append(dict(kind='curve',
-                                               legend=item.info['legend'],
-                                               indices=pickedIndices))
-
+                        elif isinstance(item, GLPlotTriangles):
+                            pickedIndices = item.pick(*dataPos)
+                            if pickedIndices:
+                                picked.append(dict(kind='curve',
+                                                   legend=item.info['legend'],
+                                                   indices=pickedIndices))
         return picked
 
     # Update curve

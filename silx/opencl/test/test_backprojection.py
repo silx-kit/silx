@@ -45,7 +45,7 @@ except ImportError:
 from ..common import ocl
 if ocl:
     from .. import backprojection
-    from ..sinofilter import compute_fourier_filter
+    from ...image.tomography import compute_fourier_filter
 from silx.test.utils import utilstest
 
 logger = logging.getLogger(__name__)
@@ -199,11 +199,30 @@ class TestFBP(unittest.TestCase):
                 "Something wrong with FBP(filter=%s)" % filter_name
             )
 
+    @unittest.skipUnless(ocl and mako, "pyopencl is missing")
+    def test_fbp_oddsize(self):
+        # Generate a 513-sinogram.
+        # The padded width will be nextpow(513*2).
+        # silx [0.10, 0.10.1] will give 1029, which makes R2C transform fail.
+        sino = np.pad(self.sino, ((0, 0), (1, 0)), mode='edge')
+        B = backprojection.Backprojection(sino.shape, axis_position=self.fbp.axis_pos+1)
+        res = B(sino)
+        # Compare with self.reference_rec. Tolerance is high as backprojector
+        # is not fully shift-invariant.
+        errmax = np.max(np.abs(clip_circle(res[1:, 1:] - self.reference_rec)))
+        self.assertLess(
+            errmax, 1.e-1,
+            "Something wrong with FBP on odd-sized sinogram"
+        )
+
+
+
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestFBP("test_fbp"))
     testSuite.addTest(TestFBP("test_fbp_filters"))
+    testSuite.addTest(TestFBP("test_fbp_oddsize"))
     return testSuite
 
 

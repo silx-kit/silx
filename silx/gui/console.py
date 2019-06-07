@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,17 +87,26 @@ else:
     msg = "Module " + __name__ + " cannot be used within an IPython shell"
     raise ImportError(msg)
 
-
 try:
-    from qtconsole.rich_ipython_widget import RichJupyterWidget as \
-        RichIPythonWidget
+    from qtconsole.rich_jupyter_widget import RichJupyterWidget as \
+        _RichJupyterWidget
 except ImportError:
-    from qtconsole.rich_ipython_widget import RichIPythonWidget
+    try:
+        from qtconsole.rich_ipython_widget import RichJupyterWidget as \
+            _RichJupyterWidget
+    except ImportError:
+        from qtconsole.rich_ipython_widget import RichIPythonWidget as \
+            _RichJupyterWidget
 
 from qtconsole.inprocess import QtInProcessKernelManager
 
+try:
+    from ipykernel import version_info as _ipykernel_version_info
+except ImportError:
+    _ipykernel_version_info = None
 
-class IPythonWidget(RichIPythonWidget):
+
+class IPythonWidget(_RichJupyterWidget):
     """Live IPython console widget.
 
     .. image:: img/IPythonWidget.png
@@ -115,6 +124,16 @@ class IPythonWidget(RichIPythonWidget):
         self.setWindowTitle(self.banner)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()
         kernel_manager.start_kernel()
+
+        # Monkey-patch to workaround issue:
+        # https://github.com/ipython/ipykernel/issues/370
+        if (_ipykernel_version_info is not None and
+                _ipykernel_version_info[0] > 4 and
+                _ipykernel_version_info[:3] <= (5, 1, 0)):
+            def _abort_queues(*args, **kwargs):
+                pass
+            kernel_manager.kernel._abort_queues = _abort_queues
+
         self.kernel_client = kernel_client = self._kernel_manager.client()
         kernel_client.start_channels()
 
@@ -177,6 +196,7 @@ def main():
     widget = IPythonDockWidget()
     widget.show()
     app.exec_()
+
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "26/01/2017"
 
 
+from silx.utils.proxy import docstring
 from silx.gui import qt
 
 from .Plot3DWidget import Plot3DWidget
@@ -62,32 +63,26 @@ class Plot3DWindow(qt.QMainWindow):
 
     # Proxy to Plot3DWidget
 
+    @docstring(Plot3DWidget)
     def setProjection(self, projection):
         return self._plot3D.setProjection(projection)
 
-    setProjection.__doc__ = Plot3DWidget.setProjection.__doc__
-
+    @docstring(Plot3DWidget)
     def getProjection(self):
         return self._plot3D.getProjection()
 
-    getProjection.__doc__ = Plot3DWidget.getProjection.__doc__
-
+    @docstring(Plot3DWidget)
     def centerScene(self):
         return self._plot3D.centerScene()
 
-    centerScene.__doc__ = Plot3DWidget.centerScene.__doc__
-
+    @docstring(Plot3DWidget)
     def resetZoom(self):
         return self._plot3D.resetZoom()
 
-    resetZoom.__doc__ = Plot3DWidget.resetZoom.__doc__
-
+    @docstring(Plot3DWidget)
     def getBackgroundColor(self):
         return self._plot3D.getBackgroundColor()
 
-    getBackgroundColor.__doc__ = Plot3DWidget.getBackgroundColor.__doc__
-
+    @docstring(Plot3DWidget)
     def setBackgroundColor(self, color):
         return self._plot3D.setBackgroundColor(color)
-
-    setBackgroundColor.__doc__ = Plot3DWidget.setBackgroundColor.__doc__

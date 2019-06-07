@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,10 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 
-from collections import Iterable
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import logging
 import numpy
 
@@ -111,7 +114,7 @@ def contour3d(scalars,
     elif isinstance(contours, float):
         contours = [contours]
 
-    assert isinstance(contours, Iterable)
+    assert isinstance(contours, abc.Iterable)
 
     # Prepare colors
     if color is not None:
@@ -177,7 +180,7 @@ def points3d(x, y, z=None,
              colormap='viridis',
              vmin=None,
              vmax=None,
-             mode='o'):
+             mode=None):
     """
     Plot a 3D scatter plot in a :class:`~silx.gui.plot3d.SceneWindow.SceneWindow` widget.
 
@@ -239,7 +242,8 @@ def points3d(x, y, z=None,
 
     colormap = Colormap(name=colormap, vmin=vmin, vmax=vmax)
     scatter.setColormap(colormap)
-    scatter.setSymbol(mode)
+    if mode is not None:
+        scatter.setSymbol(mode)
 
     window.show()
 

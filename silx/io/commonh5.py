@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,10 @@ files. They are used in :mod:`spech5` and :mod:`fabioh5`.
     library, which is not a mandatory dependency for `silx`.
 """
 import collections
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 import weakref
 
 import h5py
@@ -42,7 +46,7 @@ __license__ = "MIT"
 __date__ = "02/07/2018"
 
 
-class _MappingProxyType(collections.MutableMapping):
+class _MappingProxyType(abc.MutableMapping):
     """Read-only dictionary
 
     This class is available since Python 3.3, but not on earlyer Python

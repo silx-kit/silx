@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,9 +34,10 @@ __date__ = "25/07/2016"
 
 # OpenGL convenient functions
 from .OpenGLWidget import OpenGLWidget  # noqa
-from .Context import getGLContext, setGLContextGetter  # noqa
+from . import Context  # noqa
 from .FramebufferTexture import FramebufferTexture  # noqa
 from .Program import Program  # noqa
 from .Texture import Texture  # noqa
 from .VertexBuffer import VertexBuffer, VertexBufferAttrib, vertexBuffer  # noqa
 from .utils import sizeofGLType, isSupportedGLType, numpyToGLType  # noqa
+from .utils import segmentTrianglesIntersection  # noqa

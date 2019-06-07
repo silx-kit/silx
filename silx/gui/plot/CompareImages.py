@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,11 @@ _logger = logging.getLogger(__name__)
 
 from silx.opencl import ocl
 if ocl is not None:
-    from silx.opencl import sift
+    try:
+        from silx.opencl import sift
+    except ImportError:
+        # sift module is not available (e.g., in official Debian packages)
+        sift = None
 else:  # No OpenCL device or no pyopencl
     sift = None
 
@@ -62,6 +66,7 @@ class VisualizationMode(enum.Enum):
     HORIZONTAL_LINE = 'hline'
     COMPOSITE_RED_BLUE_GRAY = "rbgchannel"
     COMPOSITE_RED_BLUE_GRAY_NEG = "rbgnegchannel"
+    COMPOSITE_A_MINUS_B = "aminusb"
 
 
 @enum.unique
@@ -157,6 +162,16 @@ class CompareImagesToolBar(qt.QToolBar):
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
         action.setProperty("mode", VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG)
+        menu.addAction(action)
+        self.__ycChannelModeAction = action
+        self.__visualizationGroup.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-a-minus-b")
+        action = qt.QAction(icon, "Raw A minus B compare mode", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        action.setProperty("mode", VisualizationMode.COMPOSITE_A_MINUS_B)
         menu.addAction(action)
         self.__ycChannelModeAction = action
         self.__visualizationGroup.addAction(action)
@@ -539,6 +554,11 @@ class CompareImages(qt.QMainWindow):
 
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent)
+        self._resetZoomActive = True
+        self._colormap = Colormap()
+        """Colormap shared by all modes, except the compose images (rgb image)"""
+        self._colormapKeyPoints = Colormap('spring')
+        """Colormap used for sift keypoints"""
 
         if parent is None:
             self.setWindowTitle('Compare images')
@@ -553,6 +573,7 @@ class CompareImages(qt.QMainWindow):
         self.__previousSeparatorPosition = None
 
         self.__plot = plot.PlotWidget(parent=self, backend=backend)
+        self.__plot.setDefaultColormap(self._colormap)
         self.__plot.getXAxis().setLabel('Columns')
         self.__plot.getYAxis().setLabel('Rows')
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
@@ -629,6 +650,14 @@ class CompareImages(qt.QMainWindow):
         :rtype: silx.gui.plot.PlotWidget
         """
         return self.__plot
+
+    def getColormap(self):
+        """
+
+        :return: colormap used for compare image
+        :rtype: silx.gui.colors.Colormap
+        """
+        return self._colormap
 
     def getRawPixelData(self, x, y):
         """Return the raw pixel of each image data from axes positions.
@@ -835,7 +864,8 @@ class CompareImages(qt.QMainWindow):
         self.__raw1 = image1
         self.__raw2 = image2
         self.__updateData()
-        self.__plot.resetZoom()
+        if self.isAutoResetZoom():
+            self.__plot.resetZoom()
 
     def setImage1(self, image1):
         """Set image1 to be compared.
@@ -850,7 +880,8 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw1 = image1
         self.__updateData()
-        self.__plot.resetZoom()
+        if self.isAutoResetZoom():
+            self.__plot.resetZoom()
 
     def setImage2(self, image2):
         """Set image2 to be compared.
@@ -865,7 +896,8 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw2 = image2
         self.__updateData()
-        self.__plot.resetZoom()
+        if self.isAutoResetZoom():
+            self.__plot.resetZoom()
 
     def __updateKeyPoints(self):
         """Update the displayed keypoints using cached keypoints.
@@ -878,11 +910,11 @@ class CompareImages(qt.QMainWindow):
                                y=data[1],
                                z=1,
                                value=data[2],
-                               legend="keypoints",
-                               colormap=Colormap("spring"))
+                               colormap=self._colormapKeyPoints,
+                               legend="keypoints")
 
     def __updateData(self):
-        """Compute aligned image when the alignement mode changes.
+        """Compute aligned image when the alignment mode changes.
 
         This function cache input images which are used when
         vertical/horizontal separators moves.
@@ -943,6 +975,9 @@ class CompareImages(qt.QMainWindow):
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
+        elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
+            data1 = self.__composeImage(data1, data2, mode)
+            data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_A:
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_B:
@@ -977,7 +1012,8 @@ class CompareImages(qt.QMainWindow):
             else:
                 vmin = min(self.__data1.min(), self.__data2.min())
                 vmax = max(self.__data1.max(), self.__data2.max())
-            colormap = Colormap(vmin=vmin, vmax=vmax)
+            colormap = self.getColormap()
+            colormap.setVRange(vmin=vmin, vmax=vmax)
             self.__image1.setColormap(colormap)
             self.__image2.setColormap(colormap)
 
@@ -1025,6 +1061,13 @@ class CompareImages(qt.QMainWindow):
         :rtype: numpy.ndarray
         """
         assert(data1.shape[0:2] == data2.shape[0:2])
+        if mode == VisualizationMode.COMPOSITE_A_MINUS_B:
+            # TODO: this calculation has no interest of generating a 'composed'
+            # rgb image, this could be moved in an other function or doc
+            # should be modified
+            _type = data1.dtype
+            result = data1.astype(numpy.float64) - data2.astype(numpy.float64)
+            return result
         mode1 = self.__getImageMode(data1)
         if mode1 in ["rgb", "rgba"]:
             intensity1 = self.__luminosityImage(data1)
@@ -1188,3 +1231,19 @@ class CompareImages(qt.QMainWindow):
         data2 = result["result"]
         self.__transformation = self.__toAffineTransformation(result)
         return data1, data2
+
+    def setAutoResetZoom(self, activate=True):
+        """
+
+        :param bool activate: True if we want to activate the automatic
+                              plot reset zoom when setting images.
+        """
+        self._resetZoomActive = activate
+
+    def isAutoResetZoom(self):
+        """
+
+        :return: True if the automatic call to resetzoom is activated
+        :rtype: bool
+        """
+        return self._resetZoomActive

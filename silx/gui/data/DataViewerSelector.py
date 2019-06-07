@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/01/2018"
+__date__ = "12/02/2019"
 
 import weakref
 import functools
@@ -85,7 +85,7 @@ class DataViewerSelector(qt.QWidget):
 
         iconSize = qt.QSize(16, 16)
 
-        for view in self.__dataViewer.availableViews():
+        for view in self.__dataViewer.getReachableViews():
             label = view.label()
             icon = view.icon()
             button = qt.QPushButton(label)
@@ -155,7 +155,7 @@ class DataViewerSelector(qt.QWidget):
         self.__dataViewer.setDisplayedView(view)
 
     def __checkAvailableButtons(self):
-        views = set(self.__dataViewer.availableViews())
+        views = set(self.__dataViewer.getReachableViews())
         if views == set(self.__buttons.keys()):
             return
         # Recreate all the buttons

@@ -35,9 +35,11 @@ import numpy
 
 from silx.math.combo import min_max
 
+from ....utils.proxy import docstring
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
 from ...plot.items.core import SymbolMixIn as _SymbolMixIn
+from ...plot.items.core import ComplexMixIn as _ComplexMixIn
 from ...colors import rgba
 
 from ..scene import primitives
@@ -139,8 +141,9 @@ class ColormapMixIn(_ColormapMixIn):
 
         self._dataRange = dataRange
 
-        if self.getColormap().isAutoscale():
-            self._syncSceneColormap()
+        colormap = self.getColormap()
+        if None in (colormap.getVMin(), colormap.getVMax()):
+            self._colormapChanged()
 
     def _getDataRange(self):
         """Returns the data range as used in the scene for colormap
@@ -173,11 +176,21 @@ class ColormapMixIn(_ColormapMixIn):
             self.__sceneColormap.range_ = range_
 
 
+@docstring(_ComplexMixIn)
+class ComplexMixIn(_ComplexMixIn):
+
+    _SUPPORTED_COMPLEX_MODES = (
+        _ComplexMixIn.ComplexMode.REAL,
+        _ComplexMixIn.ComplexMode.IMAGINARY,
+        _ComplexMixIn.ComplexMode.ABSOLUTE,
+        _ComplexMixIn.ComplexMode.PHASE,
+        _ComplexMixIn.ComplexMode.SQUARE_AMPLITUDE)
+    """Overrides supported ComplexMode"""
+
+
 class SymbolMixIn(_SymbolMixIn):
     """Mix-in class for symbol and symbolSize properties for Item3D"""
 
-    _DEFAULT_SYMBOL = 'o'
-    _DEFAULT_SYMBOL_SIZE = 7.0
     _SUPPORTED_SYMBOLS = collections.OrderedDict((
         ('o', 'Circle'),
         ('d', 'Diamond'),

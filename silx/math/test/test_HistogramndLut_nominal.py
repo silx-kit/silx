@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -112,6 +112,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
             def fill_histo(h, v, dim, op=None):
                 idx = [self.other_axes_index]*len(h.shape)
                 idx[dim] = slice(0, None)
+                idx = tuple(idx)
                 if op:
                     h[idx] = op(h[idx], v)
                 else:

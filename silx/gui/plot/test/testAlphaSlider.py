@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,9 +36,6 @@ from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot import AlphaSlider
-
-# Makes sure a QApplication exists
-_qapp = qt.QApplication.instance() or qt.QApplication([])
 
 
 class TestActiveImageAlphaSlider(TestCaseQt):

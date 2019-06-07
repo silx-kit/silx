@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import re
 import shutil
 import tempfile
 import unittest
+import sys
 
 from .. import utils
 import silx.io.url
@@ -102,6 +103,13 @@ class TestSave(unittest.TestCase):
             os.unlink(self.npy_fname)
         shutil.rmtree(self.tempdir)
 
+    def assertRegex(self, *args, **kwargs):
+        # Python 2 compatibility
+        if sys.version_info.major >= 3:
+            return super(TestSave, self).assertRegex(*args, **kwargs)
+        else:
+            return self.assertRegexpMatches(*args, **kwargs)
+
     def test_save_csv(self):
         utils.save1D(self.csv_fname, self.x, self.y,
                      xlabel=self.xlab, ylabels=self.ylabs,
@@ -112,7 +120,7 @@ class TestSave(unittest.TestCase):
         actual_csv = csvf.read()
         csvf.close()
 
-        self.assertRegexpMatches(actual_csv, expected_csv)
+        self.assertRegex(actual_csv, expected_csv)
 
     def test_save_npy(self):
         """npy file is saved with numpy.save after building a numpy array
@@ -138,7 +146,7 @@ class TestSave(unittest.TestCase):
         actual_spec = specf.read()
         specf.close()
 
-        self.assertRegexpMatches(actual_spec, expected_spec1)
+        self.assertRegex(actual_spec, expected_spec1)
 
     def test_savespec_file_handle(self):
         """Save SpecFile using savespec(), passing a file handle"""
@@ -158,7 +166,7 @@ class TestSave(unittest.TestCase):
         actual_spec = specf.read()
         specf.close()
 
-        self.assertRegexpMatches(actual_spec, expected_spec2)
+        self.assertRegex(actual_spec, expected_spec2)
 
     def test_save_spec(self):
         """Save SpecFile using save()"""
@@ -168,7 +176,7 @@ class TestSave(unittest.TestCase):
         specf = open(self.spec_fname)
         actual_spec = specf.read()
         specf.close()
-        self.assertRegexpMatches(actual_spec, expected_spec2)
+        self.assertRegex(actual_spec, expected_spec2)
 
     def test_save_csv_no_labels(self):
         """Save csv using save(), with autoheader=True but
@@ -189,7 +197,7 @@ class TestSave(unittest.TestCase):
         csvf = open(self.csv_fname)
         actual_csv = csvf.read()
         csvf.close()
-        self.assertRegexpMatches(actual_csv, expected_csv2)
+        self.assertRegex(actual_csv, expected_csv2)
 
 
 def assert_match_any_string_in_list(test, pattern, list_of_strings):

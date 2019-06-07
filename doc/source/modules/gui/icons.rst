@@ -75,6 +75,8 @@ Available icons
      - compare-align-stretch
    * - |compare-keypoints|
      - compare-keypoints
+   * - |compare-mode-a-minus-b|
+     - compare-mode-a-minus-b
    * - |compare-mode-a|
      - compare-mode-a
    * - |compare-mode-b|
@@ -121,6 +123,8 @@ Available icons
      - draw-rubber
    * - |edit-copy|
      - edit-copy
+   * - |eye|
+     - eye
    * - |first|
      - first
    * - |folder|
@@ -251,6 +255,8 @@ Available icons
      - plot-ylog
    * - |plot-yup|
      - plot-yup
+   * - |pointing-hand|
+     - pointing-hand
    * - |previous|
      - previous
    * - |profile-clear|
@@ -370,6 +376,7 @@ Available icons
 .. |compare-align-origin| image:: ../../../../silx/resources/gui/icons/compare-align-origin.png
 .. |compare-align-stretch| image:: ../../../../silx/resources/gui/icons/compare-align-stretch.png
 .. |compare-keypoints| image:: ../../../../silx/resources/gui/icons/compare-keypoints.png
+.. |compare-mode-a-minus-b| image:: ../../../../silx/resources/gui/icons/compare-mode-a-minus-b.png
 .. |compare-mode-a| image:: ../../../../silx/resources/gui/icons/compare-mode-a.png
 .. |compare-mode-b| image:: ../../../../silx/resources/gui/icons/compare-mode-b.png
 .. |compare-mode-hline| image:: ../../../../silx/resources/gui/icons/compare-mode-hline.png
@@ -393,6 +400,7 @@ Available icons
 .. |draw-pencil| image:: ../../../../silx/resources/gui/icons/draw-pencil.png
 .. |draw-rubber| image:: ../../../../silx/resources/gui/icons/draw-rubber.png
 .. |edit-copy| image:: ../../../../silx/resources/gui/icons/edit-copy.png
+.. |eye| image:: ../../../../silx/resources/gui/icons/eye.png
 .. |first| image:: ../../../../silx/resources/gui/icons/first.png
 .. |folder| image:: ../../../../silx/resources/gui/icons/folder.png
 .. |image-mask| image:: ../../../../silx/resources/gui/icons/image-mask.png
@@ -458,6 +466,7 @@ Available icons
 .. |plot-ydown| image:: ../../../../silx/resources/gui/icons/plot-ydown.png
 .. |plot-ylog| image:: ../../../../silx/resources/gui/icons/plot-ylog.png
 .. |plot-yup| image:: ../../../../silx/resources/gui/icons/plot-yup.png
+.. |pointing-hand| image:: ../../../../silx/resources/gui/icons/pointing-hand.png
 .. |previous| image:: ../../../../silx/resources/gui/icons/previous.png
 .. |profile-clear| image:: ../../../../silx/resources/gui/icons/profile-clear.png
 .. |profile1D| image:: ../../../../silx/resources/gui/icons/profile1D.png

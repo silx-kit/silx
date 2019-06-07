@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ The following QAction are available:
 - :class:`KeepAspectRatioAction`
 - :class:`PanWithArrowKeysAction`
 - :class:`ResetZoomAction`
+- :class:`ShowAxisAction`
 - :class:`XAxisLogarithmicAction`
 - :class:`XAxisAutoScaleAction`
 - :class:`YAxisInvertedAction`
@@ -43,7 +44,6 @@ The following QAction are available:
 - :class:`ZoomBackAction`
 - :class:`ZoomInAction`
 - :class:`ZoomOutAction`
-- :class:'ShowAxisAction'
 """
 
 from __future__ import division
@@ -303,9 +303,12 @@ class CurveStyleAction(PlotAction):
         currentState = (self.plot.isDefaultPlotLines(),
                         self.plot.isDefaultPlotPoints())
 
-        # line only, line and symbol, symbol only
-        states = (True, False), (True, True), (False, True)
-        newState = states[(states.index(currentState) + 1) % 3]
+        if currentState == (False, False):
+            newState = True, False
+        else:
+            # line only, line and symbol, symbol only
+            states = (True, False), (True, True), (False, True)
+            newState = states[(states.index(currentState) + 1) % 3]
 
         self.plot.setDefaultPlotLines(newState[0])
         self.plot.setDefaultPlotPoints(newState[1])
@@ -374,11 +377,11 @@ class ColormapAction(PlotAction):
             # Specific init for complex images
             colormap = image.getColormap()
 
-            mode = image.getVisualizationMode()
-            if mode in (items.ImageComplexData.Mode.AMPLITUDE_PHASE,
-                        items.ImageComplexData.Mode.LOG10_AMPLITUDE_PHASE):
+            mode = image.getComplexMode()
+            if mode in (items.ImageComplexData.ComplexMode.AMPLITUDE_PHASE,
+                        items.ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE):
                 data = image.getData(
-                    copy=False, mode=items.ImageComplexData.Mode.PHASE)
+                    copy=False, mode=items.ImageComplexData.ComplexMode.PHASE)
             else:
                 data = image.getData(copy=False)
 

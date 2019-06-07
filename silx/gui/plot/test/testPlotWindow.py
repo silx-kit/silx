@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,32 +36,6 @@ from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
-
-
-# Test of the docstrings #
-
-# Makes sure a QApplication exists
-_qapp = qt.QApplication.instance() or qt.QApplication([])
-
-
-def _tearDownQt(docTest):
-    """Tear down to use for test from docstring.
-
-    Checks that plt widget is displayed
-    """
-    _qapp.processEvents()
-    for obj in docTest.globs.values():
-        if isinstance(obj, PlotWindow):
-            # Commented out as it takes too long
-            # qWaitForWindowExposedAndActivate(obj)
-            obj.setAttribute(qt.Qt.WA_DeleteOnClose)
-            obj.close()
-            del obj
-
-
-plotWindowDocTestSuite = doctest.DocTestSuite('silx.gui.plot.PlotWindow',
-                                              tearDown=_tearDownQt)
-"""Test suite of tests from the module's docstrings."""
 
 
 class TestPlotWindow(TestCaseQt):
@@ -128,7 +102,6 @@ class TestPlotWindow(TestCaseQt):
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(plotWindowDocTestSuite)
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotWindow))
     return test_suite

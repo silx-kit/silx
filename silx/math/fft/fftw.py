@@ -57,7 +57,7 @@ class FFTW(BaseFFT):
         self,
         shape=None,
         dtype=None,
-        data=None,
+        template=None,
         shape_out=None,
         axes=None,
         normalize="rescale",
@@ -69,7 +69,7 @@ class FFTW(BaseFFT):
         super(FFTW, self).__init__(
             shape=shape,
             dtype=dtype,
-            data=data,
+            template=template,
             shape_out=shape_out,
             axes=axes,
             normalize=normalize,

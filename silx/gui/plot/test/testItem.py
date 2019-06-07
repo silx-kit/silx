@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         curve.setVisible(True)
         curve.setZValue(100)
 
-        # Test for signals in Points class
+        # Test for signals in PointsBase class
         curve.setData(numpy.arange(100), numpy.arange(100))
 
         # SymbolMixIn
@@ -194,14 +194,17 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
 
         # ColormapMixIn
         scatter.getColormap().setName('viridis')
-        data2 = data + 10
 
         # Test of signals in Scatter class
-        scatter.setData(data2, data2, data2)
+        scatter.setData((0, 1, 2), (1, 0, 2), (0, 1, 2))
+
+        # Visualization mode changed
+        scatter.setVisualization(scatter.Visualization.SOLID)
 
         self.assertEqual(listener.arguments(),
                          [(ItemChangedType.COLORMAP,),
-                          (ItemChangedType.DATA,)])
+                          (ItemChangedType.DATA,),
+                          (ItemChangedType.VISUALIZATION_MODE,)])
 
     def testShapeChanged(self):
         """Test sigItemChanged for shape"""

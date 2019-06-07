@@ -32,12 +32,10 @@ from silx.gui.data.DataViews import _normalizeData
 import logging
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.utils import deprecation
-from silx.utils.property import classproperty
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "12/02/2019"
 
 
 _logger = logging.getLogger(__name__)
@@ -69,66 +67,6 @@ class DataViewer(qt.QFrame):
         viewer.setData(data)
         viewer.setVisible(True)
     """
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.EMPTY_MODE", since_version="0.7", skip_backtrace_count=2)
-    def EMPTY_MODE(self):
-        return DataViews.EMPTY_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.PLOT1D_MODE", since_version="0.7", skip_backtrace_count=2)
-    def PLOT1D_MODE(self):
-        return DataViews.PLOT1D_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.PLOT2D_MODE", since_version="0.7", skip_backtrace_count=2)
-    def PLOT2D_MODE(self):
-        return DataViews.PLOT2D_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.PLOT3D_MODE", since_version="0.7", skip_backtrace_count=2)
-    def PLOT3D_MODE(self):
-        return DataViews.PLOT3D_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.RAW_MODE", since_version="0.7", skip_backtrace_count=2)
-    def RAW_MODE(self):
-        return DataViews.RAW_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.RAW_ARRAY_MODE", since_version="0.7", skip_backtrace_count=2)
-    def RAW_ARRAY_MODE(self):
-        return DataViews.RAW_ARRAY_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.RAW_RECORD_MODE", since_version="0.7", skip_backtrace_count=2)
-    def RAW_RECORD_MODE(self):
-        return DataViews.RAW_RECORD_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.RAW_SCALAR_MODE", since_version="0.7", skip_backtrace_count=2)
-    def RAW_SCALAR_MODE(self):
-        return DataViews.RAW_SCALAR_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.STACK_MODE", since_version="0.7", skip_backtrace_count=2)
-    def STACK_MODE(self):
-        return DataViews.STACK_MODE
-
-    # TODO: Can be removed for silx 0.8
-    @classproperty
-    @deprecation.deprecated(replacement="DataViews.HDF5_MODE", since_version="0.7", skip_backtrace_count=2)
-    def HDF5_MODE(self):
-        return DataViews.HDF5_MODE
 
     displayedViewChanged = qt.Signal(object)
     """Emitted when the displayed view changes"""
@@ -406,18 +344,16 @@ class DataViewer(qt.QFrame):
         data = self.__data
         info = self._getInfo()
         # sort available views according to priority
-        priorities = [v.getDataPriority(data, info) for v in self.__views]
-        views = zip(priorities, self.__views)
+        views = []
+        for v in self.__views:
+            views.extend(v.getMatchingViews(data, info))
+        views = [(v.getCachedDataPriority(data, info), v) for v in views]
         views = filter(lambda t: t[0] > DataViews.DataView.UNSUPPORTED, views)
         views = sorted(views, reverse=True)
+        views = [v[1] for v in views]
 
         # store available views
-        if len(views) == 0:
-            self.__setCurrentAvailableViews([])
-            available = []
-        else:
-            available = [v[1] for v in views]
-            self.__setCurrentAvailableViews(available)
+        self.__setCurrentAvailableViews(views)
 
     def __updateView(self):
         """Display the data using the widget which fit the best"""
@@ -448,7 +384,7 @@ class DataViewer(qt.QFrame):
             priority to lowest.
         :rtype: DataView
         """
-        hdf5View = self.getViewFromModeId(DataViewer.HDF5_MODE)
+        hdf5View = self.getViewFromModeId(DataViews.HDF5_MODE)
         if hdf5View in available:
             return hdf5View
         return self.getViewFromModeId(DataViews.EMPTY_MODE)
@@ -487,6 +423,17 @@ class DataViewer(qt.QFrame):
         :rtype: List[DataView]
         """
         return self.__currentAvailableViews
+
+    def getReachableViews(self):
+        """Returns the list of reachable views from the registred available
+        views.
+
+        :rtype: List[DataView]
+        """
+        views = []
+        for v in self.availableViews():
+            views.extend(v.getReachableViews())
+        return views
 
     def availableViews(self):
         """Returns the list of registered views
