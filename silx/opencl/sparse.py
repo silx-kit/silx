@@ -42,27 +42,29 @@ mf = cl.mem_flags
 # only float32 arrays are supported for now
 
 class CSR(OpenclProcessing):
-    """
-    Compute Compressed Sparse Row format of an image (2D matrix).
-    It is designed to be compatible with scipy.sparse.csr_matrix.
+    kernel_files = ["sparse.cl"]
 
-    :param shape: tuple
-        Matrix shape.
-    :param max_nnz: int, optional
-        Maximum number of non-zero elements. By default, the arrays "data" and
-        "indices" are allocated with prod(shape) elements, but in practice
-        a much lesser space is needed.
-        The number of non-zero items cannot be known in advance, but one can
-        estimate an upper-bound with this parameter to save memory.
-
-    Opencl processing parameters
-    -----------------------------
-    Please refer to the documentation of silx.opencl.processing.OpenclProcessing
-    for information on the other parameters.
-    """
     def __init__(self, shape, max_nnz=None, ctx=None, devicetype="all",
                  platformid=None, deviceid=None, block_size=None, memory=None,
                  profile=False):
+        """
+        Compute Compressed Sparse Row format of an image (2D matrix).
+        It is designed to be compatible with scipy.sparse.csr_matrix.
+
+        :param shape: tuple
+            Matrix shape.
+        :param max_nnz: int, optional
+            Maximum number of non-zero elements. By default, the arrays "data"
+            and "indices" are allocated with prod(shape) elements, but
+            in practice a much lesser space is needed.
+            The number of non-zero items cannot be known in advance, but one can
+            estimate an upper-bound with this parameter to save memory.
+
+        Opencl processing parameters
+        -----------------------------
+        Please refer to the documentation of silx.opencl.processing.OpenclProcessing
+        for information on the other parameters.
+        """
 
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
@@ -117,6 +119,46 @@ class CSR(OpenclProcessing):
             options="-DIMAGE_WIDTH=%d" % self.shape[1],
             preamble="#define GET_INDEX(i) (i % IMAGE_WIDTH)",
         )
+
+
+
+    def _setup_decompaction_kernel(self):
+        OpenclProcessing.compile_kernels(
+            self,
+            self.kernel_files,
+            compile_options=["-DIMAGE_WIDTH=%d" % self.shape[1]]
+        )
+        self._decomp_wg = (32, 1) # TODO tune
+        self._decomp_grid = (self._decomp_wg[0], self.shape[0])
+
+
+    def densify(self, arr):
+
+        evt = self.
+        self.kernels.densify_csr(
+            self.queue,
+            self._decomp_grid,
+            self._decomp_wg,
+            data.data,
+            ind.data,
+            indptr.data,
+            output.data,
+            np.int32(self.shape[0]),
+        )
+        evt.wait()
+        return evt
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     def check_input(self, arr):
@@ -191,4 +233,23 @@ class CSR(OpenclProcessing):
             self.indptr,
         )
         return self.get_output(output)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
