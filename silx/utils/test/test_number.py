@@ -148,7 +148,8 @@ class TestConversionTypes(testutils.ParametricTestCase):
         self.skipIfFloat80NotSupported()
         if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
             self.skipTest("numpy > 1.10.4 expected")
-        value = "1000000000.00001013332"
+        # value does not fit even in a 128 bits mantissa
+        value = "1.0340282366920938463463374607431768211456"
         func = testutils.test_logging(number._logger.name, warning=1)
         func = func(number.min_numerical_convertible_type)
         dtype = func(value)
