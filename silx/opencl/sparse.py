@@ -139,7 +139,13 @@ class CSR(OpenclProcessing):
             self.kernel_files,
             compile_options=["-DIMAGE_WIDTH=%d" % self.shape[1]]
         )
-        self._decomp_wg = (32, 1) # TODO tune
+        device = self.ctx.devices[0]
+        wg_x = min(
+            device.max_work_group_size,
+            32,
+            self.kernels.max_workgroup_size("densify_csr")
+        )
+        self._decomp_wg = (wg_x, 1)
         self._decomp_grid = (self._decomp_wg[0], self.shape[0])
 
 
