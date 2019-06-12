@@ -73,6 +73,9 @@ class CSR(OpenclProcessing):
         self._allocate_memory()
         self._setup_kernels()
 
+    # --------------------------------------------------------------------------
+    # -------------------------- Initialization --------------------------------
+    # --------------------------------------------------------------------------
 
     def _set_parameters(self, shape, max_nnz):
         self.shape = shape
@@ -97,9 +100,17 @@ class CSR(OpenclProcessing):
         for arr_name in ["array", "data", "indices", "indptr"]:
             setattr(self, arr_name, self.cl_mem[arr_name])
         self._old_array = self.array
+        self._old_data = self.data
+        self._old_indices = self.indices
+        self._old_indptr = self.indptr
 
 
     def _setup_kernels(self):
+        self._setup_compaction_kernel()
+        self._setup_decompaction_kernel()
+
+
+    def _setup_compaction_kernel(self):
         self.scan_kernel = GenericScanKernel(
             self.ctx, self.indice_dtype,
             arguments="__global float* data, __global float *data_compacted, __global int *indices, __global int* indptr",
@@ -121,7 +132,6 @@ class CSR(OpenclProcessing):
         )
 
 
-
     def _setup_decompaction_kernel(self):
         OpenclProcessing.compile_kernels(
             self,
@@ -132,58 +142,56 @@ class CSR(OpenclProcessing):
         self._decomp_grid = (self._decomp_wg[0], self.shape[0])
 
 
-    def densify(self, arr):
-
-        evt = self.
-        self.kernels.densify_csr(
-            self.queue,
-            self._decomp_grid,
-            self._decomp_wg,
-            data.data,
-            ind.data,
-            indptr.data,
-            output.data,
-            np.int32(self.shape[0]),
-        )
-        evt.wait()
-        return evt
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def check_input(self, arr):
-        assert arr.shape == self.shape
-        assert arr.dtype == np.float32
+    # --------------------------------------------------------------------------
+    # -------------------------- Array utils -----------------------------------
+    # --------------------------------------------------------------------------
 
     # TODO handle pyopencl Buffer
-    def check_output(self, output):
-        assert len(output) == 3
-        data, ind, indptr = output
+    def check_array(self, arr):
+        """
+        Check that provided array is compatible with current context.
+
+        :param arr: numpy.ndarray or pyopencl.array.Array
+            2D array in dense format.
+        """
+        assert arr.size == self.size
+        assert arr.dtype == np.float32
+
+
+    # TODO handle pyopencl Buffer
+    def check_sparse_arrays(self, arrays):
+        """
+        Check that the provided sparse arrays are compatible with the current
+        context.
+
+        :param arrays: tuple of numpy.ndarray or pyopencl.array.Array
+            Tuple of length 3. It contains the arrays "data", "indices", "indptr"
+        """
+        assert len(arrays) == 3
+        data, ind, indptr = arrays
         for arr in [data, ind, indptr]:
             assert arr.ndim == 1
-        assert data.size == self.nnz_max
-        assert ind.size == self.nnz_max
-        assert iptr.size == self.shape[0]+1
+        assert data.size == self.max_nnz
+        assert ind.size == self.max_nnz
+        assert indptr.size == self.shape[0]+1
         assert data.dtype == np.float32
-        assert ind.dtype == np.indice_dtype
-        assert indptr.dtype == np.indice_dtype
+        assert ind.dtype == self.indice_dtype
+        assert indptr.dtype == self.indice_dtype
 
 
     def set_array(self, arr):
-        self.check_input(arr)
+        """
+        Set the provided array as the current context 2D matrix.
+
+        :param arr: numpy.ndarray or pyopencl.array.Array
+            2D array in dense format.
+        """
+        if arr is None:
+            return
+        self.check_array(arr)
         # GenericScanKernel only supports 1D data
         if isinstance(arr, parray.Array):
-            self._old_array = arr
+            self._old_array = self.array
             self.array = arr
         elif isinstance(arr, np.ndarray):
             self.array[:] = arr.ravel()[:]
@@ -191,29 +199,69 @@ class CSR(OpenclProcessing):
             raise ValueError("Expected pyopencl array or numpy array")
 
 
-    def get_output(self, output):
+    def set_sparse_arrays(self, arrays):
+        if arrays is None:
+            return
+        self.check_sparse_arrays(arrays)
+        data, indices, indptr = arrays
+        for name, arr in {"data": data, "indices": indices, "indptr": indptr}.items():
+            # The current array is a device array. Don't copy, use it directly
+            if isinstance(arr, parray.Array):
+                setattr(self, "_old_" + name, getattr(self, name))
+                setattr(self, name, arr)
+            # The current array is a numpy.ndarray: copy H2D
+            elif isinstance(arr, np.ndarray):
+                getattr(self, name)[:] = arr[:]
+            else:
+                raise ValueError("Unsupported array type: %s" % type(arr))
+
+
+    def _recover_arrays_references(self):
         """
-        Get the output array of the previous processing.
+        Recover the previous arrays references, and return the references of the
+        "current" arrays.
+        """
+        array = self.array
+        data = self.data
+        indices = self.indices
+        indptr = self.indptr
+        for name in ["array", "data", "indices", "indptr"]:
+            # self.X = self._old_X
+            setattr(self, name, getattr(self, "_old_" + name))
+        return array, (data, indices, indptr)
+
+
+    def get_sparse_arrays(self, output):
+        """
+        Get the 2D dense array of the current context.
 
         :param output: tuple or None
-            tuple in the form (data, indices, indptr). The content of these
-            arrays will be overwritten with the result of the previous
-            computation.
+            tuple in the form (data, indices, indptr). These arrays have to be
+            compatible with the current context (size and data type).
+            The content of these arrays will be overwritten with the result of
+            the previous computation.
         """
-        self.array = self._old_array
         numels = self.max_nnz
         if output is None:
             data = self.data.get()[:numels]
             ind = self.indices.get()[:numels]
             indptr = self.indptr.get()
+            res = (data, ind, indptr)
         else:
-            self.check_output(output)
-            data, ind, indptr = output
-            data[:] = self.data[:]
-            ind[:] = self.indices[:]
-            indptr[:] = self.indptr[:]
-        return (data, ind, indptr)
+            res = output
+        return res
 
+
+    def get_array(self, output):
+        if output is None:
+            res = self.array.get().reshape(self.shape)
+        else:
+            res = output
+        return res
+
+    # --------------------------------------------------------------------------
+    # -------------------------- Compaction ------------------------------------
+    # --------------------------------------------------------------------------
 
     def sparsify(self, arr, output=None):
         """
@@ -226,29 +274,41 @@ class CSR(OpenclProcessing):
             The content of each array is overwritten by the computation result.
         """
         self.set_array(arr)
-        self.scan_kernel(
+        self.set_sparse_arrays(output)
+        evt = self.scan_kernel(
             self.array,
             self.data,
             self.indices,
             self.indptr,
         )
-        return self.get_output(output)
+        #~ evt.wait()
+        self.profile_add(evt, "sparsification kernel")
+        res = self.get_sparse_arrays(output)
+        self._recover_arrays_references()
+        return res
 
+    # --------------------------------------------------------------------------
+    # -------------------------- Decompaction ----------------------------------
+    # --------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def densify(self, data, indices, indptr, output=None):
+        self.set_sparse_arrays((data, indices, indptr))
+        self.set_array(output)
+        evt = self.kernels.densify_csr(
+            self.queue,
+            self._decomp_grid,
+            self._decomp_wg,
+            self.data.data,
+            self.indices.data,
+            self.indptr.data,
+            self.array.data,
+            np.int32(self.shape[0]),
+        )
+        #~ evt.wait()
+        self.profile_add(evt, "desparsification kernel")
+        res = self.get_array(output)
+        self._recover_arrays_references()
+        return res
 
 
 

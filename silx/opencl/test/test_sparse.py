@@ -28,8 +28,11 @@
 import numpy as np
 import unittest
 import logging
+from itertools import product
 from silx.opencl.sparse import CSR
 from ..common import ocl
+if ocl:
+    import pyopencl.array as parray
 try:
     import scipy.sparse as sp
 except ImportError:
@@ -80,29 +83,73 @@ class TestCSR(unittest.TestCase):
 
     def setUp(self):
         self.array = generate_sparse_random_data(shape=(512, 511))
+        # Compute reference sparsification
+        a_s = sp.csr_matrix(self.array)
+        self.ref_data = a_s.data
+        self.ref_indices = a_s.indices
+        self.ref_indptr = a_s.indptr
+        self.ref_nnz = a_s.nnz
+        # Test possible configurations
+        input_on_device = [False, True]
+        output_on_device = [False, True]
+        self._test_configs = list(product(input_on_device, output_on_device))
 
 
     def test_sparsification(self):
+        for input_on_device, output_on_device in self._test_configs:
+            self._test_sparsification(input_on_device, output_on_device)
+
+
+    def _test_sparsification(self, input_on_device, output_on_device):
+        current_config = "input on device: %s, output on device: %s" % (
+            str(input_on_device), str(output_on_device)
+        )
         # Sparsify on device
         csr = CSR(self.array.shape)
-        data, ind, indptr = csr.sparsify(self.array)
-        # Compute reference sparsification
-        a_s = sp.csr_matrix(self.array)
-        data_ref, ind_ref, indptr_ref = a_s.data, a_s.indices, a_s.indptr
+        if input_on_device:
+            # The array has to be flattened
+            arr = parray.to_device(csr.queue, self.array.ravel())
+        else:
+            arr = self.array
+        if output_on_device:
+            d_data = parray.zeros_like(csr.data)
+            d_indices = parray.zeros_like(csr.indices)
+            d_indptr = parray.zeros_like(csr.indptr)
+            output = (d_data, d_indices, d_indptr)
+        else:
+            output = None
+        data, indices, indptr = csr.sparsify(arr, output=output)
+        if output_on_device:
+            data = data.get()
+            indices = indices.get()
+            indptr = indptr.get()
         # Compare
-        nnz = a_s.nnz
+        nnz = self.ref_nnz
         self.assertTrue(
-            np.allclose(data[:nnz], data_ref),
-            "something wrong with sparsified data"
+            np.allclose(data[:nnz], self.ref_data),
+            "something wrong with sparsified data (%s)"
+            % current_config
         )
         self.assertTrue(
-            np.allclose(ind[:nnz], ind_ref),
-            "something wrong with sparsified indices"
+            np.allclose(indices[:nnz], self.ref_indices),
+            "something wrong with sparsified indices (%s)"
+            % current_config
         )
         self.assertTrue(
-            np.allclose(indptr, indptr_ref),
-            "something wrong with sparsified indices pointers (indptr)"
+            np.allclose(indptr, self.ref_indptr),
+            "something wrong with sparsified indices pointers (indptr) (%s)"
+            % current_config
         )
+
+    """
+    def test_desparsification(self):
+        a_s = sp.csr_matrix(self.array)
+        data, ind, indptr = a_s.data, a_s.indices, a_s.indptr
+        # De-sparsify on device
+        csr = CSR(self.array.shape)
+    """
+
+
 
 
 
