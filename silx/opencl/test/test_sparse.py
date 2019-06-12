@@ -141,15 +141,40 @@ class TestCSR(unittest.TestCase):
             % current_config
         )
 
-    """
+
     def test_desparsification(self):
-        a_s = sp.csr_matrix(self.array)
-        data, ind, indptr = a_s.data, a_s.indices, a_s.indptr
+        for input_on_device, output_on_device in self._test_configs:
+            self._test_desparsification(input_on_device, output_on_device)
+
+
+    def _test_desparsification(self, input_on_device, output_on_device):
+        current_config = "input on device: %s, output on device: %s" % (
+            str(input_on_device), str(output_on_device)
+        )
         # De-sparsify on device
-        csr = CSR(self.array.shape)
-    """
-
-
+        csr = CSR(self.array.shape, max_nnz=self.ref_nnz)
+        if input_on_device:
+            data = parray.to_device(csr.queue, self.ref_data)
+            indices = parray.to_device(csr.queue, self.ref_indices)
+            indptr = parray.to_device(csr.queue, self.ref_indptr)
+        else:
+            data = self.ref_data
+            indices = self.ref_indices
+            indptr = self.ref_indptr
+        if output_on_device:
+            d_arr = parray.zeros_like(csr.array)
+            output = d_arr
+        else:
+            output = None
+        arr = csr.densify(data, indices, indptr, output=output)
+        if output_on_device:
+            arr = arr.get()
+        # Compare
+        self.assertTrue(
+            np.allclose(arr.reshape(self.array.shape), self.array),
+            "something wrong with densified data (%s)"
+            % current_config
+        )
 
 
 

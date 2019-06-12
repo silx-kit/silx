@@ -99,6 +99,7 @@ class CSR(OpenclProcessing):
         self.allocate_buffers(use_array=True)
         for arr_name in ["array", "data", "indices", "indptr"]:
             setattr(self, arr_name, self.cl_mem[arr_name])
+            self.cl_mem[arr_name].fill(0) # allocate_buffers() uses empty()
         self._old_array = self.array
         self._old_data = self.data
         self._old_indices = self.indices
@@ -309,7 +310,4 @@ class CSR(OpenclProcessing):
         res = self.get_array(output)
         self._recover_arrays_references()
         return res
-
-
-
 
