@@ -31,8 +31,10 @@ import logging
 from itertools import product
 from silx.opencl.sparse import CSR
 from ..common import ocl
-if ocl:
+try:
     import pyopencl.array as parray
+except ImportError:
+    ocl = None
 try:
     import scipy.sparse as sp
 except ImportError:
