@@ -29,12 +29,10 @@ import numpy as np
 import unittest
 import logging
 from itertools import product
-from silx.opencl.sparse import CSR
 from ..common import ocl
-try:
+if ocl:
     import pyopencl.array as parray
-except ImportError:
-    ocl = None
+    from silx.opencl.sparse import CSR
 try:
     import scipy.sparse as sp
 except ImportError:
