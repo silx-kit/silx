@@ -101,8 +101,8 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
             self.__scatterRef = weakref.ref(scatter)
             scatter.sigItemChanged.connect(self.__scatterItemChanged)
 
-            # Refresh profile
-            self.updateProfile()
+        # Refresh profile
+        self.updateProfile()
 
     def __scatterItemChanged(self, event):
         """Handle update of active scatter plot item
@@ -183,7 +183,7 @@ class ScatterProfileToolBar(_BaseProfileToolBar):
         if future is not self.__futureInterpolator:
             # First time we request this interpolator
             self.__futureInterpolator = future
-            if not future.done():  # TODO remove this test?
+            if not future.done():
                 future.add_done_callback(self.__futureDone)
                 return None
 
