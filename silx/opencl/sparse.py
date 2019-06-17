@@ -31,16 +31,28 @@ __authors__ = ["P. Paleo"]
 __license__ = "MIT"
 __date__ = "07/06/2019"
 
-import numpy as np
+import numpy
 import pyopencl.array as parray
+from collections import namedtuple
 from pyopencl.algorithm import GenericScanKernel
 from .common import pyopencl as cl
 from .processing import OpenclProcessing, EventDescription, BufferDescription
 mf = cl.mem_flags
 
 
-# only float32 arrays are supported for now
+CSRData = namedtuple("CSRData", ["data", "indices", "indptr"])
 
+def tuple_to_csrdata(arrs):
+    """
+    Converts a 3-tuple to a CSRData namedtuple.
+    """
+    if arrs is None:
+        return None
+    return CSRData(data=arrs[0], indices=arrs[1], indptr=arrs[2])
+
+
+
+# only float32 arrays are supported for now
 class CSR(OpenclProcessing):
     kernel_files = ["sparse.cl"]
 
@@ -79,11 +91,11 @@ class CSR(OpenclProcessing):
 
     def _set_parameters(self, shape, max_nnz):
         self.shape = shape
-        self.size = np.prod(shape)
-        self.indice_dtype = np.int32 #
+        self.size = numpy.prod(shape)
+        self.indice_dtype = numpy.int32 #
         assert len(shape) == 2 #
         if max_nnz is None:
-            self.max_nnz = np.prod(shape) # worst case
+            self.max_nnz = numpy.prod(shape) # worst case
         else:
             self.max_nnz = int(max_nnz)
 
@@ -91,8 +103,8 @@ class CSR(OpenclProcessing):
     def _allocate_memory(self):
         self.is_cpu = (self.device.type == "CPU") # move to OpenclProcessing ?
         self.buffers = [
-            BufferDescription("array", (self.size,), np.float32, mf.READ_ONLY),
-            BufferDescription("data", (self.max_nnz,), np.float32, mf.READ_WRITE),
+            BufferDescription("array", (self.size,), numpy.float32, mf.READ_ONLY),
+            BufferDescription("data", (self.max_nnz,), numpy.float32, mf.READ_WRITE),
             BufferDescription("indices", (self.max_nnz,), self.indice_dtype, mf.READ_WRITE),
             BufferDescription("indptr", (self.shape[0]+1,), self.indice_dtype, mf.READ_WRITE),
         ]
@@ -162,28 +174,27 @@ class CSR(OpenclProcessing):
             2D array in dense format.
         """
         assert arr.size == self.size
-        assert arr.dtype == np.float32
+        assert arr.dtype == numpy.float32
 
 
     # TODO handle pyopencl Buffer
-    def check_sparse_arrays(self, arrays):
+    def check_sparse_arrays(self, csr_data):
         """
         Check that the provided sparse arrays are compatible with the current
         context.
 
-        :param arrays: tuple of numpy.ndarray or pyopencl.array.Array
-            Tuple of length 3. It contains the arrays "data", "indices", "indptr"
+        :param arrays: namedtuple CSRData.
+            It contains the arrays "data", "indices", "indptr"
         """
-        assert len(arrays) == 3
-        data, ind, indptr = arrays
-        for arr in [data, ind, indptr]:
+        assert isinstance(csr_data, CSRData)
+        for arr in [csr_data.data, csr_data.indices, csr_data.indptr]:
             assert arr.ndim == 1
-        assert data.size == self.max_nnz
-        assert ind.size == self.max_nnz
-        assert indptr.size == self.shape[0]+1
-        assert data.dtype == np.float32
-        assert ind.dtype == self.indice_dtype
-        assert indptr.dtype == self.indice_dtype
+        assert csr_data.data.size == self.max_nnz
+        assert csr_data.indices.size == self.max_nnz
+        assert csr_data.indptr.size == self.shape[0]+1
+        assert csr_data.data.dtype == numpy.float32
+        assert csr_data.indices.dtype == self.indice_dtype
+        assert csr_data.indptr.dtype == self.indice_dtype
 
 
     def set_array(self, arr):
@@ -200,24 +211,23 @@ class CSR(OpenclProcessing):
         if isinstance(arr, parray.Array):
             self._old_array = self.array
             self.array = arr
-        elif isinstance(arr, np.ndarray):
+        elif isinstance(arr, numpy.ndarray):
             self.array[:] = arr.ravel()[:]
         else:
             raise ValueError("Expected pyopencl array or numpy array")
 
 
-    def set_sparse_arrays(self, arrays):
-        if arrays is None:
+    def set_sparse_arrays(self, csr_data):
+        if csr_data is None:
             return
-        self.check_sparse_arrays(arrays)
-        data, indices, indptr = arrays
-        for name, arr in {"data": data, "indices": indices, "indptr": indptr}.items():
+        self.check_sparse_arrays(csr_data)
+        for name, arr in {"data": csr_data.data, "indices": csr_data.indices, "indptr": csr_data.indptr}.items():
             # The current array is a device array. Don't copy, use it directly
             if isinstance(arr, parray.Array):
                 setattr(self, "_old_" + name, getattr(self, name))
                 setattr(self, name, arr)
             # The current array is a numpy.ndarray: copy H2D
-            elif isinstance(arr, np.ndarray):
+            elif isinstance(arr, numpy.ndarray):
                 getattr(self, name)[:] = arr[:]
             else:
                 raise ValueError("Unsupported array type: %s" % type(arr))
@@ -281,7 +291,7 @@ class CSR(OpenclProcessing):
             The content of each array is overwritten by the computation result.
         """
         self.set_array(arr)
-        self.set_sparse_arrays(output)
+        self.set_sparse_arrays(tuple_to_csrdata(output))
         evt = self.scan_kernel(
             self.array,
             self.data,
@@ -299,7 +309,9 @@ class CSR(OpenclProcessing):
     # --------------------------------------------------------------------------
 
     def densify(self, data, indices, indptr, output=None):
-        self.set_sparse_arrays((data, indices, indptr))
+        self.set_sparse_arrays(
+            CSRData(data=data, indices=indices, indptr=indptr)
+        )
         self.set_array(output)
         evt = self.kernels.densify_csr(
             self.queue,
@@ -309,7 +321,7 @@ class CSR(OpenclProcessing):
             self.indices.data,
             self.indptr.data,
             self.array.data,
-            np.int32(self.shape[0]),
+            numpy.int32(self.shape[0]),
         )
         #~ evt.wait()
         self.profile_add(evt, "desparsification kernel")

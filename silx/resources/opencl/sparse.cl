@@ -27,7 +27,6 @@
 #ifndef IMAGE_WIDTH
   #error "Please define IMAGE_WIDTH parameter
 #endif
-#ifndef
 
 /**
  * Densify a matric from CSR format to "dense" 2D format.
