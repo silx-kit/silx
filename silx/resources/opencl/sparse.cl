@@ -25,7 +25,7 @@
  */
 
 #ifndef IMAGE_WIDTH
-  #error "Please define IMAGE_WIDTH parameter
+  #error "Please define IMAGE_WIDTH parameter"
 #endif
 
 /**
