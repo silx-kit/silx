@@ -31,14 +31,52 @@ __date__ = "29/03/2017"
 
 
 import logging
-
+import threading
 import numpy
 
-from .._utils.delaunay import triangulation
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, CancelledError
+
+from ....utils.weakref import WeakList
+from .._utils.delaunay import delaunay
 from .core import PointsBase, ColormapMixIn, ScatterVisualizationMixIn
+from .axis import Axis
 
 
 _logger = logging.getLogger(__name__)
+
+
+class _GreedyThreadPoolExecutor(ThreadPoolExecutor):
+    """:class:`ThreadPoolExecutor` with an extra :meth:`submit_greedy` method.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(_GreedyThreadPoolExecutor, self).__init__(*args, **kwargs)
+        self.__futures = defaultdict(WeakList)
+        self.__lock = threading.RLock()
+
+    def submit_greedy(self, queue, fn, *args, **kwargs):
+        """Same as :meth:`submit` but cancel previous tasks in given queue.
+
+        This means that when a new task is submitted for a given queue,
+        all other pending tasks of that queue are cancelled.
+
+        :param queue: Identifier of the queue. This must be hashable.
+        :param callable fn: The callable to call with provided extra arguments
+        :return: Future corresponding to this task
+        :rtype: concurrent.futures.Future
+        """
+        with self.__lock:
+            # Cancel previous tasks in given queue
+            for future in self.__futures.pop(queue, []):
+                if not future.done():
+                    future.cancel()
+
+            future = super(_GreedyThreadPoolExecutor, self).submit(
+                fn, *args, **kwargs)
+            self.__futures[queue].append(future)
+
+        return future
 
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
@@ -58,6 +96,12 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         ScatterVisualizationMixIn.__init__(self)
         self._value = ()
         self.__alpha = None
+        # Cache Delaunay triangulation future object
+        self.__delaunayFuture = None
+        # Cache interpolator future object
+        self.__interpolatorFuture = None
+        self.__executor = None
+
         # Cache triangles: x, y, indices
         self.__cacheTriangles = None, None, None
         
@@ -101,10 +145,18 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                     symbolsize=self.getSymbolSize())
 
         else:  # 'solid'
-            triangles = self.__getTriangleIndices(xFiltered, yFiltered)
-            if triangles is None:
+            plot = self.getPlot()
+            if (plot is None or
+                    plot.getXAxis().getScale() != Axis.LINEAR or
+                    plot.getYAxis().getScale() != Axis.LINEAR):
+                # Solid visualization is not available with log scaled axes
+                return None
+
+            triangulation = self._getDelaunay().result()
+            if triangulation is None:
                 return None
             else:
+                triangles = triangulation.simplices.astype(numpy.int32)
                 return backend.addTriangles(xFiltered,
                                             yFiltered,
                                             triangles,
@@ -114,22 +166,99 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                             selectable=self.isSelectable(),
                                             alpha=self.getAlpha())
 
-    def __getTriangleIndices(self, x, y):
-        """Returns list of triangle indices.
+    def __getExecutor(self):
+        """Returns async greedy executor
 
-        Arrays are not copied, so should not be modified.
-
-        :param numpy.ndarray x: X coordinates
-        :param numpy.ndarray y: Y coordinates
-        :return: Triangle indices as a (N, 3) array of indices
-        :rtype: numpy.ndarray
+        :rtype: _GreedyThreadPoolExecutor
         """
-        if not (numpy.array_equal(self.__cacheTriangles[0], x) and
-                numpy.array_equal(self.__cacheTriangles[1], y)):
-            # Update cache
-            self.__cacheTriangles = (
-                x, y, triangulation(x, y, dtype=numpy.int32))
-        return self.__cacheTriangles[2]
+        if self.__executor is None:
+            self.__executor = _GreedyThreadPoolExecutor(max_workers=2)
+        return self.__executor
+
+    def _getDelaunay(self):
+        """Returns a :class:`Future` which result is the Delaunay object.
+
+        :rtype: concurrent.futures.Future
+        """
+        if self.__delaunayFuture is None or self.__delaunayFuture.cancelled():
+            # Need to init a new delaunay
+            x, y = self.getData(copy=False)[:2]
+            # Remove not finite points
+            mask = numpy.logical_and(numpy.isfinite(x), numpy.isfinite(y))
+
+            self.__delaunayFuture = self.__getExecutor().submit_greedy(
+                'delaunay', delaunay, x[mask], y[mask])
+
+        return self.__delaunayFuture
+
+    @staticmethod
+    def __initInterpolator(delaunayFuture, values):
+        """Returns an interpolator for the given data points
+
+        :param concurrent.futures.Future delaunayFuture:
+            Future object which result is a Delaunay object
+        :param numpy.ndarray values: The data value of valid points.
+        :rtype: Union[callable,None]
+        """
+        # Wait for Delaunay to complete
+        try:
+            triangulation = delaunayFuture.result()
+        except CancelledError:
+            triangulation = None
+
+        if triangulation is None:
+            interpolator = None  # Error case
+        else:
+            # Lazy-loading of interpolator
+            try:
+                from scipy.interpolate import LinearNDInterpolator
+            except ImportError:
+                LinearNDInterpolator = None
+
+            if LinearNDInterpolator is not None:
+                interpolator = LinearNDInterpolator(triangulation, values)
+
+                # First call takes a while, do it here
+                interpolator([(0., 0.)])
+
+            else:
+                # Fallback using matplotlib interpolator
+                import matplotlib.tri
+
+                x, y = triangulation.points.T
+                tri = matplotlib.tri.Triangulation(
+                    x, y, triangles=triangulation.simplices)
+                mplInterpolator = matplotlib.tri.LinearTriInterpolator(
+                    tri, values)
+
+                # Wrap interpolator to have same API as scipy's one
+                def interpolator(points):
+                    return mplInterpolator(*points.T)
+
+        return interpolator
+
+    def _getInterpolator(self):
+        """Returns a :class:`Future` which result is the interpolator.
+
+        The interpolator is a callable taking an array Nx2 of points
+        as a single argument.
+        The :class:`Future` result is None in case the interpolator cannot
+        be initialized.
+
+        :rtype: concurrent.futures.Future
+        """
+        if (self.__interpolatorFuture is None or
+                self.__interpolatorFuture.cancelled()):
+            # Need to init a new interpolator
+            x, y, values = self.getData(copy=False)[:3]
+            # Remove not finite points
+            mask = numpy.logical_and(numpy.isfinite(x), numpy.isfinite(y))
+            x, y, values = x[mask], y[mask], values[mask]
+
+            self.__interpolatorFuture = self.__getExecutor().submit_greedy(
+                'interpolator',
+                self.__initInterpolator, self._getDelaunay(), values)
+        return self.__interpolatorFuture
 
     def _logFilterData(self, xPositive, yPositive):
         """Filter out values with x or y <= 0 on log axes
@@ -220,6 +349,14 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         value = numpy.array(value, copy=copy)
         assert value.ndim == 1
         assert len(x) == len(value)
+
+        # Reset triangulation and interpolator
+        if self.__delaunayFuture is not None:
+            self.__delaunayFuture.cancel()
+            self.__delaunayFuture = None
+        if self.__interpolatorFuture is not None:
+            self.__interpolatorFuture.cancel()
+            self.__interpolatorFuture = None
 
         self._value = value
 
