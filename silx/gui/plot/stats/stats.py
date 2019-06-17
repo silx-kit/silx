@@ -36,6 +36,9 @@ import logging
 import numpy
 
 from .. import items
+from ..CurvesROIWidget import ROI
+from ..items.roi import RegionOfInterest
+
 from ....math.combo import min_max
 
 
@@ -60,7 +63,7 @@ class Stats(OrderedDict):
             for stat in _statslist:
                 self.add(stat)
 
-    def calculate(self, item, plot, onlimits):
+    def calculate(self, item, plot, onlimits, roi):
         """
         Call all :class:`Stat` object registered and return the result of the
         computation.
@@ -75,21 +78,21 @@ class Stats(OrderedDict):
         context = None
         # Check for PlotWidget items
         if isinstance(item, items.Curve):
-            context = _CurveContext(item, plot, onlimits)
+            context = _CurveContext(item, plot, onlimits, roi=roi)
         elif isinstance(item, items.ImageData):
-            context = _ImageContext(item, plot, onlimits)
+            context = _ImageContext(item, plot, onlimits, roi=roi)
         elif isinstance(item, items.Scatter):
-            context = _ScatterContext(item, plot, onlimits)
+            context = _ScatterContext(item, plot, onlimits, roi=roi)
         elif isinstance(item, items.Histogram):
-            context = _HistogramContext(item, plot, onlimits)
+            context = _HistogramContext(item, plot, onlimits, roi=roi)
         else:
             # Check for SceneWidget items
             from ...plot3d import items as items3d  # Lazy import
 
             if isinstance(item, (items3d.Scatter2D, items3d.Scatter3D)):
-                context = _plot3DScatterContext(item, plot, onlimits)
+                context = _plot3DScatterContext(item, plot, onlimits, roi=roi)
             elif isinstance(item, (items3d.ImageData, items3d.ScalarField3D)):
-                context = _plot3DArrayContext(item, plot, onlimits)
+                context = _plot3DArrayContext(item, plot, onlimits, roi=roi)
 
         if context is None:
                 raise ValueError('Item type not managed')
@@ -127,8 +130,11 @@ class _StatsContext(object):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, kind, plot, onlimits):
+    def __init__(self, item, kind, plot, onlimits, roi):
         assert item
         assert plot
         assert type(onlimits) is bool
@@ -136,6 +142,8 @@ class _StatsContext(object):
         self.min = None
         self.max = None
         self.data = None
+        self.roi = None
+        self.onlimits = onlimits
 
         self.values = None
         """The array of data"""
@@ -151,9 +159,9 @@ class _StatsContext(object):
         and the order is (x, y, z).
         """
 
-        self.createContext(item, plot, onlimits)
+        self.createContext(item, plot, onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def createContext(self, item, plot, onlimits, roi):
         raise NotImplementedError("Base class")
 
     def isStructuredData(self):
@@ -184,6 +192,11 @@ class _StatsContext(object):
         else:
             return self.values.ndim == 1
 
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        if roi is not None and onlimits is True:
+            raise ValueError('Stats context is unable to manage both a ROI'
+                             'and the `onlimits` option')
+
 
 class _CurveContext(_StatsContext):
     """
@@ -193,19 +206,33 @@ class _CurveContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
         _StatsContext.__init__(self, kind='curve', item=item,
-                               plot=plot, onlimits=onlimits)
+                               plot=plot, onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def createContext(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
+        self.roi = roi
+        self.onlimits = onlimits
         xData, yData = item.getData(copy=True)[0:2]
 
-        if onlimits:
-            minX, maxX = plot.getXAxis().getLimits()
+        def filter_data(xData, yData, minX, maxX):
             mask = (minX <= xData) & (xData <= maxX)
             yData = yData[mask]
             xData = xData[mask]
+            return xData, yData
+
+        if onlimits:
+            minX, maxX = plot.getXAxis().getLimits()
+            xData, yData = filter_data(xData, yData, minX=minX, maxX=maxX)
+        elif roi is not None:
+            minX, maxX = roi.getFrom(), roi.getTo()
+            xData, yData = filter_data(xData, yData, minX=minX, maxX=maxX)
 
         self.xData = xData
         self.yData = yData
@@ -217,6 +244,12 @@ class _CurveContext(_StatsContext):
         self.values = yData
         self.axes = (xData,)
 
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                          onlimits=onlimits, roi=roi)
+        if roi is not None and not isinstance(roi, ROI):
+            raise ValueError('curve `context` can ony manage 1D roi')
+
 
 class _HistogramContext(_StatsContext):
     """
@@ -226,12 +259,17 @@ class _HistogramContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
         _StatsContext.__init__(self, kind='histogram', item=item,
-                               plot=plot, onlimits=onlimits)
+                               plot=plot, onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def createContext(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         yData, edges = item.getData(copy=True)[0:2]
         xData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
         if onlimits:
@@ -250,6 +288,13 @@ class _HistogramContext(_StatsContext):
         self.values = yData
         self.axes = (xData,)
 
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                      onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, ROI):
+            raise ValueError('curve `context` can ony manage 1D roi')
+
 
 class _ScatterContext(_StatsContext):
     """StatsContext scatter plots.
@@ -260,12 +305,17 @@ class _ScatterContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
         _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
-                               onlimits=onlimits)
+                               onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def createContext(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         valueData = item.getValueData(copy=True)
         xData = item.getXData(copy=True)
         yData = item.getYData(copy=True)
@@ -291,6 +341,13 @@ class _ScatterContext(_StatsContext):
         self.values = valueData
         self.axes = (xData, yData)
 
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                      onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, ROI):
+            raise ValueError('curve `context` can ony manage 1D roi')
+
 
 class _ImageContext(_StatsContext):
     """StatsContext for images.
@@ -301,12 +358,17 @@ class _ImageContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
         _StatsContext.__init__(self, kind='image', item=item,
-                               plot=plot, onlimits=onlimits)
+                               plot=plot, onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def createContext(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         self.origin = item.getOrigin()
         self.scale = item.getScale()
 
@@ -339,6 +401,13 @@ class _ImageContext(_StatsContext):
             self.axes = (self.origin[1] + self.scale[1] * numpy.arange(self.data.shape[0]),
                          self.origin[0] + self.scale[0] * numpy.arange(self.data.shape[1]))
 
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                              onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, RegionOfInterest):
+            raise ValueError('curve `context` can ony manage 2D roi')
+
 
 class _plot3DScatterContext(_StatsContext):
     """StatsContext for 3D scatter plots.
@@ -350,12 +419,17 @@ class _plot3DScatterContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
         _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
-                               onlimits=onlimits)
+                               onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def createContext(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
 
@@ -374,6 +448,13 @@ class _plot3DScatterContext(_StatsContext):
             self.axes = None
             self.min, self.max = None, None
 
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                          onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, RegionOfInterest):
+            raise ValueError('curve `context` can ony manage 2D roi')
+
 
 class _plot3DArrayContext(_StatsContext):
     """StatsContext for 3D scalar field and data image.
@@ -385,12 +466,17 @@ class _plot3DArrayContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
         _StatsContext.__init__(self, kind='image', item=item, plot=plot,
-                               onlimits=onlimits)
+                               onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def createContext(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
 
@@ -404,6 +490,13 @@ class _plot3DArrayContext(_StatsContext):
             self.values = None
             self.axes = None
             self.min, self.max = None, None
+
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                      onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, RegionOfInterest):
+            raise ValueError('curve `context` can ony manage 2D roi')
 
 
 BASIC_COMPATIBLE_KINDS = 'curve', 'image', 'scatter', 'histogram'
