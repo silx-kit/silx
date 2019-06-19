@@ -292,6 +292,8 @@ class Camera(transform.Transform):
 
         center = 0.5 * (bounds[0] + bounds[1])
         radius = numpy.linalg.norm(0.5 * (bounds[1] - bounds[0]))
+        if radius == 0.:  # bounds are all collapsed
+            radius = 1.
 
         if isinstance(self.intrinsic, transform.Perspective):
             # Get the viewpoint distance from the bounds center
