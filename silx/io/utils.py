@@ -460,7 +460,10 @@ def _open_local_file(filename):
                                       "File '%s' can't be read as a numpy file." % filename))
 
         if h5py.is_hdf5(filename):
-            return h5py.File(filename, "r")
+            try:
+                return h5py.File(filename, "r")
+            except OSError:
+                return h5py.File(filename, "r", libver='latest', swmr=True)
 
         try:
             from . import fabioh5
