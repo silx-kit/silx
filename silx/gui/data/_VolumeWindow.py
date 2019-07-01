@@ -44,6 +44,7 @@ class VolumeWindow(SceneWindow):
 
     def __init__(self, parent):
         super(VolumeWindow, self).__init__(parent)
+        self.__firstData = True
         # Hide global parameter dock
         self.getGroupResetWidget().parent().setVisible(False)
 
@@ -129,9 +130,12 @@ class VolumeWindow(SceneWindow):
                 if not index.isValid():
                     break
 
-
         volume.setTranslation(*offset)
         volume.setScale(*scale)
+
+        if self.__firstData:  # Only center for first dataset
+            self.__firstData = False
+            sceneWidget.centerScene()
 
     def __cutPlaneUpdated(self, event):
         """Handle the change of visibility of the cut plane
