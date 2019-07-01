@@ -79,7 +79,7 @@ class TestStatsBase(object):
     def createScatterContext(self):
         self.scatterPlot = Plot2D()
         lgd = 'scatter plot'
-        self.xScatterData = numpy.array([0, 1, 2, 20, 50, 60, 36])
+        self.xScatterData = numpy.array([0, 2, 3, 20, 50, 60, 36])
         self.yScatterData = numpy.array([2, 3, 4, 26, 69, 6, 18])
         self.valuesScatterData = numpy.array([5, 6, 7, 10, 90, 20, 5])
         self.scatterPlot.addScatter(self.xScatterData, self.yScatterData,
@@ -856,7 +856,7 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         self._2Droi_poly.setPoints(points=points)
 
     def createCurveContext(self):
-        TestStats.createCurveContext(self)
+        TestStatsBase.createCurveContext(self)
         self.curveContext = stats._CurveContext(
             item=self.plot1d.getCurve('curve0'),
             plot=self.plot1d,
@@ -864,7 +864,7 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
             roi=self._1Droi)
 
     def createScatterContext(self):
-        TestStats.createScatterContext(self)
+        TestStatsBase.createScatterContext(self)
         self.scatterContext = stats._ScatterContext(
             item=self.scatterPlot.getScatter('scatter plot'),
             plot=self.scatterPlot,
@@ -873,7 +873,7 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         )
 
     def createImageContext(self):
-        TestStats.createImageContext(self)
+        TestStatsBase.createImageContext(self)
 
         self.imageContext = stats._ImageContext(
             item=self.plot2d.getImage(self._imgLgd),
@@ -950,8 +950,15 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         # on to manage them in stats. For now 0 if the center is not in, else 1
         self.assertEqual(_stats['maxCoords'].calculate(self.imageContext_2), (0.0, 18.0))
 
-    def testBaicStatsScatter(self):
-        pass
+    def testBasicStatsScatter(self):
+        self.assertEqual(self.scatterContext.values.compressed().size, 2)
+        _stats = self.getBasicStats()
+        self.assertEqual(_stats['min'].calculate(self.scatterContext), 6)
+        self.assertEqual(_stats['max'].calculate(self.scatterContext), 7)
+        self.assertEqual(_stats['minCoords'].calculate(self.scatterContext), (2,3))
+        self.assertEqual(_stats['maxCoords'].calculate(self.scatterContext), (3,4))
+        self.assertEqual(_stats['std'].calculate(self.scatterContext), numpy.std([6, 7]))
+        self.assertEqual(_stats['mean'].calculate(self.scatterContext), numpy.mean([6, 7]))
 
 
 def suite():

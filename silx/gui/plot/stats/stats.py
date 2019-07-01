@@ -355,15 +355,19 @@ class _ScatterContext(_StatsContext):
             xData = xData[(minY <= yData) & (yData <= maxY)]
             yData = yData[(minY <= yData) & (yData <= maxY)]
 
-        # TODO: remove the mask, or create a property to access it from values
-        mask = numpy.zeros_like(self.data)
+        if roi:
+            mask = (xData < roi.getFrom()) | (xData > roi.getTo())
+            print(mask)
+        else:
+            mask = numpy.zeros_like(xData)
+
         self.data = (xData, yData, valueData)
-        self.values = numpy.ma.array(valueData, mask=self.mask)
+        self.values = numpy.ma.array(valueData, mask=mask)
         self.axes = (xData, yData)
 
-        valueData = valueData[self.mask==0]
-        if len(valueData) > 0:
-            self.min, self.max = min_max(valueData)
+        unmasked_values = self.values.compressed()
+        if len(unmasked_values) > 0:
+            self.min, self.max = min_max(unmasked_values)
         else:
             self.min, self.max = None, None
 
