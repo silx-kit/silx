@@ -48,6 +48,7 @@ from .ScatterMaskToolsWidget import ScatterMaskToolsWidget
 from ..widgets.BoxLayoutDockWidget import BoxLayoutDockWidget
 from .. import qt, icons
 from ...utils.proxy import docstring
+from ...utils.weakref import WeakMethodProxy
 
 
 _logger = logging.getLogger(__name__)
@@ -93,10 +94,10 @@ class ScatterView(qt.QMainWindow):
         self.__pickingCache = None
         self._positionInfo = tools.PositionInfo(
             plot=plot,
-            converters=(('X', lambda x, y: x),
-                        ('Y', lambda x, y: y),
-                        ('Data', lambda x, y: self._getScatterValue(x, y)),
-                        ('Index', lambda x, y: self._getScatterIndex(x, y))))
+            converters=(('X', WeakMethodProxy(self._getPickedX)),
+                        ('Y', WeakMethodProxy(self._getPickedY)),
+                        ('Data', WeakMethodProxy(self._getPickedValue)),
+                        ('Index', WeakMethodProxy(self._getPickedIndex))))
 
         # Combine plot, position info and colorbar into central widget
         gridLayout = qt.QGridLayout()
@@ -168,22 +169,14 @@ class ScatterView(qt.QMainWindow):
                             dataIndex = indices[-1]
                             self.__pickingCache = (
                                 dataIndex,
+                                item.getXData(copy=False)[dataIndex],
+                                item.getYData(copy=False)[dataIndex],
                                 item.getValueData(copy=False)[dataIndex])
                             break
 
         return self.__pickingCache
 
-    def _getScatterValue(self, x, y):
-        """Get data value of top most scatter plot at position (x, y)
-
-        :param float x: X position in plot coordinates
-        :param float y: Y position in plot coordinates
-        :return: The data value at that point or '-'
-        """
-        picking = self._pickScatterData(x, y)
-        return '-' if picking is None else picking[1]
-
-    def _getScatterIndex(self, x, y):
+    def _getPickedIndex(self, x, y):
         """Get data index of top most scatter plot at position (x, y)
 
         :param float x: X position in plot coordinates
@@ -193,7 +186,35 @@ class ScatterView(qt.QMainWindow):
         picking = self._pickScatterData(x, y)
         return '-' if picking is None else picking[0]
 
-    _PICK_OFFSET = 3  # Offset in pixel used for picking
+    def _getPickedX(self, x, y):
+        """Returns X position snapped to scatter plot when close enough
+
+        :param float x:
+        :param float y:
+        :rtype: float
+        """
+        picking = self._pickScatterData(x, y)
+        return x if picking is None else picking[1]
+
+    def _getPickedY(self, x, y):
+        """Returns Y position snapped to scatter plot when close enough
+
+        :param float x:
+        :param float y:
+        :rtype: float
+        """
+        picking = self._pickScatterData(x, y)
+        return y if picking is None else picking[2]
+
+    def _getPickedValue(self, x, y):
+        """Get data value of top most scatter plot at position (x, y)
+
+        :param float x: X position in plot coordinates
+        :param float y: Y position in plot coordinates
+        :return: The data value at that point or '-'
+        """
+        picking = self._pickScatterData(x, y)
+        return '-' if picking is None else picking[3]
 
     def _mouseInPlotArea(self, x, y):
         """Clip mouse coordinates to plot area coordinates
