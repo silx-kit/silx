@@ -833,6 +833,7 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         TestCaseQt.setUp(self)
         self.createRois()
         TestStatsBase.setUp(self)
+        self.createHistogramContext()
 
         self.roiManager = RegionOfInterestManager(self.plot2d)
         self.roiManager.addRoi(self._2Droi_rect)
@@ -844,6 +845,9 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         self._1Droi = None
         self._2Droi_rect = None
         self._2Droi_poly = None
+        self.plotHisto.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plotHisto.close()
+        self.plotHisto = None
         TestStatsBase.tearDown(self)
         TestCaseQt.tearDown(self)
 
@@ -860,6 +864,18 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         self.curveContext = stats._CurveContext(
             item=self.plot1d.getCurve('curve0'),
             plot=self.plot1d,
+            onlimits=False,
+            roi=self._1Droi)
+
+    def createHistogramContext(self):
+        self.plotHisto = Plot1D()
+        x = range(20)
+        y = range(20)
+        self.plotHisto.addHistogram(x, y, legend='histo0')
+
+        self.histoContext = stats._HistogramContext(
+            item=self.plotHisto.getHistogram('histo0'),
+            plot=self.plotHisto,
             onlimits=False,
             roi=self._1Droi)
 
@@ -959,6 +975,18 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         self.assertEqual(_stats['maxCoords'].calculate(self.scatterContext), (3,4))
         self.assertEqual(_stats['std'].calculate(self.scatterContext), numpy.std([6, 7]))
         self.assertEqual(_stats['mean'].calculate(self.scatterContext), numpy.mean([6, 7]))
+
+    def testBasicHistogram(self):
+        _stats = self.getBasicStats()
+        xData = yData = numpy.array(range(2, 6))
+        self.assertEqual(_stats['min'].calculate(self.histoContext), 2)
+        self.assertEqual(_stats['max'].calculate(self.histoContext), 5)
+        self.assertEqual(_stats['minCoords'].calculate(self.histoContext), (2,))
+        self.assertEqual(_stats['maxCoords'].calculate(self.histoContext), (5,))
+        self.assertEqual(_stats['std'].calculate(self.histoContext), numpy.std(yData))
+        self.assertEqual(_stats['mean'].calculate(self.histoContext), numpy.mean(yData))
+        com = numpy.sum(xData * yData) / numpy.sum(yData)
+        self.assertEqual(_stats['com'].calculate(self.histoContext), com)
 
 
 def suite():
