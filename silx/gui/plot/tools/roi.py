@@ -173,7 +173,8 @@ class RegionOfInterestManager(qt.QObject):
             self.start(roiClass)
         else:  # Keep action checked
             action = self.sender()
-            action.setChecked(True)
+            if isinstance(action, qt.QAction):
+                action.setChecked(True)
 
     def _updateModeActions(self):
         """Check/Uncheck action corresponding to current mode"""
