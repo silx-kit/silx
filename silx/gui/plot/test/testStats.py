@@ -35,6 +35,7 @@ from silx.gui.plot import StatsWidget
 from silx.gui.plot.stats import statshandler
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import Plot1D, Plot2D
+from silx.gui.plot3d.SceneWidget import SceneWidget
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
 from silx.gui.plot.tools.roi import  RegionOfInterestManager
 from silx.gui.plot.CurvesROIWidget import ROI
@@ -47,6 +48,7 @@ _logger = logging.getLogger(__name__)
 
 
 class TestStatsBase(object):
+    """Base class for stats TestCase"""
     def setUp(self):
         self.createCurveContext()
         self.createImageContext()

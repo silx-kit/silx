@@ -474,8 +474,14 @@ class _plot3DScatterContext(_StatsContext):
                                  roi=roi)
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
+        if roi:
+            logger.warning("Roi are unsuported on volume for now")
+            mask = numpy.zeros_like(values)
+        else:
+            mask = numpy.zeros_like(values)
 
         values = item.getValueData(copy=False)
+        values = numpy.ma.array(values, mask=mask)
 
         if values is not None and len(values) > 0:
             self.values = values
@@ -523,7 +529,13 @@ class _plot3DArrayContext(_StatsContext):
             raise RuntimeError("Unsupported plot %s" % str(plot))
 
         values = item.getData(copy=False)
+        if roi:
+            logger.warning("Roi are unsuported on volume for now")
+            mask = numpy.zeros_like(values)
+        else:
+            mask = numpy.zeros_like(values)
 
+        values = numpy.ma.array(values, mask=mask)
         if values is not None and len(values) > 0:
             self.values = values
             self.axes = tuple([numpy.arange(size) for size in self.values.shape])
