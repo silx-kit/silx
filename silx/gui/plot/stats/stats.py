@@ -481,7 +481,6 @@ class _plot3DScatterContext(_StatsContext):
             mask = numpy.zeros_like(values)
 
         values = item.getValueData(copy=False)
-        values = numpy.ma.array(values, mask=mask)
 
         if values is not None and len(values) > 0:
             self.values = values
@@ -489,8 +488,8 @@ class _plot3DScatterContext(_StatsContext):
             if self.values.ndim == 3:
                 axes.append(item.getZData(copy=False))
             self.axes = tuple(axes)
-
             self.min, self.max = min_max(self.values)
+            self.values = numpy.ma.array(self.values, mask=mask)
         else:
             self.values = None
             self.axes = None
@@ -535,11 +534,11 @@ class _plot3DArrayContext(_StatsContext):
         else:
             mask = numpy.zeros_like(values)
 
-        values = numpy.ma.array(values, mask=mask)
         if values is not None and len(values) > 0:
             self.values = values
             self.axes = tuple([numpy.arange(size) for size in self.values.shape])
             self.min, self.max = min_max(self.values)
+            self.values = numpy.ma.array(self.values, mask=mask)
         else:
             self.values = None
             self.axes = None
