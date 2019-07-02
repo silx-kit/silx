@@ -344,7 +344,7 @@ class PlotWidget(qt.QMainWindow):
                 except ImportError:
                     pass
             else:  # No backend was found
-                raise ValueError("No backends supported: " % str(backend))
+                raise ValueError("No supported backend was found")
 
         raise ValueError("Backend not supported %s" % str(backend))
 
