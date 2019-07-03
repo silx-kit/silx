@@ -28,7 +28,11 @@
 import numpy as np
 import unittest
 import logging
-from scipy.misc import ascent
+try:
+    from scipy.misc import ascent
+    __have_scipy = True
+except ImportError:
+    __have_scipy = False
 from silx.utils.testutils import ParametricTestCase
 from silx.math.fft.fft import FFT
 from silx.math.fft.clfft import __have_clfft__
@@ -84,6 +88,7 @@ class TestData(object):
         }
 
 
+@unittest.skipUnless(__have_scipy, "scipy is missing")
 class TestFFT(ParametricTestCase):
     """Test cuda/opencl/fftw backends of FFT"""
 
@@ -185,6 +190,7 @@ class TestFFT(ParametricTestCase):
         )
 
 
+@unittest.skipUnless(__have_scipy, "scipy is missing")
 class TestNumpyFFT(ParametricTestCase):
     """
     Test the Numpy backend individually.
