@@ -125,7 +125,8 @@ class PlotToolAction(PlotAction):
             if self._toolWindow is not None:
                 window = self._toolWindow()
                 self._previousGeometry = window.geometry()
-                window.hide()
+                window.deleteLater()
+                self._toolWindow = None
             self.setChecked(False)
 
         return PlotAction.eventFilter(self, qobject, event)
