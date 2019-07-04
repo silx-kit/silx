@@ -1,0 +1,141 @@
+Source: silx
+Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
+Uploaders: Jerome Kieffer <jerome.kieffer@esrf.fr>,
+           Picca Frédéric-Emmanuel <picca@debian.org>
+Section: science
+Priority: extra
+Build-Depends: cython,
+               cython3,
+               libstdc++-4.9-dev|libstdc++6,
+               debhelper (>=9.20150101+deb8u2),
+               dh-python,
+               python-all-dev,
+               python-numpy,
+               python-fabio,
+               python-h5py,
+               python-pyopencl,
+               python-mako,
+               python-qtconsole,
+               python-matplotlib,
+               python-nbsphinx,
+               python-dateutil,
+               python-opengl,
+               python-pyqt5,
+               python-pyqt5.qtsvg,
+               python-pyqt5.qtopengl,
+               python-scipy,
+               python-setuptools,
+               python-sphinx,
+               python-sphinxcontrib.programoutput,
+               python-six,
+               python-enum34,
+               python-concurrent.futures,
+               python3-all-dev,
+               python3-numpy,
+               python3-fabio,
+               python3-h5py,
+               python3-pyopencl,
+               python3-mako,
+               python3-qtconsole,
+               python3-matplotlib,
+               python3-nbsphinx,
+               python3-dateutil,
+               python3-opengl,
+               python3-pyqt5,
+               python3-pyqt5.qtsvg,
+               python3-pyqt5.qtopengl,
+               python3-scipy,
+               python3-setuptools,
+               python3-six,
+               python3-sphinx,
+               python3-sphinxcontrib.programoutput,
+               openstack-pkg-tools,
+               help2man,
+               locales,
+               devscripts
+Standards-Version: 3.9.8
+Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/silx.git
+Vcs-Git: git://anonscm.debian.org/debian-science/packages/silx.git
+Homepage: https://github.com/silx-kit/silx
+X-Python-Version: >= 2.7
+X-Python3-Version: >= 3.4
+
+Package: silx
+Architecture: all
+Depends: ${misc:Depends},
+         ${python:Depends},
+         ${shlibs:Depends},
+         python3-pkg-resources,
+         python3-silx (>= ${source:Version})
+Description: Toolbox for X-Ray data analysis - Executables
+ .
+ This uses the Python 3 version of the package.
+
+Package: python-silx
+Architecture: any
+Section: python
+Depends: ${misc:Depends},
+         ${python:Depends},
+         ${shlibs:Depends},
+         libstdc++6,
+         python-numpy,
+         python-fabio,
+         python-h5py,
+         python-pyopencl,
+         python-mako,
+         python-qtconsole,
+         python-matplotlib,
+         python-dateutil,
+         python-opengl,
+         python-pyqt5,
+         python-pyqt5.qtsvg,
+         python-pyqt5.qtopengl,
+         python-scipy,
+         python-setuptools,
+         python-six,
+         python-enum34,
+         python-concurrent.futures,
+# Recommends:
+Suggests: python-rfoo
+Description: Toolbox for X-Ray data analysis - Python2 library
+ .
+ This is the Python 2 version of the package.
+
+
+Package: python3-silx
+Architecture: any
+Section: python
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         ${shlibs:Depends},
+         libstdc++6,
+         python3-numpy,
+         python3-fabio,
+         python3-h5py,
+         python3-pyopencl,
+         python3-mako,
+         python3-qtconsole,
+         python3-matplotlib,
+         python3-dateutil,
+         python3-opengl,
+         python3-pyqt5,
+         python3-pyqt5.qtsvg,
+         python3-pyqt5.qtopengl,
+         python3-scipy,
+         python3-setuptools,
+         python3-six,
+# Recommends:
+# Suggests: python3-rfoo
+Description: Toolbox for X-Ray data analysis - Python3
+ .
+ This is the Python 3 version of the package.
+
+
+Package: python-silx-doc
+Architecture: all
+Section: doc
+Depends: ${misc:Depends},
+         ${sphinxdoc:Depends}
+Description: Toolbox for X-Ray data analysis - Documentation
+ .
+ This is the common documentation package.
