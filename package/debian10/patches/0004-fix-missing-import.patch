@@ -1,0 +1,70 @@
+From: =?utf-8?q?Picca_Fr=C3=A9d=C3=A9ric-Emmanuel?=
+ <picca@synchrotron-soleil.fr>
+Date: Tue, 28 May 2019 09:08:57 +0200
+Subject: fix missing import
+
+---
+ doc/source/ext/snapshotqt_directive.py | 43 +++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
+
+diff --git a/doc/source/ext/snapshotqt_directive.py b/doc/source/ext/snapshotqt_directive.py
+index 53508df..ee62e3a 100644
+--- a/doc/source/ext/snapshotqt_directive.py
++++ b/doc/source/ext/snapshotqt_directive.py
+@@ -42,6 +42,7 @@ import logging
+ import subprocess
+ import sys
+ import distutils
++import distutils.util
+ import shutil
+ from docutils.parsers.rst.directives.images import Image
+ from docutils.parsers.rst import directives
+@@ -53,27 +54,27 @@ from docutils import nodes
+ # note: conf.py is patching the PATH so this will be the 'current' qt version
+ 
+ 
+-def _distutils_dir_name(dname="lib"):
+-    """
+-    Returns the name of a distutils build directory
+-    """
+-    platform = distutils.util.get_platform()
+-    architecture = "%s.%s-%i.%i" % (dname, platform,
+-                                    sys.version_info[0], sys.version_info[1])
+-    return architecture
+-
+-home = os.path.abspath(os.path.join(__file__, "..", "..", "..", '..'))
+-home = os.path.abspath(home)
+-LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
+-
+-if not os.path.exists(LIBPATH):
+-    raise RuntimeError("%s is not on the path. Fix your PYTHONPATH and restart sphinx." % project)
+-
+-sys.path.append(LIBPATH)
+-env = os.environ.copy()
+-env.update(
+-    {"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
+-     "PATH": os.environ.get("PATH", "")})
++# def _distutils_dir_name(dname="lib"):
++#     """
++#     Returns the name of a distutils build directory
++#     """
++#     platform = distutils.util.get_platform()
++#     architecture = "%s.%s-%i.%i" % (dname, platform,
++#                                     sys.version_info[0], sys.version_info[1])
++#     return architecture
++
++# home = os.path.abspath(os.path.join(__file__, "..", "..", "..", '..'))
++# home = os.path.abspath(home)
++# LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
++
++# if not os.path.exists(LIBPATH):
++#     raise RuntimeError("%s is not on the path. Fix your PYTHONPATH and restart sphinx." % project)
++
++# sys.path.append(LIBPATH)
++# env = os.environ.copy()
++# env.update(
++#     {"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
++#      "PATH": os.environ.get("PATH", "")})
+ 
+ 
+ if not os.environ.get('DIRECTIVE_SNAPSHOT_QT') == 'True':

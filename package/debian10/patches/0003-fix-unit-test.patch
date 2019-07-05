@@ -1,0 +1,29 @@
+From: =?utf-8?q?Picca_Fr=C3=A9d=C3=A9ric-Emmanuel?=
+ <picca@synchrotron-soleil.fr>
+Date: Fri, 11 Aug 2017 10:15:26 +0200
+Subject: fix unit test
+
+---
+ silx/opencl/common.py | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/silx/opencl/common.py b/silx/opencl/common.py
+index 9a04035..17c67d1 100644
+--- a/silx/opencl/common.py
++++ b/silx/opencl/common.py
+@@ -61,7 +61,14 @@ else:
+         pyopencl = None
+     else:
+         import pyopencl.array as array
+-        mf = pyopencl.mem_flags
++
++if pyopencl is None:
++    class mf(object):
++        WRITE_ONLY = 1
++        READ_ONLY = 1
++        READ_WRITE = 1
++else:
++    mf = pyopencl.mem_flags
+ 
+ if pyopencl is None:
+     # Define default mem flags
