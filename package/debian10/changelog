@@ -1,3 +1,10 @@
+silx (0.11.0+dfsg-1) unstable; urgency=low
+
+  * New silx version 0.11
+  * Remove Python2 silx packages
+
+ -- Thomas Vincent <thomas.vincent@esrf.fr>  Fri, 05 Jul 2019 14:38:32 +0200
+
 silx (0.10.1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream version 0.10.1+dfsg
