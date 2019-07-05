@@ -28,6 +28,16 @@
   #error "Please define IMAGE_WIDTH parameter"
 #endif
 
+#ifndef DTYPE
+  #error "Please define DTYPE parameter"
+#endif
+
+#ifndef IDX_DTYPE
+  #error "Please define IDX_DTYPE parameter"
+#endif
+
+
+
 /**
  * Densify a matric from CSR format to "dense" 2D format.
  * The input CSR data consists in 3 arrays: (data, ind, iptr).
@@ -43,10 +53,10 @@
 **/
 
 kernel void densify_csr(
-    const global float* data,
-    const global int* ind,
-    const global int* iptr,
-    global float* output,
+    const global DTYPE* data,
+    const global IDX_DTYPE* ind,
+    const global IDX_DTYPE* iptr,
+    global DTYPE* output,
     int image_height
 )
 {
@@ -54,7 +64,7 @@ kernel void densify_csr(
     uint row_idx = get_global_id(1);
     if ((tid >= IMAGE_WIDTH) || (row_idx >= image_height)) return;
 
-    local float line[IMAGE_WIDTH];
+    local DTYPE line[IMAGE_WIDTH];
 
     // Memset
     //~ #pragma unroll
