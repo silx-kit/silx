@@ -29,9 +29,9 @@
 
 project=silx
 source_project=silx
-version=$(python -c"import version; print(version.version)")
-strictversion=$(python -c"import version; print(version.strictversion)")
-debianversion=$(python -c"import version; print(version.debianversion)")
+version=$(python3 -c"import version; print(version.version)")
+strictversion=$(python3 -c"import version; print(version.strictversion)")
+debianversion=$(python3 -c"import version; print(version.debianversion)")
 
 deb_name=$(echo "$source_project" | tr '[:upper:]' '[:lower:]')
 
@@ -79,13 +79,11 @@ optional arguments:
     --help     show this help text
     --install  install the packages generated at the end of
                the process using 'sudo dpkg'
-    --debian7  Simulate a debian7 system (fail-safe)
-    --debian8  Simulate a debian 8 Jessie system
     --debian9  Simulate a debian 9 Stretch system
+    --debian10 Simulate a debian 10 Buster system
 "
 
 install=0
-use_python3=0 #used only for stdeb
 
 while :
 do
@@ -96,10 +94,6 @@ do
           ;;
       --install)
           install=1
-          shift
-          ;;
-      --python3)
-          use_python3=1
           shift
           ;;
       --debian9)
@@ -133,7 +127,7 @@ build_deb () {
     echo "Build for debian 8 or newer using actual packaging" 
     tarname=${project}_${debianversion}.orig.tar.gz
     clean_up
-    python setup.py debian_src
+    python3 setup.py debian_src
     cp -f dist/${tarname} ${build_directory}
     if [ -f dist/${project}-testimages.tar.gz ]
     then
