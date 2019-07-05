@@ -60,8 +60,14 @@ else:
         logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
         pyopencl = None
     else:
-        import pyopencl.array as array
-        mf = pyopencl.mem_flags
+        try:
+            pyopencl.get_platforms()
+        except pyopencl.LogicError:
+            logger.warning("The module pyOpenCL has been imported but can't be used here")
+            pyopencl = None
+        else:
+            import pyopencl.array as array
+            mf = pyopencl.mem_flags
 
 if pyopencl is None:
     # Define default mem flags
