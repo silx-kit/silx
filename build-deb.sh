@@ -3,7 +3,7 @@
 #    Project: Silx
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2015-2017 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2015-2019 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -29,9 +29,9 @@
 
 project=silx
 source_project=silx
-version=$(python -c"import version; print(version.version)")
-strictversion=$(python -c"import version; print(version.strictversion)")
-debianversion=$(python -c"import version; print(version.debianversion)")
+version=$(python3 -c"import version; print(version.version)")
+strictversion=$(python3 -c"import version; print(version.strictversion)")
+debianversion=$(python3 -c"import version; print(version.debianversion)")
 
 deb_name=$(echo "$source_project" | tr '[:upper:]' '[:lower:]')
 
@@ -156,7 +156,7 @@ build_deb_8_plus () {
     echo "Build for debian 8 or newer using actual packaging" 
     tarname=${project}_${debianversion}.orig.tar.gz
     clean_up
-    python setup.py debian_src
+    python3 setup.py debian_src
     cp -f dist/${tarname} ${build_directory}
     if [ -f dist/${project}-testimages.tar.gz ]
     then
