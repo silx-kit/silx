@@ -56,21 +56,18 @@ if os.environ.get("SILX_OPENCL") in ["0", "False"]:
 else:
     try:
         import pyopencl
-        if pyopencl:
-            try:
-                pyopencl.get_platforms()
-            except pyopen._cl.LogicError:
-                logger.warning("The module pyopenCL has been imported but can't be used here")
-                pyopencl = None
-            else:
-                pass
-
     except ImportError:
         logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
         pyopencl = None
     else:
-        import pyopencl.array as array
-        mf = pyopencl.mem_flags
+        try:
+            pyopencl.get_platforms()
+        except pyopencl.LogicError:
+            logger.warning("The module pyOpenCL has been imported but can't be used here")
+            pyopencl = None
+        else:
+            import pyopencl.array as array
+            mf = pyopencl.mem_flags
 
 if pyopencl is None:
     # Define default mem flags
