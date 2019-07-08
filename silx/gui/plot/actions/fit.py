@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -98,18 +98,15 @@ class FitAction(PlotToolAction):
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
             parent=parent)
-        self.fit_widget = None
 
     def _createToolWindow(self):
-        window = qt.QMainWindow(parent=self.plot)
         # import done here rather than at module level to avoid circular import
         # FitWidget -> BackgroundWidget -> PlotWindow -> actions -> fit -> FitWidget
         from ...fit.FitWidget import FitWidget
-        fit_widget = FitWidget(parent=window)
-        window.setCentralWidget(fit_widget)
-        fit_widget.guibuttons.DismissButton.clicked.connect(window.close)
-        fit_widget.sigFitWidgetSignal.connect(self.handle_signal)
-        self.fit_widget = fit_widget
+
+        window = FitWidget(parent=self.plot)
+        window.setWindowFlags(qt.Qt.Window)
+        window.sigFitWidgetSignal.connect(self.handle_signal)
         return window
 
     def _connectPlot(self, window):
@@ -158,8 +155,8 @@ class FitAction(PlotToolAction):
             self.x = item.getXData(copy=False)
             self.y = item.getYData(copy=False)
 
-        self.fit_widget.setData(self.x, self.y,
-                                xmin=self.xmin, xmax=self.xmax)
+        window.setData(self.x, self.y,
+                       xmin=self.xmin, xmax=self.xmax)
         window.setWindowTitle(
             "Fitting " + self.legend +
             " on x range %f-%f" % (self.xmin, self.xmax))
@@ -171,7 +168,10 @@ class FitAction(PlotToolAction):
         fit_curve = self.plot.getCurve(fit_legend)
 
         if ddict["event"] == "FitFinished":
-            y_fit = self.fit_widget.fitmanager.gendata()
+            fit_widget = self._getToolWindow()
+            if fit_widget is None:
+                return
+            y_fit = fit_widget.fitmanager.gendata()
             if fit_curve is None:
                 self.plot.addCurve(x_fit, y_fit,
                                    fit_legend,
