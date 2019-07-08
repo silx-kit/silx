@@ -132,7 +132,7 @@ To install it, you need to download this file :
 
     http://www.silx.org/pub/debian/silx.list
 
-and copy it into the /etc/apt/source.list.d folder.
+and copy it into the /etc/apt/sources.list.d folder.
 Then run ``apt-get update`` and ``apt-get install python-silx``
 
 .. code-block:: bash 
