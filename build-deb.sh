@@ -208,9 +208,19 @@ build_deb_8_plus () {
       #export PYBUILD_DISABLE_python3=test
       #export DEB_BUILD_OPTIONS=nocheck
     fi
-    
+
+    case $debian_version in
+        9)
+            debian_name=stretch
+            ;;
+        10)
+            debian_name=buster
+            ;;
+    esac
+
     dch -v ${debianversion}-1 "upstream development build of ${project} ${version}"
-    dch --bpo "${project} snapshot ${version} built for ${target_system}"
+    dch -D ${debian_name}-backports -l~bpo${debian_version}+ "${project} snapshot ${version} built for ${target_system}"
+    #dch --bpo "${project} snapshot ${version} built for ${target_system}"
     dpkg-buildpackage -r
     rc=$?
     
