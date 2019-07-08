@@ -224,8 +224,8 @@ class CSR(OpenclProcessing):
         assert isinstance(csr_data, CSRData)
         for arr in [csr_data.data, csr_data.indices, csr_data.indptr]:
             assert arr.ndim == 1
-        assert csr_data.data.size == self.max_nnz
-        assert csr_data.indices.size == self.max_nnz
+        assert csr_data.data.size <= self.max_nnz
+        assert csr_data.indices.size <= self.max_nnz
         assert csr_data.indptr.size == self.shape[0]+1
         assert csr_data.data.dtype == self.dtype
         assert csr_data.indices.dtype == self.indice_dtype
@@ -263,7 +263,7 @@ class CSR(OpenclProcessing):
                 setattr(self, name, arr)
             # The current array is a numpy.ndarray: copy H2D
             elif isinstance(arr, numpy.ndarray):
-                getattr(self, name)[:] = arr[:]
+                getattr(self, name)[:arr.size] = arr[:]
             else:
                 raise ValueError("Unsupported array type: %s" % type(arr))
 
