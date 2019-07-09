@@ -1062,12 +1062,12 @@ class ComplexModeRow(ItemProxyRow):
     :param Item3D item: Scene item with symbol property
     """
 
-    def __init__(self, item):
+    def __init__(self, item, name='Mode'):
         names = [m.value.replace('_', ' ').title()
                  for m in item.supportedComplexModes()]
         super(ComplexModeRow, self).__init__(
             item=item,
-            name='Mode',
+            name=name,
             fget=item.getComplexMode,
             fset=item.setComplexMode,
             events=items.ItemChangedType.COMPLEX_MODE,
@@ -1365,7 +1365,7 @@ class VolumeIsoSurfacesRow(StaticRow):
         volume.sigIsosurfaceRemoved.connect(self._isosurfaceRemoved)
 
         if isinstance(volume, items.ComplexMixIn):
-            self.addRow(ComplexModeRow(volume))
+            self.addRow(ComplexModeRow(volume, "Complex Mode"))
 
         for item in volume.getIsosurfaces():
             self.addRow(nodeFromItem(item))
