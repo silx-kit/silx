@@ -315,10 +315,12 @@ class Isosurface(Item3D):
                 primitive.children[0].setAttribute('color', self._color)
             self._updated(ItemChangedType.COLOR)
 
-    def _updateScenePrimitive(self):
-        """Update underlying mesh"""
-        self._getScenePrimitive().children = []
+    def _computeIsosurface(self):
+        """Compute isosurface for current state.
 
+        :return: (vertices, normals, indices) arrays
+        :rtype: List[Union[None,numpy.ndarray]]
+        """
         data = self.getData(copy=False)
 
         if data is None:
@@ -349,25 +351,31 @@ class Isosurface(Item3D):
                     self._level = level
                     self._updated(Item3DChangedType.ISO_LEVEL)
 
-            if not numpy.isfinite(self._level):
-                return
+            if numpy.isfinite(self._level):
+                st = time.time()
+                vertices, normals, indices = MarchingCubes(
+                    data,
+                    isolevel=self._level)
+                _logger.info('Computed iso-surface in %f s.', time.time() - st)
 
-            st = time.time()
-            vertices, normals, indices = MarchingCubes(
-                data,
-                isolevel=self._level)
-            _logger.info('Computed iso-surface in %f s.', time.time() - st)
+                if len(vertices) != 0:
+                    return vertices, normals, indices
 
-            if len(vertices) == 0:
-                return
-            else:
-                mesh = primitives.Mesh3D(vertices,
-                                         colors=self._color,
-                                         normals=normals,
-                                         mode='triangles',
-                                         indices=indices,
-                                         copy=False)
-                self._getScenePrimitive().children = [mesh]
+        return None, None, None
+
+    def _updateScenePrimitive(self):
+        """Update underlying mesh"""
+        self._getScenePrimitive().children = []
+
+        vertices, normals, indices = self._computeIsosurface()
+        if vertices is not None:
+            mesh = primitives.Mesh3D(vertices,
+                                     colors=self._color,
+                                     normals=normals,
+                                     mode='triangles',
+                                     indices=indices,
+                                     copy=False)
+            self._getScenePrimitive().children = [mesh]
 
     def _pickFull(self, context):
         """Perform picking in this item at given widget position.
