@@ -867,6 +867,17 @@ class ColormapRow(_ColormapBaseProxyRow):
 
         self._sigColormapChanged.connect(self._updateColormapImage)
 
+    def getColormapImage(self):
+        """Returns image representing the colormap or None
+
+        :rtype: Union[QImage,None]
+        """
+        if self._colormapImage is None and self._colormap is not None:
+            image = numpy.zeros((16, 130, 3), dtype=numpy.uint8)
+            image[1:-1, 1:-1] = self._colormap.getNColors(image.shape[1] - 2)[:, :3]
+            self._colormapImage = convertArrayToQImage(image)
+        return self._colormapImage
+
     def _get(self):
         """Getter for ProxyRow subclass"""
         return None
@@ -908,13 +919,9 @@ class ColormapRow(_ColormapBaseProxyRow):
 
     def data(self, column, role):
         if column == 1 and role == qt.Qt.DecorationRole:
-            if self._colormapImage is None:
-                image = numpy.zeros((16, 130, 3), dtype=numpy.uint8)
-                image[1:-1, 1:-1] = self._colormap.getNColors(image.shape[1] - 2)[:, :3]
-                self._colormapImage = convertArrayToQImage(image)
-            return self._colormapImage
-
-        return super(ColormapRow, self).data(column, role)
+            return self.getColormapImage()
+        else:
+            return super(ColormapRow, self).data(column, role)
 
 
 class SymbolRow(ItemProxyRow):
