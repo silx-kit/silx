@@ -365,7 +365,8 @@ class Isosurface(Item3D):
                                          colors=self._color,
                                          normals=normals,
                                          mode='triangles',
-                                         indices=indices)
+                                         indices=indices,
+                                         copy=False)
                 self._getScenePrimitive().children = [mesh]
 
     def _pickFull(self, context):
