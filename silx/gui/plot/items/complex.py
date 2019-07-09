@@ -113,6 +113,16 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
     colored phase + amplitude.
     """
 
+    _SUPPORTED_COMPLEX_MODES = (
+        ComplexMixIn.ComplexMode.ABSOLUTE,
+        ComplexMixIn.ComplexMode.PHASE,
+        ComplexMixIn.ComplexMode.REAL,
+        ComplexMixIn.ComplexMode.IMAGINARY,
+        ComplexMixIn.ComplexMode.AMPLITUDE_PHASE,
+        ComplexMixIn.ComplexMode.LOG10_AMPLITUDE_PHASE,
+        ComplexMixIn.ComplexMode.SQUARE_AMPLITUDE)
+    """Overrides supported ComplexMode"""
+
     def __init__(self):
         ImageBase.__init__(self)
         ColormapMixIn.__init__(self)
