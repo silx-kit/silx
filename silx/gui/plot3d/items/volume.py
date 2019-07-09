@@ -43,7 +43,7 @@ from ... import _glutils as glu
 from ... import qt
 from ...colors import rgba
 
-from ..scene import cutplane, primitives, transform, utils
+from ..scene import cutplane, function, primitives, transform, utils
 
 from .core import BaseNodeItem, Item3D, ItemChangedType, Item3DChangedType
 from .mixins import ColormapMixIn, ComplexMixIn, InterpolationMixIn, PlaneMixIn
@@ -686,17 +686,27 @@ class ComplexCutPlane(CutPlane, ComplexMixIn):
         super(ComplexCutPlane, self)._updated(event)
 
 
-class ComplexIsosurface(Isosurface):
+class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
     """Class representing an iso-surface in a :class:`ComplexField3D` item.
 
     :param parent: The DataItem3D this iso-surface belongs to
     """
 
+    _SUPPORTED_COMPLEX_MODES = \
+        (ComplexMixIn.ComplexMode.NONE,) + ComplexMixIn._SUPPORTED_COMPLEX_MODES
+    """Overrides supported ComplexMode"""
+
     def __init__(self, parent):
-        super(ComplexIsosurface, self).__init__(parent)
+        ComplexMixIn.__init__(self)
+        ColormapMixIn.__init__(self, function.Colormap())
+        Isosurface.__init__(self, parent=parent)
+        self.setComplexMode(self.ComplexMode.NONE)
 
     def _syncDataWithParent(self):
         """Synchronize this instance data with that of its parent"""
+        if self.getComplexMode() != self.ComplexMode.NONE:
+            self._setRangeFromData(self.getColormappedData(copy=False))
+
         parent = self.parent()
         if parent is None:
             self._data = None
@@ -710,6 +720,69 @@ class ComplexIsosurface(Isosurface):
         if event == ItemChangedType.COMPLEX_MODE:
             self._syncDataWithParent()
         super(ComplexIsosurface, self)._parentChanged(event)
+
+    def getColormappedData(self, copy=True):
+        """Return 3D dataset used to apply the colormap on the isosurface.
+
+        This depends on :meth:`getComplexMode`.
+
+        :param bool copy:
+           True (default) to get a copy,
+           False to get the internal data (DO NOT modify!)
+        :return: The data set (or None if not set)
+        :rtype: Union[numpy.ndarray,None]
+        """
+        if self.getComplexMode() == self.ComplexMode.NONE:
+            return None
+        else:
+            parent = self.parent()
+            if parent is None:
+                return None
+            else:
+                return parent.getData(mode=self.getComplexMode(), copy=copy)
+
+    def _updated(self, event=None):
+        """Handle update of the isosurface (and take care of mode change)
+
+        :param ItemChangedType event: The kind of update
+        """
+        if (event == ItemChangedType.COMPLEX_MODE and
+                self.getComplexMode() != self.ComplexMode.NONE):
+            self._setRangeFromData(self.getColormappedData(copy=False))
+
+        if event in (ItemChangedType.COMPLEX_MODE,
+                     ItemChangedType.COLORMAP,
+                     Item3DChangedType.INTERPOLATION):
+            self._updateScenePrimitive()
+        super(ComplexIsosurface, self)._updated(event)
+
+    def _updateScenePrimitive(self):
+        """Update underlying mesh"""
+        if self.getComplexMode() == self.ComplexMode.NONE:
+            super(ComplexIsosurface, self)._updateScenePrimitive()
+
+        else:  # Specific display for colormapped isosurface
+            self._getScenePrimitive().children = []
+
+            values = self.getColormappedData(copy=False)
+            if values is not None:
+                vertices, normals, indices = self._computeIsosurface()
+                if vertices is not None:
+                    points = numpy.round(vertices).astype(numpy.int)
+                    values = values[tuple(points.T)]
+                    # TODO reuse isosurface when only color changes...
+                    # TODO: apply offset between vertices/array coords?
+                    # TODO opacity
+
+                    mesh = primitives.ColormapMesh3D(
+                        vertices,
+                        value=values.reshape(-1, 1),
+                        colormap=self._getSceneColormap(),
+                        normal=normals,
+                        mode='triangles',
+                        indices=indices,
+                        copy=False)
+                    self._getScenePrimitive().children = [mesh]
 
 
 class ComplexField3D(ScalarField3D, ComplexMixIn):
