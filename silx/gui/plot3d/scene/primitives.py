@@ -1874,6 +1874,8 @@ class ColormapMesh3D(Geometry):
     }
     """,
                 string.Template("""
+    uniform float alpha;
+
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
@@ -1889,6 +1891,7 @@ class ColormapMesh3D(Geometry):
 
         vec4 color = $colormapCall(vValue);
         gl_FragColor = $lightingCall(color, vPosition, vNormal);
+        gl_FragColor.a *= alpha;
 
         $scenePostCall(vCameraPosition);
     }
@@ -1908,6 +1911,7 @@ class ColormapMesh3D(Geometry):
                                              value=value,
                                              copy=copy)
 
+        self._alpha = 1.0
         self._lineWidth = 1.0
         self._lineSmooth = True
         self._culling = None
@@ -1921,6 +1925,10 @@ class ColormapMesh3D(Geometry):
         '_lineSmooth',
         converter=bool,
         doc="Smooth line rendering enabled (bool, default: True)")
+
+    alpha = event.notifyProperty(
+        '_alpha', converter=float,
+        doc="Transparency of the mesh, float in [0, 1]")
 
     @property
     def culling(self):
@@ -1978,6 +1986,7 @@ class ColormapMesh3D(Geometry):
         program.setUniformMatrix('transformMat',
                                  ctx.objectToCamera.matrix,
                                  safe=True)
+        gl.glUniform1f(program.uniforms['alpha'], self._alpha)
 
         if self.drawMode in self._LINE_MODES:
             gl.glLineWidth(self.lineWidth)
