@@ -301,6 +301,15 @@ class Isosurface(Item3D):
         """Return the color of this iso-surface (QColor)"""
         return qt.QColor.fromRgbF(*self._color)
 
+    def _updateColor(self, color):
+        """Handle update of color
+
+        :param List[float] color: RGBA channels in [0, 1]
+        """
+        primitive = self._getScenePrimitive()
+        if len(primitive.children) != 0:
+            primitive.children[0].setAttribute('color', color)
+
     def setColor(self, color):
         """Set the color of the iso-surface
 
@@ -310,9 +319,7 @@ class Isosurface(Item3D):
         color = rgba(color)
         if color != self._color:
             self._color = color
-            primitive = self._getScenePrimitive()
-            if len(primitive.children) != 0:
-                primitive.children[0].setAttribute('color', self._color)
+            self._updateColor(self._color)
             self._updated(ItemChangedType.COLOR)
 
     def _computeIsosurface(self):
@@ -702,6 +709,18 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
         Isosurface.__init__(self, parent=parent)
         self.setComplexMode(self.ComplexMode.NONE)
 
+    def _updateColor(self, color):
+        """Handle update of color
+
+        :param List[float] color: RGBA channels in [0, 1]
+        """
+        primitive = self._getScenePrimitive()
+        if (len(primitive.children) != 0 and
+                isinstance(primitive.children[0], primitives.ColormapMesh3D)):
+            primitive.children[0].alpha = self._color[3]
+        else:
+            super(ComplexIsosurface, self)._updateColor(color)
+
     def _syncDataWithParent(self):
         """Synchronize this instance data with that of its parent"""
         if self.getComplexMode() != self.ComplexMode.NONE:
@@ -782,6 +801,7 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
                         mode='triangles',
                         indices=indices,
                         copy=False)
+                    mesh.alpha = self._color[3]
                     self._getScenePrimitive().children = [mesh]
 
 
