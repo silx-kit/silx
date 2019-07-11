@@ -71,7 +71,7 @@ class TestInterp3d(ParametricTestCase):
             points = ref_points.astype(dtype)
             ref_result = self.ref_interp3d(data, points)
 
-            for method in ('linear', 'linear_omp'):
+            for method in (u'linear', u'linear_omp'):
                 with self.subTest(method=method):
                     result = interpolate.interp3d(data, points, method=method)
                     self.assertTrue(numpy.allclose(ref_result, result))
@@ -84,7 +84,7 @@ class TestInterp3d(ParametricTestCase):
         points = numpy.array([(0.5, 0.5, 0.5),
                               (1.5, 1.5, 1.5)])
 
-        for method in ('linear', 'linear_omp'):
+        for method in (u'linear', u'linear_omp'):
             with self.subTest(method=method):
                 result = interpolate.interp3d(
                     data, points, method=method)
@@ -99,7 +99,7 @@ class TestInterp3d(ParametricTestCase):
                               (-0.1, 1., 1.),
                               (1., 1., 3.1)])
 
-        for method in ('linear', 'linear_omp'):
+        for method in (u'linear', u'linear_omp'):
             for fill_value in (numpy.nan, 0., -1.):
                 with self.subTest(method=method):
                     result = interpolate.interp3d(
@@ -119,7 +119,7 @@ class TestInterp3d(ParametricTestCase):
 
         ref_result = data[tuple(points.T.astype(numpy.int32))]
 
-        for method in ('linear', 'linear_omp'):
+        for method in (u'linear', u'linear_omp'):
             with self.subTest(method=method):
                 result = interpolate.interp3d(data, points, method=method)
                 self.assertTrue(numpy.allclose(ref_result, result))
