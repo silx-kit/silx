@@ -56,9 +56,9 @@ def tuple_to_csrdata(arrs):
 class CSR(OpenclProcessing):
     kernel_files = ["sparse.cl"]
 
-    def __init__(self, shape, dtype="f", max_nnz=None, ctx=None, devicetype="all",
-                 platformid=None, deviceid=None, block_size=None, memory=None,
-                 profile=False):
+    def __init__(self, shape, dtype="f", max_nnz=None, idx_dtype=numpy.int32,
+                 ctx=None, devicetype="all", platformid=None, deviceid=None,
+                 block_size=None, memory=None, profile=False):
         """
         Compute Compressed Sparse Row format of an image (2D matrix).
         It is designed to be compatible with scipy.sparse.csr_matrix.
@@ -82,8 +82,9 @@ class CSR(OpenclProcessing):
 
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
+                                  block_size=block_size, memory=memory,
                                   profile=profile)
-        self._set_parameters(shape, dtype, max_nnz)
+        self._set_parameters(shape, dtype, max_nnz, idx_dtype)
         self._allocate_memory()
         self._setup_kernels()
 
@@ -91,16 +92,26 @@ class CSR(OpenclProcessing):
     # -------------------------- Initialization --------------------------------
     # --------------------------------------------------------------------------
 
-    def _set_parameters(self, shape, dtype, max_nnz):
+    def _set_parameters(self, shape, dtype, max_nnz, idx_dtype):
         self.shape = shape
         self.size = numpy.prod(shape)
-        self.indice_dtype = numpy.int32 #
+        self._set_idx_dtype(idx_dtype)
         assert len(shape) == 2 #
         if max_nnz is None:
             self.max_nnz = numpy.prod(shape) # worst case
         else:
             self.max_nnz = int(max_nnz)
         self._set_dtype(dtype)
+
+
+    def _set_idx_dtype(self, idx_dtype):
+        idx_dtype = numpy.dtype(idx_dtype)
+        if idx_dtype.kind not in ["i", "u"]:
+            raise ValueError("Not an integer type: %s" % idx_dtype)
+        # scan value type must have size divisible by 4 bytes
+        if idx_dtype.itemsize % 4 != 0:
+            raise ValueError("Due to an internal pyopencl limitation, idx_dtype type must have size divisible by 4 bytes")
+        self.indice_dtype = idx_dtype #
 
 
     def _set_dtype(self, dtype):
