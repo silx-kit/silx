@@ -37,6 +37,7 @@ import numpy
 
 from silx.math.combo import min_max
 from silx.math.marchingcubes import MarchingCubes
+from silx.math.interpolate import interp3d
 
 from ....utils.proxy import docstring
 from ... import _glutils as glu
@@ -787,11 +788,8 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
             if values is not None:
                 vertices, normals, indices = self._computeIsosurface()
                 if vertices is not None:
-                    points = numpy.round(vertices).astype(numpy.int)
-                    values = values[tuple(points.T)]
+                    values = interp3d(values, vertices, method='linear_omp')
                     # TODO reuse isosurface when only color changes...
-                    # TODO: apply offset between vertices/array coords?
-                    # TODO opacity
 
                     mesh = primitives.ColormapMesh3D(
                         vertices,
