@@ -283,6 +283,9 @@ class RegionOfInterestManager(qt.QObject):
         :param roi_items.RegionOfInterest roi: The ROI to add
         :param int index: The position where to insert the ROI,
             By default it is appended to the end of the list of ROIs
+        :param bool useManagerColor:
+            Whether to set the ROI color to the default one of the manager or not.
+            (Default: True).
         :raise RuntimeError: When ROI cannot be added because the maximum
            number of ROIs has been reached.
         """
