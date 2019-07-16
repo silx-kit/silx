@@ -3123,7 +3123,7 @@ class PlotWidget(qt.QMainWindow):
     # Panning with arrow keys
 
     def isPanWithArrowKeys(self):
-        """Returns whether or not panning the graph with arrow keys is enable.
+        """Returns whether or not panning the graph with arrow keys is enabled.
 
         See :meth:`setPanWithArrowKeys`.
         """
