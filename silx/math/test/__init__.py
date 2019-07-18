@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,6 +38,7 @@ from ..medianfilter.test import suite as test_medianfilter_suite
 from .test_combo import suite as test_combo_suite
 from .test_calibration import suite as test_calibration_suite
 from .test_colormap import suite as test_colormap_suite
+from .test_interpolate import suite as test_interpolate_suite
 from ..fft.test import suite as test_fft_suite
 
 def suite():
@@ -52,5 +53,6 @@ def suite():
     test_suite.addTest(test_combo_suite())
     test_suite.addTest(test_calibration_suite())
     test_suite.addTest(test_colormap_suite())
+    test_suite.addTest(test_interpolate_suite())
     test_suite.addTest(test_fft_suite())
     return test_suite
