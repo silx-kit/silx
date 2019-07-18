@@ -122,7 +122,7 @@ class PlotWindow(PlotWidget):
         self._curvesROIDockWidget = None
         self._maskToolsDockWidget = None
         self._consoleDockWidget = None
-        self._statsWidget = None
+        self._statsDockWidget = None
 
         # Create color bar, hidden by default for backward compatibility
         self._colorbar = ColorBarWidget(parent=self, plot=self)
@@ -485,6 +485,22 @@ class PlotWindow(PlotWidget):
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
 
+    def __handleFirstDockWidgetShow(self, visible):
+        """Handle QDockWidget.visibilityChanged
+
+        It calls :meth:`addTabbedDockWidget` for the `sender` widget.
+        This allows to call `addTabbedDockWidget` lazily.
+
+        It disconnect itself from the signal once done.
+
+        :param bool visible:
+        """
+        if visible:
+            dockWidget = self.sender()
+            dockWidget.visibilityChanged.disconnect(
+                self.__handleFirstDockWidgetShow)
+            self.addTabbedDockWidget(dockWidget)
+
     def getColorBarWidget(self):
         """Returns the embedded :class:`ColorBarWidget` widget.
 
@@ -499,7 +515,8 @@ class PlotWindow(PlotWidget):
         if self._legendsDockWidget is None:
             self._legendsDockWidget = LegendsDockWidget(plot=self)
             self._legendsDockWidget.hide()
-            self.addTabbedDockWidget(self._legendsDockWidget)
+            self._legendsDockWidget.visibilityChanged.connect(
+                self.__handleFirstDockWidgetShow)
         return self._legendsDockWidget
 
     def getCurvesRoiDockWidget(self):
@@ -509,7 +526,8 @@ class PlotWindow(PlotWidget):
             self._curvesROIDockWidget = CurvesROIDockWidget(
                 plot=self, name='Regions Of Interest')
             self._curvesROIDockWidget.hide()
-            self.addTabbedDockWidget(self._curvesROIDockWidget)
+            self._curvesROIDockWidget.visibilityChanged.connect(
+                self.__handleFirstDockWidgetShow)
         return self._curvesROIDockWidget
 
     def getCurvesRoiWidget(self):
@@ -529,7 +547,8 @@ class PlotWindow(PlotWidget):
             self._maskToolsDockWidget = MaskToolsDockWidget(
                 plot=self, name='Mask')
             self._maskToolsDockWidget.hide()
-            self.addTabbedDockWidget(self._maskToolsDockWidget)
+            self._maskToolsDockWidget.visibilityChanged.connect(
+                self.__handleFirstDockWidgetShow)
         return self._maskToolsDockWidget
 
     def getStatsWidget(self):
@@ -537,16 +556,18 @@ class PlotWindow(PlotWidget):
 
         :rtype: BasicStatsWidget
         """
-        if self._statsWidget is None:
-            dockWidget = qt.QDockWidget(parent=self)
-            dockWidget.setWindowTitle("Curves stats")
-            dockWidget.layout().setContentsMargins(0, 0, 0, 0)
-            self._statsWidget = BasicStatsWidget(parent=self, plot=self)
-            self._statsWidget.sigVisibilityChanged.connect(self.getStatsAction().setChecked)
-            dockWidget.setWidget(self._statsWidget)
-            dockWidget.hide()
-            self.addTabbedDockWidget(dockWidget)
-        return self._statsWidget
+        if self._statsDockWidget is None:
+            self._statsDockWidget = qt.QDockWidget()
+            self._statsDockWidget.setWindowTitle("Curves stats")
+            self._statsDockWidget.layout().setContentsMargins(0, 0, 0, 0)
+            statsWidget = BasicStatsWidget(parent=self, plot=self)
+            statsWidget.sigVisibilityChanged.connect(
+                self.getStatsAction().setChecked)
+            self._statsDockWidget.setWidget(statsWidget)
+            self._statsDockWidget.hide()
+            self._statsDockWidget.visibilityChanged.connect(
+                self.__handleFirstDockWidgetShow)
+        return self._statsDockWidget.widget()
 
     # getters for actions
     @property
