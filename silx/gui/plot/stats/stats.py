@@ -406,7 +406,7 @@ class _ImageContext(_StatsContext):
         mask = numpy.zeros_like(self.data)
         """mask use to know of the stat should be count in or not"""
 
-        if onlimits or roi:
+        if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
             minY, maxY = plot.getYAxis().getLimits()
 
@@ -426,6 +426,17 @@ class _ImageContext(_StatsContext):
                                       XMinBound:XMaxBound + 1]
             mask = numpy.zeros_like(self.data)
         elif roi:
+            minX, maxX = 0, self.data.shape[1]
+            minY, maxY = 0, self.data.shape[0]
+
+            XMinBound = int((minX - self.origin[0]) / self.scale[0])
+            YMinBound = int((minY - self.origin[1]) / self.scale[1])
+            XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
+            YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
+
+            XMinBound = max(XMinBound, 0)
+            YMinBound = max(YMinBound, 0)
+
             for x in range(XMinBound, XMaxBound):
                 for y in range(YMinBound, YMaxBound):
                     _x = x + self.origin[0]
