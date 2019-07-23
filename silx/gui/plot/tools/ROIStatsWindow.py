@@ -41,6 +41,7 @@ from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot import stats as statsmdl
+from collections import OrderedDict
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -166,12 +167,11 @@ class RoiStatsWindow(qt.QMainWindow):
     :param tuple rois: tuple of rois to manage
     """
     def __init__(self, parent=None, plot=None, stats=None, rois=None):
-        assert rois is not None
         qt.QMainWindow.__init__(self, parent)
 
         toolbar = qt.QToolBar(self)
         icon = icons.getQIcon('add')
-        self._rois = list(rois)
+        self._rois = list(rois) if rois is not None else []
         self._addAction = qt.QAction(icon, 'add item/roi', toolbar)
         self._addAction.triggered.connect(self.addRoiStatsItem)
 
@@ -184,7 +184,9 @@ class RoiStatsWindow(qt.QMainWindow):
         self.setCentralWidget(self._statsROITable)
         self.setWindowFlags(qt.Qt.Widget)
 
-    def registerRoi(self, roi):
+    def registerROI(self, roi):
+        """For now there is no direct link between roi and plot. That is why
+        we need to add/register them to be able to associate them"""
         self._rois.append(roi)
 
     def setPlot(self):
@@ -234,14 +236,10 @@ class _RoiStatsItemWidget(qt.QWidget):
     def __init__(self, parent=None, roi=None, item=None):
         qt.QWidget.__init__(self, parent)
         self._roi = roi
-        self._stats = stats
         self._item = item
 
     def getROI(self):
         return self._roi
-
-    def getStats(self):
-        return self._stats
 
     def getItem(self):
         return self._item
@@ -578,59 +576,5 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                 item = self._tableItemToItem(tableItem)
                 self._updateStats(item)
 
-
-if __name__ == '__main__':
-    from silx.gui.plot.tools.roi import RegionOfInterestManager
-    from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
-    from silx.gui.plot.items.roi import RectangleROI
-    from silx.gui.plot import Plot2D, Plot1D
-    from silx.gui.plot.CurvesROIWidget import ROI
-    from collections import OrderedDict
-    import numpy
-    app = qt.QApplication([])
-
-    # define plot
-    plot = Plot2D()
-    plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
-    plot.addImage(numpy.random.random(10000).reshape(100, 100), legend='img2',
-                  origin=(0, 100))
-    plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.arange(56),
-                  legend='curve1')
-
-    # define rois
-    region_manager = RegionOfInterestManager(parent=plot)
-    rectangle_roi = RectangleROI()
-    rectangle_roi.setGeometry(origin=(0, 0), size=(20, 20))
-    rectangle_roi.setLabel('Initial ROI')
-    region_manager.addRoi(rectangle_roi)
-    rectangle_roi2 = RectangleROI()
-    rectangle_roi2.setGeometry(origin=(0, 100), size=(50, 50))
-    rectangle_roi2.setLabel('ROI second')
-    region_manager.addRoi(rectangle_roi2)
-    roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
-    plot.getCurvesRoiDockWidget().setRois((roi1D,))
-    plot.getCurvesRoiDockWidget().setVisible(True)
-
-    # define window
-    stats = [
-        ('sum', numpy.sum),
-        ('mean', numpy.mean),
-    ]
-    roiStatsWindow = RoiStatsWindow(plot=plot, rois=(rectangle_roi, roi1D))
-    roiStatsWindow.registerRoi(rectangle_roi2)
-    roiStatsWindow.setStats(stats)
-    img_item = plot.getImage('img1')
-    assert img_item is not None
-    curve_item = plot.getCurve('curve1')
-    # add one empty item
-    new_item = _RoiStatsItemWidget(item=img_item, roi=roiStatsWindow)
-    roiStatsWindow._addRoiStatsItem(roi=rectangle_roi, item=img_item)
-
-    # Create the table widget displaying
-    _roiTable = RegionOfInterestTableWidget()
-    _roiTable.setRegionOfInterestManager(region_manager)
-    _roiTable.show()
-
-    plot.show()
-    roiStatsWindow.show()
-    app.exec_()
+    def _plotCurrentChanged(self, *args):
+        pass

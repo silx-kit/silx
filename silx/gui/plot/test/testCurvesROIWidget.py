@@ -375,13 +375,13 @@ class TestRoiWidgetSignals(TestCaseQt):
         self.listener.clear()
 
         roi1 = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
-        self.curves_roi_widget.roiTable.registerRoi(roi1)
+        self.curves_roi_widget.roiTable.registerROI(roi1)
         self.assertEqual(self.listener.callCount(), 1)
         self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear')
         self.listener.clear()
 
         roi2 = CurvesROIWidget.ROI(name='linear2', fromdata=0, todata=5)
-        self.curves_roi_widget.roiTable.registerRoi(roi2)
+        self.curves_roi_widget.roiTable.registerROI(roi2)
         self.assertEqual(self.listener.callCount(), 1)
         self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear2')
         self.listener.clear()
@@ -398,7 +398,7 @@ class TestRoiWidgetSignals(TestCaseQt):
         self.assertTrue(self.listener.arguments()[0][0]['current'] is None)
         self.listener.clear()
 
-        self.curves_roi_widget.roiTable.registerRoi(roi1)
+        self.curves_roi_widget.roiTable.registerROI(roi1)
         self.assertEqual(self.listener.callCount(), 1)
         self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear')
         self.assertTrue(self.curves_roi_widget.roiTable.activeRoi == roi1)
@@ -415,7 +415,7 @@ class TestRoiWidgetSignals(TestCaseQt):
         """Test SigROISignal when modifying it"""
         self.curves_roi_widget.roiTable.setMiddleROIMarkerFlag(True)
         roi1 = CurvesROIWidget.ROI(name='linear', fromdata=2, todata=5)
-        self.curves_roi_widget.roiTable.registerRoi(roi1)
+        self.curves_roi_widget.roiTable.registerROI(roi1)
         self.curves_roi_widget.roiTable.setActiveRoi(roi1)
 
         # test modify the roi2 object
@@ -450,7 +450,7 @@ class TestRoiWidgetSignals(TestCaseQt):
     def testSetActiveCurve(self):
         """Test sigRoiSignal when set an active curve"""
         roi1 = CurvesROIWidget.ROI(name='linear', fromdata=2, todata=5)
-        self.curves_roi_widget.roiTable.registerRoi(roi1)
+        self.curves_roi_widget.roiTable.registerROI(roi1)
         self.curves_roi_widget.roiTable.setActiveRoi(roi1)
         self.listener.clear()
         self.plot.setActiveCurve('curve0')
