@@ -210,7 +210,7 @@ class RoiStatsWidget(qt.QMainWindow):
     def setStats(self, stats):
         if stats is not None:
             self._statsROITable.setStats(statsHandler=stats)
-        # TODO: ned to remove all stats ?
+        # TODO: need to remove all stats ?
 
     def getStats(self):
         return self._statsROITable.getStatsHandler()

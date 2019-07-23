@@ -204,8 +204,20 @@ class TestRoiStatsAddRemoveItem(_TestRoiStatsBase):
 
 
 class TestRoiStatsRoiUpdate(_TestRoiStatsBase):
-    """Test that the stats will be updated if the stats is updated"""
-pass
+    """Test that the stats will be updated if the roi is updated"""
+    def testChangeRoi(self):
+        item = self.statsWidget.addItem(roi=self.rectangle_roi,
+                                        plotItem=self.img_item)
+        assert item is not None
+        tableItems = self.statsTable()._itemToTableItems(item)
+        self.assertEqual(tableItems['sum'].text(), '383800')
+        self.assertEqual(tableItems['mean'].text(), '959.5')
+
+        # update roi
+        self.rectangle_roi.setOrigin(position=(10, 10))
+        self.assertNotEqual(tableItems['sum'].text(), '383800')
+        self.assertNotEqual(tableItems['mean'].text(), '959.5')
+
 
 class TestRoiStatsPlotItemUpdate(TestCaseQt):
     """Test that the stats will be updated if the plot item is updated"""
