@@ -261,7 +261,7 @@ class _CurveContext(_StatsContext):
         _StatsContext._checkContextInputs(self, item=item, plot=plot,
                                           onlimits=onlimits, roi=roi)
         if roi is not None and not isinstance(roi, ROI):
-            raise ValueError('curve `context` can ony manage 1D roi')
+            raise TypeError('curve `context` can ony manage 1D roi')
 
 
 class _HistogramContext(_StatsContext):
@@ -315,7 +315,7 @@ class _HistogramContext(_StatsContext):
                                       onlimits=onlimits, roi=roi)
 
         if roi is not None and not isinstance(roi, ROI):
-            raise ValueError('curve `context` can ony manage 1D roi')
+            raise TypeError('curve `context` can ony manage 1D roi')
 
 
 class _ScatterContext(_StatsContext):
@@ -376,7 +376,7 @@ class _ScatterContext(_StatsContext):
                                       onlimits=onlimits, roi=roi)
 
         if roi is not None and not isinstance(roi, ROI):
-            raise ValueError('curve `context` can ony manage 1D roi')
+            raise TypeError('curve `context` can ony manage 1D roi')
 
 
 class _ImageContext(_StatsContext):
@@ -459,7 +459,7 @@ class _ImageContext(_StatsContext):
                                               onlimits=onlimits, roi=roi)
 
         if roi is not None and not isinstance(roi, RegionOfInterest):
-            raise ValueError('curve `context` can ony manage 2D roi')
+            raise TypeError('curve `context` can ony manage 2D roi')
 
 
 class _plot3DScatterContext(_StatsContext):
@@ -511,7 +511,7 @@ class _plot3DScatterContext(_StatsContext):
                                           onlimits=onlimits, roi=roi)
 
         if roi is not None and not isinstance(roi, RegionOfInterest):
-            raise ValueError('curve `context` can ony manage 2D roi')
+            raise TypeError('curve `context` can ony manage 2D roi')
 
 
 class _plot3DArrayContext(_StatsContext):
@@ -560,7 +560,7 @@ class _plot3DArrayContext(_StatsContext):
                                       onlimits=onlimits, roi=roi)
 
         if roi is not None and not isinstance(roi, RegionOfInterest):
-            raise ValueError('curve `context` can ony manage 2D roi')
+            raise TypeError('curve `context` can ony manage 2D roi')
 
 
 BASIC_COMPATIBLE_KINDS = 'curve', 'image', 'scatter', 'histogram'

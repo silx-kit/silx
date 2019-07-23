@@ -41,7 +41,6 @@ from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot import Plot2D, Plot1D
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.tools.ROIStatsWidget import RoiStatsWidget
-from silx.gui.plot.tools.ROIStatsWindow import RoiStatsWindow
 from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 from collections import OrderedDict
 import numpy
@@ -156,7 +155,7 @@ def main():
     rectangle_roi2.setGeometry(origin=(0, 100), size=(50, 50))
     rectangle_roi2.setLabel('ROI second')
     roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
-    window.setRois(rois1D=(roi1D,), rois2D =(rectangle_roi, rectangle_roi2))
+    window.setRois(rois1D=(roi1D,), rois2D=(rectangle_roi, rectangle_roi2))
 
     # define stats to display
     stats = [

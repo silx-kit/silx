@@ -217,12 +217,12 @@ class RoiStatsWidget(qt.QMainWindow):
     def _addRoiStatsItem(self, roi, item):
         # TODO: _RoiStatsItemWidget can probably be removed
         statsItem = _RoiStatsItemWidget(parent=None, roi=roi, item=item)
-        self._addStatsItem(statsItem=statsItem)
+        return self._addStatsItem(statsItem=statsItem)
 
     def _addStatsItem(self, statsItem):
+        # TODO: this function should be ubli (addItem ?)
         assert isinstance(statsItem, _RoiStatsItemWidget)
-        self._statsROITable.add(item=statsItem.getItem(),
-                                roi=statsItem.getROI())
+        return self._statsROITable.add(statsItem)
 
     def showItemKindColumn(self):
         pass
@@ -289,9 +289,11 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         self.__roiToItems = {}
         """Key is roi, values is list of __RoiStatsItemWidget"""
 
-    def add(self, item, roi):
-        self._items[(item, roi)] = _RoiStatsItemWidget(roi=roi, item=item)
-        self._addItem(self._items[(item, roi)])
+    def add(self, item):
+        assert isinstance(item, _RoiStatsItemWidget)
+        self._items[(item.getItem(), item.getROI())] = item
+        self._addItem(item)
+        return item
 
     def _addItem(self, item):
         """
