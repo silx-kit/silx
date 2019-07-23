@@ -219,13 +219,21 @@ class TestRoiStatsRoiUpdate(_TestRoiStatsBase):
         self.assertNotEqual(tableItems['mean'].text(), '959.5')
 
 
-class TestRoiStatsPlotItemUpdate(TestCaseQt):
+class TestRoiStatsPlotItemUpdate(_TestRoiStatsBase):
     """Test that the stats will be updated if the plot item is updated"""
-    def setUp(self):
-        pass
+    def testChangeImage(self):
+        item = self.statsWidget.addItem(roi=self.rectangle_roi,
+                                        plotItem=self.img_item)
 
-    def tearDown(self):
-        pass
+        assert item is not None
+        tableItems = self.statsTable()._itemToTableItems(item)
+        self.assertEqual(tableItems['sum'].text(), '383800')
+        self.assertEqual(tableItems['mean'].text(), '959.5')
+
+        # update plot
+        self.plot.addImage(numpy.arange(100, 10100).reshape(100, 100),
+                           legend='img1')
+        self.assertNotEqual(tableItems['mean'].text(), '1059.5')
 
 
 class TestUpdateMode(TestCaseQt):
