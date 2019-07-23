@@ -156,7 +156,7 @@ class _GetRoiItemCoupleDialog(qt.QDialog):
         return self._kind_name_to_item[(kind, item_name)]
 
 
-class RoiStatsWindow(qt.QMainWindow):
+class RoiStatsWidget(qt.QMainWindow):
     """
     Main widget for displaying stats item for (roi, plotItem) couple.
     Also provide interface for adding and removing items.

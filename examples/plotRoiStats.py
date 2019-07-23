@@ -40,6 +40,7 @@ from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot import Plot2D, Plot1D
 from silx.gui.plot.CurvesROIWidget import ROI
+from silx.gui.plot.tools.ROIStatsWidget import RoiStatsWidget
 from silx.gui.plot.tools.ROIStatsWindow import RoiStatsWindow
 from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 from collections import OrderedDict
@@ -92,7 +93,7 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
 
         self._curveRoiWidget = self.plot.getCurvesRoiDockWidget().widget()
         # roi display widget
-        self._roiStatsWindow = RoiStatsWindow(plot=self.plot)
+        self._roiStatsWindow = RoiStatsWidget(plot=self.plot)
 
         # Create the table widget displaying
         self._2DRoiWidget = RegionOfInterestTableWidget()
