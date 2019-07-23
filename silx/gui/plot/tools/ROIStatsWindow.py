@@ -184,6 +184,10 @@ class RoiStatsWindow(qt.QMainWindow):
         self.setCentralWidget(self._statsROITable)
         self.setWindowFlags(qt.Qt.Widget)
 
+        # expose API
+        self._setUpdateMode = self._statsROITable.setUpdateMode
+        self._updateAllStats = self._statsROITable._updateAllStats
+
     def registerROI(self, roi):
         """For now there is no direct link between roi and plot. That is why
         we need to add/register them to be able to associate them"""

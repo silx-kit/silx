@@ -41,9 +41,39 @@ from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot import Plot2D, Plot1D
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.tools.ROIStatsWindow import RoiStatsWindow
+from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 from collections import OrderedDict
 import numpy
 
+
+class _RoiStatsWidget(qt.QMainWindow):
+    def __init__(self, parent=None, plot=None):
+        assert plot is not None
+        qt.QMainWindow.__init__(self, parent)
+        self._roiStatsWindow = RoiStatsWidget(plot=plot)
+        self.setCentralWidget(self._roiStatsWindow)
+
+        # update mode docker
+        self._updateModeControl = UpdateModeWidget(parent=self)
+        self._docker = qt.QDockWidget(parent=self)
+        self._docker.setWidget(self._updateModeControl)
+        self.addDockWidget(qt.Qt.TopDockWidgetArea,
+                           self._docker)
+        self.setWindowFlags(qt.Qt.Widget)
+
+        # connect signal / slot
+        self._updateModeControl.sigUpdateModeChanged.connect(
+            self._roiStatsWindow._setUpdateMode)
+        self._updateModeControl.sigUpdateRequested.connect(
+            self._roiStatsWindow._updateAllStats)
+
+        # expose API
+        self.registerROI = self._roiStatsWindow.registerROI
+        self.setStats = self._roiStatsWindow.setStats
+        self._addRoiStatsItem = self._roiStatsWindow._addRoiStatsItem
+
+        # setup
+        self._updateModeControl.setUpdateMode('auto')
 
 
 class _RoiStatsDisplayExWindow(qt.QMainWindow):
@@ -55,6 +85,8 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
         self.plot = Plot2D()
         self.setCentralWidget(self.plot)
 
+        # 1D roi management
+        self._curveRoiWidget = self.plot.getCurvesRoiDockWidget().widget()
         # 2D - 3D roi manager
         self._regionManager = RegionOfInterestManager(parent=self.plot)
 
@@ -72,6 +104,9 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
         self._roisTabWidget.addTab(self._curveRoiWidget, '1D roi(s)')
         self._roisTabWidget.addTab(self._2DRoiWidget, '2D roi(s)')
 
+        # widget for displaying stats results and update mode
+        self._statsWidget = _RoiStatsWidget(parent=self, plot=self.plot)
+
         # create Dock widgets
         self._roisTabWidgetDockWidget = qt.QDockWidget(parent=self)
         self._roisTabWidgetDockWidget.setWidget(self._roisTabWidget)
@@ -80,24 +115,24 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
 
         # create Dock widgets
         self._roiStatsWindowDockWidget = qt.QDockWidget(parent=self)
-        self._roiStatsWindowDockWidget.setWidget(self._roiStatsWindow)
+        self._roiStatsWindowDockWidget.setWidget(self._statsWidget)
         self.addDockWidget(qt.Qt.RightDockWidgetArea,
                            self._roiStatsWindowDockWidget)
 
     def setRois(self, rois1D, rois2D):
         self._curveRoiWidget.setRois(rois1D)
         for roi1D in rois1D:
-            self._roiStatsWindow.registerROI(roi1D)
+            self._statsWidget.registerROI(roi1D)
 
         for roi2D in rois2D:
             self._regionManager.addRoi(roi2D)
-            self._roiStatsWindow.registerROI(roi2D)
+            self._statsWidget.registerROI(roi2D)
 
     def setStats(self, stats):
-        self._roiStatsWindow.setStats(stats=stats)
+        self._statsWidget.setStats(stats=stats)
 
     def addItem(self, item, roi):
-        self._roiStatsWindow._addRoiStatsItem(roi=roi, item=item)
+        self._statsWidget._addRoiStatsItem(roi=roi, item=item)
 
 
 def main():
