@@ -70,7 +70,8 @@ class _RoiStatsWidget(qt.QMainWindow):
         # expose API
         self.registerROI = self._roiStatsWindow.registerROI
         self.setStats = self._roiStatsWindow.setStats
-        self._addRoiStatsItem = self._roiStatsWindow._addRoiStatsItem
+        self.addItem = self._roiStatsWindow.addItem
+        self.removeItem = self._roiStatsWindow.removeItem
 
         # setup
         self._updateModeControl.setUpdateMode('auto')
@@ -132,7 +133,7 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
         self._statsWidget.setStats(stats=stats)
 
     def addItem(self, item, roi):
-        self._statsWidget._addRoiStatsItem(roi=roi, item=item)
+        self._statsWidget.addItem(roi=roi, plotItem=item)
 
 
 def main():
@@ -166,7 +167,7 @@ def main():
 
     # add some couple (plotItem, roi) to be displayed by default
     img_item = window.plot.getImage('img1')
-    window.addItem(roi=rectangle_roi, item=img_item)
+    window.addItem(item=img_item, roi=rectangle_roi)
     curve_item = window.plot.getCurve('curve1')
     window.addItem(item=curve_item, roi=roi1D)
 

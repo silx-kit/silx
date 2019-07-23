@@ -39,6 +39,7 @@ from silx.gui.plot.StatsWidget import _StatsWidgetBase, StatsTable, _Container
 from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.items.roi import RegionOfInterest
+from silx.gui.plot import items as plotitems
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot import stats as statsmdl
 from collections import OrderedDict
@@ -173,9 +174,13 @@ class RoiStatsWidget(qt.QMainWindow):
         icon = icons.getQIcon('add')
         self._rois = list(rois) if rois is not None else []
         self._addAction = qt.QAction(icon, 'add item/roi', toolbar)
-        self._addAction.triggered.connect(self.addRoiStatsItem)
+        self._addAction.triggered.connect(self._addRoiStatsItem)
+        icon = icons.getQIcon('rm')
+        self._removeAction = qt.QAction(icon, 'remove item/roi', toolbar)
+        self._removeAction.triggered.connect(self._removeCurrentRow)
 
         toolbar.addAction(self._addAction)
+        toolbar.addAction(self._removeAction)
         self.addToolBar(toolbar)
 
         self._plot = plot
@@ -187,6 +192,9 @@ class RoiStatsWidget(qt.QMainWindow):
         # expose API
         self._setUpdateMode = self._statsROITable.setUpdateMode
         self._updateAllStats = self._statsROITable._updateAllStats
+
+        # setup
+        self._statsROITable.setSelectionBehavior(qt.QTableWidget.SelectRows)
 
     def registerROI(self, roi):
         """For now there is no direct link between roi and plot. That is why
@@ -207,46 +215,89 @@ class RoiStatsWidget(qt.QMainWindow):
     def getStats(self):
         return self._statsROITable.getStatsHandler()
 
-    def addRoiStatsItem(self):
+    def _addRoiStatsItem(self):
         """Ask the user what couple ROI / item he want to display"""
         dialog = _GetRoiItemCoupleDialog(parent=self, plot=self._plot,
                                          rois=self._rois)
         if dialog.exec_():
-            self._addRoiStatsItem(roi=dialog.getROI(), item=dialog.getItem())
+            self.addItem(roi=dialog.getROI(), plotItem=dialog.getItem())
 
-    def _addRoiStatsItem(self, roi, item):
+    def addItem(self, plotItem, roi):
         # TODO: _RoiStatsItemWidget can probably be removed
-        statsItem = _RoiStatsItemWidget(parent=None, roi=roi, item=item)
-        return self._addStatsItem(statsItem=statsItem)
+        statsItem = RoiStatsItemWidget(roi=roi, plot_item=plotItem)
+        return self._statsROITable.add(item=statsItem)
 
-    def _addStatsItem(self, statsItem):
-        # TODO: this function should be ubli (addItem ?)
-        assert isinstance(statsItem, _RoiStatsItemWidget)
-        return self._statsROITable.add(statsItem)
+    def removeItem(self, plotItem, roi):
+        statsItem = RoiStatsItemWidget(roi=roi, plot_item=plotItem)
+        self._statsROITable._removeItem(itemKey=statsItem.id_key())
 
-    def showItemKindColumn(self):
-        pass
+    def _removeCurrentRow(self):
+        def is1DKind(kind):
+            if kind in ('curve', 'histogram', 'scatter'):
+                return True
+            else:
+                return False
+        currentRow = self._statsROITable.currentRow()
+        item_kind = self._statsROITable.item(currentRow, 1).text()
+        item_legend = self._statsROITable.item(currentRow, 0).text()
+
+        roi_name = self._statsROITable.item(currentRow, 2).text()
+        roi_kind = ROI if is1DKind(item_kind) else RegionOfInterest
+        roi = self._statsROITable._getRoi(kind=roi_kind, name=roi_name)
+        if roi is None:
+            _logger.warning('failed to retrieve the roi you want to remove')
+            return False
+        plot_item = self._statsROITable._getPlotItem(kind=item_kind,
+                                                     legend=item_legend)
+        if plot_item is None:
+            _logger.warning('failed to retrieve the plot item you want to'
+                            'remove')
+            return False
+        return self.removeItem(plotItem=plot_item, roi=roi)
 
 
-class _RoiStatsItemWidget(qt.QWidget):
-    """
-    Item to display stats regarding the couple (roi, plotItem)
-    
-    :param Union[qt.QWidget, None] parent: parent qWidget
-    :param roi: region of interest to use for statistic calculation
-    :type: Union[ROI, RegionOfInterest]
-    :param item: item on which we want to compute statistics
-    """
-    def __init__(self, parent=None, roi=None, item=None):
-        qt.QWidget.__init__(self, parent)
+class RoiStatsItemWidget(object):
+    """Item utils to associate a plot item and a roi"""
+    def __init__(self, plot_item, roi):
+        self._plot_item = plot_item
         self._roi = roi
-        self._item = item
 
-    def getROI(self):
+    @property
+    def roi(self):
         return self._roi
 
-    def getItem(self):
-        return self._item
+    def roi_name(self):
+        if isinstance(self._roi, ROI):
+            return self._roi.getName()
+        elif isinstance(self._roi, RegionOfInterest):
+            return self._roi.getLabel()
+        else:
+            raise TypeError('Unmanaged roi type')
+
+    @property
+    def roi_kind(self):
+        return self._roi.__class__
+
+    # TODO: should call a util function
+    def item_kind(self):
+        if isinstance(self._plot_item, plotitems.Curve):
+            return 'curve'
+        elif isinstance(self._plot_item, plotitems.ImageData):
+            return 'image'
+        elif isinstance(self._plot_item, plotitems.Scatter):
+            return 'scatter'
+        elif isinstance(self._plot_item, plotitems.Histogram):
+            return 'histogram'
+        else:
+            return None
+
+    @property
+    def item_legend(self):
+        return self._plot_item.getLegend()
+
+    def id_key(self):
+        return (self.item_kind(), self.item_legend, self.roi_kind,
+                self.roi_name())
 
 
 class _StatsROITable(_StatsWidgetBase, TableWidget):
@@ -288,10 +339,14 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         """Key is plotItem, values is list of __RoiStatsItemWidget"""
         self.__roiToItems = {}
         """Key is roi, values is list of __RoiStatsItemWidget"""
+        self.__roisKeyToRoi = {}
 
     def add(self, item):
-        assert isinstance(item, _RoiStatsItemWidget)
-        self._items[(item.getItem(), item.getROI())] = item
+        assert isinstance(item, RoiStatsItemWidget)
+        if item.id_key() in self._items:
+            _logger.warning(item.id_key(), 'is already present')
+            return None
+        self._items[item.id_key()] = item
         self._addItem(item)
         return item
 
@@ -302,21 +357,20 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         :param item: 
         :return: True if successfully added.
         """
-        if not isinstance(item, _RoiStatsItemWidget):
+        if not isinstance(item, RoiStatsItemWidget):
             # skipped because also receive all new plot item (Marker...) that
             # we don't want to manage in this case.
             return
-        assert isinstance(item, _RoiStatsItemWidget)
-        plotItem = item.getItem()
-        roi = item.getROI()
-        kind = self._plotWrapper.getKind(plotItem)
+        # plotItem = item.getItem()
+        # roi = item.getROI()
+        kind = item.item_kind()
         if kind not in statsmdl.BASIC_COMPATIBLE_KINDS:
             _logger.info("Item has not a supported type: %s", item)
             return False
 
         # register the roi and the kind
-        self._registerPlotItem(plotItem, item)
-        self._registerROI(roi, item)
+        self._registerPlotItem(item)
+        self._registerROI(item)
 
         # Prepare table items
         tableItems = [
@@ -359,9 +413,8 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         # Listen for item changes
         # Using queued connection to avoid issue with sender
         # being that of the signal calling the signal
-        plotItem.sigItemChanged.connect(self._plotItemChanged,
-                                        qt.Qt.QueuedConnection)
-
+        item._plot_item.sigItemChanged.connect(self._plotItemChanged,
+                                               qt.Qt.QueuedConnection)
         return True
 
     def _removeAllItems(self):
@@ -406,9 +459,9 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         pass
 
     def _updateStats(self, item):
-        assert isinstance(item, _RoiStatsItemWidget)
-        plotItem = item.getItem()
-        roi = item.getROI()
+        assert isinstance(item, RoiStatsItemWidget)
+        plotItem = item._plot_item
+        roi = item._roi
         if item is None:
             return
         plot = self.getPlot()
@@ -514,10 +567,10 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         else:
             return self.__plotItemToItems[plotItem]
 
-    def _registerPlotItem(self, plotItem, item):
-        if plotItem not in self.__plotItemToItems:
-            self.__plotItemToItems[plotItem] = set()
-        self.__plotItemToItems[plotItem].add(item)
+    def _registerPlotItem(self, item):
+        if item._plot_item not in self.__plotItemToItems:
+            self.__plotItemToItems[item._plot_item] = set()
+        self.__plotItemToItems[item._plot_item].add(item)
 
     def _roiToItems(self, roi):
         """Return all _RoiStatsItemWidget associated to the roi
@@ -526,17 +579,17 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         if roi in self.__roiToItems:
             return []
         else:
-            return self.__roiToItems[plotItem]
+            return self.__roiToItems[roi]
 
-    def _registerROI(self, roi, item):
-        if roi not in self.__roiToItems:
-            self.__roiToItems[roi] = set()
+    def _registerROI(self, item):
+        if item._roi not in self.__roiToItems:
+            self.__roiToItems[item._roi] = set()
             # TODO: normalize also sig name
-            if isinstance(roi, RegionOfInterest):
-                roi.sigRegionChanged.connect(self._updateAllStats)
+            if isinstance(item._roi, RegionOfInterest):
+                item._roi.sigRegionChanged.connect(self._updateAllStats)
             else:
-                roi.sigChanged.connect(self._updateAllStats)
-        self.__roiToItems[roi].add(item)
+                item._roi.sigChanged.connect(self._updateAllStats)
+        self.__roiToItems[item._roi].add(item)
 
     def unregisterROI(self, roi):
         if roi in self.__roiToItems:
@@ -566,8 +619,20 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                     row_index = item_0.row()
                     self.setRowHidden(row_index, not item.isVisible())
 
-    def _removeItem(self, item):
-        pass
+    def _removeItem(self, itemKey):
+        if itemKey not in self._items:
+            _logger.warning('key not recognized. Won\'t remove any item')
+            return
+        item = self._items[itemKey]
+        row = self._itemToRow(item)
+        if row is None:
+            kind = self._plotWrapper.getKind(item)
+            if kind in statsmdl.BASIC_COMPATIBLE_KINDS:
+                _logger.error("Removing item that is not in table: %s", str(item))
+            return
+        item._plot_item.sigItemChanged.disconnect(self._plotItemChanged)
+        self.removeRow(row)
+        del self._items[itemKey]
 
     def _updateAllStats(self, is_request=False):
         """Update stats for all rows in the table
@@ -584,3 +649,20 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
 
     def _plotCurrentChanged(self, *args):
         pass
+
+    def _getRoi(self, kind, name):
+        """return the roi fitting the requirement kind, name. This information
+        is enough to be sure it is unique (in the widget)"""
+        for roi in self.__roiToItems:
+            roiName = roi.getName() if isinstance(roi, ROI) else roi.getLabel()
+            if isinstance(roi, kind) and name == roiName:
+                return roi
+        return None
+
+    def _getPlotItem(self, kind, legend):
+        """return the plotItem fitting the requirement kind, legend.
+        This information is enough to be sure it is unique (in the widget)"""
+        for plotItem in self.__plotItemToItems:
+            if legend == plotItem.getLegend() and self._plotWrapper.getKind(plotItem) == kind:
+                return plotItem
+        return None

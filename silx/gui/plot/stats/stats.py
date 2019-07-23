@@ -357,7 +357,6 @@ class _ScatterContext(_StatsContext):
 
         if roi:
             mask = (xData < roi.getFrom()) | (xData > roi.getTo())
-            print(mask)
         else:
             mask = numpy.zeros_like(xData)
 
