@@ -32,11 +32,15 @@ __license__ = "MIT"
 __date__ = "22/07/2019"
 
 
+from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui import icons
-from silx.gui.plot.StatsWidget import StatsTable
+from silx.gui.plot.StatsWidget import _StatsWidgetBase, StatsTable, _Container
+from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
+from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot.CurvesROIWidget import ROI
+from silx.gui.plot import stats as statsmdl
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -76,12 +80,15 @@ class _GetRoiItemCoupleDialog(qt.QDialog):
         self._buttonsModal.accepted.connect(self.accept)
         self._buttonsModal.rejected.connect(self.reject)
 
+        # connect signal / slot
+        self._kindCB.currentIndexChanged.connect(self._updateValidItemAndRoi)
+
     def _getCompatibleRois(self, kind):
         """Return compatible rois for the given item kind"""
         def is_compatible(roi, kind):
             if isinstance(roi, RegionOfInterest):
                 return kind in ('image', 'scatter')
-            elif isinstance(roi, ROi):
+            elif isinstance(roi, ROI):
                 return kind in ('curve', 'histogram')
             else:
                 raise ValueError('kind not managed')
@@ -91,45 +98,61 @@ class _GetRoiItemCoupleDialog(qt.QDialog):
         self._kindCB.clear()
         self._itemCB.clear()
         # filter kind without any items
-        self.valid_kinds = {}
-        self.valid_rois = {}
+        self._valid_kinds = {}
+        # key is item type, value kinds
+        self._valid_rois = {}
+        # key is item type, value rois
+        self._kind_name_to_roi = {}
+        # key is (kind, roi name) value is roi
+        self._kind_name_to_item = {}
+        # key is (kind, legend name) value is item
         for kind in _GetRoiItemCoupleDialog._COMPATIBLE_KINDS:
             items = self._plot._getItems(kind=kind)
             rois = self._getCompatibleRois(kind=kind)
             if len(items) > 0 and len(rois) > 0:
-                self.valid_kinds[kind] = items
-                self.valid_rois[kind] = rois
+                self._valid_kinds[kind] = items
+                self._valid_rois[kind] = rois
+                for roi in rois:
+                    # TODO: this should be removed from a common API
+                    name = roi.getLabel() if hasattr(roi, 'getLabel') else roi.getName()
+                    self._kind_name_to_roi[(kind, name)] = roi
+                for item in items:
+                    self._kind_name_to_item[(kind, item.getLegend())] = item
 
         # filter roi according to kinds
-        if len(self.valid_kinds) == 0:
+        if len(self._valid_kinds) == 0:
             _logger.warning('no couple item/roi detected for displaying stats')
             return self.reject()
 
-        for kind in self.valid_kinds:
+        for kind in self._valid_kinds:
             self._kindCB.addItem(kind)
         self._updateValidItemAndRoi()
 
-        return qt.QDialog.__init__(self)
+        return qt.QDialog.exec_(self)
 
-    def _updateValidItemAndRoi(self):
+    def _updateValidItemAndRoi(self, *args, **kwargs):
         self._itemCB.clear()
         self._roiCB.clear()
         kind = self._kindCB.currentText()
-        for roi in self.valid_rois[kind]:
-            self._roiCB.addItem(roi.name())
-        for item in self.valid_kinds[kind]:
-            self._kindCB.addItem(item)
+        for roi in self._valid_rois[kind]:
+            # TODO: this should be removed and ROI, RegionOfInterest should
+            # have a minimal common API
+            if isinstance(roi, RegionOfInterest):
+                self._roiCB.addItem(roi.getLabel())
+            else:
+                self._roiCB.addItem(roi.getName())
+        for item in self._valid_kinds[kind]:
+            self._itemCB.addItem(item.getLegend())
 
+    def getROI(self):
+        kind = self._kindCB.currentText()
+        roi_name = self._roiCB.currentText()
+        return self._kind_name_to_roi[(kind, roi_name)]
 
-class _StatsROITable(StatsTable):
-    def __init__(self, parent, plot):
-        StatsTable.__init__(self, parent=parent, plot=plot)
-
-    def add(self, item):
-        pass
-
-    def remove(self, item):
-        pass
+    def getItem(self):
+        kind = self._kindCB.currentText()
+        item_name = self._itemCB.currentText()
+        return self._kind_name_to_item[(kind, item_name)]
 
 
 class RoiStatsWindow(qt.QMainWindow):
@@ -148,7 +171,7 @@ class RoiStatsWindow(qt.QMainWindow):
 
         toolbar = qt.QToolBar(self)
         icon = icons.getQIcon('add')
-        self._rois = rois
+        self._rois = list(rois)
         self._addAction = qt.QAction(icon, 'add item/roi', toolbar)
         self._addAction.triggered.connect(self.addRoiStatsItem)
 
@@ -156,10 +179,13 @@ class RoiStatsWindow(qt.QMainWindow):
         self.addToolBar(toolbar)
 
         self._plot = plot
-        self._stats = stats
         self._statsROITable = _StatsROITable(parent=self, plot=self._plot)
+        self.setStats(stats=stats)
         self.setCentralWidget(self._statsROITable)
         self.setWindowFlags(qt.Qt.Widget)
+
+    def registerRoi(self, roi):
+        self._rois.append(roi)
 
     def setPlot(self):
         self._plot = plot
@@ -168,43 +194,389 @@ class RoiStatsWindow(qt.QMainWindow):
         return self._plot
 
     def setStats(self, stats):
-        self._stats = stats
+        if stats is not None:
+            self._statsROITable.setStats(statsHandler=stats)
+        # TODO: ned to remove all stats ?
 
     def getStats(self):
-        return self._stats
+        return self._statsROITable.getStatsHandler()
 
     def addRoiStatsItem(self):
         """Ask the user what couple ROI / item he want to display"""
         dialog = _GetRoiItemCoupleDialog(parent=self, plot=self._plot,
                                          rois=self._rois)
         if dialog.exec_():
-            self._addRoiStatsItem(roi=dialog.getRoi(), item=dialog.getItem())
+            self._addRoiStatsItem(roi=dialog.getROI(), item=dialog.getItem())
 
     def _addRoiStatsItem(self, roi, item):
-        statsItem = RoiStatsItemWidget(parent=self, roi=roi, stats=self._stats,
-                                       item=item)
+        # TODO: _RoiStatsItemWidget can probably be removed
+        statsItem = _RoiStatsItemWidget(parent=None, roi=roi, item=item)
         self._addStatsItem(statsItem=statsItem)
 
     def _addStatsItem(self, statsItem):
-        pass
+        assert isinstance(statsItem, _RoiStatsItemWidget)
+        self._statsROITable.add(item=statsItem.getItem(),
+                                roi=statsItem.getROI())
 
     def showItemKindColumn(self):
         pass
 
 
-class RoiStatsItemWidget(qt.QWidget):
+class _RoiStatsItemWidget(qt.QWidget):
     """
     Item to display stats regarding the couple (roi, plotItem)
     
     :param Union[qt.QWidget, None] parent: parent qWidget
     :param roi: region of interest to use for statistic calculation
     :type: Union[ROI, RegionOfInterest]
-    :param stats: stats to display
     :param item: item on which we want to compute statistics
     """
-    def __init__(self, parent=None, roi=None, stats=None, item=None):
+    def __init__(self, parent=None, roi=None, item=None):
         qt.QWidget.__init__(self, parent)
+        self._roi = roi
+        self._stats = stats
+        self._item = item
+
+    def getROI(self):
+        return self._roi
+
+    def getStats(self):
+        return self._stats
+
+    def getItem(self):
+        return self._item
+
+
+class _StatsROITable(_StatsWidgetBase, TableWidget):
+    """
+    Table sued to display some statistics regarding a couple (item/roi)
+    """
+    _LEGEND_HEADER_DATA = 'legend'
+
+    _KIND_HEADER_DATA = 'kind'
+
+    _ROI_HEADER_DATA = 'roi'
+
+    sigUpdateModeChanged = qt.Signal(object)
+    """Signal emitted when the update mode changed"""
+
+    def __init__(self, parent, plot):
+        TableWidget.__init__(self, parent)
+        _StatsWidgetBase.__init__(self, statsOnVisibleData=False,
+                                  displayOnlyActItem=False)
+        self._items = {}
+        self.setRowCount(0)
+        self.setColumnCount(3)
+
+        # Init headers
+        headerItem = qt.QTableWidgetItem(self._LEGEND_HEADER_DATA.title())
+        headerItem.setData(qt.Qt.UserRole, self._LEGEND_HEADER_DATA)
+        self.setHorizontalHeaderItem(0, headerItem)
+        headerItem = qt.QTableWidgetItem(self._KIND_HEADER_DATA.title())
+        headerItem.setData(qt.Qt.UserRole, self._KIND_HEADER_DATA)
+        self.setHorizontalHeaderItem(1, headerItem)
+        headerItem = qt.QTableWidgetItem(self._ROI_HEADER_DATA.title())
+        headerItem.setData(qt.Qt.UserRole, self._ROI_HEADER_DATA)
+        self.setHorizontalHeaderItem(2, headerItem)
+
+        self.setSortingEnabled(True)
+        self.setPlot(plot)
+
+        self.__plotItemToItems = {}
+        """Key is plotItem, values is list of __RoiStatsItemWidget"""
+        self.__roiToItems = {}
+        """Key is roi, values is list of __RoiStatsItemWidget"""
+
+    def add(self, item, roi):
+        self._items[(item, roi)] = _RoiStatsItemWidget(roi=roi, item=item)
+        self._addItem(self._items[(item, roi)])
+
+    def _addItem(self, item):
+        """
+        Add a _RoiStatsItemWidget item to the table.
+        
+        :param item: 
+        :return: True if successfully added.
+        """
+        if not isinstance(item, _RoiStatsItemWidget):
+            # skipped because also receive all new plot item (Marker...) that
+            # we don't want to manage in this case.
+            return
+        assert isinstance(item, _RoiStatsItemWidget)
+        plotItem = item.getItem()
+        roi = item.getROI()
+        kind = self._plotWrapper.getKind(plotItem)
+        if kind not in statsmdl.BASIC_COMPATIBLE_KINDS:
+            _logger.info("Item has not a supported type: %s", item)
+            return False
+
+        # register the roi and the kind
+        self._registerPlotItem(plotItem, item)
+        self._registerROI(roi, item)
+
+        # Prepare table items
+        tableItems = [
+            qt.QTableWidgetItem(),  # Legend
+            qt.QTableWidgetItem(),  # Kind
+            qt.QTableWidgetItem()]  # roi
+
+        for column in range(3, self.columnCount()):
+            header = self.horizontalHeaderItem(column)
+            name = header.data(qt.Qt.UserRole)
+
+            formatter = self._statsHandler.formatters[name]
+            if formatter:
+                tableItem = formatter.tabWidgetItemClass()
+            else:
+                tableItem = qt.QTableWidgetItem()
+
+            tooltip = self._statsHandler.stats[name].getToolTip(kind=kind)
+            if tooltip is not None:
+                tableItem.setToolTip(tooltip)
+
+            tableItems.append(tableItem)
+
+        # Disable sorting while adding table items
+        with self._disableSorting():
+            # Add a row to the table
+            self.setRowCount(self.rowCount() + 1)
+
+            # Add table items to the last row
+            row = self.rowCount() - 1
+            for column, tableItem in enumerate(tableItems):
+                tableItem.setData(qt.Qt.UserRole, _Container(item))
+                tableItem.setFlags(
+                    qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
+                self.setItem(row, column, tableItem)
+
+            # Update table items content
+            self._updateStats(item)
+
+        # Listen for item changes
+        # Using queued connection to avoid issue with sender
+        # being that of the signal calling the signal
+        plotItem.sigItemChanged.connect(self._plotItemChanged,
+                                        qt.Qt.QueuedConnection)
+
+        return True
+
+    def _removeAllItems(self):
+        for row in range(self.rowCount()):
+            tableItem = self.item(row, 0)
+            # item = self._tableItemToItem(tableItem)
+            # item.sigItemChanged.disconnect(self._plotItemChanged)
+        self.clearContents()
+        self.setRowCount(0)
+
+    def clear(self):
+        self._removeAllItems()
+
+    def setStats(self, statsHandler):
+        """Set which stats to display and the associated formatting.
+
+        :param StatsHandler statsHandler:
+            Set the statistics to be displayed and how to format them using
+        """
+        self._removeAllItems()
+        _StatsWidgetBase.setStats(self, statsHandler)
+
+        self.setRowCount(0)
+        self.setColumnCount(len(self._statsHandler.stats) + 3)  # + legend, kind and roi # noqa
+
+        for index, stat in enumerate(self._statsHandler.stats.values()):
+            headerItem = qt.QTableWidgetItem(stat.name.capitalize())
+            headerItem.setData(qt.Qt.UserRole, stat.name)
+            if stat.description is not None:
+                headerItem.setToolTip(stat.description)
+            self.setHorizontalHeaderItem(3 + index, headerItem)
+
+        horizontalHeader = self.horizontalHeader()
+        if hasattr(horizontalHeader, 'setSectionResizeMode'):  # Qt5
+            horizontalHeader.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
+        else:  # Qt4
+            horizontalHeader.setResizeMode(qt.QHeaderView.ResizeToContents)
+
+        self._updateItemObserve()
+
+    def _updateItemObserve(self, *args):
         pass
+
+    def _updateStats(self, item):
+        assert isinstance(item, _RoiStatsItemWidget)
+        plotItem = item.getItem()
+        roi = item.getROI()
+        if item is None:
+            return
+        plot = self.getPlot()
+        if plot is None:
+            _logger.info("Plot not available")
+            return
+
+        row = self._itemToRow(item)
+        if row is None:
+            _logger.error("This item is not in the table: %s", str(item))
+            return
+
+        statsHandler = self.getStatsHandler()
+        if statsHandler is not None:
+            stats = statsHandler.calculate(plotItem, plot,
+                                           onlimits=self._statsOnVisibleData,
+                                           roi=roi)
+        else:
+            stats = {}
+
+        with self._disableSorting():
+            for name, tableItem in self._itemToTableItems(item).items():
+                if name == self._LEGEND_HEADER_DATA:
+                    text = self._plotWrapper.getLabel(plotItem)
+                    tableItem.setText(text)
+                elif name == self._KIND_HEADER_DATA:
+                    tableItem.setText(self._plotWrapper.getKind(plotItem))
+                elif name == self._ROI_HEADER_DATA:
+                    # TODO: remvove when API will be normalized between ROi and
+                    # RegionOfInterest
+                    name = roi.getName() if hasattr(roi, 'getName') else roi.getLabel()
+                    tableItem.setText(name)
+                else:
+                    value = stats.get(name)
+                    if value is None:
+                        _logger.error("Value not found for: %s", name)
+                        tableItem.setText('-')
+                    else:
+                        tableItem.setText(str(value))
+
+    @contextmanager
+    def _disableSorting(self):
+        """Context manager that disables table sorting
+
+        Previous state is restored when leaving
+        """
+        sorting = self.isSortingEnabled()
+        if sorting:
+            self.setSortingEnabled(False)
+        yield
+        if sorting:
+            self.setSortingEnabled(sorting)
+
+    def _itemToRow(self, item):
+        """Find the row corresponding to a plot item
+
+        :param item: The plot item
+        :return: The corresponding row index
+        :rtype: Union[int,None]
+        """
+        for row in range(self.rowCount()):
+            tableItem = self.item(row, 0)
+            if self._tableItemToItem(tableItem) == item:
+                return row
+        return None
+
+    def _tableItemToItem(self, tableItem):
+        """Find the plot item corresponding to a table item
+
+        :param QTableWidgetItem tableItem:
+        :rtype: QObject
+        """
+        container = tableItem.data(qt.Qt.UserRole)
+        return container()
+
+    def _itemToTableItems(self, item):
+        """Find all table items corresponding to a plot item
+
+        :param item: The plot item
+        :return: An ordered dict of column name to QTableWidgetItem mapping
+            for the given plot item.
+        :rtype: OrderedDict
+        """
+        result = OrderedDict()
+        row = self._itemToRow(item)
+        if row is not None:
+            for column in range(self.columnCount()):
+                tableItem = self.item(row, column)
+                if self._tableItemToItem(tableItem) != item:
+                    _logger.error("Table item/plot item mismatch")
+                else:
+                    header = self.horizontalHeaderItem(column)
+                    name = header.data(qt.Qt.UserRole)
+                    result[name] = tableItem
+        return result
+
+    def _plotItemToItems(self, plotItem):
+        """Return all _RoiStatsItemWidget associated to the plotItem
+        Needed for updating on itemChanged signal
+        """
+        if plotItem in self.__plotItemToItems:
+            return []
+        else:
+            return self.__plotItemToItems[plotItem]
+
+    def _registerPlotItem(self, plotItem, item):
+        if plotItem not in self.__plotItemToItems:
+            self.__plotItemToItems[plotItem] = set()
+        self.__plotItemToItems[plotItem].add(item)
+
+    def _roiToItems(self, roi):
+        """Return all _RoiStatsItemWidget associated to the roi
+        Needed for updating on roiChanged signal
+        """
+        if roi in self.__roiToItems:
+            return []
+        else:
+            return self.__roiToItems[plotItem]
+
+    def _registerROI(self, roi, item):
+        if roi not in self.__roiToItems:
+            self.__roiToItems[roi] = set()
+            # TODO: normalize also sig name
+            if isinstance(roi, RegionOfInterest):
+                roi.sigRegionChanged.connect(self._updateAllStats)
+            else:
+                roi.sigChanged.connect(self._updateAllStats)
+        self.__roiToItems[roi].add(item)
+
+    def unregisterROI(self, roi):
+        if roi in self.__roiToItems:
+            del self.__roiToItems[roi]
+            if isinstance(roi, RegionOfInterest):
+                roi.sigRegionChanged.disconnect(self._updateAllStats)
+            else:
+                roi.sigChanged.disconnect(self._updateAllStats)
+
+    def _plotItemChanged(self, event):
+        """Handle modifications of the items.
+
+        :param event:
+        """
+        if self.getUpdateMode() is UpdateMode.MANUAL:
+            return
+        if self._skipPlotItemChangedEvent(event) is True:
+            return
+        else:
+            item = self.sender()
+            # TODO: get all concerned items
+            self._updateStats(item)
+            # deal with stat items visibility
+            if event is ItemChangedType.VISIBLE:
+                if len(self._itemToTableItems(item).items()) > 0:
+                    item_0 = list(self._itemToTableItems(item).values())[0]
+                    row_index = item_0.row()
+                    self.setRowHidden(row_index, not item.isVisible())
+
+    def _removeItem(self, item):
+        pass
+
+    def _updateAllStats(self, is_request=False):
+        """Update stats for all rows in the table
+
+        :param bool is_request: True if come from a manual request
+        """
+        if self.getUpdateMode() is UpdateMode.MANUAL and not is_request:
+            return
+        with self._disableSorting():
+            for row in range(self.rowCount()):
+                tableItem = self.item(row, 0)
+                item = self._tableItemToItem(tableItem)
+                self._updateStats(item)
 
 
 if __name__ == '__main__':
@@ -217,29 +589,48 @@ if __name__ == '__main__':
     import numpy
     app = qt.QApplication([])
 
+    # define plot
     plot = Plot2D()
-
     plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
-    img_item = plot.getCurve('img1')
+    plot.addImage(numpy.random.random(10000).reshape(100, 100), legend='img2',
+                  origin=(0, 100))
+    plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.arange(56),
+                  legend='curve1')
 
+    # define rois
     region_manager = RegionOfInterestManager(parent=plot)
     rectangle_roi = RectangleROI()
-    rectangle_roi.setGeometry(origin=(0, 0), size=(2, 2))
+    rectangle_roi.setGeometry(origin=(0, 0), size=(20, 20))
     rectangle_roi.setLabel('Initial ROI')
     region_manager.addRoi(rectangle_roi)
+    rectangle_roi2 = RectangleROI()
+    rectangle_roi2.setGeometry(origin=(0, 100), size=(50, 50))
+    rectangle_roi2.setLabel('ROI second')
+    region_manager.addRoi(rectangle_roi2)
+    roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
+    plot.getCurvesRoiDockWidget().setRois((roi1D,))
+    plot.getCurvesRoiDockWidget().setVisible(True)
 
-    # roi = ROI(name='range1', fromdata=0, todata=4, type_='energy')
-    # plot.getCurvesRoiDockWidget().setRois((roi,))
-    # plot.getCurvesRoiDockWidget().setVisible(True)
-
+    # define window
     stats = [
         ('sum', numpy.sum),
         ('mean', numpy.mean),
     ]
-    roiStatsWindow = RoiStatsWindow(plot=plot, rois=(rectangle_roi, ))
-    # roiItem = RoiStatsItemWidget(parent=None, roi=roi, item=curve_item,
-    #                                stats=stats)
-    # plotRoiStats.addRoiStatsItem(roiItem)
+    roiStatsWindow = RoiStatsWindow(plot=plot, rois=(rectangle_roi, roi1D))
+    roiStatsWindow.registerRoi(rectangle_roi2)
+    roiStatsWindow.setStats(stats)
+    img_item = plot.getImage('img1')
+    assert img_item is not None
+    curve_item = plot.getCurve('curve1')
+    # add one empty item
+    new_item = _RoiStatsItemWidget(item=img_item, roi=roiStatsWindow)
+    roiStatsWindow._addRoiStatsItem(roi=rectangle_roi, item=img_item)
+
+    # Create the table widget displaying
+    _roiTable = RegionOfInterestTableWidget()
+    _roiTable.setRegionOfInterestManager(region_manager)
+    _roiTable.show()
+
     plot.show()
     roiStatsWindow.show()
     app.exec_()
