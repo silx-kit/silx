@@ -43,6 +43,7 @@ from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.tools.ROIStatsWidget import RoiStatsWidget
 from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 from collections import OrderedDict
+import functools
 import numpy
 
 
@@ -64,8 +65,9 @@ class _RoiStatsWidget(qt.QMainWindow):
         # connect signal / slot
         self._updateModeControl.sigUpdateModeChanged.connect(
             self._roiStatsWindow._setUpdateMode)
-        self._updateModeControl.sigUpdateRequested.connect(
-            self._roiStatsWindow._updateAllStats)
+        callback = functools.partial(self._roiStatsWindow._updateAllStats,
+                                     is_request=True)
+        self._updateModeControl.sigUpdateRequested.connect(callback)
 
         # expose API
         self.registerROI = self._roiStatsWindow.registerROI

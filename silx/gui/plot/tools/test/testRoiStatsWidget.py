@@ -31,6 +31,7 @@ from silx.gui.plot import PlotWindow
 from silx.gui.plot.tools.ROIStatsWidget import RoiStatsWidget
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
+from silx.gui.plot.StatsWidget import UpdateMode
 import numpy
 
 
@@ -218,10 +219,9 @@ class TestRoiStatsRoiUpdate(_TestRoiStatsBase):
         self.assertNotEqual(tableItems['sum'].text(), '383800')
         self.assertNotEqual(tableItems['mean'].text(), '959.5')
 
-
-class TestRoiStatsPlotItemUpdate(_TestRoiStatsBase):
-    """Test that the stats will be updated if the plot item is updated"""
-    def testChangeImage(self):
+    def testUpdateModeScenario(self):
+        """Test update according to a simple scenario"""
+        self.statsWidget._setUpdateMode(UpdateMode.AUTO)
         item = self.statsWidget.addItem(roi=self.rectangle_roi,
                                         plotItem=self.img_item)
 
@@ -229,26 +229,51 @@ class TestRoiStatsPlotItemUpdate(_TestRoiStatsBase):
         tableItems = self.statsTable()._itemToTableItems(item)
         self.assertEqual(tableItems['sum'].text(), '383800')
         self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.statsWidget._setUpdateMode(UpdateMode.MANUAL)
+        self.rectangle_roi.setOrigin(position=(10, 10))
+        self.assertEqual(tableItems['sum'].text(), '383800')
+        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.statsWidget._updateAllStats(is_request=True)
+        self.assertNotEqual(tableItems['sum'].text(), '383800')
+        self.assertNotEqual(tableItems['mean'].text(), '959.5')
+
+
+class TestRoiStatsPlotItemUpdate(_TestRoiStatsBase):
+    """Test that the stats will be updated if the plot item is updated"""
+    def testChangeImage(self):
+        self.statsWidget._setUpdateMode(UpdateMode.AUTO)
+        item = self.statsWidget.addItem(roi=self.rectangle_roi,
+                                        plotItem=self.img_item)
+
+        assert item is not None
+        tableItems = self.statsTable()._itemToTableItems(item)
+        self.assertEqual(tableItems['mean'].text(), '959.5')
 
         # update plot
         self.plot.addImage(numpy.arange(100, 10100).reshape(100, 100),
                            legend='img1')
         self.assertNotEqual(tableItems['mean'].text(), '1059.5')
 
+    def testUpdateModeScenario(self):
+        """Test update according to a simple scenario"""
+        self.statsWidget._setUpdateMode(UpdateMode.MANUAL)
+        item = self.statsWidget.addItem(roi=self.rectangle_roi,
+                                        plotItem=self.img_item)
 
-class TestUpdateMode(TestCaseQt):
-    """Test the behavior according to the update mode"""
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
+        assert item is not None
+        tableItems = self.statsTable()._itemToTableItems(item)
+        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.plot.addImage(numpy.arange(100, 10100).reshape(100, 100),
+                           legend='img1')
+        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.statsWidget._updateAllStats(is_request=True)
+        self.assertEqual(tableItems['mean'].text(), '1059.5')
 
 
 def suite():
     test_suite = unittest.TestSuite()
     for TestClass in (TestRoiStatsCouple, TestRoiStatsRoiUpdate,
-                      TestRoiStatsPlotItemUpdate, TestUpdateMode):
+                      TestRoiStatsPlotItemUpdate):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
