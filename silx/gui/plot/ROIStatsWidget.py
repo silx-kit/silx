@@ -43,6 +43,7 @@ from silx.gui.plot import items as plotitems
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot import stats as statsmdl
 from collections import OrderedDict
+from silx.utils.proxy import docstring
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -157,114 +158,15 @@ class _GetROIItemCoupleDialog(qt.QDialog):
         return self._kind_name_to_item[(kind, item_name)]
 
 
-class ROIStatsWidget(qt.QMainWindow):
-    """
-    Main widget for displaying stats item for (roi, plotItem) couple.
-    Also provide interface for adding and removing items.
-    
-    :param Union[qt.QWidget, None] parent: parent qWidget
-    :param PlotWindow plot: plot widget containing the items
-    :param stats: stats to display
-    :param tuple rois: tuple of rois to manage
-    """
-    def __init__(self, parent=None, plot=None, stats=None, rois=None):
-        qt.QMainWindow.__init__(self, parent)
-
-        toolbar = qt.QToolBar(self)
-        icon = icons.getQIcon('add')
-        self._rois = list(rois) if rois is not None else []
-        self._addAction = qt.QAction(icon, 'add item/roi', toolbar)
-        self._addAction.triggered.connect(self._addRoiStatsItem)
-        icon = icons.getQIcon('rm')
-        self._removeAction = qt.QAction(icon, 'remove item/roi', toolbar)
-        self._removeAction.triggered.connect(self._removeCurrentRow)
-
-        toolbar.addAction(self._addAction)
-        toolbar.addAction(self._removeAction)
-        self.addToolBar(toolbar)
-
-        self._plot = plot
-        self._statsROITable = _StatsROITable(parent=self, plot=self._plot)
-        self.setStats(stats=stats)
-        self.setCentralWidget(self._statsROITable)
-        self.setWindowFlags(qt.Qt.Widget)
-
-        # expose API
-        self._setUpdateMode = self._statsROITable.setUpdateMode
-        self._updateAllStats = self._statsROITable._updateAllStats
-
-        # setup
-        self._statsROITable.setSelectionBehavior(qt.QTableWidget.SelectRows)
-
-    def registerROI(self, roi):
-        """For now there is no direct link between roi and plot. That is why
-        we need to add/register them to be able to associate them"""
-        self._rois.append(roi)
-
-    def setPlot(self):
-        self._plot = plot
-
-    def getPlot(self):
-        return self._plot
-
-    def setStats(self, stats):
-        if stats is not None:
-            self._statsROITable.setStats(statsHandler=stats)
-        # TODO: need to remove all stats ?
-
-    def getStats(self):
-        return self._statsROITable.getStatsHandler()
-
-    def _addRoiStatsItem(self):
-        """Ask the user what couple ROI / item he want to display"""
-        dialog = _GetROIItemCoupleDialog(parent=self, plot=self._plot,
-                                         rois=self._rois)
-        if dialog.exec_():
-            self.addItem(roi=dialog.getROI(), plotItem=dialog.getItem())
-
-    def addItem(self, plotItem, roi):
-        # TODO: _RoiStatsItemWidget can probably be removed
-        statsItem = ROIStatsItemHelper(roi=roi, plot_item=plotItem)
-        return self._statsROITable.add(item=statsItem)
-
-    def removeItem(self, plotItem, roi):
-        statsItem = ROIStatsItemHelper(roi=roi, plot_item=plotItem)
-        self._statsROITable._removeItem(itemKey=statsItem.id_key())
-
-    def _removeCurrentRow(self):
-        def is1DKind(kind):
-            if kind in ('curve', 'histogram', 'scatter'):
-                return True
-            else:
-                return False
-        currentRow = self._statsROITable.currentRow()
-        item_kind = self._statsROITable.item(currentRow, 1).text()
-        item_legend = self._statsROITable.item(currentRow, 0).text()
-
-        roi_name = self._statsROITable.item(currentRow, 2).text()
-        roi_kind = ROI if is1DKind(item_kind) else RegionOfInterest
-        roi = self._statsROITable._getRoi(kind=roi_kind, name=roi_name)
-        if roi is None:
-            _logger.warning('failed to retrieve the roi you want to remove')
-            return False
-        plot_item = self._statsROITable._getPlotItem(kind=item_kind,
-                                                     legend=item_legend)
-        if plot_item is None:
-            _logger.warning('failed to retrieve the plot item you want to'
-                            'remove')
-            return False
-        return self.removeItem(plotItem=plot_item, roi=roi)
-
-
 class ROIStatsItemHelper(object):
     """Item utils to associate a plot item and a roi
 
     Display on one row statistics regarding the couple
-    (`.Item` (plot item) / roi).
+    (Item (plot item) / roi).
 
-    :param `.Item plot_item: item for which we want statistics 
-    :param Union[ROI, RegionOfInterest]: region of interest to use for
-                                         statistics.
+    :param Item plot_item: item for which we want statistics 
+    :param Union[ROI,RegionOfInterest]: region of interest to use for
+                                        statistics.
     """
     def __init__(self, plot_item, roi):
         self._plot_item = plot_item
@@ -272,6 +174,7 @@ class ROIStatsItemHelper(object):
 
     @property
     def roi(self):
+        """roi"""
         return self._roi
 
     def roi_name(self):
@@ -284,10 +187,12 @@ class ROIStatsItemHelper(object):
 
     @property
     def roi_kind(self):
+        """roi class"""
         return self._roi.__class__
 
     # TODO: should call a util function from the wrapper ?
     def item_kind(self):
+        """item kind"""
         if isinstance(self._plot_item, plotitems.Curve):
             return 'curve'
         elif isinstance(self._plot_item, plotitems.ImageData):
@@ -301,9 +206,11 @@ class ROIStatsItemHelper(object):
 
     @property
     def item_legend(self):
+        """legend of the plot Item"""
         return self._plot_item.getLegend()
 
     def id_key(self):
+        """unique key to represent the couple (item, roi)"""
         return (self.item_kind(), self.item_legend, self.roi_kind,
                 self.roi_name())
 
@@ -674,3 +581,129 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
             if legend == plotItem.getLegend() and self._plotWrapper.getKind(plotItem) == kind:
                 return plotItem
         return None
+
+
+class ROIStatsWidget(qt.QMainWindow):
+    """
+    Main widget for displaying stats item for (roi, plotItem) couple.
+    Also provide interface for adding and removing items.
+
+    :param Union[qt.QWidget,None] parent: parent qWidget
+    :param PlotWindow plot: plot widget containing the items
+    :param stats: stats to display
+    :param tuple rois: tuple of rois to manage
+    """
+
+    def __init__(self, parent=None, plot=None, stats=None, rois=None):
+        qt.QMainWindow.__init__(self, parent)
+
+        toolbar = qt.QToolBar(self)
+        icon = icons.getQIcon('add')
+        self._rois = list(rois) if rois is not None else []
+        self._addAction = qt.QAction(icon, 'add item/roi', toolbar)
+        self._addAction.triggered.connect(self._addRoiStatsItem)
+        icon = icons.getQIcon('rm')
+        self._removeAction = qt.QAction(icon, 'remove item/roi', toolbar)
+        self._removeAction.triggered.connect(self._removeCurrentRow)
+
+        toolbar.addAction(self._addAction)
+        toolbar.addAction(self._removeAction)
+        self.addToolBar(toolbar)
+
+        self._plot = plot
+        self._statsROITable = _StatsROITable(parent=self, plot=self._plot)
+        self.setStats(stats=stats)
+        self.setCentralWidget(self._statsROITable)
+        self.setWindowFlags(qt.Qt.Widget)
+
+        # expose API
+        self._setUpdateMode = self._statsROITable.setUpdateMode
+        self._updateAllStats = self._statsROITable._updateAllStats
+
+        # setup
+        self._statsROITable.setSelectionBehavior(qt.QTableWidget.SelectRows)
+
+    def registerROI(self, roi):
+        """For now there is no direct link between roi and plot. That is why
+        we need to add/register them to be able to associate them"""
+        self._rois.append(roi)
+
+    def setPlot(self):
+        """Define the plot to interact with
+
+        :param Union[PlotWidget,SceneWidget,None] plot:
+            The plot containing the items on which statistics are applied
+        """
+        self._plot = plot
+
+    def getPlot(self):
+        return self._plot
+
+    @docstring(_StatsROITable)
+    def setStats(self, stats):
+        if stats is not None:
+            self._statsROITable.setStats(statsHandler=stats)
+
+    @docstring(_StatsROITable)
+    def getStatsHandler(self):
+        """
+        
+        :return: 
+        """
+        return self._statsROITable.getStatsHandler()
+
+    def _addRoiStatsItem(self):
+        """Ask the user what couple ROI / item he want to display"""
+        dialog = _GetROIItemCoupleDialog(parent=self, plot=self._plot,
+                                         rois=self._rois)
+        if dialog.exec_():
+            self.addItem(roi=dialog.getROI(), plotItem=dialog.getItem())
+
+    def addItem(self, plotItem, roi):
+        """
+        Add a row of statitstic regarding the couple (plotItem, roi)
+
+        :param Item plotItem: item to use for statistics
+        :param roi: region of interest to limit the statistic.
+        :type: Union[ROI, RegionOfInterest]
+        :return: None of failed to add the item
+        :rtype: Union[None,ROIStatsItemHelper]
+        """
+        statsItem = ROIStatsItemHelper(roi=roi, plot_item=plotItem)
+        return self._statsROITable.add(item=statsItem)
+
+    def removeItem(self, plotItem, roi):
+        """
+        Remove the row associated to the couple (plotItem, roi)
+
+        :param Item plotItem: item to use for statistics
+        :param roi: region of interest to limit the statistic.
+        :type: Union[ROI,RegionOfInterest]
+        """
+        statsItem = ROIStatsItemHelper(roi=roi, plot_item=plotItem)
+        self._statsROITable._removeItem(itemKey=statsItem.id_key())
+
+    def _removeCurrentRow(self):
+        def is1DKind(kind):
+            if kind in ('curve', 'histogram', 'scatter'):
+                return True
+            else:
+                return False
+
+        currentRow = self._statsROITable.currentRow()
+        item_kind = self._statsROITable.item(currentRow, 1).text()
+        item_legend = self._statsROITable.item(currentRow, 0).text()
+
+        roi_name = self._statsROITable.item(currentRow, 2).text()
+        roi_kind = ROI if is1DKind(item_kind) else RegionOfInterest
+        roi = self._statsROITable._getRoi(kind=roi_kind, name=roi_name)
+        if roi is None:
+            _logger.warning('failed to retrieve the roi you want to remove')
+            return False
+        plot_item = self._statsROITable._getPlotItem(kind=item_kind,
+                                                     legend=item_legend)
+        if plot_item is None:
+            _logger.warning('failed to retrieve the plot item you want to'
+                            'remove')
+            return False
+        return self.removeItem(plotItem=plot_item, roi=roi)
