@@ -117,8 +117,7 @@ class _GetROIItemCoupleDialog(qt.QDialog):
                 self._valid_kinds[kind] = items
                 self._valid_rois[kind] = rois
                 for roi in rois:
-                    # TODO: this should be removed from a common API
-                    name = roi.getLabel() if hasattr(roi, 'getLabel') else roi.getName()
+                    name = roi.getName()
                     self._kind_name_to_roi[(kind, name)] = roi
                 for item in items:
                     self._kind_name_to_item[(kind, item.getLegend())] = item
@@ -139,12 +138,7 @@ class _GetROIItemCoupleDialog(qt.QDialog):
         self._roiCB.clear()
         kind = self._kindCB.currentText()
         for roi in self._valid_rois[kind]:
-            # TODO: this should be removed and ROI, RegionOfInterest should
-            # have a minimal common API
-            if isinstance(roi, RegionOfInterest):
-                self._roiCB.addItem(roi.getLabel())
-            else:
-                self._roiCB.addItem(roi.getName())
+            self._roiCB.addItem(roi.getName())
         for item in self._valid_kinds[kind]:
             self._itemCB.addItem(item.getLegend())
 
@@ -410,9 +404,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                 elif name == self._KIND_HEADER_DATA:
                     tableItem.setText(self._plotWrapper.getKind(plotItem))
                 elif name == self._ROI_HEADER_DATA:
-                    # TODO: remvove when API will be normalized between ROi and
-                    # RegionOfInterest
-                    name = roi.getName() if hasattr(roi, 'getName') else roi.getLabel()
+                    name = roi.getName()
                     tableItem.setText(name)
                 else:
                     value = stats.get(name)
