@@ -48,7 +48,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class _GetRoiItemCoupleDialog(qt.QDialog):
+class _GetROIItemCoupleDialog(qt.QDialog):
     """
     Dialog used to know which plot item and which roi he wants
     """
@@ -108,7 +108,7 @@ class _GetRoiItemCoupleDialog(qt.QDialog):
         # key is (kind, roi name) value is roi
         self._kind_name_to_item = {}
         # key is (kind, legend name) value is item
-        for kind in _GetRoiItemCoupleDialog._COMPATIBLE_KINDS:
+        for kind in _GetROIItemCoupleDialog._COMPATIBLE_KINDS:
             items = self._plot._getItems(kind=kind)
             rois = self._getCompatibleRois(kind=kind)
             if len(items) > 0 and len(rois) > 0:
@@ -157,7 +157,7 @@ class _GetRoiItemCoupleDialog(qt.QDialog):
         return self._kind_name_to_item[(kind, item_name)]
 
 
-class RoiStatsWidget(qt.QMainWindow):
+class ROIStatsWidget(qt.QMainWindow):
     """
     Main widget for displaying stats item for (roi, plotItem) couple.
     Also provide interface for adding and removing items.
@@ -217,18 +217,18 @@ class RoiStatsWidget(qt.QMainWindow):
 
     def _addRoiStatsItem(self):
         """Ask the user what couple ROI / item he want to display"""
-        dialog = _GetRoiItemCoupleDialog(parent=self, plot=self._plot,
+        dialog = _GetROIItemCoupleDialog(parent=self, plot=self._plot,
                                          rois=self._rois)
         if dialog.exec_():
             self.addItem(roi=dialog.getROI(), plotItem=dialog.getItem())
 
     def addItem(self, plotItem, roi):
         # TODO: _RoiStatsItemWidget can probably be removed
-        statsItem = RoiStatsItemWidget(roi=roi, plot_item=plotItem)
+        statsItem = ROIStatsItemWidget(roi=roi, plot_item=plotItem)
         return self._statsROITable.add(item=statsItem)
 
     def removeItem(self, plotItem, roi):
-        statsItem = RoiStatsItemWidget(roi=roi, plot_item=plotItem)
+        statsItem = ROIStatsItemWidget(roi=roi, plot_item=plotItem)
         self._statsROITable._removeItem(itemKey=statsItem.id_key())
 
     def _removeCurrentRow(self):
@@ -256,7 +256,7 @@ class RoiStatsWidget(qt.QMainWindow):
         return self.removeItem(plotItem=plot_item, roi=roi)
 
 
-class RoiStatsItemWidget(object):
+class ROIStatsItemWidget(object):
     """Item utils to associate a plot item and a roi
 
     Display on one row statistics regarding the couple
@@ -350,7 +350,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         self.__roisKeyToRoi = {}
 
     def add(self, item):
-        assert isinstance(item, RoiStatsItemWidget)
+        assert isinstance(item, ROIStatsItemWidget)
         if item.id_key() in self._items:
             _logger.warning(item.id_key(), 'is already present')
             return None
@@ -365,7 +365,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         :param item: 
         :return: True if successfully added.
         """
-        if not isinstance(item, RoiStatsItemWidget):
+        if not isinstance(item, ROIStatsItemWidget):
             # skipped because also receive all new plot item (Marker...) that
             # we don't want to manage in this case.
             return
@@ -467,7 +467,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         pass
 
     def _updateStats(self, item):
-        assert isinstance(item, RoiStatsItemWidget)
+        assert isinstance(item, ROIStatsItemWidget)
         plotItem = item._plot_item
         roi = item._roi
         if item is None:

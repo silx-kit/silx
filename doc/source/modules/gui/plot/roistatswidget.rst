@@ -16,3 +16,6 @@ An example of the usage is given in examples/plotRoiStats.py
 .. autoclass:: ROIStatsWidget
    :show-inheritance:
    :members:
+
+
+ROIStatsItemWidget

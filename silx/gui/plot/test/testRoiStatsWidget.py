@@ -28,7 +28,7 @@
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.ROIStatsWidget import RoiStatsWidget
+from silx.gui.plot.ROIStatsWidget import ROIStatsWidget
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
 from silx.gui.plot.StatsWidget import UpdateMode
@@ -37,7 +37,7 @@ import numpy
 
 
 class _TestRoiStatsBase(TestCaseQt):
-    """Base class for several unittest relative to RoiStatsWidget"""
+    """Base class for several unittest relative to ROIStatsWidget"""
     def setUp(self):
         TestCaseQt.setUp(self)
         # define plot
@@ -58,7 +58,7 @@ class _TestRoiStatsBase(TestCaseQt):
         self.scatter_item = self.plot.getScatter(legend='scatter1')
 
         # stats widget
-        self.statsWidget = RoiStatsWidget(plot=self.plot)
+        self.statsWidget = ROIStatsWidget(plot=self.plot)
 
         # define stats
         stats = [
