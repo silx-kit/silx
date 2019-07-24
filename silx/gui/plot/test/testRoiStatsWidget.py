@@ -28,7 +28,7 @@
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.tools.ROIStatsWidget import RoiStatsWidget
+from silx.gui.plot.ROIStatsWidget import RoiStatsWidget
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
 from silx.gui.plot.StatsWidget import UpdateMode

@@ -40,7 +40,7 @@ from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot import Plot2D, Plot1D
 from silx.gui.plot.CurvesROIWidget import ROI
-from silx.gui.plot.tools.ROIStatsWidget import RoiStatsWidget
+from silx.gui.plot.ROIStatsWidget import RoiStatsWidget
 from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 from collections import OrderedDict
 import functools
