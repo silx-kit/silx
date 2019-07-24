@@ -123,7 +123,8 @@ class TestFFT(ParametricTestCase):
                      "opencl back-end requires pyopencl and gpyfft")
     def test_opencl(self):
         from silx.opencl.common import ocl
-        self.__run_tests(backend="opencl", ctx=ocl.create_context())
+        if ocl is not None:
+            self.__run_tests(backend="opencl", ctx=ocl.create_context())
 
     @unittest.skipIf(not __have_fftw__,
                      "fftw back-end requires pyfftw")
