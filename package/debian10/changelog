@@ -1,9 +1,20 @@
-silx (0.11.0+dfsg-1) unstable; urgency=low
+silx (0.11.0+dfsg-1) unstable; urgency=medium
 
-  * New silx version 0.11
-  * Remove Python2 silx packages
+  [ Alexandre Marie ]
+  * Added test on openCL's use
+  * New upstream version 0.11.0+dfsg
+  * d/patches
+    - 0004-fix-missing-import.patches (Removed)
+    - 0005-fix-problem-with-sift-import (Removed)
 
- -- Thomas Vincent <thomas.vincent@esrf.fr>  Fri, 05 Jul 2019 14:38:32 +0200
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 09 Jul 2019 15:26:55 +0200
+
+silx (0.10.1+dfsg-1~exp2) experimental; urgency=medium
+
+  * d/patchs
+    + 0005-fix-problem-with-sift-import.patch (Added)
+
+ -- Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>  Tue, 28 May 2019 11:17:46 +0200
 
 silx (0.10.1+dfsg-1~exp1) experimental; urgency=medium
 
@@ -12,6 +23,20 @@ silx (0.10.1+dfsg-1~exp1) experimental; urgency=medium
     + 0004-fix-missing-import.patch (Added)
 
  -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 28 May 2019 08:20:44 +0200
+
+silx (0.9.0+dfsg-3) unstable; urgency=medium
+
+  * d/rules: Do not run Qt test for now.
+  * d/t/control.autodep8: Fixed to run test for real.
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Thu, 21 Feb 2019 11:22:03 +0100
+
+silx (0.9.0+dfsg-2) unstable; urgency=medium
+
+  * d/patches:
+    + 0004-fix-FTBFS-with-numpy-0.16.patch (Added)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Thu, 20 Dec 2018 16:21:18 +0100
 
 silx (0.9.0+dfsg-1) unstable; urgency=medium
 
