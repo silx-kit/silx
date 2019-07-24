@@ -255,7 +255,7 @@ class _SceneWidgetWrapper(_Wrapper):
             plot.selection().setCurrentItem(item)
 
     def getLabel(self, item):
-        return item.getLabel()
+        return item.getName()
 
     def getKind(self, item):
         from ..plot3d import items as plot3ditems
