@@ -40,6 +40,7 @@ from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot import items as plotitems
+from silx.gui.plot3d import items as plot3ditems
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot import stats as statsmdl
 from collections import OrderedDict
@@ -201,8 +202,12 @@ class ROIStatsItemHelper(object):
             return 'scatter'
         elif isinstance(self._plot_item, plotitems.Histogram):
             return 'histogram'
-        else:
-            return None
+        elif isinstance(item, (plot3ditems.ImageData,
+                               plot3ditems.ScalarField3D)):
+            return 'image'
+        elif isinstance(item, (plot3ditems.Scatter2D,
+                               plot3ditems.Scatter3D)):
+            return 'scatter'
 
     @property
     def item_legend(self):
