@@ -224,11 +224,11 @@ class ROIStatsWidget(qt.QMainWindow):
 
     def addItem(self, plotItem, roi):
         # TODO: _RoiStatsItemWidget can probably be removed
-        statsItem = ROIStatsItemWidget(roi=roi, plot_item=plotItem)
+        statsItem = ROIStatsItemHelper(roi=roi, plot_item=plotItem)
         return self._statsROITable.add(item=statsItem)
 
     def removeItem(self, plotItem, roi):
-        statsItem = ROIStatsItemWidget(roi=roi, plot_item=plotItem)
+        statsItem = ROIStatsItemHelper(roi=roi, plot_item=plotItem)
         self._statsROITable._removeItem(itemKey=statsItem.id_key())
 
     def _removeCurrentRow(self):
@@ -256,7 +256,7 @@ class ROIStatsWidget(qt.QMainWindow):
         return self.removeItem(plotItem=plot_item, roi=roi)
 
 
-class ROIStatsItemWidget(object):
+class ROIStatsItemHelper(object):
     """Item utils to associate a plot item and a roi
 
     Display on one row statistics regarding the couple
@@ -350,7 +350,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         self.__roisKeyToRoi = {}
 
     def add(self, item):
-        assert isinstance(item, ROIStatsItemWidget)
+        assert isinstance(item, ROIStatsItemHelper)
         if item.id_key() in self._items:
             _logger.warning(item.id_key(), 'is already present')
             return None
@@ -365,7 +365,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         :param item: 
         :return: True if successfully added.
         """
-        if not isinstance(item, ROIStatsItemWidget):
+        if not isinstance(item, ROIStatsItemHelper):
             # skipped because also receive all new plot item (Marker...) that
             # we don't want to manage in this case.
             return
@@ -467,7 +467,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         pass
 
     def _updateStats(self, item):
-        assert isinstance(item, ROIStatsItemWidget)
+        assert isinstance(item, ROIStatsItemHelper)
         plotItem = item._plot_item
         roi = item._roi
         if item is None:
