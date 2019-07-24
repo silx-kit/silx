@@ -257,7 +257,15 @@ class RoiStatsWidget(qt.QMainWindow):
 
 
 class RoiStatsItemWidget(object):
-    """Item utils to associate a plot item and a roi"""
+    """Item utils to associate a plot item and a roi
+
+    Display on one row statistics regarding the couple
+    (`.Item` (plot item) / roi).
+
+    :param `.Item plot_item: item for which we want statistics 
+    :param Union[ROI, RegionOfInterest]: region of interest to use for
+                                         statistics.
+    """
     def __init__(self, plot_item, roi):
         self._plot_item = plot_item
         self._roi = roi
@@ -278,7 +286,7 @@ class RoiStatsItemWidget(object):
     def roi_kind(self):
         return self._roi.__class__
 
-    # TODO: should call a util function
+    # TODO: should call a util function from the wrapper ?
     def item_kind(self):
         if isinstance(self._plot_item, plotitems.Curve):
             return 'curve'
