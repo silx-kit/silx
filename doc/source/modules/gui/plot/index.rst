@@ -59,6 +59,7 @@ Additionnal plot tool widgets:
    roi.rst
    printpreviewtoolbutton.rst
    statswidget.rst
+   roistatswidget.rst
    stats/index.rst
 
 Utilities

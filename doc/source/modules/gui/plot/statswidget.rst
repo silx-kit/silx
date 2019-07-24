@@ -1,7 +1,7 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`StatsWidget`: Display a set of statictics for plot items
+:mod:`StatsWidget`: Display a set of statistics for plot items
 ==============================================================
 
 .. automodule:: silx.gui.plot.StatsWidget
