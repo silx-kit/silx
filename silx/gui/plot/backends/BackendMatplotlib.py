@@ -296,6 +296,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Make sure background of Axes is displayed
         self.ax2.patch.set_visible(True)
 
+        # Set axis zorder=0.5 so grid is displayed at 0.5
+        self.ax.set_axisbelow(True)
+
         # disable the use of offsets
         try:
             self.ax.get_yaxis().get_major_formatter().set_useOffset(False)
@@ -419,7 +422,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     axes.fill_between(x, FLOAT32_MINPOS, y, facecolor=color))
 
         for artist in artists:
-            artist.set_zorder(z)
+            artist.set_zorder(z + 1)
             if alpha < 1:
                 artist.set_alpha(alpha)
 
@@ -448,7 +451,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                       label="__IMAGE__" + legend,
                       interpolation='nearest',
                       picker=picker,
-                      zorder=z,
+                      zorder=z + 1,
                       origin='lower')
 
         if alpha < 1:
@@ -501,7 +504,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             label=legend,
             alpha=alpha,
             picker=picker,
-            zorder=z)
+            zorder=z + 1)
         collection.set_color(color)
         self.ax.add_collection(collection)
 
@@ -584,7 +587,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             raise NotImplementedError("Unsupported item shape %s" % shape)
 
-        item.set_zorder(z)
+        item.set_zorder(z + 1)
 
         if overlay:
             item.set_animated(True)
