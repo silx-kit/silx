@@ -54,10 +54,12 @@ class TestBlockSignals(TestCaseQt):
 
         self.assertEqual(listener.arguments(), [("received",)] * len(objs))
 
+    @unittest.skipUnless(qt.BINDING in ('PyQt5', 'PySide2'), 'Qt5 only test')
     def testManyObjects(self):
         """Test blockSignals with 2 QObjects"""
         self._test(qt.QObject(), qt.QObject())
 
+    @unittest.skipUnless(qt.BINDING in ('PyQt5', 'PySide2'), 'Qt5 only test')
     def testOneObject(self):
         """Test blockSignals context manager with a single QObject"""
         self._test(qt.QObject())
