@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,8 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "30/11/2016"
 
+
+import contextlib as _contextlib
 import sys
 from . import _qt as qt
 
@@ -64,3 +66,19 @@ def silxGlobalThreadPool():
         tp.setMaxThreadCount(tp.maxThreadCount())
         __globalThreadPoolInstance = tp
     return __globalThreadPoolInstance
+
+
+@_contextlib.contextmanager
+def blockSignals(obj):
+    """Context manager blocking signals of a QObject.
+
+    It restores previous state when leaving.
+
+    :param qt.QObject obj: QObject for which to block signals
+    """
+    method = getattr(obj, "blockSignals")
+    previous = method(True)
+    try:
+        yield
+    finally:
+        method(previous)
