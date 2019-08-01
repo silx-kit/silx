@@ -204,11 +204,7 @@ class _Axis(qt.QWidget):
         """
         self.__axes.setVisible(visible)
         name = self.axisName()
-
-        if not visible and name != "":
-            self.setVisible(False)
-        else:
-            self.setVisible(True)
+        self.setVisible(visible or name == "")
 
 
 class NumpyAxesSelector(qt.QWidget):
