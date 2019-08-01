@@ -30,7 +30,6 @@ __license__ = "MIT"
 __date__ = "30/11/2016"
 
 
-import contextlib as _contextlib
 import sys as _sys
 from . import _qt
 
@@ -66,19 +65,3 @@ def silxGlobalThreadPool():
         tp.setMaxThreadCount(tp.maxThreadCount())
         __globalThreadPoolInstance = tp
     return __globalThreadPoolInstance
-
-
-@_contextlib.contextmanager
-def blockSignals(*objs):
-    """Context manager blocking signals of QObjects.
-
-    It restores previous state when leaving.
-
-    :param qt.QObject objs: QObjects for which to block signals
-    """
-    blocked = [(obj, obj.blockSignals(True)) for obj in objs]
-    try:
-        yield
-    finally:
-        for obj, previous in blocked:
-            obj.blockSignals(previous)
