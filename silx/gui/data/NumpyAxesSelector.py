@@ -126,7 +126,7 @@ class _Axis(qt.QWidget):
     def axisName(self):
         """Returns the selected axis name.
 
-        If no names are selected, an empty string is retruned.
+        If no name is selected, an empty string is returned.
 
         :rtype: str
         """
@@ -173,7 +173,7 @@ class _Axis(qt.QWidget):
         self.__slider.setVisible(isVisible)
 
     def value(self):
-        """Returns the current selected position in the axis.
+        """Returns the currently selected position in the axis.
 
         :rtype: int
         """
@@ -195,8 +195,8 @@ class _Axis(qt.QWidget):
 
     def setNamedAxisSelectorVisibility(self, visible):
         """Hide or show the named axis combobox.
-        If both the selector and the slider are hidden,
-        hide the entire widget.
+
+        If both the selector and the slider are hidden, hide the entire widget.
 
         :param visible: boolean
         """
@@ -429,7 +429,7 @@ class NumpyAxesSelector(qt.QWidget):
     def data(self):
         """Returns the input data.
 
-        :rtype: numpy.ndarray
+        :rtype: Union[numpy.ndarray,None]
         """
         return self.__data
 
