@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "01/08/2019"
 
 import time
 import logging
@@ -141,8 +141,9 @@ class TestImage(unittest.TestCase):
         self.s = numpy.int32(s)  # 1, 2, 3 ... not 4 nor 0.
         self.gpu_dogs = pyopencl.array.to_device(self.queue, DOGS)
         self.output = pyopencl.array.empty(self.queue, (nb_keypoints, 4), dtype=numpy.float32, order="C")
-        self.output.fill(-1.0, self.queue)  # memset for invalid keypoints
-        self.counter = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32, order="C")
+        self.output.fill(-1.0)  # memset for invalid keypoints
+        self.counter = pyopencl.array.empty(self.queue, (1,), dtype=numpy.int32)
+        self.counter.fill(0)
         nb_keypoints = numpy.int32(nb_keypoints)
         self.shape = calc_size((DOGS.shape[1], DOGS.shape[0] * DOGS.shape[2]), self.wg)  # it's a 3D vector !!
 

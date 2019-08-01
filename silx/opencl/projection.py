@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
-__date__ = "28/02/2018"
+__date__ = "01/08/2019"
 
 import logging
 import numpy as np
@@ -141,10 +141,11 @@ class Projection(OpenclProcessing):
             BufferDescription("d_strideJoseph", self._dimrecy * 2, np.int32, mf.READ_ONLY),
             BufferDescription("d_strideLine", self._dimrecy * 2, np.int32, mf.READ_ONLY),
         ]
+        d_axis_corrections = parray.empty(self.queue, self.nprojs, np.float32)
+        d_axis_corrections.fill(np.float32(0.0))
         self.add_to_cl_mem(
             {
-                "d_axis_corrections": parray.zeros(self.queue,
-                                                   self.nprojs, np.float32)
+                "d_axis_corrections": d_axis_corrections
             }
         )
         self._tmp_extended_img = np.zeros((self.shape[0] + 2, self.shape[1] + 2),
@@ -193,7 +194,9 @@ class Projection(OpenclProcessing):
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_angles"], angles2)
 
     def allocate_slice(self):
-            self.add_to_cl_mem({"d_slice": parray.zeros(self.queue, (self.shape[1] + 2, self.shape[1] + 2), np.float32)})
+        ary = parray.zeros(self.queue, (self.shape[1] + 2, self.shape[1] + 2), np.float32)
+        ary.fill(0)
+        self.add_to_cl_mem({"d_slice": ary})
 
     def allocate_textures(self):
         self.d_image_tex = pyopencl.Image(

@@ -40,7 +40,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "01/08/2019"
 
 import os
 import unittest
@@ -265,23 +265,23 @@ class TestKeypoints(unittest.TestCase):
             logger.warning("test_descriptor: Skipping test of WG=%s when maximum for this kernel is %s ", wg, max_wg)
             return
         gpu_keypoints = pyopencl.array.to_device(self.queue, keypoints)
-        gpu_descriptors = pyopencl.array.zeros(self.queue, (keypoints_end - keypoints_start, 128), dtype=numpy.uint8, order="C")
+        gpu_descriptors = pyopencl.array.empty(self.queue, (keypoints_end - keypoints_start, 128), dtype=numpy.uint8, order="C")
+        gpu_descriptors.fill(0)
         gpu_grad = pyopencl.array.to_device(self.queue, grad)
         gpu_ori = pyopencl.array.to_device(self.queue, ori)
         keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(keypoints_end)
         grad_height, grad_width = numpy.int32(grad.shape)
         counter = pyopencl.array.to_device(self.queue, keypoints_end)
-        kargs = [
-            gpu_keypoints.data,
-            gpu_descriptors.data,
-            gpu_grad.data,
-            gpu_ori.data,
-            numpy.int32(octsize),
-            keypoints_start,
-            counter.data,
-            grad_width,
-            grad_height
-        ]
+        kargs = [gpu_keypoints.data,
+                 gpu_descriptors.data,
+                 gpu_grad.data,
+                 gpu_ori.data,
+                 numpy.int32(octsize),
+                 keypoints_start,
+                 counter.data,
+                 grad_width,
+                 grad_height
+                 ]
 
         # Call the kernel
         t0 = time.time()

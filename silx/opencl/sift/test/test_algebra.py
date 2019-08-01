@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "01/08/2019"
 
 import os
 import time
@@ -158,7 +158,8 @@ class TestAlgebra(unittest.TestCase):
         gpu_keypoints = pyopencl.array.to_device(self.queue, keypoints)
         output = pyopencl.array.empty(self.queue, (nbkeypoints, 4), dtype=numpy.float32, order="C")
         output.fill(-1.0, self.queue)
-        counter = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32, order="C")
+        counter = pyopencl.array.empty(self.queue, (1,), dtype=numpy.int32)
+        counter.fill(0)
         wg = self.wg_compact,
         shape = calc_size((keypoints.shape[0],), wg)
         nbkeypoints = numpy.int32(nbkeypoints)

@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/06/2018"
+__date__ = "01/08/2019"
 
 import os
 import unittest
@@ -139,10 +139,12 @@ class TestMatching(unittest.TestCase):
 
         gpu_keypoints1 = pyopencl.array.to_device(self.queue, ref_sift)
         gpu_keypoints2 = pyopencl.array.to_device(self.queue, ref_sift_2)
-        gpu_matchings = pyopencl.array.zeros(self.queue, (keypoints_end - keypoints_start, 2), dtype=numpy.int32, order="C")
+        gpu_matchings = pyopencl.array.empty(self.queue, (keypoints_end - keypoints_start, 2), dtype=numpy.int32, order="C")
+        gpu_matchings.fill(0)
         keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(keypoints_end)
         nb_keypoints = numpy.int32(10000)
-        counter = pyopencl.array.zeros(self.queue, (1, 1), dtype=numpy.int32, order="C")
+        counter = pyopencl.array.empty(self.queue, (1, 1), dtype=numpy.int32, order="C")
+        counter.fill(0)
 
         t0 = time.time()
         k1 = self.program.matching(self.queue, shape, wg,

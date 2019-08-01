@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
-__date__ = "11/02/2019"
+__date__ = "01/08/2019"
 
 import numpy as np
 from math import ceil
@@ -262,7 +262,8 @@ class Convolution(OpenclProcessing):
         # Allocate arrays
         for option_name, array_name in option_array_names.items():
             if self.extra_options[option_name]:
-                value = parray.zeros(self.queue, self.shape, "f")
+                value = parray.empty(self.queue, self.shape, np.float32)
+                value.fill(np.float32(0.0))
             else:
                 value = None
             setattr(self, array_name, value)

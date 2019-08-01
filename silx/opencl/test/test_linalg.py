@@ -30,7 +30,7 @@ from __future__ import division, print_function
 __authors__ = ["Pierre paleo"]
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "14/06/2017"
+__date__ = "01/08/2019"
 
 
 import time
@@ -109,7 +109,8 @@ class TestLinAlg(unittest.TestCase):
         self.div_ref = divergence(self.grad_ref)
         self.image2 = np.zeros_like(self.image)
         # Device images
-        self.gradient_parray = parray.zeros(self.la.queue, self.image.shape, np.complex64)
+        self.gradient_parray = parray.empty(self.la.queue, self.image.shape, np.complex64)
+        self.gradient_parray.fill(0)
         # we should be using cl.Buffer(self.la.ctx, cl.mem_flags.READ_WRITE, size=self.image.nbytes*2),
         # but platforms not suporting openCL 1.2 have a problem with enqueue_fill_buffer,
         # so we use the parray "fill" utility

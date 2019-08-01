@@ -115,9 +115,12 @@ class TestCSR(unittest.TestCase):
         else:
             arr = array
         if output_on_device:
-            d_data = parray.zeros_like(csr.data)
-            d_indices = parray.zeros_like(csr.indices)
-            d_indptr = parray.zeros_like(csr.indptr)
+            d_data = parray.empty_like(csr.data)
+            d_indices = parray.empty_like(csr.indices)
+            d_indptr = parray.empty_like(csr.indptr)
+            d_data.fill(0)
+            d_indices.fill(0)
+            d_indptr.fill(0)
             output = (d_data, d_indices, d_indptr)
         else:
             output = None
@@ -169,7 +172,8 @@ class TestCSR(unittest.TestCase):
             indices = ref_sparse.indices
             indptr = ref_sparse.indptr
         if output_on_device:
-            d_arr = parray.zeros_like(csr.array)
+            d_arr = parray.empty_like(csr.array)
+            d_arr.fill(0)
             output = d_arr
         else:
             output = None
