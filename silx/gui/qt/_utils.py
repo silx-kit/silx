@@ -69,16 +69,16 @@ def silxGlobalThreadPool():
 
 
 @_contextlib.contextmanager
-def blockSignals(obj):
-    """Context manager blocking signals of a QObject.
+def blockSignals(*objs):
+    """Context manager blocking signals of QObjects.
 
     It restores previous state when leaving.
 
-    :param qt.QObject obj: QObject for which to block signals
+    :param qt.QObject objs: QObjects for which to block signals
     """
-    method = getattr(obj, "blockSignals")
-    previous = method(True)
+    blocked = [(obj, obj.blockSignals(True)) for obj in objs]
     try:
         yield
     finally:
-        method(previous)
+        for obj, previous in blocked:
+            obj.blockSignals(previous)
