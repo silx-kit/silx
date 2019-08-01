@@ -115,6 +115,8 @@ class _Axis(qt.QWidget):
         if axisName == "" and self.__axes.count() == 0:
             self.__axes.setCurrentIndex(-1)
             self.__updateSliderVisibility()
+            return
+
         for index in range(self.__axes.count()):
             name = self.__axes.itemData(index)
             if name == axisName:
