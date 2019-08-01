@@ -35,7 +35,7 @@ __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "01/08/2019"
 
 import logging
 import numpy
@@ -80,7 +80,8 @@ class TestAddition(unittest.TestCase):
         self.shape = 4096
         self.data = numpy.random.random(self.shape).astype(numpy.float32)
         self.d_array_img = pyopencl.array.to_device(self.queue, self.data)
-        self.d_array_5 = pyopencl.array.zeros_like(self.d_array_img) - 5
+        self.d_array_5 = pyopencl.array.empty_like(self.d_array_img)
+        self.d_array_5.fill(-5)
         self.program = pyopencl.Program(self.ctx, get_opencl_code("addition")).build()
 
     def tearDown(self):
