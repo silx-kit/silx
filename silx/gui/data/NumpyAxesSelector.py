@@ -429,7 +429,10 @@ class NumpyAxesSelector(qt.QWidget):
 
         :rtype: Union[numpy.ndarray,None]
         """
-        return self.__data
+        if self.__data is None:
+            return None
+        else:
+            return numpy.array(self.__data, copy=False)
 
     def selectedData(self):
         """Returns the output data.
@@ -440,7 +443,10 @@ class NumpyAxesSelector(qt.QWidget):
 
         :rtype: Union[numpy.ndarray,None]
         """
-        return self.__selectedData
+        if self.__selectedData is None:
+            return None
+        else:
+            return numpy.array(self.__selectedData, copy=False)
 
     def permutation(self):
         """Returns the axes permutation to convert data subset to selected data.
