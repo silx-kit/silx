@@ -41,7 +41,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "11/01/2019"
+__date__ = "05/08/2019"
 __status__ = "stable"
 
 
@@ -152,9 +152,12 @@ class OpenclProcessing(object):
     def __del__(self):
         """Destructor: release all buffers and programs
         """
-        self.reset_log()
-        self.free_kernels()
-        self.free_buffers()
+        try:
+            self.reset_log()
+            self.free_kernels()
+            self.free_buffers()
+        except Exception:
+            pass
         self.queue = None
         self.device = None
         self.ctx = None
