@@ -215,7 +215,7 @@ build_deb () {
 build_deb
 
 if [ $install -eq 1 ]; then
-  sudo -v su -c  "dpkg -i ${dist_directory}/*.deb"
+  sudo su -c  "dpkg -i ${dist_directory}/*.deb"
 fi
 
 exit "$rc"
