@@ -160,12 +160,15 @@ class TestLogging(logging.Handler):
         # ensure no log message is ignored
         self.entry_level = self.logger.level * 1
         self.logger.setLevel(logging.DEBUG)
+        self.entry_disabled = self.logger.disabled
+        self.logger.disabled = False
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Context (i.e., with) support"""
         self.logger.removeHandler(self)
         self.logger.propagate = True
         self.logger.setLevel(self.entry_level)
+        self.logger.disabled = self.entry_disabled
 
         for level, expected_count in self.count_by_level.items():
             if expected_count is None:

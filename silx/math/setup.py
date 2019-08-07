@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -78,6 +78,13 @@ def configuration(parent_package='', top_path=None):
 
     config.add_extension('colormap',
                          sources=["colormap.pyx"],
+                         language='c',
+                         include_dirs=['include', numpy.get_include()],
+                         extra_link_args=['-fopenmp'],
+                         extra_compile_args=['-fopenmp'])
+
+    config.add_extension('interpolate',
+                         sources=["interpolate.pyx"],
                          language='c',
                          include_dirs=['include', numpy.get_include()],
                          extra_link_args=['-fopenmp'],

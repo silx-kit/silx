@@ -273,11 +273,12 @@ class TestStatsFormatter(TestCaseQt):
             formatter.format(self.stat.calculate(self.curveContext)), '0.000')
 
 
-class TestStatsHandler(unittest.TestCase):
+class TestStatsHandler(TestCaseQt):
     """Make sure the StatHandler is correctly making the link between 
     :class:`StatBase` and :class:`StatFormatter` and checking the API is valid
     """
     def setUp(self):
+        TestCaseQt.setUp(self)
         self.plot1d = Plot1D()
         x = range(20)
         y = range(20)
@@ -289,6 +290,8 @@ class TestStatsHandler(unittest.TestCase):
     def tearDown(self):
         self.plot1d.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot1d.close()
+        self.plot1d = None
+        TestCaseQt.tearDown(self)
 
     def testConstructor(self):
         """Make sure the constructor can deal will all possible arguments:

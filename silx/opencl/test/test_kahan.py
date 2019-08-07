@@ -34,7 +34,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "30/01/2019"
+__date__ = "01/08/2019"
 
 
 import unittest
@@ -120,7 +120,8 @@ class TestKahan(unittest.TestCase):
         """
         prg = pyopencl.Program(self.ctx, read_cl_file("kahan.cl") + src).build(self.args)
         ones_d = pyopencl.array.to_device(self.queue, data)
-        res_d = pyopencl.array.zeros(self.queue, 2, numpy.float32)
+        res_d = pyopencl.array.empty(self.queue, 2, numpy.float32)
+        res_d.fill(0)
         evt = prg.summation(self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data)
         evt.wait()
         res = res_d.get().sum(dtype=numpy.float64)
@@ -202,7 +203,8 @@ class TestKahan(unittest.TestCase):
 
         prg = pyopencl.Program(self.ctx, read_cl_file("kahan.cl") + src).build(self.args)
         ones_d = pyopencl.array.to_device(self.queue, data)
-        res_d = pyopencl.array.zeros(self.queue, 2, numpy.float32)
+        res_d = pyopencl.array.empty(self.queue, 2, numpy.float32)
+        res_d.fill(0)
         evt = prg.test_dot16(self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data)
         evt.wait()
         res = res_d.get().sum(dtype="float64")

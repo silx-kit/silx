@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,21 +29,22 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "30/11/2016"
 
-import sys
-from . import _qt as qt
+
+import sys as _sys
+from . import _qt
 
 
 def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""
-    if sys.version_info[0] < 3 or qt.BINDING == 'PySide':
+    if _sys.version_info[0] < 3 or _qt.BINDING == 'PySide':
         convert = str
-    elif qt.BINDING == 'PySide2':
+    elif _qt.BINDING == 'PySide2':
         def convert(data):
             return str(data.data(), 'ascii')
     else:
         convert = lambda data: str(data, 'ascii')
-    formats = qt.QImageReader.supportedImageFormats()
+    formats = _qt.QImageReader.supportedImageFormats()
     return set([convert(data) for data in formats])
 
 
@@ -59,7 +60,7 @@ def silxGlobalThreadPool():
     """
     global __globalThreadPoolInstance
     if __globalThreadPoolInstance is  None:
-        tp = qt.QThreadPool()
+        tp = _qt.QThreadPool()
         # This pointless command fixes a segfault with PyQt 5.9.1 on Windows
         tp.setMaxThreadCount(tp.maxThreadCount())
         __globalThreadPoolInstance = tp

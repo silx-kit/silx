@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
-__date__ = "10/08/2017"
+__date__ = "01/08/2019"
 
 import numpy as np
 
@@ -63,8 +63,10 @@ class LinAlg(OpenclProcessing):
                                   platformid=platformid, deviceid=deviceid,
                                   profile=profile)
 
-        self.d_gradient = parray.zeros(self.queue, shape, np.complex64)
-        self.d_image = parray.zeros(self.queue, shape, np.float32)
+        self.d_gradient = parray.empty(self.queue, shape, np.complex64)
+        self.d_gradient.fill(np.complex64(0.0))
+        self.d_image = parray.empty(self.queue, shape, np.float32)
+        self.d_image.fill(np.float32(0.0))
         self.add_to_cl_mem({
             "d_gradient": self.d_gradient,
             "d_image": self.d_image

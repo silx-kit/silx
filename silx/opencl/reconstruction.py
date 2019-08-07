@@ -29,7 +29,7 @@ from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
-__date__ = "19/09/2017"
+__date__ = "01/08/2019"
 
 import logging
 import numpy as np
@@ -98,19 +98,23 @@ class ReconstructionAlgorithm(OpenclProcessing):
         self.sino_shape = sino_shape
         self.is_cpu = self.backprojector.is_cpu
         # Arrays
-        self.d_data = parray.zeros(self.queue, sino_shape, dtype=np.float32)
-        self.d_sino = parray.zeros_like(self.d_data)
-        self.d_x = parray.zeros(self.queue,
+        self.d_data = parray.empty(self.queue, sino_shape, dtype=np.float32)
+        self.d_data.fill(0.0)
+        self.d_sino = parray.empty_like(self.d_data)
+        self.d_sino.fill(0.0)
+        self.d_x = parray.empty(self.queue,
                                 self.backprojector.slice_shape,
                                 dtype=np.float32)
-        self.d_x_old = parray.zeros_like(self.d_x)
+        self.d_x.fill(0.0)
+        self.d_x_old = parray.empty_like(self.d_x)
+        self.d_x_old.fill(0.0)
 
         self.add_to_cl_mem({
-            "d_data": self.d_data,
-            "d_sino": self.d_sino,
-            "d_x": self.d_x,
-            "d_x_old": self.d_x_old,
-        })
+                            "d_data": self.d_data,
+                            "d_sino": self.d_sino,
+                            "d_x": self.d_x,
+                            "d_x_old": self.d_x_old,
+                            })
 
     def proj(self, d_slice, d_sino):
         """
@@ -276,10 +280,13 @@ class TV(ReconstructionAlgorithm):
         )
         # Additional arrays
         self.linalg.gradient(self.d_x)
-        self.d_p = parray.zeros_like(self.linalg.cl_mem["d_gradient"])
-        self.d_q = parray.zeros_like(self.d_data)
+        self.d_p = parray.empty_like(self.linalg.cl_mem["d_gradient"])
+        self.d_q = parray.empty_like(self.d_data)
         self.d_g = self.linalg.d_image
-        self.d_tmp = parray.zeros_like(self.d_x)
+        self.d_tmp = parray.empty_like(self.d_x)
+        self.d_p.fill(0)
+        self.d_q.fill(0)
+        self.d_tmp.fill(0)
         self.add_to_cl_mem({
             "d_p": self.d_p,
             "d_q": self.d_q,

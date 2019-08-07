@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -263,7 +263,7 @@ def _name_contains_string_in_list(name, strlist):
     return False
 
 
-def h5todict(h5file, path="/", exclude_names=None):
+def h5todict(h5file, path="/", exclude_names=None, asarray=True):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
@@ -299,6 +299,8 @@ def h5todict(h5file, path="/", exclude_names=None):
         to read only a sub-group in the file
     :param List[str] exclude_names: Groups and datasets whose name contains
         a string in this list will be ignored. Default is None (ignore nothing)
+    :param bool asarray: True (default) to read scalar as arrays, False to
+        read them as scalar
     :return: Nested dictionary
     """
     with _SafeH5FileRead(h5file) as h5f:
@@ -311,8 +313,11 @@ def h5todict(h5file, path="/", exclude_names=None):
                                       path + "/" + key,
                                       exclude_names=exclude_names)
             else:
-                # Convert HDF5 dataset to numpy array
-                ddict[key] = h5f[path + "/" + key][...]
+                # Read HDF5 datset
+                data = h5f[path + "/" + key][()]
+                if asarray:  # Convert HDF5 dataset to numpy array
+                    data = numpy.array(data, copy=False)
+                ddict[key] = data
 
     return ddict
 

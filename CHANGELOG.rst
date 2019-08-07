@@ -1,12 +1,39 @@
 Change Log
 ==========
 
-0.11.0:
--------
+0.11.0: 2019/07/03
+------------------
+
+ * Graphical user interface:
+
+   * Plot:
+
+     * Add sample code on how to update a plot3d widget from a thread
+     * ScatterPlot: add the possibility to plot as a surface using Delaunay triangulation
+     * ScatterView: add a tool button to change scatter visualization mode (ex. Solid)
+     * (OpenGL backend) Fix memory leak when creating/deleting widgets in a loop
+
+
+   * Plot3D:
+
+     * Add an action to toggle plot3d's `PositionInfoWidget` picking.
+     * Add a 3D complex field visualization: Complex3DField (also available from silx view)
+     * Add a PositionInfoWidget and a tool button to toggle the picking mode to SceneWindow
+     * Add the possibility to render the scene with linear fog.
+
+   * `silx.gui.widgets`:
+
+     * Fix ImageFileDialog selection for a cube with shape like `1,y,x`.
 
  * Miscellaneous:
 
     * Requires numpy version >= 1.12
+    * HDF5 creator script
+    * Support of Python 3.4 is dropped. Please upgrade to at least Python 3.5.
+    * This is the last version to officially support Python 2.7.
+    * The source code is Python 3.8 ready.
+    * Improve PySide2 support. PyQt4 and PySide are deprecated.
+
 
 
 0.10.0: 2019/02/19
@@ -158,7 +185,7 @@ Change Log
  * Graphical user interface:
 
    * Plot:
-   
+
      * Adds support of x-axis date/time ticks for time series display (see `silx.gui.plot.items.XAxis.setTickMode`)
      * Adds support of interactive authoring of regions of interest (see `silx.gui.plot.items.roi` and `silx.gui.plot.tools.roi`)
      * Adds `StatsWidget` widget for displaying statistics on data displayed in a `PlotWidget`
@@ -292,7 +319,7 @@ Change Log
  * OpenCl. Tomography. Implement a filtered back projection.
  * Add a *PrintPreview* widget and a *PrintPreviewToolButton* for *PlotWidget*.
  * Plot:
- 
+
    * Add a context menu on right click.
    * Add a *ComplexImageView* widget.
    * Merged abstract *Plot* class with *PlotWidget* class.
@@ -303,14 +330,14 @@ Change Log
    * Refactor plot actions, new sub-package *silx.gui.plot.actions*.
    * Add signals on *PlotWidget* items notifying updates.
    * Mask. Support loading of TIFF images.
-   
+
  * Plot3d:
- 
+
    * Rework toolbar and interaction to use only the left mouse button.
    * Support any colormap.
-   
+
  * Hdf5TreeView:
- 
+
    * Add an API to select a single tree node item (*setSelectedH5Node*)
    * Better support and display of types.
    * New column for displaying the kind of links.
@@ -320,25 +347,25 @@ Change Log
  * Median filter. Add new modes (*reflect, mirror, shrink*) in addition to *nearest*.
 
  * IO:
- 
+
    * Rename module *spectoh5* to *convert*. Add support for conversion of *fabio* formats.
    * Support NPZ format.
    * Support opening an URI (*silx.io.open(filename::path)*).
    * *Group* methods *.keys*, *.value* and *.items* now return lists in Python 2
      and iterators in Python 3.
-   
+
  * Image. Add tomography utils: *phantomgenerator* to produce Shepp-Logan phantom, function to compute center of rotation (*calc_center_corr*, *calc_center_centroid*) and rescale the intensity of an image (*rescale_intensity*).
- 
+
  * Commands:
-   
+
    * *silx view*:
-     
+
      * Add command line option *--use-opengl-plot*.
      * Add command line option *--debug*, to print dataset reading errors.
      * Support opening URI (*silx view filename::path*).
-     
+
    * *silx convert*. New command line application to convert supported data files to HDF5.
-   
+
  * Enable usage of *silx.resources* for other projects.
  * The *silx* license is now fully MIT.
 
@@ -347,7 +374,7 @@ Change Log
 -----------------
 
  * Adds OpenGL backend to 1D and 2D graphics
- * Adds Object Oriented plot API with Curve, Histogram, Image, ImageRgba and Scatter items. 
+ * Adds Object Oriented plot API with Curve, Histogram, Image, ImageRgba and Scatter items.
  * Implements generic launcher (``silx view``)
  * NXdataViewer. Module providing NeXus NXdata support
  * Math/OpenCL. Implementation of median filter.
@@ -360,7 +387,7 @@ Change Log
  * ROIs. Simplification of API: setRois, getRois, calculateRois.
  * ROIs. Correction of calculation bug when the X-axis values were not ordered.
  * Sift. Moves package from ``silx.image`` to ``silx.opencl``.
- 
+
 
 0.4.0: 2017/02/01
 -----------------
@@ -374,7 +401,7 @@ Change Log
  * Adds pixel intensity histogram action
  * Adds histogram parameter to addCurve
  * Refactoring. Create silx.gui.data (include widgets for data)
- * Refactoring. Rename utils.load as silx.io.open 
+ * Refactoring. Rename utils.load as silx.io.open
  * Changes active curve behavior in Plot. No default active curve is set by default
  * Fit Action. Add polynomial functions and background customization
  * PlotWindow. Provide API to access toolbar actions
@@ -396,7 +423,7 @@ Change Log
  * Adds HDF5 load API (supporting Spec files) to silx.io.utils module
  * Adds SpecFile support for multiple MCA headers
  * Adds HDF5 TreeView
- * Adds FitManager to silx.math.fit and FitWidget to silx.gui.fit 
+ * Adds FitManager to silx.math.fit and FitWidget to silx.gui.fit
  * Adds ThreadPoolPushButton to silx.gui.widgets
  * Adds getDataRange function to plot widget
  * Adds loadUi, Slot and Property to qt.py

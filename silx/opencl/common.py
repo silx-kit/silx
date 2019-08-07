@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "07/06/2019"
+__date__ = "01/08/2019"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -60,8 +60,14 @@ else:
         logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
         pyopencl = None
     else:
-        import pyopencl.array as array
-        mf = pyopencl.mem_flags
+        try:
+            pyopencl.get_platforms()
+        except pyopencl.LogicError:
+            logger.warning("The module pyOpenCL has been imported but can't be used here")
+            pyopencl = None
+        else:
+            import pyopencl.array as array
+            mf = pyopencl.mem_flags
 
 if pyopencl is None:
     # Define default mem flags
@@ -254,7 +260,8 @@ def _measure_workgroup_size(device_or_context, fast=False):
     max_valid_wg = 1
     data = numpy.random.random(shape).astype(numpy.float32)
     d_data = pyopencl.array.to_device(queue, data)
-    d_data_1 = pyopencl.array.zeros_like(d_data) + 1
+    d_data_1 = pyopencl.array.empty_like(d_data)
+    d_data_1.fill(numpy.float32(1.0))
 
     program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
     if fast:

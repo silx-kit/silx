@@ -344,7 +344,7 @@ class PlotWidget(qt.QMainWindow):
                 except ImportError:
                     pass
             else:  # No backend was found
-                raise ValueError("No backends supported: " % str(backend))
+                raise ValueError("No supported backend was found")
 
         raise ValueError("Backend not supported %s" % str(backend))
 
@@ -3123,7 +3123,7 @@ class PlotWidget(qt.QMainWindow):
     # Panning with arrow keys
 
     def isPanWithArrowKeys(self):
-        """Returns whether or not panning the graph with arrow keys is enable.
+        """Returns whether or not panning the graph with arrow keys is enabled.
 
         See :meth:`setPanWithArrowKeys`.
         """

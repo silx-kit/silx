@@ -16,7 +16,8 @@ The current version features:
   images file formats.
 * OpenCL-based data processing: image alignment (SIFT),
   image processing (median filter, histogram),
-  filtered backprojection for tomography
+  filtered backprojection for tomography,
+  convolution
 * Data reduction: histogramming, fitting, median filter
 * A set of Qt widgets, including:
 
@@ -47,8 +48,8 @@ To install silx with a minimal set of dependencies, run:
 
 Or using Anaconda on Linux and MacOS:
 
-.. code-block:: bash 
-    
+.. code-block:: bash
+
     conda install silx -c conda-forge
 
 Unofficial packages for different distributions are available:

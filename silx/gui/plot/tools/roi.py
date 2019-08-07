@@ -106,6 +106,9 @@ class RegionOfInterestManager(qt.QObject):
         self._rois = []  # List of ROIs
         self._drawnROI = None  # New ROI being currently drawn
 
+        # Handle unique selection of interaction mode action
+        self._actionGroup = qt.QActionGroup(self)
+
         self._roiClass = None
         self._color = rgba('red')
 
@@ -158,6 +161,8 @@ class RegionOfInterestManager(qt.QObject):
             action.setChecked(self.getCurrentInteractionModeRoiClass() is roiClass)
             action.setToolTip(text)
 
+            self._actionGroup.addAction(action)
+
             action.triggered[bool].connect(functools.partial(
                 WeakMethodProxy(self._modeActionTriggered), roiClass=roiClass))
             self._modeActions[roiClass] = action
@@ -171,9 +176,6 @@ class RegionOfInterestManager(qt.QObject):
         """
         if checked:
             self.start(roiClass)
-        else:  # Keep action checked
-            action = self.sender()
-            action.setChecked(True)
 
     def _updateModeActions(self):
         """Check/Uncheck action corresponding to current mode"""
@@ -281,6 +283,9 @@ class RegionOfInterestManager(qt.QObject):
         :param roi_items.RegionOfInterest roi: The ROI to add
         :param int index: The position where to insert the ROI,
             By default it is appended to the end of the list of ROIs
+        :param bool useManagerColor:
+            Whether to set the ROI color to the default one of the manager or not.
+            (Default: True).
         :raise RuntimeError: When ROI cannot be added because the maximum
            number of ROIs has been reached.
         """

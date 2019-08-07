@@ -71,9 +71,18 @@ else:  # Then try Qt bindings
         if 'PyQt5' in sys.modules:
             del sys.modules["PyQt5"]
         try:
+            import sip
+            sip.setapi("QString", 2)
+            sip.setapi("QVariant", 2)
+            sip.setapi('QDate', 2)
+            sip.setapi('QDateTime', 2)
+            sip.setapi('QTextStream', 2)
+            sip.setapi('QTime', 2)
+            sip.setapi('QUrl', 2)
             import PyQt4.QtCore  # noqa
         except ImportError:
             if 'PyQt4' in sys.modules:
+                del sys.modules["sip"]
                 del sys.modules["PyQt4"]
             try:
                 import PySide2.QtCore  # noqa
@@ -106,7 +115,6 @@ if BINDING == 'PyQt4':
     if sys.version_info < (3, ):
         try:
             import sip
-
             sip.setapi("QString", 2)
             sip.setapi("QVariant", 2)
             sip.setapi('QDate', 2)

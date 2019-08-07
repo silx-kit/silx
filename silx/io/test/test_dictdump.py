@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -49,9 +49,11 @@ def tree():
     return defaultdict(tree)
 
 
+inhabitants = 160215
+
 city_attrs = tree()
 city_attrs["Europe"]["France"]["Grenoble"]["area"] = "18.44 km2"
-city_attrs["Europe"]["France"]["Grenoble"]["inhabitants"] = 160215
+city_attrs["Europe"]["France"]["Grenoble"]["inhabitants"] = inhabitants
 city_attrs["Europe"]["France"]["Grenoble"]["coordinates"] = [45.1830, 5.7196]
 city_attrs["Europe"]["France"]["Tourcoing"]["area"]
 
@@ -128,6 +130,16 @@ class TestH5ToDict(unittest.TestCase):
         self.assertNotIn("inhabitants", ddict["Grenoble"])
         self.assertIn("coordinates", ddict["Grenoble"])
         self.assertIn("area", ddict["Grenoble"])
+
+    def testAsArrayTrue(self):
+        """Test with asarray=True, the default"""
+        ddict = h5todict(self.h5_fname, path="/Europe/France/Grenoble")
+        self.assertTrue(numpy.array_equal(ddict["inhabitants"], numpy.array(inhabitants)))
+
+    def testAsArrayFalse(self):
+        """Test with asarray=False"""
+        ddict = h5todict(self.h5_fname, path="/Europe/France/Grenoble", asarray=False)
+        self.assertEqual(ddict["inhabitants"], inhabitants)
 
 
 class TestDictToJson(unittest.TestCase):

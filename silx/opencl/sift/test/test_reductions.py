@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "01/08/2019"
 
 import os
 import unittest
@@ -114,7 +114,8 @@ class TestReduction(unittest.TestCase):
             return
 
         size = wg * wg
-        max_min_gpu = pyopencl.array.zeros(self.queue, (wg, 2), dtype=numpy.float32, order="C")
+        max_min_gpu = pyopencl.array.empty(self.queue, (wg, 2), dtype=numpy.float32, order="C")
+        max_min_gpu.fill(0)
 #        max_min_gpu = pyopencl.array.empty(self.queue, (wg, 2), dtype=numpy.float32, order="C")
         max_gpu = pyopencl.array.empty(self.queue, (1,), dtype=numpy.float32, order="C")
         min_gpu = pyopencl.array.empty(self.queue, (1,), dtype=numpy.float32, order="C")

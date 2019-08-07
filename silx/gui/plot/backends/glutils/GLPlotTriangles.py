@@ -100,8 +100,8 @@ class GLPlotTriangles(object):
         assert triangles.ndim == 2 and triangles.shape[1] == 3
 
         self.__x_y_color = x, y, color
-        self.__xBounds = min_max(x, finite=True)
-        self.__yBounds = min_max(y, finite=True)
+        self.xMin, self.xMax = min_max(x, finite=True)
+        self.yMin, self.yMax = min_max(y, finite=True)
         self.__triangles = triangles
         self.__alpha = numpy.clip(float(alpha), 0., 1.)
         self.__vbos = None
@@ -116,8 +116,8 @@ class GLPlotTriangles(object):
         :return: List of picked data point indices
         :rtype: numpy.ndarray
         """
-        if (x < self.__xBounds.minimum or x > self.__xBounds.maximum or
-                y < self.__yBounds.minimum or y > self.__yBounds.maximum):
+        if (x < self.xMin or x > self.xMax or
+                y < self.yMin or y > self.yMax):
             return ()
         xPts, yPts = self.__x_y_color[:2]
         if self.__picking_triangles is None:

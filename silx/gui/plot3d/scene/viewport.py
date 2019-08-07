@@ -413,15 +413,9 @@ class Viewport(event.Notifier):
         Camera sight direction and up are not affected.
         """
         bounds = self.scene.bounds(transformed=True)
-        if bounds is None or numpy.all(numpy.equal(bounds, bounds[0, 0])):
+        if bounds is None:
             bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
                                  dtype=numpy.float32)
-        elif numpy.any(numpy.diff(bounds, axis=0) == 0):
-            # At least on dimension is collapsed, use [0, 1]
-            for index in range(3):
-                if bounds[0, index] == bounds[1, index]:
-                    bounds[:, index] = 0., 1.
-
         self.camera.resetCamera(bounds)
 
     def orbitCamera(self, direction, angle=1.):

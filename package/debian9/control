@@ -63,7 +63,7 @@ X-Python3-Version: >= 3.4
 Package: silx
 Architecture: all
 Depends: ${misc:Depends},
-         ${python:Depends},
+         ${python3:Depends},
          ${shlibs:Depends},
          python3-pkg-resources,
          python3-silx (>= ${source:Version})

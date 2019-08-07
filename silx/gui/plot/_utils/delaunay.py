@@ -38,35 +38,25 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 
-def triangulation(x, y, dtype=numpy.uint32):
-    """Run Delaunay tesselation and returns triangle indices.
+def delaunay(x, y):
+    """Returns Delaunay instance for x, y points
 
-    :param numpy.ndarray x: X coordinates of points
-    :param numpy.ndarray y: Y coordinates of points
-    :param numpy.dtype dtype: Data type of output indices
-    :return: Point indices for triangles as a (N, 3) array
-    :rtype: Union[numpy.ndarray,None]
+    :param numpy.ndarray x:
+    :param numpy.ndarray y:
+    :rtype: Union[None,scipy.spatial.Delaunay]
     """
-    # Lazy loading of Delaunay
-    from silx.third_party.scipy_spatial import Delaunay as _Delaunay
+    # Lazy-loading of Delaunay
+    try:
+        from scipy.spatial import Delaunay as _Delaunay
+    except ImportError:  # Fallback using local Delaunay
+        from silx.third_party.scipy_spatial import Delaunay as _Delaunay
 
-    coordinates = numpy.array((x, y)).T
+    points = numpy.array((x, y)).T
+    try:
+        delaunay = _Delaunay(points)
+    except (RuntimeError, ValueError):
+        _logger.error("Delaunay tesselation failed: %s",
+                      sys.exc_info()[1])
+        delaunay = None
 
-    if len(coordinates) > 3:
-        # Enough points to try a Delaunay tesselation
-
-        try:
-            tri = _Delaunay(coordinates)
-        except RuntimeError:
-            _logger.error("Delaunay tesselation failed: %s",
-                          sys.exc_info()[1])
-            return None
-
-        triangles = tri.simplices.astype(dtype)
-
-    else:
-        # 3 or less points: Draw one triangle
-        triangles = numpy.array(
-            [[0, 1, 2]], dtype=dtype) % len(coordinates)
-
-    return triangles
+    return delaunay

@@ -34,7 +34,7 @@ __authors__ = ["Pierre Paleo"]
 __contact__ = "pierre.paleo@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "2019 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/02/2019"
+__date__ = "01/08/2019"
 
 import logging
 from itertools import product
@@ -178,7 +178,8 @@ class TestConvolution(unittest.TestCase):
         else:
             data_ref = data
         if self.param["output_on_device"]:
-            d_res = parray.zeros_like(conv.data_out)
+            d_res = parray.empty_like(conv.data_out)
+            d_res.fill(0)
             res = d_res
         else:
             res = None

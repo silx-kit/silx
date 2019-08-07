@@ -35,7 +35,6 @@ import numpy
 
 from silx.math.combo import min_max
 
-from ....utils.proxy import docstring
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
 from ...plot.items.core import SymbolMixIn as _SymbolMixIn
@@ -176,8 +175,8 @@ class ColormapMixIn(_ColormapMixIn):
             self.__sceneColormap.range_ = range_
 
 
-@docstring(_ComplexMixIn)
 class ComplexMixIn(_ComplexMixIn):
+    __doc__ = _ComplexMixIn.__doc__  # Reuse docstring
 
     _SUPPORTED_COMPLEX_MODES = (
         _ComplexMixIn.ComplexMode.REAL,

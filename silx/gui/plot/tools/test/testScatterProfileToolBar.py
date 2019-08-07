@@ -101,6 +101,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
             self.qWait(200)
             if not self.profile.hasPendingOperations():
                 break
+        self.qapp.processEvents()
 
         self.assertIsNotNone(self.profile.getProfileValues())
         points = self.profile.getProfilePoints()

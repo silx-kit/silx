@@ -113,7 +113,9 @@ class CLFFT(BaseFFT):
         self.axes = self.axes[::-1]
 
     def _allocate(self, shape, dtype):
-        return parray.zeros(self.queue, shape, dtype=dtype)
+        ary = parray.empty(self.queue, shape, dtype=dtype)
+        ary.fill(0)
+        return ary
 
 
     def check_array(self, array, shape, dtype, copy=True):
@@ -232,8 +234,8 @@ class CLFFT(BaseFFT):
             Whether to perform operation in asynchronous mode.
             Default is False, meaning that we wait for transform to complete.
         """
-        data_in = self.set_input_data(array, copy=False)
-        data_out = self.set_output_data(output, copy=False)
+        self.set_input_data(array, copy=False)
+        self.set_output_data(output, copy=False)
         self.update_forward_plan_arrays()
         event, = self.plan_forward.enqueue()
         if not(do_async):
@@ -259,8 +261,8 @@ class CLFFT(BaseFFT):
             Whether to perform operation in asynchronous mode.
             Default is False, meaning that we wait for transform to complete.
         """
-        data_in = self.set_output_data(array, copy=False)
-        data_out = self.set_input_data(output, copy=False)
+        self.set_output_data(array, copy=False)
+        self.set_input_data(output, copy=False)
         self.update_inverse_plan_arrays()
         event, = self.plan_inverse.enqueue(forward=False)
         if not(do_async):
