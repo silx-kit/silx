@@ -514,16 +514,16 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             if node.dataType(role) == "NXentry":
                 if node.hasChildren():
                     titleFound = False
-                    idx = 0                    
+                    idx = 0
                     while idx < node.childCount():
                         item = node.child(idx)
                         if item.dataName(qt.Qt.DisplayRole) == "title":
-                            if not node.isGroupObj():
-                                titleFound = True
-                                break
+                            titleFound = True
+                            break
                         idx += 1
                     try:
-                        return item.obj[()]
+                        if titleFound:
+                            return item.obj[()]
                     except:
                         # can this crash?
                         _logger.info("Cannot read title dataset")
