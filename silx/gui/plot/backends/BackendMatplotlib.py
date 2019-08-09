@@ -454,9 +454,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                    s=symbolsize**2)
             artists.append(scatter)
 
-            if fill:
+            if fill or baseline is not None:
+                if baseline is None:
+                    _baseline = FLOAT32_MINPOS
+                else:
+                    _baseline = baseline
                 artists.append(axes.fill_between(
-                    x, FLOAT32_MINPOS, y, facecolor=actualColor[0], linestyle=''))
+                    x, _baseline, y, facecolor=actualColor[0], linestyle=''))
 
         else:  # Curve
             curveList = axes.plot(x, y,
@@ -468,9 +472,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                   markersize=symbolsize)
             artists += list(curveList)
 
-            if fill:
+            if fill or baseline is not None:
+                if baseline is None:
+                    _baseline = FLOAT32_MINPOS
+                else:
+                    _baseline = baseline
                 artists.append(
-                    axes.fill_between(x, FLOAT32_MINPOS, y, facecolor=color))
+                    axes.fill_between(x, _baseline, y, facecolor=color))
 
         for artist in artists:
             artist.set_animated(True)
