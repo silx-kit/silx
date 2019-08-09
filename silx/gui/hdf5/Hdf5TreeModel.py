@@ -511,6 +511,22 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if index.column() == self.NAME_COLUMN:
             return node.dataName(role)
         elif index.column() == self.TYPE_COLUMN:
+            if node.dataType(role) == "NXentry":
+                if node.hasChildren():
+                    titleFound = False
+                    idx = 0                    
+                    while idx < node.childCount():
+                        item = node.child(idx)
+                        if item.dataName(qt.Qt.DisplayRole) == "title":
+                            if not node.isGroupObj():
+                                titleFound = True
+                                break
+                        idx += 1
+                    try:
+                        return item.obj[()]
+                    except:
+                        # can this crash?
+                        _logger.info("Cannot read title dataset")
             return node.dataType(role)
         elif index.column() == self.SHAPE_COLUMN:
             return node.dataShape(role)
