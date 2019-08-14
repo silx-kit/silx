@@ -276,7 +276,12 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         self.plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
 
     def hideEvent(self, event):
-        self.plot.sigActiveScatterChanged.disconnect(self._activeScatterChanged)
+        try:
+            # if the method is not connected this raises a TypeError and there is no way
+            # to know the connected slots
+            self.plot.sigActiveScatterChanged.disconnect(self._activeScatterChanged)
+        except TypeError:
+            _logger.info(sys.exc_info()[1])
         if not self.browseAction.isChecked():
             self.browseAction.trigger()  # Disable drawing tool
 
