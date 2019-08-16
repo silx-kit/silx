@@ -38,8 +38,8 @@ from math import pi
 import pyopencl.array as parray
 from .common import pyopencl as cl
 from .processing import OpenclProcessing
-from ..math.fft import FFT
-from ..math.fft.clfft import __have_clfft__
+from ..math.fft.clfft import CLFFT, __have_clfft__
+from ..math.fft.npfft import NPFFT
 from ..image.tomography import generate_powers, get_next_power, compute_fourier_filter
 from ..utils.deprecation import deprecated
 
@@ -121,11 +121,10 @@ class SinoFilter(OpenclProcessing):
     def _init_fft(self):
         if __have_clfft__ and not(self.extra_options["use_numpy_fft"]):
             self.fft_backend = "opencl"
-            self.fft = FFT(
+            self.fft = CLFFT(
                 self.sino_padded_shape,
                 dtype=np.float32,
                 axes=(-1,),
-                backend="opencl",
                 ctx=self.ctx,
             )
         else:
@@ -133,10 +132,9 @@ class SinoFilter(OpenclProcessing):
             print("The gpyfft module was not found. The Fourier transforms "
                   "will be done on CPU. For more performances, it is advised "
                   "to install gpyfft.""")
-            self.fft = FFT(
+            self.fft = NPFFT(
                 template=np.zeros(self.sino_padded_shape, "f"),
                 axes=(-1,),
-                backend="numpy",
             )
 
     def _allocate_memory(self):
