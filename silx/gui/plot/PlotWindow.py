@@ -561,9 +561,9 @@ class PlotWindow(PlotWidget):
             self._statsDockWidget.setWindowTitle("Curves stats")
             self._statsDockWidget.layout().setContentsMargins(0, 0, 0, 0)
             statsWidget = BasicStatsWidget(parent=self, plot=self)
+            self._statsDockWidget.setWidget(statsWidget)
             statsWidget.sigVisibilityChanged.connect(
                 self.getStatsAction().setChecked)
-            self._statsDockWidget.setWidget(statsWidget)
             self._statsDockWidget.hide()
             self._statsDockWidget.visibilityChanged.connect(
                 self.__handleFirstDockWidgetShow)
