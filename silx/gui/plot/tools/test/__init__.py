@@ -30,7 +30,6 @@ __date__ = "26/03/2018"
 import unittest
 
 from . import testROI
-from . import testRoiStatsWidget
 from . import testTools
 from . import testScatterProfileToolBar
 from . import testCurveLegendsWidget
@@ -41,7 +40,6 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         [testROI.suite(),
-         testRoiStatsWidget.suite(),
          testTools.suite(),
          testScatterProfileToolBar.suite(),
          testCurveLegendsWidget.suite(),
