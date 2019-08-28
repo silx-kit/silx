@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,51 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""silx.gui.utils tests"""
+"""Test of functions available in silx.gui.utils module."""
 
+from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "01/08/2019"
 
 
 import unittest
+from silx.gui import qt
+from silx.gui import utils
+from silx.gui.utils.testutils import TestCaseQt
 
-from . import test_async
-from . import test_image
-from . import test_qtutils
-from . import test
+
+class TestQEventName(TestCaseQt):
+    """Test QEvent names"""
+
+    def testNoneType(self):
+        result = utils.getQEventName(0)
+        self.assertEqual(result, "None")
+
+    def testNoneEvent(self):
+        result = utils.getQEventName(qt.QEvent(0))
+        self.assertEqual(result, "None")
+
+    def testUserType(self):
+        result = utils.getQEventName(1050)
+        self.assertIn("User", result)
+        self.assertIn("1050", result)
+
+    def testQtUndefinedType(self):
+        result = utils.getQEventName(900)
+        self.assertIn("Unknown", result)
+        self.assertIn("900", result)
+
+    def testUndefinedType(self):
+        result = utils.getQEventName(70000)
+        self.assertIn("Unknown", result)
+        self.assertIn("70000", result)
 
 
 def suite():
-    """Test suite for module silx.image.test"""
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test.suite())
-    test_suite.addTest(test_async.suite())
-    test_suite.addTest(test_image.suite())
-    test_suite.addTest(test_qtutils.suite())
+    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestQEventName))
     return test_suite
 
 

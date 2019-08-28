@@ -46,3 +46,14 @@ def blockSignals(*objs):
     finally:
         for obj, previous in blocked:
             obj.blockSignals(previous)
+
+
+def getQEventName(eventType):
+    """
+    Returns the name of a QEvent.
+
+    :param Union[int,qt.QEvent] eventType: A QEvent or a QEvent type.
+    :returns: str
+    """
+    from . import qtutils
+    return qtutils.getQEventName(eventType)
