@@ -280,7 +280,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             # if the method is not connected this raises a TypeError and there is no way
             # to know the connected slots
             self.plot.sigActiveScatterChanged.disconnect(self._activeScatterChanged)
-        except TypeError:
+        except (RuntimeError, TypeError):
             _logger.info(sys.exc_info()[1])
         if not self.browseAction.isChecked():
             self.browseAction.trigger()  # Disable drawing tool
