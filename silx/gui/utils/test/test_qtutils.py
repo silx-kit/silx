@@ -45,7 +45,8 @@ class TestQEventName(TestCaseQt):
         self.assertEqual(result, "None")
 
     def testNoneEvent(self):
-        result = utils.getQEventName(qt.QEvent(0))
+        event = qt.QEvent(qt.QEvent.Type(0))
+        result = utils.getQEventName(event)
         self.assertEqual(result, "None")
 
     def testUserType(self):
