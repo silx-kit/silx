@@ -1316,7 +1316,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if isinstance(glItem, (GLPlotColormap, GLPlotRGBAImage, GLPlotTriangles)):
                 return glItem.pick(*dataPos)  # Might be None
 
-            elif isinstance(item, GLPlotCurve2D):
+            elif isinstance(glItem, GLPlotCurve2D):
                 return self.__pickCurves(glItem, x, y)
             else:
                 return None
