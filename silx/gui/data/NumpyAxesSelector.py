@@ -467,6 +467,7 @@ class NumpyAxesSelector(qt.QWidget):
                         index += 1
                 else:
                     _logger.warning("No axis corresponding to: %s", name)
+                    return None
             return tuple(indices)
 
     def selection(self):
