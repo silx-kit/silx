@@ -532,7 +532,7 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
                                        data=numpy.array((xData, yData)).T)
 
             elif isinstance(item, items.ImageBase):
-                row, column = indices[0]
+                row, column = indices[0][0], indices[1][0]
                 data = item.getData(copy=False)[row, column]
                 result = _GInputResult((x, y),
                                        item=item,
