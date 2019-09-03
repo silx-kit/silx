@@ -42,6 +42,7 @@ import numpy
 from ....utils.proxy import docstring
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
+from ._pick import PickingResult
 
 
 _logger = logging.getLogger(__name__)
@@ -157,7 +158,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             scale = self.getScale()
             column = int((dataPos[0] - origin[0]) / float(scale[0]))
             row = int((dataPos[1] - origin[1]) / float(scale[1]))
-            return ((row, column),)
+            return PickingResult(self, ([row], [column]))
 
         return None
 

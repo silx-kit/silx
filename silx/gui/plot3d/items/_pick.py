@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ __date__ = "24/09/2018"
 import logging
 import numpy
 
+from ...plot.items._pick import PickingResult as _PickingResult
 from ..scene import Viewport, Base
 
 
@@ -177,9 +178,8 @@ class PickContext(object):
         return rayObject
 
 
-class PickingResult(object):
-    """Class to access picking information in a 3D scene.
-    """
+class PickingResult(_PickingResult):
+    """Class to access picking information in a 3D scene."""
 
     def __init__(self, item, positions, indices=None, fetchdata=None):
         """Init
@@ -194,7 +194,8 @@ class PickingResult(object):
             to provide an alternative function to access item data.
             Default is to use `item.getData`.
         """
-        self._item = item
+        super(PickingResult, self).__init__(item, indices)
+
         self._objectPositions = numpy.array(
             positions, copy=False, dtype=numpy.float)
 
@@ -205,35 +206,7 @@ class PickingResult(object):
         self._scenePositions = None
         self._ndcPositions = None
 
-        if indices is None:
-            self._indices = None
-        else:
-            self._indices = numpy.array(indices, copy=False, dtype=numpy.int)
-
         self._fetchdata = fetchdata
-
-    def getItem(self):
-        """Returns the item this results corresponds to.
-
-        :rtype: ~silx.gui.plot3d.items.Item3D
-        """
-        return self._item
-
-    def getIndices(self, copy=True):
-        """Returns indices of picked data.
-
-        If data is 1D, it returns a numpy.ndarray, otherwise
-        it returns a tuple with as many numpy.ndarray as there are
-        dimensions in the data.
-
-        :param bool copy: True (default) to get a copy,
-            False to return internal arrays
-        :rtype: Union[None,numpy.ndarray,List[numpy.ndarray]]
-        """
-        if self._indices is None:
-            return None
-        indices = numpy.array(self._indices, copy=copy)
-        return indices if indices.ndim == 1 else tuple(indices)
 
     def getData(self, copy=True):
         """Returns picked data values

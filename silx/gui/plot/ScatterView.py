@@ -162,13 +162,14 @@ class ScatterView(qt.QMainWindow):
                 pixelPos = plot.dataToPixel(x, y)
                 if pixelPos is not None:
                     # Start from top-most item
-                    item, indices = plot._pickTopMost(
+                    result = plot._pickTopMost(
                         pixelPos[0], pixelPos[1],
                         lambda item: isinstance(item, items.Scatter))
-                    if item is not None:
+                    if result is not None:
                         # Get last index
                         # with matplotlib it should be the top-most point
-                        dataIndex = indices[-1]
+                        dataIndex = result.getIndices(copy=False)[-1]
+                        item = result.getItem()
                         self.__pickingCache = (
                             dataIndex,
                             item.getXData(copy=False)[dataIndex],

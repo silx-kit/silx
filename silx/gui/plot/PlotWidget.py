@@ -2928,14 +2928,14 @@ class PlotWidget(qt.QMainWindow):
         :param callable condition:
            Callable taking an item as input and returning False for items
            to skip during picking. If None (default) no item is skipped.
-        :return: Iterable of (plot item, indices) at picked position.
+        :return: Iterable of :class:`PickingResult` objects at picked position.
             Items are ordered from front to back.
         """
         for item in self._itemsFrontToBack():
             if condition is None or condition(item):
-                indices = item.pick(x, y)
-                if indices is not None:
-                    yield item, indices
+                result = item.pick(x, y)
+                if result is not None:
+                    yield result
 
     def _pickTopMost(self, x, y, condition=None):
         """Returns top-most picked item in the plot at given position.
@@ -2947,12 +2947,13 @@ class PlotWidget(qt.QMainWindow):
         :param callable condition:
            Callable taking an item as input and returning False for items
            to skip during picking. If None (default) no item is skipped.
-        :return: (plot item, indices) at picked position or
-           If no item is picked, it returns (None, None)
+        :return: :class:`PickingResult` object at picked position.
+           If no item is picked, it returns None
+        :rtype: Union[None,PickingResult]
         """
-        for item, indices in self.pickItems(x, y, condition):
-            return item, indices
-        return None, None
+        for result in self.pickItems(x, y, condition):
+            return result
+        return None
 
     # User event handling #
 
