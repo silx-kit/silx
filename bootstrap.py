@@ -251,8 +251,7 @@ if __name__ == "__main__":
     LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
     cwd = os.getcwd()
     os.chdir(home)
-    build = subprocess.Popen([sys.executable, "setup.py", "build"],
-                         shell=False, cwd=os.path.dirname(os.path.abspath(__file__)))
+    build = subprocess.Popen([sys.executable, "setup.py", "build"], shell=False)
     build_rc = build.wait()
     if not os.path.exists(LIBPATH):
         logger.warning("`lib` directory does not exist, trying common Python3 lib")
