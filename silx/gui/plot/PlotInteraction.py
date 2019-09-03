@@ -1198,7 +1198,8 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 dataPos = self.plot.pixelToData(x, y)
                 assert dataPos is not None
 
-                row, column = result.getIndices(copy=False)[0]
+                indices = result.getIndices(copy=False)
+                row, column = indices[0][0], indices[1][0]
                 eventDict = prepareImageSignal('left',
                                                item.getLegend(),
                                                'image',
