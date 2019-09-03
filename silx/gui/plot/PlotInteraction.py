@@ -1079,8 +1079,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
         def onMove(self, x, y):
-            marker = self.machine.plot._pickTopMost(
-                    x, y, lambda item: isinstance(item, items.MarkerBase))[0]
+            result = self.machine.plot._pickTopMost(
+                    x, y, lambda item: isinstance(item, items.MarkerBase))
+            marker = result.getItem() if result is not None else None
 
             if marker is not None:
                 dataPos = self.machine.plot.pixelToData(x, y)
@@ -1153,8 +1154,11 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         """
 
         if btn == LEFT_BTN:
-            item, indices = self.plot._pickTopMost(
-                x, y, lambda i: i.isSelectable())
+            result = self.plot._pickTopMost(x, y, lambda i: i.isSelectable())
+            if result is None:
+                return None
+
+            item = result.getItem()
 
             if isinstance(item, items.MarkerBase):
                 xData, yData = item.getPosition()
@@ -1180,6 +1184,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 xData = item.getXData(copy=False)
                 yData = item.getYData(copy=False)
 
+                indices = result.getIndices(copy=False)
                 eventDict = prepareCurveSignal('left',
                                                item.getLegend(),
                                                'curve',
@@ -1193,7 +1198,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 dataPos = self.plot.pixelToData(x, y)
                 assert dataPos is not None
 
-                row, column = indices[0]
+                row, column = result.getIndices(copy=False)[0]
                 eventDict = prepareImageSignal('left',
                                                item.getLegend(),
                                                'image',
@@ -1246,7 +1251,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self._lastPos = self.plot.pixelToData(x, y)
         assert self._lastPos is not None
 
-        item = self.plot._pickTopMost(x, y, self.__isDraggableItem)[0]
+        result = self.plot._pickTopMost(x, y, self.__isDraggableItem)
+        item = result.getItem() if result is not None else None
+
         self.draggedItemRef = None if item is None else weakref.ref(item)
 
         if item is None:
@@ -1308,9 +1315,9 @@ class ItemsInteractionForCombo(ItemsInteraction):
 
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
-                item = self.machine.plot._pickTopMost(
-                    x, y, self.__isItemSelectableOrDraggable)[0]
-                if item is not None:  # Request focus and handle interaction
+                result = self.machine.plot._pickTopMost(
+                    x, y, self.__isItemSelectableOrDraggable)
+                if result is not None:  # Request focus and handle interaction
                     self.goto('clickOrDrag', x, y)
                     return True
                 else:  # Do not request focus
