@@ -1159,9 +1159,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             if isinstance(item, items.MarkerBase):
                 xData, yData = item.getPosition()
                 if xData is None:
-                    xData = [0, 1]  # TODO why?
+                    xData = [0, 1]
                 if yData is None:
-                    yData = [0, 1]  # TODO why?
+                    yData = [0, 1]
 
                 eventDict = prepareMarkerSignal('markerClicked',
                                                 'left',
@@ -1276,9 +1276,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         if item is not None and isinstance(item, items.MarkerBase):
             posData = list(item.getPosition())
             if posData[0] is None:
-                posData[0] = [0, 1]  # TODO issue? should be a float?
+                posData[0] = 1.
             if posData[1] is None:
-                posData[1] = [0, 1]  # TODO issue? should be a float?
+                posData[1] = 1.
 
             eventDict = prepareMarkerSignal(
                 'markerMoved',
