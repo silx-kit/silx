@@ -1274,7 +1274,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             item.drag(self._lastPos, dataPos)
 
             if isinstance(item, items.MarkerBase):
-                 self._signalMarkerMovingEvent('markerMoving', item, x, y)
+                self._signalMarkerMovingEvent('markerMoving', item, x, y)
 
         self._lastPos = dataPos
 
