@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -198,6 +198,9 @@ class DataViewer(qt.QFrame):
         Update the numpy-selector according to the needed axis names
         """
         previous = self.__numpySelection.blockSignals(True)
+        previousPermutation = self.__numpySelection.permutation()
+        previousSelection = self.__numpySelection.selection()
+
         self.__numpySelection.clear()
         info = self._getInfo()
         axisNames = self.__currentView.axesNames(self.__data, info)
@@ -207,6 +210,13 @@ class DataViewer(qt.QFrame):
             self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
             data = self.normalizeData(self.__data)
             self.__numpySelection.setData(data)
+
+            # Try to restore previous permutation and selection
+            try:
+                self.__numpySelection.setSelection(previousSelection, previousPermutation)
+            except ValueError as e:
+                _logger.debug("Not restoring selection because: %s", e)
+
             if hasattr(data, "shape"):
                 isVisible = not (len(axisNames) == 1 and len(data.shape) == 1)
             else:
