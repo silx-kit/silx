@@ -114,11 +114,12 @@ class GLPlotTriangles(object):
         :param float x: X coordinates in plot data frame
         :param float y: Y coordinates in plot data frame
         :return: List of picked data point indices
-        :rtype: numpy.ndarray
+        :rtype: Union[List[int],None]
         """
         if (x < self.xMin or x > self.xMax or
                 y < self.yMin or y > self.yMax):
-            return ()
+            return None
+
         xPts, yPts = self.__x_y_color[:2]
         if self.__picking_triangles is None:
             self.__picking_triangles = numpy.zeros(
@@ -137,7 +138,7 @@ class GLPlotTriangles(object):
         dists = (xPts[indices] - x) ** 2 + (yPts[indices] - y) ** 2
         indices = indices[numpy.flip(numpy.argsort(dists))]
 
-        return tuple(indices)
+        return tuple(indices) if len(indices) > 0 else None
 
     def discard(self):
         """Release resources on the GPU"""

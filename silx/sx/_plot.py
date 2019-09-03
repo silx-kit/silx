@@ -44,6 +44,7 @@ import six
 from ..utils.weakref import WeakList
 from ..gui import qt
 from ..gui.plot import Plot1D, Plot2D, ScatterView
+from ..gui.plot import items
 from ..gui import colors
 from ..gui.plot.tools import roi
 from ..gui.plot.items import roi as roi_items
@@ -497,7 +498,6 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
 
         :param RegionOfInterest roi:
         """
-
         plot = self.parent()
         if plot is None:
             return  # No plot, abort
@@ -510,34 +510,29 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         xPixel, yPixel = plot.dataToPixel(x, y, axis='left', check=False)
 
         # Pick item at selected position
-        picked = plot._pickImageOrCurve(xPixel, yPixel)
+        item, indices = plot._pickTopMost(
+            xPixel, yPixel,
+            lambda item: isinstance(item, (items.ImageBase, items.Curve)))
 
-        if picked is None:
+        if item is None:
             result = _GInputResult((x, y),
                                    item=None,
                                    indices=numpy.array((), dtype=int),
                                    data=None)
 
-        elif picked[0] == 'curve':
-            curve = picked[1]
-            indices = picked[2]
-            xData = curve.getXData(copy=False)[indices]
-            yData = curve.getYData(copy=False)[indices]
+        elif isinstance(item, items.Curve):
+            xData = item.getXData(copy=False)[indices]
+            yData = item.getYData(copy=False)[indices]
             result = _GInputResult((x, y),
-                                   item=curve,
+                                   item=item,
                                    indices=indices,
                                    data=numpy.array((xData, yData)).T)
 
-        elif picked[0] == 'image':
-            image = picked[1]
-            # Get corresponding coordinate in image
-            origin = image.getOrigin()
-            scale = image.getScale()
-            column = int((x - origin[0]) / float(scale[0]))
-            row = int((y - origin[1]) / float(scale[1]))
-            data = image.getData(copy=False)[row, column]
+        elif isinstance(item, items.ImageBase):
+            row, column = indices[0]
+            data = item.getData(copy=False)[row, column]
             result = _GInputResult((x, y),
-                                   item=image,
+                                   item=item,
                                    indices=(row, column),
                                    data=data)
 

@@ -1,7 +1,7 @@
 #  coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1079,7 +1079,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
         def onMove(self, x, y):
-            marker = self.machine.plot._pickMarker(x, y)
+            marker = self.machine.plot._pickTopMost(
+                    x, y, lambda item: isinstance(item, items.MarkerBase))[0]
+
             if marker is not None:
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
@@ -1151,69 +1153,54 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         """
 
         if btn == LEFT_BTN:
-            marker = self.plot._pickMarker(
-                x, y, lambda m: m.isSelectable())
-            if marker is not None:
-                xData, yData = marker.getPosition()
+            item, indices = self.plot._pickTopMost(
+                x, y, lambda i: i.isSelectable())
+
+            if isinstance(item, items.MarkerBase):
+                xData, yData = item.getPosition()
                 if xData is None:
-                    xData = [0, 1]
+                    xData = [0, 1]  # TODO why?
                 if yData is None:
-                    yData = [0, 1]
+                    yData = [0, 1]  # TODO why?
 
                 eventDict = prepareMarkerSignal('markerClicked',
                                                 'left',
-                                                marker.getLegend(),
+                                                item.getLegend(),
                                                 'marker',
-                                                marker.isDraggable(),
-                                                marker.isSelectable(),
+                                                item.isDraggable(),
+                                                item.isSelectable(),
                                                 (xData, yData),
                                                 (x, y), None)
                 return eventDict
 
-            else:
-                picked = self.plot._pickImageOrCurve(
-                    x, y, lambda item: item.isSelectable())
+            elif isinstance(item, items.Curve):
+                dataPos = self.plot.pixelToData(x, y)
+                assert dataPos is not None
 
-                if picked is None:
-                    pass
+                xData = item.getXData(copy=False)
+                yData = item.getYData(copy=False)
 
-                elif picked[0] == 'curve':
-                    curve = picked[1]
-                    indices = picked[2]
+                eventDict = prepareCurveSignal('left',
+                                               item.getLegend(),
+                                               'curve',
+                                               xData[indices],
+                                               yData[indices],
+                                               dataPos[0], dataPos[1],
+                                               x, y)
+                return eventDict
 
-                    dataPos = self.plot.pixelToData(x, y)
-                    assert dataPos is not None
+            elif isinstance(item, items.ImageBase):
+                dataPos = self.plot.pixelToData(x, y)
+                assert dataPos is not None
 
-                    xData = curve.getXData(copy=False)
-                    yData = curve.getYData(copy=False)
-
-                    eventDict = prepareCurveSignal('left',
-                                                   curve.getLegend(),
-                                                   'curve',
-                                                   xData[indices],
-                                                   yData[indices],
-                                                   dataPos[0], dataPos[1],
-                                                   x, y)
-                    return eventDict
-
-                elif picked[0] == 'image':
-                    image = picked[1]
-
-                    dataPos = self.plot.pixelToData(x, y)
-                    assert dataPos is not None
-
-                    # Get corresponding coordinate in image
-                    origin = image.getOrigin()
-                    scale = image.getScale()
-                    column = int((dataPos[0] - origin[0]) / float(scale[0]))
-                    row = int((dataPos[1] - origin[1]) / float(scale[1]))
-                    eventDict = prepareImageSignal('left',
-                                                   image.getLegend(),
-                                                   'image',
-                                                   column, row,
-                                                   dataPos[0], dataPos[1],
-                                                   x, y)
-                    return eventDict
+                row, column = indices[0]
+                eventDict = prepareImageSignal('left',
+                                               item.getLegend(),
+                                               'image',
+                                               column, row,
+                                               dataPos[0], dataPos[1],
+                                               x, y)
+                return eventDict
 
         return None
 
@@ -1240,6 +1227,15 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                         posDataCursor)
         self.plot.notify(**eventDict)
 
+    @staticmethod
+    def __isDraggableItem(item):
+        return isinstance(item, items.DraggableMixIn) and item.isDraggable()
+
+    def __terminateDrag(self):
+        """Finalize a drag operation by reseting to initial state"""
+        self.plot.setGraphCursorShape()
+        self.draggedItemRef = None
+
     def beginDrag(self, x, y):
         """Handle begining of drag interaction
 
@@ -1250,78 +1246,54 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self._lastPos = self.plot.pixelToData(x, y)
         assert self._lastPos is not None
 
-        self.imageLegend = None
-        self.markerLegend = None
-        marker = self.plot._pickMarker(
-            x, y, lambda m: m.isDraggable())
+        item = self.plot._pickTopMost(x, y, self.__isDraggableItem)[0]
+        self.draggedItemRef = None if item is None else weakref.ref(item)
 
-        if marker is not None:
-            self.markerLegend = marker.getLegend()
-            self._signalMarkerMovingEvent('markerMoving', marker, x, y)
-        else:
-            picked = self.plot._pickImageOrCurve(
-                x,
-                y,
-                lambda item:
-                    hasattr(item, 'isDraggable') and item.isDraggable())
-            if picked is None:
-                self.imageLegend = None
-                self.plot.setGraphCursorShape()
-                return False
-            else:
-                assert picked[0] == 'image'  # For now only drag images
-                self.imageLegend = picked[1].getLegend()
+        if item is None:
+            self.__terminateDrag()
+            return False
+
+        if isinstance(item, items.MarkerBase):
+            self._signalMarkerMovingEvent('markerMoving', item, x, y)
+
         return True
 
     def drag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
-        xData, yData = dataPos
 
-        if self.markerLegend is not None:
-            marker = self.plot._getMarker(self.markerLegend)
-            if marker is not None:
-                marker.setPosition(xData, yData)
+        item = None if self.draggedItemRef is None else self.draggedItemRef()
+        if item is not None:
+            item.drag(self._lastPos, dataPos)
 
-                self._signalMarkerMovingEvent(
-                    'markerMoving', marker, x, y)
+            if isinstance(item, items.MarkerBase):
+                 self._signalMarkerMovingEvent('markerMoving', item, x, y)
 
-        if self.imageLegend is not None:
-            image = self.plot.getImage(self.imageLegend)
-            origin = image.getOrigin()
-            xImage = origin[0] + xData - self._lastPos[0]
-            yImage = origin[1] + yData - self._lastPos[1]
-            image.setOrigin((xImage, yImage))
-
-        self._lastPos = xData, yData
+        self._lastPos = dataPos
 
     def endDrag(self, startPos, endPos):
-        if self.markerLegend is not None:
-            marker = self.plot._getMarker(self.markerLegend)
-            posData = list(marker.getPosition())
+        item = None if self.draggedItemRef is None else self.draggedItemRef()
+        if item is not None and isinstance(item, items.MarkerBase):
+            posData = list(item.getPosition())
             if posData[0] is None:
-                posData[0] = [0, 1]
+                posData[0] = [0, 1]  # TODO issue? should be a float?
             if posData[1] is None:
-                posData[1] = [0, 1]
+                posData[1] = [0, 1]  # TODO issue? should be a float?
 
             eventDict = prepareMarkerSignal(
                 'markerMoved',
                 'left',
-                marker.getLegend(),
+                item.getLegend(),
                 'marker',
-                marker.isDraggable(),
-                marker.isSelectable(),
+                item.isDraggable(),
+                item.isSelectable(),
                 posData)
             self.plot.notify(**eventDict)
 
-        self.plot.setGraphCursorShape()
-
-        del self.markerLegend
-        del self.imageLegend
-        del self._lastPos
+        self.__terminateDrag()
 
     def cancel(self):
-        self.plot.setGraphCursorShape()
+        self.__terminateDrag()
 
 
 class ItemsInteractionForCombo(ItemsInteraction):
@@ -1329,22 +1301,16 @@ class ItemsInteractionForCombo(ItemsInteraction):
     """
 
     class Idle(ItemsInteraction.Idle):
+        @staticmethod
+        def __isItemSelectableOrDraggable(item):
+            return (item.isSelectable() or (
+                    isinstance(item, items.DraggableMixIn) and item.isDraggable()))
+
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
-                def test(item):
-                    return (item.isSelectable() or
-                            (isinstance(item, items.DraggableMixIn) and
-                             item.isDraggable()))
-
-                picked = self.machine.plot._pickMarker(x, y, test)
-                if picked is not None:
-                    itemInteraction = True
-
-                else:
-                    picked = self.machine.plot._pickImageOrCurve(x, y, test)
-                    itemInteraction = picked is not None
-
-                if itemInteraction:  # Request focus and handle interaction
+                item = self.machine.plot._pickTopMost(
+                    x, y, self.__isItemSelectableOrDraggable)[0]
+                if item is not None:  # Request focus and handle interaction
                     self.goto('clickOrDrag', x, y)
                     return True
                 else:  # Do not request focus

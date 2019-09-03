@@ -307,22 +307,17 @@ class BackendBase(object):
         """
         pass
 
-    def pickItems(self, x, y, kinds):
-        """Get a list of items at a pixel position.
+    def pickItem(self, x, y, item):
+        """Return picked indices if any, or None.
 
         :param float x: The x pixel coord where to pick.
         :param float y: The y pixel coord where to pick.
-        :param List[str] kind: List of item kinds to pick.
-            Supported kinds: 'marker', 'curve', 'image'.
-        :return: All picked items from back to front.
-                 One dict per item,
-                 with 'kind' key in 'curve', 'marker', 'image';
-                 'legend' key, the item legend.
-                 and for curves, 'xdata' and 'ydata' keys storing picked
-                 position on the curve.
-        :rtype: list of dict
+        :param item: A backend item created with add* methods.
+        :return: None if item was not picked, else returns
+            picked indices information.
+        :rtype: Union[None,List]
         """
-        return []
+        return None
 
     # Update curve
 

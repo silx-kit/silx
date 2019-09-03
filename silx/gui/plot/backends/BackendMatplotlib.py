@@ -162,7 +162,25 @@ class NiceAutoDateFormatter(Formatter):
         return tickStr
 
 
-class _MarkerContainer(Container):
+class _PickableContainer(Container):
+    """Artists container with a :meth:`contains` method"""
+
+    def contains(self, mouseevent):
+        """Mimic Artist.contains, and call it on all children.
+
+        :param mouseevent:
+        :return: Picking status and associated information as a dict
+        :rtype: (bool,dict)
+        """
+        # Goes through children from front to back and return first picked one.
+        for child in reversed(self.get_children()):
+            picked, info = child.contains(mouseevent)
+            if picked:
+                return picked, info
+        return False, {}
+
+
+class _MarkerContainer(_PickableContainer):
     """Marker artists container supporting draw/remove and text position update
 
     :param artists:
@@ -179,7 +197,7 @@ class _MarkerContainer(Container):
         self.x = x
         self.y = y
 
-        Container.__init__(self, artists)
+        _PickableContainer.__init__(self, artists)
 
     def draw(self, *args, **kwargs):
         """artist-like draw to broadcast draw to line and text"""
@@ -213,6 +231,15 @@ class _MarkerContainer(Container):
                     xmax = xmin
                 xmax -= 0.005 * delta
                 self.text.set_x(xmax)
+
+    def contains(self, mouseevent):
+        """Mimic Artist.contains, and call it on the line Artist.
+
+        :param mouseevent:
+        :return: Picking status and associated information as a dict
+        :rtype: (bool,dict)
+        """
+        return self.line.contains(mouseevent)
 
 
 class _DoubleColoredLinePatch(matplotlib.patches.Patch):
@@ -426,7 +453,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if alpha < 1:
                 artist.set_alpha(alpha)
 
-        return Container(artists)
+        return _PickableContainer(artists)
 
     def addImage(self, data, legend,
                  origin, scale, z,
@@ -448,7 +475,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         # All image are shown as RGBA image
         image = Image(self.ax,
-                      label="__IMAGE__" + legend,
+                      label=legend,
                       interpolation='nearest',
                       picker=picker,
                       zorder=z + 1,
@@ -598,8 +625,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
                   symbol, linestyle, linewidth, constraint):
-        legend = "__MARKER__" + legend
-
         textArtist = None
 
         xmin, xmax = self.getGraphXLimits()
@@ -1119,58 +1144,29 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     # picking
 
-    def _onPick(self, event):
-        # TODO not very nice and fragile, find a better way?
-        # Make a selection according to kind
-        if self._picked is None:
-            _logger.error('Internal picking error')
-            return
+    def pickItem(self, x, y, item):
+        y = self._mplQtYAxisCoordConversion(y)
+        mouseEvent = MouseEvent('button_press_event', self, x, y)
+        picked, info = item.contains(mouseEvent)
 
-        label = event.artist.get_label()
-        if label.startswith('__MARKER__'):
-            self._picked.append({'kind': 'marker', 'legend': label[10:]})
+        if not picked:
+            return None
 
-        elif label.startswith('__IMAGE__'):
-            self._picked.append({'kind': 'image', 'legend': label[9:]})
-
-        elif isinstance(event.artist, TriMesh):
+        elif isinstance(item, TriMesh):
             # Convert selected triangle to data point indices
-            triangulation = event.artist._triangulation
-            indices = triangulation.get_masked_triangles()[event.ind[0]]
+            triangulation = item._triangulation
+            indices = triangulation.get_masked_triangles()[info['ind'][0]]
 
             # Sort picked triangle points by distance to mouse
             # from furthest to closest to put closest point last
             # This is to be somewhat consistent with last scatter point
             # being the top one.
-            dists = ((triangulation.x[indices] - event.mouseevent.xdata) ** 2 +
-                     (triangulation.y[indices] - event.mouseevent.ydata) ** 2)
-            indices = indices[numpy.flip(numpy.argsort(dists))]
+            dists = ((triangulation.x[indices] - x) ** 2 +
+                     (triangulation.y[indices] - y) ** 2)
+            return indices[numpy.flip(numpy.argsort(dists))]
 
-            self._picked.append({'kind': 'curve', 'legend': label,
-                                 'indices': indices})
-
-        else:  # it's a curve, item have no picker for now
-            if not isinstance(event.artist, (PathCollection, Line2D)):
-                _logger.info('Unsupported artist, ignored')
-                return
-
-            self._picked.append({'kind': 'curve', 'legend': label,
-                                 'indices': event.ind})
-
-    def pickItems(self, x, y, kinds):
-        self._picked = []
-
-        # Weird way to do an explicit picking: Simulate a button press event
-        mouseEvent = MouseEvent('button_press_event',
-                                self, x, self._mplQtYAxisCoordConversion(y))
-        cid = self.mpl_connect('pick_event', self._onPick)
-        self.fig.pick(mouseEvent)
-        self.mpl_disconnect(cid)
-
-        picked = [p for p in self._picked if p['kind'] in kinds]
-        self._picked = None
-
-        return picked
+        else:  # Returns indices if any
+            return info.get('ind', ())
 
     # replot control
 

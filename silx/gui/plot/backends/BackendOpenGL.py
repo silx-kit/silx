@@ -1212,8 +1212,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         :param GLPlotCurve2D item:
         :param float x: X position of the mouse in widget coordinates
         :param float y: Y position of the mouse in widget coordinates
-        :return: List of indices of picked points
-        :rtype: List[int]
+        :return: List of indices of picked points or None if not picked
+        :rtype: Union[List[int],None]
         """
         offset = self._PICK_OFFSET
         if item.marker is not None:
@@ -1227,14 +1227,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
                                    axis=yAxis, check=True)
         if dataPos is None:
-            return []
+            return None
         xPick0, yPick0 = dataPos
 
         inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
         dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
                                    axis=yAxis, check=True)
         if dataPos is None:
-            return []
+            return None
         xPick1, yPick1 = dataPos
 
         if xPick0 < xPick1:
@@ -1260,69 +1260,66 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return item.pick(xPickMin, yPickMin,
                          xPickMax, yPickMax)
 
-    def pickItems(self, x, y, kinds):
-        picked = []
+    def pickItem(self, x, y, item):
+        legend, kind = item
 
         dataPos = self.pixelToData(x, y, axis='left', check=True)
-        if dataPos is not None:
-            # Pick markers
-            if 'marker' in kinds:
-                for marker in reversed(list(self._markers.values())):
-                    pixelPos = self.dataToPixel(
-                        marker['x'], marker['y'], axis='left', check=False)
-                    if pixelPos is None:  # negative coord on a log axis
-                        continue
+        if dataPos is None:
+            return None  # Outside plot area
 
-                    if marker['x'] is None:  # Horizontal line
-                        pt1 = self.pixelToData(
-                            x, y - self._PICK_OFFSET, axis='left', check=False)
-                        pt2 = self.pixelToData(
-                            x, y + self._PICK_OFFSET, axis='left', check=False)
-                        isPicked = (min(pt1[1], pt2[1]) <= marker['y'] <=
-                                    max(pt1[1], pt2[1]))
+        # Pick markers
+        if kind == 'marker':
+            marker = self._markers.get(legend)
+            if marker is None:
+                _logger.error(
+                    "Trying to pick a marker that is not in the plot: %s",
+                    item)
+                return None
 
-                    elif marker['y'] is None:  # Vertical line
-                        pt1 = self.pixelToData(
-                            x - self._PICK_OFFSET, y, axis='left', check=False)
-                        pt2 = self.pixelToData(
-                            x + self._PICK_OFFSET, y, axis='left', check=False)
-                        isPicked = (min(pt1[0], pt2[0]) <= marker['x'] <=
-                                    max(pt1[0], pt2[0]))
+            pixelPos = self.dataToPixel(
+                marker['x'], marker['y'], axis='left', check=False)
+            if pixelPos is None:
+                return None  # negative coord on a log axis
 
-                    else:
-                        isPicked = (
-                            numpy.fabs(x - pixelPos[0]) <= self._PICK_OFFSET and
-                            numpy.fabs(y - pixelPos[1]) <= self._PICK_OFFSET)
+            if marker['x'] is None:  # Horizontal line
+                pt1 = self.pixelToData(
+                    x, y - self._PICK_OFFSET, axis='left', check=False)
+                pt2 = self.pixelToData(
+                    x, y + self._PICK_OFFSET, axis='left', check=False)
+                isPicked = (min(pt1[1], pt2[1]) <= marker['y'] <=
+                            max(pt1[1], pt2[1]))
 
-                    if isPicked:
-                        picked.append(dict(kind='marker',
-                                           legend=marker['legend']))
+            elif marker['y'] is None:  # Vertical line
+                pt1 = self.pixelToData(
+                    x - self._PICK_OFFSET, y, axis='left', check=False)
+                pt2 = self.pixelToData(
+                    x + self._PICK_OFFSET, y, axis='left', check=False)
+                isPicked = (min(pt1[0], pt2[0]) <= marker['x'] <=
+                            max(pt1[0], pt2[0]))
 
-            # Pick image and curves
-            if 'image' in kinds or 'curve' in kinds:
-                for item in self._plotContent.zOrderedPrimitives(reverse=True):
-                    if ('image' in kinds and
-                            isinstance(item, (GLPlotColormap, GLPlotRGBAImage))):
-                        pickedPos = item.pick(*dataPos)
-                        if pickedPos is not None:
-                            picked.append(dict(kind='image',
-                                               legend=item.info['legend']))
+            else:
+                isPicked = (
+                    numpy.fabs(x - pixelPos[0]) <= self._PICK_OFFSET and
+                    numpy.fabs(y - pixelPos[1]) <= self._PICK_OFFSET)
 
-                    elif 'curve' in kinds:
-                        if isinstance(item, GLPlotCurve2D):
-                            pickedIndices = self.__pickCurves(item, x, y)
-                            if pickedIndices:
-                                picked.append(dict(kind='curve',
-                                                   legend=item.info['legend'],
-                                                   indices=pickedIndices))
+            return (0,) if isPicked else None
 
-                        elif isinstance(item, GLPlotTriangles):
-                            pickedIndices = item.pick(*dataPos)
-                            if pickedIndices:
-                                picked.append(dict(kind='curve',
-                                                   legend=item.info['legend'],
-                                                   indices=pickedIndices))
-        return picked
+        # Pick image, curve, triangles
+        elif kind in ('image', 'curve', 'triangles'):
+            glItem = self._plotContent.get(kind, legend)
+            if glItem is None:
+                _logger.error(
+                    "Trying to pick an item that is not in the plot: %s",
+                    item)
+                return None
+
+            if isinstance(glItem, (GLPlotColormap, GLPlotRGBAImage, GLPlotTriangles)):
+                return glItem.pick(*dataPos)  # Might be None
+
+            elif isinstance(glItem, GLPlotCurve2D):
+                return self.__pickCurves(glItem, x, y)
+            else:
+                return None
 
     # Update curve
 

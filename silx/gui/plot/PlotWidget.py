@@ -2692,6 +2692,14 @@ class PlotWidget(qt.QMainWindow):
         """Redraw the plot immediately."""
         for item in self._contentToUpdate:
             item._update(self._backend)
+
+            # Move updated item to end of content for order
+            # to follow the backend order.
+            key = self._itemKey(item)
+            # OrderedDict.move_to_end equivalent for python2 support
+            # self._content.move_to_end(key)
+            self._content[key] = self._content.pop(key)
+
         self._contentToUpdate = []
         self._backend.replot()
         self._dirty = False  # reset dirty flag
@@ -2880,29 +2888,6 @@ class PlotWidget(qt.QMainWindow):
         """
         self._backend.setGraphCursorShape(cursor)
 
-    def _pickMarker(self, x, y, test=None):
-        """Pick a marker at the given position.
-
-        To use for interaction implementation.
-
-        :param float x: X position in pixels.
-        :param float y: Y position in pixels.
-        :param test: A callable to call for each picked marker to filter
-                     picked markers. If None (default), do not filter markers.
-        """
-        if test is None:
-            def test(mark):
-                return True
-
-        markers = self._backend.pickItems(x, y, kinds=('marker',))
-        legends = [m['legend'] for m in markers if m['kind'] == 'marker']
-
-        for legend in reversed(legends):
-            marker = self._getMarker(legend)
-            if marker is not None and test(marker):
-                return marker
-        return None
-
     def _getAllMarkers(self, just_legend=False):
         """Returns all markers' legend or objects
 
@@ -2924,73 +2909,50 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='marker', legend=legend)
 
-    def _pickImageOrCurve(self, x, y, test=None):
-        """Pick an image or a curve at the given position.
+    def _itemsFrontToBack(self):
+        """Iterator of plot items ordered from front to back
 
-        To use for interaction implementation.
-
-        :param float x: X position in pixels
-        :param float y: Y position in pixels
-        :param test: A callable to call for each picked item to filter
-                     picked items. If None (default), do not filter items.
+        :return:
         """
-        if test is None:
-            def test(i):
-                return True
+        # TODO handle from front to back, handle z value and right axis
+        for item in reversed(list((self._content.values()))):
+            yield item
 
-        allItems = self._backend.pickItems(x, y, kinds=('curve', 'image'))
-        allItems = [item for item in allItems
-                    if item['kind'] in ['curve', 'image']]
+    def pickItems(self, x, y, condition=None):
+        """Generator of picked items in the plot at given position.
 
-        for item in reversed(allItems):
-            kind, legend = item['kind'], item['legend']
-            if kind == 'curve':
-                curve = self.getCurve(legend)
-                if curve is not None and test(curve):
-                    return kind, curve, item['indices']
-
-            elif kind == 'image':
-                image = self.getImage(legend)
-                if image is not None and test(image):
-                    return kind, image, None
-
-            else:
-                _logger.warning('Unsupported kind: %s', kind)
-
-        return None
-
-    def _pick(self, x, y):
-        """Pick items in the plot at given position.
+        Items are returned from front to back.
 
         :param float x: X position in pixels
         :param float y: Y position in pixels
+        :param callable condition:
+           Callable taking an item as input and returning False for items
+           to skip during picking. If None (default) no item is skipped.
         :return: Iterable of (plot item, indices) at picked position.
-            Items are ordered from back to front.
+            Items are ordered from front to back.
         """
-        items = []
+        for item in self._itemsFrontToBack():
+            if condition is None or condition(item):
+                indices = item.pick(x, y)
+                if indices is not None:
+                    yield item, indices
 
-        # Convert backend result to plot items
-        for itemInfo in self._backend.pickItems(
-                x, y, kinds=('marker', 'curve', 'image')):
-            kind, legend = itemInfo['kind'], itemInfo['legend']
+    def _pickTopMost(self, x, y, condition=None):
+        """Returns top-most picked item in the plot at given position.
 
-            if kind in ('marker', 'image'):
-                item = self._getItem(kind=kind, legend=legend)
-                indices = None  # TODO compute indices for images
+        Items are checked from front to back.
 
-            else:  # backend kind == 'curve'
-                for kind in ('curve', 'histogram', 'scatter'):
-                    item = self._getItem(kind=kind, legend=legend)
-                    if item is not None:
-                        indices = itemInfo['indices']
-                        break
-                else:
-                    _logger.error(
-                        'Cannot find corresponding picked item')
-                    continue
-            items.append((item, indices))
-
-        return tuple(items)
+        :param float x: X position in pixels
+        :param float y: Y position in pixels
+        :param callable condition:
+           Callable taking an item as input and returning False for items
+           to skip during picking. If None (default) no item is skipped.
+        :return: (plot item, indices) at picked position or
+           If no item is picked, it returns (None, None)
+        """
+        for item, indices in self.pickItems(x, y, condition):
+            return item, indices
+        return None, None
 
     # User event handling #
 
