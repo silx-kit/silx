@@ -44,7 +44,7 @@ class PickingResult(object):
         """
         self._item = item
 
-        if indices is None or len(indices == 0):
+        if indices is None or len(indices) == 0:
             self._indices = None
         else:
             self._indices = numpy.array(indices, copy=False, dtype=numpy.int)
