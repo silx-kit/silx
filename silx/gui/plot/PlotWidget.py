@@ -2693,13 +2693,6 @@ class PlotWidget(qt.QMainWindow):
         for item in self._contentToUpdate:
             item._update(self._backend)
 
-            # Move updated item to end of content for order
-            # to follow the backend order.
-            key = self._itemKey(item)
-            # OrderedDict.move_to_end equivalent for python2 support
-            # self._content.move_to_end(key)
-            self._content[key] = self._content.pop(key)
-
         self._contentToUpdate = []
         self._backend.replot()
         self._dirty = False  # reset dirty flag
@@ -2909,13 +2902,17 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='marker', legend=legend)
 
-    def _itemsFrontToBack(self):
-        """Iterator of plot items ordered from front to back
+    def _itemsFromBackToFront(self):
+        """Iterator of plot items ordered from back to front.
 
-        :return:
+        This is the order used for rendering.
+        It takes into account overlays, z value and order of addition of items
         """
-        # TODO handle from front to back, handle z value and right axis
-        for item in reversed(list((self._content.values()))):
+        # Sort items: Overlays and markers first, then others
+        # and in each category ordered by z and by order of addition
+        # as _content keeps this order.
+        for item in sorted(self._content.values(),
+                key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue())):
             yield item
 
     def pickItems(self, x, y, condition=None):
@@ -2931,7 +2928,7 @@ class PlotWidget(qt.QMainWindow):
         :return: Iterable of :class:`PickingResult` objects at picked position.
             Items are ordered from front to back.
         """
-        for item in self._itemsFrontToBack():
+        for item in reversed(tuple(self._itemsFromBackToFront())):
             if condition is None or condition(item):
                 result = item.pick(x, y)
                 if result is not None:
