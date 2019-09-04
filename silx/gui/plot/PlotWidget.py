@@ -2909,8 +2909,7 @@ class PlotWidget(qt.QMainWindow):
         It takes into account overlays, z value and order of addition of items
 
         :param callable condition:
-           Callable taking an item as input and returning False for items
-           to skip.
+           Callable taking an item as input and returning False for items to skip.
            If None (default), no item is skipped.
         :rtpye: List[Item]
         """
