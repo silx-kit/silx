@@ -727,7 +727,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             self._graphCursor = lineh, linev
         else:
-            if self._graphCursor is not None:
+            if self._graphCursor:
                 lineh, linev = self._graphCursor
                 lineh.remove()
                 linev.remove()
