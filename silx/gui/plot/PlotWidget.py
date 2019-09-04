@@ -2914,8 +2914,8 @@ class PlotWidget(qt.QMainWindow):
            If None (default), no item is skipped.
         :rtpye: List[Item]
         """
-        # Sort items: Overlays and markers first, then others
-        # and in each category ordered by z and by order of addition
+        # Sort items: Overlays first, then others
+        # and in each category ordered by z and then by order of addition
         # as _content keeps this order.
         content = self._content.values()
         if condition is not None:
