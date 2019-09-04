@@ -2902,18 +2902,28 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='marker', legend=legend)
 
-    def _itemsFromBackToFront(self):
+    def _itemsFromBackToFront(self, condition=None):
         """Iterator of plot items ordered from back to front.
 
         This is the order used for rendering.
         It takes into account overlays, z value and order of addition of items
+
+        :param callable condition:
+           Callable taking an item as input and returning False for items
+           to skip.
+           If None (default), no item is skipped.
+        :rtpye: List[Item]
         """
         # Sort items: Overlays and markers first, then others
         # and in each category ordered by z and by order of addition
         # as _content keeps this order.
-        for item in sorted(self._content.values(),
-                key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue())):
-            yield item
+        content = self._content.values()
+        if condition is not None:
+            content = (item for item in content if condition(item))
+
+        return sorted(
+            content,
+            key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue()))
 
     def pickItems(self, x, y, condition=None):
         """Generator of picked items in the plot at given position.
@@ -2928,11 +2938,10 @@ class PlotWidget(qt.QMainWindow):
         :return: Iterable of :class:`PickingResult` objects at picked position.
             Items are ordered from front to back.
         """
-        for item in reversed(tuple(self._itemsFromBackToFront())):
-            if condition is None or condition(item):
-                result = item.pick(x, y)
-                if result is not None:
-                    yield result
+        for item in reversed(self._itemsFromBackToFront(condition=condition)):
+            result = item.pick(x, y)
+            if result is not None:
+                yield result
 
     def _pickTopMost(self, x, y, condition=None):
         """Returns top-most picked item in the plot at given position.

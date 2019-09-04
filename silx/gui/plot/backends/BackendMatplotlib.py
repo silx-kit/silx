@@ -1195,16 +1195,18 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             False (default) to draw all items but overlays,
             True to draw only overlay items.
         """
-        for item in self._plot._itemsFromBackToFront():
-            if (item.isVisible() and
+        def condition(item):
+            return (item.isVisible() and
                     item._backendRenderer is not None and
-                    (item._backendRenderer in self._overlays) == overlay):
-                if (isinstance(item, items.YAxisMixIn) and
-                        item.getYAxis() == 'right'):
-                    axes = self.ax2
-                else:
-                    axes = self.ax
-                axes.draw_artist(item._backendRenderer)
+                    (item._backendRenderer in self._overlays) == overlay)
+
+        for item in self._plot._itemsFromBackToFront(condition=condition):
+            if (isinstance(item, items.YAxisMixIn) and
+                    item.getYAxis() == 'right'):
+                axes = self.ax2
+            else:
+                axes = self.ax
+            axes.draw_artist(item._backendRenderer)
 
     def _drawOverlays(self):
         """Draw overlays if any."""
