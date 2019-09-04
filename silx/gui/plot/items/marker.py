@@ -81,13 +81,11 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         self.setPosition(to[0], to[1])
 
     def isOverlay(self):
-        """Return true if marker is drawn as an overlay.
-
-        A marker is an overlay if it is draggable.
+        """Returns True: A marker is always rendered as an overlay.
 
         :rtype: bool
         """
-        return self.isDraggable()
+        return True
 
     def getText(self):
         """Returns marker text.
