@@ -169,13 +169,6 @@ class PlotDataContent(object):
         """Iterator over all primitives."""
         return self._primitives.values()
 
-    def primitiveKeys(self, primitiveType):
-        """Iterator over primitives of a specific type."""
-        assert primitiveType in self._PRIMITIVE_TYPES
-        for type_, key in self._primitives.keys():
-            if type_ == primitiveType:
-                yield key
-
     def getBounds(self, xPositive=False, yPositive=False):
         """Bounds of the data.
 
@@ -457,7 +450,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def _paintDirectGL(self):
         self._renderPlotAreaGL()
         self._plotFrame.render()
-        self._renderMarkersGL()
         self._renderOverlayGL()
 
     def _paintFBOGL(self):
@@ -522,7 +514,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         with plotFBOTex.texture:
             gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices[0]))
 
-        self._renderMarkersGL()
         self._renderOverlayGL()
 
     def paintGL(self):
@@ -543,120 +534,206 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             # self._paintDirectGL()
             self._paintFBOGL()
 
-    def _renderMarkersGL(self):
-        if len(self._markers) == 0:
-            return
+    def _renderItems(self, overlay=False):
+        """Render items according to :class:`PlotWidget` order
 
+        Note: Scissor test should already be set.
+
+        :param bool overlay:
+            False (the default) to render item that are not overlays.
+            True to render items that are overlays.
+        """
+        # Values that are often used
         plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+        isXLog = self._plotFrame.xAxis.isLog
+        isYLog = self._plotFrame.yAxis.isLog
 
-        # Render in plot area
-        gl.glScissor(self._plotFrame.margins.left,
-                     self._plotFrame.margins.bottom,
-                     plotWidth, plotHeight)
-        gl.glEnable(gl.GL_SCISSOR_TEST)
-
-        gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
-
+        # Used by marker rendering
         labels = []
         pixelOffset = 3
 
-        for marker in self._markers.values():
-            xCoord, yCoord = marker['x'], marker['y']
-
-            if ((self._plotFrame.xAxis.isLog and
-                    xCoord is not None and
-                    xCoord <= 0) or
-                    (self._plotFrame.yAxis.isLog and
-                    yCoord is not None and
-                    yCoord <= 0)):
-                # Do not render markers with negative coords on log axis
+        for plotItem in self._plot._itemsFromBackToFront(
+                condition=lambda i: i.isVisible() and i.isOverlay() == overlay):
+            if plotItem._backendRenderer is None:
                 continue
 
-            if xCoord is None or yCoord is None:
-                pixelPos = self.dataToPixel(
-                    xCoord, yCoord, axis='left', check=False)
+            legend, kind = plotItem._backendRenderer
 
-                if xCoord is None:  # Horizontal line in data space
-                    if marker['text'] is not None:
-                        x = self._plotFrame.size[0] - \
-                            self._plotFrame.margins.right - pixelOffset
-                        y = pixelPos[1] - pixelOffset
-                        label = Text2D(marker['text'], x, y,
-                                       color=marker['color'],
-                                       bgColor=(1., 1., 1., 0.5),
-                                       align=RIGHT, valign=BOTTOM)
-                        labels.append(label)
+            if kind in ('curve', 'image', 'triangles'):  # Render data items
+                item = self._plotContent.get(kind, legend)
 
+                gl.glViewport(self._plotFrame.margins.left,
+                              self._plotFrame.margins.bottom,
+                              plotWidth, plotHeight)
+
+                if item.info.get('yAxis') == 'right':
+                    item.render(self._plotFrame.transformedDataY2ProjMat,
+                                isXLog, isYLog)
+                else:
+                    item.render(self._plotFrame.transformedDataProjMat,
+                                isXLog, isYLog)
+
+            elif kind == 'item':  # Render shape items
+                item = self._items[legend]
+
+                gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
+
+                if ((isXLog and numpy.min(item['x']) < FLOAT32_MINPOS) or
+                        (isYLog and numpy.min(item['y']) < FLOAT32_MINPOS)):
+                    # Ignore items <= 0. on log axes
+                    continue
+
+                if item['shape'] == 'hline':
                     width = self._plotFrame.size[0]
-                    lines = GLLines2D((0, width), (pixelPos[1], pixelPos[1]),
-                                      style=marker['linestyle'],
-                                      color=marker['color'],
-                                      width=marker['linewidth'])
+                    _, yPixel = self.dataToPixel(
+                        None, item['y'], axis='left', check=False)
+                    points = numpy.array(((0., yPixel), (width, yPixel)),
+                                         dtype=numpy.float32)
+
+                elif item['shape'] == 'vline':
+                    xPixel, _ = self.dataToPixel(
+                        item['x'], None, axis='left', check=False)
+                    height = self._plotFrame.size[1]
+                    points = numpy.array(((xPixel, 0), (xPixel, height)),
+                                         dtype=numpy.float32)
+
+                else:
+                    points = numpy.array([
+                        self.dataToPixel(x, y, axis='left', check=False)
+                        for (x, y) in zip(item['x'], item['y'])])
+
+                # Draw the fill
+                if (item['fill'] is not None and
+                        item['shape'] not in ('hline', 'vline')):
+                    self._progBase.use()
+                    gl.glUniformMatrix4fv(
+                        self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
+                        self.matScreenProj.astype(numpy.float32))
+                    gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
+                    gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
+
+                    shape2D = FilledShape2D(
+                        points, style=item['fill'], color=item['color'])
+                    shape2D.render(
+                        posAttrib=self._progBase.attributes['position'],
+                        colorUnif=self._progBase.uniforms['color'],
+                        hatchStepUnif=self._progBase.uniforms['hatchStep'])
+
+                # Draw the stroke
+                if item['linestyle'] not in ('', ' ', None):
+                    if item['shape'] != 'polylines':
+                        # close the polyline
+                        points = numpy.append(points,
+                                              numpy.atleast_2d(points[0]), axis=0)
+
+                    lines = GLLines2D(points[:, 0], points[:, 1],
+                                      style=item['linestyle'],
+                                      color=item['color'],
+                                      dash2ndColor=item['linebgcolor'],
+                                      width=item['linewidth'])
                     lines.render(self.matScreenProj)
 
-                else:  # yCoord is None: vertical line in data space
+            elif kind == 'marker':
+                marker = self._markers[legend]
+
+                gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
+
+                xCoord, yCoord = marker['x'], marker['y']
+
+                if ((isXLog and xCoord is not None and xCoord <= 0) or
+                        (isYLog and yCoord is not None and yCoord <= 0)):
+                    # Do not render markers with negative coords on log axis
+                    continue
+
+                if xCoord is None or yCoord is None:
+                    pixelPos = self.dataToPixel(
+                        xCoord, yCoord, axis='left', check=False)
+
+                    if xCoord is None:  # Horizontal line in data space
+                        if marker['text'] is not None:
+                            x = self._plotFrame.size[0] - \
+                                self._plotFrame.margins.right - pixelOffset
+                            y = pixelPos[1] - pixelOffset
+                            label = Text2D(marker['text'], x, y,
+                                           color=marker['color'],
+                                           bgColor=(1., 1., 1., 0.5),
+                                           align=RIGHT, valign=BOTTOM)
+                            labels.append(label)
+
+                        width = self._plotFrame.size[0]
+                        lines = GLLines2D((0, width), (pixelPos[1], pixelPos[1]),
+                                          style=marker['linestyle'],
+                                          color=marker['color'],
+                                          width=marker['linewidth'])
+                        lines.render(self.matScreenProj)
+
+                    else:  # yCoord is None: vertical line in data space
+                        if marker['text'] is not None:
+                            x = pixelPos[0] + pixelOffset
+                            y = self._plotFrame.margins.top + pixelOffset
+                            label = Text2D(marker['text'], x, y,
+                                           color=marker['color'],
+                                           bgColor=(1., 1., 1., 0.5),
+                                           align=LEFT, valign=TOP)
+                            labels.append(label)
+
+                        height = self._plotFrame.size[1]
+                        lines = GLLines2D((pixelPos[0], pixelPos[0]), (0, height),
+                                          style=marker['linestyle'],
+                                          color=marker['color'],
+                                          width=marker['linewidth'])
+                        lines.render(self.matScreenProj)
+
+                else:
+                    pixelPos = self.dataToPixel(
+                        xCoord, yCoord, axis='left', check=True)
+                    if pixelPos is None:
+                        # Do not render markers outside visible plot area
+                        continue
+
                     if marker['text'] is not None:
                         x = pixelPos[0] + pixelOffset
-                        y = self._plotFrame.margins.top + pixelOffset
+                        y = pixelPos[1] + pixelOffset
                         label = Text2D(marker['text'], x, y,
                                        color=marker['color'],
                                        bgColor=(1., 1., 1., 0.5),
                                        align=LEFT, valign=TOP)
                         labels.append(label)
 
-                    height = self._plotFrame.size[1]
-                    lines = GLLines2D((pixelPos[0], pixelPos[0]), (0, height),
-                                      style=marker['linestyle'],
-                                      color=marker['color'],
-                                      width=marker['linewidth'])
-                    lines.render(self.matScreenProj)
+                    # For now simple implementation: using a curve for each marker
+                    # Should pack all markers to a single set of points
+                    markerCurve = GLPlotCurve2D(
+                        numpy.array((pixelPos[0],), dtype=numpy.float64),
+                        numpy.array((pixelPos[1],), dtype=numpy.float64),
+                        marker=marker['symbol'],
+                        markerColor=marker['color'],
+                        markerSize=11)
+                    markerCurve.render(self.matScreenProj, False, False)
+                    markerCurve.discard()
 
             else:
-                pixelPos = self.dataToPixel(
-                    xCoord, yCoord, axis='left', check=True)
-                if pixelPos is None:
-                    # Do not render markers outside visible plot area
-                    continue
-
-                if marker['text'] is not None:
-                    x = pixelPos[0] + pixelOffset
-                    y = pixelPos[1] + pixelOffset
-                    label = Text2D(marker['text'], x, y,
-                                   color=marker['color'],
-                                   bgColor=(1., 1., 1., 0.5),
-                                   align=LEFT, valign=TOP)
-                    labels.append(label)
-
-                # For now simple implementation: using a curve for each marker
-                # Should pack all markers to a single set of points
-                markerCurve = GLPlotCurve2D(
-                    numpy.array((pixelPos[0],), dtype=numpy.float64),
-                    numpy.array((pixelPos[1],), dtype=numpy.float64),
-                    marker=marker['symbol'],
-                    markerColor=marker['color'],
-                    markerSize=11)
-                markerCurve.render(self.matScreenProj, False, False)
-                markerCurve.discard()
-
-        gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
+                _logger.error('Unsupported kind: %s', str(kind))
+                continue
 
         # Render marker labels
+        gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
         for label in labels:
             label.render(self.matScreenProj)
 
-        gl.glDisable(gl.GL_SCISSOR_TEST)
-
     def _renderOverlayGL(self):
+        """Render overlay layer: overlay items and crosshair."""
+        plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+
+        # Scissor to plot area
+        gl.glScissor(self._plotFrame.margins.left,
+                     self._plotFrame.margins.bottom,
+                     plotWidth, plotHeight)
+        gl.glEnable(gl.GL_SCISSOR_TEST)
+
+        self._renderItems(overlay=True)
+
         # Render crosshair cursor
-        if self._crosshairCursor is not None:
-            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-
-            # Scissor to plot area
-            gl.glScissor(self._plotFrame.margins.left,
-                         self._plotFrame.margins.bottom,
-                         plotWidth, plotHeight)
-            gl.glEnable(gl.GL_SCISSOR_TEST)
-
+        if self._crosshairCursor is not None and self._mousePosInPixels is not None:
             self._progBase.use()
             gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
             gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
@@ -665,39 +742,39 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             colorUnif = self._progBase.uniforms['color']
             hatchStepUnif = self._progBase.uniforms['hatchStep']
 
-            # Render crosshair cursor in screen frame but with scissor
-            if (self._crosshairCursor is not None and
-                    self._mousePosInPixels is not None):
-                gl.glViewport(
-                    0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
+            gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-                gl.glUniformMatrix4fv(matrixUnif, 1, gl.GL_TRUE,
-                                      self.matScreenProj.astype(numpy.float32))
+            gl.glUniformMatrix4fv(matrixUnif, 1, gl.GL_TRUE,
+                                  self.matScreenProj.astype(numpy.float32))
 
-                color, lineWidth = self._crosshairCursor
-                gl.glUniform4f(colorUnif, *color)
-                gl.glUniform1i(hatchStepUnif, 0)
+            color, lineWidth = self._crosshairCursor
+            gl.glUniform4f(colorUnif, *color)
+            gl.glUniform1i(hatchStepUnif, 0)
 
-                xPixel, yPixel = self._mousePosInPixels
-                xPixel, yPixel = xPixel + 0.5, yPixel + 0.5
-                vertices = numpy.array(((0., yPixel),
-                                        (self._plotFrame.size[0], yPixel),
-                                        (xPixel, 0.),
-                                        (xPixel, self._plotFrame.size[1])),
-                                       dtype=numpy.float32)
+            xPixel, yPixel = self._mousePosInPixels
+            xPixel, yPixel = xPixel + 0.5, yPixel + 0.5
+            vertices = numpy.array(((0., yPixel),
+                                    (self._plotFrame.size[0], yPixel),
+                                    (xPixel, 0.),
+                                    (xPixel, self._plotFrame.size[1])),
+                                   dtype=numpy.float32)
 
-                gl.glEnableVertexAttribArray(posAttrib)
-                gl.glVertexAttribPointer(posAttrib,
-                                         2,
-                                         gl.GL_FLOAT,
-                                         gl.GL_FALSE,
-                                         0, vertices)
-                gl.glLineWidth(lineWidth)
-                gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
+            gl.glEnableVertexAttribArray(posAttrib)
+            gl.glVertexAttribPointer(posAttrib,
+                                     2,
+                                     gl.GL_FLOAT,
+                                     gl.GL_FALSE,
+                                     0, vertices)
+            gl.glLineWidth(lineWidth)
+            gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
 
-            gl.glDisable(gl.GL_SCISSOR_TEST)
+        gl.glDisable(gl.GL_SCISSOR_TEST)
 
     def _renderPlotAreaGL(self):
+        """Render base layer of plot area.
+
+        It renders the background, grid and items except overlays
+        """
         plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
 
         gl.glScissor(self._plotFrame.margins.left,
@@ -713,85 +790,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         # Matrix
         trBounds = self._plotFrame.transformedDataRanges
-        if trBounds.x[0] == trBounds.x[1] or \
-           trBounds.y[0] == trBounds.y[1]:
-            return
-
-        isXLog = self._plotFrame.xAxis.isLog
-        isYLog = self._plotFrame.yAxis.isLog
-
-        gl.glViewport(self._plotFrame.margins.left,
-                      self._plotFrame.margins.bottom,
-                      plotWidth, plotHeight)
-
-        # Render images and curves
-        # sorted is stable: original order is preserved when key is the same
-        for item in self._plotContent.zOrderedPrimitives():
-            if item.info.get('yAxis') == 'right':
-                item.render(self._plotFrame.transformedDataY2ProjMat,
-                            isXLog, isYLog)
-            else:
-                item.render(self._plotFrame.transformedDataProjMat,
-                            isXLog, isYLog)
-
-        # Render Items
-        gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
-
-        for item in self._items.values():
-            if ((isXLog and numpy.min(item['x']) < FLOAT32_MINPOS) or
-                    (isYLog and numpy.min(item['y']) < FLOAT32_MINPOS)):
-                # Ignore items <= 0. on log axes
-                continue
-
-            if item['shape'] == 'hline':
-                width = self._plotFrame.size[0]
-                _, yPixel = self.dataToPixel(
-                    None, item['y'], axis='left', check=False)
-                points = numpy.array(((0., yPixel), (width, yPixel)),
-                                     dtype=numpy.float32)
-
-            elif item['shape'] == 'vline':
-                xPixel, _ = self.dataToPixel(
-                    item['x'], None, axis='left', check=False)
-                height = self._plotFrame.size[1]
-                points = numpy.array(((xPixel, 0), (xPixel, height)),
-                                     dtype=numpy.float32)
-
-            else:
-                points = numpy.array([
-                    self.dataToPixel(x, y, axis='left', check=False)
-                    for (x, y) in zip(item['x'], item['y'])])
-
-            # Draw the fill
-            if (item['fill'] is not None and
-                    item['shape'] not in ('hline', 'vline')):
-                self._progBase.use()
-                gl.glUniformMatrix4fv(
-                    self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                    self.matScreenProj.astype(numpy.float32))
-                gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
-                gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
-
-                shape2D = FilledShape2D(
-                    points, style=item['fill'], color=item['color'])
-                shape2D.render(
-                    posAttrib=self._progBase.attributes['position'],
-                    colorUnif=self._progBase.uniforms['color'],
-                    hatchStepUnif=self._progBase.uniforms['hatchStep'])
-
-            # Draw the stroke
-            if item['linestyle'] not in ('', ' ', None):
-                if item['shape'] != 'polylines':
-                    # close the polyline
-                    points = numpy.append(points,
-                                          numpy.atleast_2d(points[0]), axis=0)
-
-                lines = GLLines2D(points[:, 0], points[:, 1],
-                                  style=item['linestyle'],
-                                  color=item['color'],
-                                  dash2ndColor=item['linebgcolor'],
-                                  width=item['linewidth'])
-                lines.render(self.matScreenProj)
+        if trBounds.x[0] != trBounds.x[1] and trBounds.y[0] != trBounds.y[1]:
+            # Do rendering of items
+            self._renderItems(overlay=False)
 
         gl.glDisable(gl.GL_SCISSOR_TEST)
 
