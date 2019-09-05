@@ -459,7 +459,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               self._plotFrame.margins.bottom,
                               plotWidth, plotHeight)
 
-                if item.info.get('yAxis') == 'right':
+                if isinstance(item, GLPlotCurve2D) and item.info.get('yAxis') == 'right':
                     item.render(self._plotFrame.transformedDataY2ProjMat,
                                 isXLog, isYLog)
                 else:
@@ -1021,15 +1021,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         yAxis = item.info['yAxis']
 
         inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
-        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                   axis=yAxis, check=True)
+        dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],
+                                         axis=yAxis, check=True)
         if dataPos is None:
             return None
         xPick0, yPick0 = dataPos
 
         inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
-        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                   axis=yAxis, check=True)
+        dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],
+                                         axis=yAxis, check=True)
         if dataPos is None:
             return None
         xPick1, yPick1 = dataPos
@@ -1058,7 +1058,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                          xPickMax, yPickMax)
 
     def pickItem(self, x, y, item):
-        dataPos = self.pixelToData(x, y, axis='left', check=True)
+        dataPos = self._plot.pixelToData(x, y, axis='left', check=True)
         if dataPos is None:
             return None  # Outside plot area
 
@@ -1074,17 +1074,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 return None  # negative coord on a log axis
 
             if item['x'] is None:  # Horizontal line
-                pt1 = self.pixelToData(
+                pt1 = self._plot.pixelToData(
                     x, y - self._PICK_OFFSET, axis='left', check=False)
-                pt2 = self.pixelToData(
+                pt2 = self._plot.pixelToData(
                     x, y + self._PICK_OFFSET, axis='left', check=False)
                 isPicked = (min(pt1[1], pt2[1]) <= item['y'] <=
                             max(pt1[1], pt2[1]))
 
             elif item['y'] is None:  # Vertical line
-                pt1 = self.pixelToData(
+                pt1 = self._plot.pixelToData(
                     x - self._PICK_OFFSET, y, axis='left', check=False)
-                pt2 = self.pixelToData(
+                pt2 = self._plot.pixelToData(
                     x + self._PICK_OFFSET, y, axis='left', check=False)
                 isPicked = (min(pt1[0], pt2[0]) <= item['x'] <=
                             max(pt1[0], pt2[0]))
@@ -1351,22 +1351,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def dataToPixel(self, x, y, axis):
         return self._plotFrame.dataToPixel(x, y, axis)
 
-    def pixelToData(self, x, y, axis, check):
-        assert axis in ("left", "right")
-
-        if x is None:
-            x = self._plotFrame.size[0] / 2.
-        if y is None:
-            y = self._plotFrame.size[1] / 2.
-
-        if check and (x < self._plotFrame.margins.left or
-                      x > (self._plotFrame.size[0] -
-                           self._plotFrame.margins.right) or
-                      y < self._plotFrame.margins.top or
-                      y > (self._plotFrame.size[1] -
-                           self._plotFrame.margins.bottom)):
-            return None  # (x, y) is out of plot area
-
+    def pixelToData(self, x, y, axis):
         return self._plotFrame.pixelToData(x, y, axis)
 
     def getPlotBoundsInPixels(self):
