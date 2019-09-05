@@ -102,17 +102,17 @@ class Bounds(object):
 # Content #####################################################################
 
 class _Item(object):
-    def __init__(self, legend):
-        self.info = {'legend': legend}
+    def __init__(self):
+        self.info = {}
 
     def __getitem__(self, key):
         return self.info[key]
 
 
 class _ShapeItem(_Item):
-    def __init__(self, x, y, legend, shape, color, fill, overlay, z,
+    def __init__(self, x, y, shape, color, fill, overlay, z,
                  linestyle, linewidth, linebgcolor):
-        super(_ShapeItem, self).__init__(legend)
+        super(_ShapeItem, self).__init__()
 
         if shape not in ('polygon', 'rectangle', 'line',
                          'vline', 'hline', 'polylines'):
@@ -143,10 +143,10 @@ class _ShapeItem(_Item):
 
 
 class _MarkerItem(_Item):
-    def __init__(self, x, y, legend, text, color,
+    def __init__(self, x, y, text, color,
                  selectable, draggable,
                  symbol, linestyle, linewidth, constraint):
-        super(_MarkerItem, self).__init__(legend)
+        super(_MarkerItem, self).__init__()
 
         if symbol is None:
             symbol = '+'
@@ -784,7 +784,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                  yaxis,
                  xerror, yerror, z, selectable,
                  fill, alpha, symbolsize):
-        for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
+        for parameter in (x, y, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
@@ -893,7 +893,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               fillColor=color if fill else None,
                               isYLog=isYLog)
         curve.info = {
-            'legend': legend,
             'zOrder': z,
             'behaviors': behaviors,
             'yAxis': 'left' if yaxis is None else yaxis,
@@ -910,7 +909,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                  origin, scale, z,
                  selectable, draggable,
                  colormap, alpha):
-        for parameter in (data, legend, origin, scale, z,
+        for parameter in (data, origin, scale, z,
                           selectable, draggable):
             assert parameter is not None
 
@@ -958,7 +957,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError("Unsupported data shape {0}".format(data.shape))
 
         image.info = {
-            'legend': legend,
             'zOrder': z,
             'behaviors': behaviors
         }
@@ -974,7 +972,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._plotContent.add(image)
         return image
 
-    def addTriangles(self, x, y, triangles, legend,
+    def addTriangles(self, x, y, triangles,
                      color, z, selectable, alpha):
         # Handle axes log scale: convert data
         if self._plotFrame.xAxis.isLog:
@@ -984,7 +982,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         triangles = GLPlotTriangles(x, y, color, triangles, alpha)
         triangles.info = {
-            'legend': legend,
             'zOrder': z,
             'behaviors': set(['selectable']) if selectable else set(),
         }
@@ -1005,13 +1002,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError(
                 'Cannot add item with Y <= 0 with Y axis log scale')
 
-        return _ShapeItem(x, y, legend, shape, color, fill, overlay, z,
+        return _ShapeItem(x, y, shape, color, fill, overlay, z,
                           linestyle, linewidth, linebgcolor)
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
                   symbol, linestyle, linewidth, constraint):
-        return _MarkerItem(x, y, legend, text, color,
+        return _MarkerItem(x, y, text, color,
                            selectable, draggable,
                            symbol, linestyle, linewidth, constraint)
 
