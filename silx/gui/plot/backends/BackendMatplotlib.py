@@ -352,7 +352,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax.set_facecolor('none')
         self.fig.sca(self.ax)
 
-        self._overlays = set()
         self._background = None
 
         self._colormaps = {}
@@ -361,6 +360,28 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         self._enableAxis('right', False)
         self._isXAxisTimeSeries = False
+
+    def _overlayItems(self):
+        """Generator of backend renderer for overlay items"""
+        for item in self._plot.getItems():
+            if (item.isOverlay() and
+                    item.isVisible() and
+                    item._backendRenderer is not None):
+                yield item._backendRenderer
+
+    def _hasOverlays(self):
+        """Returns whether there is an overlay layer or not.
+
+        The overlay layers contains overlay items and the crosshair.
+
+        :rtype: bool
+        """
+        if self._graphCursor:
+            return True  # There is the crosshair
+
+        for item in self._overlayItems():
+            return True  # There is at least one overlay item
+        return False
 
     # Add methods
 
@@ -625,9 +646,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         item.set_zorder(z + 1)
         item.set_animated(True)
 
-        if overlay:
-            self._overlays.add(item)
-
         return item
 
     def addMarker(self, x, y, legend, text, color,
@@ -698,22 +716,19 @@ class BackendMatplotlib(BackendBase.BackendBase):
         artists = [line] if textArtist is None else [line, textArtist]
         container = _MarkerContainer(artists, x, y)
         container.updateMarkerText(xmin, xmax, ymin, ymax)
-        self._overlays.add(container)
 
         return container
 
     def _updateMarkers(self):
         xmin, xmax = self.ax.get_xbound()
         ymin, ymax = self.ax.get_ybound()
-        for item in self._overlays:
+        for item in self._overlayItems():
             if isinstance(item, _MarkerContainer):
                 item.updateMarkerText(xmin, xmax, ymin, ymax)
 
     # Remove methods
 
     def remove(self, item):
-        # Warning: It also needs to remove extra stuff if added as for markers
-        self._overlays.discard(item)
         try:
             item.remove()
         except ValueError:
@@ -1184,7 +1199,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self.ax.get_xbound(), self.ax.get_ybound(), self.ax2.get_ybound())
 
         FigureCanvasQTAgg.resizeEvent(self, event)
-        if self.isKeepDataAspectRatio() or self._overlays or self._graphCursor:
+        if self.isKeepDataAspectRatio() or self._hasOverlays():
             # This is needed with matplotlib 1.5.x and 2.0.x
             self._plot._setDirtyPlot()
 
@@ -1198,7 +1213,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         def condition(item):
             return (item.isVisible() and
                     item._backendRenderer is not None and
-                    (item._backendRenderer in self._overlays) == overlay)
+                    item.isOverlay() == overlay)
 
         for item in self._plot._itemsFromBackToFront(condition=condition):
             if (isinstance(item, items.YAxisMixIn) and
@@ -1210,8 +1225,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def _drawOverlays(self):
         """Draw overlays if any."""
-        if self._overlays:
-            self.__drawItems(overlay=True)
+        self.__drawItems(overlay=True)
 
         for item in self._graphCursor:
             self.ax.draw_artist(item)
@@ -1238,7 +1252,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         self.__drawItems(overlay=False)
 
-        if self._overlays or self._graphCursor:
+        if self._hasOverlays():
             # Save background
             self._background = self.copy_from_bbox(self.fig.bbox)
         else:
@@ -1282,7 +1296,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         if (_parse_version('1.5') <= self._matplotlibVersion < _parse_version('2.1') and
                 not hasattr(self, '_firstReplot')):
             self._firstReplot = False
-            if self._overlays or self._graphCursor:
+            if self._hasOverlays():
                 qt.QTimer.singleShot(0, self.draw)  # Request async draw
 
     # cursor
