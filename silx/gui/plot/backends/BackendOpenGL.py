@@ -896,7 +896,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return image
 
-    def addTriangles(self, x, y, triangles,
+    def addTriangles(self, x, y, triangles, legend,
                      color, z, selectable, alpha):
         # Handle axes log scale: convert data
         if self._plotFrame.xAxis.isLog:
