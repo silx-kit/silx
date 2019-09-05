@@ -1224,6 +1224,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         This is directly called by matplotlib for widget resize.
         """
+        # Hide axes borders to defer rendering
+        for spine in self.ax.spines.values():
+            spine.set_visible(False)
+
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
         if self._matplotlibVersion >= _parse_version("2.0.0"):
@@ -1261,6 +1265,14 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                 self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
         self._drawOverlays()
+
+        # Draw axes borders at last
+        for spine in self.ax.spines.values():
+            spine.set_visible(True)
+            self.ax.draw_artist(spine)
+        # Alternative: redraw what's inside the frame
+        # which ends-up to redraw the border as everything is "animated"
+        #self.ax.redraw_in_frame()
 
     def replot(self):
         BackendMatplotlib.replot(self)
