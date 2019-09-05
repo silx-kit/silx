@@ -130,7 +130,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         rgbacolors = rgbacolors[mask]
 
         if self.getVisualization() is self.Visualization.POINTS:
-            return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
+            return backend.addCurve(xFiltered, yFiltered,
                                     color=rgbacolors,
                                     symbol=self.getSymbol(),
                                     linewidth=0,
@@ -160,7 +160,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 return backend.addTriangles(xFiltered,
                                             yFiltered,
                                             triangles,
-                                            legend=self.getLegend(),
                                             color=rgbacolors,
                                             z=self.getZValue(),
                                             selectable=self.isSelectable(),
