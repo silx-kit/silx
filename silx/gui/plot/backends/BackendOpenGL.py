@@ -61,15 +61,7 @@ _logger = logging.getLogger(__name__)
 
 # Content #####################################################################
 
-class _Item(object):
-    def __init__(self):
-        self.info = {}
-
-    def __getitem__(self, key):
-        return self.info[key]
-
-
-class _ShapeItem(_Item):
+class _ShapeItem(dict):
     def __init__(self, x, y, shape, color, fill, overlay, z,
                  linestyle, linewidth, linebgcolor):
         super(_ShapeItem, self).__init__()
@@ -90,7 +82,7 @@ class _ShapeItem(_Item):
         # Ignore fill for polylines to mimic matplotlib
         fill = fill if shape != 'polylines' else False
 
-        self.info.update({
+        self.update({
             'shape': shape,
             'color': colors.rgba(color),
             'fill': 'hatch' if fill else None,
@@ -102,7 +94,7 @@ class _ShapeItem(_Item):
         })
 
 
-class _MarkerItem(_Item):
+class _MarkerItem(dict):
     def __init__(self, x, y, text, color,
                  selectable, draggable,
                  symbol, linestyle, linewidth, constraint):
@@ -117,7 +109,7 @@ class _MarkerItem(_Item):
         if isConstraint:
             x, y = constraint(x, y)
 
-        self.info.update({
+        self.update({
             'x': x,
             'y': y,
             'text': text,
