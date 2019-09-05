@@ -111,12 +111,6 @@ class _MarkerItem(_Item):
         if symbol is None:
             symbol = '+'
 
-        behaviors = set()
-        if selectable:
-            behaviors.add('selectable')
-        if draggable:
-            behaviors.add('draggable')
-
         # Apply constraint to provided position
         isConstraint = (draggable and constraint is not None and
                         x is not None and y is not None)
@@ -128,7 +122,6 @@ class _MarkerItem(_Item):
             'y': y,
             'text': text,
             'color': colors.rgba(color),
-            'behaviors': behaviors,
             'constraint': constraint if isConstraint else None,
             'symbol': symbol,
             'linestyle': linestyle,
@@ -836,10 +829,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if color is not None:
                 color = color[0], color[1], color[2], color[3] * alpha
 
-        behaviors = set()
-        if selectable:
-            behaviors.add('selectable')
-
         curve = GLPlotCurve2D(x, y, colorArray,
                               xError=xerror,
                               yError=yerror,
@@ -852,8 +841,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               fillColor=color if fill else None,
                               isYLog=isYLog)
         curve.info = {
-            'zOrder': z,
-            'behaviors': behaviors,
             'yAxis': 'left' if yaxis is None else yaxis,
         }
 
@@ -869,12 +856,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         for parameter in (data, origin, scale, z,
                           selectable, draggable):
             assert parameter is not None
-
-        behaviors = set()
-        if selectable:
-            behaviors.add('selectable')
-        if draggable:
-            behaviors.add('draggable')
 
         if data.ndim == 2:
             # Ensure array is contiguous and eventually convert its type
@@ -913,11 +894,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             raise RuntimeError("Unsupported data shape {0}".format(data.shape))
 
-        image.info = {
-            'zOrder': z,
-            'behaviors': behaviors
-        }
-
         # TODO is this needed?
         if self._plotFrame.xAxis.isLog and image.xMin <= 0.:
             raise RuntimeError(
@@ -937,10 +913,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             y = numpy.log10(y)
 
         triangles = GLPlotTriangles(x, y, color, triangles, alpha)
-        triangles.info = {
-            'zOrder': z,
-            'behaviors': set(['selectable']) if selectable else set(),
-        }
 
         return triangles
 
