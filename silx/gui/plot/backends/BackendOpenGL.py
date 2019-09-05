@@ -524,13 +524,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 if item['shape'] == 'hline':
                     width = self._plotFrame.size[0]
-                    _, yPixel = self.dataToPixel(
+                    _, yPixel = self._plot.dataToPixel(
                         None, item['y'], axis='left', check=False)
                     points = numpy.array(((0., yPixel), (width, yPixel)),
                                          dtype=numpy.float32)
 
                 elif item['shape'] == 'vline':
-                    xPixel, _ = self.dataToPixel(
+                    xPixel, _ = self._plot.dataToPixel(
                         item['x'], None, axis='left', check=False)
                     height = self._plotFrame.size[1]
                     points = numpy.array(((xPixel, 0), (xPixel, height)),
@@ -538,7 +538,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 else:
                     points = numpy.array([
-                        self.dataToPixel(x, y, axis='left', check=False)
+                        self._plot.dataToPixel(x, y, axis='left', check=False)
                         for (x, y) in zip(item['x'], item['y'])])
 
                 # Draw the fill
@@ -583,7 +583,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     continue
 
                 if xCoord is None or yCoord is None:
-                    pixelPos = self.dataToPixel(
+                    pixelPos = self._plot.dataToPixel(
                         xCoord, yCoord, axis='left', check=False)
 
                     if xCoord is None:  # Horizontal line in data space
@@ -622,7 +622,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         lines.render(self.matScreenProj)
 
                 else:
-                    pixelPos = self.dataToPixel(
+                    pixelPos = self._plot.dataToPixel(
                         xCoord, yCoord, axis='left', check=True)
                     if pixelPos is None:
                         # Do not render markers outside visible plot area
@@ -1147,7 +1147,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         # Pick markers
         if isinstance(item, _MarkerItem):
-            pixelPos = self.dataToPixel(
+            pixelPos = self._plot.dataToPixel(
                 item['x'], item['y'], axis='left', check=False)
             if pixelPos is None:
                 return None  # negative coord on a log axis
@@ -1265,72 +1265,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # Graph limits
 
-    def _getBounds(self):
-        """Bounds of the data.
-
-        Can return strictly positive bounds (for log scale).
-        In this case, curves are clipped to their smaller positive value
-        and images with negative min are ignored.
-
-        :return: The range of data for x, y and y2, or default (1., 100.)
-                 if no range found for one dimension.
-        :rtype: Bounds
-        """
-        xPositive = self._plotFrame.xAxis.isLog
-        yPositive = self._plotFrame.yAxis.isLog
-        xMin, yMin, y2Min = float('inf'), float('inf'), float('inf')
-        xMax = 0. if xPositive else -float('inf')
-        if yPositive:
-            yMax, y2Max = 0., 0.
-        else:
-            yMax, y2Max = -float('inf'), -float('inf')
-
-        for item in self._plotContent:
-            # To support curve <= 0. and log and bypass images:
-            # If positive only, uses x|yMinPos if available
-            # and bypass other data with negative min bounds
-            if xPositive:
-                itemXMin = getattr(item, 'xMinPos', item.xMin)
-                if itemXMin is None or itemXMin < FLOAT32_MINPOS:
-                    continue
-            else:
-                itemXMin = item.xMin
-
-            if yPositive:
-                itemYMin = getattr(item, 'yMinPos', item.yMin)
-                if itemYMin is None or itemYMin < FLOAT32_MINPOS:
-                    continue
-            else:
-                itemYMin = item.yMin
-
-            if itemXMin < xMin:
-                xMin = itemXMin
-            if item.xMax > xMax:
-                xMax = item.xMax
-
-            if item.info.get('yAxis') == 'right':
-                if itemYMin < y2Min:
-                    y2Min = itemYMin
-                if item.yMax > y2Max:
-                    y2Max = item.yMax
-            else:
-                if itemYMin < yMin:
-                    yMin = itemYMin
-                if item.yMax > yMax:
-                    yMax = item.yMax
-
-        # One of the limit has not been updated, return default range
-        if xMin >= xMax:
-            xMin, xMax = 1., 100.
-        if yMin >= yMax:
-            yMin, yMax = 1., 100.
-        if y2Min >= y2Max:
-            y2Min, y2Max = 1., 100.
-
-        return Bounds(xMin, xMax, yMin, yMax, y2Min, y2Max)
-
-
-
     def _setDataRanges(self, xlim=None, ylim=None, y2lim=None):
         """Set the visible range of data in the plot frame.
 
@@ -1356,11 +1290,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return
 
         if keepDim is None:
-            dataBounds = self._getBounds()
-            if dataBounds.yAxis.range_ != 0.:
-                dataRatio = dataBounds.xAxis.range_
-                dataRatio /= float(dataBounds.yAxis.range_)
-
+            ranges = self._plot.getDataRange()
+            if (ranges.y is not None and
+                ranges.x is not None and
+                (ranges.y[1] - ranges.y[0]) != 0.):
+                dataRatio = (ranges.x[1] - ranges.x[0]) / float(ranges.y[1] - ranges.y[0])
                 plotRatio = plotWidth / float(plotHeight)  # Test != 0 before
 
                 keepDim = 'x' if dataRatio > plotRatio else 'y'
@@ -1493,33 +1427,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # Data <-> Pixel coordinates conversion
 
-    def dataToPixel(self, x, y, axis, check=False):
-        assert axis in ('left', 'right')
-
-        if x is None or y is None:
-            dataBounds = self._getBounds()
-
-            if x is None:
-                x = dataBounds.xAxis.center
-
-            if y is None:
-                if axis == 'left':
-                    y = dataBounds.yAxis.center
-                else:
-                    y = dataBounds.y2Axis.center
-
-        result = self._plotFrame.dataToPixel(x, y, axis)
-
-        if check and result is not None:
-            xPixel, yPixel = result
-            width, height = self._plotFrame.size
-            if (xPixel < self._plotFrame.margins.left or
-                    xPixel > (width - self._plotFrame.margins.right) or
-                    yPixel < self._plotFrame.margins.top or
-                    yPixel > height - self._plotFrame.margins.bottom):
-                return None  # (x, y) is out of plot area
-
-        return result
+    def dataToPixel(self, x, y, axis):
+        return self._plotFrame.dataToPixel(x, y, axis)
 
     def pixelToData(self, x, y, axis, check):
         assert axis in ("left", "right")
