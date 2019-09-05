@@ -59,46 +59,6 @@ _logger = logging.getLogger(__name__)
 # TODO check if OpenGL is available
 # TODO make an off-screen mesa backend
 
-# Bounds ######################################################################
-
-class Range(namedtuple('Range', ('min_', 'max_'))):
-    """Describes a 1D range"""
-
-    @property
-    def range_(self):
-        return self.max_ - self.min_
-
-    @property
-    def center(self):
-        return 0.5 * (self.min_ + self.max_)
-
-
-class Bounds(object):
-    """Describes plot bounds with 2 y axis"""
-
-    def __init__(self, xMin, xMax, yMin, yMax, y2Min, y2Max):
-        self._xAxis = Range(xMin, xMax)
-        self._yAxis = Range(yMin, yMax)
-        self._y2Axis = Range(y2Min, y2Max)
-
-    def __repr__(self):
-        return "x: %s, y: %s, y2: %s" % (repr(self._xAxis),
-                                         repr(self._yAxis),
-                                         repr(self._y2Axis))
-
-    @property
-    def xAxis(self):
-        return self._xAxis
-
-    @property
-    def yAxis(self):
-        return self._yAxis
-
-    @property
-    def y2Axis(self):
-        return self._y2Axis
-
-
 # Content #####################################################################
 
 class _Item(object):
