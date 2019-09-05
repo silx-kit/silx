@@ -818,6 +818,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if self._dirtyLimits and self.isKeepDataAspectRatio():
             self.ax.apply_aspect()
             self.ax2.apply_aspect()
+            self._dirtyLimits = False
         return self.ax.get_xbound()
 
     def setGraphXLimits(self, xmin, xmax):
@@ -835,6 +836,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if self._dirtyLimits and self.isKeepDataAspectRatio():
             self.ax.apply_aspect()
             self.ax2.apply_aspect()
+            self._dirtyLimits = False
 
         return ax.get_ybound()
 
