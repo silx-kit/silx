@@ -30,13 +30,13 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
 
-from collections import namedtuple
 import logging
 import warnings
 import weakref
 
 import numpy
 
+from .. import items
 from .._utils import FLOAT32_MINPOS
 from . import BackendBase
 from ... import colors
@@ -245,7 +245,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._crosshairCursor = None
         self._mousePosInPixels = None
 
-        self._plotContent = set()  # For curves, images and triangles
         self._glGarbageCollector = []
 
         self._plotFrame = GLPlotFrame2D(
@@ -861,8 +860,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if yaxis == "right":
             self._plotFrame.isY2Axis = True
 
-        self._plotContent.add(curve)
-
         return curve
 
     def addImage(self, data, legend,
@@ -929,7 +926,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError(
                 'Cannot add image with Y <= 0 with Y axis log scale')
 
-        self._plotContent.add(image)
         return image
 
     def addTriangles(self, x, y, triangles,
@@ -946,7 +942,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             'behaviors': set(['selectable']) if selectable else set(),
         }
 
-        self._plotContent.add(triangles)
         return triangles
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
@@ -980,19 +975,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                              GLPlotRGBAImage,
                              GLPlotTriangles)):
             if isinstance(item, GLPlotCurve2D):
-                # XXX use plot
                 # Check if some curves remains on the right Y axis
-                y2AxisItems = (item for item in self._plotContent
-                               if item.info.get('yAxis', 'left') == 'right')
+                y2AxisItems = (item for item in self._plot.getItems()
+                               if isinstance(item, items.YAxisMixIn) and
+                               item.getYAxis() == 'right')
                 self._plotFrame.isY2Axis = next(y2AxisItems, None) is not None
 
-            try:
-                self._plotContent.remove(item)
-            except KeyError:
-                _logger.error(
-                    "Trying to remove an already removed item: %s", str(item))
-            else:
-                self._glGarbageCollector.append(item)
+            self._glGarbageCollector.append(item)
 
         elif isinstance(item, (_MarkerItem, _ShapeItem)):
             pass  # No-op
