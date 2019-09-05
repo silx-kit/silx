@@ -987,7 +987,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return xPixel, yPixel
 
-    def pixelToData(self, x, y, axis, check):
+    def pixelToData(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
 
         # Convert from Qt origin (top) to matplotlib origin (bottom)
@@ -995,14 +995,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         inv = ax.transData.inverted()
         x, y = inv.transform_point((x, y))
-
-        if check:
-            xmin, xmax = self.getGraphXLimits()
-            ymin, ymax = self.getGraphYLimits(axis=axis)
-
-            if x > xmax or x < xmin or y > ymax or y < ymin:
-                return None  # (x, y) is out of plot area
-
         return x, y
 
     def getPlotBoundsInPixels(self):
