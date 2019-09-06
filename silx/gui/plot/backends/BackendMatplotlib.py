@@ -58,9 +58,9 @@ from matplotlib.tri import Triangulation
 from matplotlib.collections import TriMesh
 
 from . import BackendBase
+from .. import items
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
-
 
 _PATCH_LINESTYLE = {
     "-": 'solid',
@@ -164,6 +164,11 @@ class NiceAutoDateFormatter(Formatter):
 
 class _PickableContainer(Container):
     """Artists container with a :meth:`contains` method"""
+
+    def draw(self, *args, **kwargs):
+        """artist-like draw to broadcast draw to children"""
+        for child in self.get_children():
+            child.draw(*args, **kwargs)
 
     def contains(self, mouseevent):
         """Mimic Artist.contains, and call it on all children.
@@ -449,6 +454,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     axes.fill_between(x, FLOAT32_MINPOS, y, facecolor=color))
 
         for artist in artists:
+            artist.set_animated(True)
             artist.set_zorder(z + 1)
             if alpha < 1:
                 artist.set_alpha(alpha)
@@ -508,6 +514,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             data = colormap.applyToData(data)
 
         image.set_data(data)
+        image.set_animated(True)
         self.ax.add_artist(image)
         return image
 
@@ -533,6 +540,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             picker=picker,
             zorder=z + 1)
         collection.set_color(color)
+        collection.set_animated(True)
         self.ax.add_collection(collection)
 
         return collection
@@ -615,9 +623,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
             raise NotImplementedError("Unsupported item shape %s" % shape)
 
         item.set_zorder(z + 1)
+        item.set_animated(True)
 
         if overlay:
-            item.set_animated(True)
             self._overlays.add(item)
 
         return item
@@ -727,7 +735,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             self._graphCursor = lineh, linev
         else:
-            if self._graphCursor is not None:
+            if self._graphCursor:
                 lineh, linev = self._graphCursor
                 lineh.remove()
                 linev.remove()
@@ -1184,17 +1192,33 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # This is needed with matplotlib 1.5.x and 2.0.x
             self._plot._setDirtyPlot()
 
+    def __drawItems(self, overlay=False):
+        """Draw plot items in the figure.
+
+        :param bool overlay:
+            False (default) to draw all items but overlays,
+            True to draw only overlay items.
+        """
+        def condition(item):
+            return (item.isVisible() and
+                    item._backendRenderer is not None and
+                    (item._backendRenderer in self._overlays) == overlay)
+
+        for item in self._plot._itemsFromBackToFront(condition=condition):
+            if (isinstance(item, items.YAxisMixIn) and
+                    item.getYAxis() == 'right'):
+                axes = self.ax2
+            else:
+                axes = self.ax
+            axes.draw_artist(item._backendRenderer)
+
     def _drawOverlays(self):
         """Draw overlays if any."""
-        if self._overlays or self._graphCursor:
-            # There is some overlays or crosshair
+        if self._overlays:
+            self.__drawItems(overlay=True)
 
-            # This assume that items are only on left/bottom Axes
-            for item in self._overlays:
-                self.ax.draw_artist(item)
-
-            for item in self._graphCursor:
-                self.ax.draw_artist(item)
+        for item in self._graphCursor:
+            self.ax.draw_artist(item)
 
     def draw(self):
         """Overload draw
@@ -1204,6 +1228,11 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         This is directly called by matplotlib for widget resize.
         """
+        # Hide axes borders to defer rendering
+        if self.ax.axison:
+            for spine in self.ax.spines.values():
+                spine.set_visible(False)
+
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
         if self._matplotlibVersion >= _parse_version("2.0.0"):
@@ -1215,6 +1244,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                     "'%s'", err)
         else:
             FigureCanvasQTAgg.draw(self)
+
+        self.__drawItems(overlay=False)
 
         if self._overlays or self._graphCursor:
             # Save background
@@ -1239,6 +1270,15 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                 self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
         self._drawOverlays()
+
+        # Draw axes borders at last
+        if self.ax.axison:
+            for spine in self.ax.spines.values():
+                spine.set_visible(True)
+                self.ax.draw_artist(spine)
+            # Alternative: redraw what's inside the frame
+            # which ends-up to redraw the border as everything is "animated"
+            #self.ax.redraw_in_frame()
 
     def replot(self):
         BackendMatplotlib.replot(self)
