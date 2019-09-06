@@ -200,7 +200,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
 
         style = self.getCurrentStyle()
 
-        return backend.addCurve(xFiltered, yFiltered, self.getLegend(),
+        return backend.addCurve(xFiltered, yFiltered,
                                 color=style.getColor(),
                                 symbol=style.getSymbol(),
                                 linestyle=style.getLineStyle(),

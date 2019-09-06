@@ -723,7 +723,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             raise ValueError('Unsupported data type')
 
-    def addCurve(self, x, y, legend,
+    def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
@@ -841,7 +841,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return curve
 
-    def addImage(self, data, legend,
+    def addImage(self, data,
                  origin, scale, z,
                  selectable, draggable,
                  colormap, alpha):
@@ -896,7 +896,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return image
 
-    def addTriangles(self, x, y, triangles, legend,
+    def addTriangles(self, x, y, triangles,
                      color, z, selectable, alpha):
         # Handle axes log scale: convert data
         if self._plotFrame.xAxis.isLog:
@@ -908,7 +908,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return triangles
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+    def addItem(self, x, y, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
         x = numpy.array(x, copy=False)
         y = numpy.array(y, copy=False)
@@ -924,7 +924,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return _ShapeItem(x, y, shape, color, fill, overlay, z,
                           linestyle, linewidth, linebgcolor)
 
-    def addMarker(self, x, y, legend, text, color,
+    def addMarker(self, x, y, text, color,
                   selectable, draggable,
                   symbol, linestyle, linewidth, constraint):
         return _MarkerItem(x, y, text, color,

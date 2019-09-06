@@ -385,12 +385,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Add methods
 
-    def addCurve(self, x, y, legend,
+    def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
                  fill, alpha, symbolsize):
-        for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
+        for parameter in (x, y, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill, alpha, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
@@ -424,7 +424,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     yerror.shape[1] == 1):
                 yerror = numpy.ravel(yerror)
 
-            errorbars = axes.errorbar(x, y, label=legend,
+            errorbars = axes.errorbar(x, y,
                                       xerr=xerror, yerr=yerror,
                                       linestyle=' ', color=errorbarColor)
             artists += list(errorbars.get_children())
@@ -439,7 +439,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if linestyle not in ["", " ", None]:
                 # scatter plot with an actual line ...
                 # we need to assign a color ...
-                curveList = axes.plot(x, y, label=legend,
+                curveList = axes.plot(x, y,
                                       linestyle=linestyle,
                                       color=actualColor[0],
                                       linewidth=linewidth,
@@ -448,7 +448,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 artists += list(curveList)
 
             scatter = axes.scatter(x, y,
-                                   label=legend,
                                    color=actualColor,
                                    marker=symbol,
                                    picker=picker,
@@ -461,7 +460,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         else:  # Curve
             curveList = axes.plot(x, y,
-                                  label=legend,
                                   linestyle=linestyle,
                                   color=color,
                                   linewidth=linewidth,
@@ -482,16 +480,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return _PickableContainer(artists)
 
-    def addImage(self, data, legend,
-                 origin, scale, z,
-                 selectable, draggable,
-                 colormap, alpha):
+    def addImage(self, data, origin, scale, z, selectable, draggable, colormap, alpha):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
         # http://stackoverflow.com/questions/11488800/non-linear-axes-for-imshow-in-matplotlib
-        for parameter in (data, legend, origin, scale, z,
-                          selectable, draggable):
+        for parameter in (data, origin, scale, z, selectable, draggable):
             assert parameter is not None
 
         origin = float(origin[0]), float(origin[1])
@@ -502,7 +496,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         # All image are shown as RGBA image
         image = Image(self.ax,
-                      label=legend,
                       interpolation='nearest',
                       picker=picker,
                       zorder=z + 1,
@@ -539,10 +532,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.add_artist(image)
         return image
 
-    def addTriangles(self, x, y, triangles, legend,
-                     color, z, selectable, alpha):
-        for parameter in (x, y, triangles, legend, color,
-                          z, selectable, alpha):
+    def addTriangles(self, x, y, triangles, color, z, selectable, alpha):
+        for parameter in (x, y, triangles, color, z, selectable, alpha):
             assert parameter is not None
 
         # 0 enables picking on filled triangle
@@ -556,7 +547,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         collection = TriMesh(
             Triangulation(x, y, triangles),
-            label=legend,
             alpha=alpha,
             picker=picker,
             zorder=z + 1)
@@ -566,7 +556,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return collection
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+    def addItem(self, x, y, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
         if (linebgcolor is not None and
                 shape not in ('rectangle', 'polygon', 'polylines')):
@@ -579,20 +569,20 @@ class BackendMatplotlib(BackendBase.BackendBase):
         linestyle = normalize_linestyle(linestyle)
 
         if shape == "line":
-            item = self.ax.plot(x, y, label=legend, color=color,
+            item = self.ax.plot(x, y, color=color,
                                 linestyle=linestyle, linewidth=linewidth,
                                 marker=None)[0]
 
         elif shape == "hline":
             if hasattr(y, "__len__"):
                 y = y[-1]
-            item = self.ax.axhline(y, label=legend, color=color,
+            item = self.ax.axhline(y, color=color,
                                    linestyle=linestyle, linewidth=linewidth)
 
         elif shape == "vline":
             if hasattr(x, "__len__"):
                 x = x[-1]
-            item = self.ax.axvline(x, label=legend, color=color,
+            item = self.ax.axvline(x, color=color,
                                    linestyle=linestyle, linewidth=linewidth)
 
         elif shape == 'rectangle':
@@ -627,7 +617,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             item = Polygon(points,
                            closed=closed,
                            fill=False,
-                           label=legend,
                            color=color,
                            linestyle=linestyle,
                            linewidth=linewidth)
@@ -648,7 +637,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return item
 
-    def addMarker(self, x, y, legend, text, color,
+    def addMarker(self, x, y, text, color,
                   selectable, draggable,
                   symbol, linestyle, linewidth, constraint):
         textArtist = None
@@ -657,7 +646,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         ymin, ymax = self.getGraphYLimits(axis='left')
 
         if x is not None and y is not None:
-            line = self.ax.plot(x, y, label=legend,
+            line = self.ax.plot(x, y,
                                 linestyle=" ",
                                 color=color,
                                 marker=symbol,
@@ -677,7 +666,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         elif x is not None:
             line = self.ax.axvline(x,
-                                   label=legend,
                                    color=color,
                                    linewidth=linewidth,
                                    linestyle=linestyle)
@@ -690,7 +678,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         elif y is not None:
             line = self.ax.axhline(y,
-                                   label=legend,
                                    color=color,
                                    linewidth=linewidth,
                                    linestyle=linestyle)

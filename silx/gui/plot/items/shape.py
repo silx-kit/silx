@@ -70,7 +70,6 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
         x, y = points.T[0], points.T[1]
         return backend.addItem(x,
                                y,
-                               legend=self.getLegend(),
                                shape=self.getType(),
                                color=self.getColor(),
                                fill=self.isFill(),

@@ -62,7 +62,6 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         return backend.addMarker(
             x=self.getXPosition(),
             y=self.getYPosition(),
-            legend=self.getLegend(),
             text=self.getText(),
             color=self.getColor(),
             selectable=self.isSelectable(),

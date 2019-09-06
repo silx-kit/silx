@@ -153,7 +153,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             x[clipped] = numpy.nan
             y[clipped] = numpy.nan
 
-        return backend.addCurve(x, y, self.getLegend(),
+        return backend.addCurve(x, y,
                                 color=self.getColor(),
                                 symbol='',
                                 linestyle=self.getLineStyle(),

@@ -302,7 +302,6 @@ class ImageData(ImageBase, ColormapMixIn):
             return None  # No data to display
 
         return backend.addImage(dataToUse,
-                                legend=self.getLegend(),
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
@@ -435,7 +434,6 @@ class ImageRgba(ImageBase):
             return None  # No data to display
 
         return backend.addImage(data,
-                                legend=self.getLegend(),
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),

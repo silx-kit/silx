@@ -97,7 +97,7 @@ class BackendBase(object):
 
     # Add methods
 
-    def addCurve(self, x, y, legend,
+    def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
@@ -106,7 +106,6 @@ class BackendBase(object):
 
         :param numpy.ndarray x: The data corresponding to the x axis
         :param numpy.ndarray y: The data corresponding to the y axis
-        :param str legend: The legend to be associated to the curve
         :param color: color(s) to be used
         :type color: string ("#RRGGBB") or (npoints, 4) unsigned byte array or
                      one of the predefined color names defined in colors.py
@@ -143,9 +142,9 @@ class BackendBase(object):
                                  at each (x, y) position.
         :returns: The handle used by the backend to univocally access the curve
         """
-        return legend
+        return object()
 
-    def addImage(self, data, legend,
+    def addImage(self, data,
                  origin, scale, z,
                  selectable, draggable,
                  colormap, alpha):
@@ -153,7 +152,6 @@ class BackendBase(object):
 
         :param numpy.ndarray data: (nrows, ncolumns) data or
                      (nrows, ncolumns, RGBA) ubyte array
-        :param str legend: The legend to be associated to the image
         :param origin: (origin X, origin Y) of the data.
                        Default: (0., 0.)
         :type origin: 2-tuple of float
@@ -168,9 +166,9 @@ class BackendBase(object):
         :param float alpha: Opacity of the image, as a float in range [0, 1].
         :returns: The handle used by the backend to univocally access the image
         """
-        return legend
+        return object()
 
-    def addTriangles(self, x, y, triangles, legend,
+    def addTriangles(self, x, y, triangles,
                      color, z, selectable, alpha):
         """Add a set of triangles.
 
@@ -178,22 +176,20 @@ class BackendBase(object):
         :param numpy.ndarray y: The data corresponding to the y axis
         :param numpy.ndarray triangles: The indices to make triangles
             as a (Ntriangle, 3) array
-        :param str legend: The legend to be associated to the curve
         :param numpy.ndarray color: color(s) as (npoints, 4) array
         :param int z: Layer on which to draw the cuve
         :param bool selectable: indicate if the curve can be selected
         :param float alpha: Opacity as a float in [0., 1.]
         :returns: The triangles' unique identifier used by the backend
         """
-        return legend
+        return object()
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+    def addItem(self, x, y, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
         """Add an item (i.e. a shape) to the plot.
 
         :param numpy.ndarray x: The X coords of the points of the shape
         :param numpy.ndarray y: The Y coords of the points of the shape
-        :param str legend: The legend to be associated to the item
         :param str shape: Type of item to be drawn in
                           hline, polygon, rectangle, vline, polylines
         :param str color: Color of the item
@@ -215,9 +211,9 @@ class BackendBase(object):
             '#FF0000'. It is used to draw dotted line using a second color.
         :returns: The handle used by the backend to univocally access the item
         """
-        return legend
+        return object()
 
-    def addMarker(self, x, y, legend, text, color,
+    def addMarker(self, x, y, text, color,
                   selectable, draggable,
                   symbol, linestyle, linewidth, constraint):
         """Add a point, vertical line or horizontal line marker to the plot.
@@ -226,7 +222,6 @@ class BackendBase(object):
                         If None, the marker is a horizontal line.
         :param float y: Vertical position of the marker in graph coordinates.
                         If None, the marker is a vertical line.
-        :param str legend: Legend associated to the marker
         :param str text: Text associated to the marker (or None for no text)
         :param str color: Color to be used for instance 'blue', 'b', '#FF0000'
         :param bool selectable: indicate if the marker can be selected
@@ -263,7 +258,7 @@ class BackendBase(object):
                           and that returns the filtered coordinates.
         :return: Handle used by the backend to univocally access the marker
         """
-        return legend
+        return object()
 
     # Remove methods
 
