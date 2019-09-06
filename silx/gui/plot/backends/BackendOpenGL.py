@@ -30,13 +30,13 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
 
-from collections import OrderedDict, namedtuple
 import logging
 import warnings
 import weakref
 
 import numpy
 
+from .. import items
 from .._utils import FLOAT32_MINPOS
 from . import BackendBase
 from ... import colors
@@ -59,179 +59,66 @@ _logger = logging.getLogger(__name__)
 # TODO check if OpenGL is available
 # TODO make an off-screen mesa backend
 
-# Bounds ######################################################################
-
-class Range(namedtuple('Range', ('min_', 'max_'))):
-    """Describes a 1D range"""
-
-    @property
-    def range_(self):
-        return self.max_ - self.min_
-
-    @property
-    def center(self):
-        return 0.5 * (self.min_ + self.max_)
-
-
-class Bounds(object):
-    """Describes plot bounds with 2 y axis"""
-
-    def __init__(self, xMin, xMax, yMin, yMax, y2Min, y2Max):
-        self._xAxis = Range(xMin, xMax)
-        self._yAxis = Range(yMin, yMax)
-        self._y2Axis = Range(y2Min, y2Max)
-
-    def __repr__(self):
-        return "x: %s, y: %s, y2: %s" % (repr(self._xAxis),
-                                         repr(self._yAxis),
-                                         repr(self._y2Axis))
-
-    @property
-    def xAxis(self):
-        return self._xAxis
-
-    @property
-    def yAxis(self):
-        return self._yAxis
-
-    @property
-    def y2Axis(self):
-        return self._y2Axis
-
-
 # Content #####################################################################
 
-class PlotDataContent(object):
-    """Manage plot data content: images and curves.
+class _ShapeItem(dict):
+    def __init__(self, x, y, shape, color, fill, overlay, z,
+                 linestyle, linewidth, linebgcolor):
+        super(_ShapeItem, self).__init__()
 
-    This class is only meant to work with _OpenGLPlotCanvas.
-    """
+        if shape not in ('polygon', 'rectangle', 'line',
+                         'vline', 'hline', 'polylines'):
+            raise NotImplementedError("Unsupported shape {0}".format(shape))
 
-    _PRIMITIVE_TYPES = 'curve', 'image', 'triangles'
+        x = numpy.array(x, copy=False)
+        y = numpy.array(y, copy=False)
 
-    def __init__(self):
-        self._primitives = OrderedDict()  # For images and curves
+        if shape == 'rectangle':
+            xMin, xMax = x
+            x = numpy.array((xMin, xMin, xMax, xMax))
+            yMin, yMax = y
+            y = numpy.array((yMin, yMax, yMax, yMin))
 
-    def add(self, primitive):
-        """Add a curve or image to the content dictionary.
+        # Ignore fill for polylines to mimic matplotlib
+        fill = fill if shape != 'polylines' else False
 
-        This function generates the key in the dict from the primitive.
+        self.update({
+            'shape': shape,
+            'color': colors.rgba(color),
+            'fill': 'hatch' if fill else None,
+            'x': x,
+            'y': y,
+            'linestyle': linestyle,
+            'linewidth': linewidth,
+            'linebgcolor': linebgcolor,
+        })
 
-        :param primitive: The primitive to add.
-        :type primitive: Instance of GLPlotCurve2D, GLPlotColormap,
-                         GLPlotRGBAImage.
-        """
-        if isinstance(primitive, GLPlotCurve2D):
-            primitiveType = 'curve'
-        elif isinstance(primitive, (GLPlotColormap, GLPlotRGBAImage)):
-            primitiveType = 'image'
-        elif isinstance(primitive, GLPlotTriangles):
-            primitiveType = 'triangles'
-        else:
-            raise RuntimeError('Unsupported object type: %s', primitive)
 
-        key = primitiveType, primitive.info['legend']
-        self._primitives[key] = primitive
+class _MarkerItem(dict):
+    def __init__(self, x, y, text, color,
+                 selectable, draggable,
+                 symbol, linestyle, linewidth, constraint):
+        super(_MarkerItem, self).__init__()
 
-    def get(self, primitiveType, legend):
-        """Get the corresponding primitive of given type with given legend.
+        if symbol is None:
+            symbol = '+'
 
-        :param str primitiveType: Type of primitive ('curve' or 'image').
-        :param str legend: The legend of the primitive to retrieve.
-        :return: The corresponding curve or None if no such curve.
-        """
-        assert primitiveType in self._PRIMITIVE_TYPES
-        return self._primitives.get((primitiveType, legend))
+        # Apply constraint to provided position
+        isConstraint = (draggable and constraint is not None and
+                        x is not None and y is not None)
+        if isConstraint:
+            x, y = constraint(x, y)
 
-    def pop(self, primitiveType, key):
-        """Pop the corresponding curve or return None if no such curve.
-
-        :param str primitiveType:
-        :param str key:
-        :return:
-        """
-        assert primitiveType in self._PRIMITIVE_TYPES
-        return self._primitives.pop((primitiveType, key), None)
-
-    def zOrderedPrimitives(self, reverse=False):
-        """List of primitives sorted according to their z order.
-
-        It is a stable sort (as sorted):
-        Original order is preserved when key is the same.
-
-        :param bool reverse: Ascending (True, default) or descending (False).
-        """
-        return sorted(self._primitives.values(),
-                      key=lambda primitive: primitive.info['zOrder'],
-                      reverse=reverse)
-
-    def primitives(self):
-        """Iterator over all primitives."""
-        return self._primitives.values()
-
-    def getBounds(self, xPositive=False, yPositive=False):
-        """Bounds of the data.
-
-        Can return strictly positive bounds (for log scale).
-        In this case, curves are clipped to their smaller positive value
-        and images with negative min are ignored.
-
-        :param bool xPositive: True to get strictly positive range.
-        :param bool yPositive: True to get strictly positive range.
-        :return: The range of data for x, y and y2, or default (1., 100.)
-                 if no range found for one dimension.
-        :rtype: Bounds
-        """
-        xMin, yMin, y2Min = float('inf'), float('inf'), float('inf')
-        xMax = 0. if xPositive else -float('inf')
-        if yPositive:
-            yMax, y2Max = 0., 0.
-        else:
-            yMax, y2Max = -float('inf'), -float('inf')
-
-        for item in self._primitives.values():
-            # To support curve <= 0. and log and bypass images:
-            # If positive only, uses x|yMinPos if available
-            # and bypass other data with negative min bounds
-            if xPositive:
-                itemXMin = getattr(item, 'xMinPos', item.xMin)
-                if itemXMin is None or itemXMin < FLOAT32_MINPOS:
-                    continue
-            else:
-                itemXMin = item.xMin
-
-            if yPositive:
-                itemYMin = getattr(item, 'yMinPos', item.yMin)
-                if itemYMin is None or itemYMin < FLOAT32_MINPOS:
-                    continue
-            else:
-                itemYMin = item.yMin
-
-            if itemXMin < xMin:
-                xMin = itemXMin
-            if item.xMax > xMax:
-                xMax = item.xMax
-
-            if item.info.get('yAxis') == 'right':
-                if itemYMin < y2Min:
-                    y2Min = itemYMin
-                if item.yMax > y2Max:
-                    y2Max = item.yMax
-            else:
-                if itemYMin < yMin:
-                    yMin = itemYMin
-                if item.yMax > yMax:
-                    yMax = item.yMax
-
-        # One of the limit has not been updated, return default range
-        if xMin >= xMax:
-            xMin, xMax = 1., 100.
-        if yMin >= yMax:
-            yMin, yMax = 1., 100.
-        if y2Min >= y2Max:
-            y2Min, y2Max = 1., 100.
-
-        return Bounds(xMin, xMax, yMin, yMax, y2Min, y2Max)
+        self.update({
+            'x': x,
+            'y': y,
+            'text': text,
+            'color': colors.rgba(color),
+            'constraint': constraint if isConstraint else None,
+            'symbol': symbol,
+            'linestyle': linestyle,
+            'linewidth': linewidth,
+        })
 
 
 # shaders #####################################################################
@@ -343,9 +230,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._crosshairCursor = None
         self._mousePosInPixels = None
 
-        self._markers = OrderedDict()
-        self._items = OrderedDict()
-        self._plotContent = PlotDataContent()  # For images and curves
         self._glGarbageCollector = []
 
         self._plotFrame = GLPlotFrame2D(
@@ -557,25 +441,24 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if plotItem._backendRenderer is None:
                 continue
 
-            legend, kind = plotItem._backendRenderer
+            item = plotItem._backendRenderer
 
-            if kind in ('curve', 'image', 'triangles'):  # Render data items
-                item = self._plotContent.get(kind, legend)
-
+            if isinstance(item, (GLPlotCurve2D,
+                                 GLPlotColormap,
+                                 GLPlotRGBAImage,
+                                 GLPlotTriangles)):  # Render data items
                 gl.glViewport(self._plotFrame.margins.left,
                               self._plotFrame.margins.bottom,
                               plotWidth, plotHeight)
 
-                if item.info.get('yAxis') == 'right':
+                if isinstance(item, GLPlotCurve2D) and item.info.get('yAxis') == 'right':
                     item.render(self._plotFrame.transformedDataY2ProjMat,
                                 isXLog, isYLog)
                 else:
                     item.render(self._plotFrame.transformedDataProjMat,
                                 isXLog, isYLog)
 
-            elif kind == 'item':  # Render shape items
-                item = self._items[legend]
-
+            elif isinstance(item, _ShapeItem):  # Render shape items
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
                 if ((isXLog and numpy.min(item['x']) < FLOAT32_MINPOS) or
@@ -585,13 +468,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 if item['shape'] == 'hline':
                     width = self._plotFrame.size[0]
-                    _, yPixel = self.dataToPixel(
+                    _, yPixel = self._plot.dataToPixel(
                         None, item['y'], axis='left', check=False)
                     points = numpy.array(((0., yPixel), (width, yPixel)),
                                          dtype=numpy.float32)
 
                 elif item['shape'] == 'vline':
-                    xPixel, _ = self.dataToPixel(
+                    xPixel, _ = self._plot.dataToPixel(
                         item['x'], None, axis='left', check=False)
                     height = self._plotFrame.size[1]
                     points = numpy.array(((xPixel, 0), (xPixel, height)),
@@ -599,7 +482,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 else:
                     points = numpy.array([
-                        self.dataToPixel(x, y, axis='left', check=False)
+                        self._plot.dataToPixel(x, y, axis='left', check=False)
                         for (x, y) in zip(item['x'], item['y'])])
 
                 # Draw the fill
@@ -633,12 +516,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                       width=item['linewidth'])
                     lines.render(self.matScreenProj)
 
-            elif kind == 'marker':
-                marker = self._markers[legend]
-
+            elif isinstance(item, _MarkerItem):
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-                xCoord, yCoord = marker['x'], marker['y']
+                xCoord, yCoord = item['x'], item['y']
 
                 if ((isXLog and xCoord is not None and xCoord <= 0) or
                         (isYLog and yCoord is not None and yCoord <= 0)):
@@ -646,56 +527,56 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     continue
 
                 if xCoord is None or yCoord is None:
-                    pixelPos = self.dataToPixel(
+                    pixelPos = self._plot.dataToPixel(
                         xCoord, yCoord, axis='left', check=False)
 
                     if xCoord is None:  # Horizontal line in data space
-                        if marker['text'] is not None:
+                        if item['text'] is not None:
                             x = self._plotFrame.size[0] - \
                                 self._plotFrame.margins.right - pixelOffset
                             y = pixelPos[1] - pixelOffset
-                            label = Text2D(marker['text'], x, y,
-                                           color=marker['color'],
+                            label = Text2D(item['text'], x, y,
+                                           color=item['color'],
                                            bgColor=(1., 1., 1., 0.5),
                                            align=RIGHT, valign=BOTTOM)
                             labels.append(label)
 
                         width = self._plotFrame.size[0]
                         lines = GLLines2D((0, width), (pixelPos[1], pixelPos[1]),
-                                          style=marker['linestyle'],
-                                          color=marker['color'],
-                                          width=marker['linewidth'])
+                                          style=item['linestyle'],
+                                          color=item['color'],
+                                          width=item['linewidth'])
                         lines.render(self.matScreenProj)
 
                     else:  # yCoord is None: vertical line in data space
-                        if marker['text'] is not None:
+                        if item['text'] is not None:
                             x = pixelPos[0] + pixelOffset
                             y = self._plotFrame.margins.top + pixelOffset
-                            label = Text2D(marker['text'], x, y,
-                                           color=marker['color'],
+                            label = Text2D(item['text'], x, y,
+                                           color=item['color'],
                                            bgColor=(1., 1., 1., 0.5),
                                            align=LEFT, valign=TOP)
                             labels.append(label)
 
                         height = self._plotFrame.size[1]
                         lines = GLLines2D((pixelPos[0], pixelPos[0]), (0, height),
-                                          style=marker['linestyle'],
-                                          color=marker['color'],
-                                          width=marker['linewidth'])
+                                          style=item['linestyle'],
+                                          color=item['color'],
+                                          width=item['linewidth'])
                         lines.render(self.matScreenProj)
 
                 else:
-                    pixelPos = self.dataToPixel(
+                    pixelPos = self._plot.dataToPixel(
                         xCoord, yCoord, axis='left', check=True)
                     if pixelPos is None:
                         # Do not render markers outside visible plot area
                         continue
 
-                    if marker['text'] is not None:
+                    if item['text'] is not None:
                         x = pixelPos[0] + pixelOffset
                         y = pixelPos[1] + pixelOffset
-                        label = Text2D(marker['text'], x, y,
-                                       color=marker['color'],
+                        label = Text2D(item['text'], x, y,
+                                       color=item['color'],
                                        bgColor=(1., 1., 1., 0.5),
                                        align=LEFT, valign=TOP)
                         labels.append(label)
@@ -705,14 +586,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     markerCurve = GLPlotCurve2D(
                         numpy.array((pixelPos[0],), dtype=numpy.float64),
                         numpy.array((pixelPos[1],), dtype=numpy.float64),
-                        marker=marker['symbol'],
-                        markerColor=marker['color'],
+                        marker=item['symbol'],
+                        markerColor=item['color'],
                         markerSize=11)
                     markerCurve.render(self.matScreenProj, False, False)
                     markerCurve.discard()
 
             else:
-                _logger.error('Unsupported kind: %s', str(kind))
+                _logger.error('Unsupported item: %s', str(item))
                 continue
 
         # Render marker labels
@@ -847,7 +728,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                  yaxis,
                  xerror, yerror, z, selectable,
                  fill, alpha, symbolsize):
-        for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
+        for parameter in (x, y, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
@@ -940,10 +821,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if color is not None:
                 color = color[0], color[1], color[2], color[3] * alpha
 
-        behaviors = set()
-        if selectable:
-            behaviors.add('selectable')
-
         curve = GLPlotCurve2D(x, y, colorArray,
                               xError=xerror,
                               yError=yerror,
@@ -956,32 +833,21 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               fillColor=color if fill else None,
                               isYLog=isYLog)
         curve.info = {
-            'legend': legend,
-            'zOrder': z,
-            'behaviors': behaviors,
             'yAxis': 'left' if yaxis is None else yaxis,
         }
 
         if yaxis == "right":
             self._plotFrame.isY2Axis = True
 
-        self._plotContent.add(curve)
-
-        return legend, 'curve'
+        return curve
 
     def addImage(self, data, legend,
                  origin, scale, z,
                  selectable, draggable,
                  colormap, alpha):
-        for parameter in (data, legend, origin, scale, z,
+        for parameter in (data, origin, scale, z,
                           selectable, draggable):
             assert parameter is not None
-
-        behaviors = set()
-        if selectable:
-            behaviors.add('selectable')
-        if draggable:
-            behaviors.add('draggable')
 
         if data.ndim == 2:
             # Ensure array is contiguous and eventually convert its type
@@ -1003,12 +869,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                    colormapIsLog,
                                    cmapRange,
                                    alpha)
-            image.info = {
-                'legend': legend,
-                'zOrder': z,
-                'behaviors': behaviors
-            }
-            self._plotContent.add(image)
 
         elif len(data.shape) == 3:
             # For RGB, RGBA data
@@ -1023,29 +883,21 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             image = GLPlotRGBAImage(data, origin, scale, alpha)
 
-            image.info = {
-                'legend': legend,
-                'zOrder': z,
-                'behaviors': behaviors
-            }
-
-            if self._plotFrame.xAxis.isLog and image.xMin <= 0.:
-                raise RuntimeError(
-                    'Cannot add image with X <= 0 with X axis log scale')
-            if self._plotFrame.yAxis.isLog and image.yMin <= 0.:
-                raise RuntimeError(
-                    'Cannot add image with Y <= 0 with Y axis log scale')
-
-            self._plotContent.add(image)
-
         else:
             raise RuntimeError("Unsupported data shape {0}".format(data.shape))
 
-        return legend, 'image'
+        # TODO is this needed?
+        if self._plotFrame.xAxis.isLog and image.xMin <= 0.:
+            raise RuntimeError(
+                'Cannot add image with X <= 0 with X axis log scale')
+        if self._plotFrame.yAxis.isLog and image.yMin <= 0.:
+            raise RuntimeError(
+                'Cannot add image with Y <= 0 with Y axis log scale')
+
+        return image
 
     def addTriangles(self, x, y, triangles, legend,
                      color, z, selectable, alpha):
-
         # Handle axes log scale: convert data
         if self._plotFrame.xAxis.isLog:
             x = numpy.log10(x)
@@ -1053,30 +905,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             y = numpy.log10(y)
 
         triangles = GLPlotTriangles(x, y, color, triangles, alpha)
-        triangles.info = {
-            'legend': legend,
-            'zOrder': z,
-            'behaviors': set(['selectable']) if selectable else set(),
-        }
-        self._plotContent.add(triangles)
 
-        return legend, 'triangles'
+        return triangles
 
     def addItem(self, x, y, legend, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
-        # TODO handle overlay
-        if shape not in ('polygon', 'rectangle', 'line',
-                         'vline', 'hline', 'polylines'):
-            raise NotImplementedError("Unsupported shape {0}".format(shape))
-
         x = numpy.array(x, copy=False)
         y = numpy.array(y, copy=False)
-
-        if shape == 'rectangle':
-            xMin, xMax = x
-            x = numpy.array((xMin, xMin, xMax, xMax))
-            yMin, yMax = y
-            y = numpy.array((yMin, yMax, yMax, yMin))
 
         # TODO is this needed?
         if self._plotFrame.xAxis.isLog and x.min() <= 0.:
@@ -1086,84 +921,37 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError(
                 'Cannot add item with Y <= 0 with Y axis log scale')
 
-        # Ignore fill for polylines to mimic matplotlib
-        fill = fill if shape != 'polylines' else False
-
-        self._items[legend] = {
-            'shape': shape,
-            'color': colors.rgba(color),
-            'fill': 'hatch' if fill else None,
-            'x': x,
-            'y': y,
-            'linestyle': linestyle,
-            'linewidth': linewidth,
-            'linebgcolor': linebgcolor,
-        }
-
-        return legend, 'item'
+        return _ShapeItem(x, y, shape, color, fill, overlay, z,
+                          linestyle, linewidth, linebgcolor)
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
                   symbol, linestyle, linewidth, constraint):
-
-        if symbol is None:
-            symbol = '+'
-
-        behaviors = set()
-        if selectable:
-            behaviors.add('selectable')
-        if draggable:
-            behaviors.add('draggable')
-
-        # Apply constraint to provided position
-        isConstraint = (draggable and constraint is not None and
-                        x is not None and y is not None)
-        if isConstraint:
-            x, y = constraint(x, y)
-
-        self._markers[legend] = {
-            'x': x,
-            'y': y,
-            'legend': legend,
-            'text': text,
-            'color': colors.rgba(color),
-            'behaviors': behaviors,
-            'constraint': constraint if isConstraint else None,
-            'symbol': symbol,
-            'linestyle': linestyle,
-            'linewidth': linewidth,
-        }
-
-        return legend, 'marker'
+        return _MarkerItem(x, y, text, color,
+                           selectable, draggable,
+                           symbol, linestyle, linewidth, constraint)
 
     # Remove methods
 
     def remove(self, item):
-        legend, kind = item
-
-        if kind == 'curve':
-            curve = self._plotContent.pop('curve', legend)
-            if curve is not None:
+        if isinstance(item, (GLPlotCurve2D,
+                             GLPlotColormap,
+                             GLPlotRGBAImage,
+                             GLPlotTriangles)):
+            if isinstance(item, GLPlotCurve2D):
                 # Check if some curves remains on the right Y axis
-                y2AxisItems = (item for item in self._plotContent.primitives()
-                               if item.info.get('yAxis', 'left') == 'right')
+                y2AxisItems = (item for item in self._plot.getItems()
+                               if isinstance(item, items.YAxisMixIn) and
+                               item.getYAxis() == 'right')
                 self._plotFrame.isY2Axis = next(y2AxisItems, None) is not None
 
-                self._glGarbageCollector.append(curve)
+            self._glGarbageCollector.append(item)
 
-        elif kind in ('image', 'triangles'):
-            item = self._plotContent.pop(kind, legend)
-            if item is not None:
-                self._glGarbageCollector.append(item)
-
-        elif kind == 'marker':
-            self._markers.pop(legend, False)
-
-        elif kind == 'item':
-            self._items.pop(legend, False)
+        elif isinstance(item, (_MarkerItem, _ShapeItem)):
+            pass  # No-op
 
         else:
-            _logger.error('Unsupported kind: %s', str(kind))
+            _logger.error('Unsupported item: %s', str(item))
 
     # Interaction methods
 
@@ -1225,15 +1013,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         yAxis = item.info['yAxis']
 
         inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
-        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                   axis=yAxis, check=True)
+        dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],
+                                         axis=yAxis, check=True)
         if dataPos is None:
             return None
         xPick0, yPick0 = dataPos
 
         inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
-        dataPos = self.pixelToData(inAreaPos[0], inAreaPos[1],
-                                   axis=yAxis, check=True)
+        dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],
+                                         axis=yAxis, check=True)
         if dataPos is None:
             return None
         xPick1, yPick1 = dataPos
@@ -1262,40 +1050,35 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                          xPickMax, yPickMax)
 
     def pickItem(self, x, y, item):
-        legend, kind = item
-
-        dataPos = self.pixelToData(x, y, axis='left', check=True)
+        dataPos = self._plot.pixelToData(x, y, axis='left', check=True)
         if dataPos is None:
             return None  # Outside plot area
 
-        # Pick markers
-        if kind == 'marker':
-            marker = self._markers.get(legend)
-            if marker is None:
-                _logger.error(
-                    "Trying to pick a marker that is not in the plot: %s",
-                    item)
-                return None
+        if item is None:
+            _logger.error("No item provided for picking")
+            return None
 
-            pixelPos = self.dataToPixel(
-                marker['x'], marker['y'], axis='left', check=False)
+        # Pick markers
+        if isinstance(item, _MarkerItem):
+            pixelPos = self._plot.dataToPixel(
+                item['x'], item['y'], axis='left', check=False)
             if pixelPos is None:
                 return None  # negative coord on a log axis
 
-            if marker['x'] is None:  # Horizontal line
-                pt1 = self.pixelToData(
+            if item['x'] is None:  # Horizontal line
+                pt1 = self._plot.pixelToData(
                     x, y - self._PICK_OFFSET, axis='left', check=False)
-                pt2 = self.pixelToData(
+                pt2 = self._plot.pixelToData(
                     x, y + self._PICK_OFFSET, axis='left', check=False)
-                isPicked = (min(pt1[1], pt2[1]) <= marker['y'] <=
+                isPicked = (min(pt1[1], pt2[1]) <= item['y'] <=
                             max(pt1[1], pt2[1]))
 
-            elif marker['y'] is None:  # Vertical line
-                pt1 = self.pixelToData(
+            elif item['y'] is None:  # Vertical line
+                pt1 = self._plot.pixelToData(
                     x - self._PICK_OFFSET, y, axis='left', check=False)
-                pt2 = self.pixelToData(
+                pt2 = self._plot.pixelToData(
                     x + self._PICK_OFFSET, y, axis='left', check=False)
-                isPicked = (min(pt1[0], pt2[0]) <= marker['x'] <=
+                isPicked = (min(pt1[0], pt2[0]) <= item['x'] <=
                             max(pt1[0], pt2[0]))
 
             else:
@@ -1306,19 +1089,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return (0,) if isPicked else None
 
         # Pick image, curve, triangles
-        elif kind in ('image', 'curve', 'triangles'):
-            glItem = self._plotContent.get(kind, legend)
-            if glItem is None:
-                _logger.error(
-                    "Trying to pick an item that is not in the plot: %s",
-                    item)
-                return None
+        elif isinstance(item, (GLPlotCurve2D,
+                               GLPlotColormap,
+                               GLPlotRGBAImage,
+                               GLPlotTriangles)):
+            if isinstance(item, (GLPlotColormap, GLPlotRGBAImage, GLPlotTriangles)):
+                return item.pick(*dataPos)  # Might be None
 
-            if isinstance(glItem, (GLPlotColormap, GLPlotRGBAImage, GLPlotTriangles)):
-                return glItem.pick(*dataPos)  # Might be None
-
-            elif isinstance(glItem, GLPlotCurve2D):
-                return self.__pickCurves(glItem, x, y)
+            elif isinstance(item, GLPlotCurve2D):
+                return self.__pickCurves(item, x, y)
             else:
                 return None
 
@@ -1424,12 +1203,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return
 
         if keepDim is None:
-            dataBounds = self._plotContent.getBounds(
-                self._plotFrame.xAxis.isLog, self._plotFrame.yAxis.isLog)
-            if dataBounds.yAxis.range_ != 0.:
-                dataRatio = dataBounds.xAxis.range_
-                dataRatio /= float(dataBounds.yAxis.range_)
-
+            ranges = self._plot.getDataRange()
+            if (ranges.y is not None and
+                ranges.x is not None and
+                (ranges.y[1] - ranges.y[0]) != 0.):
+                dataRatio = (ranges.x[1] - ranges.x[0]) / float(ranges.y[1] - ranges.y[0])
                 plotRatio = plotWidth / float(plotHeight)  # Test != 0 before
 
                 keepDim = 'x' if dataRatio > plotRatio else 'y'
@@ -1562,51 +1340,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # Data <-> Pixel coordinates conversion
 
-    def dataToPixel(self, x, y, axis, check=False):
-        assert axis in ('left', 'right')
+    def dataToPixel(self, x, y, axis):
+        return self._plotFrame.dataToPixel(x, y, axis)
 
-        if x is None or y is None:
-            dataBounds = self._plotContent.getBounds(
-                self._plotFrame.xAxis.isLog, self._plotFrame.yAxis.isLog)
-
-            if x is None:
-                x = dataBounds.xAxis.center
-
-            if y is None:
-                if axis == 'left':
-                    y = dataBounds.yAxis.center
-                else:
-                    y = dataBounds.y2Axis.center
-
-        result = self._plotFrame.dataToPixel(x, y, axis)
-
-        if check and result is not None:
-            xPixel, yPixel = result
-            width, height = self._plotFrame.size
-            if (xPixel < self._plotFrame.margins.left or
-                    xPixel > (width - self._plotFrame.margins.right) or
-                    yPixel < self._plotFrame.margins.top or
-                    yPixel > height - self._plotFrame.margins.bottom):
-                return None  # (x, y) is out of plot area
-
-        return result
-
-    def pixelToData(self, x, y, axis, check):
-        assert axis in ("left", "right")
-
-        if x is None:
-            x = self._plotFrame.size[0] / 2.
-        if y is None:
-            y = self._plotFrame.size[1] / 2.
-
-        if check and (x < self._plotFrame.margins.left or
-                      x > (self._plotFrame.size[0] -
-                           self._plotFrame.margins.right) or
-                      y < self._plotFrame.margins.top or
-                      y > (self._plotFrame.size[1] -
-                           self._plotFrame.margins.bottom)):
-            return None  # (x, y) is out of plot area
-
+    def pixelToData(self, x, y, axis):
         return self._plotFrame.pixelToData(x, y, axis)
 
     def getPlotBoundsInPixels(self):

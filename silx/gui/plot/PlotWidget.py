@@ -2863,7 +2863,18 @@ class PlotWidget(qt.QMainWindow):
         :rtype: A tuple of 2 floats: (xData, yData) or None.
         """
         assert axis in ("left", "right")
-        return self._backend.pixelToData(x, y, axis=axis, check=check)
+
+        if x is None:
+            x = self.width() // 2
+        if y is None:
+            y = self.height() // 2
+
+        if check:
+            left, top, width, height = self.getPlotBoundsInPixels()
+            if not (left <= x <= left + width and top <= y <= top + height):
+                return None
+
+        return self._backend.pixelToData(x, y, axis)
 
     def getPlotBoundsInPixels(self):
         """Plot area bounds in widget coordinates in pixels.
