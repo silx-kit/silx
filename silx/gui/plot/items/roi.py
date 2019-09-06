@@ -466,7 +466,10 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     """Plot shape which is used for the first interaction"""
 
     _DEFAULT_SYMBOL = '+'
-    """Default symbol of the PointROI"""
+    """Default symbol of the PointROI
+
+    It overwrite the `SymbolMixIn` class attribte.
+    """
 
     def __init__(self, parent=None):
         items.SymbolMixIn.__init__(self)
