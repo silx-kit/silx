@@ -104,7 +104,7 @@ def min_numerical_convertible_type(string, check_accuracy=True):
         exponent = "0"
 
     nb_precision_digits = int(exponent) - len(decimal) - 1
-    precision = _biggest_float(10) ** nb_precision_digits
+    precision = _biggest_float(10) ** nb_precision_digits * 1.2
     previous_type = _biggest_float
     for numpy_type in _float_types:
         if numpy_type == _biggest_float:
