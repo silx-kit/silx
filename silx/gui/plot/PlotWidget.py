@@ -710,7 +710,8 @@ class PlotWidget(qt.QMainWindow):
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
                  fill=None, resetzoom=True,
-                 histogram=None, copy=True):
+                 histogram=None, copy=True,
+                 baseline=None):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -845,6 +846,7 @@ class PlotWidget(qt.QMainWindow):
             curve.setColor(default_color)
             curve.setLineStyle(default_linestyle)
             curve.setSymbol(self._defaultPlotPoints)
+            curve.setBaseline(baseline=baseline)
 
         # Do not emit sigActiveCurveChanged,
         # it will be sent once with _setActiveItem

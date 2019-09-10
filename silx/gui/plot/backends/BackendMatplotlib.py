@@ -389,7 +389,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill, alpha, symbolsize):
+                 fill, alpha, symbolsize, baseline):
         for parameter in (x, y, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill, alpha, symbolsize):
             assert parameter is not None

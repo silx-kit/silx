@@ -169,6 +169,8 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
     _DEFAULT_HIGHLIGHT_STYLE = CurveStyle(color='black')
     """Default highlight style of the item"""
 
+    _DEFAULT_BASELINE = None
+
     def __init__(self):
         PointsBase.__init__(self)
         ColorMixIn.__init__(self)
@@ -179,6 +181,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
 
         self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
         self._highlighted = False
+        self._baseline = None
 
         self.sigItemChanged.connect(self.__itemChanged)
 
@@ -212,7 +215,8 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
                                 selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
-                                symbolsize=style.getSymbolSize())
+                                symbolsize=style.getSymbolSize(),
+                                baseline=self.getBaseline())
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
@@ -241,7 +245,8 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
                 'yerror': self.getYErrorData(copy=False),
                 'z': self.getZValue(),
                 'selectable': self.isSelectable(),
-                'fill': self.isFill()
+                'fill': self.isFill(),
+                'baseline': self.getBaseline(copy=False),
             }
             return params
         else:
@@ -320,6 +325,15 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
                      one of the predefined color names defined in colors.py
         """
         self.setHighlightedStyle(CurveStyle(color))
+
+    def setBaseline(self, baseline):
+        self._baseline = baseline
+
+    def getBaseline(self, copy=True):
+        if copy is True and isinstance(self._baseline, numpy.ndarray):
+            return self._baseline.copy()
+        else:
+            return self._baseline
 
     def getCurrentStyle(self):
         """Returns the current curve style.

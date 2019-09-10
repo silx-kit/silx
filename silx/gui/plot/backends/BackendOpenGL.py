@@ -727,7 +727,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill, alpha, symbolsize):
+                 fill, alpha, symbolsize, baseline):
         for parameter in (x, y, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill, symbolsize):
             assert parameter is not None
