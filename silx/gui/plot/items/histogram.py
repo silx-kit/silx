@@ -111,6 +111,8 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
     _DEFAULT_LINESTYLE = '-'
     """Default line style of the histogram"""
 
+    _DEFAULT_BASELINE = None
+
     def __init__(self):
         Item.__init__(self)
         AlphaMixIn.__init__(self)
@@ -121,6 +123,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
         self._histogram = ()
         self._edges = ()
+        self._baseline = Histogram._DEFAULT_BASELINE
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -165,7 +168,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                                 selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
-                                baseline=None,
+                                baseline=self._baseline,
                                 symbolsize=1)
 
     def _getBounds(self):
@@ -297,6 +300,20 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                 plot._invalidateDataRange()
 
         self._updated(ItemChangedType.DATA)
+
+    def setBaseline(self, baseline):
+        if isinstance(baseline, numpy.ndarray):
+            self._baseline = numpy.empty(baseline.shape[0] * 2)
+            for i_value, value in enumerate(baseline):
+                self._baseline[i_value*2:i_value*2+2] = value
+        else:
+            self._baseline = baseline
+
+    def getBaseline(self, copy=True):
+        if copy is True and isinstance(self._baseline, numpy.ndarray):
+            return self._baseline.copy()
+        else:
+            return self._baseline
 
     def getAlignment(self):
         """

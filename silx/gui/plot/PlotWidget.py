@@ -926,7 +926,8 @@ class PlotWidget(qt.QMainWindow):
                      fill=None,
                      align='center',
                      resetzoom=True,
-                     copy=True):
+                     copy=True,
+                     baseline=None):
         """Add an histogram to the graph.
 
         This is NOT computing the histogram, this method takes as parameter
@@ -957,6 +958,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool resetzoom: True (the default) to reset the zoom.
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
+        :param int baseline: baseline value
         :returns: The key string identify this histogram
         """
         legend = 'Unnamed histogram' if legend is None else str(legend)
@@ -979,6 +981,9 @@ class PlotWidget(qt.QMainWindow):
 
         # Set histogram data
         histo.setData(histogram, edges, align=align, copy=copy)
+        # set baseline
+        if baseline is not None:
+            histo.setBaseline(baseline=baseline)
 
         if mustBeAdded:
             self._add(histo)
