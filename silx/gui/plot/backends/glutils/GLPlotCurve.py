@@ -124,7 +124,12 @@ class _Fill2D(object):
         self.offset = offset
 
         # Offset baseline
-        self.baseline = baseline - self.offset[1]
+        if not isinstance(baseline, numpy.ndarray):
+            self._base_is_a_single_pt = True
+            self.baseline = numpy.repeat(baseline - self.offset[1], len(self.xData))
+        else:
+            self._base_is_a_single_pt = False
+            self.baseline = baseline - self.offset[1]
 
     def prepare(self):
         """Rendering preparation: build indices and bounding box vertices"""
@@ -132,8 +137,7 @@ class _Fill2D(object):
                 self.xData is not None and self.yData is not None):
 
             # Get slices of not NaN values longer than 1 element
-            isnan = numpy.logical_or(numpy.isnan(self.xData),
-                                     numpy.isnan(self.yData))
+            isnan = numpy.logical_or(numpy.isnan(self.xData), numpy.isnan(self.yData))
             notnan = numpy.logical_not(isnan)
             start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
             if notnan[0]:
@@ -143,31 +147,27 @@ class _Fill2D(object):
                 end = numpy.append(end, len(isnan))
             slices = numpy.transpose((start, end))
             # discard slices with less than length values
-            slices = slices[numpy.diff(slices, axis=1).reshape(-1) >= 2]
-
+            # slices = slices[numpy.diff(slices, axis=1).reshape(-1) >= 2]
             # Number of points: slice + 2 * leading and trailing points
             # Twice leading and trailing points to produce degenerated triangles
-            nbPoints = numpy.sum(numpy.diff(slices, axis=1)) + 4 * len(slices)
+            # nbPoints = numpy.sum(numpy.diff(slices, axis=1)) + 4 * len(slices)
+
+            nbPoints = len(notnan) * 4
             points = numpy.empty((nbPoints, 2), dtype=numpy.float32)
 
             offset = 0
+            # invert baseline for filling
+            inv_baseline = self.baseline[::-1]
+            inv_xData = self.xData[::-1]
+
             for start, end in slices:
-                # Duplicate first point for connecting degenerated triangle
-                points[offset:offset+2] = self.xData[start], self.baseline
+                for x, y in zip(self.xData[start:end], self.yData[start:end]):
+                    points[offset] = x, y
+                    offset += 2
 
-                # 2nd point of the polygon is last point
-                points[offset+2] = self.xData[end-1], self.baseline
-
-                # Add all points from the data
-                indices = start + buildFillMaskIndices(end - start)
-
-                points[offset+3:offset+3+len(indices), 0] = self.xData[indices]
-                points[offset+3:offset+3+len(indices), 1] = self.yData[indices]
-
-                # Duplicate last point for connecting degenerated triangle
-                points[offset+3+len(indices)] = points[offset+3+len(indices)-1]
-
-                offset += len(indices) + 4
+                for x, y in zip(inv_xData[start:end], inv_baseline[start:end]):
+                    points[offset] = x, y
+                    offset += 2
 
             self._xFillVboData, self._yFillVboData = vertexBuffer(points.T)
 
@@ -964,6 +964,7 @@ class GLPlotCurve2D(object):
                  markerColor=(0., 0., 0., 1.),
                  markerSize=7,
                  fillColor=None,
+                 baseline=None,
                  isYLog=False):
 
         self.colorData = colorData
@@ -1005,9 +1006,12 @@ class GLPlotCurve2D(object):
             self.yData = yData
 
         if fillColor is not None:
+            _baseline = -38 if isYLog else 0
+            if baseline is not None:
+                _baseline = baseline
             # Use different baseline depending of Y log scale
             self.fill = _Fill2D(self.xData, self.yData,
-                                baseline=-38 if isYLog else 0,
+                                baseline=_baseline,
                                 color=fillColor,
                                 offset=self.offset)
         else:
