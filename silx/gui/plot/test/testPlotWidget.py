@@ -475,6 +475,47 @@ class TestPlotCurve(PlotWidgetTestCase):
                            replace=False, resetzoom=False,
                            color=color, symbol='o')
 
+    def testPlotBaseline(self):
+        """simple test of the API with baseline as a numpy array"""
+        x = numpy.arange(0, 10, step=0.1)
+        my_sin = numpy.sin(x)
+        y = numpy.arange(-4, 6, step=0.1) + my_sin
+        baseline = y - 1.0
+
+        self.plot.addCurve(x=x, y=y, color='grey', legend='curve1', fill=True,
+                           baseline=baseline)
+
+    def testPlotBaseline(self):
+        """simple test of the API with baseline as an int"""
+        x = numpy.arange(0, 10, step=0.1)
+        my_sin = numpy.sin(x)
+        y = numpy.arange(-4, 6, step=0.1) + my_sin
+
+        self.plot.addCurve(x=x, y=y, color='grey', legend='curve1', fill=True,
+                           baseline=0)
+
+
+class TestPlotHistogram(PlotWidgetTestCase):
+    """Basic tests for add Histogram"""
+    def setUp(self):
+        super(TestPlotHistogram, self).setUp()
+        self.edges = numpy.arange(0, 10, step=1)
+        self.histogram = numpy.random.random(len(self.edges))
+
+    def testPlot(self):
+        self.plot.addHistogram(histogram=self.histogram,
+                               edges=self.edges,
+                               legend='histogram1')
+
+    def testPlotBaseline(self):
+        self.plot.addHistogram(histogram=self.histogram,
+                               edges=self.edges,
+                               legend='histogram1',
+                               color='blue',
+                               baseline=-2,
+                               z=2,
+                               fill=True)
+
 
 class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addScatter"""
@@ -1564,6 +1605,7 @@ def suite():
     testClasses = (TestPlotWidget,
                    TestPlotImage,
                    TestPlotCurve,
+                   TestPlotHistogram,
                    TestPlotScatter,
                    TestPlotMarker,
                    TestPlotItem,
