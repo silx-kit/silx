@@ -54,6 +54,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         self._text = ''
         self._x = None
         self._y = None
+        self._yAxis = None
         self._constraint = self._defaultConstraint
 
     def _addRendererCall(self, backend,
@@ -69,7 +70,8 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
             symbol=symbol,
             linestyle=linestyle,
             linewidth=linewidth,
-            constraint=self.getConstraint())
+            constraint=self.getConstraint(),
+            yaxis=self.getYAxis())
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -137,6 +139,23 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         if x != self._x or y != self._y:
             self._x, self._y = x, y
             self._updated(ItemChangedType.POSITION)
+
+    def getYAxis(self):
+        """Returns the yaxis in which the marker in displayed
+
+        :rtype: str
+        """
+        return self._yAxis
+
+    def setYAxis(self, yAxis):
+        """Set the y-axis which have to be used by this marker
+
+        :param str yAxis: The y-axis location ('left', 'right')
+        """
+        assert(yAxis in ('left', 'right'))
+        if yAxis != self._yAxis:
+            self._yAxis = yAxis
+            self._updated(ItemChangedType.YAXIS)
 
     def getConstraint(self):
         """Returns the dragging constraint of this item"""

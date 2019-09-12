@@ -1307,7 +1307,8 @@ class PlotWidget(qt.QMainWindow):
                    color=None,
                    selectable=False,
                    draggable=False,
-                   constraint=None):
+                   constraint=None,
+                   yaxis='left'):
         """Add a vertical line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1333,12 +1334,14 @@ class PlotWidget(qt.QMainWindow):
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
+        :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
         :return: The key string identify this marker
         """
         return self._addMarker(x=x, y=None, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
-                               symbol=None, constraint=constraint)
+                               symbol=None, constraint=constraint,
+                               yaxis=yaxis)
 
     def addYMarker(self, y,
                    legend=None,
@@ -1346,7 +1349,8 @@ class PlotWidget(qt.QMainWindow):
                    color=None,
                    selectable=False,
                    draggable=False,
-                   constraint=None):
+                   constraint=None,
+                   yaxis='left'):
         """Add a horizontal line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1372,12 +1376,14 @@ class PlotWidget(qt.QMainWindow):
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
+        :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
         :return: The key string identify this marker
         """
         return self._addMarker(x=None, y=y, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
-                               symbol=None, constraint=constraint)
+                               symbol=None, constraint=constraint,
+                               yaxis=yaxis)
 
     def addMarker(self, x, y, legend=None,
                   text=None,
@@ -1385,7 +1391,8 @@ class PlotWidget(qt.QMainWindow):
                   selectable=False,
                   draggable=False,
                   symbol='+',
-                  constraint=None):
+                  constraint=None,
+                  yaxis='left'):
         """Add a point marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1423,6 +1430,7 @@ class PlotWidget(qt.QMainWindow):
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
+        :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
         :return: The key string identify this marker
         """
         if x is None:
@@ -1436,12 +1444,14 @@ class PlotWidget(qt.QMainWindow):
         return self._addMarker(x=x, y=y, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
-                               symbol=symbol, constraint=constraint)
+                               symbol=symbol, constraint=constraint,
+                               yaxis=yaxis)
 
     def _addMarker(self, x, y, legend,
                    text, color,
                    selectable, draggable,
-                   symbol, constraint):
+                   symbol, constraint,
+                   yaxis=None):
         """Common method for adding point, vline and hline marker.
 
         See :meth:`addMarker` for argument documentation.
@@ -1487,6 +1497,7 @@ class PlotWidget(qt.QMainWindow):
             marker._setDraggable(draggable)
         if symbol is not None:
             marker.setSymbol(symbol)
+        marker.setYAxis(yaxis)
 
         # TODO to improve, but this ensure constraint is applied
         marker.setPosition(x, y)

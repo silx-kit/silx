@@ -97,7 +97,7 @@ class _ShapeItem(dict):
 class _MarkerItem(dict):
     def __init__(self, x, y, text, color,
                  selectable, draggable,
-                 symbol, linestyle, linewidth, constraint):
+                 symbol, linestyle, linewidth, constraint, yaxis):
         super(_MarkerItem, self).__init__()
 
         if symbol is None:
@@ -118,6 +118,7 @@ class _MarkerItem(dict):
             'symbol': symbol,
             'linestyle': linestyle,
             'linewidth': linewidth,
+            'yaxis': yaxis,
         })
 
 
@@ -519,7 +520,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             elif isinstance(item, _MarkerItem):
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-                xCoord, yCoord = item['x'], item['y']
+                xCoord, yCoord, yAxis = item['x'], item['y'], item['yaxis']
 
                 if ((isXLog and xCoord is not None and xCoord <= 0) or
                         (isYLog and yCoord is not None and yCoord <= 0)):
@@ -528,7 +529,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 if xCoord is None or yCoord is None:
                     pixelPos = self._plot.dataToPixel(
-                        xCoord, yCoord, axis='left', check=False)
+                        xCoord, yCoord, axis=yAxis, check=False)
 
                     if xCoord is None:  # Horizontal line in data space
                         if item['text'] is not None:
@@ -567,7 +568,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 else:
                     pixelPos = self._plot.dataToPixel(
-                        xCoord, yCoord, axis='left', check=True)
+                        xCoord, yCoord, axis=yAxis, check=True)
                     if pixelPos is None:
                         # Do not render markers outside visible plot area
                         continue
@@ -926,10 +927,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addMarker(self, x, y, text, color,
                   selectable, draggable,
-                  symbol, linestyle, linewidth, constraint):
+                  symbol, linestyle, linewidth, constraint, yaxis):
         return _MarkerItem(x, y, text, color,
                            selectable, draggable,
-                           symbol, linestyle, linewidth, constraint)
+                           symbol, linestyle, linewidth, constraint, yaxis)
 
     # Remove methods
 
@@ -1060,24 +1061,25 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         # Pick markers
         if isinstance(item, _MarkerItem):
+            yaxis = item['yaxis']
             pixelPos = self._plot.dataToPixel(
-                item['x'], item['y'], axis='left', check=False)
+                item['x'], item['y'], axis=yaxis, check=False)
             if pixelPos is None:
                 return None  # negative coord on a log axis
 
             if item['x'] is None:  # Horizontal line
                 pt1 = self._plot.pixelToData(
-                    x, y - self._PICK_OFFSET, axis='left', check=False)
+                    x, y - self._PICK_OFFSET, axis=yaxis, check=False)
                 pt2 = self._plot.pixelToData(
-                    x, y + self._PICK_OFFSET, axis='left', check=False)
+                    x, y + self._PICK_OFFSET, axis=yaxis, check=False)
                 isPicked = (min(pt1[1], pt2[1]) <= item['y'] <=
                             max(pt1[1], pt2[1]))
 
             elif item['y'] is None:  # Vertical line
                 pt1 = self._plot.pixelToData(
-                    x - self._PICK_OFFSET, y, axis='left', check=False)
+                    x - self._PICK_OFFSET, y, axis=yaxis, check=False)
                 pt2 = self._plot.pixelToData(
-                    x + self._PICK_OFFSET, y, axis='left', check=False)
+                    x + self._PICK_OFFSET, y, axis=yaxis, check=False)
                 isPicked = (min(pt1[0], pt2[0]) <= item['x'] <=
                             max(pt1[0], pt2[0]))
 
