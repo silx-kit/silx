@@ -454,7 +454,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                    s=symbolsize**2)
             artists.append(scatter)
 
-            if fill or baseline is not None:
+            if fill:
                 if baseline is None:
                     _baseline = FLOAT32_MINPOS
                 else:
@@ -472,7 +472,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                   markersize=symbolsize)
             artists += list(curveList)
 
-            if fill or baseline is not None:
+            if fill:
                 if baseline is None:
                     _baseline = FLOAT32_MINPOS
                 else:

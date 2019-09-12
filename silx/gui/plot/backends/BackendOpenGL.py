@@ -822,7 +822,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 color = color[0], color[1], color[2], color[3] * alpha
 
         fillColor = None
-        if fill is True or baseline is not None:
+        if fill is True:
             fillColor = color
         curve = GLPlotCurve2D(x, y, colorArray,
                               xError=xerror,
