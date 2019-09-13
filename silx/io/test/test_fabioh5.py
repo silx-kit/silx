@@ -238,6 +238,26 @@ class TestFabioH5(unittest.TestCase):
         self.assertIn(data.dtype.kind, ['d', 'f'])
         self.assertGreaterEqual(data.dtype.itemsize, 64 / 8)
 
+    def test_mixed_float_size__scalar(self):
+        # We expect to have a precision of 32 bits
+        float_list = [u'1.2', u'1.3001']
+        expected_float_result = [1.2, 1.3001]
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = None
+        for float_item in float_list:
+            header = {"float_item": float_item}
+            if fabio_image is None:
+                fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
+            else:
+                fabio_image.appendFrame(data=data, header=header)
+        h5_image = fabioh5.File(fabio_image=fabio_image)
+        data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
+        # At worst a float32
+        self.assertIn(data.dtype.kind, ['d', 'f'])
+        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        for computed, expected in zip(data, expected_float_result):
+            numpy.testing.assert_almost_equal(computed, expected, 5)
+
     def test_mixed_float_size__list(self):
         # We expect to have a precision of 32 bits
         float_list = [u'1.2 1.3001']

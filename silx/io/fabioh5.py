@@ -614,12 +614,16 @@ class FabioReader(object):
         converted = []
         types = set([])
         has_none = False
+        is_array = False
+
         for v in values:
             if v is None:
                 converted.append(None)
                 has_none = True
             else:
                 c = self._convert_value(v)
+                if c.shape != tuple():
+                    is_array = True
                 converted.append(c)
                 types.add(c.dtype)
 
@@ -661,8 +665,13 @@ class FabioReader(object):
                 if r is not None:
                     continue
                 result[index] = none_value
+                values[index] = none_value
 
-        return numpy.array(result, dtype=result_type)
+        if is_array:
+            return numpy.array(result, dtype=result_type)
+        if len(types) == 1:
+            return numpy.array(result, dtype=result_type)
+        return numpy.array(values, dtype=result_type)
 
     def _convert_value(self, value):
         """Convert a string into a numpy object (scalar or array).
