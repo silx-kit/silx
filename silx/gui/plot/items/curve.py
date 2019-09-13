@@ -246,7 +246,6 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
                 'z': self.getZValue(),
                 'selectable': self.isSelectable(),
                 'fill': self.isFill(),
-                'baseline': self.getBaseline(copy=False),
             }
             return params
         else:
