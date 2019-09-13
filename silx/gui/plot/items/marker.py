@@ -34,13 +34,13 @@ import logging
 
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
-                   ItemChangedType)
+                   ItemChangedType, YAxisMixIn)
 
 
 _logger = logging.getLogger(__name__)
 
 
-class MarkerBase(Item, DraggableMixIn, ColorMixIn):
+class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     """Base class for markers"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
@@ -50,11 +50,11 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         Item.__init__(self)
         DraggableMixIn.__init__(self)
         ColorMixIn.__init__(self)
+        YAxisMixIn.__init__(self)
 
         self._text = ''
         self._x = None
         self._y = None
-        self._yAxis = None
         self._constraint = self._defaultConstraint
 
     def _addRendererCall(self, backend,
@@ -139,23 +139,6 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         if x != self._x or y != self._y:
             self._x, self._y = x, y
             self._updated(ItemChangedType.POSITION)
-
-    def getYAxis(self):
-        """Returns the yaxis in which the marker in displayed
-
-        :rtype: str
-        """
-        return self._yAxis
-
-    def setYAxis(self, yAxis):
-        """Set the y-axis which have to be used by this marker
-
-        :param str yAxis: The y-axis location ('left', 'right')
-        """
-        assert(yAxis in ('left', 'right'))
-        if yAxis != self._yAxis:
-            self._yAxis = yAxis
-            self._updated(ItemChangedType.YAXIS)
 
     def getConstraint(self):
         """Returns the dragging constraint of this item"""
