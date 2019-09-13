@@ -732,7 +732,10 @@ class FabioReader(object):
                 # use the raw data to create the result
                 return numpy.unicode_(value)
             else:
-                return numpy.array(numpy_values, dtype=result_type)
+                if len(types) == 1:
+                    return numpy.array(numpy_values, dtype=result_type)
+                else:
+                    return numpy.array(values, dtype=result_type)
         except ValueError:
             return numpy.string_(value)
 
