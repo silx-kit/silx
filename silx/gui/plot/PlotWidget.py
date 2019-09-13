@@ -792,6 +792,8 @@ class PlotWidget(qt.QMainWindow):
             - 'center'
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
+        :param baseline: curve baseline
+        :type: Union[None,float,numpy.ndarray]
         :returns: The key string identify this curve
         """
         # This is an histogram, use addHistogram
@@ -960,7 +962,8 @@ class PlotWidget(qt.QMainWindow):
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         :param int z: Layer on which to draw the histogram
-        :param int baseline: baseline value
+        :param baseline: histogram baseline
+        :type: Union[None,float,numpy.ndarray]
         :returns: The key string identify this histogram
         """
         legend = 'Unnamed histogram' if legend is None else str(legend)

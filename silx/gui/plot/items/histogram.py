@@ -302,14 +302,31 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
         self._updated(ItemChangedType.DATA)
 
     def setBaseline(self, baseline):
+        """
+        Set histogram baseline baseline
+
+        :param baseline: histogram baseline
+        :type: Union[float,numpy.ndarray]
+        :return:
+        """
         if isinstance(baseline, numpy.ndarray):
-            self._baseline = numpy.empty(baseline.shape[0] * 2)
-            for i_value, value in enumerate(baseline):
-                self._baseline[i_value*2:i_value*2+2] = value
+            # manage the case user give only one value par histogram value
+            if len(self._baseline) != len(self._edges):
+                self._baseline = numpy.empty(baseline.shape[0] * 2)
+                for i_value, value in enumerate(baseline):
+                    self._baseline[i_value*2:i_value*2+2] = value
+            else:
+                self._baseline = baseline
         else:
             self._baseline = baseline
 
     def getBaseline(self, copy=True):
+        """
+
+        :param bool copy:
+        :return: histogram baseline
+        :rtype: Union[float,None,numpy.ndarray]
+        """
         if copy is True and isinstance(self._baseline, numpy.ndarray):
             return self._baseline.copy()
         else:
