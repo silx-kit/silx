@@ -32,6 +32,11 @@ __date__ = "28/08/2018"
 import logging
 
 import numpy
+from collections import OrderedDict, namedtuple
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 
 from .core import (Item, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
                    LineMixIn, YAxisMixIn, ItemChangedType)
@@ -296,11 +301,13 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             edgesDiff = numpy.diff(edges)
             assert numpy.all(edgesDiff >= 0) or numpy.all(edgesDiff <= 0)
             # manage baseline
-            if (isinstance(baseline, numpy.ndarray) and
-                    baseline.size == histogram.size):
-                baseline = numpy.empty(baseline.shape[0] * 2)
-                for i_value, value in enumerate(baseline):
-                    baseline[i_value*2:i_value*2+2] = value
+            if (isinstance(baseline, abc.Iterable)):
+                baseline = numpy.array(baseline)
+                if baseline.size == histogram.size:
+                    new_baseline = numpy.empty(baseline.shape[0] * 2)
+                    for i_value, value in enumerate(baseline):
+                        new_baseline[i_value*2:i_value*2+2] = value
+                    baseline = new_baseline
             self._histogram = histogram
             self._edges = edges
             self._alignement = align

@@ -40,7 +40,7 @@ import argparse
 
 def stacked_histogran(plot, edges, histograms, colors, legend):
     # check that we have the same number of histogram, color and baseline
-    current_baseline = numpy.zeros(len(edges))
+    current_baseline = numpy.zeros_like(edges)
 
     for histogram, color, layer_index in zip(histograms, colors, range(len(colors))):
         stacked_histo = histogram + current_baseline

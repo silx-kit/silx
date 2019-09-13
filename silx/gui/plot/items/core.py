@@ -1259,6 +1259,8 @@ class BaselineMixIn(object):
         :param baseline: baseline value(s)
         :type: Union[None,float,numpy.ndarray]
         """
+        if (isinstance(baseline, abc.Iterable)):
+            baseline = numpy.array(baseline)
         self._baseline = baseline
 
     def getBaseline(self, copy=True):
