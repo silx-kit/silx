@@ -122,6 +122,8 @@ class _Fill2D(object):
         self._yFillVboData = None
         self.color = color
         self.offset = offset
+
+        # Offset baseline
         self.baseline = baseline - self.offset[1]
 
     def prepare(self):
