@@ -987,10 +987,8 @@ class PlotWidget(qt.QMainWindow):
             histo.setZValue(z=z)
 
         # Set histogram data
-        histo.setData(histogram, edges, align=align, copy=copy)
-        # set baseline
-        if baseline is not None:
-            histo.setBaseline(baseline=baseline)
+        histo.setData(histogram=histogram, edges=edges, baseline=baseline,
+                      align=align, copy=copy)
 
         if mustBeAdded:
             self._add(histo)

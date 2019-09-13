@@ -38,7 +38,8 @@ import six
 from ....utils.deprecation import deprecated
 from ... import colors
 from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
-                   FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType)
+                   FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType,
+                   BaselineMixIn)
 
 
 _logger = logging.getLogger(__name__)
@@ -151,7 +152,8 @@ class CurveStyle(object):
             return False
 
 
-class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
+class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
+            LineMixIn, BaselineMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -178,10 +180,11 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
         FillMixIn.__init__(self)
         LabelsMixIn.__init__(self)
         LineMixIn.__init__(self)
+        BaselineMixIn.__init__(self)
 
         self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
         self._highlighted = False
-        self._baseline = Curve._DEFAULT_BASELINE
+        self.setBaseline(Curve._DEFAULT_BASELINE)
 
         self.sigItemChanged.connect(self.__itemChanged)
 
@@ -216,7 +219,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
                                 symbolsize=style.getSymbolSize(),
-                                baseline=self.getBaseline())
+                                baseline=self.getBaseline(copy=False))
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
@@ -324,15 +327,6 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
                      one of the predefined color names defined in colors.py
         """
         self.setHighlightedStyle(CurveStyle(color))
-
-    def setBaseline(self, baseline):
-        self._baseline = baseline
-
-    def getBaseline(self, copy=True):
-        if copy is True and isinstance(self._baseline, numpy.ndarray):
-            return self._baseline.copy()
-        else:
-            return self._baseline
 
     def getCurrentStyle(self):
         """Returns the current curve style.
