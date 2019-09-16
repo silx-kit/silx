@@ -153,10 +153,10 @@ def main():
     # define rois
     rectangle_roi = RectangleROI()
     rectangle_roi.setGeometry(origin=(0, 0), size=(20, 20))
-    rectangle_roi.setLabel('Initial ROI')
+    rectangle_roi.setName('Initial ROI')
     rectangle_roi2 = RectangleROI()
     rectangle_roi2.setGeometry(origin=(0, 100), size=(50, 50))
-    rectangle_roi2.setLabel('ROI second')
+    rectangle_roi2.setName('ROI second')
     roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
     window.setRois(rois1D=(roi1D,), rois2D=(rectangle_roi, rectangle_roi2))
 

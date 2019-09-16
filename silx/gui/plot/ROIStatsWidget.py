@@ -177,7 +177,7 @@ class ROIStatsItemHelper(object):
         if isinstance(self._roi, ROI):
             return self._roi.getName()
         elif isinstance(self._roi, RegionOfInterest):
-            return self._roi.getLabel()
+            return self._roi.getName()
         else:
             raise TypeError('Unmanaged roi type')
 
