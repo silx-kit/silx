@@ -45,6 +45,7 @@ from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot import stats as statsmdl
 from collections import OrderedDict
 from silx.utils.proxy import docstring
+import functools
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -498,16 +499,36 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
             self.__roiToItems[item._roi] = set()
             # TODO: normalize also sig name
             if isinstance(item._roi, RegionOfInterest):
+                # item connection within sigRegionChanged should only be
+                # stopped during the region edition
                 item._roi.sigRegionChanged.connect(self._updateAllStats)
+                item._roi.sigRegionEditionStarted.connect(functools.partial(
+                    self._startFiltering, item._roi))
+                item._roi.sigRegionEditionFinished.connect(functools.partial(
+                    self._endFiltering, item._roi))
             else:
                 item._roi.sigChanged.connect(self._updateAllStats)
         self.__roiToItems[item._roi].add(item)
+
+    def _startFiltering(self, roi):
+        roi.sigRegionChanged.disconnect(self._updateAllStats)
+
+    def _endFiltering(self, roi):
+        roi.sigRegionChanged.connect(self._updateAllStats)
+        self._updateAllStats()
 
     def unregisterROI(self, roi):
         if roi in self.__roiToItems:
             del self.__roiToItems[roi]
             if isinstance(roi, RegionOfInterest):
-                roi.sigRegionChanged.disconnect(self._updateAllStats)
+                roi.sigRegionEditionStarted.disconnect(functools.partial(
+                    self._startFiltering, roi))
+                roi.sigRegionEditionFinished.disconnect(functools.partial(
+                    self._startFiltering, roi))
+                try:
+                    roi.sigRegionChanged.disconnect(self._updateAllStats)
+                except:
+                    pass
             else:
                 roi.sigChanged.disconnect(self._updateAllStats)
 
