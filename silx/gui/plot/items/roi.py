@@ -406,7 +406,7 @@ class RegionOfInterest(_RegionOfInterestBase, qt.QObject):
         markerPos = self._getLabelPosition()
         marker = items.Marker()
         marker.setPosition(*markerPos)
-        marker.setText(self.getLabel())
+        marker.setText(self.getName())
         marker.setColor(rgba(self.getColor()))
         marker.setSymbol('')
         marker._setDraggable(False)
@@ -547,7 +547,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def _createShapeItems(self, points):
         marker = items.Marker()
         marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
+        marker.setText(self.getName())
         marker.setSymbol(self.getSymbol())
         marker.setSymbolSize(self.getSymbolSize())
         marker.setColor(rgba(self.getColor()))
@@ -731,7 +731,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     def _createShapeItems(self, points):
         marker = items.YMarker()
         marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
+        marker.setText(self.getName())
         marker.setColor(rgba(self.getColor()))
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
@@ -801,7 +801,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     def _createShapeItems(self, points):
         marker = items.XMarker()
         marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
+        marker.setText(self.getName())
         marker.setColor(rgba(self.getColor()))
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
