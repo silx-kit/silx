@@ -1263,6 +1263,8 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         if isinstance(item, items.MarkerBase):
             self._signalMarkerMovingEvent('markerMoving', item, x, y)
+            if item is not None:
+                item.startDrag()
 
         return True
 
@@ -1297,6 +1299,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 item.isSelectable(),
                 posData)
             self.plot.notify(**eventDict)
+            item.endDrag()
 
         self.__terminateDrag()
 
@@ -1432,7 +1435,6 @@ class ZoomAndSelect(ItemsInteraction):
         :return: True if click is catched by an item, False otherwise
         """
         eventDict = self._handleClick(x, y, btn)
-
         if eventDict is not None:
             # Signal mouse clicked event
             dataPos = self.plot.pixelToData(x, y)
