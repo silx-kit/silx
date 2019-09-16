@@ -1435,6 +1435,7 @@ class ZoomAndSelect(ItemsInteraction):
         :return: True if click is catched by an item, False otherwise
         """
         eventDict = self._handleClick(x, y, btn)
+        
         if eventDict is not None:
             # Signal mouse clicked event
             dataPos = self.plot.pixelToData(x, y)

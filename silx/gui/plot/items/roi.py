@@ -100,8 +100,15 @@ class RegionOfInterest(_RegionOfInterestBase):
     sigRegionChanged = qt.Signal()
     """Signal emitted everytime the shape or position of the ROI changes"""
 
+    sigRegionEditionStarted = qt.Signal()
+    """Signal emitted when the user start editing the roi"""
+    sigRegionEditionFinished = qt.Signal()
+    """Signal emitted when the region edition is finished. During edition
+    sigEditionChanged will be emitted several times and 
+    sigRegionEditionFinished only at end"""
+
     def __init__(self, parent=None):
-        # Avoid circular dependancy
+        # Avoid circular dependency
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         _RegionOfInterestBase.__init__(self, parent, '')
@@ -113,6 +120,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._editable = False
         self._visible = True
         self.sigItemChanged.connect(self.__itemChanged)
+        self._editing = False
 
     def __itemChanged(self, event):
         """Handle name change"""
@@ -128,7 +136,7 @@ class RegionOfInterest(_RegionOfInterestBase):
 
         :param Union[None,RegionOfInterestManager] parent:
         """
-        # Avoid circular dependancy
+        # Avoid circular dependency
         from ..tools import roi as roi_tools
         if (parent is not None and not isinstance(parent, roi_tools.RegionOfInterestManager)):
             raise ValueError('Unsupported parent')
@@ -392,8 +400,14 @@ class RegionOfInterest(_RegionOfInterestBase):
                 item.setColor(color)
                 item.setVisible(self.isVisible())
                 plot._add(item)
+                # connect item changed
                 item.sigItemChanged.connect(functools.partial(
                     self._controlPointAnchorChanged, index))
+                # connect items pressed and released signals
+                item.sigItemPressed.connect(functools.partial(
+                    self._startEditing, index))
+                item.sigItemReleased.connect(functools.partial(
+                    self._endEditing, index))
                 self._editAnchors.append(item)
                 itemIndex += 1
 
@@ -504,6 +518,15 @@ class RegionOfInterest(_RegionOfInterestBase):
         points = self._getControlPoints()
         params = '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
+
+    def _startEditing(self, *args, **kwargs):
+        assert self._editable is True
+        self._editing = True
+        self.sigRegionEditionStarted.emit()
+
+    def _endEditing(self, *args, **kwargs):
+        self._editing = False
+        self.sigRegionEditionFinished.emit()
 
 
 class PointROI(RegionOfInterest, items.SymbolMixIn):
