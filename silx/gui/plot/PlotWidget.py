@@ -39,10 +39,6 @@ _logger = logging.getLogger(__name__)
 
 
 from collections import OrderedDict, namedtuple
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
 from contextlib import contextmanager
 import datetime as dt
 import itertools
@@ -60,6 +56,7 @@ try:
 except ImportError:
     _logger.debug("matplotlib not available")
 
+import six
 from ..colors import Colormap
 from .. import colors
 from . import PlotInteraction
@@ -311,7 +308,7 @@ class PlotWidget(qt.QMainWindow):
         if callable(backend):
             return backend
 
-        elif isinstance(backend, str):
+        elif isinstance(backend, six.string_types):
             backend = backend.lower()
             if backend in ('matplotlib', 'mpl'):
                 try:
@@ -337,7 +334,7 @@ class PlotWidget(qt.QMainWindow):
 
             return backendClass
 
-        elif isinstance(backend, abc.Iterable):
+        elif isinstance(backend, (tuple, list)):
             for b in backend:
                 try:
                     return self.__getBackendClass(b)

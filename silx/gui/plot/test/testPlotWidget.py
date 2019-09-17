@@ -32,6 +32,7 @@ __date__ = "03/01/2019"
 import unittest
 import logging
 import numpy
+import sys
 
 from silx.utils.testutils import ParametricTestCase, parameterize
 from silx.gui.utils.testutils import SignalListener
@@ -55,6 +56,19 @@ DATA_2D = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)
 
 
 logger = logging.getLogger(__name__)
+
+
+class TestSpecialBackend(PlotWidgetTestCase, ParametricTestCase):
+
+    def __init__(self, methodName='runTest', backend=None):
+        TestCaseQt.__init__(self, methodName=methodName)
+        self.__backend = backend
+
+    def _createPlot(self):
+        return PlotWidget(backend=self.__backend)
+
+    def testPlot(self):
+        self.assertIsNotNone(self.plot)
 
 
 class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
@@ -1613,6 +1627,10 @@ def suite():
     # Tests with matplotlib
     for testClass in testClasses:
         test_suite.addTest(parameterize(testClass, backend=None))
+
+    test_suite.addTest(parameterize(TestSpecialBackend, backend=u"mpl"))
+    if sys.version_info[0] == 2:
+        test_suite.addTest(parameterize(TestSpecialBackend, backend=b"mpl"))
 
     if test_options.WITH_GL_TEST:
         # Tests with OpenGL backend
