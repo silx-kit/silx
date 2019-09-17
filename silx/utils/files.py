@@ -46,7 +46,11 @@ def expand_filenames(filenames):
         if os.path.exists(filename):
             result.append(filename)
         elif glob.has_magic(filename):
-            result += glob.glob(filename)
+            expanded_filenames = glob.glob(filename)
+            if expanded_filenames:
+                result += expanded_filenames
+            else:  # Cannot expand, add as is
+                result.append(filename)
         else:
             result.append(filename)
     return result
