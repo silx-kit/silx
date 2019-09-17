@@ -196,11 +196,12 @@ class _MarkerContainer(_PickableContainer):
     :param y: Y coordinate of the marker (None for vertical lines)
     """
 
-    def __init__(self, artists, x, y):
+    def __init__(self, artists, x, y, yAxis):
         self.line = artists[0]
         self.text = artists[1] if len(artists) > 1 else None
         self.x = x
         self.y = y
+        self.yAxis = yAxis
 
         _PickableContainer.__init__(self, artists)
 
@@ -639,18 +640,25 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def addMarker(self, x, y, text, color,
                   selectable, draggable,
-                  symbol, linestyle, linewidth, constraint):
+                  symbol, linestyle, linewidth, constraint, yaxis):
         textArtist = None
 
         xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits(axis='left')
+        ymin, ymax = self.getGraphYLimits(axis=yaxis)
+
+        if yaxis == 'left':
+            ax = self.ax
+        elif yaxis == 'right':
+            ax = self.ax2
+        else:
+            assert(False)
 
         if x is not None and y is not None:
-            line = self.ax.plot(x, y,
-                                linestyle=" ",
-                                color=color,
-                                marker=symbol,
-                                markersize=10.)[-1]
+            line = ax.plot(x, y,
+                           linestyle=" ",
+                           color=color,
+                           marker=symbol,
+                           markersize=10.)[-1]
 
             if text is not None:
                 if symbol is None:
@@ -659,35 +667,35 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     valign = 'top'
                     text = "  " + text
 
-                textArtist = self.ax.text(x, y, text,
-                                          color=color,
-                                          horizontalalignment='left',
-                                          verticalalignment=valign)
+                textArtist = ax.text(x, y, text,
+                                     color=color,
+                                     horizontalalignment='left',
+                                     verticalalignment=valign)
 
         elif x is not None:
-            line = self.ax.axvline(x,
-                                   color=color,
-                                   linewidth=linewidth,
-                                   linestyle=linestyle)
+            line = ax.axvline(x,
+                              color=color,
+                              linewidth=linewidth,
+                              linestyle=linestyle)
             if text is not None:
                 # Y position will be updated in updateMarkerText call
-                textArtist = self.ax.text(x, 1., " " + text,
-                                          color=color,
-                                          horizontalalignment='left',
-                                          verticalalignment='top')
+                textArtist = ax.text(x, 1., " " + text,
+                                     color=color,
+                                     horizontalalignment='left',
+                                     verticalalignment='top')
 
         elif y is not None:
-            line = self.ax.axhline(y,
-                                   color=color,
-                                   linewidth=linewidth,
-                                   linestyle=linestyle)
+            line = ax.axhline(y,
+                              color=color,
+                              linewidth=linewidth,
+                              linestyle=linestyle)
 
             if text is not None:
                 # X position will be updated in updateMarkerText call
-                textArtist = self.ax.text(1., y, " " + text,
-                                          color=color,
-                                          horizontalalignment='right',
-                                          verticalalignment='top')
+                textArtist = ax.text(1., y, " " + text,
+                                     color=color,
+                                     horizontalalignment='right',
+                                     verticalalignment='top')
 
         else:
             raise RuntimeError('A marker must at least have one coordinate')
@@ -701,17 +709,21 @@ class BackendMatplotlib(BackendBase.BackendBase):
             textArtist.set_animated(True)
 
         artists = [line] if textArtist is None else [line, textArtist]
-        container = _MarkerContainer(artists, x, y)
+        container = _MarkerContainer(artists, x, y, yaxis)
         container.updateMarkerText(xmin, xmax, ymin, ymax)
 
         return container
 
     def _updateMarkers(self):
         xmin, xmax = self.ax.get_xbound()
-        ymin, ymax = self.ax.get_ybound()
+        ymin1, ymax1 = self.ax.get_ybound()
+        ymin2, ymax2 = self.ax2.get_ybound()
         for item in self._overlayItems():
             if isinstance(item, _MarkerContainer):
-                item.updateMarkerText(xmin, xmax, ymin, ymax)
+                if item.yAxis == 'left':
+                    item.updateMarkerText(xmin, xmax, ymin1, ymax1)
+                else:
+                    item.updateMarkerText(xmin, xmax, ymin2, ymax2)
 
     # Remove methods
 
