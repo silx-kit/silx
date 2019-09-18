@@ -82,6 +82,10 @@ class FFTW(BaseFFT):
         self.set_fftw_flags()
         self.compute_forward_plan()
         self.compute_inverse_plan()
+        self.refs = {
+            "data_in": self.data_in,
+            "data_out": self.data_out,
+        }
 
 
     def set_fftw_flags(self):
@@ -104,13 +108,6 @@ class FFTW(BaseFFT):
 
 
     def check_array(self, array, shape, dtype, copy=True):
-        """
-        Check that a given array is compatible with the FFTW plans,
-        in terms of alignment and data type.
-
-        If the provided array does not meet any of the checks, a new array
-        is returned.
-        """
         if array.shape != shape:
             raise ValueError("Invalid data shape: expected %s, got %s" %
                 (shape, array.shape)
@@ -119,20 +116,34 @@ class FFTW(BaseFFT):
             raise ValueError("Invalid data type: expected %s, got %s" %
                 (dtype, array.dtype)
             )
+
+
+    def set_data(self, self_array, array, shape, dtype, copy=True, name=None):
+        """
+        self_array is an array owned by the current instance
+        (either self.data_in or self.data_out).
+
+        Copies are avoided when possible.
+        """
+        self.check_array(array, shape, dtype)
+        if id(self.refs[name]) == id(array):
+            # nothing to do: fft is performed on self.data_in or self.data_out
+            arr_to_use = self.refs[name]
         if self.check_alignment and not(pyfftw.is_byte_aligned(array)):
-            array2 = pyfftw.zeros_aligned(self.shape, dtype=self.dtype_in)
-            np.copyto(array2, array)
+            # If the array is not properly aligned,
+            # create a temp. array copy it to self.data_in or self.data_out
+            # ~ array2 = pyfftw.zeros_aligned(shape, dtype=dtype)
+            # ~ np.copyto(array2, array)
+            # ~ np.copyto(self_array, array)
+            self_array[:] = array[:]
+            arr_to_use = self_array
         else:
+            # If the array is properly aligned, use it directly
             if copy:
-                array2 = np.copy(array)
+                arr_to_use = np.copy(array)
             else:
-                array2 = array
-        return array2
-
-
-    def set_data(self, dst, src, shape, dtype, copy=True, name=None):
-        dst = self.check_array(src, shape, dtype, copy=copy)
-        return dst
+                arr_to_use = array
+        return arr_to_use
 
 
     def compute_forward_plan(self):
@@ -174,15 +185,17 @@ class FFTW(BaseFFT):
         :param numpy.ndarray output:
             Optional output data.
         """
-        data_in = self.set_input_data(array, copy=True)
+        data_in = self.set_input_data(array, copy=False)
         data_out = self.set_output_data(output, copy=False)
+        self.plan_forward.update_arrays(data_in, data_out)
         # execute.__call__ does both update_arrays() and normalization
         self.plan_forward(
-            input_array=data_in,
-            output_array=data_out,
+            # ~ input_array=data_in,
+            # ~ output_array=data_out,
             ortho=self.fftw_norm_mode["ortho"],
         )
-        assert id(self.plan_forward.output_array) == id(self.data_out) == id(data_out) # DEBUG
+        # ~ assert id(self.plan_forward.output_array) == id(self.data_out) == id(data_out) # DEBUG
+        self.plan_forward.update_arrays(self.refs["data_in"], self.refs["data_out"])
         return data_out
 
 
@@ -195,16 +208,18 @@ class FFTW(BaseFFT):
         :param numpy.ndarray output:
             Optional output data.
         """
-        data_in = self.set_output_data(array, copy=True)
+        data_in = self.set_output_data(array, copy=False)
         data_out = self.set_input_data(output, copy=False)
+        self.plan_inverse.update_arrays(data_in, data_out)
         # execute.__call__ does both update_arrays() and normalization
         self.plan_inverse(
-            input_array=data_in,
-            output_array=data_out,
+            # ~ input_array=data_in,
+            # ~ output_array=data_out,
             ortho=self.fftw_norm_mode["ortho"],
             normalise_idft=self.fftw_norm_mode["normalize"]
         )
-        assert id(self.plan_inverse.output_array) == id(self.data_in) == id(data_out) # DEBUG
+        # ~ assert id(self.plan_inverse.output_array) == id(self.data_in) == id(data_out) # DEBUG
+        self.plan_inverse.update_arrays(self.refs["data_out"], self.refs["data_in"])
         return data_out
 
 
