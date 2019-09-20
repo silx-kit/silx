@@ -34,6 +34,7 @@ import unittest
 
 from . import test_async
 from . import test_image
+from . import test_qtutils
 from . import test
 
 
@@ -43,8 +44,9 @@ def suite():
     test_suite.addTest(test.suite())
     test_suite.addTest(test_async.suite())
     test_suite.addTest(test_image.suite())
+    test_suite.addTest(test_qtutils.suite())
     return test_suite
 
 
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+if __name__ == "__main__":
+    unittest.main(defaultTest="suite")

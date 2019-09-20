@@ -58,9 +58,9 @@ from matplotlib.tri import Triangulation
 from matplotlib.collections import TriMesh
 
 from . import BackendBase
+from .. import items
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
-
 
 _PATCH_LINESTYLE = {
     "-": 'solid',
@@ -162,7 +162,30 @@ class NiceAutoDateFormatter(Formatter):
         return tickStr
 
 
-class _MarkerContainer(Container):
+class _PickableContainer(Container):
+    """Artists container with a :meth:`contains` method"""
+
+    def draw(self, *args, **kwargs):
+        """artist-like draw to broadcast draw to children"""
+        for child in self.get_children():
+            child.draw(*args, **kwargs)
+
+    def contains(self, mouseevent):
+        """Mimic Artist.contains, and call it on all children.
+
+        :param mouseevent:
+        :return: Picking status and associated information as a dict
+        :rtype: (bool,dict)
+        """
+        # Goes through children from front to back and return first picked one.
+        for child in reversed(self.get_children()):
+            picked, info = child.contains(mouseevent)
+            if picked:
+                return picked, info
+        return False, {}
+
+
+class _MarkerContainer(_PickableContainer):
     """Marker artists container supporting draw/remove and text position update
 
     :param artists:
@@ -173,13 +196,14 @@ class _MarkerContainer(Container):
     :param y: Y coordinate of the marker (None for vertical lines)
     """
 
-    def __init__(self, artists, x, y):
+    def __init__(self, artists, x, y, yAxis):
         self.line = artists[0]
         self.text = artists[1] if len(artists) > 1 else None
         self.x = x
         self.y = y
+        self.yAxis = yAxis
 
-        Container.__init__(self, artists)
+        _PickableContainer.__init__(self, artists)
 
     def draw(self, *args, **kwargs):
         """artist-like draw to broadcast draw to line and text"""
@@ -213,6 +237,15 @@ class _MarkerContainer(Container):
                     xmax = xmin
                 xmax -= 0.005 * delta
                 self.text.set_x(xmax)
+
+    def contains(self, mouseevent):
+        """Mimic Artist.contains, and call it on the line Artist.
+
+        :param mouseevent:
+        :return: Picking status and associated information as a dict
+        :rtype: (bool,dict)
+        """
+        return self.line.contains(mouseevent)
 
 
 class _DoubleColoredLinePatch(matplotlib.patches.Patch):
@@ -320,7 +353,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax.set_facecolor('none')
         self.fig.sca(self.ax)
 
-        self._overlays = set()
         self._background = None
 
         self._colormaps = {}
@@ -330,14 +362,36 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._enableAxis('right', False)
         self._isXAxisTimeSeries = False
 
+    def _overlayItems(self):
+        """Generator of backend renderer for overlay items"""
+        for item in self._plot.getItems():
+            if (item.isOverlay() and
+                    item.isVisible() and
+                    item._backendRenderer is not None):
+                yield item._backendRenderer
+
+    def _hasOverlays(self):
+        """Returns whether there is an overlay layer or not.
+
+        The overlay layers contains overlay items and the crosshair.
+
+        :rtype: bool
+        """
+        if self._graphCursor:
+            return True  # There is the crosshair
+
+        for item in self._overlayItems():
+            return True  # There is at least one overlay item
+        return False
+
     # Add methods
 
-    def addCurve(self, x, y, legend,
+    def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
                  fill, alpha, symbolsize):
-        for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
+        for parameter in (x, y, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill, alpha, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
@@ -371,7 +425,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     yerror.shape[1] == 1):
                 yerror = numpy.ravel(yerror)
 
-            errorbars = axes.errorbar(x, y, label=legend,
+            errorbars = axes.errorbar(x, y,
                                       xerr=xerror, yerr=yerror,
                                       linestyle=' ', color=errorbarColor)
             artists += list(errorbars.get_children())
@@ -386,7 +440,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if linestyle not in ["", " ", None]:
                 # scatter plot with an actual line ...
                 # we need to assign a color ...
-                curveList = axes.plot(x, y, label=legend,
+                curveList = axes.plot(x, y,
                                       linestyle=linestyle,
                                       color=actualColor[0],
                                       linewidth=linewidth,
@@ -395,7 +449,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 artists += list(curveList)
 
             scatter = axes.scatter(x, y,
-                                   label=legend,
                                    color=actualColor,
                                    marker=symbol,
                                    picker=picker,
@@ -408,7 +461,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         else:  # Curve
             curveList = axes.plot(x, y,
-                                  label=legend,
                                   linestyle=linestyle,
                                   color=color,
                                   linewidth=linewidth,
@@ -422,22 +474,19 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     axes.fill_between(x, FLOAT32_MINPOS, y, facecolor=color))
 
         for artist in artists:
+            artist.set_animated(True)
             artist.set_zorder(z + 1)
             if alpha < 1:
                 artist.set_alpha(alpha)
 
-        return Container(artists)
+        return _PickableContainer(artists)
 
-    def addImage(self, data, legend,
-                 origin, scale, z,
-                 selectable, draggable,
-                 colormap, alpha):
+    def addImage(self, data, origin, scale, z, selectable, draggable, colormap, alpha):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
         # http://stackoverflow.com/questions/11488800/non-linear-axes-for-imshow-in-matplotlib
-        for parameter in (data, legend, origin, scale, z,
-                          selectable, draggable):
+        for parameter in (data, origin, scale, z, selectable, draggable):
             assert parameter is not None
 
         origin = float(origin[0]), float(origin[1])
@@ -448,7 +497,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         # All image are shown as RGBA image
         image = Image(self.ax,
-                      label="__IMAGE__" + legend,
                       interpolation='nearest',
                       picker=picker,
                       zorder=z + 1,
@@ -481,13 +529,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
             data = colormap.applyToData(data)
 
         image.set_data(data)
+        image.set_animated(True)
         self.ax.add_artist(image)
         return image
 
-    def addTriangles(self, x, y, triangles, legend,
-                     color, z, selectable, alpha):
-        for parameter in (x, y, triangles, legend, color,
-                          z, selectable, alpha):
+    def addTriangles(self, x, y, triangles, color, z, selectable, alpha):
+        for parameter in (x, y, triangles, color, z, selectable, alpha):
             assert parameter is not None
 
         # 0 enables picking on filled triangle
@@ -501,16 +548,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         collection = TriMesh(
             Triangulation(x, y, triangles),
-            label=legend,
             alpha=alpha,
             picker=picker,
             zorder=z + 1)
         collection.set_color(color)
+        collection.set_animated(True)
         self.ax.add_collection(collection)
 
         return collection
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay, z,
+    def addItem(self, x, y, shape, color, fill, overlay, z,
                 linestyle, linewidth, linebgcolor):
         if (linebgcolor is not None and
                 shape not in ('rectangle', 'polygon', 'polylines')):
@@ -523,20 +570,20 @@ class BackendMatplotlib(BackendBase.BackendBase):
         linestyle = normalize_linestyle(linestyle)
 
         if shape == "line":
-            item = self.ax.plot(x, y, label=legend, color=color,
+            item = self.ax.plot(x, y, color=color,
                                 linestyle=linestyle, linewidth=linewidth,
                                 marker=None)[0]
 
         elif shape == "hline":
             if hasattr(y, "__len__"):
                 y = y[-1]
-            item = self.ax.axhline(y, label=legend, color=color,
+            item = self.ax.axhline(y, color=color,
                                    linestyle=linestyle, linewidth=linewidth)
 
         elif shape == "vline":
             if hasattr(x, "__len__"):
                 x = x[-1]
-            item = self.ax.axvline(x, label=legend, color=color,
+            item = self.ax.axvline(x, color=color,
                                    linestyle=linestyle, linewidth=linewidth)
 
         elif shape == 'rectangle':
@@ -571,7 +618,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             item = Polygon(points,
                            closed=closed,
                            fill=False,
-                           label=legend,
                            color=color,
                            linestyle=linestyle,
                            linewidth=linewidth)
@@ -588,29 +634,31 @@ class BackendMatplotlib(BackendBase.BackendBase):
             raise NotImplementedError("Unsupported item shape %s" % shape)
 
         item.set_zorder(z + 1)
-
-        if overlay:
-            item.set_animated(True)
-            self._overlays.add(item)
+        item.set_animated(True)
 
         return item
 
-    def addMarker(self, x, y, legend, text, color,
+    def addMarker(self, x, y, text, color,
                   selectable, draggable,
-                  symbol, linestyle, linewidth, constraint):
-        legend = "__MARKER__" + legend
-
+                  symbol, linestyle, linewidth, constraint, yaxis):
         textArtist = None
 
         xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits(axis='left')
+        ymin, ymax = self.getGraphYLimits(axis=yaxis)
+
+        if yaxis == 'left':
+            ax = self.ax
+        elif yaxis == 'right':
+            ax = self.ax2
+        else:
+            assert(False)
 
         if x is not None and y is not None:
-            line = self.ax.plot(x, y, label=legend,
-                                linestyle=" ",
-                                color=color,
-                                marker=symbol,
-                                markersize=10.)[-1]
+            line = ax.plot(x, y,
+                           linestyle=" ",
+                           color=color,
+                           marker=symbol,
+                           markersize=10.)[-1]
 
             if text is not None:
                 if symbol is None:
@@ -619,37 +667,35 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     valign = 'top'
                     text = "  " + text
 
-                textArtist = self.ax.text(x, y, text,
-                                          color=color,
-                                          horizontalalignment='left',
-                                          verticalalignment=valign)
+                textArtist = ax.text(x, y, text,
+                                     color=color,
+                                     horizontalalignment='left',
+                                     verticalalignment=valign)
 
         elif x is not None:
-            line = self.ax.axvline(x,
-                                   label=legend,
-                                   color=color,
-                                   linewidth=linewidth,
-                                   linestyle=linestyle)
+            line = ax.axvline(x,
+                              color=color,
+                              linewidth=linewidth,
+                              linestyle=linestyle)
             if text is not None:
                 # Y position will be updated in updateMarkerText call
-                textArtist = self.ax.text(x, 1., " " + text,
-                                          color=color,
-                                          horizontalalignment='left',
-                                          verticalalignment='top')
+                textArtist = ax.text(x, 1., " " + text,
+                                     color=color,
+                                     horizontalalignment='left',
+                                     verticalalignment='top')
 
         elif y is not None:
-            line = self.ax.axhline(y,
-                                   label=legend,
-                                   color=color,
-                                   linewidth=linewidth,
-                                   linestyle=linestyle)
+            line = ax.axhline(y,
+                              color=color,
+                              linewidth=linewidth,
+                              linestyle=linestyle)
 
             if text is not None:
                 # X position will be updated in updateMarkerText call
-                textArtist = self.ax.text(1., y, " " + text,
-                                          color=color,
-                                          horizontalalignment='right',
-                                          verticalalignment='top')
+                textArtist = ax.text(1., y, " " + text,
+                                     color=color,
+                                     horizontalalignment='right',
+                                     verticalalignment='top')
 
         else:
             raise RuntimeError('A marker must at least have one coordinate')
@@ -663,24 +709,25 @@ class BackendMatplotlib(BackendBase.BackendBase):
             textArtist.set_animated(True)
 
         artists = [line] if textArtist is None else [line, textArtist]
-        container = _MarkerContainer(artists, x, y)
+        container = _MarkerContainer(artists, x, y, yaxis)
         container.updateMarkerText(xmin, xmax, ymin, ymax)
-        self._overlays.add(container)
 
         return container
 
     def _updateMarkers(self):
         xmin, xmax = self.ax.get_xbound()
-        ymin, ymax = self.ax.get_ybound()
-        for item in self._overlays:
+        ymin1, ymax1 = self.ax.get_ybound()
+        ymin2, ymax2 = self.ax2.get_ybound()
+        for item in self._overlayItems():
             if isinstance(item, _MarkerContainer):
-                item.updateMarkerText(xmin, xmax, ymin, ymax)
+                if item.yAxis == 'left':
+                    item.updateMarkerText(xmin, xmax, ymin1, ymax1)
+                else:
+                    item.updateMarkerText(xmin, xmax, ymin2, ymax2)
 
     # Remove methods
 
     def remove(self, item):
-        # Warning: It also needs to remove extra stuff if added as for markers
-        self._overlays.discard(item)
         try:
             item.remove()
         except ValueError:
@@ -702,7 +749,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             self._graphCursor = lineh, linev
         else:
-            if self._graphCursor is not None:
+            if self._graphCursor:
                 lineh, linev = self._graphCursor
                 lineh.remove()
                 linev.remove()
@@ -791,7 +838,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def getGraphXLimits(self):
         if self._dirtyLimits and self.isKeepDataAspectRatio():
-            self.replot()  # makes sure we get the right limits
+            self.ax.apply_aspect()
+            self.ax2.apply_aspect()
+            self._dirtyLimits = False
         return self.ax.get_xbound()
 
     def setGraphXLimits(self, xmin, xmax):
@@ -807,7 +856,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
             return None
 
         if self._dirtyLimits and self.isKeepDataAspectRatio():
-            self.replot()  # makes sure we get the right limits
+            self.ax.apply_aspect()
+            self.ax2.apply_aspect()
+            self._dirtyLimits = False
 
         return ax.get_ybound()
 
@@ -939,7 +990,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return xPixel, yPixel
 
-    def pixelToData(self, x, y, axis, check):
+    def pixelToData(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
 
         # Convert from Qt origin (top) to matplotlib origin (bottom)
@@ -947,14 +998,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         inv = ax.transData.inverted()
         x, y = inv.transform_point((x, y))
-
-        if check:
-            xmin, xmax = self.getGraphXLimits()
-            ymin, ymax = self.getGraphYLimits(axis=axis)
-
-            if x > xmax or x < xmin or y > ymax or y < ymin:
-                return None  # (x, y) is out of plot area
-
         return x, y
 
     def getPlotBoundsInPixels(self):
@@ -1119,58 +1162,29 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     # picking
 
-    def _onPick(self, event):
-        # TODO not very nice and fragile, find a better way?
-        # Make a selection according to kind
-        if self._picked is None:
-            _logger.error('Internal picking error')
-            return
+    def pickItem(self, x, y, item):
+        y = self._mplQtYAxisCoordConversion(y)
+        mouseEvent = MouseEvent('button_press_event', self, x, y)
+        picked, info = item.contains(mouseEvent)
 
-        label = event.artist.get_label()
-        if label.startswith('__MARKER__'):
-            self._picked.append({'kind': 'marker', 'legend': label[10:]})
+        if not picked:
+            return None
 
-        elif label.startswith('__IMAGE__'):
-            self._picked.append({'kind': 'image', 'legend': label[9:]})
-
-        elif isinstance(event.artist, TriMesh):
+        elif isinstance(item, TriMesh):
             # Convert selected triangle to data point indices
-            triangulation = event.artist._triangulation
-            indices = triangulation.get_masked_triangles()[event.ind[0]]
+            triangulation = item._triangulation
+            indices = triangulation.get_masked_triangles()[info['ind'][0]]
 
             # Sort picked triangle points by distance to mouse
             # from furthest to closest to put closest point last
             # This is to be somewhat consistent with last scatter point
             # being the top one.
-            dists = ((triangulation.x[indices] - event.mouseevent.xdata) ** 2 +
-                     (triangulation.y[indices] - event.mouseevent.ydata) ** 2)
-            indices = indices[numpy.flip(numpy.argsort(dists))]
+            dists = ((triangulation.x[indices] - x) ** 2 +
+                     (triangulation.y[indices] - y) ** 2)
+            return indices[numpy.flip(numpy.argsort(dists))]
 
-            self._picked.append({'kind': 'curve', 'legend': label,
-                                 'indices': indices})
-
-        else:  # it's a curve, item have no picker for now
-            if not isinstance(event.artist, (PathCollection, Line2D)):
-                _logger.info('Unsupported artist, ignored')
-                return
-
-            self._picked.append({'kind': 'curve', 'legend': label,
-                                 'indices': event.ind})
-
-    def pickItems(self, x, y, kinds):
-        self._picked = []
-
-        # Weird way to do an explicit picking: Simulate a button press event
-        mouseEvent = MouseEvent('button_press_event',
-                                self, x, self._mplQtYAxisCoordConversion(y))
-        cid = self.mpl_connect('pick_event', self._onPick)
-        self.fig.pick(mouseEvent)
-        self.mpl_disconnect(cid)
-
-        picked = [p for p in self._picked if p['kind'] in kinds]
-        self._picked = None
-
-        return picked
+        else:  # Returns indices if any
+            return info.get('ind', ())
 
     # replot control
 
@@ -1180,21 +1194,36 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self.ax.get_xbound(), self.ax.get_ybound(), self.ax2.get_ybound())
 
         FigureCanvasQTAgg.resizeEvent(self, event)
-        if self.isKeepDataAspectRatio() or self._overlays or self._graphCursor:
+        if self.isKeepDataAspectRatio() or self._hasOverlays():
             # This is needed with matplotlib 1.5.x and 2.0.x
             self._plot._setDirtyPlot()
 
+    def __drawItems(self, overlay=False):
+        """Draw plot items in the figure.
+
+        :param bool overlay:
+            False (default) to draw all items but overlays,
+            True to draw only overlay items.
+        """
+        def condition(item):
+            return (item.isVisible() and
+                    item._backendRenderer is not None and
+                    item.isOverlay() == overlay)
+
+        for item in self._plot._itemsFromBackToFront(condition=condition):
+            if (isinstance(item, items.YAxisMixIn) and
+                    item.getYAxis() == 'right'):
+                axes = self.ax2
+            else:
+                axes = self.ax
+            axes.draw_artist(item._backendRenderer)
+
     def _drawOverlays(self):
         """Draw overlays if any."""
-        if self._overlays or self._graphCursor:
-            # There is some overlays or crosshair
+        self.__drawItems(overlay=True)
 
-            # This assume that items are only on left/bottom Axes
-            for item in self._overlays:
-                self.ax.draw_artist(item)
-
-            for item in self._graphCursor:
-                self.ax.draw_artist(item)
+        for item in self._graphCursor:
+            self.ax.draw_artist(item)
 
     def draw(self):
         """Overload draw
@@ -1204,6 +1233,11 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         This is directly called by matplotlib for widget resize.
         """
+        # Hide axes borders to defer rendering
+        if self.ax.axison:
+            for spine in self.ax.spines.values():
+                spine.set_visible(False)
+
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
         if self._matplotlibVersion >= _parse_version("2.0.0"):
@@ -1216,7 +1250,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         else:
             FigureCanvasQTAgg.draw(self)
 
-        if self._overlays or self._graphCursor:
+        self.__drawItems(overlay=False)
+
+        if self._hasOverlays():
             # Save background
             self._background = self.copy_from_bbox(self.fig.bbox)
         else:
@@ -1240,6 +1276,15 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         self._drawOverlays()
 
+        # Draw axes borders at last
+        if self.ax.axison:
+            for spine in self.ax.spines.values():
+                spine.set_visible(True)
+                self.ax.draw_artist(spine)
+            # Alternative: redraw what's inside the frame
+            # which ends-up to redraw the border as everything is "animated"
+            #self.ax.redraw_in_frame()
+
     def replot(self):
         BackendMatplotlib.replot(self)
 
@@ -1260,7 +1305,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         if (_parse_version('1.5') <= self._matplotlibVersion < _parse_version('2.1') and
                 not hasattr(self, '_firstReplot')):
             self._firstReplot = False
-            if self._overlays or self._graphCursor:
+            if self._hasOverlays():
                 qt.QTimer.singleShot(0, self.draw)  # Request async draw
 
     # cursor

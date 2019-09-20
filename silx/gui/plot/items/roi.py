@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -465,6 +465,12 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     _plotShape = "point"
     """Plot shape which is used for the first interaction"""
 
+    _DEFAULT_SYMBOL = '+'
+    """Default symbol of the PointROI
+
+    It overwrite the `SymbolMixIn` class attribte.
+    """
+
     def __init__(self, parent=None):
         items.SymbolMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
@@ -488,31 +494,31 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         return None
 
     def _updateLabelItem(self, label):
-        if self.isEditable():
-            item = self._editAnchors[0]
-        else:
+        self._items[0].setText(label)
+
+    def _updateShape(self):
+        if len(self._items) > 0:
+            controlPoints = self._getControlPoints()
             item = self._items[0]
-        item.setText(label)
+            item.setPosition(*controlPoints[0])
+
+    def __positionChanged(self, event):
+        """Handle position changed events of the marker"""
+        if event is items.ItemChangedType.POSITION:
+            marker = self.sender()
+            if isinstance(marker, items.Marker):
+                self.setPosition(marker.getPosition())
 
     def _createShapeItems(self, points):
-        if self.isEditable():
-            return []
         marker = items.Marker()
         marker.setPosition(points[0][0], points[0][1])
         marker.setText(self.getLabel())
+        marker.setSymbol(self.getSymbol())
+        marker.setSymbolSize(self.getSymbolSize())
         marker.setColor(rgba(self.getColor()))
-        marker.setSymbol(self.getSymbol())
-        marker.setSymbolSize(self.getSymbolSize())
-        marker._setDraggable(False)
-        return [marker]
-
-    def _createAnchorItems(self, points):
-        marker = items.Marker()
-        marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
         marker._setDraggable(self.isEditable())
-        marker.setSymbol(self.getSymbol())
-        marker.setSymbolSize(self.getSymbolSize())
+        if self.isEditable():
+            marker.sigItemChanged.connect(self.__positionChanged)
         return [marker]
 
     def __str__(self):
@@ -672,38 +678,31 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         return None
 
     def _updateLabelItem(self, label):
-        if self.isEditable():
-            item = self._editAnchors[0]
-        else:
-            item = self._items[0]
-        item.setText(label)
+        self._items[0].setText(label)
 
     def _updateShape(self):
-        if not self.isEditable():
-            if len(self._items) > 0:
-                controlPoints = self._getControlPoints()
-                item = self._items[0]
-                item.setPosition(*controlPoints[0])
+        if len(self._items) > 0:
+            controlPoints = self._getControlPoints()
+            item = self._items[0]
+            item.setPosition(*controlPoints[0])
+
+    def __positionChanged(self, event):
+        """Handle position changed events of the marker"""
+        if event is items.ItemChangedType.POSITION:
+            marker = self.sender()
+            if isinstance(marker, items.YMarker):
+                self.setPosition(marker.getYPosition())
 
     def _createShapeItems(self, points):
-        if self.isEditable():
-            return []
         marker = items.YMarker()
         marker.setPosition(points[0][0], points[0][1])
         marker.setText(self.getLabel())
         marker.setColor(rgba(self.getColor()))
-        marker._setDraggable(False)
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
-        return [marker]
-
-    def _createAnchorItems(self, points):
-        marker = items.YMarker()
-        marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
         marker._setDraggable(self.isEditable())
-        marker.setLineWidth(self.getLineWidth())
-        marker.setLineStyle(self.getLineStyle())
+        if self.isEditable():
+            marker.sigItemChanged.connect(self.__positionChanged)
         return [marker]
 
     def __str__(self):
@@ -749,38 +748,31 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         return None
 
     def _updateLabelItem(self, label):
-        if self.isEditable():
-            item = self._editAnchors[0]
-        else:
-            item = self._items[0]
-        item.setText(label)
+        self._items[0].setText(label)
 
     def _updateShape(self):
-        if not self.isEditable():
-            if len(self._items) > 0:
-                controlPoints = self._getControlPoints()
-                item = self._items[0]
-                item.setPosition(*controlPoints[0])
+        if len(self._items) > 0:
+            controlPoints = self._getControlPoints()
+            item = self._items[0]
+            item.setPosition(*controlPoints[0])
+
+    def __positionChanged(self, event):
+        """Handle position changed events of the marker"""
+        if event is items.ItemChangedType.POSITION:
+            marker = self.sender()
+            if isinstance(marker, items.XMarker):
+                self.setPosition(marker.getXPosition())
 
     def _createShapeItems(self, points):
-        if self.isEditable():
-            return []
         marker = items.XMarker()
         marker.setPosition(points[0][0], points[0][1])
         marker.setText(self.getLabel())
         marker.setColor(rgba(self.getColor()))
-        marker._setDraggable(False)
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
-        return [marker]
-
-    def _createAnchorItems(self, points):
-        marker = items.XMarker()
-        marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
         marker._setDraggable(self.isEditable())
-        marker.setLineWidth(self.getLineWidth())
-        marker.setLineStyle(self.getLineStyle())
+        if self.isEditable():
+            marker.sigItemChanged.connect(self.__positionChanged)
         return [marker]
 
     def __str__(self):

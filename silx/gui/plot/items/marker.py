@@ -34,13 +34,13 @@ import logging
 
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
-                   ItemChangedType)
+                   ItemChangedType, YAxisMixIn)
 
 
 _logger = logging.getLogger(__name__)
 
 
-class MarkerBase(Item, DraggableMixIn, ColorMixIn):
+class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     """Base class for markers"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
@@ -50,6 +50,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         Item.__init__(self)
         DraggableMixIn.__init__(self)
         ColorMixIn.__init__(self)
+        YAxisMixIn.__init__(self)
 
         self._text = ''
         self._x = None
@@ -62,7 +63,6 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         return backend.addMarker(
             x=self.getXPosition(),
             y=self.getYPosition(),
-            legend=self.getLegend(),
             text=self.getText(),
             color=self.getColor(),
             selectable=self.isSelectable(),
@@ -70,7 +70,8 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
             symbol=symbol,
             linestyle=linestyle,
             linewidth=linewidth,
-            constraint=self.getConstraint())
+            constraint=self.getConstraint(),
+            yaxis=self.getYAxis())
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -81,13 +82,11 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn):
         self.setPosition(to[0], to[1])
 
     def isOverlay(self):
-        """Return true if marker is drawn as an overlay.
-
-        A marker is an overlay if it is draggable.
+        """Returns True: A marker is always rendered as an overlay.
 
         :rtype: bool
         """
-        return self.isDraggable()
+        return True
 
     def getText(self):
         """Returns marker text.

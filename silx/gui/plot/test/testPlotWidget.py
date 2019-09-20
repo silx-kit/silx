@@ -32,6 +32,7 @@ __date__ = "03/01/2019"
 import unittest
 import logging
 import numpy
+import sys
 
 from silx.utils.testutils import ParametricTestCase, parameterize
 from silx.gui.utils.testutils import SignalListener
@@ -55,6 +56,19 @@ DATA_2D = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)
 
 
 logger = logging.getLogger(__name__)
+
+
+class TestSpecialBackend(PlotWidgetTestCase, ParametricTestCase):
+
+    def __init__(self, methodName='runTest', backend=None):
+        TestCaseQt.__init__(self, methodName=methodName)
+        self.__backend = backend
+
+    def _createPlot(self):
+        return PlotWidget(backend=self.__backend)
+
+    def testPlot(self):
+        self.assertIsNotNone(self.plot)
 
 
 class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
@@ -590,6 +604,39 @@ class TestPlotMarker(PlotWidgetTestCase):
         self.plot.addYMarker(55)
         self.plot.addYMarker(65)
         self.plot.addYMarker(75, text='test')
+
+        self.plot.resetZoom()
+
+    def testPlotMarkerYAxis(self):
+        # Check only the API
+
+        legend = self.plot.addMarker(10, 10)
+        item = self.plot._getMarker(legend)
+        self.assertEqual(item.getYAxis(), "left")
+
+        legend = self.plot.addMarker(10, 10, yaxis="right")
+        item = self.plot._getMarker(legend)
+        self.assertEqual(item.getYAxis(), "right")
+
+        legend = self.plot.addMarker(10, 10, yaxis="left")
+        item = self.plot._getMarker(legend)
+        self.assertEqual(item.getYAxis(), "left")
+
+        legend = self.plot.addXMarker(10, yaxis="right")
+        item = self.plot._getMarker(legend)
+        self.assertEqual(item.getYAxis(), "right")
+
+        legend = self.plot.addXMarker(10, yaxis="left")
+        item = self.plot._getMarker(legend)
+        self.assertEqual(item.getYAxis(), "left")
+
+        legend = self.plot.addYMarker(10, yaxis="right")
+        item = self.plot._getMarker(legend)
+        self.assertEqual(item.getYAxis(), "right")
+
+        legend = self.plot.addYMarker(10, yaxis="left")
+        item = self.plot._getMarker(legend)
+        self.assertEqual(item.getYAxis(), "left")
 
         self.plot.resetZoom()
 
@@ -1580,6 +1627,10 @@ def suite():
     # Tests with matplotlib
     for testClass in testClasses:
         test_suite.addTest(parameterize(testClass, backend=None))
+
+    test_suite.addTest(parameterize(TestSpecialBackend, backend=u"mpl"))
+    if sys.version_info[0] == 2:
+        test_suite.addTest(parameterize(TestSpecialBackend, backend=b"mpl"))
 
     if test_options.WITH_GL_TEST:
         # Tests with OpenGL backend

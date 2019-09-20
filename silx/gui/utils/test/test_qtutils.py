@@ -22,35 +22,54 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Utils function relative to files
-"""
+"""Test of functions available in silx.gui.utils module."""
 
-__authors__ = ["V. Valls"]
+from __future__ import absolute_import
+
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/09/2016"
+__date__ = "01/08/2019"
 
-import os.path
-import glob
 
-def expand_filenames(filenames):
-    """
-    Takes a list of paths and expand it into a list of files.
+import unittest
+from silx.gui import qt
+from silx.gui import utils
+from silx.gui.utils.testutils import TestCaseQt
 
-    :param List[str] filenames: list of filenames or path with wildcards
-    :rtype: List[str]
-    :return: list of existing filenames or non-existing files
-        (which was provided as input)
-    """
-    result = []
-    for filename in filenames:
-        if os.path.exists(filename):
-            result.append(filename)
-        elif glob.has_magic(filename):
-            expanded_filenames = glob.glob(filename)
-            if expanded_filenames:
-                result += expanded_filenames
-            else:  # Cannot expand, add as is
-                result.append(filename)
-        else:
-            result.append(filename)
-    return result
+
+class TestQEventName(TestCaseQt):
+    """Test QEvent names"""
+
+    def testNoneType(self):
+        result = utils.getQEventName(0)
+        self.assertEqual(result, "None")
+
+    def testNoneEvent(self):
+        event = qt.QEvent(qt.QEvent.Type(0))
+        result = utils.getQEventName(event)
+        self.assertEqual(result, "None")
+
+    def testUserType(self):
+        result = utils.getQEventName(1050)
+        self.assertIn("User", result)
+        self.assertIn("1050", result)
+
+    def testQtUndefinedType(self):
+        result = utils.getQEventName(900)
+        self.assertIn("Unknown", result)
+        self.assertIn("900", result)
+
+    def testUndefinedType(self):
+        result = utils.getQEventName(70000)
+        self.assertIn("Unknown", result)
+        self.assertIn("70000", result)
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestQEventName))
+    return test_suite
+
+
+if __name__ == "__main__":
+    unittest.main(defaultTest="suite")

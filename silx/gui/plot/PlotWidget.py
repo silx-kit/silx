@@ -39,10 +39,6 @@ _logger = logging.getLogger(__name__)
 
 
 from collections import OrderedDict, namedtuple
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
 from contextlib import contextmanager
 import datetime as dt
 import itertools
@@ -60,6 +56,7 @@ try:
 except ImportError:
     _logger.debug("matplotlib not available")
 
+import six
 from ..colors import Colormap
 from .. import colors
 from . import PlotInteraction
@@ -311,7 +308,7 @@ class PlotWidget(qt.QMainWindow):
         if callable(backend):
             return backend
 
-        elif isinstance(backend, str):
+        elif isinstance(backend, six.string_types):
             backend = backend.lower()
             if backend in ('matplotlib', 'mpl'):
                 try:
@@ -337,7 +334,7 @@ class PlotWidget(qt.QMainWindow):
 
             return backendClass
 
-        elif isinstance(backend, abc.Iterable):
+        elif isinstance(backend, (tuple, list)):
             for b in backend:
                 try:
                     return self.__getBackendClass(b)
@@ -1307,7 +1304,8 @@ class PlotWidget(qt.QMainWindow):
                    color=None,
                    selectable=False,
                    draggable=False,
-                   constraint=None):
+                   constraint=None,
+                   yaxis='left'):
         """Add a vertical line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1333,12 +1331,14 @@ class PlotWidget(qt.QMainWindow):
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
+        :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
         :return: The key string identify this marker
         """
         return self._addMarker(x=x, y=None, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
-                               symbol=None, constraint=constraint)
+                               symbol=None, constraint=constraint,
+                               yaxis=yaxis)
 
     def addYMarker(self, y,
                    legend=None,
@@ -1346,7 +1346,8 @@ class PlotWidget(qt.QMainWindow):
                    color=None,
                    selectable=False,
                    draggable=False,
-                   constraint=None):
+                   constraint=None,
+                   yaxis='left'):
         """Add a horizontal line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1372,12 +1373,14 @@ class PlotWidget(qt.QMainWindow):
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
+        :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
         :return: The key string identify this marker
         """
         return self._addMarker(x=None, y=y, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
-                               symbol=None, constraint=constraint)
+                               symbol=None, constraint=constraint,
+                               yaxis=yaxis)
 
     def addMarker(self, x, y, legend=None,
                   text=None,
@@ -1385,7 +1388,8 @@ class PlotWidget(qt.QMainWindow):
                   selectable=False,
                   draggable=False,
                   symbol='+',
-                  constraint=None):
+                  constraint=None,
+                  yaxis='left'):
         """Add a point marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1423,6 +1427,7 @@ class PlotWidget(qt.QMainWindow):
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
+        :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
         :return: The key string identify this marker
         """
         if x is None:
@@ -1436,12 +1441,14 @@ class PlotWidget(qt.QMainWindow):
         return self._addMarker(x=x, y=y, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
-                               symbol=symbol, constraint=constraint)
+                               symbol=symbol, constraint=constraint,
+                               yaxis=yaxis)
 
     def _addMarker(self, x, y, legend,
                    text, color,
                    selectable, draggable,
-                   symbol, constraint):
+                   symbol, constraint,
+                   yaxis=None):
         """Common method for adding point, vline and hline marker.
 
         See :meth:`addMarker` for argument documentation.
@@ -1487,6 +1494,7 @@ class PlotWidget(qt.QMainWindow):
             marker._setDraggable(draggable)
         if symbol is not None:
             marker.setSymbol(symbol)
+        marker.setYAxis(yaxis)
 
         # TODO to improve, but this ensure constraint is applied
         marker.setPosition(x, y)
@@ -2692,6 +2700,7 @@ class PlotWidget(qt.QMainWindow):
         """Redraw the plot immediately."""
         for item in self._contentToUpdate:
             item._update(self._backend)
+
         self._contentToUpdate = []
         self._backend.replot()
         self._dirty = False  # reset dirty flag
@@ -2862,7 +2871,18 @@ class PlotWidget(qt.QMainWindow):
         :rtype: A tuple of 2 floats: (xData, yData) or None.
         """
         assert axis in ("left", "right")
-        return self._backend.pixelToData(x, y, axis=axis, check=check)
+
+        if x is None:
+            x = self.width() // 2
+        if y is None:
+            y = self.height() // 2
+
+        if check:
+            left, top, width, height = self.getPlotBoundsInPixels()
+            if not (left <= x <= left + width and top <= y <= top + height):
+                return None
+
+        return self._backend.pixelToData(x, y, axis)
 
     def getPlotBoundsInPixels(self):
         """Plot area bounds in widget coordinates in pixels.
@@ -2879,29 +2899,6 @@ class PlotWidget(qt.QMainWindow):
         :param str cursor: Name of the cursor shape
         """
         self._backend.setGraphCursorShape(cursor)
-
-    def _pickMarker(self, x, y, test=None):
-        """Pick a marker at the given position.
-
-        To use for interaction implementation.
-
-        :param float x: X position in pixels.
-        :param float y: Y position in pixels.
-        :param test: A callable to call for each picked marker to filter
-                     picked markers. If None (default), do not filter markers.
-        """
-        if test is None:
-            def test(mark):
-                return True
-
-        markers = self._backend.pickItems(x, y, kinds=('marker',))
-        legends = [m['legend'] for m in markers if m['kind'] == 'marker']
-
-        for legend in reversed(legends):
-            marker = self._getMarker(legend)
-            if marker is not None and test(marker):
-                return marker
-        return None
 
     def _getAllMarkers(self, just_legend=False):
         """Returns all markers' legend or objects
@@ -2924,73 +2921,63 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='marker', legend=legend)
 
-    def _pickImageOrCurve(self, x, y, test=None):
-        """Pick an image or a curve at the given position.
+    def _itemsFromBackToFront(self, condition=None):
+        """Iterator of plot items ordered from back to front.
 
-        To use for interaction implementation.
+        This is the order used for rendering.
+        It takes into account overlays, z value and order of addition of items
+
+        :param callable condition:
+           Callable taking an item as input and returning False for items to skip.
+           If None (default), no item is skipped.
+        :rtpye: List[Item]
+        """
+        # Sort items: Overlays first, then others
+        # and in each category ordered by z and then by order of addition
+        # as _content keeps this order.
+        content = self._content.values()
+        if condition is not None:
+            content = (item for item in content if condition(item))
+
+        return sorted(
+            content,
+            key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue()))
+
+    def pickItems(self, x, y, condition=None):
+        """Generator of picked items in the plot at given position.
+
+        Items are returned from front to back.
 
         :param float x: X position in pixels
         :param float y: Y position in pixels
-        :param test: A callable to call for each picked item to filter
-                     picked items. If None (default), do not filter items.
+        :param callable condition:
+           Callable taking an item as input and returning False for items
+           to skip during picking. If None (default) no item is skipped.
+        :return: Iterable of :class:`PickingResult` objects at picked position.
+            Items are ordered from front to back.
         """
-        if test is None:
-            def test(i):
-                return True
+        for item in reversed(self._itemsFromBackToFront(condition=condition)):
+            result = item.pick(x, y)
+            if result is not None:
+                yield result
 
-        allItems = self._backend.pickItems(x, y, kinds=('curve', 'image'))
-        allItems = [item for item in allItems
-                    if item['kind'] in ['curve', 'image']]
+    def _pickTopMost(self, x, y, condition=None):
+        """Returns top-most picked item in the plot at given position.
 
-        for item in reversed(allItems):
-            kind, legend = item['kind'], item['legend']
-            if kind == 'curve':
-                curve = self.getCurve(legend)
-                if curve is not None and test(curve):
-                    return kind, curve, item['indices']
+        Items are checked from front to back.
 
-            elif kind == 'image':
-                image = self.getImage(legend)
-                if image is not None and test(image):
-                    return kind, image, None
-
-            else:
-                _logger.warning('Unsupported kind: %s', kind)
-
+        :param float x: X position in pixels
+        :param float y: Y position in pixels
+        :param callable condition:
+           Callable taking an item as input and returning False for items
+           to skip during picking. If None (default) no item is skipped.
+        :return: :class:`PickingResult` object at picked position.
+           If no item is picked, it returns None
+        :rtype: Union[None,PickingResult]
+        """
+        for result in self.pickItems(x, y, condition):
+            return result
         return None
-
-    def _pick(self, x, y):
-        """Pick items in the plot at given position.
-
-        :param float x: X position in pixels
-        :param float y: Y position in pixels
-        :return: Iterable of (plot item, indices) at picked position.
-            Items are ordered from back to front.
-        """
-        items = []
-
-        # Convert backend result to plot items
-        for itemInfo in self._backend.pickItems(
-                x, y, kinds=('marker', 'curve', 'image')):
-            kind, legend = itemInfo['kind'], itemInfo['legend']
-
-            if kind in ('marker', 'image'):
-                item = self._getItem(kind=kind, legend=legend)
-                indices = None  # TODO compute indices for images
-
-            else:  # backend kind == 'curve'
-                for kind in ('curve', 'histogram', 'scatter'):
-                    item = self._getItem(kind=kind, legend=legend)
-                    if item is not None:
-                        indices = itemInfo['indices']
-                        break
-                else:
-                    _logger.error(
-                        'Cannot find corresponding picked item')
-                    continue
-            items.append((item, indices))
-
-        return tuple(items)
 
     # User event handling #
 

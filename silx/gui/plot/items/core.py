@@ -47,6 +47,7 @@ from ....utils.enum import Enum as _Enum
 from ... import qt
 from ... import colors
 from ...colors import Colormap
+from ._pick import PickingResult
 
 from silx import config
 
@@ -329,6 +330,26 @@ class Item(qt.QObject):
         if self._backendRenderer is not None:
             backend.remove(self._backendRenderer)
             self._backendRenderer = None
+
+    def pick(self, x, y):
+        """Run picking test on this item
+
+        :param float x: The x pixel coord where to pick.
+        :param float y: The y pixel coord where to pick.
+        :return: None if not picked, else the picked position information
+        :rtype: Union[None,PickingResult]
+        """
+        if not self.isVisible() or self._backendRenderer is None:
+            return None
+        plot = self.getPlot()
+        if plot is None:
+            return None
+
+        indices = plot._backend.pickItem(x, y, self._backendRenderer)
+        if indices is None:
+            return None
+        else:
+            return PickingResult(self, indices if len(indices) != 0 else None)
 
 
 # Mix-in classes ##############################################################

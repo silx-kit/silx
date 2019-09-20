@@ -1482,7 +1482,8 @@ class _NXdataXYVScatterView(DataView):
         data = self.normalizeData(data)
         if info.hasNXdata and not info.isInvalidNXdata:
             if nxdata.get_default(data, validate=False).is_x_y_value_scatter:
-                return 100
+                # It have to be a little more than a NX curve priority
+                return 110
 
         return DataView.UNSUPPORTED
 
