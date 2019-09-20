@@ -31,7 +31,9 @@ from silx.gui.data import DataViews
 from silx.gui.data.DataViews import _normalizeData
 import logging
 from silx.gui import qt
+from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
+
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -197,35 +199,38 @@ class DataViewer(qt.QFrame):
         """
         Update the numpy-selector according to the needed axis names
         """
-        previous = self.__numpySelection.blockSignals(True)
-        previousPermutation = self.__numpySelection.permutation()
-        previousSelection = self.__numpySelection.selection()
+        with blockSignals(self.__numpySelection):
+            previousPermutation = self.__numpySelection.permutation()
+            previousSelection = self.__numpySelection.selection()
 
-        self.__numpySelection.clear()
-        info = self._getInfo()
-        axisNames = self.__currentView.axesNames(self.__data, info)
-        if info.isArray and info.size != 0 and self.__data is not None and axisNames is not None:
-            self.__useAxisSelection = True
-            self.__numpySelection.setAxisNames(axisNames)
-            self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
-            data = self.normalizeData(self.__data)
-            self.__numpySelection.setData(data)
+            self.__numpySelection.clear()
 
-            # Try to restore previous permutation and selection
-            try:
-                self.__numpySelection.setSelection(previousSelection, previousPermutation)
-            except ValueError as e:
-                _logger.debug("Not restoring selection because: %s", e)
+            info = self._getInfo()
+            axisNames = self.__currentView.axesNames(self.__data, info)
+            if (info.isArray and info.size != 0 and
+                    self.__data is not None and axisNames is not None):
+                self.__useAxisSelection = True
+                self.__numpySelection.setAxisNames(axisNames)
+                self.__numpySelection.setCustomAxis(
+                    self.__currentView.customAxisNames())
+                data = self.normalizeData(self.__data)
+                self.__numpySelection.setData(data)
 
-            if hasattr(data, "shape"):
-                isVisible = not (len(axisNames) == 1 and len(data.shape) == 1)
+                # Try to restore previous permutation and selection
+                try:
+                    self.__numpySelection.setSelection(
+                        previousSelection, previousPermutation)
+                except ValueError as e:
+                    _logger.error("Not restoring selection because: %s", e)
+
+                if hasattr(data, "shape"):
+                    isVisible = not (len(axisNames) == 1 and len(data.shape) == 1)
+                else:
+                    isVisible = True
+                self.__axisSelection.setVisible(isVisible)
             else:
-                isVisible = True
-            self.__axisSelection.setVisible(isVisible)
-        else:
-            self.__useAxisSelection = False
-            self.__axisSelection.setVisible(False)
-        self.__numpySelection.blockSignals(previous)
+                self.__useAxisSelection = False
+                self.__axisSelection.setVisible(False)
 
     def __updateDataInView(self):
         """

@@ -36,6 +36,7 @@ import numpy
 import functools
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.gui import qt
+from silx.gui.utils import blockSignals
 import silx.utils.weakref
 
 
@@ -114,6 +115,8 @@ class _Axis(qt.QWidget):
         if axisName == "" and self.__axes.count() == 0:
             self.__axes.setCurrentIndex(-1)
             self.__updateSliderVisibility()
+            return
+
         for index in range(self.__axes.count()):
             name = self.__axes.itemData(index)
             if name == axisName:
@@ -125,7 +128,7 @@ class _Axis(qt.QWidget):
     def axisName(self):
         """Returns the selected axis name.
 
-        If no names are selected, an empty string is retruned.
+        If no name is selected, an empty string is returned.
 
         :rtype: str
         """
@@ -140,11 +143,11 @@ class _Axis(qt.QWidget):
         :param List[str] axesNames: List of available names
         """
         self.__axes.clear()
-        previous = self.__axes.blockSignals(True)
-        self.__axes.addItem(" ", "")
-        for axis in axesNames:
-            self.__axes.addItem(axis, axis)
-        self.__axes.blockSignals(previous)
+        with blockSignals(self.__axes):
+            self.__axes.addItem(" ", "")
+            for axis in axesNames:
+                self.__axes.addItem(axis, axis)
+
         self.__updateSliderVisibility()
 
     def setCustomAxis(self, axesNames):
@@ -172,7 +175,7 @@ class _Axis(qt.QWidget):
         self.__slider.setVisible(isVisible)
 
     def value(self):
-        """Returns the current selected position in the axis.
+        """Returns the currently selected position in the axis.
 
         :rtype: int
         """
@@ -194,18 +197,14 @@ class _Axis(qt.QWidget):
 
     def setNamedAxisSelectorVisibility(self, visible):
         """Hide or show the named axis combobox.
-        If both the selector and the slider are hidden,
-        hide the entire widget.
+
+        If both the selector and the slider are hidden, hide the entire widget.
 
         :param visible: boolean
         """
         self.__axes.setVisible(visible)
         name = self.axisName()
-
-        if not visible and name != "":
-            self.setVisible(False)
-        else:
-            self.setVisible(True)
+        self.setVisible(visible or name == "")
 
 
 class NumpyAxesSelector(qt.QWidget):
@@ -278,13 +277,12 @@ class NumpyAxesSelector(qt.QWidget):
         if delta < 0:
             delta = 0
         for index, axis in enumerate(self.__axis):
-            previous = axis.blockSignals(True)
-            axis.setAxisNames(self.__axisNames)
-            if index >= delta and index - delta < len(self.__axisNames):
-                axis.setAxisName(self.__axisNames[index - delta])
-            else:
-                axis.setAxisName("")
-            axis.blockSignals(previous)
+            with blockSignals(axis):
+                axis.setAxisNames(self.__axisNames)
+                if index >= delta and index - delta < len(self.__axisNames):
+                    axis.setAxisName(self.__axisNames[index - delta])
+                else:
+                    axis.setAxisName("")
         self.__updateSelectedData()
 
     def setCustomAxis(self, axesNames):
@@ -382,9 +380,8 @@ class NumpyAxesSelector(qt.QWidget):
                 # If there is no other solution we set the name at the same place
                 axisChanged = False
                 availableWidget = axis
-            previous = availableWidget.blockSignals(True)
-            availableWidget.setAxisName(missingName)
-            availableWidget.blockSignals(previous)
+            with blockSignals(availableWidget):
+                availableWidget.setAxisName(missingName)
         else:
             # there is a duplicated name somewhere
             # we swap it with the missing name or with nothing
@@ -397,9 +394,8 @@ class NumpyAxesSelector(qt.QWidget):
                     break
             if missingName is None:
                 missingName = ""
-            previous = dupWidget.blockSignals(True)
-            dupWidget.setAxisName(missingName)
-            dupWidget.blockSignals(previous)
+            with blockSignals(dupWidget):
+                dupWidget.setAxisName(missingName)
 
         if self.__data is None:
             return
@@ -431,9 +427,12 @@ class NumpyAxesSelector(qt.QWidget):
     def data(self):
         """Returns the input data.
 
-        :rtype: numpy.ndarray
+        :rtype: Union[numpy.ndarray,None]
         """
-        return self.__data
+        if self.__data is None:
+            return None
+        else:
+            return numpy.array(self.__data, copy=False)
 
     def selectedData(self):
         """Returns the output data.
@@ -444,7 +443,10 @@ class NumpyAxesSelector(qt.QWidget):
 
         :rtype: Union[numpy.ndarray,None]
         """
-        return self.__selectedData
+        if self.__selectedData is None:
+            return None
+        else:
+            return numpy.array(self.__selectedData, copy=False)
 
     def permutation(self):
         """Returns the axes permutation to convert data subset to selected data.
@@ -539,30 +541,27 @@ class NumpyAxesSelector(qt.QWidget):
 
         axisNameChanged = False
         customValueChanged = []
+        with blockSignals(*self.__axis):
+            index = 0
+            for element, axis in zip(selection, self.__axis):
+                if isinstance(element, int):
+                    name = ""
+                else:
+                    name = self.__axisNames[inversePermutation[index]]
+                    index += 1
 
-        blocked = [(axis, axis.blockSignals(True)) for axis in self.__axis]
-        index = 0
-        for element, axis in zip(selection, self.__axis):
-            if isinstance(element, int):
-                name = ""
-            else:
-                name = self.__axisNames[inversePermutation[index]]
-                index += 1
+                if axis.axisName() != name:
+                    axis.setAxisName(name)
+                    axisNameChanged = True
 
-            if axis.axisName() != name:
-                axis.setAxisName(name)
-                axisNameChanged = True
+            for element, axis in zip(selection, self.__axis):
+                value = element if isinstance(element, int) else 0
+                if axis.value() != value:
+                    axis.setValue(value)
 
-        for element, axis in zip(selection, self.__axis):
-            value = element if isinstance(element, int) else 0
-            if axis.value() != value:
-                axis.setValue(value)
-
-                name = axis.axisName()
-                if name in self.__customAxisNames:
-                    customValueChanged.append((name, value))
-        for axis, previous in blocked:
-            axis.blockSignals(previous)
+                    name = axis.axisName()
+                    if name in self.__customAxisNames:
+                        customValueChanged.append((name, value))
 
         # Send signals that where disabled
         if axisNameChanged:
