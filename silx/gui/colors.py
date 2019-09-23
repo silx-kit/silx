@@ -180,6 +180,20 @@ def greyed(color, colorDict=None):
     return g, g, g, a
 
 
+def asQColor(color):
+    """Convert color code '#RRGGBB' and '#RRGGBBAA' to a `qt.QColor`.
+
+    It also convert RGB(A) values from uint8 to float in [0, 1] and
+    accept a QColor as color argument.
+
+    :param str color: The color to convert
+    :param dict colorDict: A dictionary of color name conversion to color code
+    :rtype: qt.QColor
+    """
+    color = rgba(color)
+    return qt.QColor.fromRgbF(*color)
+
+
 def cursorColorForColormap(colormapName):
     """Get a color suitable for overlay over a colormap.
 
