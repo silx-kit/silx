@@ -1125,9 +1125,11 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     _MPL_TO_PLOT_BUTTONS = {1: 'left', 2: 'middle', 3: 'right'}
 
     def _onMousePress(self, event):
-        self._plot.onMousePress(
-            event.x, self._mplQtYAxisCoordConversion(event.y),
-            self._MPL_TO_PLOT_BUTTONS[event.button])
+        button = self._MPL_TO_PLOT_BUTTONS.get(event.button, None)
+        if button is not None:
+            self._plot.onMousePress(
+                event.x, self._mplQtYAxisCoordConversion(event.y),
+                button)
 
     def _onMouseMove(self, event):
         if self._graphCursor:
@@ -1148,9 +1150,11 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             event.x, self._mplQtYAxisCoordConversion(event.y))
 
     def _onMouseRelease(self, event):
-        self._plot.onMouseRelease(
-            event.x, self._mplQtYAxisCoordConversion(event.y),
-            self._MPL_TO_PLOT_BUTTONS[event.button])
+        button = self._MPL_TO_PLOT_BUTTONS.get(event.button, None)
+        if button is not None:
+            self._plot.onMouseRelease(
+                event.x, self._mplQtYAxisCoordConversion(event.y),
+                button)
 
     def _onMouseWheel(self, event):
         self._plot.onMouseWheel(
