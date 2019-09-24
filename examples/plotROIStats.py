@@ -50,6 +50,9 @@ import numpy
 
 
 class _RoiStatsWidget(qt.QMainWindow):
+    """
+    Window used to associate ROIStatsWidget and UpdateModeWidget
+    """
     def __init__(self, parent=None, plot=None):
         assert plot is not None
         qt.QMainWindow.__init__(self, parent)
@@ -83,7 +86,7 @@ class _RoiStatsWidget(qt.QMainWindow):
 
 class _RoiStatsDisplayExWindow(qt.QMainWindow):
     """
-    Simple window to group the different stats actors
+    Simple window to group the different statistics actors
     """
     def __init__(self, parent=None):
         qt.QMainWindow.__init__(self, parent)
@@ -156,12 +159,14 @@ STATS = [
 ]
 
 def get_1D_rois():
+    """return some ROI instance"""
     roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
     roi2D = ROI(name='range2', fromdata=-2, todata=6, type_='energy')
     return roi1D, roi2D
 
 
 def get_2D_rois():
+    """return some RectangleROI instance"""
     rectangle_roi1 = RectangleROI()
     rectangle_roi1.setGeometry(origin=(0, 0), size=(20, 20))
     rectangle_roi1.setName('Initial ROI')
@@ -172,6 +177,7 @@ def get_2D_rois():
 
 
 def example_curve():
+    """set up the roi stats example for curves"""
     app = qt.QApplication([])
     roi_1, roi_2 = get_1D_rois()
     window = _RoiStatsDisplayExWindow()
@@ -197,6 +203,7 @@ def example_curve():
 
 
 def example_image():
+    """set up the roi stats example for images"""
     app = qt.QApplication([])
     rectangle_roi1, rectangle_roi2 = get_2D_rois()
 
@@ -220,6 +227,7 @@ def example_image():
 
 
 def example_curve_image():
+    """set up the roi stats example for curves and images"""
     app = qt.QApplication([])
     roi1D_1, roi1D_2 = get_1D_rois()
     rectangle_roi1, rectangle_roi2 = get_2D_rois()
