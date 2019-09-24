@@ -925,14 +925,14 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
     def testBasicStatsCurve(self):
         """Test result for simple stats on a curve"""
         _stats = self.getBasicStats()
-        xData = yData = numpy.array(range(2, 6))
+        xData = yData = numpy.array(range(0, 10))
         self.assertEqual(_stats['min'].calculate(self.curveContext), 2)
         self.assertEqual(_stats['max'].calculate(self.curveContext), 5)
         self.assertEqual(_stats['minCoords'].calculate(self.curveContext), (2,))
         self.assertEqual(_stats['maxCoords'].calculate(self.curveContext), (5,))
-        self.assertEqual(_stats['std'].calculate(self.curveContext), numpy.std(yData))
-        self.assertEqual(_stats['mean'].calculate(self.curveContext), numpy.mean(yData))
-        com = numpy.sum(xData * yData) / numpy.sum(yData)
+        self.assertEqual(_stats['std'].calculate(self.curveContext), numpy.std(yData[2:6]))
+        self.assertEqual(_stats['mean'].calculate(self.curveContext), numpy.mean(yData[2:6]))
+        com = numpy.sum(xData[2:6] * yData[2:6]) / numpy.sum(yData[2:6])
         self.assertEqual(_stats['com'].calculate(self.curveContext), com)
 
     def testBasicStatsImageRectRoi(self):
