@@ -46,6 +46,8 @@ from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot import stats as statsmdl
 from collections import OrderedDict
 from silx.utils.proxy import docstring
+import silx.gui.plot.items.marker
+import silx.gui.plot.items.shape
 import functools
 import logging
 
@@ -555,6 +557,9 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                         self.setRowHidden(row_index, not item.isVisible())
 
     def _removeItem(self, itemKey):
+        if isinstance(itemKey, (silx.gui.plot.items.marker.Marker,
+                                silx.gui.plot.items.shape.Shape)):
+            return
         if itemKey not in self._items:
             _logger.warning('key not recognized. Won\'t remove any item')
             return
