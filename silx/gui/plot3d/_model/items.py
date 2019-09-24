@@ -334,7 +334,7 @@ class Item3DRow(BaseRow):
             elif role == qt.Qt.DisplayRole:
                 if self.__name is None:
                     item = self.item()
-                    return '' if item is None else item.getName()
+                    return '' if item is None else item.getLabel()
                 else:
                     return self.__name
 
