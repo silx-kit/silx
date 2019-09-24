@@ -68,8 +68,8 @@ def is_longdouble_64bits():
 
 def min_numerical_convertible_type(string, check_accuracy=True):
     """
-    Parse the string and return the smallest numerical type to use for a safe
-    conversion.
+    Parse the string and try to return the smallest numerical type to use for
+    a safe conversion. It has some known issues: precission loss.
 
     :param str string: Representation of a float/integer with text
     :param bool check_accuracy: If true, a warning is pushed on the logger
@@ -104,7 +104,7 @@ def min_numerical_convertible_type(string, check_accuracy=True):
         exponent = "0"
 
     nb_precision_digits = int(exponent) - len(decimal) - 1
-    precision = _biggest_float(10) ** nb_precision_digits * 2.5
+    precision = _biggest_float(10) ** nb_precision_digits * 1.2
     previous_type = _biggest_float
     for numpy_type in _float_types:
         if numpy_type == _biggest_float:
