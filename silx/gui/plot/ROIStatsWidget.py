@@ -40,6 +40,7 @@ from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot import items as plotitems
+from silx.gui.plot.items.core import ItemChangedType
 from silx.gui.plot3d import items as plot3ditems
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot import stats as statsmdl
@@ -542,15 +543,16 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         if self._skipPlotItemChangedEvent(event) is True:
             return
         else:
-            item = self.sender()
-            # TODO: get all concerned items
-            self._updateStats(item)
-            # deal with stat items visibility
-            if event is ItemChangedType.VISIBLE:
-                if len(self._itemToTableItems(item).items()) > 0:
-                    item_0 = list(self._itemToTableItems(item).values())[0]
-                    row_index = item_0.row()
-                    self.setRowHidden(row_index, not item.isVisible())
+            sender = self.sender()
+            for item in self.__plotItemToItems[sender]:
+                # TODO: get all concerned items
+                self._updateStats(item)
+                # deal with stat items visibility
+                if event is ItemChangedType.VISIBLE:
+                    if len(self._itemToTableItems(item).items()) > 0:
+                        item_0 = list(self._itemToTableItems(item).values())[0]
+                        row_index = item_0.row()
+                        self.setRowHidden(row_index, not item.isVisible())
 
     def _removeItem(self, itemKey):
         if itemKey not in self._items:
