@@ -38,11 +38,13 @@ from silx.gui import qt
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
 from silx.gui.plot.items.roi import RectangleROI
-from silx.gui.plot import Plot2D, Plot1D
+from silx.gui.plot import Plot2D, PlotWidget
+from silx.gui.plot3d.SceneWindow import SceneWindow, items
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.ROIStatsWidget import ROIStatsWidget
-from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
-from collections import OrderedDict
+from silx.gui.plot.StatsWidget import UpdateModeWidget
+import sys
+import argparse
 import functools
 import numpy
 
@@ -90,22 +92,23 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
 
         # 1D roi management
         self._curveRoiWidget = self.plot.getCurvesRoiDockWidget().widget()
-        # 2D - 3D roi manager
-        self._regionManager = RegionOfInterestManager(parent=self.plot)
-
-        self._curveRoiWidget = self.plot.getCurvesRoiDockWidget().widget()
+        # hide last columns which are of no use now
+        for index in (5, 6, 7, 8):
+            self._curveRoiWidget.roiTable.setColumnHidden(index, True)
         # roi display widget
         self._roiStatsWindow = ROIStatsWidget(plot=self.plot)
+
+        # 2D - 3D roi manager
+        self._regionManager = RegionOfInterestManager(parent=self.plot)
 
         # Create the table widget displaying
         self._2DRoiWidget = RegionOfInterestTableWidget()
         self._2DRoiWidget.setRegionOfInterestManager(self._regionManager)
-        self._2DRoiWidget.show()
 
         # tabWidget for displaying the rois
         self._roisTabWidget = qt.QTabWidget(parent=self)
-        self._roisTabWidget.addTab(self._curveRoiWidget, '1D roi(s)')
-        self._roisTabWidget.addTab(self._2DRoiWidget, '2D roi(s)')
+        if hasattr(self._roisTabWidget, 'setTabBarAutoHide'):
+            self._roisTabWidget.setTabBarAutoHide(True)
 
         # widget for displaying stats results and update mode
         self._statsWidget = _RoiStatsWidget(parent=self, plot=self.plot)
@@ -122,7 +125,9 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
         self.addDockWidget(qt.Qt.RightDockWidgetArea,
                            self._roiStatsWindowDockWidget)
 
-    def setRois(self, rois1D, rois2D):
+    def setRois(self, rois1D=None, rois2D=None):
+        rois1D = rois1D or ()
+        rois2D = rois2D or ()
         self._curveRoiWidget.setRois(rois1D)
         for roi1D in rois1D:
             self._statsWidget.registerROI(roi1D)
@@ -131,6 +136,12 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
             self._regionManager.addRoi(roi2D)
             self._statsWidget.registerROI(roi2D)
 
+        # update manage tab visibility
+        if len(rois2D) > 0:
+            self._roisTabWidget.addTab(self._2DRoiWidget, '2D roi(s)')
+        if len(rois1D) > 0:
+            self._roisTabWidget.addTab(self._curveRoiWidget, '1D roi(s)')
+
     def setStats(self, stats):
         self._statsWidget.setStats(stats=stats)
 
@@ -138,44 +149,119 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
         self._statsWidget.addItem(roi=roi, plotItem=item)
 
 
-def main():
-    app = qt.QApplication([])
+# define stats to display
+STATS = [
+    ('sum', numpy.sum),
+    ('mean', numpy.mean),
+]
 
-    window = _RoiStatsDisplayExWindow()
+def get_1D_rois():
+    roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
+    roi2D = ROI(name='range2', fromdata=-2, todata=6, type_='energy')
+    return roi1D, roi2D
 
-    # define some image and curve
-    window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
-    window.plot.addImage(numpy.random.random(10000).reshape(100, 100), legend='img2',
-                         origin=(0, 100))
-    window.plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.arange(56),
-                         legend='curve1')
 
-    # define rois
-    rectangle_roi = RectangleROI()
-    rectangle_roi.setGeometry(origin=(0, 0), size=(20, 20))
-    rectangle_roi.setName('Initial ROI')
+def get_2D_rois():
+    rectangle_roi1 = RectangleROI()
+    rectangle_roi1.setGeometry(origin=(0, 0), size=(20, 20))
+    rectangle_roi1.setName('Initial ROI')
     rectangle_roi2 = RectangleROI()
     rectangle_roi2.setGeometry(origin=(0, 100), size=(50, 50))
     rectangle_roi2.setName('ROI second')
-    roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
-    window.setRois(rois1D=(roi1D,), rois2D=(rectangle_roi, rectangle_roi2))
+    return rectangle_roi1, rectangle_roi2
 
-    # define stats to display
-    stats = [
-        ('sum', numpy.sum),
-        ('mean', numpy.mean),
-    ]
-    window.setStats(stats)
+
+def example_curve():
+    app = qt.QApplication([])
+    roi_1, roi_2 = get_1D_rois()
+    window = _RoiStatsDisplayExWindow()
+    window.setRois(rois1D=(roi_2, roi_1))
+
+    # define some image and curve
+    window.plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.arange(56),
+                         legend='curve1', color='blue')
+    window.plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.random.random_sample(size=56),
+                         legend='curve2', color='red')
+
+    window.setStats(STATS)
 
     # add some couple (plotItem, roi) to be displayed by default
-    img_item = window.plot.getImage('img1')
-    window.addItem(item=img_item, roi=rectangle_roi)
-    curve_item = window.plot.getCurve('curve1')
-    window.addItem(item=curve_item, roi=roi1D)
+    curve1_item = window.plot.getCurve('curve1')
+    window.addItem(item=curve1_item, roi=roi_1)
+    window.addItem(item=curve1_item, roi=roi_2)
+    curve2_item = window.plot.getCurve('curve2')
+    window.addItem(item=curve2_item, roi=roi_2)
 
     window.show()
     app.exec_()
 
 
+def example_image():
+    app = qt.QApplication([])
+    rectangle_roi1, rectangle_roi2 = get_2D_rois()
+
+    window = _RoiStatsDisplayExWindow()
+    window.setRois(rois2D=(rectangle_roi1, rectangle_roi2))
+
+    # define some image and curve
+    window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
+    window.plot.addImage(numpy.random.random(10000).reshape(100, 100), legend='img2',
+                         origin=(0, 100))
+    window.setStats(STATS)
+
+    # add some couple (plotItem, roi) to be displayed by default
+    img_item = window.plot.getImage('img1')
+    window.addItem(item=img_item, roi=rectangle_roi1)
+    img2_item = window.plot.getImage('img2')
+    window.addItem(item=img2_item, roi=rectangle_roi2)
+
+    window.show()
+    app.exec_()
+
+
+def example_curve_image():
+    app = qt.QApplication([])
+    roi1D_1, roi1D_2 = get_1D_rois()
+    rectangle_roi1, rectangle_roi2 = get_2D_rois()
+
+    window = _RoiStatsDisplayExWindow()
+    window.setRois(rois1D=(roi1D_1, roi1D_2,),
+                   rois2D=(rectangle_roi1, rectangle_roi2))
+
+    # define some image and curve
+    window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
+    window.plot.addImage(numpy.random.random(10000).reshape(100, 100),
+                         legend='img2', origin=(0, 100))
+    window.plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.arange(56),
+                         legend='curve1')
+    window.setStats(STATS)
+
+    # add some couple (plotItem, roi) to be displayed by default
+    img_item = window.plot.getImage('img1')
+    window.addItem(item=img_item, roi=rectangle_roi1)
+    curve_item = window.plot.getCurve('curve1')
+    window.addItem(item=curve_item, roi=roi1D_1)
+
+    window.show()
+    app.exec_()
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("script", nargs="*")
+    parser.add_argument("--items", dest="items", default='curve+image',
+                        help="items type(s), can be curve, image, curve+image")
+    options = parser.parse_args(argv[1:])
+    items = options.items.lower()
+    if items == 'curves':
+        example_curve()
+    elif items == 'images':
+        example_image()
+    elif items == 'curves+images':
+        example_curve_image()
+    else:
+        raise ValueError('invalid entry for item type')
+
+
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
