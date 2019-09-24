@@ -68,8 +68,8 @@ def is_longdouble_64bits():
 
 def min_numerical_convertible_type(string, check_accuracy=True):
     """
-    Parse the string and return the smallest numerical type to use for a safe
-    conversion.
+    Parse the string and try to return the smallest numerical type to use for
+    a safe conversion. It has some known issues: precission loss.
 
     :param str string: Representation of a float/integer with text
     :param bool check_accuracy: If true, a warning is pushed on the logger
