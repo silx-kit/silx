@@ -428,10 +428,10 @@ class _ImageContext(_StatsContext):
             minX, maxX = 0, self.data.shape[1]
             minY, maxY = 0, self.data.shape[0]
 
-            XMinBound = int((minX - self.origin[0]) / self.scale[0])
-            YMinBound = int((minY - self.origin[1]) / self.scale[1])
-            XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
-            YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
+            XMinBound = int((minX) / self.scale[0])
+            YMinBound = int((minY) / self.scale[1])
+            XMaxBound = int((maxX) / self.scale[0])
+            YMaxBound = int((maxY) / self.scale[1])
 
             XMinBound = max(XMinBound, 0)
             YMinBound = max(YMinBound, 0)
