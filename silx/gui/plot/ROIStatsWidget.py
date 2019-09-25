@@ -594,7 +594,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         """return the roi fitting the requirement kind, name. This information
         is enough to be sure it is unique (in the widget)"""
         for roi in self.__roiToItems:
-            roiName = roi.getName() if isinstance(roi, ROI) else roi.getLabel()
+            roiName = roi.getName()
             if isinstance(roi, kind) and name == roiName:
                 return roi
         return None
