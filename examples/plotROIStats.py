@@ -37,9 +37,8 @@ __date__ = "23/07/2019"
 from silx.gui import qt
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
-from silx.gui.plot.items.roi import RectangleROI
-from silx.gui.plot import Plot2D, PlotWidget
-from silx.gui.plot3d.SceneWindow import SceneWindow, items
+from silx.gui.plot.items.roi import RectangleROI, PolygonROI, ArcROI
+from silx.gui.plot import Plot2D
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.ROIStatsWidget import ROIStatsWidget
 from silx.gui.plot.StatsWidget import UpdateModeWidget
@@ -158,6 +157,7 @@ STATS = [
     ('mean', numpy.mean),
 ]
 
+
 def get_1D_rois():
     """return some ROI instance"""
     roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
@@ -167,13 +167,18 @@ def get_1D_rois():
 
 def get_2D_rois():
     """return some RectangleROI instance"""
-    rectangle_roi1 = RectangleROI()
-    rectangle_roi1.setGeometry(origin=(0, 0), size=(20, 20))
-    rectangle_roi1.setName('Initial ROI')
-    rectangle_roi2 = RectangleROI()
-    rectangle_roi2.setGeometry(origin=(0, 100), size=(50, 50))
-    rectangle_roi2.setName('ROI second')
-    return rectangle_roi1, rectangle_roi2
+    rectangle_roi = RectangleROI()
+    rectangle_roi.setGeometry(origin=(0, 100), size=(20, 20))
+    rectangle_roi.setName('Initial ROI')
+    polygon_roi = PolygonROI()
+    polygon_points = numpy.array([(0, 10), (10, 20), (45, 30), (35, 0)])
+    polygon_roi.setPoints(polygon_points)
+    polygon_roi.setName('polygon ROI')
+    arc_roi = ArcROI()
+    arc_roi.setName('arc ROI')
+    arc_roi.setFirstShapePoints(numpy.array([[50, 10], [80, 120]]))
+    arc_roi.setGeometry(*arc_roi.getGeometry())
+    return rectangle_roi, polygon_roi, arc_roi
 
 
 def example_curve():
@@ -205,10 +210,10 @@ def example_curve():
 def example_image():
     """set up the roi stats example for images"""
     app = qt.QApplication([])
-    rectangle_roi1, rectangle_roi2 = get_2D_rois()
+    rectangle_roi, polygon_roi, arc_roi = get_2D_rois()
 
     window = _RoiStatsDisplayExWindow()
-    window.setRois(rois2D=(rectangle_roi1, rectangle_roi2))
+    window.setRois(rois2D=(rectangle_roi, polygon_roi, arc_roi))
 
     # define some image and curve
     window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
@@ -217,10 +222,11 @@ def example_image():
     window.setStats(STATS)
 
     # add some couple (plotItem, roi) to be displayed by default
-    img_item = window.plot.getImage('img1')
-    window.addItem(item=img_item, roi=rectangle_roi1)
+    img1_item = window.plot.getImage('img1')
     img2_item = window.plot.getImage('img2')
-    window.addItem(item=img2_item, roi=rectangle_roi2)
+    window.addItem(item=img2_item, roi=rectangle_roi)
+    window.addItem(item=img1_item, roi=polygon_roi)
+    window.addItem(item=img1_item, roi=arc_roi)
 
     window.show()
     app.exec_()
@@ -230,11 +236,11 @@ def example_curve_image():
     """set up the roi stats example for curves and images"""
     app = qt.QApplication([])
     roi1D_1, roi1D_2 = get_1D_rois()
-    rectangle_roi1, rectangle_roi2 = get_2D_rois()
+    rectangle_roi, polygon_roi, arc_roi = get_2D_rois()
 
     window = _RoiStatsDisplayExWindow()
     window.setRois(rois1D=(roi1D_1, roi1D_2,),
-                   rois2D=(rectangle_roi1, rectangle_roi2))
+                   rois2D=(rectangle_roi, polygon_roi, arc_roi))
 
     # define some image and curve
     window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
@@ -246,7 +252,7 @@ def example_curve_image():
 
     # add some couple (plotItem, roi) to be displayed by default
     img_item = window.plot.getImage('img1')
-    window.addItem(item=img_item, roi=rectangle_roi1)
+    window.addItem(item=img_item, roi=rectangle_roi)
     curve_item = window.plot.getCurve('curve1')
     window.addItem(item=curve_item, roi=roi1D_1)
 
