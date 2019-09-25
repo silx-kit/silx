@@ -1270,7 +1270,12 @@ class ROI(_RegionOfInterestBase):
         return rawArea, netArea
 
     def isIn(self, value):
-        """Return True if the value is in between fromdata and todata"""
+        """
+
+        :param float value: position
+        :return: True if the value is in between fromdata and todata
+        :rtype: bool
+        """
         return self._fromdata <= value <= self._todata
 
 

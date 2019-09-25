@@ -440,8 +440,7 @@ class _ImageContext(_StatsContext):
                 for y in range(YMinBound, YMaxBound):
                     _x = x + self.origin[0]
                     _y = y + self.origin[1]
-                    # TODO: make sure the +0.5 is always valid
-                    mask[y, x] = not roi.isIn((_x+0.5, _y+0.5))
+                    mask[y, x] = not roi.isIn((_x, _y))
             mask = mask.astype(numpy.int)
         self.values = numpy.ma.array(self.data, mask=mask)
         if self.values.compressed().size > 0:
