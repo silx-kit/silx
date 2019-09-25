@@ -524,6 +524,13 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         super(Hdf5TableView, self).__init__(parent)
         self.setModel(Hdf5TableModel(self))
 
+        self.doubleClicked.connect(self._dbl_click)
+
+    def _dbl_click(self, index):
+        m = self.model().data(index)
+        qapp = qt.QApplication.instance()
+        qapp.clipboard().setText(m)
+
     def isSupportedData(self, data):
         """
         Returns true if the provided object can be modelized using this model.
