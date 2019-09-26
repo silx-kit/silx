@@ -22,7 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Scatter` item of the :class:`Plot`.
+"""This module provides mechanism relative to stats calculation within a
+:class:`PlotWidget`.
+It also include the implementation of the statistics themselves.
 """
 
 __authors__ = ["H. Payno"]
@@ -41,7 +43,7 @@ from ..CurvesROIWidget import ROI
 from ..items.roi import RegionOfInterest
 
 from ....math.combo import min_max
-
+from silx.utils.proxy import docstring
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +75,9 @@ class Stats(OrderedDict):
         :param plot: plot containing the item
         :param bool onlimits: True if we want to apply statistic only on
                               visible data.
+        :param roi: region of interest for statistic calculation. Incompatible
+                    with the `onlimits` option.
+        :type: Union[None,:class:`_RegionOfInterestBase`]
         :return dict: dictionary with :class:`Stat` name as ket and result
                       of the calculation as value
         """
@@ -132,8 +137,8 @@ class _StatsContext(object):
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
     :param roi: Region of interest for computing the statistics.
-                For now, incompatible with `onlinits` calculation
-    :type roi: Union[None, :class:`ROI`]
+                For now, incompatible with `onlimits` calculation
+    :type roi: Union[None,:class:`_RegionOfInterestBase`]
     """
     def __init__(self, item, kind, plot, onlimits, roi):
         assert item
@@ -148,7 +153,7 @@ class _StatsContext(object):
 
         self.values = None
         """The array of data with limit filtering if any. Is a numpy.ma.array,
-        meaining that it embed the mask applied by the roi if any"""
+        meaning that it embed the mask applied by the roi if any"""
 
         self.axes = None
         """A list of array of position on each axis.
@@ -172,6 +177,18 @@ class _StatsContext(object):
             return None
 
     def createContext(self, item, plot, onlimits, roi):
+        """
+        Function called before recomputing each statistics associated to this
+        context.
+
+        :param item: item for which we want statistics
+        :param plot: plot containing the statistics
+        :param bool onlimits: True if we want to apply statistic only on
+                         visible data.
+        :param roi: Region of interest for computing the statistics.
+                    For now, incompatible with `onlimits` calculation
+        :type roi: Union[None,:class:`_RegionOfInterestBase`]
+        """
         raise NotImplementedError("Base class")
 
     def isStructuredData(self):
@@ -224,6 +241,7 @@ class _CurveContext(_StatsContext):
         _StatsContext.__init__(self, kind='curve', item=item,
                                plot=plot, onlimits=onlimits, roi=roi)
 
+    @docstring(_StatsContext)
     def createContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
@@ -280,6 +298,7 @@ class _HistogramContext(_StatsContext):
         _StatsContext.__init__(self, kind='histogram', item=item,
                                plot=plot, onlimits=onlimits, roi=roi)
 
+    @docstring(_StatsContext)
     def createContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
@@ -335,6 +354,7 @@ class _ScatterContext(_StatsContext):
         _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
                                onlimits=onlimits, roi=roi)
 
+    @docstring(_StatsContext)
     def createContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
@@ -383,6 +403,17 @@ class _ImageContext(_StatsContext):
 
     It supports :class:`~silx.gui.plot.items.ImageData`.
 
+    :warning: behaviour of scale images: now the statistics are computed on
+              the entire data array (there is no sampling in the array or
+              interpolation regarding the scale).
+              This also mean that the result can differ from what is displayed.
+              But I guess there is no perfect behaviour.
+
+    :warning: `isIn` functions for image context: for now have basically a
+              binary approach, the pixel is in a roi or not. To have a fully
+              'correct behaviour' we should add a weight on stats calculation
+              to moderate the pixel value.
+
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
@@ -395,6 +426,7 @@ class _ImageContext(_StatsContext):
         _StatsContext.__init__(self, kind='image', item=item,
                                plot=plot, onlimits=onlimits, roi=roi)
 
+    @docstring(_StatsContext)
     def createContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
@@ -473,6 +505,7 @@ class _plot3DScatterContext(_StatsContext):
         _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
                                onlimits=onlimits, roi=roi)
 
+    @docstring(_StatsContext)
     def createContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
@@ -524,6 +557,7 @@ class _plot3DArrayContext(_StatsContext):
         _StatsContext.__init__(self, kind='image', item=item, plot=plot,
                                onlimits=onlimits, roi=roi)
 
+    @docstring(_StatsContext)
     def createContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
@@ -605,6 +639,7 @@ class Stat(StatBase):
         StatBase.__init__(self, name, kinds)
         self._fct = fct
 
+    @docstring(StatBase)
     def calculate(self, context):
         if context.values is not None:
             if context.kind in self.compatibleKinds:
@@ -621,6 +656,7 @@ class StatMin(StatBase):
     def __init__(self):
         StatBase.__init__(self, name='min')
 
+    @docstring(StatBase)
     def calculate(self, context):
         return context.min
 
@@ -630,6 +666,7 @@ class StatMax(StatBase):
     def __init__(self):
         StatBase.__init__(self, name='max')
 
+    @docstring(StatBase)
     def calculate(self, context):
         return context.max
 
@@ -639,6 +676,7 @@ class StatDelta(StatBase):
     def __init__(self):
         StatBase.__init__(self, name='delta')
 
+    @docstring(StatBase)
     def calculate(self, context):
         return context.max - context.min
 
@@ -676,6 +714,7 @@ class StatCoordMin(_StatCoord):
     def __init__(self):
         _StatCoord.__init__(self, name='coords min')
 
+    @docstring(StatBase)
     def calculate(self, context):
         if context.values is None or not context.isScalarData():
             return None
@@ -692,6 +731,7 @@ class StatCoordMax(_StatCoord):
     def __init__(self):
         _StatCoord.__init__(self, name='coords max')
 
+    @docstring(StatBase)
     def calculate(self, context):
         if context.values is None or not context.isScalarData():
             return None
@@ -710,6 +750,7 @@ class StatCOM(StatBase):
     def __init__(self):
         StatBase.__init__(self, name='COM', description='Center of mass')
 
+    @docstring(StatBase)
     def calculate(self, context):
         if context.values is None or not context.isScalarData():
             return None

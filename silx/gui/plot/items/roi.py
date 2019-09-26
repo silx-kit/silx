@@ -1346,6 +1346,8 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
 
     def isIn(self, value):
         """
+        check if the given value (pixel) is in the ROI.
+        If the pixel is inclusive within a border he is consider as in the roi.
 
         :param value: should be given as x, y
         :return:

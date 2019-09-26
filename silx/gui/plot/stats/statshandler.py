@@ -22,7 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""
+"""This module containts the classes relative to the management of statistics
+display.
 """
 
 __authors__ = ["H. Payno"]
@@ -187,6 +188,9 @@ class StatsHandler(object):
         :param plot: plot containing the item
         :param onlimits: True if we want to compute statistics on visible data
                          only
+        :type: bool
+        :param roi: region of interest for statistic calculation
+        :type: Union[None,:class:`_RegionOfInterestBase`]
         :return: list of formatted statistics (as str)
         :rtype: dict
         """
