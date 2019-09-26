@@ -200,11 +200,11 @@ class ROIStatsItemHelper(object):
             return 'scatter'
         elif isinstance(self._plot_item, plotitems.Histogram):
             return 'histogram'
-        elif isinstance(item, (plot3ditems.ImageData,
-                               plot3ditems.ScalarField3D)):
+        elif isinstance(self._plot_item, (plot3ditems.ImageData,
+                                          plot3ditems.ScalarField3D)):
             return 'image'
-        elif isinstance(item, (plot3ditems.Scatter2D,
-                               plot3ditems.Scatter3D)):
+        elif isinstance(self._plot_item, (plot3ditems.Scatter2D,
+                                          plot3ditems.Scatter3D)):
             return 'scatter'
 
     @property
