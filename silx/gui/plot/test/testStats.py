@@ -937,24 +937,24 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
 
     def testBasicStatsImageRectRoi(self):
         """Test result for simple stats on an image"""
-        self.assertEqual(self.imageContext.values.compressed().size, 100)
+        self.assertEqual(self.imageContext.values.compressed().size, 121)
         _stats = self.getBasicStats()
         self.assertEqual(_stats['min'].calculate(self.imageContext), 10)
-        self.assertEqual(_stats['max'].calculate(self.imageContext), 1171)
+        self.assertEqual(_stats['max'].calculate(self.imageContext), 1300)
         self.assertEqual(_stats['minCoords'].calculate(self.imageContext), (10, 0))
-        self.assertEqual(_stats['maxCoords'].calculate(self.imageContext), (19, 9))
+        self.assertEqual(_stats['maxCoords'].calculate(self.imageContext), (20.0, 10.0))
         self.assertAlmostEqual(_stats['std'].calculate(self.imageContext),
                                                        numpy.std(self.imageData[0:11, 10:21]))
         self.assertAlmostEqual(_stats['mean'].calculate(self.imageContext),
                                                         numpy.mean(self.imageData[0:11, 10:21]))
 
         compressed_values = self.imageContext.values.compressed()
-        compressed_values = compressed_values.reshape(10, 10)
+        compressed_values = compressed_values.reshape(11, 11)
         yData = numpy.sum(compressed_values.astype(numpy.float64), axis=1)
         xData = numpy.sum(compressed_values.astype(numpy.float64), axis=0)
 
-        dataYRange = range(10)
-        dataXRange = range(10, 20)
+        dataYRange = range(11)
+        dataXRange = range(10, 21)
 
         ycom = numpy.sum(yData*dataYRange) / numpy.sum(yData)
         xcom = numpy.sum(xData*dataXRange) / numpy.sum(xData)
@@ -964,19 +964,19 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         """Test a simple rectangle ROI"""
         _stats = self.getBasicStats()
         self.assertEqual(_stats['min'].calculate(self.imageContext_2), 0)
-        self.assertEqual(_stats['max'].calculate(self.imageContext_2), 2304)
+        self.assertEqual(_stats['max'].calculate(self.imageContext_2), 2432)
         self.assertEqual(_stats['minCoords'].calculate(self.imageContext_2), (0.0, 0.0))
         # not 0.0, 19.0 because not fully in. Should all pixel have a weight,
         # on to manage them in stats. For now 0 if the center is not in, else 1
-        self.assertEqual(_stats['maxCoords'].calculate(self.imageContext_2), (0.0, 18.0))
+        self.assertEqual(_stats['maxCoords'].calculate(self.imageContext_2), (0.0, 19.0))
 
     def testBasicStatsScatter(self):
         self.assertEqual(self.scatterContext.values.compressed().size, 2)
         _stats = self.getBasicStats()
         self.assertEqual(_stats['min'].calculate(self.scatterContext), 6)
         self.assertEqual(_stats['max'].calculate(self.scatterContext), 7)
-        self.assertEqual(_stats['minCoords'].calculate(self.scatterContext), (2,3))
-        self.assertEqual(_stats['maxCoords'].calculate(self.scatterContext), (3,4))
+        self.assertEqual(_stats['minCoords'].calculate(self.scatterContext), (2, 3))
+        self.assertEqual(_stats['maxCoords'].calculate(self.scatterContext), (3, 4))
         self.assertEqual(_stats['std'].calculate(self.scatterContext), numpy.std([6, 7]))
         self.assertEqual(_stats['mean'].calculate(self.scatterContext), numpy.mean([6, 7]))
 
