@@ -185,14 +185,9 @@ else:
         _logger.info('generate screenshot for %s from %s, binding is %s'
                      '' % (filename, script_or_module, qt.BINDING))
 
-        # Probe Qt binding
-        if qt.BINDING == 'PyQt4':
-            def grabWindow(winID):
-                return qt.QPixmap.grabWindow(winID)
-        elif qt.BINDING in ('PyQt5', 'PySide2'):
-            def grabWindow(winID):
-                screen = qt.QApplication.primaryScreen()
-                return screen.grabWindow(winID)
+        def grabWindow(winID):
+            screen = qt.QApplication.primaryScreen()
+            return screen.grabWindow(winID)
 
         global _count
         _count = 15
@@ -234,9 +229,6 @@ else:
         sys.path.append(
             os.path.abspath(os.path.dirname(script_or_module)))
         qt.QTimer.singleShot(_TIMEOUT, _grabActiveWindowAndClose)
-        if sys.version_info < (3, ):
-            execfile(script_or_module)
-        else:
-            with open(script_or_module) as f:
-                code = compile(f.read(), script_or_module, 'exec')
-                exec(code, globals(), locals())
+        with open(script_or_module) as f:
+            code = compile(f.read(), script_or_module, 'exec')
+            exec(code, globals(), locals())
