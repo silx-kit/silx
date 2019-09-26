@@ -943,14 +943,16 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         self.assertEqual(_stats['max'].calculate(self.imageContext), 1171)
         self.assertEqual(_stats['minCoords'].calculate(self.imageContext), (10, 0))
         self.assertEqual(_stats['maxCoords'].calculate(self.imageContext), (19, 9))
-        self.assertEqual(_stats['std'].calculate(self.imageContext), numpy.std(self.imageData[0:10, 10:20]))
-        self.assertEqual(_stats['mean'].calculate(self.imageContext), numpy.mean(self.imageData[0:10, 10:20]))
+        self.assertAlmostEqual(_stats['std'].calculate(self.imageContext),
+                                                       numpy.std(self.imageData[0:11, 10:21]))
+        self.assertAlmostEqual(_stats['mean'].calculate(self.imageContext),
+                                                        numpy.mean(self.imageData[0:11, 10:21]))
 
         compressed_values = self.imageContext.values.compressed()
         compressed_values = compressed_values.reshape(10, 10)
         yData = numpy.sum(compressed_values.astype(numpy.float64), axis=1)
         xData = numpy.sum(compressed_values.astype(numpy.float64), axis=0)
-        # TODO: check, inversion x / y
+
         dataYRange = range(10)
         dataXRange = range(10, 20)
 
@@ -990,6 +992,51 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
         com = numpy.sum(xData * yData) / numpy.sum(yData)
         self.assertEqual(_stats['com'].calculate(self.histoContext), com)
 
+
+class TestAdvancedROIImageContext(TestCaseQt):
+    """Test stats result on an image context with different scale and
+    origins"""
+
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.data_dims = (100, 100)
+        self.data = numpy.random.rand(*self.data_dims)
+        self.plot = Plot2D()
+
+    def test(self):
+        """Test stats result on an image context with different scale and
+        origins"""
+        roi_origins = [(0, 0), (2, 10), (14, 20)]
+        img_origins = [(0, 0), (14, 20), (2, 10)]
+        img_scales = [1.0, 0.5, 2.0]
+        _stats = {'sum': stats.Stat(name='sum', fct=numpy.sum), }
+        for roi_origin in roi_origins:
+            for img_origin in img_origins:
+                for img_scale in img_scales:
+                    with self.subTest(roi_origin=roi_origin,
+                                      img_origin=img_origin,
+                                      img_scale=img_scale):
+                        self.plot.addImage(self.data, legend='img',
+                                      origin=img_origin,
+                                      scale=img_scale)
+                        roi = RectangleROI()
+                        roi.setGeometry(origin=roi_origin, size=(20, 20))
+                        context = stats._ImageContext(
+                            item=self.plot.getImage('img'),
+                            plot=self.plot,
+                            onlimits=False,
+                            roi=roi)
+                        x_start = int((roi_origin[0] - img_origin[0]) / img_scale)
+                        x_end = int(x_start + (20 / img_scale)) + 1
+                        y_start = int((roi_origin[1] - img_origin[1])/ img_scale)
+                        y_end = int(y_start + (20 / img_scale)) + 1
+                        x_start = max(x_start, 0)
+                        x_end = min(max(x_end, 0), self.data_dims[1])
+                        y_start = max(y_start, 0)
+                        y_end = min(max(y_end, 0), self.data_dims[0])
+                        th_sum = numpy.sum(self.data[y_start:y_end, x_start:x_end])
+                        self.assertAlmostEqual(_stats['sum'].calculate(context),
+                                               th_sum)
 
 def suite():
     test_suite = unittest.TestSuite()
