@@ -372,7 +372,7 @@ class _ScatterContext(_StatsContext):
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
         _StatsContext._checkContextInputs(self, item=item, plot=plot,
-                                      onlimits=onlimits, roi=roi)
+                                          onlimits=onlimits, roi=roi)
 
         if roi is not None and not isinstance(roi, ROI):
             raise TypeError('curve `context` can ony manage 1D roi')
@@ -428,20 +428,15 @@ class _ImageContext(_StatsContext):
             minX, maxX = 0, self.data.shape[1]
             minY, maxY = 0, self.data.shape[0]
 
-            XMinBound = int((minX) / self.scale[0])
-            YMinBound = int((minY) / self.scale[1])
-            XMaxBound = int((maxX) / self.scale[0])
-            YMaxBound = int((maxY) / self.scale[1])
-
-            XMinBound = max(XMinBound, 0)
-            YMinBound = max(YMinBound, 0)
-
+            XMinBound = max(minX, 0)
+            YMinBound = max(minY, 0)
+            XMaxBound = min(maxX, self.data.shape[1])
+            YMaxBound = min(maxY, self.data.shape[0])
             for x in range(XMinBound, XMaxBound):
                 for y in range(YMinBound, YMaxBound):
-                    _x = x + self.origin[0]
-                    _y = y + self.origin[1]
+                    _x = (x * self.scale[0]) + self.origin[0]
+                    _y = (y * self.scale[1]) + self.origin[1]
                     mask[y, x] = not roi.isIn((_x, _y))
-            mask = mask.astype(numpy.int)
         self.values = numpy.ma.array(self.data, mask=mask)
         if self.values.compressed().size > 0:
             self.min, self.max = min_max(self.values.compressed())
@@ -483,13 +478,12 @@ class _plot3DScatterContext(_StatsContext):
                                  roi=roi)
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
+        values = item.getValueData(copy=False)
         if roi:
-            logger.warning("Roi are unsuported on volume for now")
+            logger.warning("Roi are unsupported on volume for now")
             mask = numpy.zeros_like(values)
         else:
             mask = numpy.zeros_like(values)
-
-        values = item.getValueData(copy=False)
 
         if values is not None and len(values) > 0:
             self.values = values
