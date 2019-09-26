@@ -263,8 +263,8 @@ def example_curve_image():
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("script", nargs="*")
-    parser.add_argument("--items", dest="items", default='curve+image',
-                        help="items type(s), can be curve, image, curve+image")
+    parser.add_argument("--items", dest="items", default='curves+images',
+                        help="items type(s), can be curve, image, curves+images")
     options = parser.parse_args(argv[1:])
     items = options.items.lower()
     if items == 'curves':
