@@ -916,7 +916,7 @@ class TestStatsROI(TestStatsBase, TestCaseQt):
                                 roi=self._1Droi)
 
         # test if is a curve context and give an invalid 2D roi
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             stats._CurveContext(item=self.plot1d.getCurve('curve0'),
                                 plot=self.plot1d,
                                 onlimits=False,
