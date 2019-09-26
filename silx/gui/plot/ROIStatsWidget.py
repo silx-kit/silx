@@ -610,8 +610,32 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
 
 class ROIStatsWidget(qt.QMainWindow):
     """
-    Main widget for displaying stats item for (roi, plotItem) couple.
-    Also provide interface for adding and removing items.
+    Widget used to define stats item for a couple(roi, plotItem).
+    Stats will be computing on a given item (curve, image...) in the given
+    region of interest.
+
+    It also provide an interface for adding and removing items.
+
+    .. snapshotqt:: img/ROIStatsWidget.png
+        :width: 300px
+        :align: center
+
+        from silx.gui import qt
+        from silx.gui.plot import Plot2D
+        from silx.gui.plot.ROIStatsWidget import ROIStatsWidget
+        from silx.gui.plot.items.roi import RectangleROI
+        import numpy
+        plot = Plot2D()
+        plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img')
+        plot.show()
+        rectangleROI = RectangleROI()
+        rectangleROI.setGeometry(origin=(0, 100), size=(20, 20))
+        rectangleROI.setName('Initial ROI')
+        widget = ROIStatsWidget(plot=plot)
+        widget.setStats([('sum', numpy.sum), ('mean', numpy.mean)])
+        widget.registerROI(rectangleROI)
+        widget.addItem(roi=rectangleROI, plotItem=plot.getImage('img'))
+        widget.show()
 
     :param Union[qt.QWidget,None] parent: parent qWidget
     :param PlotWindow plot: plot widget containing the items
