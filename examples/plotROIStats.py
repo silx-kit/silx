@@ -251,7 +251,7 @@ def example_curve_image():
     window.setStats(STATS)
 
     # add some couple (plotItem, roi) to be displayed by default
-    img_item = window.plot.getImage('img1')
+    img_item = window.plot.getImage('img2')
     window.addItem(item=img_item, roi=rectangle_roi)
     curve_item = window.plot.getCurve('curve1')
     window.addItem(item=curve_item, roi=roi1D_1)
