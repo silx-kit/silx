@@ -874,7 +874,7 @@ class _TickBar(qt.QWidget):
         fm = qt.QFontMetrics(font)
         width = 0
         for tick in self.ticks:
-            width = max(fm.width(form.format(tick)), width)
+            width = max(fm.boundingRect(form.format(tick)).width(), width)
 
         # if the length of the string are too long we are moving to scientific
         # display

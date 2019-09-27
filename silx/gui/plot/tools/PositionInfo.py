@@ -121,7 +121,7 @@ class PositionInfo(qt.QWidget):
             contentWidget.setText('------')
             contentWidget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
             contentWidget.setFixedWidth(
-                contentWidget.fontMetrics().width('##############'))
+                contentWidget.fontMetrics().boundingRect('##############').width())
             layout.addWidget(contentWidget)
             self._fields.append((contentWidget, name, func))
 
