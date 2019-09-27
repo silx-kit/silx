@@ -187,7 +187,6 @@ def asQColor(color):
     accept a QColor as color argument.
 
     :param str color: The color to convert
-    :param dict colorDict: A dictionary of color name conversion to color code
     :rtype: qt.QColor
     """
     color = rgba(color)
