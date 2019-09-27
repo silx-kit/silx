@@ -677,7 +677,7 @@ class ROIStatsWidget(qt.QMainWindow):
         we need to add/register them to be able to associate them"""
         self._rois.append(roi)
 
-    def setPlot(self):
+    def setPlot(self, plot):
         """Define the plot to interact with
 
         :param Union[PlotWidget,SceneWidget,None] plot:
