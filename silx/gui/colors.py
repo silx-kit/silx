@@ -116,7 +116,7 @@ DEFAULT_MAX_LOG = 10
 
 
 def rgba(color, colorDict=None):
-    """Convert color code '#RRGGBB' and '#RRGGBBAA' to q tuple (R, G, B, A)
+    """Convert color code '#RRGGBB' and '#RRGGBBAA' to a tuple (R, G, B, A)
     of floats.
 
     It also supports RGB(A) from uint8 in [0, 255], float in [0, 1], and
