@@ -311,7 +311,8 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True):
             if is_group(h5f[path + "/" + key]):
                 ddict[key] = h5todict(h5f,
                                       path + "/" + key,
-                                      exclude_names=exclude_names)
+                                      exclude_names=exclude_names,
+                                      asarray=asarray)
             else:
                 # Read HDF5 datset
                 data = h5f[path + "/" + key][()]
