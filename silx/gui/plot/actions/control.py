@@ -360,8 +360,8 @@ class ColormapAction(PlotAction):
 
         # Run the dialog listening to colormap change
         if checked is True:
-            self._dialog.show()
             self._updateColormap()
+            self._dialog.show()
         else:
             self._dialog.hide()
 
