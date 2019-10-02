@@ -97,6 +97,7 @@ _AVAILABLE_LUTS = collections.OrderedDict([
     ('blue', _LUT_DESCRIPTION('builtin', 'yellow', True)),
     ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True)),
     ('viridis', _LUT_DESCRIPTION('resource', 'pink', True)),
+    ('cividis', _LUT_DESCRIPTION('resource', 'pink', True)),
     ('magma', _LUT_DESCRIPTION('resource', 'green', True)),
     ('inferno', _LUT_DESCRIPTION('resource', 'green', True)),
     ('plasma', _LUT_DESCRIPTION('resource', 'green', True)),
