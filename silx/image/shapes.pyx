@@ -58,6 +58,8 @@ cdef class Polygon(object):
 
     def __init__(self, vertices):
         self.vertices = numpy.ascontiguousarray(vertices, dtype=numpy.float32)
+        if self.vertices.ndim != 2 or self.vertices.shape[1] != 2:
+             raise ValueError("A list of 2d vertices is expected (n,2 dimensional array)")
         self.nvert = self.vertices.shape[0]
 
     def is_inside(self, row, col):
