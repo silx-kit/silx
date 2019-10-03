@@ -174,7 +174,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                                 selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
-                                baseline=self._baseline,
+                                baseline=baseline,
                                 symbolsize=1)
 
     def _getBounds(self):
