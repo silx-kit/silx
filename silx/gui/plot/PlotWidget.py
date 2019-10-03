@@ -891,7 +891,7 @@ class PlotWidget(qt.QMainWindow):
             if len(x) > 0 and isinstance(x[0], dt.datetime):
                 x = [timestamp(d) for d in x]
 
-            curve.setData(x, y, xerror, yerror, copy=copy)
+            curve.setData(x, y, xerror, yerror, baseline=baseline, copy=copy)
 
         if replace:  # Then remove all other curves
             for c in self.getAllCurves(withhidden=True):
