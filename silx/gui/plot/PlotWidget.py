@@ -848,7 +848,7 @@ class PlotWidget(qt.QMainWindow):
             curve.setColor(default_color)
             curve.setLineStyle(default_linestyle)
             curve.setSymbol(self._defaultPlotPoints)
-            curve.setBaseline(baseline=baseline)
+            curve._setBaseline(baseline=baseline)
 
         # Do not emit sigActiveCurveChanged,
         # it will be sent once with _setActiveItem

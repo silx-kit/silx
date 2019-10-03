@@ -1252,7 +1252,7 @@ class BaselineMixIn(object):
     def __init__(self, baseline=None):
         self._baseline = baseline
 
-    def setBaseline(self, baseline):
+    def _setBaseline(self, baseline):
         """
         Set baseline value
 

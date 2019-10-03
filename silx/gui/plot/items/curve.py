@@ -184,7 +184,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
 
         self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
         self._highlighted = False
-        self.setBaseline(Curve._DEFAULT_BASELINE)
+        self._setBaseline(Curve._DEFAULT_BASELINE)
 
         self.sigItemChanged.connect(self.__itemChanged)
 

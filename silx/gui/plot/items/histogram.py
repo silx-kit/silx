@@ -129,7 +129,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
         self._histogram = ()
         self._edges = ()
-        self.setBaseline(Histogram._DEFAULT_BASELINE)
+        self._setBaseline(Histogram._DEFAULT_BASELINE)
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -311,7 +311,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             self._histogram = histogram
             self._edges = edges
             self._alignement = align
-            self.setBaseline(baseline)
+            self._setBaseline(baseline)
 
         if self.isVisible():
             plot = self.getPlot()
