@@ -207,27 +207,45 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5path += "/"
 
     with _SafeH5FileWrite(h5file, mode=mode) as h5f:
+
+        # The root of the tree can be a list or tuple of dictionaries.
+        if (isinstance(treedict, (list, tuple))
+                and all(isinstance(item, dict) for item in treedict)):
+            for i, item in enumerate(treedict):
+                dicttoh5(item, h5f, h5path + '/%d' % i,
+                         overwrite_data=overwrite_data,
+                         create_dataset_args=create_dataset_args)
+            return
+
         for key in treedict:
-            if isinstance(treedict[key], dict) and len(treedict[key]):
+            value = treedict[key]
+
+            if (isinstance(value, (list, tuple))
+                    and all(isinstance(item, dict) for item in value)):
+                for i, item in enumerate(value):
+                    dicttoh5(item, h5f, h5path + key + '/%d' % i,
+                             overwrite_data=overwrite_data,
+                             create_dataset_args=create_dataset_args)
+
+            elif isinstance(value, dict) and value:
                 # non-empty group: recurse
-                dicttoh5(treedict[key], h5f, h5path + key,
+                dicttoh5(value, h5f, h5path + key,
                          overwrite_data=overwrite_data,
                          create_dataset_args=create_dataset_args)
 
-            elif treedict[key] is None or (isinstance(treedict[key], dict) and
-                                           not len(treedict[key])):
+            elif value is None or (isinstance(value, dict) and not value):
                 if (h5path + key) in h5f:
                     if overwrite_data is True:
                         del h5f[h5path + key]
                     else:
                         logger.warning('key (%s) already exists. '
-                                       'Not overwriting.' % (h5path + key))
+                                       'Not overwriting.', (h5path + key))
                         continue
                 # Create empty group
                 h5f.create_group(h5path + key)
 
             else:
-                ds = _prepare_hdf5_dataset(treedict[key])
+                ds = _prepare_hdf5_dataset(value)
                 # can't apply filters on scalars (datasets with shape == () )
                 if ds.shape == () or create_dataset_args is None:
                     if h5path + key in h5f:
@@ -235,7 +253,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                             del h5f[h5path + key]
                         else:
                             logger.warning('key (%s) already exists. '
-                                           'Not overwriting.' % (h5path + key))
+                                           'Not overwriting.', (h5path + key))
                             continue
 
                     h5f.create_dataset(h5path + key,
@@ -246,7 +264,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                             del h5f[h5path + key]
                         else:
                             logger.warning('key (%s) already exists. '
-                                           'Not overwriting.' % (h5path + key))
+                                           'Not overwriting.', (h5path + key))
                             continue
 
                     h5f.create_dataset(h5path + key,
