@@ -110,6 +110,19 @@ class TestDictToH5(unittest.TestCase):
         res = h5todict(self.h5_fname)
         self.assertEqual(res['t'], False)
 
+    def testDumpDictWithList(self):
+        dd = {
+            "a": [{"a1": 1, "a2": 2}],
+            "b": 2
+        }
+        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a')
+        res = h5todict(self.h5_fname, asarray=False)
+        expected_res = {
+            "a": {'0': {"a1": 1, "a2": 2}},
+            "b": 2,
+        }
+        self.assertEqual(res, expected_res)
+
 
 class TestH5ToDict(unittest.TestCase):
     def setUp(self):
