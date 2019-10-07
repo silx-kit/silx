@@ -408,10 +408,9 @@ class NumpyAxesSelector(qt.QWidget):
 
         It fires a `selectionChanged` event.
         """
-        data = self.data()
         permutation = self.permutation()
 
-        if data is None or permutation is None:
+        if self.__data is None or permutation is None:
             # No data or not all the expected axes are there
             if self.__selectedData is not None:
                 self.__selectedData = None
@@ -421,7 +420,7 @@ class NumpyAxesSelector(qt.QWidget):
         # get a view with few fixed dimensions
         # with a h5py dataset, it create a copy
         # TODO we can reuse the same memory in case of a copy
-        self.__selectedData = numpy.transpose(data[self.selection()], permutation)
+        self.__selectedData = numpy.transpose(self.__data[self.selection()], permutation)
         self.selectionChanged.emit()
 
     def data(self):
@@ -499,19 +498,17 @@ class NumpyAxesSelector(qt.QWidget):
         :raise ValueError:
             When the selection does not match current data shape and number of axes.
         """
-        data = self.data()
-        if data is None:
-            data = numpy.empty(())  # Use array with ndim=0
+        data_shape = self.__data.shape if self.__data is not None else ()
 
         # Check selection
-        if len(selection) != data.ndim:
+        if len(selection) != len(data_shape):
             raise ValueError(
                 "Selection length (%d) and data ndim (%d) mismatch" %
-                (len(selection), data.ndim))
+                (len(selection), len(data_shape)))
 
         # Check selection type
         selectedDataNDim = 0
-        for element, size in zip(selection, data.shape):
+        for element, size in zip(selection, data_shape):
             if isinstance(element, int):
                 if not 0 <= element < size:
                     raise ValueError(
