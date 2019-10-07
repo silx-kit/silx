@@ -123,6 +123,16 @@ class TestDictToH5(unittest.TestCase):
         }
         self.assertEqual(res, expected_res)
 
+    def testDumpWithList(self):
+        dd = {
+            "a": [1, 2, 3],
+            "b": 2
+        }
+        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a')
+        res = h5todict(self.h5_fname, asarray=False)
+        self.assertTrue("a" in res)
+        self.assertTrue(numpy.array_equal(res["a"], numpy.array([1, 2, 3])))
+
 
 class TestH5ToDict(unittest.TestCase):
     def setUp(self):
