@@ -337,7 +337,8 @@ class Convolution(OpenclProcessing):
             self.queue,
             self.ndrange, self.wg,
             data_in_ref,
-            self.data_out.data,
+            # ~ self.data_out.data,
+            None,
             d_kernel_ref,
             np.int32(self.kernel.shape[0]),
             self.Nx, self.Ny, self.Nz
