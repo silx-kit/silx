@@ -102,13 +102,13 @@ class TestDictToH5(unittest.TestCase):
                      overwrite_data=False)
 
         res = h5todict(self.h5_fname)
-        assert(res['t'] == True)
+        self.assertEqual(res['t'], True)
 
         dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
                  overwrite_data=True)
 
         res = h5todict(self.h5_fname)
-        assert(res['t'] == False)
+        self.assertEqual(res['t'], False)
 
 
 class TestH5ToDict(unittest.TestCase):
