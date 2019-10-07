@@ -382,6 +382,8 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
                       row 1 for negative errors.
         :param yerror: Values with the uncertainties on the y values.
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param baseline: curve baseline
+        :type baseline: Union[None,float,numpy.ndarray]
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
