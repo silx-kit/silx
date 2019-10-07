@@ -1245,3 +1245,32 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
             if plot is not None:
                 plot._invalidateDataRange()
         self._updated(ItemChangedType.DATA)
+
+
+class BaselineMixIn(object):
+    """Base class for Baseline mix-in"""
+    def __init__(self, baseline=None):
+        self._baseline = baseline
+
+    def _setBaseline(self, baseline):
+        """
+        Set baseline value
+
+        :param baseline: baseline value(s)
+        :type: Union[None,float,numpy.ndarray]
+        """
+        if (isinstance(baseline, abc.Iterable)):
+            baseline = numpy.array(baseline)
+        self._baseline = baseline
+
+    def getBaseline(self, copy=True):
+        """
+
+        :param bool copy:
+        :return: histogram baseline
+        :rtype: Union[None,float,numpy.ndarray]
+        """
+        if isinstance(self._baseline, numpy.ndarray):
+            return numpy.array(self._baseline, copy=True)
+        else:
+            return self._baseline

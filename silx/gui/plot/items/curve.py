@@ -38,7 +38,8 @@ import six
 from ....utils.deprecation import deprecated
 from ... import colors
 from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
-                   FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType)
+                   FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType,
+                   BaselineMixIn)
 
 
 _logger = logging.getLogger(__name__)
@@ -151,7 +152,8 @@ class CurveStyle(object):
             return False
 
 
-class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixIn):
+class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
+            LineMixIn, BaselineMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -169,6 +171,8 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
     _DEFAULT_HIGHLIGHT_STYLE = CurveStyle(color='black')
     """Default highlight style of the item"""
 
+    _DEFAULT_BASELINE = None
+
     def __init__(self):
         PointsBase.__init__(self)
         ColorMixIn.__init__(self)
@@ -176,9 +180,11 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
         FillMixIn.__init__(self)
         LabelsMixIn.__init__(self)
         LineMixIn.__init__(self)
+        BaselineMixIn.__init__(self)
 
         self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
         self._highlighted = False
+        self._setBaseline(Curve._DEFAULT_BASELINE)
 
         self.sigItemChanged.connect(self.__itemChanged)
 
@@ -212,7 +218,8 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
                                 selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
-                                symbolsize=style.getSymbolSize())
+                                symbolsize=style.getSymbolSize(),
+                                baseline=self.getBaseline(copy=False))
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
@@ -241,7 +248,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
                 'yerror': self.getYErrorData(copy=False),
                 'z': self.getZValue(),
                 'selectable': self.isSelectable(),
-                'fill': self.isFill()
+                'fill': self.isFill(),
             }
             return params
         else:
@@ -361,3 +368,25 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn, LineMixI
         :rtype: 4-tuple of float in [0, 1]
         """
         return self.getCurrentStyle().getColor()
+
+    def setData(self, x, y, xerror=None, yerror=None, baseline=None, copy=True):
+        """Set the data of the curve.
+
+        :param numpy.ndarray x: The data corresponding to the x coordinates.
+        :param numpy.ndarray y: The data corresponding to the y coordinates.
+        :param xerror: Values with the uncertainties on the x values
+        :type xerror: A float, or a numpy.ndarray of float32.
+                      If it is an array, it can either be a 1D array of
+                      same length as the data or a 2D array with 2 rows
+                      of same length as the data: row 0 for positive errors,
+                      row 1 for negative errors.
+        :param yerror: Values with the uncertainties on the y values.
+        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param baseline: curve baseline
+        :type baseline: Union[None,float,numpy.ndarray]
+        :param bool copy: True make a copy of the data (default),
+                          False to use provided arrays.
+        """
+        PointsBase.setData(self, x=x, y=y, xerror=xerror, yerror=yerror,
+                           copy=copy)
+        self._setBaseline(baseline=baseline)

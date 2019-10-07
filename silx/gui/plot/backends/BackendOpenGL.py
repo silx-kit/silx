@@ -728,7 +728,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                  color, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror, z, selectable,
-                 fill, alpha, symbolsize):
+                 fill, alpha, symbolsize, baseline):
         for parameter in (x, y, color, symbol, linewidth, linestyle,
                           yaxis, z, selectable, fill, symbolsize):
             assert parameter is not None
@@ -822,6 +822,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if color is not None:
                 color = color[0], color[1], color[2], color[3] * alpha
 
+        fillColor = None
+        if fill is True:
+            fillColor = color
         curve = GLPlotCurve2D(x, y, colorArray,
                               xError=xerror,
                               yError=yerror,
@@ -831,7 +834,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               marker=symbol,
                               markerColor=color,
                               markerSize=symbolsize,
-                              fillColor=color if fill else None,
+                              fillColor=fillColor,
+                              baseline=baseline,
                               isYLog=isYLog)
         curve.info = {
             'yAxis': 'left' if yaxis is None else yaxis,

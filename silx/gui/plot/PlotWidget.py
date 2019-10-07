@@ -707,7 +707,8 @@ class PlotWidget(qt.QMainWindow):
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
                  fill=None, resetzoom=True,
-                 histogram=None, copy=True):
+                 histogram=None, copy=True,
+                 baseline=None):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -788,6 +789,8 @@ class PlotWidget(qt.QMainWindow):
             - 'center'
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
+        :param baseline: curve baseline
+        :type: Union[None,float,numpy.ndarray]
         :returns: The key string identify this curve
         """
         # This is an histogram, use addHistogram
@@ -842,6 +845,7 @@ class PlotWidget(qt.QMainWindow):
             curve.setColor(default_color)
             curve.setLineStyle(default_linestyle)
             curve.setSymbol(self._defaultPlotPoints)
+            curve._setBaseline(baseline=baseline)
 
         # Do not emit sigActiveCurveChanged,
         # it will be sent once with _setActiveItem
@@ -884,7 +888,7 @@ class PlotWidget(qt.QMainWindow):
             if len(x) > 0 and isinstance(x[0], dt.datetime):
                 x = [timestamp(d) for d in x]
 
-            curve.setData(x, y, xerror, yerror, copy=copy)
+            curve.setData(x, y, xerror, yerror, baseline=baseline, copy=copy)
 
         if replace:  # Then remove all other curves
             for c in self.getAllCurves(withhidden=True):
@@ -921,7 +925,9 @@ class PlotWidget(qt.QMainWindow):
                      fill=None,
                      align='center',
                      resetzoom=True,
-                     copy=True):
+                     copy=True,
+                     z=None,
+                     baseline=None):
         """Add an histogram to the graph.
 
         This is NOT computing the histogram, this method takes as parameter
@@ -952,6 +958,9 @@ class PlotWidget(qt.QMainWindow):
         :param bool resetzoom: True (the default) to reset the zoom.
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
+        :param int z: Layer on which to draw the histogram
+        :param baseline: histogram baseline
+        :type: Union[None,float,numpy.ndarray]
         :returns: The key string identify this histogram
         """
         legend = 'Unnamed histogram' if legend is None else str(legend)
@@ -971,9 +980,12 @@ class PlotWidget(qt.QMainWindow):
             histo.setColor(color)
         if fill is not None:
             histo.setFill(fill)
+        if z is not None:
+            histo.setZValue(z=z)
 
         # Set histogram data
-        histo.setData(histogram, edges, align=align, copy=copy)
+        histo.setData(histogram=histogram, edges=edges, baseline=baseline,
+                      align=align, copy=copy)
 
         if mustBeAdded:
             self._add(histo)

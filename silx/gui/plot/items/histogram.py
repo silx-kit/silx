@@ -8,7 +8,7 @@
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+# furnished to do so, subject to the following conditions::t
 #
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
@@ -32,8 +32,13 @@ __date__ = "28/08/2018"
 import logging
 
 import numpy
+from collections import OrderedDict, namedtuple
+try:
+    from collections import abc
+except ImportError:  # Python2 support
+    import collections as abc
 
-from .core import (Item, AlphaMixIn, ColorMixIn, FillMixIn,
+from .core import (Item, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
                    LineMixIn, YAxisMixIn, ItemChangedType)
 
 _logger = logging.getLogger(__name__)
@@ -96,7 +101,7 @@ def _getHistogramCurve(histogram, edges):
 
 # TODO: Yerror, test log scale
 class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
-                LineMixIn, YAxisMixIn):
+                LineMixIn, YAxisMixIn, BaselineMixIn):
     """Description of an histogram"""
 
     _DEFAULT_Z_LAYER = 1
@@ -111,9 +116,12 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
     _DEFAULT_LINESTYLE = '-'
     """Default line style of the histogram"""
 
+    _DEFAULT_BASELINE = None
+
     def __init__(self):
         Item.__init__(self)
         AlphaMixIn.__init__(self)
+        BaselineMixIn.__init__(self)
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
         LineMixIn.__init__(self)
@@ -121,10 +129,11 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
         self._histogram = ()
         self._edges = ()
+        self._setBaseline(Histogram._DEFAULT_BASELINE)
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
-        values, edges = self.getData(copy=False)
+        values, edges, baseline = self.getData(copy=False)
 
         if values.size == 0:
             return None  # No data to display, do not add renderer
@@ -165,10 +174,11 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                                 selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
+                                baseline=baseline,
                                 symbolsize=1)
 
     def _getBounds(self):
-        values, edges = self.getData(copy=False)
+        values, edges, baseline = self.getData(copy=False)
 
         plot = self.getPlot()
         if plot is not None:
@@ -243,16 +253,19 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
         return numpy.array(self._edges, copy=copy)
 
     def getData(self, copy=True):
-        """Return the histogram values and the bin edges
+        """Return the histogram values, bin edges and baseline
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
         :returns: (N histogram value, N+1 bin edges)
         :rtype: 2-tuple of numpy.nadarray
         """
-        return self.getValueData(copy), self.getBinEdgesData(copy)
+        return (self.getValueData(copy),
+                self.getBinEdgesData(copy),
+                self.getBaseline(copy))
 
-    def setData(self, histogram, edges, align='center', copy=True):
+    def setData(self, histogram, edges, align='center', baseline=None,
+                copy=True):
         """Set the histogram values and bin edges.
 
         :param numpy.ndarray histogram: The values of the histogram.
@@ -264,6 +277,8 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             In case histogram values and edges have the same length N,
             the N+1 bin edges are computed according to the alignment in:
             'center' (default), 'left', 'right'.
+        :param baseline: histogram baseline
+        :type baseline: Union[None,float,numpy.ndarray]
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
@@ -285,10 +300,18 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             # Check that bin edges are monotonic
             edgesDiff = numpy.diff(edges)
             assert numpy.all(edgesDiff >= 0) or numpy.all(edgesDiff <= 0)
-
+            # manage baseline
+            if (isinstance(baseline, abc.Iterable)):
+                baseline = numpy.array(baseline)
+                if baseline.size == histogram.size:
+                    new_baseline = numpy.empty(baseline.shape[0] * 2)
+                    for i_value, value in enumerate(baseline):
+                        new_baseline[i_value*2:i_value*2+2] = value
+                    baseline = new_baseline
             self._histogram = histogram
             self._edges = edges
             self._alignement = align
+            self._setBaseline(baseline)
 
         if self.isVisible():
             plot = self.getPlot()
