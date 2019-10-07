@@ -211,8 +211,9 @@ def dicttoh5(treedict, h5file, h5path='/',
         # The root of the tree can be a list or tuple of dictionaries.
         if (isinstance(treedict, (list, tuple))
                 and all(isinstance(item, dict) for item in treedict)):
+            ndigits = int(numpy.log10(len(treedict))) + 1
             for i, item in enumerate(treedict):
-                dicttoh5(item, h5f, h5path + '/%d' % i,
+                dicttoh5(item, h5f, h5path + str(i).zfill(ndigits),
                          overwrite_data=overwrite_data,
                          create_dataset_args=create_dataset_args)
             return
@@ -222,8 +223,9 @@ def dicttoh5(treedict, h5file, h5path='/',
 
             if (isinstance(value, (list, tuple))
                     and all(isinstance(item, dict) for item in value)):
+                ndigits = int(numpy.log10(len(value))) + 1
                 for i, item in enumerate(value):
-                    dicttoh5(item, h5f, h5path + key + '/%d' % i,
+                    dicttoh5(item, h5f, h5path + key + '/' + str(i).zfill(ndigits),
                              overwrite_data=overwrite_data,
                              create_dataset_args=create_dataset_args)
 
