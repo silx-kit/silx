@@ -8,7 +8,7 @@
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+# furnished to do so, subject to the following conditions::t
 #
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
@@ -278,7 +278,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             the N+1 bin edges are computed according to the alignment in:
             'center' (default), 'left', 'right'.
         :param baseline: histogram baseline
-        :type: Union[None,float,numpy.ndarray]
+        :type baseline: Union[None,float,numpy.ndarray]
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
