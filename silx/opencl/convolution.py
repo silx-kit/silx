@@ -321,11 +321,9 @@ class Convolution(OpenclProcessing):
                 str("-DIMAGE_DIMS=%d" % self.data_ndim),
                 str("-DFILTER_DIMS=%d" % self.kernel_ndim),
             ])
-            data_in_ref = self.data_in_tex
             d_kernel_ref = self.d_kernel_tex
         else:
             kernel_files = ["convolution.cl"]
-            data_in_ref = self.data_in.data
             d_kernel_ref = self.d_kernel.data
         self.compile_kernels(
             kernel_files=kernel_files,
