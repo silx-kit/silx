@@ -162,6 +162,18 @@ class SimpleWidgetExample(qt.QMainWindow):
         legend.setColormap("viridis")
         layout.addWidget(legend)
 
+        # Symbol and colormap
+        legend = LegendIconWidget(panel)
+        legend.setSymbol("o")
+        legend.setColormap("viridis")
+        layout.addWidget(legend)
+
+        # Symbol (without surface) and colormap
+        legend = LegendIconWidget(panel)
+        legend.setSymbol("+")
+        legend.setColormap("plasma")
+        layout.addWidget(legend)
+
         return panel
 
 
