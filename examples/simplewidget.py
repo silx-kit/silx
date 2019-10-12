@@ -157,6 +157,11 @@ class SimpleWidgetExample(qt.QMainWindow):
         legend.setSymbolColor("violet")
         layout.addWidget(legend)
 
+        # Colormap
+        legend = LegendIconWidget(panel)
+        legend.setColormap("viridis")
+        layout.addWidget(legend)
+
         return panel
 
 
