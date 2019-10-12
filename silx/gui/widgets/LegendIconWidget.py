@@ -265,11 +265,8 @@ class LegendIconWidget(qt.QWidget):
             pixmap = self._colormapPixmap
             if pixmap is not None:
                 pixmapRect = qt.QRect(0, 0, _COLORMAP_PIXMAP_SIZE, 1)
-                widthMargin = 4
-                if self.symbol is None:
-                    halfHeight = 4
-                else:
-                    halfHeight = 2
+                widthMargin = 0
+                halfHeight = 4
                 dest = qt.QRect(
                     rect.left() + widthMargin,
                     rect.center().y() - halfHeight + 1,
