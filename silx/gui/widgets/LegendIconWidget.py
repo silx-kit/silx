@@ -92,7 +92,7 @@ NoLineStyle = (None, 'None', 'none', '', ' ')
 """List of style values resulting in no line being displayed for a curve"""
 
 
-_colormapPixmap = {}
+_colormapImage = {}
 """Store cached pixmap"""
 # FIXME: Could be better to use a LRU dictionary
 
@@ -127,7 +127,6 @@ class LegendIconWidget(qt.QWidget):
 
         self.colormap = None
         """Name or array of colors"""
-        self._colormapPixmap = None
 
         # Control widget size: sizeHint "is the only acceptable
         # alternative, so the widget can never grow or shrink"
@@ -199,7 +198,6 @@ class LegendIconWidget(qt.QWidget):
 
         if colormap is None:
             self.colormap = None
-            self.__colormapPixmap = None
             return
 
         if numpy.array_equal(self.colormap, colormap):
@@ -213,8 +211,6 @@ class LegendIconWidget(qt.QWidget):
         else:
             name = colormap
             colorArray = None
-
-        self._colormapPixmap = self.getColormapPixmap(name, colorArray)
 
     def getColormap(self):
         """Returns the used colormap.
@@ -264,15 +260,18 @@ class LegendIconWidget(qt.QWidget):
         isSymbol = (self.showSymbol and
                     len(self.symbol) and
                     self.symbol not in NoSymbols)
-        isColormap = self._colormapPixmap is not None
+        isColormap = self.colormap is not None
         isSymbolColormap = isSymbol and isColormap
         if isSymbolColormap:
             isSymbol = False
             isColormap = False
 
         if self.showColormap:
-            pixmap = self._colormapPixmap
             if isColormap:
+                if self.isEnabled():
+                    image = self.getColormapImage(self.colormap)
+                else:
+                    image = self.getGrayedColormapImage(self.colormap)
                 pixmapRect = qt.QRect(0, 0, _COLORMAP_PIXMAP_SIZE, 1)
                 widthMargin = 0
                 halfHeight = 4
@@ -282,7 +281,7 @@ class LegendIconWidget(qt.QWidget):
                     rect.width() - widthMargin * 2,
                     halfHeight * 2,
                 )
-                painter.drawPixmap(dest, pixmap, pixmapRect)
+                painter.drawImage(dest, image, pixmapRect)
 
         painter.scale(scale, scale)
 
@@ -322,7 +321,10 @@ class LegendIconWidget(qt.QWidget):
         if isSymbolColormap:
             nbSymbols = int(ratio + 2)
             for i in range(nbSymbols):
-                image = self._colormapPixmap.toImage()
+                if self.isEnabled():
+                    image = self.getColormapImage(self.colormap)
+                else:
+                    image = self.getGrayedColormapImage(self.colormap)
                 pos = int((_COLORMAP_PIXMAP_SIZE / nbSymbols) * i)
                 pos = numpy.clip(pos, 0, _COLORMAP_PIXMAP_SIZE-1)
                 color = image.pixelColor(pos, 0)
@@ -352,41 +354,62 @@ class LegendIconWidget(qt.QWidget):
     # Helpers
 
     @staticmethod
-    def getColormapPixmap(name=None, colorArray=None):
-        """Return an icon preview from a LUT name.
-
-        This icons are cached into a global structure.
-
-        :param str name: Name of the LUT
-        :param numpy.ndarray colorArray: Colors identify the LUT
-        :rtype: qt.QIcon
+    def _getColormapKey(colormap):
         """
-        if name is not None:
-            iconKey = name
+        Returns the key used to store the image in the data storage
+        """
+        if isinstance(colormap, numpy.ndarray):
+            key = tuple(colormap)
         else:
-            iconKey = tuple(colorArray)
-        icon = _colormapPixmap.get(iconKey, None)
-        if icon is None:
-            icon = LegendIconWidget.createColormapPixmap(name, colorArray)
-            _colormapPixmap[iconKey] = icon
-        return icon
+            key = colormap
+        return key
 
     @staticmethod
-    def createColormapPixmap(name=None, lutColors=None):
+    def getGrayedColormapImage(colormap):
+        """Return a grayed version image preview from a LUT name.
+
+        This images are cached into a global structure.
+
+        :param Union[str,numpy.ndarray] colormap: Description of the LUT
+        :rtype: qt.QImage
+        """
+        key = LegendIconWidget._getColormapKey(colormap)
+        grayKey = (key, "gray")
+        image = _colormapImage.get(grayKey, None)
+        if image is None:
+            image = LegendIconWidget.getColormapImage(colormap)
+            image = image.convertToFormat(qt.QImage.Format_Grayscale8)
+            _colormapImage[grayKey] = image
+        return image
+
+    @staticmethod
+    def getColormapImage(colormap):
+        """Return an image preview from a LUT name.
+
+        This images are cached into a global structure.
+
+        :param Union[str,numpy.ndarray] colormap: Description of the LUT
+        :rtype: qt.QImage
+        """
+        key = LegendIconWidget._getColormapKey(colormap)
+        image = _colormapImage.get(key, None)
+        if image is None:
+            image = LegendIconWidget.createColormapImage(colormap)
+            _colormapImage[key] = image
+        return image
+
+    @staticmethod
+    def createColormapImage(colormap):
         """Create and return an icon preview from a LUT name.
 
         This icons are cached into a global structure.
 
-        :param str name: Name of the LUT
-        :param numpy.ndarray lutColors: Colors identify the LUT
-        :rtype: qt.QIcon
+        :param Union[str,numpy.ndarray] colormap: Description of the LUT
+        :rtype: qt.QImage
         """
-        colormap = colors.Colormap(name)
         size = _COLORMAP_PIXMAP_SIZE
-        if name is not None:
-            lut = colormap.getNColors(size)
-        else:
-            lut = lutColors
+        if isinstance(colormap, numpy.ndarray):
+            lut = colormap
             if len(lut) > size:
                 # Down sample
                 step = int(len(lut) / size)
@@ -396,6 +419,10 @@ class LegendIconWidget(qt.QWidget):
                 indexes = numpy.arange(size) / float(size) * (len(lut) - 1)
                 indexes = indexes.astype("int")
                 lut = lut[indexes]
+        else:
+            colormap = colors.Colormap(colormap)
+            lut = colormap.getNColors(size)
+
         if lut is None or len(lut) == 0:
             return qt.QIcon()
 
@@ -407,4 +434,4 @@ class LegendIconWidget(qt.QWidget):
             painter.setPen(qt.QColor(r, g, b))
             painter.drawPoint(qt.QPoint(i, 0))
         painter.end()
-        return pixmap
+        return pixmap.toImage()
