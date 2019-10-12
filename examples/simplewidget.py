@@ -44,6 +44,7 @@ from silx.gui.colors import Colormap
 from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 from silx.gui.widgets.RangeSlider import RangeSlider
+from silx.gui.widgets.LegendIconWidget import LegendIconWidget
 
 
 class SimpleWidgetExample(qt.QMainWindow):
@@ -68,6 +69,10 @@ class SimpleWidgetExample(qt.QMainWindow):
         layout.addWidget(qt.QLabel("RangeSlider"))
         layout.addWidget(self.createRangeSlider())
         layout.addWidget(self.createRangeSliderWithBackground())
+
+        panel = self.createLegendIconPanel(self)
+        layout.addWidget(qt.QLabel("LegendIconWidget"))
+        layout.addWidget(panel)
 
         self.setCentralWidget(main_panel)
 
@@ -121,6 +126,38 @@ class SimpleWidgetExample(qt.QMainWindow):
         colormap = Colormap("viridis")
         widget.setGroovePixmapFromProfile(background, colormap)
         return widget
+
+    def createLegendIconPanel(self, parent):
+        panel = qt.QWidget(parent)
+        layout = qt.QVBoxLayout(panel)
+
+        # Empty
+        legend = LegendIconWidget(panel)
+        layout.addWidget(legend)
+
+        # Line
+        legend = LegendIconWidget(panel)
+        legend.setLineStyle("-")
+        legend.setLineColor("blue")
+        legend.setLineWidth(2)
+        layout.addWidget(legend)
+
+        # Symbol
+        legend = LegendIconWidget(panel)
+        legend.setSymbol("o")
+        legend.setSymbolColor("red")
+        layout.addWidget(legend)
+
+        # Line and symbol
+        legend = LegendIconWidget(panel)
+        legend.setLineStyle(":")
+        legend.setLineColor("green")
+        legend.setLineWidth(2)
+        legend.setSymbol("x")
+        legend.setSymbolColor("violet")
+        layout.addWidget(legend)
+
+        return panel
 
 
 def main():
