@@ -261,9 +261,18 @@ class LegendIconWidget(qt.QWidget):
         # painter.fillRect(qt.QRectF(offset, bottomRight),
         #                 qt.QBrush(qt.Qt.green))
 
+        isSymbol = (self.showSymbol and
+                    len(self.symbol) and
+                    self.symbol not in NoSymbols)
+        isColormap = self._colormapPixmap is not None
+        isSymbolColormap = isSymbol and isColormap
+        if isSymbolColormap:
+            isSymbol = False
+            isColormap = False
+
         if self.showColormap:
             pixmap = self._colormapPixmap
-            if pixmap is not None:
+            if isColormap:
                 pixmapRect = qt.QRect(0, 0, _COLORMAP_PIXMAP_SIZE, 1)
                 widthMargin = 0
                 halfHeight = 4
@@ -292,8 +301,7 @@ class LegendIconWidget(qt.QWidget):
                 qt.Qt.FlatCap
             )
             llist.append((linePath, linePen, lineBrush))
-        if (self.showSymbol and len(self.symbol) and
-                self.symbol not in NoSymbols):
+        if isSymbol:
             # PITFALL ahead: Let this be a warning to others
             # symbolPath = Symbols[self.symbol]
             # Copy before translate! Dict is a mutable type
@@ -310,12 +318,35 @@ class LegendIconWidget(qt.QWidget):
             llist.append((symbolPath,
                           symbolPen,
                           symbolBrush))
+
+        if isSymbolColormap:
+            nbSymbols = int(ratio + 2)
+            for i in range(nbSymbols):
+                image = self._colormapPixmap.toImage()
+                pos = int((_COLORMAP_PIXMAP_SIZE / nbSymbols) * i)
+                pos = numpy.clip(pos, 0, _COLORMAP_PIXMAP_SIZE-1)
+                color = image.pixelColor(pos, 0)
+                delta = qt.QPointF(ratio * ((i - (nbSymbols-1)/2) / nbSymbols), 0)
+
+                symbolPath = qt.QPainterPath(Symbols[self.symbol])
+                symbolPath.translate(symbolOffset + delta)
+                symbolBrush = qt.QBrush(color, self.symbolStyle)
+                symbolPen = qt.QPen(
+                    self.symbolOutlineBrush,  # Brush
+                    1. / self.height(),       # Width
+                    qt.Qt.SolidLine           # Style
+                )
+                llist.append((symbolPath,
+                              symbolPen,
+                              symbolBrush))
+
         # Draw
         for path, pen, brush in llist:
             path.translate(offset)
             painter.setPen(pen)
             painter.setBrush(brush)
             painter.drawPath(path)
+
         painter.restore()
 
     # Helpers
