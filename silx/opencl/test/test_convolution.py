@@ -40,6 +40,7 @@ import logging
 from itertools import product
 import numpy as np
 from silx.utils.testutils import parameterize
+from silx.image.utils import gaussian_kernel
 try:
     from scipy.ndimage import convolve, convolve1d
     from scipy.misc import ascent
@@ -52,7 +53,7 @@ from ..common import ocl
 if ocl:
     import pyopencl as cl
     import pyopencl.array as parray
-    from ..convolution import Convolution, gaussian_kernel
+    from silx.opencl.convolution import Convolution
 logger = logging.getLogger(__name__)
 
 
