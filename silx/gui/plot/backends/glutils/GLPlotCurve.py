@@ -528,7 +528,7 @@ def distancesFromArrays(xData, yData):
 DIAMOND, CIRCLE, SQUARE, PLUS, X_MARKER, POINT, PIXEL, ASTERISK = \
     'd', 'o', 's', '+', 'x', '.', ',', '*'
 
-H_LINE, V_LINE = '_', '|'
+H_LINE, V_LINE, HEART = '_', '|', u'\u2665'
 
 
 class _Points2D(object):
@@ -544,7 +544,7 @@ class _Points2D(object):
     """
 
     MARKERS = (DIAMOND, CIRCLE, SQUARE, PLUS, X_MARKER, POINT, PIXEL, ASTERISK,
-               H_LINE, V_LINE)
+               H_LINE, V_LINE, HEART)
     """List of supported markers"""
 
     _VERTEX_SHADER = """
@@ -641,6 +641,21 @@ class _Points2D(object):
             } else {
                 return 0.0;
             }
+        }
+        """,
+            HEART: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord = (coord - 0.5) * 2.;
+            coord *= 0.75;
+            coord.y += 0.25;
+            float a = atan(coord.x,-coord.y)/3.141593;
+            float r = length(coord);
+            float h = abs(a);
+            float d = (13.0*h - 22.0*h*h + 10.0*h*h*h)/(6.0-5.0*h);
+            float res = clamp(r-d, 0., 1.);
+            // antialiasing
+            res = smoothstep(0.1, 0.001, res);
+            return res;
         }
         """
     }
