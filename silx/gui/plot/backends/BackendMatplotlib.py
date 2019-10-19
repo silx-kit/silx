@@ -76,6 +76,17 @@ _PATCH_LINESTYLE = {
 _MARKER_PATHS = {}
 """Store cached extra marker paths"""
 
+_SPECIAL_MARKERS = {
+    'tickleft': 0,
+    'tickright': 1,
+    'tickup': 2,
+    'tickdown': 3,
+    'caretleft': 4,
+    'caretright': 5,
+    'caretup': 6,
+    'caretdown': 7,
+}
+
 
 def normalize_linestyle(linestyle):
     """Normalize known old-style linestyle, else return the provided value."""
@@ -423,14 +434,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
         """Returns a marker that can be displayed by matplotlib.
 
         :param str symbol: A symbol description used by silx
-        :rtype: Union[str,matplotlib.path.Path]
+        :rtype: Union[str,int,matplotlib.path.Path]
         """
         path = get_path_from_symbol(symbol)
-        if path is None:
-            # This symbol must be supported by matplotlib
-            return symbol
-        else:
+        if path is not None:
             return path
+        num = _SPECIAL_MARKERS.get(symbol, None)
+        if num is not None:
+            return num
+        # This symbol must be supported by matplotlib
+        return symbol
 
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
