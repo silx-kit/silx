@@ -492,6 +492,7 @@ class SymbolMixIn(ItemMixInBase):
         ('x', 'Cross'),
         ('.', 'Point'),
         (',', 'Pixel'),
+        (u'\u2665', 'Heart'),
         ('', 'None')))
     """Dict of supported symbols"""
 
