@@ -38,14 +38,14 @@ import weakref
 import numpy
 
 from .. import qt, colors
-from ..widgets import LegendIconWidget
+from ..widgets.LegendIconWidget import LegendIconWidget
 from . import items
 
 
 _logger = logging.getLogger(__name__)
 
 
-class LegendIcon(LegendIconWidget.LegendIconWidget):
+class LegendIcon(LegendIconWidget):
     """Object displaying a curve linestyle and symbol.
 
     :param QWidget parent: See :class:`QWidget`
@@ -281,7 +281,7 @@ class LegendModel(qt.QAbstractListModel):
         new = []
         for (legend, icon) in llist:
             linestyle = icon.get('linestyle', None)
-            if linestyle in LegendIconWidget.NoLineStyle:
+            if LegendIconWidget.isEmptyLineStyle(linestyle):
                 # Curve had no line, give it one and hide it
                 # So when toggle line, it will display a solid line
                 showLine = False
@@ -290,7 +290,7 @@ class LegendModel(qt.QAbstractListModel):
                 showLine = True
 
             symbol = icon.get('symbol', None)
-            if symbol in LegendIconWidget.NoSymbols:
+            if LegendIconWidget.isEmptySymbol(symbol):
                 # Curve had no symbol, give it one and hide it
                 # So when toggle symbol, it will display 'o'
                 showSymbol = False
@@ -764,7 +764,7 @@ class LegendListContextMenu(qt.QMenu):
         }
         flag = modelIndex.data(LegendModel.showSymbolRole)
         symbol = modelIndex.data(LegendModel.iconSymbolRole)
-        visible = not flag or symbol in LegendIconWidget.NoSymbols
+        visible = not flag or LegendIconWidget.isEmptySymbol(symbol)
         _logger.debug(
             'togglePointsAction -- Symbols visible: %s', str(visible))
 

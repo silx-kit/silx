@@ -354,6 +354,18 @@ class LegendIconWidget(qt.QWidget):
     # Helpers
 
     @staticmethod
+    def isEmptySymbol(symbol):
+        """Returns True if this symbol description will result in an empty
+        symbol."""
+        return symbol in NoSymbols
+
+    @staticmethod
+    def isEmptyLineStyle(lineStyle):
+        """Returns True if this line style description will result in an empty
+        line."""
+        return lineStyle in NoLineStyle
+
+    @staticmethod
     def _getColormapKey(colormap):
         """
         Returns the key used to store the image in the data storage
