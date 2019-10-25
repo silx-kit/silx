@@ -134,6 +134,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         window = Plot1D(parent=self.plot)
         window.setWindowFlags(qt.Qt.Window)
         window.setWindowTitle('Image Intensity Histogram')
+        window.setDataMargins(0.1, 0.1, 0.1, 0.1)
         window.getXAxis().setLabel("Value")
         window.getYAxis().setLabel("Count")
         return window
