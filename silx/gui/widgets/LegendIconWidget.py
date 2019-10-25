@@ -43,12 +43,13 @@ _logger = logging.getLogger(__name__)
 
 # Build all symbols
 # Courtesy of the pyqtgraph project
-Symbols = dict([(name, qt.QPainterPath())
+
+_Symbols = dict([(name, qt.QPainterPath())
                 for name in ['o', 's', 't', 'd', '+', 'x', '.', ',']])
-Symbols['o'].addEllipse(qt.QRectF(.1, .1, .8, .8))
-Symbols['.'].addEllipse(qt.QRectF(.3, .3, .4, .4))
-Symbols[','].addEllipse(qt.QRectF(.4, .4, .2, .2))
-Symbols['s'].addRect(qt.QRectF(.1, .1, .8, .8))
+_Symbols['o'].addEllipse(qt.QRectF(.1, .1, .8, .8))
+_Symbols['.'].addEllipse(qt.QRectF(.3, .3, .4, .4))
+_Symbols[','].addEllipse(qt.QRectF(.4, .4, .2, .2))
+_Symbols['s'].addRect(qt.QRectF(.1, .1, .8, .8))
 
 coords = {
     't': [(0.5, 0.), (.1, .8), (.9, .8)],
@@ -61,21 +62,21 @@ coords = {
           (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)]
 }
 for s, c in coords.items():
-    Symbols[s].moveTo(*c[0])
+    _Symbols[s].moveTo(*c[0])
     for x, y in c[1:]:
-        Symbols[s].lineTo(x, y)
-    Symbols[s].closeSubpath()
+        _Symbols[s].lineTo(x, y)
+    _Symbols[s].closeSubpath()
 tr = qt.QTransform()
 tr.rotate(45)
-Symbols['x'].translate(qt.QPointF(-0.5, -0.5))
-Symbols['x'] = tr.map(Symbols['x'])
-Symbols['x'].translate(qt.QPointF(0.5, 0.5))
+_Symbols['x'].translate(qt.QPointF(-0.5, -0.5))
+_Symbols['x'] = tr.map(_Symbols['x'])
+_Symbols['x'].translate(qt.QPointF(0.5, 0.5))
 
-NoSymbols = (None, 'None', 'none', '', ' ')
+_NoSymbols = (None, 'None', 'none', '', ' ')
 """List of values resulting in no symbol being displayed for a curve"""
 
 
-LineStyles = {
+_LineStyles = {
     None: qt.Qt.NoPen,
     'None': qt.Qt.NoPen,
     'none': qt.Qt.NoPen,
@@ -88,7 +89,7 @@ LineStyles = {
 }
 """Conversion from matplotlib-like linestyle to Qt"""
 
-NoLineStyle = (None, 'None', 'none', '', ' ')
+_NoLineStyle = (None, 'None', 'none', '', ' ')
 """List of style values resulting in no line being displayed for a curve"""
 
 
@@ -140,8 +141,8 @@ class LegendIconWidget(qt.QWidget):
     def setSymbol(self, symbol):
         """Set the symbol"""
         symbol = str(symbol)
-        if symbol not in NoSymbols:
-            if symbol not in Symbols:
+        if symbol not in _NoSymbols:
+            if symbol not in _Symbols:
                 raise ValueError("Unknown symbol: <%s>" % symbol)
         self.symbol = symbol
         # self.update() after set...?
@@ -175,9 +176,9 @@ class LegendIconWidget(qt.QWidget):
 
         :param str style: The linestyle to use
         """
-        if style not in LineStyles:
+        if style not in _LineStyles:
             raise ValueError('Unknown style: %s', style)
-        self.lineStyle = LineStyles[style]
+        self.lineStyle = _LineStyles[style]
 
     def setColormap(self, colormap):
         """Set the colormap to display
@@ -259,7 +260,7 @@ class LegendIconWidget(qt.QWidget):
 
         isSymbol = (self.showSymbol and
                     len(self.symbol) and
-                    self.symbol not in NoSymbols)
+                    self.symbol not in _NoSymbols)
         isColormap = self.colormap is not None
         isSymbolColormap = isSymbol and isColormap
         if isSymbolColormap:
@@ -304,7 +305,7 @@ class LegendIconWidget(qt.QWidget):
             # PITFALL ahead: Let this be a warning to others
             # symbolPath = Symbols[self.symbol]
             # Copy before translate! Dict is a mutable type
-            symbolPath = qt.QPainterPath(Symbols[self.symbol])
+            symbolPath = qt.QPainterPath(_Symbols[self.symbol])
             symbolPath.translate(symbolOffset)
             symbolBrush = qt.QBrush(
                 self.symbolColor if overrideColor is None else overrideColor,
@@ -330,7 +331,7 @@ class LegendIconWidget(qt.QWidget):
                 color = image.pixelColor(pos, 0)
                 delta = qt.QPointF(ratio * ((i - (nbSymbols-1)/2) / nbSymbols), 0)
 
-                symbolPath = qt.QPainterPath(Symbols[self.symbol])
+                symbolPath = qt.QPainterPath(_Symbols[self.symbol])
                 symbolPath.translate(symbolOffset + delta)
                 symbolBrush = qt.QBrush(color, self.symbolStyle)
                 symbolPen = qt.QPen(
@@ -357,13 +358,13 @@ class LegendIconWidget(qt.QWidget):
     def isEmptySymbol(symbol):
         """Returns True if this symbol description will result in an empty
         symbol."""
-        return symbol in NoSymbols
+        return symbol in _NoSymbols
 
     @staticmethod
     def isEmptyLineStyle(lineStyle):
         """Returns True if this line style description will result in an empty
         line."""
-        return lineStyle in NoLineStyle
+        return lineStyle in _NoLineStyle
 
     @staticmethod
     def _getColormapKey(colormap):
