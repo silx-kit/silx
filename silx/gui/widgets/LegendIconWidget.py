@@ -44,33 +44,9 @@ _logger = logging.getLogger(__name__)
 # Build all symbols
 # Courtesy of the pyqtgraph project
 
-_Symbols = dict([(name, qt.QPainterPath())
-                for name in ['o', 's', 't', 'd', '+', 'x', '.', ',']])
-_Symbols['o'].addEllipse(qt.QRectF(.1, .1, .8, .8))
-_Symbols['.'].addEllipse(qt.QRectF(.3, .3, .4, .4))
-_Symbols[','].addEllipse(qt.QRectF(.4, .4, .2, .2))
-_Symbols['s'].addRect(qt.QRectF(.1, .1, .8, .8))
+_Symbols = None
+""""Cache supported symbols as Qt paths"""
 
-coords = {
-    't': [(0.5, 0.), (.1, .8), (.9, .8)],
-    'd': [(0.1, 0.5), (0.5, 0.), (0.9, 0.5), (0.5, 1.)],
-    '+': [(0.0, 0.40), (0.40, 0.40), (0.40, 0.), (0.60, 0.),
-          (0.60, 0.40), (1., 0.40), (1., 0.60), (0.60, 0.60),
-          (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)],
-    'x': [(0.0, 0.40), (0.40, 0.40), (0.40, 0.), (0.60, 0.),
-          (0.60, 0.40), (1., 0.40), (1., 0.60), (0.60, 0.60),
-          (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)]
-}
-for s, c in coords.items():
-    _Symbols[s].moveTo(*c[0])
-    for x, y in c[1:]:
-        _Symbols[s].lineTo(x, y)
-    _Symbols[s].closeSubpath()
-tr = qt.QTransform()
-tr.rotate(45)
-_Symbols['x'].translate(qt.QPointF(-0.5, -0.5))
-_Symbols['x'] = tr.map(_Symbols['x'])
-_Symbols['x'].translate(qt.QPointF(0.5, 0.5))
 
 _NoSymbols = (None, 'None', 'none', '', ' ')
 """List of values resulting in no symbol being displayed for a curve"""
@@ -101,6 +77,43 @@ _COLORMAP_PIXMAP_SIZE = 32
 """Size of the cached pixmaps for the colormaps"""
 
 
+def _initSymbols():
+    """Init the cached symbol structure if not yet done."""
+    global _Symbols
+    if _Symbols is not None:
+        return
+
+    symbols = dict([(name, qt.QPainterPath())
+                    for name in ['o', 's', 't', 'd', '+', 'x', '.', ',']])
+    symbols['o'].addEllipse(qt.QRectF(.1, .1, .8, .8))
+    symbols['.'].addEllipse(qt.QRectF(.3, .3, .4, .4))
+    symbols[','].addEllipse(qt.QRectF(.4, .4, .2, .2))
+    symbols['s'].addRect(qt.QRectF(.1, .1, .8, .8))
+
+    coords = {
+        't': [(0.5, 0.), (.1, .8), (.9, .8)],
+        'd': [(0.1, 0.5), (0.5, 0.), (0.9, 0.5), (0.5, 1.)],
+        '+': [(0.0, 0.40), (0.40, 0.40), (0.40, 0.), (0.60, 0.),
+              (0.60, 0.40), (1., 0.40), (1., 0.60), (0.60, 0.60),
+              (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)],
+        'x': [(0.0, 0.40), (0.40, 0.40), (0.40, 0.), (0.60, 0.),
+              (0.60, 0.40), (1., 0.40), (1., 0.60), (0.60, 0.60),
+              (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)]
+    }
+    for s, c in coords.items():
+        symbols[s].moveTo(*c[0])
+        for x, y in c[1:]:
+            symbols[s].lineTo(x, y)
+        symbols[s].closeSubpath()
+    tr = qt.QTransform()
+    tr.rotate(45)
+    symbols['x'].translate(qt.QPointF(-0.5, -0.5))
+    symbols['x'] = tr.map(symbols['x'])
+    symbols['x'].translate(qt.QPointF(0.5, 0.5))
+
+    _Symbols = symbols
+
+
 class LegendIconWidget(qt.QWidget):
     """Object displaying linestyle and symbol of plots.
 
@@ -109,6 +122,7 @@ class LegendIconWidget(qt.QWidget):
 
     def __init__(self, parent=None):
         super(LegendIconWidget, self).__init__(parent)
+        _initSymbols()
 
         # Visibilities
         self.showLine = True
