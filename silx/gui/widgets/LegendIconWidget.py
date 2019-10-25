@@ -159,8 +159,7 @@ class LegendIconWidget(qt.QWidget):
             if symbol not in _Symbols:
                 raise ValueError("Unknown symbol: <%s>" % symbol)
         self.symbol = symbol
-        # self.update() after set...?
-        # Does not seem necessary
+        self.update()
 
     def setSymbolColor(self, color):
         """
@@ -168,14 +167,17 @@ class LegendIconWidget(qt.QWidget):
         :type style: qt.QColor
         """
         self.symbolColor = qt.QColor(color)
+        self.update()
 
     # Modify Line
 
     def setLineColor(self, color):
         self.lineColor = qt.QColor(color)
+        self.update()
 
     def setLineWidth(self, width):
         self.lineWidth = float(width)
+        self.update()
 
     def setLineStyle(self, style):
         """Set the linestyle.
@@ -193,6 +195,7 @@ class LegendIconWidget(qt.QWidget):
         if style not in _LineStyles:
             raise ValueError('Unknown style: %s', style)
         self.lineStyle = _LineStyles[style]
+        self.update()
 
     def setColormap(self, colormap):
         """Set the colormap to display
@@ -212,7 +215,10 @@ class LegendIconWidget(qt.QWidget):
             colormap = c
 
         if colormap is None:
+            if self.colormap is None:
+                return
             self.colormap = None
+            self.update()
             return
 
         if numpy.array_equal(self.colormap, colormap):
@@ -220,6 +226,7 @@ class LegendIconWidget(qt.QWidget):
             return
 
         self.colormap = colormap
+        self.update()
 
     def getColormap(self):
         """Returns the used colormap.
