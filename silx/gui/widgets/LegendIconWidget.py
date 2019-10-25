@@ -220,12 +220,6 @@ class LegendIconWidget(qt.QWidget):
             return
 
         self.colormap = colormap
-        if isinstance(colormap, numpy.ndarray):
-            name = None
-            colorArray = colormap
-        else:
-            name = colormap
-            colorArray = None
 
     def getColormap(self):
         """Returns the used colormap.
