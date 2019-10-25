@@ -165,13 +165,23 @@ class SimpleWidgetExample(qt.QMainWindow):
         # Symbol and colormap
         legend = LegendIconWidget(panel)
         legend.setSymbol("o")
-        legend.setColormap("viridis")
+        legend.setSymbolColormap("viridis")
         layout.addWidget(legend)
 
         # Symbol (without surface) and colormap
         legend = LegendIconWidget(panel)
         legend.setSymbol("+")
-        legend.setColormap("plasma")
+        legend.setSymbolColormap("plasma")
+        layout.addWidget(legend)
+
+        # Colormap + Line + Symbol
+        legend = LegendIconWidget(panel)
+        legend.setColormap("gray")
+        legend.setLineStyle("-")
+        legend.setLineColor("white")
+        legend.setLineWidth(3)
+        legend.setSymbol(".")
+        legend.setSymbolColormap("red")
         layout.addWidget(legend)
 
         return panel

@@ -139,6 +139,8 @@ class LegendIconWidget(qt.QWidget):
         self.symbolStyle = qt.Qt.SolidPattern
         self.symbolColor = qt.Qt.green
         self.symbolOutlineBrush = qt.QBrush(qt.Qt.white)
+        self.symbolColormap = None
+        """Name or array of colors"""
 
         self.colormap = None
         """Name or array of colors"""
@@ -197,6 +199,27 @@ class LegendIconWidget(qt.QWidget):
         self.lineStyle = _LineStyles[style]
         self.update()
 
+    def _toLut(self, colormap):
+        """Returns an internal LUT object used by this widget to manage
+        a colormap LUT.
+
+        If the argument is a `Colormap` object, only the current state will be
+        displayed. The object itself will not be stored, and further changes
+        of this `Colormap` will not update this widget.
+
+        :param Union[str,numpy.ndarray,Colormap] colormap: The colormap to
+            display
+        :rtype: Union[None,str,numpy.ndarray]
+        """
+        if isinstance(colormap, colors.Colormap):
+            # Helper to allow to support Colormap objects
+            c = colormap.getName()
+            if c is None:
+                c = colormap.getNColors()
+            colormap = c
+
+        return colormap
+
     def setColormap(self, colormap):
         """Set the colormap to display
 
@@ -207,12 +230,7 @@ class LegendIconWidget(qt.QWidget):
         :param Union[str,numpy.ndarray,Colormap] colormap: The colormap to
             display
         """
-        if isinstance(colormap, colors.Colormap):
-            # Helper to allow to support Colormap objects
-            c = colormap.getName()
-            if c is None:
-                c = colormap.getNColors()
-            colormap = c
+        colormap = self._toLut(colormap)
 
         if colormap is None:
             if self.colormap is None:
@@ -230,6 +248,42 @@ class LegendIconWidget(qt.QWidget):
 
     def getColormap(self):
         """Returns the used colormap.
+
+        If the argument was set with a `Colormap` object, this function will
+        returns the LUT, represented by a string name or by an array or colors.
+
+        :returns: Union[None,str,numpy.ndarray,Colormap]
+        """
+        return self.colormap
+
+    def setSymbolColormap(self, colormap):
+        """Set the colormap to display a symbol
+
+        If the argument is a `Colormap` object, only the current state will be
+        displayed. The object itself will not be stored, and further changes
+        of this `Colormap` will not update this widget.
+
+        :param Union[str,numpy.ndarray,Colormap] colormap: The colormap to
+            display
+        """
+        colormap = self._toLut(colormap)
+
+        if colormap is None:
+            if self.colormap is None:
+                return
+            self.symbolColormap = None
+            self.update()
+            return
+
+        if numpy.array_equal(self.symbolColormap, colormap):
+            # This also works with strings
+            return
+
+        self.symbolColormap = colormap
+        self.update()
+
+    def getSymbolColormap(self):
+        """Returns the used symbol colormap.
 
         If the argument was set with a `Colormap` object, this function will
         returns the LUT, represented by a string name or by an array or colors.
@@ -273,17 +327,8 @@ class LegendIconWidget(qt.QWidget):
         # painter.fillRect(qt.QRectF(offset, bottomRight),
         #                 qt.QBrush(qt.Qt.green))
 
-        isSymbol = (self.showSymbol and
-                    len(self.symbol) and
-                    self.symbol not in _NoSymbols)
-        isColormap = self.colormap is not None
-        isSymbolColormap = isSymbol and isColormap
-        if isSymbolColormap:
-            isSymbol = False
-            isColormap = False
-
         if self.showColormap:
-            if isColormap:
+            if self.colormap is not None:
                 if self.isEnabled():
                     image = self.getColormapImage(self.colormap)
                 else:
@@ -316,39 +361,19 @@ class LegendIconWidget(qt.QWidget):
                 qt.Qt.FlatCap
             )
             llist.append((linePath, linePen, lineBrush))
-        if isSymbol:
-            # PITFALL ahead: Let this be a warning to others
-            # symbolPath = Symbols[self.symbol]
-            # Copy before translate! Dict is a mutable type
-            symbolPath = qt.QPainterPath(_Symbols[self.symbol])
-            symbolPath.translate(symbolOffset)
-            symbolBrush = qt.QBrush(
-                self.symbolColor if overrideColor is None else overrideColor,
-                self.symbolStyle)
-            symbolPen = qt.QPen(
-                self.symbolOutlineBrush,  # Brush
-                1. / self.height(),       # Width
-                qt.Qt.SolidLine           # Style
-            )
-            llist.append((symbolPath,
-                          symbolPen,
-                          symbolBrush))
 
-        if isSymbolColormap:
-            nbSymbols = int(ratio + 2)
-            for i in range(nbSymbols):
-                if self.isEnabled():
-                    image = self.getColormapImage(self.colormap)
-                else:
-                    image = self.getGrayedColormapImage(self.colormap)
-                pos = int((_COLORMAP_PIXMAP_SIZE / nbSymbols) * i)
-                pos = numpy.clip(pos, 0, _COLORMAP_PIXMAP_SIZE-1)
-                color = image.pixelColor(pos, 0)
-                delta = qt.QPointF(ratio * ((i - (nbSymbols-1)/2) / nbSymbols), 0)
-
+        isValidSymbol = (len(self.symbol) and
+                         self.symbol not in _NoSymbols)
+        if self.showSymbol and isValidSymbol:
+            if self.symbolColormap is None:
+                # PITFALL ahead: Let this be a warning to others
+                # symbolPath = Symbols[self.symbol]
+                # Copy before translate! Dict is a mutable type
                 symbolPath = qt.QPainterPath(_Symbols[self.symbol])
-                symbolPath.translate(symbolOffset + delta)
-                symbolBrush = qt.QBrush(color, self.symbolStyle)
+                symbolPath.translate(symbolOffset)
+                symbolBrush = qt.QBrush(
+                    self.symbolColor if overrideColor is None else overrideColor,
+                    self.symbolStyle)
                 symbolPen = qt.QPen(
                     self.symbolOutlineBrush,  # Brush
                     1. / self.height(),       # Width
@@ -357,6 +382,29 @@ class LegendIconWidget(qt.QWidget):
                 llist.append((symbolPath,
                               symbolPen,
                               symbolBrush))
+            else:
+                nbSymbols = int(ratio + 2)
+                for i in range(nbSymbols):
+                    if self.isEnabled():
+                        image = self.getColormapImage(self.symbolColormap)
+                    else:
+                        image = self.getGrayedColormapImage(self.symbolColormap)
+                    pos = int((_COLORMAP_PIXMAP_SIZE / nbSymbols) * i)
+                    pos = numpy.clip(pos, 0, _COLORMAP_PIXMAP_SIZE-1)
+                    color = image.pixelColor(pos, 0)
+                    delta = qt.QPointF(ratio * ((i - (nbSymbols-1)/2) / nbSymbols), 0)
+
+                    symbolPath = qt.QPainterPath(_Symbols[self.symbol])
+                    symbolPath.translate(symbolOffset + delta)
+                    symbolBrush = qt.QBrush(color, self.symbolStyle)
+                    symbolPen = qt.QPen(
+                        self.symbolOutlineBrush,  # Brush
+                        1. / self.height(),       # Width
+                        qt.Qt.SolidLine           # Style
+                    )
+                    llist.append((symbolPath,
+                                  symbolPen,
+                                  symbolBrush))
 
         # Draw
         for path, pen, brush in llist:
