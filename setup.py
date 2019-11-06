@@ -477,9 +477,9 @@ class Build(_build):
         elif self.no_openmp:
             use_openmp = False
         else:
-            env_force_cython = self._parse_env_as_bool("WITH_OPENMP")
-            if env_force_cython is not None:
-                use_openmp = env_force_cython
+            env_with_openmp = self._parse_env_as_bool("WITH_OPENMP")
+            if env_with_openmp is not None:
+                use_openmp = env_with_openmp
             else:
                 # Use it by default
                 use_openmp = True
