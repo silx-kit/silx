@@ -47,11 +47,14 @@ from silx.utils.proxy import docstring
 logger = logging.getLogger(__name__)
 
 
-class _RegionOfInterestBase(object):
+class _RegionOfInterestBase(qt.QObject):
+    """Base class of 1D and 2D region of interest
+
+    :param QObject parent: See QObject
+    :param str name: The name of the ROI
     """
-    Base class of 1D and 2D region of interest
-    """
-    def __init__(self, name):
+    def __init__(self, parent=None, name=''):
+        qt.QObject.__init__(self)
         self.__name = name
 
     def getName(self):
@@ -70,7 +73,7 @@ class _RegionOfInterestBase(object):
         self.__name = name
 
 
-class RegionOfInterest(_RegionOfInterestBase, qt.QObject):
+class RegionOfInterest(_RegionOfInterestBase):
     """Object describing a region of interest in a plot.
 
     :param QObject parent:
@@ -90,8 +93,7 @@ class RegionOfInterest(_RegionOfInterestBase, qt.QObject):
         # Avoid circular dependancy
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
-        qt.QObject.__init__(self, parent)
-        _RegionOfInterestBase.__init__(self, '')
+        _RegionOfInterestBase.__init__(self, parent, '')
         self._color = rgba('red')
         self._items = WeakList()
         self._editAnchors = WeakList()

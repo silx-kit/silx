@@ -1048,7 +1048,7 @@ class ROITable(TableWidget):
 _indexNextROI = 0
 
 
-class ROI(_RegionOfInterestBase, qt.QObject):
+class ROI(_RegionOfInterestBase):
     """The Region Of Interest is defined by:
 
     - A name
@@ -1067,7 +1067,6 @@ class ROI(_RegionOfInterestBase, qt.QObject):
     """Signal emitted when the ROI is edited"""
 
     def __init__(self, name, fromdata=None, todata=None, type_=None):
-        qt.QObject.__init__(self)
         _RegionOfInterestBase.__init__(self, name=name)
         global _indexNextROI
         self._id = _indexNextROI
