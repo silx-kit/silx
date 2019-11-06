@@ -53,9 +53,17 @@ class _RegionOfInterestBase(qt.QObject):
     :param QObject parent: See QObject
     :param str name: The name of the ROI
     """
+
+    sigItemChanged = qt.Signal(object)
+    """Signal emitted when item has changed.
+
+    It provides a flag describing which property of the item has changed.
+    See :class:`ItemChangedType` for flags description.
+    """
+
     def __init__(self, parent=None, name=''):
         qt.QObject.__init__(self)
-        self.__name = name
+        self.__name = str(name)
 
     def getName(self):
         """Returns the name of the ROI
@@ -70,7 +78,10 @@ class _RegionOfInterestBase(qt.QObject):
 
         :param str name: name of the region of interest
         """
-        self.__name = str(name)
+        name = str(name)
+        if self.__name != name:
+            self.__name = name
+            self.sigItemChanged.emit(items.ItemChangedType.NAME)
 
 
 class RegionOfInterest(_RegionOfInterestBase):
