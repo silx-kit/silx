@@ -44,10 +44,10 @@ from silx.utils import deprecation
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.proxy import docstring
 from .. import icons, qt
-from silx.gui.plot.items.curve import Curve
 from silx.math.combo import min_max
 import weakref
 from silx.gui.widgets.TableWidget import TableWidget
+from . import items
 from .items.roi import _RegionOfInterestBase
 
 
@@ -1075,6 +1075,13 @@ class ROI(_RegionOfInterestBase):
         self._todata = todata
         self._type = type_ or 'Default'
 
+        self.sigItemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        """Handle name change"""
+        if event == items.ItemChangedType.NAME:
+            self.sigChanged.emit()
+
     def getID(self):
         """
 
@@ -1097,17 +1104,6 @@ class ROI(_RegionOfInterestBase):
         :return str: the type of the ROI.
         """
         return self._type
-
-    @docstring(_RegionOfInterestBase)
-    def setName(self, name):
-        """
-        Set the name of the :class:`ROI`
-
-        :param str name:
-        """
-        if self.getName() != name:
-            _RegionOfInterestBase.setName(self, name)
-            self.sigChanged.emit()
 
     def setFrom(self, frm):
         """
@@ -1202,7 +1198,7 @@ class ROI(_RegionOfInterestBase):
         :param CurveItem curve:
         :return tuple: rawCount, netCount
         """
-        assert isinstance(curve, Curve) or curve is None
+        assert isinstance(curve, items.Curve) or curve is None
 
         if curve is None:
             return None, None
@@ -1245,7 +1241,7 @@ class ROI(_RegionOfInterestBase):
         :param CurveItem curve:
         :return tuple: rawArea, netArea
         """
-        assert isinstance(curve, Curve) or curve is None
+        assert isinstance(curve, items.Curve) or curve is None
 
         if curve is None:
             return None, None

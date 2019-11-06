@@ -112,6 +112,12 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._labelItem = None
         self._editable = False
         self._visible = True
+        self.sigItemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        """Handle name change"""
+        if event == items.ItemChangedType.NAME:
+            self._updateLabelItem(self.getName())
 
     def __del__(self):
         # Clean-up plot items
@@ -197,13 +203,6 @@ class RegionOfInterest(_RegionOfInterestBase):
         :param str label: The text label to display
         """
         self.setName(name=label)
-
-    @docstring(_RegionOfInterestBase)
-    def setName(self, name):
-        name = str(name)
-        if name != self.getName():
-            _RegionOfInterestBase.setName(self, name)
-            self._updateLabelItem(name)
 
     def isEditable(self):
         """Returns whether the ROI is editable by the user or not.
