@@ -46,7 +46,6 @@ from silx.utils.proxy import docstring
 from .. import icons, qt
 from silx.gui.plot.items.curve import Curve
 from silx.math.combo import min_max
-from .items.roi import _RegionOfInterestBase
 import weakref
 from silx.gui.widgets.TableWidget import TableWidget
 from .items.roi import _RegionOfInterestBase

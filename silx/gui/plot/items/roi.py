@@ -58,7 +58,7 @@ class _RegionOfInterestBase(qt.QObject):
         self.__name = name
 
     def getName(self):
-        """
+        """Returns the name of the ROI
 
         :return: name of the region of interest
         :rtype: str
@@ -66,11 +66,11 @@ class _RegionOfInterestBase(qt.QObject):
         return self.__name
 
     def setName(self, name):
-        """
+        """Set the name of the ROI
 
         :param str name: name of the region of interest
         """
-        self.__name = name
+        self.__name = str(name)
 
 
 class RegionOfInterest(_RegionOfInterestBase):
