@@ -97,6 +97,7 @@ _AVAILABLE_LUTS = collections.OrderedDict([
     ('blue', _LUT_DESCRIPTION('builtin', 'yellow', True)),
     ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True)),
     ('viridis', _LUT_DESCRIPTION('resource', 'pink', True)),
+    ('cividis', _LUT_DESCRIPTION('resource', 'pink', True)),
     ('magma', _LUT_DESCRIPTION('resource', 'green', True)),
     ('inferno', _LUT_DESCRIPTION('resource', 'green', True)),
     ('plasma', _LUT_DESCRIPTION('resource', 'green', True)),
@@ -116,10 +117,11 @@ DEFAULT_MAX_LOG = 10
 
 
 def rgba(color, colorDict=None):
-    """Convert color code '#RRGGBB' and '#RRGGBBAA' to (R, G, B, A)
+    """Convert color code '#RRGGBB' and '#RRGGBBAA' to a tuple (R, G, B, A)
+    of floats.
 
-    It also convert RGB(A) values from uint8 to float in [0, 1] and
-    accept a QColor as color argument.
+    It also supports RGB(A) from uint8 in [0, 255], float in [0, 1], and
+    QColor as color argument.
 
     :param str color: The color to convert
     :param dict colorDict: A dictionary of color name conversion to color code
@@ -167,8 +169,8 @@ def greyed(color, colorDict=None):
     """Convert color code '#RRGGBB' and '#RRGGBBAA' to a grey color
     (R, G, B, A).
 
-    It also convert RGB(A) values from uint8 to float in [0, 1] and
-    accept a QColor as color argument.
+    It also supports RGB(A) from uint8 in [0, 255], float in [0, 1], and
+    QColor as color argument.
 
     :param str color: The color to convert
     :param dict colorDict: A dictionary of color name conversion to color code
@@ -178,6 +180,19 @@ def greyed(color, colorDict=None):
     r, g, b, a = rgba(color=color, colorDict=colorDict)
     g = 0.21 * r + 0.72 * g + 0.07 * b
     return g, g, g, a
+
+
+def asQColor(color):
+    """Convert color code '#RRGGBB' and '#RRGGBBAA' to a `qt.QColor`.
+
+    It also supports RGB(A) from uint8 in [0, 255], float in [0, 1], and
+    QColor as color argument.
+
+    :param str color: The color to convert
+    :rtype: qt.QColor
+    """
+    color = rgba(color)
+    return qt.QColor.fromRgbF(*color)
 
 
 def cursorColorForColormap(colormapName):

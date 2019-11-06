@@ -32,96 +32,11 @@ __license__ = "MIT"
 __date__ = "01/08/2019"
 
 import numpy as np
-from math import ceil
 from copy import copy  # python2
 from .common import pyopencl as cl
 import pyopencl.array as parray
 from .processing import OpenclProcessing, EventDescription
-
-
-class ConvolutionInfos(object):
-    allowed_axes = {
-        "1D": [None],
-        "separable_2D_1D_2D": [None, (0, 1), (1, 0)],
-        "batched_1D_2D": [(0,), (1,)],
-        "separable_3D_1D_3D": [
-            None,
-            (0, 1, 2),
-            (1, 2, 0),
-            (2, 0, 1),
-            (2, 1, 0),
-            (1, 0, 2),
-            (0, 2, 1)
-        ],
-        "batched_1D_3D": [(0,), (1,), (2,)],
-        "batched_separable_2D_1D_3D": [(0,), (1,), (2,)], # unsupported (?)
-        "2D": [None],
-        "batched_2D_3D": [(0,), (1,), (2,)],
-        "separable_3D_2D_3D": [
-            (1, 0),
-            (0, 1),
-            (2, 0),
-            (0, 2),
-            (1, 2),
-            (2, 1),
-        ],
-        "3D": [None],
-    }
-    use_cases = {
-        (1, 1): {
-            "1D": {
-                "name": "1D convolution on 1D data",
-                "kernels": ["convol_1D_X"],
-            },
-        },
-        (2, 2): {
-            "2D": {
-                "name": "2D convolution on 2D data",
-                "kernels": ["convol_2D_XY"],
-            },
-        },
-        (3, 3): {
-            "3D": {
-                "name": "3D convolution on 3D data",
-                "kernels": ["convol_3D_XYZ"],
-            },
-        },
-        (2, 1): {
-            "separable_2D_1D_2D": {
-                "name": "Separable (2D->1D) convolution on 2D data",
-                "kernels": ["convol_1D_X", "convol_1D_Y"],
-            },
-            "batched_1D_2D": {
-                "name": "Batched 1D convolution on 2D data",
-                "kernels": ["convol_1D_X", "convol_1D_Y"],
-            },
-        },
-        (3, 1): {
-            "separable_3D_1D_3D": {
-                "name": "Separable (3D->1D) convolution on 3D data",
-                "kernels": ["convol_1D_X", "convol_1D_Y", "convol_1D_Z"],
-            },
-            "batched_1D_3D": {
-                "name": "Batched 1D convolution on 3D data",
-                "kernels": ["convol_1D_X", "convol_1D_Y", "convol_1D_Z"],
-            },
-            "batched_separable_2D_1D_3D": {
-                "name": "Batched separable (2D->1D) convolution on 3D data",
-                "kernels": ["convol_1D_X", "convol_1D_Y", "convol_1D_Z"],
-            },
-        },
-        (3, 2): {
-            "separable_3D_2D_3D": {
-                "name": "Separable (3D->2D) convolution on 3D data",
-                "kernels": ["convol_2D_XY", "convol_2D_XZ", "convol_2D_YZ"],
-            },
-            "batched_2D_3D": {
-                "name": "Batched 2D convolution on 3D data",
-                "kernels": ["convol_2D_XY", "convol_2D_XZ", "convol_2D_YZ"],
-            },
-        },
-    }
-
+from .utils import ConvolutionInfos
 
 class Convolution(OpenclProcessing):
     """
@@ -321,11 +236,9 @@ class Convolution(OpenclProcessing):
                 str("-DIMAGE_DIMS=%d" % self.data_ndim),
                 str("-DFILTER_DIMS=%d" % self.kernel_ndim),
             ])
-            data_in_ref = self.data_in_tex
             d_kernel_ref = self.d_kernel_tex
         else:
             kernel_files = ["convolution.cl"]
-            data_in_ref = self.data_in.data
             d_kernel_ref = self.d_kernel.data
         self.compile_kernels(
             kernel_files=kernel_files,
@@ -336,8 +249,8 @@ class Convolution(OpenclProcessing):
         kernel_args = [
             self.queue,
             self.ndrange, self.wg,
-            data_in_ref,
-            self.data_out.data,
+            None,
+            None,
             d_kernel_ref,
             np.int32(self.kernel.shape[0]),
             self.Nx, self.Ny, self.Nz
@@ -528,29 +441,3 @@ class Convolution(OpenclProcessing):
     __call__ = convolve
 
 
-def gaussian_kernel(sigma, cutoff=4, force_odd_size=False):
-    """
-    Generates a Gaussian convolution kernel.
-
-    :param sigma: Standard Deviation of the Gaussian curve.
-    :param cutoff: Parameter tuning the truncation of the Gaussian.
-        The higher cutoff, the biggest the array will be (and the closest to
-        a "true" Gaussian function).
-    :param force_odd_size: when set to True, the resulting array will always
-        have an odd size, regardless of the values of "sigma" and "cutoff".
-    :return: a numpy.ndarray containing the truncated Gaussian function.
-        The array size is 2*c*s+1 where c=cutoff, s=sigma.
-
-    Nota: due to the quick decay of the Gaussian function, small values of the
-        "cutoff" parameter are usually fine. The energy difference between a
-        Gaussian truncated to [-c, c] and a "true" one is
-            erfc(c/(sqrt(2)*s))
-        so choosing cutoff=4*sigma keeps the truncation error below 1e-4.
-    """
-    size = int(ceil(2 * cutoff * sigma + 1))
-    if force_odd_size and size % 2 == 0:
-        size += 1
-    x = np.arange(size) - (size - 1.0) / 2.0
-    g = np.exp(-(x / sigma) ** 2 / 2.0)
-    g /= g.sum()
-    return g

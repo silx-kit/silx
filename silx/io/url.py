@@ -107,6 +107,8 @@ class DataUrl(object):
             self.__check_validity()
 
     def __eq__(self, other):
+        if not isinstance(other, DataUrl):
+            return False
         if self.is_valid() != other.is_valid():
             return False
         if self.is_valid():

@@ -101,6 +101,10 @@ class TestConversionTypes(testutils.ParametricTestCase):
         dtype = number.min_numerical_convertible_type("1.50")
         self.assertEqual(dtype, numpy.float16)
 
+    def testFloat32(self):
+        dtype = number.min_numerical_convertible_type("-23.172")
+        self.assertEqual(dtype, numpy.float32)
+
     def testMantissa32(self):
         dtype = number.min_numerical_convertible_type("1400.50")
         self.assertEqual(dtype, numpy.float32)

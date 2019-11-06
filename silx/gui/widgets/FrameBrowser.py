@@ -95,7 +95,7 @@ class FrameBrowser(qt.QWidget):
         else:
             first, last = 0, n
 
-        self._lineEdit.setFixedWidth(self._lineEdit.fontMetrics().width('%05d' % last))
+        self._lineEdit.setFixedWidth(self._lineEdit.fontMetrics().boundingRect('%05d' % last).width())
         validator = qt.QIntValidator(first, last, self._lineEdit)
         self._lineEdit.setValidator(validator)
         self._lineEdit.setText("%d" % first)

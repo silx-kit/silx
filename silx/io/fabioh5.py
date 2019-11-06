@@ -614,12 +614,21 @@ class FabioReader(object):
         converted = []
         types = set([])
         has_none = False
+        is_array = False
+        array = []
+
         for v in values:
             if v is None:
                 converted.append(None)
                 has_none = True
+                array.append(None)
             else:
                 c = self._convert_value(v)
+                if c.shape != tuple():
+                    array.append(v.split(" "))
+                    is_array = True
+                else:
+                    array.append(v)
                 converted.append(c)
                 types.add(c.dtype)
 
@@ -661,7 +670,15 @@ class FabioReader(object):
                 if r is not None:
                     continue
                 result[index] = none_value
+                values[index] = none_value
+                array[index] = none_value
 
+        if result_type.kind in "uifd" and len(types) > 1 and len(values) > 1:
+            # Catch numerical precision
+            if is_array and len(array) > 1:
+                return numpy.array(array, dtype=result_type)
+            else:
+                return numpy.array(values, dtype=result_type)
         return numpy.array(result, dtype=result_type)
 
     def _convert_value(self, value):
@@ -732,7 +749,10 @@ class FabioReader(object):
                 # use the raw data to create the result
                 return numpy.unicode_(value)
             else:
-                return numpy.array(numpy_values, dtype=result_type)
+                if len(types) == 1:
+                    return numpy.array(numpy_values, dtype=result_type)
+                else:
+                    return numpy.array(values, dtype=result_type)
         except ValueError:
             return numpy.string_(value)
 

@@ -142,7 +142,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                     selectable=self.isSelectable(),
                                     fill=False,
                                     alpha=self.getAlpha(),
-                                    symbolsize=self.getSymbolSize())
+                                    symbolsize=self.getSymbolSize(),
+                                    baseline=None)
 
         else:  # 'solid'
             plot = self.getPlot()

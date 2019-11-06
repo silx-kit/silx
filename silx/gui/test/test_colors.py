@@ -39,27 +39,38 @@ from silx.gui.colors import Colormap
 from silx.utils.exceptions import NotEditableError
 
 
-class TestRGBA(ParametricTestCase):
+class TestColor(ParametricTestCase):
     """Basic tests of rgba function"""
+
+    TEST_COLORS = {  # name: (colors, expected values)
+        'blue': ('blue', (0., 0., 1., 1.)),
+        '#010203': ('#010203', (1. / 255., 2. / 255., 3. / 255., 1.)),
+        '#01020304': ('#01020304', (1. / 255., 2. / 255., 3. / 255., 4. / 255.)),
+        '3 x uint8': (numpy.array((1, 255, 0), dtype=numpy.uint8),
+                      (1 / 255., 1., 0., 1.)),
+        '4 x uint8': (numpy.array((1, 255, 0, 1), dtype=numpy.uint8),
+                      (1 / 255., 1., 0., 1 / 255.)),
+        '3 x float overflow': ((3., 0.5, 1.), (1., 0.5, 1., 1.)),
+    }
 
     def testRGBA(self):
         """"Test rgba function with accepted values"""
-        tests = {  # name: (colors, expected values)
-            'blue': ('blue', (0., 0., 1., 1.)),
-            '#010203': ('#010203', (1. / 255., 2. / 255., 3. / 255., 1.)),
-            '#01020304': ('#01020304', (1. / 255., 2. / 255., 3. / 255., 4. / 255.)),
-            '3 x uint8': (numpy.array((1, 255, 0), dtype=numpy.uint8),
-                          (1 / 255., 1., 0., 1.)),
-            '4 x uint8': (numpy.array((1, 255, 0, 1), dtype=numpy.uint8),
-                          (1 / 255., 1., 0., 1 / 255.)),
-            '3 x float overflow': ((3., 0.5, 1.), (1., 0.5, 1., 1.)),
-        }
-
-        for name, test in tests.items():
+        for name, test in self.TEST_COLORS.items():
             color, expected = test
             with self.subTest(msg=name):
                 result = colors.rgba(color)
                 self.assertEqual(result, expected)
+
+    def testQColor(self):
+        """"Test getQColor function with accepted values"""
+        for name, test in self.TEST_COLORS.items():
+            color, expected = test
+            with self.subTest(msg=name):
+                result = colors.asQColor(color)
+                self.assertAlmostEqual(result.redF(), expected[0], places=4)
+                self.assertAlmostEqual(result.greenF(), expected[1], places=4)
+                self.assertAlmostEqual(result.blueF(), expected[2], places=4)
+                self.assertAlmostEqual(result.alphaF(), expected[3], places=4)
 
 
 class TestApplyColormapToData(ParametricTestCase):
@@ -477,7 +488,7 @@ def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTests(TestApplyColormapToData))
-    test_suite.addTest(loadTests(TestRGBA))
+    test_suite.addTest(loadTests(TestColor))
     test_suite.addTest(loadTests(TestDictAPI))
     test_suite.addTest(loadTests(TestObjectAPI))
     test_suite.addTest(loadTests(TestPreferredColormaps))
