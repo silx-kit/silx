@@ -137,6 +137,9 @@ class ItemChangedType(enum.Enum):
     COMPLEX_MODE = 'complexModeChanged'
     """Item's complex data visualization mode changed flag."""
 
+    NAME = 'nameChanged'
+    """Item's name changed flag."""
+
 
 class Item(qt.QObject):
     """Description of an item of the plot"""
