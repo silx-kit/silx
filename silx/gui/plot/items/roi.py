@@ -40,12 +40,37 @@ from ....utils.weakref import WeakList
 from ... import qt
 from .. import items
 from ...colors import rgba
+import silx.utils.deprecation
+from silx.utils.proxy import docstring
 
 
 logger = logging.getLogger(__name__)
 
 
-class RegionOfInterest(qt.QObject):
+class _RegionOfInterestBase(object):
+    """
+    Base class of 1D and 2D region of interest
+    """
+    def __init__(self, name):
+        self.__name = name
+
+    def getName(self):
+        """
+
+        :return: name of the region of interest
+        :rtype: str
+        """
+        return self.__name
+
+    def setName(self, name):
+        """
+
+        :param str name: name of the region of interest
+        """
+        self.__name = name
+
+
+class RegionOfInterest(_RegionOfInterestBase, qt.QObject):
     """Object describing a region of interest in a plot.
 
     :param QObject parent:
@@ -55,7 +80,7 @@ class RegionOfInterest(qt.QObject):
     _kind = None
     """Label for this kind of ROI.
 
-    Should be setted by inherited classes to custom the ROI manager widget.
+    Should be set by inherited classes to custom the ROI manager widget.
     """
 
     sigRegionChanged = qt.Signal()
@@ -66,11 +91,11 @@ class RegionOfInterest(qt.QObject):
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         qt.QObject.__init__(self, parent)
+        _RegionOfInterestBase.__init__(self, '')
         self._color = rgba('red')
         self._items = WeakList()
         self._editAnchors = WeakList()
         self._points = None
-        self._label = ''
         self._labelItem = None
         self._editable = False
         self._visible = True
@@ -140,22 +165,32 @@ class RegionOfInterest(qt.QObject):
                 if isinstance(item, items.ColorMixIn):
                     item.setColor(rgbaColor)
 
+    @silx.utils.deprecation.deprecated(reason='API modification',
+                                       replacement='getName()',
+                                       since_version=0.12)
     def getLabel(self):
         """Returns the label displayed for this ROI.
 
         :rtype: str
         """
-        return self._label
+        return self.getName()
 
+    @silx.utils.deprecation.deprecated(reason='API modification',
+                                       replacement='setName(name)',
+                                       since_version=0.12)
     def setLabel(self, label):
         """Set the label displayed with this ROI.
 
         :param str label: The text label to display
         """
-        label = str(label)
-        if label != self._label:
-            self._label = label
-            self._updateLabelItem(label)
+        self.setName(name=label)
+
+    @docstring(_RegionOfInterestBase)
+    def setName(self, name):
+        name = str(name)
+        if name != self.getName():
+            _RegionOfInterestBase.setName(self, name)
+            self._updateLabelItem(name)
 
     def isEditable(self):
         """Returns whether the ROI is editable by the user or not.
@@ -371,7 +406,7 @@ class RegionOfInterest(qt.QObject):
         markerPos = self._getLabelPosition()
         marker = items.Marker()
         marker.setPosition(*markerPos)
-        marker.setText(self.getLabel())
+        marker.setText(self.getName())
         marker.setColor(rgba(self.getColor()))
         marker.setSymbol('')
         marker._setDraggable(False)
@@ -512,7 +547,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def _createShapeItems(self, points):
         marker = items.Marker()
         marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
+        marker.setText(self.getName())
         marker.setSymbol(self.getSymbol())
         marker.setSymbolSize(self.getSymbolSize())
         marker.setColor(rgba(self.getColor()))
@@ -696,7 +731,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     def _createShapeItems(self, points):
         marker = items.YMarker()
         marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
+        marker.setText(self.getName())
         marker.setColor(rgba(self.getColor()))
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
@@ -766,7 +801,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     def _createShapeItems(self, points):
         marker = items.XMarker()
         marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getLabel())
+        marker.setText(self.getName())
         marker.setColor(rgba(self.getColor()))
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())

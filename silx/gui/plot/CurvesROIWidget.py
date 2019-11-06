@@ -42,11 +42,14 @@ import numpy
 from silx.io import dictdump
 from silx.utils import deprecation
 from silx.utils.weakref import WeakMethodProxy
+from silx.utils.proxy import docstring
 from .. import icons, qt
 from silx.gui.plot.items.curve import Curve
 from silx.math.combo import min_max
+from .items.roi import _RegionOfInterestBase
 import weakref
 from silx.gui.widgets.TableWidget import TableWidget
+from .items.roi import _RegionOfInterestBase
 
 
 _logger = logging.getLogger(__name__)
@@ -1045,7 +1048,7 @@ class ROITable(TableWidget):
 _indexNextROI = 0
 
 
-class ROI(qt.QObject):
+class ROI(_RegionOfInterestBase, qt.QObject):
     """The Region Of Interest is defined by:
 
     - A name
@@ -1065,12 +1068,11 @@ class ROI(qt.QObject):
 
     def __init__(self, name, fromdata=None, todata=None, type_=None):
         qt.QObject.__init__(self)
-        assert type(name) is str
+        _RegionOfInterestBase.__init__(self, name=name)
         global _indexNextROI
         self._id = _indexNextROI
         _indexNextROI += 1
 
-        self._name = name
         self._fromdata = fromdata
         self._todata = todata
         self._type = type_ or 'Default'
@@ -1098,22 +1100,16 @@ class ROI(qt.QObject):
         """
         return self._type
 
+    @docstring(_RegionOfInterestBase)
     def setName(self, name):
         """
         Set the name of the :class:`ROI`
 
         :param str name:
         """
-        if self._name != name:
-            self._name = name
+        if self.getName() != name:
+            _RegionOfInterestBase.setName(self, name)
             self.sigChanged.emit()
-
-    def getName(self):
-        """
-
-        :return str: name of the :class:`ROI`
-        """
-        return self._name
 
     def setFrom(self, frm):
         """
@@ -1161,7 +1157,7 @@ class ROI(qt.QObject):
         """
         ddict = {
             'type': self._type,
-            'name': self._name,
+            'name': self.getName(),
             'from': self._fromdata,
             'to': self._todata,
         }
@@ -1191,7 +1187,7 @@ class ROI(qt.QObject):
 
         :return: True if the ROI is the `ICR`
         """
-        return self._name == 'ICR'
+        return self.getName() == 'ICR'
 
     def computeRawAndNetCounts(self, curve):
         """Compute the Raw and net counts in the ROI for the given curve.

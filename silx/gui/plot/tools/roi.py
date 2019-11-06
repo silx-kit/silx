@@ -271,7 +271,7 @@ class RegionOfInterestManager(qt.QObject):
            number of ROIs has been reached.
         """
         roi = roiClass(parent=None)
-        roi.setLabel(str(label))
+        roi.setName(str(label))
         roi.setFirstShapePoints(points)
 
         self.addRoi(roi, index)
@@ -824,7 +824,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
         if column == 0:
             roi.setVisible(item.checkState() == qt.Qt.Checked)
-            roi.setLabel(item.text())
+            roi.setName(item.text())
         elif column == 1:
             roi.setEditable(
                 item.checkState() == qt.Qt.Checked)
@@ -891,7 +891,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             baseFlags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
 
             # Label and visible
-            label = roi.getLabel()
+            label = roi.getName()
             item = qt.QTableWidgetItem(label)
             item.setFlags(baseFlags | qt.Qt.ItemIsEditable | qt.Qt.ItemIsUserCheckable)
             item.setData(qt.Qt.UserRole, index)
