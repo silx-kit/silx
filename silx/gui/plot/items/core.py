@@ -492,6 +492,17 @@ class SymbolMixIn(ItemMixInBase):
         ('x', 'Cross'),
         ('.', 'Point'),
         (',', 'Pixel'),
+        ('|', 'Vertical line'),
+        ('_', 'Horizontal line'),
+        ('tickleft', 'Tick left'),
+        ('tickright', 'Tick right'),
+        ('tickup', 'Tick up'),
+        ('tickdown', 'Tick down'),
+        ('caretleft', 'Caret left'),
+        ('caretright', 'Caret right'),
+        ('caretup', 'Caret up'),
+        ('caretdown', 'Caret down'),
+        (u'\u2665', 'Heart'),
         ('', 'None')))
     """Dict of supported symbols"""
 

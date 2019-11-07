@@ -528,7 +528,16 @@ def distancesFromArrays(xData, yData):
 DIAMOND, CIRCLE, SQUARE, PLUS, X_MARKER, POINT, PIXEL, ASTERISK = \
     'd', 'o', 's', '+', 'x', '.', ',', '*'
 
-H_LINE, V_LINE = '_', '|'
+H_LINE, V_LINE, HEART = '_', '|', u'\u2665'
+
+TICK_LEFT = "tickleft"
+TICK_RIGHT = "tickright"
+TICK_UP = "tickup"
+TICK_DOWN = "tickdown"
+CARET_LEFT = "caretleft"
+CARET_RIGHT = "caretright"
+CARET_UP = "caretup"
+CARET_DOWN = "caretdown"
 
 
 class _Points2D(object):
@@ -544,7 +553,8 @@ class _Points2D(object):
     """
 
     MARKERS = (DIAMOND, CIRCLE, SQUARE, PLUS, X_MARKER, POINT, PIXEL, ASTERISK,
-               H_LINE, V_LINE)
+               H_LINE, V_LINE, HEART, TICK_LEFT, TICK_RIGHT, TICK_UP, TICK_DOWN,
+               CARET_LEFT, CARET_RIGHT, CARET_UP, CARET_DOWN)
     """List of supported markers"""
 
     _VERTEX_SHADER = """
@@ -642,7 +652,110 @@ class _Points2D(object):
                 return 0.0;
             }
         }
-        """
+        """,
+            HEART: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord = (coord - 0.5) * 2.;
+            coord *= 0.75;
+            coord.y += 0.25;
+            float a = atan(coord.x,-coord.y)/3.141593;
+            float r = length(coord);
+            float h = abs(a);
+            float d = (13.0*h - 22.0*h*h + 10.0*h*h*h)/(6.0-5.0*h);
+            float res = clamp(r-d, 0., 1.);
+            // antialiasing
+            res = smoothstep(0.1, 0.001, res);
+            return res;
+        }
+        """,
+            TICK_LEFT: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float dy = abs(coord.y);
+            if (dy < 0.5 && coord.x < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            TICK_RIGHT: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float dy = abs(coord.y);
+            if (dy < 0.5 && coord.x > -0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            TICK_UP: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float dx = abs(coord.x);
+            if (dx < 0.5 && coord.y < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            TICK_DOWN: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float dx = abs(coord.x);
+            if (dx < 0.5 && coord.y > -0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            CARET_LEFT: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float d = abs(coord.x) - abs(coord.y);
+            if (d >= -0.1 && coord.x > 0.5) {
+                return smoothstep(-0.1, 0.1, d);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            CARET_RIGHT: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float d = abs(coord.x) - abs(coord.y);
+            if (d >= -0.1 && coord.x < 0.5) {
+                return smoothstep(-0.1, 0.1, d);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            CARET_UP: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float d = abs(coord.y) - abs(coord.x);
+            if (d >= -0.1 && coord.y > 0.5) {
+                return smoothstep(-0.1, 0.1, d);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            CARET_DOWN: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float d = abs(coord.y) - abs(coord.x);
+            if (d >= -0.1 && coord.y < 0.5) {
+                return smoothstep(-0.1, 0.1, d);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
     }
 
     _FRAGMENT_SHADER_TEMPLATE = """

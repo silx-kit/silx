@@ -56,6 +56,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, ScalarFormatter, Locator
 from matplotlib.tri import Triangulation
 from matplotlib.collections import TriMesh
+from matplotlib import path as mpath
 
 from . import BackendBase
 from .. import items
@@ -72,11 +73,54 @@ _PATCH_LINESTYLE = {
 }
 """Patches do not uses the same matplotlib syntax"""
 
+_MARKER_PATHS = {}
+"""Store cached extra marker paths"""
+
+_SPECIAL_MARKERS = {
+    'tickleft': 0,
+    'tickright': 1,
+    'tickup': 2,
+    'tickdown': 3,
+    'caretleft': 4,
+    'caretright': 5,
+    'caretup': 6,
+    'caretdown': 7,
+}
+
 
 def normalize_linestyle(linestyle):
     """Normalize known old-style linestyle, else return the provided value."""
     return _PATCH_LINESTYLE.get(linestyle, linestyle)
 
+def get_path_from_symbol(symbol):
+    """Get the path representation of a symbol, else None if
+    it is not provided.
+
+    :param str symbol: Symbol description used by silx
+    :rtype: Union[None,matplotlib.path.Path]
+    """
+    if symbol == u'\u2665':
+        path = _MARKER_PATHS.get(symbol, None)
+        if path is not None:
+            return path
+        vertices = numpy.array([
+            [0,-99],
+            [31,-73], [47,-55], [55,-46],
+            [63,-37], [94,-2], [94,33],
+            [94,69], [71,89], [47,89],
+            [24,89], [8,74], [0,58],
+            [-8,74], [-24,89], [-47,89],
+            [-71,89], [-94,69], [-94,33],
+            [-94,-2], [-63,-37], [-55,-46],
+            [-47,-55], [-31,-73], [0,-99],
+            [0,-99]])
+        codes = [mpath.Path.CURVE4] * len(vertices)
+        codes[0] = mpath.Path.MOVETO
+        codes[-1] = mpath.Path.CLOSEPOLY
+        path = mpath.Path(vertices, codes)
+        _MARKER_PATHS[symbol] = path
+        return path
+    return None
 
 class NiceDateLocator(Locator):
     """
@@ -386,6 +430,21 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Add methods
 
+    def _getMarkerFromSymbol(self, symbol):
+        """Returns a marker that can be displayed by matplotlib.
+
+        :param str symbol: A symbol description used by silx
+        :rtype: Union[str,int,matplotlib.path.Path]
+        """
+        path = get_path_from_symbol(symbol)
+        if path is not None:
+            return path
+        num = _SPECIAL_MARKERS.get(symbol, None)
+        if num is not None:
+            return num
+        # This symbol must be supported by matplotlib
+        return symbol
+
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
@@ -448,9 +507,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                       marker=None)
                 artists += list(curveList)
 
+            marker = self._getMarkerFromSymbol(symbol)
             scatter = axes.scatter(x, y,
                                    color=actualColor,
-                                   marker=symbol,
+                                   marker=marker,
                                    picker=picker,
                                    s=symbolsize**2)
             artists.append(scatter)
@@ -661,11 +721,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             assert(False)
 
+        marker = self._getMarkerFromSymbol(symbol)
         if x is not None and y is not None:
             line = ax.plot(x, y,
                            linestyle=" ",
                            color=color,
-                           marker=symbol,
+                           marker=marker,
                            markersize=10.)[-1]
 
             if text is not None:
