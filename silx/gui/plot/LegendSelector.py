@@ -38,63 +38,14 @@ import weakref
 import numpy
 
 from .. import qt, colors
+from ..widgets.LegendIconWidget import LegendIconWidget
 from . import items
 
 
 _logger = logging.getLogger(__name__)
 
-# Build all symbols
-# Courtesy of the pyqtgraph project
-Symbols = dict([(name, qt.QPainterPath())
-                for name in ['o', 's', 't', 'd', '+', 'x', '.', ',']])
-Symbols['o'].addEllipse(qt.QRectF(.1, .1, .8, .8))
-Symbols['.'].addEllipse(qt.QRectF(.3, .3, .4, .4))
-Symbols[','].addEllipse(qt.QRectF(.4, .4, .2, .2))
-Symbols['s'].addRect(qt.QRectF(.1, .1, .8, .8))
 
-coords = {
-    't': [(0.5, 0.), (.1, .8), (.9, .8)],
-    'd': [(0.1, 0.5), (0.5, 0.), (0.9, 0.5), (0.5, 1.)],
-    '+': [(0.0, 0.40), (0.40, 0.40), (0.40, 0.), (0.60, 0.),
-          (0.60, 0.40), (1., 0.40), (1., 0.60), (0.60, 0.60),
-          (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)],
-    'x': [(0.0, 0.40), (0.40, 0.40), (0.40, 0.), (0.60, 0.),
-          (0.60, 0.40), (1., 0.40), (1., 0.60), (0.60, 0.60),
-          (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)]
-}
-for s, c in coords.items():
-    Symbols[s].moveTo(*c[0])
-    for x, y in c[1:]:
-        Symbols[s].lineTo(x, y)
-    Symbols[s].closeSubpath()
-tr = qt.QTransform()
-tr.rotate(45)
-Symbols['x'].translate(qt.QPointF(-0.5, -0.5))
-Symbols['x'] = tr.map(Symbols['x'])
-Symbols['x'].translate(qt.QPointF(0.5, 0.5))
-
-NoSymbols = (None, 'None', 'none', '', ' ')
-"""List of values resulting in no symbol being displayed for a curve"""
-
-
-LineStyles = {
-    None: qt.Qt.NoPen,
-    'None': qt.Qt.NoPen,
-    'none': qt.Qt.NoPen,
-    '': qt.Qt.NoPen,
-    ' ': qt.Qt.NoPen,
-    '-': qt.Qt.SolidLine,
-    '--': qt.Qt.DashLine,
-    ':': qt.Qt.DotLine,
-    '-.': qt.Qt.DashDotLine
-}
-"""Conversion from matplotlib-like linestyle to Qt"""
-
-NoLineStyle = (None, 'None', 'none', '', ' ')
-"""List of style values resulting in no line being displayed for a curve"""
-
-
-class LegendIcon(qt.QWidget):
+class LegendIcon(LegendIconWidget):
     """Object displaying a curve linestyle and symbol.
 
     :param QWidget parent: See :class:`QWidget`
@@ -105,34 +56,7 @@ class LegendIcon(qt.QWidget):
     def __init__(self, parent=None, curve=None):
         super(LegendIcon, self).__init__(parent)
         self._curveRef = None
-
-        # Visibilities
-        self.showLine = True
-        self.showSymbol = True
-
-        # Line attributes
-        self.lineStyle = qt.Qt.NoPen
-        self.lineWidth = 1.
-        self.lineColor = qt.Qt.green
-
-        self.symbol = ''
-        # Symbol attributes
-        self.symbolStyle = qt.Qt.SolidPattern
-        self.symbolColor = qt.Qt.green
-        self.symbolOutlineBrush = qt.QBrush(qt.Qt.white)
-
-        # Control widget size: sizeHint "is the only acceptable
-        # alternative, so the widget can never grow or shrink"
-        # (c.f. Qt Doc, enum QSizePolicy::Policy)
-        self.setSizePolicy(qt.QSizePolicy.Fixed,
-                           qt.QSizePolicy.Fixed)
-
         self.setCurve(curve)
-
-    def sizeHint(self):
-        return qt.QSize(50, 15)
-
-    # Synchronize with a curve
 
     def getCurve(self):
         """Returns curve associated to this widget
@@ -205,125 +129,6 @@ class LegendIcon(qt.QWidget):
                      items.ItemChangedType.HIGHLIGHTED,
                      items.ItemChangedType.HIGHLIGHTED_STYLE):
             self._update()
-
-    # Modify Symbol
-    def setSymbol(self, symbol):
-        symbol = str(symbol)
-        if symbol not in NoSymbols:
-            if symbol not in Symbols:
-                raise ValueError("Unknown symbol: <%s>" % symbol)
-        self.symbol = symbol
-        # self.update() after set...?
-        # Does not seem necessary
-
-    def setSymbolColor(self, color):
-        """
-        :param color: determines the symbol color
-        :type style: qt.QColor
-        """
-        self.symbolColor = qt.QColor(color)
-
-    # Modify Line
-
-    def setLineColor(self, color):
-        self.lineColor = qt.QColor(color)
-
-    def setLineWidth(self, width):
-        self.lineWidth = float(width)
-
-    def setLineStyle(self, style):
-        """Set the linestyle.
-
-        Possible line styles:
-
-        - '', ' ', 'None': No line
-        - '-': solid
-        - '--': dashed
-        - ':': dotted
-        - '-.': dash and dot
-
-        :param str style: The linestyle to use
-        """
-        if style not in LineStyles:
-            raise ValueError('Unknown style: %s', style)
-        self.lineStyle = LineStyles[style]
-
-    # Paint
-
-    def paintEvent(self, event):
-        """
-        :param event: event
-        :type event: QPaintEvent
-        """
-        painter = qt.QPainter(self)
-        self.paint(painter, event.rect(), self.palette())
-
-    def paint(self, painter, rect, palette):
-        painter.save()
-        painter.setRenderHint(qt.QPainter.Antialiasing)
-        # Scale painter to the icon height
-        # current -> width = 2.5, height = 1.0
-        scale = float(self.height())
-        ratio = float(self.width()) / scale
-        painter.scale(scale,
-                      scale)
-        symbolOffset = qt.QPointF(.5 * (ratio - 1.), 0.)
-        # Determine and scale offset
-        offset = qt.QPointF(float(rect.left()) / scale, float(rect.top()) / scale)
-
-        # Override color when disabled
-        if self.isEnabled():
-            overrideColor = None
-        else:
-            overrideColor = palette.color(qt.QPalette.Disabled,
-                                          qt.QPalette.WindowText)
-
-        # Draw BG rectangle (for debugging)
-        # bottomRight = qt.QPointF(
-        #    float(rect.right())/scale,
-        #    float(rect.bottom())/scale)
-        # painter.fillRect(qt.QRectF(offset, bottomRight),
-        #                 qt.QBrush(qt.Qt.green))
-        llist = []
-        if self.showLine:
-            linePath = qt.QPainterPath()
-            linePath.moveTo(0., 0.5)
-            linePath.lineTo(ratio, 0.5)
-            # linePath.lineTo(2.5, 0.5)
-            lineBrush = qt.QBrush(
-                self.lineColor if overrideColor is None else overrideColor)
-            linePen = qt.QPen(
-                lineBrush,
-                (self.lineWidth / self.height()),
-                self.lineStyle,
-                qt.Qt.FlatCap
-            )
-            llist.append((linePath, linePen, lineBrush))
-        if (self.showSymbol and len(self.symbol) and
-                self.symbol not in NoSymbols):
-            # PITFALL ahead: Let this be a warning to others
-            # symbolPath = Symbols[self.symbol]
-            # Copy before translate! Dict is a mutable type
-            symbolPath = qt.QPainterPath(Symbols[self.symbol])
-            symbolPath.translate(symbolOffset)
-            symbolBrush = qt.QBrush(
-                self.symbolColor if overrideColor is None else overrideColor,
-                self.symbolStyle)
-            symbolPen = qt.QPen(
-                self.symbolOutlineBrush,  # Brush
-                1. / self.height(),       # Width
-                qt.Qt.SolidLine           # Style
-            )
-            llist.append((symbolPath,
-                          symbolPen,
-                          symbolBrush))
-        # Draw
-        for path, pen, brush in llist:
-            path.translate(offset)
-            painter.setPen(pen)
-            painter.setBrush(brush)
-            painter.drawPath(path)
-        painter.restore()
 
 
 class LegendModel(qt.QAbstractListModel):
@@ -476,7 +281,7 @@ class LegendModel(qt.QAbstractListModel):
         new = []
         for (legend, icon) in llist:
             linestyle = icon.get('linestyle', None)
-            if linestyle in NoLineStyle:
+            if LegendIconWidget.isEmptyLineStyle(linestyle):
                 # Curve had no line, give it one and hide it
                 # So when toggle line, it will display a solid line
                 showLine = False
@@ -485,7 +290,7 @@ class LegendModel(qt.QAbstractListModel):
                 showLine = True
 
             symbol = icon.get('symbol', None)
-            if symbol in NoSymbols:
+            if LegendIconWidget.isEmptySymbol(symbol):
                 # Curve had no symbol, give it one and hide it
                 # So when toggle symbol, it will display 'o'
                 showSymbol = False
@@ -959,7 +764,7 @@ class LegendListContextMenu(qt.QMenu):
         }
         flag = modelIndex.data(LegendModel.showSymbolRole)
         symbol = modelIndex.data(LegendModel.iconSymbolRole)
-        visible = not flag or symbol in NoSymbols
+        visible = not flag or LegendIconWidget.isEmptySymbol(symbol)
         _logger.debug(
             'togglePointsAction -- Symbols visible: %s', str(visible))
 
