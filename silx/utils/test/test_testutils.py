@@ -59,6 +59,13 @@ class TestTestLogging(unittest.TestCase):
                 logger.error("expected")
                 logger.error("not expected")
 
+    def testManyErrors(self):
+        logger = logging.getLogger(__name__ + "testManyErrors")
+        listener = testutils.TestLogging(logger, error=1, warning=2)
+        with self.assertRaises(RuntimeError):
+            with listener:
+                pass
+
 
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
