@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,50 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
+"""Tests for testutils module"""
+
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/03/2019"
+__date__ = "18/11/2019"
 
 
 import unittest
-from . import test_weakref
-from . import test_html
-from . import test_array_like
-from . import test_launcher
-from . import test_deprecation
-from . import test_proxy
-from . import test_debug
-from . import test_number
-from . import test_external_resources
-from . import test_enum
-from . import test_testutils
+import logging
+from .. import testutils
+
+
+class TestTestLogging(unittest.TestCase):
+    """Tests for TestLogging."""
+
+    def testRight(self):
+        logger = logging.getLogger(__name__ + "testRight")
+        listener = testutils.TestLogging(logger, error=1)
+        with listener:
+            logger.error("expected")
+            logger.info("ignored")
+
+    def testCustomLevel(self):
+        logger = logging.getLogger(__name__ + "testCustomLevel")
+        listener = testutils.TestLogging(logger, error=1)
+        with listener:
+            logger.error("expected")
+            logger.log(666, "custom level have to be ignored")
+
+    def testWrong(self):
+        logger = logging.getLogger(__name__ + "testWrong")
+        listener = testutils.TestLogging(logger, error=1)
+        with self.assertRaises(RuntimeError):
+            with listener:
+                logger.error("expected")
+                logger.error("not expected")
 
 
 def suite():
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_weakref.suite())
-    test_suite.addTest(test_html.suite())
-    test_suite.addTest(test_array_like.suite())
-    test_suite.addTest(test_launcher.suite())
-    test_suite.addTest(test_deprecation.suite())
-    test_suite.addTest(test_proxy.suite())
-    test_suite.addTest(test_debug.suite())
-    test_suite.addTest(test_number.suite())
-    test_suite.addTest(test_external_resources.suite())
-    test_suite.addTest(test_enum.suite())
-    test_suite.addTest(test_testutils.suite())
+    test_suite.addTest(loadTests(TestTestLogging))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
