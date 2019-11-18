@@ -165,6 +165,7 @@ class TestLogging(logging.Handler):
         self.logger.setLevel(logging.DEBUG)
         self.entry_disabled = self.logger.disabled
         self.logger.disabled = False
+        return self
 
     def can_be_checked(self):
         """Returns True if this listener have received enough messages to

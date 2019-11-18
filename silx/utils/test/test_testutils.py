@@ -78,6 +78,12 @@ class TestTestLogging(unittest.TestCase):
                 # Here we know that it's already wrong without a big cost
                 self.assertTrue(listener.can_be_checked())
 
+    def testWithAs(self):
+        logger = logging.getLogger(__name__ + "testCanBreak")
+        with testutils.TestLogging(logger) as listener:
+            logger.error("aaa")
+            self.assertIsNotNone(listener)
+
 
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
