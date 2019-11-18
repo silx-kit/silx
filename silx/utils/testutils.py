@@ -150,6 +150,9 @@ class TestLogging(logging.Handler):
             logging.NOTSET: notset
         }
 
+        self._expected_count = sum([v for k, v in self.expected_count_by_level.items() if v is not None])
+        """Amount of any logging expected"""
+
         super(TestLogging, self).__init__()
 
     def __enter__(self):
@@ -162,6 +165,15 @@ class TestLogging(logging.Handler):
         self.logger.setLevel(logging.DEBUG)
         self.entry_disabled = self.logger.disabled
         self.logger.disabled = False
+
+    def can_be_checked(self):
+        """Returns True if this listener have received enough messages to
+        be valid, and then checked.
+
+        This can be useful for asynchronous wait of messages. It allows process
+        an early break, instead of waiting much time in an active loop.
+        """
+        return len(self.records) >= self._expected_count
 
     def get_count_by_level(self):
         """Returns the current message count by level.
