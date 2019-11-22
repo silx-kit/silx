@@ -209,15 +209,25 @@ class NiceAutoDateFormatter(Formatter):
 class _PickableContainer(Container):
     """Artists container with a :meth:`contains` method"""
 
+    def __init__(self, *args, **kwargs):
+        Container.__init__(self, *args, **kwargs)
+        self.__zorder = None
+
     def draw(self, *args, **kwargs):
         """artist-like draw to broadcast draw to children"""
         for child in self.get_children():
             child.draw(*args, **kwargs)
 
+    def get_zorder(self):
+        """Mimic Artist.get_zorder"""
+        return self.__zorder
+
     def set_zorder(self, z):
         """Mimic Artist.set_zorder to broadcast to children"""
-        for child in self.get_children():
-            child.set_zorder(z)
+        if z != self.__zorder:
+            self.__zorder = z
+            for child in self.get_children():
+                child.set_zorder(z)
 
     def contains(self, mouseevent):
         """Mimic Artist.contains, and call it on all children.
@@ -887,7 +897,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
             lambda item: item.isVisible() and item._backendRenderer is not None)
         count = len(items)
         for index, item in enumerate(items):
-            item._backendRenderer.set_zorder(1. + index / count)
+            zorder = 1. + index / count
+            if zorder != item._backendRenderer.get_zorder():
+                item._backendRenderer.set_zorder(zorder)
 
     def saveGraph(self, fileName, fileFormat, dpi):
         self.updateZOrder()
