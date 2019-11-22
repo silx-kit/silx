@@ -214,6 +214,11 @@ class _PickableContainer(Container):
         for child in self.get_children():
             child.draw(*args, **kwargs)
 
+    def set_zorder(self, z):
+        """Mimic Artist.set_zorder to broadcast to children"""
+        for child in self.get_children():
+            child.set_zorder(z)
+
     def contains(self, mouseevent):
         """Mimic Artist.contains, and call it on all children.
 
@@ -371,7 +376,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
         # Make sure background of Axes is displayed
-        self.ax2.patch.set_visible(True)
+        self.ax2.patch.set_visible(False)
+        self.ax.patch.set_visible(True)
 
         # Set axis zorder=0.5 so grid is displayed at 0.5
         self.ax.set_axisbelow(True)
@@ -386,10 +392,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             _logger.warning('Cannot disabled axes offsets in %s '
                             % matplotlib.__version__)
 
-        # critical for picking!!!!
-        self.ax2.set_zorder(0)
         self.ax2.set_autoscaley_on(True)
-        self.ax.set_zorder(1)
+
         # this works but the figure color is left
         if self._matplotlibVersion < _parse_version('2'):
             self.ax.set_axis_bgcolor('none')
@@ -542,8 +546,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     axes.fill_between(x, _baseline, y, facecolor=color))
 
         for artist in artists:
-            artist.set_animated(True)
-            artist.set_zorder(z + 1)
             if alpha < 1:
                 artist.set_alpha(alpha)
 
@@ -567,7 +569,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         image = Image(self.ax,
                       interpolation='nearest',
                       picker=picker,
-                      zorder=z + 1,
                       origin='lower')
 
         if alpha < 1:
@@ -597,7 +598,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             data = colormap.applyToData(data)
 
         image.set_data(data)
-        image.set_animated(True)
         self.ax.add_artist(image)
         return image
 
@@ -617,10 +617,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         collection = TriMesh(
             Triangulation(x, y, triangles),
             alpha=alpha,
-            picker=picker,
-            zorder=z + 1)
+            picker=picker)
         collection.set_color(color)
-        collection.set_animated(True)
         self.ax.add_collection(collection)
 
         return collection
@@ -701,8 +699,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             raise NotImplementedError("Unsupported item shape %s" % shape)
 
-        item.set_zorder(z + 1)
-        item.set_animated(True)
+        if overlay:
+            item.set_animated(True)
 
         return item
 
@@ -865,7 +863,35 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if not self.ax2.lines:
             self._enableAxis('right', False)
 
+    def _drawOverlays(self):
+        """Draw overlays if any."""
+        def condition(item):
+            return (item.isVisible() and
+                    item._backendRenderer is not None and
+                    item.isOverlay())
+
+        for item in self._plot._itemsFromBackToFront(condition=condition):
+            if (isinstance(item, items.YAxisMixIn) and
+                    item.getYAxis() == 'right'):
+                axes = self.ax2
+            else:
+                axes = self.ax
+            axes.draw_artist(item._backendRenderer)
+
+        for item in self._graphCursor:
+            self.ax.draw_artist(item)
+
+    def updateZOrder(self):
+        """Reorder all items with z order from 0 to 1"""
+        items = self._plot._itemsFromBackToFront(
+            lambda item: item.isVisible() and item._backendRenderer is not None)
+        count = len(items)
+        for index, item in enumerate(items):
+            item._backendRenderer.set_zorder(1. + index / count)
+
     def saveGraph(self, fileName, fileFormat, dpi):
+        self.updateZOrder()
+
         # fileName can be also a StringIO or file instance
         if dpi is not None:
             self.fig.savefig(fileName, format=fileFormat, dpi=dpi)
@@ -1111,12 +1137,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             dataBackgroundColor = backgroundColor
 
-        if self.ax2.axison:
+        if self.ax.axison:
             self.fig.patch.set_facecolor(backgroundColor)
             if self._matplotlibVersion < _parse_version('2'):
-                self.ax2.set_axis_bgcolor(dataBackgroundColor)
+                self.ax.set_axis_bgcolor(dataBackgroundColor)
             else:
-                self.ax2.set_facecolor(dataBackgroundColor)
+                self.ax.set_facecolor(dataBackgroundColor)
         else:
             self.fig.patch.set_facecolor(dataBackgroundColor)
 
@@ -1271,33 +1297,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # This is needed with matplotlib 1.5.x and 2.0.x
             self._plot._setDirtyPlot()
 
-    def __drawItems(self, overlay=False):
-        """Draw plot items in the figure.
-
-        :param bool overlay:
-            False (default) to draw all items but overlays,
-            True to draw only overlay items.
-        """
-        def condition(item):
-            return (item.isVisible() and
-                    item._backendRenderer is not None and
-                    item.isOverlay() == overlay)
-
-        for item in self._plot._itemsFromBackToFront(condition=condition):
-            if (isinstance(item, items.YAxisMixIn) and
-                    item.getYAxis() == 'right'):
-                axes = self.ax2
-            else:
-                axes = self.ax
-            axes.draw_artist(item._backendRenderer)
-
-    def _drawOverlays(self):
-        """Draw overlays if any."""
-        self.__drawItems(overlay=True)
-
-        for item in self._graphCursor:
-            self.ax.draw_artist(item)
-
     def draw(self):
         """Overload draw
 
@@ -1306,10 +1305,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         This is directly called by matplotlib for widget resize.
         """
-        # Hide axes borders to defer rendering
-        if self.ax.axison:
-            for spine in self.ax.spines.values():
-                spine.set_visible(False)
+        self.updateZOrder()
 
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
@@ -1322,8 +1318,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                     "'%s'", err)
         else:
             FigureCanvasQTAgg.draw(self)
-
-        self.__drawItems(overlay=False)
 
         if self._hasOverlays():
             # Save background
@@ -1348,15 +1342,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                 self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
         self._drawOverlays()
-
-        # Draw axes borders at last
-        if self.ax.axison:
-            for spine in self.ax.spines.values():
-                spine.set_visible(True)
-                self.ax.draw_artist(spine)
-            # Alternative: redraw what's inside the frame
-            # which ends-up to redraw the border as everything is "animated"
-            #self.ax.redraw_in_frame()
 
     def replot(self):
         BackendMatplotlib.replot(self)
