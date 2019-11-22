@@ -1186,6 +1186,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     line.set_color(gridColor)
                 # axes.grid().set_markeredgecolor(gridColor)
 
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
+        self._synchronizeBackgroundColors()
+
+    def setForegroundColors(self, foregroundColor, gridColor):
+        self._synchronizeForegroundColors()
+
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     """QWidget matplotlib backend using a QtAgg canvas.
@@ -1394,9 +1400,3 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         else:
             cursor = self._QT_CURSORS[cursor]
             FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))
-
-    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
-        self._synchronizeBackgroundColors()
-
-    def setForegroundColors(self, foregroundColor, gridColor):
-        self._synchronizeForegroundColors()
