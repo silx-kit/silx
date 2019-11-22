@@ -2933,28 +2933,6 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='marker', legend=legend)
 
-    def _itemsFromBackToFront(self, condition=None):
-        """Iterator of plot items ordered from back to front.
-
-        This is the order used for rendering.
-        It takes into account overlays, z value and order of addition of items
-
-        :param callable condition:
-           Callable taking an item as input and returning False for items to skip.
-           If None (default), no item is skipped.
-        :rtpye: List[Item]
-        """
-        # Sort items: Overlays first, then others
-        # and in each category ordered by z and then by order of addition
-        # as _content keeps this order.
-        content = self._content.values()
-        if condition is not None:
-            content = (item for item in content if condition(item))
-
-        return sorted(
-            content,
-            key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue()))
-
     def pickItems(self, x, y, condition=None):
         """Generator of picked items in the plot at given position.
 
@@ -2968,7 +2946,7 @@ class PlotWidget(qt.QMainWindow):
         :return: Iterable of :class:`PickingResult` objects at picked position.
             Items are ordered from front to back.
         """
-        for item in reversed(self._itemsFromBackToFront(condition=condition)):
+        for item in reversed(self._backend.getItemsFromBackToFront(condition=condition)):
             result = item.pick(x, y)
             if result is not None:
                 yield result

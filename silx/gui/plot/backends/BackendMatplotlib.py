@@ -420,6 +420,21 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._enableAxis('right', False)
         self._isXAxisTimeSeries = False
 
+    def getItemsFromBackToFront(self, condition=None):
+        """Order as BackendBase + take into account matplotlib Axes structure"""
+        def axesOrder(item):
+            if item.isOverlay():
+                return 2
+            elif isinstance(item, items.YAxisMixIn) and item.getYAxis() == 'right':
+                return 1
+            else:
+                return 0
+
+        return sorted(
+            BackendBase.BackendBase.getItemsFromBackToFront(
+                self, condition=condition),
+            key=axesOrder)
+
     def _overlayItems(self):
         """Generator of backend renderer for overlay items"""
         for item in self._plot.getItems():
@@ -880,7 +895,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     item._backendRenderer is not None and
                     item.isOverlay())
 
-        for item in self._plot._itemsFromBackToFront(condition=condition):
+        for item in self.getItemsFromBackToFront(condition=condition):
             if (isinstance(item, items.YAxisMixIn) and
                     item.getYAxis() == 'right'):
                 axes = self.ax2
@@ -893,7 +908,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def updateZOrder(self):
         """Reorder all items with z order from 0 to 1"""
-        items = self._plot._itemsFromBackToFront(
+        items = self.getItemsFromBackToFront(
             lambda item: item.isVisible() and item._backendRenderer is not None)
         count = len(items)
         for index, item in enumerate(items):

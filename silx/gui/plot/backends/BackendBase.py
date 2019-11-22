@@ -303,6 +303,29 @@ class BackendBase(object):
         """
         pass
 
+    def getItemsFromBackToFront(self, condition=None):
+        """Returns the list of plot items order as rendered by the backend.
+
+        This is the order used for rendering.
+        By default, it takes into account overlays, z value and order of addition of items,
+        but backends can override it.
+
+        :param callable condition:
+           Callable taking an item as input and returning False for items to skip.
+           If None (default), no item is skipped.
+        :rtype: List[~silx.gui.plot.items.Item]
+        """
+        # Sort items: Overlays first, then others
+        # and in each category ordered by z and then by order of addition
+        # as content keeps this order.
+        content = self._plot.getItems()
+        if condition is not None:
+            content = [item for item in content if condition(item)]
+
+        return sorted(
+            content,
+            key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue()))
+
     def pickItem(self, x, y, item):
         """Return picked indices if any, or None.
 

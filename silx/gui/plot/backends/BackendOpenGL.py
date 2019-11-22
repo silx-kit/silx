@@ -437,7 +437,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         labels = []
         pixelOffset = 3
 
-        for plotItem in self._plot._itemsFromBackToFront(
+        for plotItem in self.getItemsFromBackToFront(
                 condition=lambda i: i.isVisible() and i.isOverlay() == overlay):
             if plotItem._backendRenderer is None:
                 continue
