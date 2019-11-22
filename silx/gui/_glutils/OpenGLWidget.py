@@ -30,7 +30,7 @@ across Qt<=5.3 QtOpenGL.QGLWidget and QOpenGLWidget.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/07/2017"
+__date__ = "22/11/2019"
 
 
 import logging
@@ -193,6 +193,7 @@ else:
             # Check OpenGL version
             if self.getOpenGLVersion() >= self.getRequestedOpenGLVersion():
                 try:
+                    gl.glGetError()     # clear any previous error (if any)
                     version = gl.glGetString(gl.GL_VERSION)
                 except:
                     version = None
