@@ -69,6 +69,10 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
      - .. image:: img/fileDialog.png
          :width: 150px
      - Example for the use of the ImageFileDialog.
+   * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
+     - .. image:: img/colormapDialog.png
+         :width: 150px
+     - This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
 
 :mod:`silx.gui.widgets`
 .......................
@@ -125,10 +129,10 @@ Widgets
          :width: 150px
      - This script is a simple example to illustrate how to use the
        :mod:`~silx.gui.plot.StackView` widget.
-   * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
-     - .. image:: img/colormapDialog.png
+   * - :download:`scatterview.py <../../../examples/scatterview.py>`
+     - .. image:: img/scatterview.png
          :width: 150px
-     - This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
+     - Example to show the use of :class:`~silx.gui.plot.ScatterView.ScatterView` widget
    * - :download:`compareImages.py <../../../examples/compareImages.py>`
      - .. image:: img/compareImages.png
           :width: 150px
@@ -197,26 +201,6 @@ Sample code that adds buttons to the toolbar of a silx plot widget.
           - how to add your own icon as a PNG file
 
        See shiftPlotAction.py for a simpler example with more basic comments.
-   * - :download:`plotStats.py <../../../examples/plotStats.py>`
-     - .. image:: img/plotStats.png
-         :width: 150px
-     - This script is a simple example of how to add your own statistic to a
-       :class:`~silx.gui.plot.statsWidget.StatsWidget` from customs
-       :class:`~silx.gui.plot.stats.Stats` and display it.
-
-       On this example we will:
-
-          - show sum of values for each type
-          - compute curve integrals (only for 'curve').
-          - compute center of mass for all possible items
-
-       .. note:: for now the possible types manged by the Stats are ('curve', 'image',
-                 'scatter' and 'histogram')
-   * - :download:`scatterview.py <../../../examples/scatterview.py>`
-     - .. image:: img/scatterview.png
-         :width: 150px
-     - Example to show the use of :class:`~silx.gui.plot.ScatterView.ScatterView` widget
-
 
 Add features to :class:`~silx.gui.plot.PlotWidget`
 ..................................................
@@ -348,6 +332,21 @@ Sample code that adds specific tools or functions to plot widgets.
          :width: 150px
      - This script is an example to illustrate how to use axis synchronization
        tool.
+   * - :download:`plotStats.py <../../../examples/plotStats.py>`
+     - .. image:: img/plotStats.png
+         :width: 150px
+     - This script is a simple example of how to add your own statistic to a
+       :class:`~silx.gui.plot.statsWidget.StatsWidget` from customs
+       :class:`~silx.gui.plot.stats.Stats` and display it.
+
+       On this example we will:
+
+          - show sum of values for each type
+          - compute curve integrals (only for 'curve').
+          - compute center of mass for all possible items
+
+       .. note:: for now the possible types manged by the Stats are ('curve', 'image',
+                 'scatter' and 'histogram')
 
 .. _plot3d-sample-code:
 
