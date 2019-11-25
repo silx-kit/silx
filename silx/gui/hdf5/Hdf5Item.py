@@ -416,12 +416,19 @@ class Hdf5Item(Hdf5Node):
             return self._getFormatter().humanReadableShape(self.obj)
         return None
 
-    _NEXUS_CLASS_NAME_TO_VALUE_CHILD = {
-        'NXentry': 'title',
-        'NXsample': 'short_title',
-        'NXsubentry': 'title',
+    _NEXUS_CLASS_TO_VALUE_CHILDREN = {
+        'NXdetector': ('local_name',),
+        'NXentry': ('title',),
+        'NXenvironment': ('short_name', 'name'),
+        'NXinstrument': ('name',),
+        'NXpositioner': ('name',),
+        'NXsample': ('short_title', 'name'),
+        'NXsample_component': ('name',),
+        'NXsensor': ('short_name', 'name'),
+        'NXsource': ('name',),  # or its 'short_name' attribute... This is not supported
+        'NXsubentry': ('title',),
         }
-    """Mapping from NeXus class to child name containing data to use as value"""
+    """Mapping from NeXus class to child names containing data to use as value"""
 
     def dataValue(self, role):
         """Data for the value column"""
@@ -435,16 +442,13 @@ class Hdf5Item(Hdf5Node):
             elif self.h5Class == silx.io.utils.H5Type.DATASET:
                 return self._getFormatter().humanReadableValue(self.obj)
             elif self.isGroupObj():
-                # For NeXus groups, try to find a title
-                name = self._NEXUS_CLASS_NAME_TO_VALUE_CHILD.get(
-                    self.nexusClassName, None)
-                if name is not None:
-                    # Look for a dataset named 'name' and use it as value
+                # For NeXus groups, try to find a title or name
+                for child_name in self._NEXUS_CLASS_TO_VALUE_CHILDREN.get(self.nexusClassName, ()):
                     for index in range(self.childCount()):
                         child = self.child(index)
                         if (isinstance(child, Hdf5Item) and
                                 child.h5Class == silx.io.utils.H5Type.DATASET and
-                                child.basename == name):
+                                child.basename == child_name):
                             return self._getFormatter().humanReadableValue(child.obj)
 
             return ""
