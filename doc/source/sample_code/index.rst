@@ -51,10 +51,6 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :width: 150px
      - Qt Hdf5 widget examples
 
-       .. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
-           library, which is not a mandatory dependency for `silx`. You might need
-           to install it if you don't already have it.
-
 :mod:`silx.gui.dialog`
 ......................
 
