@@ -442,9 +442,10 @@ class Hdf5Item(Hdf5Node):
                 return ""
             elif self.h5Class == silx.io.utils.H5Type.DATASET:
                 return self._getFormatter().humanReadableValue(self.obj)
-            elif self.isGroupObj():
+            elif self.isGroupObj() and self.nexusClassName:
                 # For NeXus groups, try to find a title or name
-                for child_name in self._NEXUS_CLASS_TO_VALUE_CHILDREN.get(self.nexusClassName, ()):
+                # By default, look for a title (most application definitions should have one)
+                for child_name in self._NEXUS_CLASS_TO_VALUE_CHILDREN.get(self.nexusClassName, ('title')):
                     for index in range(self.childCount()):
                         child = self.child(index)
                         if (isinstance(child, Hdf5Item) and
