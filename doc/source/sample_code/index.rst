@@ -134,6 +134,29 @@ Widgets
      - .. image:: img/colormapDialog.png
          :width: 150px
      - This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
+   * - :download:`compareImages.py <../../../examples/compareImages.py>`
+     - .. image:: img/compareImages.png
+          :width: 150px
+     - usage: compareImages.py [-h] [--debug] [--testdata] [--use-opengl-plot]
+                               [files [files ...]]
+
+       Example demonstrating the use of the widget CompareImages
+
+       positional arguments:
+         files              Image data to compare (HDF5 file with path, EDF files,
+                            JPEG/PNG image files). Data from HDF5 files can be
+                            accessed using dataset path and slicing as an URL:
+                            silx:../my_file.h5?path=/entry/data&slice=10 EDF file
+                            frames also can can be accessed using URL:
+                            fabio:../my_file.edf?slice=10 Using URL in command like
+                            usually have to be quoted: "URL".
+
+       optional arguments:
+         -h, --help         show this help message and exit
+         --debug            Set logging system in debug mode
+         --testdata         Use synthetic images to test the application
+         --use-opengl-plot  Use OpenGL for plots (instead of matplotlib)
+
 
 :class:`silx.gui.plot.actions.PlotAction`
 .........................................
@@ -179,6 +202,26 @@ Sample code that adds buttons to the toolbar of a silx plot widget.
           - how to add your own icon as a PNG file
 
        See shiftPlotAction.py for a simpler example with more basic comments.
+   * - :download:`plotStats.py <../../../examples/plotStats.py>`
+     - .. image:: img/plotStats.png
+         :width: 150px
+     - This script is a simple example of how to add your own statistic to a
+       :class:`~silx.gui.plot.statsWidget.StatsWidget` from customs
+       :class:`~silx.gui.plot.stats.Stats` and display it.
+
+       On this example we will:
+
+          - show sum of values for each type
+          - compute curve integrals (only for 'curve').
+          - compute center of mass for all possible items
+
+       .. note:: for now the possible types manged by the Stats are ('curve', 'image',
+                 'scatter' and 'histogram')
+   * - :download:`scatterview.py <../../../examples/scatterview.py>`
+     - .. image:: img/scatterview.png
+         :width: 150px
+     - Example to show the use of :class:`~silx.gui.plot.ScatterView.ScatterView` widget
+
 
 Add features to :class:`~silx.gui.plot.PlotWidget`
 ..................................................
@@ -286,6 +329,30 @@ Sample code that adds specific tools or functions to plot widgets.
          :width: 150px
      - This script is an example to illustrate how to use axis synchronization
        tool.
+   * - :download:`compositeline.py <../../../examples/compositeline.py>`
+     - .. image:: img/compositeline.png
+         :width: 150px
+     - Example to show the use of markers to draw head and tail of lines.
+   * - :download:`dropZones.py <../../../examples/dropZones.py>`
+     - .. image:: img/dropZones.png
+         :width: 150px
+     - Example of drop zone supporting application/x-silx-uri
+   * - :download:`exampleBaseline.py <../../../examples/exampleBaseline.py>`
+     - .. image:: img/exampleBaseline.png
+         :width: 150px
+     - This example illustrates some usage possible with the baseline parameter
+   * - :download:`plotCurveLegendWidget.py <../../../examples/plotCurveLegendWidget.py>`
+     - .. image:: img/plotCurveLegendWidget.png
+         :width: 150px
+     - This example illustrates the use of :class:`CurveLegendsWidget`.
+
+       :class:`CurveLegendsWidget` display curves style and legend currently visible
+       in a :class:`~silx.gui.plot.PlotWidget`
+   * - :download:`syncPlotLocation.py <../../../examples/syncPlotLocation.py>`
+     - .. image:: img/syncPlotLocation.png
+         :width: 150px
+     - This script is an example to illustrate how to use axis synchronization
+       tool.
 
 .. _plot3d-sample-code:
 
@@ -363,3 +430,22 @@ Sample code that adds specific tools or functions to plot widgets.
      -
      - This script is an example of how to use the :mod:`silx.io.convert` module.
        See the following tutorial for more information: :doc:`../Tutorials/convert`
+
+
+:mod:`silx.image` sample code
++++++++++++++++++++++++++++++
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`findContours.py <../../../examples/findContours.py>`
+     - .. image:: img/findContours.png
+         :width: 150px
+     - Find contours examples
+
+       .. note:: This module has an optional dependency with sci-kit image library.
+          You might need to install it if you don't already have it.
