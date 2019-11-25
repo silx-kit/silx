@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -416,6 +416,13 @@ class Hdf5Item(Hdf5Node):
             return self._getFormatter().humanReadableShape(self.obj)
         return None
 
+    _NEXUS_CLASS_NAME_TO_VALUE_CHILD = {
+        'NXentry': 'title',
+        'NXsample': 'short_title',
+        'NXsubentry': 'title',
+        }
+    """Mapping from NeXus class to child name containing data to use as value"""
+
     def dataValue(self, role):
         """Data for the value column"""
         if role == qt.Qt.DecorationRole:
@@ -425,9 +432,22 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.DisplayRole:
             if self.__error is not None:
                 return ""
-            if self.h5Class != silx.io.utils.H5Type.DATASET:
-                return ""
-            return self._getFormatter().humanReadableValue(self.obj)
+            elif self.h5Class == silx.io.utils.H5Type.DATASET:
+                return self._getFormatter().humanReadableValue(self.obj)
+            elif self.isGroupObj():
+                # For NeXus groups, try to find a title
+                name = self._NEXUS_CLASS_NAME_TO_VALUE_CHILD.get(
+                    self.nexusClassName, None)
+                if name is not None:
+                    # Look for a dataset named 'name' and use it as value
+                    for index in range(self.childCount()):
+                        child = self.child(index)
+                        if (isinstance(child, Hdf5Item) and
+                                child.h5Class == silx.io.utils.H5Type.DATASET and
+                                child.basename == name):
+                            return self._getFormatter().humanReadableValue(child.obj)
+
+            return ""
         return None
 
     def dataDescription(self, role):
