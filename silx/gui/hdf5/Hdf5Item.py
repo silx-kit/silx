@@ -422,6 +422,7 @@ class Hdf5Item(Hdf5Node):
         'NXenvironment': ('short_name', 'name'),
         'NXinstrument': ('name',),
         'NXpositioner': ('name',),
+        'NXprocess': ('program',),
         'NXsample': ('short_title', 'name'),
         'NXsample_component': ('name',),
         'NXsensor': ('short_name', 'name'),
