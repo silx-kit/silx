@@ -201,7 +201,7 @@ Sample code that adds buttons to the toolbar of a silx plot widget.
 Add features to :class:`~silx.gui.plot.PlotWidget`
 ..................................................
 
-Sample code that adds specific tools or functions to plot widgets.
+Sample code that adds specific tools or functions to :class:`~silx.gui.plot.PlotWidget`.
 
 .. list-table::
    :widths: 1 1 4
@@ -223,6 +223,70 @@ Sample code that adds specific tools or functions to plot widgets.
        - QAction from :mod:`silx.gui.plot.actions`
        - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
        - :class:`silx.gui.plot.ColorBar.ColorBarWidget`
+   * - :download:`plotItemsSelector.py <../../../examples/plotItemsSelector.py>`
+     - .. image:: img/plotItemsSelector.png
+         :width: 150px
+     - This example illustrates how to use a :class:`ItemsSelectionDialog` widget
+       associated with a :class:`~silx.gui.plot.PlotWidget`
+   * - :download:`plotInteractiveImageROI.py <../../../examples/plotInteractiveImageROI.py>`
+     - .. image:: img/plotInteractiveImageROI.png
+         :width: 150px
+     - This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidget`
+
+       It uses :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager` and
+       :class:`~silx.gui.plot.tools.roi.RegionOfInterestTableWidget` to handle the
+       interactive selection and to display the list of selected ROIs.
+   * - :download:`printPreview.py <../../../examples/printPreview.py>`
+     - .. image:: img/printPreview.png
+         :width: 150px
+     - This script illustrates how to add a print preview tool button to any plot
+       widget inheriting :class:`~silx.gui.plot.PlotWidget`.
+
+       Three plot widgets are instantiated. One of them uses a standalone
+       :class:`~silx.gui.plot.PrintPreviewToolButton.PrintPreviewToolButton`,
+       while the other two use a
+       :class:`~silx.gui.plot.PrintPreviewToolButton.SingletonPrintPreviewToolButton`
+       which allows them to send their content to the same print preview page.
+   * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
+     - .. image:: img/scatterMask.png
+         :width: 150px
+     - This example demonstrates how to use ScatterMaskToolsWidget
+       and NamedScatterAlphaSlider with a PlotWidget.
+   * - :download:`plotCurveLegendWidget.py <../../../examples/plotCurveLegendWidget.py>`
+     - .. image:: img/plotCurveLegendWidget.png
+         :width: 150px
+     - This example illustrates the use of :class:`CurveLegendsWidget`.
+
+       :class:`CurveLegendsWidget` display curves style and legend currently visible
+       in a :class:`~silx.gui.plot.PlotWidget`
+   * - :download:`plotStats.py <../../../examples/plotStats.py>`
+     - .. image:: img/plotStats.png
+         :width: 150px
+     - This script is a simple example of how to add your own statistic to a
+       :class:`~silx.gui.plot.statsWidget.StatsWidget` from customs
+       :class:`~silx.gui.plot.stats.Stats` and display it.
+
+       On this example we will:
+
+          - show sum of values for each type
+          - compute curve integrals (only for 'curve').
+          - compute center of mass for all possible items
+
+       .. note:: for now the possible types manged by the Stats are ('curve', 'image',
+                 'scatter' and 'histogram')
+
+:class:`~silx.gui.plot.PlotWidget` features
+...........................................
+
+Sample code that illustrates some functionalities of :class:`~silx.gui.plot.PlotWidget`.
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
    * - :download:`plotContextMenu.py <../../../examples/plotContextMenu.py>`
      - .. image:: img/plotContextMenu.png
          :width: 150px
@@ -239,11 +303,6 @@ Sample code that adds specific tools or functions to plot widgets.
        inherit from :class:`~silx.gui.plot.PlotWidget`.
 
        For more information on context menus, see Qt documentation.
-   * - :download:`plotItemsSelector.py <../../../examples/plotItemsSelector.py>`
-     - .. image:: img/plotItemsSelector.png
-         :width: 150px
-     - This example illustrates how to use a :class:`ItemsSelectionDialog` widget
-       associated with a :class:`~silx.gui.plot.PlotWidget`
    * - :download:`plotLimits.py <../../../examples/plotLimits.py>`
      - .. image:: img/plotLimits.png
          :width: 150px
@@ -275,30 +334,6 @@ Sample code that adds specific tools or functions to plot widgets.
 
        In this example a thread calls submitToQtMainThread to update the curve
        of a plot.
-   * - :download:`plotInteractiveImageROI.py <../../../examples/plotInteractiveImageROI.py>`
-     - .. image:: img/plotInteractiveImageROI.png
-         :width: 150px
-     - This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidget`
-
-       It uses :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager` and
-       :class:`~silx.gui.plot.tools.roi.RegionOfInterestTableWidget` to handle the
-       interactive selection and to display the list of selected ROIs.
-   * - :download:`printPreview.py <../../../examples/printPreview.py>`
-     - .. image:: img/printPreview.png
-         :width: 150px
-     - This script illustrates how to add a print preview tool button to any plot
-       widget inheriting :class:`~silx.gui.plot.PlotWidget`.
-
-       Three plot widgets are instantiated. One of them uses a standalone
-       :class:`~silx.gui.plot.PrintPreviewToolButton.PrintPreviewToolButton`,
-       while the other two use a
-       :class:`~silx.gui.plot.PrintPreviewToolButton.SingletonPrintPreviewToolButton`
-       which allows them to send their content to the same print preview page.
-   * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
-     - .. image:: img/scatterMask.png
-         :width: 150px
-     - This example demonstrates how to use ScatterMaskToolsWidget
-       and NamedScatterAlphaSlider with a PlotWidget.
    * - :download:`syncaxis.py <../../../examples/syncaxis.py>`
      - .. image:: img/syncaxis.png
          :width: 150px
@@ -316,33 +351,12 @@ Sample code that adds specific tools or functions to plot widgets.
      - .. image:: img/exampleBaseline.png
          :width: 150px
      - This example illustrates some usage possible with the baseline parameter
-   * - :download:`plotCurveLegendWidget.py <../../../examples/plotCurveLegendWidget.py>`
-     - .. image:: img/plotCurveLegendWidget.png
-         :width: 150px
-     - This example illustrates the use of :class:`CurveLegendsWidget`.
-
-       :class:`CurveLegendsWidget` display curves style and legend currently visible
-       in a :class:`~silx.gui.plot.PlotWidget`
    * - :download:`syncPlotLocation.py <../../../examples/syncPlotLocation.py>`
      - .. image:: img/syncPlotLocation.png
          :width: 150px
      - This script is an example to illustrate how to use axis synchronization
        tool.
-   * - :download:`plotStats.py <../../../examples/plotStats.py>`
-     - .. image:: img/plotStats.png
-         :width: 150px
-     - This script is a simple example of how to add your own statistic to a
-       :class:`~silx.gui.plot.statsWidget.StatsWidget` from customs
-       :class:`~silx.gui.plot.stats.Stats` and display it.
 
-       On this example we will:
-
-          - show sum of values for each type
-          - compute curve integrals (only for 'curve').
-          - compute center of mass for all possible items
-
-       .. note:: for now the possible types manged by the Stats are ('curve', 'image',
-                 'scatter' and 'histogram')
 
 .. _plot3d-sample-code:
 
