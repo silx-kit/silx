@@ -184,6 +184,8 @@ class RegionOfInterest(_RegionOfInterestBase):
                 if isinstance(item, items.ColorMixIn):
                     item.setColor(rgbaColor)
 
+            self.sigItemChanged.emit(items.ItemChangedType.COLOR)
+
     @silx.utils.deprecation.deprecated(reason='API modification',
                                        replacement='getName()',
                                        since_version=0.12)
@@ -244,13 +246,13 @@ class RegionOfInterest(_RegionOfInterestBase):
             hide it.
         """
         visible = bool(visible)
-        if self._visible == visible:
-            return
-        self._visible = visible
-        if self._labelItem is not None:
-            self._labelItem.setVisible(visible)
-        for item in self._items + self._editAnchors:
-            item.setVisible(visible)
+        if self._visible != visible:
+            self._visible = visible
+            if self._labelItem is not None:
+                self._labelItem.setVisible(visible)
+            for item in self._items + self._editAnchors:
+                item.setVisible(visible)
+            self.sigItemChanged.emit(items.ItemChangedType.VISIBLE)
 
     def _getControlPoints(self):
         """Returns the current ROI control points.
