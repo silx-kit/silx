@@ -120,11 +120,6 @@ Widgets
        ``python examples/imageview.py <file to open>``
        To get help:
        ``python examples/imageview.py -h``
-
-       For developers with a git clone you can use it with the bootstrap
-       To view an image file with the current installed silx library:
-
-       ``./bootstrap.py python examples/imageview.py <file to open>``
    * - :download:`stackView.py <../../../examples/stackView.py>`
      - .. image:: img/stackView.png
          :width: 150px

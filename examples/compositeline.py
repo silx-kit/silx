@@ -25,8 +25,6 @@
 # ###########################################################################*/
 """
 Example to show the use of markers to draw head and tail of lines.
-
-``./bootstrap.py python examples/compositeline.py``
 """
 from __future__ import division
 
