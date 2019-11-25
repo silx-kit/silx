@@ -225,6 +225,7 @@ class RegionOfInterest(_RegionOfInterestBase):
             # Recreate plot items
             # This can be avoided once marker.setDraggable is public
             self._createPlotItems()
+            self.sigItemChanged.emit(items.ItemChangedType.EDITABLE)
 
     def isVisible(self):
         """Returns whether the ROI is visible in the plot.
