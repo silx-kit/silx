@@ -417,17 +417,21 @@ class Hdf5Item(Hdf5Node):
         return None
 
     _NEXUS_CLASS_TO_VALUE_CHILDREN = {
-        'NXdetector': ('local_name',),
+        'NXaperture': ('description',),
+        'NXbeam_stop': ('description',),
+        'NXdetector': ('local_name', 'description'),
         'NXentry': ('title',),
-        'NXenvironment': ('short_name', 'name'),
+        'NXenvironment': ('short_name', 'name', 'description'),
         'NXinstrument': ('name',),
+        'NXlog': ('description',),
+        'NXmirror': ('description',),
         'NXpositioner': ('name',),
         'NXprocess': ('program',),
-        'NXsample': ('short_title', 'name'),
-        'NXsample_component': ('name',),
+        'NXsample': ('short_title', 'name', 'description'),
+        'NXsample_component': ('name', 'description'),
         'NXsensor': ('short_name', 'name'),
         'NXsource': ('name',),  # or its 'short_name' attribute... This is not supported
-        'NXsubentry': ('title',),
+        'NXsubentry': ('definition', 'program_name', 'title',),
         }
     """Mapping from NeXus class to child names containing data to use as value"""
 
