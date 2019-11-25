@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,11 +46,12 @@ from ..utils.deprecation import deprecated
 
 
 class SinoFilter(OpenclProcessing):
-    """
-    A class for performing sinogram filtering on GPU using OpenCL.
+    """A class for performing sinogram filtering on GPU using OpenCL.
+
     This is a convolution in the Fourier space, along one dimension:
-      - In 2D: (n_a, d_x): n_a filterings (1D FFT of size d_x)
-      - In 3D: (n_z, n_a, d_x): n_z*n_a filterings (1D FFT of size d_x)
+
+    - In 2D: (n_a, d_x): n_a filterings (1D FFT of size d_x)
+    - In 3D: (n_z, n_a, d_x): n_z*n_a filterings (1D FFT of size d_x)
     """
     kernel_files = ["array_utils.cl"]
     powers = generate_powers()
