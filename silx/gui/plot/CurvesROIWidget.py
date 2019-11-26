@@ -68,12 +68,15 @@ class CurvesROIWidget(qt.QWidget):
 
     sigROIWidgetSignal = qt.Signal(object)
     """Signal of ROIs modifications.
-       Modification information if given as a dict with an 'event' key
-       providing the type of events.
-       Type of events:
-        - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
-        - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
-          'rowheader'
+
+    Modification information if given as a dict with an 'event' key
+    providing the type of events.
+
+    Type of events:
+
+    - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
+    - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
+      'rowheader'
     """
 
     sigROISignal = qt.Signal(object)
@@ -1052,7 +1055,7 @@ class ROI(_RegionOfInterestBase):
 
     - A name
     - A type. The type is the label of the x axis. This can be used to apply or
-    not some ROI to a curve and do some post processing.
+      not some ROI to a curve and do some post processing.
     - The x coordinate of the left limit (fromdata)
     - The x coordinate of the right limit (todata)
 

@@ -401,7 +401,7 @@ class Colormap(qt.QObject):
     def setFromColormap(self, other):
         """Set this colormap using information from the `other` colormap.
 
-        :param Colormap other: Colormap to use as reference.
+        :param ~silx.gui.colors.Colormap other: Colormap to use as reference.
         """
         if not self.isEditable():
             raise NotEditableError('Colormap is not editable')
