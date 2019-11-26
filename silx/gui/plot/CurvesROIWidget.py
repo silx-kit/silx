@@ -44,11 +44,10 @@ from silx.utils import deprecation
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.proxy import docstring
 from .. import icons, qt
-from silx.gui.plot.items.curve import Curve
 from silx.math.combo import min_max
-from .items.roi import _RegionOfInterestBase
 import weakref
 from silx.gui.widgets.TableWidget import TableWidget
+from . import items
 from .items.roi import _RegionOfInterestBase
 
 
@@ -1048,7 +1047,7 @@ class ROITable(TableWidget):
 _indexNextROI = 0
 
 
-class ROI(_RegionOfInterestBase, qt.QObject):
+class ROI(_RegionOfInterestBase):
     """The Region Of Interest is defined by:
 
     - A name
@@ -1067,7 +1066,6 @@ class ROI(_RegionOfInterestBase, qt.QObject):
     """Signal emitted when the ROI is edited"""
 
     def __init__(self, name, fromdata=None, todata=None, type_=None):
-        qt.QObject.__init__(self)
         _RegionOfInterestBase.__init__(self, name=name)
         global _indexNextROI
         self._id = _indexNextROI
@@ -1076,6 +1074,13 @@ class ROI(_RegionOfInterestBase, qt.QObject):
         self._fromdata = fromdata
         self._todata = todata
         self._type = type_ or 'Default'
+
+        self.sigItemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        """Handle name change"""
+        if event == items.ItemChangedType.NAME:
+            self.sigChanged.emit()
 
     def getID(self):
         """
@@ -1099,17 +1104,6 @@ class ROI(_RegionOfInterestBase, qt.QObject):
         :return str: the type of the ROI.
         """
         return self._type
-
-    @docstring(_RegionOfInterestBase)
-    def setName(self, name):
-        """
-        Set the name of the :class:`ROI`
-
-        :param str name:
-        """
-        if self.getName() != name:
-            _RegionOfInterestBase.setName(self, name)
-            self.sigChanged.emit()
 
     def setFrom(self, frm):
         """
@@ -1204,7 +1198,7 @@ class ROI(_RegionOfInterestBase, qt.QObject):
         :param CurveItem curve:
         :return tuple: rawCount, netCount
         """
-        assert isinstance(curve, Curve) or curve is None
+        assert isinstance(curve, items.Curve) or curve is None
 
         if curve is None:
             return None, None
@@ -1247,7 +1241,7 @@ class ROI(_RegionOfInterestBase, qt.QObject):
         :param CurveItem curve:
         :return tuple: rawArea, netArea
         """
-        assert isinstance(curve, Curve) or curve is None
+        assert isinstance(curve, items.Curve) or curve is None
 
         if curve is None:
             return None, None

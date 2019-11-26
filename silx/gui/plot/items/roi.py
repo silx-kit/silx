@@ -47,15 +47,26 @@ from silx.utils.proxy import docstring
 logger = logging.getLogger(__name__)
 
 
-class _RegionOfInterestBase(object):
+class _RegionOfInterestBase(qt.QObject):
+    """Base class of 1D and 2D region of interest
+
+    :param QObject parent: See QObject
+    :param str name: The name of the ROI
     """
-    Base class of 1D and 2D region of interest
+
+    sigItemChanged = qt.Signal(object)
+    """Signal emitted when item has changed.
+
+    It provides a flag describing which property of the item has changed.
+    See :class:`ItemChangedType` for flags description.
     """
-    def __init__(self, name):
-        self.__name = name
+
+    def __init__(self, parent=None, name=''):
+        qt.QObject.__init__(self)
+        self.__name = str(name)
 
     def getName(self):
-        """
+        """Returns the name of the ROI
 
         :return: name of the region of interest
         :rtype: str
@@ -63,14 +74,17 @@ class _RegionOfInterestBase(object):
         return self.__name
 
     def setName(self, name):
-        """
+        """Set the name of the ROI
 
         :param str name: name of the region of interest
         """
-        self.__name = name
+        name = str(name)
+        if self.__name != name:
+            self.__name = name
+            self.sigItemChanged.emit(items.ItemChangedType.NAME)
 
 
-class RegionOfInterest(_RegionOfInterestBase, qt.QObject):
+class RegionOfInterest(_RegionOfInterestBase):
     """Object describing a region of interest in a plot.
 
     :param QObject parent:
@@ -90,8 +104,7 @@ class RegionOfInterest(_RegionOfInterestBase, qt.QObject):
         # Avoid circular dependancy
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
-        qt.QObject.__init__(self, parent)
-        _RegionOfInterestBase.__init__(self, '')
+        _RegionOfInterestBase.__init__(self, parent, '')
         self._color = rgba('red')
         self._items = WeakList()
         self._editAnchors = WeakList()
@@ -99,6 +112,12 @@ class RegionOfInterest(_RegionOfInterestBase, qt.QObject):
         self._labelItem = None
         self._editable = False
         self._visible = True
+        self.sigItemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        """Handle name change"""
+        if event == items.ItemChangedType.NAME:
+            self._updateLabelItem(self.getName())
 
     def __del__(self):
         # Clean-up plot items
@@ -184,13 +203,6 @@ class RegionOfInterest(_RegionOfInterestBase, qt.QObject):
         :param str label: The text label to display
         """
         self.setName(name=label)
-
-    @docstring(_RegionOfInterestBase)
-    def setName(self, name):
-        name = str(name)
-        if name != self.getName():
-            _RegionOfInterestBase.setName(self, name)
-            self._updateLabelItem(name)
 
     def isEditable(self):
         """Returns whether the ROI is editable by the user or not.
