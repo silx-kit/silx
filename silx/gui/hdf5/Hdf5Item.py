@@ -416,6 +416,20 @@ class Hdf5Item(Hdf5Node):
             return self._getFormatter().humanReadableShape(self.obj)
         return None
 
+    def dataValue(self, role):
+        """Data for the value column"""
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            if self.__error is not None:
+                return ""
+            if self.h5Class != silx.io.utils.H5Type.DATASET:
+                return ""
+            return self._getFormatter().humanReadableValue(self.obj)
+        return None
+
     _NEXUS_CLASS_TO_VALUE_CHILDREN = {
         'NXaperture': ('description',),
         'NXbeam_stop': ('description',),
@@ -435,15 +449,16 @@ class Hdf5Item(Hdf5Node):
         }
     """Mapping from NeXus class to child names containing data to use as value"""
 
-    def dataValue(self, role):
-        """Data for the value column"""
+    def dataDescription(self, role):
+        """Data for the description column"""
         if role == qt.Qt.DecorationRole:
             return None
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
-            if self.__error is not None:
-                return ""
+            if self.__isBroken or self.__error is not None:
+                self.obj  # lazy loading of the object
+                return self.__error
             elif self.h5Class == silx.io.utils.H5Type.DATASET:
                 return self._getFormatter().humanReadableValue(self.obj)
             elif self.isGroupObj() and self.nexusClassName:
@@ -456,35 +471,16 @@ class Hdf5Item(Hdf5Node):
                                 child.h5Class == silx.io.utils.H5Type.DATASET and
                                 child.basename == child_name):
                             return self._getFormatter().humanReadableValue(child.obj)
-
-            return ""
-        return None
-
-    def dataDescription(self, role):
-        """Data for the description column"""
-        if role == qt.Qt.DecorationRole:
-            return None
-        if role == qt.Qt.TextAlignmentRole:
-            return qt.Qt.AlignTop | qt.Qt.AlignLeft
-        if role == qt.Qt.DisplayRole:
-            if self.__isBroken:
-                self.obj  # lazy loading of the object
-                return self.__error
-            if "desc" in self.obj.attrs:
-                text = self.obj.attrs["desc"]
-            else:
-                return ""
-            return text
+            return self.obj.attrs.get("desc", "")
         if role == qt.Qt.ToolTipRole:
             if self.__error is not None:
                 self.obj  # lazy loading of the object
                 self.__initH5Object()
                 return self.__error
-            if "desc" in self.obj.attrs:
-                text = self.obj.attrs["desc"]
+            elif "desc" in self.obj.attrs:
+                return "Description: %s" % self.obj.attrs["desc"]
             else:
                 return ""
-            return "Description: %s" % text
         return None
 
     def dataNode(self, role):
