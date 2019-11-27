@@ -87,7 +87,6 @@ class FFTW(BaseFFT):
             "data_out": self.data_out,
         }
 
-
     def set_fftw_flags(self):
         self.fftw_flags = ('FFTW_MEASURE', ) # TODO
         self.fftw_planning_timelimit = None # TODO
@@ -102,10 +101,8 @@ class FFTW(BaseFFT):
             )
         self.fftw_norm_mode = self.fftw_norm_modes[self.normalize]
 
-
     def _allocate(self, shape, dtype):
         return pyfftw.zeros_aligned(shape, dtype=dtype)
-
 
     def check_array(self, array, shape, dtype, copy=True):
         if array.shape != shape:
@@ -116,7 +113,6 @@ class FFTW(BaseFFT):
             raise ValueError("Invalid data type: expected %s, got %s" %
                 (dtype, array.dtype)
             )
-
 
     def set_data(self, self_array, array, shape, dtype, copy=True, name=None):
         """
@@ -153,7 +149,6 @@ class FFTW(BaseFFT):
                 arr_to_use = array
         return arr_to_use
 
-
     def compute_forward_plan(self):
         self.plan_forward = pyfftw.FFTW(
             self.data_in,
@@ -168,7 +163,6 @@ class FFTW(BaseFFT):
             normalise_idft=self.fftw_norm_mode["normalize"],
         )
 
-
     def compute_inverse_plan(self):
         self.plan_inverse = pyfftw.FFTW(
             self.data_out,
@@ -182,7 +176,6 @@ class FFTW(BaseFFT):
             ortho=self.fftw_norm_mode["ortho"],
             normalise_idft=self.fftw_norm_mode["normalize"],
         )
-
 
     def fft(self, array, output=None):
         """
@@ -206,7 +199,6 @@ class FFTW(BaseFFT):
         self.plan_forward.update_arrays(self.refs["data_in"], self.refs["data_out"])
         return data_out
 
-
     def ifft(self, array, output=None):
         """
         Perform a (inverse) Fast Fourier Transform.
@@ -229,5 +221,3 @@ class FFTW(BaseFFT):
         # ~ assert id(self.plan_inverse.output_array) == id(self.data_in) == id(data_out) # DEBUG
         self.plan_inverse.update_arrays(self.refs["data_out"], self.refs["data_in"])
         return data_out
-
-
