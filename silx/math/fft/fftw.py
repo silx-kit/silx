@@ -120,8 +120,16 @@ class FFTW(BaseFFT):
 
     def set_data(self, self_array, array, shape, dtype, copy=True, name=None):
         """
-        self_array is an array owned by the current instance
-        (either self.data_in or self.data_out).
+        :param self_array: array owned by the current instance
+                           (either self.data_in or self.data_out).
+        :type: numpy.ndarray
+        :param self_array: data to set
+        :type: numpy.ndarray
+        :type tuple shape: shape of the array
+        :param dtype: type of the array
+        :type: numpy.dtype
+        :param bool copy: should we copy the array
+        :param str name: name of the array
 
         Copies are avoided when possible.
         """
