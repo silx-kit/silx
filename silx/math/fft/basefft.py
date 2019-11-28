@@ -61,7 +61,6 @@ class BaseFFT(object):
         self.__set_dtypes()
         self.__calc_shape()
 
-
     def __get_args(self, **kwargs):
         expected_args = {
             "shape": None,
@@ -96,7 +95,6 @@ class BaseFFT(object):
                 self.dtype_in
             )
         self.dtype_out = dtypes_mapping[self.dtype_in]
-
 
     def __calc_shape(self):
         # TODO allow for C2C even for real input data (?)
@@ -146,4 +144,3 @@ class BaseFFT(object):
 
     def ifft(self, array, **kwargs):
         raise ValueError("This should be implemented by back-end FFT")
-
