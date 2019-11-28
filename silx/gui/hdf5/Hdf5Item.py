@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -367,7 +367,20 @@ class Hdf5Item(Hdf5Node):
                 text = ""
             else:
                 text = self._getFormatter().textFormatter().toString(obj)
-            self.__nx_class = text.strip('"')
+                text = text.strip('"')
+                # Check NX_class formatting
+                lower = text.lower()
+                if lower.startswith('nx'):
+                    formatedNX_class = 'NX' + lower[2:]
+                if lower == 'nxcansas':
+                    formatedNX_class = 'NXcanSAS'  # That's the only class with capital letters...
+                if text != formatedNX_class:
+                    _logger.error("NX_class: %s is malformed (should be %s)",
+                                  text,
+                                  formatedNX_class)
+                text = formatedNX_class
+
+            self.__nx_class = text
         return self.__nx_class
 
     def dataName(self, role):
