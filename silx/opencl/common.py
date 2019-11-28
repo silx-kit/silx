@@ -339,7 +339,7 @@ class OpenCL(object):
                     except pyopencl.LogicError:
                         flop_core = FLOP_PER_CORE["GPU"]
                     else:
-                        flop_core = NVIDIA_FLOP_PER_CORE.get(comput_cap, min(NVIDIA_FLOP_PER_CORE.values()))
+                        flop_core = NVIDIA_FLOP_PER_CORE.get(comput_cap, FLOP_PER_CORE["GPU"])
                 elif (pypl.vendor == "Advanced Micro Devices, Inc.") and (devtype == "GPU"):
                     flop_core = AMD_FLOP_PER_CORE
                 elif devtype == "CPU":
