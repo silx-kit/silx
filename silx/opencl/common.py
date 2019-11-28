@@ -29,12 +29,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
+from builtins import True
 
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/08/2019"
+__date__ = "28/11/2019"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -97,8 +98,8 @@ NVIDIA_FLOP_PER_CORE = {(1, 0): 24,  # Guessed !
                         (6, 0): 128,  # GP100
                         (6, 1): 128,  # GP104
                         (6, 2): 128,  # ?
-                        (7, 0): 256,  # Volta ?
-                        (7, 1): 256,  # Volta ?
+                        (7, 0): 128,  # Volta # measured on Telsa V100
+                        (7, 1): 128,  # Volta ?
                         }
 
 AMD_FLOP_PER_CORE = 160  # Measured on a M7820 10 core, 700MHz 1120GFlops
@@ -326,9 +327,12 @@ class OpenCL(object):
                     devtype = "CPU"
                 if len(devtype) > 3:
                     devtype = devtype[:3]
-                if _is_nvidia_gpu(pypl.vendor, devtype) and "compute_capability_major_nv" in dir(device):
-                    comput_cap = device.compute_capability_major_nv, device.compute_capability_minor_nv
-                    flop_core = NVIDIA_FLOP_PER_CORE.get(comput_cap, min(NVIDIA_FLOP_PER_CORE.values()))
+                if _is_nvidia_gpu(pypl.vendor, devtype): 
+                    if "compute_capability_major_nv" in dir(device):
+                        comput_cap = device.compute_capability_major_nv, device.compute_capability_minor_nv
+                        flop_core = NVIDIA_FLOP_PER_CORE.get(comput_cap, min(NVIDIA_FLOP_PER_CORE.values()))
+                    else:
+                        flop_core = FLOP_PER_CORE["GPU"]
                 elif (pypl.vendor == "Advanced Micro Devices, Inc.") and (devtype == "GPU"):
                     flop_core = AMD_FLOP_PER_CORE
                 elif devtype == "CPU":
