@@ -325,13 +325,22 @@ class OpenCL(object):
                     # pocl does not describe itself as a CPU !
                     devtype = "CPU"
                 if len(devtype) > 3:
-                    devtype = devtype[:3]
-                if _is_nvidia_gpu(pypl.vendor, devtype): 
-                    if "compute_capability_major_nv" in dir(device):
-                        comput_cap = device.compute_capability_major_nv, device.compute_capability_minor_nv
-                        flop_core = NVIDIA_FLOP_PER_CORE.get(comput_cap, min(NVIDIA_FLOP_PER_CORE.values()))
+                    if "GPU" in devtype:
+                        devtype = "GPU"
+                    elif "ACC" in devtype:
+                        devtype = "ACC"
+                    elif "CPU" in devtype:
+                        devtype = "CPU"
                     else:
-                        flop_core = FLOP_PER_CORE["GPU"]
+                        devtype = devtype[:3]
+                if _is_nvidia_gpu(pypl.vendor, devtype) and ("compute_capability_major_nv" in dir(device)):
+                        try:
+                            comput_cap = device.compute_capability_major_nv, device.compute_capability_minor_nv
+                        except pyopencl.LogicError:
+                            flop_core = FLOP_PER_CORE["GPU"]
+                        else:
+                            flop_core = NVIDIA_FLOP_PER_CORE.get(comput_cap, min(NVIDIA_FLOP_PER_CORE.values()))
+                        
                 elif (pypl.vendor == "Advanced Micro Devices, Inc.") and (devtype == "GPU"):
                     flop_core = AMD_FLOP_PER_CORE
                 elif devtype == "CPU":
