@@ -134,8 +134,10 @@ class Viewer(qt.QMainWindow):
 
         treeModel = self.__treeview.findHdf5TreeModel()
         columns = list(treeModel.COLUMN_IDS)
-        columns.remove(treeModel.DESCRIPTION_COLUMN)
+        columns.remove(treeModel.VALUE_COLUMN)
         columns.remove(treeModel.NODE_COLUMN)
+        columns.remove(treeModel.DESCRIPTION_COLUMN)
+        columns.insert(1, treeModel.DESCRIPTION_COLUMN)
         self.__treeview.header().setSections(columns)
 
         self._iconUpward = icons.getQIcon('plot-yup')
