@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,6 @@ To view an image file with the current installed silx library:
 ``python examples/imageview.py <file to open>``
 To get help:
 ``python examples/imageview.py -h``
-
-For developers with a git clone you can use it with the bootstrap
-To view an image file with the current installed silx library:
-
-``./bootstrap.py python examples/imageview.py <file to open>``
 """
 from __future__ import division
 

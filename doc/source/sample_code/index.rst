@@ -51,10 +51,6 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
          :width: 150px
      - Qt Hdf5 widget examples
 
-       .. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
-           library, which is not a mandatory dependency for `silx`. You might need
-           to install it if you don't already have it.
-
 :mod:`silx.gui.dialog`
 ......................
 
@@ -69,6 +65,10 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
      - .. image:: img/fileDialog.png
          :width: 150px
      - Example for the use of the ImageFileDialog.
+   * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
+     - .. image:: img/colormapDialog.png
+         :width: 150px
+     - This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
 
 :mod:`silx.gui.widgets`
 .......................
@@ -120,20 +120,38 @@ Widgets
        ``python examples/imageview.py <file to open>``
        To get help:
        ``python examples/imageview.py -h``
-
-       For developers with a git clone you can use it with the bootstrap
-       To view an image file with the current installed silx library:
-
-       ``./bootstrap.py python examples/imageview.py <file to open>``
    * - :download:`stackView.py <../../../examples/stackView.py>`
      - .. image:: img/stackView.png
          :width: 150px
      - This script is a simple example to illustrate how to use the
        :mod:`~silx.gui.plot.StackView` widget.
-   * - :download:`colormapDialog.py <../../../examples/colormapDialog.py>`
-     - .. image:: img/colormapDialog.png
+   * - :download:`scatterview.py <../../../examples/scatterview.py>`
+     - .. image:: img/scatterview.png
          :width: 150px
-     - This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
+     - Example to show the use of :class:`~silx.gui.plot.ScatterView.ScatterView` widget
+   * - :download:`compareImages.py <../../../examples/compareImages.py>`
+     - .. image:: img/compareImages.png
+          :width: 150px
+     - usage: compareImages.py [-h] [--debug] [--testdata] [--use-opengl-plot]
+                               [files [files ...]]
+
+       Example demonstrating the use of the widget CompareImages
+
+       positional arguments:
+         files              Image data to compare (HDF5 file with path, EDF files,
+                            JPEG/PNG image files). Data from HDF5 files can be
+                            accessed using dataset path and slicing as an URL:
+                            silx:../my_file.h5?path=/entry/data&slice=10 EDF file
+                            frames also can can be accessed using URL:
+                            fabio:../my_file.edf?slice=10 Using URL in command like
+                            usually have to be quoted: "URL".
+
+       optional arguments:
+         -h, --help         show this help message and exit
+         --debug            Set logging system in debug mode
+         --testdata         Use synthetic images to test the application
+         --use-opengl-plot  Use OpenGL for plots (instead of matplotlib)
+
 
 :class:`silx.gui.plot.actions.PlotAction`
 .........................................
@@ -183,7 +201,7 @@ Sample code that adds buttons to the toolbar of a silx plot widget.
 Add features to :class:`~silx.gui.plot.PlotWidget`
 ..................................................
 
-Sample code that adds specific tools or functions to plot widgets.
+Sample code that adds specific tools or functions to :class:`~silx.gui.plot.PlotWidget`.
 
 .. list-table::
    :widths: 1 1 4
@@ -205,6 +223,70 @@ Sample code that adds specific tools or functions to plot widgets.
        - QAction from :mod:`silx.gui.plot.actions`
        - QToolButton from :mod:`silx.gui.plot.PlotToolButtons`
        - :class:`silx.gui.plot.ColorBar.ColorBarWidget`
+   * - :download:`plotItemsSelector.py <../../../examples/plotItemsSelector.py>`
+     - .. image:: img/plotItemsSelector.png
+         :width: 150px
+     - This example illustrates how to use a :class:`ItemsSelectionDialog` widget
+       associated with a :class:`~silx.gui.plot.PlotWidget`
+   * - :download:`plotInteractiveImageROI.py <../../../examples/plotInteractiveImageROI.py>`
+     - .. image:: img/plotInteractiveImageROI.png
+         :width: 150px
+     - This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidget`
+
+       It uses :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager` and
+       :class:`~silx.gui.plot.tools.roi.RegionOfInterestTableWidget` to handle the
+       interactive selection and to display the list of selected ROIs.
+   * - :download:`printPreview.py <../../../examples/printPreview.py>`
+     - .. image:: img/printPreview.png
+         :width: 150px
+     - This script illustrates how to add a print preview tool button to any plot
+       widget inheriting :class:`~silx.gui.plot.PlotWidget`.
+
+       Three plot widgets are instantiated. One of them uses a standalone
+       :class:`~silx.gui.plot.PrintPreviewToolButton.PrintPreviewToolButton`,
+       while the other two use a
+       :class:`~silx.gui.plot.PrintPreviewToolButton.SingletonPrintPreviewToolButton`
+       which allows them to send their content to the same print preview page.
+   * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
+     - .. image:: img/scatterMask.png
+         :width: 150px
+     - This example demonstrates how to use ScatterMaskToolsWidget
+       and NamedScatterAlphaSlider with a PlotWidget.
+   * - :download:`plotCurveLegendWidget.py <../../../examples/plotCurveLegendWidget.py>`
+     - .. image:: img/plotCurveLegendWidget.png
+         :width: 150px
+     - This example illustrates the use of :class:`CurveLegendsWidget`.
+
+       :class:`CurveLegendsWidget` display curves style and legend currently visible
+       in a :class:`~silx.gui.plot.PlotWidget`
+   * - :download:`plotStats.py <../../../examples/plotStats.py>`
+     - .. image:: img/plotStats.png
+         :width: 150px
+     - This script is a simple example of how to add your own statistic to a
+       :class:`~silx.gui.plot.statsWidget.StatsWidget` from customs
+       :class:`~silx.gui.plot.stats.Stats` and display it.
+
+       On this example we will:
+
+          - show sum of values for each type
+          - compute curve integrals (only for 'curve').
+          - compute center of mass for all possible items
+
+       .. note:: for now the possible types manged by the Stats are ('curve', 'image',
+                 'scatter' and 'histogram')
+
+:class:`~silx.gui.plot.PlotWidget` features
+...........................................
+
+Sample code that illustrates some functionalities of :class:`~silx.gui.plot.PlotWidget`.
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
    * - :download:`plotContextMenu.py <../../../examples/plotContextMenu.py>`
      - .. image:: img/plotContextMenu.png
          :width: 150px
@@ -221,11 +303,6 @@ Sample code that adds specific tools or functions to plot widgets.
        inherit from :class:`~silx.gui.plot.PlotWidget`.
 
        For more information on context menus, see Qt documentation.
-   * - :download:`plotItemsSelector.py <../../../examples/plotItemsSelector.py>`
-     - .. image:: img/plotItemsSelector.png
-         :width: 150px
-     - This example illustrates how to use a :class:`ItemsSelectionDialog` widget
-       associated with a :class:`~silx.gui.plot.PlotWidget`
    * - :download:`plotLimits.py <../../../examples/plotLimits.py>`
      - .. image:: img/plotLimits.png
          :width: 150px
@@ -257,35 +334,29 @@ Sample code that adds specific tools or functions to plot widgets.
 
        In this example a thread calls submitToQtMainThread to update the curve
        of a plot.
-   * - :download:`plotInteractiveImageROI.py <../../../examples/plotInteractiveImageROI.py>`
-     - .. image:: img/plotInteractiveImageROI.png
-         :width: 150px
-     - This script illustrates image ROI selection in a :class:`~silx.gui.plot.PlotWidget`
-
-       It uses :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager` and
-       :class:`~silx.gui.plot.tools.roi.RegionOfInterestTableWidget` to handle the
-       interactive selection and to display the list of selected ROIs.
-   * - :download:`printPreview.py <../../../examples/printPreview.py>`
-     - .. image:: img/printPreview.png
-         :width: 150px
-     - This script illustrates how to add a print preview tool button to any plot
-       widget inheriting :class:`~silx.gui.plot.PlotWidget`.
-
-       Three plot widgets are instantiated. One of them uses a standalone
-       :class:`~silx.gui.plot.PrintPreviewToolButton.PrintPreviewToolButton`,
-       while the other two use a
-       :class:`~silx.gui.plot.PrintPreviewToolButton.SingletonPrintPreviewToolButton`
-       which allows them to send their content to the same print preview page.
-   * - :download:`scatterMask.py <../../../examples/scatterMask.py>`
-     - .. image:: img/scatterMask.png
-         :width: 150px
-     - This example demonstrates how to use ScatterMaskToolsWidget
-       and NamedScatterAlphaSlider with a PlotWidget.
    * - :download:`syncaxis.py <../../../examples/syncaxis.py>`
      - .. image:: img/syncaxis.png
          :width: 150px
      - This script is an example to illustrate how to use axis synchronization
        tool.
+   * - :download:`compositeline.py <../../../examples/compositeline.py>`
+     - .. image:: img/compositeline.png
+         :width: 150px
+     - Example to show the use of markers to draw head and tail of lines.
+   * - :download:`dropZones.py <../../../examples/dropZones.py>`
+     - .. image:: img/dropZones.png
+         :width: 150px
+     - Example of drop zone supporting application/x-silx-uri
+   * - :download:`exampleBaseline.py <../../../examples/exampleBaseline.py>`
+     - .. image:: img/exampleBaseline.png
+         :width: 150px
+     - This example illustrates some usage possible with the baseline parameter
+   * - :download:`syncPlotLocation.py <../../../examples/syncPlotLocation.py>`
+     - .. image:: img/syncPlotLocation.png
+         :width: 150px
+     - This script is an example to illustrate how to use axis synchronization
+       tool.
+
 
 .. _plot3d-sample-code:
 
@@ -299,25 +370,6 @@ Sample code that adds specific tools or functions to plot widgets.
    * - Source
      - Screenshot
      - Description
-   * - :download:`plot3dContextMenu.py <../../../examples/plot3dContextMenu.py>`
-     - .. image:: img/plot3dContextMenu.png
-         :width: 150px
-     - This script adds a context menu to a :class:`silx.gui.plot3d.ScalarFieldView`.
-
-       This is done by adding a custom context menu to the :class:`Plot3DWidget`:
-
-       - set the context menu policy to Qt.CustomContextMenu.
-       - connect to the customContextMenuRequested signal.
-
-       For more information on context menus, see Qt documentation.
-   * - :download:`viewer3DVolume.py <../../../examples/viewer3DVolume.py>`
-     - .. image:: img/viewer3DVolume.png
-         :width: 150px
-     - This script illustrates the use of :class:`silx.gui.plot3d.ScalarFieldView`.
-
-       It loads a 3D scalar data set from a file and displays iso-surfaces and
-       an interactive cutting plane.
-       It can also be started without providing a file.
    * - :download:`plot3dSceneWindow.py <../../../examples/plot3dSceneWindow.py>`
      - .. image:: img/plot3dSceneWindow.png
          :width: 150px
@@ -347,6 +399,25 @@ Sample code that adds specific tools or functions to plot widgets.
        :func:`~silx.gui.utils.concurrent.submitToQtMainThread`.
 
        In this example a thread calls submitToQtMainThread to append data to a 3D scatter.
+   * - :download:`plot3dContextMenu.py <../../../examples/plot3dContextMenu.py>`
+     - .. image:: img/plot3dContextMenu.png
+         :width: 150px
+     - This script adds a context menu to a :class:`silx.gui.plot3d.ScalarFieldView`.
+
+       This is done by adding a custom context menu to the :class:`Plot3DWidget`:
+
+       - set the context menu policy to Qt.CustomContextMenu.
+       - connect to the customContextMenuRequested signal.
+
+       For more information on context menus, see Qt documentation.
+   * - :download:`viewer3DVolume.py <../../../examples/viewer3DVolume.py>`
+     - .. image:: img/viewer3DVolume.png
+         :width: 150px
+     - This script illustrates the use of :class:`silx.gui.plot3d.ScalarFieldView`.
+
+       It loads a 3D scalar data set from a file and displays iso-surfaces and
+       an interactive cutting plane.
+       It can also be started without providing a file.
 
 
 :mod:`silx.io` sample code
@@ -363,3 +434,22 @@ Sample code that adds specific tools or functions to plot widgets.
      -
      - This script is an example of how to use the :mod:`silx.io.convert` module.
        See the following tutorial for more information: :doc:`../Tutorials/convert`
+
+
+:mod:`silx.image` sample code
++++++++++++++++++++++++++++++
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`findContours.py <../../../examples/findContours.py>`
+     - .. image:: img/findContours.png
+         :width: 150px
+     - Find contours examples
+
+       .. note:: This module has an optional dependency with sci-kit image library.
+          You might need to install it if you don't already have it.

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -466,7 +466,7 @@ class RangeSlider(qt.QWidget):
 
         :param Union[numpy.ndarray,None] profile:
             1D array of values to display
-        :param Union[Colormap,str] colormap:
+        :param Union[~silx.gui.colors.Colormap,str] colormap:
             The colormap name or object to convert profile values to colors
         """
         if profile is None:

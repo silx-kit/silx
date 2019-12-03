@@ -1323,6 +1323,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
 
     def setStats(self, statsHandler):
         """Set which stats to display and the associated formatting.
+
         :param StatsHandler statsHandler:
             Set the statistics to be displayed and how to format them using
         """
@@ -1541,12 +1542,12 @@ class BasicGridStatsWidget(qt.QWidget):
                                     only visible ones.
     :param int statsPerLine: number of statistic to be displayed per line
 
-    .. snapshotqt:: img/_BasicGridStatsWidget.png
+    .. snapshotqt:: img/BasicGridStatsWidget.png
      :width: 600px
      :align: center
 
      from silx.gui.plot import Plot1D
-     from silx.gui.plot.StatsWidget import _BasicGridStatsWidget
+     from silx.gui.plot.StatsWidget import BasicGridStatsWidget
 
      plot = Plot1D()
      x = range(100)
@@ -1554,7 +1555,7 @@ class BasicGridStatsWidget(qt.QWidget):
      plot.addCurve(x, y, legend='curve_0')
      plot.setActiveCurve('curve_0')
 
-     widget = _BasicGridStatsWidget(plot=plot, kind='curve')
+     widget = BasicGridStatsWidget(plot=plot, kind='curve')
      widget.show()
     """
 

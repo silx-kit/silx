@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,7 @@
 #
 # ###########################################################################*/
 """
-Example to show the the use of markers to draw head and tail of lines.
-
-``./bootstrap.py python examples/compositeline.py``
+Example to show the use of markers to draw head and tail of lines.
 """
 from __future__ import division
 
