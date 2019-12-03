@@ -23,6 +23,7 @@ PyOpenGL                  # For silx.gui.plot3d
 python-dateutil           # For silx.gui.plot
 scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
 Pillow                    # For silx.opencl.image.test
+Cython                    # For silx.math, silx.io, silx.image
 
 # PyQt5, PySide2 or PyQt4 # For silx.gui
 # Try to install a Qt binding from a wheel
