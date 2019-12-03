@@ -253,7 +253,7 @@ class RegionOfInterestManager(qt.QObject):
         else:
             return False
 
-    def _regionOfInterestChanged(self):
+    def _regionOfInterestChanged(self, event=None):
         """Handle ROI object changed"""
         self.sigRoiChanged.emit()
 
@@ -300,6 +300,7 @@ class RegionOfInterestManager(qt.QObject):
             roi.setColor(self.getColor())
 
         roi.sigRegionChanged.connect(self._regionOfInterestChanged)
+        roi.sigItemChanged.connect(self._regionOfInterestChanged)
 
         if index is None:
             self._rois.append(roi)
@@ -324,6 +325,7 @@ class RegionOfInterestManager(qt.QObject):
 
         self._rois.remove(roi)
         roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
+        roi.sigItemChanged.disconnect(self._regionOfInterestChanged)
         roi.setParent(None)
         self._roisUpdated()
 
@@ -823,11 +825,14 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             return
 
         if column == 0:
-            roi.setVisible(item.checkState() == qt.Qt.Checked)
-            roi.setName(item.text())
+            # First collect information from item, then update ROI
+            # Otherwise, this causes issues issues
+            checked = item.checkState() == qt.Qt.Checked
+            text= item.text()
+            roi.setVisible(checked)
+            roi.setName(text)
         elif column == 1:
-            roi.setEditable(
-                item.checkState() == qt.Qt.Checked)
+            roi.setEditable(item.checkState() == qt.Qt.Checked)
         elif column in (2, 3, 4):
             pass  # TODO
         else:
