@@ -922,6 +922,15 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         This is based on Delaunay triangulation
         """
 
+        REGULAR_GRID = 'regular grid'
+        """Display scatter plot as an image.
+
+        It expects the points to be the intersection of a regular grid,
+        and the order of points following that of an image.
+        First line, then second one, and always in the same direction
+        (either all lines from left to right or all from right to left).
+        """
+
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
 

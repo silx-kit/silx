@@ -234,6 +234,9 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
     }
     """Dict {visualization mode: property names used in this mode}"""
 
+    _SUPPORTED_SCATTER_VISUALIZATION = tuple(_VISUALIZATION_PROPERTIES.keys())
+    """Overrides supported Visualizations"""
+
     def __init__(self, parent=None):
         DataItem3D.__init__(self, parent=parent)
         ColormapMixIn.__init__(self)
