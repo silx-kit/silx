@@ -25,6 +25,9 @@
 """This module provides the :class:`Scatter` item of the :class:`Plot`.
 """
 
+from __future__ import division
+
+
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "29/03/2017"
@@ -37,10 +40,13 @@ import numpy
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, CancelledError
 
+from ....utils.proxy import docstring
+from ....math.combo import min_max
 from ....utils.weakref import WeakList
 from .._utils.delaunay import delaunay
 from .core import PointsBase, ColormapMixIn, ScatterVisualizationMixIn
 from .axis import Axis
+from ._pick import PickingResult
 
 
 _logger = logging.getLogger(__name__)
@@ -78,6 +84,52 @@ class _GreedyThreadPoolExecutor(ThreadPoolExecutor):
 
         return future
 
+# Functions to guess grid size from coordinates
+
+def get_Z_line_length(array):
+    """Return length of line if array is a Z-like 2D regular grid.
+
+    :param numpy.ndarray array: The 1D array of coordinates to check
+    :return: 0 if no line length could be found,
+        else the number of element per line.
+    :rtype: int
+    """
+    array = numpy.array(array, copy=False).reshape(-1)
+    sign = numpy.sign(numpy.diff(array))
+    ref_sign = sign[0]
+    if ref_sign == 0:  # We don't handle that
+        return 0
+    # Check this way to account for 0 sign (i.e., diff == 0)
+    beginnings = numpy.where(sign == - ref_sign)[0] + 1
+    length = beginnings[0]
+    if numpy.all(numpy.equal(numpy.diff(beginnings), length)):
+        return length
+    return 0
+
+
+def guess_Z_grid_size(x, y):
+    """Guess the size of a grid from (x, y) coordinates.
+
+    The grid might contain more elements than x and y,
+    as the last line might be partly filled.
+
+    :param numpy.ndarray x:
+    :paran numpy.ndarray y:
+    :returns: (fast dimension ('x' or 'y'), (width, height)) of the regular grid,
+        or None if could not guess one
+    :rtype: Union[List(str,int),None]
+    """
+    width = get_Z_line_length(x)
+    if width != 0:
+        height = int(numpy.ceil(len(x) / width))
+        return 'x', (width, height)
+    else:
+        height = get_Z_line_length(y)
+        if height != 0:
+            width = int(numpy.ceil(len(y) / height))
+            return 'y', (width, height)
+    return None
+
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     """Description of a scatter"""
@@ -87,7 +139,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
     _SUPPORTED_SCATTER_VISUALIZATION = (
         ScatterVisualizationMixIn.Visualization.POINTS,
-        ScatterVisualizationMixIn.Visualization.SOLID)
+        ScatterVisualizationMixIn.Visualization.SOLID,
+        ScatterVisualizationMixIn.Visualization.REGULAR_GRID,
+        )
     """Overrides supported Visualizations"""
 
     def __init__(self):
@@ -104,9 +158,15 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # Cache triangles: x, y, indices
         self.__cacheTriangles = None, None, None
+
+        # Cache regular grid info: origin, scale, size
+        self.__cacheRegularGridInfo = None
         
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
+        # Reset cache
+        self.__cacheRegularGridInfo = None
+
         # Filter-out values <= 0
         xFiltered, yFiltered, valueFiltered, xerror, yerror = self.getData(
             copy=False, displayed=True)
@@ -129,7 +189,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         # Apply mask to colors
         rgbacolors = rgbacolors[mask]
 
-        if self.getVisualization() is self.Visualization.POINTS:
+        visualization = self.getVisualization()
+
+        if visualization is self.Visualization.POINTS:
             return backend.addCurve(xFiltered, yFiltered,
                                     color=rgbacolors,
                                     symbol=self.getSymbol(),
@@ -145,7 +207,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                     symbolsize=self.getSymbolSize(),
                                     baseline=None)
 
-        else:  # 'solid'
+        elif visualization is self.Visualization.SOLID:
             plot = self.getPlot()
             if (plot is None or
                     plot.getXAxis().getScale() != Axis.LINEAR or
@@ -165,6 +227,81 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                             z=self.getZValue(),
                                             selectable=self.isSelectable(),
                                             alpha=self.getAlpha())
+
+        elif visualization is self.Visualization.REGULAR_GRID:
+            plot = self.getPlot()
+            if (plot is None or
+                    plot.getXAxis().getScale() != Axis.LINEAR or
+                    plot.getYAxis().getScale() != Axis.LINEAR):
+                # regular grid visualization is not available with log scaled axes
+                return None
+
+            guess = guess_Z_grid_size(xFiltered, yFiltered)
+            if guess is None:  # Cannot guess a regular grid
+                return None
+
+            fast_dim, (width, height) = guess
+            if fast_dim == 'y':  # Not implemented
+                return None
+
+            xMin, xMax = min_max(xFiltered)
+            yMin, yMax = min_max(yFiltered)
+            # TODO handle direction with scale
+            scale = ((xMax - xMin) / max(1, width - 1),
+                     (yMax - yMin) / max(1, height - 1))
+            origin = xMin - 0.5 * scale[0], yMin - 0.5 * scale[1]
+            self.__cacheRegularGridInfo = origin, scale, (width, height)
+
+            if len(rgbacolors) != width * height:
+                image = numpy.empty((height * width, 4), dtype=rgbacolors.dtype)
+                image[:len(rgbacolors)] = rgbacolors
+                image[len(rgbacolors):] = 0, 0, 0, 0  # Transparent pixels
+                image.shape = height, width, -1
+            else:
+                image = rgbacolors.reshape(height, width, -1)
+
+            return backend.addImage(
+                data=image,
+                origin=origin,
+                scale=scale,
+                z=self.getZValue(),
+                selectable=self.isSelectable(),
+                draggable=False,
+                colormap=None,
+                alpha=self.getAlpha())
+
+        else:
+            _logger.error("Unhandled visualization %s", visualization)
+            return None
+
+    @docstring(PointsBase)
+    def pick(self, x, y):
+        result = super(Scatter, self).pick(x, y)
+
+        # Specific handling of picking for the regular grid mode
+        if (self.getVisualization() is self.Visualization.REGULAR_GRID and
+                result is not None):
+            plot = self.getPlot()
+            if plot is None:
+                return None
+
+            dataPos = plot.pixelToData(x, y)
+            if dataPos is None:
+                return None
+
+            if self.__cacheRegularGridInfo is None:
+                return None
+
+            origin, scale, size = self.__cacheRegularGridInfo
+            column = int((dataPos[0] - origin[0]) / scale[0])
+            row = int((dataPos[1] - origin[1]) / scale[1])
+            index = row * size[0] + column
+            if index >= len(self.getXData(copy=False)):  # OK as long as not log scale
+                return None  # Image can be larger than scatter
+
+            result = PickingResult(self, (index,))
+
+        return result
 
     def __getExecutor(self):
         """Returns async greedy executor
