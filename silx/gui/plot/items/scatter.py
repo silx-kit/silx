@@ -101,6 +101,8 @@ def get_Z_line_length(array):
         return 0
     # Check this way to account for 0 sign (i.e., diff == 0)
     beginnings = numpy.where(sign == - ref_sign)[0] + 1
+    if len(beginnings) == 0:
+        return 0
     length = beginnings[0]
     if numpy.all(numpy.equal(numpy.diff(beginnings), length)):
         return length
@@ -129,6 +131,24 @@ def guess_Z_grid_size(x, y):
             width = int(numpy.ceil(len(y) / height))
             return 'y', (width, height)
     return None
+
+
+def is_monotonic(array):
+    """Returns whether array is monotonic (increasing or decreasing).
+
+    :param numpy.ndarray array: 1D array-like container.
+    :returns: 1 if array is monotonically increasing,
+       -1 if array is monotonically decreasing,
+       0 if array is not monotonic
+    :rtype: int
+    """
+    diff = numpy.diff(numpy.ravel(array))
+    if numpy.all(diff >= 0):
+        return 1
+    elif numpy.all(diff <= 0):
+        return -1
+    else:
+        return 0
 
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
@@ -236,19 +256,47 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 # regular grid visualization is not available with log scaled axes
                 return None
 
-            guess = guess_Z_grid_size(xFiltered, yFiltered)
-            if guess is None:  # Cannot guess a regular grid
-                return None
-
-            fast_dim, (width, height) = guess
-            if fast_dim == 'y':  # Not implemented
-                return None
 
             xMin, xMax = min_max(xFiltered)
             yMin, yMax = min_max(yFiltered)
+
+            guess = guess_Z_grid_size(xFiltered, yFiltered)
+            if guess is not None:
+                fast_dim, (width, height) = guess
+            else:
+                # Cannot guess a regular grid
+                # Let's assume it's a single line
+                xMonotonic = is_monotonic(xFiltered)
+                yMonotonic = is_monotonic(yFiltered)
+                if xMonotonic and not yMonotonic: # One line along x
+                    fast_dim = 'x'
+                    width, height = len(xFiltered), 1
+                elif not xMonotonic and yMonotonic: # One line along y
+                    fast_dim = 'x'  # or 'y' doesn't matter
+                    width, height = 1, len(yFiltered)
+                elif xMonotonic and yMonotonic:
+                    if xMax - xMin > yMax - yMin:  # Line along X
+                        fast_dim = 'x'
+                        width, height = len(xFiltered), 1
+                    else:  # Line along Y
+                        fast_dim = 'x'  # or 'y' doesn't matter
+                        width, height = 1, len(yFiltered)
+                else:  # no monotonic direction
+                    return None  # That's not a line
+
+            if fast_dim == 'y':  # Not implemented
+                return None
+
             # TODO handle direction with scale
             scale = ((xMax - xMin) / max(1, width - 1),
                      (yMax - yMin) / max(1, height - 1))
+            if scale[0] == 0 and scale[1] == 0:
+                scale = 1., 1.
+            elif scale[0] == 0:
+                scale = scale[1], scale[1]
+            elif scale[1] == 0:
+                scale = scale[0], scale[0]
+
             origin = xMin - 0.5 * scale[0], yMin - 0.5 * scale[1]
             self.__cacheRegularGridInfo = origin, scale, (width, height)
 
