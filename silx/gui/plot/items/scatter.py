@@ -355,6 +355,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             if guess.order == 'F':
                 image = numpy.transpose(image, axes=(1, 0, 2))
 
+            self.__cacheRegularGridInfo = guess
+
             return backend.addImage(
                 data=image,
                 origin=guess.origin,
@@ -387,10 +389,15 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             if self.__cacheRegularGridInfo is None:
                 return None
 
-            origin, scale, size = self.__cacheRegularGridInfo
+            origin = self.__cacheRegularGridInfo.origin
+            scale = self.__cacheRegularGridInfo.scale
             column = int((dataPos[0] - origin[0]) / scale[0])
             row = int((dataPos[1] - origin[1]) / scale[1])
-            index = row * size[0] + column
+
+            if self.__cacheRegularGridInfo.order == 'C':
+                index = row * self.__cacheRegularGridInfo.size[0] + column
+            else:
+                index = row + column *self.__cacheRegularGridInfo.size[1]
             if index >= len(self.getXData(copy=False)):  # OK as long as not log scale
                 return None  # Image can be larger than scatter
 
