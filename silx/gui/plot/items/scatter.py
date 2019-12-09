@@ -97,11 +97,10 @@ def get_Z_line_length(array):
     """
     array = numpy.array(array, copy=False).reshape(-1)
     sign = numpy.sign(numpy.diff(array))
-    ref_sign = sign[0]
-    if ref_sign == 0:  # We don't handle that
+    if len(sign) == 0 or sign[0] == 0:  # We don't handle that
         return 0
     # Check this way to account for 0 sign (i.e., diff == 0)
-    beginnings = numpy.where(sign == - ref_sign)[0] + 1
+    beginnings = numpy.where(sign == - sign[0])[0] + 1
     if len(beginnings) == 0:
         return 0
     length = beginnings[0]
@@ -192,7 +191,7 @@ def guess_grid(x, y):
         order = 'C'  # or 'F' doesn't matter for a single line
         y_monotonic = is_monotonic(y)
         if is_monotonic(x) or y_monotonic:  # we can guess a line
-            if not y_monotonic or x_max - x_min > y_max - y_min:
+            if not y_monotonic or x_max - x_min >= y_max - y_min:
                 # x only is monotonic or both are and X varies more
                 # line along X
                 size = len(x), 1
@@ -207,6 +206,8 @@ def guess_grid(x, y):
             return None
 
     if directions[0] == 0 or directions[1] == 0:
+        # Can happens (e.g., with a single point)
+        # Avoid further issues like scale = 0
         return None
 
     scale = ((x_max - x_min) / max(1, size[0] - 1),
@@ -312,6 +313,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
             triangulation = self._getDelaunay().result()
             if triangulation is None:
+                _logger.warning(
+                    'Cannot get a triangulation: Cannot display as solid surface')
                 return None
             else:
                 triangles = triangulation.simplices.astype(numpy.int32)
@@ -333,6 +336,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
             guess = guess_grid(xFiltered, yFiltered)
             if guess is None:
+                _logger.warning(
+                    'Cannot guess a grid: Cannot display as regular grid image')
                 return None
 
             width, height = guess.size
