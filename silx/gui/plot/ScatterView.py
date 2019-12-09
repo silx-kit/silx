@@ -79,7 +79,7 @@ class ScatterView(qt.QMainWindow):
         self._plot = weakref.ref(plot)
 
         # Add an empty scatter
-        plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
+        self.__createEmptyScatter()
 
         # Create colorbar widget with white background
         self._colorbar = ColorBarWidget(parent=self, plot=plot)
@@ -144,6 +144,21 @@ class ScatterView(qt.QMainWindow):
             self.addToolBar(toolbar)
             for action in toolbar.actions():
                 self.addAction(action)
+
+
+    def __createEmptyScatter(self):
+        """Create an empty scatter item that is used to display the data
+
+        :rtype: ~silx.gui.plot.items.Scatter
+        """
+        plot = self.getPlotWidget()
+        plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
+        scatter = plot._getItem(
+            kind='scatter', legend=self._SCATTER_LEGEND)
+        # Profile is not selectable,
+        # so it does not interfere with profile interaction
+        scatter._setSelectable(False)
+        return scatter
 
     def _pickScatterData(self, x, y):
         """Get data and index and value of top most scatter plot at position (x, y)
@@ -345,9 +360,7 @@ class ScatterView(qt.QMainWindow):
         plot = self.getPlotWidget()
         scatter = plot._getItem(kind='scatter', legend=self._SCATTER_LEGEND)
         if scatter is None:  # Resilient to call to PlotWidget API (e.g., clear)
-            plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
-            scatter = plot._getItem(
-                kind='scatter', legend=self._SCATTER_LEGEND)
+            scatter = self.__createEmptyScatter()
         return scatter
 
     # Convenient proxies
