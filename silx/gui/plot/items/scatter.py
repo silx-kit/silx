@@ -117,19 +117,30 @@ def guess_Z_grid_size(x, y):
 
     :param numpy.ndarray x:
     :paran numpy.ndarray y:
-    :returns: (fast dimension ('x' or 'y'), (width, height)) of the regular grid,
-        or None if could not guess one
+    :returns: (fast dimension ('x' or 'y'), (width, height), directions (dir x, dir y))
+        of the regular grid, or None if could not guess one.
+        direction is either 1 or -1
     :rtype: Union[List(str,int),None]
     """
     width = get_Z_line_length(x)
     if width != 0:
         height = int(numpy.ceil(len(x) / width))
-        return 'x', (width, height)
+        dir_x = numpy.sign(x[width - 1] - x[0])
+        dir_y = numpy.sign(y[-1] - y[0])
+        if dir_x == 0 or dir_y == 0:
+            return None
+        else:
+            return 'x', (width, height), (dir_x, dir_y)
     else:
         height = get_Z_line_length(y)
         if height != 0:
             width = int(numpy.ceil(len(y) / height))
-            return 'y', (width, height)
+            dir_x = numpy.sign(x[-1] - x[0])
+            dir_y = numpy.sign(y[height - 1] - y[0])
+            if dir_x == 0 or dir_y == 0:
+                return None
+            else:
+                return 'y', (width, height), (dir_x, dir_y)
     return None
 
 
@@ -256,13 +267,12 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 # regular grid visualization is not available with log scaled axes
                 return None
 
-
             xMin, xMax = min_max(xFiltered)
             yMin, yMax = min_max(yFiltered)
 
             guess = guess_Z_grid_size(xFiltered, yFiltered)
             if guess is not None:
-                fast_dim, (width, height) = guess
+                fast_dim, (width, height), (dir_x, dir_y) = guess
             else:
                 # Cannot guess a regular grid
                 # Let's assume it's a single line
@@ -271,23 +281,35 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if xMonotonic and not yMonotonic: # One line along x
                     fast_dim = 'x'
                     width, height = len(xFiltered), 1
+                    dir_x = numpy.sign(xFiltered[-1] - xFiltered[0])
+                    dir_y = 1
+                    if dir_x == 0:
+                        return None  # No direction
                 elif not xMonotonic and yMonotonic: # One line along y
                     fast_dim = 'x'  # or 'y' doesn't matter
                     width, height = 1, len(yFiltered)
+                    dir_x = 1
+                    dir_y = numpy.sign(yFiltered[-1] - yFiltered[0])
+                    if dir_y == 0:
+                        return None  # No direction
                 elif xMonotonic and yMonotonic:
                     if xMax - xMin > yMax - yMin:  # Line along X
                         fast_dim = 'x'
                         width, height = len(xFiltered), 1
+                        dir_x = numpy.sign(xFiltered[-1] - xFiltered[0])
+                        dir_y = 1
+                        if dir_x == 0:
+                            return None  # No direction
                     else:  # Line along Y
                         fast_dim = 'x'  # or 'y' doesn't matter
                         width, height = 1, len(yFiltered)
+                        dir_x = 1
+                        dir_y = numpy.sign(yFiltered[-1] - yFiltered[0])
+                        if dir_y == 0:
+                            return None  # No direction
                 else:  # no monotonic direction
                     return None  # That's not a line
 
-            if fast_dim == 'y':  # Not implemented
-                return None
-
-            # TODO handle direction with scale
             scale = ((xMax - xMin) / max(1, width - 1),
                      (yMax - yMin) / max(1, height - 1))
             if scale[0] == 0 and scale[1] == 0:
@@ -296,17 +318,25 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 scale = scale[1], scale[1]
             elif scale[1] == 0:
                 scale = scale[0], scale[0]
+            scale = dir_x * scale[0], dir_y * scale[1]
 
-            origin = xMin - 0.5 * scale[0], yMin - 0.5 * scale[1]
+            origin = ((xMin if dir_x > 0 else xMax) - 0.5 * scale[0],
+                      (yMin if dir_y > 0 else yMax) - 0.5 * scale[1])
+
             self.__cacheRegularGridInfo = origin, scale, (width, height)
 
-            if len(rgbacolors) != width * height:
-                image = numpy.empty((height * width, 4), dtype=rgbacolors.dtype)
+            dim0, dim1 = (width, height) if fast_dim == 'y' else (height, width)
+
+            if len(rgbacolors) != dim0 * dim1:
+                image = numpy.empty((dim0 * dim1, 4), dtype=rgbacolors.dtype)
                 image[:len(rgbacolors)] = rgbacolors
                 image[len(rgbacolors):] = 0, 0, 0, 0  # Transparent pixels
-                image.shape = height, width, -1
+                image.shape = dim0, dim1, -1
             else:
-                image = rgbacolors.reshape(height, width, -1)
+                image = rgbacolors.reshape(dim0, dim1, -1)
+
+            if fast_dim == 'y':
+                image = numpy.transpose(image, axes=(1, 0, 2))
 
             return backend.addImage(
                 data=image,
