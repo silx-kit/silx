@@ -922,7 +922,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         This is based on Delaunay triangulation
         """
 
-        REGULAR_GRID = 'regular grid'
+        REGULAR_GRID = 'regular_grid'
         """Display scatter plot as an image.
 
         It expects the points to be the intersection of a regular grid,
