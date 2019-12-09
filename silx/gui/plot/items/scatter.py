@@ -33,6 +33,7 @@ __license__ = "MIT"
 __date__ = "29/03/2017"
 
 
+from collections import namedtuple
 import logging
 import threading
 import numpy
@@ -117,8 +118,9 @@ def guess_Z_grid_size(x, y):
 
     :param numpy.ndarray x:
     :paran numpy.ndarray y:
-    :returns: (fast dimension ('x' or 'y'), (width, height), directions (dir x, dir y))
+    :returns: (order, (width, height), directions (dir x, dir y))
         of the regular grid, or None if could not guess one.
+        is_transposed is 'C' if 'X' (i.e., column) is the fast dimension, else 'F'
         direction is either 1 or -1
     :rtype: Union[List(str,int),None]
     """
@@ -130,7 +132,7 @@ def guess_Z_grid_size(x, y):
         if dir_x == 0 or dir_y == 0:
             return None
         else:
-            return 'x', (width, height), (dir_x, dir_y)
+            return 'C', (width, height), (dir_x, dir_y)
     else:
         height = get_Z_line_length(y)
         if height != 0:
@@ -140,7 +142,7 @@ def guess_Z_grid_size(x, y):
             if dir_x == 0 or dir_y == 0:
                 return None
             else:
-                return 'y', (width, height), (dir_x, dir_y)
+                return 'F', (width, height), (dir_x, dir_y)
     return None
 
 
@@ -160,6 +162,68 @@ def is_monotonic(array):
         return -1
     else:
         return 0
+
+
+GuessedGrid = namedtuple('GuessedGrid',
+                         ['origin', 'scale', 'size', 'order'])
+
+
+def guess_grid(x, y):
+    """Guess a regular grid from the points.
+
+    Result convention is (x, y)
+
+    :param numpy.ndarray x: X coordinates of the points
+    :param numpy.ndarray y: Y coordinates of the points
+    :returns:
+        origin: (ox, oy), scale: (sx, sy), size: (width, height), order: 'C' or 'F'
+    :rtype: Union[GuessedGrid,None]
+    """
+    x_min, x_max = min_max(x)
+    y_min, y_max = min_max(y)
+
+    guess = guess_Z_grid_size(x, y)
+    if guess is not None:
+        order, size, directions = guess
+
+    else:
+        # Cannot guess a regular grid
+        # Let's assume it's a single line
+        order = 'C'  # or 'F' doesn't matter for a single line
+        y_monotonic = is_monotonic(y)
+        if is_monotonic(x) or y_monotonic:  # we can guess a line
+            if not y_monotonic or x_max - x_min > y_max - y_min:
+                # x only is monotonic or both are and X varies more
+                # line along X
+                size = len(x), 1
+                directions = numpy.sign(x[-1] - x[0]), 1
+            else:
+                # y only is monotonic or both are and Y varies more
+                # line along Y
+                size = 1, len(y)
+                directions = 1, numpy.sign(y[-1] - y[0])
+
+        else:  # Cannot guess a line from the points
+            return None
+
+    if directions[0] == 0 or directions[1] == 0:
+        return None
+
+    scale = ((x_max - x_min) / max(1, size[0] - 1),
+             (y_max - y_min) / max(1, size[1] - 1))
+    if scale[0] == 0 and scale[1] == 0:
+        scale = 1., 1.
+    elif scale[0] == 0:
+        scale = scale[1], scale[1]
+    elif scale[1] == 0:
+        scale = scale[0], scale[0]
+    scale = directions[0] * scale[0], directions[1] * scale[1]
+
+    origin = ((x_min if directions[0] > 0 else x_max) - 0.5 * scale[0],
+              (y_min if directions[1] > 0 else y_max) - 0.5 * scale[1])
+
+    return GuessedGrid(
+        origin=origin, scale=scale, size=size, order=order)
 
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
@@ -267,67 +331,15 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 # regular grid visualization is not available with log scaled axes
                 return None
 
-            xMin, xMax = min_max(xFiltered)
-            yMin, yMax = min_max(yFiltered)
+            guess = guess_grid(xFiltered, yFiltered)
+            if guess is None:
+                return None
 
-            guess = guess_Z_grid_size(xFiltered, yFiltered)
-            if guess is not None:
-                fast_dim, (width, height), (dir_x, dir_y) = guess
-            else:
-                # Cannot guess a regular grid
-                # Let's assume it's a single line
-                xMonotonic = is_monotonic(xFiltered)
-                yMonotonic = is_monotonic(yFiltered)
-                if xMonotonic and not yMonotonic: # One line along x
-                    fast_dim = 'x'
-                    width, height = len(xFiltered), 1
-                    dir_x = numpy.sign(xFiltered[-1] - xFiltered[0])
-                    dir_y = 1
-                    if dir_x == 0:
-                        return None  # No direction
-                elif not xMonotonic and yMonotonic: # One line along y
-                    fast_dim = 'x'  # or 'y' doesn't matter
-                    width, height = 1, len(yFiltered)
-                    dir_x = 1
-                    dir_y = numpy.sign(yFiltered[-1] - yFiltered[0])
-                    if dir_y == 0:
-                        return None  # No direction
-                elif xMonotonic and yMonotonic:
-                    if xMax - xMin > yMax - yMin:  # Line along X
-                        fast_dim = 'x'
-                        width, height = len(xFiltered), 1
-                        dir_x = numpy.sign(xFiltered[-1] - xFiltered[0])
-                        dir_y = 1
-                        if dir_x == 0:
-                            return None  # No direction
-                    else:  # Line along Y
-                        fast_dim = 'x'  # or 'y' doesn't matter
-                        width, height = 1, len(yFiltered)
-                        dir_x = 1
-                        dir_y = numpy.sign(yFiltered[-1] - yFiltered[0])
-                        if dir_y == 0:
-                            return None  # No direction
-                else:  # no monotonic direction
-                    return None  # That's not a line
-
-            scale = ((xMax - xMin) / max(1, width - 1),
-                     (yMax - yMin) / max(1, height - 1))
-            if scale[0] == 0 and scale[1] == 0:
-                scale = 1., 1.
-            elif scale[0] == 0:
-                scale = scale[1], scale[1]
-            elif scale[1] == 0:
-                scale = scale[0], scale[0]
-            scale = dir_x * scale[0], dir_y * scale[1]
-
-            origin = ((xMin if dir_x > 0 else xMax) - 0.5 * scale[0],
-                      (yMin if dir_y > 0 else yMax) - 0.5 * scale[1])
-
-            self.__cacheRegularGridInfo = origin, scale, (width, height)
-
-            dim0, dim1 = (width, height) if fast_dim == 'y' else (height, width)
+            width, height = guess.size
+            dim0, dim1 = (height, width) if guess.order == 'C' else (width, height)
 
             if len(rgbacolors) != dim0 * dim1:
+                # The points do not fill the whole image
                 image = numpy.empty((dim0 * dim1, 4), dtype=rgbacolors.dtype)
                 image[:len(rgbacolors)] = rgbacolors
                 image[len(rgbacolors):] = 0, 0, 0, 0  # Transparent pixels
@@ -335,13 +347,13 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             else:
                 image = rgbacolors.reshape(dim0, dim1, -1)
 
-            if fast_dim == 'y':
+            if guess.order == 'F':
                 image = numpy.transpose(image, axes=(1, 0, 2))
 
             return backend.addImage(
                 data=image,
-                origin=origin,
-                scale=scale,
+                origin=guess.origin,
+                scale=guess.scale,
                 z=self.getZValue(),
                 selectable=self.isSelectable(),
                 draggable=False,
