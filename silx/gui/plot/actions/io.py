@@ -159,6 +159,8 @@ class SaveAction(PlotAction):
             'image': OrderedDict(),
             'scatter': OrderedDict()}
 
+        self._appendFilters = list(self.DEFAULT_APPEND_FILTERS)
+
         # Initialize filters
         for nameFilter in self.DEFAULT_ALL_FILTERS:
             self.setFileFilter(
