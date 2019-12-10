@@ -253,6 +253,25 @@ class StackView(qt.QMainWindow):
         self.__planeSelection.sigPlaneSelectionChanged.connect(
             self._plot.profile.clearProfile)
 
+    def _saveImageStack(self, plot, filename, nameFilter):
+        """Save a volume from a StackView.
+
+        :param str filename: The name of the file to write
+        :param str nameFilter: The selected name filter
+        :return: False if format is not supported or save failed,
+                 True otherwise.
+        :raises: ValueError if nameFilter is invalid
+        """
+        if not nameFilter == silx_io.IMAGE_STACK_FILTER_NXDATA:
+            raise ValueError('Wrong callback')
+        entryPath = silx_io.SaveAction._selectWriteableOutputGroup(filename, parent=self)
+        if entryPath is None:
+            return False
+        return save_NXdata(filename,
+                           nxentry_name=entryPath,
+                           signal=self.getStack(copy=False, returnNumpyArray=True)[0],
+                           signal_name="image_stack")
+
     def _addColorBarAction(self):
         self._plot.getColorBarWidget().setVisible(True)
         actions = self._plot.toolBar().actions()
