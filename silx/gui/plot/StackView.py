@@ -162,6 +162,9 @@ class StackView(qt.QMainWindow):
     This signal provides the current frame number.
     """
 
+    IMAGE_STACK_FILTER_NXDATA = 'Stack of images as NXdata (%s)' % silx_io._NEXUS_HDF5_EXT_STR
+
+
     def __init__(self, parent=None, resetzoom=True, backend=None,
                  autoScale=False, logScale=False, grid=False,
                  colormap=True, aspectRatio=True, yinverted=True,
@@ -228,7 +231,7 @@ class StackView(qt.QMainWindow):
         self._plot.getXAxis().setLabel('Columns')
         self._plot.getYAxis().setLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
-        self._plot.getSaveAction().setFileFilter('image', silx_io.SaveAction.IMAGE_STACK_FILTER_NXDATA, func=self._saveImageStack)
+        self._plot.getSaveAction().setFileFilter('image', self.IMAGE_STACK_FILTER_NXDATA, func=self._saveImageStack, appendToFile=True)
 
         self.__planeSelection = PlanesWidget(self._plot)
         self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
@@ -265,7 +268,7 @@ class StackView(qt.QMainWindow):
                  True otherwise.
         :raises: ValueError if nameFilter is invalid
         """
-        if not nameFilter == silx_io.SaveAction.IMAGE_STACK_FILTER_NXDATA:
+        if not nameFilter == self.IMAGE_STACK_FILTER_NXDATA:
             raise ValueError('Wrong callback')
         entryPath = silx_io.SaveAction._selectWriteableOutputGroup(filename, parent=self)
         if entryPath is None:

@@ -145,11 +145,9 @@ class SaveAction(PlotAction):
     SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
     DEFAULT_SCATTER_FILTERS = (SCATTER_FILTER_NXDATA,)
 
-    IMAGE_STACK_FILTER_NXDATA = 'Stack of images as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
-
     # filters for which we don't want an "overwrite existing file" warning
     DEFAULT_APPEND_FILTERS = (CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
-                              SCATTER_FILTER_NXDATA, IMAGE_STACK_FILTER_NXDATA)
+                              SCATTER_FILTER_NXDATA)
 
     def __init__(self, plot, parent=None):
         self._filters = {
