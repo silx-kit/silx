@@ -85,6 +85,8 @@ from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.gui.plot.actions import control as actions_control
+from silx.gui.plot.actions import io as silx_io
+from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
 from silx.utils.deprecation import deprecated_warning
@@ -160,6 +162,9 @@ class StackView(qt.QMainWindow):
     This signal provides the current frame number.
     """
 
+    IMAGE_STACK_FILTER_NXDATA = 'Stack of images as NXdata (%s)' % silx_io._NEXUS_HDF5_EXT_STR
+
+
     def __init__(self, parent=None, resetzoom=True, backend=None,
                  autoScale=False, logScale=False, grid=False,
                  colormap=True, aspectRatio=True, yinverted=True,
@@ -226,6 +231,7 @@ class StackView(qt.QMainWindow):
         self._plot.getXAxis().setLabel('Columns')
         self._plot.getYAxis().setLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
+        self._plot.getSaveAction().setFileFilter('image', self.IMAGE_STACK_FILTER_NXDATA, func=self._saveImageStack, appendToFile=True)
 
         self.__planeSelection = PlanesWidget(self._plot)
         self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
@@ -252,6 +258,25 @@ class StackView(qt.QMainWindow):
             self._plot.profile.getProfilePlot().clear)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
             self._plot.profile.clearProfile)
+
+    def _saveImageStack(self, plot, filename, nameFilter):
+        """Save all images from the stack into a volume.
+
+        :param str filename: The name of the file to write
+        :param str nameFilter: The selected name filter
+        :return: False if format is not supported or save failed,
+                 True otherwise.
+        :raises: ValueError if nameFilter is invalid
+        """
+        if not nameFilter == self.IMAGE_STACK_FILTER_NXDATA:
+            raise ValueError('Wrong callback')
+        entryPath = silx_io.SaveAction._selectWriteableOutputGroup(filename, parent=self)
+        if entryPath is None:
+            return False
+        return save_NXdata(filename,
+                           nxentry_name=entryPath,
+                           signal=self.getStack(copy=False, returnNumpyArray=True)[0],
+                           signal_name="image_stack")
 
     def _addColorBarAction(self):
         self._plot.getColorBarWidget().setVisible(True)
