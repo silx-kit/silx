@@ -87,7 +87,7 @@ class _GreedyThreadPoolExecutor(ThreadPoolExecutor):
 
 # Functions to guess grid size from coordinates
 
-def get_Z_line_length(array):
+def _get_z_line_length(array):
     """Return length of line if array is a Z-like 2D regular grid.
 
     :param numpy.ndarray array: The 1D array of coordinates to check
@@ -109,7 +109,7 @@ def get_Z_line_length(array):
     return 0
 
 
-def guess_Z_grid_size(x, y):
+def _guess_z_grid_size(x, y):
     """Guess the size of a grid from (x, y) coordinates.
 
     The grid might contain more elements than x and y,
@@ -123,7 +123,7 @@ def guess_Z_grid_size(x, y):
         direction is either 1 or -1
     :rtype: Union[List(str,int),None]
     """
-    width = get_Z_line_length(x)
+    width = _get_z_line_length(x)
     if width != 0:
         height = int(numpy.ceil(len(x) / width))
         dir_x = numpy.sign(x[width - 1] - x[0])
@@ -133,7 +133,7 @@ def guess_Z_grid_size(x, y):
         else:
             return 'C', (width, height), (dir_x, dir_y)
     else:
-        height = get_Z_line_length(y)
+        height = _get_z_line_length(y)
         if height != 0:
             width = int(numpy.ceil(len(y) / height))
             dir_x = numpy.sign(x[-1] - x[0])
@@ -167,7 +167,7 @@ GuessedGrid = namedtuple('GuessedGrid',
                          ['origin', 'scale', 'size', 'order'])
 
 
-def guess_grid(x, y):
+def _guess_grid(x, y):
     """Guess a regular grid from the points.
 
     Result convention is (x, y)
@@ -181,7 +181,7 @@ def guess_grid(x, y):
     x_min, x_max = min_max(x)
     y_min, y_max = min_max(y)
 
-    guess = guess_Z_grid_size(x, y)
+    guess = _guess_z_grid_size(x, y)
     if guess is not None:
         order, size, directions = guess
 
@@ -334,7 +334,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 # regular grid visualization is not available with log scaled axes
                 return None
 
-            guess = guess_grid(xFiltered, yFiltered)
+            guess = _guess_grid(xFiltered, yFiltered)
             if guess is None:
                 _logger.warning(
                     'Cannot guess a grid: Cannot display as regular grid image')
