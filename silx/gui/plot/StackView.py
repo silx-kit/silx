@@ -85,6 +85,8 @@ from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx.gui.plot.actions import control as actions_control
+from silx.gui.plot.actions import io as silx_io
+from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
 from silx.utils.deprecation import deprecated_warning
@@ -226,6 +228,7 @@ class StackView(qt.QMainWindow):
         self._plot.getXAxis().setLabel('Columns')
         self._plot.getYAxis().setLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
+        self._plot.getSaveAction().setFileFilter('image', silx_io.IMAGE_STACK_FILTER_NXDATA, func=self._saveImageStack)
 
         self.__planeSelection = PlanesWidget(self._plot)
         self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
