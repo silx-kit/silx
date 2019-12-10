@@ -613,7 +613,7 @@ class SaveAction(PlotAction):
         def onFilterSelection(filt_):
             # disable overwrite confirmation for NXdata types,
             # because we append the data to existing files
-            if filt_ in self.DEFAULT_APPEND_FILTERS:
+            if filt_ in self._appendFilters:
                 dialog.setOption(dialog.DontConfirmOverwrite)
             else:
                 dialog.setOption(dialog.DontConfirmOverwrite, False)
