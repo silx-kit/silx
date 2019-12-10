@@ -185,10 +185,11 @@ class SaveAction(PlotAction):
         self.setShortcut(qt.QKeySequence.Save)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
-    def _errorMessage(self, informativeText=''):
+    @staticmethod
+    def _errorMessage(informativeText='', parent=None):
         """Display an error message."""
         # TODO issue with QMessageBox size fixed and too small
-        msg = qt.QMessageBox(self.plot)
+        msg = qt.QMessageBox(parent)
         msg.setIcon(qt.QMessageBox.Critical)
         msg.setInformativeText(informativeText + ' ' + str(sys.exc_info()[1]))
         msg.setDetailedText(traceback.format_exc())
@@ -220,7 +221,8 @@ class SaveAction(PlotAction):
         ylabel = item.getYLabel() or self.plot.getYAxis().getLabel()
         return xlabel, ylabel
 
-    def _selectWriteableOutputGroup(self, filename):
+    @staticmethod
+    def _selectWriteableOutputGroup(filename, parent):
         if os.path.exists(filename) and os.path.isfile(filename) \
                 and os.access(filename, os.W_OK):
             entryPath = selectOutputGroup(filename)
@@ -232,11 +234,11 @@ class SaveAction(PlotAction):
             # create new entry in new file
             return "/entry"
         else:
-            self._errorMessage('Save failed (file access issue)\n')
+            self._errorMessage('Save failed (file access issue)\n', parent=parent)
             return None
 
     def _saveCurveAsNXdata(self, curve, filename):
-        entryPath = self._selectWriteableOutputGroup(filename)
+        entryPath = self._selectWriteableOutputGroup(filename, parent=self.plot)
         if entryPath is None:
             return False
 
@@ -273,7 +275,7 @@ class SaveAction(PlotAction):
         if curve is None:
             curves = plot.getAllCurves()
             if not curves:
-                self._errorMessage("No curve to be saved")
+                self._errorMessage("No curve to be saved", parent=self.plot)
                 return False
             curve = curves[0]
 
@@ -299,7 +301,7 @@ class SaveAction(PlotAction):
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
-            self._errorMessage('Save failed\n')
+            self._errorMessage('Save failed\n', parent=self.plot)
             return False
 
         return True
@@ -317,7 +319,7 @@ class SaveAction(PlotAction):
 
         curves = plot.getAllCurves()
         if not curves:
-            self._errorMessage("No curves to be saved")
+            self._errorMessage("No curves to be saved", parent=self.plot)
             return False
 
         curve = curves[0]
@@ -334,7 +336,7 @@ class SaveAction(PlotAction):
                                 write_file_header=True,
                                 close_file=False)
         except IOError:
-            self._errorMessage('Save failed\n')
+            self._errorMessage('Save failed\n', parent=self.plot)
             return False
 
         for curve in curves[1:]:
@@ -351,7 +353,7 @@ class SaveAction(PlotAction):
                                     write_file_header=False,
                                     close_file=False)
             except IOError:
-                self._errorMessage('Save failed\n')
+                self._errorMessage('Save failed\n', parent=self.plot)
                 return False
         specfile.close()
 
@@ -391,12 +393,12 @@ class SaveAction(PlotAction):
             try:
                 numpy.save(filename, data)
             except IOError:
-                self._errorMessage('Save failed\n')
+                self._errorMessage('Save failed\n', parent=self.plot)
                 return False
             return True
 
         elif nameFilter == self.IMAGE_FILTER_NXDATA:
-            entryPath = self._selectWriteableOutputGroup(filename)
+            entryPath = self._selectWriteableOutputGroup(filename, parent=self.plot)
             if entryPath is None:
                 return False
             xorigin, yorigin = image.getOrigin()
@@ -438,7 +440,7 @@ class SaveAction(PlotAction):
                        autoheader=True)
 
             except IOError:
-                self._errorMessage('Save failed\n')
+                self._errorMessage('Save failed\n', parent=self.plot)
                 return False
             return True
 
@@ -471,7 +473,7 @@ class SaveAction(PlotAction):
             return False
 
         if nameFilter == self.SCATTER_FILTER_NXDATA:
-            entryPath = self._selectWriteableOutputGroup(filename)
+            entryPath = self._selectWriteableOutputGroup(filename, parent=self.plot)
             if entryPath is None:
                 return False
             scatter = plot.getScatter()
