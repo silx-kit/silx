@@ -237,7 +237,7 @@ class SaveAction(PlotAction):
             # create new entry in new file
             return "/entry"
         else:
-            self._errorMessage('Save failed (file access issue)\n', parent=parent)
+            SaveAction._errorMessage('Save failed (file access issue)\n', parent=parent)
             return None
 
     def _saveCurveAsNXdata(self, curve, filename):
