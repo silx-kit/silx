@@ -131,6 +131,7 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
     IMAGE_FILTER_NXDATA = 'Image as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
+
     DEFAULT_IMAGE_FILTERS = (IMAGE_FILTER_EDF,
                              IMAGE_FILTER_TIFF,
                              IMAGE_FILTER_NUMPY,
@@ -144,9 +145,11 @@ class SaveAction(PlotAction):
     SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
     DEFAULT_SCATTER_FILTERS = (SCATTER_FILTER_NXDATA,)
 
+    IMAGE_STACK_FILTER_NXDATA = 'Stack of images as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
+
     # filters for which we don't want an "overwrite existing file" warning
     DEFAULT_APPEND_FILTERS = (CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
-                              SCATTER_FILTER_NXDATA)
+                              SCATTER_FILTER_NXDATA, IMAGE_STACK_FILTER_NXDATA)
 
     def __init__(self, plot, parent=None):
         self._filters = {
