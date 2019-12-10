@@ -257,7 +257,7 @@ class StackView(qt.QMainWindow):
             self._plot.profile.clearProfile)
 
     def _saveImageStack(self, plot, filename, nameFilter):
-        """Save a volume from a StackView.
+        """Save all images from the stack into a volume.
 
         :param str filename: The name of the file to write
         :param str nameFilter: The selected name filter
