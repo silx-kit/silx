@@ -228,7 +228,7 @@ class StackView(qt.QMainWindow):
         self._plot.getXAxis().setLabel('Columns')
         self._plot.getYAxis().setLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
-        self._plot.getSaveAction().setFileFilter('image', silx_io.IMAGE_STACK_FILTER_NXDATA, func=self._saveImageStack)
+        self._plot.getSaveAction().setFileFilter('image', silx_io.SaveAction.IMAGE_STACK_FILTER_NXDATA, func=self._saveImageStack)
 
         self.__planeSelection = PlanesWidget(self._plot)
         self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
@@ -265,7 +265,7 @@ class StackView(qt.QMainWindow):
                  True otherwise.
         :raises: ValueError if nameFilter is invalid
         """
-        if not nameFilter == silx_io.IMAGE_STACK_FILTER_NXDATA:
+        if not nameFilter == silx_io.SaveAction.IMAGE_STACK_FILTER_NXDATA:
             raise ValueError('Wrong callback')
         entryPath = silx_io.SaveAction._selectWriteableOutputGroup(filename, parent=self)
         if entryPath is None:
