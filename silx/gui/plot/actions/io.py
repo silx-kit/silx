@@ -509,7 +509,7 @@ class SaveAction(PlotAction):
                 axes_errors=[xerror, yerror],
                 title=plot.getGraphTitle())
 
-    def setFileFilter(self, dataKind, nameFilter, func, index=None):
+    def setFileFilter(self, dataKind, nameFilter, func, index=None, appendToFile=False):
         """Set a name filter to add/replace a file format support
 
         :param str dataKind:
@@ -520,9 +520,14 @@ class SaveAction(PlotAction):
         :param callable func: The function to call to perform saving.
             Expected signature is:
             bool func(PlotWidget plot, str filename, str nameFilter)
+        :param bool appendToFile: True to append the data into the selected
+            file.
         :param integer index: Index of the filter in the final list (or None)
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
+
+        if appendToFile:
+            self._appendFilters.append(nameFilter)
 
         # first append or replace the new filter to prevent colissions
         self._filters[dataKind][nameFilter] = func
