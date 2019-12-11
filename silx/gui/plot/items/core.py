@@ -1007,15 +1007,15 @@ class ScatterVisualizationMixIn(ItemMixInBase):
     def setVisualizationParameter(self, parameter, value=None):
         """Set the given visualization parameter.
 
-        :param parameter: The name of the parameter to set
+        :param Union[str,VisualizationParameter] parameter:
+            The name of the parameter to set
         :param value: The value to use for this parameter
             Set to None to automatically set the parameter
         :raises ValueError: If parameter is not supported
         :return: True if parameter was set, False if is was already set
         :rtype: bool
         """
-        if parameter not in self.VisualizationParameter:
-            raise ValueError("parameter not supported: %s", parameter)
+        parameter = self.VisualizationParameter.from_value(parameter)
 
         if self.__parameters[parameter] != value:
             self.__parameters[parameter] = value
