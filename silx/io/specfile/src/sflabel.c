@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 1995-2017 European Synchrotron Radiation Facility
+# Copyright (C) 1995-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -468,7 +468,7 @@ SfAllMotorPos ( SpecFile *sf, long index, double **retpos, int *error )
 
      double *posarr;
 
-     static double pos[200];
+     static double pos[300];
      static char   posstr[40];
 
      char  *ptr;
