@@ -35,6 +35,7 @@ import unittest
 from . import test_async
 from . import test_image
 from . import test_qtutils
+from . import test_testutils
 from . import test
 
 
@@ -45,6 +46,7 @@ def suite():
     test_suite.addTest(test_async.suite())
     test_suite.addTest(test_image.suite())
     test_suite.addTest(test_qtutils.suite())
+    test_suite.addTest(test_testutils.suite())
     return test_suite
 
 

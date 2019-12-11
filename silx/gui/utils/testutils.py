@@ -155,7 +155,9 @@ class TestCaseQt(unittest.TestCase):
         if hasattr(self, '_outcome'):
             # For Python >= 3.4
             result = self.defaultTestResult()  # these 2 methods have no side effects
-            self._feedErrorsToResult(result, self._outcome.errors)
+            outcome = self._outcome
+            if outcome is not None:
+                self._feedErrorsToResult(result, outcome.errors)
         else:
             # For Python < 3.4
             result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
