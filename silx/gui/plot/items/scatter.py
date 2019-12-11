@@ -85,6 +85,7 @@ class _GreedyThreadPoolExecutor(ThreadPoolExecutor):
 
         return future
 
+
 # Functions to guess grid size from coordinates
 
 def _get_z_line_length(array):
@@ -95,7 +96,6 @@ def _get_z_line_length(array):
         else the number of element per line.
     :rtype: int
     """
-    array = numpy.array(array, copy=False).reshape(-1)
     sign = numpy.sign(numpy.diff(array))
     if len(sign) == 0 or sign[0] == 0:  # We don't handle that
         return 0
@@ -117,31 +117,18 @@ def _guess_z_grid_size(x, y):
 
     :param numpy.ndarray x:
     :paran numpy.ndarray y:
-    :returns: (order, (width, height), directions (dir x, dir y))
-        of the regular grid, or None if could not guess one.
-        is_transposed is 'C' if 'X' (i.e., column) is the fast dimension, else 'F'
-        direction is either 1 or -1
+    :returns: (order, (width, height)) of the regular grid,
+        or None if could not guess one.
+        'order' is 'C' if 'X' (i.e., column) is the fast dimension, else 'F'.
     :rtype: Union[List(str,int),None]
     """
     width = _get_z_line_length(x)
     if width != 0:
-        height = int(numpy.ceil(len(x) / width))
-        dir_x = numpy.sign(x[width - 1] - x[0])
-        dir_y = numpy.sign(y[-1] - y[0])
-        if dir_x == 0 or dir_y == 0:
-            return None
-        else:
-            return 'C', (width, height), (dir_x, dir_y)
+        return 'C', (width, int(numpy.ceil(len(x) / width)))
     else:
         height = _get_z_line_length(y)
         if height != 0:
-            width = int(numpy.ceil(len(y) / height))
-            dir_x = numpy.sign(x[-1] - x[0])
-            dir_y = numpy.sign(y[height - 1] - y[0])
-            if dir_x == 0 or dir_y == 0:
-                return None
-            else:
-                return 'F', (width, height), (dir_x, dir_y)
+            return 'F', (int(numpy.ceil(len(y) / height)), height)
     return None
 
 
@@ -163,10 +150,6 @@ def is_monotonic(array):
         return 0
 
 
-GuessedGrid = namedtuple('GuessedGrid',
-                         ['origin', 'scale', 'size', 'order'])
-
-
 def _guess_grid(x, y):
     """Guess a regular grid from the points.
 
@@ -174,16 +157,15 @@ def _guess_grid(x, y):
 
     :param numpy.ndarray x: X coordinates of the points
     :param numpy.ndarray y: Y coordinates of the points
-    :returns:
-        origin: (ox, oy), scale: (sx, sy), size: (width, height), order: 'C' or 'F'
-    :rtype: Union[GuessedGrid,None]
+    :returns: (order, (width, height)
+        order is 'C' or 'F'
+    :rtype: Union[List[str,List[int]],None]
     """
-    x_min, x_max = min_max(x)
-    y_min, y_max = min_max(y)
+    x, y = numpy.ravel(x), numpy.ravel(y)
 
     guess = _guess_z_grid_size(x, y)
     if guess is not None:
-        order, size, directions = guess
+        return guess
 
     else:
         # Cannot guess a regular grid
@@ -191,40 +173,26 @@ def _guess_grid(x, y):
         order = 'C'  # or 'F' doesn't matter for a single line
         y_monotonic = is_monotonic(y)
         if is_monotonic(x) or y_monotonic:  # we can guess a line
+            x_min, x_max = min_max(x)
+            y_min, y_max = min_max(y)
+
             if not y_monotonic or x_max - x_min >= y_max - y_min:
                 # x only is monotonic or both are and X varies more
                 # line along X
                 size = len(x), 1
-                directions = numpy.sign(x[-1] - x[0]), 1
             else:
                 # y only is monotonic or both are and Y varies more
                 # line along Y
                 size = 1, len(y)
-                directions = 1, numpy.sign(y[-1] - y[0])
 
         else:  # Cannot guess a line from the points
             return None
 
-    if directions[0] == 0 or directions[1] == 0:
-        # Can happens (e.g., with a single point)
-        # Avoid further issues like scale = 0
-        return None
+    return order, size
 
-    scale = ((x_max - x_min) / max(1, size[0] - 1),
-             (y_max - y_min) / max(1, size[1] - 1))
-    if scale[0] == 0 and scale[1] == 0:
-        scale = 1., 1.
-    elif scale[0] == 0:
-        scale = scale[1], scale[1]
-    elif scale[1] == 0:
-        scale = scale[0], scale[0]
-    scale = directions[0] * scale[0], directions[1] * scale[1]
 
-    origin = ((x_min if directions[0] > 0 else x_max) - 0.5 * scale[0],
-              (y_min if directions[1] > 0 else y_max) - 0.5 * scale[1])
-
-    return GuessedGrid(
-        origin=origin, scale=scale, size=size, order=order)
+_RegularGridInfo = namedtuple(
+    '_RegularGridInfo', ['bounds', 'origin', 'scale', 'size', 'order'])
 
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
@@ -255,14 +223,87 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         # Cache triangles: x, y, indices
         self.__cacheTriangles = None, None, None
 
-        # Cache regular grid info: origin, scale, size
-        self.__cacheRegularGridInfo = None
-        
-    def _addBackendRenderer(self, backend):
-        """Update backend renderer"""
-        # Reset cache
+        # Cache regular grid info
         self.__cacheRegularGridInfo = None
 
+    @docstring(ScatterVisualizationMixIn)
+    def setVisualizationParameter(self, parameter, value):
+        changed = super(Scatter, self).setVisualizationParameter(parameter, value)
+        if changed and parameter in (self.VisualizationParameter.GRID_BOUNDS,
+                                     self.VisualizationParameter.GRID_ORDER,
+                                     self.VisualizationParameter.GRID_SIZE):
+            self.__cacheRegularGridInfo = None
+        return changed
+
+    @docstring(ScatterVisualizationMixIn)
+    def getCurrentVisualizationParameter(self, parameter):
+        value = self.getVisualizationParameter(parameter)
+        if value is not None:
+            return value  # Value has been set, return it
+
+        elif parameter is self.VisualizationParameter.GRID_BOUNDS:
+            grid = self.__getRegularGridInfo()
+            return None if grid is None else grid.bounds
+        
+        elif parameter is self.VisualizationParameter.GRID_ORDER:
+            grid = self.__getRegularGridInfo()
+            return None if grid is None else grid.order
+
+        elif parameter is self.VisualizationParameter.GRID_SIZE:
+            grid = self.__getRegularGridInfo()
+            return None if grid is None else grid.size
+
+        else:
+            raise NotImplementedError()
+
+    def __getRegularGridInfo(self):
+        """Get grid info"""
+        if self.__cacheRegularGridInfo is None:
+            size = self.getVisualizationParameter(
+                self.VisualizationParameter.GRID_SIZE)
+            order = self.getVisualizationParameter(
+                self.VisualizationParameter.GRID_ORDER)
+            if size is None or order is None:
+                guess = _guess_grid(self.getXData(copy=False),
+                                    self.getYData(copy=False))
+                if guess is None:
+                    _logger.warning(
+                        'Cannot guess a grid: Cannot display as regular grid image')
+                    return None
+                if size is None:
+                    size = guess[1]
+                if order is None:
+                    order = guess[0]
+
+            bounds = self.getVisualizationParameter(
+                self.VisualizationParameter.GRID_BOUNDS)
+            if bounds is None:
+                x, y = self.getXData(copy=False), self.getYData(copy=False)
+                min_, max_ = min_max(x)
+                xRange = (min_, max_) if (x[0] - min_) < (max_ - x[0]) else (max_, min_)
+                min_, max_ = min_max(y)
+                yRange = (min_, max_) if (y[0] - min_) < (max_ - y[0]) else (max_, min_)
+                bounds = (xRange[0], yRange[0]), (xRange[1], yRange[1])
+
+            begin, end = bounds
+            scale = ((end[0] - begin[0]) / max(1, size[0] - 1),
+                     (end[1] - begin[1]) / max(1, size[1] - 1))
+            if scale[0] == 0 and scale[1] == 0:
+                scale = 1., 1.
+            elif scale[0] == 0:
+                scale = scale[1], scale[1]
+            elif scale[1] == 0:
+                scale = scale[0], scale[0]
+
+            origin = begin[0] - 0.5 * scale[0], begin[1] - 0.5 * scale[1]
+
+            self.__cacheRegularGridInfo = _RegularGridInfo(
+                bounds=bounds, origin=origin, scale=scale, size=size, order=order)
+
+        return self.__cacheRegularGridInfo
+
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
         # Filter-out values <= 0
         xFiltered, yFiltered, valueFiltered, xerror, yerror = self.getData(
             copy=False, displayed=True)
@@ -334,33 +375,30 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 # regular grid visualization is not available with log scaled axes
                 return None
 
-            guess = _guess_grid(xFiltered, yFiltered)
-            if guess is None:
-                _logger.warning(
-                    'Cannot guess a grid: Cannot display as regular grid image')
+            gridInfo = self.__getRegularGridInfo()
+            if gridInfo is None:
                 return None
 
-            width, height = guess.size
-            dim0, dim1 = (height, width) if guess.order == 'C' else (width, height)
+            dim1, dim0 = gridInfo.size
+            if gridInfo.order == 'F':  # transposition needed
+                dim0, dim1 = dim1, dim0
 
-            if len(rgbacolors) != dim0 * dim1:
+            if len(rgbacolors) == dim0 * dim1:
+                image = rgbacolors.reshape(dim0, dim1, -1)
+            else:
                 # The points do not fill the whole image
                 image = numpy.empty((dim0 * dim1, 4), dtype=rgbacolors.dtype)
                 image[:len(rgbacolors)] = rgbacolors
                 image[len(rgbacolors):] = 0, 0, 0, 0  # Transparent pixels
                 image.shape = dim0, dim1, -1
-            else:
-                image = rgbacolors.reshape(dim0, dim1, -1)
 
-            if guess.order == 'F':
+            if gridInfo.order == 'F':
                 image = numpy.transpose(image, axes=(1, 0, 2))
-
-            self.__cacheRegularGridInfo = guess
 
             return backend.addImage(
                 data=image,
-                origin=guess.origin,
-                scale=guess.scale,
+                origin=gridInfo.origin,
+                scale=gridInfo.scale,
                 z=self.getZValue(),
                 selectable=self.isSelectable(),
                 draggable=False,
@@ -386,18 +424,19 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             if dataPos is None:
                 return None
 
-            if self.__cacheRegularGridInfo is None:
+            gridInfo = self.__getRegularGridInfo()
+            if gridInfo is None:
                 return None
 
-            origin = self.__cacheRegularGridInfo.origin
-            scale = self.__cacheRegularGridInfo.scale
+            origin = gridInfo.origin
+            scale = gridInfo.scale
             column = int((dataPos[0] - origin[0]) / scale[0])
             row = int((dataPos[1] - origin[1]) / scale[1])
 
-            if self.__cacheRegularGridInfo.order == 'C':
-                index = row * self.__cacheRegularGridInfo.size[0] + column
+            if gridInfo.order == 'C':
+                index = row * gridInfo.size[0] + column
             else:
-                index = row + column *self.__cacheRegularGridInfo.size[1]
+                index = row + column * gridInfo.size[1]
             if index >= len(self.getXData(copy=False)):  # OK as long as not log scale
                 return None  # Image can be larger than scatter
 
@@ -596,6 +635,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         if self.__interpolatorFuture is not None:
             self.__interpolatorFuture.cancel()
             self.__interpolatorFuture = None
+
+        # Data changed, this needs update
+        self.__cacheRegularGridInfo = None
 
         self._value = value
 

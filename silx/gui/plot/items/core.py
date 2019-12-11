@@ -931,8 +931,36 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         (either all lines from left to right or all from right to left).
         """
 
+    @enum.unique
+    class VisualizationParameter(_Enum):
+        """Different parameter names for scatter plot visualizations"""
+
+        GRID_ORDER = 'grid_order'
+        """The order of points in the regular grid (row or colunm major).
+
+        Either 'C' (row-major) or 'F' (column-major) as for numpy array contiguity.
+        """
+
+        GRID_BOUNDS = 'grid_bounds'
+        """The expected range in data coordinates of the regular grid.
+
+        A 2-tuple of 2-tuple: (begin (x, y), end (x, y)).
+        This provides the data coordinates of the first point and the expected
+        last on.
+        As for `GRID_SIZE`, this can be wider than the current data.
+        """
+
+        GRID_SIZE = 'grid_size'
+        """The expected size of the regular grid (width, height).
+
+        The given size can be wider than the number of points,
+        in which case the grid is not fully filled.
+        """
+
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
+        self.__parameters = dict(  # Init parameters to None
+            (parameter, None) for parameter in self.VisualizationParameter)
 
     @classmethod
     def supportedVisualizations(cls):
@@ -975,6 +1003,54 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         :rtype: Visualization
         """
         return self.__visualization
+
+    def setVisualizationParameter(self, parameter, value=None):
+        """Set the given visualization parameter.
+
+        :param parameter: The name of the parameter to set
+        :param value: The value to use for this parameter
+            Set to None to automatically set the parameter
+        :raises ValueError: If parameter is not supported
+        :return: True if parameter was set, False if is was already set
+        :rtype: bool
+        """
+        if parameter not in self.VisualizationParameter:
+            raise ValueError("parameter not supported: %s", parameter)
+
+        if self.__parameters[parameter] != value:
+            self.__parameters[parameter] = value
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+            return True
+        return False
+
+    def getVisualizationParameter(self, parameter):
+        """Returns the value of the given visualization parameter.
+
+        This method returns the parameter as set by
+        :meth:`setVisualizationParameter`.
+
+        :param parameter: The name of the parameter to retrieve
+        :returns: The value previously set or None if automatically set
+        :raises ValueError: If parameter is not supported
+        """
+        if parameter not in self.VisualizationParameter:
+            raise ValueError("parameter not supported: %s", parameter)
+
+        return self.__parameters[parameter]
+
+    def getCurrentVisualizationParameter(self, parameter):
+        """Returns the current value of the given visualization parameter.
+
+        If the parameter was set by :meth:`setVisualizationParameter` to
+        a value that is not None, this value is returned;
+        else the current value that is automatically computed is returned.
+
+        :param parameter: The name of the parameter to retrieve
+        :returns: The current value (either set or automatically computed)
+        :raises ValueError: If parameter is not supported
+        """
+        # Override in subclass to provide automatically computed parameters
+        return self.getVisualizationParameter(parameter)
 
 
 class PointsBase(Item, SymbolMixIn, AlphaMixIn):
