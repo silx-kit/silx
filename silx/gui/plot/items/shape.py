@@ -175,7 +175,7 @@ class BoundingRect(Item, YAxisMixIn):
         if event in (ItemChangedType.YAXIS,
                      ItemChangedType.VISIBLE,
                      ItemChangedType.DATA):
-            # TODO hackish data range implementatio
+            # TODO hackish data range implementation
             plot = self.getPlot()
             if plot is not None:
                 plot._invalidateDataRange()
