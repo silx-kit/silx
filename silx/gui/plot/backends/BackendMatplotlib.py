@@ -1313,7 +1313,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # being the top one.
             dists = ((triangulation.x[indices] - x) ** 2 +
                      (triangulation.y[indices] - y) ** 2)
-            return indices[numpy.flip(numpy.argsort(dists))]
+            return indices[numpy.flip(numpy.argsort(dists), axis=0)]
 
         else:  # Returns indices if any
             return info.get('ind', ())
