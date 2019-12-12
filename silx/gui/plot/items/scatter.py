@@ -495,7 +495,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 gridcolors = numpy.empty(
                     (4 * nbpoints, rgbacolors.shape[-1]), dtype=rgbacolors.dtype)
                 for first in range(4):
-                    gridcolors[first::4] = rgbacolors
+                    gridcolors[first::4] = rgbacolors[:nbpoints]
 
                 return backend.addTriangles(coords[:, 0],
                                             coords[:, 1],
