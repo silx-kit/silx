@@ -189,6 +189,8 @@ class BoundingRect(Item, YAxisMixIn):
         """
         if rect is not None:
             rect = float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])
+            assert rect[0] <= rect[1]
+            assert rect[2] <= rect[3]
 
         if rect != self.__bounds:
             self.__bounds = rect

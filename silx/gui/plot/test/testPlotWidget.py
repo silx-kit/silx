@@ -1304,6 +1304,12 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         limits = numpy.array(self.plot.getYAxis("right").getLimits())
         numpy.testing.assert_almost_equal(limits, numpy.array([-2000, 2000]))
 
+    def testBoundingRectArguments(self):
+        item = BoundingRect()
+        with self.assertRaises(Exception):
+            item.setBounds((1000, -1000, -2000, 2000))
+        with self.assertRaises(Exception):
+            item.setBounds((-1000, 1000, 2000, -2000))
 
 
 class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
