@@ -169,14 +169,30 @@ class BoundingRect(Item, YAxisMixIn):
     def __init__(self):
         Item.__init__(self)
         YAxisMixIn.__init__(self)
-        self._bound = None
+        self.__bounds = None
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in (ItemChangedType.YAXIS,
+                     ItemChangedType.VISIBLE,
+                     ItemChangedType.DATA):
+            # TODO hackish data range implementatio
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+        super(BoundingRect, self)._updated(event, checkVisibility)
 
     def setBounds(self, rect):
         """Set the bounding box of this item in data coordinates
 
-        :param rect: (xmin, xmax, ymin, ymax) or None
+        :param Union[None,List[float]] rect: (xmin, xmax, ymin, ymax) or None
         """
-        self._bound = rect
+        if rect is not None:
+            rect = float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])
+
+        if rect != self.__bounds:
+            self.__bounds = rect
+            self._updated(ItemChangedType.DATA)
 
     def _getBounds(self):
-        return self._bound
+        return self.__bounds
