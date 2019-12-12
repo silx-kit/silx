@@ -1311,6 +1311,25 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         with self.assertRaises(Exception):
             item.setBounds((-1000, 1000, 2000, -2000))
 
+    def testBoundingRectWithLog(self):
+        item = BoundingRect()
+        self.plot._add(item)
+
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(True)
+        self.plot.getYAxis()._setLogarithmic(False)
+        self.assertEqual(item.getBounds(), (1000, 1000, -2000, 2000))
+
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(False)
+        self.plot.getYAxis()._setLogarithmic(True)
+        self.assertEqual(item.getBounds(), (-1000, 1000, 2000, 2000))
+
+        item.setBounds((-1000, 0, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(True)
+        self.plot.getYAxis()._setLogarithmic(False)
+        self.assertIsNone(item.getBounds())
+
 
 class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""

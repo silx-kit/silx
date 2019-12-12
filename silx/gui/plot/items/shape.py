@@ -197,4 +197,20 @@ class BoundingRect(Item, YAxisMixIn):
             self._updated(ItemChangedType.DATA)
 
     def _getBounds(self):
+        plot = self.getPlot()
+        if plot is not None:
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
+            if xPositive or yPositive:
+                bounds = list(self.__bounds)
+                if xPositive and bounds[1] <= 0:
+                    return None
+                if xPositive and bounds[0] <= 0:
+                    bounds[0] = bounds[1]
+                if yPositive and bounds[3] <= 0:
+                    return None
+                if yPositive and bounds[2] <= 0:
+                    bounds[2] = bounds[3]
+                return tuple(bounds)
+
         return self.__bounds
