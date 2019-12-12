@@ -484,7 +484,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         shape = len(xFiltered) // shape[1], shape[1]
                     else:
                         shape = shape[0], len(xFiltered) // shape[0]
-                if shape < (2, 2):  # Not enough points
+                if shape[0] < 2 or shape[1] < 2:  # Not enough points
                     return None
 
                 nbpoints = numpy.prod(shape)
