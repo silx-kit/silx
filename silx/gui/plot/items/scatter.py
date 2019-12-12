@@ -516,7 +516,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             visualization = self.getVisualization()
 
             if visualization is self.Visualization.IRREGULAR_GRID:
-                return None  # TODO picking not implemented for irregular grid
+                # Specific handling of picking for the irregular grid mode
+                index = result.getIndices(copy=False)[0] // 4
+                result = PickingResult(self, (index,))
 
             elif visualization is self.Visualization.REGULAR_GRID:
                 # Specific handling of picking for the regular grid mode
