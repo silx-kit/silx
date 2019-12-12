@@ -136,7 +136,7 @@ class GLPlotTriangles(object):
 
         # Sorted from furthest to closest point
         dists = (xPts[indices] - x) ** 2 + (yPts[indices] - y) ** 2
-        indices = indices[numpy.flip(numpy.argsort(dists))]
+        indices = indices[numpy.flip(numpy.argsort(dists), axis=0)]
 
         return tuple(indices) if len(indices) > 0 else None
 
