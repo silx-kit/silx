@@ -890,7 +890,11 @@ class PlotWidget(qt.QMainWindow):
         """
         if self._dataRange is None:
             self._updateDataRange()
-        return self._dataRange
+
+        dataRange = self._dataRange
+        if self._view is not None:
+            dataRange = self._view.updateDataRange(dataRange)
+        return dataRange
 
     # Content management
 
