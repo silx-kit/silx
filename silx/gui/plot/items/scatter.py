@@ -191,6 +191,75 @@ def _guess_grid(x, y):
     return order, shape
 
 
+def _quadrilateral_grid_coords(points):
+    """Compute an irregular grid of quadrilaterals from a set of points
+
+    The input points are expected to lie on a grid.
+
+    :param numpy.ndarray points:
+       3D data set of 2D input coordinates (height, width, 2)
+       height and width must be at least 2.
+    :return: 3D dataset of 2D coordinates of the grid (height+1, width+1, 2)
+    """
+    assert points.ndim == 3
+    assert points.shape[0] >= 2
+    assert points.shape[1] >= 2
+    assert points.shape[2] == 2
+
+    dim0, dim1 = points.shape[:2]
+    grid_points = numpy.zeros((dim0 + 1, dim1 + 1, 2), dtype=numpy.float64)
+
+    # Compute inner points as mean of 4 neighbours
+    neighbour_view = numpy.lib.stride_tricks.as_strided(
+        points,
+        shape=(dim0 - 1, dim1 - 1, 2, 2, points.shape[2]),
+        strides=points.strides[:2] + points.strides[:2] + points.strides[-1:], writeable=False)
+    inner_points = numpy.mean(neighbour_view, axis=(2, 3))
+    grid_points[1:-1, 1:-1] = inner_points
+
+    # Compute 'vertical' sides
+    # Alternative: grid_points[1:-1, [0, -1]] = points[:-1, [0, -1]] + points[1:, [0, -1]] - inner_points[:, [0, -1]]
+    grid_points[1:-1, [0, -1], 0] = points[:-1, [0, -1], 0] + points[1:, [0, -1], 0] - inner_points[:, [0, -1], 0]
+    grid_points[1:-1, [0, -1], 1] = inner_points[:, [0, -1], 1]
+
+    # Compute 'horizontal' sides
+    grid_points[[0, -1], 1:-1, 0] = inner_points[[0, -1], :, 0]
+    grid_points[[0, -1], 1:-1, 1] = points[[0, -1], :-1, 1] + points[[0, -1], 1:, 1] - inner_points[[0, -1], :, 1]
+
+    # Compute corners
+    d0, d1 = [0, 0, -1, -1], [0, -1, -1, 0]
+    grid_points[d0, d1] = 2 * points[d0, d1] - inner_points[d0, d1]
+    return grid_points
+
+
+def _quadrilateral_grid_as_triangles(points):
+    """Returns the points and indices to make a grid of quadirlaterals
+
+    :param numpy.ndarray points:
+        3D array of points (height, width, 2)
+    :return: triangle corners (4 * N, 2), triangle indices (2 * N, 3)
+        With N = height * width, the number of input points
+    """
+    nbpoints = numpy.prod(points.shape[:2])
+
+    grid = _quadrilateral_grid_coords(points)
+    coords = numpy.empty((4 * nbpoints, 2), dtype=grid.dtype)
+    coords[::4] = grid[:-1, :-1].reshape(-1, 2)
+    coords[1::4] = grid[1:, :-1].reshape(-1, 2)
+    coords[2::4] = grid[:-1, 1:].reshape(-1, 2)
+    coords[3::4] = grid[1:, 1:].reshape(-1, 2)
+
+    indices = numpy.empty((2 * nbpoints, 3), dtype=numpy.uint32)
+    indices[::2, 0] = numpy.arange(0, 4 * nbpoints, 4)
+    indices[::2, 1] = numpy.arange(1, 4 * nbpoints, 4)
+    indices[::2, 2] = numpy.arange(2, 4 * nbpoints, 4)
+    indices[1::2, 0] = indices[::2, 1]
+    indices[1::2, 1] = indices[::2, 2]
+    indices[1::2, 2] = numpy.arange(3, 4 * nbpoints, 4)
+
+    return coords, indices
+
+
 _RegularGridInfo = namedtuple(
     '_RegularGridInfo', ['bounds', 'origin', 'scale', 'shape', 'order'])
 
@@ -205,6 +274,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         ScatterVisualizationMixIn.Visualization.POINTS,
         ScatterVisualizationMixIn.Visualization.SOLID,
         ScatterVisualizationMixIn.Visualization.REGULAR_GRID,
+        ScatterVisualizationMixIn.Visualization.IRREGULAR_GRID,
         )
     """Overrides supported Visualizations"""
 
@@ -344,103 +414,150 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                     symbolsize=self.getSymbolSize(),
                                     baseline=None)
 
-        elif visualization is self.Visualization.SOLID:
+        else:
             plot = self.getPlot()
             if (plot is None or
                     plot.getXAxis().getScale() != Axis.LINEAR or
                     plot.getYAxis().getScale() != Axis.LINEAR):
-                # Solid visualization is not available with log scaled axes
+                # Those visualizations are not available with log scaled axes
                 return None
 
-            triangulation = self._getDelaunay().result()
-            if triangulation is None:
-                _logger.warning(
-                    'Cannot get a triangulation: Cannot display as solid surface')
-                return None
-            else:
-                triangles = triangulation.simplices.astype(numpy.int32)
-                return backend.addTriangles(xFiltered,
-                                            yFiltered,
-                                            triangles,
-                                            color=rgbacolors,
+            if visualization is self.Visualization.SOLID:
+                triangulation = self._getDelaunay().result()
+                if triangulation is None:
+                    _logger.warning(
+                        'Cannot get a triangulation: Cannot display as solid surface')
+                    return None
+                else:
+                    triangles = triangulation.simplices.astype(numpy.int32)
+                    return backend.addTriangles(xFiltered,
+                                                yFiltered,
+                                                triangles,
+                                                color=rgbacolors,
+                                                z=self.getZValue(),
+                                                selectable=self.isSelectable(),
+                                                alpha=self.getAlpha())
+
+            elif visualization is self.Visualization.REGULAR_GRID:
+                gridInfo = self.__getRegularGridInfo()
+                if gridInfo is None:
+                    return None
+
+                dim0, dim1 = gridInfo.shape
+                if gridInfo.order == 'column':  # transposition needed
+                    dim0, dim1 = dim1, dim0
+
+                if len(rgbacolors) == dim0 * dim1:
+                    image = rgbacolors.reshape(dim0, dim1, -1)
+                else:
+                    # The points do not fill the whole image
+                    image = numpy.empty((dim0 * dim1, 4), dtype=rgbacolors.dtype)
+                    image[:len(rgbacolors)] = rgbacolors
+                    image[len(rgbacolors):] = 0, 0, 0, 0  # Transparent pixels
+                    image.shape = dim0, dim1, -1
+
+                if gridInfo.order == 'column':
+                    image = numpy.transpose(image, axes=(1, 0, 2))
+
+                return backend.addImage(
+                    data=image,
+                    origin=gridInfo.origin,
+                    scale=gridInfo.scale,
+                    z=self.getZValue(),
+                    selectable=self.isSelectable(),
+                    draggable=False,
+                    colormap=None,
+                    alpha=self.getAlpha())
+
+            elif visualization is self.Visualization.IRREGULAR_GRID:
+                gridInfo = self.__getRegularGridInfo()
+                if gridInfo is None:
+                    return None
+
+                shape = gridInfo.shape
+                if shape is None:  # No shape, no display
+                    return None
+
+                # clip shape to fully filled lines
+                if len(xFiltered) != numpy.prod(shape):
+                    if gridInfo.order == 'row':
+                        shape = len(xFiltered) // shape[1], shape[1]
+                    else:   # column-major order
+                        shape = shape[0], len(xFiltered) // shape[0]
+                if shape[0] < 2 or shape[1] < 2:  # Not enough points
+                    return None
+
+                nbpoints = numpy.prod(shape)
+                if gridInfo.order == 'row':
+                    points = numpy.transpose((xFiltered[:nbpoints], yFiltered[:nbpoints]))
+                    points = points.reshape(shape[0], shape[1], 2)
+
+                else:   # column-major order
+                    points = numpy.transpose((yFiltered[:nbpoints], xFiltered[:nbpoints]))
+                    points = points.reshape(shape[1], shape[0], 2)
+
+                coords, indices = _quadrilateral_grid_as_triangles(points)
+
+                if gridInfo.order == 'row':
+                    x, y = coords[:, 0], coords[:, 1]
+                else:  # column-major order
+                    y, x = coords[:, 0], coords[:, 1]
+
+                gridcolors = numpy.empty(
+                    (4 * nbpoints, rgbacolors.shape[-1]), dtype=rgbacolors.dtype)
+                for first in range(4):
+                    gridcolors[first::4] = rgbacolors[:nbpoints]
+
+                return backend.addTriangles(x,
+                                            y,
+                                            indices,
+                                            color=gridcolors,
                                             z=self.getZValue(),
                                             selectable=self.isSelectable(),
                                             alpha=self.getAlpha())
-
-        elif visualization is self.Visualization.REGULAR_GRID:
-            plot = self.getPlot()
-            if (plot is None or
-                    plot.getXAxis().getScale() != Axis.LINEAR or
-                    plot.getYAxis().getScale() != Axis.LINEAR):
-                # regular grid visualization is not available with log scaled axes
-                return None
-
-            gridInfo = self.__getRegularGridInfo()
-            if gridInfo is None:
-                return None
-
-            dim0, dim1 = gridInfo.shape
-            if gridInfo.order == 'column':  # transposition needed
-                dim0, dim1 = dim1, dim0
-
-            if len(rgbacolors) == dim0 * dim1:
-                image = rgbacolors.reshape(dim0, dim1, -1)
             else:
-                # The points do not fill the whole image
-                image = numpy.empty((dim0 * dim1, 4), dtype=rgbacolors.dtype)
-                image[:len(rgbacolors)] = rgbacolors
-                image[len(rgbacolors):] = 0, 0, 0, 0  # Transparent pixels
-                image.shape = dim0, dim1, -1
-
-            if gridInfo.order == 'column':
-                image = numpy.transpose(image, axes=(1, 0, 2))
-
-            return backend.addImage(
-                data=image,
-                origin=gridInfo.origin,
-                scale=gridInfo.scale,
-                z=self.getZValue(),
-                selectable=self.isSelectable(),
-                draggable=False,
-                colormap=None,
-                alpha=self.getAlpha())
-
-        else:
-            _logger.error("Unhandled visualization %s", visualization)
-            return None
+                _logger.error("Unhandled visualization %s", visualization)
+                return None
 
     @docstring(PointsBase)
     def pick(self, x, y):
         result = super(Scatter, self).pick(x, y)
 
-        # Specific handling of picking for the regular grid mode
-        if (self.getVisualization() is self.Visualization.REGULAR_GRID and
-                result is not None):
-            plot = self.getPlot()
-            if plot is None:
-                return None
+        if result is not None:
+            visualization = self.getVisualization()
 
-            dataPos = plot.pixelToData(x, y)
-            if dataPos is None:
-                return None
+            if visualization is self.Visualization.IRREGULAR_GRID:
+                # Specific handling of picking for the irregular grid mode
+                index = result.getIndices(copy=False)[0] // 4
+                result = PickingResult(self, (index,))
 
-            gridInfo = self.__getRegularGridInfo()
-            if gridInfo is None:
-                return None
+            elif visualization is self.Visualization.REGULAR_GRID:
+                # Specific handling of picking for the regular grid mode
+                plot = self.getPlot()
+                if plot is None:
+                    return None
 
-            origin = gridInfo.origin
-            scale = gridInfo.scale
-            column = int((dataPos[0] - origin[0]) / scale[0])
-            row = int((dataPos[1] - origin[1]) / scale[1])
+                dataPos = plot.pixelToData(x, y)
+                if dataPos is None:
+                    return None
 
-            if gridInfo.order == 'row':
-                index = row * gridInfo.shape[1] + column
-            else:
-                index = row + column * gridInfo.shape[0]
-            if index >= len(self.getXData(copy=False)):  # OK as long as not log scale
-                return None  # Image can be larger than scatter
+                gridInfo = self.__getRegularGridInfo()
+                if gridInfo is None:
+                    return None
 
-            result = PickingResult(self, (index,))
+                origin = gridInfo.origin
+                scale = gridInfo.scale
+                column = int((dataPos[0] - origin[0]) / scale[0])
+                row = int((dataPos[1] - origin[1]) / scale[1])
+
+                if gridInfo.order == 'row':
+                    index = row * gridInfo.shape[1] + column
+                else:
+                    index = row + column * gridInfo.shape[0]
+                if index >= len(self.getXData(copy=False)):  # OK as long as not log scale
+                    return None  # Image can be larger than scatter
+
+                result = PickingResult(self, (index,))
 
         return result
 

@@ -931,6 +931,15 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         (either all lines from left to right or all from right to left).
         """
 
+        IRREGULAR_GRID = 'irregular_grid'
+        """Display scatter plot as contiguous quadrilaterals.
+
+        It expects the points to be the intersection of an irregular grid,
+        and the order of points following that of an image.
+        First line, then second one, and always in the same direction
+        (either all lines from left to right or all from right to left).
+        """
+
     @enum.unique
     class VisualizationParameter(_Enum):
         """Different parameter names for scatter plot visualizations"""
