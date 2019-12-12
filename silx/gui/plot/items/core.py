@@ -935,10 +935,10 @@ class ScatterVisualizationMixIn(ItemMixInBase):
     class VisualizationParameter(_Enum):
         """Different parameter names for scatter plot visualizations"""
 
-        GRID_ORDER = 'grid_order'
-        """The order of points in the regular grid (row or colunm major).
+        GRID_MAJOR_ORDER = 'grid_major_order'
+        """The major order of points in the regular grid.
 
-        Either 'C' (row-major) or 'F' (column-major) as for numpy array contiguity.
+        Either 'row' (row-major, fast X) or 'column' (column-major, fast Y).
         """
 
         GRID_BOUNDS = 'grid_bounds'
@@ -947,13 +947,13 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         A 2-tuple of 2-tuple: (begin (x, y), end (x, y)).
         This provides the data coordinates of the first point and the expected
         last on.
-        As for `GRID_SIZE`, this can be wider than the current data.
+        As for `GRID_SHAPE`, this can be wider than the current data.
         """
 
-        GRID_SIZE = 'grid_size'
-        """The expected size of the regular grid (width, height).
+        GRID_SHAPE = 'grid_shape'
+        """The expected size of the regular grid (height, width).
 
-        The given size can be wider than the number of points,
+        The given shape can be wider than the number of points,
         in which case the grid is not fully filled.
         """
 
@@ -1007,15 +1007,15 @@ class ScatterVisualizationMixIn(ItemMixInBase):
     def setVisualizationParameter(self, parameter, value=None):
         """Set the given visualization parameter.
 
-        :param parameter: The name of the parameter to set
+        :param Union[str,VisualizationParameter] parameter:
+            The name of the parameter to set
         :param value: The value to use for this parameter
             Set to None to automatically set the parameter
         :raises ValueError: If parameter is not supported
         :return: True if parameter was set, False if is was already set
         :rtype: bool
         """
-        if parameter not in self.VisualizationParameter:
-            raise ValueError("parameter not supported: %s", parameter)
+        parameter = self.VisualizationParameter.from_value(parameter)
 
         if self.__parameters[parameter] != value:
             self.__parameters[parameter] = value
