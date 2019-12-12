@@ -40,7 +40,7 @@ from .complex import ImageComplexData  # noqa
 from .curve import Curve, CurveStyle  # noqa
 from .histogram import Histogram  # noqa
 from .image import ImageBase, ImageData, ImageRgba, MaskImageData  # noqa
-from .shape import Shape  # noqa
+from .shape import Shape, BoundingRect  # noqa
 from .scatter import Scatter  # noqa
 from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa
 from .axis import Axis, XAxis, YAxis, YRightAxis

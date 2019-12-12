@@ -36,7 +36,7 @@ import numpy
 import six
 
 from ... import colors
-from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn
+from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn, YAxisMixIn
 
 
 _logger = logging.getLogger(__name__)
@@ -153,3 +153,30 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
 
         self._lineBgColor = color
         self._updated(ItemChangedType.LINE_BG_COLOR)
+
+
+class BoundingRect(Item, YAxisMixIn):
+    """An invisible shape which enforce the plot view to display the defined
+    space on autoscale.
+
+    This item do not display anything. But if the visible property is true,
+    this bounding box is used by the plot, if not, the bounding box is
+    ignored. That's the default behaviour for plot items.
+
+    It can be applied on the "left" or "right" axes. Not both at the same time.
+    """
+
+    def __init__(self):
+        Item.__init__(self)
+        YAxisMixIn.__init__(self)
+        self._bound = None
+
+    def setBounds(self, rect):
+        """Set the bounding box of this item in data coordinates
+
+        :param rect: (xmin, xmax, ymin, ymax) or None
+        """
+        self._bound = rect
+
+    def _getBounds(self):
+        return self._bound
