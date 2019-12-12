@@ -551,7 +551,7 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
         self.plot.resetZoom()
 
     def testScatterVisualization(self):
-        self.plot.addScatter((0, 1, 2, 3), (2, 0, 2, 1), (0, 1, 2, 3))
+        self.plot.addScatter((0, 1, 0, 1), (0, 0, 2, 2), (0, 1, 2, 3))
         self.plot.resetZoom()
         self.qapp.processEvents()
 
@@ -559,10 +559,43 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
 
         for visualization in ('solid',
                               'points',
+                              'regular_grid',
                               scatter.Visualization.SOLID,
-                              scatter.Visualization.POINTS):
+                              scatter.Visualization.POINTS,
+                              scatter.Visualization.REGULAR_GRID):
             with self.subTest(visualization=visualization):
                 scatter.setVisualization(visualization)
+                self.qapp.processEvents()
+
+    def testRegularGridVisualization(self):
+        """Test regular grid with different points"""
+        points = {  # name: (x, y)
+            'single point': ((1.,), (1.,)),
+            'horizontal line': ((0, 1, 2), (0, 0, 0)),
+            'horizontal line backward': ((2, 1, 0), (0, 0, 0)),
+            'vertical line': ((0, 0, 0), (0, 1, 2)),
+            'vertical line backward': ((0, 0, 0), (2, 1, 0)),
+            'grid fast x, +x +y': ((0, 1, 2, 0, 1, 2), (0, 0, 0, 1, 1, 1)),
+            'grid fast x, +x -y': ((0, 1, 2, 0, 1, 2), (1, 1, 1, 0, 0, 0)),
+            'grid fast x, -x -y': ((2, 1, 0, 2, 1, 0), (1, 1, 1, 0, 0, 0)),
+            'grid fast x, -x +y': ((2, 1, 0, 2, 1, 0), (0, 0, 0, 1, 1, 1)),
+            'grid fast y, +x +y': ((0, 0, 0, 1, 1, 1), (0, 1, 2, 0, 1, 2)),
+            'grid fast y, +x -y': ((0, 0, 0, 1, 1, 1), (2, 1, 0, 2, 1, 0)),
+            'grid fast y, -x -y': ((1, 1, 1, 0, 0, 0), (2, 1, 0, 2, 1, 0)),
+            'grid fast y, -x +y': ((1, 1, 1, 0, 0, 0), (0, 1, 2, 0, 1, 2)),
+            }
+
+        self.plot.addScatter((), (), ())
+        scatter = self.plot.getItems()[0]
+        scatter.setVisualization(scatter.Visualization.REGULAR_GRID)
+
+        self.qapp.processEvents()
+
+        for name, (x, y) in points.items():
+            with self.subTest(name=name):
+                scatter.setData(x, y, numpy.arange(len(x)))
+                self.plot.setGraphTitle(name)
+                self.plot.resetZoom()
                 self.qapp.processEvents()
 
 
