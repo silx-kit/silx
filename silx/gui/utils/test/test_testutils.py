@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,34 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""silx.gui.utils tests"""
-
+"""Test of testutils module."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
-
+__date__ = "16/01/2017"
 
 import unittest
+import sys
 
-from . import test_async
-from . import test_image
-from . import test_qtutils
-from . import test_testutils
-from . import test
+from silx.gui import qt
+from ..testutils import TestCaseQt
+
+
+class TestOutcome(unittest.TestCase):
+    """Tests conversion of QImage to/from numpy array."""
+
+    @unittest.skipIf(sys.version_info.major <= 2, 'Python3 only')
+    def testNoneOutcome(self):
+        test = TestCaseQt()
+        test._currentTestSucceeded()
 
 
 def suite():
-    """Test suite for module silx.image.test"""
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test.suite())
-    test_suite.addTest(test_async.suite())
-    test_suite.addTest(test_image.suite())
-    test_suite.addTest(test_qtutils.suite())
-    test_suite.addTest(test_testutils.suite())
+    loader = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loader(TestOutcome))
     return test_suite
 
 
-if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
