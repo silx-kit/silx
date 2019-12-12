@@ -31,8 +31,12 @@ __license__ = "MIT"
 __date__ = "22/11/2018"
 
 import datetime as dt
+import time
 import enum
 from typing import Optional
+import numpy
+import weakref
+import collections
 
 import dateutil.tz
 
@@ -45,6 +49,137 @@ class TickMode(enum.Enum):
     """Determines if ticks are regular number or datetimes."""
     DEFAULT = 0       # Ticks are regular numbers
     TIME_SERIES = 1   # Ticks are datetime objects
+
+
+def _bezier_interpolation(t):
+    """Returns the value of a specific Bezier transfer function to compute
+    acceleration then desceleration.
+
+    The input is supposed to be between [0..1], but the result is clamped.
+    The result for an input smaller 0.0 is 0.0 and the result for an input
+    highter than 1.0 is 1.0
+    """
+    if t < 0:
+        return 0
+    elif t < .5:
+        return 4 * t ** 3
+    elif t < 1.0:
+        return (t - 1) * (2 * t - 2) ** 2 + 1
+    else:
+        return 1.0
+
+
+class View(object):
+
+    INTERPOLATION_DURATION = 500
+    """Duration of the interpolation animation, in millisecond"""
+
+    REFRESH_PERIOD = 50
+    """Period used to referesh the animation"""
+
+    def __init__(self, plot):
+        self.__plot = weakref.ref(plot)
+        self.__isAnimated = False
+        self.__computedRange = None
+        self.__targetedDataRange = None
+        self.__timer = qt.QTimer(plot)
+        self.__timer.timeout.connect(self.__tick)
+
+    def getPlot(self):
+        return self.__plot()
+
+    def setAnimated(self, isAnimated):
+        isAnimated = bool(isAnimated)
+        if self.__isAnimated == isAnimated:
+            return
+        self.__isAnimated = isAnimated
+        if isAnimated and self.__computedRange is not None:
+            self.__interruptAnimation()
+
+    def __interruptAnimation(self):
+        self.__computedRange = None
+        self.__startTime = None
+        self.__timer.stop()
+        plot = self.getPlot()
+        plot.resetZoom()
+
+    def dataRangeToArray(self, dataRange):
+        normalized = numpy.zeros(6)
+        normalized[0:2] = dataRange.x
+        normalized[2:4] = dataRange.y
+        normalized[4:6] = dataRange.yright
+        return normalized
+
+    RangeType = collections.namedtuple("RangeType", ["x", "y", "yright"])
+
+    def arrayToRange(self, data):
+        vmin = data[0] if not numpy.isnan(data[0]) else None
+        vmax = data[1] if not numpy.isnan(data[1]) else None
+        return vmin, vmax
+
+    def arrayToDataRange(self, array):
+        return self.RangeType(
+            self.arrayToRange(array[0:2]),
+            self.arrayToRange(array[2:4]),
+            self.arrayToRange(array[4:6]),
+        )
+
+    def __updateSmoothing(self, newRange):
+        self.__startTime = time.time()
+        if self.__computedRange is None:
+            self.__start = self.dataRangeToArray(self.__targetedDataRange)
+            self.__stop = self.dataRangeToArray(newRange)
+            self.__timer.start(self.REFRESH_PERIOD)
+        else:
+            self.__start = self.dataRangeToArray(self.__computedRange)
+            self.__stop = self.dataRangeToArray(newRange)
+
+        # Be conservative during the animation
+        nanstop = numpy.isnan(self.__stop)
+        nanstart = numpy.isnan(self.__start)
+        self.__stop[nanstop] = self.__start[nanstop]
+        self.__start[nanstart] = self.__stop[nanstart]
+
+    def __tick(self):
+        coef = ((time.time() - self.__startTime) * 1000) / self.INTERPOLATION_DURATION
+        if coef >= 1.0:
+            self.__interruptAnimation()
+            return
+
+        # Can be cached
+        coef = _bezier_interpolation(coef)
+        dataRange = self.__start * (1 - coef) + self.__stop * coef
+        self.__computedRange = self.arrayToDataRange(dataRange)
+        plot = self.getPlot()
+        plot.resetZoom()
+
+    def updateDataRange(self, dataRange):
+        """
+        Returns this PlotWidget's data range.
+
+        :return: a namedtuple with the following members:
+                x, y (left y axis), yright. Each member is a tuple (min, max)
+                or None if no data is associated with the axis.
+        :rtype: namedtuple
+        """
+        if not self.__isAnimated:
+            return dataRange
+
+        if self.__targetedDataRange is None:
+            # Initial value
+            self.__targetedDataRange = dataRange
+        if self.__targetedDataRange == dataRange:
+            if self.__computedRange is not None:
+                return self.__computedRange
+            else:
+                return dataRange
+        else:
+            if dataRange.x is None and dataRange.y is None and dataRange.yright is None:
+                return dataRange
+            self.__updateSmoothing(dataRange)
+            tmp = self.__targetedDataRange
+            self.__targetedDataRange = dataRange
+            return tmp
 
 
 class Axis(qt.QObject):
