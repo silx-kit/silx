@@ -100,7 +100,7 @@ class BackendBase(object):
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
-                 xerror, yerror, z, selectable,
+                 xerror, yerror, z,
                  fill, alpha, symbolsize, baseline):
         """Add a 1D curve given by x an y to the graph.
 
@@ -135,7 +135,6 @@ class BackendBase(object):
         :param yerror: Values with the uncertainties on the y values
         :type yerror: numpy.ndarray or None
         :param int z: Layer on which to draw the cuve
-        :param bool selectable: indicate if the curve can be selected
         :param bool fill: True to fill the curve, False otherwise
         :param float alpha: Curve opacity, as a float in [0., 1.]
         :param float symbolsize: Size of the symbol (if any) drawn
@@ -146,7 +145,6 @@ class BackendBase(object):
 
     def addImage(self, data,
                  origin, scale, z,
-                 selectable, draggable,
                  colormap, alpha):
         """Add an image to the plot.
 
@@ -159,8 +157,6 @@ class BackendBase(object):
                        Default: (1., 1.)
         :type scale: 2-tuple of float
         :param int z: Layer on which to draw the image
-        :param bool selectable: indicate if the image can be selected
-        :param bool draggable: indicate if the image can be moved
         :param ~silx.gui.colors.Colormap colormap: Colormap object to use.
             Ignored if data is RGB(A).
         :param float alpha: Opacity of the image, as a float in range [0, 1].
@@ -169,7 +165,7 @@ class BackendBase(object):
         return object()
 
     def addTriangles(self, x, y, triangles,
-                     color, z, selectable, alpha):
+                     color, z, alpha):
         """Add a set of triangles.
 
         :param numpy.ndarray x: The data corresponding to the x axis
@@ -178,7 +174,6 @@ class BackendBase(object):
             as a (Ntriangle, 3) array
         :param numpy.ndarray color: color(s) as (npoints, 4) array
         :param int z: Layer on which to draw the cuve
-        :param bool selectable: indicate if the curve can be selected
         :param float alpha: Opacity as a float in [0., 1.]
         :returns: The triangles' unique identifier used by the backend
         """
@@ -214,7 +209,6 @@ class BackendBase(object):
         return object()
 
     def addMarker(self, x, y, text, color,
-                  selectable, draggable,
                   symbol, linestyle, linewidth, constraint, yaxis):
         """Add a point, vertical line or horizontal line marker to the plot.
 
@@ -224,8 +218,6 @@ class BackendBase(object):
                         If None, the marker is a vertical line.
         :param str text: Text associated to the marker (or None for no text)
         :param str color: Color to be used for instance 'blue', 'b', '#FF0000'
-        :param bool selectable: indicate if the marker can be selected
-        :param bool draggable: indicate if the marker can be moved
         :param str symbol: Symbol representing the marker.
             Only relevant for point markers where X and Y are not None.
             Value in:
@@ -252,7 +244,6 @@ class BackendBase(object):
                            dragging operations or None for no filter.
                            This function is called each time a marker is
                            moved.
-                           This parameter is only used if draggable is True.
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
