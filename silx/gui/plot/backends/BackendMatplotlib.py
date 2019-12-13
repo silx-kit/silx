@@ -213,6 +213,14 @@ class _PickableContainer(Container):
         Container.__init__(self, *args, **kwargs)
         self.__zorder = None
 
+    @property
+    def axes(self):
+        """Mimin Artist.axes"""
+        for child in self.get_children():
+            if hasattr(child, 'axes'):
+                return child.axes
+        return None
+
     def draw(self, *args, **kwargs):
         """artist-like draw to broadcast draw to children"""
         for child in self.get_children():
@@ -1290,6 +1298,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def pickItem(self, x, y, item):
         y = self._mplQtYAxisCoordConversion(y)
         mouseEvent = MouseEvent('button_press_event', self, x, y)
+        mouseEvent.inaxes = item.axes
         picked, info = item.contains(mouseEvent)
 
         if not picked:
