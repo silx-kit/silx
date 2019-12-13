@@ -36,7 +36,7 @@ import numpy
 import six
 
 from ... import colors
-from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn
+from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn, YAxisMixIn
 
 
 _logger = logging.getLogger(__name__)
@@ -153,3 +153,64 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
 
         self._lineBgColor = color
         self._updated(ItemChangedType.LINE_BG_COLOR)
+
+
+class BoundingRect(Item, YAxisMixIn):
+    """An invisible shape which enforce the plot view to display the defined
+    space on autoscale.
+
+    This item do not display anything. But if the visible property is true,
+    this bounding box is used by the plot, if not, the bounding box is
+    ignored. That's the default behaviour for plot items.
+
+    It can be applied on the "left" or "right" axes. Not both at the same time.
+    """
+
+    def __init__(self):
+        Item.__init__(self)
+        YAxisMixIn.__init__(self)
+        self.__bounds = None
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in (ItemChangedType.YAXIS,
+                     ItemChangedType.VISIBLE,
+                     ItemChangedType.DATA):
+            # TODO hackish data range implementation
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+        super(BoundingRect, self)._updated(event, checkVisibility)
+
+    def setBounds(self, rect):
+        """Set the bounding box of this item in data coordinates
+
+        :param Union[None,List[float]] rect: (xmin, xmax, ymin, ymax) or None
+        """
+        if rect is not None:
+            rect = float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])
+            assert rect[0] <= rect[1]
+            assert rect[2] <= rect[3]
+
+        if rect != self.__bounds:
+            self.__bounds = rect
+            self._updated(ItemChangedType.DATA)
+
+    def _getBounds(self):
+        plot = self.getPlot()
+        if plot is not None:
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
+            if xPositive or yPositive:
+                bounds = list(self.__bounds)
+                if xPositive and bounds[1] <= 0:
+                    return None
+                if xPositive and bounds[0] <= 0:
+                    bounds[0] = bounds[1]
+                if yPositive and bounds[3] <= 0:
+                    return None
+                if yPositive and bounds[2] <= 0:
+                    bounds[2] = bounds[3]
+                return tuple(bounds)
+
+        return self.__bounds

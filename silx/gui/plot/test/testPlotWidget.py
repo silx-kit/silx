@@ -43,6 +43,7 @@ from silx.test.utils import test_options
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items.curve import CurveStyle
+from silx.gui.plot.items.shape import BoundingRect
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -1314,6 +1315,53 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
     def testAxesDisplayedTrue(self):
         """Test coverage on setAxesDisplayed(True)"""
         self.plot.setAxesDisplayed(True)
+
+    def testBoundingRectItem(self):
+        item = BoundingRect()
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot._add(item)
+        self.plot.resetZoom()
+        limits = numpy.array(self.plot.getXAxis().getLimits())
+        numpy.testing.assert_almost_equal(limits, numpy.array([-1000, 1000]))
+        limits = numpy.array(self.plot.getYAxis().getLimits())
+        numpy.testing.assert_almost_equal(limits, numpy.array([-2000, 2000]))
+
+    def testBoundingRectRightItem(self):
+        item = BoundingRect()
+        item.setYAxis("right")
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot._add(item)
+        self.plot.resetZoom()
+        limits = numpy.array(self.plot.getXAxis().getLimits())
+        numpy.testing.assert_almost_equal(limits, numpy.array([-1000, 1000]))
+        limits = numpy.array(self.plot.getYAxis("right").getLimits())
+        numpy.testing.assert_almost_equal(limits, numpy.array([-2000, 2000]))
+
+    def testBoundingRectArguments(self):
+        item = BoundingRect()
+        with self.assertRaises(Exception):
+            item.setBounds((1000, -1000, -2000, 2000))
+        with self.assertRaises(Exception):
+            item.setBounds((-1000, 1000, 2000, -2000))
+
+    def testBoundingRectWithLog(self):
+        item = BoundingRect()
+        self.plot._add(item)
+
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(True)
+        self.plot.getYAxis()._setLogarithmic(False)
+        self.assertEqual(item.getBounds(), (1000, 1000, -2000, 2000))
+
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(False)
+        self.plot.getYAxis()._setLogarithmic(True)
+        self.assertEqual(item.getBounds(), (-1000, 1000, 2000, 2000))
+
+        item.setBounds((-1000, 0, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(True)
+        self.plot.getYAxis()._setLogarithmic(False)
+        self.assertIsNone(item.getBounds())
 
 
 class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
