@@ -1296,8 +1296,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     # picking
 
     def pickItem(self, x, y, item):
-        y = self._mplQtYAxisCoordConversion(y)
-        mouseEvent = MouseEvent('button_press_event', self, x, y)
+        mouseEvent = MouseEvent(
+            'button_press_event', self, x, self._mplQtYAxisCoordConversion(y))
         mouseEvent.inaxes = item.axes
         picked, info = item.contains(mouseEvent)
 
@@ -1313,9 +1313,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # from furthest to closest to put closest point last
             # This is to be somewhat consistent with last scatter point
             # being the top one.
-            dists = ((triangulation.x[indices] - x) ** 2 +
-                     (triangulation.y[indices] - y) ** 2)
-
+            xdata, ydata = self.pixelToData(x, y, axis='left')
+            dists = ((triangulation.x[indices] - xdata) ** 2 +
+                     (triangulation.y[indices] - ydata) ** 2)
             return indices[numpy.flip(numpy.argsort(dists), axis=0)]
 
         else:  # Returns indices if any
