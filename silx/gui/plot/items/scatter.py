@@ -408,7 +408,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                     xerror=xerror,
                                     yerror=yerror,
                                     z=self.getZValue(),
-                                    selectable=self.isSelectable(),
                                     fill=False,
                                     alpha=self.getAlpha(),
                                     symbolsize=self.getSymbolSize(),
@@ -435,7 +434,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                                 triangles,
                                                 color=rgbacolors,
                                                 z=self.getZValue(),
-                                                selectable=self.isSelectable(),
                                                 alpha=self.getAlpha())
 
             elif visualization is self.Visualization.REGULAR_GRID:
@@ -464,8 +462,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     origin=gridInfo.origin,
                     scale=gridInfo.scale,
                     z=self.getZValue(),
-                    selectable=self.isSelectable(),
-                    draggable=False,
                     colormap=None,
                     alpha=self.getAlpha())
 
@@ -513,7 +509,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                             indices,
                                             color=gridcolors,
                                             z=self.getZValue(),
-                                            selectable=self.isSelectable(),
                                             alpha=self.getAlpha())
             else:
                 _logger.error("Unhandled visualization %s", visualization)
