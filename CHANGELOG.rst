@@ -1,6 +1,72 @@
 Change Log
 ==========
 
+Unreleased
+----------
+
+* silx view application:
+
+  * Added: keep the same axes selection when changing dataset except for the stack view (PR #2701, #2780)
+  * Added a Description column in the browsing tree to display NeXus title or name (PR #2804)
+  * Added support of URL as filename (PR #2750)
+
+* `silx.gui`:
+
+  * `silx.gui.plot`:
+
+    * Added scatter plot regular and irregular grid visualization mode (PR #2810, #2815, #2820, #2824, #2831)
+    * Added `baseline` argument to `PlotWidget` `addCurve` and `addHistogram` methods (PR #2715)
+    * Added right axis support to `PlotWidget` marker items (PR #2744)
+    * Added `BoundingRect` `PlotWidget` item (PR #2823)
+    * Added more markers to `PlotWidget` items using symbols (PR #2792)
+    * Improved and fixed `PlotWidget` and backends rendering and picking to guarantee rendering order of items (PR #2602, #2694, #2726, #2728, #2730, #2731, #2732, #2734, #2746, #2800, #2822, #2829)
+  * Improved `RegionOfInterest`: Added `sigItemChanged` signal, renamed `get|setLabel` to `get|setName` (PR #2684, #2729, #2794, #2803)
+  * Improved `StackView`: Allow to save dataset to HDF5 (PR #2813)
+
+  * `silx.gui.plot3d`:
+
+    * Added colormapped isosurface display to `ComplexField3D` (PR #2675)
+
+  * Miscellaneous:
+
+    * Added `cividis` colormap (PR #2763)
+    * Added `silx.gui.widgets.ColormapNameComboBox` widget (PR #2814)
+    * Added `silx.gui.widgets.LegendIconWidget` widget (PR #2783)
+    * Added `silx.gui.utils.blockSignals` context manager (PR #2697, #2702)
+    * Added `silx.gui.utils.qtutils.getQEventName` function (PR #2725)
+    * Added `silx.gui.colors.asQColor` function (PR #2753)
+    * Minor fixes (PR #2662, #2667, #2674, #2719, #2724, #2747, #2757, #2760, #2766, #2789, #2798, #2799, #2805, #2811)
+
+* `silx.opencl`:
+
+  * Improved `silx.opencl.sparse.CSR` to support more data types (PR #2671)
+  * Improved support of different platforms like PoCL (PR #2669, #2698, #2806)
+  * Moved non-OpenCL related utilities to `silx.opencl.utils` module (PR #2782)
+  * Fixed `silx.opencl.sinofilter.SinoFilter` to avoid importing scikit-cuda (PR #2721)
+  * Fixed kernel garbage collection (PR #2708)
+  * Fixed `silx.opencl.convolution.Convolution` (PR #2781)
+
+* `silx.math`/`silx.image`:
+
+  * Added trilinear interpolator: `silx.math.interpolate.interp3d` (PR #2678)
+  * Added `silx.image.utils.gaussian_kernel` function (PR #2782)
+  * Improved `silx.image.shapes.Polygon` argument check (PR #2761)
+  * Fixed and improved `silx.math.fft` with FFTW backend (PR #2751)
+
+* `silx.io`:
+
+  * Added `asarray=True` argument to `silx.io.dictdump.h5todict` function (PR #2692, #2767)
+  * Improved `silx.io.utils.DataUrl` (PR #2790)
+  * Increased max number of motors in `specfile` (PR #2817)
+  * Fixed data conversion when reading images with `fabio` (PR #2735)
+
+* Build, documentation and tests:
+
+  * Added `Cython` as a build dependency (PR #2795, #2807, #2808)
+  * Added Debian 10 packaging (PR #2670, #2672, #2666, #2686, #2706)
+  * Improvements: documentation (PR #2673, #2680, #2679, #2772, #2759, #2779, #2801, #2802), testing tools (PR #2704, #2796, #2818), `bootstrap.py` script (PR #2727, #2733)
+
+
 0.11.0: 2019/07/03
 ------------------
 
