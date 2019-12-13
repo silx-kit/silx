@@ -568,8 +568,8 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                 scatter.setVisualization(visualization)
                 self.qapp.processEvents()
 
-    def testRegularGridVisualization(self):
-        """Test regular grid with different points"""
+    def testGridVisualization(self):
+        """Test regular and irregular grid mode with different points"""
         points = {  # name: (x, y)
             'single point': ((1.,), (1.,)),
             'horizontal line': ((0, 1, 2), (0, 0, 0)),
@@ -588,16 +588,18 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
 
         self.plot.addScatter((), (), ())
         scatter = self.plot.getItems()[0]
-        scatter.setVisualization(scatter.Visualization.REGULAR_GRID)
 
         self.qapp.processEvents()
 
-        for name, (x, y) in points.items():
-            with self.subTest(name=name):
-                scatter.setData(x, y, numpy.arange(len(x)))
-                self.plot.setGraphTitle(name)
-                self.plot.resetZoom()
-                self.qapp.processEvents()
+        for visualization in (scatter.Visualization.REGULAR_GRID,
+                              scatter.Visualization.IRREGULAR_GRID):
+            scatter.setVisualization(visualization)
+            for name, (x, y) in points.items():
+                with self.subTest(name=name):
+                    scatter.setData(x, y, numpy.arange(len(x)))
+                    self.plot.setGraphTitle(name)
+                    self.plot.resetZoom()
+                    self.qapp.processEvents()
 
 
 class TestPlotMarker(PlotWidgetTestCase):
