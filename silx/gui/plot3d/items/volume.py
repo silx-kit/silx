@@ -820,6 +820,7 @@ class ComplexField3D(ScalarField3D, ComplexMixIn):
 
     @docstring(ComplexMixIn)
     def setComplexMode(self, mode):
+        mode = ComplexMixIn.ComplexMode.from_value(mode)
         if mode != self.getComplexMode():
             self.clearIsosurfaces()  # Reset isosurfaces
         ComplexMixIn.setComplexMode(self, mode)
