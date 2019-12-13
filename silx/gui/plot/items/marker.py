@@ -65,8 +65,6 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             y=self.getYPosition(),
             text=self.getText(),
             color=self.getColor(),
-            selectable=self.isSelectable(),
-            draggable=self.isDraggable(),
             symbol=symbol,
             linestyle=linestyle,
             linewidth=linewidth,

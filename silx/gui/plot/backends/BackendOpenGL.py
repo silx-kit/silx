@@ -96,7 +96,6 @@ class _ShapeItem(dict):
 
 class _MarkerItem(dict):
     def __init__(self, x, y, text, color,
-                 selectable, draggable,
                  symbol, linestyle, linewidth, constraint, yaxis):
         super(_MarkerItem, self).__init__()
 
@@ -104,7 +103,7 @@ class _MarkerItem(dict):
             symbol = '+'
 
         # Apply constraint to provided position
-        isConstraint = (draggable and constraint is not None and
+        isConstraint = (constraint is not None and
                         x is not None and y is not None)
         if isConstraint:
             x, y = constraint(x, y)
@@ -727,10 +726,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
-                 xerror, yerror, z, selectable,
+                 xerror, yerror, z,
                  fill, alpha, symbolsize, baseline):
         for parameter in (x, y, color, symbol, linewidth, linestyle,
-                          yaxis, z, selectable, fill, symbolsize):
+                          yaxis, z, fill, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
@@ -848,10 +847,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addImage(self, data,
                  origin, scale, z,
-                 selectable, draggable,
                  colormap, alpha):
-        for parameter in (data, origin, scale, z,
-                          selectable, draggable):
+        for parameter in (data, origin, scale, z):
             assert parameter is not None
 
         if data.ndim == 2:
@@ -902,7 +899,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return image
 
     def addTriangles(self, x, y, triangles,
-                     color, z, selectable, alpha):
+                     color, z, alpha):
         # Handle axes log scale: convert data
         if self._plotFrame.xAxis.isLog:
             x = numpy.log10(x)
@@ -930,10 +927,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                           linestyle, linewidth, linebgcolor)
 
     def addMarker(self, x, y, text, color,
-                  selectable, draggable,
                   symbol, linestyle, linewidth, constraint, yaxis):
         return _MarkerItem(x, y, text, color,
-                           selectable, draggable,
                            symbol, linestyle, linewidth, constraint, yaxis)
 
     # Remove methods

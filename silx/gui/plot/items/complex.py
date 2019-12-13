@@ -174,8 +174,6 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                draggable=self.isDraggable(),
                                 colormap=colormap,
                                 alpha=self.getAlpha())
 

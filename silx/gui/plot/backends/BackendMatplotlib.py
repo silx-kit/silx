@@ -213,6 +213,14 @@ class _PickableContainer(Container):
         Container.__init__(self, *args, **kwargs)
         self.__zorder = None
 
+    @property
+    def axes(self):
+        """Mimin Artist.axes"""
+        for child in self.get_children():
+            if hasattr(child, 'axes'):
+                return child.axes
+        return None
+
     def draw(self, *args, **kwargs):
         """artist-like draw to broadcast draw to children"""
         for child in self.get_children():
@@ -477,10 +485,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
-                 xerror, yerror, z, selectable,
+                 xerror, yerror, z,
                  fill, alpha, symbolsize, baseline):
         for parameter in (x, y, color, symbol, linewidth, linestyle,
-                          yaxis, z, selectable, fill, alpha, symbolsize):
+                          yaxis, z, fill, alpha, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
@@ -494,7 +502,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             axes = self.ax
 
-        picker = 3 if selectable else None
+        picker = 3
 
         artists = []  # All the artists composing the curve
 
@@ -576,24 +584,22 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return _PickableContainer(artists)
 
-    def addImage(self, data, origin, scale, z, selectable, draggable, colormap, alpha):
+    def addImage(self, data, origin, scale, z, colormap, alpha):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
         # http://stackoverflow.com/questions/11488800/non-linear-axes-for-imshow-in-matplotlib
-        for parameter in (data, origin, scale, z, selectable, draggable):
+        for parameter in (data, origin, scale, z):
             assert parameter is not None
 
         origin = float(origin[0]), float(origin[1])
         scale = float(scale[0]), float(scale[1])
         height, width = data.shape[0:2]
 
-        picker = (selectable or draggable)
-
         # All image are shown as RGBA image
         image = Image(self.ax,
                       interpolation='nearest',
-                      picker=picker,
+                      picker=True,
                       origin='lower')
 
         if alpha < 1:
@@ -626,12 +632,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.add_artist(image)
         return image
 
-    def addTriangles(self, x, y, triangles, color, z, selectable, alpha):
-        for parameter in (x, y, triangles, color, z, selectable, alpha):
+    def addTriangles(self, x, y, triangles, color, z, alpha):
+        for parameter in (x, y, triangles, color, z, alpha):
             assert parameter is not None
-
-        # 0 enables picking on filled triangle
-        picker = 0 if selectable else None
 
         color = numpy.array(color, copy=False)
         assert color.ndim == 2 and len(color) == len(x)
@@ -642,7 +645,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         collection = TriMesh(
             Triangulation(x, y, triangles),
             alpha=alpha,
-            picker=picker)
+            picker=0)  # 0 enables picking on filled triangle
         collection.set_color(color)
         self.ax.add_collection(collection)
 
@@ -730,7 +733,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return item
 
     def addMarker(self, x, y, text, color,
-                  selectable, draggable,
                   symbol, linestyle, linewidth, constraint, yaxis):
         textArtist = None
 
@@ -792,8 +794,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             raise RuntimeError('A marker must at least have one coordinate')
 
-        if selectable or draggable:
-            line.set_picker(5)
+        line.set_picker(5)
 
         # All markers are overlays
         line.set_animated(True)
@@ -1295,8 +1296,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     # picking
 
     def pickItem(self, x, y, item):
-        y = self._mplQtYAxisCoordConversion(y)
-        mouseEvent = MouseEvent('button_press_event', self, x, y)
+        mouseEvent = MouseEvent(
+            'button_press_event', self, x, self._mplQtYAxisCoordConversion(y))
+        mouseEvent.inaxes = item.axes
         picked, info = item.contains(mouseEvent)
 
         if not picked:
@@ -1311,8 +1313,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # from furthest to closest to put closest point last
             # This is to be somewhat consistent with last scatter point
             # being the top one.
-            dists = ((triangulation.x[indices] - x) ** 2 +
-                     (triangulation.y[indices] - y) ** 2)
+            xdata, ydata = self.pixelToData(x, y, axis='left')
+            dists = ((triangulation.x[indices] - xdata) ** 2 +
+                     (triangulation.y[indices] - ydata) ** 2)
             return indices[numpy.flip(numpy.argsort(dists), axis=0)]
 
         else:  # Returns indices if any

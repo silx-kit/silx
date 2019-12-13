@@ -305,8 +305,6 @@ class ImageData(ImageBase, ColormapMixIn):
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                draggable=self.isDraggable(),
                                 colormap=self.getColormap(),
                                 alpha=self.getAlpha())
 
@@ -437,8 +435,6 @@ class ImageRgba(ImageBase):
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                draggable=self.isDraggable(),
                                 colormap=None,
                                 alpha=self.getAlpha())
 
