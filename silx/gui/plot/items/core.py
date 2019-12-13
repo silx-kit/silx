@@ -819,6 +819,7 @@ class ComplexMixIn(ItemMixInBase):
 
     class ComplexMode(_Enum):
         """Identify available display mode for complex"""
+        NONE = 'none'
         ABSOLUTE = 'amplitude'
         PHASE = 'phase'
         REAL = 'real'
