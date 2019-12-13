@@ -568,36 +568,67 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                 scatter.setVisualization(visualization)
                 self.qapp.processEvents()
 
-    def testRegularGridVisualization(self):
-        """Test regular grid with different points"""
-        points = {  # name: (x, y)
-            'single point': ((1.,), (1.,)),
-            'horizontal line': ((0, 1, 2), (0, 0, 0)),
-            'horizontal line backward': ((2, 1, 0), (0, 0, 0)),
-            'vertical line': ((0, 0, 0), (0, 1, 2)),
-            'vertical line backward': ((0, 0, 0), (2, 1, 0)),
-            'grid fast x, +x +y': ((0, 1, 2, 0, 1, 2), (0, 0, 0, 1, 1, 1)),
-            'grid fast x, +x -y': ((0, 1, 2, 0, 1, 2), (1, 1, 1, 0, 0, 0)),
-            'grid fast x, -x -y': ((2, 1, 0, 2, 1, 0), (1, 1, 1, 0, 0, 0)),
-            'grid fast x, -x +y': ((2, 1, 0, 2, 1, 0), (0, 0, 0, 1, 1, 1)),
-            'grid fast y, +x +y': ((0, 0, 0, 1, 1, 1), (0, 1, 2, 0, 1, 2)),
-            'grid fast y, +x -y': ((0, 0, 0, 1, 1, 1), (2, 1, 0, 2, 1, 0)),
-            'grid fast y, -x -y': ((1, 1, 1, 0, 0, 0), (2, 1, 0, 2, 1, 0)),
-            'grid fast y, -x +y': ((1, 1, 1, 0, 0, 0), (0, 1, 2, 0, 1, 2)),
+    def testGridVisualization(self):
+        """Test regular and irregular grid mode with different points"""
+        points = {  # name: (x, y, order)
+            'single point': ((1.,), (1.,), 'row'),
+            'horizontal line': ((0, 1, 2), (0, 0, 0), 'row'),
+            'horizontal line backward': ((2, 1, 0), (0, 0, 0), 'row'),
+            'vertical line': ((0, 0, 0), (0, 1, 2), 'row'),
+            'vertical line backward': ((0, 0, 0), (2, 1, 0), 'row'),
+            'grid fast x, +x +y': ((0, 1, 2, 0, 1, 2), (0, 0, 0, 1, 1, 1), 'row'),
+            'grid fast x, +x -y': ((0, 1, 2, 0, 1, 2), (1, 1, 1, 0, 0, 0), 'row'),
+            'grid fast x, -x -y': ((2, 1, 0, 2, 1, 0), (1, 1, 1, 0, 0, 0), 'row'),
+            'grid fast x, -x +y': ((2, 1, 0, 2, 1, 0), (0, 0, 0, 1, 1, 1), 'row'),
+            'grid fast y, +x +y': ((0, 0, 0, 1, 1, 1), (0, 1, 2, 0, 1, 2), 'column'),
+            'grid fast y, +x -y': ((0, 0, 0, 1, 1, 1), (2, 1, 0, 2, 1, 0), 'column'),
+            'grid fast y, -x -y': ((1, 1, 1, 0, 0, 0), (2, 1, 0, 2, 1, 0), 'column'),
+            'grid fast y, -x +y': ((1, 1, 1, 0, 0, 0), (0, 1, 2, 0, 1, 2), 'column'),
             }
 
         self.plot.addScatter((), (), ())
         scatter = self.plot.getItems()[0]
-        scatter.setVisualization(scatter.Visualization.REGULAR_GRID)
 
         self.qapp.processEvents()
 
-        for name, (x, y) in points.items():
-            with self.subTest(name=name):
-                scatter.setData(x, y, numpy.arange(len(x)))
-                self.plot.setGraphTitle(name)
-                self.plot.resetZoom()
-                self.qapp.processEvents()
+        for visualization in (scatter.Visualization.REGULAR_GRID,
+                              scatter.Visualization.IRREGULAR_GRID):
+            scatter.setVisualization(visualization)
+            self.assertIs(scatter.getVisualization(), visualization)
+
+            for name, (x, y, ref_order) in points.items():
+                with self.subTest(name=name, visualization=visualization.name):
+                    scatter.setData(x, y, numpy.arange(len(x)))
+                    self.plot.setGraphTitle(name)
+                    self.plot.resetZoom()
+                    self.qapp.processEvents()
+
+                    order = scatter.getCurrentVisualizationParameter(
+                        scatter.VisualizationParameter.GRID_MAJOR_ORDER)
+                    self.assertEqual(ref_order, order)
+
+                    ref_bounds = (x[0], y[0]), (x[-1], y[-1])
+                    bounds = scatter.getCurrentVisualizationParameter(
+                        scatter.VisualizationParameter.GRID_BOUNDS)
+                    self.assertEqual(ref_bounds, bounds)
+
+                    shape = scatter.getCurrentVisualizationParameter(
+                        scatter.VisualizationParameter.GRID_SHAPE)
+
+                    self.plot.getXAxis().setLimits(numpy.min(x) - 1, numpy.max(x) + 1)
+                    self.plot.getYAxis().setLimits(numpy.min(y) - 1, numpy.max(y) + 1)
+                    self.qapp.processEvents()
+
+                    for index, position in enumerate(zip(x, y)):
+                        xpixel, ypixel = self.plot.dataToPixel(*position)
+                        result = scatter.pick(xpixel, ypixel)
+                        if (visualization is scatter.Visualization.IRREGULAR_GRID and
+                                (shape[0] < 2 or shape[1] < 2)):
+                            self.assertIsNone(result)
+                        else:
+                            self.assertIsNotNone(result)
+                            self.assertIs(result.getItem(), scatter)
+                            self.assertEqual(result.getIndices()[0], (index,))
 
 
 class TestPlotMarker(PlotWidgetTestCase):
