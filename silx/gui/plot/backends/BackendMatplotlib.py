@@ -725,7 +725,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return item
 
     def addMarker(self, x, y, text, color,
-                  selectable,
                   symbol, linestyle, linewidth, constraint, yaxis):
         textArtist = None
 
