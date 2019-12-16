@@ -1632,7 +1632,7 @@ class PlotInteraction(object):
         plot = self._plot()
         assert plot is not None
 
-        if color not in (None, 'video inverted'):
+        if isinstance(color, numpy.ndarray) or color not in (None, 'video inverted'):
             color = colors.rgba(color)
 
         if mode in ('draw', 'select-draw'):
