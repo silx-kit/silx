@@ -37,7 +37,7 @@ Python 2.7 is no longer official supported (even if tests pass and most of the l
     * Added `silx.gui.utils.blockSignals` context manager (PR #2697, #2702)
     * Added `silx.gui.utils.qtutils.getQEventName` function (PR #2725)
     * Added `silx.gui.colors.asQColor` function (PR #2753)
-    * Minor fixes (PR #2662, #2667, #2674, #2719, #2724, #2747, #2757, #2760, #2766, #2789, #2798, #2799, #2805, #2811)
+    * Minor fixes (PR #2662, #2667, #2674, #2719, #2724, #2747, #2757, #2760, #2766, #2789, #2798, #2799, #2805, #2811, #2832, #2834)
 
 * `silx.opencl`:
 
