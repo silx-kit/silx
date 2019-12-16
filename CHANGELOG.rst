@@ -4,6 +4,8 @@ Change Log
 Unreleased
 ----------
 
+Python 2.7 is no longer official supported (even if tests pass and most of the library should work).
+
 * silx view application:
 
   * Added: keep the same axes selection when changing dataset except for the stack view (PR #2701, #2780)
