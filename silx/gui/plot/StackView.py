@@ -542,7 +542,12 @@ class StackView(qt.QMainWindow):
         # This call to setColormap redefines the meaning of autoscale
         # for 3D volume: take global min/max rather than frame min/max
         if self.__autoscaleCmap:
-            self.setColormap(autoscale=True)
+            # note: there is no real autoscale in the stack widget, it is more
+            # like a hack computing stack min and max
+            colormap = self.getColormap()
+            _vmin, _vmax = colormap.getColormapRange(data=self._stack)
+            colormap.setVRange(_vmin, _vmax)
+            self.setColormap(colormap=colormap)
 
         # init plot
         self._plot.addImage(self.__transposed_view[0, :, :],
