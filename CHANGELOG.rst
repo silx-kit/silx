@@ -22,8 +22,8 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
     * Added `BoundingRect` `PlotWidget` item (PR #2823)
     * Added more markers to `PlotWidget` items using symbols (PR #2792)
     * Improved and fixed `PlotWidget` and backends rendering and picking to guarantee rendering order of items (PR #2602, #2694, #2726, #2728, #2730, #2731, #2732, #2734, #2746, #2800, #2822, #2829)
-  * Improved `RegionOfInterest`: Added `sigItemChanged` signal, renamed `get|setLabel` to `get|setName` (PR #2684, #2729, #2794, #2803)
-  * Improved `StackView`: Allow to save dataset to HDF5 (PR #2813)
+    * Improved `RegionOfInterest`: Added `sigItemChanged` signal, renamed `get|setLabel` to `get|setName` (PR #2684, #2729, #2794, #2803)
+    * Improved `StackView`: Allow to save dataset to HDF5 (PR #2813)
 
   * `silx.gui.plot3d`:
 
@@ -66,7 +66,7 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
 
   * Added `Cython` as a build dependency (PR #2795, #2807, #2808)
   * Added Debian 10 packaging (PR #2670, #2672, #2666, #2686, #2706)
-  * Improvements: documentation (PR #2673, #2680, #2679, #2772, #2759, #2779, #2801, #2802), testing tools (PR #2704, #2796, #2818), `bootstrap.py` script (PR #2727, #2733)
+  * Improvements: documentation (PR #2673, #2680, #2679, #2772, #2759, #2779, #2801, #2802, #2833), testing tools (PR #2704, #2796, #2818), `bootstrap.py` script (PR #2727, #2733)
 
 
 0.11.0: 2019/07/03
