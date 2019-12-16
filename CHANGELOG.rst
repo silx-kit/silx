@@ -4,6 +4,10 @@ Change Log
 Unreleased
 ----------
 
+
+0.12.0rc0: 2019/12/16
+---------------------
+
 Python 2.7 is no longer officially supported (even if tests pass and most of the library should work).
 
 * silx view application:
