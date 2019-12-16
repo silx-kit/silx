@@ -41,7 +41,7 @@ Python 2.7 is no longer official supported (even if tests pass and most of the l
 
 * `silx.opencl`:
 
-  * Improved `silx.opencl.sparse.CSR` to support more data types (PR #2671)
+  * Added `silx.opencl.sparse.CSR` with support of different data types (PR #2671)
   * Improved support of different platforms like PoCL (PR #2669, #2698, #2806)
   * Moved non-OpenCL related utilities to `silx.opencl.utils` module (PR #2782)
   * Fixed `silx.opencl.sinofilter.SinoFilter` to avoid importing scikit-cuda (PR #2721)
