@@ -24,16 +24,16 @@ environment:
         VENV_TEST_DIR: "venv_test"
 
     matrix:
-        # Python 3.7
-        - PYTHON_DIR: "C:\\Python37-x64"
+        # Python 3.8
+        - PYTHON_DIR: "C:\\Python38-x64"
           QT_BINDING: "PyQt5"
           WITH_GL_TEST: True
           PIP_OPTIONS: "-q --pre"
 
-        # Python 2.7
-        - PYTHON_DIR: "C:\\Python27-x64"
-          QT_BINDING: "PyQt4"
-          WITH_GL_TEST: False
+        # Python 3.6
+        - PYTHON_DIR: "C:\\Python36-x64"
+          QT_BINDING: "PySide2"
+          WITH_GL_TEST: True
           PIP_OPTIONS: "-q"
 
 install:
@@ -44,16 +44,12 @@ install:
     - "pip install %PIP_OPTIONS% --upgrade setuptools"
     - "python -m pip install %PIP_OPTIONS% --upgrade pip"
 
-    # Install virtualenv
-    - "pip install %PIP_OPTIONS% --upgrade virtualenv"
-    - "virtualenv --version"
-
     # Download Mesa OpenGL in Python directory when testing OpenGL
     - IF %WITH_GL_TEST%==True curl -fsS -o %PYTHON_DIR%\\opengl32.dll http://www.silx.org/pub/silx/continuous_integration/opengl32_mingw-mesa-x86_64.dll
 
 build_script:
     # Create build virtualenv
-    - "virtualenv --clear %VENV_BUILD_DIR%"
+    - "python -m venv --clear %VENV_BUILD_DIR%"
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
 
     # Install build dependencies
@@ -75,7 +71,7 @@ build_script:
 
 before_test:
     # Create test virtualenv
-    - "virtualenv --clear %VENV_TEST_DIR%"
+    - "python -m venv --clear %VENV_TEST_DIR%"
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
 
     # First install any temporary pinned/additional requirements
@@ -85,7 +81,7 @@ before_test:
     - pip install %PIP_OPTIONS% -r requirements.txt
 
     # Install selected Qt binding
-    - "pip install %PIP_OPTIONS% --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ %QT_BINDING%"
+    - "pip install %PIP_OPTIONS% %QT_BINDING%"
 
     # Install the generated wheel package to test it
     # Make sure silx does not come from cache or pypi
