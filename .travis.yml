@@ -9,38 +9,22 @@ git:
 
 matrix:
     include:
-        - python: 2.7
+        - python: 3.8
           os: linux
           env:
-              - BUILD_COMMAND=sdist
-              - QT_BINDING=
+              - BUILD_COMMAND=bdist_wheel
+              - QT_BINDING=PyQt5
               - SILX_OPENCL=1
-              - PIP_OPTIONS="-q"
-
-        - python: 3.4
-          os: linux
-          env:
-              - BUILD_COMMAND=sdist
-              - QT_BINDING=
-              - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
-              - SILX_OPENCL=1
-              - PIP_OPTIONS="-q"
+              - PIP_OPTIONS="-q --pre"
 
         - python: 3.5
           os: linux
           env:
               - BUILD_COMMAND=sdist
-              - QT_BINDING=PyQt5
-              - SILX_OPENCL=1
-              - PIP_OPTIONS="-q --pre"
-
-        - python: 3.7
-          os: linux
-          env:
-              - BUILD_COMMAND=sdist
               - QT_BINDING=PySide2
+              - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
               - SILX_OPENCL=1
-              - PIP_OPTIONS="-q --pre"
+              - PIP_OPTIONS="-q"
 
         - language: generic
           os: osx

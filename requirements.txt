@@ -3,16 +3,15 @@
 
 --trusted-host www.silx.org
 --find-links http://www.silx.org/pub/wheelhouse/
---only-binary numpy,h5py,scipy,PyQt4,PyQt5
+--only-binary numpy,h5py,scipy,PySide2,PyQt5
 
-# Required dependencies (from setup.py install_requires)
+# Required dependencies (from setup.py setup_requires and install_requires)
 numpy >= 1.12
 setuptools
+Cython >= 0.21.1
 h5py
 fabio >= 0.7
 six
-enum34; python_version == '2.7'
-futures; python_version == '2.7'
 
 # Extra dependencies (from setup.py extra_requires 'full' target)
 pyopencl; platform_machine in "i386, x86_64, AMD64"  # For silx.opencl
@@ -23,13 +22,4 @@ PyOpenGL                  # For silx.gui.plot3d
 python-dateutil           # For silx.gui.plot
 scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
 Pillow                    # For silx.opencl.image.test
-Cython >= 0.21.1          # For silx.math, silx.io, silx.image
-
-# PyQt5, PySide2 or PyQt4 # For silx.gui
-# Try to install a Qt binding from a wheel
-# This is no available for all configurations
-
-# Require PyQt when wheel is available
-PyQt5; python_version >= '3.5'
-PyQt4; sys_platform == 'win32' and python_version == '2.7'  # From silx.org
-PyQt4; sys_platform == 'darwin' and python_version == '2.7'  # From silx.org
+PyQt5  # or PySide2       # For silx.gui
