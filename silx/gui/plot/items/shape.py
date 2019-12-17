@@ -197,6 +197,8 @@ class BoundingRect(Item, YAxisMixIn):
             self._updated(ItemChangedType.DATA)
 
     def _getBounds(self):
+        if self.__bounds is None:
+            return None
         plot = self.getPlot()
         if plot is not None:
             xPositive = plot.getXAxis()._isLogarithmic()
