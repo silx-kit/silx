@@ -1097,10 +1097,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def _mplQtYAxisCoordConversion(self, y):
         """Qt origin (top) to/from matplotlib origin (bottom) conversion.
 
-        :rtype: float
+        :rtype: int
         """
         height = self.fig.get_window_extent().height
-        return height - y
+        return int(height - y)
 
     def dataToPixel(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
