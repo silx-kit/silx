@@ -624,8 +624,7 @@ class PlotWidget(qt.QMainWindow):
         # Add item to plot
         self._content[key] = item
         item._setPlot(self)
-        if item.isVisible():
-            self._itemRequiresUpdate(item)
+        self._itemRequiresUpdate(item)
         if isinstance(item, items.DATA_ITEMS):
             self._invalidateDataRange()  # TODO handle this automatically
 
