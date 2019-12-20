@@ -1266,7 +1266,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def _onMouseMove(self, event):
         if self._graphCursor:
             lineh, linev = self._graphCursor
-            if event.inaxes != self.ax and lineh.get_visible():
+            if event.inaxes not in (self.ax, self.ax2) and lineh.get_visible():
                 lineh.set_visible(False)
                 linev.set_visible(False)
                 self._plot._setDirtyPlot(overlayOnly=True)
