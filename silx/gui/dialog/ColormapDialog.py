@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -463,6 +463,7 @@ class ColormapDialog(qt.QDialog):
                             color='black',
                             symbol='o',
                             linestyle='-',
+                            z=2,
                             resetzoom=False)
 
         scale = self._plot.getXAxis().getScale()
@@ -702,7 +703,8 @@ class ColormapDialog(qt.QDialog):
                                     legend="Histogram",
                                     color='gray',
                                     align='center',
-                                    fill=True)
+                                    fill=True,
+                                    z=1)
         self._updateMinMaxData()
 
     def getColormap(self):
@@ -753,7 +755,8 @@ class ColormapDialog(qt.QDialog):
                                     legend="Range",
                                     color='gray',
                                     align='center',
-                                    fill=True)
+                                    fill=True,
+                                    z=1)
             self._dataRange = minimum, positiveMin, maximum
         self._updateMinMaxData()
 
