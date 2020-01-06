@@ -221,7 +221,7 @@ class DataViewer(qt.QFrame):
                     self.__numpySelection.setSelection(
                         previousSelection, previousPermutation)
                 except ValueError as e:
-                    _logger.error("Not restoring selection because: %s", e)
+                    _logger.info("Not restoring selection because: %s", e)
 
                 if hasattr(data, "shape"):
                     isVisible = not (len(axisNames) == 1 and len(data.shape) == 1)
