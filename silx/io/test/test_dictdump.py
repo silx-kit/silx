@@ -73,7 +73,7 @@ class TestDictToH5(unittest.TestCase):
         dicttoh5(city_attrs, self.h5_fname, h5path='/city attributes',
                  mode="w", create_dataset_args=filters)
 
-        h5f = h5py.File(self.h5_fname)
+        h5f = h5py.File(self.h5_fname, mode='r')
 
         self.assertIn("Tourcoing/area", h5f["/city attributes/Europe/France"])
         ds = h5f["/city attributes/Europe/France/Grenoble/inhabitants"]
