@@ -548,7 +548,7 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         """
         if isinstance(roi, roi_items.PointROI):
             # Only handle points
-            roi.setLabel('%d' % len(self.__selections))
+            roi.setName('%d' % len(self.__selections))
             self.__updateSelection(roi)
             roi.sigRegionChanged.connect(self.__regionChanged)
 
