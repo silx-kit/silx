@@ -109,6 +109,18 @@ Available icons
      - cube-top
    * - |cube|
      - cube
+   * - |description-description|
+     - description-description
+   * - |description-error|
+     - description-error
+   * - |description-name|
+     - description-name
+   * - |description-program|
+     - description-program
+   * - |description-title|
+     - description-title
+   * - |description-value|
+     - description-value
    * - |document-open|
      - document-open
    * - |document-print|
@@ -393,6 +405,12 @@ Available icons
 .. |cube-rotate| image:: ../../../../silx/resources/gui/icons/cube-rotate.png
 .. |cube-top| image:: ../../../../silx/resources/gui/icons/cube-top.png
 .. |cube| image:: ../../../../silx/resources/gui/icons/cube.png
+.. |description-description| image:: ../../../../silx/resources/gui/icons/description-description.png
+.. |description-error| image:: ../../../../silx/resources/gui/icons/description-error.png
+.. |description-name| image:: ../../../../silx/resources/gui/icons/description-name.png
+.. |description-program| image:: ../../../../silx/resources/gui/icons/description-program.png
+.. |description-title| image:: ../../../../silx/resources/gui/icons/description-title.png
+.. |description-value| image:: ../../../../silx/resources/gui/icons/description-value.png
 .. |document-open| image:: ../../../../silx/resources/gui/icons/document-open.png
 .. |document-print| image:: ../../../../silx/resources/gui/icons/document-print.png
 .. |document-save| image:: ../../../../silx/resources/gui/icons/document-save.png
