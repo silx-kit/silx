@@ -80,10 +80,10 @@ def mainQt(options):
     # Import most of the things here to be sure to use the right logging level
     #
 
-    if not options.hdf5_file_locking:
-        # This needs to be done prior to load HDF5
-        _logger.info('Set HDF5_USE_FILE_LOCKING=FALSE')
-        os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
+    # This needs to be done prior to load HDF5
+    hdf5_file_locking = 'TRUE' if options.hdf5_file_locking else 'FALSE'
+    _logger.info('Set HDF5_USE_FILE_LOCKING=%s', hdf5_file_locking)
+    os.environ['HDF5_USE_FILE_LOCKING'] = hdf5_file_locking
 
     try:
         # it should be loaded before h5py
