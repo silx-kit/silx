@@ -131,7 +131,7 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         '--update-mode',
-        default='manual',
+        default='auto',
         help='update mode to display (manual or auto)')
 
     options = parser.parse_args(argv[1:])
