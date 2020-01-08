@@ -231,7 +231,7 @@ class _BaseProfileToolBar(qt.QToolBar):
             profilePlot.addCurve(
                 xProfile, values, legend='Profile', color=self._color)
 
-        self._showDefaultProfileWindow()
+            self._showDefaultProfileWindow()
 
     def _showDefaultProfileWindow(self):
         """If profile window was created by this toolbar,
