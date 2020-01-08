@@ -424,7 +424,7 @@ class _StatsWidgetBase(object):
 
         if self._displayOnlyActItem:
             connections.append(
-                (self._plotWrapper.sigCurrentChanged, self._updateItemObserve))
+                (self._plotWrapper.sigCurrentChanged, self._updateCurrentItem))
         else:
             connections += [
                 (self._plotWrapper.sigItemAdded, self._addItem),
@@ -439,6 +439,11 @@ class _StatsWidgetBase(object):
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
+        raise NotImplementedError('Base class')
+
+    def _updateCurrentItem(self, *args):
+        """specific callback for the sigCurrentChanged and with the
+        _displayOnlyActItem option."""
         raise NotImplementedError('Base class')
 
     def _updateStats(self, item):
@@ -643,8 +648,6 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
-        if self.getUpdateMode() is UpdateMode.MANUAL:
-            return
         self._removeAllItems()
 
         # Get selected or all items from the plot
@@ -656,6 +659,27 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         # Add items to the plot
         for item in items:
             self._addItem(item)
+
+    def _updateCurrentItem(self, *args):
+        """specific callback for the sigCurrentChanged and with the
+        _displayOnlyActItem option.
+
+        Behavior: create the tableItems if does not exists.
+         If exists, update it only when we are in 'auto' mode"""
+        if self.getUpdateMode() is UpdateMode.MANUAL:
+            # when sigCurrentChanged is giving the current item
+            if len(args) > 0 and isinstance(args[0], (plotitems.Curve, plotitems.Histogram, plotitems.ImageData, plotitems.Scatter)):
+                item = args[0]
+                tableItems = self._itemToTableItems(item)
+                # if the table does not exists yet
+                if len(tableItems) == 0:
+                    self._updateItemObserve()
+            else:
+                # in this case no current item
+                self._updateItemObserve(args)
+        else:
+            # auto mode
+            self._updateItemObserve(args)
 
     def _plotCurrentChanged(self, current):
         """Handle change of current item and update selection in table
@@ -1391,6 +1415,9 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         assert len(items) in (0, 1)
         _item = items[0] if len(items) is 1 else None
         self._setItem(_item)
+
+    def _updateCurrentItem(self):
+        self._updateItemObserve()
 
     def _createLayout(self):
         """create an instance of the main QLayout"""
