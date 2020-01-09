@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -132,40 +132,54 @@ class TestFitmanager(unittest.TestCase):
         linear_bg = 2.65 * x + 13
         y = linear_bg + sum_gauss(x, *p)
 
-        # Fitting
-        fit = fitmanager.FitManager()
-        fit.setdata(x=x, y=y)
-        fit.loadtheories(fittheories)
-        # Use one of the default fit functions
-        fit.settheory('Gaussians')
-        fit.setbackground('Linear')
-        fit.estimate()
-        fit.runfit()
+        y_with_nans = numpy.array(y)
+        y_with_nans[::10] = numpy.nan
 
-        # fit.fit_results[]
+        x_with_nans = numpy.array(x)
+        x_with_nans[5::15] = numpy.nan
 
-        # first 2 parameters are related to the linear background
-        self.assertEqual(fit.fit_results[0]["name"], "Constant")
-        self.assertAlmostEqual(fit.fit_results[0]["fitresult"], 13)
-        self.assertEqual(fit.fit_results[1]["name"], "Slope")
-        self.assertAlmostEqual(fit.fit_results[1]["fitresult"], 2.65)
+        tests = {
+            'all finite': (x, y),
+            'y with NaNs': (x, y_with_nans),
+            'x with NaNs': (x_with_nans, y),
+            }
 
-        for i, param in enumerate(fit.fit_results[2:]):
-            param_number = i // 3 + 1
-            if i % 3 == 0:
-                self.assertEqual(param["name"],
-                                 "Height%d" % param_number)
-            elif i % 3 == 1:
-                self.assertEqual(param["name"],
-                                 "Position%d" % param_number)
-            elif i % 3 == 2:
-                self.assertEqual(param["name"],
-                                 "FWHM%d" % param_number)
+        for name, (xdata, ydata) in tests.items():
+            with self.subTest(name=name):
+                # Fitting
+                fit = fitmanager.FitManager()
+                fit.setdata(x=xdata, y=ydata)
+                fit.loadtheories(fittheories)
+                # Use one of the default fit functions
+                fit.settheory('Gaussians')
+                fit.setbackground('Linear')
+                fit.estimate()
+                fit.runfit()
 
-            self.assertAlmostEqual(param["fitresult"],
-                                   p[i])
-            self.assertAlmostEqual(_order_of_magnitude(param["estimation"]),
-                                   _order_of_magnitude(p[i]))
+                # fit.fit_results[]
+
+                # first 2 parameters are related to the linear background
+                self.assertEqual(fit.fit_results[0]["name"], "Constant")
+                self.assertAlmostEqual(fit.fit_results[0]["fitresult"], 13)
+                self.assertEqual(fit.fit_results[1]["name"], "Slope")
+                self.assertAlmostEqual(fit.fit_results[1]["fitresult"], 2.65)
+
+                for i, param in enumerate(fit.fit_results[2:]):
+                    param_number = i // 3 + 1
+                    if i % 3 == 0:
+                        self.assertEqual(param["name"],
+                                         "Height%d" % param_number)
+                    elif i % 3 == 1:
+                        self.assertEqual(param["name"],
+                                         "Position%d" % param_number)
+                    elif i % 3 == 2:
+                        self.assertEqual(param["name"],
+                                         "FWHM%d" % param_number)
+
+                    self.assertAlmostEqual(param["fitresult"],
+                                           p[i])
+                    self.assertAlmostEqual(_order_of_magnitude(param["estimation"]),
+                                           _order_of_magnitude(p[i]))
 
     def testLoadCustomFitFunction(self):
         """Test FitManager using a custom fit function defined in an external
