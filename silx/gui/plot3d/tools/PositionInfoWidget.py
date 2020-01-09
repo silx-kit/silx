@@ -189,7 +189,7 @@ class PositionInfoWidget(qt.QWidget):
             return  # No picked item
 
         item = picking.getItem()
-        self._itemLabel.setText(item.getName())
+        self._itemLabel.setText(item.getLabel())
         positions = picking.getPositions('scene', copy=False)
         x, y, z = positions[0]
         self._xLabel.setText("%g" % x)

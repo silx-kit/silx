@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ from silx.gui.dialog.DataFileDialog import DataFileDialog
 import silx.io
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig()
 
 
 class Mode(enum.Enum):

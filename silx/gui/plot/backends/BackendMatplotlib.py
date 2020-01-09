@@ -1094,13 +1094,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Data <-> Pixel coordinates conversion
 
-    def _mplQtYAxisCoordConversion(self, y):
+    def _mplQtYAxisCoordConversion(self, y, asint=True):
         """Qt origin (top) to/from matplotlib origin (bottom) conversion.
+
+        :param y:
+        :param bool asint: True to cast to int, False to keep as float
 
         :rtype: float
         """
-        height = self.fig.get_window_extent().height
-        return height - y
+        value = self.fig.get_window_extent().height - y
+        return int(value) if asint else value
 
     def dataToPixel(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
@@ -1109,7 +1112,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         xPixel, yPixel = pixels.T
 
         # Convert from matplotlib origin (bottom) to Qt origin (top)
-        yPixel = self._mplQtYAxisCoordConversion(yPixel)
+        yPixel = self._mplQtYAxisCoordConversion(yPixel, asint=False)
 
         return xPixel, yPixel
 
@@ -1117,7 +1120,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         ax = self.ax2 if axis == "right" else self.ax
 
         # Convert from Qt origin (top) to matplotlib origin (bottom)
-        y = self._mplQtYAxisCoordConversion(y)
+        y = self._mplQtYAxisCoordConversion(y, asint=False)
 
         inv = ax.transData.inverted()
         x, y = inv.transform_point((x, y))
@@ -1126,10 +1129,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def getPlotBoundsInPixels(self):
         bbox = self.ax.get_window_extent()
         # Warning this is not returning int...
-        return (bbox.xmin,
-                self._mplQtYAxisCoordConversion(bbox.ymax),
-                bbox.width,
-                bbox.height)
+        return (int(bbox.xmin),
+                self._mplQtYAxisCoordConversion(bbox.ymax, asint=True),
+                int(bbox.width),
+                int(bbox.height))
 
     def setAxesDisplayed(self, displayed):
         """Display or not the axes.
@@ -1263,7 +1266,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def _onMouseMove(self, event):
         if self._graphCursor:
             lineh, linev = self._graphCursor
-            if event.inaxes != self.ax and lineh.get_visible():
+            if event.inaxes not in (self.ax, self.ax2) and lineh.get_visible():
                 lineh.set_visible(False)
                 linev.set_visible(False)
                 self._plot._setDirtyPlot(overlayOnly=True)

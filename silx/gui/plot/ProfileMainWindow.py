@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -85,6 +85,7 @@ class ProfileMainWindow(qt.QMainWindow):
                 self._plot2D.setParent(None)   # necessary to avoid widget destruction
             if self._plot1D is None:
                 self._plot1D = Plot1D(backend=self._backend)
+                self._plot1D.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
                 self._plot1D.setGraphYLabel('Profile')
                 self._plot1D.setGraphXLabel('')
             self.setCentralWidget(self._plot1D)

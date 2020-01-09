@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -315,8 +315,8 @@ class FitWidget(qt.QWidget):
         configuration.update(self.configure())
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
-        warnings.warning("Method renamed to setData",
-                         DeprecationWarning)
+        warnings.warn("Method renamed to setData",
+                      DeprecationWarning)
         self.setData(x, y, sigmay, xmin, xmax)
 
     def setData(self, x, y, sigmay=None, xmin=None, xmax=None):
@@ -525,8 +525,8 @@ class FitWidget(qt.QWidget):
         self._emitSignal(ddict)
 
     def startfit(self):
-        warnings.warning("Method renamed to startFit",
-                         DeprecationWarning)
+        warnings.warn("Method renamed to startFit",
+                      DeprecationWarning)
         self.startFit()
 
     def startFit(self):
