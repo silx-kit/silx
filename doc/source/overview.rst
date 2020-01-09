@@ -9,17 +9,17 @@ ManyLinux1.
 Debian packages of released versions are made available in the following places:
 
 - `Wheels and source code on PyPi <https://pypi.python.org/pypi/silx>`_
-- `Debian 8 packages <http://www.silx.org/pub/debian/>`_
+- `Debian 9 packages <http://www.silx.org/pub/debian/>`_
 - `Documentation on silx.org <http://www.silx.org/doc/silx/latest/>`_
 - :doc:`changelog`
 
 Nightly builds
 --------------
 
-Debian 8 packages and documentation are automatically generated from the tip of
+Debian 9 packages and documentation are automatically generated from the tip of
 the project's repository on a daily basis:
 
-- `Debian 8 packages <http://www.silx.org/pub/debian/>`_
+- `Debian 9 packages <http://www.silx.org/pub/debian/>`_
 - `Documentation <http://www.silx.org/doc/silx/dev/>`_
 
 Project

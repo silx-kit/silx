@@ -12,7 +12,7 @@ Some widgets in :mod:`silx.gui` are using OpenGL2.1:
 When running applications based on OpenGL2.1 through ssh, there are a few situations that can prevent the display of OpenGL widgets:
 
 - Make sure to use ``ssh -X`` to enable X11 forwarding.
-- OpenGL is disabled with X11 forwarding (the default on Debian 8 and 9). See `Enabling OpenGL forwarding`_.
+- OpenGL is disabled with X11 forwarding (the default on Debian). See `Enabling OpenGL forwarding`_.
 - Unless the operating system is using `libglvnd <https://github.com/NVIDIA/libglvnd/releases>`_
   (available from Debian 9 backports onward),
   both the server and the client computers must have the same kind of GPU drivers
