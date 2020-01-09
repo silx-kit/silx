@@ -68,7 +68,7 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
 
   * Added `Cython` as a build dependency (PR #2795, #2807, #2808)
   * Added Debian 10 packaging (PR #2670, #2672, #2666, #2686, #2706)
-  * Improved: documentation (PR #2673, #2680, #2679, #2772, #2759, #2779, #2801, #2802, #2833, #2857)
+  * Improved documentation (PR #2673, #2680, #2679, #2772, #2759, #2779, #2801, #2802, #2833, #2857, #2869)
   * Improved testing tools (PR #2704, #2796, #2818)
   * Improved `bootstrap.py` script (PR #2727, #2733)
 
