@@ -33,6 +33,11 @@ matrix:
               - QT_BINDING=PyQt5
               - PIP_OPTIONS="-q --pre"
 
+branches:
+    only:
+        - master
+        - /\d*\.\d*/
+
 cache:
     apt: true
 
