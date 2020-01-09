@@ -36,6 +36,11 @@ environment:
           WITH_GL_TEST: True
           PIP_OPTIONS: "-q"
 
+branches:
+    only:
+        - master
+        - /\d*\.\d*/
+
 install:
     # Add Python to PATH
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
