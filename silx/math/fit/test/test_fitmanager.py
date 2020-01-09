@@ -35,6 +35,7 @@ from silx.math.fit import bgtheories
 from silx.math.fit.fittheory import FitTheory
 from silx.math.fit.functions import sum_gauss, sum_stepdown, sum_stepup
 
+from silx.utils.testutils import ParametricTestCase
 from silx.test.utils import temp_dir
 
 custom_function_definition = """
@@ -110,7 +111,7 @@ def _order_of_magnitude(x):
     return numpy.log10(x).round()
 
 
-class TestFitmanager(unittest.TestCase):
+class TestFitmanager(ParametricTestCase):
     """
     Unit tests of multi-peak functions.
     """
