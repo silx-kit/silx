@@ -5,8 +5,8 @@ Unreleased
 ----------
 
 
-0.12.0rc0: 2019/12/16
----------------------
+0.12.0: 2020/01/09
+------------------
 
 Python 2.7 is no longer officially supported (even if tests pass and most of the library should work).
 
@@ -15,6 +15,7 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
   * Added: keep the same axes selection when changing dataset except for the stack view (PR #2701, #2780)
   * Added a Description column in the browsing tree to display NeXus title or name (PR #2804)
   * Added support of URL as filename (PR #2750)
+  * Behavior changed: no longer lock HDF5 files by default, can be changed with `--hdf5-file-locking` option (PR #2861)
 
 * `silx.gui`:
 
@@ -25,8 +26,8 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
     * Added right axis support to `PlotWidget` marker items (PR #2744)
     * Added `BoundingRect` `PlotWidget` item (PR #2823)
     * Added more markers to `PlotWidget` items using symbols (PR #2792)
-    * Improved and fixed `PlotWidget` and backends rendering and picking to guarantee rendering order of items (PR #2602, #2694, #2726, #2728, #2730, #2731, #2732, #2734, #2746, #2800, #2822, #2829)
-    * Improved `RegionOfInterest`: Added `sigItemChanged` signal, renamed `get|setLabel` to `get|setName` (PR #2684, #2729, #2794, #2803)
+    * Improved and fixed `PlotWidget` and backends rendering and picking to guarantee rendering order of items (PR #2602, #2694, #2726, #2728, #2730, #2731, #2732, #2734, #2746, #2800, #2822, #2829, #2851, #2853)
+    * Improved `RegionOfInterest`: Added `sigItemChanged` signal, renamed `get|setLabel` to `get|setName` (PR #2684, #2729, #2794, #2803, #2860)
     * Improved `StackView`: Allow to save dataset to HDF5 (PR #2813)
 
   * `silx.gui.plot3d`:
@@ -41,7 +42,7 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
     * Added `silx.gui.utils.blockSignals` context manager (PR #2697, #2702)
     * Added `silx.gui.utils.qtutils.getQEventName` function (PR #2725)
     * Added `silx.gui.colors.asQColor` function (PR #2753)
-    * Minor fixes (PR #2662, #2667, #2674, #2719, #2724, #2747, #2757, #2760, #2766, #2789, #2798, #2799, #2805, #2811, #2832, #2834)
+    * Minor fixes (PR #2662, #2667, #2674, #2719, #2724, #2747, #2757, #2760, #2766, #2789, #2798, #2799, #2805, #2811, #2832, #2834, #2839, #2849, #2852, #2857, #2864, #2867)
 
 * `silx.opencl`:
 
@@ -58,6 +59,7 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
   * Added `silx.image.utils.gaussian_kernel` function (PR #2782)
   * Improved `silx.image.shapes.Polygon` argument check (PR #2761)
   * Fixed and improved `silx.math.fft` with FFTW backend (PR #2751)
+  * Fixed support of not finite data in fit manager (PR #2868)
 
 * `silx.io`:
 
@@ -70,7 +72,9 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
 
   * Added `Cython` as a build dependency (PR #2795, #2807, #2808)
   * Added Debian 10 packaging (PR #2670, #2672, #2666, #2686, #2706)
-  * Improvements: documentation (PR #2673, #2680, #2679, #2772, #2759, #2779, #2801, #2802, #2833), testing tools (PR #2704, #2796, #2818), `bootstrap.py` script (PR #2727, #2733)
+  * Improved: documentation (PR #2673, #2680, #2679, #2772, #2759, #2779, #2801, #2802, #2833, #2857)
+  * Improved testing tools (PR #2704, #2796, #2818)
+  * Improved `bootstrap.py` script (PR #2727, #2733)
 
 
 0.11.0: 2019/07/03
