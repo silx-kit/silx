@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*#########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -411,8 +411,9 @@ class FitManager(object):
                 6: 'SUM',
                 7: 'IGNORE'}
 
-        xwork = self.xdata
-        ywork = self.ydata
+        # Filter-out not finite data
+        xwork = self.xdata[self._finite_mask]
+        ywork = self.ydata[self._finite_mask]
 
         # estimate the background
         bg_params, bg_constraints = self.estimate_bkg(xwork, ywork)
@@ -516,8 +517,8 @@ class FitManager(object):
         from a list of parameter dictionaries, if field ``code`` is not set
         to ``"IGNORE"``.
         """
-        if x is None:
-            x = self.xdata
+        x = self.xdata if x is None else numpy.array(x, copy=False)
+
         if paramlist is None:
             paramlist = self.fit_results
         active_params = []
@@ -528,8 +529,18 @@ class FitManager(object):
                 else:
                     active_params.append(param['estimation'])
 
-        newdata = self.fitfunction(numpy.array(x), *active_params)
-        return newdata
+        # Mask x with not finite (support nD x)
+        finite_mask = numpy.all(numpy.isfinite(x), axis=tuple(range(1, x.ndim)))
+
+        if numpy.all(finite_mask):  # All values are finite: fast path
+            return self.fitfunction(numpy.array(x, copy=True), *active_params)
+
+        else:  # Only run fitfunction on finite data and complete result with NaNs
+            # Create result with same number as elements as x, filling holes with NaNs
+            result = numpy.full((x.shape[0],), numpy.nan, dtype=numpy.float64)
+            result[finite_mask] = self.fitfunction(
+                numpy.array(x[finite_mask], copy=True), *active_params)
+            return result
 
     def get_estimation(self):
         """Return the list of fit parameter names."""
@@ -750,6 +761,10 @@ class FitManager(object):
                 self.ydata = self.ydata[bool_array]
                 self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
 
+        self._finite_mask = numpy.logical_and(
+            numpy.all(numpy.isfinite(self.xdata), axis=tuple(range(1, self.xdata.ndim))),
+            numpy.isfinite(self.ydata))
+
     def enableweight(self):
         """This method can be called to set :attr:`sigmay`. If :attr:`sigmay0` was filled with
         actual uncertainties in :meth:`setdata`, use these values.
@@ -822,13 +837,14 @@ class FitManager(object):
             param_val.append(param['estimation'])
             param_constraints.append([param['code'], param['cons1'], param['cons2']])
 
-        ywork = self.ydata
-
+        # Filter-out not finite data
+        ywork = self.ydata[self._finite_mask]
+        xwork = self.xdata[self._finite_mask]
 
         try:
             params, covariance_matrix, infodict = leastsq(
                     self.fitfunction,  # bg + actual model function
-                    self.xdata, ywork, param_val,
+                    xwork, ywork, param_val,
                     sigma=self.sigmay,
                     constraints=param_constraints,
                     model_deriv=self.theories[self.selectedtheory].derivative,
