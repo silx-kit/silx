@@ -1,3 +1,18 @@
+silx (0.11.0+dfsg-3) unstable; urgency=medium
+
+  * d/control: Build-Depends on python3-qtconsole(Closes: #946571).
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Wed, 11 Dec 2019 09:10:31 +0100
+
+silx (0.11.0+dfsg-2) unstable; urgency=medium
+
+  * Use debhelper-compat instead of debian/compat.
+  * remove Python2 modules (Closes: #938481).
+  * Switched to compat level 12
+    - d/rules: Used --doc-main-package python3-silx.
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sat, 19 Oct 2019 13:19:44 +0200
+
 silx (0.11.0+dfsg-1) unstable; urgency=medium
 
   [ Alexandre Marie ]

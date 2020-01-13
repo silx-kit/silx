@@ -42,7 +42,6 @@ override_dh_auto_build:
 	dh_auto_build -- -s custom --build-args="env PYTHONPATH={build_dir} {interpreter} setup.py build_man"
 
 override_dh_install:
-	dh_numpy
 	dh_numpy3
 
 	# install scripts into silx
@@ -66,8 +65,6 @@ override_dh_python3:
 # SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
 # GPU=False to disable the use of a GPU with OpenCL test
 # WITH_GL_TEST=False to disable tests using OpenGL
-# UNACTIVATED UNTIL dh_python from UNSTABLE IS FIXED
-# https://lists.debian.org/debian-python/2017/08/msg00095.html
 override_dh_auto_test:
 	mkdir -p $(POCL_CACHE_DIR) # create POCL cachedir in order to avoid an FTBFS in sbuild
 	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} GPU=False WITH_QT_TEST=False SILX_OPENCL=False SILX_TEST_LAW_MEM=True xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} run_tests.py -vv --installed"
@@ -80,6 +77,6 @@ ifeq (,$(findstring nodocs, $(DEB_BUILD_OPTIONS)))
 	#mkdir -p $(POCL_CACHE_DIR) # create POCL cachedir in order to avoid an FTBFS in sbuild
 	mkdir -p -m 700 $(XDG_RUNTIME_DIR)
 	pybuild --build -s custom -p $(PY3VER) --build-args="cd doc && env PYTHONPATH={build_dir} http_proxy='127.0.0.1:9' xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} -m sphinx -N -bhtml source build/html"
-	dh_installdocs "doc/build/html" -p python-silx-doc
+	dh_installdocs "doc/build/html" -p python-silx-doc --doc-main-package=python3-silx
 	dh_sphinxdoc -O--buildsystem=pybuild
 endif
