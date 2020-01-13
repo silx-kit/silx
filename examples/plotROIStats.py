@@ -46,7 +46,43 @@ import sys
 import argparse
 import functools
 import numpy
+import threading
+from silx.gui.utils import concurrent
+import random
+import time
 
+
+class UpdateThread(threading.Thread):
+    """Thread updating the image of a :class:`~silx.gui.plot.Plot2D`
+
+    :param plot2d: The Plot2D to update."""
+
+    def __init__(self, plot2d):
+        self.plot2d = plot2d
+        self.running = False
+        super(UpdateThread, self).__init__()
+
+    def start(self):
+        """Start the update thread"""
+        self.running = True
+        super(UpdateThread, self).start()
+
+    def run(self):
+        """Method implementing thread loop that updates the plot"""
+        while self.running:
+            time.sleep(1)
+            # Run plot update asynchronously
+            concurrent.submitToQtMainThread(
+                self.plot2d.addImage,
+                numpy.random.random(10000).reshape(100, 100),
+                resetzoom=False,
+                legend=random.choice(('img1', 'img2'))
+            )
+
+    def stop(self):
+        """Stop the update thread"""
+        self.running = False
+        self.join(2)
 
 class _RoiStatsWidget(qt.QMainWindow):
     """
@@ -97,8 +133,6 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
         # hide last columns which are of no use now
         for index in (5, 6, 7, 8):
             self._curveRoiWidget.roiTable.setColumnHidden(index, True)
-        # roi display widget
-        self._roiStatsWindow = ROIStatsWidget(plot=self.plot)
 
         # 2D - 3D roi manager
         self._regionManager = RegionOfInterestManager(parent=self.plot)
@@ -217,6 +251,9 @@ def example_image():
 
     window = _RoiStatsDisplayExWindow()
     window.setRois(rois2D=(rectangle_roi, polygon_roi, arc_roi))
+    # Create the thread that calls submitToQtMainThread
+    updateThread = UpdateThread(window.plot)
+    updateThread.start()  # Start updating the plot
 
     # define some image and curve
     window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
@@ -233,11 +270,13 @@ def example_image():
 
     window.show()
     app.exec_()
+    updateThread.stop()  # Stop updating the plot
 
 
 def example_curve_image():
     """set up the roi stats example for curves and images"""
     app = qt.QApplication([])
+
     roi1D_1, roi1D_2 = get_1D_rois()
     rectangle_roi, polygon_roi, arc_roi = get_2D_rois()
 
@@ -259,8 +298,13 @@ def example_curve_image():
     curve_item = window.plot.getCurve('curve1')
     window.addItem(item=curve_item, roi=roi1D_1)
 
+    # Create the thread that calls submitToQtMainThread
+    updateThread = UpdateThread(window.plot)
+    updateThread.start()  # Start updating the plot
+
     window.show()
     app.exec_()
+    updateThread.stop()  # Stop updating the plot
 
 
 def main(argv):
@@ -269,6 +313,7 @@ def main(argv):
     parser.add_argument("--items", dest="items", default='curves+images',
                         help="items type(s), can be curve, image, curves+images")
     options = parser.parse_args(argv[1:])
+
     items = options.items.lower()
     if items == 'curves':
         example_curve()
