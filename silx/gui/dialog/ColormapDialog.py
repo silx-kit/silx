@@ -353,7 +353,7 @@ class ColormapDialog(qt.QDialog):
     def _plotInit(self):
         """Init the plot to display the range and the values"""
         self._plot = PlotWidget()
-        self._plot.setDataMargins(yMinMargin=0.125, yMaxMargin=0.125)
+        self._plot.setDataMargins(0.125, 0.125, 0.125, 0.125)
         self._plot.getXAxis().setLabel("Data Values")
         self._plot.getYAxis().setLabel("")
         self._plot.setInteractiveMode('select', zoomOnWheel=False)
@@ -459,34 +459,6 @@ class ColormapDialog(qt.QDialog):
         if not self._plotBox.isVisibleTo(self):
             self._plotBox.setVisible(True)
             self.setFixedSize(self.sizeHint())
-
-        minData, maxData = self._minValue.getFiniteValue(), self._maxValue.getFiniteValue()
-        if minData > maxData:
-            # avoid a full collapse
-            minData, maxData = maxData, minData
-
-        minView, maxView = self._computeView(minData, maxData)
-
-        if updateMarkers:
-            # Save the state in we are not moving the markers
-            self._initialRange = minView, maxView
-        elif self._initialRange is not None:
-            minView = min(minView, self._initialRange[0])
-            maxView = max(maxView, self._initialRange[1])
-
-        if minView > minData:
-            # Hide the min range
-            minData = minView
-        x = [minView, minData, maxData, maxView]
-        y = [0, 0, 1, 1]
-
-        self._plot.addCurve(x, y,
-                            legend="ConstrainedCurve",
-                            color='black',
-                            symbol='o',
-                            linestyle='-',
-                            z=2,
-                            resetzoom=False)
 
         if updateMarkers:
             posMin, posMax = self._getDisplayableRange()
