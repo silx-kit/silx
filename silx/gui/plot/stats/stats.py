@@ -33,6 +33,7 @@ __date__ = "06/06/2018"
 
 
 from collections import OrderedDict
+from functools import lru_cache
 import logging
 
 import numpy
@@ -44,6 +45,7 @@ from ..items.roi import RegionOfInterest
 
 from ....math.combo import min_max
 from silx.utils.proxy import docstring
+from ....utils.deprecation import deprecated
 
 logger = logging.getLogger(__name__)
 
@@ -61,12 +63,14 @@ class Stats(OrderedDict):
     """
     def __init__(self, statslist=None):
         OrderedDict.__init__(self)
+        """cache contextes"""
         _statslist = statslist if not None else []
         if statslist is not None:
             for stat in _statslist:
                 self.add(stat)
 
-    def calculate(self, item, plot, onlimits, roi):
+    def calculate(self, item, plot, onlimits, roi, data_changed=False,
+                  roi_changed=False):
         """
         Call all :class:`Stat` object registered and return the result of the
         computation.
@@ -81,6 +85,35 @@ class Stats(OrderedDict):
         :return dict: dictionary with :class:`Stat` name as ket and result
                       of the calculation as value
         """
+        res = {}
+        context = self._getContext(item=item, plot=plot, onlimits=onlimits,
+                                   roi=roi)
+        for statName, stat in list(self.items()):
+            if context.kind not in stat.compatibleKinds:
+                logger.debug('kind %s not managed by statistic %s'
+                             % (context.kind, stat.name))
+                res[statName] = None
+            else:
+                if roi_changed is True:
+                    context.clear_mask()
+                if data_changed is True or roi_changed is True:
+                    # if data changed or mask changed
+                    context.clip_data_to_mask(item=item, plot=plot,
+                                              onlimits=onlimits, roi=roi)
+                # init roi and data
+                res[statName] = stat.calculate(context)
+        return res
+
+    def __setitem__(self, key, value):
+        assert isinstance(value, StatBase)
+        OrderedDict.__setitem__(self, key, value)
+
+    def add(self, stat):
+        self.__setitem__(key=stat.name, value=stat)
+
+    @staticmethod
+    @lru_cache(maxsize=50)
+    def _getContext(item, plot, onlimits, roi):
         context = None
         # Check for PlotWidget items
         if isinstance(item, items.Curve):
@@ -96,29 +129,15 @@ class Stats(OrderedDict):
             from ...plot3d import items as items3d  # Lazy import
 
             if isinstance(item, (items3d.Scatter2D, items3d.Scatter3D)):
-                context = _plot3DScatterContext(item, plot, onlimits, roi=roi)
-            elif isinstance(item, (items3d.ImageData, items3d.ScalarField3D)):
-                context = _plot3DArrayContext(item, plot, onlimits, roi=roi)
-
+                context = _plot3DScatterContext(item, plot, onlimits,
+                                                roi=roi)
+            elif isinstance(item,
+                            (items3d.ImageData, items3d.ScalarField3D)):
+                context = _plot3DArrayContext(item, plot, onlimits,
+                                              roi=roi)
         if context is None:
-                raise ValueError('Item type not managed')
-
-        res = {}
-        for statName, stat in list(self.items()):
-            if context.kind not in stat.compatibleKinds:
-                logger.debug('kind %s not managed by statistic %s'
-                             % (context.kind, stat.name))
-                res[statName] = None
-            else:
-                res[statName] = stat.calculate(context)
-        return res
-
-    def __setitem__(self, key, value):
-        assert isinstance(value, StatBase)
-        OrderedDict.__setitem__(self, key, value)
-
-    def add(self, stat):
-        self.__setitem__(key=stat.name, value=stat)
+            raise ValueError('Item type not managed')
+        return context
 
 
 class _StatsContext(object):
@@ -168,6 +187,25 @@ class _StatsContext(object):
 
         self.buildContext(item, plot, onlimits, roi=roi)
 
+    def clip_data_to_mask(self, item, plot, onlimits, roi):
+        """
+        Clip the data to the current mask to have accurate statistics
+
+        :param item:
+        :param plot:
+        :param onlimits:
+        :param roi:
+        :return:
+        """
+        raise NotImplementedError()
+
+    def clear_mask(self):
+        """
+        Remove the mask to force recomputation of it on next iteration
+        :return:
+        """
+        raise NotImplementedError()
+
     @property
     def mask(self):
         if self.values is not None:
@@ -175,6 +213,16 @@ class _StatsContext(object):
             return self.values.mask
         else:
             return None
+
+    @property
+    def is_mask_valid(self, **kwargs):
+        """Return if the mask is valid for the data or need to be recomputed"""
+        raise NotImplementedError("Base class")
+
+    def _set_mask_validity(self, **kwargs):
+        """User to set some values that allows to define the mask properties
+        and boundaries"""
+        raise NotImplementedError("Base class")
 
     def buildContext(self, item, plot, onlimits, roi):
         """
@@ -191,6 +239,13 @@ class _StatsContext(object):
         :type roi: Union[None,:class:`_RegionOfInterestBase`]
         """
         raise NotImplementedError("Base class")
+
+    @deprecated(reason="context are now stored and keep during stats life."
+                       "So this function will be called only once",
+                replacement="buildContext", since_version="0.13.0")
+    def createContext(self, item, plot, onlimits, roi):
+        return self.buildContext(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
 
     def isStructuredData(self):
         """Returns True if data as an array-like structure.
@@ -282,6 +337,11 @@ class _CurveContext(_StatsContext):
         if roi is not None and not isinstance(roi, ROI):
             raise TypeError('curve `context` can ony manage 1D roi')
 
+    def clear_mask(self):
+        print('not implemented')
+
+    def clip_data_to_mask(self, item, plot, onlimits, roi):
+        print('not implemented')
 
 class _HistogramContext(_StatsContext):
     """
@@ -296,8 +356,18 @@ class _HistogramContext(_StatsContext):
     :type roi: Union[None, :class:`ROI`]
     """
     def __init__(self, item, plot, onlimits, roi):
+        self._set_mask_validity(onlimits=None, from_=None, to_=None)
         _StatsContext.__init__(self, kind='histogram', item=item,
                                plot=plot, onlimits=onlimits, roi=roi)
+
+    def _set_mask_validity(self, onlimits, from_, to_):
+        self._onlimits = onlimits
+        self._from_ = from_
+        self._to_ = to_
+
+    def is_mask_valid(self, onlimits, from_, to_):
+        return (onlimits == self.onlimits and from_ == self._from_ and
+                to_ == self._to_)
 
     @docstring(_StatsContext)
     def buildContext(self, item, plot, onlimits, roi):
@@ -308,14 +378,26 @@ class _HistogramContext(_StatsContext):
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            mask = (minX <= xData) & (xData <= maxX)
-            yData = yData[mask]
-            xData = xData[mask]
+            if self.is_mask_valid(onlimits, from_=minX, to_=maxX):
+                mask = self.mask
+            else:
+                mask = (minX <= xData) & (xData <= maxX)
+                self._set_mask_validity(onlimits=True, from_=minX, to_=maxX)
         elif roi:
-            mask = (roi._fromdata <= xData) & (xData <= roi._todata)
-            mask = mask==0
+            if self.is_mask_valid(onlimits, from_=roi._fromdata, to_=roi._todata):
+                mask = self.mask
+            else:
+                mask = (roi._fromdata <= xData) & (xData <= roi._todata)
+                mask = mask == 0
+                self._set_mask_validity(onlimits=True, from_=roi._fromdata,
+                                        to_=roi._todata)
         else:
             mask = numpy.zeros_like(self.data)
+
+        if onlimits:
+            yData = yData[mask]
+            xData = xData[mask]
+
 
         self.data = (xData, yData)
         self.values = numpy.ma.array(yData, mask=mask)
@@ -424,11 +506,33 @@ class _ImageContext(_StatsContext):
     :type roi: Union[None, :class:`ROI`]
     """
     def __init__(self, item, plot, onlimits, roi):
+        self.clear_mask()
         _StatsContext.__init__(self, kind='image', item=item,
                                plot=plot, onlimits=onlimits, roi=roi)
 
-    @docstring(_StatsContext)
+    def _set_mask_validity(self, xmin: float, xmax: float, ymin: float, ymax
+                           : float):
+        self._mask_x_min = xmin
+        self._mask_x_max = xmax
+        self._mask_y_min = ymin
+        self._mask_y_max = ymax
+
+    def clear_mask(self):
+        self._mask_x_min = None
+        self._mask_x_max = None
+        self._mask_y_min = None
+        self._mask_y_max = None
+
+    def is_mask_valid(self, xmin, xmax, ymin, ymax):
+        return (xmin == self._mask_x_min and xmax == self._mask_x_max and
+                ymin == self._mask_y_min and ymax == self._mask_y_max)
+
     def buildContext(self, item, plot, onlimits, roi):
+        self.clip_data_to_mask(item=item, plot=plot, onlimits=onlimits,
+                               roi=roi)
+
+    @docstring(_StatsContext)
+    def clip_data_to_mask(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         self.origin = item.getOrigin()
@@ -465,11 +569,18 @@ class _ImageContext(_StatsContext):
             YMinBound = max(minY, 0)
             XMaxBound = min(maxX, self.data.shape[1])
             YMaxBound = min(maxY, self.data.shape[0])
-            for x in range(XMinBound, XMaxBound):
-                for y in range(YMinBound, YMaxBound):
-                    _x = (x * self.scale[0]) + self.origin[0]
-                    _y = (y * self.scale[1]) + self.origin[1]
-                    mask[y, x] = not roi.isIn((_x, _y))
+
+            if self.is_mask_valid(xmin=XMinBound, xmax=XMaxBound,
+                                  ymin=YMinBound, ymax=YMaxBound):
+                mask = self.mask
+            else:
+                for x in range(XMinBound, XMaxBound):
+                    for y in range(YMinBound, YMaxBound):
+                        _x = (x * self.scale[0]) + self.origin[0]
+                        _y = (y * self.scale[1]) + self.origin[1]
+                        mask[y, x] = not roi.isIn((_x, _y))
+                self._set_mask_validity(xmin=XMinBound, xmax=XMaxBound,
+                                        ymin=YMinBound, ymax=YMaxBound)
         self.values = numpy.ma.array(self.data, mask=mask)
         if self.values.compressed().size > 0:
             self.min, self.max = min_max(self.values.compressed())

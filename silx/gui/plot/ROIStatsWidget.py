@@ -376,7 +376,10 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
     def _updateItemObserve(self, *args):
         pass
 
-    def _updateStats(self, item):
+    def _dataChanged(self, item):
+        pass
+
+    def _updateStats(self, item, data_changed=False, roi_changed=False):
         assert isinstance(item, ROIStatsItemHelper)
         plotItem = item._plot_item
         roi = item._roi
@@ -396,7 +399,8 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         if statsHandler is not None:
             stats = statsHandler.calculate(plotItem, plot,
                                            onlimits=self._statsOnVisibleData,
-                                           roi=roi)
+                                           roi=roi, data_changed=data_changed,
+                                           roi_changed=roi_changed)
         else:
             stats = {}
 
@@ -518,7 +522,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
 
     def _endFiltering(self, roi):
         roi.sigRegionChanged.connect(self._updateAllStats)
-        self._updateAllStats()
+        self._updateAllStats(roi_changed=True)
 
     def unregisterROI(self, roi):
         if roi in self.__roiToItems:
@@ -540,21 +544,22 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
 
         :param event:
         """
-        if self.getUpdateMode() is UpdateMode.MANUAL:
-            return
-        if self._skipPlotItemChangedEvent(event) is True:
-            return
-        else:
-            sender = self.sender()
-            for item in self.__plotItemToItems[sender]:
-                # TODO: get all concerned items
-                self._updateStats(item)
-                # deal with stat items visibility
-                if event is ItemChangedType.VISIBLE:
-                    if len(self._itemToTableItems(item).items()) > 0:
-                        item_0 = list(self._itemToTableItems(item).values())[0]
-                        row_index = item_0.row()
-                        self.setRowHidden(row_index, not item.isVisible())
+        if event is ItemChangedType.DATA:
+            if self.getUpdateMode() is UpdateMode.MANUAL:
+                return
+            if self._skipPlotItemChangedEvent(event) is True:
+                return
+            else:
+                sender = self.sender()
+                for item in self.__plotItemToItems[sender]:
+                    # TODO: get all concerned items
+                    self._updateStats(item, data_changed=True)
+                    # deal with stat items visibility
+                    if event is ItemChangedType.VISIBLE:
+                        if len(self._itemToTableItems(item).items()) > 0:
+                            item_0 = list(self._itemToTableItems(item).values())[0]
+                            row_index = item_0.row()
+                            self.setRowHidden(row_index, not item.isVisible())
 
     def _removeItem(self, itemKey):
         if isinstance(itemKey, (silx.gui.plot.items.marker.Marker,
@@ -574,7 +579,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         self.removeRow(row)
         del self._items[itemKey]
 
-    def _updateAllStats(self, is_request=False):
+    def _updateAllStats(self, is_request=False, roi_changed=False):
         """Update stats for all rows in the table
 
         :param bool is_request: True if come from a manual request
@@ -585,7 +590,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
                 item = self._tableItemToItem(tableItem)
-                self._updateStats(item)
+                self._updateStats(item, roi_changed=roi_changed)
 
     def _plotCurrentChanged(self, *args):
         pass
