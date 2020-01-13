@@ -481,22 +481,24 @@ class ColormapDialog(qt.QDialog):
             if isDisplayable(posMin):
                 minDraggable = (self._colormap().isEditable() and
                                 not self._minValue.isAutoChecked())
+                color = "blue" if minDraggable else "black"
                 self._plot.addXMarker(
                     posMin,
                     legend='Min',
                     text='Min',
                     draggable=minDraggable,
-                    color='blue',
+                    color=color,
                     constraint=self._plotMinMarkerConstraint)
             if isDisplayable(posMax):
                 maxDraggable = (self._colormap().isEditable() and
                                 not self._maxValue.isAutoChecked())
+                color = "blue" if maxDraggable else "black"
                 self._plot.addXMarker(
                     posMax,
                     legend='Max',
                     text='Max',
                     draggable=maxDraggable,
-                    color='blue',
+                    color=color,
                     constraint=self._plotMaxMarkerConstraint)
 
         self._plot.resetZoom()
