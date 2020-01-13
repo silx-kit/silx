@@ -24,7 +24,7 @@ ALL_PYX := $(call rwildcard,silx/,*.pyx)
 PY3VER := $(shell py3versions -dv)
 
 %:
-	dh $@ --with python2,python3,sphinxdoc --buildsystem=pybuild
+	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
 
 override_dh_clean:
 	dh_clean
