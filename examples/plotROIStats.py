@@ -124,6 +124,9 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
         # create Dock widgets
         self._roiStatsWindowDockWidget = qt.QDockWidget(parent=self)
         self._roiStatsWindowDockWidget.setWidget(self._statsWidget)
+        # move the docker contain in the parent widget
+        self.addDockWidget(qt.Qt.RightDockWidgetArea,
+                           self._statsWidget._docker)
         self.addDockWidget(qt.Qt.RightDockWidgetArea,
                            self._roiStatsWindowDockWidget)
 
