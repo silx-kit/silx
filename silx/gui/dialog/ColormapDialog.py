@@ -72,7 +72,7 @@ import logging
 import numpy
 
 from .. import qt
-from ..colors import Colormap, preferredColormaps
+from ..colors import Colormap
 from ..plot import PlotWidget
 from ..plot.items.axis import Axis
 from silx.gui.widgets.FloatEdit import FloatEdit
