@@ -370,6 +370,12 @@ class ColormapDialog(qt.QDialog):
         self._plot.setMinimumSize(qt.QSize(250, 200))
         self._plot.sigPlotSignal.connect(self._plotSlot)
 
+        lut = numpy.arange(256)
+        lut.shape = 1, -1
+        self._plot.addImage(lut, legend='lut')
+        self._lutItem = self._plot._getItem("image", "lut")
+        self._lutItem.setVisible(False)
+
         self._plotUpdate()
 
     def sizeHint(self):
@@ -516,7 +522,29 @@ class ColormapDialog(qt.QDialog):
                     color=color,
                     constraint=self._plotMaxMarkerConstraint)
 
+            self._updateLutItem((posMin, posMax))
+
         self._plot.resetZoom()
+
+    def _updateLutItem(self, vRange):
+        colormap = self._colormap()
+        if colormap is None:
+            return
+
+        if vRange is None:
+            posMin, posMax = self._getDisplayableRange()
+        else:
+            posMin, posMax = vRange
+        if posMin is None or posMax is None:
+            self._lutItem.setVisible(False)
+        else:
+            colormap = colormap.copy()
+            colormap.setVRange(0, 255)
+            scale = (posMax - posMin) / 256
+            self._lutItem.setColormap(colormap)
+            self._lutItem.setOrigin((posMin, -0.1))
+            self._lutItem.setScale((scale, 0.1))
+            self._lutItem.setVisible(True)
 
     def _plotMinMarkerConstraint(self, x, y):
         """Constraint of the min marker"""
@@ -532,14 +560,17 @@ class ColormapDialog(qt.QDialog):
             value = float(str(event['xdata']))
             if event['label'] == 'Min':
                 self._minValue.setValue(value)
+                self._updateLutItem(None)
             elif event['label'] == 'Max':
                 self._maxValue.setValue(value)
+                self._updateLutItem(None)
 
             # This will recreate the markers while interacting...
             # It might break if marker interaction is changed
             if event['event'] == 'markerMoved':
                 self._initialRange = None
                 self._updateMinMax()
+                self._updateLutItem(None)
             else:
                 self._plotUpdate(updateMarkers=False)
 
@@ -905,6 +936,7 @@ class ColormapDialog(qt.QDialog):
 
     def _applyColormap(self):
         self._updateResetButton()
+        self._updateLutItem(None)
         if self._ignoreColormapChange is True:
             return
 
