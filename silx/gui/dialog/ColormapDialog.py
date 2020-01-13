@@ -154,7 +154,6 @@ class _BoundaryWidget(qt.QWidget):
 @enum.unique
 class _DataInPlotMode(enum.Enum):
     """Enum for each mode of display of the data in the plot."""
-    NONE = 'none'
     RANGE = 'range'
     HISTOGRAM = 'histogram'
 
@@ -257,14 +256,6 @@ class ColormapDialog(qt.QDialog):
         group = qt.QActionGroup(self._plotToolbar)
         group.setExclusive(True)
 
-        action = qt.QAction("Nothing", self)
-        action.setToolTip("No range nor histogram are displayed. No extra computation have to be done.")
-        action.setIcon(icons.getQIcon('colormap-none'))
-        action.setCheckable(True)
-        action.setData(_DataInPlotMode.NONE)
-        action.setChecked(action.data() == self._dataInPlotMode)
-        self._plotToolbar.addAction(action)
-        group.addAction(action)
         action = qt.QAction("Data range", self)
         action.setToolTip("Display the data range within the colormap range. A fast data processing have to be done.")
         action.setIcon(icons.getQIcon('colormap-range'))
@@ -726,10 +717,7 @@ class ColormapDialog(qt.QDialog):
 
         mode = self._dataInPlotMode
 
-        if mode == _DataInPlotMode.NONE:
-            self.setHistogram()
-            self.setDataRange()
-        elif mode == _DataInPlotMode.RANGE:
+        if mode == _DataInPlotMode.RANGE:
             result = self.computeDataRange(data)
             self.setHistogram()
             self.setDataRange(*result)
