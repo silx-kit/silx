@@ -166,7 +166,7 @@ class _StatsContext(object):
         and the order is (x, y, z).
         """
 
-        self.createContext(item, plot, onlimits, roi=roi)
+        self.buildContext(item, plot, onlimits, roi=roi)
 
     @property
     def mask(self):
@@ -176,10 +176,11 @@ class _StatsContext(object):
         else:
             return None
 
-    def createContext(self, item, plot, onlimits, roi):
+    def buildContext(self, item, plot, onlimits, roi):
         """
-        Function called before recomputing each statistics associated to this
-        context.
+        Function called before computing each statistics associated to this
+        context. It will insure the context for the (item, plot, onlimits, roi)
+        is created.
 
         :param item: item for which we want statistics
         :param plot: plot containing the statistics
@@ -242,7 +243,7 @@ class _CurveContext(_StatsContext):
                                plot=plot, onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def createContext(self, item, plot, onlimits, roi):
+    def buildContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         self.roi = roi
@@ -299,7 +300,7 @@ class _HistogramContext(_StatsContext):
                                plot=plot, onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def createContext(self, item, plot, onlimits, roi):
+    def buildContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         yData, edges = item.getData(copy=True)[0:2]
@@ -355,7 +356,7 @@ class _ScatterContext(_StatsContext):
                                onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def createContext(self, item, plot, onlimits, roi):
+    def buildContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         valueData = item.getValueData(copy=True)
@@ -427,7 +428,7 @@ class _ImageContext(_StatsContext):
                                plot=plot, onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def createContext(self, item, plot, onlimits, roi):
+    def buildContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         self.origin = item.getOrigin()
@@ -506,7 +507,7 @@ class _plot3DScatterContext(_StatsContext):
                                onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def createContext(self, item, plot, onlimits, roi):
+    def buildContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         if onlimits:
@@ -558,7 +559,7 @@ class _plot3DArrayContext(_StatsContext):
                                onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def createContext(self, item, plot, onlimits, roi):
+    def buildContext(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         if onlimits:
