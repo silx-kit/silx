@@ -186,7 +186,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.plot.addMarker(*marker_pos)
         marker_x = 6
         self.plot.addXMarker(marker_x)
-        self.plot.addItem((0, 5), (2, 10), shape='rectangle')
+        self.plot.addShape((0, 5), (2, 10), shape='rectangle')
 
         items = self.plot.getItems()
         self.assertEqual(len(items), 6)
@@ -799,36 +799,36 @@ class TestPlotItem(PlotWidgetTestCase):
         self.plot.setGraphTitle('Item Fill')
 
         for legend, xList, yList, color in self.polygons:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="polygon", fill=True, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="polygon", fill=True, color=color)
         self.plot.resetZoom()
 
     def testPlotItemPolygonNoFill(self):
         self.plot.setGraphTitle('Item No Fill')
 
         for legend, xList, yList, color in self.polygons:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="polygon", fill=False, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="polygon", fill=False, color=color)
         self.plot.resetZoom()
 
     def testPlotItemRectangleFill(self):
         self.plot.setGraphTitle('Rectangle Fill')
 
         for legend, xList, yList, color in self.rectangles:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="rectangle", fill=True, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="rectangle", fill=True, color=color)
         self.plot.resetZoom()
 
     def testPlotItemRectangleNoFill(self):
         self.plot.setGraphTitle('Rectangle No Fill')
 
         for legend, xList, yList, color in self.rectangles:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="rectangle", fill=False, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="rectangle", fill=False, color=color)
         self.plot.resetZoom()
 
 
@@ -1736,36 +1736,36 @@ class TestPlotItemLog(PlotWidgetTestCase):
         self.plot.setGraphTitle('Item Fill Log')
 
         for legend, xList, yList, color in self.polygons:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="polygon", fill=True, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="polygon", fill=True, color=color)
         self.plot.resetZoom()
 
     def testPlotItemPolygonLogNoFill(self):
         self.plot.setGraphTitle('Item No Fill Log')
 
         for legend, xList, yList, color in self.polygons:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="polygon", fill=False, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="polygon", fill=False, color=color)
         self.plot.resetZoom()
 
     def testPlotItemRectangleLogFill(self):
         self.plot.setGraphTitle('Rectangle Fill Log')
 
         for legend, xList, yList, color in self.rectangles:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="rectangle", fill=True, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="rectangle", fill=True, color=color)
         self.plot.resetZoom()
 
     def testPlotItemRectangleLogNoFill(self):
         self.plot.setGraphTitle('Rectangle No Fill Log')
 
         for legend, xList, yList, color in self.rectangles:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="rectangle", fill=False, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="rectangle", fill=False, color=color)
         self.plot.resetZoom()
 
 

@@ -910,8 +910,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return triangles
 
-    def addItem(self, x, y, shape, color, fill, overlay, z,
-                linestyle, linewidth, linebgcolor):
+    def addShape(self, x, y, shape, color, fill, overlay, z,
+                 linestyle, linewidth, linebgcolor):
         x = numpy.array(x, copy=False)
         y = numpy.array(y, copy=False)
 

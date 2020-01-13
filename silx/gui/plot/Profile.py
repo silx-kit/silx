@@ -702,11 +702,11 @@ class ProfileToolBar(qt.QToolBar):
                                  legend=profileName,
                                  color=self.overlayColor)
 
-        self.plot.addItem(area[0], area[1],
-                          legend=self._POLYGON_LEGEND,
-                          color=self.overlayColor,
-                          shape='polygon', fill=True,
-                          replace=False, z=z + 1)
+        self.plot.addShape(area[0], area[1],
+                           legend=self._POLYGON_LEGEND,
+                           color=self.overlayColor,
+                           shape='polygon', fill=True,
+                           replace=False, z=z + 1)
 
         self._showProfileMainWindow()
 

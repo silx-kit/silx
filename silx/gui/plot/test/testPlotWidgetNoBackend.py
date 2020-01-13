@@ -62,8 +62,9 @@ class TestPlot(unittest.TestCase):
         plot = PlotWidget(backend='none')
         plot.addCurve(x=(1, 2, 3), y=(3, 2, 1))
         plot.addImage(numpy.arange(100.).reshape(10, -1))
-        plot.addItem(
-            numpy.array((1., 10.)), numpy.array((10., 10.)), shape="rectangle")
+        plot.addShape(numpy.array((1., 10.)),
+                      numpy.array((10., 10.)),
+                      shape="rectangle")
         plot.addXMarker(10.)
 
 

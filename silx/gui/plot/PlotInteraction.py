@@ -102,11 +102,11 @@ class _PlotInteraction(object):
         else:
             color2 = "black"
 
-        self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
-                          replace=False,
-                          shape=shape, fill=fill,
-                          color=color, linebgcolor=color2, linestyle="--",
-                          overlay=True)
+        self.plot.addShape(points[:, 0], points[:, 1], legend=legend,
+                           replace=False,
+                           shape=shape, fill=fill,
+                           color=color, linebgcolor=color2, linestyle="--",
+                           overlay=True)
 
         self._selectionAreas.add(legend)
 
