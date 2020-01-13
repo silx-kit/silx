@@ -423,6 +423,30 @@ class ColormapDialog(qt.QDialog):
 
         return viewMin, viewMax
 
+    def _getDisplayableRange(self):
+        """Returns the selected min/max range to apply to the data,
+        according to the used scale.
+
+        One or both limits can be None in case it is not displayable in the
+        current axes scale.
+
+        :returns: Tuple{float, float}
+        """
+        scale = self._plot.getXAxis().getScale()
+        def isDisplayable(pos):
+            if scale == Axis.LOGARITHMIC:
+                return pos > 0.0
+            return True
+
+        posMin = self._minValue.getFiniteValue()
+        posMax = self._maxValue.getFiniteValue()
+        if not isDisplayable(posMin):
+            posMin = None
+        if not isDisplayable(posMax):
+            posMax = None
+
+        return posMin, posMax
+
     def _plotUpdate(self, updateMarkers=True):
         """Update the plot content
 
@@ -467,18 +491,9 @@ class ColormapDialog(qt.QDialog):
                             z=2,
                             resetzoom=False)
 
-        scale = self._plot.getXAxis().getScale()
-
         if updateMarkers:
-            posMin = self._minValue.getFiniteValue()
-            posMax = self._maxValue.getFiniteValue()
-
-            def isDisplayable(pos):
-                if scale == Axis.LOGARITHMIC:
-                    return pos > 0.0
-                return True
-
-            if isDisplayable(posMin):
+            posMin, posMax = self._getDisplayableRange()
+            if posMin is not None:
                 minDraggable = (self._colormap().isEditable() and
                                 not self._minValue.isAutoChecked())
                 color = "blue" if minDraggable else "black"
@@ -489,7 +504,7 @@ class ColormapDialog(qt.QDialog):
                     draggable=minDraggable,
                     color=color,
                     constraint=self._plotMinMarkerConstraint)
-            if isDisplayable(posMax):
+            if posMax is not  None:
                 maxDraggable = (self._colormap().isEditable() and
                                 not self._maxValue.isAutoChecked())
                 color = "blue" if maxDraggable else "black"
