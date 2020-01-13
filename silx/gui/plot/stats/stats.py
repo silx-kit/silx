@@ -98,8 +98,8 @@ class Stats(OrderedDict):
                     context.clear_mask()
                 if data_changed is True or roi_changed is True:
                     # if data changed or mask changed
-                    context.clip_data_to_mask(item=item, plot=plot,
-                                              onlimits=onlimits, roi=roi)
+                    context.clipData(item=item, plot=plot, onlimits=onlimits,
+                                     roi=roi)
                 # init roi and data
                 res[statName] = stat.calculate(context)
         return res
@@ -185,9 +185,9 @@ class _StatsContext(object):
         and the order is (x, y, z).
         """
 
-        self.buildContext(item, plot, onlimits, roi=roi)
+        self.clipData(item, plot, onlimits, roi=roi)
 
-    def clip_data_to_mask(self, item, plot, onlimits, roi):
+    def clipData(self, item, plot, onlimits, roi):
         """
         Clip the data to the current mask to have accurate statistics
 
@@ -224,7 +224,7 @@ class _StatsContext(object):
         and boundaries"""
         raise NotImplementedError("Base class")
 
-    def buildContext(self, item, plot, onlimits, roi):
+    def clipData(self, item, plot, onlimits, roi):
         """
         Function called before computing each statistics associated to this
         context. It will insure the context for the (item, plot, onlimits, roi)
@@ -242,10 +242,10 @@ class _StatsContext(object):
 
     @deprecated(reason="context are now stored and keep during stats life."
                        "So this function will be called only once",
-                replacement="buildContext", since_version="0.13.0")
+                replacement="clipData", since_version="0.13.0")
     def createContext(self, item, plot, onlimits, roi):
-        return self.buildContext(item=item, plot=plot, onlimits=onlimits,
-                                 roi=roi)
+        return self.clipData(item=item, plot=plot, onlimits=onlimits,
+                             roi=roi)
 
     def isStructuredData(self):
         """Returns True if data as an array-like structure.
@@ -298,7 +298,7 @@ class _CurveContext(_StatsContext):
                                plot=plot, onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def buildContext(self, item, plot, onlimits, roi):
+    def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         self.roi = roi
@@ -370,7 +370,7 @@ class _HistogramContext(_StatsContext):
                 to_ == self._to_)
 
     @docstring(_StatsContext)
-    def buildContext(self, item, plot, onlimits, roi):
+    def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         yData, edges = item.getData(copy=True)[0:2]
@@ -438,7 +438,7 @@ class _ScatterContext(_StatsContext):
                                onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def buildContext(self, item, plot, onlimits, roi):
+    def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         valueData = item.getValueData(copy=True)
@@ -527,12 +527,8 @@ class _ImageContext(_StatsContext):
         return (xmin == self._mask_x_min and xmax == self._mask_x_max and
                 ymin == self._mask_y_min and ymax == self._mask_y_max)
 
-    def buildContext(self, item, plot, onlimits, roi):
-        self.clip_data_to_mask(item=item, plot=plot, onlimits=onlimits,
-                               roi=roi)
-
     @docstring(_StatsContext)
-    def clip_data_to_mask(self, item, plot, onlimits, roi):
+    def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         self.origin = item.getOrigin()
@@ -618,7 +614,7 @@ class _plot3DScatterContext(_StatsContext):
                                onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def buildContext(self, item, plot, onlimits, roi):
+    def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         if onlimits:
@@ -670,7 +666,7 @@ class _plot3DArrayContext(_StatsContext):
                                onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
-    def buildContext(self, item, plot, onlimits, roi):
+    def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
         if onlimits:
