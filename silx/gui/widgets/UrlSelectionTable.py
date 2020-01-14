@@ -74,6 +74,14 @@ class UrlSelectionTable(TableWidget):
         self.setSortingEnabled(True)
         self._checkBoxes = {}
 
+    def setUrls(self, urls: list) -> None:
+        """
+
+        :param urls: urls to be displayed
+        """
+        for url in urls:
+            self.addUrl(url=url)
+
     def addUrl(self, url, **kwargs):
         """
 

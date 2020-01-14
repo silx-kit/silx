@@ -36,6 +36,7 @@ from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
 from silx.gui.utils import concurrent
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
+from collections import OrderedDict
 import time
 import threading
 import typing
@@ -98,7 +99,49 @@ class _PlotWithWaitingLabel(qt.QWidget):
         return self._plot
 
 
-class ImageStack(qt.QWidget):
+class _ToggleableUrlSelectionTable(qt.QWidget):
+
+    _BUTTON_ICON = qt.QStyle.SP_ToolBarHorizontalExtensionButton  # noqa
+
+    def __init__(self, parent=None) -> None:
+        qt.QWidget.__init__(self, parent)
+        self.setLayout(qt.QGridLayout())
+        self._toggleButton = qt.QPushButton(parent=self)
+        self.layout().addWidget(self._toggleButton, 0, 2, 1, 1)
+        self._toggleButton.setSizePolicy(qt.QSizePolicy.Fixed,
+                                         qt.QSizePolicy.Fixed)
+
+        self._urlsTable = UrlSelectionTable(parent=self)
+        self.layout().addWidget(self._urlsTable, 1, 1, 1, 2)
+
+        # set up
+        self._setButtonIcon(show=True)
+
+        # Signal / slot connection
+        self._toggleButton.clicked.connect(self.toggleUrlSelectionTable)
+
+        # expose API
+        self.setUrls = self._urlsTable.setUrls
+
+    def toggleUrlSelectionTable(self):
+        visible = not self.urlSelectionTableIsVisible()
+        self._setButtonIcon(show=visible)
+        self._urlsTable.setVisible(visible)
+
+    def _setButtonIcon(self, show):
+        style = qt.QApplication.instance().style()
+        # return a QIcon
+        icon = style.standardIcon(self._BUTTON_ICON)
+        if show is False:
+            pixmap = icon.pixmap(32, 32).transformed(qt.QTransform().scale(-1, 1))
+            icon = qt.QIcon(pixmap)
+        self._toggleButton.setIcon(icon)
+
+    def urlSelectionTableIsVisible(self):
+        return self._urlsTable.isVisible()
+
+
+class ImageStack(qt.QMainWindow):
     """
     This widget is made to load on the fly image contained the given urls.
     For avoiding lack impression it will prefetch images close to the one
@@ -107,27 +150,21 @@ class ImageStack(qt.QWidget):
 
     N_PRELOAD = 10
 
-    _BUTTON_ICON = qt.QStyle.SP_ToolBarHorizontalExtensionButton  # noqa
-
     def __init__(self, parent=None) -> None:
-        qt.QWidget.__init__(self, parent)
+        super(ImageStack, self).__init__(parent)
+        self.setWindowFlags(qt.Qt.Widget)
 
-        self.setLayout(qt.QGridLayout())
+        # main widget
         self._plot = _PlotWithWaitingLabel(parent=self)
-        self.layout().addWidget(self._plot, 0, 0, 2, 1)
-        self._toggleButton = qt.QPushButton(parent=self)
-        self.layout().addWidget(self._toggleButton, 0, 2, 1, 1)
-        self._toggleButton.setSizePolicy(qt.QSizePolicy.Fixed,
-                                         qt.QSizePolicy.Fixed)
+        self.setWindowTitle("Image stack")
+        self.setCentralWidget(self._plot)
 
-        self._urlTable = UrlSelectionTable(parent=self)
-        self.layout().addWidget(self._urlTable, 1, 1, 1, 2)
-
-        # set up
-        self._setButtonIcon(show=True)
-
-        # Signal / slot connection
-        self._toggleButton.clicked.connect(self.toggleUrlSelectionTable)
+        # dock widget
+        self._dockWidget = qt.QDockWidget(parent=self)
+        self._urlsTable = _ToggleableUrlSelectionTable(parent=self)
+        self._dockWidget.setWidget(self._urlsTable)
+        self._dockWidget.setFeatures(qt.QDockWidget.DockWidgetMovable)
+        self.addDockWidget(qt.Qt.RightDockWidgetArea, self._dockWidget)
 
         self.reset()
 
@@ -144,7 +181,7 @@ class ImageStack(qt.QWidget):
         """Clear the plot and remove any link to url"""
         self._urls = None
         self._urlIndexes = None
-        self._urlData = {}
+        self._urlData = OrderedDict({})
         self._current_url = None
         self._plot.clear()
         self.__n_prefetch = ImageStack.N_PRELOAD
@@ -203,8 +240,10 @@ class ImageStack(qt.QWidget):
         if not len(urlsToIndex) == len(urls):
             raise ValueError('each url should be unique')
         self.reset()
-        self._urls = urls
+        o_urls = OrderedDict(sorted(urls.items(), key=lambda kv: kv[0]))
+        self._urls = o_urls
         self._urlIndexes = urlsToIndex
+        self._urlsTable.setUrls(urls=o_urls.values())
         if self.getCurrentUrl() in self._urls:
             self.setCurrentUrl(self.getCurrentUrl())
         else:
@@ -323,25 +362,7 @@ class ImageStack(qt.QWidget):
 
     def _notifyLoading(self):
         """display a simple image of loading..."""
-        # self._plot.setWaiting(activate=True)
-        pass
-
-    def toggleUrlSelectionTable(self):
-        visible = not self.urlSelectionTableIsVisible()
-        self._setButtonIcon(show=visible)
-        self._urlTable.setVisible(visible)
-
-    def _setButtonIcon(self, show):
-        style = qt.QApplication.instance().style()
-        # return a QIcon
-        icon = style.standardIcon(self._BUTTON_ICON)
-        if show is False:
-            pixmap = icon.pixmap(32, 32).transformed(qt.QTransform().scale(-1, 1))
-            icon = qt.QIcon(pixmap)
-        self._toggleButton.setIcon(icon)
-
-    def urlSelectionTableIsVisible(self):
-        return self._urlTable.isVisible()
+        self._plot.setWaiting(activate=True)
 
     def getUrlLoader(self, url):
         """
