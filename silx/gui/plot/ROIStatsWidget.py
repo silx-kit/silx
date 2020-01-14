@@ -508,13 +508,15 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
             if isinstance(item._roi, RegionOfInterest):
                 # item connection within sigRegionChanged should only be
                 # stopped during the region edition
-                item._roi.sigRegionChanged.connect(self._updateAllStats)
+                item._roi.sigRegionChanged.connect(functools.partial(
+                    self._updateAllStats, False, True))
                 item._roi.sigRegionEditionStarted.connect(functools.partial(
                     self._startFiltering, item._roi))
                 item._roi.sigRegionEditionFinished.connect(functools.partial(
                     self._endFiltering, item._roi))
             else:
-                item._roi.sigChanged.connect(self._updateAllStats)
+                item._roi.sigChanged.connect(functools.partial(
+                    self._updateAllStats, False, True))
         self.__roiToItems[item._roi].add(item)
 
     def _startFiltering(self, roi):
