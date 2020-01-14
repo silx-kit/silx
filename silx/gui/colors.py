@@ -773,12 +773,16 @@ class Colormap(qt.QObject):
                         vmax=self._vmax,
                         normalization=self._normalization)
 
-    def applyToData(self, data):
+    def applyToData(self, data, reference=None):
         """Apply the colormap to the data
 
         :param Union[numpy.ndarray,ColormapMixIn] data: The data to convert.
+        :param Union[numpy.ndarray,silx.gui.plot.item.Item,None] reference: The
+            data to use as reference in case of autoscale
         """
-        vmin, vmax = self.getColormapRange(data)
+        if reference is None:
+            reference = data
+        vmin, vmax = self.getColormapRange(reference)
         normalization = self.getNormalization()
         if hasattr(data, "_getDataForAutoRange"):
             array = data._getDataForAutoRange()
