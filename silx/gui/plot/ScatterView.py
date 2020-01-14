@@ -41,6 +41,7 @@ import numpy
 from . import items
 from . import PlotWidget
 from . import tools
+from .actions import histogram as actions_histogram
 from .tools.profile import ScatterProfileToolBar
 from .ColorBar import ColorBarWidget
 from .ScatterMaskToolsWidget import ScatterMaskToolsWidget
@@ -124,6 +125,8 @@ class ScatterView(qt.QMainWindow):
         self._maskAction.setIcon(icons.getQIcon('image-mask'))
         self._maskAction.setToolTip("Display/hide mask tools")
 
+        self._intensityHistoAction = actions_histogram.PixelIntensitiesHistoAction(plot=plot, parent=self)
+
         # Create toolbars
         self._interactiveModeToolBar = tools.InteractiveModeToolBar(
             parent=self, plot=plot)
@@ -131,6 +134,7 @@ class ScatterView(qt.QMainWindow):
         self._scatterToolBar = tools.ScatterToolBar(
             parent=self, plot=plot)
         self._scatterToolBar.addAction(self._maskAction)
+        self._scatterToolBar.addAction(self._intensityHistoAction)
 
         self._profileToolBar = ScatterProfileToolBar(parent=self, plot=plot)
 
