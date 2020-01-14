@@ -388,7 +388,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # Compute colors
         cmap = self.getColormap()
-        rgbacolors = cmap.applyToData(self._value)
+        rgbacolors = cmap.applyToData(self)
 
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
