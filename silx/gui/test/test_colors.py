@@ -34,6 +34,7 @@ __date__ = "09/11/2018"
 import unittest
 import numpy
 from silx.utils.testutils import ParametricTestCase
+from silx.gui import qt
 from silx.gui import colors
 from silx.gui.colors import Colormap
 from silx.gui.plot import items
@@ -424,6 +425,24 @@ class TestObjectAPI(ParametricTestCase):
         self.assertIsNot(colormap, other)
         self.assertEqual(colormap, other)
 
+    def testAutoscaleMode(self):
+        colormap = Colormap(autoscaleMode=Colormap.STDDEV3)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.STDDEV3)
+        colormap.setAutoscaleMode(Colormap.MINMAX)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.MINMAX)
+
+    def testStorageV1(self):
+        state = b'\x00\x00\x00\x10\x00C\x00o\x00l\x00o\x00r\x00m\x00a\x00p\x00\x00'\
+                b'\x00\x01\x00\x00\x00\x0E\x00v\x00i\x00r\x00i\x00d\x00i\x00s\x00'\
+                b'\x00\x00\x00\x06\x00?\xF0\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
+                b'\x00\x06\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00'\
+                b'l\x00o\x00g'
+        state = qt.QByteArray(state)
+        colormap = Colormap()
+        colormap.restoreState(state)
+
+        expected = Colormap(name="viridis", vmin=1, vmax=2, normalization=Colormap.LOGARITHM)
+        self.assertEqual(colormap, expected)
 
 class TestPreferredColormaps(unittest.TestCase):
     """Test get|setPreferredColormaps functions"""
