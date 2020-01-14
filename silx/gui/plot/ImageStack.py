@@ -32,7 +32,6 @@ __date__ = "04/03/2019"
 
 from silx.gui import icons, qt
 from silx.gui.plot import Plot2D
-from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
 from silx.gui.utils import concurrent
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
@@ -41,6 +40,9 @@ import time
 import threading
 import typing
 import functools
+import logging
+
+_logger = logging.getLogger(__file__)
 
 
 class _PlotWithWaitingLabel(qt.QWidget):
@@ -99,6 +101,43 @@ class _PlotWithWaitingLabel(qt.QWidget):
         return self._plot
 
 
+class _UrlList(qt.QWidget):
+    """Simple list to display an active url and allow user to pick an
+    url from it"""
+    sigCurrentUrlChanged = qt.Signal(str)
+    """Signal emitted when the active/current url change"""
+
+    def __init__(self, parent=None):
+        super(_UrlList, self).__init__(parent)
+        self.setLayout(qt.QVBoxLayout())
+        self.layout().setSpacing(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self._listWidget = qt.QListWidget(parent=self)
+        self.layout().addWidget(self._listWidget)
+
+        # connect signal / Slot
+        self._listWidget.currentItemChanged.connect(self._notifyCurrentUrlChanged)
+
+    def setUrls(self, urls: list) -> None:
+        url_names = []
+        [url_names.append(url.path()) for url in urls]
+        self._listWidget.addItems(url_names)
+
+    def _notifyCurrentUrlChanged(self, current, previous):
+        self.sigCurrentUrlChanged.emit(current.text())
+
+    def setUrl(self, url: DataUrl) -> None:
+        assert isinstance(url, DataUrl)
+        sel_items = self._listWidget.findItems(url.path(), qt.Qt.MatchExactly)
+        if sel_items is None:
+            _logger.warning(url.path(), ' is not registered in the list.')
+        else:
+            assert len(sel_items) == 1
+            item = sel_items[0]
+            self._listWidget.setCurrentItem(item)
+            self.sigCurrentUrlChanged.emit(item.text())
+
+
 class _ToggleableUrlSelectionTable(qt.QWidget):
 
     _BUTTON_ICON = qt.QStyle.SP_ToolBarHorizontalExtensionButton  # noqa
@@ -111,7 +150,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         self._toggleButton.setSizePolicy(qt.QSizePolicy.Fixed,
                                          qt.QSizePolicy.Fixed)
 
-        self._urlsTable = UrlSelectionTable(parent=self)
+        self._urlsTable = _UrlList(parent=self)
         self.layout().addWidget(self._urlsTable, 1, 1, 1, 2)
 
         # set up
@@ -122,6 +161,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
         # expose API
         self.setUrls = self._urlsTable.setUrls
+        self.setUrl = self._urlsTable.setUrl
 
     def toggleUrlSelectionTable(self):
         visible = not self.urlSelectionTableIsVisible()
@@ -333,6 +373,8 @@ class ImageStack(qt.QMainWindow):
         """
         assert isinstance(url, DataUrl)
         self._current_url = url
+        old = self._urlsTable.blockSignals(True)
+        self._urlsTable.setUrl(url)
         if self._current_url is None:
             self._plot.clear()
         else:
@@ -343,6 +385,7 @@ class ImageStack(qt.QMainWindow):
                 self._notifyLoading()
             self._preFetch(self.getNNextUrls(self.__n_prefetch, url))
             self._preFetch(self.getNNextUrls(self.__n_prefetch, url))
+        self._urlsTable.blockSignals(old)
 
     def getCurrentUrl(self) -> typing.Union[None, DataUrl]:
         """
