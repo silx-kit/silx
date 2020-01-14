@@ -634,11 +634,11 @@ class Colormap(qt.QObject):
         if vmin is None or vmax is None:  # Handle autoscale
             # Get min/max from data
             if data is not None:
-                if hasattr(data, "_getDataForAutoRange"):
-                    data = self._getDataForAutoRange()
-                data = numpy.array(data, copy=False)
-                min_, max_ = self.computeDataRange(data)
-
+                if hasattr(data, "getDataAutoRange"):
+                    min_, max_ = data.getDataAutoRange(self)
+                else:
+                    data = numpy.array(data, copy=False)
+                    min_, max_ = self.computeDataRange(data)
                 # Handle fallback
                 if min_ is None or not numpy.isfinite(min_):
                     min_ = self._getDefaultMin()

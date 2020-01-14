@@ -454,6 +454,7 @@ class ColormapMixIn(ItemMixInBase):
     def __init__(self):
         self._colormap = Colormap()
         self._colormap.sigChanged.connect(self._colormapChanged)
+        self._cachedDataRange = None
 
     def getColormap(self):
         """Return the used colormap"""
@@ -479,6 +480,28 @@ class ColormapMixIn(ItemMixInBase):
     def _colormapChanged(self):
         """Handle updates of the colormap"""
         self._updated(ItemChangedType.COLORMAP)
+
+    def getDataAutoRange(self, colormap=None):
+        """Returns the auto range fitting the the data and the colormap
+        configuration."""
+        if colormap is None:
+            colormap = self.getColormap()
+        if colormap is None:
+            return None, None
+        normalization = colormap.getNormalization()
+        data = self._getDataForAutoRange()
+        if data is None:
+            return None, None
+        key = normalization, id(data)
+
+        cached = self._cachedDataRange
+        if cached is not None:
+            if cached[0] == key:
+                return cached[1]
+
+        dataRange = colormap.computeDataRange(data)
+        self._cachedDataRange = (key, dataRange)
+        return dataRange
 
     def _getDataForAutoRange(self):
         raise NotImplementedError()
