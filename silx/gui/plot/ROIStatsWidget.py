@@ -596,7 +596,8 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
                 item = self._tableItemToItem(tableItem)
-                self._updateStats(item, roi_changed=roi_changed)
+                self._updateStats(item, roi_changed=roi_changed,
+                                  data_changed=is_request)
 
     def _plotCurrentChanged(self, *args):
         pass

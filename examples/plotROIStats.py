@@ -84,11 +84,12 @@ class UpdateThread(threading.Thread):
         self.running = False
         self.join(2)
 
+
 class _RoiStatsWidget(qt.QMainWindow):
     """
     Window used to associate ROIStatsWidget and UpdateModeWidget
     """
-    def __init__(self, parent=None, plot=None):
+    def __init__(self, parent=None, plot=None, mode=None):
         assert plot is not None
         qt.QMainWindow.__init__(self, parent)
         self._roiStatsWindow = ROIStatsWidget(plot=plot)
@@ -114,6 +115,7 @@ class _RoiStatsWidget(qt.QMainWindow):
         self.setStats = self._roiStatsWindow.setStats
         self.addItem = self._roiStatsWindow.addItem
         self.removeItem = self._roiStatsWindow.removeItem
+        self.setUpdateMode = self._updateModeControl.setUpdateMode
 
         # setup
         self._updateModeControl.setUpdateMode('auto')
@@ -123,7 +125,7 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
     """
     Simple window to group the different statistics actors
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, mode=None):
         qt.QMainWindow.__init__(self, parent)
         self.plot = Plot2D()
         self.setCentralWidget(self.plot)
@@ -163,6 +165,9 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
                            self._statsWidget._docker)
         self.addDockWidget(qt.Qt.RightDockWidgetArea,
                            self._roiStatsWindowDockWidget)
+
+        # expose API
+        self.setUpdateMode = self._statsWidget.setUpdateMode
 
     def setRois(self, rois1D=None, rois2D=None):
         rois1D = rois1D or ()
@@ -218,7 +223,7 @@ def get_2D_rois():
     return rectangle_roi, polygon_roi, arc_roi
 
 
-def example_curve():
+def example_curve(mode):
     """set up the roi stats example for curves"""
     app = qt.QApplication([])
     roi_1, roi_2 = get_1D_rois()
@@ -240,11 +245,13 @@ def example_curve():
     curve2_item = window.plot.getCurve('curve2')
     window.addItem(item=curve2_item, roi=roi_2)
 
+    window.setUpdateMode(mode)
+
     window.show()
     app.exec_()
 
 
-def example_image():
+def example_image(mode):
     """set up the roi stats example for images"""
     app = qt.QApplication([])
     rectangle_roi, polygon_roi, arc_roi = get_2D_rois()
@@ -268,12 +275,14 @@ def example_image():
     window.addItem(item=img1_item, roi=polygon_roi)
     window.addItem(item=img1_item, roi=arc_roi)
 
+    window.setUpdateMode(mode)
+
     window.show()
     app.exec_()
     updateThread.stop()  # Stop updating the plot
 
 
-def example_curve_image():
+def example_curve_image(mode):
     """set up the roi stats example for curves and images"""
     app = qt.QApplication([])
 
@@ -298,6 +307,8 @@ def example_curve_image():
     curve_item = window.plot.getCurve('curve1')
     window.addItem(item=curve_item, roi=roi1D_1)
 
+    window.setUpdateMode(mode)
+
     # Create the thread that calls submitToQtMainThread
     updateThread = UpdateThread(window.plot)
     updateThread.start()  # Start updating the plot
@@ -309,18 +320,19 @@ def example_curve_image():
 
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("script", nargs="*")
     parser.add_argument("--items", dest="items", default='curves+images',
                         help="items type(s), can be curve, image, curves+images")
+    parser.add_argument('--mode', dest='mode', default='auto',
+                        help='valid modes are `auto` or `manual`')
     options = parser.parse_args(argv[1:])
 
     items = options.items.lower()
     if items == 'curves':
-        example_curve()
+        example_curve(mode=options.mode)
     elif items == 'images':
-        example_image()
+        example_image(mode=options.mode)
     elif items == 'curves+images':
-        example_curve_image()
+        example_curve_image(mode=options.mode)
     else:
         raise ValueError('invalid entry for item type')
 
