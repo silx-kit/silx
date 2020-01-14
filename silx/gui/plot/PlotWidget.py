@@ -147,6 +147,15 @@ class PlotWidget(qt.QMainWindow):
     - legend: The legend of the primitive changed.
     """
 
+    sigActiveItemChanged = qt.Signal(object, object)
+    """Signal emitted when the active item has changed.
+
+    It provides the following information:
+
+    - previous: The previous active item or None
+    - current: The current active item or None
+    """
+
     sigActiveCurveChanged = qt.Signal(object, object)
     """Signal emitted when the active curve has changed.
 
@@ -233,6 +242,7 @@ class PlotWidget(qt.QMainWindow):
 
         self._activeCurveSelectionMode = "atmostone"
         self._activeCurveStyle = CurveStyle(color='#000000')
+        self._activeItem = None
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
 
@@ -1910,6 +1920,13 @@ class PlotWidget(qt.QMainWindow):
         else:
             return self._getItem(kind, self._activeLegend[kind])
 
+    def getActiveItem(self):
+        """Returns the last active item of any kind
+
+        :rtype: ~silx.gui.plot.items.Item
+        """
+        return self._activeItem
+
     def _setActiveItem(self, kind, legend):
         """Make the curve associated to legend the active curve.
 
@@ -1935,6 +1952,7 @@ class PlotWidget(qt.QMainWindow):
 
         if legend is None:
             self._activeLegend[kind] = None
+            item = None
         else:
             legend = str(legend)
             item = self._getItem(kind, legend)
@@ -1981,7 +1999,19 @@ class PlotWidget(qt.QMainWindow):
                 previous=oldActiveLegend,
                 legend=activeLegend)
 
+        self._updateActiveItem(item)
+
         return activeLegend
+
+    def _updateActiveItem(self, item):
+        if item is self._activeItem:
+            # Already the active item
+            return
+        oldActiveItem = self._activeItem
+        self._activeItem = item
+        self.notify('activeItemChanged',
+                    previous=oldActiveItem,
+                    current=item)
 
     def _activeItemChanged(self, type_):
         """Listen for active item changed signal and broadcast signal
@@ -2582,6 +2612,9 @@ class PlotWidget(qt.QMainWindow):
         elif event == 'contentChanged':
             self.sigContentChanged.emit(
                 kwargs['action'], kwargs['kind'], kwargs['legend'])
+        elif event == 'activeItemChanged':
+            self.sigActiveItemChanged.emit(
+                kwargs['previous'], kwargs['current'])
         elif event == 'activeCurveChanged':
             self.sigActiveCurveChanged.emit(
                 kwargs['previous'], kwargs['legend'])
