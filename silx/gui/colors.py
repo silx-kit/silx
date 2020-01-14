@@ -431,11 +431,12 @@ class Colormap(qt.QObject):
         if nbColors is None:
             return numpy.array(self._colors, copy=True)
         else:
+            nbColors = int(nbColors)
             colormap = self.copy()
             colormap.setNormalization(Colormap.LINEAR)
-            colormap.setVRange(vmin=None, vmax=None)
+            colormap.setVRange(vmin=0, vmax=nbColors - 1)
             colors = colormap.applyToData(
-                numpy.arange(int(nbColors), dtype=numpy.int))
+                numpy.arange(nbColors, dtype=numpy.int))
             return colors
 
     def getName(self):
