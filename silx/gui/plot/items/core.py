@@ -480,6 +480,9 @@ class ColormapMixIn(ItemMixInBase):
         """Handle updates of the colormap"""
         self._updated(ItemChangedType.COLORMAP)
 
+    def _getDataForAutoRange(self):
+        raise NotImplementedError()
+
 
 class SymbolMixIn(ItemMixInBase):
     """Mix-in class for items with symbol type"""

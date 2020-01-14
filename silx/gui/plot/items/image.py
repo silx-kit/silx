@@ -411,6 +411,9 @@ class ImageData(ImageBase, ColormapMixIn):
 
         self._updated(ItemChangedType.DATA)
 
+    def _getDataForAutoRange(self):
+        return self._data
+
 
 class ImageRgba(ImageBase):
     """Description of an RGB(A) image"""
