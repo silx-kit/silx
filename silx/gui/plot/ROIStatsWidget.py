@@ -235,6 +235,9 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         TableWidget.__init__(self, parent)
         _StatsWidgetBase.__init__(self, statsOnVisibleData=False,
                                   displayOnlyActItem=False)
+        self.__region_edition_callback = {}
+        """We need to keep trace of the roi signals connection because
+        the roi emits the sigChanged during roi edition"""
         self._items = {}
         self.setRowCount(0)
         self.setColumnCount(3)
@@ -508,8 +511,9 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
             if isinstance(item._roi, RegionOfInterest):
                 # item connection within sigRegionChanged should only be
                 # stopped during the region edition
-                item._roi.sigRegionChanged.connect(functools.partial(
-                    self._updateAllStats, False, True))
+                self.__region_edition_callback[item._roi] = functools.partial(
+                    self._updateAllStats, False, True)
+                item._roi.sigRegionChanged.connect(self.__region_edition_callback[item._roi])
                 item._roi.sigRegionEditionStarted.connect(functools.partial(
                     self._startFiltering, item._roi))
                 item._roi.sigRegionEditionFinished.connect(functools.partial(
@@ -520,10 +524,10 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         self.__roiToItems[item._roi].add(item)
 
     def _startFiltering(self, roi):
-        roi.sigRegionChanged.disconnect(self._updateAllStats)
+        roi.sigRegionChanged.disconnect(self.__region_edition_callback[roi])
 
     def _endFiltering(self, roi):
-        roi.sigRegionChanged.connect(self._updateAllStats)
+        roi.sigRegionChanged.connect(self.__region_edition_callback[roi])
         self._updateAllStats(roi_changed=True)
 
     def unregisterROI(self, roi):
