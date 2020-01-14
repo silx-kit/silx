@@ -331,7 +331,7 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
-            image = colormap.applyToData(self.getData(copy=False))
+            image = colormap.applyToData(self)
             alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
