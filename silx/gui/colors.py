@@ -35,7 +35,6 @@ import numpy
 import logging
 import collections
 from silx.gui import qt
-from silx import config
 from silx.math.combo import min_max
 from silx.math.colormap import cmap as _cmap
 from silx.utils.exceptions import NotEditableError
