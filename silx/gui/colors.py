@@ -593,9 +593,25 @@ class Colormap(qt.QObject):
         self._editable = editable
         self.sigChanged.emit()
 
+    def computeDataRange(self, data):
+        """Compute the data range which will be used in auto scale mode."""
+        if data is None:
+            return None, None
+        if data.size == 0:
+            return None, None
+
+        if self.getNormalization() == Colormap.LOGARITHM:
+            result = min_max(data, min_positive=True, finite=True)
+            vMin = result.min_positive  # >0 or None
+            vMax = result.maximum  # can be <= 0
+        else:
+            vMin, vMax = min_max(data, min_positive=False, finite=True)
+        return vMin, vMax
+
     def getColormapRange(self, data=None):
         """Return (vmin, vmax)
 
+        :param Union[numpy.ndarray,ColormapMixIn] data: The data to check.
         :return: the tuple vmin, vmax fitting vmin, vmax, normalization and
             data if any given
         :rtype: tuple
@@ -618,22 +634,16 @@ class Colormap(qt.QObject):
         if vmin is None or vmax is None:  # Handle autoscale
             # Get min/max from data
             if data is not None:
+                if hasattr(data, "_getDataForAutoRange"):
+                    data = self._getDataForAutoRange()
                 data = numpy.array(data, copy=False)
-                if data.size == 0:  # Fallback an array but no data
-                    min_, max_ = self._getDefaultMin(), self._getDefaultMax()
-                else:
-                    if self.getNormalization() == self.LOGARITHM:
-                        result = min_max(data, min_positive=True, finite=True)
-                        min_ = result.min_positive  # >0 or None
-                        max_ = result.maximum  # can be <= 0
-                    else:
-                        min_, max_ = min_max(data, min_positive=False, finite=True)
+                min_, max_ = self.computeDataRange(data)
 
-                    # Handle fallback
-                    if min_ is None or not numpy.isfinite(min_):
-                        min_ = self._getDefaultMin()
-                    if max_ is None or not numpy.isfinite(max_):
-                        max_ = self._getDefaultMax()
+                # Handle fallback
+                if min_ is None or not numpy.isfinite(min_):
+                    min_ = self._getDefaultMin()
+                if max_ is None or not numpy.isfinite(max_):
+                    max_ = self._getDefaultMax()
             else:  # Fallback if no data is provided
                 min_, max_ = self._getDefaultMin(), self._getDefaultMax()
 
@@ -766,11 +776,15 @@ class Colormap(qt.QObject):
     def applyToData(self, data):
         """Apply the colormap to the data
 
-        :param numpy.ndarray data: The data to convert.
+        :param Union[numpy.ndarray,ColormapMixIn] data: The data to convert.
         """
         vmin, vmax = self.getColormapRange(data)
         normalization = self.getNormalization()
-        return _cmap(data, self._colors, vmin, vmax, normalization)
+        if hasattr(data, "_getDataForAutoRange"):
+            array = data._getDataForAutoRange()
+        else:
+            array = data
+        return _cmap(array, self._colors, vmin, vmax, normalization)
 
     @staticmethod
     def getSupportedColormaps():
