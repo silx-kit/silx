@@ -193,6 +193,7 @@ class ImageStack(qt.QMainWindow):
     def __init__(self, parent=None) -> None:
         super(ImageStack, self).__init__(parent)
         self.setWindowFlags(qt.Qt.Widget)
+        self._current_url = None
 
         # main widget
         self._plot = _PlotWithWaitingLabel(parent=self)
@@ -207,6 +208,9 @@ class ImageStack(qt.QMainWindow):
         self.addDockWidget(qt.Qt.RightDockWidgetArea, self._dockWidget)
 
         self.reset()
+
+    def getCurrentUrl(self):
+        return self._current_url
 
     def getPlot(self) -> Plot2D:
         """
@@ -250,13 +254,18 @@ class ImageStack(qt.QMainWindow):
         loader.finished.connect(functools.partial(self._urlLoaded, url_path))
         loader.start()
 
-    def _urlLoaded(self, url: DataUrl) -> None:
-        if url in self._urls:
+    def _urlLoaded(self, url: str) -> None:
+        """
+
+        :param url: restul of DataUrl.path() function
+        :return:
+        """
+        if url in self._urlIndexes:
             sender = self.sender()
             assert isinstance(sender, UrlLoader)
             self._urlData[url] = sender.data
-            if self.current_url() == url:
-                self._plot.setImage(self._urlData[url])
+            if self.getCurrentUrl().path() == url:
+                self._plot.setData(self._urlData[url])
 
     def setNPrefetch(self, n: int) -> None:
         """
