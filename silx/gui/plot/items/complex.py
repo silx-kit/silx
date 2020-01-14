@@ -358,3 +358,6 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
     @deprecated(replacement='getComplexMode', since_version='0.11.0')
     def getVisualizationMode(self):
         return self.getComplexMode()
+
+    def _getDataForAutoRange(self):
+        return self.getData(copy=False)

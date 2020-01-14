@@ -768,3 +768,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # call self._updated + plot._invalidateDataRange()
         PointsBase.setData(self, x, y, xerror, yerror, copy)
+
+    def _getDataForAutoRange(self):
+        return self._value
