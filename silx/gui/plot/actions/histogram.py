@@ -81,13 +81,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
     def _activeItemChanged(self, previous, current):
         """Handle active image change: toggle enabled toolbar, update curve"""
         if self._isWindowInUse():
-            if current is None:
-                self._setSelectedItem(None)
-            elif isinstance(current, items.ImageBase):
-                self._setSelectedItem(current)
-            else:
-                # Do not touch anything, which is a compatible behavior with v0.12
-                pass
+            self._setSelectedItem(current)
 
     def _getSelectedItem(self):
         item = self._item
@@ -97,6 +91,11 @@ class PixelIntensitiesHistoAction(PlotToolAction):
             return item()
 
     def _setSelectedItem(self, item):
+        if item is not None:
+            if not isinstance(item, (items.ImageBase, items.Scatter)):
+                # Filter out other things
+                return
+
         old = self._getSelectedItem()
         if item is old:
             return
@@ -127,37 +126,41 @@ class PixelIntensitiesHistoAction(PlotToolAction):
             return
 
         if isinstance(item, items.ImageBase):
-            image = item.getData(copy=False)
-            if image.ndim == 3:  # RGB(A) images
+            array = item.getData(copy=False)
+            if array.ndim == 3:  # RGB(A) images
                 _logger.info('Converting current image from RGB(A) to grayscale\
                     in order to compute the intensity distribution')
-                image = (image[:, :, 0] * 0.299 +
-                         image[:, :, 1] * 0.587 +
-                         image[:, :, 2] * 0.114)
+                array = (array[:, :, 0] * 0.299 +
+                         array[:, :, 1] * 0.587 +
+                         array[:, :, 2] * 0.114)
+        elif isinstance(item, items.Scatter):
+            array = item.getValueData(copy=False)
+        else:
+            assert(False)
 
-            xmin, xmax = min_max(image, min_positive=False, finite=True)
-            nbins = min(1024, int(numpy.sqrt(image.size)))
-            data_range = xmin, xmax
+        xmin, xmax = min_max(array, min_positive=False, finite=True)
+        nbins = min(1024, int(numpy.sqrt(array.size)))
+        data_range = xmin, xmax
 
-            # bad hack: get 256 bins in the case we have a B&W
-            if numpy.issubdtype(image.dtype, numpy.integer):
-                if nbins > xmax - xmin:
-                    nbins = xmax - xmin
+        # bad hack: get 256 bins in the case we have a B&W
+        if numpy.issubdtype(array.dtype, numpy.integer):
+            if nbins > xmax - xmin:
+                nbins = xmax - xmin
 
-            nbins = max(2, nbins)
+        nbins = max(2, nbins)
 
-            data = image.ravel().astype(numpy.float32)
-            histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
-            assert len(histogram.edges) == 1
-            self._histo = histogram.histo
-            edges = histogram.edges[0]
-            plot = self.getHistogramPlotWidget()
-            plot.addHistogram(histogram=self._histo,
-                              edges=edges,
-                              legend='pixel intensity',
-                              fill=True,
-                              color='#66aad7')
-            plot.resetZoom()
+        data = array.ravel().astype(numpy.float32)
+        histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
+        assert len(histogram.edges) == 1
+        self._histo = histogram.histo
+        edges = histogram.edges[0]
+        plot = self.getHistogramPlotWidget()
+        plot.addHistogram(histogram=self._histo,
+                          edges=edges,
+                          legend='pixel intensity',
+                          fill=True,
+                          color='#66aad7')
+        plot.resetZoom()
 
     def getHistogramPlotWidget(self):
         """Create the plot histogram if needed, otherwise create it
