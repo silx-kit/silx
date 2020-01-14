@@ -281,7 +281,28 @@ class _StatsContext(object):
                              'and the `onlimits` option')
 
 
-class _CurveContext(_StatsContext):
+class _ScatterCurveHistoMixInContext(_StatsContext):
+    def __init__(self, kind, item, plot, onlimits, roi):
+        self.clear_mask()
+        _StatsContext.__init__(self, item=item, kind=kind,
+                               plot=plot, onlimits=onlimits, roi=roi)
+
+    def _set_mask_validity(self, onlimits, from_, to_):
+        self._onlimits = onlimits
+        self._from_ = from_
+        self._to_ = to_
+
+    def clear_mask(self):
+        self._onlimits = None
+        self._from_ = None
+        self._to_ = None
+
+    def is_mask_valid(self, onlimits, from_, to_):
+        return (onlimits == self.onlimits and from_ == self._from_ and
+                to_ == self._to_)
+
+
+class _CurveContext(_ScatterCurveHistoMixInContext):
     """
     StatsContext for :class:`Curve`
 
@@ -294,8 +315,9 @@ class _CurveContext(_StatsContext):
     :type roi: Union[None, :class:`ROI`]
     """
     def __init__(self, item, plot, onlimits, roi):
-        _StatsContext.__init__(self, kind='curve', item=item,
-                               plot=plot, onlimits=onlimits, roi=roi)
+        _ScatterCurveHistoMixInContext.__init__(self, kind='curve', item=item,
+                                                plot=plot, onlimits=onlimits,
+                                                roi=roi)
 
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
@@ -307,15 +329,21 @@ class _CurveContext(_StatsContext):
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            mask = (minX <= xData) & (xData <= maxX)
+            if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
+                mask = self.mask
+            else:
+                mask = (minX <= xData) & (xData <= maxX)
             yData = yData[mask]
             xData = xData[mask]
             mask = numpy.zeros_like(yData)
         elif roi:
             minX, maxX = roi.getFrom(), roi.getTo()
-            mask = (minX <= xData) & (xData <= maxX)
-            mask = mask == 0
-            mask = mask.astype(numpy.int)
+            if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
+                mask = self.mask
+            else:
+                mask = (minX <= xData) & (xData <= maxX)
+                mask = mask == 0
+                mask = mask.astype(numpy.int)
         else:
             mask = numpy.zeros_like(yData)
 
@@ -337,13 +365,8 @@ class _CurveContext(_StatsContext):
         if roi is not None and not isinstance(roi, ROI):
             raise TypeError('curve `context` can ony manage 1D roi')
 
-    def clear_mask(self):
-        print('not implemented')
 
-    def clip_data_to_mask(self, item, plot, onlimits, roi):
-        print('not implemented')
-
-class _HistogramContext(_StatsContext):
+class _HistogramContext(_ScatterCurveHistoMixInContext):
     """
     StatsContext for :class:`Histogram`
 
@@ -356,18 +379,9 @@ class _HistogramContext(_StatsContext):
     :type roi: Union[None, :class:`ROI`]
     """
     def __init__(self, item, plot, onlimits, roi):
-        self._set_mask_validity(onlimits=None, from_=None, to_=None)
-        _StatsContext.__init__(self, kind='histogram', item=item,
-                               plot=plot, onlimits=onlimits, roi=roi)
-
-    def _set_mask_validity(self, onlimits, from_, to_):
-        self._onlimits = onlimits
-        self._from_ = from_
-        self._to_ = to_
-
-    def is_mask_valid(self, onlimits, from_, to_):
-        return (onlimits == self.onlimits and from_ == self._from_ and
-                to_ == self._to_)
+        _ScatterCurveHistoMixInContext.__init__(self, kind='histogram',
+                                                item=item, plot=plot,
+                                                onlimits=onlimits, roi=roi)
 
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
@@ -398,7 +412,6 @@ class _HistogramContext(_StatsContext):
             yData = yData[mask]
             xData = xData[mask]
 
-
         self.data = (xData, yData)
         self.values = numpy.ma.array(yData, mask=mask)
         self.axes = (xData,)
@@ -420,7 +433,7 @@ class _HistogramContext(_StatsContext):
             raise TypeError('curve `context` can ony manage 1D roi')
 
 
-class _ScatterContext(_StatsContext):
+class _ScatterContext(_ScatterCurveHistoMixInContext):
     """StatsContext scatter plots.
 
     It supports :class:`~silx.gui.plot.items.Scatter`.
@@ -434,10 +447,11 @@ class _ScatterContext(_StatsContext):
     :type roi: Union[None, :class:`ROI`]
     """
     def __init__(self, item, plot, onlimits, roi):
-        _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
-                               onlimits=onlimits, roi=roi)
+        _ScatterCurveHistoMixInContext.__init__(self, kind='scatter',
+                                                item=item, plot=plot,
+                                                onlimits=onlimits, roi=roi)
 
-    @docstring(_StatsContext)
+    @docstring(_ScatterCurveHistoMixInContext)
     def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
                                  roi=roi)
@@ -459,7 +473,11 @@ class _ScatterContext(_StatsContext):
             yData = yData[(minY <= yData) & (yData <= maxY)]
 
         if roi:
-            mask = (xData < roi.getFrom()) | (xData > roi.getTo())
+            if self.is_mask_valid(onlimits=onlimits, from_=roi.getFrom(),
+                                  to_=roi.getTo()):
+                mask = self.mask
+            else:
+                mask = (xData < roi.getFrom()) | (xData > roi.getTo())
         else:
             mask = numpy.zeros_like(xData)
 
