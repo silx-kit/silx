@@ -37,14 +37,74 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __date__ = "10/10/2018"
 __license__ = "MIT"
 
+import numpy
+import logging
+import weakref
+
 from .PlotToolAction import PlotToolAction
 from silx.math.histogram import Histogramnd
 from silx.math.combo import min_max
-import numpy
-import logging
 from silx.gui import qt
+from silx.gui.plot import items
 
 _logger = logging.getLogger(__name__)
+
+
+class _LastActiveItem(qt.QObject):
+
+    sigActiveItemChanged = qt.Signal(object)
+    """Emitted when the active plot item have changed"""
+
+    def __init__(self, parent, plot):
+        assert plot is not None
+        super(_LastActiveItem, self).__init__(parent=parent)
+        self.__plot = weakref.ref(plot)
+        self.__item = None
+        item = self.__findActiveItem()
+        self.setActiveItem(item)
+        plot.sigActiveImageChanged.connect(self._activeImageChanged)
+
+    def getPlotWidget(self):
+        return self.__plot()
+
+    def __findActiveItem(self):
+        plot = self.getPlotWidget()
+        image = plot.getActiveImage()
+        if image is not None:
+            return image
+        scatter = plot.getActiveScatter()
+        if scatter is not None:
+            return scatter
+
+    def getActiveItem(self):
+        if self.__item is None:
+            return None
+        item = self.__item()
+        if item is None:
+            self.__item = None
+        return item
+
+    def setActiveItem(self, item):
+        previous = self.getActiveItem()
+        if previous is item:
+            return
+        if item is None:
+            self.__item = None
+        else:
+            self.__item = weakref.ref(item)
+        self.sigActiveItemChanged.emit(item)
+
+    def _activeImageChanged(self, previous, current):
+        """Handle active image change"""
+        plot = self.getPlotWidget()
+        item = plot.getImage(current)
+        if item is None:
+            self.setActiveItem(None)
+        elif isinstance(item, items.ImageBase):
+            self.setActiveItem(item)
+        else:
+            # Do not touch anything, which is consistent with silx v0.12 behavior
+            pass
 
 
 class PixelIntensitiesHistoAction(PlotToolAction):
@@ -61,36 +121,63 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                                 text='pixels intensity',
                                 tooltip='Compute image intensity distribution',
                                 parent=parent)
-        self._connectedToActiveImage = False
+        self._lastItemFilter = _LastActiveItem(self, plot)
         self._histo = None
+        self._item = None
 
     def _connectPlot(self, window):
-        if not self._connectedToActiveImage:
-            self.plot.sigActiveImageChanged.connect(
-                self._activeImageChanged)
-            self._connectedToActiveImage = True
-            self.computeIntensityDistribution()
+        self._lastItemFilter.sigActiveItemChanged.connect(self._activeItemChanged)
+        item = self._lastItemFilter.getActiveItem()
+        self._setSelectedItem(item)
         PlotToolAction._connectPlot(self, window)
 
     def _disconnectPlot(self, window):
-        if self._connectedToActiveImage:
-            self.plot.sigActiveImageChanged.disconnect(
-                self._activeImageChanged)
-            self._connectedToActiveImage = False
+        self._lastItemFilter.sigActiveItemChanged.disconnect(self._activeItemChanged)
         PlotToolAction._disconnectPlot(self, window)
+        self._setSelectedItem(None)
 
-    def _activeImageChanged(self, previous, legend):
-        """Handle active image change: toggle enabled toolbar, update curve"""
-        if self._isWindowInUse():
+    def _getSelectedItem(self):
+        item = self._item
+        if item is None:
+            return None
+        else:
+            return item()
+
+    def _activeItemChanged(self, item):
+        self._setSelectedItem(item)
+
+    def _setSelectedItem(self, item):
+        old = self._getSelectedItem()
+        if item is old:
+            return
+        if old is not None:
+            old.sigItemChanged.disconnect(self._itemUpdated)
+        if item is None:
+            self._item = None
+        else:
+            self._item = weakref.ref(item)
+            item.sigItemChanged.connect(self._itemUpdated)
+        self.computeIntensityDistribution()
+
+    def _itemUpdated(self, event):
+        if event == items.ItemChangedType.DATA:
             self.computeIntensityDistribution()
 
     def computeIntensityDistribution(self):
         """Get the active image and compute the image intensity distribution
         """
-        activeImage = self.plot.getActiveImage()
+        item = self._getSelectedItem()
 
-        if activeImage is not None:
-            image = activeImage.getData(copy=False)
+        if item is None:
+            plot = self.getHistogramPlotWidget()
+            try:
+                plot.removeItem('pixel intensity')
+            except:
+                pass
+            return
+
+        if isinstance(item, items.ImageBase):
+            image = item.getData(copy=False)
             if image.ndim == 3:  # RGB(A) images
                 _logger.info('Converting current image from RGB(A) to grayscale\
                     in order to compute the intensity distribution')
