@@ -74,7 +74,7 @@ class ColorBarWidget(qt.QWidget):
         self._isConnected = False
         self._plotRef = None
         self._colormap = None
-        self._data = None
+        self._item = None
 
         super(ColorBarWidget, self).__init__(parent)
 
@@ -161,7 +161,7 @@ class ColorBarWidget(qt.QWidget):
         """
         return self.getColorScaleBar().getColormap()
 
-    def setColormap(self, colormap, data=None):
+    def setColormap(self, colormap, item=None):
         """Set the colormap to be displayed.
 
         :param ~silx.gui.colors.Colormap colormap:
@@ -169,9 +169,12 @@ class ColorBarWidget(qt.QWidget):
         :param numpy.ndarray data: the data to display, needed if the colormap
             require an autoscale
         """
-        self._data = data
+        if item is not None:
+            self._item = weakref.ref(item)
+        else:
+            self._item = None
         self.getColorScaleBar().setColormap(colormap=colormap,
-                                            data=data)
+                                            item=item)
         if self._colormap is not None:
             self._colormap.sigChanged.disconnect(self._colormapHasChanged)
         self._colormap = colormap
@@ -182,8 +185,11 @@ class ColorBarWidget(qt.QWidget):
         """handler of the Colormap.sigChanged signal
         """
         assert self._colormap is not None
+        item  = self._item
+        if item is not None:
+            item = item()
         self.setColormap(colormap=self._colormap,
-                         data=self._data)
+                         item=item)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
@@ -220,10 +226,10 @@ class ColorBarWidget(qt.QWidget):
             return
 
         # Sync with active scatter
-        activeScatter = plot._getActiveItem(kind='scatter')
+        scatter = plot._getActiveItem(kind='scatter')
 
-        self.setColormap(colormap=activeScatter.getColormap(),
-                         data=activeScatter.getValueData(copy=False))
+        self.setColormap(colormap=scatter.getColormap(),
+                         item=scatter)
 
     def _activeImageChanged(self, previous, legend):
         """Handle plot active image changed"""
@@ -236,18 +242,19 @@ class ColorBarWidget(qt.QWidget):
             self._activeScatterChanged(None, activeScatterLegend)
         else:
             # Sync with active image
-            image = plot.getActiveImage().getData(copy=False)
+            image = plot.getActiveImage()
 
             # RGB(A) image, display default colormap
-            if image.ndim != 2:
+            array = image.getData(copy=False)
+            if array.ndim != 2:
                 self.setColormap(colormap=None)
                 return
 
             # data image, sync with image colormap
             # do we need the copy here : used in the case we are changing
             # vmin and vmax but should have already be done by the plot
-            self.setColormap(colormap=plot.getActiveImage().getColormap(),
-                             data=image)
+            self.setColormap(colormap=image.getColormap(),
+                             item=image)
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
@@ -259,9 +266,9 @@ class ColorBarWidget(qt.QWidget):
                 # No active item, take default colormap update into account
                 self._syncWithDefaultColormap()
 
-    def _syncWithDefaultColormap(self, data=None):
+    def _syncWithDefaultColormap(self):
         """Update colorbar according to plot default colormap"""
-        self.setColormap(self.getPlot().getDefaultColormap(), data)
+        self.setColormap(self.getPlot().getDefaultColormap())
 
     def getColorScaleBar(self):
         """
@@ -346,7 +353,7 @@ class ColorScaleBar(qt.QWidget):
 
         # create the left side group (ColorScale)
         self.colorScale = _ColorScale(colormap=colormap,
-                                      data=data,
+                                      item=data,
                                       parent=self,
                                       margin=ColorScaleBar._TEXT_MARGIN)
         if colormap:
@@ -404,17 +411,17 @@ class ColorScaleBar(qt.QWidget):
         """
         return self.colorScale.getColormap()
 
-    def setColormap(self, colormap, data=None):
+    def setColormap(self, colormap, item=None):
         """Set the new colormap to be displayed
 
         :param Colormap colormap: the colormap to set
-        :param numpy.ndarray data: the data to display, needed if the colormap
-            require an autoscale
+        :param ~silx.gui.plot.items.Item data: the data to display, needed if
+            the colormap require an autoscale
         """
-        self.colorScale.setColormap(colormap, data)
+        self.colorScale.setColormap(colormap, item)
 
         if colormap is not None:
-            vmin, vmax = colormap.getColormapRange(data)
+            vmin, vmax = colormap.getColormapRange(item)
             norm = colormap.getNormalization()
         else:
             vmin, vmax = None, None
@@ -511,11 +518,11 @@ class _ColorScale(qt.QWidget):
 
     _NB_CONTROL_POINTS = 256
 
-    def __init__(self, colormap, parent=None, margin=5, data=None):
+    def __init__(self, colormap, parent=None, margin=5, item=None):
         qt.QWidget.__init__(self, parent)
         self._colormap = None
         self.margin = margin
-        self.setColormap(colormap, data)
+        self.setColormap(colormap, item)
 
         self.setLayout(qt.QVBoxLayout())
         self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Expanding)
@@ -527,7 +534,7 @@ class _ColorScale(qt.QWidget):
         self.setMinimumHeight(self._NB_CONTROL_POINTS // 2 + 2 * self.margin)
         self.setFixedWidth(25)
 
-    def setColormap(self, colormap, data=None):
+    def setColormap(self, colormap, item=None):
         """Set the new colormap to be displayed
 
         :param dict colormap: the colormap to set
@@ -540,7 +547,7 @@ class _ColorScale(qt.QWidget):
             self.vmin, self.vmax = None, None
         else:
             assert colormap.getNormalization() in colors.Colormap.NORMALIZATIONS
-            self.vmin, self.vmax = self._colormap.getColormapRange(data=data)
+            self.vmin, self.vmax = self._colormap.getColormapRange(data=item)
         self._updateColorGradient()
         self.update()
 
