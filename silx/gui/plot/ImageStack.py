@@ -33,8 +33,11 @@ __date__ = "04/03/2019"
 from silx.gui import icons, qt
 from silx.gui.plot import Plot2D
 from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
+from silx.gui.utils import concurrent
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
+import time
+import threading
 import typing
 import functools
 
@@ -42,13 +45,38 @@ import functools
 class _PlotWithWaitingLabel(qt.QWidget):
     """A simple widget that can either display an image or display a
     'processing' or 'waiting' status"""
+    class AnimationThread(threading.Thread):
+        def __init__(self, label):
+            self.running = True
+            self._label = label
+            self.animated_icon = icons.getWaitIcon()
+            self.animated_icon.register(self._label)
+            super(_PlotWithWaitingLabel.AnimationThread, self).__init__()
+
+        def run(self):
+            while self.running:
+                time.sleep(0.05)
+
+                icon = self.animated_icon.currentIcon()
+                self.future_result = concurrent.submitToQtMainThread(
+                    self._label.setPixmap, icon.pixmap(30, state=qt.QIcon.On))
+
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
+        self.setLayout(qt.QVBoxLayout())
+
         self._waiting_label = qt.QLabel(parent=self)
-        self.animated_icon = icons.getWaitIcon()
-        self.animated_icon.register(self._waiting_label)
+        self._waiting_label.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
+        self.layout().addWidget(self._waiting_label)
 
         self._plot = Plot2D(parent=self)
+        self.layout().addWidget(self._plot)
+
+        self.updateThread = _PlotWithWaitingLabel.AnimationThread(self._waiting_label)
+        self.updateThread.start()
+
+    def __del__(self):
+        self.updateThread.stop()
 
     def setWaiting(self, activate=True):
         if activate is True:
@@ -58,8 +86,9 @@ class _PlotWithWaitingLabel(qt.QWidget):
             self._plot.show()
             self._waiting_label.hide()
 
-    def setImage(self):
+    def setData(self, data):
         self.setWaiting(activate=False)
+        self._plot.addImage(data=data)
 
     def clear(self):
         self._plot.clear()
@@ -77,7 +106,6 @@ class ImageStack(qt.QWidget):
     """
 
     N_PRELOAD = 10
-    """Num"""
 
     _BUTTON_ICON = qt.QStyle.SP_ToolBarHorizontalExtensionButton  # noqa
 
@@ -198,8 +226,6 @@ class ImageStack(qt.QWidget):
         else:
             index = self._urlIndexes[url.path()]
             indexes = list(self._urls.keys())
-            print(index, type(index))
-            print(indexes, type(indexes))
             res = list(filter(lambda x: x > index, indexes))
             if len(res) == 0:
                 return None
@@ -297,7 +323,8 @@ class ImageStack(qt.QWidget):
 
     def _notifyLoading(self):
         """display a simple image of loading..."""
-        self._plot.setWaiting(activate=True)
+        # self._plot.setWaiting(activate=True)
+        pass
 
     def toggleUrlSelectionTable(self):
         visible = not self.urlSelectionTableIsVisible()
@@ -363,6 +390,8 @@ if __name__ == '__main__':
         return res, tmp
 
     qapp = qt.QApplication([])
+    # widget = _PlotWithWaitingLabel(parent=None)
+    # widget.setWaiting(activate=True)
     widget = ImageStack()
     urls, file_ = create_urls()
     widget.setUrls(urls=urls)
