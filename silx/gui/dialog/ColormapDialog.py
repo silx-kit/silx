@@ -175,6 +175,7 @@ class ColormapDialog(qt.QDialog):
 
         self._colormap = None
         self._data = None
+        self._item = None
         self._dataInPlotMode = _DataInPlotMode.RANGE
 
         self._ignoreColormapChange = False
@@ -592,13 +593,40 @@ class ColormapDialog(qt.QDialog):
             bins = 10**bins
         return histogram.histo, bins
 
+    def _getItem(self):
+        if self._item is None:
+            return None
+        return self._item()
+
+    def setItem(self, item):
+        """Store the plot item.
+
+        According to the state of the dialog, the item will be used to display
+        the data range or the histogram of the data using :meth:`setDataRange`
+        and :meth:`setHistogram`
+        """
+        old = self._getItem()
+        if old is item:
+            return
+
+        self._data = None
+        if item is None:
+            self._item = None
+        else:
+            self._item = weakref.ref(item, self._itemAboutToFinalize)
+
+        if self.isVisible():
+            self._updateDataInPlot()
+        else:
+            self._displayLater()
+
     def _getData(self):
         if self._data is None:
             return None
         return self._data()
 
     def setData(self, data):
-        """Store the data as a weakref.
+        """Store the data
 
         According to the state of the dialog, the data will be used to display
         the data range or the histogram of the data using :meth:`setDataRange`
@@ -608,6 +636,7 @@ class ColormapDialog(qt.QDialog):
         if oldData is data:
             return
 
+        self._item = None
         if data is None:
             self._data = None
         else:
@@ -617,6 +646,12 @@ class ColormapDialog(qt.QDialog):
             self._updateDataInPlot()
         else:
             self._displayLater()
+
+    def _getArray(self):
+        item = self._getItem()
+        if item is not None:
+            return item.getColormappedData()
+        return self._getData()
 
     def _setDataInPlotMode(self, mode):
         if self._dataInPlotMode == mode:
@@ -629,7 +664,7 @@ class ColormapDialog(qt.QDialog):
         self._setDataInPlotMode(mode)
 
     def _updateDataInPlot(self):
-        data = self._getData()
+        data = self._getArray()
         if data is None:
             self.setDataRange()
             self.setHistogram()
@@ -670,6 +705,11 @@ class ColormapDialog(qt.QDialog):
         """Callback when the data weakref is about to be finalized."""
         if self._data is weakrefData:
             self.setData(None)
+
+    def _itemAboutToFinalize(self, weakref):
+        """Callback when the data weakref is about to be finalized."""
+        if self._item is weakref:
+            self.setItem(None)
 
     def getHistogram(self):
         """Returns the counts and bin edges of the displayed histogram.
@@ -768,16 +808,12 @@ class ColormapDialog(qt.QDialog):
         minimum = float("+inf")
         maximum = float("-inf")
 
-        if colormap is not None and colormap.getNormalization() == colormap.LOGARITHM:
+        if colormap is not None:
             # find a range in the positive part of the data
-            if self._dataRange is not None:
-                minimum = min(minimum, self._dataRange[1])
-                maximum = max(maximum, self._dataRange[2])
-            if self._histogramData is not None:
-                positives = list(filter(lambda x: x > 0, self._histogramData[1]))
-                if len(positives) > 0:
-                    minimum = min(minimum, positives[0])
-                    maximum = max(maximum, positives[-1])
+            data = self._getItem()
+            if data is None:
+                data = self._getData()
+            minimum, maximum = colormap.getColormapRange(data)
         else:
             if self._dataRange is not None:
                 minimum = min(minimum, self._dataRange[0])
