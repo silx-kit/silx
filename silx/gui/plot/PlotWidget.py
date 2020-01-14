@@ -1920,6 +1920,26 @@ class PlotWidget(qt.QMainWindow):
         else:
             return self._getItem(kind, self._activeLegend[kind])
 
+    def setActiveItem(self, item):
+        """Make this item the new active item.
+
+        :param ~silx.gui.plot.items.Item item: The item to use as active
+                                               or None to have no active item.
+        """
+        if item is self._activeItem:
+            # Already the active item
+            return
+
+        kind = None
+        if item is not None:
+            legend, kind = self._itemKey(item)
+            if kind in self._ACTIVE_ITEM_KINDS:
+                self._setActiveItem(kind, legend)
+            else:
+                self._updateActiveItem(item)
+        else:
+            self._updateActiveItem(None)
+
     def getActiveItem(self):
         """Returns the last active item of any kind
 
