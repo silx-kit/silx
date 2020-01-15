@@ -142,6 +142,7 @@ if __name__ == "__main__":
     app = qt.QApplication([])
     window = qt.QMainWindow(
         flags=qt.Qt.Window | qt.Qt.FramelessWindowHint | qt.Qt.NoDropShadowWindowHint)
+    window.move(0, 0)
     window.resize(3, 3)
     widget = _TestOpenGLWidget(version=(sys.argv[1], sys.argv[2]))
     window.setCentralWidget(widget)
