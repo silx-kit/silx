@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,40 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""silx.gui.utils tests"""
-
+"""Tests for the silx.gui.utils.glutils module."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "15/01/2020"
 
 
 import unittest
+from silx.gui.utils.glutils import isOpenGLAvailable
 
-from . import test_async
-from . import test_glutils
-from . import test_image
-from . import test_qtutils
-from . import test_testutils
-from . import test
+
+class TestIsOpenGLAvailable(unittest.TestCase):
+    """Test isOpenGLAvailable"""
+
+    def test(self):
+        for version in ((2, 1), (2, 1), (1000, 1)):
+            with self.subTest(version=version):
+                result = isOpenGLAvailable(version=version)
+                if version[0] == 1000:
+                    self.assertFalse(result)
+                if not result:
+                    self.assertFalse(result.status)
+                    self.assertTrue(len(result.error) > 0)
+                else:
+                    self.assertTrue(result.status)
+                    self.assertTrue(len(result.error) == 0)
 
 
 def suite():
-    """Test suite for module silx.image.test"""
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test.suite())
-    test_suite.addTest(test_async.suite())
-    test_suite.addTest(test_glutils.suite())
-    test_suite.addTest(test_image.suite())
-    test_suite.addTest(test_qtutils.suite())
-    test_suite.addTest(test_testutils.suite())
+    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
+        TestIsOpenGLAvailable))
     return test_suite
 
 
-if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
