@@ -66,36 +66,43 @@ def isOpenGLAvailable(version=(2, 1)):
         which has a `status` boolean attribute (True if successful) and
         an `error` string attribute that is not empty if `status` is False.
     """
-    error = ''
+    error = None
 
-    if not hasattr(qt, 'QOpenGLWidget') and not qt.HAS_OPENGL:
-        error = '%s.QtOpenGL not available' % qt.BINDING
-
-    elif qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
-        # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
-        # so this is only checked if the QApplication is already created
-        error = 'Qt reports OpenGL not available'
-
+    if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+        # On Linux and no DISPLAY available (e.g., ssh without -X)
+        error = 'DISPLAY environment variable not set'
     else:
+        # Check pyopengl availability
         try:
             import silx.gui._glutils.gl  # noqa
         except ImportError:
             error = "Cannot import OpenGL wrapper: pyopengl is not installed"
         else:
-            major, minor = str(version[0]), str(version[1])
-            env = os.environ.copy()
-            env['PYTHONPATH'] = os.pathsep.join(
-                [os.path.abspath(p) for p in sys.path])
+            # Pre checks for Qt < 5.4
+            if not hasattr(qt, 'QOpenGLWidget'):
+                if not qt.HAS_OPENGL:
+                    error = '%s.QtOpenGL not available' % qt.BINDING
 
-            try:
-                error = subprocess.check_output(
-                    [sys.executable, __file__, major, minor], env=env)
-            except subprocess.TimeoutExpired:
-                error = "Qt OpenGL widget hang"
-            except subprocess.CalledProcessError as e:
-                error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
-            else:
-                error = error.decode()
+                elif qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
+                    # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
+                    # so this is only checked if the QApplication is already created
+                    error = 'Qt reports OpenGL not available'
+
+    if not error:  # runtime check
+        major, minor = str(version[0]), str(version[1])
+        env = os.environ.copy()
+        env['PYTHONPATH'] = os.pathsep.join(
+            [os.path.abspath(p) for p in sys.path])
+
+        try:
+            error = subprocess.check_output(
+                [sys.executable, __file__, major, minor], env=env)
+        except subprocess.TimeoutExpired:
+            error = "Qt OpenGL widget hang"
+        except subprocess.CalledProcessError as e:
+            error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
+        else:
+            error = error.decode()
 
     return _isOpenGLAvailableResult(error)
 
