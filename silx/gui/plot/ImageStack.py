@@ -230,6 +230,7 @@ class ImageStack(qt.QMainWindow):
 
     def __init__(self, parent=None) -> None:
         super(ImageStack, self).__init__(parent)
+        self.__n_prefetch = ImageStack.N_PRELOAD
         self.setWindowFlags(qt.Qt.Widget)
         self._current_url = None
 
@@ -281,7 +282,6 @@ class ImageStack(qt.QMainWindow):
         self._urlData = OrderedDict({})
         self._current_url = None
         self._plot.clear()
-        self.__n_prefetch = ImageStack.N_PRELOAD
 
     def _preFetch(self, urls: list) -> None:
         """
@@ -329,7 +329,9 @@ class ImageStack(qt.QMainWindow):
                       In total n*2 DataUrl will be prefetch
         """
         self.__n_prefetch = n
-        self.set_current_url(self.getCurrentUrl())
+        current_url = self.getCurrentUrl()
+        if current_url is not None:
+            self.setCurrentUrl(current_url)
 
     def setUrls(self, urls: dict) -> None:
         """list of urls within an index. Warning: urls should contain an image
