@@ -44,6 +44,7 @@ from . import testPlotWidget
 from . import testPlotWindow
 from . import testProfile
 from . import testStackView
+from . import testImageStack
 from . import testItem
 from . import testUtilsAxis
 from . import testLimitConstraints
@@ -77,6 +78,7 @@ def suite():
          testPlotWindow.suite(),
          testProfile.suite(),
          testStackView.suite(),
+         testImageStack.suite(),
          testItem.suite(),
          testUtilsAxis.suite(),
          testLimitConstraints.suite(),
