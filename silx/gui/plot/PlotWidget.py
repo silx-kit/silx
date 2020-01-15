@@ -147,13 +147,13 @@ class PlotWidget(qt.QMainWindow):
     - legend: The legend of the primitive changed.
     """
 
-    sigActiveItemChanged = qt.Signal(object, object)
+    sigCurrentChanged = qt.Signal(object, object)
     """Signal emitted when the active item has changed.
 
     It provides the following information:
 
-    - previous: The previous active item or None
     - current: The current active item or None
+    - previous: The previous active item or None
     """
 
     sigActiveCurveChanged = qt.Signal(object, object)
@@ -2633,8 +2633,8 @@ class PlotWidget(qt.QMainWindow):
             self.sigContentChanged.emit(
                 kwargs['action'], kwargs['kind'], kwargs['legend'])
         elif event == 'activeItemChanged':
-            self.sigActiveItemChanged.emit(
-                kwargs['previous'], kwargs['current'])
+            self.sigCurrentChanged.emit(
+                kwargs['current'], kwargs['previous'])
         elif event == 'activeCurveChanged':
             self.sigActiveCurveChanged.emit(
                 kwargs['previous'], kwargs['legend'])

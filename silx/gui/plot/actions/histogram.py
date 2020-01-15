@@ -68,18 +68,18 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self._item = None
 
     def _connectPlot(self, window):
-        self.plot.sigActiveItemChanged.connect(self._activeItemChanged)
+        self.plot.sigCurrentChanged.connect(self._currentChanged)
         item = self.plot.getActiveItem()
         self._setSelectedItem(item)
         PlotToolAction._connectPlot(self, window)
 
     def _disconnectPlot(self, window):
-        self.plot.sigActiveItemChanged.disconnect(self._activeItemChanged)
+        self.plot.sigCurrentChanged.disconnect(self._currentChanged)
         PlotToolAction._disconnectPlot(self, window)
         self._setSelectedItem(None)
 
-    def _activeItemChanged(self, previous, current):
-        """Handle active image change: toggle enabled toolbar, update curve"""
+    def _currentChanged(self, current, previous):
+        """Handle active item change"""
         if self._isWindowInUse():
             self._setSelectedItem(current)
 
