@@ -175,17 +175,20 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         if event == items.ItemChangedType.DATA:
             self.computeIntensityDistribution()
 
+    def _cleanUp(self):
+        plot = self.getHistogramPlotWidget()
+        try:
+            plot.removeItem('pixel intensity')
+        except:
+            pass
+
     def computeIntensityDistribution(self):
         """Get the active image and compute the image intensity distribution
         """
         item = self._getSelectedItem()
 
         if item is None:
-            plot = self.getHistogramPlotWidget()
-            try:
-                plot.removeItem('pixel intensity')
-            except:
-                pass
+            self._cleanUp()
             return
 
         if isinstance(item, items.ImageBase):
@@ -200,6 +203,10 @@ class PixelIntensitiesHistoAction(PlotToolAction):
             array = item.getValueData(copy=False)
         else:
             assert(False)
+
+        if array.size == 0:
+            self._cleanUp()
+            return
 
         xmin, xmax = min_max(array, min_positive=False, finite=True)
         nbins = min(1024, int(numpy.sqrt(array.size)))
