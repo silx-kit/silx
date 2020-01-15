@@ -231,6 +231,7 @@ class ImageStack(qt.QMainWindow):
     def __init__(self, parent=None) -> None:
         super(ImageStack, self).__init__(parent)
         self.__n_prefetch = ImageStack.N_PRELOAD
+        self._loadingThreads = []
         self.setWindowFlags(qt.Qt.Widget)
         self._current_url = None
 
@@ -260,8 +261,15 @@ class ImageStack(qt.QMainWindow):
         self._slider.sigCurrentUrlIndexChanged.connect(self.setCurrentUrlIndex)
 
     def close(self) -> bool:
+        self._freeLoadingThread()
         self._plot.close()
         super(ImageStack, self).close()
+
+    def _freeLoadingThread(self):
+        for thread in self._loadingThreads:
+            thread.blockSignals(True)
+            thread.wait(5)
+        self._loadingThreads.clear()
 
     def getPlot(self) -> Plot2D:
         """
@@ -274,6 +282,7 @@ class ImageStack(qt.QMainWindow):
 
     def reset(self) -> None:
         """Clear the plot and remove any link to url"""
+        self._freeLoadingThread()
         self._urls = None
         self._urlIndexes = None
         self._urlData = OrderedDict({})
@@ -302,6 +311,7 @@ class ImageStack(qt.QMainWindow):
         assert url_path in self._urlIndexes
         loader = self.getUrlLoader(url_path)
         loader.finished.connect(functools.partial(self._urlLoaded, url_path))
+        self._loadingThreads.append(loader)
         loader.start()
 
     def _urlLoaded(self, url: str) -> None:
@@ -316,6 +326,8 @@ class ImageStack(qt.QMainWindow):
             self._urlData[url] = sender.data
             if self.getCurrentUrl().path() == url:
                 self._plot.setData(self._urlData[url])
+            if sender in self._loadingThreads:
+                self._loadingThreads.remove(sender)
             self.sigLoaded.emit(url)
 
     def setNPrefetch(self, n: int) -> None:
