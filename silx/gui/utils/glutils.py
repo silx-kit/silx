@@ -142,8 +142,12 @@ if __name__ == "__main__":
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
     app = qt.QApplication([])
-    window = qt.QMainWindow(
-        flags=qt.Qt.Window | qt.Qt.FramelessWindowHint | qt.Qt.NoDropShadowWindowHint)
+    window = qt.QMainWindow(flags=
+        qt.Qt.Window |
+        qt.Qt.FramelessWindowHint |
+        qt.Qt.NoDropShadowWindowHint |
+        qt.Qt.WindowStaysOnTopHint)
+    window.setAttribute(qt.Qt.WA_ShowWithoutActivating)
     window.move(0, 0)
     window.resize(3, 3)
     widget = _TestOpenGLWidget(version=(sys.argv[1], sys.argv[2]))
