@@ -197,6 +197,9 @@ class ImageStack(qt.QMainWindow):
 
     N_PRELOAD = 10
 
+    sigLoaded = qt.Signal(str)
+    """Signal emitted when new data is available"""
+
     def __init__(self, parent=None) -> None:
         super(ImageStack, self).__init__(parent)
         self.setWindowFlags(qt.Qt.Widget)
@@ -257,6 +260,7 @@ class ImageStack(qt.QMainWindow):
         :param url:
         :type: DataUrl
         """
+        print('loading:', url.path())
         assert isinstance(url, DataUrl)
         url_path = url.path()
         assert url_path in self._urlIndexes
@@ -276,6 +280,7 @@ class ImageStack(qt.QMainWindow):
             self._urlData[url] = sender.data
             if self.getCurrentUrl().path() == url:
                 self._plot.setData(self._urlData[url])
+            self.sigLoaded.emit(url)
 
     def setNPrefetch(self, n: int) -> None:
         """
@@ -342,9 +347,13 @@ class ImageStack(qt.QMainWindow):
         if self._urls is None:
             return None
         else:
-            index = self._urlIndexes[url]
-            res = numpy.where(list(self._urlIndexes.keys())<index)
-            return self._urls[res[0]]
+            index = self._urlIndexes[url.path()]
+            indexes = list(self._urls.keys())
+            res = list(filter(lambda x: x < index, indexes))
+            if len(res) == 0:
+                return None
+            else:
+                return self._urls[res[-1]]
 
     def getNNextUrls(self, n: int, url: DataUrl) -> list:
         """
@@ -379,8 +388,8 @@ class ImageStack(qt.QMainWindow):
         res = []
         next_free = self.getPreviousUrl(url=url)
         while len(res) < n and next_free is not None:
-            res.append(next_free)
-            next_free = self.getNextUrl(res[-1])
+            res.insert(0, next_free)
+            next_free = self.getPreviousUrl(res[0])
         return res
 
     def setCurrentUrl(self, url: typing.Union[DataUrl, str]) -> None:
@@ -405,7 +414,7 @@ class ImageStack(qt.QMainWindow):
                 self._load(url)
                 self._notifyLoading()
             self._preFetch(self.getNNextUrls(self.__n_prefetch, url))
-            self._preFetch(self.getNNextUrls(self.__n_prefetch, url))
+            self._preFetch(self.getNPreviousUrls(self.__n_prefetch, url))
         self._urlsTable.blockSignals(old)
 
     def getCurrentUrl(self) -> typing.Union[None, DataUrl]:
@@ -470,13 +479,10 @@ if __name__ == '__main__':
                 h5f[str(i)] = numpy.random.random((width, height))
                 res[i] = DataUrl(file_path=tmp.name,
                                  data_path=str(i),
-                                 # data_slice=(0,),
                                  scheme='silx')
         return res, tmp
 
     qapp = qt.QApplication([])
-    # widget = _PlotWithWaitingLabel(parent=None)
-    # widget.setWaiting(activate=True)
     widget = ImageStack()
     urls, file_ = create_urls()
     widget.setUrls(urls=urls)
