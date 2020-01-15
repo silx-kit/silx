@@ -96,7 +96,9 @@ def isOpenGLAvailable(version=(2, 1)):
 
         try:
             error = subprocess.check_output(
-                [sys.executable, __file__, major, minor], env=env)
+                [sys.executable, __file__, major, minor],
+                env=env,
+                timeout=2)
         except subprocess.TimeoutExpired:
             error = "Qt OpenGL widget hang"
         except subprocess.CalledProcessError as e:
