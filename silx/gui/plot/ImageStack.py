@@ -309,7 +309,7 @@ class ImageStack(qt.QMainWindow):
         assert isinstance(url, DataUrl)
         url_path = url.path()
         assert url_path in self._urlIndexes
-        loader = self.getUrlLoader(url_path)
+        loader = self.getUrlLoader(url)
         loader.finished.connect(functools.partial(self._urlLoaded, url_path))
         self._loadingThreads.append(loader)
         loader.start()
@@ -530,6 +530,7 @@ class UrlLoader(qt.QThread):
     """
     def __init__(self, parent, url):
         super(UrlLoader, self).__init__(parent=parent)
+        assert isinstance(url, DataUrl)
         self.url = url
         self.data = None
 
@@ -537,8 +538,7 @@ class UrlLoader(qt.QThread):
         try:
             self.data = get_data(self.url)
         except IOError:
-            self.data = icons.getIcon('data-not-loaded')
-
+            self.data = None
 
 if __name__ == '__main__':
     import numpy
