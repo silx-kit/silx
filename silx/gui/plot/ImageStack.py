@@ -330,24 +330,28 @@ class ImageStack(qt.QMainWindow):
         if current_url is not None:
             self.setCurrentUrl(current_url)
 
-    def setUrls(self, urls: dict) -> None:
+    def setUrls(self, urls: list) -> None:
         """list of urls within an index. Warning: urls should contain an image
         compatible with the silx.gui.plot.Plot class
 
         :param urls: urls we want to set in the stack. Key is the index
                      (position in the stack), value is the DataUrl
-        :type: dict
+        :type: list
         """
-        urlsToIndex = self._urlsToIndex(urls)
-        if not len(urlsToIndex) == len(urls):
-            raise ValueError('each url should be unique')
+        def createUrlIndexes():
+            indexes = OrderedDict()
+            for index, url in enumerate(urls):
+                indexes[index] = url
+            return indexes
+
+        urls_with_indexes = createUrlIndexes()
+        urlsToIndex = self._urlsToIndex(urls_with_indexes)
         self.reset()
-        o_urls = OrderedDict(sorted(urls.items(), key=lambda kv: kv[0]))
-        self._urls = o_urls
+        self._urls = urls_with_indexes
         self._urlIndexes = urlsToIndex
 
         old_url_table = self._urlsTable.blockSignals(True)
-        self._urlsTable.setUrls(urls=list(o_urls.values()))
+        self._urlsTable.setUrls(urls=list(self._urls.values()))
         self._urlsTable.blockSignals(old_url_table)
 
         old_slider = self._slider.blockSignals(True)

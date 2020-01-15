@@ -39,6 +39,7 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.io.url import DataUrl
 from silx.gui.plot.ImageStack import ImageStack
 from silx.gui.utils.testutils import SignalListener
+from collections import OrderedDict
 import time
 
 
@@ -47,7 +48,7 @@ class TestImageStack(TestCaseQt):
 
     def setUp(self):
         TestCaseQt.setUp(self)
-        self.urls = {}
+        self.urls = OrderedDict()
         self._raw_data = {}
         self.tmp_file = tempfile.NamedTemporaryFile(prefix="test_image_stack_",
                                                     suffix=".h5",
@@ -64,7 +65,7 @@ class TestImageStack(TestCaseQt):
                                        data_path=str(i),
                                        scheme='silx')
         self.widget = ImageStack()
-        self.widget.setUrls(self.urls)
+        self.widget.setUrls(list(self.urls.values()))
 
         self.listener = SignalListener()
         self.widget.sigLoaded.connect(self.listener.partial())
