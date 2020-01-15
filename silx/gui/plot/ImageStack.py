@@ -142,6 +142,9 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
     _BUTTON_ICON = qt.QStyle.SP_ToolBarHorizontalExtensionButton  # noqa
 
+    sigCurrentUrlChanged = qt.Signal(str)
+    """Signal emitted when the active/current url change"""
+
     def __init__(self, parent=None) -> None:
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QGridLayout())
@@ -158,6 +161,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
         # Signal / slot connection
         self._toggleButton.clicked.connect(self.toggleUrlSelectionTable)
+        self._urlsTable.sigCurrentUrlChanged.connect(self._propagateSignal)
 
         # expose API
         self.setUrls = self._urlsTable.setUrls
@@ -179,6 +183,9 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
     def urlSelectionTableIsVisible(self):
         return self._urlsTable.isVisible()
+
+    def _propagateSignal(self, url):
+        self.sigCurrentUrlChanged.emit(url)
 
 
 class ImageStack(qt.QMainWindow):
@@ -208,6 +215,9 @@ class ImageStack(qt.QMainWindow):
         self.addDockWidget(qt.Qt.RightDockWidgetArea, self._dockWidget)
 
         self.reset()
+
+        # connect signal / slot
+        self._urlsTable.sigCurrentUrlChanged.connect(self.setCurrentUrl)
 
     def getCurrentUrl(self):
         return self._current_url
@@ -373,14 +383,16 @@ class ImageStack(qt.QMainWindow):
             next_free = self.getNextUrl(res[-1])
         return res
 
-    def setCurrentUrl(self, url: DataUrl) -> None:
+    def setCurrentUrl(self, url: typing.Union[DataUrl, str]) -> None:
         """
         Define the url to be displayed
 
         :param url: url to be displayed
         :rtype: DataUrl
         """
-        assert isinstance(url, DataUrl)
+        assert isinstance(url, (DataUrl, str))
+        if isinstance(url, str):
+            url = DataUrl(path=url)
         self._current_url = url
         old = self._urlsTable.blockSignals(True)
         self._urlsTable.setUrl(url)
@@ -388,7 +400,7 @@ class ImageStack(qt.QMainWindow):
             self._plot.clear()
         else:
             if self._current_url.path() in self._urlData:
-                self.plot.add_image(self._urlData[url])
+                self._plot.setData(self._urlData[url.path()])
             else:
                 self._load(url)
                 self._notifyLoading()
