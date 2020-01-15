@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ import logging
 import sys
 
 from .. import qt
+from ..utils.glutils import isOpenGLAvailable
 from .._glutils import gl
 
 
@@ -45,31 +46,22 @@ _logger = logging.getLogger(__name__)
 
 # Probe OpenGL availability and widget
 ERROR = ''  # Error message from probing Qt OpenGL support
-_BaseOpenGLWidget = None  # Qt OpenGL widget to use
 
-if hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
-    _logger.info('Using QOpenGLWidget')
-    _BaseOpenGLWidget = qt.QOpenGLWidget
-
-elif not qt.HAS_OPENGL:  # QtOpenGL not installed
-    ERROR = '%s.QtOpenGL not available' % qt.BINDING
-
-elif qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
-    # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
-    # so this is only checked if the QApplication is already created
-    ERROR = 'Qt reports OpenGL not available'
-
-else:
-    _logger.info('Using QGLWidget')
-    _BaseOpenGLWidget = qt.QGLWidget
-
-
-# Internal class wrapping Qt OpenGL widget
-if _BaseOpenGLWidget is None:
+_check = isOpenGLAvailable(version=(2, 1), runtimeCheck=False)
+if not _check:
+    ERROR = _check.error
     _logger.error('OpenGL-based widget disabled: %s', ERROR)
     _OpenGLWidget = None
 
 else:
+    if hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
+        _logger.info('Using QOpenGLWidget')
+        _BaseOpenGLWidget = qt.QOpenGLWidget
+
+    else:
+        _logger.info('Using QGLWidget')
+        _BaseOpenGLWidget = qt.QGLWidget
+
     class _OpenGLWidget(_BaseOpenGLWidget):
         """Wrapper over QOpenGLWidget and QGLWidget"""
 
