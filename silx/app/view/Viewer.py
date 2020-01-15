@@ -379,12 +379,12 @@ class Viewer(qt.QMainWindow):
         model = self.__treeview.model()
         while len(indexes) > 0:
             index = indexes.pop(0)
-            if index.column() != 0:
-                continue
             if isinstance(index, tuple):
                 index, depth = index
             else:
                 depth = 0
+            if index.column() != 0:
+                continue
 
             if depth > 10:
                 # Avoid infinite loop with recursive links
@@ -407,12 +407,12 @@ class Viewer(qt.QMainWindow):
         model = self.__treeview.model()
         while len(indexes) > 0:
             index = indexes.pop(0)
-            if index.column() != 0:
-                continue
             if isinstance(index, tuple):
                 index, depth = index
             else:
                 depth = 0
+            if index.column() != 0:
+                continue
 
             if depth > 10:
                 # Avoid infinite loop with recursive links
