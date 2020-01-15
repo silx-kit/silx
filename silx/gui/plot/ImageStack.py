@@ -540,29 +540,3 @@ class UrlLoader(qt.QThread):
         except IOError:
             self.data = None
 
-if __name__ == '__main__':
-    import numpy
-    import h5py
-    import tempfile
-
-    def create_urls():
-        res = {}
-        tmp = tempfile.NamedTemporaryFile(prefix="test_image_stack_",
-                                          suffix=".h5",
-                                          delete=True)
-        with h5py.File(tmp.file, 'w') as h5f:
-            for i in range(10):
-                width = numpy.random.randint(100, 400)
-                height = numpy.random.randint(100, 400)
-                h5f[str(i)] = numpy.random.random((width, height))
-                res[i] = DataUrl(file_path=tmp.name,
-                                 data_path=str(i),
-                                 scheme='silx')
-        return res, tmp
-
-    qapp = qt.QApplication([])
-    widget = ImageStack()
-    urls, file_ = create_urls()
-    widget.setUrls(urls=urls)
-    widget.show()
-    qapp.exec_()
