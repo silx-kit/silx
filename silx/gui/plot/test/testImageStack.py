@@ -74,8 +74,9 @@ class TestImageStack(TestCaseQt):
         self.widget.close()
         TestCaseQt.setUp(self)
 
-    def testUrlTable(self):
-        """Test that selection using the url table is working"""
+    def testControls(self):
+        """Test that selection using the url table and the slider are working
+        """
         self.widget.show()
         self.assertEqual(self.widget.getCurrentUrl(), self.urls[0])
 
@@ -86,11 +87,20 @@ class TestImageStack(TestCaseQt):
         numpy.testing.assert_array_equal(
             self.widget.getPlot().getActiveImage(just_legend=False).getData(),
             self._raw_data[0])
+        self.assertEqual(self.widget._slider.value(), 0)
 
         self.widget._urlsTable.setUrl(self.urls[4])
         numpy.testing.assert_array_equal(
             self.widget.getPlot().getActiveImage(just_legend=False).getData(),
             self._raw_data[4])
+        self.assertEqual(self.widget._slider.value(), 4)
+
+        self.widget._slider.setUrlIndex(6)
+        numpy.testing.assert_array_equal(
+            self.widget.getPlot().getActiveImage(just_legend=False).getData(),
+            self._raw_data[6])
+        self.assertEqual(self.widget._urlsTable.currentItem().text(),
+                         self.urls[6].path())
 
     def testUtils(self):
         """Test that some utils functions are working"""

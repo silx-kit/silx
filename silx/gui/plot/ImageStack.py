@@ -36,6 +36,7 @@ from silx.gui.utils import concurrent
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
 from collections import OrderedDict
+from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 import time
 import threading
 import typing
@@ -101,6 +102,23 @@ class _PlotWithWaitingLabel(qt.QWidget):
         return self._plot
 
 
+class _HorizontalSlider(HorizontalSliderWithBrowser):
+
+    sigCurrentUrlIndexChanged = qt.Signal(int)
+
+    def __init__(self, parent):
+        super(_HorizontalSlider, self).__init__(parent=parent)
+        #  connect signal / slot
+        self.valueChanged.connect(self._urlChanged)
+
+    def setUrlIndex(self, index):
+        self.setValue(index)
+        self.sigCurrentUrlIndexChanged.emit(index)
+
+    def _urlChanged(self, value):
+        self.sigCurrentUrlIndexChanged.emit(value)
+
+
 class _UrlList(qt.QWidget):
     """Simple list to display an active url and allow user to pick an
     url from it"""
@@ -117,6 +135,9 @@ class _UrlList(qt.QWidget):
 
         # connect signal / Slot
         self._listWidget.currentItemChanged.connect(self._notifyCurrentUrlChanged)
+
+        # expose API
+        self.currentItem = self._listWidget.currentItem
 
     def setUrls(self, urls: list) -> None:
         url_names = []
@@ -166,6 +187,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         # expose API
         self.setUrls = self._urlsTable.setUrls
         self.setUrl = self._urlsTable.setUrl
+        self.currentItem = self._urlsTable.currentItem
 
     def toggleUrlSelectionTable(self):
         visible = not self.urlSelectionTableIsVisible()
@@ -210,17 +232,24 @@ class ImageStack(qt.QMainWindow):
         self.setWindowTitle("Image stack")
         self.setCentralWidget(self._plot)
 
-        # dock widget
-        self._dockWidget = qt.QDockWidget(parent=self)
+        # dock widget: url table
+        self._tableDockWidget = qt.QDockWidget(parent=self)
         self._urlsTable = _ToggleableUrlSelectionTable(parent=self)
-        self._dockWidget.setWidget(self._urlsTable)
-        self._dockWidget.setFeatures(qt.QDockWidget.DockWidgetMovable)
-        self.addDockWidget(qt.Qt.RightDockWidgetArea, self._dockWidget)
+        self._tableDockWidget.setWidget(self._urlsTable)
+        self._tableDockWidget.setFeatures(qt.QDockWidget.DockWidgetMovable)
+        self.addDockWidget(qt.Qt.RightDockWidgetArea, self._tableDockWidget)
+        # dock widget: qslider
+        self._sliderDockWidget = qt.QDockWidget(parent=self)
+        self._slider = _HorizontalSlider(parent=self)
+        self._sliderDockWidget.setWidget(self._slider)
+        self.addDockWidget(qt.Qt.BottomDockWidgetArea, self._sliderDockWidget)
+        self._sliderDockWidget.setFeatures(qt.QDockWidget.DockWidgetMovable)
 
         self.reset()
 
         # connect signal / slot
         self._urlsTable.sigCurrentUrlChanged.connect(self.setCurrentUrl)
+        self._slider.sigCurrentUrlIndexChanged.connect(self.setCurrentUrlIndex)
 
     def getCurrentUrl(self):
         return self._current_url
@@ -260,7 +289,6 @@ class ImageStack(qt.QMainWindow):
         :param url:
         :type: DataUrl
         """
-        print('loading:', url.path())
         assert isinstance(url, DataUrl)
         url_path = url.path()
         assert url_path in self._urlIndexes
@@ -307,7 +335,15 @@ class ImageStack(qt.QMainWindow):
         o_urls = OrderedDict(sorted(urls.items(), key=lambda kv: kv[0]))
         self._urls = o_urls
         self._urlIndexes = urlsToIndex
-        self._urlsTable.setUrls(urls=o_urls.values())
+
+        old_url_table = self._urlsTable.blockSignals(True)
+        self._urlsTable.setUrls(urls=list(o_urls.values()))
+        self._urlsTable.blockSignals(old_url_table)
+
+        old_slider = self._slider.blockSignals(True)
+        self._slider.setMaximum(len(self._urls) - 1)
+        self._slider.blockSignals(old_slider)
+
         if self.getCurrentUrl() in self._urls:
             self.setCurrentUrl(self.getCurrentUrl())
         else:
@@ -392,19 +428,34 @@ class ImageStack(qt.QMainWindow):
             next_free = self.getPreviousUrl(res[0])
         return res
 
+    def setCurrentUrlIndex(self, index: int):
+        """
+        Define the url to be displayed
+
+        :param index: url to be displayed
+        :type: int
+        """
+        if index >= len(self._urls):
+            raise ValueError('requested index out of bounds')
+        else:
+            return self.setCurrentUrl(self._urls[index])
+
     def setCurrentUrl(self, url: typing.Union[DataUrl, str]) -> None:
         """
         Define the url to be displayed
 
         :param url: url to be displayed
-        :rtype: DataUrl
+        :type: DataUrl
         """
         assert isinstance(url, (DataUrl, str))
         if isinstance(url, str):
             url = DataUrl(path=url)
         self._current_url = url
-        old = self._urlsTable.blockSignals(True)
+        old_url_table = self._urlsTable.blockSignals(True)
+        old_slider = self._slider.blockSignals(True)
+
         self._urlsTable.setUrl(url)
+        self._slider.setUrlIndex(self._urlIndexes[url.path()])
         if self._current_url is None:
             self._plot.clear()
         else:
@@ -415,7 +466,8 @@ class ImageStack(qt.QMainWindow):
                 self._notifyLoading()
             self._preFetch(self.getNNextUrls(self.__n_prefetch, url))
             self._preFetch(self.getNPreviousUrls(self.__n_prefetch, url))
-        self._urlsTable.blockSignals(old)
+        self._urlsTable.blockSignals(old_url_table)
+        self._slider.blockSignals(old_slider)
 
     def getCurrentUrl(self) -> typing.Union[None, DataUrl]:
         """
