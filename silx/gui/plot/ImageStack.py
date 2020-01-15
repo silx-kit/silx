@@ -60,10 +60,15 @@ class _PlotWithWaitingLabel(qt.QWidget):
         def run(self):
             while self.running:
                 time.sleep(0.05)
-
                 icon = self.animated_icon.currentIcon()
                 self.future_result = concurrent.submitToQtMainThread(
                     self._label.setPixmap, icon.pixmap(30, state=qt.QIcon.On))
+
+        def stop(self):
+            """Stop the update thread"""
+            self.animated_icon.unregister(self._label)
+            self.running = False
+            self.join(2)
 
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
@@ -79,7 +84,8 @@ class _PlotWithWaitingLabel(qt.QWidget):
         self.updateThread = _PlotWithWaitingLabel.AnimationThread(self._waiting_label)
         self.updateThread.start()
 
-    def __del__(self):
+    def close(self) -> bool:
+        super(_PlotWithWaitingLabel, self).close()
         self.updateThread.stop()
 
     def setWaiting(self, activate=True):
@@ -229,6 +235,7 @@ class ImageStack(qt.QMainWindow):
 
         # main widget
         self._plot = _PlotWithWaitingLabel(parent=self)
+        self._plot.setAttribute(qt.Qt.WA_DeleteOnClose, True)
         self.setWindowTitle("Image stack")
         self.setCentralWidget(self._plot)
 
@@ -250,6 +257,10 @@ class ImageStack(qt.QMainWindow):
         # connect signal / slot
         self._urlsTable.sigCurrentUrlChanged.connect(self.setCurrentUrl)
         self._slider.sigCurrentUrlIndexChanged.connect(self.setCurrentUrlIndex)
+
+    def close(self) -> bool:
+        self._plot.close()
+        super(ImageStack, self).close()
 
     def getCurrentUrl(self):
         return self._current_url
