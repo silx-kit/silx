@@ -90,6 +90,7 @@ from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
 from silx.utils.deprecation import deprecated_warning
+from silx.utils.deprecation import deprecated
 
 import h5py
 from silx.io.utils import is_dataset
@@ -1085,11 +1086,15 @@ class StackView(qt.QMainWindow):
         """
         self._plot.setInteractiveMode(*args, **kwargs)
 
+    @deprecated(replacement="addShape", since_version="0.13")
     def addItem(self, *args, **kwargs):
+        self.addShape(*args, **kwargs)
+
+    def addShape(self, *args, **kwargs):
         """
-        See :meth:`Plot.Plot.addItem`
+        See :meth:`Plot.Plot.addShape`
         """
-        self._plot.addItem(*args, **kwargs)
+        self._plot.addShape(*args, **kwargs)
 
 
 class PlanesWidget(qt.QWidget):

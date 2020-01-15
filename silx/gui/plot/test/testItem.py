@@ -209,7 +209,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
     def testShapeChanged(self):
         """Test sigItemChanged for shape"""
         data = numpy.array((1., 10.))
-        self.plot.addItem(data, data, legend='test', shape='rectangle')
+        self.plot.addShape(data, data, legend='test', shape='rectangle')
         shape = self.plot._getItem(kind='item', legend='test')
 
         listener = SignalListener()

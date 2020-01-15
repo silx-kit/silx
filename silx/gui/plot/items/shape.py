@@ -68,16 +68,16 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
         """Update backend renderer"""
         points = self.getPoints(copy=False)
         x, y = points.T[0], points.T[1]
-        return backend.addItem(x,
-                               y,
-                               shape=self.getType(),
-                               color=self.getColor(),
-                               fill=self.isFill(),
-                               overlay=self.isOverlay(),
-                               z=self.getZValue(),
-                               linestyle=self.getLineStyle(),
-                               linewidth=self.getLineWidth(),
-                               linebgcolor=self.getLineBgColor())
+        return backend.addShape(x,
+                                y,
+                                shape=self.getType(),
+                                color=self.getColor(),
+                                fill=self.isFill(),
+                                overlay=self.isOverlay(),
+                                z=self.getZValue(),
+                                linestyle=self.getLineStyle(),
+                                linewidth=self.getLineWidth(),
+                                linebgcolor=self.getLineBgColor())
 
     def isOverlay(self):
         """Return true if shape is drawn as an overlay

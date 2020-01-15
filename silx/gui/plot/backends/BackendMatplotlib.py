@@ -651,8 +651,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return collection
 
-    def addItem(self, x, y, shape, color, fill, overlay, z,
-                linestyle, linewidth, linebgcolor):
+    def addShape(self, x, y, shape, color, fill, overlay, z,
+                 linestyle, linewidth, linebgcolor):
         if (linebgcolor is not None and
                 shape not in ('rectangle', 'polygon', 'polylines')):
             _logger.warning(

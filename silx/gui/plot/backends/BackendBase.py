@@ -179,8 +179,8 @@ class BackendBase(object):
         """
         return object()
 
-    def addItem(self, x, y, shape, color, fill, overlay, z,
-                linestyle, linewidth, linebgcolor):
+    def addShape(self, x, y, shape, color, fill, overlay, z,
+                 linestyle, linewidth, linebgcolor):
         """Add an item (i.e. a shape) to the plot.
 
         :param numpy.ndarray x: The X coords of the points of the shape

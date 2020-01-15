@@ -1240,7 +1240,18 @@ class PlotWidget(qt.QMainWindow):
 
         return legend
 
+    @deprecated(replacement="addShape", since_version="0.13")
     def addItem(self, xdata, ydata, legend=None, info=None,
+                replace=False,
+                shape="polygon", color='black', fill=True,
+                overlay=False, z=None, linestyle="-", linewidth=1.0,
+                linebgcolor=None):
+        return self.addShape(xdata, ydata, legend=legend, info=info,
+                             replace=replace, shape=shape, color=color, fill=fill,
+                             overlay=overlay, z=z, linestyle=linestyle,
+                             linewidth=linewidth, linebgcolor=linebgcolor)
+
+    def addShape(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
                 overlay=False, z=None, linestyle="-", linewidth=1.0,
