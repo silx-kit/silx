@@ -105,6 +105,11 @@ class TestImageStack(TestCaseQt):
 
     def testUtils(self):
         """Test that some utils functions are working"""
+        self.widget.show()
+        # wait until all the requested data are loaded
+        while self.listener.callCount() < self._n_urls and self.qapp.hasPendingEvents():
+            time.sleep(0.05)
+            self.qapp.processEvents()
         urls_values = list(self.urls.values())
         self.assertEqual(urls_values[0], self.urls[0])
         self.assertEqual(urls_values[7], self.urls[7])
