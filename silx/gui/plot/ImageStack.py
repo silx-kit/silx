@@ -125,14 +125,14 @@ class _HorizontalSlider(HorizontalSliderWithBrowser):
         self.sigCurrentUrlIndexChanged.emit(value)
 
 
-class _UrlList(qt.QWidget):
+class UrlList(qt.QWidget):
     """Simple list to display an active url and allow user to pick an
     url from it"""
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the active/current url change"""
 
     def __init__(self, parent=None):
-        super(_UrlList, self).__init__(parent)
+        super(UrlList, self).__init__(parent)
         self.setLayout(qt.QVBoxLayout())
         self.layout().setSpacing(0)
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -180,7 +180,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         self._toggleButton.setSizePolicy(qt.QSizePolicy.Fixed,
                                          qt.QSizePolicy.Fixed)
 
-        self._urlsTable = _UrlList(parent=self)
+        self._urlsTable = UrlList(parent=self)
         self.layout().addWidget(self._urlsTable, 1, 1, 1, 2)
 
         # set up
