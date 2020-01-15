@@ -25,7 +25,6 @@
 """This module provides the :func:`isOpenGLAvailable` utility function.
 """
 
-import functools
 import os
 import sys
 import subprocess
@@ -39,10 +38,11 @@ class _isOpenGLAvailableResult:
     an `error` string attribute storting the possible error message.
     """
 
-    def __init__(self, error):
+    def __init__(self, status=True, error=''):
+        self.__status = bool(status)
         self.__error = str(error)
 
-    status = property(lambda self: not self.__error, doc="True if OpenGL is working")
+    status = property(lambda self: self.__status, doc="True if OpenGL is working")
     error = property(lambda self: self.__error, doc="Error message")
 
     def __bool__(self):
@@ -52,8 +52,43 @@ class _isOpenGLAvailableResult:
         return '<_isOpenGLAvailableResult: %s, "%s">' % (self.status, self.error)
 
 
-@functools.lru_cache()
-def isOpenGLAvailable(version=(2, 1)):
+def _runtimeOpenGLCheck(version):
+    """Run OpenGL check in a subprocess.
+
+    This is done by starting a subprocess that displays a Qt OpenGL widget.
+
+    :param List[int] version:
+        The minimal required OpenGL version as a 2-tuple (major, minor).
+        Default: (2, 1)
+    :return: An error string that is empty if no error occured
+    :rtype: str
+    """
+    major, minor = str(version[0]), str(version[1])
+    env = os.environ.copy()
+    env['PYTHONPATH'] = os.pathsep.join(
+        [os.path.abspath(p) for p in sys.path])
+
+    try:
+        error = subprocess.check_output(
+            [sys.executable, __file__, major, minor],
+            env=env,
+            timeout=2)
+    except subprocess.TimeoutExpired:
+        status = False
+        error = "Qt OpenGL widget hang"
+    except subprocess.CalledProcessError as e:
+        status = False
+        error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
+    else:
+        status = True
+        error = error.decode()
+    return _isOpenGLAvailableResult(status, error)
+
+
+_runtimeCheckCache = {}  # Cache runtime check results: {version: result}
+
+
+def isOpenGLAvailable(version=(2, 1), runtimeCheck=True):
     """Check if OpenGL is available through Qt and actually working.
 
     After some basic tests, this is done by starting a subprocess that
@@ -62,15 +97,19 @@ def isOpenGLAvailable(version=(2, 1)):
     :param List[int] version:
         The minimal required OpenGL version as a 2-tuple (major, minor).
         Default: (2, 1)
+    :param bool runtimeCheck:
+        True (default) to run the test creating a Qt OpenGL widgt in a subprocess,
+        False to avoid this check.
     :return: A result object that evaluates to True if successful and
         which has a `status` boolean attribute (True if successful) and
         an `error` string attribute that is not empty if `status` is False.
     """
-    error = None
+    error = ''
 
     if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
         # On Linux and no DISPLAY available (e.g., ssh without -X)
         error = 'DISPLAY environment variable not set'
+
     else:
         # Check pyopengl availability
         try:
@@ -88,25 +127,16 @@ def isOpenGLAvailable(version=(2, 1)):
                     # so this is only checked if the QApplication is already created
                     error = 'Qt reports OpenGL not available'
 
-    if not error:  # runtime check
-        major, minor = str(version[0]), str(version[1])
-        env = os.environ.copy()
-        env['PYTHONPATH'] = os.pathsep.join(
-            [os.path.abspath(p) for p in sys.path])
+    result = _isOpenGLAvailableResult(error == '', error)
 
-        try:
-            error = subprocess.check_output(
-                [sys.executable, __file__, major, minor],
-                env=env,
-                timeout=2)
-        except subprocess.TimeoutExpired:
-            error = "Qt OpenGL widget hang"
-        except subprocess.CalledProcessError as e:
-            error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
-        else:
-            error = error.decode()
+    if result:  # No error so far, runtime check
+        if version in _runtimeCheckCache:  # Use cache
+            result = _runtimeCheckCache[version]
+        elif runtimeCheck:  # Run test in subprocess
+            result = _runtimeOpenGLCheck(version)
+            _runtimeCheckCache[version] = result
 
-    return _isOpenGLAvailableResult(error)
+    return result
 
 
 if __name__ == "__main__":
