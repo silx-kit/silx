@@ -263,9 +263,6 @@ class ImageStack(qt.QMainWindow):
         self._plot.close()
         super(ImageStack, self).close()
 
-    def getCurrentUrl(self):
-        return self._current_url
-
     def getPlot(self) -> Plot2D:
         """
         Returns the PlotWidget contains in this window
