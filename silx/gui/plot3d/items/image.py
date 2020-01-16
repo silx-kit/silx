@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -118,7 +118,7 @@ class ImageData(_Image, ColormapMixIn):
                           False to use as is (do not modify!).
         """
         self._image.setData(data, copy=copy)
-        ColormapMixIn._setRangeFromData(self, self.getData(copy=False))
+        self._setColormappedData(self.getData(copy=False), copy=False)
         self._updated(ItemChangedType.DATA)
 
     def getData(self, copy=True):

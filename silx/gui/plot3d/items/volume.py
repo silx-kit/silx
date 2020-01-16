@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -93,8 +93,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
 
         # Store data range info as 3-tuple of values
         self._dataRange = range_
-        self._setRangeFromData(
-            None if self._dataRange is None else numpy.array(self._dataRange))
+        self._setColormappedData(self._data, copy=False)
 
         self._updated(ItemChangedType.DATA)
 
@@ -724,15 +723,20 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
 
     def _syncDataWithParent(self):
         """Synchronize this instance data with that of its parent"""
-        if self.getComplexMode() != self.ComplexMode.NONE:
-            self._setRangeFromData(self.getColormappedData(copy=False))
-
         parent = self.parent()
         if parent is None:
             self._data = None
         else:
             self._data = parent.getData(
                 mode=parent.getComplexMode(), copy=False)
+
+        if parent is None or self.getComplexMode() == self.ComplexMode.NONE:
+            self._setColormappedData(None, copy=False)
+        else:
+            self._setColormappedData(
+                parent.getData(mode=self.getComplexMode(), copy=False),
+                copy=False)
+
         self._updateScenePrimitive()
 
     def _parentChanged(self, event):
@@ -741,38 +745,16 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
             self._syncDataWithParent()
         super(ComplexIsosurface, self)._parentChanged(event)
 
-    def getColormappedData(self, copy=True):
-        """Return 3D dataset used to apply the colormap on the isosurface.
-
-        This depends on :meth:`getComplexMode`.
-
-        :param bool copy:
-           True (default) to get a copy,
-           False to get the internal data (DO NOT modify!)
-        :return: The data set (or None if not set)
-        :rtype: Union[numpy.ndarray,None]
-        """
-        if self.getComplexMode() == self.ComplexMode.NONE:
-            return None
-        else:
-            parent = self.parent()
-            if parent is None:
-                return None
-            else:
-                return parent.getData(mode=self.getComplexMode(), copy=copy)
-
     def _updated(self, event=None):
         """Handle update of the isosurface (and take care of mode change)
 
         :param ItemChangedType event: The kind of update
         """
-        if (event == ItemChangedType.COMPLEX_MODE and
-                self.getComplexMode() != self.ComplexMode.NONE):
-            self._setRangeFromData(self.getColormappedData(copy=False))
+        if event == ItemChangedType.COMPLEX_MODE:
+            self._syncDataWithParent()
 
-        if event in (ItemChangedType.COMPLEX_MODE,
-                     ItemChangedType.COLORMAP,
-                     Item3DChangedType.INTERPOLATION):
+        elif event in (ItemChangedType.COLORMAP,
+                       Item3DChangedType.INTERPOLATION):
             self._updateScenePrimitive()
         super(ComplexIsosurface, self)._updated(event)
 
