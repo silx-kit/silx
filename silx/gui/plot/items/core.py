@@ -496,7 +496,6 @@ class ColormapMixIn(ItemMixInBase):
             Minimum of strictly positive values of the data
         :param Union[None,float] max_: Maximum value of the data
         """
-        # TODO store min, minPositive, max
         self.__data = None if data is None else numpy.array(data, copy=copy)
         self.__cacheColormapRange = {}  # Reset cache
 
