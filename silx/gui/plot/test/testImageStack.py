@@ -56,8 +56,8 @@ class TestImageStack(TestCaseQt):
         self._n_urls = 10
         with h5py.File(self.tmp_file.file, 'w') as h5f:
             for i in range(self._n_urls):
-                width = numpy.random.randint(100, 400)
-                height = numpy.random.randint(100, 400)
+                width = numpy.random.randint(10, 40)
+                height = numpy.random.randint(10, 40)
                 raw_data = numpy.random.random((width, height))
                 self._raw_data[i] = raw_data
                 h5f[str(i)] = raw_data
@@ -65,7 +65,6 @@ class TestImageStack(TestCaseQt):
                                        data_path=str(i),
                                        scheme='silx')
         self.widget = ImageStack()
-        self.widget.setUrls(list(self.urls.values()))
 
         self.listener = SignalListener()
         self.widget.sigLoaded.connect(self.listener.partial())
@@ -79,11 +78,14 @@ class TestImageStack(TestCaseQt):
         """Test that selection using the url table and the slider are working
         """
         self.widget.show()
+        self.widget.setUrls(list(self.urls.values()))
+
+        # wait for image to be loaded
+        self._waitUntilUrlLoaded()
+
         self.assertEqual(self.widget.getCurrentUrl(), self.urls[0])
 
-        while self.listener.callCount() < self._n_urls and self.qapp.hasPendingEvents():
-            time.sleep(0.05)
-            self.qapp.processEvents()
+        # make sure all image are loaded
         self.assertEqual(self.listener.callCount(), self._n_urls)
         numpy.testing.assert_array_equal(
             self.widget.getPlot().getActiveImage(just_legend=False).getData(),
@@ -106,10 +108,11 @@ class TestImageStack(TestCaseQt):
     def testUtils(self):
         """Test that some utils functions are working"""
         self.widget.show()
-        # wait until all the requested data are loaded
-        while self.listener.callCount() < self._n_urls and self.qapp.hasPendingEvents():
-            time.sleep(0.05)
-            self.qapp.processEvents()
+        self.widget.setUrls(list(self.urls.values()))
+
+        # wait for image to be loaded
+        self._waitUntilUrlLoaded()
+
         urls_values = list(self.urls.values())
         self.assertEqual(urls_values[0], self.urls[0])
         self.assertEqual(urls_values[7], self.urls[7])
@@ -128,6 +131,24 @@ class TestImageStack(TestCaseQt):
                          urls_values[:2])
         self.assertEqual(self.widget.getNPreviousUrls(5, urls_values[8]),
                          urls_values[3:8])
+
+    def _waitUntilUrlLoaded(self, timeout=2.0):
+        """Wait until all image urls are loaded"""
+        loop_duration = 0.2
+        remaining_duration = timeout
+        while(len(self.widget._loadingThreads) > 0 and remaining_duration > 0):
+            remaining_duration -= loop_duration
+            time.sleep(loop_duration)
+            self.qapp.processEvents()
+
+        if remaining_duration <= 0.0:
+            remaining_urls = []
+            for thread_ in self.widget._loadingThreads:
+                remaining_urls.append(thread_.url.path())
+            mess = 'All images are not loaded after the time out. ' \
+                   'Remaining urls are: ' + str(remaining_urls)
+            raise TimeoutError(mess)
+        return True
 
 
 def suite():
