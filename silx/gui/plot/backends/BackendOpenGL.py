@@ -845,7 +845,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return curve
 
-    def addImage(self, data,
+    def addImage(self, item, data,
                  origin, scale, z,
                  colormap, alpha):
         for parameter in (data, origin, scale, z):
@@ -861,7 +861,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 data = numpy.array(data, dtype=numpy.float32, order='C')
 
             colormapIsLog = colormap.getNormalization() == 'log'
-            cmapRange = colormap.getColormapRange(data=data)
+            cmapRange = colormap.getColormapRange(data=item)
             colormapLut = colormap.getNColors(nbColors=256)
 
             image = GLPlotColormap(data,

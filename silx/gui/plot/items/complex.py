@@ -170,7 +170,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         if data.size == 0:
             return None  # No data to display
 
-        return backend.addImage(data,
+        return backend.addImage(self, data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
