@@ -310,7 +310,8 @@ class ImageStack(qt.QMainWindow):
         url_path = url.path()
         assert url_path in self._urlIndexes
         loader = self.getUrlLoader(url)
-        loader.finished.connect(functools.partial(self._urlLoaded, url_path))
+        loader.finished.connect(functools.partial(self._urlLoaded, url_path),
+                                qt.Qt.QueuedConnection)
         self._loadingThreads.append(loader)
         loader.start()
 
