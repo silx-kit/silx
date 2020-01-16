@@ -261,11 +261,11 @@ class ImageStack(qt.QMainWindow):
         self._slider.sigCurrentUrlIndexChanged.connect(self.setCurrentUrlIndex)
 
     def close(self) -> bool:
-        self._freeLoadingThread()
+        self._freeLoadingThreads()
         self._plot.close()
         super(ImageStack, self).close()
 
-    def _freeLoadingThread(self):
+    def _freeLoadingThreads(self):
         for thread in self._loadingThreads:
             thread.blockSignals(True)
             thread.wait(5)
@@ -282,7 +282,7 @@ class ImageStack(qt.QMainWindow):
 
     def reset(self) -> None:
         """Clear the plot and remove any link to url"""
-        self._freeLoadingThread()
+        self._freeLoadingThreads()
         self._urls = None
         self._urlIndexes = None
         self._urlData = OrderedDict({})
