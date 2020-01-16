@@ -310,28 +310,20 @@ class ImageStack(qt.QMainWindow):
         url_path = url.path()
         assert url_path in self._urlIndexes
         loader = self.getUrlLoader(url)
-        loader.finished.connect(functools.partial(self._urlLoaded, url_path),
-                                qt.Qt.QueuedConnection)
+        loader.finished.connect(self._urlLoaded, qt.Qt.QueuedConnection)
         self._loadingThreads.append(loader)
         loader.start()
 
-    def _urlLoaded(self, url: str) -> None:
+    def _urlLoaded(self) -> None:
         """
 
         :param url: restul of DataUrl.path() function
         :return:
         """
+        sender = self.sender()
+        assert isinstance(sender, UrlLoader)
+        url = sender.url.path()
         if url in self._urlIndexes:
-            sender = self.sender()
-            if sender is None:
-                def _deduceSenderFromUrl(url):
-                    for th in self._loadingThreads:
-                        if url == th.url.path():
-                            return th
-                    return None
-
-                sender = _deduceSenderFromUrl(url)
-            assert isinstance(sender, UrlLoader)
             self._urlData[url] = sender.data
             if self.getCurrentUrl().path() == url:
                 self._plot.setData(self._urlData[url])
