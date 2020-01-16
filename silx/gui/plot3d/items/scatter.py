@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -100,7 +100,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         self._scatter.setAttribute('z', z, copy=copy)
         self._scatter.setAttribute('value', value, copy=copy)
 
-        ColormapMixIn._setRangeFromData(self, self.getValueData(copy=False))
+        self._setColormappedData(self.getValueData(copy=False), copy=False)
         self._updated(ItemChangedType.DATA)
 
     def getData(self, copy=True):
@@ -366,8 +366,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         self._cachedLinesIndices = None
         self._cachedTrianglesIndices = None
 
-        # Store data range info
-        ColormapMixIn._setRangeFromData(self, self.getValueData(copy=False))
+        self._setColormappedData(self.getValueData(copy=False), copy=False)
 
         self._updateScene()
 
