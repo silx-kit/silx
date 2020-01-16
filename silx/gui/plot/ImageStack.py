@@ -323,6 +323,14 @@ class ImageStack(qt.QMainWindow):
         """
         if url in self._urlIndexes:
             sender = self.sender()
+            if sender is None:
+                def _deduceSenderFromUrl(url):
+                    for th in self._loadingThreads:
+                        if url == th.url.path():
+                            return th
+                    return None
+
+                sender = _deduceSenderFromUrl(url)
             assert isinstance(sender, UrlLoader)
             self._urlData[url] = sender.data
             if self.getCurrentUrl().path() == url:
@@ -540,4 +548,3 @@ class UrlLoader(qt.QThread):
             self.data = get_data(self.url)
         except IOError:
             self.data = None
-
