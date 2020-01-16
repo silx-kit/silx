@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "27/06/2017"
 
 
-import doctest
 import unittest
 
 from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction
