@@ -247,8 +247,7 @@ class ColorBarWidget(qt.QWidget):
             # data image, sync with image colormap
             # do we need the copy here : used in the case we are changing
             # vmin and vmax but should have already be done by the plot
-            self.setColormap(colormap=image.getColormap(),
-                             data=image)
+            self.setColormap(colormap=image.getColormap(), data=image)
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
