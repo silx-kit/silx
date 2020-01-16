@@ -301,7 +301,7 @@ class ImageData(ImageBase, ColormapMixIn):
         if dataToUse.size == 0:
             return None  # No data to display
 
-        return backend.addImage(dataToUse,
+        return backend.addImage(self, dataToUse,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
@@ -432,7 +432,7 @@ class ImageRgba(ImageBase):
         if data.size == 0:
             return None  # No data to display
 
-        return backend.addImage(data,
+        return backend.addImage(None, data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
