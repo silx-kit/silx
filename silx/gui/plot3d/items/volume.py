@@ -93,7 +93,12 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
 
         # Store data range info as 3-tuple of values
         self._dataRange = range_
-        self._setColormappedData(self._data, copy=False)
+        if range_ is None:
+            range_ = None, None, None
+        self._setColormappedData(self._data, copy=False,
+                                 min_=range_[0],
+                                 minPositive=range_[1],
+                                 max_=range_[2])
 
         self._updated(ItemChangedType.DATA)
 

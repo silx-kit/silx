@@ -482,7 +482,8 @@ class ColormapMixIn(ItemMixInBase):
         """Handle updates of the colormap"""
         self._updated(ItemChangedType.COLORMAP)
 
-    def _setColormappedData(self, data, copy=True):
+    def _setColormappedData(self, data, copy=True,
+                            min_=None, minPositive=None, max_=None):
         """Set the data used to compute the colormapped display.
 
         It also resets the cache of data ranges.
@@ -490,9 +491,21 @@ class ColormapMixIn(ItemMixInBase):
         This method MUST be called by inheriting classes when data is updated.
 
         :param Union[None,numpy.ndarray] data:
+        :param Union[None,float] min_: Minimum value of the data
+        :param Union[None,float] minPositive:
+            Minimum of strictly positive values of the data
+        :param Union[None,float] max_: Maximum value of the data
         """
+        # TODO store min, minPositive, max
         self.__data = None if data is None else numpy.array(data, copy=copy)
         self.__cacheColormapRange = {}  # Reset cache
+
+        # Fill-up colormap range cache if values are provided
+        if max_ is not None and numpy.isfinite(max_):
+            if min_ is not None and numpy.isfinite(min_):
+                self.__cacheColormapRange[Colormap.LINEAR] = min_, max_
+            if minPositive is not None and numpy.isfinite(minPositive):
+                self.__cacheColormapRange[Colormap.LOGARITHM] = minPositive, max_
 
         colormap = self.getColormap()
         if None in (colormap.getVMin(), colormap.getVMax()):
