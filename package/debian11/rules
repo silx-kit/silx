@@ -1,0 +1,82 @@
+#!/usr/bin/make -f
+
+# avoir bbuild FTBFS
+export HOME=$(CURDIR)/debian/tmp-home
+export XDG_RUNTIME_DIR=$(HOME)/runtime
+export POCL_CACHE_DIR=$(HOME)/.cache/
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export PYBUILD_AFTER_INSTALL=rm -rf {destdir}/usr/bin/
+export PYBUILD_NAME=silx
+export SPECFILE_USE_GNU_SOURCE=1
+export SILX_FULL_INSTALL_REQUIRES=1
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+# Make does not offer a recursive wildcard function, so here's one:
+rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+
+# How to recursively find all files with the same name in a given folder
+ALL_PYX := $(call rwildcard,silx/,*.pyx)
+#NOTA: No space before *
+
+# get the default python3 interpreter version
+PY3VER := $(shell py3versions -dv)
+
+%:
+	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
+
+override_dh_clean:
+	dh_clean
+	# remove the cython generated file to force rebuild
+	rm -f $(patsubst %.pyx,%.cpp,${ALL_PYX})
+	rm -f $(patsubst %.pyx,%.c,${ALL_PYX})
+	rm -f $(patsubst %.pyx,%.html,${ALL_PYX})
+	rm -rf doc/build/html
+	rm -rf build/man
+	rm -rf *.egg-info
+
+override_dh_auto_build:
+	dh_auto_build
+	# build man pages
+	dh_auto_build -- -s custom --build-args="env PYTHONPATH={build_dir} {interpreter} setup.py build_man"
+
+override_dh_install:
+	dh_numpy3
+
+	# install scripts into silx
+	python3 setup.py install_scripts -d debian/silx/usr/bin
+	dh_install -p silx package/desktop/*.desktop usr/share/applications
+	dh_install -p silx package/desktop/silx.png usr/share/icons/hicolor/48x48/apps
+	dh_install -p silx package/desktop/silx.svg usr/share/icons/hicolor/scalable/apps
+	dh_install -p silx package/desktop/silx.xml usr/share/mime/packages
+
+	# install the qtdesigner files only for the python3 package
+	dh_install -p python3-silx qtdesigner_plugins/*.py /usr/lib/$(DEB_HOST_MULTIARCH)/qt5/plugins/designer/python
+
+	dh_install
+
+override_dh_python3:
+	dh_python3
+	dh_python3 -p python3-silx /usr/lib/$(DEB_HOST_MULTIARCH)/qt5/plugins/designer/python
+
+# WITH_QT_TEST=False to disable graphical tests
+# SILX_OPENCL=False to disable OpenCL tests
+# SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
+# GPU=False to disable the use of a GPU with OpenCL test
+# WITH_GL_TEST=False to disable tests using OpenGL
+override_dh_auto_test:
+	mkdir -p $(POCL_CACHE_DIR) # create POCL cachedir in order to avoid an FTBFS in sbuild
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} GPU=False WITH_QT_TEST=False SILX_OPENCL=False SILX_TEST_LAW_MEM=True xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} run_tests.py -vv --installed"
+
+override_dh_installman:
+	dh_installman -p silx build/man/*.1
+
+override_dh_sphinxdoc:
+ifeq (,$(findstring nodocs, $(DEB_BUILD_OPTIONS)))
+	#mkdir -p $(POCL_CACHE_DIR) # create POCL cachedir in order to avoid an FTBFS in sbuild
+	mkdir -p -m 700 $(XDG_RUNTIME_DIR)
+	pybuild --build -s custom -p $(PY3VER) --build-args="cd doc && env PYTHONPATH={build_dir} http_proxy='127.0.0.1:9' xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} -m sphinx -N -bhtml source build/html"
+	dh_installdocs "doc/build/html" -p python-silx-doc --doc-main-package=python3-silx
+	dh_sphinxdoc -O--buildsystem=pybuild
+endif
