@@ -1119,7 +1119,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     It is also meant to be combined with the zoom interaction.
     """
 
-    class Idle(ClickOrDrag.Idle):
+    class Idle(_ZoomOnWheelPanInMiddle.Idle):
         def __init__(self, *args, **kw):
             super(ItemsInteraction.Idle, self).__init__(*args, **kw)
             self._hoverMarker = None
@@ -1169,9 +1169,16 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             'idle': ItemsInteraction.Idle,
             'rightClick': ClickOrDrag.RightClick,
             'clickOrDrag': ClickOrDrag.ClickOrDrag,
-            'drag': ClickOrDrag.Drag
+            'drag': ClickOrDrag.Drag,
+            'middleClickOrDrag': _ZoomOnWheelPanInMiddle.MiddleClickOrDrag,
+            'middleDrag': _ZoomOnWheelPanInMiddle.MiddleDrag
         }
         StateMachine.__init__(self, states, 'idle')
+
+    def _pixelToData(self, x, y):
+        xData, yData = self.plot.pixelToData(x, y)
+        _, y2Data = self.plot.pixelToData(x, y, axis='right')
+        return xData, yData, y2Data
 
     def click(self, x, y, btn):
         """Handle mouse click
@@ -1349,6 +1356,78 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             self.plot.notify(**eventDict)
 
         self.__terminateDrag()
+
+
+    def middleBeginDrag(self, x, y):
+        self._previousDataPos = self._pixelToData(x, y)
+
+    def middleDrag(self, x, y):
+        xData, yData, y2Data = self._pixelToData(x, y)
+        lastX, lastY, lastY2 = self._previousDataPos
+
+        xMin, xMax = self.plot.getXAxis().getLimits()
+        yMin, yMax = self.plot.getYAxis().getLimits()
+        y2Min, y2Max = self.plot.getYAxis(axis='right').getLimits()
+
+        if self.plot.getXAxis()._isLogarithmic():
+            try:
+                dx = math.log10(xData) - math.log10(lastX)
+                newXMin = pow(10., (math.log10(xMin) - dx))
+                newXMax = pow(10., (math.log10(xMax) - dx))
+            except (ValueError, OverflowError):
+                newXMin, newXMax = xMin, xMax
+
+            # Makes sure both values stays in positive float32 range
+            if newXMin < FLOAT32_MINPOS or newXMax > FLOAT32_SAFE_MAX:
+                newXMin, newXMax = xMin, xMax
+        else:
+            dx = xData - lastX
+            newXMin, newXMax = xMin - dx, xMax - dx
+
+            # Makes sure both values stays in float32 range
+            if newXMin < FLOAT32_SAFE_MIN or newXMax > FLOAT32_SAFE_MAX:
+                newXMin, newXMax = xMin, xMax
+
+        if self.plot.getYAxis()._isLogarithmic():
+            try:
+                dy = math.log10(yData) - math.log10(lastY)
+                newYMin = pow(10., math.log10(yMin) - dy)
+                newYMax = pow(10., math.log10(yMax) - dy)
+
+                dy2 = math.log10(y2Data) - math.log10(lastY2)
+                newY2Min = pow(10., math.log10(y2Min) - dy2)
+                newY2Max = pow(10., math.log10(y2Max) - dy2)
+            except (ValueError, OverflowError):
+                newYMin, newYMax = yMin, yMax
+                newY2Min, newY2Max = y2Min, y2Max
+
+            # Makes sure y and y2 stays in positive float32 range
+            if (newYMin < FLOAT32_MINPOS or newYMax > FLOAT32_SAFE_MAX or
+                    newY2Min < FLOAT32_MINPOS or newY2Max > FLOAT32_SAFE_MAX):
+                newYMin, newYMax = yMin, yMax
+                newY2Min, newY2Max = y2Min, y2Max
+        else:
+            dy = yData - lastY
+            dy2 = y2Data - lastY2
+            newYMin, newYMax = yMin - dy, yMax - dy
+            newY2Min, newY2Max = y2Min - dy2, y2Max - dy2
+
+            # Makes sure y and y2 stays in float32 range
+            if (newYMin < FLOAT32_SAFE_MIN or
+                    newYMax > FLOAT32_SAFE_MAX or
+                    newY2Min < FLOAT32_SAFE_MIN or
+                    newY2Max > FLOAT32_SAFE_MAX):
+                newYMin, newYMax = yMin, yMax
+                newY2Min, newY2Max = y2Min, y2Max
+
+        self.plot.setLimits(newXMin, newXMax,
+                            newYMin, newYMax,
+                            newY2Min, newY2Max)
+
+        self._previousDataPos = self._pixelToData(x, y)
+
+    def middleEndDrag(self, startPos, endPos):
+        del self._previousDataPos
 
     def cancel(self):
         self.__terminateDrag()
