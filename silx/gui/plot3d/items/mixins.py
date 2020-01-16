@@ -111,7 +111,6 @@ class ColormapMixIn(_ColormapMixIn):
     def __init__(self, sceneColormap=None):
         super(ColormapMixIn, self).__init__()
 
-        self._dataRange = None
         self.__sceneColormap = sceneColormap
         self._syncSceneColormap()
 
