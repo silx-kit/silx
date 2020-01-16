@@ -37,7 +37,7 @@ import weakref
 from .. import colors
 from .. import qt
 from . import items
-from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
+from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN, MIDDLE_BTN,
                           State, StateMachine)
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
                          prepareHoverSignal, prepareImageSignal,
@@ -119,7 +119,7 @@ class _PlotInteraction(object):
 
 # Zoom/Pan ####################################################################
 
-class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
+class _ZoomOnWheelPanInMiddle(StateMachine, _PlotInteraction):
     """:class:`ClickOrDrag` state machine with zooming on mouse wheel.
 
     Base class for :class:`Pan` and :class:`Zoom`
@@ -127,10 +127,65 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
 
     _DOUBLE_CLICK_TIMEOUT = 0.4
 
-    class ZoomIdle(ClickOrDrag.Idle):
+    class Idle(State):
+
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
+
+        def onPress(self, x, y, btn):
+            if btn == LEFT_BTN:
+                self.goto('clickOrDrag', x, y)
+                return True
+            elif btn == RIGHT_BTN:
+                self.goto('rightClick', x, y)
+                return True
+            elif btn == MIDDLE_BTN:
+                self.goto('middleClickOrDrag', x, y)
+                return True
+
+    class MiddleClickOrDrag(State):
+        def enterState(self, x, y):
+            self.initPos = x, y
+
+        def onMove(self, x, y):
+            dx2 = (x - self.initPos[0]) ** 2
+            dy2 = (y - self.initPos[1]) ** 2
+            if (dx2 + dy2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
+                self.goto('middleDrag', self.initPos, (x, y))
+
+        def onRelease(self, x, y, btn):
+            if btn == MIDDLE_BTN:
+                self.machine.click(x, y, btn)
+                self.goto('idle')
+
+    class MiddleDrag(State):
+        def enterState(self, initPos, curPos):
+            self.initPos = initPos
+            self.machine.middleBeginDrag(*initPos)
+            self.machine.middleDrag(*curPos)
+
+        def onMove(self, x, y):
+            self.machine.middleDrag(x, y)
+
+        def onRelease(self, x, y, btn):
+            if btn == MIDDLE_BTN:
+                self.machine.middleEndDrag(self.initPos, (x, y))
+                self.goto('idle')
+
+    def __init__(self, plot):
+        _PlotInteraction.__init__(self, plot)
+
+        states = {
+            'idle': _ZoomOnWheelPanInMiddle.Idle,
+            'rightClick': ClickOrDrag.RightClick,
+            'clickOrDrag': ClickOrDrag.ClickOrDrag,
+            'drag': ClickOrDrag.Drag,
+            'middleClickOrDrag': _ZoomOnWheelPanInMiddle.MiddleClickOrDrag,
+            'middleDrag': _ZoomOnWheelPanInMiddle.MiddleDrag
+        }
+        StateMachine.__init__(self, states, "idle")
+        self._lastClick = 0., None
 
     def click(self, x, y, btn):
         """Handle clicks by sending events
@@ -170,38 +225,15 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
                                            x, y)
             self.plot.notify(**eventDict)
 
-    def __init__(self, plot):
-        """Init.
-
-        :param plot: The plot to apply modifications to.
-        """
-        _PlotInteraction.__init__(self, plot)
-
-        states = {
-            'idle': _ZoomOnWheel.ZoomIdle,
-            'rightClick': ClickOrDrag.RightClick,
-            'clickOrDrag': ClickOrDrag.ClickOrDrag,
-            'drag': ClickOrDrag.Drag
-        }
-        StateMachine.__init__(self, states, 'idle')
-
-        self._lastClick = 0., None
-
-
-# Pan #########################################################################
-
-class Pan(_ZoomOnWheel):
-    """Pan plot content and zoom on wheel state machine."""
-
     def _pixelToData(self, x, y):
         xData, yData = self.plot.pixelToData(x, y)
         _, y2Data = self.plot.pixelToData(x, y, axis='right')
         return xData, yData, y2Data
 
-    def beginDrag(self, x, y):
+    def middleBeginDrag(self, x, y):
         self._previousDataPos = self._pixelToData(x, y)
 
-    def drag(self, x, y):
+    def middleDrag(self, x, y):
         xData, yData, y2Data = self._pixelToData(x, y)
         lastX, lastY, lastY2 = self._previousDataPos
 
@@ -266,16 +298,34 @@ class Pan(_ZoomOnWheel):
 
         self._previousDataPos = self._pixelToData(x, y)
 
-    def endDrag(self, startPos, endPos):
+    def middleEndDrag(self, startPos, endPos):
         del self._previousDataPos
 
     def cancel(self):
         pass
 
 
+
+# Pan #########################################################################
+
+class Pan(_ZoomOnWheelPanInMiddle):
+    """Pan plot content and zoom on wheel state machine."""
+
+    def beginDrag(self, x, y):
+        self.middleBeginDrag(x, y)
+
+    def drag(self, x, y):
+        self.middleDrag(x, y)
+
+    def endDrag(self, startPos, endPos):
+        self.middleEndDrag(startPos, endPos)
+
+    def cancel(self):
+        pass
+
 # Zoom ########################################################################
 
-class Zoom(_ZoomOnWheel):
+class Zoom(_ZoomOnWheelPanInMiddle):
     """Zoom-in/out state machine.
 
     Zoom-in on selected area, zoom-out on right click,
