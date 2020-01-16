@@ -402,10 +402,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         # disable the use of offsets
         try:
-            self.ax.get_yaxis().get_major_formatter().set_useOffset(False)
-            self.ax.get_xaxis().get_major_formatter().set_useOffset(False)
-            self.ax2.get_yaxis().get_major_formatter().set_useOffset(False)
-            self.ax2.get_xaxis().get_major_formatter().set_useOffset(False)
+            axes = [
+                self.ax.get_yaxis().get_major_formatter(),
+                self.ax.get_xaxis().get_major_formatter(),
+                self.ax2.get_yaxis().get_major_formatter(),
+                self.ax2.get_xaxis().get_major_formatter(),
+            ]
+            for axis in axes:
+                axis.set_useOffset(False)
+                axis.set_scientific(False)
         except:
             _logger.warning('Cannot disabled axes offsets in %s '
                             % matplotlib.__version__)
