@@ -494,7 +494,11 @@ class ColormapMixIn(ItemMixInBase):
         self.__data = None if data is None else numpy.array(data, copy=copy)
         self.__cacheColormapRange = {}  # Reset cache
 
-    def _getColormappedData(self, copy=True):
+        colormap = self.getColormap()
+        if None in (colormap.getVMin(), colormap.getVMax()):
+            self._colormapChanged()
+
+    def getColormappedData(self, copy=True):
         """Returns the data used to compute the displayed colors
 
         :param bool copy: True to get a copy,
