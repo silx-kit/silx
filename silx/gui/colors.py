@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -593,8 +593,12 @@ class Colormap(qt.QObject):
         self._editable = editable
         self.sigChanged.emit()
 
-    def computeDataRange(self, data):
-        """Compute the data range which will be used in auto scale mode."""
+    def _computeAutoscaleRange(self, data):
+        """Compute the data range which will be used in autoscale mode.
+
+        :param numpy.ndarray data: The data for which to compute the range
+        :return: (vmin, vmax) range (vmin and /or vmax might be `None`)
+        """
         if data is None:
             return None, None
         if data.size == 0:
@@ -609,11 +613,11 @@ class Colormap(qt.QObject):
         return vMin, vMax
 
     def getColormapRange(self, data=None):
-        """Return (vmin, vmax)
+        """Return (vmin, vmax) the range of the colormap for the given data or item.
 
-        :param Union[numpy.ndarray,ColormapMixIn] data: The data to check.
-        :return: the tuple vmin, vmax fitting vmin, vmax, normalization and
-            data if any given
+        :param Union[numpy.ndarray,~silx.gui.plot.items.ColormapMixIn] data:
+            The data or item to use for autoscale bounds.
+        :return: (vmin, vmax) corresponding to the colormap applied to data if provided.
         :rtype: tuple
         """
         vmin = self._vmin
@@ -634,11 +638,11 @@ class Colormap(qt.QObject):
         if vmin is None or vmax is None:  # Handle autoscale
             # Get min/max from data
             if data is not None:
-                if hasattr(data, "getDataAutoRange"):
-                    min_, max_ = data.getDataAutoRange(self)
+                if hasattr(data, "_getColormapAutoscaleRange"):
+                    min_, max_ = data._getColormapAutoscaleRange(self)
                 else:
                     data = numpy.array(data, copy=False)
-                    min_, max_ = self.computeDataRange(data)
+                    min_, max_ = self._computeAutoscaleRange(data)
                 # Handle fallback
                 if min_ is None or not numpy.isfinite(min_):
                     min_ = self._getDefaultMin()
@@ -776,19 +780,20 @@ class Colormap(qt.QObject):
     def applyToData(self, data, reference=None):
         """Apply the colormap to the data
 
-        :param Union[numpy.ndarray,ColormapMixIn] data: The data to convert.
-        :param Union[numpy.ndarray,silx.gui.plot.item.Item,None] reference: The
-            data to use as reference in case of autoscale
+        :param Union[numpy.ndarray,~silx.gui.plot.item.ColormapMixIn] data:
+            The data to convert or the item for which to apply the colormap.
+        :param Union[numpy.ndarray,~silx.gui.plot.item.ColormapMixIn,None] reference:
+            The data or item to use as reference to compute autoscale
         """
         if reference is None:
             reference = data
         vmin, vmax = self.getColormapRange(reference)
+
+        if hasattr(data, "getColormappedData"):  # Use item's data
+            data = data.getColormappedData()
+
         normalization = self.getNormalization()
-        if hasattr(data, "_getDataForAutoRange"):
-            array = data._getDataForAutoRange()
-        else:
-            array = data
-        return _cmap(array, self._colors, vmin, vmax, normalization)
+        return _cmap(data, self._colors, vmin, vmax, normalization)
 
     @staticmethod
     def getSupportedColormaps():

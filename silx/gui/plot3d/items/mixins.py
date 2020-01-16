@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -111,7 +111,6 @@ class ColormapMixIn(_ColormapMixIn):
     def __init__(self, sceneColormap=None):
         super(ColormapMixIn, self).__init__()
 
-        self._dataRange = None
         self.__sceneColormap = sceneColormap
         self._syncSceneColormap()
 
@@ -119,37 +118,6 @@ class ColormapMixIn(_ColormapMixIn):
         """Handle colormap updates"""
         self._syncSceneColormap()
         super(ColormapMixIn, self)._colormapChanged()
-
-    def _setRangeFromData(self, data=None):
-        """Compute the data range the colormap should use from provided data.
-
-        :param data: Data set from which to compute the range or None
-        """
-        if data is None or data.size == 0:
-            dataRange = None
-        else:
-            dataRange = min_max(data, min_positive=True, finite=True)
-            if dataRange.minimum is None:  # Only non-finite data
-                dataRange = None
-
-            if dataRange is not None:
-                min_positive = dataRange.min_positive
-                if min_positive is None:
-                    min_positive = float('nan')
-                dataRange = dataRange.minimum, min_positive, dataRange.maximum
-
-        self._dataRange = dataRange
-
-        colormap = self.getColormap()
-        if None in (colormap.getVMin(), colormap.getVMax()):
-            self._colormapChanged()
-
-    def _getDataRange(self):
-        """Returns the data range as used in the scene for colormap
-
-        :rtype: Union[List[float],None]
-        """
-        return self._dataRange
 
     def _setSceneColormap(self, sceneColormap):
         """Set the scene colormap to sync with Colormap object.
@@ -171,8 +139,7 @@ class ColormapMixIn(_ColormapMixIn):
 
             self.__sceneColormap.colormap = colormap.getNColors()
             self.__sceneColormap.norm = colormap.getNormalization()
-            range_ = colormap.getColormapRange(data=self._dataRange)
-            self.__sceneColormap.range_ = range_
+            self.__sceneColormap.range_ = colormap.getColormapRange(self)
 
 
 class ComplexMixIn(_ComplexMixIn):

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -693,7 +693,7 @@ class _ColormapBaseProxyRow(ProxyRow):
         """
         item = self.item()
         if item is not None and self._colormap is not None:
-            return self._colormap.getColormapRange(item._getDataRange())
+            return self._colormap.getColormapRange(item)
         else:
             return 1, 100  # Fallback
 
