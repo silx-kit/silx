@@ -107,9 +107,8 @@ class TestApplyColormapToData(ParametricTestCase):
         colormap = Colormap(name='gray', normalization='linear')
         data = numpy.array([50])
         image = items.ImageData()
-        reference = numpy.array([[0, 100]])
-        image.setData(reference)
-        value = colormap.applyToData(data, reference)
+        image.setData(numpy.array([[0, 100]]))
+        value = colormap.applyToData(data, reference=image)
         self.assertEqual(len(value), 1)
         self.assertEqual(value[0, 0], 128)
 
