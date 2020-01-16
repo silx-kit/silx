@@ -30,11 +30,13 @@ __date__ = "27/06/2017"
 
 
 import unittest
+import numpy
 
 from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
+from silx.gui.colors import Colormap
 
 
 class TestPlotWindow(TestCaseQt):
@@ -98,6 +100,37 @@ class TestPlotWindow(TestCaseQt):
         self.plot.yAxisInvertedButton.setYAxisDownward()
         self.assertTrue(self.plot.getYAxis().isInverted())
 
+    def testColormapAutoscaleCache(self):
+        # Test that the min/max cache is not computed twice
+
+        old = Colormap._computeAutoscaleRange
+        self._count = 0
+        def _computeAutoscaleRange(colormap, data):
+            self._count = self._count + 1
+            return 10, 20
+        Colormap._computeAutoscaleRange = _computeAutoscaleRange
+        try:
+            colormap = Colormap(name='red')
+            self.plot.setVisible(True)
+
+            # Add an image
+            data = numpy.arange(8**2).reshape(8, 8)
+            self.plot.addImage(data, legend="foo", colormap=colormap)
+            self.plot.setActiveImage("foo")
+
+            # Use the colorbar
+            self.plot.getColorBarWidget().setVisible(True)
+            self.qWait(50)
+
+            # Remove and add again the same item
+            image = self.plot.getImage("foo")
+            self.plot.removeImage("foo")
+            self.plot._add(image)
+            self.qWait(50)
+        finally:
+            Colormap._computeAutoscaleRange = old
+        self.assertEqual(self._count, 1)
+        del self._count
 
 def suite():
     test_suite = unittest.TestSuite()
