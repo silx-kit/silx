@@ -789,8 +789,8 @@ class Colormap(qt.QObject):
             reference = data
         vmin, vmax = self.getColormapRange(reference)
 
-        if hasattr(data, "_getColormappedData"):  # Use item's data
-            data = data._getColormappedData()
+        if hasattr(data, "getColormappedData"):  # Use item's data
+            data = data.getColormappedData()
 
         normalization = self.getNormalization()
         return _cmap(data, self._colors, vmin, vmax, normalization)
