@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -752,6 +752,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         self.__cacheRegularGridInfo = None
 
         self._value = value
+        self._setColormappedData(value, copy=False)
 
         if alpha is not None:
             # Make sure alpha is an array of float in [0, 1]
@@ -768,6 +769,3 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # call self._updated + plot._invalidateDataRange()
         PointsBase.setData(self, x, y, xerror, yerror, copy)
-
-    def _getDataForAutoRange(self):
-        return self._value

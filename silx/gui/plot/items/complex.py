@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -191,6 +191,8 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             colormap = self._colormaps[self.getComplexMode()]
             if colormap is not super(ImageComplexData, self).getColormap():
                 super(ImageComplexData, self).setColormap(colormap)
+
+            self._setColormappedData(self.getData(copy=False), copy=False)
         return changed
 
     def _setAmplitudeRangeInfo(self, max_=None, delta=2):
@@ -260,6 +262,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
 
         self._data = data
         self._dataByModesCache = {}
+        self._setColormappedData(self.getData(copy=False), copy=False)
 
         # TODO hackish data range implementation
         if self.isVisible():
@@ -358,6 +361,3 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
     @deprecated(replacement='getComplexMode', since_version='0.11.0')
     def getVisualizationMode(self):
         return self.getComplexMode()
-
-    def _getDataForAutoRange(self):
-        return self.getData(copy=False)

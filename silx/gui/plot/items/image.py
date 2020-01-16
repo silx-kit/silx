@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -386,6 +386,7 @@ class ImageData(ImageBase, ColormapMixIn):
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
         self._data = data
+        self._setColormappedData(data, copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
@@ -410,9 +411,6 @@ class ImageData(ImageBase, ColormapMixIn):
                 plot._invalidateDataRange()
 
         self._updated(ItemChangedType.DATA)
-
-    def _getDataForAutoRange(self):
-        return self._data
 
 
 class ImageRgba(ImageBase):
