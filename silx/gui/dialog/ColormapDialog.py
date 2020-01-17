@@ -72,6 +72,7 @@ import logging
 import numpy
 
 from .. import qt
+from .. import utils
 from ..colors import Colormap
 from ..plot import PlotWidget
 from ..plot.items.axis import Axis
@@ -149,6 +150,53 @@ class _BoundaryWidget(qt.QWidget):
         if value is not None:
             self._numVal.setValue(value)
         self._updateDisplayedText()
+
+
+class _AutoscaleModeComboBox(qt.QComboBox):
+
+    DATA = {
+        Colormap.MINMAX: ("Min/max", "Use the data min/max"),
+        Colormap.STDDEV3: ("Mean ± 3×SD", "Use the data mean ± 3 × standard deviation"),
+    }
+
+    def __init__(self, parent: qt.QWidget):
+        super(_AutoscaleModeComboBox, self).__init__(parent=parent)
+        self.currentIndexChanged.connect(self.__updateTooltip)
+        self._init()
+
+    def _init(self):
+        for mode in Colormap.AUTOSCALE_MODES:
+            label, tooltip = self.DATA.get(mode, (mode, None))
+            self.addItem(label, mode)
+            if tooltip is not None:
+                self.setItemData(self.count() - 1, tooltip, qt.Qt.ToolTipRole)
+
+    def setCurrentIndex(self, index):
+        self.__updateTooltip(index)
+        super(_AutoscaleModeComboBox, self).setCurrentIndex(index)
+
+    def __updateTooltip(self, index):
+        if index > -1:
+            tooltip = self.itemData(index, qt.Qt.ToolTipRole)
+        else:
+            tooltip = ""
+        self.setToolTip(tooltip)
+
+    def currentMode(self):
+        index = self.currentIndex()
+        return self.itemData(index)
+
+    def setCurrentMode(self, mode):
+        for index in range(self.count()):
+            if mode == self.itemData(index):
+                self.setCurrentIndex(index)
+                return
+        if mode is None:
+            # If None was not a value
+            self.setCurrentIndex(-1)
+            return
+        self.addItem(mode, mode)
+        self.setCurrentIndex(self.count() - 1)
 
 
 @enum.unique
@@ -230,6 +278,11 @@ class ColormapDialog(qt.QDialog):
         normLayout.addWidget(self._normButtonLog)
 
         formLayout.addRow('Normalization:', normLayout)
+
+        autoScaleCombo = _AutoscaleModeComboBox(self)
+        autoScaleCombo.currentIndexChanged.connect(self._updateAutoScaleMode)
+        formLayout.addRow('Autoscale mode:', autoScaleCombo)
+        self._autoScaleCombo = autoScaleCombo
 
         # Min row
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
@@ -905,6 +958,7 @@ class ColormapDialog(qt.QDialog):
             self._comboBoxColormap.setEnabled(False)
             self._normButtonLinear.setEnabled(False)
             self._normButtonLog.setEnabled(False)
+            self._autoScaleCombo.setEnabled(False)
             self._minValue.setEnabled(False)
             self._maxValue.setEnabled(False)
         else:
@@ -921,6 +975,9 @@ class ColormapDialog(qt.QDialog):
             dataRange = colormap.getColormapRange()
             self._normButtonLinear.setEnabled(colormap.isEditable())
             self._normButtonLog.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._autoScaleCombo):
+                self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
+                self._autoScaleCombo.setEnabled(colormap.isEditable())
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
             self._minValue.setEnabled(colormap.isEditable())
@@ -998,6 +1055,21 @@ class ColormapDialog(qt.QDialog):
             colormap.setNormalization(norm)
             axis = self._plot.getXAxis()
             axis.setScale(scale)
+            self._ignoreColormapChange = False
+
+        self._invalidateHistogram()
+        self._updateMinMaxData()
+
+    def _updateAutoScaleMode(self):
+        if self._ignoreColormapChange is True:
+            return
+
+        mode = self._autoScaleCombo.currentMode()
+
+        colormap = self.getColormap()
+        if colormap is not None:
+            self._ignoreColormapChange = True
+            colormap.setAutoscaleMode(mode)
             self._ignoreColormapChange = False
 
         self._invalidateHistogram()
