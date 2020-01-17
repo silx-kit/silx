@@ -521,6 +521,37 @@ class TestRegisteredLut(unittest.TestCase):
         self.assertEqual(lut[0, 3], 128)
 
 
+class TestAutoscaleRange(ParametricTestCase):
+
+    def testAutoscaleRange(self):
+        nan = numpy.nan
+        data = [
+            # Positive values
+            (Colormap.LINEAR, Colormap.MINMAX, numpy.array([10, 20, 50]), (10, 50)),
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100]), (10, 100)),
+            (Colormap.LINEAR, Colormap.STDDEV3, numpy.array([10, 100]), (-80, 190)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100]), (1, 1000)),
+            # With nan
+            (Colormap.LINEAR, Colormap.MINMAX, numpy.array([10, 20, 50, nan]), (10, 50)),
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100, nan]), (10, 100)),
+            (Colormap.LINEAR, Colormap.STDDEV3, numpy.array([10, 100, nan]), (-80, 190)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100, nan]), (1, 1000)),
+            # With negative
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100, -50]), (10, 100)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100, -10]), (1, 1000)),
+        ]
+        for norm, mode, array, expectedRange in data:
+            with self.subTest(norm=norm, mode=mode, array=array):
+                colormap = Colormap()
+                colormap.setNormalization(norm)
+                colormap.setAutoscaleMode(mode)
+                vRange = colormap._computeAutoscaleRange(array)
+                if vRange is None:
+                    self.assertIsNone(expectedRange)
+                else:
+                    self.assertEqual(vRange[0], expectedRange[0])
+                    self.assertEqual(vRange[1], expectedRange[1])
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
@@ -530,6 +561,7 @@ def suite():
     test_suite.addTest(loadTests(TestObjectAPI))
     test_suite.addTest(loadTests(TestPreferredColormaps))
     test_suite.addTest(loadTests(TestRegisteredLut))
+    test_suite.addTest(loadTests(TestAutoscaleRange))
     return test_suite
 
 
