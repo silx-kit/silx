@@ -635,9 +635,18 @@ class Colormap(qt.QObject):
             return None, None
 
         if self.getNormalization() == Colormap.LOGARITHM:
-            result = min_max(data, min_positive=True, finite=True)
-            vMin = result.min_positive  # >0 or None
-            vMax = result.maximum  # can be <= 0
+            if self._autoscaleMode == Colormap.MINMAX:
+                result = min_max(data, min_positive=True, finite=True)
+                vMin = result.min_positive  # >0 or None
+                vMax = result.maximum  # can be <= 0
+            elif self._autoscaleMode == Colormap.STDDEV3:
+                normdata = numpy.log10(data)
+                mean = numpy.nanmean(normdata)
+                std = numpy.nanstd(normdata)
+                vMin = 10**(mean - 3 * std)
+                vMax = 10**(mean + 3 * std)
+            else:
+                assert False
         else:
             if self._autoscaleMode == Colormap.MINMAX:
                 vMin, vMax = min_max(data, min_positive=False, finite=True)
