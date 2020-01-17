@@ -616,27 +616,23 @@ class ColormapDialog(qt.QDialog):
 
         if updateMarkers:
             posMin, posMax = self._getDisplayableRange()
+            isDraggable = self._colormap().isEditable()
             if posMin is not None:
-                minDraggable = (self._colormap().isEditable() and
-                                not self._minValue.isAutoChecked())
-                color = "blue" if minDraggable else "black"
                 self._plot.addXMarker(
                     posMin,
                     legend='Min',
                     text='Min',
-                    draggable=minDraggable,
-                    color=color,
+                    draggable=isDraggable,
+                    color="blue",
                     constraint=self._plotMinMarkerConstraint)
             if posMax is not  None:
-                maxDraggable = (self._colormap().isEditable() and
-                                not self._maxValue.isAutoChecked())
-                color = "blue" if maxDraggable else "black"
+                isDraggable = self._colormap().isEditable()
                 self._plot.addXMarker(
                     posMax,
                     legend='Max',
                     text='Max',
-                    draggable=maxDraggable,
-                    color=color,
+                    draggable=isDraggable,
+                    color="blue",
                     constraint=self._plotMaxMarkerConstraint)
 
             self._updateLutItem((posMin, posMax))
@@ -682,9 +678,15 @@ class ColormapDialog(qt.QDialog):
         if event['event'] in ('markerMoving', 'markerMoved'):
             value = float(str(event['xdata']))
             if event['label'] == 'Min':
+                colormap = self.getColormap()
+                if colormap.getVMin() is None:
+                    colormap.setVMin(value)
                 self._minValue.setValue(value)
                 self._updateLutItem(None)
             elif event['label'] == 'Max':
+                colormap = self.getColormap()
+                if colormap.getVMax() is None:
+                    colormap.setVMax(value)
                 self._maxValue.setValue(value)
                 self._updateLutItem(None)
 
