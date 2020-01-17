@@ -707,6 +707,15 @@ class Colormap(qt.QObject):
 
         return vmin, vmax
 
+    def getVRange(self):
+        """Get the bounds of the colormap
+
+        :rtype: Tuple(Union[float,None],Union[float,None])
+        :returns: A tuple of 2 values for min and max. Or None instead of float
+            for autoscale
+        """
+        return self.getVMin(), self.getVMax()
+
     def setVRange(self, vmin, vmax):
         """Set the bounds of the colormap
 
