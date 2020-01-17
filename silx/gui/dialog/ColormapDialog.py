@@ -319,14 +319,9 @@ class ColormapDialog(qt.QDialog):
 
         self._colormapStoredState = None
 
-        # Make the GUI
-        formLayout = qt.QFormLayout(self)
-        formLayout.setContentsMargins(10, 10, 10, 10)
-
         # Colormap row
         self._comboBoxColormap = ColormapNameComboBox(parent=self)
         self._comboBoxColormap.currentIndexChanged[int].connect(self._updateLut)
-        formLayout.addRow('Colormap:', self._comboBoxColormap)
 
         # Normalization row
         self._normButtonLinear = qt.QRadioButton('Linear')
@@ -344,8 +339,6 @@ class ColormapDialog(qt.QDialog):
         normLayout.setSpacing(10)
         normLayout.addWidget(self._normButtonLinear)
         normLayout.addWidget(self._normButtonLog)
-
-        formLayout.addRow('Normalization:', normLayout)
 
         autoScaleCombo = _AutoscaleModeComboBox(self)
         autoScaleCombo.currentIndexChanged.connect(self._updateAutoScaleMode)
@@ -421,16 +414,11 @@ class ColormapDialog(qt.QDialog):
         plotBoxLayout.addWidget(self._plot)
         plotBoxLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
         self._plotBox.setLayout(plotBoxLayout)
-        formLayout.addRow(self._plotBox)
-        formLayout.addRow(rangeLayout)
-
-        formLayout.addRow('Autoscale mode:', autoScaleCombo)
 
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
         self._buttonsModal = qt.QDialogButtonBox(parent=self)
         self._buttonsModal.setStandardButtons(types)
-        formLayout.addRow(self._buttonsModal)
         self._buttonsModal.accepted.connect(self.accept)
         self._buttonsModal.rejected.connect(self.reject)
 
@@ -438,7 +426,6 @@ class ColormapDialog(qt.QDialog):
         types = qt.QDialogButtonBox.Close | qt.QDialogButtonBox.Reset
         self._buttonsNonModal = qt.QDialogButtonBox(parent=self)
         self._buttonsNonModal.setStandardButtons(types)
-        formLayout.addRow(self._buttonsNonModal)
         button = self._buttonsNonModal.button(qt.QDialogButtonBox.Close)
         button.clicked.connect(self.accept)
         button.setDefault(True)
@@ -454,9 +441,21 @@ class ColormapDialog(qt.QDialog):
 
         self.setModal(self.isModal())
 
+        formLayout = qt.QFormLayout(self)
+        formLayout.setContentsMargins(10, 10, 10, 10)
+        formLayout.addRow('Colormap:', self._comboBoxColormap)
+        formLayout.addRow('Normalization:', normLayout)
+        formLayout.addRow(self._plotBox)
+        formLayout.addRow(rangeLayout)
+        formLayout.addRow('Autoscale mode:', autoScaleCombo)
+        formLayout.addRow(self._buttonsModal)
+        formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
+
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
+
+        self._plotUpdate()
 
     def _displayLater(self):
         self.__displayInvalidated = True
@@ -512,8 +511,6 @@ class ColormapDialog(qt.QDialog):
         self._plot.addImage(lut, legend='lut')
         self._lutItem = self._plot._getItem("image", "lut")
         self._lutItem.setVisible(False)
-
-        self._plotUpdate()
 
     def sizeHint(self):
         return self.layout().minimumSize()
