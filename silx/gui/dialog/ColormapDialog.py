@@ -76,6 +76,7 @@ from .. import utils
 from ..colors import Colormap
 from ..plot import PlotWidget
 from ..plot.items.axis import Axis
+from ..plot.items import BoundingRect
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
 from silx.math.combo import min_max
@@ -518,6 +519,10 @@ class ColormapDialog(qt.QDialog):
         self._lutItem = self._plot._getItem("image", "lut")
         self._lutItem.setVisible(False)
 
+        self._bound = BoundingRect()
+        self._plot._add(self._bound)
+        self._bound.setVisible(True)
+
     def sizeHint(self):
         return self.layout().minimumSize()
 
@@ -649,6 +654,11 @@ class ColormapDialog(qt.QDialog):
             posMin, posMax = vRange
         if posMin is None or posMax is None:
             self._lutItem.setVisible(False)
+            pos = posMax if posMin is None else posMin
+            if pos is not None:
+                self._bound.setBounds((pos, pos, 0, -0.1))
+            else:
+                self._bound.setBounds((0, 0, 0, -0.1))
         else:
             colormap = colormap.copy()
             colormap.setVRange(0, 255)
@@ -657,6 +667,7 @@ class ColormapDialog(qt.QDialog):
             self._lutItem.setOrigin((posMin, -0.1))
             self._lutItem.setScale((scale, 0.1))
             self._lutItem.setVisible(True)
+            self._bound.setBounds((posMin, posMax, -0.1, 1))
 
     def _plotMinMarkerConstraint(self, x, y):
         """Constraint of the min marker"""
