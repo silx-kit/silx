@@ -439,8 +439,11 @@ class ColormapDialog(qt.QDialog):
         self._buttonsNonModal = qt.QDialogButtonBox(parent=self)
         self._buttonsNonModal.setStandardButtons(types)
         formLayout.addRow(self._buttonsNonModal)
-        self._buttonsNonModal.button(qt.QDialogButtonBox.Close).clicked.connect(self.accept)
-        self._buttonsNonModal.button(qt.QDialogButtonBox.Reset).clicked.connect(self.resetColormap)
+        button = self._buttonsNonModal.button(qt.QDialogButtonBox.Close)
+        button.clicked.connect(self.accept)
+        button.setDefault(True)
+        button = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
+        button.clicked.connect(self.resetColormap)
 
         self._buttonsModal.setFocus(qt.Qt.OtherFocusReason)
         self._buttonsNonModal.setFocus(qt.Qt.OtherFocusReason)
