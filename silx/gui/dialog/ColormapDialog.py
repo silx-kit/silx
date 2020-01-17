@@ -103,6 +103,7 @@ class _BoundaryWidget(qt.QWidget):
         self._autoCB = qt.QCheckBox('auto', parent=self)
         self.layout().addWidget(self._autoCB)
         self._autoCB.setChecked(False)
+        self._autoCB.setVisible(False)
 
         self._autoCB.toggled.connect(self._autoToggled)
         self.sigValueChanged = self._autoCB.toggled
@@ -199,6 +200,78 @@ class _AutoscaleModeComboBox(qt.QComboBox):
         self.setCurrentIndex(self.count() - 1)
 
 
+class _AutoScaleButtons(qt.QWidget):
+
+    autoRangeChanged = qt.Signal(object)
+
+    def __init__(self, parent=None):
+        qt.QWidget.__init__(self, parent=parent)
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        self.setFocusPolicy(qt.Qt.NoFocus)
+
+        self._minAuto = qt.QPushButton(self)
+        self._minAuto.setCheckable(True)
+        self._minAuto.setToolTip("Enable/disable the auto range for min")
+        self._minAuto.toggled[bool].connect(self.__minToggled)
+        self._minAuto.setFocusPolicy(qt.Qt.TabFocus)
+
+        self._maxAuto = qt.QPushButton(self)
+        self._maxAuto.setCheckable(True)
+        self._maxAuto.setToolTip("Enable/disable the auto range for max")
+        self._maxAuto.toggled[bool].connect(self.__maxToggled)
+        self._maxAuto.setFocusPolicy(qt.Qt.TabFocus)
+
+        self._bothAuto = qt.QPushButton(self)
+        self._bothAuto.setText("Auto")
+        self._bothAuto.setToolTip("Enable/disable the auto range for both min and max")
+        self._bothAuto.setCheckable(True)
+        self._bothAuto.toggled[bool].connect(self.__bothToggled)
+        self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
+
+        layout.addSpacing(1)
+        layout.addWidget(self._minAuto)
+        layout.addWidget(self._bothAuto)
+        layout.addWidget(self._maxAuto)
+        layout.addSpacing(1)
+
+    def __bothToggled(self, checked):
+        autoRange = checked, checked
+        self.setAutoRange(autoRange)
+        self.autoRangeChanged.emit(autoRange)
+
+    def __minToggled(self, checked):
+        autoRange = self.getAutoRange()
+        self.setAutoRange(autoRange)
+        self.autoRangeChanged.emit(autoRange)
+
+    def __maxToggled(self, checked):
+        autoRange = self.getAutoRange()
+        self.setAutoRange(autoRange)
+        self.autoRangeChanged.emit(autoRange)
+
+    def setAutoRangeFromColormap(self, colormap):
+        vRange = colormap.getVRange()
+        autoRange = vRange[0] is None, vRange[1] is None
+        self.setAutoRange(autoRange)
+
+    def setAutoRange(self, autoRange):
+        if autoRange[0] == autoRange[1]:
+            with utils.blockSignals(self._bothAuto):
+                self._bothAuto.setChecked(autoRange[0])
+        else:
+            with utils.blockSignals(self._bothAuto):
+                self._bothAuto.setChecked(False)
+        with utils.blockSignals(self._minAuto):
+            self._minAuto.setChecked(autoRange[0])
+        with utils.blockSignals(self._maxAuto):
+            self._maxAuto.setChecked(autoRange[1])
+
+    def getAutoRange(self):
+        return self._minAuto.isChecked(), self._maxAuto.isChecked()
+
 @enum.unique
 class _DataInPlotMode(enum.Enum):
     """Enum for each mode of display of the data in the plot."""
@@ -247,16 +320,11 @@ class ColormapDialog(qt.QDialog):
         self._colormapStoredState = None
 
         # Make the GUI
-        vLayout = qt.QVBoxLayout(self)
-
-        formWidget = qt.QWidget(parent=self)
-        vLayout.addWidget(formWidget)
-        formLayout = qt.QFormLayout(formWidget)
+        formLayout = qt.QFormLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
-        formLayout.setSpacing(0)
 
         # Colormap row
-        self._comboBoxColormap = ColormapNameComboBox(parent=formWidget)
+        self._comboBoxColormap = ColormapNameComboBox(parent=self)
         self._comboBoxColormap.currentIndexChanged[int].connect(self._updateLut)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
 
@@ -281,22 +349,38 @@ class ColormapDialog(qt.QDialog):
 
         autoScaleCombo = _AutoscaleModeComboBox(self)
         autoScaleCombo.currentIndexChanged.connect(self._updateAutoScaleMode)
-        formLayout.addRow('Autoscale mode:', autoScaleCombo)
         self._autoScaleCombo = autoScaleCombo
 
         # Min row
+
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
         self._minValue.textEdited.connect(self._minMaxTextEdited)
         self._minValue.editingFinished.connect(self._minEditingFinished)
         self._minValue.sigValueChanged.connect(self._updateMinMax)
-        formLayout.addRow('\tMin:', self._minValue)
 
         # Max row
         self._maxValue = _BoundaryWidget(parent=self, value=10.0)
         self._maxValue.textEdited.connect(self._minMaxTextEdited)
         self._maxValue.sigValueChanged.connect(self._updateMinMax)
         self._maxValue.editingFinished.connect(self._maxEditingFinished)
-        formLayout.addRow('\tMax:', self._maxValue)
+
+        self._autoButtons = _AutoScaleButtons(self)
+        self._autoButtons.autoRangeChanged.connect(self._updateAutoRange)
+
+        rangeLayout = qt.QGridLayout()
+        miniFont = qt.QFont(self.font())
+        miniFont.setPixelSize(8)
+        labelMin = qt.QLabel("Min", self)
+        labelMin.setFont(miniFont)
+        labelMin.setAlignment(qt.Qt.AlignHCenter)
+        labelMax = qt.QLabel("Max", self)
+        labelMax.setAlignment(qt.Qt.AlignHCenter)
+        labelMax.setFont(miniFont)
+        rangeLayout.addWidget(labelMin, 0, 0)
+        rangeLayout.addWidget(labelMax, 0, 1)
+        rangeLayout.addWidget(self._minValue, 1, 0)
+        rangeLayout.addWidget(self._maxValue, 1, 1)
+        rangeLayout.addWidget(self._autoButtons, 2, 0, 1, -1, qt.Qt.AlignCenter)
 
         # Add plot for histogram
         self._plotToolbar = qt.QToolBar(self)
@@ -337,13 +421,16 @@ class ColormapDialog(qt.QDialog):
         plotBoxLayout.addWidget(self._plot)
         plotBoxLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
         self._plotBox.setLayout(plotBoxLayout)
-        vLayout.addWidget(self._plotBox)
+        formLayout.addRow(self._plotBox)
+        formLayout.addRow(rangeLayout)
+
+        formLayout.addRow('Autoscale mode:', autoScaleCombo)
 
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
         self._buttonsModal = qt.QDialogButtonBox(parent=self)
         self._buttonsModal.setStandardButtons(types)
-        self.layout().addWidget(self._buttonsModal)
+        formLayout.addRow(self._buttonsModal)
         self._buttonsModal.accepted.connect(self.accept)
         self._buttonsModal.rejected.connect(self.reject)
 
@@ -351,9 +438,12 @@ class ColormapDialog(qt.QDialog):
         types = qt.QDialogButtonBox.Close | qt.QDialogButtonBox.Reset
         self._buttonsNonModal = qt.QDialogButtonBox(parent=self)
         self._buttonsNonModal.setStandardButtons(types)
-        self.layout().addWidget(self._buttonsNonModal)
+        formLayout.addRow(self._buttonsNonModal)
         self._buttonsNonModal.button(qt.QDialogButtonBox.Close).clicked.connect(self.accept)
         self._buttonsNonModal.button(qt.QDialogButtonBox.Reset).clicked.connect(self.resetColormap)
+
+        self._buttonsModal.setFocus(qt.Qt.OtherFocusReason)
+        self._buttonsNonModal.setFocus(qt.Qt.OtherFocusReason)
 
         # Set the colormap to default values
         self.setColormap(Colormap(name='gray', normalization='linear',
@@ -361,7 +451,7 @@ class ColormapDialog(qt.QDialog):
 
         self.setModal(self.isModal())
 
-        vLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
+        formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
 
@@ -961,6 +1051,7 @@ class ColormapDialog(qt.QDialog):
             self._autoScaleCombo.setEnabled(False)
             self._minValue.setEnabled(False)
             self._maxValue.setEnabled(False)
+            self._autoButtons.setEnabled(False)
         else:
             self._ignoreColormapChange = True
             self._comboBoxColormap.setCurrentLut(colormap)
@@ -972,12 +1063,15 @@ class ColormapDialog(qt.QDialog):
                 colormap.getNormalization() == Colormap.LOGARITHM)
             vmin = colormap.getVMin()
             vmax = colormap.getVMax()
-            dataRange = colormap.getColormapRange()
             self._normButtonLinear.setEnabled(colormap.isEditable())
             self._normButtonLog.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
                 self._autoScaleCombo.setEnabled(colormap.isEditable())
+            self._autoButtons.setEnabled(colormap.isEditable())
+            self._autoButtons.setAutoRangeFromColormap(colormap)
+
+            dataRange = colormap.getColormapRange()
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
             self._minValue.setEnabled(colormap.isEditable())
@@ -1033,6 +1127,30 @@ class ColormapDialog(qt.QDialog):
                 lut = self._comboBoxColormap.getCurrentColors()
                 colormap.setColormapLUT(lut)
             self._ignoreColormapChange = False
+
+    def _updateAutoRange(self, autoRange):
+        if self._ignoreColormapChange is True:
+            return
+
+        colormap = self.getColormap()
+
+        data = self._getItem()
+        if data is None:
+            data = self._getData()
+        dataRange = colormap.getColormapRange(data)
+
+        # Final colormap range
+        vmin = (dataRange[0] if not autoRange[0] else None)
+        vmax = (dataRange[1] if not autoRange[1] else None)
+
+        self._ignoreColormapChange = True
+        colormap.setVRange(vmin, vmax)
+        self._ignoreColormapChange = False
+
+        self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
+        self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
+
+        self._updateMinMaxData()
 
     def _updateNormalization(self, button):
         if self._ignoreColormapChange is True:
