@@ -507,6 +507,10 @@ class ColormapDialog(qt.QDialog):
         self._plot.setActiveCurveHandling(False)
         self._plot.setMinimumSize(qt.QSize(250, 200))
         self._plot.sigPlotSignal.connect(self._plotSlot)
+        palette = self.palette()
+        color = palette.color(qt.QPalette.Normal, qt.QPalette.Window)
+        self._plot.setBackgroundColor(color)
+        self._plot.setDataBackgroundColor("white")
 
         lut = numpy.arange(256)
         lut.shape = 1, -1
