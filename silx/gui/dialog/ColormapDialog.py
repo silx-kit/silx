@@ -697,7 +697,7 @@ class ColormapDialog(qt.QDialog):
     def _plotSlot(self, event):
         """Handle events from the plot"""
         if event['event'] in ('markerMoving', 'markerMoved'):
-            value = float(str(event['xdata']))
+            value = event['xdata']
             if event['label'] == 'Min':
                 colormap = self.getColormap()
                 if colormap.getVMin() is None:
