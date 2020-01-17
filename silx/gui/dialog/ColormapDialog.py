@@ -95,6 +95,8 @@ class _BoundaryWidget(qt.QWidget):
     sigValueChanged = qt.Signal(object)
     """Signal emitted when value is changed"""
 
+    editingFinished = qt.Signal()
+
     def __init__(self, parent=None, value=0.0):
         qt.QWidget.__init__(self, parent=None)
         self.setLayout(qt.QHBoxLayout())
@@ -109,19 +111,36 @@ class _BoundaryWidget(qt.QWidget):
         self._autoCB.toggled.connect(self._autoToggled)
         self.sigValueChanged = self._autoCB.toggled
         self.textEdited = self._numVal.textEdited
-        self.editingFinished = self._numVal.editingFinished
+        self._numVal.editingFinished.connect(self.__editingFinished)
         self._dataValue = None
+
+        self.__realValue = None
+        """Store the real value set by setValue/setFiniteValue, to avoid
+        rounding of the widget"""
+
+    def __editingFinished(self):
+        self.__realValue = None
+        self.editingFinished.emit()
 
     def isAutoChecked(self):
         return self._autoCB.isChecked()
 
     def getValue(self):
-        return None if self._autoCB.isChecked() else self._numVal.value()
+        if self._autoCB.isChecked():
+            return None
+
+        if self.__realValue is not None:
+            return self.__realValue
+        return self._numVal.value()
 
     def getFiniteValue(self):
         if not self._autoCB.isChecked():
+            if self.__realValue is not None:
+                return self.__realValue
             return self._numVal.value()
         elif self._dataValue is None:
+            if self.__realValue is not None:
+                return self.__realValue
             return self._numVal.value()
         else:
             return self._dataValue
@@ -145,12 +164,14 @@ class _BoundaryWidget(qt.QWidget):
         assert(value is not None)
         old = self._numVal.blockSignals(True)
         self._numVal.setValue(value)
+        self.__realValue = value
         self._numVal.blockSignals(old)
 
     def setValue(self, value, isAuto=False):
         self._autoCB.setChecked(isAuto or value is None)
         if value is not None:
             self._numVal.setValue(value)
+            self.__realValue = value
         self._updateDisplayedText()
 
 
