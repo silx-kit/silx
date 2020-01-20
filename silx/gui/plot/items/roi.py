@@ -100,7 +100,7 @@ class RegionOfInterest(_RegionOfInterestBase):
     sigRegionChanged = qt.Signal()
     """Signal emitted everytime the shape or position of the ROI changes"""
 
-    sigRegionEditionStarted = qt.Signal()
+    sigEditingStarted = qt.Signal()
     """Signal emitted when the user start editing the roi"""
     sigRegionEditionFinished = qt.Signal()
     """Signal emitted when the region edition is finished. During edition
@@ -520,7 +520,7 @@ class RegionOfInterest(_RegionOfInterestBase):
 
     def _editingStarted(self, *args, **kwargs):
         assert self._editable is True
-        self.sigRegionEditionStarted.emit()
+        self.sigEditingStarted.emit()
 
     def _editingFinished(self, *args, **kwargs):
         self.sigRegionEditionFinished.emit()
