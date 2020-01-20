@@ -131,6 +131,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
                           ItemChangedType.COLORMAP,
                           ItemChangedType.POSITION,
                           ItemChangedType.SCALE,
+                          ItemChangedType.COLORMAP,
                           ItemChangedType.DATA])
 
     def testImageRgbaChanged(self):
@@ -203,6 +204,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
 
         self.assertEqual(listener.arguments(),
                          [(ItemChangedType.COLORMAP,),
+                          (ItemChangedType.COLORMAP,),
                           (ItemChangedType.DATA,),
                           (ItemChangedType.VISUALIZATION_MODE,)])
 
