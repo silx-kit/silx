@@ -518,7 +518,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         params = '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
-    def _startEditing(self, *args, **kwargs):
+    def _editingStarted(self, *args, **kwargs):
         assert self._editable is True
         self.sigRegionEditionStarted.emit()
 
