@@ -404,7 +404,7 @@ class RegionOfInterest(_RegionOfInterestBase):
                 item.sigItemChanged.connect(functools.partial(
                     self._controlPointAnchorChanged, index))
                 # connect items pressed and released signals
-                item.sigItemPressed.connect(functools.partial(
+                item.sigDragStarted.connect(functools.partial(
                     self._editingStarted, index))
                 item.sigDragFinished.connect(functools.partial(
                     self._editingFinished, index))

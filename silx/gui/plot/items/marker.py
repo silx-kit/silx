@@ -43,7 +43,7 @@ _logger = logging.getLogger(__name__)
 class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     """Base class for markers"""
 
-    sigItemPressed = qt.Signal()
+    sigDragStarted = qt.Signal()
     """Signal emitted when the marker is pressed"""
     sigDragFinished = qt.Signal()
     """Signal emitted when the marker is released"""
@@ -173,7 +173,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         return args
 
     def startDrag(self):
-        self.sigItemPressed.emit()
+        self.sigDragStarted.emit()
 
     def endDrag(self):
         self.sigDragFinished.emit()
