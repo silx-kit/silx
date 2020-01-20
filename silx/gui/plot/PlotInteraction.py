@@ -1264,7 +1264,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         if isinstance(item, items.MarkerBase):
             self._signalMarkerMovingEvent('markerMoving', item, x, y)
             if item is not None:
-                item.startDrag()
+                item._startDrag()
 
         return True
 

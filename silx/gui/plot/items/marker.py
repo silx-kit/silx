@@ -172,7 +172,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         """Default constraint not doing anything"""
         return args
 
-    def startDrag(self):
+    def _startDrag(self):
         self.sigDragStarted.emit()
 
     def endDrag(self):
