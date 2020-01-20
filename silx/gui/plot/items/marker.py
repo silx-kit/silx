@@ -35,13 +35,18 @@ import logging
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
                    ItemChangedType, YAxisMixIn)
-
+from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
 
 
 class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     """Base class for markers"""
+
+    sigDragStarted = qt.Signal()
+    """Signal emitted when the marker is pressed"""
+    sigDragFinished = qt.Signal()
+    """Signal emitted when the marker is released"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
     """Default color of the markers"""
@@ -166,6 +171,12 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     def _defaultConstraint(*args):
         """Default constraint not doing anything"""
         return args
+
+    def _startDrag(self):
+        self.sigDragStarted.emit()
+
+    def _endDrag(self):
+        self.sigDragFinished.emit()
 
 
 class Marker(MarkerBase, SymbolMixIn):

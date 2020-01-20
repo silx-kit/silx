@@ -100,8 +100,15 @@ class RegionOfInterest(_RegionOfInterestBase):
     sigRegionChanged = qt.Signal()
     """Signal emitted everytime the shape or position of the ROI changes"""
 
+    sigEditingStarted = qt.Signal()
+    """Signal emitted when the user start editing the roi"""
+    sigEditingFinished = qt.Signal()
+    """Signal emitted when the region edition is finished. During edition
+    sigEditionChanged will be emitted several times and 
+    sigRegionEditionFinished only at end"""
+
     def __init__(self, parent=None):
-        # Avoid circular dependancy
+        # Avoid circular dependency
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         _RegionOfInterestBase.__init__(self, parent, '')
@@ -128,7 +135,7 @@ class RegionOfInterest(_RegionOfInterestBase):
 
         :param Union[None,RegionOfInterestManager] parent:
         """
-        # Avoid circular dependancy
+        # Avoid circular dependency
         from ..tools import roi as roi_tools
         if (parent is not None and not isinstance(parent, roi_tools.RegionOfInterestManager)):
             raise ValueError('Unsupported parent')
@@ -392,8 +399,12 @@ class RegionOfInterest(_RegionOfInterestBase):
                 item.setColor(color)
                 item.setVisible(self.isVisible())
                 plot._add(item)
+                # connect item changed
                 item.sigItemChanged.connect(functools.partial(
                     self._controlPointAnchorChanged, index))
+                # connect items pressed and released signals
+                item.sigDragStarted.connect(self._editingStarted)
+                item.sigDragFinished.connect(self._editingFinished)
                 self._editAnchors.append(item)
                 itemIndex += 1
 
@@ -504,6 +515,13 @@ class RegionOfInterest(_RegionOfInterestBase):
         points = self._getControlPoints()
         params = '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
+
+    def _editingStarted(self):
+        assert self._editable is True
+        self.sigEditingStarted.emit()
+
+    def _editingFinished(self):
+        self.sigEditingFinished.emit()
 
 
 class PointROI(RegionOfInterest, items.SymbolMixIn):
