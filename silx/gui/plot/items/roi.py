@@ -403,10 +403,8 @@ class RegionOfInterest(_RegionOfInterestBase):
                 item.sigItemChanged.connect(functools.partial(
                     self._controlPointAnchorChanged, index))
                 # connect items pressed and released signals
-                item.sigDragStarted.connect(functools.partial(
-                    self._editingStarted, index))
-                item.sigDragFinished.connect(functools.partial(
-                    self._editingFinished, index))
+                item.sigDragStarted.connect(self._editingStarted)
+                item.sigDragFinished.connect(self._editingFinished)
                 self._editAnchors.append(item)
                 itemIndex += 1
 
@@ -518,11 +516,11 @@ class RegionOfInterest(_RegionOfInterestBase):
         params = '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
-    def _editingStarted(self, *args, **kwargs):
+    def _editingStarted(self):
         assert self._editable is True
         self.sigEditingStarted.emit()
 
-    def _editingFinished(self, *args, **kwargs):
+    def _editingFinished(self):
         self.sigEditingFinished.emit()
 
 
