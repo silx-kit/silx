@@ -638,7 +638,8 @@ class Colormap(qt.QObject):
         if vmin is None or vmax is None:  # Handle autoscale
             # Get min/max from data
             if data is not None:
-                if hasattr(data, "_getColormapAutoscaleRange"):
+                from .plot.items.core import ColormapMixIn  # avoid cyclic import
+                if isinstance(data, ColormapMixIn):
                     min_, max_ = data._getColormapAutoscaleRange(self)
                 else:
                     data = numpy.array(data, copy=False)
