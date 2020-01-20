@@ -301,11 +301,17 @@ class ImageData(ImageBase, ColormapMixIn):
         if dataToUse.size == 0:
             return None  # No data to display
 
-        return backend.addImage(self, dataToUse,
+        colormap = self.getColormap()
+        if colormap.isAutoscale():
+            # Avoid backend to compute autoscale: use item cache
+            colormap = colormap.copy()
+            colormap.setVRange(*colormap.getColormapRange(self))
+
+        return backend.addImage(dataToUse,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
-                                colormap=self.getColormap(),
+                                colormap=colormap,
                                 alpha=self.getAlpha())
 
     def __getitem__(self, item):
@@ -432,7 +438,7 @@ class ImageRgba(ImageBase):
         if data.size == 0:
             return None  # No data to display
 
-        return backend.addImage(None, data,
+        return backend.addImage(data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),

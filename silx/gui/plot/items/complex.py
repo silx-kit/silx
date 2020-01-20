@@ -165,12 +165,17 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             data = self.getRgbaImageData(copy=False)
         else:
             colormap = self.getColormap()
+            if colormap.isAutoscale():
+                # Avoid backend to compute autoscale: use item cache
+                colormap = colormap.copy()
+                colormap.setVRange(*colormap.getColormapRange(self))
+
             data = self.getData(copy=False)
 
         if data.size == 0:
             return None  # No data to display
 
-        return backend.addImage(self, data,
+        return backend.addImage(data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
