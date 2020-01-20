@@ -45,7 +45,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
 
     sigItemPressed = qt.Signal()
     """Signal emitted when the marker is pressed"""
-    sigItemReleased = qt.Signal()
+    sigDragFinished = qt.Signal()
     """Signal emitted when the marker is released"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
@@ -176,7 +176,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         self.sigItemPressed.emit()
 
     def endDrag(self):
-        self.sigItemReleased.emit()
+        self.sigDragFinished.emit()
 
 
 class Marker(MarkerBase, SymbolMixIn):
