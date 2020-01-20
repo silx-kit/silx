@@ -522,7 +522,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         assert self._editable is True
         self.sigRegionEditionStarted.emit()
 
-    def _endEditing(self, *args, **kwargs):
+    def _editingFinished(self, *args, **kwargs):
         self.sigRegionEditionFinished.emit()
 
 
