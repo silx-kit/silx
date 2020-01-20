@@ -175,7 +175,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     def _startDrag(self):
         self.sigDragStarted.emit()
 
-    def endDrag(self):
+    def _endDrag(self):
         self.sigDragFinished.emit()
 
 

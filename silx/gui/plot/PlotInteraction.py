@@ -1299,7 +1299,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 item.isSelectable(),
                 posData)
             self.plot.notify(**eventDict)
-            item.endDrag()
+            item._endDrag()
 
         self.__terminateDrag()
 
