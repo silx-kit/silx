@@ -40,7 +40,6 @@ from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 import time
 import threading
 import typing
-import functools
 import logging
 
 _logger = logging.getLogger(__file__)
