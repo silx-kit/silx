@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -170,7 +170,6 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                                 yaxis=self.getYAxis(),
                                 xerror=None,
                                 yerror=None,
-                                z=self.getZValue(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
                                 baseline=baseline,

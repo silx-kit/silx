@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -407,7 +407,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                     yaxis='left',
                                     xerror=xerror,
                                     yerror=yerror,
-                                    z=self.getZValue(),
                                     fill=False,
                                     alpha=self.getAlpha(),
                                     symbolsize=self.getSymbolSize(),
@@ -433,7 +432,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                                 yFiltered,
                                                 triangles,
                                                 color=rgbacolors,
-                                                z=self.getZValue(),
                                                 alpha=self.getAlpha())
 
             elif visualization is self.Visualization.REGULAR_GRID:
@@ -461,7 +459,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     data=image,
                     origin=gridInfo.origin,
                     scale=gridInfo.scale,
-                    z=self.getZValue(),
                     colormap=None,
                     alpha=self.getAlpha())
 
@@ -508,7 +505,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                             y,
                                             indices,
                                             color=gridcolors,
-                                            z=self.getZValue(),
                                             alpha=self.getAlpha())
             else:
                 _logger.error("Unhandled visualization %s", visualization)
