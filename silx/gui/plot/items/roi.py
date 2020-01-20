@@ -120,7 +120,6 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._editable = False
         self._visible = True
         self.sigItemChanged.connect(self.__itemChanged)
-        self._editing = False
 
     def __itemChanged(self, event):
         """Handle name change"""
@@ -521,11 +520,9 @@ class RegionOfInterest(_RegionOfInterestBase):
 
     def _startEditing(self, *args, **kwargs):
         assert self._editable is True
-        self._editing = True
         self.sigRegionEditionStarted.emit()
 
     def _endEditing(self, *args, **kwargs):
-        self._editing = False
         self.sigRegionEditionFinished.emit()
 
 
