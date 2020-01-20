@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -584,7 +584,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return _PickableContainer(artists)
 
-    def addImage(self, item, data, origin, scale, z, colormap, alpha):
+    def addImage(self, data, origin, scale, z, colormap, alpha):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
@@ -626,7 +626,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             data = data[::ystep, ::xstep]
 
         if data.ndim == 2:  # Data image, convert to RGBA image
-            data = colormap.applyToData(data, reference=item)
+            data = colormap.applyToData(data)
 
         image.set_data(data)
         self.ax.add_artist(image)
