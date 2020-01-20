@@ -102,7 +102,7 @@ class RegionOfInterest(_RegionOfInterestBase):
 
     sigEditingStarted = qt.Signal()
     """Signal emitted when the user start editing the roi"""
-    sigRegionEditionFinished = qt.Signal()
+    sigEditingFinished = qt.Signal()
     """Signal emitted when the region edition is finished. During edition
     sigEditionChanged will be emitted several times and 
     sigRegionEditionFinished only at end"""
@@ -523,7 +523,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         self.sigEditingStarted.emit()
 
     def _editingFinished(self, *args, **kwargs):
-        self.sigRegionEditionFinished.emit()
+        self.sigEditingFinished.emit()
 
 
 class PointROI(RegionOfInterest, items.SymbolMixIn):
