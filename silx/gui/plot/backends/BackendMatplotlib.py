@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -490,10 +490,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
-                 xerror, yerror, z,
+                 xerror, yerror,
                  fill, alpha, symbolsize, baseline):
         for parameter in (x, y, color, symbol, linewidth, linestyle,
-                          yaxis, z, fill, alpha, symbolsize):
+                          yaxis, fill, alpha, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
@@ -589,12 +589,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return _PickableContainer(artists)
 
-    def addImage(self, data, origin, scale, z, colormap, alpha):
+    def addImage(self, data, origin, scale, colormap, alpha):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
         # http://stackoverflow.com/questions/11488800/non-linear-axes-for-imshow-in-matplotlib
-        for parameter in (data, origin, scale, z):
+        for parameter in (data, origin, scale):
             assert parameter is not None
 
         origin = float(origin[0]), float(origin[1])
@@ -637,8 +637,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.add_artist(image)
         return image
 
-    def addTriangles(self, x, y, triangles, color, z, alpha):
-        for parameter in (x, y, triangles, color, z, alpha):
+    def addTriangles(self, x, y, triangles, color, alpha):
+        for parameter in (x, y, triangles, color, alpha):
             assert parameter is not None
 
         color = numpy.array(color, copy=False)
@@ -656,7 +656,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return collection
 
-    def addShape(self, x, y, shape, color, fill, overlay, z,
+    def addShape(self, x, y, shape, color, fill, overlay,
                  linestyle, linewidth, linebgcolor):
         if (linebgcolor is not None and
                 shape not in ('rectangle', 'polygon', 'polylines')):
