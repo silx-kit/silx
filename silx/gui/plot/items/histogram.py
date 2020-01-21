@@ -235,7 +235,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
-        :returns: The bin edges of the histogram
+        :returns: The values of the histogram
         :rtype: numpy.ndarray
         """
         return numpy.array(self._histogram, copy=copy)
