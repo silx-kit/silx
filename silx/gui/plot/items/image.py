@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -301,7 +301,7 @@ class ImageData(ImageBase, ColormapMixIn):
         if dataToUse.size == 0:
             return None  # No data to display
 
-        return backend.addImage(dataToUse,
+        return backend.addImage(self, dataToUse,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),
@@ -331,7 +331,7 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
-            image = colormap.applyToData(self.getData(copy=False))
+            image = colormap.applyToData(self)
             alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
@@ -386,6 +386,7 @@ class ImageData(ImageBase, ColormapMixIn):
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
         self._data = data
+        self._setColormappedData(data, copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
@@ -431,7 +432,7 @@ class ImageRgba(ImageBase):
         if data.size == 0:
             return None  # No data to display
 
-        return backend.addImage(data,
+        return backend.addImage(None, data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
                                 z=self.getZValue(),

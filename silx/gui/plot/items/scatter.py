@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -388,7 +388,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # Compute colors
         cmap = self.getColormap()
-        rgbacolors = cmap.applyToData(self._value)
+        rgbacolors = cmap.applyToData(self)
 
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
@@ -457,7 +457,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if gridInfo.order == 'column':
                     image = numpy.transpose(image, axes=(1, 0, 2))
 
-                return backend.addImage(
+                return backend.addImage(self,
                     data=image,
                     origin=gridInfo.origin,
                     scale=gridInfo.scale,
@@ -752,6 +752,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         self.__cacheRegularGridInfo = None
 
         self._value = value
+        self._setColormappedData(value, copy=False)
 
         if alpha is not None:
             # Make sure alpha is an array of float in [0, 1]

@@ -36,6 +36,7 @@ import numpy
 from silx.utils.testutils import ParametricTestCase
 from silx.gui import colors
 from silx.gui.colors import Colormap
+from silx.gui.plot import items
 from silx.utils.exceptions import NotEditableError
 
 
@@ -93,6 +94,23 @@ class TestApplyColormapToData(ParametricTestCase):
                 array = numpy.arange(size, dtype=dtype)
                 result = colormap.applyToData(data=array)
                 self.assertTrue(numpy.all(numpy.equal(result, expected)))
+
+    def testAutoscaleFromDataReference(self):
+        colormap = Colormap(name='gray', normalization='linear')
+        data = numpy.array([50])
+        reference = numpy.array([0, 100])
+        value = colormap.applyToData(data, reference)
+        self.assertEqual(len(value), 1)
+        self.assertEqual(value[0, 0], 128)
+
+    def testAutoscaleFromItemReference(self):
+        colormap = Colormap(name='gray', normalization='linear')
+        data = numpy.array([50])
+        image = items.ImageData()
+        image.setData(numpy.array([[0, 100]]))
+        value = colormap.applyToData(data, reference=image)
+        self.assertEqual(len(value), 1)
+        self.assertEqual(value[0, 0], 128)
 
 
 class TestDictAPI(unittest.TestCase):

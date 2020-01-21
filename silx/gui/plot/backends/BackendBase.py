@@ -143,11 +143,12 @@ class BackendBase(object):
         """
         return object()
 
-    def addImage(self, data,
+    def addImage(self, item, data,
                  origin, scale, z,
                  colormap, alpha):
         """Add an image to the plot.
 
+        :param ~silx.gui.plot.items.Item item: Plot item
         :param numpy.ndarray data: (nrows, ncolumns) data or
                      (nrows, ncolumns, RGBA) ubyte array
         :param origin: (origin X, origin Y) of the data.

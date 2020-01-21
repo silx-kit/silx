@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -166,8 +166,8 @@ class ColorBarWidget(qt.QWidget):
 
         :param ~silx.gui.colors.Colormap colormap:
             The colormap to apply on the ColorBarWidget
-        :param numpy.ndarray data: the data to display, needed if the colormap
-            require an autoscale
+        :param Union[numpy.ndarray,~silx.gui.plot.items.ColormapMixin] data:
+            The data to display or item, needed if the colormap require an autoscale
         """
         self._data = data
         self.getColorScaleBar().setColormap(colormap=colormap,
@@ -220,10 +220,10 @@ class ColorBarWidget(qt.QWidget):
             return
 
         # Sync with active scatter
-        activeScatter = plot._getActiveItem(kind='scatter')
+        scatter = plot._getActiveItem(kind='scatter')
 
-        self.setColormap(colormap=activeScatter.getColormap(),
-                         data=activeScatter.getValueData(copy=False))
+        self.setColormap(colormap=scatter.getColormap(),
+                         data=scatter)
 
     def _activeImageChanged(self, previous, legend):
         """Handle plot active image changed"""
@@ -236,18 +236,18 @@ class ColorBarWidget(qt.QWidget):
             self._activeScatterChanged(None, activeScatterLegend)
         else:
             # Sync with active image
-            image = plot.getActiveImage().getData(copy=False)
+            image = plot.getActiveImage()
 
             # RGB(A) image, display default colormap
-            if image.ndim != 2:
+            array = image.getData(copy=False)
+            if array.ndim != 2:
                 self.setColormap(colormap=None)
                 return
 
             # data image, sync with image colormap
             # do we need the copy here : used in the case we are changing
             # vmin and vmax but should have already be done by the plot
-            self.setColormap(colormap=plot.getActiveImage().getColormap(),
-                             data=image)
+            self.setColormap(colormap=image.getColormap(), data=image)
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
@@ -259,9 +259,9 @@ class ColorBarWidget(qt.QWidget):
                 # No active item, take default colormap update into account
                 self._syncWithDefaultColormap()
 
-    def _syncWithDefaultColormap(self, data=None):
+    def _syncWithDefaultColormap(self):
         """Update colorbar according to plot default colormap"""
-        self.setColormap(self.getPlot().getDefaultColormap(), data)
+        self.setColormap(self.getPlot().getDefaultColormap())
 
     def getColorScaleBar(self):
         """
@@ -408,8 +408,8 @@ class ColorScaleBar(qt.QWidget):
         """Set the new colormap to be displayed
 
         :param Colormap colormap: the colormap to set
-        :param numpy.ndarray data: the data to display, needed if the colormap
-            require an autoscale
+        :param Union[numpy.ndarray,~silx.gui.plot.items.Item] data:
+            The data or item to display, needed if the colormap requires an autoscale
         """
         self.colorScale.setColormap(colormap, data)
 
@@ -503,6 +503,8 @@ class _ColorScale(qt.QWidget):
     :param colormap: the colormap to be displayed
     :param parent: the Qt parent if any
     :param int margin: the top and left margin to apply.
+    :param Union[None,numpy.ndarray,~silx.gui.plot.items.ColormapMixin] data:
+        The data or item to use for getting the range for autoscale colormap.
 
     .. warning:: Value drawing will be
         done at the center of ticks. So if no margin is done your values
@@ -531,7 +533,8 @@ class _ColorScale(qt.QWidget):
         """Set the new colormap to be displayed
 
         :param dict colormap: the colormap to set
-        :param data: Optional data for which to compute colormap range.
+        :param Union[None,numpy.ndarray,~silx.gui.plot.items.ColormapMixin] data:
+            Optional data for which to compute colormap range.
         """
         self._colormap = colormap
         self.setEnabled(colormap is not None)

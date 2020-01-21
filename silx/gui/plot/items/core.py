@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -454,6 +454,8 @@ class ColormapMixIn(ItemMixInBase):
     def __init__(self):
         self._colormap = Colormap()
         self._colormap.sigChanged.connect(self._colormapChanged)
+        self.__data = None
+        self.__cacheColormapRange = {}  # Store {normalization: range}
 
     def getColormap(self):
         """Return the used colormap"""
@@ -479,6 +481,67 @@ class ColormapMixIn(ItemMixInBase):
     def _colormapChanged(self):
         """Handle updates of the colormap"""
         self._updated(ItemChangedType.COLORMAP)
+
+    def _setColormappedData(self, data, copy=True,
+                            min_=None, minPositive=None, max_=None):
+        """Set the data used to compute the colormapped display.
+
+        It also resets the cache of data ranges.
+
+        This method MUST be called by inheriting classes when data is updated.
+
+        :param Union[None,numpy.ndarray] data:
+        :param Union[None,float] min_: Minimum value of the data
+        :param Union[None,float] minPositive:
+            Minimum of strictly positive values of the data
+        :param Union[None,float] max_: Maximum value of the data
+        """
+        self.__data = None if data is None else numpy.array(data, copy=copy)
+        self.__cacheColormapRange = {}  # Reset cache
+
+        # Fill-up colormap range cache if values are provided
+        if max_ is not None and numpy.isfinite(max_):
+            if min_ is not None and numpy.isfinite(min_):
+                self.__cacheColormapRange[Colormap.LINEAR] = min_, max_
+            if minPositive is not None and numpy.isfinite(minPositive):
+                self.__cacheColormapRange[Colormap.LOGARITHM] = minPositive, max_
+
+        colormap = self.getColormap()
+        if None in (colormap.getVMin(), colormap.getVMax()):
+            self._colormapChanged()
+
+    def getColormappedData(self, copy=True):
+        """Returns the data used to compute the displayed colors
+
+        :param bool copy: True to get a copy,
+            False to get internal data (do not modify!).
+        :rtype: Union[None,numpy.ndarray]
+        """
+        if self.__data is None:
+            return None
+        else:
+            return numpy.array(self.__data, copy=copy)
+
+    def _getColormapAutoscaleRange(self, colormap=None):
+        """Returns the autoscale range for current data and colormap.
+
+        :param Union[None,~silx.gui.colors.Colormap] colormap:
+           The colormap for which to compute the autoscale range.
+           If None, the default, the colormap of the item is used
+        :return: (vmin, vmax) range (vmin and /or vmax might be `None`)
+        """
+        if colormap is None:
+            colormap = self.getColormap()
+
+        if colormap is None or self.__data is None:
+            return None, None
+
+        normalization = colormap.getNormalization()
+        if normalization not in self.__cacheColormapRange:
+            self.__cacheColormapRange[normalization] = \
+                colormap._computeAutoscaleRange(self.__data)
+
+        return self.__cacheColormapRange[normalization]
 
 
 class SymbolMixIn(ItemMixInBase):
