@@ -1263,6 +1263,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         if isinstance(item, items.MarkerBase):
             self._signalMarkerMovingEvent('markerMoving', item, x, y)
+            item._startDrag()
 
         return True
 
@@ -1281,7 +1282,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
     def endDrag(self, startPos, endPos):
         item = None if self.draggedItemRef is None else self.draggedItemRef()
-        if item is not None and isinstance(item, items.MarkerBase):
+        if isinstance(item, items.MarkerBase):
             posData = list(item.getPosition())
             if posData[0] is None:
                 posData[0] = 1.
@@ -1297,6 +1298,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 item.isSelectable(),
                 posData)
             self.plot.notify(**eventDict)
+            item._endDrag()
 
         self.__terminateDrag()
 

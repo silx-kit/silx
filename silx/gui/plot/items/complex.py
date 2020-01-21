@@ -165,6 +165,11 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             data = self.getRgbaImageData(copy=False)
         else:
             colormap = self.getColormap()
+            if colormap.isAutoscale():
+                # Avoid backend to compute autoscale: use item cache
+                colormap = colormap.copy()
+                colormap.setVRange(*colormap.getColormapRange(self))
+
             data = self.getData(copy=False)
 
         if data.size == 0:
@@ -190,6 +195,8 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             colormap = self._colormaps[self.getComplexMode()]
             if colormap is not super(ImageComplexData, self).getColormap():
                 super(ImageComplexData, self).setColormap(colormap)
+
+            self._setColormappedData(self.getData(copy=False), copy=False)
         return changed
 
     def _setAmplitudeRangeInfo(self, max_=None, delta=2):
@@ -259,6 +266,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
 
         self._data = data
         self._dataByModesCache = {}
+        self._setColormappedData(self.getData(copy=False), copy=False)
 
         # TODO hackish data range implementation
         if self.isVisible():

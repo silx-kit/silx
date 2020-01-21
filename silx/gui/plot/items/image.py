@@ -301,10 +301,16 @@ class ImageData(ImageBase, ColormapMixIn):
         if dataToUse.size == 0:
             return None  # No data to display
 
+        colormap = self.getColormap()
+        if colormap.isAutoscale():
+            # Avoid backend to compute autoscale: use item cache
+            colormap = colormap.copy()
+            colormap.setVRange(*colormap.getColormapRange(self))
+
         return backend.addImage(dataToUse,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
-                                colormap=self.getColormap(),
+                                colormap=colormap,
                                 alpha=self.getAlpha())
 
     def __getitem__(self, item):
@@ -330,7 +336,7 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
-            image = colormap.applyToData(self.getData(copy=False))
+            image = colormap.applyToData(self)
             alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
@@ -385,6 +391,7 @@ class ImageData(ImageBase, ColormapMixIn):
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
         self._data = data
+        self._setColormappedData(data, copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)

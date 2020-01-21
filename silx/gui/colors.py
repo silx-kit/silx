@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ import numpy
 import logging
 import collections
 from silx.gui import qt
-from silx import config
 from silx.math.combo import min_max
 from silx.math.colormap import cmap as _cmap
 from silx.utils.exceptions import NotEditableError
@@ -432,11 +431,12 @@ class Colormap(qt.QObject):
         if nbColors is None:
             return numpy.array(self._colors, copy=True)
         else:
+            nbColors = int(nbColors)
             colormap = self.copy()
             colormap.setNormalization(Colormap.LINEAR)
-            colormap.setVRange(vmin=None, vmax=None)
+            colormap.setVRange(vmin=0, vmax=nbColors - 1)
             colors = colormap.applyToData(
-                numpy.arange(int(nbColors), dtype=numpy.int))
+                numpy.arange(nbColors, dtype=numpy.int))
             return colors
 
     def getName(self):
@@ -593,11 +593,31 @@ class Colormap(qt.QObject):
         self._editable = editable
         self.sigChanged.emit()
 
-    def getColormapRange(self, data=None):
-        """Return (vmin, vmax)
+    def _computeAutoscaleRange(self, data):
+        """Compute the data range which will be used in autoscale mode.
 
-        :return: the tuple vmin, vmax fitting vmin, vmax, normalization and
-            data if any given
+        :param numpy.ndarray data: The data for which to compute the range
+        :return: (vmin, vmax) range (vmin and /or vmax might be `None`)
+        """
+        if data is None:
+            return None, None
+        if data.size == 0:
+            return None, None
+
+        if self.getNormalization() == Colormap.LOGARITHM:
+            result = min_max(data, min_positive=True, finite=True)
+            vMin = result.min_positive  # >0 or None
+            vMax = result.maximum  # can be <= 0
+        else:
+            vMin, vMax = min_max(data, min_positive=False, finite=True)
+        return vMin, vMax
+
+    def getColormapRange(self, data=None):
+        """Return (vmin, vmax) the range of the colormap for the given data or item.
+
+        :param Union[numpy.ndarray,~silx.gui.plot.items.ColormapMixIn] data:
+            The data or item to use for autoscale bounds.
+        :return: (vmin, vmax) corresponding to the colormap applied to data if provided.
         :rtype: tuple
         """
         vmin = self._vmin
@@ -618,22 +638,17 @@ class Colormap(qt.QObject):
         if vmin is None or vmax is None:  # Handle autoscale
             # Get min/max from data
             if data is not None:
-                data = numpy.array(data, copy=False)
-                if data.size == 0:  # Fallback an array but no data
-                    min_, max_ = self._getDefaultMin(), self._getDefaultMax()
+                from .plot.items.core import ColormapMixIn  # avoid cyclic import
+                if isinstance(data, ColormapMixIn):
+                    min_, max_ = data._getColormapAutoscaleRange(self)
                 else:
-                    if self.getNormalization() == self.LOGARITHM:
-                        result = min_max(data, min_positive=True, finite=True)
-                        min_ = result.min_positive  # >0 or None
-                        max_ = result.maximum  # can be <= 0
-                    else:
-                        min_, max_ = min_max(data, min_positive=False, finite=True)
-
-                    # Handle fallback
-                    if min_ is None or not numpy.isfinite(min_):
-                        min_ = self._getDefaultMin()
-                    if max_ is None or not numpy.isfinite(max_):
-                        max_ = self._getDefaultMax()
+                    data = numpy.array(data, copy=False)
+                    min_, max_ = self._computeAutoscaleRange(data)
+                # Handle fallback
+                if min_ is None or not numpy.isfinite(min_):
+                    min_ = self._getDefaultMin()
+                if max_ is None or not numpy.isfinite(max_):
+                    max_ = self._getDefaultMax()
             else:  # Fallback if no data is provided
                 min_, max_ = self._getDefaultMin(), self._getDefaultMax()
 
@@ -763,12 +778,21 @@ class Colormap(qt.QObject):
                         vmax=self._vmax,
                         normalization=self._normalization)
 
-    def applyToData(self, data):
+    def applyToData(self, data, reference=None):
         """Apply the colormap to the data
 
-        :param numpy.ndarray data: The data to convert.
+        :param Union[numpy.ndarray,~silx.gui.plot.item.ColormapMixIn] data:
+            The data to convert or the item for which to apply the colormap.
+        :param Union[numpy.ndarray,~silx.gui.plot.item.ColormapMixIn,None] reference:
+            The data or item to use as reference to compute autoscale
         """
-        vmin, vmax = self.getColormapRange(data)
+        if reference is None:
+            reference = data
+        vmin, vmax = self.getColormapRange(reference)
+
+        if hasattr(data, "getColormappedData"):  # Use item's data
+            data = data.getColormappedData()
+
         normalization = self.getNormalization()
         return _cmap(data, self._colors, vmin, vmax, normalization)
 
