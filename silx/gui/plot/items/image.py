@@ -310,7 +310,6 @@ class ImageData(ImageBase, ColormapMixIn):
         return backend.addImage(dataToUse,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
-                                z=self.getZValue(),
                                 colormap=colormap,
                                 alpha=self.getAlpha())
 
@@ -441,7 +440,6 @@ class ImageRgba(ImageBase):
         return backend.addImage(data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
-                                z=self.getZValue(),
                                 colormap=None,
                                 alpha=self.getAlpha())
 

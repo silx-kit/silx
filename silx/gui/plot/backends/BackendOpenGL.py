@@ -62,7 +62,7 @@ _logger = logging.getLogger(__name__)
 # Content #####################################################################
 
 class _ShapeItem(dict):
-    def __init__(self, x, y, shape, color, fill, overlay, z,
+    def __init__(self, x, y, shape, color, fill, overlay,
                  linestyle, linewidth, linebgcolor):
         super(_ShapeItem, self).__init__()
 
@@ -726,10 +726,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
-                 xerror, yerror, z,
+                 xerror, yerror,
                  fill, alpha, symbolsize, baseline):
         for parameter in (x, y, color, symbol, linewidth, linestyle,
-                          yaxis, z, fill, symbolsize):
+                          yaxis, fill, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
@@ -846,9 +846,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return curve
 
     def addImage(self, data,
-                 origin, scale, z,
+                 origin, scale,
                  colormap, alpha):
-        for parameter in (data, origin, scale, z):
+        for parameter in (data, origin, scale):
             assert parameter is not None
 
         if data.ndim == 2:
@@ -899,7 +899,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return image
 
     def addTriangles(self, x, y, triangles,
-                     color, z, alpha):
+                     color, alpha):
         # Handle axes log scale: convert data
         if self._plotFrame.xAxis.isLog:
             x = numpy.log10(x)
@@ -910,7 +910,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return triangles
 
-    def addShape(self, x, y, shape, color, fill, overlay, z,
+    def addShape(self, x, y, shape, color, fill, overlay,
                  linestyle, linewidth, linebgcolor):
         x = numpy.array(x, copy=False)
         y = numpy.array(y, copy=False)
@@ -923,7 +923,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError(
                 'Cannot add item with Y <= 0 with Y axis log scale')
 
-        return _ShapeItem(x, y, shape, color, fill, overlay, z,
+        return _ShapeItem(x, y, shape, color, fill, overlay,
                           linestyle, linewidth, linebgcolor)
 
     def addMarker(self, x, y, text, color,

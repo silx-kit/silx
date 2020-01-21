@@ -100,7 +100,7 @@ class BackendBase(object):
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
-                 xerror, yerror, z,
+                 xerror, yerror,
                  fill, alpha, symbolsize, baseline):
         """Add a 1D curve given by x an y to the graph.
 
@@ -134,7 +134,6 @@ class BackendBase(object):
         :type xerror: numpy.ndarray or None
         :param yerror: Values with the uncertainties on the y values
         :type yerror: numpy.ndarray or None
-        :param int z: Layer on which to draw the cuve
         :param bool fill: True to fill the curve, False otherwise
         :param float alpha: Curve opacity, as a float in [0., 1.]
         :param float symbolsize: Size of the symbol (if any) drawn
@@ -144,7 +143,7 @@ class BackendBase(object):
         return object()
 
     def addImage(self, data,
-                 origin, scale, z,
+                 origin, scale,
                  colormap, alpha):
         """Add an image to the plot.
 
@@ -156,7 +155,6 @@ class BackendBase(object):
         :param scale: (scale X, scale Y) of the data.
                        Default: (1., 1.)
         :type scale: 2-tuple of float
-        :param int z: Layer on which to draw the image
         :param ~silx.gui.colors.Colormap colormap: Colormap object to use.
             Ignored if data is RGB(A).
         :param float alpha: Opacity of the image, as a float in range [0, 1].
@@ -165,7 +163,7 @@ class BackendBase(object):
         return object()
 
     def addTriangles(self, x, y, triangles,
-                     color, z, alpha):
+                     color, alpha):
         """Add a set of triangles.
 
         :param numpy.ndarray x: The data corresponding to the x axis
@@ -173,13 +171,12 @@ class BackendBase(object):
         :param numpy.ndarray triangles: The indices to make triangles
             as a (Ntriangle, 3) array
         :param numpy.ndarray color: color(s) as (npoints, 4) array
-        :param int z: Layer on which to draw the cuve
         :param float alpha: Opacity as a float in [0., 1.]
         :returns: The triangles' unique identifier used by the backend
         """
         return object()
 
-    def addShape(self, x, y, shape, color, fill, overlay, z,
+    def addShape(self, x, y, shape, color, fill, overlay,
                  linestyle, linewidth, linebgcolor):
         """Add an item (i.e. a shape) to the plot.
 
@@ -190,7 +187,6 @@ class BackendBase(object):
         :param str color: Color of the item
         :param bool fill: True to fill the shape
         :param bool overlay: True if item is an overlay, False otherwise
-        :param int z: Layer on which to draw the item
         :param str linestyle: Style of the line.
             Only relevant for line markers where X or Y is None.
             Value in:

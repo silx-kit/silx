@@ -178,7 +178,6 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         return backend.addImage(data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
-                                z=self.getZValue(),
                                 colormap=colormap,
                                 alpha=self.getAlpha())
 
