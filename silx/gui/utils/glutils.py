@@ -76,6 +76,8 @@ def _runtimeOpenGLCheck(version):
     except subprocess.TimeoutExpired:
         status = False
         error = "Qt OpenGL widget hang"
+        if sys.platform.startswith('linux'):
+            error += ':\nIf connected remotely, GLX forwarding might be disabled.'
     except subprocess.CalledProcessError as e:
         status = False
         error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
