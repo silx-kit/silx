@@ -514,9 +514,9 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                 self.__region_edition_callback[item._roi] = functools.partial(
                     self._updateAllStats, False, True)
                 item._roi.sigRegionChanged.connect(self.__region_edition_callback[item._roi])
-                item._roi.sigRegionEditionStarted.connect(functools.partial(
+                item._roi.sigEditingStarted.connect(functools.partial(
                     self._startFiltering, item._roi))
-                item._roi.sigRegionEditionFinished.connect(functools.partial(
+                item._roi.sigEditingFinished.connect(functools.partial(
                     self._endFiltering, item._roi))
             else:
                 item._roi.sigChanged.connect(functools.partial(
