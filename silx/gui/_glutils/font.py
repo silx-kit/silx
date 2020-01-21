@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -128,8 +128,8 @@ def rasterText(text, font,
     width = bounds.width() * devicePixelRatio + 2
     # align line size to 32 bits to ease conversion to numpy array
     width = 4 * ((width + 3) // 4)
-    image = qt.QImage(width,
-                      bounds.height() * devicePixelRatio + 2,
+    image = qt.QImage(int(width),
+                      int(bounds.height() * devicePixelRatio + 2),
                       qt.QImage.Format_RGB888)
     if (devicePixelRatio != 1.0 and
             hasattr(image, 'setDevicePixelRatio')):  # Qt 5

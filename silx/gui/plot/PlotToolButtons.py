@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -370,7 +370,7 @@ class _SymbolToolButtonBase(PlotToolButton):
         """
         slider = qt.QSlider(qt.Qt.Horizontal)
         slider.setRange(1, 20)
-        slider.setValue(config.DEFAULT_PLOT_SYMBOL_SIZE)
+        slider.setValue(int(config.DEFAULT_PLOT_SYMBOL_SIZE))
         slider.setTracking(False)
         slider.valueChanged.connect(self._sizeChanged)
         widgetAction = qt.QWidgetAction(menu)

@@ -583,8 +583,8 @@ class _ColorScale(qt.QWidget):
         painter.drawRect(qt.QRect(
             0,
             self.margin,
-            self.width() - 1.,
-            self.height() - 2. * self.margin - 1.))
+            self.width() - 1,
+            self.height() - 2 * self.margin - 1))
 
     def mouseMoveEvent(self, event):
         tooltip = str(self.getValueFromRelativePosition(
@@ -630,7 +630,7 @@ class _ColorScale(qt.QWidget):
 
         :param int margin: the margin to apply on the top and bottom.
         """
-        self.margin = margin
+        self.margin = int(margin)
         self.update()
 
 
@@ -820,19 +820,18 @@ class _TickBar(qt.QWidget):
         fm = qt.QFontMetrics(painter.font())
         viewportHeight = self.rect().height() - self.margin * 2 - 1
         relativePos = self._getRelativePosition(val)
-        height = viewportHeight * relativePos
-        height += self.margin
+        height = int(viewportHeight * relativePos + self.margin)
         lineWidth = _TickBar._LINE_WIDTH
         if majorTick is False:
             lineWidth /= 2
 
-        painter.drawLine(qt.QLine(self.width() - lineWidth,
+        painter.drawLine(qt.QLine(int(self.width() - lineWidth),
                                   height,
                                   self.width(),
                                   height))
 
         if self.displayValues and majorTick is True:
-            painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)),
+            painter.drawText(qt.QPoint(0, int(height + fm.height() / 2)),
                              self.form.format(val))
 
     def setDisplayType(self, disType):
