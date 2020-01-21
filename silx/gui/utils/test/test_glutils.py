@@ -29,8 +29,12 @@ __license__ = "MIT"
 __date__ = "15/01/2020"
 
 
+import logging
 import unittest
 from silx.gui.utils.glutils import isOpenGLAvailable
+
+
+_logger = logging.getLogger(__name__)
 
 
 class TestIsOpenGLAvailable(unittest.TestCase):
@@ -40,6 +44,7 @@ class TestIsOpenGLAvailable(unittest.TestCase):
         for version in ((2, 1), (2, 1), (1000, 1)):
             with self.subTest(version=version):
                 result = isOpenGLAvailable(version=version)
+                _logger.info("isOpenGLAvailable returned: %s", str(result))
                 if version[0] == 1000:
                     self.assertFalse(result)
                 if not result:
