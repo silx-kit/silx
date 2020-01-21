@@ -457,7 +457,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if gridInfo.order == 'column':
                     image = numpy.transpose(image, axes=(1, 0, 2))
 
-                return backend.addImage(self,
+                return backend.addImage(
                     data=image,
                     origin=gridInfo.origin,
                     scale=gridInfo.scale,

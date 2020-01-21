@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -845,7 +845,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return curve
 
-    def addImage(self, item, data,
+    def addImage(self, data,
                  origin, scale, z,
                  colormap, alpha):
         for parameter in (data, origin, scale, z):
@@ -861,7 +861,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 data = numpy.array(data, dtype=numpy.float32, order='C')
 
             colormapIsLog = colormap.getNormalization() == 'log'
-            cmapRange = colormap.getColormapRange(data=item)
+            cmapRange = colormap.getColormapRange(data=data)
             colormapLut = colormap.getNColors(nbColors=256)
 
             image = GLPlotColormap(data,

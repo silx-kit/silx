@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -143,12 +143,11 @@ class BackendBase(object):
         """
         return object()
 
-    def addImage(self, item, data,
+    def addImage(self, data,
                  origin, scale, z,
                  colormap, alpha):
         """Add an image to the plot.
 
-        :param ~silx.gui.plot.items.Item item: Plot item
         :param numpy.ndarray data: (nrows, ncolumns) data or
                      (nrows, ncolumns, RGBA) ubyte array
         :param origin: (origin X, origin Y) of the data.
