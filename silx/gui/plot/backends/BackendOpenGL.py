@@ -878,6 +878,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             if numpy.issubdtype(data.dtype, numpy.floating):
                 data = numpy.array(data, dtype=numpy.float32, copy=False)
+            elif data.dtype in [numpy.uint8, numpy.uint16]:
+                pass
             elif numpy.issubdtype(data.dtype, numpy.integer):
                 data = numpy.array(data, dtype=numpy.uint8, copy=False)
             else:

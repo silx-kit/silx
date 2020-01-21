@@ -530,7 +530,8 @@ class GLPlotRGBAImage(_GLPlotData2D):
     _DATA_TEX_UNIT = 0
 
     _SUPPORTED_DTYPES = (numpy.dtype(numpy.float32),
-                         numpy.dtype(numpy.uint8))
+                         numpy.dtype(numpy.uint8),
+                         numpy.dtype(numpy.uint16))
 
     _linearProgram = Program(_SHADERS['linear']['vertex'],
                              _SHADERS['linear']['fragment'],
