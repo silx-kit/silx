@@ -44,14 +44,8 @@ from .._glutils import gl
 _logger = logging.getLogger(__name__)
 
 
-# Probe OpenGL availability and widget
-ERROR = ''  # Error message from probing Qt OpenGL support
-
-_check = isOpenGLAvailable(version=(2, 1), runtimeCheck=False)
-if not _check:
-    ERROR = _check.error
-    _logger.error('OpenGL-based widget disabled: %s', ERROR)
-    _OpenGLWidget = None
+if not hasattr(qt, 'QOpenGLWidget') and not hasattr(qt, 'QGLWidget'):
+    OpenGLWidget = None
 
 else:
     if hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
@@ -110,7 +104,6 @@ else:
 
             # Enable receiving mouse move events when no buttons are pressed
             self.setMouseTracking(True)
-
 
         def getDevicePixelRatio(self):
             """Returns the ratio device-independent / device pixel size
@@ -277,9 +270,11 @@ class OpenGLWidget(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        if _OpenGLWidget is None:
+        _check = isOpenGLAvailable(version=version, runtimeCheck=False)
+        if _OpenGLWidget is None or not _check:
+            _logger.error('OpenGL-based widget disabled: %s', _check.error)
             self.__openGLWidget = None
-            label = self._createErrorQLabel(ERROR)
+            label = self._createErrorQLabel(_check.error)
             self.layout().addWidget(label)
 
         else:
