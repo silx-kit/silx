@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -199,7 +199,7 @@ class TestH5pyArrayWidget(TestCaseQt):
         # create an h5py file with a dataset
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "array.h5")
-        h5f = h5py.File(self.h5_fname)
+        h5f = h5py.File(self.h5_fname, mode='w')
         h5f["my_array"] = self.data
         h5f["my_scalar"] = 3.14
         h5f["my_1D_array"] = numpy.array(numpy.arange(1000))

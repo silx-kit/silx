@@ -86,7 +86,7 @@ We can use directly h5py Files, Groups and Datasets.
 .. code-block:: python
 
    import h5py
-   h5 = h5py.File("test.h5")
+   h5 = h5py.File("test.h5", mode="r")
 
    # We can use file
    model.insertH5pyObject(h5)
