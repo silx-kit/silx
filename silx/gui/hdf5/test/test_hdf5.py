@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -179,7 +179,7 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testSynchronizeObject(self):
         filename = _tmpDirectory + "/data.h5"
-        h5 = h5py.File(filename)
+        h5 = h5py.File(filename, mode="r")
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(h5)
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
@@ -256,7 +256,7 @@ class TestHdf5TreeModel(TestCaseQt):
         internally."""
         filename = _tmpDirectory + "/data.h5"
         try:
-            h5File = h5py.File(filename)
+            h5File = h5py.File(filename, mode="r")
             model = hdf5.Hdf5TreeModel()
             self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
             model.insertH5pyObject(h5File)
@@ -391,7 +391,7 @@ class TestHdf5TreeModelSignals(TestCaseQt):
         TestCaseQt.setUp(self)
         self.model = hdf5.Hdf5TreeModel()
         filename = _tmpDirectory + "/data.h5"
-        self.h5 = h5py.File(filename)
+        self.h5 = h5py.File(filename, mode='r')
         self.model.insertH5pyObject(self.h5)
 
         self.listener = SignalListener()
@@ -418,7 +418,7 @@ class TestHdf5TreeModelSignals(TestCaseQt):
 
     def testInsert(self):
         filename = _tmpDirectory + "/data.h5"
-        h5 = h5py.File(filename)
+        h5 = h5py.File(filename, mode='r')
         self.model.insertH5pyObject(h5)
         self.assertEqual(self.listener.callCount(), 0)
 
