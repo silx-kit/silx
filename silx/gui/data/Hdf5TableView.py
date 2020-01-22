@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,9 @@ import os.path
 import logging
 import h5py
 
-from silx.gui import qt
+from pkg_resources import parse_version
+
+from silx.gui import qt, icons
 import silx.io
 from .TextFormatter import TextFormatter
 import silx.gui.hdf5
@@ -60,46 +62,69 @@ class _CellData(object):
         :param str value: Label of this property
         :param bool isHeader: True if the cell is an header
         :param tuple span: Tuple of row, column span
+        :param str tooltip: Tooltip of the cell
         """
         self.__value = value
         self.__isHeader = isHeader
         self.__span = span
         self.__tooltip = tooltip
 
-    def isHeader(self):
-        """Returns true if the property is a sub-header title.
+    def data(self, role, *args):
+        """Returns the requested data according to role and specific args"""
+        if role == HierarchicalTableView.HierarchicalTableModel.SpanRole:
+            return self.__span
 
-        :rtype: bool
-        """
-        return self.__isHeader
+        elif role == HierarchicalTableView.HierarchicalTableModel.IsHeaderRole:
+            return self.__isHeader
 
-    def value(self):
-        """Returns the value of the item.
-        """
-        return self.__value
+        elif role == qt.Qt.DisplayRole:
+            if callable(self.__value):
+                try:
+                    return self.__value(*args)
+                except Exception:
+                    self.__value = None
+                    raise
+            return self.__value
 
-    def span(self):
-        """Returns the span size of the cell.
+        elif role == qt.Qt.ToolTipRole:
+            if callable(self.__tooltip):
+                try:
+                    return self.__tooltip(*args)
+                except Exception:
+                    self.__tooltip = None
+                    raise
+            return self.__tooltip
 
-        :rtype: tuple
-        """
-        return self.__span
+        else:
+            return None
 
-    def tooltip(self):
-        """Returns the tooltip of the item.
+    def flags(self):
+        """Returns the mode item flags"""
+        return qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable
 
-        :rtype: tuple
-        """
-        return self.__tooltip
 
-    def invalidateValue(self):
-        self.__value = None
+class _CopyCellData(_CellData):
+    """Copy button cell
 
-    def invalidateToolTip(self):
-        self.__tooltip = None
+    :param str value: The value to be copied to clipboard
+    :param str tooltip: The tooltip to display
+    """
+    def __init__(self, value=None, tooltip="Click to copy field to clipboard"):
+        super().__init__(value=value, tooltip=tooltip)
 
-    def data(self, role):
-        return None
+    def data(self, role, *args):
+        if role == qt.Qt.DisplayRole:
+            return None  # Override _CellData behavior
+        elif role == qt.Qt.DecorationRole:
+            return icons.getQIcon('edit-copy')
+        elif role == Hdf5TableModel.CopyRole:
+            # Use DisplayRole content as copied test
+            return super().data(qt.Qt.DisplayRole, *args)
+        else:
+            return super().data(role, *args)
+
+    def flags(self):
+        return qt.Qt.ItemIsEnabled
 
 
 class _TableData(object):
@@ -167,8 +192,12 @@ class _TableData(object):
         :param object value: value to store.
         """
         header = _CellData(value=headerLabel, isHeader=True)
-        value = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip)
-        self.__data.append([header, value])
+        valueCellColumnSpan = max(1, self.__colCount - 2)
+        valueCell = _CellData(
+            value=value, span=(1, valueCellColumnSpan), tooltip=tooltip)
+        copy = _CopyCellData(value=value)
+        self.__data.append(
+            [header, valueCell] + [None] * (valueCellColumnSpan - 1) +  [copy])
 
     def addRow(self, *args):
         """Append the table with a row using arguments for each cells
@@ -186,7 +215,7 @@ class _TableData(object):
 class _CellFilterAvailableData(_CellData):
     """Cell rendering for availability of a filter"""
 
-    _states = {
+    _STATES = {
         True: ("Available", qt.QColor(0x000000), None, None),
         False: ("Not available", qt.QColor(0xFFFFFF), qt.QColor(0xFF0000),
                 "You have to install this filter on your system to be able to read this dataset"),
@@ -194,37 +223,35 @@ class _CellFilterAvailableData(_CellData):
                "This version of h5py/hdf5 is not able to display the information"),
     }
 
-    def __init__(self, filterId):
+    def __init__(self, filterId, span=None):
         if h5py.version.hdf5_version_tuple >= (1, 10, 2):
             # Previous versions only returns True if the filter was first used
             # to decode a dataset
-            self.__availability = h5py.h5z.filter_avail(filterId)
+            availability = h5py.h5z.filter_avail(filterId)
         else:
-            self.__availability = "na"
-        _CellData.__init__(self)
+            availability = "na"
+        value, textColor, bgColor, tooltip = self._STATES[availability]
+        self.__textColor = textColor
+        self.__bgColor = bgColor
 
-    def value(self):
-        state = self._states[self.__availability]
-        return state[0]
+        super().__init__(value=value, span=span, tooltip=tooltip)
 
-    def tooltip(self):
-        state = self._states[self.__availability]
-        return state[3]
-
-    def data(self, role=qt.Qt.DisplayRole):
-        state = self._states[self.__availability]
+    def data(self, role, *args):
         if role == qt.Qt.TextColorRole:
-            return state[1]
+            return self.__textColor
         elif role == qt.Qt.BackgroundColorRole:
-            return state[2]
+            return self.__bgColor
         else:
-            return None
+            return super().data(role, *args)
 
 
 class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
     """This data model provides access to HDF5 node content (File, Group,
     Dataset). Main info, like name, file, attributes... are displayed
     """
+
+    CopyRole = HierarchicalTableView.HierarchicalTableModel.UserRole
+    """Role for the data to be copied to clipboard (str)"""
 
     def __init__(self, parent=None, data=None):
         """
@@ -236,7 +263,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         super(Hdf5TableModel, self).__init__(parent)
 
         self.__obj = None
-        self.__data = _TableData(columnCount=5)
+        self.__data = _TableData(columnCount=6)
         self.__formatter = None
         self.__hdf5Formatter = Hdf5Formatter(self)
         formatter = TextFormatter(self)
@@ -258,40 +285,18 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             return None
 
         cell = self.__data.cellAt(index.row(), index.column())
-        if cell is None:
-            return None
-
-        if role == self.SpanRole:
-            return cell.span()
-        elif role == self.IsHeaderRole:
-            return cell.isHeader()
-        elif role == qt.Qt.DisplayRole:
-            value = cell.value()
-            if callable(value):
-                try:
-                    value = value(self.__obj)
-                except Exception:
-                    cell.invalidateValue()
-                    raise
-            return value
-        elif role == qt.Qt.ToolTipRole:
-            value = cell.tooltip()
-            if callable(value):
-                try:
-                    value = value(self.__obj)
-                except Exception:
-                    cell.invalidateToolTip()
-                    raise
-            return value
-        else:
-            return cell.data(role)
-        return None
+        return None if cell is None else cell.data(role, self.__obj)
 
     def flags(self, index):
         """QAbstractTableModel method to inform the view whether data
         is editable or not.
         """
-        return qt.QAbstractTableModel.flags(self, index)
+        if index.isValid():
+            cell = self.__data.cellAt(index.row(), index.column())
+            if cell is not None:
+                return cell.flags()
+
+        return super().flags(index)
 
     def isSupportedObject(self, h5pyObject):
         """
@@ -434,7 +439,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     hdf5id = _CellData(value="HDF5 ID", isHeader=True)
                     name = _CellData(value="Name", isHeader=True)
                     options = _CellData(value="Options", isHeader=True)
-                    availability = _CellData(value="", isHeader=True)
+                    availability = _CellData(value="", isHeader=True, span=(1, 2))
                     self.__data.addRow(pos, hdf5id, name, options, availability)
                 for index in range(dcpl.get_nfilters()):
                     filterId, name, options = self.__getFilterInfo(obj, index)
@@ -442,7 +447,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     hdf5id = _CellData(value=filterId)
                     name = _CellData(value=name)
                     options = _CellData(value=options)
-                    availability = _CellFilterAvailableData(filterId=filterId)
+                    availability = _CellFilterAvailableData(filterId=filterId, span=(1, 2))
                     self.__data.addRow(pos, hdf5id, name, options, availability)
 
         if hasattr(obj, "attrs"):
@@ -523,6 +528,17 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
     def __init__(self, parent=None):
         super(Hdf5TableView, self).__init__(parent)
         self.setModel(Hdf5TableModel(self))
+        self.clicked.connect(self.__clicked)
+
+    def __clicked(self, index):
+        """Handle table view clicked and copy content to clipboard if any"""
+        model = self.model()
+        copy = model.data(index, Hdf5TableModel.CopyRole)
+        if copy is not None:
+            qt.QApplication.clipboard().setText(copy)
+            if parse_version(qt.qVersion()) >= parse_version("5.2"):
+                qt.QToolTip.showText(
+                    self.cursor().pos(), "Copied", self, qt.QRect(), 1000)
 
     def isSupportedData(self, data):
         """
@@ -549,4 +565,5 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         setResizeMode(2, qt.QHeaderView.Stretch)
         setResizeMode(3, qt.QHeaderView.ResizeToContents)
         setResizeMode(4, qt.QHeaderView.ResizeToContents)
+        setResizeMode(5, qt.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
