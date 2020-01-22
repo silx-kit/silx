@@ -540,15 +540,16 @@ class Colormap(qt.QObject):
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode):
-        """Set the norm ('minmax' or 'stddev3')
+        """Set the autoscale mode: either 'minmax' or 'stddev3'
 
         :param str mode: the mode to set
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
         assert mode in self.AUTOSCALE_MODES
-        self._autoscaleMode = mode
-        self.sigChanged.emit()
+        if mode != self._autoscaleMode:
+            self._autoscaleMode = mode
+            self.sigChanged.emit()
 
     def isAutoscale(self):
         """Return True if both min and max are in autoscale mode"""
