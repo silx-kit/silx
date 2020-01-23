@@ -540,15 +540,16 @@ class Colormap(qt.QObject):
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode):
-        """Set the norm ('minmax' or 'stddev3')
+        """Set the autoscale mode: either 'minmax' or 'stddev3'
 
         :param str mode: the mode to set
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
         assert mode in self.AUTOSCALE_MODES
-        self._autoscaleMode = mode
-        self.sigChanged.emit()
+        if mode != self._autoscaleMode:
+            self._autoscaleMode = mode
+            self.sigChanged.emit()
 
     def isAutoscale(self):
         """Return True if both min and max are in autoscale mode"""
@@ -643,8 +644,8 @@ class Colormap(qt.QObject):
                 normdata = numpy.log10(data)
                 mean = numpy.nanmean(normdata)
                 std = numpy.nanstd(normdata)
-                vMin = 10**(mean - 3 * std)
-                vMax = 10**(mean + 3 * std)
+                vMin = float(10**(mean - 3 * std))
+                vMax = float(10**(mean + 3 * std))
             else:
                 assert False
         else:
@@ -653,7 +654,7 @@ class Colormap(qt.QObject):
             elif self._autoscaleMode == Colormap.STDDEV3:
                 mean = numpy.nanmean(data)
                 std = numpy.nanstd(data)
-                vMin, vMax = mean - 3 * std, mean + 3 * std
+                vMin, vMax = float(mean - 3 * std), float(mean + 3 * std)
             else:
                 assert False
         return vMin, vMax
