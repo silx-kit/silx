@@ -862,6 +862,14 @@ class ColormapRow(_ColormapBaseProxyRow):
             notify=self._sigColormapChanged,
             editorHint=norms))
 
+        modes = [mode.title() for mode in self._colormap.AUTOSCALE_MODES]
+        self.addRow(ProxyRow(
+            name='Autoscale Mode',
+            fget=self._getAutoscaleMode,
+            fset=self._setAutoscaleMode,
+            notify=self._sigColormapChanged,
+            editorHint=modes))
+
         self.addRow(_ColormapBoundRow(item, name='Min.', index=0))
         self.addRow(_ColormapBoundRow(item, name='Max.', index=1))
 
@@ -907,6 +915,18 @@ class ColormapRow(_ColormapBaseProxyRow):
         """Proxy for :meth:`Colormap.setNormalization`"""
         if self._colormap is not None:
             return self._colormap.setNormalization(normalization.lower())
+
+    def _getAutoscaleMode(self):
+        """Proxy for :meth:`Colormap.getAutoscaleMode`"""
+        if self._colormap is not None:
+            return self._colormap.getAutoscaleMode().title()
+        else:
+            return ''
+
+    def _setAutoscaleMode(self, mode):
+        """Proxy for :meth:`Colormap.setAutoscaleMode`"""
+        if self._colormap is not None:
+            return self._colormap.setAutoscaleMode(mode.lower())
 
     def _updateColormapImage(self, *args, **kwargs):
         """Notify colormap update to update the image in the tree"""
