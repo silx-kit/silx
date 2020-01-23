@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -632,6 +632,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if data.ndim == 2:  # Data image, convert to RGBA image
             data = colormap.applyToData(data)
+        elif data.dtype == numpy.uint16:
+            # Normalize uint16 data to have a similar behavior as opengl backend
+            data = data.astype(numpy.float32) / 65535
 
         image.set_data(data)
         self.ax.add_artist(image)
