@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -583,9 +583,14 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     def prepare(self):
         if self._texture is None:
-            format_ = gl.GL_RGBA if self.data.shape[2] == 4 else gl.GL_RGB
+            formatName = 'GL_RGBA' if self.data.shape[2] == 4 else 'GL_RGB'
+            format_ = getattr(gl, formatName)
 
-            self._texture = Image(format_,
+            if self.data.dtype == numpy.uint16:
+                formatName += '16'  # Use sized internal format for uint16
+            internalFormat = getattr(gl, formatName)
+
+            self._texture = Image(internalFormat,
                                   self.data,
                                   format_=format_,
                                   texUnit=self._DATA_TEX_UNIT)
