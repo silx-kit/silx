@@ -391,9 +391,8 @@ class ColormapAction(PlotAction):
         elif isinstance(image, items.ColormapMixIn):
             # Set dialog from active image
             colormap = image.getColormap()
-            data = image.getData(copy=False)
             # Set histogram and range if any
-            self._dialog.setData(data)
+            self._dialog.setItem(image)
 
         else:
             # No active image or active image is RGBA,
@@ -401,8 +400,7 @@ class ColormapAction(PlotAction):
             scatter = self.plot._getActiveItem(kind='scatter')
             if scatter is not None:
                 colormap = scatter.getColormap()
-                data = scatter.getValueData(copy=False)
-                self._dialog.setData(data)
+                self._dialog.setItem(scatter)
 
             else:
                 # No active data image nor scatter,

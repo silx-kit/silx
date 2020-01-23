@@ -356,14 +356,25 @@ class Colormap(qt.QObject):
     NORMALIZATIONS = (LINEAR, LOGARITHM)
     """Tuple of managed normalizations"""
 
+    MINMAX = 'minmax'
+    """constant for autoscale using min/max data range"""
+
+    STDDEV3 = 'stddev3'
+    """constant for autoscale using mean +/- 3*std(data)"""
+
+    AUTOSCALE_MODES = (MINMAX, STDDEV3)
+    """Tuple of managed auto scale algorithms"""
+
     sigChanged = qt.Signal()
     """Signal emitted when the colormap has changed."""
 
-    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None):
+    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None, autoscaleMode=MINMAX):
         qt.QObject.__init__(self)
         self._editable = True
 
         assert normalization in Colormap.NORMALIZATIONS
+        assert autoscaleMode in Colormap.AUTOSCALE_MODES
+
         if normalization is Colormap.LOGARITHM:
             if (vmin is not None and vmin < 0) or (vmax is not None and vmax < 0):
                 m = "Unsuported vmin (%s) and/or vmax (%s) given for a log scale."
@@ -394,6 +405,7 @@ class Colormap(qt.QObject):
             self.setName("gray")
 
         self._normalization = str(normalization)
+        self._autoscaleMode = str(autoscaleMode)
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
 
@@ -520,6 +532,24 @@ class Colormap(qt.QObject):
         self._normalization = str(norm)
         self.sigChanged.emit()
 
+    def getAutoscaleMode(self):
+        """Return the autoscale mode of the colormap ('minmax' or 'stddev3')
+
+        :rtype: str
+        """
+        return self._autoscaleMode
+
+    def setAutoscaleMode(self, mode):
+        """Set the norm ('minmax' or 'stddev3')
+
+        :param str mode: the mode to set
+        """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
+        assert mode in self.AUTOSCALE_MODES
+        self._autoscaleMode = mode
+        self.sigChanged.emit()
+
     def isAutoscale(self):
         """Return True if both min and max are in autoscale mode"""
         return self._vmin is None and self._vmax is None
@@ -605,11 +635,27 @@ class Colormap(qt.QObject):
             return None, None
 
         if self.getNormalization() == Colormap.LOGARITHM:
-            result = min_max(data, min_positive=True, finite=True)
-            vMin = result.min_positive  # >0 or None
-            vMax = result.maximum  # can be <= 0
+            if self._autoscaleMode == Colormap.MINMAX:
+                result = min_max(data, min_positive=True, finite=True)
+                vMin = result.min_positive  # >0 or None
+                vMax = result.maximum  # can be <= 0
+            elif self._autoscaleMode == Colormap.STDDEV3:
+                normdata = numpy.log10(data)
+                mean = numpy.nanmean(normdata)
+                std = numpy.nanstd(normdata)
+                vMin = 10**(mean - 3 * std)
+                vMax = 10**(mean + 3 * std)
+            else:
+                assert False
         else:
-            vMin, vMax = min_max(data, min_positive=False, finite=True)
+            if self._autoscaleMode == Colormap.MINMAX:
+                vMin, vMax = min_max(data, min_positive=False, finite=True)
+            elif self._autoscaleMode == Colormap.STDDEV3:
+                mean = numpy.nanmean(data)
+                std = numpy.nanstd(data)
+                vMin, vMax = mean - 3 * std, mean + 3 * std
+            else:
+                assert False
         return vMin, vMax
 
     def getColormapRange(self, data=None):
@@ -696,6 +742,8 @@ class Colormap(qt.QObject):
             return self.getVMax()
         elif item == 'colors':
             return self.getColormapLUT()
+        elif item == 'autoscaleMode':
+            return self.getAutoscaleMode()
         else:
             raise KeyError(item)
 
@@ -712,7 +760,8 @@ class Colormap(qt.QObject):
             'vmin': self._vmin,
             'vmax': self._vmax,
             'autoscale': self.isAutoscale(),
-            'normalization': self._normalization
+            'normalization': self._normalization,
+            'autoscaleMode': self._autoscaleMode
         }
 
     def _setFromDict(self, dic):
@@ -743,7 +792,12 @@ class Colormap(qt.QObject):
             err = 'The colormap should have a name defined or a tuple of colors'
             raise ValueError(err)
         if normalization not in Colormap.NORMALIZATIONS:
-            err = 'Given normalization is not recoginized (%s)' % normalization
+            err = 'Given normalization is not recognized (%s)' % normalization
+            raise ValueError(err)
+
+        autoscaleMode = dic.get('autoscaleMode', Colormap.MINMAX)
+        if autoscaleMode not in Colormap.AUTOSCALE_MODES:
+            err = 'Given autoscale mode is not recognized (%s)' % autoscaleMode
             raise ValueError(err)
 
         # If autoscale, then set boundaries to None
@@ -758,6 +812,7 @@ class Colormap(qt.QObject):
         self._vmax = vmax
         self._autoscale = True if (vmin is None and vmax is None) else False
         self._normalization = normalization
+        self._autoscaleMode = autoscaleMode
 
         self.sigChanged.emit()
 
@@ -776,7 +831,8 @@ class Colormap(qt.QObject):
                         colors=self.getColormapLUT(),
                         vmin=self._vmin,
                         vmax=self._vmax,
-                        normalization=self._normalization)
+                        normalization=self._normalization,
+                        autoscaleMode=self._autoscaleMode)
 
     def applyToData(self, data, reference=None):
         """Apply the colormap to the data
@@ -834,12 +890,13 @@ class Colormap(qt.QObject):
             return False
         return (self.getName() == other.getName() and
                 self.getNormalization() == other.getNormalization() and
+                self.getAutoscaleMode() == other.getAutoscaleMode() and
                 self.getVMin() == other.getVMin() and
                 self.getVMax() == other.getVMax() and
                 numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
                 )
 
-    _SERIAL_VERSION = 1
+    _SERIAL_VERSION = 2
 
     def restoreState(self, byteArray):
         """
@@ -859,7 +916,7 @@ class Colormap(qt.QObject):
             return False
 
         version = stream.readUInt32()
-        if version != self._SERIAL_VERSION:
+        if version not in (1, self._SERIAL_VERSION):
             _logger.warning("Serial version mismatch. Found %d." % version)
             return False
 
@@ -876,11 +933,17 @@ class Colormap(qt.QObject):
             vmax = None
         normalization = stream.readQString()
 
+        if version == 1:
+            autoscaleMode = Colormap.MINMAX
+        else:
+            autoscaleMode = stream.readQString()
+
         # emit change event only once
         old = self.blockSignals(True)
         try:
             self.setName(name)
             self.setNormalization(normalization)
+            self.setAutoscaleMode(autoscaleMode)
             self.setVRange(vmin, vmax)
         finally:
             self.blockSignals(old)
@@ -906,6 +969,7 @@ class Colormap(qt.QObject):
         if self.getVMax() is not None:
             stream.writeQVariant(self.getVMax())
         stream.writeQString(self.getNormalization())
+        stream.writeQString(self.getAutoscaleMode())
         return data
 
 

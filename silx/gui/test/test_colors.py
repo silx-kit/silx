@@ -34,6 +34,7 @@ __date__ = "09/11/2018"
 import unittest
 import numpy
 from silx.utils.testutils import ParametricTestCase
+from silx.gui import qt
 from silx.gui import colors
 from silx.gui.colors import Colormap
 from silx.gui.plot import items
@@ -424,6 +425,24 @@ class TestObjectAPI(ParametricTestCase):
         self.assertIsNot(colormap, other)
         self.assertEqual(colormap, other)
 
+    def testAutoscaleMode(self):
+        colormap = Colormap(autoscaleMode=Colormap.STDDEV3)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.STDDEV3)
+        colormap.setAutoscaleMode(Colormap.MINMAX)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.MINMAX)
+
+    def testStorageV1(self):
+        state = b'\x00\x00\x00\x10\x00C\x00o\x00l\x00o\x00r\x00m\x00a\x00p\x00\x00'\
+                b'\x00\x01\x00\x00\x00\x0E\x00v\x00i\x00r\x00i\x00d\x00i\x00s\x00'\
+                b'\x00\x00\x00\x06\x00?\xF0\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
+                b'\x00\x06\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00'\
+                b'l\x00o\x00g'
+        state = qt.QByteArray(state)
+        colormap = Colormap()
+        colormap.restoreState(state)
+
+        expected = Colormap(name="viridis", vmin=1, vmax=2, normalization=Colormap.LOGARITHM)
+        self.assertEqual(colormap, expected)
 
 class TestPreferredColormaps(unittest.TestCase):
     """Test get|setPreferredColormaps functions"""
@@ -502,6 +521,37 @@ class TestRegisteredLut(unittest.TestCase):
         self.assertEqual(lut[0, 3], 128)
 
 
+class TestAutoscaleRange(ParametricTestCase):
+
+    def testAutoscaleRange(self):
+        nan = numpy.nan
+        data = [
+            # Positive values
+            (Colormap.LINEAR, Colormap.MINMAX, numpy.array([10, 20, 50]), (10, 50)),
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100]), (10, 100)),
+            (Colormap.LINEAR, Colormap.STDDEV3, numpy.array([10, 100]), (-80, 190)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100]), (1, 1000)),
+            # With nan
+            (Colormap.LINEAR, Colormap.MINMAX, numpy.array([10, 20, 50, nan]), (10, 50)),
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100, nan]), (10, 100)),
+            (Colormap.LINEAR, Colormap.STDDEV3, numpy.array([10, 100, nan]), (-80, 190)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100, nan]), (1, 1000)),
+            # With negative
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100, -50]), (10, 100)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100, -10]), (1, 1000)),
+        ]
+        for norm, mode, array, expectedRange in data:
+            with self.subTest(norm=norm, mode=mode, array=array):
+                colormap = Colormap()
+                colormap.setNormalization(norm)
+                colormap.setAutoscaleMode(mode)
+                vRange = colormap._computeAutoscaleRange(array)
+                if vRange is None:
+                    self.assertIsNone(expectedRange)
+                else:
+                    self.assertEqual(vRange[0], expectedRange[0])
+                    self.assertEqual(vRange[1], expectedRange[1])
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
@@ -511,6 +561,7 @@ def suite():
     test_suite.addTest(loadTests(TestObjectAPI))
     test_suite.addTest(loadTests(TestPreferredColormaps))
     test_suite.addTest(loadTests(TestRegisteredLut))
+    test_suite.addTest(loadTests(TestAutoscaleRange))
     return test_suite
 
 
