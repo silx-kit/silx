@@ -40,7 +40,9 @@ from silx.io.url import DataUrl
 from silx.gui.plot.ImageStack import ImageStack
 from silx.gui.utils.testutils import SignalListener
 from collections import OrderedDict
+import os
 import time
+import shutil
 
 
 class TestImageStack(TestCaseQt):
@@ -50,18 +52,17 @@ class TestImageStack(TestCaseQt):
         TestCaseQt.setUp(self)
         self.urls = OrderedDict()
         self._raw_data = {}
-        self.tmp_file = tempfile.NamedTemporaryFile(prefix="test_image_stack_",
-                                                    suffix=".h5",
-                                                    delete=True)
+        self._folder = tempfile.mkdtemp()
         self._n_urls = 10
-        with h5py.File(self.tmp_file.file, 'w') as h5f:
+        file_name = os.path.join(self._folder, 'test_inage_stack_file.h5')
+        with h5py.File(file_name, 'w') as h5f:
             for i in range(self._n_urls):
                 width = numpy.random.randint(10, 40)
                 height = numpy.random.randint(10, 40)
                 raw_data = numpy.random.random((width, height))
                 self._raw_data[i] = raw_data
                 h5f[str(i)] = raw_data
-                self.urls[i] = DataUrl(file_path=self.tmp_file.name,
+                self.urls[i] = DataUrl(file_path=file_name,
                                        data_path=str(i),
                                        scheme='silx')
         self.widget = ImageStack()
@@ -70,6 +71,7 @@ class TestImageStack(TestCaseQt):
         self.widget.sigLoaded.connect(self.listener.partial())
 
     def tearDown(self):
+        shutil.rmtree(self._folder)
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose, True)
         self.widget.close()
         TestCaseQt.setUp(self)
