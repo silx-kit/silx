@@ -1270,17 +1270,22 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def _onMouseMove(self, event):
         if self._graphCursor:
+            position = self._plot.pixelToData(
+                event.x,
+                self._mplQtYAxisCoordConversion(event.y),
+                axis='left',
+                check=True)
             lineh, linev = self._graphCursor
-            if event.inaxes not in (self.ax, self.ax2) and lineh.get_visible():
-                lineh.set_visible(False)
-                linev.set_visible(False)
-                self._plot._setDirtyPlot(overlayOnly=True)
-            else:
+            if position is not None:
                 linev.set_visible(True)
-                linev.set_xdata((event.xdata, event.xdata))
+                linev.set_xdata((position[0], position[0]))
                 lineh.set_visible(True)
-                lineh.set_ydata((event.ydata, event.ydata))
+                lineh.set_ydata((position[1], position[1]))
                 self._plot._setDirtyPlot(overlayOnly=True)
+            elif lineh.get_visible():
+                    lineh.set_visible(False)
+                    linev.set_visible(False)
+                    self._plot._setDirtyPlot(overlayOnly=True)
             # onMouseMove must trigger replot if dirty flag is raised
 
         self._plot.onMouseMove(
