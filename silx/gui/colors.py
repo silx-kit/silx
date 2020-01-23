@@ -644,8 +644,8 @@ class Colormap(qt.QObject):
                 normdata = numpy.log10(data)
                 mean = numpy.nanmean(normdata)
                 std = numpy.nanstd(normdata)
-                vMin = 10**(mean - 3 * std)
-                vMax = 10**(mean + 3 * std)
+                vMin = float(10**(mean - 3 * std))
+                vMax = float(10**(mean + 3 * std))
             else:
                 assert False
         else:
@@ -654,7 +654,7 @@ class Colormap(qt.QObject):
             elif self._autoscaleMode == Colormap.STDDEV3:
                 mean = numpy.nanmean(data)
                 std = numpy.nanstd(data)
-                vMin, vMax = mean - 3 * std, mean + 3 * std
+                vMin, vMax = float(mean - 3 * std), float(mean + 3 * std)
             else:
                 assert False
         return vMin, vMax
