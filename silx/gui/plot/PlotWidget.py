@@ -612,25 +612,6 @@ class PlotWidget(qt.QMainWindow):
 
         return item.getLegend(), kind
 
-    def _add(self, item):
-        """Add the given :class:`Item` to the plot.
-
-        :param Item item: The item to append to the plot content
-        """
-        key = self._itemKey(item)
-        if key in self._content:
-            raise RuntimeError('Item already in the plot')
-
-        # Add item to plot
-        self._content[key] = item
-        item._setPlot(self)
-        self._itemRequiresUpdate(item)
-        if isinstance(item, items.DATA_ITEMS):
-            self._invalidateDataRange()  # TODO handle this automatically
-
-        self._notifyContentChanged(item)
-        self.sigItemAdded.emit(item)
-
     def _notifyContentChanged(self, item):
         legend, kind = self._itemKey(item)
         self.notify('contentChanged', action='add', kind=kind, legend=legend)
@@ -653,19 +634,29 @@ class PlotWidget(qt.QMainWindow):
         :param ~silx.gui.plot.items.Item item: The item to add.
         :raises ValueError: If item is already in the plot.
         """
-        if isinstance(item, items.Item):
-            assert not args and not kwargs
-            try:
-                self._add(item)
-            except RuntimeError:
-                raise ValueError('Item already in the plot.')
-        else:
+        if not isinstance(item, items.Item):
             deprecated_warning(
                 'Function',
                 'addItem',
                 replacement='addShape',
                 since_version='0.13')
             self.addShape(item, *args, **kwargs)
+            return
+
+        assert not args and not kwargs
+        key = self._itemKey(item)
+        if key in self._content:
+            raise ValueError('Item already in the plot')
+
+        # Add item to plot
+        self._content[key] = item
+        item._setPlot(self)
+        self._itemRequiresUpdate(item)
+        if isinstance(item, items.DATA_ITEMS):
+            self._invalidateDataRange()  # TODO handle this automatically
+
+        self._notifyContentChanged(item)
+        self.sigItemAdded.emit(item)
 
     def removeItem(self, item):
         """Remove the item from the plot.
