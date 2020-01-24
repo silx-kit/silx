@@ -769,7 +769,8 @@ class ColormapDialog(qt.QDialog):
             return None, None
 
         if scale == Axis.LOGARITHMIC:
-            _data = numpy.log10(_data)
+            with numpy.errstate(divide='ignore'):
+                _data = numpy.log10(_data)
         xmin, xmax = min_max(_data, min_positive=False, finite=True)
         if xmin is None:
             return None, None
