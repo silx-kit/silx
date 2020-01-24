@@ -630,9 +630,9 @@ class ColormapDialog(qt.QDialog):
             self._lutItem.setVisible(False)
             pos = posMax if posMin is None else posMin
             if pos is not None:
-                self._bound.setBounds((pos, pos, 0, -0.1))
+                self._bound.setBounds((pos, pos, -0.1, 0))
             else:
-                self._bound.setBounds((0, 0, 0, -0.1))
+                self._bound.setBounds((0, 0, -0.1, 0))
         else:
             colormap = colormap.copy()
             colormap.setVRange(0, 255)
