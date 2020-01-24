@@ -707,9 +707,9 @@ class ColormapDialog(qt.QDialog):
         else:
             norm = colormap.getNormalization()
 
-        if self._item is not None:
+        item  = self._getItem()
+        if item is not None:
             # This reusing the item cache
-            item  = self._getItem()
             cm = Colormap()
             cm.setVRange(None, None)
             cm.setNormalization(norm)
