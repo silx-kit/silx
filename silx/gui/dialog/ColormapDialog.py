@@ -677,6 +677,40 @@ class ColormapDialog(qt.QDialog):
             else:
                 self._plotUpdate(updateMarkers=False)
 
+    def _getNormalizedDataRange(self):
+        """Return a data range already normalized according to the colormap
+        normalization
+
+        Returns a tuple with min and max
+        """
+        colormap = self.getColormap()
+        if colormap is None:
+            norm = Colormap.LINEAR
+        else:
+            norm = colormap.getNormalization()
+
+        if self._item is not None:
+            # This reusing the item cache
+            item  = self._getItem()
+            cm = Colormap()
+            cm.setVRange(None, None)
+            cm.setNormalization(norm)
+            dataRange = item._getColormapAutoscaleRange(cm)
+            return dataRange
+
+        # This data range contains 3 elements: min, minPos, max
+        if self._dataRange is None:
+            array = self._getArray()
+            self._dataRange = self.computeDataRange(array)
+        dataRange = self._dataRange
+        if norm == Colormap.LINEAR:
+            return dataRange[0], dataRange[2]
+        elif norm == Colormap.LOGARITHM:
+            return dataRange[1], dataRange[2]
+        else:
+            _logger.error("Normalization %s not supported", norm)
+            return None, None
+
     @staticmethod
     def computeDataRange(data):
         """Compute the data range as used by :meth:`setDataRange`.
