@@ -349,6 +349,16 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         shape = self.__hdf5Formatter.humanReadableShape(dataset)
         return u"%s = %s" % (shape, size)
 
+    def __formatChunks(self, dataset):
+        """Format the shape"""
+        chunks = dataset.chunks
+        if chunks is None:
+            return ""
+        shape = " \u00D7 ".join([str(i) for i in chunks])
+        sizes = sum(chunks)
+        text = "%s = %s" % (shape, sizes)
+        return text
+
     def __initProperties(self):
         """Initialize the list of available properties according to the defined
         h5py-like object."""
@@ -418,7 +428,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             if hasattr(obj, "shape"):
                 self.__data.addHeaderValueRow("shape", self.__formatShape)
             if hasattr(obj, "chunks") and obj.chunks is not None:
-                self.__data.addHeaderValueRow("chunks", lambda x: str(x.chunks))
+                self.__data.addHeaderValueRow("chunks", self.__formatChunks)
 
         # relative to compression
         # h5py expose compression, compression_opts but are not initialized
