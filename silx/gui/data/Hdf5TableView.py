@@ -266,7 +266,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             return cell.span()
         elif role == self.IsHeaderRole:
             return cell.isHeader()
-        elif role == qt.Qt.DisplayRole:
+        elif role in (qt.Qt.DisplayRole, qt.Qt.EditRole):
             value = cell.value()
             if callable(value):
                 try:
@@ -522,12 +522,41 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         self.reset()
 
 
+class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
+    """Item delegate the :class:`Hdf5TableView` with read-only text editor"""
+
+    def createEditor(self, parent, option, index):
+        """See :meth:`QStyledItemDelegate.createEditor`"""
+        editor = super().createEditor(parent, option, index)
+        if isinstance(editor, qt.QLineEdit):
+            editor.setReadOnly(True)
+            editor.deselect()
+            editor.textChanged.connect(self.__textChanged, qt.Qt.QueuedConnection)
+            self.installEventFilter(editor)
+        return editor
+
+    def __textChanged(self, text):
+        sender = self.sender()
+        if sender is not None:
+            sender.deselect()
+
+    def eventFilter(self, watched, event):
+        eventType = event.type()
+        if eventType == qt.QEvent.FocusIn:
+            qt.QTimer.singleShot(0, watched.selectAll)
+        elif eventType == qt.QEvent.FocusOut:
+            watched.deselect()
+        return super().eventFilter(watched, event)
+
+
 class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
     """A widget to display metadata about a HDF5 node using a table."""
 
     def __init__(self, parent=None):
         super(Hdf5TableView, self).__init__(parent)
         self.setModel(Hdf5TableModel(self))
+        self.setItemDelegate(Hdf5TableItemDelegate(self))
+        self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
     def isSupportedData(self, data):
         """
@@ -543,7 +572,9 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
             `silx.gui.hdf5.H5Node` which is needed to display some local path
             information.
         """
-        self.model().setObject(data)
+        model = self.model()
+
+        model.setObject(data)
         header = self.horizontalHeader()
         if qt.qVersion() < "5.0":
             setResizeMode = header.setResizeMode
@@ -555,3 +586,10 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         setResizeMode(3, qt.QHeaderView.ResizeToContents)
         setResizeMode(4, qt.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
+
+        for row in range(model.rowCount()):
+            for column in range(model.columnCount()):
+                index = model.index(row, column)
+                if (index.isValid() and index.data(
+                        HierarchicalTableView.HierarchicalTableModel.IsHeaderRole) is False):
+                    self.openPersistentEditor(index)
