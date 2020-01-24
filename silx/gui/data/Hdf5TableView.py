@@ -443,8 +443,8 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     self.__data.addRow(pos, hdf5id, name, options, availability)
                 for index in range(dcpl.get_nfilters()):
                     filterId, name, options = self.__getFilterInfo(obj, index)
-                    pos = _CellData(value=index)
-                    hdf5id = _CellData(value=filterId)
+                    pos = _CellData(value=str(index))
+                    hdf5id = _CellData(value=str(filterId))
                     name = _CellData(value=name)
                     options = _CellData(value=options)
                     availability = _CellFilterAvailableData(filterId=filterId)
