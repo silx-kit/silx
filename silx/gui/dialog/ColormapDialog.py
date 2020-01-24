@@ -474,6 +474,7 @@ class ColormapDialog(qt.QDialog):
         label = qt.QLabel('Mode:', self)
         self._autoscaleModeLabel = label
         label.setToolTip("Mode for autoscale. Algorithm used to find range in auto scale.")
+        formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         formLayout.addRow(label, autoScaleCombo)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
