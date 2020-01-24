@@ -552,54 +552,6 @@ class ColormapDialog(qt.QDialog):
     def sizeHint(self):
         return self.layout().minimumSize()
 
-    def _computeView(self, dataMin, dataMax):
-        """Compute the location of the view according to the bound of the data
-
-        :rtype: Tuple(float, float)
-        """
-        marginRatio = 1.0 / 6.0
-        scale = self._plot.getXAxis().getScale()
-
-        if self._dataRange is not None:
-            if scale == Axis.LOGARITHMIC:
-                minRange = self._dataRange[1]
-            else:
-                minRange = self._dataRange[0]
-            maxRange = self._dataRange[2]
-            if minRange is not None:
-                dataMin = min(dataMin, minRange)
-                dataMax = max(dataMax, maxRange)
-
-        if self._histogramData is not None:
-            info = min_max(self._histogramData[1])
-            if scale == Axis.LOGARITHMIC:
-                minHisto = info.min_positive
-            else:
-                minHisto = info.minimum
-            maxHisto = info.maximum
-            if minHisto is not None:
-                dataMin = min(dataMin, minHisto)
-                dataMax = max(dataMax, maxHisto)
-
-        if scale == Axis.LOGARITHMIC:
-            epsilon = numpy.finfo(numpy.float32).eps
-            if dataMin == 0:
-                dataMin = epsilon
-            if dataMax < dataMin:
-                dataMax = dataMin + epsilon
-            marge = marginRatio * abs(numpy.log10(dataMax) - numpy.log10(dataMin))
-            viewMin = 10**(numpy.log10(dataMin) - marge)
-            viewMax = 10**(numpy.log10(dataMax) + marge)
-        else:  # scale == Axis.LINEAR:
-            marge = marginRatio * abs(dataMax - dataMin)
-            if marge < 0.0001:
-                # Smaller that the QLineEdit precision
-                marge = 0.0001
-            viewMin = dataMin - marge
-            viewMax = dataMax + marge
-
-        return viewMin, viewMax
-
     def _getDisplayableRange(self):
         """Returns the selected min/max range to apply to the data,
         according to the used scale.
