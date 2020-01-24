@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ import functools
 import os.path
 import logging
 import h5py
+import numpy
 
 from silx.gui import qt
 import silx.io
@@ -349,6 +350,16 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         shape = self.__hdf5Formatter.humanReadableShape(dataset)
         return u"%s = %s" % (shape, size)
 
+    def __formatChunks(self, dataset):
+        """Format the shape"""
+        chunks = dataset.chunks
+        if chunks is None:
+            return ""
+        shape = " \u00D7 ".join([str(i) for i in chunks])
+        sizes = numpy.product(chunks)
+        text = "%s = %s" % (shape, sizes)
+        return text
+
     def __initProperties(self):
         """Initialize the list of available properties according to the defined
         h5py-like object."""
@@ -418,7 +429,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             if hasattr(obj, "shape"):
                 self.__data.addHeaderValueRow("shape", self.__formatShape)
             if hasattr(obj, "chunks") and obj.chunks is not None:
-                self.__data.addHeaderValueRow("chunks", lambda x: x.chunks)
+                self.__data.addHeaderValueRow("chunks", self.__formatChunks)
 
         # relative to compression
         # h5py expose compression, compression_opts but are not initialized
