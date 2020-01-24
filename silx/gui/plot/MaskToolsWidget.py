@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -360,7 +360,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             maskItem.setZValue(self._z)
 
             if mustBeAdded:
-                self.plot._add(maskItem)
+                self.plot.addItem(maskItem)
 
         elif self.plot.getImage(self._maskName):
             self.plot.remove(self._maskName, kind='image')

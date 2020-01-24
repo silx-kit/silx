@@ -939,7 +939,7 @@ class PlotWidget(qt.QMainWindow):
                     self.removeItem(c)
 
         if mustBeAdded:
-            self._add(curve)
+            self.addItem(curve)
         else:
             self._notifyContentChanged(curve)
 
@@ -1031,7 +1031,7 @@ class PlotWidget(qt.QMainWindow):
                       align=align, copy=copy)
 
         if mustBeAdded:
-            self._add(histo)
+            self.addItem(histo)
         else:
             self._notifyContentChanged(histo)
 
@@ -1168,7 +1168,7 @@ class PlotWidget(qt.QMainWindow):
                     self.removeItem(img)
 
         if mustBeAdded:
-            self._add(image)
+            self.addItem(image)
         else:
             self._notifyContentChanged(image)
 
@@ -1275,7 +1275,7 @@ class PlotWidget(qt.QMainWindow):
             scatter.setData(x, y, value, xerror, yerror, copy=copy)
 
         if mustBeAdded:
-            self._add(scatter)
+            self.addItem(scatter)
         else:
             self._notifyContentChanged(scatter)
 
@@ -1350,7 +1350,7 @@ class PlotWidget(qt.QMainWindow):
         item.setLineWidth(linewidth)
         item.setLineBgColor(linebgcolor)
 
-        self._add(item)
+        self.addItem(item)
 
         return legend
 
@@ -1558,7 +1558,7 @@ class PlotWidget(qt.QMainWindow):
         marker.setPosition(x, y)
 
         if mustBeAdded:
-            self._add(marker)
+            self.addItem(marker)
         else:
             self._notifyContentChanged(marker)
 

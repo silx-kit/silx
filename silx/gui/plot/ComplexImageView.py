@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -289,7 +289,7 @@ class ComplexImageView(qt.QWidget):
         self._plotImage = ImageComplexData()
         self._plotImage._setLegend('__ComplexImageView__complex_image__')
         self._plotImage.sigItemChanged.connect(self._itemChanged)
-        self._plot2D._add(self._plotImage)
+        self._plot2D.addItem(self._plotImage)
         self._plot2D.setActiveImage(self._plotImage.getLegend())
 
         toolBar = qt.QToolBar('Complex', self)

@@ -377,14 +377,14 @@ class RegionOfInterest(_RegionOfInterestBase):
             self._labelItem = self._createLabelItem()
             if self._labelItem is not None:
                 self._labelItem._setLegend(legendPrefix + "label")
-                plot._add(self._labelItem)
+                plot.addItem(self._labelItem)
                 self._labelItem.setVisible(self.isVisible())
 
         self._items = WeakList()
         plotItems = self._createShapeItems(controlPoints)
         for item in plotItems:
             item._setLegend(legendPrefix + str(itemIndex))
-            plot._add(item)
+            plot.addItem(item)
             item.setVisible(self.isVisible())
             self._items.append(item)
             itemIndex += 1
@@ -398,7 +398,7 @@ class RegionOfInterest(_RegionOfInterestBase):
                 item._setLegend(legendPrefix + str(itemIndex))
                 item.setColor(color)
                 item.setVisible(self.isVisible())
-                plot._add(item)
+                plot.addItem(item)
                 # connect item changed
                 item.sigItemChanged.connect(functools.partial(
                     self._controlPointAnchorChanged, index))
