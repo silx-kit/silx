@@ -83,6 +83,7 @@ from silx.math.combo import min_max
 from silx.gui import icons
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.math.histogram import Histogramnd
+from silx.utils import deprecation
 
 _logger = logging.getLogger(__name__)
 
@@ -907,7 +908,11 @@ class ColormapDialog(qt.QDialog):
         if self._item is weakref:
             self.setItem(None)
 
+    @deprecation.deprecated(reason="It is private data", since_version="0.13")
     def getHistogram(self):
+        return self._getHistogram()
+
+    def _getHistogram(self):
         """Returns the counts and bin edges of the displayed histogram.
 
         :return: (hist, bin_edges)
