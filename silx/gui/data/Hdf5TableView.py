@@ -418,7 +418,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             if hasattr(obj, "shape"):
                 self.__data.addHeaderValueRow("shape", self.__formatShape)
             if hasattr(obj, "chunks") and obj.chunks is not None:
-                self.__data.addHeaderValueRow("chunks", lambda x: x.chunks)
+                self.__data.addHeaderValueRow("chunks", lambda x: str(x.chunks))
 
         # relative to compression
         # h5py expose compression, compression_opts but are not initialized
