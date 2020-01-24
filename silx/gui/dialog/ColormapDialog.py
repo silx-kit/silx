@@ -247,7 +247,7 @@ class _AutoScaleButtons(qt.QWidget):
         self._maxAuto.setFocusPolicy(qt.Qt.TabFocus)
 
         self._bothAuto = qt.QPushButton(self)
-        self._bothAuto.setText("Auto")
+        self._bothAuto.setText("Autoscale")
         self._bothAuto.setToolTip("Enable/disable the auto range for both min and max")
         self._bothAuto.setCheckable(True)
         self._bothAuto.toggled[bool].connect(self.__bothToggled)
