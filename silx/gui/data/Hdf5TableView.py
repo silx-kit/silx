@@ -37,6 +37,7 @@ import functools
 import os.path
 import logging
 import h5py
+import numpy
 
 from silx.gui import qt
 import silx.io
@@ -355,7 +356,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if chunks is None:
             return ""
         shape = " \u00D7 ".join([str(i) for i in chunks])
-        sizes = sum(chunks)
+        sizes = numpy.product(chunks)
         text = "%s = %s" % (shape, sizes)
         return text
 
