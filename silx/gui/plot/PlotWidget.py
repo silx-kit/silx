@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ import numpy
 import silx
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.property import classproperty
-from silx.utils.deprecation import deprecated
+from silx.utils.deprecation import deprecated, deprecated_warning
 try:
     # Import matplotlib now to init matplotlib our way
     from . import matplotlib
@@ -683,6 +683,54 @@ class PlotWidget(qt.QMainWindow):
         self._contentToUpdate.append(item)
         self._setDirtyPlot(overlayOnly=item.isOverlay())
 
+    def addItem(self, item, *args, **kwargs):
+        """Add an item to the plot content.
+
+        :param ~silx.gui.plot.items.Item item: The item to add.
+        :raises ValueError: If item is already in the plot.
+        """
+        if isinstance(item, items.Item):
+            assert not args and not kwargs
+            try:
+                self._add(item)
+            except RuntimeError:
+                raise ValueError('Item already in the plot.')
+        else:
+            deprecated_warning(
+                'Function',
+                'addItem',
+                replacement='addShape',
+                since_version='0.13')
+            self.addShape(item, *args, **kwargs)
+
+    def removeItem(self, item):
+        """Remove the item from the plot.
+
+        :param ~silx.gui.plot.items.Item item: Item to remove from the plot.
+        :raises ValueError: If item is not in the plot.
+        """
+        if isinstance(item, items.Item):
+            try:
+                self._remove(item)
+            except RuntimeError:
+                raise ValueError("Item is not in the plot.")
+        else:
+            deprecated_warning(
+                'Function',
+                'removeItem',
+                replacement='remove(legend, kind="item")',
+                since_version='0.13')
+            if item is None:
+                return
+            self.remove(item, kind='item')
+
+    def getItems(self):
+        """Returns the list of items in the plot
+
+        :rtype: List[silx.gui.plot.items.Item]
+        """
+        return tuple(self._content.values())
+
     @contextmanager
     def _muteActiveItemChangedSignal(self):
         self.__muteActiveItemChanged = True
@@ -1240,17 +1288,6 @@ class PlotWidget(qt.QMainWindow):
 
         return legend
 
-    @deprecated(replacement="addShape", since_version="0.13")
-    def addItem(self, xdata, ydata, legend=None, info=None,
-                replace=False,
-                shape="polygon", color='black', fill=True,
-                overlay=False, z=None, linestyle="-", linewidth=1.0,
-                linebgcolor=None):
-        return self.addShape(xdata, ydata, legend=legend, info=info,
-                             replace=replace, shape=shape, color=color, fill=fill,
-                             overlay=overlay, z=z, linestyle=linestyle,
-                             linewidth=linewidth, linebgcolor=linebgcolor)
-
     def addShape(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
@@ -1629,15 +1666,6 @@ class PlotWidget(qt.QMainWindow):
             return
         self.remove(legend, kind='image')
 
-    def removeItem(self, legend):
-        """Remove the item associated to legend from the graph.
-
-        :param str legend: The legend associated to the item to be deleted
-        """
-        if legend is None:
-            return
-        self.remove(legend, kind='item')
-
     def removeMarker(self, legend):
         """Remove the marker associated to legend from the graph.
 
@@ -2010,13 +2038,6 @@ class PlotWidget(qt.QMainWindow):
                     legend=legend)
 
     # Getters
-
-    def getItems(self):
-        """Returns the list of items in the plot
-
-        :rtype: List[silx.gui.plot.items.Item]
-        """
-        return tuple(self._content.values())
 
     def getAllCurves(self, just_legend=False, withhidden=False):
         """Returns all curves legend or info and data.
