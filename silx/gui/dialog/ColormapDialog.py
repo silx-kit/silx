@@ -234,30 +234,32 @@ class _AutoScaleButtons(qt.QWidget):
 
         self.setFocusPolicy(qt.Qt.NoFocus)
 
-        self._minAuto = qt.QPushButton(self)
-        self._minAuto.setCheckable(True)
-        self._minAuto.setToolTip("Enable/disable the auto range for min")
+        self._minAuto = qt.QCheckBox(self)
+        self._minAuto.setText("")
+        self._minAuto.setToolTip("Enable/disable the autoscale for min")
         self._minAuto.toggled[bool].connect(self.__minToggled)
         self._minAuto.setFocusPolicy(qt.Qt.TabFocus)
 
-        self._maxAuto = qt.QPushButton(self)
-        self._maxAuto.setCheckable(True)
-        self._maxAuto.setToolTip("Enable/disable the auto range for max")
+        self._maxAuto = qt.QCheckBox(self)
+        self._maxAuto.setText("")
+        self._maxAuto.setToolTip("Enable/disable the autoscale for max")
         self._maxAuto.toggled[bool].connect(self.__maxToggled)
         self._maxAuto.setFocusPolicy(qt.Qt.TabFocus)
 
         self._bothAuto = qt.QPushButton(self)
         self._bothAuto.setText("Autoscale")
-        self._bothAuto.setToolTip("Enable/disable the auto range for both min and max")
+        self._bothAuto.setToolTip("Enable/disable the autoscale for both min and max")
         self._bothAuto.setCheckable(True)
         self._bothAuto.toggled[bool].connect(self.__bothToggled)
         self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
 
-        layout.addSpacing(1)
+        layout.addStretch(1)
         layout.addWidget(self._minAuto)
+        layout.addSpacing(20)
         layout.addWidget(self._bothAuto)
+        layout.addSpacing(20)
         layout.addWidget(self._maxAuto)
-        layout.addSpacing(1)
+        layout.addStretch(1)
 
     def __bothToggled(self, checked):
         autoRange = checked, checked
