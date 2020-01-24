@@ -179,7 +179,7 @@ class _AutoscaleModeComboBox(qt.QComboBox):
 
     DATA = {
         Colormap.MINMAX: ("Min/max", "Use the data min/max"),
-        Colormap.STDDEV3: ("Mean ± 3×SD", "Use the data mean ± 3 × standard deviation"),
+        Colormap.STDDEV3: ("Mean ± 3 × stddev", "Use the data mean ± 3 × standard deviation"),
     }
 
     def __init__(self, parent: qt.QWidget):
