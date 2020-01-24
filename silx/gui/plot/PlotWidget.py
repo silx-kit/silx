@@ -940,7 +940,7 @@ class PlotWidget(qt.QMainWindow):
         if replace:  # Then remove all other curves
             for c in self.getAllCurves(withhidden=True):
                 if c is not curve:
-                    self._remove(c)
+                    self.removeItem(c)
 
         if mustBeAdded:
             self._add(curve)
@@ -1119,7 +1119,7 @@ class PlotWidget(qt.QMainWindow):
             # Update a data image with RGBA image or the other way around:
             # Remove previous image
             # In this case, we don't retrieve defaults from the previous image
-            self._remove(image)
+            self.removeItem(image)
             image = None
 
         mustBeAdded = image is None
@@ -1169,7 +1169,7 @@ class PlotWidget(qt.QMainWindow):
         if replace:
             for img in self.getAllImages():
                 if img is not image:
-                    self._remove(img)
+                    self.removeItem(img)
 
         if mustBeAdded:
             self._add(image)
@@ -1534,7 +1534,7 @@ class PlotWidget(qt.QMainWindow):
         if marker is not None and not isinstance(marker, markerClass):
             _logger.warning('Adding marker with same legend'
                             ' but different type replaces it')
-            self._remove(marker)
+            self.removeItem(marker)
             marker = None
 
         mustBeAdded = marker is None
@@ -1646,7 +1646,7 @@ class PlotWidget(qt.QMainWindow):
             for aKind in kind:
                 item = self._getItem(aKind, legend)
                 if item is not None:
-                    self._remove(item)
+                    self.removeItem(item)
 
     def removeCurve(self, legend):
         """Remove the curve associated to legend from the graph.
