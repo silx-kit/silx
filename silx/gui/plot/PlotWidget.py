@@ -706,6 +706,9 @@ class PlotWidget(qt.QMainWindow):
         self.notify('contentChanged', action='remove',
                     kind=kind, legend=legend)
 
+    @deprecated(replacement='addItem', since_version='0.13')
+    def _add(self, item):
+        return self.addItem(item)
 
     @deprecated(replacement='removeItem', since_version='0.13')
     def _remove(self, item):
