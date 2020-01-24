@@ -635,42 +635,6 @@ class PlotWidget(qt.QMainWindow):
         legend, kind = self._itemKey(item)
         self.notify('contentChanged', action='add', kind=kind, legend=legend)
 
-    def _remove(self, item):
-        """Remove the given :class:`Item` from the plot.
-
-        :param Item item: The item to remove from the plot content
-        """
-        key = self._itemKey(item)
-        if key not in self._content:
-            raise RuntimeError('Item not in the plot')
-
-        self.sigItemAboutToBeRemoved.emit(item)
-
-        legend, kind = key
-
-        if kind in self._ACTIVE_ITEM_KINDS:
-            if self._getActiveItem(kind) == item:
-                # Reset active item
-                self._setActiveItem(kind, None)
-
-        # Remove item from plot
-        self._content.pop(key)
-        if item in self._contentToUpdate:
-            self._contentToUpdate.remove(item)
-        if item.isVisible():
-            self._setDirtyPlot(overlayOnly=item.isOverlay())
-        if item.getBounds() is not None:
-            self._invalidateDataRange()
-        item._removeBackendRenderer(self._backend)
-        item._setPlot(None)
-
-        if (kind == 'curve' and not self.getAllCurves(just_legend=True,
-                                                      withhidden=True)):
-            self._resetColorAndStyle()
-
-        self.notify('contentChanged', action='remove',
-                    kind=kind, legend=legend)
-
     def _itemRequiresUpdate(self, item):
         """Called by items in the plot for asynchronous update
 
@@ -709,12 +673,7 @@ class PlotWidget(qt.QMainWindow):
         :param ~silx.gui.plot.items.Item item: Item to remove from the plot.
         :raises ValueError: If item is not in the plot.
         """
-        if isinstance(item, items.Item):
-            try:
-                self._remove(item)
-            except RuntimeError:
-                raise ValueError("Item is not in the plot.")
-        else:
+        if not isinstance(item, items.Item):  # Previous method usage
             deprecated_warning(
                 'Function',
                 'removeItem',
@@ -723,6 +682,43 @@ class PlotWidget(qt.QMainWindow):
             if item is None:
                 return
             self.remove(item, kind='item')
+            return
+
+        key = self._itemKey(item)
+        if key not in self._content:
+            raise ValueError('Item not in the plot')
+
+        self.sigItemAboutToBeRemoved.emit(item)
+
+        legend, kind = key
+
+        if kind in self._ACTIVE_ITEM_KINDS:
+            if self._getActiveItem(kind) == item:
+                # Reset active item
+                self._setActiveItem(kind, None)
+
+        # Remove item from plot
+        self._content.pop(key)
+        if item in self._contentToUpdate:
+            self._contentToUpdate.remove(item)
+        if item.isVisible():
+            self._setDirtyPlot(overlayOnly=item.isOverlay())
+        if item.getBounds() is not None:
+            self._invalidateDataRange()
+        item._removeBackendRenderer(self._backend)
+        item._setPlot(None)
+
+        if (kind == 'curve' and not self.getAllCurves(just_legend=True,
+                                                      withhidden=True)):
+            self._resetColorAndStyle()
+
+        self.notify('contentChanged', action='remove',
+                    kind=kind, legend=legend)
+
+
+    @deprecated(replacement='removeItem', since_version='0.13')
+    def _remove(self, item):
+        return self.removeItem(item)
 
     def getItems(self):
         """Returns the list of items in the plot
