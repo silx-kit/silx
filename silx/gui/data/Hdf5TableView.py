@@ -288,12 +288,6 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             return cell.data(role)
         return None
 
-    def flags(self, index):
-        """QAbstractTableModel method to inform the view whether data
-        is editable or not.
-        """
-        return qt.QAbstractTableModel.flags(self, index)
-
     def isSupportedObject(self, h5pyObject):
         """
         Returns true if the provided object can be modelized using this model.
