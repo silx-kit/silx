@@ -822,9 +822,10 @@ class ColormapDialog(qt.QDialog):
         the data range or the histogram of the data using :meth:`setDataRange`
         and :meth:`setHistogram`
         """
-        old = self._getItem()
-        if old is item:
-            return
+        # While event from items are not supported, we can't ignore dup items
+        # old = self._getItem()
+        # if old is item:
+        #     return
 
         self._data = None
         if item is None:
