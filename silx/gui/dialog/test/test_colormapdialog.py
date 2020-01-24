@@ -53,6 +53,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
 
     def tearDown(self):
         self.qapp.processEvents()
+        self.colormapDiag.close()
         self.colormapDiag.deleteLater()
         self.qapp.processEvents()
         del self.colormapDiag
