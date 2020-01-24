@@ -333,7 +333,9 @@ class ColormapDialog(qt.QDialog):
         the self.setcolormap is a callback)
         """
 
-        self.__displayInvalidated = False
+        self.__colormapInvalidated = False
+        self.__dataInvalidated = False
+
         self._histogramData = None
         self._minMaxWasEdited = False
         self._initialRange = None
@@ -486,17 +488,33 @@ class ColormapDialog(qt.QDialog):
 
         self._plotUpdate()
 
-    def _displayLater(self):
-        self.__displayInvalidated = True
+    def _invalidateColormap(self):
+        if self.isVisible():
+            self._applyColormap()
+        else:
+            self.__colormapInvalidated = True
+
+    def _invalidateData(self):
+        if self.isVisible():
+            self._updateDataInPlot()
+            self._updateMinMaxData()
+        else:
+            self.__dataInvalidated = True
+
+    def _validate(self):
+        if self.__colormapInvalidated:
+            self._applyColormap()
+        if self.__dataInvalidated or self.__colormapInvalidated:
+            self._updateDataInPlot()
+            self._updateMinMaxData()
+        self.__dataInvalidated = False
+        self.__colormapInvalidated = False
 
     def showEvent(self, event):
         self.visibleChanged.emit(True)
         super(ColormapDialog, self).showEvent(event)
         if self.isVisible():
-            if self.__displayInvalidated:
-                self._applyColormap()
-                self._updateDataInPlot()
-                self.__displayInvalidated = False
+            self._validate()
 
     def closeEvent(self, event):
         if not self.isModal():
@@ -738,12 +756,20 @@ class ColormapDialog(qt.QDialog):
         return dataRange
 
     @staticmethod
-    def computeHistogram(data, scale=Axis.LINEAR):
+    def computeHistogram(data, scale=Axis.LINEAR, dataRange=None):
         """Compute the data histogram as used by :meth:`setHistogram`.
 
         :param data: The data to process
+        :param dataRange: Optional range to compute the histogram, which is a
+            tuple of min, max
         :rtype: Tuple(List(float),List(float)
         """
+        if data is None:
+            return None, None
+
+        if len(data) == 0:
+            return None, None
+
         if data.ndim == 3:  # RGB(A) images
             _logger.info('Converting current image from RGB(A) to grayscale\
                 in order to compute the intensity distribution')
@@ -751,13 +777,18 @@ class ColormapDialog(qt.QDialog):
                     data[:, :, 1] * 0.587 +
                     data[:, :, 2] * 0.114)
 
-        if len(data) == 0:
-            return None, None
-
         if scale == Axis.LOGARITHMIC:
             with numpy.errstate(divide='ignore'):
                 data = numpy.log10(data)
-        xmin, xmax = min_max(data, min_positive=False, finite=True)
+
+        if dataRange is not None:
+            xmin, xmax = dataRange
+            if xmin is None:
+                return None, None
+            if scale == Axis.LOGARITHMIC:
+                xmin, xmax = numpy.log10(xmin), numpy.log10(xmax)
+        else:
+            xmin, xmax = min_max(data, min_positive=False, finite=True)
 
         if xmin is None:
             return None, None
@@ -801,10 +832,10 @@ class ColormapDialog(qt.QDialog):
         else:
             self._item = weakref.ref(item, self._itemAboutToFinalize)
 
-        if self.isVisible():
-            self._updateDataInPlot()
-        else:
-            self._displayLater()
+        self._dataRange = None
+        self._histogramData = None
+
+        self._invalidateData()
 
     def _getData(self):
         if self._data is None:
@@ -828,10 +859,10 @@ class ColormapDialog(qt.QDialog):
         else:
             self._data = weakref.ref(data, self._dataAboutToFinalize)
 
-        if self.isVisible():
-            self._updateDataInPlot()
-        else:
-            self._displayLater()
+        self._dataRange = None
+        self._histogramData = None
+
+        self._invalidateData()
 
     def _getArray(self):
         item = self._getItem()
@@ -851,28 +882,46 @@ class ColormapDialog(qt.QDialog):
 
     def _updateDataInPlot(self):
         data = self._getArray()
-        if data is None:
-            self.setDataRange()
-            self.setHistogram()
-            return
-
-        if data.size == 0:
-            # One or more dimensions are equal to 0
-            self.setHistogram()
-            self.setDataRange()
-            return
-
         mode = self._dataInPlotMode
 
         if mode == _DataInPlotMode.RANGE:
-            result = self.computeDataRange(data)
-            self.setHistogram()
-            self.setDataRange(*result)
+            dataRange = self._getNormalizedDataRange()
+            xmin, xmax = dataRange
+            if xmax is None or xmin is None:
+                self._plot.remove(legend='Data', kind='histogram')
+            else:
+                histogram = numpy.array([1])
+                bin_edges = numpy.array([xmin, xmax])
+                self._plot.addHistogram(histogram,
+                                        bin_edges,
+                                        legend="Data",
+                                        color='gray',
+                                        align='center',
+                                        fill=True,
+                                        z=1)
+
         elif mode == _DataInPlotMode.HISTOGRAM:
-            # The histogram should be done in a worker thread
-            result = self.computeHistogram(data, scale=self._plot.getXAxis().getScale())
-            self.setHistogram(*result)
-            self.setDataRange()
+            dataRange = self._getNormalizedDataRange()
+            if self._histogramData is None:
+                result = self.computeHistogram(data, scale=self._plot.getXAxis().getScale(), dataRange=dataRange)
+                self._histogramData = result
+
+            histogram, bin_edges = self._histogramData
+            if histogram is None or bin_edges is None:
+                self._plot.remove(legend='Data', kind='histogram')
+            else:
+                histogram = numpy.array(histogram, copy=True)
+                bin_edges = numpy.array(bin_edges, copy=True)
+                norm_histogram = histogram / max(histogram)
+                self._plot.addHistogram(norm_histogram,
+                                        bin_edges,
+                                        legend="Data",
+                                        color='gray',
+                                        align='center',
+                                        fill=True,
+                                        z=1)
+        else:
+            _logger.error("Mode unsupported")
 
     def _invalidateHistogram(self):
         """Recompute the histogram if it is displayed"""
@@ -919,20 +968,10 @@ class ColormapDialog(qt.QDialog):
         """
         if hist is None or bin_edges is None:
             self._histogramData = None
-            self._plot.remove(legend='Histogram', kind='histogram')
         else:
-            hist = numpy.array(hist, copy=True)
-            bin_edges = numpy.array(bin_edges, copy=True)
             self._histogramData = hist, bin_edges
-            norm_hist = hist / max(hist)
-            self._plot.addHistogram(norm_hist,
-                                    bin_edges,
-                                    legend="Histogram",
-                                    color='gray',
-                                    align='center',
-                                    fill=True,
-                                    z=1)
-        self._updateMinMaxData()
+
+        self._invalidateData()
 
     def getColormap(self):
         """Return the colormap description.
@@ -973,49 +1012,35 @@ class ColormapDialog(qt.QDialog):
 
         if dataMin is None or dataMax is None:
             self._dataRange = None
-            self._plot.remove(legend='Range', kind='histogram')
         else:
-            hist = numpy.array([1])
-            bin_edges = numpy.array([dataMin, dataMax])
-            self._plot.addHistogram(hist,
-                                    bin_edges,
-                                    legend="Range",
-                                    color='gray',
-                                    align='center',
-                                    fill=True,
-                                    z=1)
             self._dataRange = minimum, positiveMin, maximum
-        self._updateMinMaxData()
+
+        self._invalidateData()
 
     def _updateMinMaxData(self):
         """Update the min and max of the data according to the data range and
         the histogram preset."""
         colormap = self.getColormap()
 
-        minimum = float("+inf")
-        maximum = float("-inf")
+        xmin = float("+inf")
+        xmax = float("-inf")
 
         if colormap is not None:
             # find a range in the positive part of the data
             data = self._getItem()
             if data is None:
                 data = self._getData()
-            minimum, maximum = colormap.getColormapRange(data)
+            xmin, xmax = colormap.getColormapRange(data)
         else:
-            if self._dataRange is not None:
-                minimum = min(minimum, self._dataRange[0])
-                maximum = max(maximum, self._dataRange[2])
-            if self._histogramData is not None:
-                minimum = min(minimum, self._histogramData[1][0])
-                maximum = max(maximum, self._histogramData[1][-1])
+            xmin, xmax = self._getNormalizedDataRange()
 
-        if not numpy.isfinite(minimum):
-            minimum = None
-        if not numpy.isfinite(maximum):
-            maximum = None
+        if xmin is not None and not numpy.isfinite(xmin):
+            xmin = None
+        if xmax is not None and not numpy.isfinite(xmax):
+            xmax = None
 
-        self._minValue.setDataValue(minimum)
-        self._maxValue.setDataValue(maximum)
+        self._minValue.setDataValue(xmin)
+        self._maxValue.setDataValue(xmax)
         self._plotUpdate()
 
     def accept(self):
@@ -1058,11 +1083,7 @@ class ColormapDialog(qt.QDialog):
 
         self._colormap = colormap
         self.storeCurrentState()
-        if self.isVisible():
-            self._applyColormap()
-        else:
-            self._updateResetButton()
-            self._displayLater()
+        self._invalidateColormap()
 
     def _updateResetButton(self):
         resetButton = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
