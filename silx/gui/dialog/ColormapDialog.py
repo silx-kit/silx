@@ -472,6 +472,7 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow(self._plotBox)
         formLayout.addRow(rangeLayout)
         label = qt.QLabel('Mode:', self)
+        self._autoscaleModeLabel = label
         label.setToolTip("Mode for autoscale. Algorithm used to find range in auto scale.")
         formLayout.addRow(label, autoScaleCombo)
         formLayout.addRow(self._buttonsModal)
@@ -1094,6 +1095,7 @@ class ColormapDialog(qt.QDialog):
             self._minValue.setEnabled(False)
             self._maxValue.setEnabled(False)
             self._autoButtons.setEnabled(False)
+            self._autoscaleModeLabel.setEnabled(False)
         else:
             self._ignoreColormapChange = True
             self._comboBoxColormap.setCurrentLut(colormap)
@@ -1118,6 +1120,7 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
             self._minValue.setEnabled(colormap.isEditable())
             self._maxValue.setEnabled(colormap.isEditable())
+            self._autoscaleModeLabel.setEnabled(vmin is None or vmax is None)
 
             axis = self._plot.getXAxis()
             scale = axis.LINEAR if colormap.getNormalization() == Colormap.LINEAR else axis.LOGARITHMIC
@@ -1147,6 +1150,7 @@ class ColormapDialog(qt.QDialog):
 
         vmin = self._minValue.getValue()
         vmax = self._maxValue.getValue()
+        self._autoscaleModeLabel.setEnabled(vmin is None or vmax is None)
         self._ignoreColormapChange = True
         colormap = self._colormap()
         if colormap is not None:
