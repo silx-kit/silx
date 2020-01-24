@@ -758,36 +758,36 @@ class ColormapDialog(qt.QDialog):
         :param data: The data to process
         :rtype: Tuple(List(float),List(float)
         """
-        _data = data
-        if _data.ndim == 3:  # RGB(A) images
+        if data.ndim == 3:  # RGB(A) images
             _logger.info('Converting current image from RGB(A) to grayscale\
                 in order to compute the intensity distribution')
-            _data = (_data[:, :, 0] * 0.299 +
-                     _data[:, :, 1] * 0.587 +
-                     _data[:, :, 2] * 0.114)
+            data = (data[:, :, 0] * 0.299 +
+                    data[:, :, 1] * 0.587 +
+                    data[:, :, 2] * 0.114)
 
-        if len(_data) == 0:
+        if len(data) == 0:
             return None, None
 
         if scale == Axis.LOGARITHMIC:
             with numpy.errstate(divide='ignore'):
-                _data = numpy.log10(_data)
-        xmin, xmax = min_max(_data, min_positive=False, finite=True)
+                data = numpy.log10(data)
+        xmin, xmax = min_max(data, min_positive=False, finite=True)
+
         if xmin is None:
             return None, None
 
-        nbins = min(256, int(numpy.sqrt(_data.size)))
+        nbins = min(256, int(numpy.sqrt(data.size)))
         data_range = xmin, xmax
 
         # bad hack: get 256 bins in the case we have a B&W
-        if numpy.issubdtype(_data.dtype, numpy.integer):
+        if numpy.issubdtype(data.dtype, numpy.integer):
             if nbins > xmax - xmin:
                 nbins = xmax - xmin
 
         nbins = max(2, nbins)
-        _data = _data.ravel().astype(numpy.float32)
+        data = data.ravel().astype(numpy.float32)
 
-        histogram = Histogramnd(_data, n_bins=nbins, histo_range=data_range)
+        histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
         bins = histogram.edges[0]
         if scale == Axis.LOGARITHMIC:
             bins = 10**bins
