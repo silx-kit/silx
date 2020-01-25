@@ -93,10 +93,14 @@ _colormapIconPreview = {}
 
 class _BoundaryWidget(qt.QWidget):
     """Widget to edit a boundary of the colormap (vmin, vmax)"""
+
     sigValueChanged = qt.Signal(object)
     """Signal emitted when value is changed"""
+    # FIXME: This signal have to be renamed
 
     editingFinished = qt.Signal()
+
+    textEdited = qt.Signal()
 
     def __init__(self, parent=None, value=0.0):
         qt.QWidget.__init__(self, parent=None)
@@ -110,14 +114,16 @@ class _BoundaryWidget(qt.QWidget):
         self._autoCB.setVisible(False)
 
         self._autoCB.toggled.connect(self._autoToggled)
-        self.sigValueChanged = self._autoCB.toggled
-        self.textEdited = self._numVal.textEdited
+        self._numVal.textEdited.connect(self.__textEdited)
         self._numVal.editingFinished.connect(self.__editingFinished)
         self._dataValue = None
 
         self.__realValue = None
         """Store the real value set by setValue/setFiniteValue, to avoid
         rounding of the widget"""
+
+    def __textEdited(self):
+        self.textEdited.emit()
 
     def __editingFinished(self):
         self.__realValue = None
@@ -149,6 +155,7 @@ class _BoundaryWidget(qt.QWidget):
     def _autoToggled(self, enabled):
         self._numVal.setEnabled(not enabled)
         self._updateDisplayedText()
+        self.sigValueChanged.emit(enabled)
 
     def _updateDisplayedText(self):
         # if dataValue is finite
