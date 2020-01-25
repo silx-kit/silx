@@ -391,7 +391,7 @@ class _ColormapHistogram(qt.QWidget):
         self._plot.setInteractiveMode('select', zoomOnWheel=False)
         self._plot.setActiveCurveHandling(False)
         self._plot.setMinimumSize(qt.QSize(250, 200))
-        self._plot.sigPlotSignal.connect(self._plotSlot)
+        self._plot.sigPlotSignal.connect(self._plotEventReceived)
         palette = self.palette()
         color = palette.color(qt.QPalette.Normal, qt.QPalette.Window)
         self._plot.setBackgroundColor(color)
@@ -444,7 +444,7 @@ class _ColormapHistogram(qt.QWidget):
         plotBoxLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
         self.setLayout(plotBoxLayout)
 
-    def _plotSlot(self, event):
+    def _plotEventReceived(self, event):
         """Handle events from the plot"""
         kind = event['event']
 
@@ -642,7 +642,7 @@ class ColormapDialog(qt.QDialog):
 
         # Colormap row
         self._comboBoxColormap = ColormapNameComboBox(parent=self)
-        self._comboBoxColormap.currentIndexChanged[int].connect(self._updateLut)
+        self._comboBoxColormap.currentIndexChanged[int].connect(self._comboBoxColormapUpdated)
 
         # Normalization row
         self._normButtonLinear = qt.QRadioButton('Linear')
@@ -653,7 +653,8 @@ class ColormapDialog(qt.QDialog):
         normButtonGroup.setExclusive(True)
         normButtonGroup.addButton(self._normButtonLinear)
         normButtonGroup.addButton(self._normButtonLog)
-        normButtonGroup.buttonClicked[qt.QAbstractButton].connect(self._updateNormalization)
+        normButtonGroup.buttonClicked[qt.QAbstractButton].connect(self._normalizationUpdated)
+        self._normButtonGroup = normButtonGroup
 
         normLayout = qt.QHBoxLayout()
         normLayout.setContentsMargins(0, 0, 0, 0)
@@ -662,24 +663,23 @@ class ColormapDialog(qt.QDialog):
         normLayout.addWidget(self._normButtonLog)
 
         autoScaleCombo = _AutoscaleModeComboBox(self)
-        autoScaleCombo.currentIndexChanged.connect(self._updateAutoScaleMode)
+        autoScaleCombo.currentIndexChanged.connect(self._autoscaleModeUpdated)
         self._autoScaleCombo = autoScaleCombo
 
         # Min row
-
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
         self._minValue.textEdited.connect(self._minMaxTextEdited)
         self._minValue.editingFinished.connect(self._minEditingFinished)
-        self._minValue.sigValueChanged.connect(self._updateMinMax)
+        self._minValue.sigValueChanged.connect(self._minValueUpdated)
 
         # Max row
         self._maxValue = _BoundaryWidget(parent=self, value=10.0)
         self._maxValue.textEdited.connect(self._minMaxTextEdited)
-        self._maxValue.sigValueChanged.connect(self._updateMinMax)
         self._maxValue.editingFinished.connect(self._maxEditingFinished)
+        self._maxValue.sigValueChanged.connect(self._maxValueUpdated)
 
         self._autoButtons = _AutoScaleButtons(self)
-        self._autoButtons.autoRangeChanged.connect(self._updateAutoRange)
+        self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())
@@ -1183,24 +1183,24 @@ class ColormapDialog(qt.QDialog):
             self._plotBox.setVisible(False)
             self._plotBox.setFiniteRange((None, None))
         else:
-            self._ignoreColormapChange = True
-            self._comboBoxColormap.setCurrentLut(colormap)
-            self._comboBoxColormap.setEnabled(colormap.isEditable())
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
-            self._normButtonLinear.setChecked(
-                colormap.getNormalization() == Colormap.LINEAR)
-            self._normButtonLog.setChecked(
-                colormap.getNormalization() == Colormap.LOGARITHM)
-            vmin = colormap.getVMin()
-            vmax = colormap.getVMax()
-            self._normButtonLinear.setEnabled(colormap.isEditable())
-            self._normButtonLog.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._comboBoxColormap):
+                self._comboBoxColormap.setCurrentLut(colormap)
+                self._comboBoxColormap.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._normButtonGroup):
+                norm = colormap.getNormalization()
+                self._normButtonLinear.setChecked(norm == Colormap.LINEAR)
+                self._normButtonLog.setChecked(norm == Colormap.LOGARITHM)
+                self._normButtonLinear.setEnabled(colormap.isEditable())
+                self._normButtonLog.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
                 self._autoScaleCombo.setEnabled(colormap.isEditable())
-            self._autoButtons.setEnabled(colormap.isEditable())
-            self._autoButtons.setAutoRangeFromColormap(colormap)
+            with utils.blockSignals(self._autoButtons):
+                self._autoButtons.setEnabled(colormap.isEditable())
+                self._autoButtons.setAutoRangeFromColormap(colormap)
 
+            vmin, vmax = colormap.getVRange()
             if vmin is None or vmax is None:
                 # Compute it only if needed
                 # cause this can compute uncached min/max
@@ -1208,10 +1208,12 @@ class ColormapDialog(qt.QDialog):
             else:
                 dataRange = vmin, vmax
 
-            self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
-            self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
-            self._minValue.setEnabled(colormap.isEditable())
-            self._maxValue.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._minValue):
+                self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
+                self._minValue.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._maxValue):
+                self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
+                self._maxValue.setEnabled(colormap.isEditable())
             self._autoscaleModeLabel.setEnabled(vmin is None or vmax is None)
 
             with utils.blockSignals(self._plotBox):
@@ -1219,8 +1221,6 @@ class ColormapDialog(qt.QDialog):
                 self._plotBox.setFiniteRange(dataRange)
                 scale = Axis.LINEAR if colormap.getNormalization() == Colormap.LINEAR else Axis.LOGARITHMIC
                 self._plotBox.setScale(scale)
-
-            self._ignoreColormapChange = False
 
     def _updateMinMax(self):
         if self._ignoreColormapChange is True:
@@ -1253,9 +1253,10 @@ class ColormapDialog(qt.QDialog):
         self._ignoreColormapChange = False
         self._updateResetButton()
 
-    def _updateLut(self):
-        if self._ignoreColormapChange is True:
-            return
+    def _comboBoxColormapUpdated(self):
+        """Callback executed when the combo box with the colormap LUT
+        is updated by user input.
+        """
         colormap = self._colormap()
         if colormap is not None:
             self._ignoreColormapChange = True
@@ -1268,10 +1269,10 @@ class ColormapDialog(qt.QDialog):
             self._ignoreColormapChange = False
         self._plotBox.updateLut()
 
-    def _updateAutoRange(self, autoRange):
-        if self._ignoreColormapChange is True:
-            return
-
+    def _autoRangeButtonsUpdated(self, autoRange):
+        """Callback executed when the autoscale buttons widget
+        is updated by user input.
+        """
         dataRange = self._getFiniteColormapRange()
 
         # Final colormap range
@@ -1290,9 +1291,10 @@ class ColormapDialog(qt.QDialog):
 
         self._updateMinMaxData()
 
-    def _updateNormalization(self, button):
-        if self._ignoreColormapChange is True:
-            return
+    def _normalizationUpdated(self, button):
+        """Callback executed when the normalization widget
+        is updated by user input.
+        """
         if not button.isChecked():
             return
 
@@ -1315,10 +1317,10 @@ class ColormapDialog(qt.QDialog):
         self._plotBox.invalidateHistogram()
         self._updateMinMaxData()
 
-    def _updateAutoScaleMode(self):
-        if self._ignoreColormapChange is True:
-            return
-
+    def _autoscaleModeUpdated(self):
+        """Callback executed when the autoscale mode widget
+        is updated by user input.
+        """
         mode = self._autoScaleCombo.currentMode()
 
         colormap = self.getColormap()
@@ -1329,6 +1331,16 @@ class ColormapDialog(qt.QDialog):
 
         self._plotBox.invalidateHistogram()
         self._updateMinMaxData()
+
+    def _minValueUpdated(self):
+        """Callback executed when the min value is
+        updated by user input"""
+        self._updateMinMax()
+
+    def _maxValueUpdated(self):
+        """Callback executed when the max value is
+        updated by user input"""
+        self._updateMinMax()
 
     def _minMaxTextEdited(self, text):
         """Handle _minValue and _maxValue textEdited signal"""
