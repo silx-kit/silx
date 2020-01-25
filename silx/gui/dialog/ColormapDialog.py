@@ -315,22 +315,49 @@ class _DataInPlotMode(enum.Enum):
 class _ColormapHistogram(qt.QWidget):
     """Display the colormap and the data as a plot."""
 
+    sigRangeMoving = qt.Signal(object, object)
+    """Emitted when a mouse interaction moves the location
+    of the colormap range in the plot.
+
+    This signal contains 2 elements:
+
+    - vmin: A float value if this range was moved, else None
+    - vmax: A float value if this range was moved, else None
+    """
+
+    sigRangeMoved = qt.Signal()
+    """Emitted when a mouse interaction stop"""
+
     def __init__(self, parent):
         qt.QWidget.__init__(self, parent=parent)
         self._dataInPlotMode = _DataInPlotMode.RANGE
+        self._finiteRange = None, None
         self._plotInit()
+
+    def getFiniteRange(self):
+        """Returns the colormap range as displayed in the plot."""
+        return self._finiteRange
+
+    def setFiniteRange(self, vRange):
+        """Set the colormap range to use in the plot.
+
+        Here there is no concept of auto. The values should
+        not be None, except if there is no range or marker
+        to display.
+        """
+        if vRange == self._finiteRange:
+            return
+        self._finiteRange = vRange
+        self._updateMarkerPosition()
 
     def getColormap(self):
         return self.parent().getColormap()
 
-    def _getArray(self):
-        return self.parent()._getArray()
+    def _getCachedHistogram(self):
+        return self.parent()._getCachedHistogram()
 
     def _getNormalizedDataRange(self):
         return self.parent()._getNormalizedDataRange()
-
-    def _getFiniteRange(self):
-        return self.parent()._getFiniteRange()
 
     def _getDisplayableRange(self):
         """Returns the selected min/max range to apply to the data,
@@ -347,7 +374,7 @@ class _ColormapHistogram(qt.QWidget):
                 return pos > 0.0
             return True
 
-        posMin, posMax = self._getFiniteRange()
+        posMin, posMax = self.getFiniteRange()
         if not isDisplayable(posMin):
             posMin = None
         if not isDisplayable(posMax):
@@ -419,49 +446,32 @@ class _ColormapHistogram(qt.QWidget):
 
     def _plotSlot(self, event):
         """Handle events from the plot"""
-        if event['event'] in ('markerMoving', 'markerMoved'):
+        kind = event['event']
+
+        if kind == 'markerMoving':
             value = event['xdata']
             if event['label'] == 'Min':
-                colormap = self.getColormap()
-                if colormap.getVMin() is None:
-                    colormap.setVMin(value)
-                self.parent()._minValue.setValue(value)
-                self._updateLutItem(None)
+                self._finiteRange = value, self._finiteRange[1]
+                self.sigRangeMoving.emit(value, None)
             elif event['label'] == 'Max':
-                colormap = self.getColormap()
-                if colormap.getVMax() is None:
-                    colormap.setVMax(value)
-                self.parent()._maxValue.setValue(value)
-                self._updateLutItem(None)
+                self._finiteRange = self._finiteRange[0], value
+                self.sigRangeMoving.emit(None, value)
+            self._updateLutItem(self._finiteRange)
+        elif kind == 'markerMoved':
+            self.sigRangeMoved.emit()
+        else:
+            pass
 
-            # This will recreate the markers while interacting...
-            # It might break if marker interaction is changed
-            if event['event'] == 'markerMoved':
-                self.parent()._initialRange = None
-                self.parent()._updateMinMax()
-                self._updateLutItem(None)
-            else:
-                self._plotUpdate(updateMarkers=False)
-
-    def _plotUpdate(self, updateMarkers=True):
-        """Update the plot content
-
-        :param bool updateMarkers: True to update markers, False otherwith
-        """
+    def _updateMarkerPosition(self):
         colormap = self.getColormap()
+        posMin, posMax = self._getDisplayableRange()
+
         if colormap is None:
-            if self.isVisible():
-                self.setVisible(False)
-                self.setFixedSize(self.sizeHint())
-            return
-
-        if not self.isVisible():
-            self.setVisible(True)
-            self.setFixedSize(self.sizeHint())
-
-        if updateMarkers:
-            posMin, posMax = self._getDisplayableRange()
+            isDraggable = False
+        else:
             isDraggable = colormap.isEditable()
+
+        with utils.blockSignals(self):
             if posMin is not None:
                 self._plot.addXMarker(
                     posMin,
@@ -479,8 +489,7 @@ class _ColormapHistogram(qt.QWidget):
                     color="blue",
                     constraint=self._plotMaxMarkerConstraint)
 
-            self._updateLutItem((posMin, posMax))
-
+        self._updateLutItem((posMin, posMax))
         self._plot.resetZoom()
 
     def _updateLutItem(self, vRange):
@@ -511,12 +520,16 @@ class _ColormapHistogram(qt.QWidget):
 
     def _plotMinMarkerConstraint(self, x, y):
         """Constraint of the min marker"""
-        _vmin, vmax = self._getFiniteRange()
+        _vmin, vmax = self.getFiniteRange()
+        if vmax is None:
+            return x, y
         return min(x, vmax), y
 
     def _plotMaxMarkerConstraint(self, x, y):
         """Constraint of the max marker"""
-        vmin, _vmax = self._getFiniteRange()
+        vmin, _vmax = self.getFiniteRange()
+        if vmin is None:
+            return x, y
         return max(x, vmin), y
 
     def _setDataInPlotMode(self, mode):
@@ -550,7 +563,7 @@ class _ColormapHistogram(qt.QWidget):
 
         elif mode == _DataInPlotMode.HISTOGRAM:
             dataRange = self._getNormalizedDataRange()
-            histogram, bin_edges = self.parent()._getCachedHistogram()
+            histogram, bin_edges = self._getCachedHistogram()
             if histogram is None or bin_edges is None:
                 self._plot.remove(legend='Data', kind='histogram')
             else:
@@ -575,8 +588,8 @@ class _ColormapHistogram(qt.QWidget):
     def sizeHint(self):
         return self.layout().minimumSize()
 
-    def plotUpdate(self):
-        self._plotUpdate()
+    def updateLut(self):
+        self._updateLutItem(None)
 
     def getScale(self):
         return self._plot.getXAxis().getScale()
@@ -619,7 +632,6 @@ class ColormapDialog(qt.QDialog):
 
         self._histogramData = None
         self._minMaxWasEdited = False
-        self._initialRange = None
 
         self._dataRange = None
         """If defined 3-tuple containing information from a data:
@@ -684,6 +696,8 @@ class ColormapDialog(qt.QDialog):
         rangeLayout.addWidget(self._autoButtons, 2, 0, 1, -1, qt.Qt.AlignCenter)
 
         self._plotBox = _ColormapHistogram(self)
+        self._plotBox.sigRangeMoving.connect(self._histogramRangeMoving)
+        self._plotBox.sigRangeMoved.connect(self._histogramRangeMoved)
 
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
@@ -728,8 +742,6 @@ class ColormapDialog(qt.QDialog):
 
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
-
-        self._plotBox.plotUpdate()
 
     def _invalidateColormap(self):
         if self.isVisible():
@@ -785,10 +797,21 @@ class ColormapDialog(qt.QDialog):
         self.setModal(wasModal)
         return result
 
-    def _getFiniteRange(self):
-        posMin = self._minValue.getFiniteValue()
-        posMax = self._maxValue.getFiniteValue()
-        return posMin, posMax
+    def _getFiniteColormapRange(self):
+        """Return a colormap range where auto ranges are fixed
+        according to the available data.
+        """
+        # FIXME: This function should cache the result, as it is done for items
+        # Or an item holder could be used
+        colormap = self.getColormap()
+        if colormap is None:
+            return 1, 10
+
+        item = self._getItem()
+        if item is not None:
+            return colormap.getColormapRange(item)
+        array = self._getData()
+        return colormap.getColormapRange(array)
 
     def _getNormalizedDataRange(self):
         """Return a data range already normalized according to the colormap
@@ -1074,10 +1097,7 @@ class ColormapDialog(qt.QDialog):
 
         if colormap is not None:
             # find a range in the positive part of the data
-            data = self._getItem()
-            if data is None:
-                data = self._getData()
-            xmin, xmax = colormap.getColormapRange(data)
+            xmin, xmax = self._getFiniteColormapRange()
         else:
             xmin, xmax = self._getNormalizedDataRange()
 
@@ -1086,9 +1106,12 @@ class ColormapDialog(qt.QDialog):
         if xmax is not None and not numpy.isfinite(xmax):
             xmax = None
 
-        self._minValue.setDataValue(xmin)
-        self._maxValue.setDataValue(xmax)
-        self._plotBox.plotUpdate()
+        with utils.blockSignals(self._minValue):
+            self._minValue.setDataValue(xmin)
+        with utils.blockSignals(self._maxValue):
+            self._maxValue.setDataValue(xmax)
+        with utils.blockSignals(self._plotBox):
+            self._plotBox.setFiniteRange((xmin, xmax))
 
     def accept(self):
         self.storeCurrentState()
@@ -1143,7 +1166,6 @@ class ColormapDialog(qt.QDialog):
 
     def _applyColormap(self):
         self._updateResetButton()
-        self._plotBox._updateLutItem(None)
         if self._ignoreColormapChange is True:
             return
 
@@ -1157,6 +1179,8 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setEnabled(False)
             self._autoButtons.setEnabled(False)
             self._autoscaleModeLabel.setEnabled(False)
+            self._plotBox.setVisible(False)
+            self._plotBox.setFiniteRange((None, None))
         else:
             self._ignoreColormapChange = True
             self._comboBoxColormap.setCurrentLut(colormap)
@@ -1176,19 +1200,26 @@ class ColormapDialog(qt.QDialog):
             self._autoButtons.setEnabled(colormap.isEditable())
             self._autoButtons.setAutoRangeFromColormap(colormap)
 
-            dataRange = colormap.getColormapRange()
+            if vmin is None or vmax is None:
+                # Compute it only if needed
+                # cause this can compute uncached min/max
+                dataRange = self._getFiniteColormapRange()
+            else:
+                dataRange = vmin, vmax
+
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
             self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
             self._minValue.setEnabled(colormap.isEditable())
             self._maxValue.setEnabled(colormap.isEditable())
             self._autoscaleModeLabel.setEnabled(vmin is None or vmax is None)
 
-            scale = Axis.LINEAR if colormap.getNormalization() == Colormap.LINEAR else Axis.LOGARITHMIC
-            self._plotBox.setScale(scale)
+            with utils.blockSignals(self._plotBox):
+                self._plotBox.setVisible(True)
+                self._plotBox.setFiniteRange(dataRange)
+                scale = Axis.LINEAR if colormap.getNormalization() == Colormap.LINEAR else Axis.LOGARITHMIC
+                self._plotBox.setScale(scale)
 
             self._ignoreColormapChange = False
-
-        self._plotBox.plotUpdate()
 
     def _updateMinMax(self):
         if self._ignoreColormapChange is True:
@@ -1196,6 +1227,7 @@ class ColormapDialog(qt.QDialog):
 
         vmin = self._minValue.getFiniteValue()
         vmax = self._maxValue.getFiniteValue()
+
         if vmax is not None and vmin is not None and vmax < vmin:
             # If only one autoscale is checked constraints are too strong
             # We have to edit a user value anyway it is not requested
@@ -1208,21 +1240,21 @@ class ColormapDialog(qt.QDialog):
             if cmax is False:
                 self._maxValue.setFiniteValue(vmin)
 
-        vmin = self._minValue.getValue()
-        vmax = self._maxValue.getValue()
-        self._autoscaleModeLabel.setEnabled(vmin is None or vmax is None)
+        autoMin = self._minValue.isAutoChecked()
+        autoMax = self._maxValue.isAutoChecked()
+        self._autoscaleModeLabel.setEnabled(autoMin or autoMax)
         self._ignoreColormapChange = True
         colormap = self._colormap()
         if colormap is not None:
-            colormap.setVRange(vmin, vmax)
+            colormap.setVRange(None if autoMin else vmin,
+                               None if autoMax else vmax)
+        self._plotBox.setFiniteRange((vmin, vmax))
         self._ignoreColormapChange = False
-        self._plotBox.plotUpdate()
         self._updateResetButton()
 
     def _updateLut(self):
         if self._ignoreColormapChange is True:
             return
-
         colormap = self._colormap()
         if colormap is not None:
             self._ignoreColormapChange = True
@@ -1233,28 +1265,27 @@ class ColormapDialog(qt.QDialog):
                 lut = self._comboBoxColormap.getCurrentColors()
                 colormap.setColormapLUT(lut)
             self._ignoreColormapChange = False
+        self._plotBox.updateLut()
 
     def _updateAutoRange(self, autoRange):
         if self._ignoreColormapChange is True:
             return
 
-        colormap = self.getColormap()
-
-        data = self._getItem()
-        if data is None:
-            data = self._getData()
-        dataRange = colormap.getColormapRange(data)
+        dataRange = self._getFiniteColormapRange()
 
         # Final colormap range
         vmin = (dataRange[0] if not autoRange[0] else None)
         vmax = (dataRange[1] if not autoRange[1] else None)
 
         self._ignoreColormapChange = True
+        colormap = self.getColormap()
         colormap.setVRange(vmin, vmax)
         self._ignoreColormapChange = False
 
-        self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
-        self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
+        with utils.blockSignals(self._minValue):
+            self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
+        with utils.blockSignals(self._maxValue):
+            self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
 
         self._updateMinMaxData()
 
@@ -1331,6 +1362,29 @@ class ColormapDialog(qt.QDialog):
                     self._minValue.getValue() > self._maxValue.getValue()):
                 self._maxValue.setValue(self._minValue.getValue())
             self._updateMinMax()
+
+    def _histogramRangeMoving(self, vmin, vmax):
+        """Callback executed when for colormap range displayed in
+        the histogram widget is moving.
+
+        :param vmin: Update of the minimum range, else None
+        :param vmax: Update of the maximum range, else None
+        """
+        colormap = self.getColormap()
+        if vmin is not None:
+            if colormap.getVMin() is None:
+                colormap.setVMin(vmin)
+            self._minValue.setValue(vmin)
+        if vmax is not None:
+            if colormap.getVMax() is None:
+                colormap.setVMax(vmax)
+            self._maxValue.setValue(vmax)
+
+    def _histogramRangeMoved(self):
+        """Callback executed when for colormap range displayed in
+        the histogram widget has finished to move
+        """
+        self._updateMinMax()
 
     def keyPressEvent(self, event):
         """Override key handling.
