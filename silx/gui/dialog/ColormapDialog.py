@@ -457,6 +457,7 @@ class _ColormapHistogram(qt.QWidget):
                 self._finiteRange = self._finiteRange[0], value
                 self.sigRangeMoving.emit(None, value)
             self._updateLutItem(self._finiteRange)
+            self._plot.resetZoom()
         elif kind == 'markerMoved':
             self.sigRangeMoved.emit()
         else:
