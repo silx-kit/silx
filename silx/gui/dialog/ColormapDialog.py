@@ -863,9 +863,9 @@ class ColormapDialog(qt.QDialog):
         rangeLayout.addWidget(self._maxValue, 1, 1)
         rangeLayout.addWidget(self._autoButtons, 2, 0, 1, -1, qt.Qt.AlignCenter)
 
-        self._plotBox = _ColormapHistogram(self)
-        self._plotBox.sigRangeMoving.connect(self._histogramRangeMoving)
-        self._plotBox.sigRangeMoved.connect(self._histogramRangeMoved)
+        self._histoWidget = _ColormapHistogram(self)
+        self._histoWidget.sigRangeMoving.connect(self._histogramRangeMoving)
+        self._histoWidget.sigRangeMoved.connect(self._histogramRangeMoved)
 
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
@@ -897,7 +897,7 @@ class ColormapDialog(qt.QDialog):
         formLayout.setContentsMargins(10, 10, 10, 10)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
         formLayout.addRow('Normalization:', normLayout)
-        formLayout.addRow(self._plotBox)
+        formLayout.addRow(self._histoWidget)
         formLayout.addRow(rangeLayout)
         label = qt.QLabel('Mode:', self)
         self._autoscaleModeLabel = label
@@ -920,15 +920,16 @@ class ColormapDialog(qt.QDialog):
     def _invalidateData(self):
         if self.isVisible():
             self._updateWidgetRange()
-            self._plotBox.invalidateData()
+            self._histoWidget.invalidateData()
         else:
             self.__dataInvalidated = True
 
     def _validate(self):
         if self.__colormapInvalidated:
             self._applyColormap()
+        if self.__dataInvalidated:
+            self._histoWidget.invalidateData()
         if self.__dataInvalidated or self.__colormapInvalidated:
-            self._plotBox.invalidateData()
             self._updateWidgetRange()
         self.__dataInvalidated = False
         self.__colormapInvalidated = False
@@ -1247,8 +1248,8 @@ class ColormapDialog(qt.QDialog):
             self._minValue.setValue(xmin, autoMin)
         with utils.blockSignals(self._maxValue):
             self._maxValue.setValue(xmax, autoMax)
-        with utils.blockSignals(self._plotBox):
-            self._plotBox.setFiniteRange((xmin, xmax))
+        with utils.blockSignals(self._histoWidget):
+            self._histoWidget.setFiniteRange((xmin, xmax))
         with utils.blockSignals(self._autoButtons):
             self._autoButtons.setAutoRange((autoMin, autoMax))
         self._autoscaleModeLabel.setEnabled(autoMin or autoMax)
@@ -1319,8 +1320,8 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setEnabled(False)
             self._autoButtons.setEnabled(False)
             self._autoscaleModeLabel.setEnabled(False)
-            self._plotBox.setVisible(False)
-            self._plotBox.setFiniteRange((None, None))
+            self._histoWidget.setVisible(False)
+            self._histoWidget.setFiniteRange((None, None))
         else:
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             with utils.blockSignals(self._comboBoxColormap):
@@ -1354,10 +1355,10 @@ class ColormapDialog(qt.QDialog):
                 self._maxValue.setEnabled(colormap.isEditable())
             self._autoscaleModeLabel.setEnabled(vmin is None or vmax is None)
 
-            with utils.blockSignals(self._plotBox):
-                self._plotBox.setVisible(True)
-                self._plotBox.setFiniteRange(dataRange)
-                self._plotBox.updateNormalization()
+            with utils.blockSignals(self._histoWidget):
+                self._histoWidget.setVisible(True)
+                self._histoWidget.setFiniteRange(dataRange)
+                self._histoWidget.updateNormalization()
 
     def _comboBoxColormapUpdated(self):
         """Callback executed when the combo box with the colormap LUT
@@ -1373,7 +1374,7 @@ class ColormapDialog(qt.QDialog):
                 lut = self._comboBoxColormap.getCurrentColors()
                 colormap.setColormapLUT(lut)
             self._ignoreColormapChange = False
-        self._plotBox.updateLut()
+        self._histoWidget.updateLut()
 
     def _autoRangeButtonsUpdated(self, autoRange):
         """Callback executed when the autoscale buttons widget
@@ -1415,7 +1416,7 @@ class ColormapDialog(qt.QDialog):
         if colormap is not None:
             self._ignoreColormapChange = True
             colormap.setNormalization(norm)
-            self._plotBox.updateNormalization()
+            self._histoWidget.updateNormalization()
             self._ignoreColormapChange = False
 
         self._updateWidgetRange()
