@@ -92,15 +92,19 @@ _colormapIconPreview = {}
 
 
 class _BoundaryWidget(qt.QWidget):
-    """Widget to edit a boundary of the colormap (vmin, vmax)"""
+    """Widget to edit a boundary of the colormap (vmin or vmax)"""
+
+    sigAutoScaleChanged = qt.Signal(object)
+    """Signal emitted when the autoscale was changed
+
+    True is sent as an argument if autoscale is set to true.
+    """
 
     sigValueChanged = qt.Signal(object)
-    """Signal emitted when value is changed"""
-    # FIXME: This signal have to be renamed
+    """Signal emitted when value is changed
 
-    editingFinished = qt.Signal()
-
-    textEdited = qt.Signal()
+    The new value is sent as an argument.
+    """
 
     def __init__(self, parent=None, value=0.0):
         qt.QWidget.__init__(self, parent=None)
@@ -118,24 +122,33 @@ class _BoundaryWidget(qt.QWidget):
         self._numVal.editingFinished.connect(self.__editingFinished)
         self._dataValue = None
 
+        self.__textWasEdited = False
+        """True if the text was edited, in order to send an event
+        at the end of the user interaction"""
+
         self.__realValue = None
         """Store the real value set by setValue/setFiniteValue, to avoid
         rounding of the widget"""
 
     def __textEdited(self):
-        self.textEdited.emit()
+        self.__textWasEdited = True
 
     def __editingFinished(self):
+        value = self.getFiniteValue()
         self.__realValue = None
-        self.editingFinished.emit()
+        if self.__textWasEdited:
+            self.sigValueChanged.emit(value)
+            self.__textWasEdited = False
 
     def isAutoChecked(self):
         return self._autoCB.isChecked()
 
     def getValue(self):
+        """Returns the stored range. If autoscale is
+        enabled, this returns None.
+        """
         if self._autoCB.isChecked():
             return None
-
         if self.__realValue is not None:
             return self.__realValue
         return self._numVal.value()
@@ -155,14 +168,14 @@ class _BoundaryWidget(qt.QWidget):
     def _autoToggled(self, enabled):
         self._numVal.setEnabled(not enabled)
         self._updateDisplayedText()
-        self.sigValueChanged.emit(enabled)
+        self.sigAutoScaleChanged.emit(enabled)
 
     def _updateDisplayedText(self):
         # if dataValue is finite
+        self.__textWasEdited = False
         if self._autoCB.isChecked() and self._dataValue is not None:
-            old = self._numVal.blockSignals(True)
-            self._numVal.setValue(self._dataValue)
-            self._numVal.blockSignals(old)
+            with utils.blockSignals(self._numVal):
+                self._numVal.setValue(self._dataValue)
 
     def setDataValue(self, dataValue):
         self._dataValue = dataValue
@@ -632,7 +645,6 @@ class ColormapDialog(qt.QDialog):
         self.__dataInvalidated = False
 
         self._histogramData = None
-        self._minMaxWasEdited = False
 
         self._dataRange = None
         """If defined 3-tuple containing information from a data:
@@ -668,14 +680,12 @@ class ColormapDialog(qt.QDialog):
 
         # Min row
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
-        self._minValue.textEdited.connect(self._minMaxTextEdited)
-        self._minValue.editingFinished.connect(self._minEditingFinished)
+        self._minValue.sigAutoScaleChanged.connect(self._minAutoscaleUpdated)
         self._minValue.sigValueChanged.connect(self._minValueUpdated)
 
         # Max row
         self._maxValue = _BoundaryWidget(parent=self, value=10.0)
-        self._maxValue.textEdited.connect(self._minMaxTextEdited)
-        self._maxValue.editingFinished.connect(self._maxEditingFinished)
+        self._maxValue.sigAutoScaleChanged.connect(self._maxAutoscaleUpdated)
         self._maxValue.sigValueChanged.connect(self._maxValueUpdated)
 
         self._autoButtons = _AutoScaleButtons(self)
@@ -1332,49 +1342,33 @@ class ColormapDialog(qt.QDialog):
         self._plotBox.invalidateHistogram()
         self._updateMinMaxData()
 
-    def _minValueUpdated(self):
-        """Callback executed when the min value is
-        updated by user input"""
+    def _minAutoscaleUpdated(self, autoEnabled):
+        """Callback executed when the min autoscale from
+        the lineedit is updated by user input"""
         self._updateMinMax()
 
-    def _maxValueUpdated(self):
-        """Callback executed when the max value is
-        updated by user input"""
+    def _maxAutoscaleUpdated(self, autoEnabled):
+        """Callback executed when the max autoscale from
+        the lineedit is updated by user input"""
         self._updateMinMax()
 
-    def _minMaxTextEdited(self, text):
-        """Handle _minValue and _maxValue textEdited signal"""
-        self._minMaxWasEdited = True
+    def _minValueUpdated(self, value):
+        """Callback executed when the lineedit min value is
+        updated by user input"""
+        # Fix start value
+        if (self._maxValue.getValue() is not None and
+                self._minValue.getValue() > self._maxValue.getValue()):
+            self._minValue.setValue(self._maxValue.getValue())
+        self._updateMinMax()
 
-    def _minEditingFinished(self):
-        """Handle _minValue editingFinished signal
-
-        Together with :meth:`_minMaxTextEdited`, this avoids to notify
-        colormap change when the min and max value where not edited.
-        """
-        if self._minMaxWasEdited:
-            self._minMaxWasEdited = False
-
-            # Fix start value
-            if (self._maxValue.getValue() is not None and
-                    self._minValue.getValue() > self._maxValue.getValue()):
-                self._minValue.setValue(self._maxValue.getValue())
-            self._updateMinMax()
-
-    def _maxEditingFinished(self):
-        """Handle _maxValue editingFinished signal
-
-        Together with :meth:`_minMaxTextEdited`, this avoids to notify
-        colormap change when the min and max value where not edited.
-        """
-        if self._minMaxWasEdited:
-            self._minMaxWasEdited = False
-
-            # Fix end value
-            if (self._minValue.getValue() is not None and
-                    self._minValue.getValue() > self._maxValue.getValue()):
-                self._maxValue.setValue(self._minValue.getValue())
-            self._updateMinMax()
+    def _maxValueUpdated(self, value):
+        """Callback executed when the lineedit max value is
+        updated by user input"""
+        # Fix end value
+        if (self._minValue.getValue() is not None and
+                self._minValue.getValue() > self._maxValue.getValue()):
+            self._maxValue.setValue(self._minValue.getValue())
+        self._updateMinMax()
 
     def _histogramRangeMoving(self, vmin, vmax):
         """Callback executed when for colormap range displayed in
