@@ -37,6 +37,7 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import Colormap, preferredColormaps
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.PlotWindow import PlotWindow
+from silx.gui.plot.items.image import ImageData
 
 import numpy.random
 
@@ -316,6 +317,53 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         data = numpy.random.rand(5, 5)
         self.colormapDiag.setData(data)
         self.colormapDiag.setData(None)
+
+    def testImageItem(self):
+        """Check that an ImageData plot item can be used"""
+        dialog = self.colormapDiag
+        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        data = numpy.arange(3**2).reshape(3, 3)
+        item = ImageData()
+        item.setData(data, copy=False)
+
+        dialog.setColormap(colormap)
+        dialog.show()
+        self.qapp.processEvents()
+        dialog.setItem(item)
+        vrange = dialog._getFiniteColormapRange()
+        self.assertEqual(vrange, (0, 8))
+
+    def testItemDel(self):
+        """Check that the plot items are not hard linked to the dialog"""
+        dialog = self.colormapDiag
+        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        data = numpy.arange(3**2).reshape(3, 3)
+        item = ImageData()
+        item.setData(data, copy=False)
+
+        dialog.setColormap(colormap)
+        dialog.show()
+        self.qapp.processEvents()
+        dialog.setItem(item)
+        previousRange = dialog._getFiniteColormapRange()
+        del item
+        vrange = dialog._getFiniteColormapRange()
+        self.assertNotEqual(vrange, previousRange)
+
+    def testDataDel(self):
+        """Check that the data are not hard linked to the dialog"""
+        dialog = self.colormapDiag
+        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        data = numpy.arange(5)
+
+        dialog.setColormap(colormap)
+        dialog.show()
+        self.qapp.processEvents()
+        dialog.setData(data)
+        previousRange = dialog._getFiniteColormapRange()
+        del data
+        vrange = dialog._getFiniteColormapRange()
+        self.assertNotEqual(vrange, previousRange)
 
 
 class TestColormapAction(TestCaseQt):
