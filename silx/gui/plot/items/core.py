@@ -533,7 +533,8 @@ class ColormapMixIn(ItemMixInBase):
         if colormap is None:
             colormap = self.getColormap()
 
-        if colormap is None or self.__data is None:
+        data = self.getColormappedData(copy=False)
+        if colormap is None or data is None:
             return None, None
 
         normalization = colormap.getNormalization()
@@ -541,7 +542,7 @@ class ColormapMixIn(ItemMixInBase):
         key = normalization, autoscaleMode
         vRange = self.__cacheColormapRange.get(key, None)
         if vRange is None:
-            vRange = colormap._computeAutoscaleRange(self.__data)
+            vRange = colormap._computeAutoscaleRange(data)
             self.__cacheColormapRange[key] = vRange
         return vRange
 
