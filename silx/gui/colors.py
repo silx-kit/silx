@@ -641,7 +641,7 @@ class Colormap(qt.QObject):
                 vMin = result.min_positive  # >0 or None
                 vMax = result.maximum  # can be <= 0
             elif self._autoscaleMode == Colormap.STDDEV3:
-                with numpy.errstate(divide='ignore'):
+                with numpy.errstate(divide='ignore', invalid='ignore'):
                     normdata = numpy.log10(data)
                 mean = numpy.nanmean(normdata)
                 std = numpy.nanstd(normdata)

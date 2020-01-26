@@ -1035,7 +1035,7 @@ class ColormapDialog(qt.QDialog):
                     data[:, :, 2] * 0.114)
 
         if scale == Colormap.LOGARITHM:
-            with numpy.errstate(divide='ignore'):
+            with numpy.errstate(divide='ignore', invalid='ignore'):
                 data = numpy.log10(data)
 
         if dataRange is not None:
