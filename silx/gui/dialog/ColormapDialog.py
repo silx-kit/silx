@@ -153,9 +153,9 @@ class _BoundaryWidget(qt.QWidget):
         self.__textWasEdited = True
 
     def __editingFinished(self):
-        value = self.getFiniteValue()
-        self.__realValue = None
         if self.__textWasEdited:
+            value = self._numVal.value()
+            self.__realValue = value
             self.sigValueChanged.emit(value)
             self.__textWasEdited = False
 
