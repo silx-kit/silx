@@ -80,8 +80,7 @@ from ..plot.items import BoundingRect
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
 from silx.math.combo import min_max
-from silx.gui.plot.items import ImageData
-from silx.gui.plot.items import ColormapMixIn
+from silx.gui.plot import items
 from silx.gui import icons
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.math.histogram import Histogramnd
@@ -91,6 +90,22 @@ _logger = logging.getLogger(__name__)
 
 
 _colormapIconPreview = {}
+
+
+class _DataRefHolder(items.Item, items.ColormapMixIn):
+    """Holder for a weakref of a numpy array.
+
+    It provides features from `ColormapMixIn`.
+    """
+
+    def __init__(self, dataRef):
+        items.Item.__init__(self)
+        items.ColormapMixIn.__init__(self)
+        self.__dataRef = dataRef
+        self._updated(items.ItemChangedType.DATA)
+
+    def getColormappedData(self, copy=True):
+        return self.__dataRef()
 
 
 class _BoundaryWidget(qt.QWidget):
@@ -632,8 +647,16 @@ class ColormapDialog(qt.QDialog):
         self.setWindowTitle(title)
 
         self._colormap = None
+
         self._data = None
+        """Weak ref to an external numpy array
+        """
+        self._itemHolder = None
+        """Hard ref to a private item (used as holder to the data)
+        This allow to reuse the item cache
+        """
         self._item = None
+        """Weak ref to an external item"""
 
         self._ignoreColormapChange = False
         """Used as a semaphore to avoid editing the colormap object when we are
@@ -816,8 +839,6 @@ class ColormapDialog(qt.QDialog):
         """Return a colormap range where auto ranges are fixed
         according to the available data.
         """
-        # FIXME: This function should cache the result, as it is done for items
-        # Or an item holder could be used
         colormap = self.getColormap()
         if colormap is None:
             return 1, 10
@@ -825,8 +846,8 @@ class ColormapDialog(qt.QDialog):
         item = self._getItem()
         if item is not None:
             return colormap.getColormapRange(item)
-        array = self._getData()
-        return colormap.getColormapRange(array)
+        # If there is not item, there is no data
+        return colormap.getColormapRange(None)
 
     def _getNormalizedDataRange(self):
         """Return a data range already normalized according to the colormap
@@ -944,6 +965,8 @@ class ColormapDialog(qt.QDialog):
         return histogram.histo, bins
 
     def _getItem(self):
+        if self._itemHolder is not None:
+            return self._itemHolder
         if self._item is None:
             return None
         return self._item()
@@ -960,11 +983,12 @@ class ColormapDialog(qt.QDialog):
         # if old is item:
         #     return
         self._data = None
+        self._itemHolder = None
         try:
             if item is None:
                 self._item = None
             else:
-                if isinstance(item, ColormapMixIn):
+                if not isinstance(item, items.ColormapMixIn):
                     self._item = None
                     raise ValueError("Item %s is not supported" % item)
                 self._item = weakref.ref(item, self._itemAboutToFinalize)
@@ -992,8 +1016,10 @@ class ColormapDialog(qt.QDialog):
         self._item = None
         if data is None:
             self._data = None
+            self._itemHolder = None
         else:
             self._data = weakref.ref(data, self._dataAboutToFinalize)
+            self._itemHolder = _DataRefHolder(self._data)
 
         self._dataRange = None
         self._histogramData = None
@@ -1001,10 +1027,13 @@ class ColormapDialog(qt.QDialog):
         self._invalidateData()
 
     def _getArray(self):
+        data = self._getData()
+        if data is not None:
+            return data
         item = self._getItem()
         if item is not None:
-            return item.getColormappedData()
-        return self._getData()
+            return item.getColormappedData(copy=False)
+        return None
 
     def _colormapAboutToFinalize(self, weakrefColormap):
         """Callback when the data weakref is about to be finalized."""
@@ -1219,7 +1248,6 @@ class ColormapDialog(qt.QDialog):
             vmin, vmax = colormap.getVRange()
             if vmin is None or vmax is None:
                 # Compute it only if needed
-                # cause this can compute uncached min/max
                 dataRange = self._getFiniteColormapRange()
             else:
                 dataRange = vmin, vmax
