@@ -120,6 +120,8 @@ class _BoundaryWidget(qt.QWidget):
         self._autoCB.toggled.connect(self._autoToggled)
         self._numVal.textEdited.connect(self.__textEdited)
         self._numVal.editingFinished.connect(self.__editingFinished)
+        self.setFocusProxy(self._numVal)
+
         self._dataValue = None
 
         self.__textWasEdited = False
@@ -1397,12 +1399,23 @@ class ColormapDialog(qt.QDialog):
         """Override key handling.
 
         It disables leaving the dialog when editing a text field.
+
+        But several press of Return key can be use to validate and close the
+        dialog.
         """
-        if event.key() == qt.Qt.Key_Enter and (self._minValue.hasFocus() or
-                                               self._maxValue.hasFocus()):
+        if event.key() in (qt.Qt.Key_Enter, qt.Qt.Key_Return):
             # Bypass QDialog keyPressEvent
             # To avoid leaving the dialog when pressing enter on a text field
-            super(qt.QDialog, self).keyPressEvent(event)
+            if self._minValue.hasFocus():
+                nextFocus = self._maxValue
+            elif self._maxValue.hasFocus():
+                if self.isModal():
+                    nextFocus = self._buttonsModal.button(qt.QDialogButtonBox.Apply)
+                else:
+                    nextFocus = self._buttonsNonModal.button(qt.QDialogButtonBox.Close)
+            else:
+                nextFocus = None
+            if nextFocus is not None:
+                nextFocus.setFocus(qt.Qt.OtherFocusReason)
         else:
-            # Use QDialog keyPressEvent
             super(ColormapDialog, self).keyPressEvent(event)
