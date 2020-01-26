@@ -243,14 +243,14 @@ class ColormapDialogExample(qt.QMainWindow):
         data = numpy.random.poisson(data)
         self.data = data
         for dialog in self.colorDialogs:
-            dialog.setData(data)
+            dialog.setData(self.data)
 
     def setDataFromNegToPos(self):
         data = numpy.ones((50,50))
         data = numpy.random.poisson(data)
         self.data = data - 0.5
         for dialog in self.colorDialogs:
-            dialog.setData(data)
+            dialog.setData(self.data)
 
     def setDataWithNonFinite(self):
         from silx.image import phantomgenerator
@@ -265,7 +265,7 @@ class ColormapDialogExample(qt.QMainWindow):
         data[100] = float("-inf")
         self.data = data
         for dialog in self.colorDialogs:
-            dialog.setData(data)
+            dialog.setData(self.data)
 
 
 def main():
