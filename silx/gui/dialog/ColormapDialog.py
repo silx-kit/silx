@@ -80,6 +80,8 @@ from ..plot.items import BoundingRect
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
 from silx.math.combo import min_max
+from silx.gui.plot.items import ImageData
+from silx.gui.plot.items import ColormapMixIn
 from silx.gui import icons
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.math.histogram import Histogramnd
@@ -957,17 +959,19 @@ class ColormapDialog(qt.QDialog):
         # old = self._getItem()
         # if old is item:
         #     return
-
         self._data = None
-        if item is None:
-            self._item = None
-        else:
-            self._item = weakref.ref(item, self._itemAboutToFinalize)
-
-        self._dataRange = None
-        self._histogramData = None
-
-        self._invalidateData()
+        try:
+            if item is None:
+                self._item = None
+            else:
+                if isinstance(item, ColormapMixIn):
+                    self._item = None
+                    raise ValueError("Item %s is not supported" % item)
+                self._item = weakref.ref(item, self._itemAboutToFinalize)
+        finally:
+            self._dataRange = None
+            self._histogramData = None
+            self._invalidateData()
 
     def _getData(self):
         if self._data is None:
