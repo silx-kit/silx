@@ -372,6 +372,20 @@ class _ColormapHistogram(qt.QWidget):
         self._finiteRange = None, None
         self._plotInit()
 
+        self._histogramData = None
+        """Histogram displayed in the plot"""
+
+        self._dataRange = None
+        """Histogram displayed in the plot"""
+
+        self._invalidated = False
+
+    def paintEvent(self, event):
+        if self._invalidated:
+            self._updateDataInPlot()
+            self._invalidated = False
+        return super(_ColormapHistogram, self).paintEvent(event)
+
     def getFiniteRange(self):
         """Returns the colormap range as displayed in the plot."""
         return self._finiteRange
@@ -391,11 +405,101 @@ class _ColormapHistogram(qt.QWidget):
     def getColormap(self):
         return self.parent().getColormap()
 
-    def _getCachedHistogram(self):
-        return self.parent()._getCachedHistogram()
+    def _getNormalizedHistogram(self):
+        """Return an histogram already normalized according to the colormap
+        normalization.
+
+        Returns a tuple edges, counts
+        """
+        if self._histogramData is None:
+            histogram = self._computeNormalizedHistogram()
+            self._histogramData = histogram
+        return self._histogramData
+
+    def _computeNormalizedHistogram(self):
+        colormap = self.getColormap()
+        if colormap is None:
+            norm = Colormap.LINEAR
+        else:
+            norm = colormap.getNormalization()
+
+        # Try to use the histogram defined in the dialog
+        histo = self.parent()._getHistogram()
+        if histo is not None:
+            counts, edges = histo
+            if norm == Colormap.LINEAR:
+                return counts, edges
+            elif norm == Colormap.LOGARITHM:
+                ipositive = numpy.argmax(edges > 0)
+                if edges[ipositive] > 0:
+                    counts = counts[ipositive:]
+                    edges = edges[ipositive:]
+                    return counts, edges
+                else:
+                    return None, None
+            else:
+                _logger.error("Undefined %s normalization", norm)
+
+        data = self.parent()._getArray()
+        if data is None:
+            return None, None
+        dataRange = self._getNormalizedDataRange()
+        if dataRange[0] is None or dataRange[1] is None:
+            return None, None
+        counts, edges = self.parent().computeHistogram(data, scale=norm, dataRange=dataRange)
+        return counts, edges
 
     def _getNormalizedDataRange(self):
-        return self.parent()._getNormalizedDataRange()
+        """Return a data range already normalized according to the colormap
+        normalization.
+
+        Returns a tuple with min and max
+        """
+        if self._dataRange is None:
+            dataRange = self._computeNormalizedDataRange()
+            self._dataRange = dataRange
+        return self._dataRange
+
+    def _computeNormalizedDataRange(self):
+        colormap = self.getColormap()
+        if colormap is None:
+            norm = Colormap.LINEAR
+        else:
+            norm = colormap.getNormalization()
+
+        # Try to use the one defined in the dialog
+        dataRange = self.parent()._getDataRange()
+        if dataRange is not None:
+            if norm == Colormap.LINEAR:
+                return dataRange[0], dataRange[2]
+            elif norm == Colormap.LOGARITHM:
+                return dataRange[1], dataRange[2]
+            else:
+                _logger.error("Undefined %s normalization", norm)
+
+        # Try to use the histogram defined in the dialog
+        histo = self.parent()._getHistogram()
+        if histo is not None:
+            bins, _counts = histo
+            dataRange = min_max(bins, min_positive=True, finite=True)
+            if norm == Colormap.LINEAR:
+                return dataRange.minimum, dataRange.maximum
+            elif norm == Colormap.LOGARITHM:
+                return dataRange.min_positive, dataRange.maximum
+            else:
+                _logger.error("Undefined %s normalization", norm)
+
+        item  = self.parent()._getItem()
+        if item is not None:
+            # Trick to reach data range using colormap cache
+            cm = Colormap()
+            cm.setVRange(None, None)
+            cm.setNormalization(norm)
+            dataRange = item._getColormapAutoscaleRange(cm)
+            return dataRange
+
+        # If there is no item, there is no data
+        return None, None
 
     def _getDisplayableRange(self):
         """Returns the selected min/max range to apply to the data,
@@ -406,7 +510,7 @@ class _ColormapHistogram(qt.QWidget):
 
         :returns: Tuple{float, float}
         """
-        scale = self.getScale()
+        scale = self._plot.getXAxis().getScale()
         def isDisplayable(pos):
             if scale == Axis.LOGARITHMIC:
                 return pos > 0.0
@@ -583,8 +687,25 @@ class _ColormapHistogram(qt.QWidget):
         mode = action.data()
         self._setDataInPlotMode(mode)
 
+    def invalidateData(self):
+        self._histogramData = None
+        self._dataRange = None
+        self._invalidated = True
+        self.update()
+
     def _updateDataInPlot(self):
         mode = self._dataInPlotMode
+
+        norm = self._getNorm()
+        if norm == Colormap.LINEAR:
+            scale = Axis.LINEAR
+        elif norm == Colormap.LOGARITHM:
+            scale = Axis.LOGARITHMIC
+        else:
+            scale = Axis.LINEAR
+
+        axis = self._plot.getXAxis()
+        axis.setScale(scale)
 
         if mode == _DataInPlotMode.RANGE:
             dataRange = self._getNormalizedDataRange()
@@ -603,8 +724,7 @@ class _ColormapHistogram(qt.QWidget):
                                         z=1)
 
         elif mode == _DataInPlotMode.HISTOGRAM:
-            dataRange = self._getNormalizedDataRange()
-            histogram, bin_edges = self._getCachedHistogram()
+            histogram, bin_edges = self._getNormalizedHistogram()
             if histogram is None or bin_edges is None:
                 self._plot.remove(legend='Data', kind='histogram')
             else:
@@ -621,23 +741,25 @@ class _ColormapHistogram(qt.QWidget):
         else:
             _logger.error("Mode unsupported")
 
-    def invalidateHistogram(self):
-        """Recompute the histogram if it is displayed"""
-        if self._dataInPlotMode == _DataInPlotMode.HISTOGRAM:
-            self._updateDataInPlot()
-
     def sizeHint(self):
         return self.layout().minimumSize()
 
     def updateLut(self):
         self._updateLutItem(None)
 
-    def getScale(self):
-        return self._plot.getXAxis().getScale()
+    def _getNorm(self):
+        colormap = self.getColormap()
+        if colormap is None:
+            return Axis.LINEAR
+        else:
+            norm = colormap.getNormalization()
+            return norm
 
-    def setScale(self, scale):
-        axis = self._plot.getXAxis()
-        axis.setScale(scale)
+    def updateNormalization(self):
+        self._histogramData = None
+        self._dataRange = None
+        self._updateDataInPlot()
+        self._updateMarkerPosition()
 
 
 class ColormapDialog(qt.QDialog):
@@ -798,7 +920,7 @@ class ColormapDialog(qt.QDialog):
     def _invalidateData(self):
         if self.isVisible():
             self._updateWidgetRange()
-            self._plotBox._updateDataInPlot()
+            self._plotBox.invalidateData()
         else:
             self.__dataInvalidated = True
 
@@ -806,7 +928,7 @@ class ColormapDialog(qt.QDialog):
         if self.__colormapInvalidated:
             self._applyColormap()
         if self.__dataInvalidated or self.__colormapInvalidated:
-            self._plotBox._updateDataInPlot()
+            self._plotBox.invalidateData()
             self._updateWidgetRange()
         self.__dataInvalidated = False
         self.__colormapInvalidated = False
@@ -857,40 +979,6 @@ class ColormapDialog(qt.QDialog):
         # If there is not item, there is no data
         return colormap.getColormapRange(None)
 
-    def _getNormalizedDataRange(self):
-        """Return a data range already normalized according to the colormap
-        normalization
-
-        Returns a tuple with min and max
-        """
-        colormap = self.getColormap()
-        if colormap is None:
-            norm = Colormap.LINEAR
-        else:
-            norm = colormap.getNormalization()
-
-        item  = self._getItem()
-        if item is not None:
-            # This reusing the item cache
-            cm = Colormap()
-            cm.setVRange(None, None)
-            cm.setNormalization(norm)
-            dataRange = item._getColormapAutoscaleRange(cm)
-            return dataRange
-
-        # This data range contains 3 elements: min, minPos, max
-        if self._dataRange is None:
-            array = self._getArray()
-            self._dataRange = self.computeDataRange(array)
-        dataRange = self._dataRange
-        if norm == Colormap.LINEAR:
-            return dataRange[0], dataRange[2]
-        elif norm == Colormap.LOGARITHM:
-            return dataRange[1], dataRange[2]
-        else:
-            _logger.error("Normalization %s not supported", norm)
-            return None, None
-
     @staticmethod
     def computeDataRange(data):
         """Compute the data range as used by :meth:`setDataRange`.
@@ -926,6 +1014,10 @@ class ColormapDialog(qt.QDialog):
             tuple of min, max
         :rtype: Tuple(List(float),List(float)
         """
+        # For compatibility
+        if scale == Axis.LOGARITHMIC:
+            scale = Colormap.LOGARITHM
+
         if data is None:
             return None, None
 
@@ -939,7 +1031,7 @@ class ColormapDialog(qt.QDialog):
                     data[:, :, 1] * 0.587 +
                     data[:, :, 2] * 0.114)
 
-        if scale == Axis.LOGARITHMIC:
+        if scale == Colormap.LOGARITHM:
             with numpy.errstate(divide='ignore'):
                 data = numpy.log10(data)
 
@@ -947,7 +1039,7 @@ class ColormapDialog(qt.QDialog):
             xmin, xmax = dataRange
             if xmin is None:
                 return None, None
-            if scale == Axis.LOGARITHMIC:
+            if scale == Colormap.LOGARITHM:
                 xmin, xmax = numpy.log10(xmin), numpy.log10(xmax)
         else:
             xmin, xmax = min_max(data, min_positive=False, finite=True)
@@ -968,7 +1060,7 @@ class ColormapDialog(qt.QDialog):
 
         histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
         bins = histogram.edges[0]
-        if scale == Axis.LOGARITHMIC:
+        if scale == Colormap.LOGARITHM:
             bins = 10**bins
         return histogram.histo, bins
 
@@ -1060,26 +1152,18 @@ class ColormapDialog(qt.QDialog):
 
     @deprecation.deprecated(reason="It is private data", since_version="0.13")
     def getHistogram(self):
-        return self._getHistogram()
+        histo = self._getHistogram()
+        if histo is None:
+            return None
+        counts, bin_edges = histo
+        return numpy.array(counts, copy=True), numpy.array(bin_edges, copy=True)
 
     def _getHistogram(self):
-        """Returns the counts and bin edges of the displayed histogram.
+        """Returns the histogram defined to the dialog as metadata
+        to describe the data in order to speed up the dialog.
 
         :return: (hist, bin_edges)
         :rtype: 2-tuple of numpy arrays"""
-        if self._histogramData is None:
-            return None
-        else:
-            bins, counts = self._histogramData
-            return numpy.array(bins, copy=True), numpy.array(counts, copy=True)
-
-    def _getCachedHistogram(self):
-        data = self._getArray()
-        dataRange = self._getNormalizedDataRange()
-        scale = self._plotBox.getScale()
-        if self._histogramData is None:
-            result = self.computeHistogram(data, scale=scale, dataRange=dataRange)
-            self._histogramData = result
         return self._histogramData
 
     def setHistogram(self, hist=None, bin_edges=None):
@@ -1121,6 +1205,14 @@ class ColormapDialog(qt.QDialog):
                 self._ignoreColormapChange = False
                 self._applyColormap()
 
+    def _getDataRange(self):
+        """Returns the data range defined to the dialog as metadata
+        to describe the data in order to speed up the dialog.
+
+        :return: (minimum, positiveMin, maximum)
+        :rtype: 3-tuple of floats or None"""
+        return self._dataRange
+
     def setDataRange(self, minimum=None, positiveMin=None, maximum=None):
         """Set the range of data to use for the range of the histogram area.
 
@@ -1128,17 +1220,7 @@ class ColormapDialog(qt.QDialog):
         :param float positiveMin: The positive minimum of the data
         :param float maximum: The maximum of the data
         """
-        scale = self._plotBox.getScale()
-        if scale == Axis.LOGARITHMIC:
-            dataMin, dataMax = positiveMin, maximum
-        else:
-            dataMin, dataMax = minimum, maximum
-
-        if dataMin is None or dataMax is None:
-            self._dataRange = None
-        else:
-            self._dataRange = minimum, positiveMin, maximum
-
+        self._dataRange = minimum, positiveMin, maximum
         self._invalidateData()
 
     def _setColormapRange(self, xmin, xmax):
@@ -1275,8 +1357,7 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._plotBox):
                 self._plotBox.setVisible(True)
                 self._plotBox.setFiniteRange(dataRange)
-                scale = Axis.LINEAR if colormap.getNormalization() == Colormap.LINEAR else Axis.LOGARITHMIC
-                self._plotBox.setScale(scale)
+                self._plotBox.updateNormalization()
 
     def _comboBoxColormapUpdated(self):
         """Callback executed when the combo box with the colormap LUT
@@ -1325,10 +1406,8 @@ class ColormapDialog(qt.QDialog):
 
         if button is self._normButtonLinear:
             norm = Colormap.LINEAR
-            scale = Axis.LINEAR
         elif button is self._normButtonLog:
             norm = Colormap.LOGARITHM
-            scale = Axis.LOGARITHMIC
         else:
             assert(False)
 
@@ -1336,11 +1415,9 @@ class ColormapDialog(qt.QDialog):
         if colormap is not None:
             self._ignoreColormapChange = True
             colormap.setNormalization(norm)
-            self._plotBox.invalidateHistogram()
-            self._plotBox.setScale(scale)
+            self._plotBox.updateNormalization()
             self._ignoreColormapChange = False
 
-        self._plotBox.invalidateHistogram()
         self._updateWidgetRange()
 
     def _autoscaleModeUpdated(self):
