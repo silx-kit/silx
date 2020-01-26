@@ -372,10 +372,10 @@ class _ColormapHistogram(qt.QWidget):
         self._finiteRange = None, None
         self._plotInit()
 
-        self._histogramData = None
+        self._histogramData = {}
         """Histogram displayed in the plot"""
 
-        self._dataRange = None
+        self._dataRange = {}
         """Histogram displayed in the plot"""
 
         self._invalidated = False
@@ -411,10 +411,12 @@ class _ColormapHistogram(qt.QWidget):
 
         Returns a tuple edges, counts
         """
-        if self._histogramData is None:
+        norm = self._getNorm()
+        histogram = self._histogramData.get(norm, None)
+        if histogram is None:
             histogram = self._computeNormalizedHistogram()
-            self._histogramData = histogram
-        return self._histogramData
+            self._histogramData[norm] = histogram
+        return histogram
 
     def _computeNormalizedHistogram(self):
         colormap = self.getColormap()
@@ -455,10 +457,12 @@ class _ColormapHistogram(qt.QWidget):
 
         Returns a tuple with min and max
         """
-        if self._dataRange is None:
+        norm = self._getNorm()
+        dataRange = self._dataRange.get(norm, None)
+        if dataRange is None:
             dataRange = self._computeNormalizedDataRange()
-            self._dataRange = dataRange
-        return self._dataRange
+            self._dataRange[norm] = dataRange
+        return dataRange
 
     def _computeNormalizedDataRange(self):
         colormap = self.getColormap()
@@ -688,8 +692,8 @@ class _ColormapHistogram(qt.QWidget):
         self._setDataInPlotMode(mode)
 
     def invalidateData(self):
-        self._histogramData = None
-        self._dataRange = None
+        self._histogramData = {}
+        self._dataRange = {}
         self._invalidated = True
         self.update()
 
@@ -756,8 +760,6 @@ class _ColormapHistogram(qt.QWidget):
             return norm
 
     def updateNormalization(self):
-        self._histogramData = None
-        self._dataRange = None
         self._updateDataInPlot()
         self._updateMarkerPosition()
 
