@@ -290,7 +290,7 @@ class ComplexImageView(qt.QWidget):
         self._plotImage.setName('__ComplexImageView__complex_image__')
         self._plotImage.sigItemChanged.connect(self._itemChanged)
         self._plot2D.addItem(self._plotImage)
-        self._plot2D.setActiveImage(self._plotImage.getLegend())
+        self._plot2D.setActiveImage(self._plotImage.getName())
 
         toolBar = qt.QToolBar('Complex', self)
         toolBar.addWidget(

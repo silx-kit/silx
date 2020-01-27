@@ -233,14 +233,14 @@ class Item(qt.QObject):
         return False
 
     def getName(self):
-        """Returns the name of the item.
+        """Returns the name of the item which is used as legend.
 
         :rtype: str
         """
         return self.__name
 
     def setName(self, name):
-        """Set the name of the item
+        """Set the name of the item which is used as legend.
 
         :param str name: New name of the item
         :raises RuntimeError: If item belongs to a PlotWidget.

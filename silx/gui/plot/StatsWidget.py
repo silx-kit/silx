@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -198,10 +198,10 @@ class _PlotWidgetWrapper(_Wrapper):
             kind = self.getKind(item)
             if kind in plot._ACTIVE_ITEM_KINDS:
                 if plot._getActiveItem(kind) != item:
-                    plot._setActiveItem(kind, item.getLegend())
+                    plot._setActiveItem(kind, item.getName())
 
     def getLabel(self, item):
-        return item.getLegend()
+        return item.getName()
 
     def getKind(self, item):
         if isinstance(item, plotitems.Curve):

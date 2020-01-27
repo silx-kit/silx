@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -143,7 +143,7 @@ class FitAction(PlotToolAction):
             # presence of a unique or active curve
             item = curve
 
-        self.legend = item.getLegend()
+        self.legend = item.getName()
 
         if isinstance(item, Histogram):
             bin_edges = item.getBinEdgesData(copy=False)

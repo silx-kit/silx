@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -89,7 +89,7 @@ class MedianFilterAction(PlotToolAction):
             self._legend = None
         else:
             self._originalImage = self.plot.getImage(self._activeImageLegend).getData(copy=False)
-            self._legend = self.plot.getImage(self._activeImageLegend).getLegend()
+            self._legend = self.plot.getImage(self._activeImageLegend).getName()
 
     def _updateFilter(self, kernelWidth, conditional=False):
         if self._originalImage is None:

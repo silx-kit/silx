@@ -610,7 +610,7 @@ class PlotWidget(qt.QMainWindow):
         else:
             raise ValueError('Unsupported item type %s' % type(item))
 
-        return item.getLegend(), kind
+        return item.getName(), kind
 
     def _notifyContentChanged(self, item):
         legend, kind = self._itemKey(item)
@@ -938,13 +938,13 @@ class PlotWidget(qt.QMainWindow):
             self._notifyContentChanged(curve)
 
         if wasActive:
-            self.setActiveCurve(curve.getLegend())
+            self.setActiveCurve(curve.getName())
         elif self.getActiveCurveSelectionMode() == "legacy":
             if self.getActiveCurve(just_legend=True) is None:
                 if len(self.getAllCurves(just_legend=True,
                                      withhidden=False)) == 1:
                     if curve.isVisible():
-                        self.setActiveCurve(curve.getLegend())
+                        self.setActiveCurve(curve.getName())
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -1274,7 +1274,7 @@ class PlotWidget(qt.QMainWindow):
             self._notifyContentChanged(scatter)
 
         if len(self._getItems(kind="scatter")) == 1 or wasActive:
-            self._setActiveItem('scatter', scatter.getLegend())
+            self._setActiveItem('scatter', scatter.getName())
 
         return legend
 
@@ -1884,7 +1884,7 @@ class PlotWidget(qt.QMainWindow):
                                            withhidden=False)
                 if len(curves) == 1:
                     if curves[0].isVisible():
-                        self.setActiveCurve(curves[0].getLegend())
+                        self.setActiveCurve(curves[0].getName())
 
     def getActiveCurveSelectionMode(self):
         """Returns the current selection mode.
@@ -2003,7 +2003,7 @@ class PlotWidget(qt.QMainWindow):
             if oldActiveItem is None:
                 oldActiveLegend = None
             else:
-                oldActiveLegend = oldActiveItem.getLegend()
+                oldActiveLegend = oldActiveItem.getName()
             self.notify(
                 'active' + kind[0].upper() + kind[1:] + 'Changed',
                 updated=oldActiveLegend != activeLegend,

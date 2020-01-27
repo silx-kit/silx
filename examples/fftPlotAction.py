@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -110,7 +110,7 @@ class FftAction(PlotAction):
         for curve in allCurves:
             x = curve.getXData()
             y = curve.getYData()
-            legend = curve.getLegend()
+            legend = curve.getName()
             info = curve.getInfo()
             if info is None:
                 info = {}

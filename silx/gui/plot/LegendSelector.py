@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -925,7 +925,7 @@ class LegendsDockWidget(qt.QDockWidget):
             yaxis = 'right' if ddict['event'] == 'mapToRight' else 'left'
             self.plot.addCurve(x=curve.getXData(copy=False),
                                y=curve.getYData(copy=False),
-                               legend=curve.getLegend(),
+                               legend=curve.getName(),
                                info=curve.getInfo(),
                                yaxis=yaxis)
 
@@ -935,7 +935,7 @@ class LegendsDockWidget(qt.QDockWidget):
             symbol = ddict['symbol'] if ddict['points'] else ''
             self.plot.addCurve(x=curve.getXData(copy=False),
                                y=curve.getYData(copy=False),
-                               legend=curve.getLegend(),
+                               legend=curve.getName(),
                                info=curve.getInfo(),
                                symbol=symbol)
 
@@ -945,7 +945,7 @@ class LegendsDockWidget(qt.QDockWidget):
             linestyle = ddict['linestyle'] if ddict['line'] else ''
             self.plot.addCurve(x=curve.getXData(copy=False),
                                y=curve.getYData(copy=False),
-                               legend=curve.getLegend(),
+                               legend=curve.getName(),
                                info=curve.getInfo(),
                                linestyle=linestyle)
 
@@ -957,7 +957,7 @@ class LegendsDockWidget(qt.QDockWidget):
         """
         legendList = []
         for curve in self.plot.getAllCurves(withhidden=True):
-            legend = curve.getLegend()
+            legend = curve.getName()
             # Use active color if curve is active
             isActive = legend == self.plot.getActiveCurve(just_legend=True)
             style = curve.getCurrentStyle()
