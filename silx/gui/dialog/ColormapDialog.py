@@ -124,7 +124,7 @@ class _BoundaryWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None, value=0.0):
-        qt.QWidget.__init__(self, parent=None)
+        qt.QWidget.__init__(self, parent=parent)
         self.setLayout(qt.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self._numVal = FloatEdit(parent=self, value=value)
