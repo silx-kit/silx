@@ -101,43 +101,46 @@ class ColormapDialogExample(qt.QMainWindow):
 
         layout.addSpacing(10)
 
-        button = qt.QPushButton("Set no histogram")
+        button = qt.QPushButton("No histogram")
         button.clicked.connect(self.setNoHistogram)
         layout.addWidget(button)
-        button = qt.QPushButton("Set positive histogram")
+        button = qt.QPushButton("Positive histogram")
         button.clicked.connect(self.setPositiveHistogram)
         layout.addWidget(button)
-        button = qt.QPushButton("Set neg-pos histogram")
+        button = qt.QPushButton("Neg-pos histogram")
         button.clicked.connect(self.setNegPosHistogram)
         layout.addWidget(button)
-        button = qt.QPushButton("Set negative histogram")
+        button = qt.QPushButton("Negative histogram")
         button.clicked.connect(self.setNegativeHistogram)
         layout.addWidget(button)
 
         layout.addSpacing(10)
 
-        button = qt.QPushButton("Set no range")
+        button = qt.QPushButton("No range")
         button.clicked.connect(self.setNoRange)
         layout.addWidget(button)
-        button = qt.QPushButton("Set positive range")
+        button = qt.QPushButton("Positive range")
         button.clicked.connect(self.setPositiveRange)
         layout.addWidget(button)
-        button = qt.QPushButton("Set neg-pos range")
+        button = qt.QPushButton("Neg-pos range")
         button.clicked.connect(self.setNegPosRange)
         layout.addWidget(button)
-        button = qt.QPushButton("Set negative range")
+        button = qt.QPushButton("Negative range")
         button.clicked.connect(self.setNegativeRange)
         layout.addWidget(button)
 
         layout.addSpacing(10)
 
-        button = qt.QPushButton("Set no data")
+        button = qt.QPushButton("No data")
         button.clicked.connect(self.setNoData)
         layout.addWidget(button)
-        button = qt.QPushButton("Set shepp logan phantom")
+        button = qt.QPushButton("Zero to positive")
         button.clicked.connect(self.setSheppLoganPhantom)
         layout.addWidget(button)
-        button = qt.QPushButton("Set data with non finite")
+        button = qt.QPushButton("Negative to positive")
+        button.clicked.connect(self.setDataFromNegToPos)
+        layout.addWidget(button)
+        button = qt.QPushButton("Only non finite values")
         button.clicked.connect(self.setDataWithNonFinite)
         layout.addWidget(button)
 
@@ -240,7 +243,14 @@ class ColormapDialogExample(qt.QMainWindow):
         data = numpy.random.poisson(data)
         self.data = data
         for dialog in self.colorDialogs:
-            dialog.setData(data)
+            dialog.setData(self.data)
+
+    def setDataFromNegToPos(self):
+        data = numpy.ones((50,50))
+        data = numpy.random.poisson(data)
+        self.data = data - 0.5
+        for dialog in self.colorDialogs:
+            dialog.setData(self.data)
 
     def setDataWithNonFinite(self):
         from silx.image import phantomgenerator
@@ -255,7 +265,7 @@ class ColormapDialogExample(qt.QMainWindow):
         data[100] = float("-inf")
         self.data = data
         for dialog in self.colorDialogs:
-            dialog.setData(data)
+            dialog.setData(self.data)
 
 
 def main():
