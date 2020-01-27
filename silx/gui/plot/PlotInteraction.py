@@ -1106,8 +1106,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             return True
 
     def __init__(self, plot):
+        self._pan = Pan(plot)
+
         _PlotInteraction.__init__(self, plot)
-        ClickOrDrag.__init__(self)
+        ClickOrDrag.__init__(self,
+                             clickButtons=(LEFT_BTN, RIGHT_BTN),
+                             dragButtons=(LEFT_BTN, MIDDLE_BTN))
 
     def click(self, x, y, btn):
         """Handle mouse click
@@ -1236,60 +1240,71 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         :param str btn: The mouse button for which a drag is starting.
         :return: True if drag is catched by an item, False otherwise
         """
-        self._lastPos = self.plot.pixelToData(x, y)
-        assert self._lastPos is not None
+        if btn == LEFT_BTN:
+            self._lastPos = self.plot.pixelToData(x, y)
+            assert self._lastPos is not None
 
-        result = self.plot._pickTopMost(x, y, self.__isDraggableItem)
-        item = result.getItem() if result is not None else None
+            result = self.plot._pickTopMost(x, y, self.__isDraggableItem)
+            item = result.getItem() if result is not None else None
 
-        self.draggedItemRef = None if item is None else weakref.ref(item)
+            self.draggedItemRef = None if item is None else weakref.ref(item)
 
-        if item is None:
-            self.__terminateDrag()
-            return False
-
-        if isinstance(item, items.MarkerBase):
-            self._signalMarkerMovingEvent('markerMoving', item, x, y)
-            item._startDrag()
-
-        return True
-
-    def drag(self, x, y, btn):
-        dataPos = self.plot.pixelToData(x, y)
-        assert dataPos is not None
-
-        item = None if self.draggedItemRef is None else self.draggedItemRef()
-        if item is not None:
-            item.drag(self._lastPos, dataPos)
+            if item is None:
+                self.__terminateDrag()
+                return False
 
             if isinstance(item, items.MarkerBase):
                 self._signalMarkerMovingEvent('markerMoving', item, x, y)
+                item._startDrag()
 
-        self._lastPos = dataPos
+            return True
+        elif btn == MIDDLE_BTN:
+            self._pan.beginDrag(x, y, btn)
+            return True
+
+    def drag(self, x, y, btn):
+        if btn == LEFT_BTN:
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+
+            item = None if self.draggedItemRef is None else self.draggedItemRef()
+            if item is not None:
+                item.drag(self._lastPos, dataPos)
+
+                if isinstance(item, items.MarkerBase):
+                    self._signalMarkerMovingEvent('markerMoving', item, x, y)
+
+            self._lastPos = dataPos
+        elif btn == MIDDLE_BTN:
+            self._pan.drag(x, y, btn)
 
     def endDrag(self, startPos, endPos, btn):
-        item = None if self.draggedItemRef is None else self.draggedItemRef()
-        if isinstance(item, items.MarkerBase):
-            posData = list(item.getPosition())
-            if posData[0] is None:
-                posData[0] = 1.
-            if posData[1] is None:
-                posData[1] = 1.
+        if btn == LEFT_BTN:
+            item = None if self.draggedItemRef is None else self.draggedItemRef()
+            if isinstance(item, items.MarkerBase):
+                posData = list(item.getPosition())
+                if posData[0] is None:
+                    posData[0] = 1.
+                if posData[1] is None:
+                    posData[1] = 1.
 
-            eventDict = prepareMarkerSignal(
-                'markerMoved',
-                'left',
-                item.getLegend(),
-                'marker',
-                item.isDraggable(),
-                item.isSelectable(),
-                posData)
-            self.plot.notify(**eventDict)
-            item._endDrag()
+                eventDict = prepareMarkerSignal(
+                    'markerMoved',
+                    'left',
+                    item.getLegend(),
+                    'marker',
+                    item.isDraggable(),
+                    item.isSelectable(),
+                    posData)
+                self.plot.notify(**eventDict)
+                item._endDrag()
 
-        self.__terminateDrag()
+            self.__terminateDrag()
+        elif btn == MIDDLE_BTN:
+            self._pan.endDrag(startPos, endPos, btn)
 
     def cancel(self):
+        self._pan.cancel()
         self.__terminateDrag()
 
 
@@ -1312,9 +1327,8 @@ class ItemsInteractionForCombo(ItemsInteraction):
                     return True
                 else:  # Do not request focus
                     return False
-            elif btn == RIGHT_BTN:
-                self.goto('rightClick', x, y)
-                return True
+            else:
+                return super().onPress(x, y, btn)
 
 
 # FocusManager ################################################################
