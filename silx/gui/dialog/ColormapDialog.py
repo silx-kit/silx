@@ -1279,7 +1279,7 @@ class ColormapDialog(qt.QDialog):
         :param ~silx.gui.colors.Colormap colormap: the colormap to edit
         """
         assert colormap is None or isinstance(colormap, Colormap)
-        if self._colormapChange is True:
+        if self._colormapChange:
             return
 
         oldColormap = self.getColormap()
@@ -1307,7 +1307,7 @@ class ColormapDialog(qt.QDialog):
 
     def _applyColormap(self):
         self._updateResetButton()
-        if self._colormapChange is True:
+        if self._colormapChange:
             return
 
         colormap = self.getColormap()
