@@ -790,7 +790,7 @@ class ColormapDialog(qt.QDialog):
         self._item = None
         """Weak ref to an external item"""
 
-        self._ignoreColormapChange = False
+        self._colormapChange = _ColormapChanged()
         """Used as a semaphore to avoid editing the colormap object when we are
         only attempt to display it.
         Used instead of n connect and disconnect of the sigChanged. The
@@ -1203,9 +1203,8 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is not None and self._colormapStoredState is not None:
             if colormap != self._colormapStoredState:
-                self._ignoreColormapChange = True
-                colormap.setFromColormap(self._colormapStoredState)
-                self._ignoreColormapChange = False
+                with self._colormapChange:
+                    colormap.setFromColormap(self._colormapStoredState)
                 self._applyColormap()
 
     def _getDataRange(self):
@@ -1231,9 +1230,8 @@ class ColormapDialog(qt.QDialog):
         widget."""
         colormap = self._colormap()
         if colormap is not None:
-            self._ignoreColormapChange = True
-            colormap.setVRange(xmin, xmax)
-            self._ignoreColormapChange = False
+            with self._colormapChange:
+                colormap.setVRange(xmin, xmax)
         self._updateWidgetRange()
 
     def _updateWidgetRange(self):
@@ -1281,7 +1279,7 @@ class ColormapDialog(qt.QDialog):
         :param ~silx.gui.colors.Colormap colormap: the colormap to edit
         """
         assert colormap is None or isinstance(colormap, Colormap)
-        if self._ignoreColormapChange is True:
+        if self._colormapChange.ignoreColormapChanged is True:
             return
 
         oldColormap = self.getColormap()
@@ -1309,7 +1307,7 @@ class ColormapDialog(qt.QDialog):
 
     def _applyColormap(self):
         self._updateResetButton()
-        if self._ignoreColormapChange is True:
+        if self._colormapChange.ignoreColormapChanged is True:
             return
 
         colormap = self.getColormap()
@@ -1368,14 +1366,13 @@ class ColormapDialog(qt.QDialog):
         """
         colormap = self._colormap()
         if colormap is not None:
-            self._ignoreColormapChange = True
-            name = self._comboBoxColormap.getCurrentName()
-            if name is not None:
-                colormap.setName(name)
-            else:
-                lut = self._comboBoxColormap.getCurrentColors()
-                colormap.setColormapLUT(lut)
-            self._ignoreColormapChange = False
+            with self._colormapChange:
+                name = self._comboBoxColormap.getCurrentName()
+                if name is not None:
+                    colormap.setName(name)
+                else:
+                    lut = self._comboBoxColormap.getCurrentColors()
+                    colormap.setColormapLUT(lut)
         self._histoWidget.updateLut()
 
     def _autoRangeButtonsUpdated(self, autoRange):
@@ -1388,10 +1385,9 @@ class ColormapDialog(qt.QDialog):
         vmin = (dataRange[0] if not autoRange[0] else None)
         vmax = (dataRange[1] if not autoRange[1] else None)
 
-        self._ignoreColormapChange = True
-        colormap = self.getColormap()
-        colormap.setVRange(vmin, vmax)
-        self._ignoreColormapChange = False
+        with self._colormapChange:
+            colormap = self.getColormap()
+            colormap.setVRange(vmin, vmax)
 
         with utils.blockSignals(self._minValue):
             self._minValue.setValue(vmin or dataRange[0], isAuto=vmin is None)
@@ -1416,10 +1412,9 @@ class ColormapDialog(qt.QDialog):
 
         colormap = self.getColormap()
         if colormap is not None:
-            self._ignoreColormapChange = True
-            colormap.setNormalization(norm)
-            self._histoWidget.updateNormalization()
-            self._ignoreColormapChange = False
+            with self._colormapChange:
+                colormap.setNormalization(norm)
+                self._histoWidget.updateNormalization()
 
         self._updateWidgetRange()
 
@@ -1431,9 +1426,8 @@ class ColormapDialog(qt.QDialog):
 
         colormap = self.getColormap()
         if colormap is not None:
-            self._ignoreColormapChange = True
-            colormap.setAutoscaleMode(mode)
-            self._ignoreColormapChange = False
+            with self._colormapChange:
+                colormap.setAutoscaleMode(mode)
 
         self._updateWidgetRange()
 
@@ -1493,15 +1487,13 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if vmin is not None:
             if colormap.getVMin() is None:
-                self._ignoreColormapChange = True
-                colormap.setVMin(vmin)
-                self._ignoreColormapChange = False
+                with self._colormapChange:
+                    colormap.setVMin(vmin)
             self._minValue.setValue(vmin)
         if vmax is not None:
             if colormap.getVMax() is None:
-                self._ignoreColormapChange = True
-                colormap.setVMax(vmax)
-                self._ignoreColormapChange = False
+                with self._colormapChange:
+                    colormap.setVMax(vmax)
             self._maxValue.setValue(vmax)
 
     def _histogramRangeMoved(self, vmin, vmax):
@@ -1536,3 +1528,20 @@ class ColormapDialog(qt.QDialog):
                 nextFocus.setFocus(qt.Qt.OtherFocusReason)
         else:
             super(ColormapDialog, self).keyPressEvent(event)
+
+
+class _ColormapChanged():
+    """Simple context manager to know if we should ignore or not colormap
+    modifications"""
+    def __init__(self):
+        self._ignoreColormapChange = False
+
+    def __enter__(self):
+        self._ignoreColormapChange = True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._ignoreColormapChange = False
+
+    @property
+    def ignoreColormapChanged(self):
+        return self._ignoreColormapChange
