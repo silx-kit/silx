@@ -178,9 +178,9 @@ class Item(qt.QObject):
         self._backendRenderer = None
 
     def getPlot(self):
-        """Returns Plot this item belongs to.
+        """Returns the ~silx.gui.plot.PlotWidget this item belongs to.
 
-        :rtype: Plot or None
+        :rtype: Union[~silx.gui.plot.PlotWidget,None]
         """
         return None if self._plotRef is None else self._plotRef()
 
@@ -189,7 +189,7 @@ class Item(qt.QObject):
 
         WARNING: This should only be called from the Plot.
 
-        :param Plot plot: The Plot instance.
+        :param Union[~silx.gui.plot.PlotWidget,None] plot: The Plot instance.
         """
         if plot is not None and self._plotRef is not None:
             raise RuntimeError('Trying to add a node at two places.')
