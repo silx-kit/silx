@@ -1162,7 +1162,7 @@ class ColormapDialog(qt.QDialog):
         return numpy.array(counts, copy=True), numpy.array(bin_edges, copy=True)
 
     def _getHistogram(self):
-        """Returns the histogram defined to the dialog as metadata
+        """Returns the histogram defined by the dialog as metadata
         to describe the data in order to speed up the dialog.
 
         :return: (hist, bin_edges)
@@ -1209,7 +1209,7 @@ class ColormapDialog(qt.QDialog):
                 self._applyColormap()
 
     def _getDataRange(self):
-        """Returns the data range defined to the dialog as metadata
+        """Returns the data range defined by the dialog as metadata
         to describe the data in order to speed up the dialog.
 
         :return: (minimum, positiveMin, maximum)
