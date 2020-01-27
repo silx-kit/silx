@@ -493,7 +493,7 @@ class _ColormapHistogram(qt.QWidget):
             else:
                 _logger.error("Undefined %s normalization", norm)
 
-        item  = self.parent()._getItem()
+        item = self.parent()._getItem()
         if item is not None:
             # Trick to reach data range using colormap cache
             cm = Colormap()
