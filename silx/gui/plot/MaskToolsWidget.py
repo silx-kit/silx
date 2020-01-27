@@ -351,7 +351,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             mustBeAdded = maskItem is None
             if mustBeAdded:
                 maskItem = items.MaskImageData()
-                maskItem._setLegend(self._maskName)
+                maskItem.setName(self._maskName)
             # update the items
             maskItem.setData(mask, copy=False)
             maskItem.setColormap(self._colormap)

@@ -287,7 +287,7 @@ class ComplexImageView(qt.QWidget):
 
         # Create and add image to the plot
         self._plotImage = ImageComplexData()
-        self._plotImage._setLegend('__ComplexImageView__complex_image__')
+        self._plotImage.setName('__ComplexImageView__complex_image__')
         self._plotImage.sigItemChanged.connect(self._itemChanged)
         self._plot2D.addItem(self._plotImage)
         self._plot2D.setActiveImage(self._plotImage.getLegend())

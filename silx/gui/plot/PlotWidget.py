@@ -876,7 +876,7 @@ class PlotWidget(qt.QMainWindow):
         if curve is None:
             # No previous curve, create a default one and add it to the plot
             curve = items.Curve() if histogram is None else items.Histogram()
-            curve._setLegend(legend)
+            curve.setName(legend)
             # Set default color, linestyle and symbol
             default_color, default_linestyle = self._getColorAndStyle()
             curve.setColor(default_color)
@@ -1009,7 +1009,7 @@ class PlotWidget(qt.QMainWindow):
             # No previous histogram, create a default one and
             # add it to the plot
             histo = items.Histogram()
-            histo._setLegend(legend)
+            histo.setName(legend)
             histo.setColor(self._getColorAndStyle()[0])
 
         # Override previous/default values with provided ones
@@ -1120,7 +1120,7 @@ class PlotWidget(qt.QMainWindow):
                 image.setColormap(self.getDefaultColormap())
             else:
                 image = items.ImageRgba()
-            image._setLegend(legend)
+            image.setName(legend)
 
         # Do not emit sigActiveImageChanged,
         # it will be sent once with _setActiveItem
@@ -1236,7 +1236,7 @@ class PlotWidget(qt.QMainWindow):
         if scatter is None:
             # No previous scatter, create a default one and add it to the plot
             scatter = items.Scatter()
-            scatter._setLegend(legend)
+            scatter.setName(legend)
             scatter.setColormap(self.getDefaultColormap())
 
         # Do not emit sigActiveScatterChanged,
@@ -1333,7 +1333,7 @@ class PlotWidget(qt.QMainWindow):
             self.remove(legend, kind='item')
 
         item = items.Shape(shape)
-        item._setLegend(legend)
+        item.setName(legend)
         item.setInfo(info)
         item.setColor(color)
         item.setFill(fill)
@@ -1531,7 +1531,7 @@ class PlotWidget(qt.QMainWindow):
         if marker is None:
             # No previous marker, create one
             marker = markerClass()
-            marker._setLegend(legend)
+            marker.setName(legend)
 
         if text is not None:
             marker.setText(text)
