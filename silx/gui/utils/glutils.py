@@ -144,6 +144,7 @@ def isOpenGLAvailable(version=(2, 1), runtimeCheck=True):
 if __name__ == "__main__":
     from silx.gui._glutils import OpenGLWidget
     from silx.gui._glutils import gl
+    import argparse
 
     class _TestOpenGLWidget(OpenGLWidget):
         """Widget checking that OpenGL is indeed available
@@ -173,6 +174,13 @@ if __name__ == "__main__":
             gl.glClearColor(1., 0., 0., 0.)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('major')
+    parser.add_argument('minor')
+
+    args = parser.parse_args(args=sys.argv[1:])
+
     app = qt.QApplication([])
     window = qt.QMainWindow(flags=
         qt.Qt.Window |
@@ -182,7 +190,7 @@ if __name__ == "__main__":
     window.setAttribute(qt.Qt.WA_ShowWithoutActivating)
     window.move(0, 0)
     window.resize(3, 3)
-    widget = _TestOpenGLWidget(version=(sys.argv[1], sys.argv[2]))
+    widget = _TestOpenGLWidget(version=(args.major, args.minor))
     window.setCentralWidget(widget)
     window.setWindowOpacity(0.04)
     window.show()
