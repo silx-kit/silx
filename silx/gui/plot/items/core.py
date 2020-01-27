@@ -43,6 +43,7 @@ import weakref
 import numpy
 import six
 
+from ....utils.deprecation import deprecated
 from ....utils.enum import Enum as _Enum
 from ... import qt
 from ... import colors
@@ -150,9 +151,6 @@ class Item(qt.QObject):
     _DEFAULT_Z_LAYER = 0
     """Default layer for overlay rendering"""
 
-    _DEFAULT_LEGEND = ''
-    """Default legend of items"""
-
     _DEFAULT_SELECTABLE = False
     """Default selectable state of items"""
 
@@ -168,12 +166,12 @@ class Item(qt.QObject):
         self._dirty = True
         self._plotRef = None
         self._visible = True
-        self._legend = self._DEFAULT_LEGEND
         self._selectable = self._DEFAULT_SELECTABLE
         self._z = self._DEFAULT_Z_LAYER
         self._info = None
         self._xlabel = None
         self._ylabel = None
+        self.__name = None
 
         self._backendRenderer = None
 
@@ -234,19 +232,35 @@ class Item(qt.QObject):
         """
         return False
 
-    def getLegend(self):
-        """Returns the legend of this item (str)"""
-        return self._legend
+    def getName(self):
+        """Returns the name of the item.
 
-    def _setLegend(self, legend):
-        """Set the legend.
-
-        This is private as it is used by the plot as an identifier
-
-        :param str legend: Item legend
+        :rtype: str
         """
-        legend = str(legend) if legend is not None else self._DEFAULT_LEGEND
-        self._legend = legend
+        return self.__name
+
+    def setName(self, name):
+        """Set the name of the item
+
+        :param str name: New name of the item
+        :raises RuntimeError: If item belongs to a PlotWidget.
+        """
+        name = str(name)
+        if self.__name != name:
+            if self.getPlot() is not None:
+                raise RuntimeError(
+                    "Cannot change name while item is in a PlotWidget")
+
+            self.__name = name
+            self._updated(ItemChangedType.NAME)
+
+    def getLegend(self):  # Replaced by getName for API consistency
+        return self.getName()
+
+    @deprecated(replacement='setName', since_version='0.13')
+    def _setLegend(self, legend):
+        legend = str(legend) if legend is not None else ''
+        self.setName(legend)
 
     def isSelectable(self):
         """Returns true if item is selectable (bool)"""
