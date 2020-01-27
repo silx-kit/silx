@@ -1335,8 +1335,8 @@ class PlotWidget(qt.QMainWindow):
         :meth:`addXMarker` without legend argument adds two markers with
         different identifying legends.
 
-        :param float x: Position of the marker on the X axis in data
-                        coordinates
+        :param x: Position of the marker on the X axis in data coordinates
+        :type x: Union[None, float]
         :param str legend: Legend associated to the marker to identify it
         :param str text: Text to display on the marker.
         :param str color: Color of the marker, e.g., 'blue', 'b', '#FF0000'

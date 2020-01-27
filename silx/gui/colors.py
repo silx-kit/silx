@@ -342,9 +342,9 @@ class Colormap(qt.QObject):
             If 'name' is None, then this array is used as the colormap.
     :param str normalization: Normalization: 'linear' (default) or 'log'
     :param vmin: Lower bound of the colormap or None for autoscale (default)
-    :type: Union[None, float]
+    :type vmin: Union[None, float]
     :param vmax: Upper bounds of the colormap or None for autoscale (default)
-    :type: Union[None, float]
+    :type vmax: Union[None, float]
     """
 
     LINEAR = 'linear'
