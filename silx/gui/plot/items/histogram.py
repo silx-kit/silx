@@ -297,6 +297,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
             # Check that bin edges are monotonic
             edgesDiff = numpy.diff(edges)
+            edgesDiff = edgesDiff[numpy.logical_not(numpy.isnan(edgesDiff))]
             assert numpy.all(edgesDiff >= 0) or numpy.all(edgesDiff <= 0)
             # manage baseline
             if (isinstance(baseline, abc.Iterable)):
