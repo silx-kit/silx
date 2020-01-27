@@ -171,7 +171,7 @@ class Item(qt.QObject):
         self._info = None
         self._xlabel = None
         self._ylabel = None
-        self.__name = None
+        self.__name = ''
 
         self._backendRenderer = None
 
