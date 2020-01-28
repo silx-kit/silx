@@ -1646,7 +1646,9 @@ class PlotInteraction(object):
             self._eventHandler.cancel()
 
             if mode == 'draw':
-                self._eventHandler = eventHandler
+                self._eventHandler = FocusManager((
+                    Pan(plot, clickButtons=(), dragButtons=(MIDDLE_BTN,)),
+                    eventHandler))
 
             else:  # mode == 'select-draw'
                 self._eventHandler = FocusManager(
