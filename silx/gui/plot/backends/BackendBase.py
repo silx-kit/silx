@@ -541,7 +541,7 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def pixelToData(self, x, y, axis, check):
+    def pixelToData(self, x, y, axis):
         """Convert a position in pixels in the widget to a position in
         the data space.
 
@@ -549,8 +549,6 @@ class BackendBase(object):
         :param float y: The Y coordinate in pixels.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
-        :param bool check: True to check if the coordinates are in the
-                           plot area.
         :returns: The corresponding position in data space or
                   None if the pixel position is not in the plot area.
         :rtype: A tuple of 2 floats: (xData, yData) or None.
