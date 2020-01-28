@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -209,92 +209,131 @@ class ClickOrDrag(StateMachine):
 
     It is intended to be used through subclassing by overriding
     :meth:`click`, :meth:`beginDrag`, :meth:`drag` and :meth:`endDrag`.
+
+    :param Set[str] clickButtons: Set of buttons that provides click interaction
+    :param Set[str] dragButtons: Set of buttons that provides drag interaction
     """
 
     DRAG_THRESHOLD_SQUARE_DIST = 5 ** 2
 
     class Idle(State):
         def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                self.goto('clickOrDrag', x, y)
+            if btn in self.machine.dragButtons:
+                self.goto('clickOrDrag', x, y, btn)
                 return True
-            elif btn == RIGHT_BTN:
-                self.goto('rightClick', x, y)
+            elif btn in self.machine.clickButtons:
+                self.goto('click', x, y, btn)
                 return True
 
-    class RightClick(State):
-        def onMove(self, x, y):
-            self.goto('idle')
-
-        def onRelease(self, x, y, btn):
-            if btn == RIGHT_BTN:
-                self.machine.click(x, y, btn)
-                self.goto('idle')
-
-    class ClickOrDrag(State):
-        def enterState(self, x, y):
+    class Click(State):
+        def enterState(self, x, y, btn):
             self.initPos = x, y
+            self.button = btn
 
         def onMove(self, x, y):
             dx2 = (x - self.initPos[0]) ** 2
             dy2 = (y - self.initPos[1]) ** 2
             if (dx2 + dy2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
-                self.goto('drag', self.initPos, (x, y))
+                self.goto('idle')
 
         def onRelease(self, x, y, btn):
-            if btn == LEFT_BTN:
+            if btn == self.button:
                 self.machine.click(x, y, btn)
                 self.goto('idle')
 
-    class Drag(State):
-        def enterState(self, initPos, curPos):
-            self.initPos = initPos
-            self.machine.beginDrag(*initPos)
-            self.machine.drag(*curPos)
+    class ClickOrDrag(State):
+        def enterState(self, x, y, btn):
+            self.initPos = x, y
+            self.button = btn
 
         def onMove(self, x, y):
-            self.machine.drag(x, y)
+            dx2 = (x - self.initPos[0]) ** 2
+            dy2 = (y - self.initPos[1]) ** 2
+            if (dx2 + dy2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
+                self.goto('drag', self.initPos, (x, y), self.button)
 
         def onRelease(self, x, y, btn):
-            if btn == LEFT_BTN:
-                self.machine.endDrag(self.initPos, (x, y))
+            if btn == self.button:
+                if btn in self.machine.clickButtons:
+                    self.machine.click(x, y, btn)
                 self.goto('idle')
 
-    def __init__(self):
+    class Drag(State):
+        def enterState(self, initPos, curPos, btn):
+            self.initPos = initPos
+            self.button = btn
+            self.machine.beginDrag(*initPos, btn)
+            self.machine.drag(*curPos, btn)
+
+        def onMove(self, x, y):
+            self.machine.drag(x, y, self.button)
+
+        def onRelease(self, x, y, btn):
+            if btn == self.button:
+                self.machine.endDrag(self.initPos, (x, y), btn)
+                self.goto('idle')
+
+    def __init__(self,
+                 clickButtons=(LEFT_BTN, RIGHT_BTN),
+                 dragButtons=(LEFT_BTN,)):
         states = {
-            'idle': ClickOrDrag.Idle,
-            'rightClick': ClickOrDrag.RightClick,
-            'clickOrDrag': ClickOrDrag.ClickOrDrag,
-            'drag': ClickOrDrag.Drag
+            'idle': self.Idle,
+            'click': self.Click,
+            'clickOrDrag': self.ClickOrDrag,
+            'drag': self.Drag
         }
+        self.__clickButtons = set(clickButtons)
+        self.__dragButtons = set(dragButtons)
         super(ClickOrDrag, self).__init__(states, 'idle')
 
+    clickButtons = property(lambda self: self.__clickButtons,
+                            doc="Buttons with click interaction (Set[int])")
+
+    dragButtons = property(lambda self: self.__dragButtons,
+                           doc="Buttons with drag interaction (Set[int])")
+
     def click(self, x, y, btn):
-        """Called upon a left or right button click.
+        """Called upon a button supporting click.
 
-        To override in a subclass.
+        Override in subclass.
+
+        :param int x: X mouse position in pixels.
+        :param int y: Y mouse position in pixels.
+        :param str btn: The mouse button which was clicked.
         """
         pass
 
-    def beginDrag(self, x, y):
-        """Called at the beginning of a drag gesture with left button
-        pressed.
+    def beginDrag(self, x, y, btn):
+        """Called at the beginning of a drag gesture with mouse button pressed.
 
-        To override in a subclass.
+        Override in subclass.
+
+        :param int x: X mouse position in pixels.
+        :param int y: Y mouse position in pixels.
+        :param str btn: The mouse button for which a drag is starting.
         """
         pass
 
-    def drag(self, x, y):
+    def drag(self, x, y, btn):
         """Called on mouse moved during a drag gesture.
 
-        To override in a subclass.
+        Override in subclass.
+
+        :param int x: X mouse position in pixels.
+        :param int y: Y mouse position in pixels.
+        :param str btn: The mouse button for which a drag is in progress.
         """
         pass
 
-    def endDrag(self, startPoint, endPoint):
-        """Called at the end of a drag gesture when the left button is
-        released.
+    def endDrag(self, startPoint, endPoint, btn):
+        """Called at the end of a drag gesture when the mouse button is released.
 
-        To override in a subclass.
+        Override in subclass.
+
+        :param List[int] startPoint:
+            (x, y) mouse position in pixels at the beginning of the drag.
+        :param List[int] endPoint:
+            (x, y) mouse position in pixels at the end of the drag.
+        :param str btn: The mouse button for which a drag is done.
         """
         pass
