@@ -210,8 +210,8 @@ class ClickOrDrag(StateMachine):
     It is intended to be used through subclassing by overriding
     :meth:`click`, :meth:`beginDrag`, :meth:`drag` and :meth:`endDrag`.
 
-    :param List[str] clickButtons: List of buttons that provides click interaction
-    :param List[str] dragButtons: List of buttons that provides drag interaction
+    :param Set[str] clickButtons: Set of buttons that provides click interaction
+    :param Set[str] dragButtons: Set of buttons that provides drag interaction
     """
 
     DRAG_THRESHOLD_SQUARE_DIST = 5 ** 2
@@ -282,15 +282,15 @@ class ClickOrDrag(StateMachine):
             'clickOrDrag': self.ClickOrDrag,
             'drag': self.Drag
         }
-        self.__clickButtons = clickButtons
-        self.__dragButtons = dragButtons
+        self.__clickButtons = set(clickButtons)
+        self.__dragButtons = set(dragButtons)
         super(ClickOrDrag, self).__init__(states, 'idle')
 
     clickButtons = property(lambda self: self.__clickButtons,
-                            doc="Buttons with click interaction")
+                            doc="Buttons with click interaction (Set[int])")
 
     dragButtons = property(lambda self: self.__dragButtons,
-                           doc="Buttons with drag interaction")
+                           doc="Buttons with drag interaction (Set[int])")
 
     def click(self, x, y, btn):
         """Called upon a button supporting click.
