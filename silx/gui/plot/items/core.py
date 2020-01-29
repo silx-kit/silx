@@ -1021,6 +1021,10 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         (either all lines from left to right or all from right to left).
         """
 
+        HISTOGRAM = 'histogram'
+        """Display scatter plot as a 2D histogram.
+        """
+
     @enum.unique
     class VisualizationParameter(_Enum):
         """Different parameter names for scatter plot visualizations"""
@@ -1045,6 +1049,10 @@ class ScatterVisualizationMixIn(ItemMixInBase):
 
         The given shape can be wider than the number of points,
         in which case the grid is not fully filled.
+        """
+
+        HISTOGRAM_SHAPE = 'histogram_shape'
+        """The number of bins of the histogram in each dimension (height, width).
         """
 
     def __init__(self):
