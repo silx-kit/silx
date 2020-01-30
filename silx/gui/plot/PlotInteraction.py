@@ -37,7 +37,7 @@ import weakref
 from .. import colors
 from .. import qt
 from . import items
-from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
+from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN, MIDDLE_BTN,
                           State, StateMachine)
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
                          prepareHoverSignal, prepareImageSignal,
@@ -127,7 +127,7 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
 
     _DOUBLE_CLICK_TIMEOUT = 0.4
 
-    class ZoomIdle(ClickOrDrag.Idle):
+    class Idle(ClickOrDrag.Idle):
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
@@ -170,22 +170,15 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
                                            x, y)
             self.plot.notify(**eventDict)
 
-    def __init__(self, plot):
+    def __init__(self, plot, **kwargs):
         """Init.
 
         :param plot: The plot to apply modifications to.
         """
-        _PlotInteraction.__init__(self, plot)
-
-        states = {
-            'idle': _ZoomOnWheel.ZoomIdle,
-            'rightClick': ClickOrDrag.RightClick,
-            'clickOrDrag': ClickOrDrag.ClickOrDrag,
-            'drag': ClickOrDrag.Drag
-        }
-        StateMachine.__init__(self, states, 'idle')
-
         self._lastClick = 0., None
+
+        _PlotInteraction.__init__(self, plot)
+        ClickOrDrag.__init__(self, **kwargs)
 
 
 # Pan #########################################################################
@@ -198,10 +191,10 @@ class Pan(_ZoomOnWheel):
         _, y2Data = self.plot.pixelToData(x, y, axis='right')
         return xData, yData, y2Data
 
-    def beginDrag(self, x, y):
+    def beginDrag(self, x, y, btn):
         self._previousDataPos = self._pixelToData(x, y)
 
-    def drag(self, x, y):
+    def drag(self, x, y, btn):
         xData, yData, y2Data = self._pixelToData(x, y)
         lastX, lastY, lastY2 = self._previousDataPos
 
@@ -266,7 +259,7 @@ class Pan(_ZoomOnWheel):
 
         self._previousDataPos = self._pixelToData(x, y)
 
-    def endDrag(self, startPos, endPos):
+    def endDrag(self, startPos, endPos, btn):
         del self._previousDataPos
 
     def cancel(self):
@@ -315,12 +308,12 @@ class Zoom(_ZoomOnWheel):
 
         return areaX0, areaY0, areaX1, areaY1
 
-    def beginDrag(self, x, y):
+    def beginDrag(self, x, y, btn):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
         self.x0, self.y0 = x, y
 
-    def drag(self, x1, y1):
+    def drag(self, x1, y1, btn):
         if self.color is None:
             return  # Do not draw zoom area
 
@@ -388,7 +381,7 @@ class Zoom(_ZoomOnWheel):
 
         self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
-    def endDrag(self, startPos, endPos):
+    def endDrag(self, startPos, endPos, btn):
         x0, y0 = startPos
         x1, y1 = endPos
 
@@ -1023,13 +1016,13 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
         if btn == LEFT_BTN:
             self._processEvent(x, y, isLast=True)
 
-    def beginDrag(self, x, y):
+    def beginDrag(self, x, y, btn):
         self._processEvent(x, y, isLast=False)
 
-    def drag(self, x, y):
+    def drag(self, x, y, btn):
         self._processEvent(x, y, isLast=False)
 
-    def endDrag(self, startPos, endPos):
+    def endDrag(self, startPos, endPos, btn):
         x, y = endPos
         self._processEvent(x, y, isLast=True)
 
@@ -1113,15 +1106,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             return True
 
     def __init__(self, plot):
-        _PlotInteraction.__init__(self, plot)
+        self._pan = Pan(plot)
 
-        states = {
-            'idle': ItemsInteraction.Idle,
-            'rightClick': ClickOrDrag.RightClick,
-            'clickOrDrag': ClickOrDrag.ClickOrDrag,
-            'drag': ClickOrDrag.Drag
-        }
-        StateMachine.__init__(self, states, 'idle')
+        _PlotInteraction.__init__(self, plot)
+        ClickOrDrag.__init__(self,
+                             clickButtons=(LEFT_BTN, RIGHT_BTN),
+                             dragButtons=(LEFT_BTN, MIDDLE_BTN))
 
     def click(self, x, y, btn):
         """Handle mouse click
@@ -1242,67 +1232,79 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.plot.setGraphCursorShape()
         self.draggedItemRef = None
 
-    def beginDrag(self, x, y):
+    def beginDrag(self, x, y, btn):
         """Handle begining of drag interaction
 
         :param x: X position of the mouse in pixels
         :param y: Y position of the mouse in pixels
+        :param str btn: The mouse button for which a drag is starting.
         :return: True if drag is catched by an item, False otherwise
         """
-        self._lastPos = self.plot.pixelToData(x, y)
-        assert self._lastPos is not None
+        if btn == LEFT_BTN:
+            self._lastPos = self.plot.pixelToData(x, y)
+            assert self._lastPos is not None
 
-        result = self.plot._pickTopMost(x, y, self.__isDraggableItem)
-        item = result.getItem() if result is not None else None
+            result = self.plot._pickTopMost(x, y, self.__isDraggableItem)
+            item = result.getItem() if result is not None else None
 
-        self.draggedItemRef = None if item is None else weakref.ref(item)
+            self.draggedItemRef = None if item is None else weakref.ref(item)
 
-        if item is None:
-            self.__terminateDrag()
-            return False
-
-        if isinstance(item, items.MarkerBase):
-            self._signalMarkerMovingEvent('markerMoving', item, x, y)
-            item._startDrag()
-
-        return True
-
-    def drag(self, x, y):
-        dataPos = self.plot.pixelToData(x, y)
-        assert dataPos is not None
-
-        item = None if self.draggedItemRef is None else self.draggedItemRef()
-        if item is not None:
-            item.drag(self._lastPos, dataPos)
+            if item is None:
+                self.__terminateDrag()
+                return False
 
             if isinstance(item, items.MarkerBase):
                 self._signalMarkerMovingEvent('markerMoving', item, x, y)
+                item._startDrag()
 
-        self._lastPos = dataPos
+            return True
+        elif btn == MIDDLE_BTN:
+            self._pan.beginDrag(x, y, btn)
+            return True
 
-    def endDrag(self, startPos, endPos):
-        item = None if self.draggedItemRef is None else self.draggedItemRef()
-        if isinstance(item, items.MarkerBase):
-            posData = list(item.getPosition())
-            if posData[0] is None:
-                posData[0] = 1.
-            if posData[1] is None:
-                posData[1] = 1.
+    def drag(self, x, y, btn):
+        if btn == LEFT_BTN:
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
 
-            eventDict = prepareMarkerSignal(
-                'markerMoved',
-                'left',
-                item.getName(),
-                'marker',
-                item.isDraggable(),
-                item.isSelectable(),
-                posData)
-            self.plot.notify(**eventDict)
-            item._endDrag()
+            item = None if self.draggedItemRef is None else self.draggedItemRef()
+            if item is not None:
+                item.drag(self._lastPos, dataPos)
 
-        self.__terminateDrag()
+                if isinstance(item, items.MarkerBase):
+                    self._signalMarkerMovingEvent('markerMoving', item, x, y)
+
+            self._lastPos = dataPos
+        elif btn == MIDDLE_BTN:
+            self._pan.drag(x, y, btn)
+
+    def endDrag(self, startPos, endPos, btn):
+        if btn == LEFT_BTN:
+            item = None if self.draggedItemRef is None else self.draggedItemRef()
+            if isinstance(item, items.MarkerBase):
+                posData = list(item.getPosition())
+                if posData[0] is None:
+                    posData[0] = 1.
+                if posData[1] is None:
+                    posData[1] = 1.
+
+                eventDict = prepareMarkerSignal(
+                    'markerMoved',
+                    'left',
+                    item.getLegend(),
+                    'marker',
+                    item.isDraggable(),
+                    item.isSelectable(),
+                    posData)
+                self.plot.notify(**eventDict)
+                item._endDrag()
+
+            self.__terminateDrag()
+        elif btn == MIDDLE_BTN:
+            self._pan.endDrag(startPos, endPos, btn)
 
     def cancel(self):
+        self._pan.cancel()
         self.__terminateDrag()
 
 
@@ -1321,25 +1323,12 @@ class ItemsInteractionForCombo(ItemsInteraction):
                 result = self.machine.plot._pickTopMost(
                     x, y, self.__isItemSelectableOrDraggable)
                 if result is not None:  # Request focus and handle interaction
-                    self.goto('clickOrDrag', x, y)
+                    self.goto('clickOrDrag', x, y, btn)
                     return True
                 else:  # Do not request focus
                     return False
-
-            elif btn == RIGHT_BTN:
-                self.goto('rightClick', x, y)
-                return True
-
-    def __init__(self, plot):
-        _PlotInteraction.__init__(self, plot)
-
-        states = {
-            'idle': ItemsInteractionForCombo.Idle,
-            'rightClick': ClickOrDrag.RightClick,
-            'clickOrDrag': ClickOrDrag.ClickOrDrag,
-            'drag': ClickOrDrag.Drag
-        }
-        StateMachine.__init__(self, states, 'idle')
+            else:
+                return super().onPress(x, y, btn)
 
 
 # FocusManager ################################################################
@@ -1449,37 +1438,40 @@ class ZoomAndSelect(ItemsInteraction):
         else:
             self._zoom.click(x, y, btn)
 
-    def beginDrag(self, x, y):
+    def beginDrag(self, x, y, btn):
         """Handle start drag and switching between zoom and item drag.
 
         :param x: X position in pixels
         :param y: Y position in pixels
+        :param str btn: The mouse button for which a drag is starting.
         """
-        self._doZoom = not super(ZoomAndSelect, self).beginDrag(x, y)
+        self._doZoom = not super(ZoomAndSelect, self).beginDrag(x, y, btn)
         if self._doZoom:
-            self._zoom.beginDrag(x, y)
+            self._zoom.beginDrag(x, y, btn)
 
-    def drag(self, x, y):
+    def drag(self, x, y, btn):
         """Handle drag, eventually forwarding to zoom.
 
         :param x: X position in pixels
         :param y: Y position in pixels
+        :param str btn: The mouse button for which a drag is in progress.
         """
         if self._doZoom:
-            return self._zoom.drag(x, y)
+            return self._zoom.drag(x, y, btn)
         else:
-            return super(ZoomAndSelect, self).drag(x, y)
+            return super(ZoomAndSelect, self).drag(x, y, btn)
 
-    def endDrag(self, startPos, endPos):
+    def endDrag(self, startPos, endPos, btn):
         """Handle end of drag, eventually forwarding to zoom.
 
         :param startPos: (x, y) position at the beginning of the drag
         :param endPos: (x, y) position at the end of the drag
+        :param str btn: The mouse button for which a drag is done.
         """
         if self._doZoom:
-            return self._zoom.endDrag(startPos, endPos)
+            return self._zoom.endDrag(startPos, endPos, btn)
         else:
-            return super(ZoomAndSelect, self).endDrag(startPos, endPos)
+            return super(ZoomAndSelect, self).endDrag(startPos, endPos, btn)
 
 
 class PanAndSelect(ItemsInteraction):
@@ -1517,37 +1509,40 @@ class PanAndSelect(ItemsInteraction):
         else:
             self._pan.click(x, y, btn)
 
-    def beginDrag(self, x, y):
+    def beginDrag(self, x, y, btn):
         """Handle start drag and switching between zoom and item drag.
 
         :param x: X position in pixels
         :param y: Y position in pixels
+        :param str btn: The mouse button for which a drag is starting.
         """
-        self._doPan = not super(PanAndSelect, self).beginDrag(x, y)
+        self._doPan = not super(PanAndSelect, self).beginDrag(x, y, btn)
         if self._doPan:
-            self._pan.beginDrag(x, y)
+            self._pan.beginDrag(x, y, btn)
 
-    def drag(self, x, y):
+    def drag(self, x, y, btn):
         """Handle drag, eventually forwarding to zoom.
 
         :param x: X position in pixels
         :param y: Y position in pixels
+        :param str btn: The mouse button for which a drag is in progress.
         """
         if self._doPan:
-            return self._pan.drag(x, y)
+            return self._pan.drag(x, y, btn)
         else:
-            return super(PanAndSelect, self).drag(x, y)
+            return super(PanAndSelect, self).drag(x, y, btn)
 
-    def endDrag(self, startPos, endPos):
+    def endDrag(self, startPos, endPos, btn):
         """Handle end of drag, eventually forwarding to zoom.
 
         :param startPos: (x, y) position at the beginning of the drag
         :param endPos: (x, y) position at the end of the drag
+        :param str btn: The mouse button for which a drag is done.
         """
         if self._doPan:
-            return self._pan.endDrag(startPos, endPos)
+            return self._pan.endDrag(startPos, endPos, btn)
         else:
-            return super(PanAndSelect, self).endDrag(startPos, endPos)
+            return super(PanAndSelect, self).endDrag(startPos, endPos, btn)
 
 
 # Interaction mode control ####################################################
@@ -1651,7 +1646,9 @@ class PlotInteraction(object):
             self._eventHandler.cancel()
 
             if mode == 'draw':
-                self._eventHandler = eventHandler
+                self._eventHandler = FocusManager((
+                    Pan(plot, clickButtons=(), dragButtons=(MIDDLE_BTN,)),
+                    eventHandler))
 
             else:  # mode == 'select-draw'
                 self._eventHandler = FocusManager(

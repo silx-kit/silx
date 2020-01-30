@@ -341,10 +341,10 @@ class Colormap(qt.QObject):
             either uint8 or float in [0, 1].
             If 'name' is None, then this array is used as the colormap.
     :param str normalization: Normalization: 'linear' (default) or 'log'
-    :param float vmin:
-        Lower bound of the colormap or None for autoscale (default)
-    :param float vmax:
-        Upper bounds of the colormap or None for autoscale (default)
+    :param vmin: Lower bound of the colormap or None for autoscale (default)
+    :type vmin: Union[None, float]
+    :param vmax: Upper bounds of the colormap or None for autoscale (default)
+    :type vmax: Union[None, float]
     """
 
     LINEAR = 'linear'
@@ -641,7 +641,8 @@ class Colormap(qt.QObject):
                 vMin = result.min_positive  # >0 or None
                 vMax = result.maximum  # can be <= 0
             elif self._autoscaleMode == Colormap.STDDEV3:
-                normdata = numpy.log10(data)
+                with numpy.errstate(divide='ignore', invalid='ignore'):
+                    normdata = numpy.log10(data)
                 mean = numpy.nanmean(normdata)
                 std = numpy.nanstd(normdata)
                 vMin = float(10**(mean - 3 * std))
@@ -706,6 +707,15 @@ class Colormap(qt.QObject):
                 vmax = max(max_, vmin)  # Handle max_ <= 0 for log scale
 
         return vmin, vmax
+
+    def getVRange(self):
+        """Get the bounds of the colormap
+
+        :rtype: Tuple(Union[float,None],Union[float,None])
+        :returns: A tuple of 2 values for min and max. Or None instead of float
+            for autoscale
+        """
+        return self.getVMin(), self.getVMax()
 
     def setVRange(self, vmin, vmax):
         """Set the bounds of the colormap

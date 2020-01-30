@@ -215,8 +215,10 @@ class PlotWidget(qt.QMainWindow):
         else:
             self.setWindowTitle('PlotWidget')
 
-        self._backend = None
-        self._setBackend(backend)
+        # Init the backend
+        if backend is None:
+            backend = silx.config.DEFAULT_PLOT_BACKEND
+        self._backend = self.__getBackendClass(backend)(self, self)
 
         self.setCallback()  # set _callback
 
@@ -299,7 +301,7 @@ class PlotWidget(qt.QMainWindow):
 
         If multiple backends are provided, the first available one is used.
 
-        :param Union[str,BackendBase,Iterable] backend:
+        :param Union[str,BackendBase,List[Union[str,BackendBase]]] backend:
             The name of the backend or its class or an iterable of those.
         :rtype: BackendBase
         :raise ValueError: In case the backend is not supported
@@ -316,15 +318,22 @@ class PlotWidget(qt.QMainWindow):
                         BackendMatplotlibQt as backendClass
                 except ImportError:
                     _logger.debug("Backtrace", exc_info=True)
-                    raise ImportError("matplotlib backend is not available")
+                    raise RuntimeError("matplotlib backend is not available")
 
             elif backend in ('gl', 'opengl'):
+                from ..utils.glutils import isOpenGLAvailable
+                checkOpenGL = isOpenGLAvailable(version=(2, 1), runtimeCheck=False)
+                if not checkOpenGL:
+                    _logger.debug("OpenGL check failed")
+                    raise RuntimeError(
+                        "OpenGL backend is not available: %s" % checkOpenGL.error)
+
                 try:
                     from .backends.BackendOpenGL import \
                         BackendOpenGL as backendClass
                 except ImportError:
                     _logger.debug("Backtrace", exc_info=True)
-                    raise ImportError("OpenGL backend is not available")
+                    raise RuntimeError("OpenGL backend is not available")
 
             elif backend == 'none':
                 from .backends.BackendBase import BackendBase as backendClass
@@ -338,24 +347,12 @@ class PlotWidget(qt.QMainWindow):
             for b in backend:
                 try:
                     return self.__getBackendClass(b)
-                except ImportError:
+                except RuntimeError:
                     pass
             else:  # No backend was found
-                raise ValueError("No supported backend was found")
+                raise RuntimeError("None of the request backends are available")
 
         raise ValueError("Backend not supported %s" % str(backend))
-
-    def _setBackend(self, backend):
-        """Setup a new backend
-
-        :param backend: Either a str defining the backend to use
-        """
-        assert(self._backend is None)
-
-        if backend is None:
-            backend = silx.config.DEFAULT_PLOT_BACKEND
-
-        self._backend = self.__getBackendClass(backend)(self, self)
 
     # TODO: Can be removed for silx 0.10
     @staticmethod
@@ -1362,8 +1359,8 @@ class PlotWidget(qt.QMainWindow):
         :meth:`addXMarker` without legend argument adds two markers with
         different identifying legends.
 
-        :param float x: Position of the marker on the X axis in data
-                        coordinates
+        :param x: Position of the marker on the X axis in data coordinates
+        :type x: Union[None, float]
         :param str legend: Legend associated to the marker to identify it
         :param str text: Text to display on the marker.
         :param str color: Color of the marker, e.g., 'blue', 'b', '#FF0000'

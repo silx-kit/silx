@@ -1371,7 +1371,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
                 return self._plotWrapper.getKind(_item) == self.getKind()
             items = list(filter(kind_filter, _items))
             assert len(items) in (0, 1)
-            if len(items) is 1:
+            if len(items) == 1:
                 self._setItem(items[0])
 
     def setKind(self, kind):
@@ -1413,7 +1413,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
             return self._plotWrapper.getKind(_item) == self.getKind()
         items = list(filter(kind_filter, _items))
         assert len(items) in (0, 1)
-        _item = items[0] if len(items) is 1 else None
+        _item = items[0] if len(items) == 1 else None
         self._setItem(_item)
 
     def _updateCurrentItem(self):

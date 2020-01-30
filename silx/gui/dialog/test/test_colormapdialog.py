@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import Colormap, preferredColormaps
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.plot.PlotWindow import PlotWindow
+from silx.gui.plot.items.image import ImageData
 
 import numpy.random
 
@@ -50,9 +51,12 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                                  normalization='linear')
 
         self.colormapDiag = ColormapDialog.ColormapDialog()
-        self.colormapDiag.setAttribute(qt.Qt.WA_DeleteOnClose)
 
     def tearDown(self):
+        self.qapp.processEvents()
+        self.colormapDiag.close()
+        self.colormapDiag.deleteLater()
+        self.qapp.processEvents()
         del self.colormapDiag
         ParametricTestCase.tearDown(self)
         TestCaseQt.tearDown(self)
@@ -66,6 +70,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         colormapDiag2.show()
         self.colormapDiag.setColormap(self.colormap)
         self.colormapDiag.show()
+        self.qapp.processEvents()
 
         self.colormapDiag._comboBoxColormap._setCurrentName('red')
         self.colormapDiag._normButtonLog.click()
@@ -86,6 +91,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(True)
         self.colormapDiag.show()
+        self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
         self.colormapDiag._minValue.setValue(None)
@@ -104,6 +110,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(True)
         self.colormapDiag.show()
+        self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
         self.colormapDiag._minValue.setValue(None)
@@ -118,6 +125,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(False)
         self.colormapDiag.show()
+        self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
         self.colormapDiag._minValue.setValue(None)
@@ -132,6 +140,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.setModal(False)
         self.colormapDiag.show()
+        self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
         self.colormapDiag._minValue.setValue(None)
@@ -147,17 +156,20 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         """Make sure the colormap is modify if go through reject"""
         assert self.colormap.isAutoscale() is False
         self.colormapDiag.show()
+        self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
         self.colormapDiag._minValue.setValue(None)
         self.assertTrue(self.colormap.getVMin() is None)
         self.colormapDiag.close()
+        self.qapp.processEvents()
         self.assertTrue(self.colormap.getVMin() is None)
 
     def testSetColormapIsCorrect(self):
         """Make sure the interface fir the colormap when set a new colormap"""
         self.colormap.setName('red')
         self.colormapDiag.show()
+        self.qapp.processEvents()
         for norm in (Colormap.NORMALIZATIONS):
             for autoscale in (True, False):
                 if autoscale is True:
@@ -189,6 +201,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         we make sure the colormap is still running and nothing more"""
         self.colormapDiag.setColormap(self.colormap)
         self.colormapDiag.show()
+        self.qapp.processEvents()
         del self.colormap
         self.assertTrue(self.colormapDiag.getColormap() is None)
         self.colormapDiag._comboBoxColormap._setCurrentName('blue')
@@ -198,6 +211,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         outside"""
         self.colormapDiag.setColormap(self.colormap)
         self.colormapDiag.show()
+        self.qapp.processEvents()
 
         self.colormap.setName('red')
         self.assertTrue(
@@ -251,6 +265,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         colormap = Colormap(name=colormapName)
         self.colormapDiag.setColormap(colormap)
         self.colormapDiag.show()
+        self.qapp.processEvents()
         cb = self.colormapDiag._comboBoxColormap
         self.assertTrue(cb.getCurrentName() == colormapName)
         cb.setCurrentIndex(0)
@@ -264,6 +279,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         colormap editable status"""
         colormap = Colormap(normalization='linear', vmin=1.0, vmax=10.0)
         self.colormapDiag.show()
+        self.qapp.processEvents()
         self.colormapDiag.setColormap(colormap)
         for editable in (True, False):
             with self.subTest(editable=editable):
@@ -301,6 +317,53 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         data = numpy.random.rand(5, 5)
         self.colormapDiag.setData(data)
         self.colormapDiag.setData(None)
+
+    def testImageItem(self):
+        """Check that an ImageData plot item can be used"""
+        dialog = self.colormapDiag
+        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        data = numpy.arange(3**2).reshape(3, 3)
+        item = ImageData()
+        item.setData(data, copy=False)
+
+        dialog.setColormap(colormap)
+        dialog.show()
+        self.qapp.processEvents()
+        dialog.setItem(item)
+        vrange = dialog._getFiniteColormapRange()
+        self.assertEqual(vrange, (0, 8))
+
+    def testItemDel(self):
+        """Check that the plot items are not hard linked to the dialog"""
+        dialog = self.colormapDiag
+        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        data = numpy.arange(3**2).reshape(3, 3)
+        item = ImageData()
+        item.setData(data, copy=False)
+
+        dialog.setColormap(colormap)
+        dialog.show()
+        self.qapp.processEvents()
+        dialog.setItem(item)
+        previousRange = dialog._getFiniteColormapRange()
+        del item
+        vrange = dialog._getFiniteColormapRange()
+        self.assertNotEqual(vrange, previousRange)
+
+    def testDataDel(self):
+        """Check that the data are not hard linked to the dialog"""
+        dialog = self.colormapDiag
+        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        data = numpy.arange(5)
+
+        dialog.setColormap(colormap)
+        dialog.show()
+        self.qapp.processEvents()
+        dialog.setData(data)
+        previousRange = dialog._getFiniteColormapRange()
+        del data
+        vrange = dialog._getFiniteColormapRange()
+        self.assertNotEqual(vrange, previousRange)
 
 
 class TestColormapAction(TestCaseQt):

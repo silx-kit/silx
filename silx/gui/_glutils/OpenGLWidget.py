@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,39 +37,25 @@ import logging
 import sys
 
 from .. import qt
+from ..utils.glutils import isOpenGLAvailable
 from .._glutils import gl
 
 
 _logger = logging.getLogger(__name__)
 
 
-# Probe OpenGL availability and widget
-ERROR = ''  # Error message from probing Qt OpenGL support
-_BaseOpenGLWidget = None  # Qt OpenGL widget to use
-
-if hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
-    _logger.info('Using QOpenGLWidget')
-    _BaseOpenGLWidget = qt.QOpenGLWidget
-
-elif not qt.HAS_OPENGL:  # QtOpenGL not installed
-    ERROR = '%s.QtOpenGL not available' % qt.BINDING
-
-elif qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
-    # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
-    # so this is only checked if the QApplication is already created
-    ERROR = 'Qt reports OpenGL not available'
+if not hasattr(qt, 'QOpenGLWidget') and not hasattr(qt, 'QGLWidget'):
+    OpenGLWidget = None
 
 else:
-    _logger.info('Using QGLWidget')
-    _BaseOpenGLWidget = qt.QGLWidget
+    if hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
+        _logger.info('Using QOpenGLWidget')
+        _BaseOpenGLWidget = qt.QOpenGLWidget
 
+    else:
+        _logger.info('Using QGLWidget')
+        _BaseOpenGLWidget = qt.QGLWidget
 
-# Internal class wrapping Qt OpenGL widget
-if _BaseOpenGLWidget is None:
-    _logger.error('OpenGL-based widget disabled: %s', ERROR)
-    _OpenGLWidget = None
-
-else:
     class _OpenGLWidget(_BaseOpenGLWidget):
         """Wrapper over QOpenGLWidget and QGLWidget"""
 
@@ -118,7 +104,6 @@ else:
 
             # Enable receiving mouse move events when no buttons are pressed
             self.setMouseTracking(True)
-
 
         def getDevicePixelRatio(self):
             """Returns the ratio device-independent / device pixel size
@@ -285,9 +270,11 @@ class OpenGLWidget(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        if _OpenGLWidget is None:
+        _check = isOpenGLAvailable(version=version, runtimeCheck=False)
+        if _OpenGLWidget is None or not _check:
+            _logger.error('OpenGL-based widget disabled: %s', _check.error)
             self.__openGLWidget = None
-            label = self._createErrorQLabel(ERROR)
+            label = self._createErrorQLabel(_check.error)
             self.layout().addWidget(label)
 
         else:

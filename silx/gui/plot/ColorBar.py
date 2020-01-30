@@ -855,9 +855,9 @@ class _TickBar(qt.QWidget):
     def _getFormat(self, font):
         if self._forcedDisplayType is None:
             return self._guessType(font)
-        elif self._forcedDisplayType is 'std':
+        elif self._forcedDisplayType == 'std':
             return self._getStandardFormat()
-        elif self._forcedDisplayType is 'e':
+        elif self._forcedDisplayType == 'e':
             return self._getScientificForm()
         else:
             err = 'Forced type for display %s is not recognized' % self._forcedDisplayType
