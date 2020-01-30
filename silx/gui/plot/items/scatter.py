@@ -430,9 +430,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 n_bins=shape,
                 weights=values)
             yEdges, xEdges = bin_edges
-            origin = yEdges[0], xEdges[0]
-            scale = ((yEdges[-1] - yEdges[0]) / (len(yEdges) - 1),
-                     (xEdges[-1] - xEdges[0]) / (len(xEdges) - 1))
+            origin = xEdges[0], yEdges[0]
+            scale = ((xEdges[-1] - xEdges[0]) / (len(xEdges) - 1),
+                     (yEdges[-1] - yEdges[0]) / (len(yEdges) - 1))
 
             with numpy.errstate(divide='ignore', invalid='ignore'):
                 histo = sums / counts
