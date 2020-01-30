@@ -632,7 +632,16 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 result = PickingResult(self, (index,))
 
             elif visualization is self.Visualization.HISTOGRAM:
-                return None  # TODO convert picking: what to do?
+                row, col = result.getIndices()[0]
+                histoInfo = self.__getHistogramInfo()
+                sx, sy = histoInfo.scale
+                ox, oy = histoInfo.origin
+                xdata = self.getXData(copy=False)
+                ydata = self.getYData(copy=False)
+                indices = numpy.nonzero(numpy.logical_and(
+                    numpy.logical_and(xdata >= ox + sx * col, xdata < ox + sx * (col + 1)),
+                    numpy.logical_and(ydata >= oy + sy * row, ydata < oy + sy * (row + 1))))[0]
+                result = None if len(indices) == 0 else PickingResult(self, indices)
 
         return result
 
