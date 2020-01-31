@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -628,7 +628,7 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                         else:
                             self.assertIsNotNone(result)
                             self.assertIs(result.getItem(), scatter)
-                            self.assertEqual(result.getIndices()[0], (index,))
+                            self.assertEqual(result.getIndices(), (index,))
 
 
 class TestPlotMarker(PlotWidgetTestCase):
