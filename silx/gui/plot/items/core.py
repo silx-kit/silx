@@ -355,7 +355,7 @@ class Item(qt.QObject):
         if indices is None:
             return None
         else:
-            return PickingResult(self, indices if len(indices) != 0 else None)
+            return PickingResult(self, indices)
 
 
 # Mix-in classes ##############################################################
