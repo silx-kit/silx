@@ -418,6 +418,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 shape = 100, 100 # TODO compute auto shape
 
             x, y, values = self.getData(copy=False)[:3]
+            if not numpy.issubdtype(x.dtype, numpy.floating):
+                x = x.astype(numpy.float64)
+            if not numpy.issubdtype(y.dtype, numpy.floating):
+                y = y.astype(numpy.float64)
             if not numpy.issubdtype(values.dtype, numpy.floating):
                 values = values.astype(numpy.float64)
 
