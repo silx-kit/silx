@@ -632,7 +632,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 result = PickingResult(self, (index,))
 
             elif visualization is self.Visualization.HISTOGRAM:
-                row, col = result.getIndices()[0]
+                picked = result.getIndices(copy=False)
+                if picked is None or len(picked) == 0 or len(picked[0]) == 0:
+                    return None
+                row, col = picked[0][0], picked[1][0]
                 histoInfo = self.__getHistogramInfo()
                 sx, sy = histoInfo.scale
                 ox, oy = histoInfo.origin
