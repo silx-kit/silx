@@ -1337,7 +1337,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def pickItem(self, x, y, item):
         mouseEvent = MouseEvent(
             'button_press_event', self, x, self._mplQtYAxisCoordConversion(y))
+        # Override axes and data position with the axes
         mouseEvent.inaxes = item.axes
+        mouseEvent.xdata, mouseEvent.ydata = self.pixelToData(
+            x, y, axis='left' if item.axes is self.ax else 'right')
         picked, info = item.contains(mouseEvent)
 
         if not picked:
