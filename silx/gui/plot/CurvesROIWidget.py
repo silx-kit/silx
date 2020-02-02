@@ -410,7 +410,7 @@ class CurvesROIWidget(qt.QWidget):
         """
         if visible:
             # if no ROI existing yet, add the default one
-            if self.roiTable.rowCount() is 0:
+            if self.roiTable.rowCount() == 0:
                 old = self.blockSignals(True)  # avoid several sigROISignal emission
                 self._add()
                 self.blockSignals(old)
@@ -703,7 +703,7 @@ class ROITable(TableWidget):
         remove the current active roi
         """
         activeItems = self.selectedItems()
-        if len(activeItems) is 0:
+        if len(activeItems) == 0:
             return
         old = self.blockSignals(True)  # avoid several emission of sigROISignal
         roiToRm = set()
@@ -1255,7 +1255,7 @@ class ROI(_RegionOfInterestBase):
         y = y[(x >= self._fromdata) & (x <= self._todata)]
         x = x[(x >= self._fromdata) & (x <= self._todata)]
 
-        if x.size is 0:
+        if x.size == 0:
             return 0.0, 0.0
 
         rawArea = numpy.trapz(y, x=x)

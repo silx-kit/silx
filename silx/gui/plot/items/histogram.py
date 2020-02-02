@@ -60,17 +60,17 @@ def _computeEdges(x, histogramType):
     """
     # for now we consider that the spaces between xs are constant
     edges = x.copy()
-    if histogramType is 'left':
+    if histogramType == 'left':
         width = 1
         if len(x) > 1:
             width = x[1] - x[0]
         edges = numpy.append(x[0] - width, edges)
-    if histogramType is 'center':
+    if histogramType == 'center':
         edges = _computeEdges(edges, 'right')
         widths = (edges[1:] - edges[0:-1]) / 2.0
         widths = numpy.append(widths, widths[-1])
         edges = edges - widths
-    if histogramType is 'right':
+    if histogramType == 'right':
         width = 1
         if len(x) > 1:
             width = x[-1] - x[-2]
@@ -342,11 +342,11 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
         """
         # for now we consider that the spaces between xs are constant
         edges = x.copy()
-        if histogramType is 'left':
+        if histogramType == 'left':
             return edges[1:]
-        if histogramType is 'center':
+        if histogramType == 'center':
             edges = (edges[1:] + edges[:-1]) / 2.0
-        if histogramType is 'right':
+        if histogramType == 'right':
             width = 1
             if len(x) > 1:
                 width = x[-1] + x[-2]
