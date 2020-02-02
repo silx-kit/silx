@@ -643,6 +643,8 @@ class Colormap(qt.QObject):
             elif self._autoscaleMode == Colormap.STDDEV3:
                 with numpy.errstate(divide='ignore', invalid='ignore'):
                     normdata = numpy.log10(data)
+                    # log(0) became inf, which fail computing further statistics
+                    normdata[numpy.isfinite(normdata) == False] = numpy.nan
                 mean = numpy.nanmean(normdata)
                 std = numpy.nanstd(normdata)
                 vMin = float(10**(mean - 3 * std))
