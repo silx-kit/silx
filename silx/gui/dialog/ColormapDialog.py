@@ -274,6 +274,13 @@ class _AutoScaleButtons(qt.QWidget):
 
         self.setFocusPolicy(qt.Qt.NoFocus)
 
+        self._bothAuto = qt.QPushButton(self)
+        self._bothAuto.setText("Autoscale")
+        self._bothAuto.setToolTip("Enable/disable the autoscale for both min and max")
+        self._bothAuto.setCheckable(True)
+        self._bothAuto.toggled[bool].connect(self.__bothToggled)
+        self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
+
         self._minAuto = qt.QCheckBox(self)
         self._minAuto.setText("")
         self._minAuto.setToolTip("Enable/disable the autoscale for min")
@@ -285,13 +292,6 @@ class _AutoScaleButtons(qt.QWidget):
         self._maxAuto.setToolTip("Enable/disable the autoscale for max")
         self._maxAuto.toggled[bool].connect(self.__maxToggled)
         self._maxAuto.setFocusPolicy(qt.Qt.TabFocus)
-
-        self._bothAuto = qt.QPushButton(self)
-        self._bothAuto.setText("Autoscale")
-        self._bothAuto.setToolTip("Enable/disable the autoscale for both min and max")
-        self._bothAuto.setCheckable(True)
-        self._bothAuto.toggled[bool].connect(self.__bothToggled)
-        self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
 
         layout.addStretch(1)
         layout.addWidget(self._minAuto)
@@ -911,6 +911,15 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
+
+        self.setTabOrder(self._comboBoxColormap, self._normButtonLinear)
+        self.setTabOrder(self._normButtonLinear, self._normButtonLog)
+        self.setTabOrder(self._normButtonLog, self._minValue)
+        self.setTabOrder(self._minValue, self._maxValue)
+        self.setTabOrder(self._maxValue, self._autoButtons)
+        self.setTabOrder(self._autoButtons, self._autoScaleCombo)
+        self.setTabOrder(self._autoScaleCombo, self._buttonsModal)
+        self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
