@@ -1227,7 +1227,7 @@ class ColormapDialog(qt.QDialog):
         if hist is None or bin_edges is None:
             self._histogramData = None
         else:
-            self._histogramData = hist, bin_edges
+            self._histogramData = numpy.array(hist), numpy.array(bin_edges)
 
         self._invalidateData()
 
