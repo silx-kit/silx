@@ -1243,7 +1243,7 @@ class ColormapDialog(qt.QDialog):
     def _setColormapRange(self, xmin, xmax):
         """Set a new range to the held colormap and update the
         widget."""
-        colormap = self._colormap()
+        colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
                 colormap.setVRange(xmin, xmax)
@@ -1252,7 +1252,7 @@ class ColormapDialog(qt.QDialog):
     def _updateWidgetRange(self):
         """Update the colormap range displayed into the widget."""
         xmin, xmax = self._getFiniteColormapRange()
-        colormap = self._colormap()
+        colormap = self.getColormap()
         if colormap is not None:
             vRange = colormap.getVRange()
             autoMin, autoMax = (r is None for r in vRange)
@@ -1379,7 +1379,7 @@ class ColormapDialog(qt.QDialog):
         """Callback executed when the combo box with the colormap LUT
         is updated by user input.
         """
-        colormap = self._colormap()
+        colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
                 name = self._comboBoxColormap.getCurrentName()
