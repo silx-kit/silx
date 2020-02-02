@@ -516,6 +516,8 @@ class _ColormapHistogram(qt.QWidget):
         """
         scale = self._plot.getXAxis().getScale()
         def isDisplayable(pos):
+            if pos is None:
+                return False
             if scale == Axis.LOGARITHMIC:
                 return pos > 0.0
             return True
