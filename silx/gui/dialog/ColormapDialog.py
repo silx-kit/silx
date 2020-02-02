@@ -1036,16 +1036,28 @@ class ColormapDialog(qt.QDialog):
                     data[:, :, 1] * 0.587 +
                     data[:, :, 2] * 0.114)
 
-        if scale == Colormap.LOGARITHM:
-            with numpy.errstate(divide='ignore', invalid='ignore'):
-                data = numpy.log10(data)
+        # bad hack: get 256 continuous bins in the case we have a B&W
+        normalizeData = True
+        if numpy.issubdtype(data.dtype, numpy.ubyte):
+            normalizeData = False
+        elif numpy.issubdtype(data.dtype, numpy.integer):
+            if dataRange is not None:
+                xmin, xmax = dataRange
+                if xmin is not None and xmax is not None:
+                    normalizeData = (xmax - xmin) > 255
+
+        if normalizeData:
+            if scale == Colormap.LOGARITHM:
+                with numpy.errstate(divide='ignore', invalid='ignore'):
+                    data = numpy.log10(data)
 
         if dataRange is not None:
             xmin, xmax = dataRange
             if xmin is None:
                 return None, None
-            if scale == Colormap.LOGARITHM:
-                xmin, xmax = numpy.log10(xmin), numpy.log10(xmax)
+            if normalizeData:
+                if scale == Colormap.LOGARITHM:
+                    xmin, xmax = numpy.log10(xmin), numpy.log10(xmax)
         else:
             xmin, xmax = min_max(data, min_positive=False, finite=True)
 
@@ -1065,8 +1077,9 @@ class ColormapDialog(qt.QDialog):
 
         histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
         bins = histogram.edges[0]
-        if scale == Colormap.LOGARITHM:
-            bins = 10**bins
+        if normalizeData:
+            if scale == Colormap.LOGARITHM:
+                bins = 10**bins
         return histogram.histo, bins
 
     def _getItem(self):
