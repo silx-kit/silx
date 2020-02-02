@@ -370,7 +370,7 @@ class _ColormapHistogram(qt.QWidget):
         qt.QWidget.__init__(self, parent=parent)
         self._dataInPlotMode = _DataInPlotMode.RANGE
         self._finiteRange = None, None
-        self._plotInit()
+        self._initPlot()
 
         self._histogramData = {}
         """Histogram displayed in the plot"""
@@ -530,7 +530,7 @@ class _ColormapHistogram(qt.QWidget):
 
         return posMin, posMax
 
-    def _plotInit(self):
+    def _initPlot(self):
         """Init the plot to display the range and the values"""
         self._plot = PlotWidget(self)
         self._plot.setDataMargins(0.125, 0.125, 0.125, 0.125)
@@ -550,6 +550,12 @@ class _ColormapHistogram(qt.QWidget):
         self._plot.addImage(lut, legend='lut')
         self._lutItem = self._plot._getItem("image", "lut")
         self._lutItem.setVisible(False)
+
+        self._plot.addScatter(x=[], y=[], value=[], legend='lut2')
+        self._lutItem2 = self._plot._getItem("scatter", "lut2")
+        self._lutItem2.setVisible(False)
+        self.__lutY = numpy.array([-0.05] * 256)
+        self.__lutV = numpy.arange(256)
 
         self._bound = BoundingRect()
         self._plot._add(self._bound)
@@ -660,13 +666,30 @@ class _ColormapHistogram(qt.QWidget):
             else:
                 self._bound.setBounds((0, 0, -0.1, 0))
         else:
-            colormap = colormap.copy()
-            colormap.setVRange(0, 255)
-            scale = (posMax - posMin) / 256
-            self._lutItem.setColormap(colormap)
-            self._lutItem.setOrigin((posMin, -0.1))
-            self._lutItem.setScale((scale, 0.1))
-            self._lutItem.setVisible(True)
+            norm = colormap.getNormalization()
+            normColormap = colormap.copy()
+            normColormap.setVRange(0, 255)
+            normColormap.setNormalization(Colormap.LINEAR)
+            if norm == Colormap.LINEAR:
+                scale = (posMax - posMin) / 256
+                self._lutItem.setColormap(normColormap)
+                self._lutItem.setOrigin((posMin, -0.09))
+                self._lutItem.setScale((scale, 0.08))
+                self._lutItem.setVisible(True)
+                self._lutItem2.setVisible(False)
+            elif norm == Colormap.LOGARITHM:
+                self._lutItem2.setVisible(False)
+                self._lutItem2.setColormap(normColormap)
+                xx = numpy.geomspace(posMin, posMax, 256)
+                self._lutItem2.setData(x=xx,
+                                       y=self.__lutY,
+                                       value=self.__lutV,
+                                       copy=False)
+                self._lutItem2.setSymbol("|")
+                self._lutItem2.setVisible(True)
+                self._lutItem.setVisible(False)
+            else:
+                assert(False)
             self._bound.setBounds((posMin, posMax, -0.1, 1))
 
     def _plotMinMarkerConstraint(self, x, y):
