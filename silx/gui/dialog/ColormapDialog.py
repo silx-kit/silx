@@ -484,8 +484,8 @@ class _ColormapHistogram(qt.QWidget):
         # Try to use the histogram defined in the dialog
         histo = self.parent()._getHistogram()
         if histo is not None:
-            bins, _counts = histo
-            dataRange = min_max(bins, min_positive=True, finite=True)
+            _histo, edges = histo
+            dataRange = min_max(edges, min_positive=True, finite=True)
             if norm == Colormap.LINEAR:
                 return dataRange.minimum, dataRange.maximum
             elif norm == Colormap.LOGARITHM:
