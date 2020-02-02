@@ -212,6 +212,8 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                     numpy.nanmax(values))
 
         else:  # No log scale on y axis, include 0 in bounds
+            if numpy.all(numpy.isnan(values)):
+                return None
             return (numpy.nanmin(edges),
                     numpy.nanmax(edges),
                     min(0, numpy.nanmin(values)),
