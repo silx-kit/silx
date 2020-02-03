@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -318,7 +318,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         # check that content changed was the active scatter
         activeScatter = self.plot._getActiveItem(kind="scatter")
 
-        if activeScatter is None or activeScatter.getLegend() == self._maskName:
+        if activeScatter is None or activeScatter.getName() == self._maskName:
             # No active scatter or active scatter is the mask...
             self.plot.sigActiveScatterChanged.disconnect(
                 self._activeScatterChangedAfterCare)
@@ -347,7 +347,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         """Update widget and mask according to active scatter changes"""
         activeScatter = self.plot._getActiveItem(kind="scatter")
 
-        if activeScatter is None or activeScatter.getLegend() == self._maskName:
+        if activeScatter is None or activeScatter.getName() == self._maskName:
             # No active scatter or active scatter is the mask...
             self.setEnabled(False)
 

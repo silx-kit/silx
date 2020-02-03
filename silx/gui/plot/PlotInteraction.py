@@ -1080,7 +1080,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
                 eventDict = prepareHoverSignal(
-                    marker.getLegend(), 'marker',
+                    marker.getName(), 'marker',
                     dataPos, (x, y),
                     marker.isDraggable(),
                     marker.isSelectable())
@@ -1159,7 +1159,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
                 eventDict = prepareMarkerSignal('markerClicked',
                                                 'left',
-                                                item.getLegend(),
+                                                item.getName(),
                                                 'marker',
                                                 item.isDraggable(),
                                                 item.isSelectable(),
@@ -1176,7 +1176,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
                 indices = result.getIndices(copy=False)
                 eventDict = prepareCurveSignal('left',
-                                               item.getLegend(),
+                                               item.getName(),
                                                'curve',
                                                xData[indices],
                                                yData[indices],
@@ -1191,7 +1191,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 indices = result.getIndices(copy=False)
                 row, column = indices[0][0], indices[1][0]
                 eventDict = prepareImageSignal('left',
-                                               item.getLegend(),
+                                               item.getName(),
                                                'image',
                                                column, row,
                                                dataPos[0], dataPos[1],
@@ -1214,7 +1214,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         eventDict = prepareMarkerSignal(eventType,
                                         'left',
-                                        marker.getLegend(),
+                                        marker.getName(),
                                         'marker',
                                         marker.isDraggable(),
                                         marker.isSelectable(),

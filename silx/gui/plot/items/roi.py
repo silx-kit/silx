@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -376,15 +376,15 @@ class RegionOfInterest(_RegionOfInterestBase):
         if self._labelItem is None:
             self._labelItem = self._createLabelItem()
             if self._labelItem is not None:
-                self._labelItem._setLegend(legendPrefix + "label")
-                plot._add(self._labelItem)
+                self._labelItem.setName(legendPrefix + "label")
+                plot.addItem(self._labelItem)
                 self._labelItem.setVisible(self.isVisible())
 
         self._items = WeakList()
         plotItems = self._createShapeItems(controlPoints)
         for item in plotItems:
-            item._setLegend(legendPrefix + str(itemIndex))
-            plot._add(item)
+            item.setName(legendPrefix + str(itemIndex))
+            plot.addItem(item)
             item.setVisible(self.isVisible())
             self._items.append(item)
             itemIndex += 1
@@ -395,10 +395,10 @@ class RegionOfInterest(_RegionOfInterestBase):
             color = rgba(self.getColor())
             color = self._getAnchorColor(color)
             for index, item in enumerate(plotItems):
-                item._setLegend(legendPrefix + str(itemIndex))
+                item.setName(legendPrefix + str(itemIndex))
                 item.setColor(color)
                 item.setVisible(self.isVisible())
-                plot._add(item)
+                plot.addItem(item)
                 # connect item changed
                 item.sigItemChanged.connect(functools.partial(
                     self._controlPointAnchorChanged, index))
@@ -492,7 +492,7 @@ class RegionOfInterest(_RegionOfInterestBase):
 
             plot = item.getPlot()
             if plot is not None:
-                plot._remove(item)
+                plot.removeItem(item)
         self._items = WeakList()
         self._editAnchors = WeakList()
 
@@ -500,7 +500,7 @@ class RegionOfInterest(_RegionOfInterestBase):
             item = self._labelItem
             plot = item.getPlot()
             if plot is not None:
-                plot._remove(item)
+                plot.removeItem(item)
         self._labelItem = None
 
     def _updated(self, event=None, checkVisibility=True):

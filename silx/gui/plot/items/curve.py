@@ -228,7 +228,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
         elif item == 1:
             return self.getYData(copy=False)
         elif item == 2:
-            return self.getLegend()
+            return self.getName()
         elif item == 3:
             info = self.getInfo(copy=False)
             return {} if info is None else info

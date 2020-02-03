@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -125,7 +125,7 @@ class TestPlotWindow(TestCaseQt):
             # Remove and add again the same item
             image = self.plot.getImage("foo")
             self.plot.removeImage("foo")
-            self.plot._add(image)
+            self.plot.addItem(image)
             self.qWait(50)
         finally:
             Colormap._computeAutoscaleRange = old

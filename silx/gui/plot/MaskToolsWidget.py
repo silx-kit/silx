@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -319,7 +319,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         # ensure all mask attributes are synchronized with the active image
         # and connect listener
         activeImage = self.plot.getActiveImage()
-        if activeImage is not None and activeImage.getLegend() != self._maskName:
+        if activeImage is not None and activeImage.getName() != self._maskName:
             self._activeImageChanged()
             self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
@@ -351,7 +351,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             mustBeAdded = maskItem is None
             if mustBeAdded:
                 maskItem = items.MaskImageData()
-                maskItem._setLegend(self._maskName)
+                maskItem.setName(self._maskName)
             # update the items
             maskItem.setData(mask, copy=False)
             maskItem.setColormap(self._colormap)
@@ -360,7 +360,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             maskItem.setZValue(self._z)
 
             if mustBeAdded:
-                self.plot._add(maskItem)
+                self.plot.addItem(maskItem)
 
         elif self.plot.getImage(self._maskName):
             self.plot.remove(self._maskName, kind='image')
@@ -407,7 +407,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         removed, otherwise it is adjusted to origin, scale and z.
         """
         activeImage = self.plot.getActiveImage()
-        if activeImage is None or activeImage.getLegend() == self._maskName:
+        if activeImage is None or activeImage.getName() == self._maskName:
             # No active image or active image is the mask...
             self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
             self._mask.setDataItem(None)
@@ -443,7 +443,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     def _activeImageChanged(self, *args):
         """Update widget and mask according to active image changes"""
         activeImage = self.plot.getActiveImage()
-        if (activeImage is None or activeImage.getLegend() == self._maskName or
+        if (activeImage is None or activeImage.getName() == self._maskName or
                 activeImage.getData(copy=False).size == 0):
             # No active image or active image is the mask or image has no data...
             self.setEnabled(False)
@@ -770,7 +770,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         """Set range from active image colormap range"""
         activeImage = self.plot.getActiveImage()
         if (isinstance(activeImage, items.ColormapMixIn) and
-                activeImage.getLegend() != self._maskName):
+                activeImage.getName() != self._maskName):
             # Update thresholds according to colormap
             colormap = activeImage.getColormap()
             if colormap['autoscale']:

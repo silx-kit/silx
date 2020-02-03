@@ -108,7 +108,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         elif item == 0:
             return self.getData(copy=False)
         elif item == 1:
-            return self.getLegend()
+            return self.getName()
         elif item == 2:
             info = self.getInfo(copy=False)
             return {} if info is None else info

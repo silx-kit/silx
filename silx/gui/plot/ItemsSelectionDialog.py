@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -149,7 +149,7 @@ class PlotItemsSelector(qt.QTableWidget):
         i = 0
         for kind in self.plot_item_kinds:
             for plot_item in self.plot._getItems(kind=kind):
-                legend_twitem = qt.QTableWidgetItem(plot_item.getLegend())
+                legend_twitem = qt.QTableWidgetItem(plot_item.getName())
                 self.setItem(i, 0, legend_twitem)
 
                 kind_twitem = qt.QTableWidgetItem(kind)
@@ -192,7 +192,7 @@ class ItemsSelectionDialog(qt.QDialog):
         result = isd.exec_()
         if result:
             for item in isd.getSelectedItems():
-                print(item.getLegend(), type(item))
+                print(item.getName(), type(item))
         else:
             print("Selection cancelled")
     """

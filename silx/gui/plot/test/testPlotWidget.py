@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1350,7 +1350,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
     def testBoundingRectItem(self):
         item = BoundingRect()
         item.setBounds((-1000, 1000, -2000, 2000))
-        self.plot._add(item)
+        self.plot.addItem(item)
         self.plot.resetZoom()
         limits = numpy.array(self.plot.getXAxis().getLimits())
         numpy.testing.assert_almost_equal(limits, numpy.array([-1000, 1000]))
@@ -1361,7 +1361,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         item = BoundingRect()
         item.setYAxis("right")
         item.setBounds((-1000, 1000, -2000, 2000))
-        self.plot._add(item)
+        self.plot.addItem(item)
         self.plot.resetZoom()
         limits = numpy.array(self.plot.getXAxis().getLimits())
         numpy.testing.assert_almost_equal(limits, numpy.array([-1000, 1000]))
@@ -1377,7 +1377,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
 
     def testBoundingRectWithLog(self):
         item = BoundingRect()
-        self.plot._add(item)
+        self.plot.addItem(item)
 
         item.setBounds((-1000, 1000, -2000, 2000))
         self.plot.getXAxis()._setLogarithmic(True)
