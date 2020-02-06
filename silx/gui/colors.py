@@ -643,6 +643,8 @@ class Colormap(qt.QObject):
             elif self._autoscaleMode == Colormap.STDDEV3:
                 with numpy.errstate(divide='ignore', invalid='ignore'):
                     normdata = numpy.log10(data)
+                    # log(0) became inf, which fail computing further statistics
+                    normdata[numpy.isfinite(normdata) == False] = numpy.nan
                 mean = numpy.nanmean(normdata)
                 std = numpy.nanstd(normdata)
                 vMin = float(10**(mean - 3 * std))
@@ -674,11 +676,11 @@ class Colormap(qt.QObject):
 
         if self.getNormalization() == self.LOGARITHM:
             # Handle negative bounds as autoscale
-            if vmin is not None and (vmin is not None and vmin <= 0.):
+            if vmin is not None and vmin <= 0.:
                 mess = 'negative vmin, moving to autoscale for lower bound'
                 _logger.warning(mess)
                 vmin = None
-            if vmax is not None and (vmax is not None and vmax <= 0.):
+            if vmax is not None and vmax <= 0.:
                 mess = 'negative vmax, moving to autoscale for upper bound'
                 _logger.warning(mess)
                 vmax = None

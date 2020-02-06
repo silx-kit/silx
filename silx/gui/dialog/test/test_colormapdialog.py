@@ -270,7 +270,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(cb.getCurrentName() == colormapName)
         cb.setCurrentIndex(0)
         index = cb.findLutName(colormapName)
-        assert index is not 0  # if 0 then the rest of the test has no sense
+        assert index != 0  # if 0 then the rest of the test has no sense
         cb.setCurrentIndex(index)
         self.assertTrue(cb.getCurrentName() == colormapName)
 

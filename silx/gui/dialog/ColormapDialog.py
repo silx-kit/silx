@@ -274,6 +274,13 @@ class _AutoScaleButtons(qt.QWidget):
 
         self.setFocusPolicy(qt.Qt.NoFocus)
 
+        self._bothAuto = qt.QPushButton(self)
+        self._bothAuto.setText("Autoscale")
+        self._bothAuto.setToolTip("Enable/disable the autoscale for both min and max")
+        self._bothAuto.setCheckable(True)
+        self._bothAuto.toggled[bool].connect(self.__bothToggled)
+        self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
+
         self._minAuto = qt.QCheckBox(self)
         self._minAuto.setText("")
         self._minAuto.setToolTip("Enable/disable the autoscale for min")
@@ -285,13 +292,6 @@ class _AutoScaleButtons(qt.QWidget):
         self._maxAuto.setToolTip("Enable/disable the autoscale for max")
         self._maxAuto.toggled[bool].connect(self.__maxToggled)
         self._maxAuto.setFocusPolicy(qt.Qt.TabFocus)
-
-        self._bothAuto = qt.QPushButton(self)
-        self._bothAuto.setText("Autoscale")
-        self._bothAuto.setToolTip("Enable/disable the autoscale for both min and max")
-        self._bothAuto.setCheckable(True)
-        self._bothAuto.toggled[bool].connect(self.__bothToggled)
-        self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
 
         layout.addStretch(1)
         layout.addWidget(self._minAuto)
@@ -370,7 +370,7 @@ class _ColormapHistogram(qt.QWidget):
         qt.QWidget.__init__(self, parent=parent)
         self._dataInPlotMode = _DataInPlotMode.RANGE
         self._finiteRange = None, None
-        self._plotInit()
+        self._initPlot()
 
         self._histogramData = {}
         """Histogram displayed in the plot"""
@@ -484,8 +484,8 @@ class _ColormapHistogram(qt.QWidget):
         # Try to use the histogram defined in the dialog
         histo = self.parent()._getHistogram()
         if histo is not None:
-            bins, _counts = histo
-            dataRange = min_max(bins, min_positive=True, finite=True)
+            _histo, edges = histo
+            dataRange = min_max(edges, min_positive=True, finite=True)
             if norm == Colormap.LINEAR:
                 return dataRange.minimum, dataRange.maximum
             elif norm == Colormap.LOGARITHM:
@@ -516,6 +516,8 @@ class _ColormapHistogram(qt.QWidget):
         """
         scale = self._plot.getXAxis().getScale()
         def isDisplayable(pos):
+            if pos is None:
+                return False
             if scale == Axis.LOGARITHMIC:
                 return pos > 0.0
             return True
@@ -528,7 +530,7 @@ class _ColormapHistogram(qt.QWidget):
 
         return posMin, posMax
 
-    def _plotInit(self):
+    def _initPlot(self):
         """Init the plot to display the range and the values"""
         self._plot = PlotWidget(self)
         self._plot.setDataMargins(0.125, 0.125, 0.125, 0.125)
@@ -548,6 +550,12 @@ class _ColormapHistogram(qt.QWidget):
         self._plot.addImage(lut, legend='lut')
         self._lutItem = self._plot._getItem("image", "lut")
         self._lutItem.setVisible(False)
+
+        self._plot.addScatter(x=[], y=[], value=[], legend='lut2')
+        self._lutItem2 = self._plot._getItem("scatter", "lut2")
+        self._lutItem2.setVisible(False)
+        self.__lutY = numpy.array([-0.05] * 256)
+        self.__lutV = numpy.arange(256)
 
         self._bound = BoundingRect()
         self._plot._add(self._bound)
@@ -658,13 +666,30 @@ class _ColormapHistogram(qt.QWidget):
             else:
                 self._bound.setBounds((0, 0, -0.1, 0))
         else:
-            colormap = colormap.copy()
-            colormap.setVRange(0, 255)
-            scale = (posMax - posMin) / 256
-            self._lutItem.setColormap(colormap)
-            self._lutItem.setOrigin((posMin, -0.1))
-            self._lutItem.setScale((scale, 0.1))
-            self._lutItem.setVisible(True)
+            norm = colormap.getNormalization()
+            normColormap = colormap.copy()
+            normColormap.setVRange(0, 255)
+            normColormap.setNormalization(Colormap.LINEAR)
+            if norm == Colormap.LINEAR:
+                scale = (posMax - posMin) / 256
+                self._lutItem.setColormap(normColormap)
+                self._lutItem.setOrigin((posMin, -0.09))
+                self._lutItem.setScale((scale, 0.08))
+                self._lutItem.setVisible(True)
+                self._lutItem2.setVisible(False)
+            elif norm == Colormap.LOGARITHM:
+                self._lutItem2.setVisible(False)
+                self._lutItem2.setColormap(normColormap)
+                xx = numpy.geomspace(posMin, posMax, 256)
+                self._lutItem2.setData(x=xx,
+                                       y=self.__lutY,
+                                       value=self.__lutV,
+                                       copy=False)
+                self._lutItem2.setSymbol("|")
+                self._lutItem2.setVisible(True)
+                self._lutItem.setVisible(False)
+            else:
+                assert(False)
             self._bound.setBounds((posMin, posMax, -0.1, 1))
 
     def _plotMinMarkerConstraint(self, x, y):
@@ -910,6 +935,15 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
 
+        self.setTabOrder(self._comboBoxColormap, self._normButtonLinear)
+        self.setTabOrder(self._normButtonLinear, self._normButtonLog)
+        self.setTabOrder(self._normButtonLog, self._minValue)
+        self.setTabOrder(self._minValue, self._maxValue)
+        self.setTabOrder(self._maxValue, self._autoButtons)
+        self.setTabOrder(self._autoButtons, self._autoScaleCombo)
+        self.setTabOrder(self._autoScaleCombo, self._buttonsModal)
+        self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
+
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
 
@@ -1034,16 +1068,28 @@ class ColormapDialog(qt.QDialog):
                     data[:, :, 1] * 0.587 +
                     data[:, :, 2] * 0.114)
 
-        if scale == Colormap.LOGARITHM:
-            with numpy.errstate(divide='ignore', invalid='ignore'):
-                data = numpy.log10(data)
+        # bad hack: get 256 continuous bins in the case we have a B&W
+        normalizeData = True
+        if numpy.issubdtype(data.dtype, numpy.ubyte):
+            normalizeData = False
+        elif numpy.issubdtype(data.dtype, numpy.integer):
+            if dataRange is not None:
+                xmin, xmax = dataRange
+                if xmin is not None and xmax is not None:
+                    normalizeData = (xmax - xmin) > 255
+
+        if normalizeData:
+            if scale == Colormap.LOGARITHM:
+                with numpy.errstate(divide='ignore', invalid='ignore'):
+                    data = numpy.log10(data)
 
         if dataRange is not None:
             xmin, xmax = dataRange
             if xmin is None:
                 return None, None
-            if scale == Colormap.LOGARITHM:
-                xmin, xmax = numpy.log10(xmin), numpy.log10(xmax)
+            if normalizeData:
+                if scale == Colormap.LOGARITHM:
+                    xmin, xmax = numpy.log10(xmin), numpy.log10(xmax)
         else:
             xmin, xmax = min_max(data, min_positive=False, finite=True)
 
@@ -1063,8 +1109,9 @@ class ColormapDialog(qt.QDialog):
 
         histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
         bins = histogram.edges[0]
-        if scale == Colormap.LOGARITHM:
-            bins = 10**bins
+        if normalizeData:
+            if scale == Colormap.LOGARITHM:
+                bins = 10**bins
         return histogram.histo, bins
 
     def _getItem(self):
@@ -1180,7 +1227,7 @@ class ColormapDialog(qt.QDialog):
         if hist is None or bin_edges is None:
             self._histogramData = None
         else:
-            self._histogramData = hist, bin_edges
+            self._histogramData = numpy.array(hist), numpy.array(bin_edges)
 
         self._invalidateData()
 
@@ -1228,7 +1275,7 @@ class ColormapDialog(qt.QDialog):
     def _setColormapRange(self, xmin, xmax):
         """Set a new range to the held colormap and update the
         widget."""
-        colormap = self._colormap()
+        colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
                 colormap.setVRange(xmin, xmax)
@@ -1237,7 +1284,7 @@ class ColormapDialog(qt.QDialog):
     def _updateWidgetRange(self):
         """Update the colormap range displayed into the widget."""
         xmin, xmax = self._getFiniteColormapRange()
-        colormap = self._colormap()
+        colormap = self.getColormap()
         if colormap is not None:
             vRange = colormap.getVRange()
             autoMin, autoMax = (r is None for r in vRange)
@@ -1364,7 +1411,7 @@ class ColormapDialog(qt.QDialog):
         """Callback executed when the combo box with the colormap LUT
         is updated by user input.
         """
-        colormap = self._colormap()
+        colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
                 name = self._comboBoxColormap.getCurrentName()

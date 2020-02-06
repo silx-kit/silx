@@ -1612,7 +1612,7 @@ class PlotWidget(qt.QMainWindow):
                      By default, it removes all kind of elements.
         :type kind: str or tuple of str to specify multiple kinds.
         """
-        if kind is 'all':  # Replace all by tuple of all kinds
+        if kind == 'all':  # Replace all by tuple of all kinds
             kind = self.ITEM_KINDS
 
         if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
@@ -2134,7 +2134,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool withhidden: False (default) to skip hidden curves.
         :return: list of legends or item objects
         """
-        if kind is 'all':  # Replace all by tuple of all kinds
+        if kind == 'all':  # Replace all by tuple of all kinds
             kind = self.ITEM_KINDS
 
         if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
