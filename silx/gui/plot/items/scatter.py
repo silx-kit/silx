@@ -142,12 +142,13 @@ def is_monotonic(array):
     :rtype: int
     """
     diff = numpy.diff(numpy.ravel(array))
-    if numpy.all(diff >= 0):
-        return 1
-    elif numpy.all(diff <= 0):
-        return -1
-    else:
-        return 0
+    with numpy.errstate(invalid='ignore'):
+        if numpy.all(diff >= 0):
+            return 1
+        elif numpy.all(diff <= 0):
+            return -1
+        else:
+            return 0
 
 
 def _guess_grid(x, y):
