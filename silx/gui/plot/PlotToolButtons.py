@@ -459,12 +459,25 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
         # Add visualization modes
 
         for mode in Scatter.supportedVisualizations():
-            name = mode.value.capitalize()
-            action = qt.QAction(name, menu)
-            action.setCheckable(False)
-            action.triggered.connect(
-                functools.partial(self._visualizationChanged, mode))
-            menu.addAction(action)
+            if mode is not Scatter.Visualization.HISTOGRAM:
+                name = mode.value.capitalize()
+                action = qt.QAction(name, menu)
+                action.setCheckable(False)
+                action.triggered.connect(
+                    functools.partial(self._visualizationChanged, mode, None))
+                menu.addAction(action)
+
+        if Scatter.Visualization.HISTOGRAM in Scatter.supportedVisualizations():
+            submenu = menu.addMenu('Histogram')
+            for reduction in ('mean', 'count', 'sum'):
+                name = reduction.capitalize()
+                action = qt.QAction(name, menu)
+                action.setCheckable(False)
+                action.triggered.connect(functools.partial(
+                    self._visualizationChanged,
+                    Scatter.Visualization.HISTOGRAM,
+                    {Scatter.VisualizationParameter.HISTOGRAM_REDUCTION: reduction}))
+                submenu.addAction(action)
 
         menu.addSeparator()
 
@@ -477,11 +490,14 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
-    def _visualizationChanged(self, mode):
+    def _visualizationChanged(self, mode, parameters=None):
         """Handle change of visualization mode.
 
         :param ScatterVisualizationMixIn.Visualization mode:
             The visualization mode to use for scatter
+        :param Union[dict,None] parameters:
+            Dict of VisualizationParameter: parameter_value to set
+            with the visualization.
         """
         plot = self.plot()
         if plot is None:
@@ -489,4 +505,7 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
 
         for item in plot.getItems():
             if isinstance(item, Scatter):
+                if parameters:
+                    for parameter, value in parameters.items():
+                        item.setVisualizationParameter(parameter, value)
                 item.setVisualization(mode)
