@@ -87,7 +87,7 @@ class TestMinMax(ParametricTestCase):
                 argmax = numpy.where(data == maximum)[0][0]
 
             if min_positive:
-                with numpy.errstate(invalid='ignore')
+                with numpy.errstate(invalid='ignore'):
                     # Ignore invalid value encountered in greater
                     pos_data = filtered_data[filtered_data > 0]
                 if pos_data.size > 0:
