@@ -561,9 +561,13 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
         for visualization in ('solid',
                               'points',
                               'regular_grid',
+                              'irregular_grid',
+                              'histogram',
                               scatter.Visualization.SOLID,
                               scatter.Visualization.POINTS,
-                              scatter.Visualization.REGULAR_GRID):
+                              scatter.Visualization.REGULAR_GRID,
+                              scatter.Visualization.IRREGULAR_GRID,
+                              scatter.Visualization.HISTOGRAM):
             with self.subTest(visualization=visualization):
                 scatter.setVisualization(visualization)
                 self.qapp.processEvents()
@@ -629,6 +633,34 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                             self.assertIsNotNone(result)
                             self.assertIs(result.getItem(), scatter)
                             self.assertEqual(result.getIndices(), (index,))
+
+    def testHistogramVisualization(self):
+        """Test binned display"""
+        self.plot.addScatter((), (), ())
+        scatter = self.plot.getItems()[0]
+        scatter.setVisualization(scatter.Visualization.HISTOGRAM)
+        self.assertIs(scatter.getVisualization(),
+                      scatter.Visualization.HISTOGRAM)
+        self.assertEqual(
+            scatter.getVisualizationParameter(
+                scatter.VisualizationParameter.HISTOGRAM_REDUCTION),
+            'mean')
+
+        self.qapp.processEvents()
+
+        scatter.setData(*numpy.random.random(3000).reshape(3, -1))
+
+        for reduction in ('count', 'sum', 'mean'):
+            with self.subTest(reduction=reduction):
+                scatter.setVisualizationParameter(
+                    scatter.VisualizationParameter.HISTOGRAM_REDUCTION,
+                    reduction)
+                self.assertEqual(
+                    scatter.getVisualizationParameter(
+                        scatter.VisualizationParameter.HISTOGRAM_REDUCTION),
+                    reduction)
+
+                self.qapp.processEvents()
 
 
 class TestPlotMarker(PlotWidgetTestCase):
