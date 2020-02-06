@@ -482,6 +482,18 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
                         {Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION: reduction}))
                     submenu.addAction(action)
 
+                submenu.addSeparator()
+                binsmenu = submenu.addMenu('N Bins')
+
+                slider = qt.QSlider(qt.Qt.Horizontal)
+                slider.setRange(10, 1000)
+                slider.setValue(100)
+                slider.setTracking(False)
+                slider.valueChanged.connect(self._binningChanged)
+                widgetAction = qt.QWidgetAction(binsmenu)
+                widgetAction.setDefaultWidget(slider)
+                binsmenu.addAction(widgetAction)
+
         menu.addSeparator()
 
         submenu = menu.addMenu(icons.getQIcon('plot-symbols'), "Symbol")
@@ -512,3 +524,19 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
                     for parameter, value in parameters.items():
                         item.setVisualizationParameter(parameter, value)
                 item.setVisualization(mode)
+
+    def _binningChanged(self, value):
+        """Handle change of binning.
+
+        :param int value: The number of bin on each dimension.
+        """
+        plot = self.plot()
+        if plot is None:
+            return
+
+        for item in plot.getItems():
+            if isinstance(item, Scatter):
+                item.setVisualizationParameter(
+                    Scatter.VisualizationParameter.BINNED_STATISTIC_SHAPE,
+                    (value, value))
+                item.setVisualization(Scatter.Visualization.BINNED_STATISTIC)
