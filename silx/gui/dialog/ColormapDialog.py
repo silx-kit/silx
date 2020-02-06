@@ -558,7 +558,7 @@ class _ColormapHistogram(qt.QWidget):
         self.__lutV = numpy.arange(256)
 
         self._bound = BoundingRect()
-        self._plot._add(self._bound)
+        self._plot.addItem(self._bound)
         self._bound.setVisible(True)
 
         # Add plot for histogram
