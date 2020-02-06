@@ -307,10 +307,14 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     def _updateColormappedData(self):
         """Update the colormapped data, to be called when changed"""
         if self.getVisualization() is self.Visualization.HISTOGRAM:
-            data = getattr(
-                self.__getHistogramInfo(),
-                self.getVisualizationParameter(
-                    self.VisualizationParameter.HISTOGRAM_REDUCTION))
+            histoInfo = self.__getHistogramInfo()
+            if histoInfo is None:
+                data = None
+            else:
+                data = getattr(
+                    histoInfo,
+                    self.getVisualizationParameter(
+                        self.VisualizationParameter.HISTOGRAM_REDUCTION))
         else:
             data = self.getValueData(copy=False)
         self._setColormappedData(data, copy=False)
@@ -436,6 +440,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 shape = 100, 100 # TODO compute auto shape
 
             x, y, values = self.getData(copy=False)[:3]
+            if len(x) == 0:  # No histogram
+                return None
+
             if not numpy.issubdtype(x.dtype, numpy.floating):
                 x = x.astype(numpy.float64)
             if not numpy.issubdtype(y.dtype, numpy.floating):
@@ -490,6 +497,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 return None
 
             histoInfo = self.__getHistogramInfo()
+            if histoInfo is None:
+                return None
             data = getattr(histoInfo, self.getVisualizationParameter(
                 self.VisualizationParameter.HISTOGRAM_REDUCTION))
 
@@ -661,6 +670,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     return None
                 row, col = picked[0][0], picked[1][0]
                 histoInfo = self.__getHistogramInfo()
+                if histoInfo is None:
+                    return None
                 sx, sy = histoInfo.scale
                 ox, oy = histoInfo.origin
                 xdata = self.getXData(copy=False)
