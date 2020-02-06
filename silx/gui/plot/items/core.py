@@ -984,9 +984,6 @@ class ScatterVisualizationMixIn(ItemMixInBase):
     _SUPPORTED_SCATTER_VISUALIZATION = None
     """Allows to override supported Visualizations"""
 
-    _SUPPORTED_HISTOGRAM_REDUCTIONS = 'mean', 'count', 'sum'
-    """Supported histogram reduction functions"""
-
     @enum.unique
     class Visualization(_Enum):
         """Different modes of scatter plot visualizations"""
@@ -1064,6 +1061,15 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         Available reductions are: 'mean' (default), 'count', 'sum'.
         """
 
+    _SUPPORTED_VISUALIZATION_PARAMETER_VALUES = {
+        VisualizationParameter.GRID_MAJOR_ORDER: ('row', 'column'),
+        VisualizationParameter.HISTOGRAM_REDUCTION: ('mean', 'count', 'sum'),
+    }
+    """Supported visualization parameter values.
+
+    Defined for parameters with a set of acceptable values.
+    """
+
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
         self.__parameters = dict(  # Init parameters to None
@@ -1082,6 +1088,20 @@ class ScatterVisualizationMixIn(ItemMixInBase):
             return cls.Visualization.members()
         else:
             return cls._SUPPORTED_SCATTER_VISUALIZATION
+
+    @classmethod
+    def supportedVisualizationParameterValues(cls, parameter):
+        """Returns the list of supported scatter visualization modes.
+
+        See :meth:`VisualizationParameters`
+
+        :param VisualizationParameter parameter:
+            This parameter for which to retrieve the supported values.
+        :returns: tuple of supported of values or None if not defined.
+        """
+        parameter = cls.VisualizationParameter(parameter)
+        return cls._SUPPORTED_VISUALIZATION_PARAMETER_VALUES.get(
+            parameter, None)
 
     def setVisualization(self, mode):
         """Set the scatter plot visualization mode to use.
@@ -1127,9 +1147,9 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         parameter = self.VisualizationParameter.from_value(parameter)
 
         if self.__parameters[parameter] != value:
-            if (parameter == self.VisualizationParameter.HISTOGRAM_REDUCTION and
-                    value not in self._SUPPORTED_HISTOGRAM_REDUCTIONS):
-                raise ValueError("Unsupported histogram_reduction: %s" % str(value))
+            validValues = self.supportedVisualizationParameterValues(parameter)
+            if validValues is not None and value not in validValues:
+                raise ValueError("Unsupported parameter value: %s" % str(value))
 
             self.__parameters[parameter] = value
             self._updated(ItemChangedType.VISUALIZATION_MODE)

@@ -468,16 +468,19 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
                 menu.addAction(action)
 
         if Scatter.Visualization.HISTOGRAM in Scatter.supportedVisualizations():
-            submenu = menu.addMenu('Histogram')
-            for reduction in ('mean', 'count', 'sum'):
-                name = reduction.capitalize()
-                action = qt.QAction(name, menu)
-                action.setCheckable(False)
-                action.triggered.connect(functools.partial(
-                    self._visualizationChanged,
-                    Scatter.Visualization.HISTOGRAM,
-                    {Scatter.VisualizationParameter.HISTOGRAM_REDUCTION: reduction}))
-                submenu.addAction(action)
+            reductions = Scatter.supportedVisualizationParameterValues(
+                Scatter.VisualizationParameter.HISTOGRAM_REDUCTION)
+            if reductions:
+                submenu = menu.addMenu('Histogram')
+                for reduction in reductions:
+                    name = reduction.capitalize()
+                    action = qt.QAction(name, menu)
+                    action.setCheckable(False)
+                    action.triggered.connect(functools.partial(
+                        self._visualizationChanged,
+                        Scatter.Visualization.HISTOGRAM,
+                        {Scatter.VisualizationParameter.HISTOGRAM_REDUCTION: reduction}))
+                    submenu.addAction(action)
 
         menu.addSeparator()
 
