@@ -267,7 +267,7 @@ _RegularGridInfo = namedtuple(
 
 
 _HistogramInfo = namedtuple(
-    '_HistogramInfo', ['histo', 'counts', 'sums', 'origin', 'scale', 'shape'])
+    '_HistogramInfo', ['mean', 'count', 'sum', 'origin', 'scale', 'shape'])
 
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
@@ -307,7 +307,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     def _updateColormappedData(self):
         """Update the colormapped data, to be called when changed"""
         if self.getVisualization() is self.Visualization.HISTOGRAM:
-            data = self.__getHistogramInfo().histo
+            data = getattr(
+                self.__getHistogramInfo(),
+                self.getVisualizationParameter(
+                    self.VisualizationParameter.HISTOGRAM_REDUCTION))
         else:
             data = self.getValueData(copy=False)
         self._setColormappedData(data, copy=False)
@@ -331,8 +334,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                              self.VisualizationParameter.GRID_SHAPE):
                 self.__cacheRegularGridInfo = None
 
-            if parameter in (self.VisualizationParameter.HISTOGRAM_SHAPE,):
-                self.__cacheHistogramInfo = None
+            if parameter in (self.VisualizationParameter.HISTOGRAM_SHAPE,
+                             self.VisualizationParameter.HISTOGRAM_REDUCTION):
+                if parameter == self.VisualizationParameter.HISTOGRAM_SHAPE:
+                    self.__cacheHistogramInfo = None  # Clean-up cache
                 if self.getVisualization() is self.Visualization.HISTOGRAM:
                     self._updateColormappedData()
             return True
@@ -455,7 +460,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 histo = sums / counts
 
             self.__cacheHistogramInfo = _HistogramInfo(
-                histo=histo, counts=counts, sums=sums,
+                mean=histo, count=counts, sum=sums,
                 origin=origin, scale=scale, shape=shape)
 
         return self.__cacheHistogramInfo
@@ -485,9 +490,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 return None
 
             histoInfo = self.__getHistogramInfo()
+            data = getattr(histoInfo, self.getVisualizationParameter(
+                self.VisualizationParameter.HISTOGRAM_REDUCTION))
 
             return backend.addImage(
-                data=histoInfo.histo,
+                data=data,
                 origin=histoInfo.origin,
                 scale=histoInfo.scale,
                 colormap=self.getColormap(),

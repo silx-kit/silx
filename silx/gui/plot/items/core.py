@@ -984,6 +984,9 @@ class ScatterVisualizationMixIn(ItemMixInBase):
     _SUPPORTED_SCATTER_VISUALIZATION = None
     """Allows to override supported Visualizations"""
 
+    _SUPPORTED_HISTOGRAM_REDUCTIONS = 'mean', 'count', 'sum'
+    """Supported histogram reduction functions"""
+
     @enum.unique
     class Visualization(_Enum):
         """Different modes of scatter plot visualizations"""
@@ -1055,10 +1058,17 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         """The number of bins of the histogram in each dimension (height, width).
         """
 
+        HISTOGRAM_REDUCTION = 'histogram_reduction'
+        """The reduction function to apply to each bin (str).
+
+        Available reductions are: 'mean' (default), 'count', 'sum'.
+        """
+
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
         self.__parameters = dict(  # Init parameters to None
             (parameter, None) for parameter in self.VisualizationParameter)
+        self.__parameters[self.VisualizationParameter.HISTOGRAM_REDUCTION] = 'mean'
 
     @classmethod
     def supportedVisualizations(cls):
@@ -1112,10 +1122,15 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         :raises ValueError: If parameter is not supported
         :return: True if parameter was set, False if is was already set
         :rtype: bool
+        :raise ValueError: If value is not supported
         """
         parameter = self.VisualizationParameter.from_value(parameter)
 
         if self.__parameters[parameter] != value:
+            if (parameter == self.VisualizationParameter.HISTOGRAM_REDUCTION and
+                    value not in self._SUPPORTED_HISTOGRAM_REDUCTIONS):
+                raise ValueError("Unsupported histogram_reduction: %s" % str(value))
+
             self.__parameters[parameter] = value
             self._updated(ItemChangedType.VISUALIZATION_MODE)
             return True
