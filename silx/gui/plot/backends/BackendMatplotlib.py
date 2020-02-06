@@ -354,7 +354,31 @@ class _DoubleColoredLinePatch(matplotlib.patches.Patch):
 
 
 class Image(AxesImage):
-    """An AxesImage with a fast path for uint8 RGBA images"""
+    """An AxesImage with a fast path for uint8 RGBA images.
+
+    :param List[float] silx_origin: (ox, oy) Offset of the image.
+    :param List[float] silx_scale: (sx, sy) Scale of the image.
+    """
+
+    def __init__(self, *args,
+                 silx_origin=(0., 0.),
+                 silx_scale=(1., 1.),
+                 **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__silx_origin = silx_origin
+        self.__silx_scale = silx_scale
+
+    def contains(self, mouseevent):
+        """Overridden to fill 'ind' with row and column"""
+        inside, info = super().contains(mouseevent)
+        if inside:
+            x, y = mouseevent.xdata, mouseevent.ydata
+            ox, oy = self.__silx_origin
+            sx, sy = self.__silx_scale
+            column = int((x - ox) / sx)
+            row = int((y - oy) / sy)
+            info['ind'] = (row,), (column,)
+        return inside, info
 
     def set_data(self, A):
         A = numpy.array(A, copy=False)
@@ -605,7 +629,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         image = Image(self.ax,
                       interpolation='nearest',
                       picker=True,
-                      origin='lower')
+                      origin='lower',
+                      silx_origin=origin,
+                      silx_scale=scale)
 
         if alpha < 1:
             image.set_alpha(alpha)
@@ -1311,7 +1337,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def pickItem(self, x, y, item):
         mouseEvent = MouseEvent(
             'button_press_event', self, x, self._mplQtYAxisCoordConversion(y))
+        # Override axes and data position with the axes
         mouseEvent.inaxes = item.axes
+        mouseEvent.xdata, mouseEvent.ydata = self.pixelToData(
+            x, y, axis='left' if item.axes is self.ax else 'right')
         picked, info = item.contains(mouseEvent)
 
         if not picked:

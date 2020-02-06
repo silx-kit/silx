@@ -524,22 +524,14 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
             elif visualization is self.Visualization.REGULAR_GRID:
                 # Specific handling of picking for the regular grid mode
-                plot = self.getPlot()
-                if plot is None:
+                picked = result.getIndices(copy=False)
+                if picked is None:
                     return None
-
-                dataPos = plot.pixelToData(x, y)
-                if dataPos is None:
-                    return None
+                row, column = picked[0][0], picked[1][0]
 
                 gridInfo = self.__getRegularGridInfo()
                 if gridInfo is None:
                     return None
-
-                origin = gridInfo.origin
-                scale = gridInfo.scale
-                column = int((dataPos[0] - origin[0]) / scale[0])
-                row = int((dataPos[1] - origin[1]) / scale[1])
 
                 if gridInfo.order == 'row':
                     index = row * gridInfo.shape[1] + column

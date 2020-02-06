@@ -628,7 +628,7 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                         else:
                             self.assertIsNotNone(result)
                             self.assertIs(result.getItem(), scatter)
-                            self.assertEqual(result.getIndices()[0], (index,))
+                            self.assertEqual(result.getIndices(), (index,))
 
 
 class TestPlotMarker(PlotWidgetTestCase):
