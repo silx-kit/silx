@@ -46,5 +46,5 @@ override_dh_installman:
 	dh_installman -p silx build/man/*.1
 
 override_dh_installdocs:
-	dh_installdocs "build/sphinx/html" -p python-silx-doc
+	dh_installdocs "build/sphinx/html" -p python-silx-doc --doc-main-package=python3-silx
 	dh_installdocs
