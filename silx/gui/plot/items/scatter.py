@@ -345,6 +345,18 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if order is None:
                     order = guess[0]
 
+            nbpoints = len(self.getXData(copy=False))
+            if nbpoints > shape[0] * shape[1]:
+                # More data points that provided grid shape: enlarge grid
+                _logger.warning(
+                    "More data points than provided grid shape size: extends grid")
+                dim0, dim1 = shape
+                if order == 'row':  # keep dim1, enlarge dim0
+                    dim0 = nbpoints // dim1 + (1 if nbpoints % dim1 else 0)
+                else:  # keep dim0, enlarge dim1
+                    dim1 = nbpoints // dim0 + (1 if nbpoints % dim0 else 0)
+                shape = dim0, dim1
+
             bounds = self.getVisualizationParameter(
                 self.VisualizationParameter.GRID_BOUNDS)
             if bounds is None:
