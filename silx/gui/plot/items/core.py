@@ -1231,14 +1231,12 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
 
             if xPositive:
                 x = self.getXData(copy=False)
-                with warnings.catch_warnings():  # Ignore NaN warnings
-                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                with numpy.errstate(invalid='ignore'):  # Ignore NaN warnings
                     xclipped = x <= 0
 
             if yPositive:
                 y = self.getYData(copy=False)
-                with warnings.catch_warnings():  # Ignore NaN warnings
-                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                with numpy.errstate(invalid='ignore'):  # Ignore NaN warnings
                     yclipped = y <= 0
 
             self._clippedCache[(xPositive, yPositive)] = \

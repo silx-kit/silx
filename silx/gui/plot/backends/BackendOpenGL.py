@@ -31,7 +31,6 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 import logging
-import warnings
 import weakref
 
 import numpy
@@ -767,8 +766,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     xErrorMinus, xErrorPlus = xerror[0], xerror[1]
                 else:
                     xErrorMinus, xErrorPlus = xerror, xerror
-                with warnings.catch_warnings():
-                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                with numpy.errstate(divide='ignore', invalid='ignore'):
                     # Ignore divide by zero, invalid value encountered in log10
                     xErrorMinus = logX - numpy.log10(x - xErrorMinus)
                 xErrorPlus = numpy.log10(x + xErrorPlus) - logX
@@ -790,8 +788,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     yErrorMinus, yErrorPlus = yerror[0], yerror[1]
                 else:
                     yErrorMinus, yErrorPlus = yerror, yerror
-                with warnings.catch_warnings():
-                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                with numpy.errstate(divide='ignore', invalid='ignore'):
                     # Ignore divide by zero, invalid value encountered in log10
                     yErrorMinus = logY - numpy.log10(y - yErrorMinus)
                 yErrorPlus = numpy.log10(y + yErrorPlus) - logY
