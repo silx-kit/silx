@@ -405,14 +405,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
 
-        # Apply mask to colors
-        rgbacolors = rgbacolors[mask]
-
         visualization = self.getVisualization()
 
         if visualization is self.Visualization.POINTS:
             return backend.addCurve(xFiltered, yFiltered,
-                                    color=rgbacolors,
+                                    color=rgbacolors[mask],
                                     symbol=self.getSymbol(),
                                     linewidth=0,
                                     linestyle="",
@@ -443,7 +440,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     return backend.addTriangles(xFiltered,
                                                 yFiltered,
                                                 triangles,
-                                                color=rgbacolors,
+                                                color=rgbacolors[mask],
                                                 alpha=self.getAlpha())
 
             elif visualization is self.Visualization.REGULAR_GRID:
@@ -508,6 +505,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 else:  # column-major order
                     y, x = coords[:, 0], coords[:, 1]
 
+                rgbacolors = rgbacolors[mask]  # Filter-out not finite points
                 gridcolors = numpy.empty(
                     (4 * nbpoints, rgbacolors.shape[-1]), dtype=rgbacolors.dtype)
                 for first in range(4):
