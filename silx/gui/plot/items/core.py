@@ -1021,8 +1021,8 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         (either all lines from left to right or all from right to left).
         """
 
-        HISTOGRAM = 'histogram'
-        """Display scatter plot as a 2D histogram.
+        BINNED_STATISTIC = 'binned_statistic'
+        """Display scatter plot as 2D binned statistic (i.e., generalized histogram).
         """
 
     @enum.unique
@@ -1051,19 +1051,19 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         in which case the grid is not fully filled.
         """
 
-        HISTOGRAM_SHAPE = 'histogram_shape'
-        """The number of bins of the histogram in each dimension (height, width).
+        BINNED_STATISTIC_SHAPE = 'binned_statistic_shape'
+        """The number of bins in each dimension (height, width).
         """
 
-        HISTOGRAM_REDUCTION = 'histogram_reduction'
+        BINNED_STATISTIC_FUNCTION = 'binned_statistic_function'
         """The reduction function to apply to each bin (str).
 
-        Available reductions are: 'mean' (default), 'count', 'sum'.
+        Available reduction functions are: 'mean' (default), 'count', 'sum'.
         """
 
     _SUPPORTED_VISUALIZATION_PARAMETER_VALUES = {
         VisualizationParameter.GRID_MAJOR_ORDER: ('row', 'column'),
-        VisualizationParameter.HISTOGRAM_REDUCTION: ('mean', 'count', 'sum'),
+        VisualizationParameter.BINNED_STATISTIC_FUNCTION: ('mean', 'count', 'sum'),
     }
     """Supported visualization parameter values.
 
@@ -1074,7 +1074,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         self.__visualization = self.Visualization.POINTS
         self.__parameters = dict(  # Init parameters to None
             (parameter, None) for parameter in self.VisualizationParameter)
-        self.__parameters[self.VisualizationParameter.HISTOGRAM_REDUCTION] = 'mean'
+        self.__parameters[self.VisualizationParameter.BINNED_STATISTIC_FUNCTION] = 'mean'
 
     @classmethod
     def supportedVisualizations(cls):

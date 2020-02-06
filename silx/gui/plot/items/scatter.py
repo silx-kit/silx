@@ -281,7 +281,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         ScatterVisualizationMixIn.Visualization.SOLID,
         ScatterVisualizationMixIn.Visualization.REGULAR_GRID,
         ScatterVisualizationMixIn.Visualization.IRREGULAR_GRID,
-        ScatterVisualizationMixIn.Visualization.HISTOGRAM,
+        ScatterVisualizationMixIn.Visualization.BINNED_STATISTIC,
         )
     """Overrides supported Visualizations"""
 
@@ -306,7 +306,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
     def _updateColormappedData(self):
         """Update the colormapped data, to be called when changed"""
-        if self.getVisualization() is self.Visualization.HISTOGRAM:
+        if self.getVisualization() is self.Visualization.BINNED_STATISTIC:
             histoInfo = self.__getHistogramInfo()
             if histoInfo is None:
                 data = None
@@ -314,7 +314,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 data = getattr(
                     histoInfo,
                     self.getVisualizationParameter(
-                        self.VisualizationParameter.HISTOGRAM_REDUCTION))
+                        self.VisualizationParameter.BINNED_STATISTIC_FUNCTION))
         else:
             data = self.getValueData(copy=False)
         self._setColormappedData(data, copy=False)
@@ -323,8 +323,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     def setVisualization(self, mode):
         previous = self.getVisualization()
         if super().setVisualization(mode):
-            if (bool(mode is self.Visualization.HISTOGRAM) ^
-                    bool(previous is self.Visualization.HISTOGRAM)):
+            if (bool(mode is self.Visualization.BINNED_STATISTIC) ^
+                    bool(previous is self.Visualization.BINNED_STATISTIC)):
                 self._updateColormappedData()
             return True
         else:
@@ -338,11 +338,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                              self.VisualizationParameter.GRID_SHAPE):
                 self.__cacheRegularGridInfo = None
 
-            if parameter in (self.VisualizationParameter.HISTOGRAM_SHAPE,
-                             self.VisualizationParameter.HISTOGRAM_REDUCTION):
-                if parameter == self.VisualizationParameter.HISTOGRAM_SHAPE:
+            if parameter in (self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
+                             self.VisualizationParameter.BINNED_STATISTIC_FUNCTION):
+                if parameter == self.VisualizationParameter.BINNED_STATISTIC_SHAPE:
                     self.__cacheHistogramInfo = None  # Clean-up cache
-                if self.getVisualization() is self.Visualization.HISTOGRAM:
+                if self.getVisualization() is self.Visualization.BINNED_STATISTIC:
                     self._updateColormappedData()
             return True
         else:
@@ -366,7 +366,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             grid = self.__getRegularGridInfo()
             return None if grid is None else grid.shape
 
-        elif parameter is self.VisualizationParameter.HISTOGRAM_SHAPE:
+        elif parameter is self.VisualizationParameter.BINNED_STATISTIC_SHAPE:
             info = self.__getHistogramInfo()
             return None if info is None else info.shape
 
@@ -435,7 +435,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         """Get histogram info"""
         if self.__cacheHistogramInfo is None:
             shape = self.getVisualizationParameter(
-                self.VisualizationParameter.HISTOGRAM_SHAPE)
+                self.VisualizationParameter.BINNED_STATISTIC_SHAPE)
             if shape is None:
                 shape = 100, 100 # TODO compute auto shape
 
@@ -488,7 +488,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         visualization = self.getVisualization()
 
-        if visualization is self.Visualization.HISTOGRAM:
+        if visualization is self.Visualization.BINNED_STATISTIC:
             plot = self.getPlot()
             if (plot is None or
                     plot.getXAxis().getScale() != Axis.LINEAR or
@@ -500,7 +500,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             if histoInfo is None:
                 return None
             data = getattr(histoInfo, self.getVisualizationParameter(
-                self.VisualizationParameter.HISTOGRAM_REDUCTION))
+                self.VisualizationParameter.BINNED_STATISTIC_FUNCTION))
 
             return backend.addImage(
                 data=data,
@@ -664,7 +664,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
                 result = PickingResult(self, (index,))
 
-            elif visualization is self.Visualization.HISTOGRAM:
+            elif visualization is self.Visualization.BINNED_STATISTIC:
                 picked = result.getIndices(copy=False)
                 if picked is None or len(picked) == 0 or len(picked[0]) == 0:
                     return None

@@ -182,7 +182,7 @@ class ScatterView(qt.QMainWindow):
                         lambda item: isinstance(item, items.Scatter))
                     if result is not None:
                         item = result.getItem()
-                        if item.getVisualization() is items.Scatter.Visualization.HISTOGRAM:
+                        if item.getVisualization() is items.Scatter.Visualization.BINNED_STATISTIC:
                             # Get highest index of closest points
                             selected = result.getIndices(copy=False)[::-1]
                             dataIndex = selected[numpy.argmin(

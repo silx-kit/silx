@@ -562,12 +562,12 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                               'points',
                               'regular_grid',
                               'irregular_grid',
-                              'histogram',
+                              'binned_statistic',
                               scatter.Visualization.SOLID,
                               scatter.Visualization.POINTS,
                               scatter.Visualization.REGULAR_GRID,
                               scatter.Visualization.IRREGULAR_GRID,
-                              scatter.Visualization.HISTOGRAM):
+                              scatter.Visualization.BINNED_STATISTIC):
             with self.subTest(visualization=visualization):
                 scatter.setVisualization(visualization)
                 self.qapp.processEvents()
@@ -634,16 +634,16 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                             self.assertIs(result.getItem(), scatter)
                             self.assertEqual(result.getIndices(), (index,))
 
-    def testHistogramVisualization(self):
+    def testBinnedStatisticVisualization(self):
         """Test binned display"""
         self.plot.addScatter((), (), ())
         scatter = self.plot.getItems()[0]
-        scatter.setVisualization(scatter.Visualization.HISTOGRAM)
+        scatter.setVisualization(scatter.Visualization.BINNED_STATISTIC)
         self.assertIs(scatter.getVisualization(),
-                      scatter.Visualization.HISTOGRAM)
+                      scatter.Visualization.BINNED_STATISTIC)
         self.assertEqual(
             scatter.getVisualizationParameter(
-                scatter.VisualizationParameter.HISTOGRAM_REDUCTION),
+                scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION),
             'mean')
 
         self.qapp.processEvents()
@@ -653,11 +653,11 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
         for reduction in ('count', 'sum', 'mean'):
             with self.subTest(reduction=reduction):
                 scatter.setVisualizationParameter(
-                    scatter.VisualizationParameter.HISTOGRAM_REDUCTION,
+                    scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION,
                     reduction)
                 self.assertEqual(
                     scatter.getVisualizationParameter(
-                        scatter.VisualizationParameter.HISTOGRAM_REDUCTION),
+                        scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION),
                     reduction)
 
                 self.qapp.processEvents()

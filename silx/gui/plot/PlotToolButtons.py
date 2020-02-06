@@ -459,7 +459,7 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
         # Add visualization modes
 
         for mode in Scatter.supportedVisualizations():
-            if mode is not Scatter.Visualization.HISTOGRAM:
+            if mode is not Scatter.Visualization.BINNED_STATISTIC:
                 name = mode.value.capitalize()
                 action = qt.QAction(name, menu)
                 action.setCheckable(False)
@@ -467,19 +467,19 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
                     functools.partial(self._visualizationChanged, mode, None))
                 menu.addAction(action)
 
-        if Scatter.Visualization.HISTOGRAM in Scatter.supportedVisualizations():
+        if Scatter.Visualization.BINNED_STATISTIC in Scatter.supportedVisualizations():
             reductions = Scatter.supportedVisualizationParameterValues(
-                Scatter.VisualizationParameter.HISTOGRAM_REDUCTION)
+                Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION)
             if reductions:
-                submenu = menu.addMenu('Histogram')
+                submenu = menu.addMenu('Binned Statistic')
                 for reduction in reductions:
                     name = reduction.capitalize()
                     action = qt.QAction(name, menu)
                     action.setCheckable(False)
                     action.triggered.connect(functools.partial(
                         self._visualizationChanged,
-                        Scatter.Visualization.HISTOGRAM,
-                        {Scatter.VisualizationParameter.HISTOGRAM_REDUCTION: reduction}))
+                        Scatter.Visualization.BINNED_STATISTIC,
+                        {Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION: reduction}))
                     submenu.addAction(action)
 
         menu.addSeparator()
