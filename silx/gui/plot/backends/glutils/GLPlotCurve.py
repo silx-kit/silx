@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ __date__ = "03/04/2017"
 
 import math
 import logging
-import warnings
 
 import numpy
 
@@ -1129,11 +1128,9 @@ class GLPlotCurve2D(object):
                     _baseline = numpy.repeat(_baseline,
                                              len(self.xData))
                 if isYLog is True:
-                    with warnings.catch_warnings():  # Ignore NaN comparison warnings
-                        warnings.simplefilter('ignore',
-                                              category=RuntimeWarning)
+                    with numpy.errstate(divide='ignore', invalid='ignore'):
                         log_val = numpy.log10(_baseline)
-                    _baseline = numpy.where(_baseline>0.0, log_val, -38)
+                        _baseline = numpy.where(_baseline>0.0, log_val, -38)
                 return _baseline
 
             _baseline = deduce_baseline(baseline)
@@ -1277,8 +1274,7 @@ class GLPlotCurve2D(object):
 
         if self.lineStyle is not None:
             # Using Cohen-Sutherland algorithm for line clipping
-            with warnings.catch_warnings():  # Ignore NaN comparison warnings
-                warnings.simplefilter('ignore', category=RuntimeWarning)
+            with numpy.errstate(invalid='ignore'):  # Ignore NaN comparison warnings
                 codes = ((self.yData > yPickMax) << 3) | \
                     ((self.yData < yPickMin) << 2) | \
                     ((self.xData > xPickMax) << 1) | \
@@ -1335,8 +1331,7 @@ class GLPlotCurve2D(object):
             indices.sort()
 
         else:
-            with warnings.catch_warnings():  # Ignore NaN comparison warnings
-                warnings.simplefilter('ignore', category=RuntimeWarning)
+            with numpy.errstate(invalid='ignore'):  # Ignore NaN comparison warnings
                 indices = numpy.nonzero((self.xData >= xPickMin) &
                                         (self.xData <= xPickMax) &
                                         (self.yData >= yPickMin) &
