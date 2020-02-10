@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ from collections import OrderedDict
 import numpy
 
 from silx.gui import qt
+from silx.gui.plot import import items
 from silx.gui.plot import Plot1D
 from silx.test.utils import temp_dir
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
@@ -254,7 +255,9 @@ class TestCurvesROIWidget(TestCaseQt):
         self.widget.roiWidget.showAllMarkers(True)
         roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
         roiWidget.setRois(roisDefsDict)
-        self.assertTrue(len(self.plot._getAllMarkers()) is 2*3)
+        markers = [item for item in self.plot.getItems()
+                   if isinstance(item, items.MarkerBase)]
+        self.assertEqual(len(markers), 2*3)
 
         markersHandler = self.widget.roiWidget.roiTable._markersHandler
         roiWidget.showAllMarkers(True)
@@ -267,7 +270,9 @@ class TestCurvesROIWidget(TestCaseQt):
 
         roiWidget.setRois(roisDefsObj)
         self.qapp.processEvents()
-        self.assertTrue(len(self.plot._getAllMarkers()) is 2*3)
+        markers = [item for item in self.plot.getItems()
+                   if isinstance(item, items.MarkerBase)]
+        self.assertTrue(len(markers), 2*3)
 
         markersHandler = self.widget.roiWidget.roiTable._markersHandler
         roiWidget.showAllMarkers(True)

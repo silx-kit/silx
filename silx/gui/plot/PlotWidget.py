@@ -1502,7 +1502,8 @@ class PlotWidget(qt.QMainWindow):
         assert (x, y) != (None, None)
 
         if legend is None:  # Find an unused legend
-            markerLegends = self._getAllMarkers(just_legend=True)
+            markerLegends = [item.getName() for item in self.getItems()
+                             if isinstance(item, items.MarkerBase)]
             for index in itertools.count():
                 legend = "Unnamed Marker %d" % index
                 if legend not in markerLegends:
@@ -2189,6 +2190,14 @@ class PlotWidget(qt.QMainWindow):
         event = PlotEvents.prepareLimitsChangedSignal(
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
         self.notify(**event)
+
+    @deprecated(replacement='getItems', since_version='0.13.0')
+    def _getAllMarkers(self, just_legend=False):
+        markers = [item for item in self.getItems() if isinstance(item, items.MarkerBase)]
+        if just_legend:
+            return [marker.getName() for marker in markers]
+        else:
+            return markers
 
     def getLimitsHistory(self):
         """Returns the object handling the history of limits of the plot"""
@@ -2929,17 +2938,6 @@ class PlotWidget(qt.QMainWindow):
         :param str cursor: Name of the cursor shape
         """
         self._backend.setGraphCursorShape(cursor)
-
-    def _getAllMarkers(self, just_legend=False):
-        """Returns all markers' legend or objects
-
-        :param bool just_legend: True to get the legend of the markers,
-                                 False (the default) to get marker objects.
-        :return: list of legend of list of marker objects
-        :rtype: list of str or list of marker objects
-        """
-        return self._getItems(
-            kind='marker', just_legend=just_legend, withhidden=True)
 
     def _getMarker(self, legend=None):
         """Get the object describing a specific marker.
