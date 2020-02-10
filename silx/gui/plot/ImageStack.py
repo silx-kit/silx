@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Image stack view with data prefetch
-"""
+"""Image stack view with data prefetch capabilty."""
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
@@ -46,8 +45,9 @@ _logger = logging.getLogger(__file__)
 
 
 class _PlotWithWaitingLabel(qt.QWidget):
-    """A simple widget that can either display an image or display a
-    'processing' or 'waiting' status"""
+    """Image plot widget with an overlay 'waiting' status.
+    """
+
     class AnimationThread(threading.Thread):
         def __init__(self, label):
             self.running = True
@@ -125,8 +125,8 @@ class _HorizontalSlider(HorizontalSliderWithBrowser):
 
 
 class UrlList(qt.QWidget):
-    """Simple list to display an active url and allow user to pick an
-    url from it"""
+    """List of URLs the user to select an URL"""
+
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the active/current url change"""
 
@@ -216,10 +216,9 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
 
 class ImageStack(qt.QMainWindow):
-    """
-    This widget is made to load on the fly image contained the given urls.
-    For avoiding lack impression it will prefetch images close to the one
-    displayed.
+    """Widget loading on the fly images contained the given urls.
+
+    It prefetches images close to the displayed one.
     """
 
     N_PRELOAD = 10
