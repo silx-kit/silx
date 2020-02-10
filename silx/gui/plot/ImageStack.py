@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -71,14 +71,15 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
-        self.setLayout(qt.QVBoxLayout())
+        layout = qt.QStackedLayout(self)
+        layout.setStackingMode(qt.QStackedLayout.StackAll)
 
         self._waiting_label = qt.QLabel(parent=self)
         self._waiting_label.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
-        self.layout().addWidget(self._waiting_label)
+        layout.addWidget(self._waiting_label)
 
         self._plot = Plot2D(parent=self)
-        self.layout().addWidget(self._plot)
+        layout.addWidget(self._plot)
 
         self.updateThread = _PlotWithWaitingLabel.AnimationThread(self._waiting_label)
         self.updateThread.start()
@@ -89,10 +90,9 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
     def setWaiting(self, activate=True):
         if activate is True:
-            self._plot.hide()
+            self._plot.clear()
             self._waiting_label.show()
         else:
-            self._plot.show()
             self._waiting_label.hide()
 
     def setData(self, data):
