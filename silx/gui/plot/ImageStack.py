@@ -103,7 +103,7 @@ class _PlotWithWaitingLabel(qt.QWidget):
         self._plot.clear()
         self.setWaiting(False)
 
-    def getPlot(self):
+    def getPlotWidget(self):
         return self._plot
 
 
@@ -269,14 +269,14 @@ class ImageStack(qt.QMainWindow):
             thread.wait(5)
         self._loadingThreads.clear()
 
-    def getPlot(self) -> Plot2D:
+    def getPlotWidget(self) -> Plot2D:
         """
-        Returns the PlotWidget contains in this window
+        Returns the PlotWidget contained in this window
 
-        :return: PlotWidget contains in this window
+        :return: PlotWidget contained in this window
         :rtype: Plot2D
         """
-        return self._plot.getPlot()
+        return self._plot.getPlotWidget()
 
     def reset(self) -> None:
         """Clear the plot and remove any link to url"""
@@ -288,8 +288,8 @@ class ImageStack(qt.QMainWindow):
         self._plot.clear()
 
     def _preFetch(self, urls: list) -> None:
-        """
-        Pre-fetch the given urls if necessary
+        """Pre-fetch the given urls if necessary
+
         :param urls: list of DataUrl to prefetch
         :type: list
         """
