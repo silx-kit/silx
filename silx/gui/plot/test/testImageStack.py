@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -90,19 +90,19 @@ class TestImageStack(TestCaseQt):
         # make sure all image are loaded
         self.assertEqual(self.listener.callCount(), self._n_urls)
         numpy.testing.assert_array_equal(
-            self.widget.getPlot().getActiveImage(just_legend=False).getData(),
+            self.widget.getPlotWidget().getActiveImage(just_legend=False).getData(),
             self._raw_data[0])
         self.assertEqual(self.widget._slider.value(), 0)
 
         self.widget._urlsTable.setUrl(self.urls[4])
         numpy.testing.assert_array_equal(
-            self.widget.getPlot().getActiveImage(just_legend=False).getData(),
+            self.widget.getPlotWidget().getActiveImage(just_legend=False).getData(),
             self._raw_data[4])
         self.assertEqual(self.widget._slider.value(), 4)
 
         self.widget._slider.setUrlIndex(6)
         numpy.testing.assert_array_equal(
-            self.widget.getPlot().getActiveImage(just_legend=False).getData(),
+            self.widget.getPlotWidget().getActiveImage(just_legend=False).getData(),
             self._raw_data[6])
         self.assertEqual(self.widget._urlsTable.currentItem().text(),
                          self.urls[6].path())

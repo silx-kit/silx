@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Image stack view with data prefetch
-"""
+"""Image stack view with data prefetch capabilty."""
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
@@ -46,8 +45,9 @@ _logger = logging.getLogger(__file__)
 
 
 class _PlotWithWaitingLabel(qt.QWidget):
-    """A simple widget that can either display an image or display a
-    'processing' or 'waiting' status"""
+    """Image plot widget with an overlay 'waiting' status.
+    """
+
     class AnimationThread(threading.Thread):
         def __init__(self, label):
             self.running = True
@@ -71,14 +71,15 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
-        self.setLayout(qt.QVBoxLayout())
+        layout = qt.QStackedLayout(self)
+        layout.setStackingMode(qt.QStackedLayout.StackAll)
 
         self._waiting_label = qt.QLabel(parent=self)
         self._waiting_label.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
-        self.layout().addWidget(self._waiting_label)
+        layout.addWidget(self._waiting_label)
 
         self._plot = Plot2D(parent=self)
-        self.layout().addWidget(self._plot)
+        layout.addWidget(self._plot)
 
         self.updateThread = _PlotWithWaitingLabel.AnimationThread(self._waiting_label)
         self.updateThread.start()
@@ -89,10 +90,9 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
     def setWaiting(self, activate=True):
         if activate is True:
-            self._plot.hide()
+            self._plot.clear()
             self._waiting_label.show()
         else:
-            self._plot.show()
             self._waiting_label.hide()
 
     def setData(self, data):
@@ -103,7 +103,7 @@ class _PlotWithWaitingLabel(qt.QWidget):
         self._plot.clear()
         self.setWaiting(False)
 
-    def getPlot(self):
+    def getPlotWidget(self):
         return self._plot
 
 
@@ -125,8 +125,8 @@ class _HorizontalSlider(HorizontalSliderWithBrowser):
 
 
 class UrlList(qt.QWidget):
-    """Simple list to display an active url and allow user to pick an
-    url from it"""
+    """List of URLs the user to select an URL"""
+
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the active/current url change"""
 
@@ -216,10 +216,9 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
 
 class ImageStack(qt.QMainWindow):
-    """
-    This widget is made to load on the fly image contained the given urls.
-    For avoiding lack impression it will prefetch images close to the one
-    displayed.
+    """Widget loading on the fly images contained the given urls.
+
+    It prefetches images close to the displayed one.
     """
 
     N_PRELOAD = 10
@@ -270,14 +269,14 @@ class ImageStack(qt.QMainWindow):
             thread.wait(5)
         self._loadingThreads.clear()
 
-    def getPlot(self) -> Plot2D:
+    def getPlotWidget(self) -> Plot2D:
         """
-        Returns the PlotWidget contains in this window
+        Returns the PlotWidget contained in this window
 
-        :return: PlotWidget contains in this window
+        :return: PlotWidget contained in this window
         :rtype: Plot2D
         """
-        return self._plot.getPlot()
+        return self._plot.getPlotWidget()
 
     def reset(self) -> None:
         """Clear the plot and remove any link to url"""
@@ -289,8 +288,8 @@ class ImageStack(qt.QMainWindow):
         self._plot.clear()
 
     def _preFetch(self, urls: list) -> None:
-        """
-        Pre-fetch the given urls if necessary
+        """Pre-fetch the given urls if necessary
+
         :param urls: list of DataUrl to prefetch
         :type: list
         """
