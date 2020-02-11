@@ -385,6 +385,7 @@ class _ColormapHistogram(qt.QWidget):
         if self._invalidated:
             self._updateDataInPlot()
             self._invalidated = False
+        self._updateMarkerPosition()
         return super(_ColormapHistogram, self).paintEvent(event)
 
     def getFiniteRange(self):
@@ -401,7 +402,7 @@ class _ColormapHistogram(qt.QWidget):
         if vRange == self._finiteRange:
             return
         self._finiteRange = vRange
-        self._updateMarkerPosition()
+        self.update()
 
     def getColormap(self):
         return self.parent().getColormap()
@@ -787,7 +788,7 @@ class _ColormapHistogram(qt.QWidget):
 
     def updateNormalization(self):
         self._updateDataInPlot()
-        self._updateMarkerPosition()
+        self.update()
 
 
 class ColormapDialog(qt.QDialog):
