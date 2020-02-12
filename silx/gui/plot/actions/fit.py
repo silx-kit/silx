@@ -38,8 +38,10 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "10/10/2018"
 
-from .PlotToolAction import PlotToolAction
 import logging
+
+from .PlotToolAction import PlotToolAction
+from .. import items
 from silx.gui import qt
 from silx.gui.plot.ItemsSelectionDialog import ItemsSelectionDialog
 from silx.gui.plot.items import Curve, Histogram
@@ -47,43 +49,30 @@ from silx.gui.plot.items import Curve, Histogram
 _logger = logging.getLogger(__name__)
 
 
-def _getUniqueCurve(plt):
-    """Get a single curve from the plot.
-    Get the active curve if any, else if a single curve is plotted
-    get it, else return None.
+def _getUniqueCurveOrHistogram(plot):
+    """Returns unique :class:`Curve` or :class:`Histogram` in a `PlotWidget`.
 
-    :param plt: :class:`.PlotWidget` instance on which to operate
+    If there is an active curve, returns it, else return curve or histogram
+    only if alone in the plot.
 
-    :return: return value of plt.getActiveCurve(), or plt.getAllCurves()[0],
-        or None
+    :param PlotWidget plot:
+    :rtype: Union[None,~silx.gui.plot.items.Curve,~silx.gui.plot.items.Histogram]
     """
-    curve = plt.getActiveCurve()
+    curve = plot.getActiveCurve()
     if curve is not None:
         return curve
 
-    curves = plt.getAllCurves()
-    if len(curves) == 0:
-        return None
+    histograms = [item for item in plot.getItems()
+                  if isinstance(item, items.Histogram) and item.isVisible()]
+    curves = [item for item in plot.getItems()
+              if isinstance(item, items.Curve) and item.isVisible()]
 
-    if len(curves) == 1 and len(plt._getItems(kind='histogram')) == 0:
+    if len(histograms) == 1 and len(curves) == 0:
+        return histograms[0]
+    elif len(curves) == 1 and len(histograms) == 0:
         return curves[0]
-
-    return None
-
-
-def _getUniqueHistogram(plt):
-    """Return the histogram if there is a single histogram and no curve in
-    the plot. In all other cases, return None.
-
-    :param plt: :class:`.PlotWidget` instance on which to operate
-    :return: histogram or None
-    """
-    histograms = plt._getItems(kind='histogram')
-    if len(histograms) != 1:
+    else:
         return None
-    if plt.getAllCurves(just_legend=True):
-        return None
-    return histograms[0]
 
 
 class FitAction(PlotToolAction):
@@ -120,10 +109,8 @@ class FitAction(PlotToolAction):
         self.ylabel = plot.getYAxis().getLabel()
         self.xmin, self.xmax = plot.getXAxis().getLimits()
 
-        histo = _getUniqueHistogram(self.plot)
-        curve = _getUniqueCurve(self.plot)
-
-        if histo is None and curve is None:
+        item = _getUniqueCurveOrHistogram(self.plot)
+        if item is None:
             # ambiguous case, we need to ask which plot item to fit
             isd = ItemsSelectionDialog(parent=plot, plot=self.plot)
             isd.setWindowTitle("Select item to be fitted")
@@ -136,12 +123,6 @@ class FitAction(PlotToolAction):
                 item = isd.getSelectedItems()[0]
             else:
                 return
-        elif histo is not None:
-            # presence of a unique histo and no curve
-            item = histo
-        elif curve is not None:
-            # presence of a unique or active curve
-            item = curve
 
         self.legend = item.getName()
 
