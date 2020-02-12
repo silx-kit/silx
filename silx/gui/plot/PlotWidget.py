@@ -2124,7 +2124,7 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='histogram', legend=legend)
 
-    @deprecated(replacement='getItems', since_version='0.13.0')
+    @deprecated(replacement='getItems', since_version='0.13')
     def _getItems(self, kind=ITEM_KINDS, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot
 
@@ -2196,7 +2196,7 @@ class PlotWidget(qt.QMainWindow):
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
         self.notify(**event)
 
-    @deprecated(replacement='getItems', since_version='0.13.0')
+    @deprecated(replacement='getItems', since_version='0.13')
     def _getAllMarkers(self, just_legend=False):
         markers = [item for item in self.getItems() if isinstance(item, items.MarkerBase)]
         if just_legend:
