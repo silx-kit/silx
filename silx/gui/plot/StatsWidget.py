@@ -180,7 +180,10 @@ class _PlotWidgetWrapper(_Wrapper):
 
     def getItems(self):
         plot = self.getPlot()
-        return () if plot is None else plot._getItems()
+        if plot is None:
+            return ()
+        else:
+            return [item for item in plot.getItems() if item.isVisible()]
 
     def getSelectedItems(self):
         plot = self.getPlot()
