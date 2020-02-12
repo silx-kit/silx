@@ -141,20 +141,22 @@ class PlotItemsSelector(qt.QTableWidget):
     def updatePlotItems(self):
         self._clear()
 
-        nrows = len(self.plot._getItems(kind=self.plot_item_kinds,
-                                        just_legend=True))
-        self.setRowCount(nrows)
-
         # respect order of kinds as set in method setKindsFilter
-        i = 0
+        itemsAndKind = []
         for kind in self.plot_item_kinds:
-            for plot_item in self.plot._getItems(kind=kind):
-                legend_twitem = qt.QTableWidgetItem(plot_item.getName())
-                self.setItem(i, 0, legend_twitem)
+            itemClasses = self.plot._KIND_TO_CLASSES[kind]
+            for item in self.plot.getItems():
+                if isinstance(item, itemClasses) and item.isVisible():
+                    itemsAndKind.append((item, kind))
 
-                kind_twitem = qt.QTableWidgetItem(kind)
-                self.setItem(i, 1, kind_twitem)
-                i += 1
+        self.setRowCount(len(itemsAndKind))
+
+        for index, (item, kind) in enumerate(itemsAndKind):
+            legend_twitem = qt.QTableWidgetItem(item.getName())
+            self.setItem(index, 0, legend_twitem)
+
+            kind_twitem = qt.QTableWidgetItem(kind)
+            self.setItem(index, 1, kind_twitem)
 
     @property
     def selectedPlotItems(self):
