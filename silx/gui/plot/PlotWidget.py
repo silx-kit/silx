@@ -583,31 +583,28 @@ class PlotWidget(qt.QMainWindow):
 
     # Content management
 
-    @staticmethod
-    def _itemKey(item):
+    _KIND_TO_CLASSES = {
+        'curve': (items.Curve,),
+        'image': (items.ImageBase,),
+        'scatter': (items.Scatter,),
+        'marker': (items.MarkerBase,),
+        'item': (items.Shape, items.BoundingRect),
+        'histogram': (items.Histogram,),
+        }
+    """Mapping kind to item classes of this kind"""
+
+    @classmethod
+    def _itemKey(cls, item):
         """Build the key of given :class:`Item` in the plot
 
         :param Item item: The item to make the key from
         :return: (legend, kind)
         :rtype: (str, str)
         """
-        if isinstance(item, items.Curve):
-            kind = 'curve'
-        elif isinstance(item, items.ImageBase):
-            kind = 'image'
-        elif isinstance(item, items.Scatter):
-            kind = 'scatter'
-        elif isinstance(item, (items.Marker,
-                               items.XMarker, items.YMarker)):
-            kind = 'marker'
-        elif isinstance(item, (items.Shape, items.BoundingRect)):
-            kind = 'item'
-        elif isinstance(item, items.Histogram):
-            kind = 'histogram'
-        else:
-            raise ValueError('Unsupported item type %s' % type(item))
-
-        return item.getName(), kind
+        for kind, itemClasses in cls._KIND_TO_CLASSES.items():
+            if isinstance(item, itemClasses):
+                return item.getName(), kind
+        raise ValueError('Unsupported item type %s' % type(item))
 
     def _notifyContentChanged(self, item):
         legend, kind = self._itemKey(item)
@@ -1270,7 +1267,9 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._notifyContentChanged(scatter)
 
-        if len(self._getItems(kind="scatter")) == 1 or wasActive:
+        scatters = [item for item in self.getItems()
+                    if isinstance(item, items.Scatter) and item.isVisible()]
+        if len(scatters) == 1 or wasActive:
             self._setActiveItem('scatter', scatter.getName())
 
         return legend
@@ -1625,9 +1624,10 @@ class PlotWidget(qt.QMainWindow):
         if legend is None:  # This is a clear
             # Clear each given kind
             for aKind in kind:
-                for legend in self._getItems(
-                        kind=aKind, just_legend=True, withhidden=True):
-                    self.remove(legend=legend, kind=aKind)
+                for item in self.getItems():
+                    if (isinstance(item, self._KIND_TO_CLASSES[aKind]) and
+                            item.getPlot() is self):  # Make sure item is still in the plot
+                        self.removeItem(item)
 
         else:  # This is removing a single element
             # Remove each given kind
@@ -1667,7 +1667,9 @@ class PlotWidget(qt.QMainWindow):
 
     def clear(self):
         """Remove everything from the plot."""
-        self.remove()
+        for item in self.getItems():
+            if item.getPlot() is self:  # Make sure item is still in the plot
+                self.removeItem(item)
 
     def clearCurves(self):
         """Remove all the curves from the plot."""
@@ -2043,9 +2045,10 @@ class PlotWidget(qt.QMainWindow):
         :return: list of curves' legend or :class:`.items.Curve`
         :rtype: list of str or list of :class:`.items.Curve`
         """
-        return self._getItems(kind='curve',
-                              just_legend=just_legend,
-                              withhidden=withhidden)
+        curves = [item for item in self.getItems() if
+                  isinstance(item, items.Curve) and
+                  (withhidden or item.isVisible())]
+        return [curve.getName() for curve in curves] if just_legend else curves
 
     def getCurve(self, legend=None):
         """Get the object describing a specific curve.
@@ -2076,9 +2079,9 @@ class PlotWidget(qt.QMainWindow):
         :return: list of images' legend or :class:`.items.ImageBase`
         :rtype: list of str or list of :class:`.items.ImageBase`
         """
-        return self._getItems(kind='image',
-                              just_legend=just_legend,
-                              withhidden=True)
+        images = [item for item in self.getItems()
+                  if isinstance(item, items.ImageBase)]
+        return [image.getName() for image in images] if just_legend else images
 
     def getImage(self, legend=None):
         """Get the object describing a specific image.
@@ -2121,6 +2124,7 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='histogram', legend=legend)
 
+    @deprecated(replacement='getItems', since_version='0.13.0')
     def _getItems(self, kind=ITEM_KINDS, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot
 
@@ -2171,8 +2175,9 @@ class PlotWidget(qt.QMainWindow):
                 if item is not None:  # Return active item if available
                     return item
             # Return last visible item if any
-            allItems = self._getItems(
-                kind=kind, just_legend=False, withhidden=False)
+            itemClasses = self._KIND_TO_CLASSES[kind]
+            allItems = [item for item in self.getItems()
+                        if isinstance(item, itemClasses) and item.isVisible()]
             return allItems[-1] if allItems else None
 
     # Limits
