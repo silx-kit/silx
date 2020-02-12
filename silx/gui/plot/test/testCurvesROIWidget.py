@@ -36,7 +36,7 @@ from collections import OrderedDict
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot import import items
+from silx.gui.plot import items
 from silx.gui.plot import Plot1D
 from silx.test.utils import temp_dir
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
