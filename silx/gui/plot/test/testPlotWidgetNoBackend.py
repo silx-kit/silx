@@ -570,21 +570,18 @@ class TestPlotAddScatter(unittest.TestCase):
 
         plot = PlotWidget(backend='none')
 
-        scatters = plot._getItems(kind='scatter')
-        self.assertEqual(len(scatters), 0)
+        items = plot.getItems()
+        self.assertEqual(len(items), 0)
 
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 0')
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 1')
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 2')
 
-        scatters = plot._getItems(kind='scatter')
-        self.assertEqual(len(scatters), 3)
-        self.assertEqual(scatters[0].getName(), 'scatter 0')
-        self.assertEqual(scatters[2].getName(), 'scatter 2')
-
-        scatters = plot._getItems(kind='scatter', just_legend=True)
-        self.assertEqual(len(scatters), 3)
-        self.assertEqual(list(scatters), ['scatter 0', 'scatter 1', 'scatter 2'])
+        items = plot.getItems()
+        self.assertEqual(len(items), 3)
+        self.assertEqual(items[0].getName(), 'scatter 0')
+        self.assertEqual(items[1].getName(), 'scatter 1')
+        self.assertEqual(items[2].getName(), 'scatter 2')
 
 
 class TestPlotHistogram(unittest.TestCase):
