@@ -399,7 +399,7 @@ class _SymbolToolButtonBase(PlotToolButton):
         if plot is None:
             return
 
-        for item in plot._getItems(withhidden=True):
+        for item in plot.getItems():
             if isinstance(item, SymbolMixIn):
                 item.setSymbolSize(value)
 
@@ -412,7 +412,7 @@ class _SymbolToolButtonBase(PlotToolButton):
         if plot is None:
             return
 
-        for item in plot._getItems(withhidden=True):
+        for item in plot.getItems():
             if isinstance(item, SymbolMixIn):
                 item.setSymbol(marker)
 
@@ -487,6 +487,6 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
         if plot is None:
             return
 
-        for item in plot._getItems(withhidden=True):
+        for item in plot.getItems():
             if isinstance(item, Scatter):
                 item.setVisualization(mode)
