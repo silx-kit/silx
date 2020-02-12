@@ -2196,14 +2196,6 @@ class PlotWidget(qt.QMainWindow):
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
         self.notify(**event)
 
-    @deprecated(replacement='getItems', since_version='0.13')
-    def _getAllMarkers(self, just_legend=False):
-        markers = [item for item in self.getItems() if isinstance(item, items.MarkerBase)]
-        if just_legend:
-            return [marker.getName() for marker in markers]
-        else:
-            return markers
-
     def getLimitsHistory(self):
         """Returns the object handling the history of limits of the plot"""
         return self._limitsHistory
@@ -2943,6 +2935,14 @@ class PlotWidget(qt.QMainWindow):
         :param str cursor: Name of the cursor shape
         """
         self._backend.setGraphCursorShape(cursor)
+
+    @deprecated(replacement='getItems', since_version='0.13')
+    def _getAllMarkers(self, just_legend=False):
+        markers = [item for item in self.getItems() if isinstance(item, items.MarkerBase)]
+        if just_legend:
+            return [marker.getName() for marker in markers]
+        else:
+            return markers
 
     def _getMarker(self, legend=None):
         """Get the object describing a specific marker.
