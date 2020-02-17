@@ -534,7 +534,7 @@ class PlotWidget(qt.QMainWindow):
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
 
-        for item in self._content.values():
+        for item in self.getItems():
             if item.isVisible():
                 bounds = item.getBounds()
                 if bounds is not None:
@@ -594,21 +594,20 @@ class PlotWidget(qt.QMainWindow):
     """Mapping kind to item classes of this kind"""
 
     @classmethod
-    def _itemKey(cls, item):
-        """Build the key of given :class:`Item` in the plot
+    def _itemKind(cls, item):
+        """Returns the "kind" of a given item
 
-        :param Item item: The item to make the key from
-        :return: (legend, kind)
-        :rtype: (str, str)
+        :param Item item: The item get the kind
+        :rtype: str
         """
         for kind, itemClasses in cls._KIND_TO_CLASSES.items():
             if isinstance(item, itemClasses):
-                return item.getName(), kind
+                return kind
         raise ValueError('Unsupported item type %s' % type(item))
 
     def _notifyContentChanged(self, item):
-        legend, kind = self._itemKey(item)
-        self.notify('contentChanged', action='add', kind=kind, legend=legend)
+        self.notify('contentChanged', action='add',
+                    kind=self._itemKind(item), legend=item.getName())
 
     def _itemRequiresUpdate(self, item):
         """Called by items in the plot for asynchronous update
@@ -638,12 +637,11 @@ class PlotWidget(qt.QMainWindow):
             return
 
         assert not args and not kwargs
-        key = self._itemKey(item)
-        if key in self._content:
+        if item in self.getItems():
             raise ValueError('Item already in the plot')
 
         # Add item to plot
-        self._content[key] = item
+        self._content[(item.getName(), self._itemKind(item))] = item
         item._setPlot(self)
         self._itemRequiresUpdate(item)
         if isinstance(item, items.DATA_ITEMS):
@@ -669,13 +667,12 @@ class PlotWidget(qt.QMainWindow):
             self.remove(item, kind='item')
             return
 
-        key = self._itemKey(item)
-        if key not in self._content:
+        if item not in self.getItems():
             raise ValueError('Item not in the plot')
 
         self.sigItemAboutToBeRemoved.emit(item)
 
-        legend, kind = key
+        kind = self._itemKind(item)
 
         if kind in self._ACTIVE_ITEM_KINDS:
             if self._getActiveItem(kind) == item:
@@ -683,7 +680,7 @@ class PlotWidget(qt.QMainWindow):
                 self._setActiveItem(kind, None)
 
         # Remove item from plot
-        self._content.pop(key)
+        self._content.pop((item.getName(), kind))
         if item in self._contentToUpdate:
             self._contentToUpdate.remove(item)
         if item.isVisible():
@@ -698,7 +695,7 @@ class PlotWidget(qt.QMainWindow):
             self._resetColorAndStyle()
 
         self.notify('contentChanged', action='remove',
-                    kind=kind, legend=legend)
+                    kind=kind, legend=item.getName())
 
     @deprecated(replacement='addItem', since_version='0.13')
     def _add(self, item):
@@ -1930,14 +1927,11 @@ class PlotWidget(qt.QMainWindow):
         if self._activeLegend[kind] is None:
             return None
 
-        if (self._activeLegend[kind], kind) not in self._content:
-            self._activeLegend[kind] = None
+        item = self._getItem(kind, self._activeLegend[kind])
+        if item is None:
             return None
 
-        if just_legend:
-            return self._activeLegend[kind]
-        else:
-            return self._getItem(kind, self._activeLegend[kind])
+        return item.getName() if just_legend else item
 
     def _setActiveItem(self, kind, legend):
         """Make the curve associated to legend the active curve.
@@ -2020,12 +2014,12 @@ class PlotWidget(qt.QMainWindow):
         if not self.__muteActiveItemChanged:
             item = self.sender()
             if item is not None:
-                legend, kind = self._itemKey(item)
+                kind = self._itemKind(item)
                 self.notify(
                     'active' + kind[0].upper() + kind[1:] + 'Changed',
                     updated=False,
-                    previous=legend,
-                    legend=legend)
+                    previous=item.getName(),
+                    legend=item.getName())
 
     # Getters
 
@@ -2149,9 +2143,10 @@ class PlotWidget(qt.QMainWindow):
             assert aKind in self.ITEM_KINDS
 
         output = []
-        for (legend, type_), item in self._content.items():
+        for item in self.getItems():
+            type_ = self._itemKind(item)
             if type_ in kind and (withhidden or item.isVisible()):
-                output.append(legend if just_legend else item)
+                output.append(item.getName() if just_legend else item)
         return output
 
     def _getItem(self, kind, legend=None):
