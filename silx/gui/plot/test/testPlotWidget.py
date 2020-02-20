@@ -43,7 +43,7 @@ from silx.test.utils import test_options
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items.curve import CurveStyle
-from silx.gui.plot.items.shape import BoundingRect
+from silx.gui.plot.items import BoundingRect, XAxisExtent, YAxisExtent
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -1393,6 +1393,28 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.getXAxis()._setLogarithmic(True)
         self.plot.getYAxis()._setLogarithmic(False)
         self.assertIsNone(item.getBounds())
+
+    def testAxisExtent(self):
+        """Test XAxisExtent and yAxisExtent"""
+        for cls, axis in ((XAxisExtent, self.plot.getXAxis()),
+                          (YAxisExtent, self.plot.getYAxis())):
+            for range_, logRange in (((2, 3), (2, 3)),
+                                     ((-2, -1), (1, 100)),
+                                     ((-1, 3), (3. * 0.9, 3. * 1.1))):
+                extent = cls()
+                extent.setRange(*range_)
+                self.plot.addItem(extent)
+
+                for isLog, plotRange in ((False, range_), (True, logRange)):
+                    with self.subTest(
+                            cls=cls.__name__, range=range_, isLog=isLog):
+                        axis._setLogarithmic(isLog)
+                        self.plot.resetZoom()
+                        self.qapp.processEvents()
+                        self.assertEqual(axis.getLimits(), plotRange)
+
+                axis._setLogarithmic(False)
+                self.plot.clear()
 
 
 class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
