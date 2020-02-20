@@ -82,7 +82,7 @@ def supported_extensions(flat_formats=True):
     :param bool flat_formats: If true, also include flat formats like npy or
         edf (while the expected module is available)
     :returns: A dictionary indexed by file description and containing a set of
-        extensions (an extension is a string like "\*.ext").
+        extensions (an extension is a string like "\\*.ext").
     :rtype: Dict[str, Set[str]]
     """
     formats = collections.OrderedDict()
