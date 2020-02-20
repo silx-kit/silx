@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,11 +40,12 @@ from .complex import ImageComplexData  # noqa
 from .curve import Curve, CurveStyle  # noqa
 from .histogram import Histogram  # noqa
 from .image import ImageBase, ImageData, ImageRgba, MaskImageData  # noqa
-from .shape import Shape, BoundingRect  # noqa
+from .shape import Shape, BoundingRect, XAxisExtent, YAxisExtent  # noqa
 from .scatter import Scatter  # noqa
 from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa
 from .axis import Axis, XAxis, YAxis, YRightAxis
 
-DATA_ITEMS = ImageComplexData, Curve, Histogram, ImageBase, Scatter, BoundingRect
+DATA_ITEMS = (ImageComplexData, Curve, Histogram, ImageBase, Scatter,
+              BoundingRect, XAxisExtent, YAxisExtent)
 """Classes of items representing data and to consider to compute data bounds.
 """
