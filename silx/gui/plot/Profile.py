@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -418,6 +418,8 @@ class ProfileToolBar(qt.QToolBar):
         None if the user specified a custom profile plot window.
         """
 
+        self.__profileMainWindowNeverShown = True
+
         if self._profileWindow is None:
             backend = type(plot._backend)
             self._profileMainWindow = ProfileMainWindow(self, backend=backend)
@@ -716,23 +718,27 @@ class ProfileToolBar(qt.QToolBar):
         """
         profileMainWindow = self.getProfileMainWindow()
         if profileMainWindow is not None:
-            winGeom = self.window().frameGeometry()
-            qapp = qt.QApplication.instance()
-            screenGeom = qapp.desktop().availableGeometry(self)
-            spaceOnLeftSide = winGeom.left()
-            spaceOnRightSide = screenGeom.width() - winGeom.right()
+            if self.__profileMainWindowNeverShown:
+                # Places the profile window in order to avoid overlapping the plot
+                self.__profileMainWindowNeverShown = False
+                winGeom = self.window().frameGeometry()
+                qapp = qt.QApplication.instance()
+                screenGeom = qapp.desktop().availableGeometry(self)
+                spaceOnLeftSide = winGeom.left()
+                spaceOnRightSide = screenGeom.width() - winGeom.right()
 
-            profileWindowWidth = profileMainWindow.frameGeometry().width()
-            if (profileWindowWidth < spaceOnRightSide):
-                # Place profile on the right
-                profileMainWindow.move(winGeom.right(), winGeom.top())
-            elif(profileWindowWidth < spaceOnLeftSide):
-                # Place profile on the left
-                profileMainWindow.move(
-                    max(0, winGeom.left() - profileWindowWidth), winGeom.top())
+                profileWindowWidth = profileMainWindow.frameGeometry().width()
+                if (profileWindowWidth < spaceOnRightSide):
+                    # Place profile on the right
+                    profileMainWindow.move(winGeom.right(), winGeom.top())
+                elif(profileWindowWidth < spaceOnLeftSide):
+                    # Place profile on the left
+                    profileMainWindow.move(
+                        max(0, winGeom.left() - profileWindowWidth), winGeom.top())
+
+                profileMainWindow.raise_()
 
             profileMainWindow.show()
-            profileMainWindow.raise_()
         else:
             self.getProfilePlot().show()
             self.getProfilePlot().raise_()
