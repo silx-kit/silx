@@ -598,9 +598,13 @@ class PlotWidget(qt.QMainWindow):
         elif isinstance(item, items.Scatter):
             kind = 'scatter'
         elif isinstance(item, (items.Marker,
-                               items.XMarker, items.YMarker)):
+                               items.XMarker,
+                               items.YMarker)):
             kind = 'marker'
-        elif isinstance(item, (items.Shape, items.BoundingRect)):
+        elif isinstance(item, (items.Shape,
+                               items.BoundingRect,
+                               items.XAxisExtent,
+                               items.YAxisExtent)):
             kind = 'item'
         elif isinstance(item, items.Histogram):
             kind = 'histogram'

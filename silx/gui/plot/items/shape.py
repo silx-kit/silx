@@ -215,3 +215,91 @@ class BoundingRect(Item, YAxisMixIn):
                 return tuple(bounds)
 
         return self.__bounds
+
+
+class _BaseExtent(Item):
+    """Base class for :class:`XAxisExtent` and :class:`YAxisExtent`.
+
+    :param str axis: Either 'x' or 'y'.
+    """
+
+    def __init__(self, axis='x'):
+        assert axis in ('x', 'y')
+        Item.__init__(self)
+        self.__axis = axis
+        self.__range = 1., 100.
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in (ItemChangedType.VISIBLE,
+                     ItemChangedType.DATA):
+            # TODO hackish data range implementation
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+        super(_BaseExtent, self)._updated(event, checkVisibility)
+
+    def setRange(self, min_, max_):
+        """Set the range of the extent of this item in data coordinates.
+
+        :param float min_: Lower bound of the extent
+        :param float max_: Upper bound of the extent
+        :raises ValueError: If min > max or not finite bounds
+        """
+        range_ = float(min_), float(max_)
+        if not numpy.all(numpy.isfinite(range_)):
+            raise ValueError("min_ and max_ must be finite numbers.")
+        if range_[0] > range_[1]:
+            raise ValueError("min_ must be lesser or equal to max_")
+
+        if range_ != self.__range:
+            self.__range = range_
+            self._updated(ItemChangedType.DATA)
+
+    def getRange(self):
+        """Returns the range (min, max) of the extent in data coordinates.
+
+        :rtype: List[float]
+        """
+        return self.__range
+
+    def _getBounds(self):
+        min_, max_ = self.getRange()
+
+        plot = self.getPlot()
+        if plot is not None:
+            axis = plot.getXAxis() if self.__axis == 'x' else plot.getYAxis()
+            if axis._isLogarithmic():
+                if max_ <= 0:
+                    return None
+                if min_ <= 0:
+                    min_ = max_
+
+        if self.__axis == 'x':
+            return min_, max_, float('nan'), float('nan')
+        else:
+            return float('nan'), float('nan'), min_, max_
+
+
+class XAxisExtent(_BaseExtent):
+    """Invisible item with a settable horizontal data extent.
+
+    This item do not display anything, but it behaves as a data
+    item with a horizontal extent regarding plot data bounds, i.e.,
+    :meth:`PlotWidget.resetZoom` will take this horizontal extent into account.
+    """
+    def __init__(self):
+        _BaseExtent.__init__(self, axis='x')
+
+
+class YAxisExtent(_BaseExtent, YAxisMixIn):
+    """Invisible item with a settable vertical data extent.
+
+    This item do not display anything, but it behaves as a data
+    item with a vertical extent regarding plot data bounds, i.e.,
+    :meth:`PlotWidget.resetZoom` will take this vertical extent into account.
+    """
+
+    def __init__(self):
+        _BaseExtent.__init__(self, axis='y')
+        YAxisMixIn.__init__(self)
