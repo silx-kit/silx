@@ -38,6 +38,7 @@ Change Log
 
 * Miscellaneous:
 
+  * Requires fabio >= 0.9 (PR #2937)
   * Avoid deprecation warnings from Python 3.8 (PR #2891, #2934), h5py (PR #2854, #2893), matplotlib (PR #2890) and fabio (PR #2930)
   * Use `numpy.errstate` to ignore warnings rather than the `warnings` module (PR #2920)
 
@@ -45,7 +46,7 @@ Change Log
 
   * Added debian 11/Ubuntu 20.04 packaging (PR #2875)
   * Removed Python 2 tests and packaging (PR #2838, #2917)
-  * Improved test environement (PR #2870) and documentation (PR #2872, #2894)
+  * Improved test environement (PR #2870) and documentation (PR #2872, #2894, #2937)
 
 
 0.12.0: 2020/01/09
