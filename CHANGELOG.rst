@@ -13,6 +13,7 @@ Change Log
 * `silx.gui`:
 
   * `silx.gui.colors.Colormap`: Added mean+/-3*std autscale mode (PR #2877, #2900)
+  * `silx.gui.utils.glutils`: Added `isOpenGLAvailable` to check the availability of OpenGL (PR #2878)
   * `silx.gui.dialog.ColormapDialog`: Improved widget (PR #2874, #2915, #2924)
   * `silx.gui.plot`:
 
@@ -33,8 +34,6 @@ Change Log
       * Added `XAxisExtent` and `YAxisExtent` items in `silx.gui.plot.items` to control the plot data extent (PR #2932)
       * Improved performance of colormapped items by caching data min/max (PR #2876, #2886)
       * Improved `Scatter` item regular grid visualization to be more resilient (PR #2918)
-
-  * `silx.gui.utils.glutils`: Added `isOpenGLAvailable` to check the availability of OpenGL (PR #2878)
 
 * Miscellaneous:
 
