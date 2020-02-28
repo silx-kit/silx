@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,9 +32,7 @@ __date__ = "30/05/2016"
 
 from silx.gui import icons, qt
 
-if qt.BINDING == 'PyQt4':
-    from PyQt4 import QtDesigner
-elif qt.BINDING == 'PyQt5':
+if qt.BINDING == 'PyQt5':
     from PyQt5 import QtDesigner
 else:
     raise RuntimeError("Unsupport Qt BINDING: %s" % qt.BINDING)

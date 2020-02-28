@@ -31,9 +31,7 @@ __date__ = "28/02/2020"
 
 from silx.gui import qt, icons
 
-if qt.BINDING == 'PyQt4':
-    from PyQt4 import QtDesigner
-elif qt.BINDING == 'PyQt5':
+if qt.BINDING == 'PyQt5':
     from PyQt5 import QtDesigner
 else:
     raise RuntimeError("Unsupport Qt BINDING: %s" % qt.BINDING)
