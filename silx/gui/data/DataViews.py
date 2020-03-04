@@ -50,6 +50,7 @@ _logger = logging.getLogger(__name__)
 # DataViewer modes
 EMPTY_MODE = 0
 PLOT1D_MODE = 10
+RECORD_PLOT_MODE = 15
 IMAGE_MODE = 20
 PLOT2D_MODE = 21
 COMPLEX_IMAGE_MODE = 22
@@ -114,6 +115,7 @@ class DataInfo(object):
         self.isRecord = False
         self.hasNXdata = False
         self.isInvalidNXdata = False
+        self.countNumericColumns = 0
         self.shape = tuple()
         self.dim = 0
         self.size = 0
@@ -199,6 +201,12 @@ class DataInfo(object):
             self.size = int(data.size)
         else:
             self.size = 1
+
+        if hasattr(data, "dtype"):
+            if data.dtype.fields is not None:
+                for field in data.dtype.fields:
+                    if numpy.issubdtype(data.dtype[field], numpy.number):
+                        self.countNumericColumns += 1
 
     def normalizeData(self, data):
         """Returns a normalized data if the embed a numpy or a dataset.
@@ -821,6 +829,91 @@ class _Plot1dView(DataView):
             return 210
         if info.dim == 1:
             return 100
+        else:
+            return 10
+
+
+class _Plot2dRecordView(DataView):
+    def __init__(self, parent):
+        super(_Plot2dRecordView, self).__init__(
+            parent=parent,
+            modeId=RECORD_PLOT_MODE,
+            label="Curve",
+            icon=icons.getQIcon("view-1d"))
+        self.__resetZoomNextTime = True
+        self._data = None
+        self._xAxisDropDown = None
+        self._yAxisDropDown = None
+
+    def createWidget(self, parent):
+        from silx.gui import plot
+        return plot.RecordPlot(parent=parent)
+
+    def clear(self):
+        self.getWidget().clear()
+        self.__resetZoomNextTime = True
+
+    def normalizeData(self, data):
+        data = DataView.normalizeData(self, data)
+        data = _normalizeComplex(data)
+        return data
+
+    def setData(self, data):
+        self._data = self.normalizeData(data)
+
+        all_fields = sorted(self._data.dtype.fields.items(), key=lambda e: e[1][1])
+        numeric_fields = [f[0] for f in all_fields if numpy.issubdtype(f[1][0], numpy.number)]
+        self.getWidget().setSelectableXAxisFieldNames(numeric_fields)
+        self.getWidget().setSelectableYAxisFieldNames(numeric_fields)
+        fieldNameX = numeric_fields[0]
+        fieldNameY = numeric_fields[1]
+
+        # If there is a field called time, use it for the x-axis by default
+        if "time" in numeric_fields:
+            fieldNameX = "time"
+        # Use the first field that is not "time" for the y-axis
+        if fieldNameY == "time":
+            fieldNameY = numeric_fields[0]
+
+        self._plotData(fieldNameX, fieldNameY)
+
+        if not self._xAxisDropDown:
+            self._xAxisDropDown = self.getWidget().getAxesSelectionToolBar().getXAxisDropDown()
+            self._yAxisDropDown = self.getWidget().getAxesSelectionToolBar().getYAxisDropDown()
+            self._xAxisDropDown.activated.connect(self._onAxesSelectionChaned)
+            self._yAxisDropDown.activated.connect(self._onAxesSelectionChaned)
+
+    def _onAxesSelectionChaned(self):
+        self._plotData(self._xAxisDropDown.currentText(), self._yAxisDropDown.currentText())
+
+    def _plotData(self, fieldNameX, fieldNameY):
+        self.clear()
+        self.getWidget().addCurve(legend="data",
+                                  x=self._data[fieldNameX],
+                                  y=self._data[fieldNameY],
+                                  resetzoom=self.__resetZoomNextTime)
+        self.getWidget().setXAxisFieldName(fieldNameX)
+        self.getWidget().setYAxisFieldName(fieldNameY)
+        self.__resetZoomNextTime = True
+
+    def axesNames(self, data, info):
+        return ["y"]
+
+    def getDataPriority(self, data, info):
+        if info.size <= 0:
+            return DataView.UNSUPPORTED
+        if data is None or not info.isRecord:
+            return DataView.UNSUPPORTED
+        if info.dim < 1:
+            return DataView.UNSUPPORTED
+        if info.countNumericColumns < 2:
+            return DataView.UNSUPPORTED
+        if info.interpretation == "spectrum":
+            return 1000
+        if info.dim == 2 and info.shape[0] == 1:
+            return 210
+        if info.dim == 1:
+            return 40
         else:
             return 10
 

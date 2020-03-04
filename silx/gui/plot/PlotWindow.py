@@ -804,6 +804,45 @@ class PlotWindow(PlotWidget):
         return self.colorbarAction
 
 
+class RecordPlot(PlotWindow):
+    def __init__(self, parent=None, backend=None):
+        super(RecordPlot, self).__init__(parent=parent, backend=backend,
+                                         resetzoom=True, autoScale=True,
+                                         logScale=True, grid=True,
+                                         curveStyle=True, colormap=False,
+                                         aspectRatio=False, yInverted=False,
+                                         copy=True, save=True, print_=True,
+                                         control=True, position=True,
+                                         roi=True, mask=False, fit=True)
+        if parent is None:
+            self.setWindowTitle('RecordPlot')
+        self._axesSelectionToolBar = tools.toolbars.AxesSelectionToolBar(parent=self, plot=self)
+        self.addToolBar(self._axesSelectionToolBar)
+
+    def setXAxisFieldName(self, value):
+        self.getXAxis().setLabel(value)
+        index = self._axesSelectionToolBar.getXAxisDropDown().findText(value)
+        if index >= 0:
+            self._axesSelectionToolBar.getXAxisDropDown().setCurrentIndex(index)
+
+    def setYAxisFieldName(self, value):
+        self.getYAxis().setLabel(value)
+        index = self._axesSelectionToolBar.getYAxisDropDown().findText(value)
+        if index >= 0:
+            self._axesSelectionToolBar.getYAxisDropDown().setCurrentIndex(index)
+
+    def setSelectableXAxisFieldNames(self, fieldNames):
+        self._axesSelectionToolBar.getXAxisDropDown().clear()
+        self._axesSelectionToolBar.getXAxisDropDown().addItems(fieldNames)
+
+    def setSelectableYAxisFieldNames(self, fieldNames):
+        self._axesSelectionToolBar.getYAxisDropDown().clear()
+        self._axesSelectionToolBar.getYAxisDropDown().addItems(fieldNames)
+
+    def getAxesSelectionToolBar(self):
+        return self._axesSelectionToolBar
+
+
 class Plot1D(PlotWindow):
     """PlotWindow with tools specific for curves.
 

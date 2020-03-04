@@ -150,6 +150,7 @@ class DataViewer(qt.QFrame):
             DataViews._Plot3dView,
             DataViews._RawView,
             DataViews._StackView,
+            DataViews._Plot2dRecordView,
         ]
         views = []
         for viewClass in viewClasses:
