@@ -18,8 +18,7 @@ import os
 import distutils.util
 import subprocess
 import logging
-import collections
-from argparse import ArgumentParser
+import argparse
 
 logging.basicConfig()
 logger = logging.getLogger("bootstrap")
@@ -190,27 +189,29 @@ def find_executable(target):
 
 
 def main(argv):
-    parser = ArgumentParser(prog="bootstrap", usage="./bootstrap.py <script>",
-                            description=__doc__)
-    parser.add_argument("script", nargs="*")
-    parser.add_argument("-m", help="run library module as a script (terminates option list)")
+    parser = argparse.ArgumentParser(
+        prog="bootstrap", usage="./bootstrap.py <script>", description=__doc__)
+    parser.add_argument("script", nargs=argparse.REMAINDER)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-m", nargs=argparse.REMAINDER, dest='module',
+        help="run library module as a script (terminates option list)")
+    group.add_argument(
+        "-j", "--jupyter", action='store_true',
+        help="Start jupyter notebook rather than IPython console")
+    options = parser.parse_args()
 
-    Options = collections.namedtuple("Options", ["script", "module"])
-    if len(argv) == 1:
-        options = Options(script=None, module=None)
-    else:
-        if argv[1] in ["-h", "--help"]:
+    if options.jupyter:
+        if options.script:
+            logger.error("-j, --jupyter is mutually exclusive with other options")
             parser.print_help()
             return
-        if argv[1] == "-m":
-            if len(argv) < 3:
-                parser.parse_args(argv[1:])
-                return
-            options = Options(script=None, module=argv[2:])
-        else:
-            options = Options(script=argv[1:], module=None)
 
-    if options.script is not None:
+        logger.info("Start Jupyter notebook")
+        from notebook.notebookapp import main as notebook_main
+        notebook_main(argv=[])
+
+    elif options.script:
         logger.info("Executing %s from source checkout", options.script)
         script = options.script[0]
         argv = options.script[1:]
@@ -221,7 +222,8 @@ def main(argv):
             run_entry_point(target, argv)
         else:
             logger.error("Script %s not found", options.script)
-    elif options.module is not None:
+
+    elif options.module:
         logging.info("Running module %s", options.module)
         import runpy
         module = options.module[0]
@@ -231,6 +233,7 @@ def main(argv):
             runpy.run_module(module, run_name="__main__", alter_sys=True)
         finally:
             sys.argv = old
+
     else:
         logging.info("Running IPython by default")
         logger.info("Patch the sys.argv: %s", sys.argv)
