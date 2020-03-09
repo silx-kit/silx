@@ -588,7 +588,10 @@ class PlotWidget(qt.QMainWindow):
         'image': (items.ImageBase,),
         'scatter': (items.Scatter,),
         'marker': (items.MarkerBase,),
-        'item': (items.Shape, items.BoundingRect),
+        'item': (items.Shape,
+                 items.BoundingRect,
+                 items.XAxisExtent,
+                 items.YAxisExtent),
         'histogram': (items.Histogram,),
         }
     """Mapping kind to item classes of this kind"""

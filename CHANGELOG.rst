@@ -1,8 +1,51 @@
 Change Log
 ==========
 
-Unreleased
-----------
+0.13.0b0: 2020/02/21
+--------------------
+
+* silx view application:
+
+  * Improved `HDF5TableView` information table to make text selectable and ease copy (PR #2903)
+  * Fixed expand/collapse tree actions (PR #2881)
+  * Fixed display of chunk information (PR #2902)
+
+* `silx.gui`:
+
+  * `silx.gui.colors.Colormap`: Added mean+/-3*std autoscale mode (PR #2877, #2900)
+  * `silx.gui.utils.glutils`: Added `isOpenGLAvailable` to check the availability of OpenGL (PR #2878)
+  * `silx.gui.dialog.ColormapDialog`: Improved widget (PR #2874, #2915, #2924)
+  * `silx.gui.plot`:
+
+    * `silx.gui.plot.PlotWidget`:
+
+      * Renamed `PlotWidget.addItem` to `PlotWidget.addShape` to add `Shape` items (PR #2873)
+      * Change behaviour of `PlotWidget.addItem` and `PlotWidget.removeItem` to handle object items (previous behavior deprecated, not removed) (PR #2904, #2919)
+      * Added pan with middle button pressed (PR #2909)
+      * Fixed avoid display of offset for axis ticks (PR #2884)
+      * Fixed crosshair position offset with right axis on (PR #2901)
+      * Fixed image picking inconsistency between backends (PR #2913)
+      * Fixed image profile window position being reset each time data is updated (PR #2933)
+      * Cleaned-up backends (PR #2887, #2910)
+
+    * `silx.gui.plot.items`:
+
+      * Added `sigDragStarted` and `sigDragFinished` signals to marker items and `sigEditingStarted` and `sigEditingFinished` signals to region of interest items (PR #2754)
+      * Added `XAxisExtent` and `YAxisExtent` items in `silx.gui.plot.items` to control the plot data extent (PR #2932)
+      * Improved performance of colormapped items by caching data min/max (PR #2876, #2886)
+      * Improved `Scatter` item regular grid visualization to be more resilient (PR #2918)
+
+* Miscellaneous:
+
+  * Requires fabio >= 0.9 (PR #2937)
+  * Avoid deprecation warnings from Python 3.8 (PR #2891, #2934), h5py (PR #2854, #2893), matplotlib (PR #2890) and fabio (PR #2930)
+  * Use `numpy.errstate` to ignore warnings rather than the `warnings` module (PR #2920)
+
+* Build, documentation and tests:
+
+  * Added debian 11/Ubuntu 20.04 packaging (PR #2875)
+  * Removed Python 2 tests and packaging (PR #2838, #2917)
+  * Improved test environment (PR #2870) and documentation (PR #2872, #2894, #2937)
 
 
 0.12.0: 2020/01/09

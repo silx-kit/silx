@@ -167,12 +167,11 @@ class ExternalResources(object):
 
             if not os.path.isfile(fullfilename):
                 raise RuntimeError(
-                    "Could not automatically \
-                    download test images %s!\n \ If you are behind a firewall, \
-                    please set both environment variable http_proxy and https_proxy.\
-                    This even works under windows ! \n \
-                    Otherwise please try to download the images manually from \n%s/%s"
-                    % (filename, self.url_base, filename))
+                    """Could not automatically download test images %s!
+                    If you are behind a firewall, please set both environment variable http_proxy and https_proxy.
+                    This even works under windows !
+                    Otherwise please try to download the images manually from
+                    %s/%s""" % (filename, self.url_base, filename))
 
         if filename not in self.all_data:
             self.all_data.add(filename)
@@ -263,11 +262,11 @@ class ExternalResources(object):
         if not os.path.isfile(fullimagename_bz2):
             self.getfile(bzip2name)
             if not os.path.isfile(fullimagename_bz2):
-                raise RuntimeError("Could not automatically \
-                download test images %s!\n \ If you are behind a firewall, \
-                please set the environment variable http_proxy.\n \
-                Otherwise please try to download the images manually from \n \
-                %s" % (self.url_base, filename))
+                raise RuntimeError(
+                    """Could not automatically download test images %s!
+                    If you are behind a firewall, please set the environment variable http_proxy.
+                    Otherwise please try to download the images manually from
+                    %s""" % (self.url_base, filename))
 
         try:
             import bz2
