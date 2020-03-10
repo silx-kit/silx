@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -212,10 +212,11 @@ class PositionInfo(qt.QWidget):
             else:
                 kinds = []
                 if snappingMode & self.SNAPPING_CURVE:
-                    kinds.append('curve')
+                    kinds.append(items.Curve)
                 if snappingMode & self.SNAPPING_SCATTER:
-                    kinds.append('scatter')
-                selectedItems = plot._getItems(kind=kinds)
+                    kinds.append(items.Scatter)
+                selectedItems = [item for item in plot.getItems()
+                                 if isinstance(item, kinds) and item.isVisible()]
 
             # Compute distance threshold
             if qt.BINDING in ('PyQt5', 'PySide2'):
