@@ -226,7 +226,9 @@ class FitWidget(qt.QWidget):
             self.guibuttons = FitActionsButtons(self)
             """Widget with estimate, start fit and dismiss buttons"""
             self.guibuttons.EstimateButton.clicked.connect(self.estimate)
+            self.guibuttons.EstimateButton.setEnabled(False)
             self.guibuttons.StartFitButton.clicked.connect(self.startFit)
+            self.guibuttons.StartFitButton.setEnabled(False)
             self.guibuttons.DismissButton.clicked.connect(self.dismiss)
             layout.addWidget(self.guibuttons)
 
@@ -319,7 +321,7 @@ class FitWidget(qt.QWidget):
                       DeprecationWarning)
         self.setData(x, y, sigmay, xmin, xmax)
 
-    def setData(self, x, y, sigmay=None, xmin=None, xmax=None):
+    def setData(self, x=None, y=None, sigmay=None, xmin=None, xmax=None):
         """Set data to be fitted.
 
         :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
@@ -335,11 +337,17 @@ class FitWidget(qt.QWidget):
         :param xmin: Lower value of x values to use for fitting
         :param xmax: Upper value of x values to use for fitting
         """
-        self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
-                                xmin=xmin, xmax=xmax)
-        for config_dialog in self.bgconfigdialogs.values():
-            if isinstance(config_dialog, BackgroundDialog):
-                config_dialog.setData(x, y, xmin=xmin, xmax=xmax)
+        if y is None:
+            self.guibuttons.EstimateButton.setEnabled(False)
+            self.guibuttons.StartFitButton.setEnabled(False)
+        else:
+            self.guibuttons.EstimateButton.setEnabled(True)
+            self.guibuttons.StartFitButton.setEnabled(True)
+            self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
+                                    xmin=xmin, xmax=xmax)
+            for config_dialog in self.bgconfigdialogs.values():
+                if isinstance(config_dialog, BackgroundDialog):
+                    config_dialog.setData(x, y, xmin=xmin, xmax=xmax)
 
     def associateConfigDialog(self, theory_name, config_widget,
                               theory_is_background=False):
