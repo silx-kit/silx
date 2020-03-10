@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -82,6 +82,7 @@ import weakref
 from silx.math.combo import min_max
 from silx.gui.plot import items
 from silx.gui import icons
+from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
@@ -384,6 +385,7 @@ class _ColormapHistogram(qt.QWidget):
         if self._invalidated:
             self._updateDataInPlot()
             self._invalidated = False
+        self._updateMarkerPosition()
         return super(_ColormapHistogram, self).paintEvent(event)
 
     def getFiniteRange(self):
@@ -400,7 +402,7 @@ class _ColormapHistogram(qt.QWidget):
         if vRange == self._finiteRange:
             return
         self._finiteRange = vRange
-        self._updateMarkerPosition()
+        self.update()
 
     def getColormap(self):
         return self.parent().getColormap()
@@ -786,7 +788,7 @@ class _ColormapHistogram(qt.QWidget):
 
     def updateNormalization(self):
         self._updateDataInPlot()
-        self._updateMarkerPosition()
+        self.update()
 
 
 class ColormapDialog(qt.QDialog):
@@ -1187,17 +1189,17 @@ class ColormapDialog(qt.QDialog):
 
     def _colormapAboutToFinalize(self, weakrefColormap):
         """Callback when the data weakref is about to be finalized."""
-        if self._colormap is weakrefColormap:
+        if self._colormap is weakrefColormap and qtinspect.isValid(self):
             self.setColormap(None)
 
     def _dataAboutToFinalize(self, weakrefData):
         """Callback when the data weakref is about to be finalized."""
-        if self._data is weakrefData:
+        if self._data is weakrefData and qtinspect.isValid(self):
             self.setData(None)
 
     def _itemAboutToFinalize(self, weakref):
         """Callback when the data weakref is about to be finalized."""
-        if self._item is weakref:
+        if self._item is weakref and qtinspect.isValid(self):
             self.setItem(None)
 
     @deprecation.deprecated(reason="It is private data", since_version="0.13")

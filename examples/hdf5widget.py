@@ -488,7 +488,7 @@ def get_edf_with_100000_frames():
         else:
             header = fabio.fabioimage.OrderedDict()
             header["frame_nb"] = framre_id
-            fabiofile.appendFrame(fabio.edfimage.Frame(data, header, framre_id))
+            fabiofile.append_frame(fabio.edfimage.Frame(data, header, framre_id))
     fabiofile.write(tmp.name)
 
     _file_cache[ID] = tmp

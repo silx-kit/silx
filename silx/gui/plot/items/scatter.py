@@ -143,12 +143,13 @@ def is_monotonic(array):
     :rtype: int
     """
     diff = numpy.diff(numpy.ravel(array))
-    if numpy.all(diff >= 0):
-        return 1
-    elif numpy.all(diff <= 0):
-        return -1
-    else:
-        return 0
+    with numpy.errstate(invalid='ignore'):
+        if numpy.all(diff >= 0):
+            return 1
+        elif numpy.all(diff <= 0):
+            return -1
+        else:
+            return 0
 
 
 def _guess_grid(x, y):
@@ -382,6 +383,18 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if order is None:
                     order = guess[0]
 
+            nbpoints = len(self.getXData(copy=False))
+            if nbpoints > shape[0] * shape[1]:
+                # More data points that provided grid shape: enlarge grid
+                _logger.warning(
+                    "More data points than provided grid shape size: extends grid")
+                dim0, dim1 = shape
+                if order == 'row':  # keep dim1, enlarge dim0
+                    dim0 = nbpoints // dim1 + (1 if nbpoints % dim1 else 0)
+                else:  # keep dim0, enlarge dim1
+                    dim1 = nbpoints // dim0 + (1 if nbpoints % dim0 else 0)
+                shape = dim0, dim1
+
             bounds = self.getVisualizationParameter(
                 self.VisualizationParameter.GRID_BOUNDS)
             if bounds is None:
@@ -487,12 +500,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         if self.__alpha is not None:
             rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
 
-        # Apply mask to colors
-        rgbacolors = rgbacolors[mask]
+        visualization = self.getVisualization()
 
         if visualization is self.Visualization.POINTS:
             return backend.addCurve(xFiltered, yFiltered,
-                                    color=rgbacolors,
+                                    color=rgbacolors[mask],
                                     symbol=self.getSymbol(),
                                     linewidth=0,
                                     linestyle="",
@@ -523,7 +535,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     return backend.addTriangles(xFiltered,
                                                 yFiltered,
                                                 triangles,
-                                                color=rgbacolors,
+                                                color=rgbacolors[mask],
                                                 alpha=self.getAlpha())
 
             elif visualization is self.Visualization.REGULAR_GRID:
@@ -588,6 +600,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 else:  # column-major order
                     y, x = coords[:, 0], coords[:, 1]
 
+                rgbacolors = rgbacolors[mask]  # Filter-out not finite points
                 gridcolors = numpy.empty(
                     (4 * nbpoints, rgbacolors.shape[-1]), dtype=rgbacolors.dtype)
                 for first in range(4):

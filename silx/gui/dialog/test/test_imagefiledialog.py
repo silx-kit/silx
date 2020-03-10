@@ -61,8 +61,8 @@ def setUpModule():
 
     filename = _tmpDirectory + "/multiframe.edf"
     image = fabio.edfimage.EdfImage(data=data)
-    image.appendFrame(data=data + 1)
-    image.appendFrame(data=data + 2)
+    image.append_frame(data=data + 1)
+    image.append_frame(data=data + 2)
     image.write(filename)
 
     filename = _tmpDirectory + "/singleimage.msk"

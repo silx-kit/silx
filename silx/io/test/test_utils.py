@@ -491,7 +491,7 @@ class TestGetData(unittest.TestCase):
         data = numpy.array([[10, 50], [50, 10]])
         fabiofile = fabio.edfimage.EdfImage(data, header)
         fabiofile.write(cls.edf_filename)
-        fabiofile.appendFrame(data=data, header=header)
+        fabiofile.append_frame(data=data, header=header)
         fabiofile.write(cls.edf_multiframe_filename)
 
         cls.txt_filename = os.path.join(directory, "test.txt")
