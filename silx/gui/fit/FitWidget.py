@@ -43,7 +43,6 @@ __date__ = "17/07/2018"
 import logging
 import sys
 import traceback
-import warnings
 
 from silx.math.fit import fittheories
 from silx.math.fit import fitmanager, functions
@@ -52,6 +51,7 @@ from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
 from .BackgroundWidget import getBgDialog, BackgroundDialog
+from ...utils.deprecation import deprecated
 
 QTVERSION = qt.qVersion()
 DEBUG = 0
@@ -316,9 +316,8 @@ class FitWidget(qt.QWidget):
 
         configuration.update(self.configure())
 
+    @deprecated(replacement='setData', since_version='0.3.0')
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
-        warnings.warn("Method renamed to setData",
-                      DeprecationWarning)
         self.setData(x, y, sigmay, xmin, xmax)
 
     def setData(self, x=None, y=None, sigmay=None, xmin=None, xmax=None):
@@ -532,9 +531,8 @@ class FitWidget(qt.QWidget):
             'data': self.fitmanager.fit_results}
         self._emitSignal(ddict)
 
+    @deprecated(replacement='setData', since_version='0.3.0')
     def startfit(self):
-        warnings.warn("Method renamed to startFit",
-                      DeprecationWarning)
         self.startFit()
 
     def startFit(self):
