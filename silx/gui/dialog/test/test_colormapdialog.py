@@ -368,6 +368,13 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         vrange = dialog._getFiniteColormapRange()
         self.assertNotEqual(vrange, previousRange)
 
+    def testDeleteWhileExec(self):
+        colormapDiag = self.colormapDiag
+        self.colormapDiag = None
+        qt.QTimer.singleShot(1000, colormapDiag.deleteLater)
+        result = colormapDiag.exec_()
+        self.assertEqual(result, 0)
+
 
 class TestColormapAction(TestCaseQt):
     def setUp(self):
