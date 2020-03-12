@@ -805,6 +805,7 @@ class ColormapDialog(qt.QDialog):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
 
+        self.__aboutToDelete = False
         self._colormap = None
 
         self._data = None
@@ -997,11 +998,17 @@ class ColormapDialog(qt.QDialog):
         self._buttonsModal.setVisible(modal)
         qt.QDialog.setModal(self, modal)
 
+    def event(self, event):
+        if event.type() == qt.QEvent.DeferredDelete:
+            self.__aboutToDelete = True
+        return super(ColormapDialog, self).event(event)
+
     def exec_(self):
         wasModal = self.isModal()
         self.setModal(True)
         result = super(ColormapDialog, self).exec_()
-        self.setModal(wasModal)
+        if not self.__aboutToDelete:
+            self.setModal(wasModal)
         return result
 
     def _getFiniteColormapRange(self):
