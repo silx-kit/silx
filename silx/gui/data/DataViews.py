@@ -870,7 +870,7 @@ class _Plot2dRecordView(DataView):
         else:
             self.__fields = numeric_fields
 
-            self.getWidget().setSelectableXAxisFieldNames(numeric_fields)
+            self.getWidget().setSelectableXAxisFieldNames(['-'] + numeric_fields)
             self.getWidget().setSelectableYAxisFieldNames(numeric_fields)
             fieldNameX = numeric_fields[0]
             fieldNameY = numeric_fields[1]
@@ -895,9 +895,14 @@ class _Plot2dRecordView(DataView):
 
     def _plotData(self, fieldNameX, fieldNameY):
         self.clear()
+        ydata = self._data[fieldNameY]
+        if fieldNameX == '-':
+            xdata = numpy.arange(len(ydata))
+        else:
+            xdata = self._data[fieldNameX]
         self.getWidget().addCurve(legend="data",
-                                  x=self._data[fieldNameX],
-                                  y=self._data[fieldNameY],
+                                  x=xdata,
+                                  y=ydata,
                                   resetzoom=self.__resetZoomNextTime)
         self.getWidget().setXAxisFieldName(fieldNameX)
         self.getWidget().setYAxisFieldName(fieldNameY)
