@@ -897,7 +897,7 @@ class _Plot2dRecordView(DataView):
         self.__resetZoomNextTime = True
 
     def axesNames(self, data, info):
-        return ["y"]
+        return ["data"]
 
     def getDataPriority(self, data, info):
         if info.size <= 0:
