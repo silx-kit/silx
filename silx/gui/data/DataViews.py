@@ -870,17 +870,17 @@ class _Plot2dRecordView(DataView):
         else:
             self.__fields = numeric_fields
 
-            self.getWidget().setSelectableXAxisFieldNames(['-'] + numeric_fields)
+            self.getWidget().setSelectableXAxisFieldNames(numeric_fields)
             self.getWidget().setSelectableYAxisFieldNames(numeric_fields)
-            fieldNameX = '-'
-            fieldNameY = numeric_fields[1]
+            fieldNameX = None
+            fieldNameY = numeric_fields[0]
 
             # If there is a field called time, use it for the x-axis by default
             if "time" in numeric_fields:
                 fieldNameX = "time"
             # Use the first field that is not "time" for the y-axis
-            if fieldNameY == "time":
-                fieldNameY = numeric_fields[0]
+            if fieldNameY == "time" and len(numeric_fields) >= 2:
+                fieldNameY = numeric_fields[1]
 
         self._plotData(fieldNameX, fieldNameY)
 
@@ -891,12 +891,13 @@ class _Plot2dRecordView(DataView):
             self._yAxisDropDown.activated.connect(self._onAxesSelectionChaned)
 
     def _onAxesSelectionChaned(self):
-        self._plotData(self._xAxisDropDown.currentText(), self._yAxisDropDown.currentText())
+        fieldNameX = self._xAxisDropDown.currentData()
+        self._plotData(fieldNameX, self._yAxisDropDown.currentText())
 
     def _plotData(self, fieldNameX, fieldNameY):
         self.clear()
         ydata = self._data[fieldNameY]
-        if fieldNameX == '-':
+        if fieldNameX is None:
             xdata = numpy.arange(len(ydata))
         else:
             xdata = self._data[fieldNameX]
