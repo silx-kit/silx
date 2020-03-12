@@ -872,7 +872,7 @@ class _Plot2dRecordView(DataView):
 
             self.getWidget().setSelectableXAxisFieldNames(['-'] + numeric_fields)
             self.getWidget().setSelectableYAxisFieldNames(numeric_fields)
-            fieldNameX = numeric_fields[0]
+            fieldNameX = '-'
             fieldNameY = numeric_fields[1]
 
             # If there is a field called time, use it for the x-axis by default
