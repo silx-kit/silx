@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -844,6 +844,7 @@ class _Plot2dRecordView(DataView):
         self._data = None
         self._xAxisDropDown = None
         self._yAxisDropDown = None
+        self.__fields = None
 
     def createWidget(self, parent):
         from silx.gui import plot
@@ -863,17 +864,23 @@ class _Plot2dRecordView(DataView):
 
         all_fields = sorted(self._data.dtype.fields.items(), key=lambda e: e[1][1])
         numeric_fields = [f[0] for f in all_fields if numpy.issubdtype(f[1][0], numpy.number)]
-        self.getWidget().setSelectableXAxisFieldNames(numeric_fields)
-        self.getWidget().setSelectableYAxisFieldNames(numeric_fields)
-        fieldNameX = numeric_fields[0]
-        fieldNameY = numeric_fields[1]
+        if numeric_fields == self.__fields:  # Reuse previously selected fields
+            fieldNameX = self.getWidget().getXAxisFieldName()
+            fieldNameY = self.getWidget().getYAxisFieldName()
+        else:
+            self.__fields = numeric_fields
 
-        # If there is a field called time, use it for the x-axis by default
-        if "time" in numeric_fields:
-            fieldNameX = "time"
-        # Use the first field that is not "time" for the y-axis
-        if fieldNameY == "time":
-            fieldNameY = numeric_fields[0]
+            self.getWidget().setSelectableXAxisFieldNames(numeric_fields)
+            self.getWidget().setSelectableYAxisFieldNames(numeric_fields)
+            fieldNameX = numeric_fields[0]
+            fieldNameY = numeric_fields[1]
+
+            # If there is a field called time, use it for the x-axis by default
+            if "time" in numeric_fields:
+                fieldNameX = "time"
+            # Use the first field that is not "time" for the y-axis
+            if fieldNameY == "time":
+                fieldNameY = numeric_fields[0]
 
         self._plotData(fieldNameX, fieldNameY)
 
