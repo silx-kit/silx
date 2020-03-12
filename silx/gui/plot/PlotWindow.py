@@ -817,16 +817,26 @@ class RecordPlot(PlotWindow):
         if parent is None:
             self.setWindowTitle('RecordPlot')
         self._axesSelectionToolBar = tools.toolbars.AxesSelectionToolBar(parent=self, plot=self)
-        self.addToolBar(self._axesSelectionToolBar)
+        self.addToolBar(qt.Qt.BottomToolBarArea, self._axesSelectionToolBar)
 
     def setXAxisFieldName(self, value):
-        self.getXAxis().setLabel(value)
-        index = self._axesSelectionToolBar.getXAxisDropDown().findText(value)
+        """Set the current selected field for the X axis.
+
+        :param Union[str,None] value:
+        """
+        label = '' if value is None else value
+        index = self._axesSelectionToolBar.getXAxisDropDown().findData(value)
+
         if index >= 0:
+            self.getXAxis().setLabel(label)
             self._axesSelectionToolBar.getXAxisDropDown().setCurrentIndex(index)
 
     def getXAxisFieldName(self):
-        return self._axesSelectionToolBar.getXAxisDropDown().currentText()
+        """Returns currently selected field for the X axis or None.
+
+        rtype: Union[str,None]
+        """
+        return self._axesSelectionToolBar.getXAxisDropDown().currentData()
 
     def setYAxisFieldName(self, value):
         self.getYAxis().setLabel(value)
@@ -838,8 +848,16 @@ class RecordPlot(PlotWindow):
         return self._axesSelectionToolBar.getYAxisDropDown().currentText()
 
     def setSelectableXAxisFieldNames(self, fieldNames):
-        self._axesSelectionToolBar.getXAxisDropDown().clear()
-        self._axesSelectionToolBar.getXAxisDropDown().addItems(fieldNames)
+        """Add list of field names to X axis
+
+        :param List[str] fieldNames:
+        """
+        comboBox = self._axesSelectionToolBar.getXAxisDropDown()
+        comboBox.clear()
+        comboBox.addItem('-', None)
+        comboBox.insertSeparator(1)
+        for name in fieldNames:
+            comboBox.addItem(name, name)
 
     def setSelectableYAxisFieldNames(self, fieldNames):
         self._axesSelectionToolBar.getYAxisDropDown().clear()
