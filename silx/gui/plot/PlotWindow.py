@@ -825,11 +825,17 @@ class RecordPlot(PlotWindow):
         if index >= 0:
             self._axesSelectionToolBar.getXAxisDropDown().setCurrentIndex(index)
 
+    def getXAxisFieldName(self):
+        return self._axesSelectionToolBar.getXAxisDropDown().currentText()
+
     def setYAxisFieldName(self, value):
         self.getYAxis().setLabel(value)
         index = self._axesSelectionToolBar.getYAxisDropDown().findText(value)
         if index >= 0:
             self._axesSelectionToolBar.getYAxisDropDown().setCurrentIndex(index)
+
+    def getYAxisFieldName(self):
+        return self._axesSelectionToolBar.getYAxisDropDown().currentText()
 
     def setSelectableXAxisFieldNames(self, fieldNames):
         self._axesSelectionToolBar.getXAxisDropDown().clear()
