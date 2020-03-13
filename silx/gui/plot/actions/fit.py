@@ -83,6 +83,7 @@ class FitAction(PlotToolAction):
     :param parent: See :class:`QAction`
     """
     def __init__(self, plot, parent=None):
+        self.__synchroEnabled = False
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
@@ -99,30 +100,72 @@ class FitAction(PlotToolAction):
         return window
 
     def _connectPlot(self, window):
-        # Wait for the next iteration, else the plot is not yet initialized
-        # No curve available
-        qt.QTimer.singleShot(10, lambda: self._initFit(window))
+        if self.isCurveSynchronized():
+            self.__setPlotSynchroEnabled(True)
+        else:
+            # Wait for the next iteration, else the plot is not yet initialized
+            # No curve available
+            qt.QTimer.singleShot(10, self._initFit)
 
-    def _initFit(self, window):
-        plot = self.plot
-        self.xlabel = plot.getXAxis().getLabel()
-        self.ylabel = plot.getYAxis().getLabel()
-        self.xmin, self.xmax = plot.getXAxis().getLimits()
+    def _disconnectPlot(self, window):
+        if self.isCurveSynchronized():
+            self.__setPlotSynchroEnabled(False)
 
-        item = _getUniqueCurveOrHistogram(self.plot)
+    def __setPlotSynchroEnabled(self, enabled):
+        if enabled:
+            currentCurve = self.plot.getActiveCurve()
+            self._setCurve(currentCurve)
+            self.plot.sigActiveCurveChanged.connect(self.__activeCurveChanged)
+        else:
+            self.plot.sigActiveCurveChanged.disconnect(
+                self.__activeCurveChanged)
+
+    def setCurveSynchronized(self, enabled):
+        """Enable/Disable synchronization of fitted data with plot active curve.
+
+        :param bool enabled:
+        """
+        enabled = bool(enabled)
+        if enabled != self.__synchroEnabled:
+            self.__synchroEnabled = enabled
+            if self._getToolWindow().isVisible():
+                self.__setPlotSynchroEnabled(enabled=enabled)
+
+    def isCurveSynchronized(self):
+        """Returns True if fitted data is synchronized with plot active curve.
+
+        :rtype: bool
+        """
+        return self.__synchroEnabled
+
+    def __activeCurveChanged(self, previous, current):
+        """Handle change of active curve in the PlotWidget
+        """
+        if current is None:
+            self._setCurve(None)
+        else:
+            item = self.plot.getCurve(current)
+            self._setCurve(item)
+
+    def _setCurve(self, item):
+        """Set the curve to use for fitting.
+
+        :param ~silx.gui.plot.items.Curve item:
+        """
+        fitWidget = self._getToolWindow()
+
         if item is None:
-            # ambiguous case, we need to ask which plot item to fit
-            isd = ItemsSelectionDialog(parent=plot, plot=self.plot)
-            isd.setWindowTitle("Select item to be fitted")
-            isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
-            isd.setAvailableKinds(["curve", "histogram"])
-            isd.selectAllKinds()
+            fitWidget.setData(y=None)
+            fitWidget.setWindowTitle("- No curve selected -")
+            return
 
-            result = isd.exec_()
-            if result and len(isd.getSelectedItems()) == 1:
-                item = isd.getSelectedItems()[0]
-            else:
-                return
+        plot = self.plot
+        if plot is None:
+            return
+
+        self.xlabel = plot.getXAxis().getLabel()
+        self.ylabel = plot.getYAxis().getLabel() # TODO fit on right axis?
+        self.xmin, self.xmax = plot.getXAxis().getLimits()
 
         self.legend = item.getName()
 
@@ -136,11 +179,33 @@ class FitAction(PlotToolAction):
             self.x = item.getXData(copy=False)
             self.y = item.getYData(copy=False)
 
-        window.setData(self.x, self.y,
-                       xmin=self.xmin, xmax=self.xmax)
-        window.setWindowTitle(
+        fitWidget.setData(
+            self.x, self.y, xmin=self.xmin, xmax=self.xmax)
+        fitWidget.setWindowTitle(
             "Fitting " + self.legend +
             " on x range %f-%f" % (self.xmin, self.xmax))
+
+    def _initFit(self):
+        plot = self.plot
+        if plot is None:
+            return
+
+        item = _getUniqueCurveOrHistogram(plot)
+        if item is None:
+            # ambiguous case, we need to ask which plot item to fit
+            isd = ItemsSelectionDialog(parent=plot, plot=plot)
+            isd.setWindowTitle("Select item to be fitted")
+            isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
+            isd.setAvailableKinds(["curve", "histogram"])
+            isd.selectAllKinds()
+
+            result = isd.exec_()
+            if result and len(isd.getSelectedItems()) == 1:
+                item = isd.getSelectedItems()[0]
+            else:
+                return
+
+        self._setCurve(item)
 
     def handle_signal(self, ddict):
         x_fit = self.x[self.xmin <= self.x]
