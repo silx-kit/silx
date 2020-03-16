@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,8 @@ class AxesSelectionToolBar(qt.QToolBar):
         super(AxesSelectionToolBar, self).__init__(title, parent)
 
         assert isinstance(plot, PlotWidget)
+
+        self.addWidget(qt.QLabel("Field selection: "))
 
         self._labelXAxis = qt.QLabel(" X: ")
         self.addWidget(self._labelXAxis)
