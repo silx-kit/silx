@@ -51,13 +51,16 @@ import numpy
 from silx.utils.deprecation import deprecated
 from silx.gui import qt, printer
 from silx.gui.dialog.GroupDialog import GroupDialog
+from silx.gui.dialog.PlotTitleDialog import PlotTitleDialog
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from ...utils.image import convertArrayToQImage
+
 if sys.version_info[0] == 3:
     from io import BytesIO
 else:
     import cStringIO as _StringIO
+
     BytesIO = _StringIO.StringIO
 
 _logger = logging.getLogger(__name__)
@@ -430,7 +433,7 @@ class SaveAction(PlotAction):
                 self.IMAGE_FILTER_CSV_COMMA: (',', 'csv'),
                 self.IMAGE_FILTER_CSV_SEMICOLON: (';', 'csv'),
                 self.IMAGE_FILTER_CSV_TAB: ('\t', 'csv'),
-                }[nameFilter]
+            }[nameFilter]
 
             height, width = data.shape
             rows, cols = numpy.mgrid[0:height, 0:width]
@@ -629,7 +632,7 @@ class SaveAction(PlotAction):
             # Check for correct file extension
             # Extract file extensions as .something
             extensions = [ext[ext.find('.'):] for ext in
-                          nameFilter[nameFilter.find('(')+1:-1].split()]
+                          nameFilter[nameFilter.find('(') + 1:-1].split()]
             for ext in extensions:
                 if (len(filename) > len(ext) and
                         filename[-len(ext):].lower() == ext.lower()):
@@ -659,6 +662,25 @@ def _plotAsPNG(plot):
     data = pngFile.read()
     pngFile.close()
     return data
+
+
+class PlotTitleAction(PlotAction):
+    def __init__(self, plot, parent=None):
+        super(PlotTitleAction, self).__init__(
+            plot, icon='colormap-none', text='Set...',  # TODO change icon
+            tooltip='Set the plot title',
+            triggered=self.setTitle,
+            checkable=False, parent=parent)
+        self._dialog = None
+
+    def setTitle(self):
+        if not self._dialog.exec_():
+            return False
+        self.plot.setGraphTitle(self._dialog.getCustomTitleTextArea().toPlainText(),
+                                fontdict={'size': self._dialog.getFontSize(), })
+
+    def setDialog(self, data):
+        self._dialog = PlotTitleDialog(data)
 
 
 class PrintAction(PlotAction):

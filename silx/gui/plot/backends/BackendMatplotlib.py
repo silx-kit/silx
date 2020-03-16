@@ -960,8 +960,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Graph labels
 
-    def setGraphTitle(self, title):
-        self.ax.set_title(title)
+    def setGraphTitle(self, title, fontdict=None):
+        self.ax.set_title(title, fontdict)
 
     def setGraphXLabel(self, label):
         self.ax.set_xlabel(label)

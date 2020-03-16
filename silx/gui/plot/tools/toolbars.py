@@ -95,6 +95,9 @@ class OutputToolBar(qt.QToolBar):
         self._printAction = actions.io.PrintAction(parent=self, plot=plot)
         self.addAction(self._printAction)
 
+        self._plotTitleAction = actions.io.PlotTitleAction(parent=self, plot=plot)
+        self.addAction(self._plotTitleAction)
+
     def getCopyAction(self):
         """Returns the QAction performing copy to clipboard of the PlotWidget
 
@@ -115,6 +118,13 @@ class OutputToolBar(qt.QToolBar):
         :rtype: PlotAction
         """
         return self._printAction
+
+    def getPlotTitleAction(self):
+        """Returns the QAction performing setting a title for the plot
+
+        :rtype: PlotAction
+        """
+        return self._plotTitleAction
 
 
 class ImageToolBar(qt.QToolBar):

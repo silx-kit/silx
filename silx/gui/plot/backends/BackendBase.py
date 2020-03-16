@@ -374,7 +374,7 @@ class BackendBase(object):
 
     # Graph labels
 
-    def setGraphTitle(self, title):
+    def setGraphTitle(self, title, fontdict=None):
         """Set the main title of the plot.
 
         :param str title: Title associated to the plot

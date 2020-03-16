@@ -2284,13 +2284,13 @@ class PlotWidget(qt.QMainWindow):
         """Return the plot main title as a str."""
         return self._graphTitle
 
-    def setGraphTitle(self, title=""):
+    def setGraphTitle(self, title="", fontdict=None):
         """Set the plot main title.
 
         :param str title: Main title of the plot (default: '')
         """
         self._graphTitle = str(title)
-        self._backend.setGraphTitle(title)
+        self._backend.setGraphTitle(title, fontdict)
         self._setDirtyPlot()
 
     def getGraphXLabel(self):
