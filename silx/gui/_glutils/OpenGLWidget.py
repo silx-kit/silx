@@ -270,6 +270,8 @@ class OpenGLWidget(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
+        self.__context = None
+
         _check = isOpenGLAvailable(version=version, runtimeCheck=False)
         if _OpenGLWidget is None or not _check:
             _logger.error('OpenGL-based widget disabled: %s', _check.error)
@@ -357,7 +359,10 @@ class OpenGLWidget(qt.QWidget):
         if self.__openGLWidget is None:
             return None
         else:
-            return self.__openGLWidget.context()
+            # Keep a reference on QOpenGLContext to make
+            # else PyQt5 keeps creating a new one.
+            self.__context = self.__openGLWidget.context()
+            return self.__context
 
     def defaultFramebufferObject(self):
         """Returns the framebuffer object handle.
