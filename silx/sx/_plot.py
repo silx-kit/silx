@@ -43,13 +43,12 @@ import six
 
 from ..utils.weakref import WeakList
 from ..gui import qt
-from ..gui.plot import Plot1D, Plot2D, RecordPlot, ScatterView
+from ..gui.plot import Plot1D, Plot2D, ScatterView
 from ..gui.plot import items
 from ..gui import colors
 from ..gui.plot.tools import roi
 from ..gui.plot.items import roi as roi_items
 from ..gui.plot.tools.toolbars import InteractiveModeToolBar
-
 
 _logger = logging.getLogger(__name__)
 

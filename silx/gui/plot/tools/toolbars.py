@@ -37,33 +37,6 @@ from .. import PlotToolButtons
 from ....utils.deprecation import deprecated
 
 
-class AxesSelectionToolBar(qt.QToolBar):
-    def __init__(self, parent=None, plot=None, title='Plot Axes Selection'):
-        super(AxesSelectionToolBar, self).__init__(title, parent)
-
-        assert isinstance(plot, PlotWidget)
-
-        self.addWidget(qt.QLabel("Field selection: "))
-
-        self._labelXAxis = qt.QLabel(" X: ")
-        self.addWidget(self._labelXAxis)
-
-        self._selectXAxisDropDown = qt.QComboBox()
-        self.addWidget(self._selectXAxisDropDown)
-
-        self._labelYAxis = qt.QLabel(" Y: ")
-        self.addWidget(self._labelYAxis)
-
-        self._selectYAxisDropDown = qt.QComboBox()
-        self.addWidget(self._selectYAxisDropDown)
-
-    def getXAxisDropDown(self):
-        return self._selectXAxisDropDown
-
-    def getYAxisDropDown(self):
-        return self._selectYAxisDropDown
-
-
 class InteractiveModeToolBar(qt.QToolBar):
     """Toolbar with interactive mode actions
 

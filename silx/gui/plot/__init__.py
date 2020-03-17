@@ -61,11 +61,12 @@ __date__ = "03/05/2017"
 
 
 from .PlotWidget import PlotWidget  # noqa
-from .PlotWindow import PlotWindow, Plot1D, Plot2D, RecordPlot  # noqa
+from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
 from .items.axis import TickMode
 from .ImageView import ImageView  # noqa
 from .StackView import StackView  # noqa
 from .ScatterView import ScatterView  # noqa
+from silx.gui.data._RecordPlot import RecordPlot
 
 __all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D', 'RecordPlot',
            'StackView', 'ScatterView', 'TickMode']
