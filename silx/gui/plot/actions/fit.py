@@ -84,16 +84,6 @@ class FitAction(PlotToolAction):
     :param parent: See :class:`QAction`
     """
 
-    @property
-    @deprecated(replacement='getXRange()[0]', since_version='0.13.0')
-    def xmin(self):
-        return self.getXRange()[0]
-
-    @property
-    @deprecated(replacement='getXRange()[1]', since_version='0.13.0')
-    def xmax(self):
-        return self.getXRange()[1]
-
     def __init__(self, plot, parent=None):
         self.__item = None
         self.__activeCurveSynchroEnabled = False
@@ -103,6 +93,16 @@ class FitAction(PlotToolAction):
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
             parent=parent)
+
+    @property
+    @deprecated(replacement='getXRange()[0]', since_version='0.13.0')
+    def xmin(self):
+        return self.getXRange()[0]
+
+    @property
+    @deprecated(replacement='getXRange()[1]', since_version='0.13.0')
+    def xmax(self):
+        return self.getXRange()[1]
 
     def _createToolWindow(self):
         # import done here rather than at module level to avoid circular import
