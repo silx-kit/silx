@@ -85,12 +85,12 @@ class FitAction(PlotToolAction):
     """
 
     @property
-    @deprecated(replacement='getXRange', since_version='0.13.0')
+    @deprecated(replacement='getXRange()[0]', since_version='0.13.0')
     def xmin(self):
         return self.getXRange()[0]
 
     @property
-    @deprecated(replacement='getXRange', since_version='0.13.0')
+    @deprecated(replacement='getXRange()[1]', since_version='0.13.0')
     def xmax(self):
         return self.getXRange()[1]
 
