@@ -135,7 +135,7 @@ class FitAction(PlotToolAction):
     def _initFit(self):
         plot = self.plot
         if plot is None:
-            _logger.error("Associated PlotWidget not available")
+            _logger.error("No associated PlotWidget")
             return
 
         item = _getUniqueCurveOrHistogram(plot)
@@ -197,7 +197,7 @@ class FitAction(PlotToolAction):
         """
         plot = self.plot
         if plot is None:
-            _logger.error("Associated PlotWidget not available")
+            _logger.error("No associated PlotWidget")
             return
 
         if enabled:
@@ -244,7 +244,7 @@ class FitAction(PlotToolAction):
 
         plot = self.plot
         if plot is None:
-            _logger.error("Associated PlotWidget not available")
+            _logger.error("No associated PlotWidget")
             self.__item = None
             self.__updateFitWidget()
             return
@@ -282,7 +282,7 @@ class FitAction(PlotToolAction):
         """
         plot = self.plot
         if plot is None:
-            _logger.error("Associated PlotWidget not available")
+            _logger.error("No associated PlotWidget")
             return
 
         if enabled:
