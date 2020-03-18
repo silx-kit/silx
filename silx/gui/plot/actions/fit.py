@@ -42,6 +42,7 @@ import logging
 
 from .PlotToolAction import PlotToolAction
 from .. import items
+from ....utils.deprecation import deprecated
 from silx.gui import qt
 from silx.gui.plot.ItemsSelectionDialog import ItemsSelectionDialog
 from silx.gui.plot.items import Curve, Histogram
@@ -83,14 +84,21 @@ class FitAction(PlotToolAction):
     :param parent: See :class:`QAction`
     """
 
-    # Compatibility with xmin, xmax attributes of previous implementation
-    xmin = property(lambda self: self._getXRange()[0])
-    xmax = property(lambda self: self._getXRange()[1])
+    @property
+    @deprecated(replacement='getXRange', since_version='0.13.0')
+    def xmin(self):
+        return self.getXRange()[0]
+
+    @property
+    @deprecated(replacement='getXRange', since_version='0.13.0')
+    def xmax(self):
+        return self.getXRange()[1]
 
     def __init__(self, plot, parent=None):
-        self.__synchroEnabled = False
         self.__item = None
+        self.__activeCurveSynchroEnabled = False
         self.__range = 0, 1
+        self.__rangeAutoUpdate = False
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
@@ -107,65 +115,46 @@ class FitAction(PlotToolAction):
         return window
 
     def _connectPlot(self, window):
-        if self.isCurveSynchronized():
-            self.__setPlotSynchroEnabled(True)
+        if self.isXRangeUpdatedOnZoom():
+            self.__setAutoXRangeEnabled(True)
+
+        if self.isFittedItemUpdatedFromActiveCurve():
+            self.__setFittedItemAutoUpdateEnabled(True)
         else:
             # Wait for the next iteration, else the plot is not yet initialized
             # No curve available
             qt.QTimer.singleShot(10, self._initFit)
 
     def _disconnectPlot(self, window):
-        if self.isCurveSynchronized():
-            self.__setPlotSynchroEnabled(False)
+        if self.isXRangeUpdatedOnZoom():
+            self.__setAutoXRangeEnabled(False)
 
-    def __setPlotSynchroEnabled(self, enabled):
-        """Implement the change of plot synchronization mode
+        if self.isFittedItemUpdatedFromActiveCurve():
+            self.__setFittedItemAutoUpdateEnabled(False)
 
-        :param bool enabled:
-        """
+    def _initFit(self):
         plot = self.plot
         if plot is None:
             _logger.error("Associated PlotWidget not available")
             return
 
-        if enabled:
-            self._setXRange(*plot.getXAxis().getLimits())
-            plot.getXAxis().sigLimitsChanged.connect(self._setXRange)
+        item = _getUniqueCurveOrHistogram(plot)
+        if item is None:
+            # ambiguous case, we need to ask which plot item to fit
+            isd = ItemsSelectionDialog(parent=plot, plot=plot)
+            isd.setWindowTitle("Select item to be fitted")
+            isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
+            isd.setAvailableKinds(["curve", "histogram"])
+            isd.selectAllKinds()
 
-            self._setFittedItem(plot.getActiveCurve())
-            plot.sigActiveCurveChanged.connect(self.__activeCurveChanged)
+            result = isd.exec_()
+            if result and len(isd.getSelectedItems()) == 1:
+                item = isd.getSelectedItems()[0]
+            else:
+                return
 
-        else:
-            plot.getXAxis().sigLimitsChanged.disconnect(self.__xLimitsChanged)
-            plot.sigActiveCurveChanged.disconnect(
-                self.__activeCurveChanged)
-
-    def setCurveSynchronized(self, enabled):
-        """Toggle fitted data synchronization with plot active curve and limits.
-
-        :param bool enabled:
-        """
-        enabled = bool(enabled)
-        if enabled != self.__synchroEnabled:
-            self.__synchroEnabled = enabled
-            if self._getToolWindow().isVisible():
-                self.__setPlotSynchroEnabled(enabled=enabled)
-
-    def isCurveSynchronized(self):
-        """Returns True if fitted data is synchronized with plot.
-
-        :rtype: bool
-        """
-        return self.__synchroEnabled
-
-    def __activeCurveChanged(self, previous, current):
-        """Handle change of active curve in the PlotWidget
-        """
-        if current is None:
-            self._setFittedItem(None)
-        else:
-            item = self.plot.getCurve(current)
-            self._setFittedItem(item)
+        self._setXRange(*plot.getXAxis().getLimits())
+        self._setFittedItem(item)
 
     def __updateFitWidget(self):
         """Update the data/range used by the FitWidget"""
@@ -177,12 +166,18 @@ class FitAction(PlotToolAction):
             fitWidget.setWindowTitle("- No curve selected -")
 
         else:
-            xmin, xmax = self._getXRange()
+            xmin, xmax = self.getXRange()
             fitWidget.setData(
                 self.x, self.y, xmin=xmin, xmax=xmax)
             fitWidget.setWindowTitle(
                 "Fitting " + item.getName() +
                 " on x range %f-%f" % (xmin, xmax))
+
+    # X Range management
+
+    def getXRange(self):
+        """Returns the range on the X axis on which to perform the fit."""
+        return self.__range
 
     def _setXRange(self, xmin, xmax):
         """Set the range on which the fit is done.
@@ -195,9 +190,40 @@ class FitAction(PlotToolAction):
             self.__range = range_
             self.__updateFitWidget()
 
-    def _getXRange(self):
-        """Returns the range on the X axis on which to perform the fit."""
-        return self.__range
+    def __setAutoXRangeEnabled(self, enabled):
+        """Implement the change of update mode of the X range.
+
+        :param bool enabled:
+        """
+        plot = self.plot
+        if plot is None:
+            _logger.error("Associated PlotWidget not available")
+            return
+
+        if enabled:
+            self._setXRange(*plot.getXAxis().getLimits())
+            plot.getXAxis().sigLimitsChanged.connect(self._setXRange)
+        else:
+            plot.getXAxis().sigLimitsChanged.disconnect(self._setXRange)
+
+    def setXRangeUpdatedOnZoom(self, enabled):
+        """Set whether or not to update the X range on zoom change.
+
+        :param bool enabled:
+        """
+        if enabled != self.__rangeAutoUpdate:
+            self.__rangeAutoUpdate = enabled
+            if self._getToolWindow().isVisible():
+                self.__setAutoXRangeEnabled(enabled)
+
+    def isXRangeUpdatedOnZoom(self):
+        """Returns the current mode of fitted data X range update.
+
+        :rtype: bool
+        """
+        return self.__rangeAutoUpdate
+
+    # Fitted item update
 
     def _getFittedItem(self):
         """Returns the current item used for the fit
@@ -240,32 +266,55 @@ class FitAction(PlotToolAction):
         self.__item  = item
         self.__updateFitWidget()
 
-    def _initFit(self):
+    def __activeCurveChanged(self, previous, current):
+        """Handle change of active curve in the PlotWidget
+        """
+        if current is None:
+            self._setFittedItem(None)
+        else:
+            item = self.plot.getCurve(current)
+            self._setFittedItem(item)
+
+    def __setFittedItemAutoUpdateEnabled(self, enabled):
+        """Implement the change of fitted item update mode
+
+        :param bool enabled:
+        """
         plot = self.plot
         if plot is None:
             _logger.error("Associated PlotWidget not available")
             return
 
-        item = _getUniqueCurveOrHistogram(plot)
-        if item is None:
-            # ambiguous case, we need to ask which plot item to fit
-            isd = ItemsSelectionDialog(parent=plot, plot=plot)
-            isd.setWindowTitle("Select item to be fitted")
-            isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
-            isd.setAvailableKinds(["curve", "histogram"])
-            isd.selectAllKinds()
+        if enabled:
+            self._setFittedItem(plot.getActiveCurve())
+            plot.sigActiveCurveChanged.connect(self.__activeCurveChanged)
 
-            result = isd.exec_()
-            if result and len(isd.getSelectedItems()) == 1:
-                item = isd.getSelectedItems()[0]
-            else:
-                return
+        else:
+            plot.sigActiveCurveChanged.disconnect(
+                self.__activeCurveChanged)
 
-        self._setXRange(*plot.getXAxis().getLimits())
-        self._setFittedItem(item)
+    def setFittedItemUpdatedFromActiveCurve(self, enabled):
+        """Toggle fitted data synchronization with plot active curve.
+
+        :param bool enabled:
+        """
+        enabled = bool(enabled)
+        if enabled != self.__activeCurveSynchroEnabled:
+            self.__activeCurveSynchroEnabled = enabled
+            if self._getToolWindow().isVisible():
+                self.__setFittedItemAutoUpdateEnabled(enabled)
+
+    def isFittedItemUpdatedFromActiveCurve(self):
+        """Returns True if fitted data is synchronized with plot.
+
+        :rtype: bool
+        """
+        return self.__activeCurveSynchroEnabled
+
+    # Handle fit completed
 
     def handle_signal(self, ddict):
-        xmin, xmax = self._getXRange()
+        xmin, xmax = self.getXRange()
         x_fit = self.x[xmin <= self.x]
         x_fit = x_fit[x_fit <= xmax]
         fit_legend = "Fit <%s>" % self.legend
