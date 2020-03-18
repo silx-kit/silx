@@ -119,6 +119,10 @@ class FitAction(PlotToolAction):
             self.__setPlotSynchroEnabled(False)
 
     def __setPlotSynchroEnabled(self, enabled):
+        """Implement the change of plot synchronization mode
+
+        :param bool enabled:
+        """
         plot = self.plot
         if plot is None:
             _logger.error("Associated PlotWidget not available")
@@ -128,7 +132,7 @@ class FitAction(PlotToolAction):
             self._setXRange(*plot.getXAxis().getLimits())
             plot.getXAxis().sigLimitsChanged.connect(self._setXRange)
 
-            self._setCurve(plot.getActiveCurve())
+            self._setFittedItem(plot.getActiveCurve())
             plot.sigActiveCurveChanged.connect(self.__activeCurveChanged)
 
         else:
@@ -137,7 +141,7 @@ class FitAction(PlotToolAction):
                 self.__activeCurveChanged)
 
     def setCurveSynchronized(self, enabled):
-        """Enable/Disable synchronization of fitted data with plot active curve.
+        """Toggle fitted data synchronization with plot active curve and limits.
 
         :param bool enabled:
         """
@@ -148,7 +152,7 @@ class FitAction(PlotToolAction):
                 self.__setPlotSynchroEnabled(enabled=enabled)
 
     def isCurveSynchronized(self):
-        """Returns True if fitted data is synchronized with plot active curve.
+        """Returns True if fitted data is synchronized with plot.
 
         :rtype: bool
         """
@@ -158,16 +162,16 @@ class FitAction(PlotToolAction):
         """Handle change of active curve in the PlotWidget
         """
         if current is None:
-            self._setCurve(None)
+            self._setFittedItem(None)
         else:
             item = self.plot.getCurve(current)
-            self._setCurve(item)
+            self._setFittedItem(item)
 
     def __updateFitWidget(self):
         """Update the data/range used by the FitWidget"""
         fitWidget = self._getToolWindow()
 
-        item = self._getCurve()
+        item = self._getFittedItem()
         if item is None:
             fitWidget.setData(y=None)
             fitWidget.setWindowTitle("- No curve selected -")
@@ -195,17 +199,17 @@ class FitAction(PlotToolAction):
         """Returns the range on the X axis on which to perform the fit."""
         return self.__range
 
-    def _getCurve(self):
+    def _getFittedItem(self):
         """Returns the current item used for the fit
 
-        :rtype: Union[None,~silx.gui.plot.items.Item]
+        :rtype: Union[~silx.gui.plot.items.Curve,~silx.gui.plot.items.Histogram,None]
         """
         return self.__item
 
-    def _setCurve(self, item):
+    def _setFittedItem(self, item):
         """Set the curve to use for fitting.
 
-        :param ~silx.gui.plot.items.Curve item:
+        :param Union[~silx.gui.plot.items.Curve,~silx.gui.plot.items.Histogram,None] item:
         """
         if item is None:
             self.__item = None
@@ -239,6 +243,7 @@ class FitAction(PlotToolAction):
     def _initFit(self):
         plot = self.plot
         if plot is None:
+            _logger.error("Associated PlotWidget not available")
             return
 
         item = _getUniqueCurveOrHistogram(plot)
@@ -257,7 +262,7 @@ class FitAction(PlotToolAction):
                 return
 
         self._setXRange(*plot.getXAxis().getLimits())
-        self._setCurve(item)
+        self._setFittedItem(item)
 
     def handle_signal(self, ddict):
         xmin, xmax = self._getXRange()
