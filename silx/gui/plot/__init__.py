@@ -66,7 +66,6 @@ from .items.axis import TickMode
 from .ImageView import ImageView  # noqa
 from .StackView import StackView  # noqa
 from .ScatterView import ScatterView  # noqa
-from silx.gui.data._RecordPlot import RecordPlot
 
-__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D', 'RecordPlot',
+__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D',
            'StackView', 'ScatterView', 'TickMode']
