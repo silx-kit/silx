@@ -847,8 +847,8 @@ class _Plot2dRecordView(DataView):
         self.__fields = None
 
     def createWidget(self, parent):
-        from silx.gui import plot
-        return plot.RecordPlot(parent=parent)
+        from ._RecordPlot import RecordPlot
+        return RecordPlot(parent=parent)
 
     def clear(self):
         self.getWidget().clear()
