@@ -163,7 +163,7 @@ class FitAction(PlotToolAction):
         item = self._getFittedItem()
         if item is None:
             fitWidget.setData(y=None)
-            fitWidget.setWindowTitle("- No curve selected -")
+            fitWidget.setWindowTitle("No curve selected")
 
         else:
             xmin, xmax = self.getXRange()
