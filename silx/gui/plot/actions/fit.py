@@ -82,8 +82,15 @@ class FitAction(PlotToolAction):
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
+
+    # Compatibility with xmin, xmax attributes of previous implementation
+    xmin = property(lambda self: self._getXRange()[0])
+    xmax = property(lambda self: self._getXRange()[1])
+
     def __init__(self, plot, parent=None):
         self.__synchroEnabled = False
+        self.__item = None
+        self.__range = 0, 1
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
@@ -112,12 +119,21 @@ class FitAction(PlotToolAction):
             self.__setPlotSynchroEnabled(False)
 
     def __setPlotSynchroEnabled(self, enabled):
+        plot = self.plot
+        if plot is None:
+            _logger.error("Associated PlotWidget not available")
+            return
+
         if enabled:
-            currentCurve = self.plot.getActiveCurve()
-            self._setCurve(currentCurve)
-            self.plot.sigActiveCurveChanged.connect(self.__activeCurveChanged)
+            self._setXRange(*plot.getXAxis().getLimits())
+            plot.getXAxis().sigLimitsChanged.connect(self._setXRange)
+
+            self._setCurve(plot.getActiveCurve())
+            plot.sigActiveCurveChanged.connect(self.__activeCurveChanged)
+
         else:
-            self.plot.sigActiveCurveChanged.disconnect(
+            plot.getXAxis().sigLimitsChanged.disconnect(self.__xLimitsChanged)
+            plot.sigActiveCurveChanged.disconnect(
                 self.__activeCurveChanged)
 
     def setCurveSynchronized(self, enabled):
@@ -147,26 +163,64 @@ class FitAction(PlotToolAction):
             item = self.plot.getCurve(current)
             self._setCurve(item)
 
+    def __updateFitWidget(self):
+        """Update the data/range used by the FitWidget"""
+        fitWidget = self._getToolWindow()
+
+        item = self._getCurve()
+        if item is None:
+            fitWidget.setData(y=None)
+            fitWidget.setWindowTitle("- No curve selected -")
+
+        else:
+            xmin, xmax = self._getXRange()
+            fitWidget.setData(
+                self.x, self.y, xmin=xmin, xmax=xmax)
+            fitWidget.setWindowTitle(
+                "Fitting " + item.getName() +
+                " on x range %f-%f" % (xmin, xmax))
+
+    def _setXRange(self, xmin, xmax):
+        """Set the range on which the fit is done.
+
+        :param float xmin:
+        :param float xmax:
+        """
+        range_ = float(xmin), float(xmax)
+        if self.__range != range_:
+            self.__range = range_
+            self.__updateFitWidget()
+
+    def _getXRange(self):
+        """Returns the range on the X axis on which to perform the fit."""
+        return self.__range
+
+    def _getCurve(self):
+        """Returns the current item used for the fit
+
+        :rtype: Union[None,~silx.gui.plot.items.Item]
+        """
+        return self.__item
+
     def _setCurve(self, item):
         """Set the curve to use for fitting.
 
         :param ~silx.gui.plot.items.Curve item:
         """
-        fitWidget = self._getToolWindow()
-
         if item is None:
-            fitWidget.setData(y=None)
-            fitWidget.setWindowTitle("- No curve selected -")
+            self.__item = None
+            self.__updateFitWidget()
             return
 
         plot = self.plot
         if plot is None:
+            _logger.error("Associated PlotWidget not available")
+            self.__item = None
+            self.__updateFitWidget()
             return
 
         self.xlabel = plot.getXAxis().getLabel()
         self.ylabel = plot.getYAxis().getLabel() # TODO fit on right axis?
-        self.xmin, self.xmax = plot.getXAxis().getLimits()
-
         self.legend = item.getName()
 
         if isinstance(item, Histogram):
@@ -179,11 +233,8 @@ class FitAction(PlotToolAction):
             self.x = item.getXData(copy=False)
             self.y = item.getYData(copy=False)
 
-        fitWidget.setData(
-            self.x, self.y, xmin=self.xmin, xmax=self.xmax)
-        fitWidget.setWindowTitle(
-            "Fitting " + self.legend +
-            " on x range %f-%f" % (self.xmin, self.xmax))
+        self.__item  = item
+        self.__updateFitWidget()
 
     def _initFit(self):
         plot = self.plot
@@ -205,11 +256,13 @@ class FitAction(PlotToolAction):
             else:
                 return
 
+        self._setXRange(*plot.getXAxis().getLimits())
         self._setCurve(item)
 
     def handle_signal(self, ddict):
-        x_fit = self.x[self.xmin <= self.x]
-        x_fit = x_fit[x_fit <= self.xmax]
+        xmin, xmax = self._getXRange()
+        x_fit = self.x[xmin <= self.x]
+        x_fit = x_fit[x_fit <= xmax]
         fit_legend = "Fit <%s>" % self.legend
         fit_curve = self.plot.getCurve(fit_legend)
 
