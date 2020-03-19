@@ -117,6 +117,12 @@ class FitAction(PlotToolAction):
     def _connectPlot(self, window):
         if self.isXRangeUpdatedOnZoom():
             self.__setAutoXRangeEnabled(True)
+        else:
+            plot = self.plot
+            if plot is None:
+                _logger.error("No associated PlotWidget")
+                return
+            self._setXRange(*plot.getXAxis().getLimits())
 
         if self.isFittedItemUpdatedFromActiveCurve():
             self.__setFittedItemAutoUpdateEnabled(True)
