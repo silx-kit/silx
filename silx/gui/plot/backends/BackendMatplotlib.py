@@ -1174,15 +1174,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
         BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         if displayed:
             # show axes and viewbox rect
-            self.ax.set_axis_on()
-            self.ax2.set_axis_on()
+            self.ax.set_frame_on(True)
+            self.ax2.set_frame_on(True)
             # set the default margins
             self.ax.set_position([.15, .15, .75, .75])
             self.ax2.set_position([.15, .15, .75, .75])
         else:
             # hide axes and viewbox rect
-            self.ax.set_axis_off()
-            self.ax2.set_axis_off()
+            self.ax.set_frame_on(False)
+            self.ax2.set_frame_on(False)
             # remove external margins
             self.ax.set_position([0, 0, 1, 1])
             self.ax2.set_position([0, 0, 1, 1])
