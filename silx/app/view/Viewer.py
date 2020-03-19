@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -554,6 +554,11 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.open)
         self._openRecentAction = action
 
+        action = qt.QAction("Close All", self)
+        action.setStatusTip("Close all opened files")
+        action.triggered.connect(self.closeAll)
+        self._closeAllAction = action
+
         action = qt.QAction("&About", self)
         action.setStatusTip("Show the application's About box")
         action.triggered.connect(self.about)
@@ -710,6 +715,7 @@ class Viewer(qt.QMainWindow):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self._openAction)
         fileMenu.addAction(self._openRecentAction)
+        fileMenu.addAction(self._closeAllAction)
         fileMenu.addSeparator()
         fileMenu.addAction(self._exitAction)
         fileMenu.aboutToShow.connect(self.__updateFileMenu)
@@ -743,6 +749,11 @@ class Viewer(qt.QMainWindow):
         filenames = dialog.selectedFiles()
         for filename in filenames:
             self.appendFile(filename)
+
+    def closeAll(self):
+        """Close all currently opened files"""
+        model = self.__treeview.findHdf5TreeModel()
+        model.clear()
 
     def createFileDialog(self):
         dialog = qt.QFileDialog(self)
