@@ -464,7 +464,7 @@ class PlotWindow(PlotWidget):
         """Add a dock widget as a new tab if there are already dock widgets
         in the plot. When the first tab is added, the area is chosen
         depending on the plot geometry:
-        it the window is much wider than it is high, the right dock area
+        if the window is much wider than it is high, the right dock area
         is used, else the bottom dock area is used.
 
         :param dock_widget: Instance of :class:`QDockWidget` to be added.
@@ -484,6 +484,17 @@ class PlotWindow(PlotWidget):
             # Other dock widgets are added as tabs to the same widget area
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
+
+    def removeDockWidget(self, dockwidget):
+        """Removes the *dockwidget* from the main window layout and hides it.
+
+        Note that the *dockwidget* is *not* deleted.
+
+        :param QDockWidget dockwidget:
+        """
+        if dockwidget in self._dockWidgets:
+            self._dockWidgets.remove(dockwidget)
+        super(PlotWindow, self).removeDockWidget(dockwidget)
 
     def __handleFirstDockWidgetShow(self, visible):
         """Handle QDockWidget.visibilityChanged
