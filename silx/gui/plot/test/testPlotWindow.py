@@ -86,6 +86,25 @@ class TestPlotWindow(TestCaseQt):
         self.assertIsNot(toolButton, None)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
 
+    def testDockWidgets(self):
+        """Test add/remove dock widgets"""
+        dock1 = qt.QDockWidget('Test 1')
+        dock1.setWidget(qt.QLabel('Test 1'))
+
+        self.plot.addTabbedDockWidget(dock1)
+        self.qapp.processEvents()
+
+        self.plot.removeDockWidget(dock1)
+        self.qapp.processEvents()
+
+        dock2 = qt.QDockWidget('Test 2')
+        dock2.setWidget(qt.QLabel('Test 2'))
+
+        self.plot.addTabbedDockWidget(dock2)
+        self.qapp.processEvents()
+
+        self.assertNotEqual(self.plot.layout().indexOf(dock2), -1, "dock2 not properly displayed")
+
     def testToolAspectRatio(self):
         self.plot.toolBar()
         self.plot.keepDataAspectRatioButton.keepDataAspectRatio()
