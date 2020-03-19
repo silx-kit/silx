@@ -153,11 +153,11 @@ class FitAction(PlotToolAction):
             isd.setAvailableKinds(["curve", "histogram"])
             isd.selectAllKinds()
 
-            result = isd.exec_()
-            if result and len(isd.getSelectedItems()) == 1:
-                item = isd.getSelectedItems()[0]
+            if not isd.exec_():  # Cancel
+                self._getToolWindow().setVisible(False)
             else:
-                return
+                selectedItems = isd.getSelectedItems()
+                item = selectedItems[0] if len(selectedItems) == 1 else None
 
         self._setXRange(*plot.getXAxis().getLimits())
         self._setFittedItem(item)
