@@ -84,16 +84,6 @@ class FitAction(PlotToolAction):
     :param parent: See :class:`QAction`
     """
 
-    @property
-    @deprecated(replacement='getXRange', since_version='0.13.0')
-    def xmin(self):
-        return self.getXRange()[0]
-
-    @property
-    @deprecated(replacement='getXRange', since_version='0.13.0')
-    def xmax(self):
-        return self.getXRange()[1]
-
     def __init__(self, plot, parent=None):
         self.__item = None
         self.__activeCurveSynchroEnabled = False
@@ -103,6 +93,16 @@ class FitAction(PlotToolAction):
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
             parent=parent)
+
+    @property
+    @deprecated(replacement='getXRange()[0]', since_version='0.13.0')
+    def xmin(self):
+        return self.getXRange()[0]
+
+    @property
+    @deprecated(replacement='getXRange()[1]', since_version='0.13.0')
+    def xmax(self):
+        return self.getXRange()[1]
 
     def _createToolWindow(self):
         # import done here rather than at module level to avoid circular import
@@ -135,7 +135,7 @@ class FitAction(PlotToolAction):
     def _initFit(self):
         plot = self.plot
         if plot is None:
-            _logger.error("Associated PlotWidget not available")
+            _logger.error("No associated PlotWidget")
             return
 
         item = _getUniqueCurveOrHistogram(plot)
@@ -163,7 +163,7 @@ class FitAction(PlotToolAction):
         item = self._getFittedItem()
         if item is None:
             fitWidget.setData(y=None)
-            fitWidget.setWindowTitle("- No curve selected -")
+            fitWidget.setWindowTitle("No curve selected")
 
         else:
             xmin, xmax = self.getXRange()
@@ -197,7 +197,7 @@ class FitAction(PlotToolAction):
         """
         plot = self.plot
         if plot is None:
-            _logger.error("Associated PlotWidget not available")
+            _logger.error("No associated PlotWidget")
             return
 
         if enabled:
@@ -244,7 +244,7 @@ class FitAction(PlotToolAction):
 
         plot = self.plot
         if plot is None:
-            _logger.error("Associated PlotWidget not available")
+            _logger.error("No associated PlotWidget")
             self.__item = None
             self.__updateFitWidget()
             return
@@ -282,7 +282,7 @@ class FitAction(PlotToolAction):
         """
         plot = self.plot
         if plot is None:
-            _logger.error("Associated PlotWidget not available")
+            _logger.error("No associated PlotWidget")
             return
 
         if enabled:

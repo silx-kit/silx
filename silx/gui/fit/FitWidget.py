@@ -531,7 +531,7 @@ class FitWidget(qt.QWidget):
             'data': self.fitmanager.fit_results}
         self._emitSignal(ddict)
 
-    @deprecated(replacement='setData', since_version='0.3.0')
+    @deprecated(replacement='startFit', since_version='0.3.0')
     def startfit(self):
         self.startFit()
 
