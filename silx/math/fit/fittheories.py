@@ -1,7 +1,7 @@
 # coding: utf-8
 #/*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -402,11 +402,12 @@ class FitTheories(object):
                 cons[1:len(param):3, 1] = param[1:len(param):3] - 0.5 * fwhmx
                 cons[1:len(param):3, 2] = param[1:len(param):3] + 0.5 * fwhmx
             else:
+                shape = [max(1, int(x)) for x in (param[1:len(param):3])]
                 cons[1:len(param):3, 1] = min(xw) * numpy.ones(
-                                                        (param[1:len(param):3]),
+                                                        shape,
                                                         numpy.float)
                 cons[1:len(param):3, 2] = max(xw) * numpy.ones(
-                                                        (param[1:len(param):3]),
+                                                        shape,
                                                         numpy.float)
 
             # ensure fwhm is positive

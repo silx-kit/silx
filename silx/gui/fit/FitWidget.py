@@ -43,7 +43,6 @@ __date__ = "17/07/2018"
 import logging
 import sys
 import traceback
-import warnings
 
 from silx.math.fit import fittheories
 from silx.math.fit import fitmanager, functions
@@ -52,6 +51,7 @@ from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
 from .BackgroundWidget import getBgDialog, BackgroundDialog
+from ...utils.deprecation import deprecated
 
 QTVERSION = qt.qVersion()
 DEBUG = 0
@@ -226,7 +226,9 @@ class FitWidget(qt.QWidget):
             self.guibuttons = FitActionsButtons(self)
             """Widget with estimate, start fit and dismiss buttons"""
             self.guibuttons.EstimateButton.clicked.connect(self.estimate)
+            self.guibuttons.EstimateButton.setEnabled(False)
             self.guibuttons.StartFitButton.clicked.connect(self.startFit)
+            self.guibuttons.StartFitButton.setEnabled(False)
             self.guibuttons.DismissButton.clicked.connect(self.dismiss)
             layout.addWidget(self.guibuttons)
 
@@ -314,12 +316,11 @@ class FitWidget(qt.QWidget):
 
         configuration.update(self.configure())
 
+    @deprecated(replacement='setData', since_version='0.3.0')
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
-        warnings.warn("Method renamed to setData",
-                      DeprecationWarning)
         self.setData(x, y, sigmay, xmin, xmax)
 
-    def setData(self, x, y, sigmay=None, xmin=None, xmax=None):
+    def setData(self, x=None, y=None, sigmay=None, xmin=None, xmax=None):
         """Set data to be fitted.
 
         :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
@@ -335,11 +336,17 @@ class FitWidget(qt.QWidget):
         :param xmin: Lower value of x values to use for fitting
         :param xmax: Upper value of x values to use for fitting
         """
-        self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
-                                xmin=xmin, xmax=xmax)
-        for config_dialog in self.bgconfigdialogs.values():
-            if isinstance(config_dialog, BackgroundDialog):
-                config_dialog.setData(x, y, xmin=xmin, xmax=xmax)
+        if y is None:
+            self.guibuttons.EstimateButton.setEnabled(False)
+            self.guibuttons.StartFitButton.setEnabled(False)
+        else:
+            self.guibuttons.EstimateButton.setEnabled(True)
+            self.guibuttons.StartFitButton.setEnabled(True)
+            self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
+                                    xmin=xmin, xmax=xmax)
+            for config_dialog in self.bgconfigdialogs.values():
+                if isinstance(config_dialog, BackgroundDialog):
+                    config_dialog.setData(x, y, xmin=xmin, xmax=xmax)
 
     def associateConfigDialog(self, theory_name, config_widget,
                               theory_is_background=False):
@@ -524,9 +531,8 @@ class FitWidget(qt.QWidget):
             'data': self.fitmanager.fit_results}
         self._emitSignal(ddict)
 
+    @deprecated(replacement='startFit', since_version='0.3.0')
     def startfit(self):
-        warnings.warn("Method renamed to startFit",
-                      DeprecationWarning)
         self.startFit()
 
     def startFit(self):
