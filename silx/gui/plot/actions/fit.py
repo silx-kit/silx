@@ -40,6 +40,8 @@ __date__ = "10/10/2018"
 
 import logging
 
+import numpy
+
 from .PlotToolAction import PlotToolAction
 from .. import items
 from ....utils.deprecation import deprecated
@@ -89,6 +91,10 @@ class FitAction(PlotToolAction):
         self.__activeCurveSynchroEnabled = False
         self.__range = 0, 1
         self.__rangeAutoUpdate = False
+        self.__x, self.__y = None, None  # Data to fit
+        self.__xlabel = ''
+        self.__ylabel = ''
+
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
@@ -103,6 +109,26 @@ class FitAction(PlotToolAction):
     @deprecated(replacement='getXRange()[1]', since_version='0.13.0')
     def xmax(self):
         return self.getXRange()[1]
+
+    @property
+    @deprecated(replacement='getXData()', since_version='0.13.0')
+    def x(self):
+        return self.getXData()
+
+    @property
+    @deprecated(replacement='getYData()', since_version='0.13.0')
+    def y(self):
+        return self.getYData()
+
+    @property
+    @deprecated(since_version='0.13.0')
+    def xlabel(self):
+        return self.__xlabel
+
+    @property
+    @deprecated(since_version='0.13.0')
+    def ylabel(self):
+        return self.__ylabel
 
     def _createToolWindow(self):
         # import done here rather than at module level to avoid circular import
@@ -167,14 +193,16 @@ class FitAction(PlotToolAction):
         fitWidget = self._getToolWindow()
 
         item = self._getFittedItem()
-        if item is None:
+        xdata = self.getXData(copy=False)
+        ydata = self.getYData(copy=False)
+        if item is None or xdata is None or ydata is None:
             fitWidget.setData(y=None)
             fitWidget.setWindowTitle("No curve selected")
 
         else:
             xmin, xmax = self.getXRange()
             fitWidget.setData(
-                self.x, self.y, xmin=xmin, xmax=xmax)
+                xdata, ydata, xmin=xmin, xmax=xmax)
             fitWidget.setWindowTitle(
                 "Fitting " + item.getName() +
                 " on x range %f-%f" % (xmin, xmax))
@@ -231,6 +259,24 @@ class FitAction(PlotToolAction):
 
     # Fitted item update
 
+    def getXData(self, copy=True):
+        """Returns the X data used for the fit or None if undefined.
+
+        :param bool copy:
+            True to get a copy of the data, False to get the internal data.
+        :rtype: Union[numpy.ndarray,None]
+        """
+        return None if self.__x is None else numpy.array(self.__x, copy=copy)
+
+    def getYData(self, copy=True):
+        """Returns the Y data used for the fit or None if undefined.
+
+        :param bool copy:
+            True to get a copy of the data, False to get the internal data.
+        :rtype: Union[numpy.ndarray,None]
+        """
+        return None if self.__y is None else numpy.array(self.__y, copy=copy)
+
     def _getFittedItem(self):
         """Returns the current item used for the fit
 
@@ -243,31 +289,30 @@ class FitAction(PlotToolAction):
 
         :param Union[~silx.gui.plot.items.Curve,~silx.gui.plot.items.Histogram,None] item:
         """
-        if item is None:
-            self.__item = None
-            self.__updateFitWidget()
-            return
-
         plot = self.plot
         if plot is None:
             _logger.error("No associated PlotWidget")
+
+        if plot is None or item is None:
             self.__item = None
+            self.__xlabel = ''
+            self.__ylabel = ''
             self.__updateFitWidget()
             return
 
-        self.xlabel = plot.getXAxis().getLabel()
-        self.ylabel = plot.getYAxis().getLabel() # TODO fit on right axis?
+        self.__xlabel = plot.getXAxis().getLabel()
+        self.__ylabel = plot.getYAxis().getLabel() # TODO fit on right axis?
         self.legend = item.getName()
 
         if isinstance(item, Histogram):
             bin_edges = item.getBinEdgesData(copy=False)
             # take the middle coordinate between adjacent bin edges
-            self.x = (bin_edges[1:] + bin_edges[:-1]) / 2
-            self.y = item.getValueData(copy=False)
+            self.__x = (bin_edges[1:] + bin_edges[:-1]) / 2
+            self.__y = item.getValueData(copy=False)
         # else take the active curve, or else the unique curve
         elif isinstance(item, Curve):
-            self.x = item.getXData(copy=False)
-            self.y = item.getYData(copy=False)
+            self.__x = item.getXData(copy=False)
+            self.__y = item.getYData(copy=False)
 
         self.__item  = item
         self.__updateFitWidget()
@@ -320,8 +365,13 @@ class FitAction(PlotToolAction):
     # Handle fit completed
 
     def handle_signal(self, ddict):
+        xdata = self.getXData(copy=False)
+        if xdata is None:
+            _logger.error("No reference data to display fit result for")
+            return
+
         xmin, xmax = self.getXRange()
-        x_fit = self.x[xmin <= self.x]
+        x_fit = xdata[xmin <= xdata]
         x_fit = x_fit[x_fit <= xmax]
         fit_legend = "Fit <%s>" % self.legend
         fit_curve = self.plot.getCurve(fit_legend)
@@ -334,7 +384,8 @@ class FitAction(PlotToolAction):
             if fit_curve is None:
                 self.plot.addCurve(x_fit, y_fit,
                                    fit_legend,
-                                   xlabel=self.xlabel, ylabel=self.ylabel,
+                                   xlabel=self.__xlabel,
+                                   ylabel=self.__ylabel,
                                    resetzoom=False)
             else:
                 fit_curve.setData(x_fit, y_fit)
