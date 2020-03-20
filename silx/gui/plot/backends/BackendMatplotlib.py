@@ -1199,7 +1199,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             dataBackgroundColor = backgroundColor
 
-        if self.ax.axison:
+        if self.ax.get_frame_on():
             self.fig.patch.set_facecolor(backgroundColor)
             if self._matplotlibVersion < _parse_version('2'):
                 self.ax.set_axis_bgcolor(dataBackgroundColor)
@@ -1218,7 +1218,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             gridColor = foregroundColor
 
         for axes in (self.ax, self.ax2):
-            if axes.axison:
+            if axes.get_frame_on():
                 axes.spines['bottom'].set_color(foregroundColor)
                 axes.spines['top'].set_color(foregroundColor)
                 axes.spines['right'].set_color(foregroundColor)
