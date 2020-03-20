@@ -396,6 +396,7 @@ class FitAction(PlotToolAction):
             else:
                 fit_curve.setData(x_fit, y_fit)
                 fit_curve.setVisible(True)
+                fit_curve.setYAxis(self.__curveParams.get('yaxis', 'left'))
 
         if ddict["event"] in ["FitStarted", "FitFailed"]:
             if fit_curve is not None:
