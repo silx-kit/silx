@@ -92,6 +92,7 @@ class FitAction(PlotToolAction):
         self.__rangeAutoUpdate = False
         self.__x, self.__y = None, None  # Data to fit
         self.__curveParams = {}  # Store curve parameters to use for fit result
+        self.__legend = None
 
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
@@ -127,6 +128,11 @@ class FitAction(PlotToolAction):
     @deprecated(since_version='0.13.0')
     def ylabel(self):
         return self.__curveParams.get('ylabel', None)
+
+    @property
+    @deprecated(since_version='0.13.0')
+    def legend(self):
+        return self.__legend
 
     def _createToolWindow(self):
         # import done here rather than at module level to avoid circular import
@@ -303,7 +309,7 @@ class FitAction(PlotToolAction):
             'xlabel': plot.getXAxis().getLabel(),
             'ylabel': plot.getYAxis(axis).getLabel(),
             }
-        self.legend = item.getName()
+        self.__legend = item.getName()
 
         if isinstance(item, items.Histogram):
             bin_edges = item.getBinEdgesData(copy=False)
@@ -374,7 +380,7 @@ class FitAction(PlotToolAction):
         xmin, xmax = self.getXRange()
         x_fit = xdata[xmin <= xdata]
         x_fit = x_fit[x_fit <= xmax]
-        fit_legend = "Fit <%s>" % self.legend
+        fit_legend = "Fit <%s>" % self.__legend
         fit_curve = self.plot.getCurve(fit_legend)
 
         if ddict["event"] == "FitFinished":
