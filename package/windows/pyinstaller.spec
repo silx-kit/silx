@@ -1,6 +1,6 @@
 # -*- mode: python -*-
 import os.path
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 datas = []
 
@@ -8,9 +8,10 @@ PROJECT_PATH = os.path.abspath(os.path.join(SPECPATH, "..", ".."))
 datas.append((os.path.join(PROJECT_PATH, "README.rst"), "."))
 datas.append((os.path.join(PROJECT_PATH, "LICENSE"), "."))
 datas.append((os.path.join(PROJECT_PATH, "copyright"), "."))
-
-
 datas += collect_data_files("silx.resources")
+
+
+hiddenimports = collect_submodules('fabio')
 
 
 block_cipher = None
@@ -20,7 +21,7 @@ a = Analysis(['bootstrap.py'],
              pathex=[],
              binaries=[],
              datas=datas,
-             hiddenimports=[],
+             hiddenimports=hiddenimports,
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
