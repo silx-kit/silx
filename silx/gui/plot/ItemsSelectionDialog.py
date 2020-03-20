@@ -169,7 +169,9 @@ class PlotItemsSelector(qt.QTableWidget):
         for row in selected_rows:
             legend = self.item(row, 0).text()
             kind = self.item(row, 1).text()
-            items.append(self.plot._getItem(kind, legend))
+            item = self.plot._getItem(kind, legend)
+            if item is not None:
+                items.append(item)
 
         return items
 

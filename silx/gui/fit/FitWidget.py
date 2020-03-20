@@ -512,10 +512,12 @@ class FitWidget(qt.QWidget):
                 msg.setWindowTitle('FitWidget Message')
                 msg.exec_()
                 return
-        except:    # noqa (we want to catch and report all errors)
+        except Exception as e:    # noqa (we want to catch and report all errors)
+            _logger.warning('Estimate error: %s', traceback.format_exc())
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Error on estimate: %s" % traceback.format_exc())
+            msg.setWindowTitle("Estimate Error")
+            msg.setText("Error on estimate: %s" % e)
             msg.exec_()
             ddict = {
                 'event': 'EstimateFailed',
@@ -554,10 +556,12 @@ class FitWidget(qt.QWidget):
                      'data': None}
             self._emitSignal(ddict)
             self.fitmanager.runfit(callback=self.fitStatus)
-        except:  # noqa (we want to catch and report all errors)
+        except Exception as e:  # noqa (we want to catch and report all errors)
+            _logger.warning('Estimate error: %s', traceback.format_exc())
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Error on Fit: %s" % traceback.format_exc())
+            msg.setWindowTitle("Fit Error")
+            msg.setText("Error on Fit: %s" % e)
             msg.exec_()
             ddict = {
                 'event': 'FitFailed',
