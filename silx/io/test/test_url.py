@@ -197,6 +197,15 @@ class TestDataUrl(unittest.TestCase):
         url = DataUrl(scheme="silx", file_path="/foo.h5", data_slice=(5, 1))
         self.assertFalse(url.is_valid())
 
+    def test_path_creation(self):
+        """make sure the construction of path succeed and that we can
+        recreate a DataUrl from a path"""
+        for data_slice in (1, (1,)):
+            with self.subTest(data_slice=data_slice):
+                url = DataUrl(scheme="silx", file_path="/foo.h5", data_slice=data_slice)
+                path = url.path()
+                DataUrl(path=path)
+
 
 def suite():
     test_suite = unittest.TestSuite()
