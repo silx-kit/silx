@@ -30,7 +30,6 @@
 """
 
 from silx.gui import qt
-from silx.gui import icons
 
 __authors__ = ["P. Kügler"]
 __license__ = "MIT"
@@ -41,7 +40,8 @@ class PlotTitleDialog(qt.QDialog):
     def __init__(self, hdf5data, parent=None):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle("Set Plot Title")
-        self.setWindowIcon(icons.getQIcon('gui/icons/silx'))
+        app = qt.QApplication.instance()
+        self.setWindowIcon(app.windowIcon())
 
         self._hdf5data = hdf5data
         fontSizes = ["8", "10", "12", "14", "16", "32"]
