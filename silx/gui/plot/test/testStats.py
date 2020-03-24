@@ -56,10 +56,13 @@ class TestStats(TestCaseQt):
     def tearDown(self):
         self.plot1d.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot1d.close()
+        del self.plot1d
         self.plot2d.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot2d.close()
+        del self.plot2d
         self.scatterPlot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.scatterPlot.close()
+        del self.scatterPlot
         TestCaseQt.tearDown(self)
 
     def createCurveContext(self):
@@ -259,6 +262,7 @@ class TestStatsFormatter(TestCaseQt):
     def tearDown(self):
         self.plot1d.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot1d.close()
+        del self.plot1d
         TestCaseQt.tearDown(self)
 
     def testEmptyFormatter(self):
