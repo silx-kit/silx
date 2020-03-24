@@ -47,7 +47,6 @@ from .. import items
 from ....utils.deprecation import deprecated
 from silx.gui import qt
 from silx.gui.plot.ItemsSelectionDialog import ItemsSelectionDialog
-from silx.gui.plot.items import Curve, Histogram
 
 _logger = logging.getLogger(__name__)
 
@@ -92,8 +91,8 @@ class FitAction(PlotToolAction):
         self.__range = 0, 1
         self.__rangeAutoUpdate = False
         self.__x, self.__y = None, None  # Data to fit
-        self.__xlabel = ''
-        self.__ylabel = ''
+        self.__curveParams = {}  # Store curve parameters to use for fit result
+        self.__legend = None
 
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
@@ -123,12 +122,17 @@ class FitAction(PlotToolAction):
     @property
     @deprecated(since_version='0.13.0')
     def xlabel(self):
-        return self.__xlabel
+        return self.__curveParams.get('xlabel', None)
 
     @property
     @deprecated(since_version='0.13.0')
     def ylabel(self):
-        return self.__ylabel
+        return self.__curveParams.get('ylabel', None)
+
+    @property
+    @deprecated(since_version='0.13.0')
+    def legend(self):
+        return self.__legend
 
     def _createToolWindow(self):
         # import done here rather than at module level to avoid circular import
@@ -295,22 +299,25 @@ class FitAction(PlotToolAction):
 
         if plot is None or item is None:
             self.__item = None
-            self.__xlabel = ''
-            self.__ylabel = ''
+            self.__curveParams = {}
             self.__updateFitWidget()
             return
 
-        self.__xlabel = plot.getXAxis().getLabel()
-        self.__ylabel = plot.getYAxis().getLabel() # TODO fit on right axis?
-        self.legend = item.getName()
+        axis = item.getYAxis() if isinstance(item, items.YAxisMixIn) else 'left'
+        self.__curveParams = {
+            'yaxis': axis,
+            'xlabel': plot.getXAxis().getLabel(),
+            'ylabel': plot.getYAxis(axis).getLabel(),
+            }
+        self.__legend = item.getName()
 
-        if isinstance(item, Histogram):
+        if isinstance(item, items.Histogram):
             bin_edges = item.getBinEdgesData(copy=False)
             # take the middle coordinate between adjacent bin edges
             self.__x = (bin_edges[1:] + bin_edges[:-1]) / 2
             self.__y = item.getValueData(copy=False)
         # else take the active curve, or else the unique curve
-        elif isinstance(item, Curve):
+        elif isinstance(item, items.Curve):
             self.__x = item.getXData(copy=False)
             self.__y = item.getYData(copy=False)
 
@@ -373,7 +380,7 @@ class FitAction(PlotToolAction):
         xmin, xmax = self.getXRange()
         x_fit = xdata[xmin <= xdata]
         x_fit = x_fit[x_fit <= xmax]
-        fit_legend = "Fit <%s>" % self.legend
+        fit_legend = "Fit <%s>" % self.__legend
         fit_curve = self.plot.getCurve(fit_legend)
 
         if ddict["event"] == "FitFinished":
@@ -384,12 +391,12 @@ class FitAction(PlotToolAction):
             if fit_curve is None:
                 self.plot.addCurve(x_fit, y_fit,
                                    fit_legend,
-                                   xlabel=self.__xlabel,
-                                   ylabel=self.__ylabel,
-                                   resetzoom=False)
+                                   resetzoom=False,
+                                   **self.__curveParams)
             else:
                 fit_curve.setData(x_fit, y_fit)
                 fit_curve.setVisible(True)
+                fit_curve.setYAxis(self.__curveParams.get('yaxis', 'left'))
 
         if ddict["event"] in ["FitStarted", "FitFailed"]:
             if fit_curve is not None:
