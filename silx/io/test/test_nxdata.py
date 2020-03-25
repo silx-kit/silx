@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/01/2018"
+__date__ = "24/03/2020"
 
 
 import tempfile
@@ -54,6 +54,7 @@ class TestNXdata(unittest.TestCase):
         g0d0.attrs["NX_class"] = "NXdata"
         g0d0.attrs["signal"] = "scalar"
         g0d0.create_dataset("scalar", data=10)
+        g0d0.create_dataset("scalar_errors", data=0.1)
 
         g0d1 = g0d.create_group("2D_scalars")
         g0d1.attrs["NX_class"] = "NXdata"
@@ -199,7 +200,7 @@ class TestNXdata(unittest.TestCase):
         self.assertEqual(nxd.axes_names, [])
         self.assertEqual(nxd.axes_dataset_names, [])
         self.assertEqual(nxd.axes, [])
-        self.assertIsNone(nxd.errors)
+        self.assertIsNotNone(nxd.errors)
         self.assertFalse(nxd.is_scatter or nxd.is_x_y_value_scatter)
         self.assertIsNone(nxd.interpretation)
 

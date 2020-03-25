@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ from ._utils import get_attr_as_unicode, INTERPDIM, nxdata_logger, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/02/2019"
+__date__ = "24/03/2020"
 
 
 class InvalidNXdataError(Exception):
@@ -250,8 +250,18 @@ class NXdata(object):
                                     "dimensions as axis '%s'." % axis_name)
 
         # test dimensions of errors associated with signal
+
+        signal_errors = signal_name + "_errors"
         if "errors" in self.group and is_dataset(self.group["errors"]):
-            if self.group["errors"].shape != self.group[signal_name].shape:
+            errors = "errors"
+        elif signal_errors in self.group and is_dataset(self.group[signal_errors]):
+            errors = signal_errors
+        else:
+            errors = None
+        if errors:
+            if self.group[errors].shape != self.group[signal_name].shape:
+                # In principle just the same size should be enough but
+                # NeXus documentation imposes to have the same shape
                 self.issues.append(
                         "Dataset containing standard deviations must " +
                         "have the same dimensions as the signal.")
@@ -629,9 +639,15 @@ class NXdata(object):
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        if "errors" not in self.group:
+        # case of signal
+        signal_errors = self.signal_dataset_name + "_errors"
+        if "errors" in self.group and is_dataset(self.group["errors"]):
+            errors = "errors"
+        elif signal_errors in self.group and is_dataset(self.group[signal_errors]):
+            errors = signal_errors
+        else:
             return None
-        return self.group["errors"]
+        return self.group[errors]
 
     @property
     def is_scatter(self):
