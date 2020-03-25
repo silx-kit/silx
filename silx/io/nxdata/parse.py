@@ -260,7 +260,8 @@ class NXdata(object):
             errors = None
         if errors:
             if self.group[errors].shape != self.group[signal_name].shape:
-                # TODO: In principle just the same size should be enough
+                # In principle just the same size should be enough but
+                # NeXus documentation imposes to have the same shape
                 self.issues.append(
                         "Dataset containing standard deviations must " +
                         "have the same dimensions as the signal.")
