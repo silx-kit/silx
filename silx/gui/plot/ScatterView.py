@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -181,10 +181,17 @@ class ScatterView(qt.QMainWindow):
                         pixelPos[0], pixelPos[1],
                         lambda item: isinstance(item, items.Scatter))
                     if result is not None:
-                        # Get last index
-                        # with matplotlib it should be the top-most point
-                        dataIndex = result.getIndices(copy=False)[-1]
                         item = result.getItem()
+                        if item.getVisualization() is items.Scatter.Visualization.HISTOGRAM:
+                            # Get highest index of closest points
+                            selected = result.getIndices(copy=False)[::-1]
+                            dataIndex = selected[numpy.argmin(
+                                (item.getXData(copy=False)[selected] - x)**2 +
+                                (item.getYData(copy=False)[selected] - y)**2)]
+                        else:
+                            # Get last index
+                            # with matplotlib it should be the top-most point
+                            dataIndex = result.getIndices(copy=False)[-1]
                         self.__pickingCache = (
                             dataIndex,
                             item.getXData(copy=False)[dataIndex],

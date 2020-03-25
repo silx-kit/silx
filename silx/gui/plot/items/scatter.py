@@ -43,6 +43,7 @@ from concurrent.futures import ThreadPoolExecutor, CancelledError
 
 from ....utils.proxy import docstring
 from ....math.combo import min_max
+from ....math.histogram import Histogramnd
 from ....utils.weakref import WeakList
 from .._utils.delaunay import delaunay
 from .core import PointsBase, ColormapMixIn, ScatterVisualizationMixIn
@@ -265,6 +266,10 @@ _RegularGridInfo = namedtuple(
     '_RegularGridInfo', ['bounds', 'origin', 'scale', 'shape', 'order'])
 
 
+_HistogramInfo = namedtuple(
+    '_HistogramInfo', ['histo', 'counts', 'sums', 'origin', 'scale', 'shape'])
+
+
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     """Description of a scatter"""
 
@@ -276,6 +281,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         ScatterVisualizationMixIn.Visualization.SOLID,
         ScatterVisualizationMixIn.Visualization.REGULAR_GRID,
         ScatterVisualizationMixIn.Visualization.IRREGULAR_GRID,
+        ScatterVisualizationMixIn.Visualization.HISTOGRAM,
         )
     """Overrides supported Visualizations"""
 
@@ -294,17 +300,44 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         # Cache triangles: x, y, indices
         self.__cacheTriangles = None, None, None
 
-        # Cache regular grid info
+        # Cache regular grid and histogram info
         self.__cacheRegularGridInfo = None
+        self.__cacheHistogramInfo = None
+
+    def _updateColormappedData(self):
+        """Update the colormapped data, to be called when changed"""
+        if self.getVisualization() is self.Visualization.HISTOGRAM:
+            data = self.__getHistogramInfo().histo
+        else:
+            data = self.getValueData(copy=False)
+        self._setColormappedData(data, copy=False)
+
+    @docstring(ScatterVisualizationMixIn)
+    def setVisualization(self, mode):
+        previous = self.getVisualization()
+        if super().setVisualization(mode):
+            if (bool(mode is self.Visualization.HISTOGRAM) ^
+                    bool(previous is self.Visualization.HISTOGRAM)):
+                self._updateColormappedData()
+            return True
+        else:
+            return False
 
     @docstring(ScatterVisualizationMixIn)
     def setVisualizationParameter(self, parameter, value):
-        changed = super(Scatter, self).setVisualizationParameter(parameter, value)
-        if changed and parameter in (self.VisualizationParameter.GRID_BOUNDS,
-                                     self.VisualizationParameter.GRID_MAJOR_ORDER,
-                                     self.VisualizationParameter.GRID_SHAPE):
-            self.__cacheRegularGridInfo = None
-        return changed
+        if super(Scatter, self).setVisualizationParameter(parameter, value):
+            if parameter in (self.VisualizationParameter.GRID_BOUNDS,
+                             self.VisualizationParameter.GRID_MAJOR_ORDER,
+                             self.VisualizationParameter.GRID_SHAPE):
+                self.__cacheRegularGridInfo = None
+
+            if parameter in (self.VisualizationParameter.HISTOGRAM_SHAPE,):
+                self.__cacheHistogramInfo = None
+                if self.getVisualization() is self.Visualization.HISTOGRAM:
+                    self._updateColormappedData()
+            return True
+        else:
+            return False
 
     @docstring(ScatterVisualizationMixIn)
     def getCurrentVisualizationParameter(self, parameter):
@@ -323,6 +356,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         elif parameter is self.VisualizationParameter.GRID_SHAPE:
             grid = self.__getRegularGridInfo()
             return None if grid is None else grid.shape
+
+        elif parameter is self.VisualizationParameter.HISTOGRAM_SHAPE:
+            info = self.__getHistogramInfo()
+            return None if info is None else info.shape
 
         else:
             raise NotImplementedError()
@@ -385,6 +422,44 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         return self.__cacheRegularGridInfo
 
+    def __getHistogramInfo(self):
+        """Get histogram info"""
+        if self.__cacheHistogramInfo is None:
+            shape = self.getVisualizationParameter(
+                self.VisualizationParameter.HISTOGRAM_SHAPE)
+            if shape is None:
+                shape = 100, 100 # TODO compute auto shape
+
+            x, y, values = self.getData(copy=False)[:3]
+            if not numpy.issubdtype(x.dtype, numpy.floating):
+                x = x.astype(numpy.float64)
+            if not numpy.issubdtype(y.dtype, numpy.floating):
+                y = y.astype(numpy.float64)
+            if not numpy.issubdtype(values.dtype, numpy.floating):
+                values = values.astype(numpy.float64)
+
+            ranges = (tuple(min_max(y, finite=True)),
+                      tuple(min_max(x, finite=True)))
+            points = numpy.transpose(numpy.array((y, x)))
+            counts, sums, bin_edges = Histogramnd(
+                points,
+                histo_range=ranges,
+                n_bins=shape,
+                weights=values)
+            yEdges, xEdges = bin_edges
+            origin = xEdges[0], yEdges[0]
+            scale = ((xEdges[-1] - xEdges[0]) / (len(xEdges) - 1),
+                     (yEdges[-1] - yEdges[0]) / (len(yEdges) - 1))
+
+            with numpy.errstate(divide='ignore', invalid='ignore'):
+                histo = sums / counts
+
+            self.__cacheHistogramInfo = _HistogramInfo(
+                histo=histo, counts=counts, sums=sums,
+                origin=origin, scale=scale, shape=shape)
+
+        return self.__cacheHistogramInfo
+
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
         # Filter-out values <= 0
@@ -398,6 +473,25 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         if len(xFiltered) == 0:
             return None  # No data to display, do not add renderer to backend
+
+        visualization = self.getVisualization()
+
+        if visualization is self.Visualization.HISTOGRAM:
+            plot = self.getPlot()
+            if (plot is None or
+                    plot.getXAxis().getScale() != Axis.LINEAR or
+                    plot.getYAxis().getScale() != Axis.LINEAR):
+                # Those visualizations are not available with log scaled axes
+                return None
+
+            histoInfo = self.__getHistogramInfo()
+
+            return backend.addImage(
+                data=histoInfo.histo,
+                origin=histoInfo.origin,
+                scale=histoInfo.scale,
+                colormap=self.getColormap(),
+                alpha=self.getAlpha())
 
         # Compute colors
         cmap = self.getColormap()
@@ -517,6 +611,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                             indices,
                                             color=gridcolors,
                                             alpha=self.getAlpha())
+
             else:
                 _logger.error("Unhandled visualization %s", visualization)
                 return None
@@ -552,6 +647,21 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     return None  # Image can be larger than scatter
 
                 result = PickingResult(self, (index,))
+
+            elif visualization is self.Visualization.HISTOGRAM:
+                picked = result.getIndices(copy=False)
+                if picked is None or len(picked) == 0 or len(picked[0]) == 0:
+                    return None
+                row, col = picked[0][0], picked[1][0]
+                histoInfo = self.__getHistogramInfo()
+                sx, sy = histoInfo.scale
+                ox, oy = histoInfo.origin
+                xdata = self.getXData(copy=False)
+                ydata = self.getYData(copy=False)
+                indices = numpy.nonzero(numpy.logical_and(
+                    numpy.logical_and(xdata >= ox + sx * col, xdata < ox + sx * (col + 1)),
+                    numpy.logical_and(ydata >= oy + sy * row, ydata < oy + sy * (row + 1))))[0]
+                result = None if len(indices) == 0 else PickingResult(self, indices)
 
         return result
 
@@ -749,9 +859,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # Data changed, this needs update
         self.__cacheRegularGridInfo = None
+        self.__cacheHistogramInfo = None
 
         self._value = value
-        self._setColormappedData(value, copy=False)
+        self._updateColormappedData()
 
         if alpha is not None:
             # Make sure alpha is an array of float in [0, 1]
