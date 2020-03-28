@@ -364,6 +364,16 @@ class DataView(object):
         """
         return None
 
+    def setDataSelection(self, selection):
+        """Set the data selection displayed by the view
+
+        If called, it have to be called directly after `setData`.
+
+        :param selection: Data selected
+        :type selection: NamedTuple
+        """
+        pass
+
     def axesNames(self, data, info):
         """Returns names of the expected axes of the view, according to the
         input data. A none value will disable the default axes selectior.
