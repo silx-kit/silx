@@ -29,6 +29,7 @@ from collections import OrderedDict
 import logging
 import numbers
 import numpy
+import os
 
 import silx.io
 from silx.utils import deprecation
@@ -822,6 +823,33 @@ class _Plot1dView(DataView):
                                   y=data,
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = True
+
+    def setDataSelection(self, selection):
+        if selection is None:
+            title = None
+        else:
+            directory, filename = os.path.split(selection.filename)
+            slicing = selection.slice
+            if slicing == None:
+                slicing = "()"
+            params = dict(directory=directory,
+                          filename=filename,
+                          datapath=selection.datapath,
+                          slice=slicing)
+            # FIXME: This could be an configurable field of the view
+            pattern = "{filename}::{datapath}[{slice}]"
+            try:
+                title = pattern.format(**params)
+            except Exception:
+                _logger.debug("Error while formatting title", exc_info=True)
+                title = selection.datapath
+                if selection.slice is not None:
+                    title = title + " [sliced]"
+            if selection.permutation is not None:
+                title = title + " [axis permutation]"
+
+        plot = self.getWidget()
+        plot.setGraphTitle(title)
 
     def axesNames(self, data, info):
         return ["y"]
