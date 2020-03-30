@@ -1267,7 +1267,6 @@ class _StackView(DataView):
         title = self.titleForSelection(selection)
         self.getWidget().setTitleCallback(
             lambda idx: "%s z=%d" % (title, idx))
-        DataView.setDataSelection(self, selection)
 
     def axesNames(self, data, info):
         return ["depth", "y", "x"]
