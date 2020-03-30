@@ -80,6 +80,8 @@ class TestImageStack(TestCaseQt):
         """Test that selection using the url table and the slider are working
         """
         self.widget.show()
+        self.assertEqual(self.widget.getCurrentUrl(), None)
+        self.assertEqual(self.widget.getCurrentUrlIndex(), None)
         self.widget.setUrls(list(self.urls.values()))
 
         # wait for image to be loaded
@@ -99,6 +101,8 @@ class TestImageStack(TestCaseQt):
             self.widget.getPlotWidget().getActiveImage(just_legend=False).getData(),
             self._raw_data[4])
         self.assertEqual(self.widget._slider.value(), 4)
+        self.assertEqual(self.widget.getCurrentUrl(), self.urls[4])
+        self.assertEqual(self.widget.getCurrentUrlIndex(), 4)
 
         self.widget._slider.setUrlIndex(6)
         numpy.testing.assert_array_equal(

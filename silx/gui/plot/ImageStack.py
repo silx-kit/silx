@@ -547,6 +547,17 @@ class ImageStack(qt.QMainWindow):
         """
         return self._current_url
 
+    def getCurrentUrlIndex(self) -> typing.Union[None, int]:
+        """
+
+        :return: index of the url currently displayed
+        :rtype: Union[None, int]
+        """
+        if self._current_url is None:
+            return None
+        else:
+            return self._urlIndexes[self._current_url.path()]
+
     @staticmethod
     def _urlsToIndex(urls):
         """util, return a dictionary with url as key and index as value"""
